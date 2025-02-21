@@ -19,6 +19,12 @@ export function Form() {
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const [keyErrors, setKeyErrors] = useState<{ [key: number]: string }>({});
 
+  const [programOnboarding, _, { mutateWorkspace }] = useWorkspaceStore<{
+    rewardfulAffiliateCount: number;
+    domain: string;
+    partners?: { email: string; key: string }[];
+  }>("programOnboarding");
+
   const {
     register,
     control,
@@ -28,14 +34,11 @@ export function Form() {
     formState: { isSubmitting },
   } = useForm<InvitePartners>({
     defaultValues: {
-      partners: [{ email: "", key: "" }],
+      partners: programOnboarding?.partners?.length
+        ? programOnboarding.partners
+        : [{ email: "", key: "" }],
     },
   });
-
-  const [programOnboarding, _, { mutateWorkspace }] = useWorkspaceStore<{
-    rewardfulAffiliateCount: number;
-    domain: string;
-  }>("programOnboarding");
 
   const { fields, append, remove } = useFieldArray({
     name: "partners",
@@ -45,20 +48,15 @@ export function Form() {
   const partners = watch("partners");
   const [debouncedPartners] = useDebounce(partners, 500);
 
-  const domain = "dub.sh";
-
   const generateKeyFromEmail = (email: string) => {
-    if (!email) {
-      return "";
-    }
-
+    if (!email) return "";
     const prefix = email.split("@")[0];
-    const randomNum = Math.floor(1000 + Math.random() * 9000); // 4 digit number
+    const randomNum = Math.floor(1000 + Math.random() * 9000);
     return `${prefix}${randomNum}`;
   };
 
   const validateKey = async (key: string, index: number) => {
-    if (!key || !domain) {
+    if (!key || !programOnboarding?.domain) {
       setKeyErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors[index];
@@ -69,24 +67,20 @@ export function Form() {
 
     try {
       const response = await fetch(
-        `/api/links/exists?domain=${domain}&key=${key}&workspaceId=${workspaceId}`,
+        `/api/links/exists?domain=${programOnboarding.domain}&key=${key}&workspaceId=${workspaceId}`,
       );
-
       const { error } = await response.json();
 
       setKeyErrors((prev) => {
         const newErrors = { ...prev };
-
         if (error) {
           if (error.message.includes("Duplicate key")) {
             error.message = "Referral link already taken.";
           }
-
           newErrors[index] = error.message;
         } else {
           delete newErrors[index];
         }
-
         return newErrors;
       });
     } catch (error) {
@@ -98,10 +92,17 @@ export function Form() {
   };
 
   useEffect(() => {
-    if (!debouncedPartners) {
-      return;
+    if (programOnboarding?.partners?.length) {
+      programOnboarding.partners.forEach((partner, index) => {
+        if (partner.key) {
+          validateKey(partner.key, index);
+        }
+      });
     }
+  }, []);
 
+  useEffect(() => {
+    if (!debouncedPartners) return;
     debouncedPartners.forEach((partner, index) => {
       if (partner.key) {
         validateKey(partner.key, index);
@@ -111,7 +112,6 @@ export function Form() {
 
   const handleKeyFocus = (index: number) => {
     const partner = partners?.[index];
-
     if (partner?.email && !partner.key) {
       setValue(`partners.${index}.key`, generateKeyFromEmail(partner.email));
     }
@@ -128,10 +128,7 @@ export function Form() {
   });
 
   const onSubmit = async (data: InvitePartners) => {
-    if (!workspaceId) {
-      return;
-    }
-
+    if (!workspaceId) return;
     await executeAsync({
       ...data,
       workspaceId,
@@ -201,7 +198,7 @@ export function Form() {
                     >
                       <div className="flex items-center border-r border-neutral-300 bg-neutral-100 px-3">
                         <span className="text-sm font-medium text-neutral-800">
-                          {domain}
+                          {programOnboarding?.domain}
                         </span>
                       </div>
                       <input
