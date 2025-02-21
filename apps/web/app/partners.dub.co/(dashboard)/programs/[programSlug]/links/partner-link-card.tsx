@@ -193,7 +193,7 @@ export function PartnerLinkCard({
 
           <div className="flex items-center gap-2">
             <Link
-              href={`#`}
+              href={`/programs/${programEnrollment?.program.slug}/links/${link.id}/analytics`}
               className="overflow-hidden rounded-md border border-neutral-200 bg-neutral-50 p-0.5 text-sm text-neutral-600 transition-colors hover:bg-white"
             >
               <div className="flex items-center gap-0.5">

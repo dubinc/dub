@@ -100,9 +100,10 @@ export default function AnalyticsProvider({
 
   const [requiresUpgrade, setRequiresUpgrade] = useState(false);
 
-  const { dashboardId, programSlug } = useParams() as {
+  const { dashboardId, programSlug, linkId } = useParams() as {
     dashboardId?: string;
     programSlug?: string;
+    linkId?: string;
   };
 
   const { partner } = usePartnerProfile();
@@ -267,6 +268,7 @@ export default function AnalyticsProvider({
       ...(workspaceId && { workspaceId }),
       ...(domain && { domain }),
       ...(key && { key }),
+      ...(linkId && { linkId }),
       ...(start &&
         end && { start: start.toISOString(), end: end.toISOString() }),
       ...(interval && { interval }),
@@ -280,6 +282,7 @@ export default function AnalyticsProvider({
     workspaceId,
     domain,
     key,
+    linkId,
     searchParams,
     start,
     end,
