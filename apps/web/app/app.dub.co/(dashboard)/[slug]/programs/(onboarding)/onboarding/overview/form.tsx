@@ -44,18 +44,16 @@ export function Form() {
     });
   };
 
-  const reward = program?.rewardful?.campaign
+  const rewardful = program?.rewardful?.campaign;
+
+  const reward = rewardful
     ? {
-        type:
-          program?.rewardful?.campaign.reward_type === "amount"
-            ? "flat"
-            : "percentage",
+        type: rewardful.reward_type === "amount" ? "flat" : "percentage",
         amount:
-          program?.rewardful?.campaign.reward_type === "amount"
-            ? program?.rewardful?.campaign.commission_amount_cents
-            : program?.rewardful?.campaign.commission_percent,
-        maxDuration:
-          program?.rewardful?.campaign.max_commission_period_months ?? 0,
+          rewardful.reward_type === "amount"
+            ? rewardful.commission_amount_cents
+            : rewardful.commission_percent,
+        maxDuration: rewardful.max_commission_period_months,
         event: "sale",
       }
     : {
@@ -88,7 +86,7 @@ export function Form() {
   ] as const;
 
   return (
-    <form onSubmit={onSubmit} className="space-y-6">
+    <div className="space-y-6">
       {SECTIONS.map(({ title, content, href }) => (
         <div
           key={title}
@@ -116,7 +114,8 @@ export function Form() {
         text="Create program"
         className="mt-6 w-full"
         loading={isPending}
+        onClick={onSubmit}
       />
-    </form>
+    </div>
   );
 }
