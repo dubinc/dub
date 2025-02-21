@@ -294,19 +294,23 @@ export default function Toggle({
 
   const filters: ComponentProps<typeof Filter.Select>["filters"] = useMemo(
     () => [
-      {
-        key: "ai",
-        icon: Magic,
-        label: "Ask AI",
-        separatorAfter: true,
-        options:
-          aiFilterSuggestions?.map(({ icon, value }) => ({
-            value,
-            label: value,
-            icon,
-          })) ?? null,
-      },
-      ...(dashboardProps
+      ...(partnerPage
+        ? []
+        : [
+            {
+              key: "ai",
+              icon: Magic,
+              label: "Ask AI",
+              separatorAfter: true,
+              options:
+                aiFilterSuggestions?.map(({ icon, value }) => ({
+                  value,
+                  label: value,
+                  icon,
+                })) ?? null,
+            },
+          ]),
+      ...(dashboardProps || partnerPage
         ? []
         : [
             ...(flags?.linkFolders
@@ -455,7 +459,7 @@ export default function Toggle({
             icon: trigger === "qr" ? QRCode : CursorRays,
             right: nFormatter(count, { full: true }),
           })) ?? null,
-        separatorAfter: !dashboardProps,
+        separatorAfter: !dashboardProps && !partnerPage,
       },
       {
         key: "country",
@@ -618,25 +622,28 @@ export default function Toggle({
             right: nFormatter(count, { full: true }),
           })) ?? null,
       },
-      ...(UTM_PARAMETERS.filter(({ key }) => key !== "ref").map(
-        ({ key, label, icon: Icon }) => ({
-          key,
-          icon: Icon,
-          label: `UTM ${label}`,
-          getOptionIcon: (value) => (
-            <Icon display={value} className="h-4 w-4" />
-          ),
-          options:
-            utmData[key]?.map((dt) => ({
-              value: dt[key],
-              label: dt[key],
-              right: nFormatter(dt.count, { full: true }),
-            })) ?? null,
-        }),
-      ) ?? []),
+      ...(partnerPage
+        ? []
+        : UTM_PARAMETERS.filter(({ key }) => key !== "ref").map(
+            ({ key, label, icon: Icon }) => ({
+              key,
+              icon: Icon,
+              label: `UTM ${label}`,
+              getOptionIcon: (value) => (
+                <Icon display={value} className="h-4 w-4" />
+              ),
+              options:
+                utmData[key]?.map((dt) => ({
+                  value: dt[key],
+                  label: dt[key],
+                  right: nFormatter(dt.count, { full: true }),
+                })) ?? null,
+            }),
+          ) ?? []),
     ],
     [
       dashboardProps,
+      partnerPage,
       domains,
       links,
       tags,

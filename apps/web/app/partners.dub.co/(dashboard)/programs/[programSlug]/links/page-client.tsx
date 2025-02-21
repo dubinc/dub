@@ -57,7 +57,7 @@ export function ProgramLinksPageClient() {
       <div className="flex items-center justify-between">
         <SimpleDateRangePicker
           className="w-fit"
-          align="end"
+          align="start"
           defaultInterval="30d"
         />
         <Button
@@ -83,7 +83,7 @@ export function ProgramLinksPageClient() {
                 </p>
               </div>
             ) : loading ? (
-              [...Array(3)].map((_, i) => <LinkCardSkeleton key={i} />)
+              <LinkCardSkeleton />
             ) : (
               links?.map((link) => (
                 <PartnerLinkCard
@@ -102,15 +102,28 @@ export function ProgramLinksPageClient() {
 
 function LinkCardSkeleton() {
   return (
-    <CardList.Card innerClassName="flex items-center justify-between gap-4 h-[66px]">
-      <div className="flex min-w-0 items-center gap-3">
-        <div className="relative hidden size-8 shrink-0 animate-pulse rounded-full bg-neutral-200 sm:flex" />
-        <div className="flex min-w-0 flex-col gap-1.5">
-          <div className="h-5 w-32 animate-pulse rounded-md bg-neutral-200" />
-          <div className="h-4 w-48 animate-pulse rounded-md bg-neutral-200" />
+    <CardList.Card innerClassName="px-0 py-0" hoverStateEnabled={false}>
+      <div className="h-[33px] rounded-t-xl bg-neutral-50"></div>
+      <div className="p-4">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="relative hidden size-11 shrink-0 animate-pulse rounded-full bg-neutral-200 sm:flex" />
+            <div className="flex min-w-0 flex-col gap-1.5">
+              <div className="h-6 w-32 animate-pulse rounded-md bg-neutral-200" />
+              <div className="h-4 w-48 animate-pulse rounded-md bg-neutral-200" />
+            </div>
+          </div>
+          <div className="h-7 w-16 animate-pulse rounded-md bg-neutral-200" />
+        </div>
+        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {[...Array(3)].map((_, i) => (
+            <div
+              key={i}
+              className="h-[156px] rounded-lg border border-neutral-100"
+            />
+          ))}
         </div>
       </div>
-      <div className="h-7 w-16 animate-pulse rounded-md bg-neutral-200" />
     </CardList.Card>
   );
 }
