@@ -10,6 +10,7 @@ import { transformSaleEventData } from "@/lib/webhook/transform";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { differenceInMonths } from "date-fns";
 import type Stripe from "stripe";
 
 // Handle event "invoice.paid"
@@ -126,18 +127,30 @@ export async function invoicePaid(event: Stripe.Event) {
       let eligibleForCommission = true;
 
       if (typeof reward.maxDuration === "number") {
-        const commissionCount = await prisma.commission.count({
+        // Get the first commission (earliest sale) for this customer-partner pair
+        const firstCommission = await prisma.commission.findFirst({
           where: {
             partnerId: link.partnerId,
             customerId: customer.id,
             type: "sale",
           },
+          orderBy: {
+            createdAt: "asc",
+          },
         });
 
-        if (reward.maxDuration === 0 && commissionCount > 0) {
+        if (reward.maxDuration === 0 && firstCommission) {
           eligibleForCommission = false;
-        } else if (commissionCount >= reward.maxDuration) {
-          eligibleForCommission = false;
+        } else if (firstCommission) {
+          // Calculate months difference between first commission and now
+          const monthsDifference = differenceInMonths(
+            new Date(),
+            firstCommission.createdAt,
+          );
+
+          if (monthsDifference >= reward.maxDuration) {
+            eligibleForCommission = false;
+          }
         }
       }
 

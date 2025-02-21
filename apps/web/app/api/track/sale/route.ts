@@ -16,6 +16,7 @@ import {
 import { prismaEdge } from "@dub/prisma/edge";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { differenceInMonths } from "date-fns";
 import { NextResponse } from "next/server";
 import { determinePartnerReward } from "../determine-partner-reward-edge";
 
@@ -158,18 +159,30 @@ export const POST = withWorkspaceEdge(
             let eligibleForCommission = true;
 
             if (typeof reward.maxDuration === "number") {
-              const commissionCount = await prismaEdge.commission.count({
+              // Get the first commission (earliest sale) for this customer-partner pair
+              const firstCommission = await prismaEdge.commission.findFirst({
                 where: {
                   partnerId: link.partnerId,
                   customerId: customer.id,
                   type: "sale",
                 },
+                orderBy: {
+                  createdAt: "asc",
+                },
               });
 
-              if (reward.maxDuration === 0 && commissionCount > 0) {
+              if (reward.maxDuration === 0 && firstCommission) {
                 eligibleForCommission = false;
-              } else if (commissionCount >= reward.maxDuration) {
-                eligibleForCommission = false;
+              } else if (firstCommission) {
+                // Calculate months difference between first commission and now
+                const monthsDifference = differenceInMonths(
+                  new Date(),
+                  firstCommission.createdAt,
+                );
+
+                if (monthsDifference >= reward.maxDuration) {
+                  eligibleForCommission = false;
+                }
               }
             }
 
