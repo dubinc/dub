@@ -1,12 +1,13 @@
 import { fetcher } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { useParams, useSearchParams } from "next/navigation";
-import useSWR from "swr";
+import useSWR, { SWRConfiguration } from "swr";
 import { VALID_ANALYTICS_FILTERS } from "../analytics/constants";
 import { PartnerAnalyticsFilters } from "../analytics/types";
 
 export default function usePartnerAnalytics(
   params?: PartnerAnalyticsFilters & { programId?: string },
+  options?: SWRConfiguration,
 ) {
   const { data: session } = useSession();
   const { programSlug } = useParams();
@@ -45,6 +46,7 @@ export default function usePartnerAnalytics(
     {
       dedupingInterval: 60000,
       keepPreviousData: true,
+      ...options,
     },
   );
 

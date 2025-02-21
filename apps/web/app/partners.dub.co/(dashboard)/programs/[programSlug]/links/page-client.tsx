@@ -1,15 +1,17 @@
 "use client";
 
 import { intervals } from "@/lib/analytics/constants";
+import { IntervalOptions } from "@/lib/analytics/types";
 import usePartnerLinks from "@/lib/swr/use-partner-links";
-import { CardList } from "@dub/ui";
+import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
+import { CardList, useRouterStuff } from "@dub/ui";
 import { ChartTooltipSync } from "@dub/ui/charts";
 import { createContext, useContext } from "react";
 import { PartnerLinkCard } from "./partner-link-card";
 
 const PartnerLinksContext = createContext<{
-  start: Date;
-  end: Date;
+  start?: Date;
+  end?: Date;
   interval: (typeof intervals)[number];
 } | null>(null);
 
@@ -24,28 +26,52 @@ export function usePartnerLinksContext() {
 }
 
 export function ProgramLinksPageClient() {
+  const { searchParamsObj } = useRouterStuff();
   const { links, error, loading } = usePartnerLinks();
 
-  const start = new Date("2025-01-21");
-  const end = new Date("2025-02-21");
-  const interval = "24h";
+  const {
+    start,
+    end,
+    interval = "30d",
+  } = searchParamsObj as {
+    start?: string;
+    end?: string;
+    interval?: IntervalOptions;
+  };
 
   return (
-    <PartnerLinksContext.Provider value={{ start, end, interval }}>
-      <ChartTooltipSync>
-        <CardList>
-          {error ? (
-            <div className="flex items-center justify-center px-5 py-3">
-              <p className="text-sm text-neutral-600">Failed to load links.</p>
-            </div>
-          ) : loading ? (
-            [...Array(3)].map((_, i) => <LinkCardSkeleton key={i} />)
-          ) : (
-            links?.map((link) => <PartnerLinkCard key={link.id} link={link} />)
-          )}
-        </CardList>
-      </ChartTooltipSync>
-    </PartnerLinksContext.Provider>
+    <div className="flex flex-col gap-5">
+      <SimpleDateRangePicker
+        className="w-fit"
+        align="end"
+        defaultInterval="30d"
+      />
+      <PartnerLinksContext.Provider
+        value={{
+          start: start ? new Date(start) : undefined,
+          end: end ? new Date(end) : undefined,
+          interval,
+        }}
+      >
+        <ChartTooltipSync>
+          <CardList>
+            {error ? (
+              <div className="flex items-center justify-center px-5 py-3">
+                <p className="text-sm text-neutral-600">
+                  Failed to load links.
+                </p>
+              </div>
+            ) : loading ? (
+              [...Array(3)].map((_, i) => <LinkCardSkeleton key={i} />)
+            ) : (
+              links?.map((link) => (
+                <PartnerLinkCard key={link.id} link={link} />
+              ))
+            )}
+          </CardList>
+        </ChartTooltipSync>
+      </PartnerLinksContext.Provider>
+    </div>
   );
 }
 

@@ -42,22 +42,32 @@ const CHARTS = [
 export function PartnerLinkCard({ link }: { link: PartnerLinkProps }) {
   const { start, end, interval } = usePartnerLinksContext();
 
-  const { data: totals } = usePartnerAnalytics({
-    linkId: link.id,
-    event: "composite",
-    interval,
-    start,
-    end,
-  });
+  const { data: totals } = usePartnerAnalytics(
+    {
+      linkId: link.id,
+      event: "composite",
+      interval,
+      start,
+      end,
+    },
+    {
+      keepPreviousData: false,
+    },
+  );
 
-  const { data: timeseries, error } = usePartnerAnalytics({
-    linkId: link.id,
-    groupBy: "timeseries",
-    event: "composite",
-    interval,
-    start,
-    end,
-  });
+  const { data: timeseries, error } = usePartnerAnalytics(
+    {
+      linkId: link.id,
+      groupBy: "timeseries",
+      event: "composite",
+      interval,
+      start,
+      end,
+    },
+    {
+      keepPreviousData: false,
+    },
+  );
 
   const chartData = useMemo(() => {
     return timeseries?.map(({ start, clicks, leads, saleAmount }) => ({
@@ -122,7 +132,7 @@ export function PartnerLinkCard({ link }: { link: PartnerLinkProps }) {
           </Link>
         </div>
       </div>
-      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3 lg:gap-6">
+      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
         {CHARTS.map((chart) => (
           <div
             key={chart.key}
@@ -148,6 +158,7 @@ export function PartnerLinkCard({ link }: { link: PartnerLinkProps }) {
             <div className="h-18 sm:h-24">
               {chartData ? (
                 <LinkEventsChart
+                  key={`${interval}-${start}-${end}`}
                   data={chartData}
                   series={{
                     id: chart.key,
@@ -159,7 +170,13 @@ export function PartnerLinkCard({ link }: { link: PartnerLinkProps }) {
                 />
               ) : (
                 <div className="flex size-full items-center justify-center">
-                  <LoadingSpinner className="size-4" />
+                  {error ? (
+                    <p className="text-xs text-neutral-500">
+                      Failed to load data
+                    </p>
+                  ) : (
+                    <LoadingSpinner className="size-4" />
+                  )}
                 </div>
               )}
             </div>
@@ -211,7 +228,7 @@ function LinkEventsChart({
           );
         }}
       >
-        <XAxis showAxisLine={false} highlightLast={false} />
+        <XAxis showAxisLine={false} highlightLast={false} maxTicks={2} />
         <Areas showLatestValueCircle={false} />
       </TimeSeriesChart>
     </div>
