@@ -15,7 +15,7 @@ import { ChevronDown } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm, UseFormRegister, UseFormWatch } from "react-hook-form";
 
 type FormProps = {
@@ -40,8 +40,10 @@ export function Form() {
   const router = useRouter();
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
-  const [programOnboarding] =
+  const [programOnboarding, _, { mutateWorkspace }] =
     useWorkspaceStore<ConfigureReward>("programOnboarding");
+
+  console.log(programOnboarding);
 
   const {
     register,
@@ -62,6 +64,7 @@ export function Form() {
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
       router.push(`/${workspaceSlug}/programs/onboarding/rewards`);
+      mutateWorkspace();
     },
     onError: (error) => {
       console.error(error);
@@ -72,6 +75,8 @@ export function Form() {
     if (!workspaceId) {
       return;
     }
+
+    console.log(data);
 
     await executeAsync({
       ...data,
@@ -148,8 +153,11 @@ export function Form() {
 
 const NewProgramForm = ({ register, watch }: FormProps) => {
   const [isRecurring, setIsRecurring] = useState(false);
+  const [type, maxDuration] = watch(["type", "maxDuration"]);
 
-  const type = watch("type");
+  useEffect(() => {
+    setIsRecurring(maxDuration !== 0);
+  }, [maxDuration]);
 
   return (
     <>
@@ -183,10 +191,18 @@ const NewProgramForm = ({ register, watch }: FormProps) => {
                   className="hidden"
                   checked={isSelected}
                   onChange={(e) => {
-                    if (e.target.checked) {
-                      setIsRecurring(value === "recurring");
+                    if (value === "one-off") {
+                      setIsRecurring(false);
                       register("maxDuration", {
-                        value: value === "recurring" ? 3 : 0,
+                        value: 0,
+                        valueAsNumber: true,
+                      });
+                    }
+
+                    if (value === "recurring") {
+                      setIsRecurring(true);
+                      register("maxDuration", {
+                        value: 3,
                         valueAsNumber: true,
                       });
                     }

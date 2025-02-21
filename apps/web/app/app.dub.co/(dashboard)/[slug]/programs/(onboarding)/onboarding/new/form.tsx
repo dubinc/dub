@@ -39,7 +39,7 @@ export function Form() {
   const { activeWorkspaceDomains, loading } = useDomains();
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
-  const [programOnboarding] =
+  const [programOnboarding, _, { mutateWorkspace }] =
     useWorkspaceStore<BasicInfo>("programOnboarding");
 
   const {
@@ -60,6 +60,7 @@ export function Form() {
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
       router.push(`/${workspaceSlug}/programs/onboarding/rewards`);
+      mutateWorkspace();
     },
     onError: (error) => {
       console.error(error);

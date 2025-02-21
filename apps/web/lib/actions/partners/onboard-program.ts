@@ -70,7 +70,6 @@ async function createProgram(data: z.infer<typeof createProgramSchema>) {
   //
 }
 
-
 const storeOnboardingProgress = async ({
   workspace,
   data,
@@ -92,6 +91,7 @@ const storeOnboardingProgress = async ({
       store: {
         ...store,
         programOnboarding: {
+          ...store.programOnboarding,
           ...data,
           programId,
         },
