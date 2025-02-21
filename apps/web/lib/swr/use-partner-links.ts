@@ -21,6 +21,7 @@ export default function usePartnerLinks(opts?: { programId?: string }) {
     fetcher,
     {
       keepPreviousData: true,
+      revalidateOnFocus: false,
     },
   );
 
