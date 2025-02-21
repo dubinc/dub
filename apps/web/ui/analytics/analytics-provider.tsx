@@ -141,11 +141,9 @@ export default function AnalyticsProvider({
     };
   }, [searchParams?.get("start"), searchParams?.get("end")]);
 
-  const defaultInterval = "30d";
-
   // Only set interval if start and end are not provided
   const interval =
-    start || end ? undefined : searchParams?.get("interval") ?? defaultInterval;
+    start || end ? undefined : searchParams?.get("interval") ?? "30d";
 
   const selectedTab: EventType = useMemo(() => {
     const event = searchParams.get("event");

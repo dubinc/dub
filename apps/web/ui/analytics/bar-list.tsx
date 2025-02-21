@@ -49,6 +49,12 @@ export default function BarList({
 }) {
   const [search, setSearch] = useState("");
 
+  // Calculate total sum for percentage calculations
+  const totalSum = useMemo(
+    () => data.reduce((sum, item) => sum + item.value, 0),
+    [data],
+  );
+
   // TODO: mock pagination for better perf in React
   const filteredData = useMemo(() => {
     if (limit) {
@@ -69,11 +75,13 @@ export default function BarList({
   const itemProps = filteredData.map((data) => ({
     ...data,
     maxValue,
+    totalSum,
     tab,
     unit,
     setShowModal,
     barBackground,
     hoverBackground,
+    limit,
   }));
 
   const bars = (
@@ -130,25 +138,27 @@ export function LineItem({
   title,
   href,
   value,
-  maxValue,
+  totalSum,
   tab,
   unit,
   setShowModal,
   barBackground,
   hoverBackground,
   linkData,
+  limit,
 }: {
   icon: ReactNode;
   title: string;
   href?: string;
   value: number;
-  maxValue: number;
+  totalSum: number;
   tab: string;
   unit: string;
   setShowModal: Dispatch<SetStateAction<boolean>>;
   barBackground: string;
   hoverBackground: string;
   linkData?: LinkProps;
+  limit?: number;
 }) {
   const lineItem = useMemo(() => {
     return (
@@ -165,6 +175,12 @@ export function LineItem({
 
   const As = href ? Link : "div";
 
+  // Calculate percentage against total sum and round to 1 decimal
+  const percentage = Math.round((value / totalSum) * 1000) / 10;
+
+  // Check if we're in modal view - if limit is undefined, we're in the modal view
+  const isModalView = !limit;
+
   return (
     // @ts-ignore - we know if it's a Link it'll get its href
     <As
@@ -176,10 +192,27 @@ export function LineItem({
       className={cn(
         `block min-w-0 border-l-2 border-transparent px-4 py-1 transition-all`,
         href && hoverBackground,
+        isModalView ? "group" : "",
       )}
     >
-      <div className="group flex items-center justify-between">
-        <div className="relative z-10 flex h-8 w-full min-w-0 max-w-[calc(100%-2rem)] items-center">
+      <div
+        className={cn(
+          "relative flex items-center justify-between",
+          isModalView && "gap-16",
+        )}
+      >
+        <motion.div
+          style={{
+            width: `${percentage}%`,
+            position: "absolute",
+            inset: 0,
+          }}
+          className={cn("-z-10 h-full origin-left rounded-md", barBackground)}
+          transition={{ ease: "easeOut", duration: 0.3 }}
+          initial={{ transform: "scaleX(0)" }}
+          animate={{ transform: "scaleX(1)" }}
+        />
+        <div className="relative z-10 flex h-8 w-full min-w-0 max-w-[calc(100%-2rem)] items-center transition-[max-width] duration-300 ease-in-out group-hover:max-w-[calc(100%-5rem)]">
           {tab === "links" && linkData ? (
             <Tooltip content={<LinkPreviewTooltip data={linkData} />}>
               {lineItem}
@@ -197,37 +230,50 @@ export function LineItem({
           ) : (
             lineItem
           )}
-          <motion.div
-            style={{
-              width: `${(value / (maxValue || 0)) * 100}%`,
-            }}
-            className={cn(
-              "absolute h-full origin-left rounded-md",
-              barBackground,
-            )}
-            transition={{ ease: "easeOut", duration: 0.3 }}
-            initial={{ transform: "scaleX(0)" }}
-            animate={{ transform: "scaleX(1)" }}
-          />
         </div>
-        <NumberFlow
-          value={
-            unit === "sales" && saleUnit === "saleAmount" ? value / 100 : value
-          }
-          className="z-10 px-2 text-sm text-neutral-600"
-          format={
-            unit === "sales" && saleUnit === "saleAmount"
-              ? {
-                  style: "currency",
-                  currency: "USD",
-                  // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
-                  trailingZeroDisplay: "stripIfInteger",
-                }
-              : {
-                  notation: value > 999999 ? "compact" : "standard",
-                }
-          }
-        />
+        <div className="z-10 flex items-center">
+          <NumberFlow
+            value={
+              unit === "sales" && saleUnit === "saleAmount"
+                ? value / 100
+                : value
+            }
+            className={cn(
+              "z-10 px-2 text-sm text-neutral-600 transition-transform duration-300",
+              isModalView ? "-translate-x-14" : "group-hover:-translate-x-14",
+            )}
+            style={{
+              // Adds translateZ(0) to fix transition jitter
+              transform: `translateX(var(--tw-translate-x, 0)) translateZ(0)`,
+            }}
+            format={
+              unit === "sales" && saleUnit === "saleAmount"
+                ? {
+                    style: "currency",
+                    currency: "USD",
+                    // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
+                    trailingZeroDisplay: "stripIfInteger",
+                  }
+                : {
+                    notation: value > 999999 ? "compact" : "standard",
+                  }
+            }
+          />
+          <div
+            className={cn(
+              "absolute right-0 px-3 text-sm text-neutral-600/70 transition-all duration-300",
+              isModalView
+                ? "visible translate-x-0 opacity-100"
+                : "invisible translate-x-14 opacity-0 group-hover:visible group-hover:translate-x-0 group-hover:opacity-100",
+            )}
+            style={{
+              // Adds translateZ(0) to fix transition jitter
+              transform: `translateX(var(--tw-translate-x, 0)) translateZ(0)`,
+            }}
+          >
+            {percentage}%
+          </div>
+        </div>
       </div>
     </As>
   );

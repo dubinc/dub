@@ -24,7 +24,7 @@ export function OverviewChart() {
   const {
     start,
     end,
-    interval = "1y",
+    interval = "30d",
   } = searchParamsObj as {
     start?: string;
     end?: string;
