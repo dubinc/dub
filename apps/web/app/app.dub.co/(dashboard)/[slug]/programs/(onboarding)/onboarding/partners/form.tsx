@@ -1,7 +1,6 @@
 "use client";
 
 import { Button, CircleCheckFill, Input } from "@dub/ui";
-import { cn } from "@dub/utils";
 import { Plus, Trash2 } from "lucide-react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -27,7 +26,7 @@ export function Form() {
     formState: { isSubmitting, isValid },
   } = useForm<Form>({
     defaultValues: {
-      partners: [{ email: "", referralLink: "refer.dub.co/steven" }],
+      partners: [{ email: "", referralLink: "panic" }],
     },
     mode: "onChange",
   });
@@ -86,21 +85,21 @@ export function Form() {
                   {index === 0 && "Referral link"}
                 </label>
                 <div className="mt-2 flex gap-2">
-                  <select
-                    {...register(`partners.${index}.referralLink`, {
-                      required: true,
-                    })}
-                    className={cn(
-                      "flex-1 rounded-md border border-neutral-300 bg-white py-2 pl-3 pr-10 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500",
-                    )}
-                  >
-                    <option value="refer.dub.co/steven">
-                      refer.dub.co/steven
-                    </option>
-                    <option value="refer.dub.co/stevens">
-                      refer.dub.co/stevens
-                    </option>
-                  </select>
+                  <div className="flex flex-1 items-stretch rounded-md border border-neutral-300 bg-white">
+                    <div className="flex items-center rounded-l-md border-r border-r-neutral-300 bg-neutral-100 px-3">
+                      <span className="text-sm font-medium text-neutral-800">
+                        refer.dub.co
+                      </span>
+                    </div>
+                    <input
+                      {...register(`partners.${index}.referralLink`, {
+                        required: true,
+                      })}
+                      type="text"
+                      placeholder="panic"
+                      className="w-full rounded-r-md border-0 px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:ring-0"
+                    />
+                  </div>
                   {index > 0 && (
                     <Button
                       variant="outline"
@@ -121,7 +120,7 @@ export function Form() {
             className="w-fit"
             onClick={() => {
               if (fields.length < 10) {
-                append({ email: "", referralLink: "refer.dub.co/steven" });
+                append({ email: "", referralLink: "panic" });
               }
             }}
             disabled={fields.length >= 10}
