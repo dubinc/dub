@@ -73,6 +73,9 @@ function ImportRewardfulModal({
     },
   });
 
+  // TODO
+  // Replace this with new hook
+
   const {
     data: campaigns,
     isLoading: isLoadingCampaigns,

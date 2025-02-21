@@ -2,6 +2,7 @@
 
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
+import { RewardfulCampaign } from "@/lib/rewardful/types";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { ConfigureReward } from "@/lib/zod/schemas/program-onboarding";
@@ -10,23 +11,29 @@ import {
   RECURRING_MAX_DURATIONS,
 } from "@/lib/zod/schemas/rewards";
 import { Button, CircleCheckFill, Input } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { capitalize, cn } from "@dub/utils";
+import { fetcher } from "@dub/utils/src";
 import { ChevronDown } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   useForm,
   UseFormRegister,
   UseFormSetValue,
   UseFormWatch,
 } from "react-hook-form";
+import useSWR from "swr";
+
+// TODO:
+// Convert this to use context
 
 type FormProps = {
   register: UseFormRegister<ConfigureReward>;
   watch: UseFormWatch<ConfigureReward>;
   setValue: UseFormSetValue<ConfigureReward>;
+  campaigns?: RewardfulCampaign[];
 };
 
 const PROGRAM_TYPES = [
@@ -42,12 +49,28 @@ const PROGRAM_TYPES = [
   },
 ] as const;
 
+const useRewardfulCampaigns = (apiToken?: string) => {
+  const { data, error } = useSWR<RewardfulCampaign[]>(
+    apiToken ? `/api/programs/rewardful/campaigns?token=${apiToken}` : null,
+    fetcher,
+  );
+
+  return {
+    campaigns: data || [],
+    loading: !data && !error,
+    error,
+  };
+};
+
 export function Form() {
   const router = useRouter();
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+  const [campaigns, setCampaigns] = useState<RewardfulCampaign[]>([]);
 
   const [programOnboarding, _, { mutateWorkspace }] =
     useWorkspaceStore<ConfigureReward>("programOnboarding");
+
+  console.log(programOnboarding);
 
   const {
     register,
@@ -66,6 +89,12 @@ export function Form() {
     },
   });
 
+  const [programType, rewardfulApiToken, rewardfulCampaignId] = watch([
+    "programType",
+    "rewardfulApiToken",
+    "rewardfulCampaignId",
+  ]);
+
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
       router.push(`/${workspaceSlug}/programs/onboarding/rewards`);
@@ -81,7 +110,25 @@ export function Form() {
       return;
     }
 
-    console.log(data);
+    if (programType === "import" && rewardfulApiToken && !rewardfulCampaignId) {
+      const response = await fetch(
+        `/api/programs/rewardful/campaigns?token=${rewardfulApiToken}`,
+      );
+
+      if (!response.ok) {
+        return;
+      }
+
+      const campaigns = await response.json();
+
+      if (campaigns.length === 0) {
+        return;
+      }
+
+      setCampaigns(campaigns);
+      setValue("rewardfulCampaignId", campaigns[0].id);
+      return;
+    }
 
     await executeAsync({
       ...data,
@@ -90,7 +137,10 @@ export function Form() {
     });
   };
 
-  const programType = watch("programType");
+  const buttonDisabled =
+    isSubmitting ||
+    isPending ||
+    (programType === "import" && (!rewardfulApiToken || !rewardfulCampaignId));
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
@@ -140,21 +190,22 @@ export function Form() {
         </div>
       </div>
 
-      {programType === "import" ? (
+      {programType === "new" ? (
+        <NewProgramForm register={register} watch={watch} setValue={setValue} />
+      ) : (
         <ImportProgramForm
           register={register}
           watch={watch}
           setValue={setValue}
+          campaigns={campaigns}
         />
-      ) : (
-        <NewProgramForm register={register} watch={watch} setValue={setValue} />
       )}
 
       <Button
         text="Continue"
         className="w-full"
         loading={isSubmitting || isPending}
-        disabled={isSubmitting || isPending}
+        disabled={buttonDisabled}
       />
     </form>
   );
@@ -305,8 +356,23 @@ const NewProgramForm = ({ register, watch, setValue }: FormProps) => {
   );
 };
 
-const ImportProgramForm = ({ register, watch, setValue }: FormProps) => {
-  const selectedCampaignId = watch("rewardfulCampaignId");
+const ImportProgramForm = ({ register, watch }: FormProps) => {
+  const [rewardfulCampaignId, rewardfulApiToken] = watch([
+    "rewardfulCampaignId",
+    "rewardfulApiToken",
+  ]);
+
+  const { campaigns } = useRewardfulCampaigns(rewardfulApiToken);
+
+  const formatCommission = useCallback((campaign: RewardfulCampaign) => {
+    return campaign.reward_type === "percent"
+      ? `${campaign.commission_percent}%`
+      : `$${(campaign.commission_amount_cents / 100).toFixed(2)}`;
+  }, []);
+
+  const selectedCampaign = campaigns.find(
+    (campaign) => campaign.id === rewardfulCampaignId,
+  );
 
   return (
     <div className="space-y-6">
@@ -346,7 +412,7 @@ const ImportProgramForm = ({ register, watch, setValue }: FormProps) => {
         <div className="mt-2 text-xs font-normal leading-[1.1] text-neutral-600">
           Find your Rewardful API secret on your{" "}
           <Link
-            href="#"
+            href="https://app.getrewardful.com/company/edit"
             className="underline decoration-solid decoration-auto underline-offset-auto"
             target="_blank"
             rel="noopener noreferrer"
@@ -356,48 +422,61 @@ const ImportProgramForm = ({ register, watch, setValue }: FormProps) => {
         </div>
       </div>
 
-      <div>
-        <label className="text-sm font-medium text-neutral-800">
-          Campaign to import
-        </label>
-        <div className="relative mt-2">
-          <select
-            {...register("rewardfulCampaignId")}
-            className="block w-full appearance-none rounded-md border border-neutral-200 bg-white px-3 py-2 pr-8 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
+      {campaigns.length > 0 && (
+        <div>
+          <label className="text-sm font-medium text-neutral-800">
+            Campaign to import
+          </label>
+          <div className="relative mt-2">
+            <select
+              {...register("rewardfulCampaignId")}
+              className="block w-full appearance-none rounded-md border border-neutral-200 bg-white px-3 py-2 pr-8 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
+            >
+              <option value="">Select a campaign</option>
+              {campaigns.map(({ id, name }) => (
+                <option key={id} value={id}>
+                  {name}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
+          </div>
+          <Link
+            href="#"
+            className="mt-2 text-xs font-normal leading-[1.1] text-neutral-600 underline decoration-solid decoration-auto underline-offset-auto"
+            target="_blank"
+            rel="noopener noreferrer"
           >
-            <option value="campaign2">Campaign 2</option>
-          </select>
-          <ChevronDown className="absolute right-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
+            Want to migrate more than one campaign?
+          </Link>
         </div>
-        <Link
-          href="#"
-          className="mt-2 text-xs font-normal leading-[1.1] text-neutral-600 underline decoration-solid decoration-auto underline-offset-auto"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Want to migrate more than one campaign?
-        </Link>
-      </div>
+      )}
 
-      {selectedCampaignId && (
+      {selectedCampaign && (
         <div className="grid grid-cols-2 gap-6 rounded-lg border border-neutral-300 bg-neutral-50 p-6">
           <div>
             <div className="text-sm text-neutral-500">Type</div>
-            <div className="text-sm font-medium text-neutral-800">Flat</div>
+            <div className="text-sm font-medium text-neutral-800">
+              {capitalize(selectedCampaign.reward_type)}
+            </div>
           </div>
           <div>
             <div className="text-sm text-neutral-500">Duration</div>
             <div className="text-sm font-medium text-neutral-800">
-              24 months
+              {selectedCampaign.max_commission_period_months} months
             </div>
           </div>
           <div>
             <div className="text-sm text-neutral-500">Commission</div>
-            <div className="text-sm font-medium text-neutral-800">$50.00</div>
+            <div className="text-sm font-medium text-neutral-800">
+              {formatCommission(selectedCampaign)}
+            </div>
           </div>
           <div>
             <div className="text-sm text-neutral-500">Affiliates</div>
-            <div className="text-sm font-medium text-neutral-800">12</div>
+            <div className="text-sm font-medium text-neutral-800">
+              {selectedCampaign.affiliates}
+            </div>
           </div>
         </div>
       )}
