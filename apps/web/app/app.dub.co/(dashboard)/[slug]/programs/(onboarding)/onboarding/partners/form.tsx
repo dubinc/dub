@@ -3,7 +3,10 @@
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
-import { InvitePartners } from "@/lib/zod/schemas/program-onboarding";
+import {
+  ProgramData,
+  programInvitePartnersSchema,
+} from "@/lib/zod/schemas/program-onboarding";
 import { Button, Input } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Plus, Trash2 } from "lucide-react";
@@ -13,17 +16,17 @@ import { useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useDebounce } from "use-debounce";
+import { z } from "zod";
+
+type Form = z.infer<typeof programInvitePartnersSchema>;
 
 export function Form() {
   const router = useRouter();
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const [keyErrors, setKeyErrors] = useState<{ [key: number]: string }>({});
 
-  const [programOnboarding, _, { mutateWorkspace }] = useWorkspaceStore<{
-    rewardfulAffiliateCount: number;
-    domain: string;
-    partners?: { email: string; key: string }[];
-  }>("programOnboarding");
+  const [programOnboarding, _, { mutateWorkspace }] =
+    useWorkspaceStore<ProgramData>("programOnboarding");
 
   const {
     register,
@@ -32,7 +35,7 @@ export function Form() {
     setValue,
     watch,
     formState: { isSubmitting },
-  } = useForm<InvitePartners>({
+  } = useForm<Form>({
     defaultValues: {
       partners: programOnboarding?.partners?.length
         ? programOnboarding.partners
@@ -128,7 +131,7 @@ export function Form() {
     },
   });
 
-  const onSubmit = async (data: InvitePartners) => {
+  const onSubmit = async (data: Form) => {
     if (!workspaceId) return;
 
     data.partners =
@@ -145,7 +148,7 @@ export function Form() {
 
   return (
     <div className="space-y-6">
-      {programOnboarding?.rewardfulAffiliateCount && (
+      {programOnboarding?.rewardful?.campaign?.affiliates && (
         <div className="space-y-3">
           <p className="text-sm text-neutral-600">
             Invite new partners in addition to those being imported.
@@ -165,7 +168,7 @@ export function Form() {
               </span>
             </div>
             <span className="text-sm text-neutral-600">
-              {programOnboarding.rewardfulAffiliateCount}
+              {programOnboarding?.rewardful?.campaign?.affiliates}
             </span>
           </div>
         </div>

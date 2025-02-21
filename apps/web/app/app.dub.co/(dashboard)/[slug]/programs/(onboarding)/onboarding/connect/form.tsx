@@ -1,14 +1,12 @@
 "use client";
 
-import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Shopify } from "@/ui/layout/sidebar/conversions/icons/shopify";
 import { Stripe } from "@/ui/layout/sidebar/conversions/icons/stripe";
 import { Button } from "@dub/ui";
-import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { useState } from "react";
 
 const GUIDES = [
   {
@@ -25,30 +23,17 @@ const GUIDES = [
 
 export function Form() {
   const router = useRouter();
+  const [isPending, setIsPending] = useState(false);
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
-  const { executeAsync, isPending } = useAction(onboardProgramAction, {
-    onSuccess: () => {
-      router.push(`/${workspaceSlug}/programs/onboarding/overview`);
-    },
-    onError: ({ error }) => {
-      toast.error(error.serverError);
-    },
-  });
-
-  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
+  const onClick = async () => {
     if (!workspaceId) return;
-
-    await executeAsync({
-      workspaceId,
-      step: "connect-dub",
-    });
+    setIsPending(true);
+    router.push(`/${workspaceSlug}/programs/onboarding/overview`);
   };
 
   return (
-    <form onSubmit={onSubmit} className="space-y-10" method="POST">
+    <div className="space-y-10">
       <div className="space-y-6">
         <p className="text-sm text-neutral-600">
           Ensuring your program is connect is simple, select the best guide that
@@ -84,8 +69,9 @@ export function Form() {
         text="Continue"
         className="w-full"
         loading={isPending}
-        type="submit"
+        type="button"
+        onClick={onClick}
       />
-    </form>
+    </div>
   );
 }

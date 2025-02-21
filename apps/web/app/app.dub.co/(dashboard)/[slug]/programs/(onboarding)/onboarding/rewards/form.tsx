@@ -5,7 +5,7 @@ import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { RewardfulCampaign } from "@/lib/rewardful/types";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
-import { ConfigureReward } from "@/lib/zod/schemas/program-onboarding";
+import { programRewardSchema } from "@/lib/zod/schemas/program-onboarding";
 import {
   COMMISSION_TYPES,
   RECURRING_MAX_DURATIONS,
@@ -26,14 +26,17 @@ import {
 } from "react-hook-form";
 import { toast } from "sonner";
 import useSWR from "swr";
+import { z } from "zod";
 
 // TODO:
 // Convert this to use context
 
+type Form = z.infer<typeof programRewardSchema>;
+
 type FormProps = {
-  register: UseFormRegister<ConfigureReward>;
-  watch: UseFormWatch<ConfigureReward>;
-  setValue: UseFormSetValue<ConfigureReward>;
+  register: UseFormRegister<Form>;
+  watch: UseFormWatch<Form>;
+  setValue: UseFormSetValue<Form>;
 };
 
 const PROGRAM_TYPES = [
@@ -67,7 +70,7 @@ export function Form() {
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
   const [program, _, { mutateWorkspace }] =
-    useWorkspaceStore<ConfigureReward>("programOnboarding");
+    useWorkspaceStore<Form>("programOnboarding");
 
   const {
     register,
@@ -75,7 +78,7 @@ export function Form() {
     watch,
     setValue,
     formState: { isSubmitting },
-  } = useForm<ConfigureReward>({
+  } = useForm<Form>({
     defaultValues: {
       programType: program?.programType || "new",
       type: program?.type || "flat",
@@ -98,7 +101,7 @@ export function Form() {
     },
   });
 
-  const onSubmit = async (data: ConfigureReward) => {
+  const onSubmit = async (data: Form) => {
     if (!workspaceId) {
       return;
     }

@@ -10,9 +10,8 @@ import { RECURRING_MAX_DURATIONS } from "./rewards";
 //   "create-program",
 // ] as const;
 
-export const fillBasicInfoSchema = z.object({
-  step: z.literal("fill-basic-info"),
-  workspaceId: z.string(),
+// Getting started
+export const programInfoSchema = z.object({
   name: z.string().max(100),
   logo: z.string().nullish(),
   domain: z.string().nullish(),
@@ -20,10 +19,9 @@ export const fillBasicInfoSchema = z.object({
   linkType: z.enum(["short", "query", "dynamic"]).default("short"),
 });
 
-export const configureRewardSchema = z
+// Configure reward
+export const programRewardSchema = z
   .object({
-    step: z.literal("configure-reward"),
-    workspaceId: z.string(),
     programType: z.enum(["new", "import"]),
     rewardful: z
       .object({
@@ -52,7 +50,8 @@ export const configureRewardSchema = z
     }),
   );
 
-export const invitePartnersSchema = z.object({
+// Invite partners
+export const programInvitePartnersSchema = z.object({
   step: z.literal("invite-partners"),
   workspaceId: z.string(),
   partners: z
@@ -65,26 +64,36 @@ export const invitePartnersSchema = z.object({
     .nullable(),
 });
 
-export const connectDubSchema = z.object({
-  step: z.literal("connect-dub"),
-  workspaceId: z.string(),
-});
-
-export const createProgramSchema = z.object({
-  step: z.literal("create-program"),
-  workspaceId: z.string(),
-});
-
 export const onboardProgramSchema = z.discriminatedUnion("step", [
-  fillBasicInfoSchema,
-  configureRewardSchema,
-  invitePartnersSchema,
-  connectDubSchema,
-  createProgramSchema,
+  programInfoSchema.merge(
+    z.object({
+      step: z.literal("fill-basic-info"),
+      workspaceId: z.string(),
+    }),
+  ),
+
+  programRewardSchema.merge(
+    z.object({
+      step: z.literal("configure-reward"),
+      workspaceId: z.string(),
+    }),
+  ),
+
+  programInvitePartnersSchema.merge(
+    z.object({
+      step: z.literal("invite-partners"),
+      workspaceId: z.string(),
+    }),
+  ),
+
+  z.object({
+    step: z.literal("create-program"),
+    workspaceId: z.string(),
+  }),
 ]);
 
-export type BasicInfo = z.infer<typeof fillBasicInfoSchema>;
+export const programDataSchema = programInfoSchema
+  .merge(programRewardSchema)
+  .merge(programInvitePartnersSchema);
 
-export type ConfigureReward = z.infer<typeof configureRewardSchema>;
-
-export type InvitePartners = z.infer<typeof invitePartnersSchema>;
+export type ProgramData = z.infer<typeof programDataSchema>;

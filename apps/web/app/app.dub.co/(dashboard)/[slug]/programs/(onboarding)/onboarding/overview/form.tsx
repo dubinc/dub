@@ -4,10 +4,7 @@ import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { RewardProps } from "@/lib/types";
-import {
-  BasicInfo,
-  ConfigureReward,
-} from "@/lib/zod/schemas/program-onboarding";
+import { ProgramData } from "@/lib/zod/schemas/program-onboarding";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { Button } from "@dub/ui";
 import { Pencil } from "lucide-react";
@@ -17,25 +14,23 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { LINK_TYPES } from "../new/form";
 
-type ProgramOnboarding = Pick<BasicInfo, "url" | "linkType"> &
-  Pick<ConfigureReward, "type" | "amount" | "maxDuration" | "rewardful">;
-
 export function Form() {
   const router = useRouter();
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
-
-  const [program] = useWorkspaceStore<ProgramOnboarding>("programOnboarding");
+  const [program] = useWorkspaceStore<ProgramData>("programOnboarding");
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
-    onSuccess: () => {
-      router.push(`/${workspaceSlug}/programs/onboarding/overview`);
+    onSuccess: ({ data }) => {
+      // router.push(`/${workspaceSlug}/programs/onboarding`);
+      // TODO:
+      // Redirect to the new program page
     },
     onError: ({ error }) => {
       toast.error(error.serverError);
     },
   });
 
-  const onSubmit = async () => {
+  const onClick = async () => {
     if (!workspaceId) return;
 
     await executeAsync({
@@ -114,7 +109,8 @@ export function Form() {
         text="Create program"
         className="mt-6 w-full"
         loading={isPending}
-        onClick={onSubmit}
+        type="button"
+        onClick={onClick}
       />
     </div>
   );
