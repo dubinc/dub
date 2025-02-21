@@ -1,43 +1,51 @@
 "use client";
 
+import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { Shopify } from "@/ui/layout/sidebar/conversions/icons/shopify";
 import { Stripe } from "@/ui/layout/sidebar/conversions/icons/stripe";
 import { Button } from "@dub/ui";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-
-const formSchema = z.object({
-  // No form fields needed as this is just for navigation
-});
-
-type Form = z.infer<typeof formSchema>;
-
+import { useAction } from "next-safe-action/hooks";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 const GUIDES = [
   {
     name: "Connecting to Stripe",
     icon: Stripe,
-    href: "#",
+    href: "https://d.to/stripe",
   },
   {
     name: "Connecting to Shopify",
     icon: Shopify,
-    href: "#",
+    href: "https://d.to/shopify",
   },
 ] as const;
 
 export function Form() {
-  const {
-    handleSubmit,
-    formState: { isSubmitting },
-  } = useForm<Form>();
+  const router = useRouter();
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
-  const onSubmit = async (data: Form) => {
-    console.log(data);
-    // TODO: Handle form submission
+  const { executeAsync, isPending } = useAction(onboardProgramAction, {
+    onSuccess: () => {
+      router.push(`/${workspaceSlug}/programs/onboarding/overview`);
+    },
+    onError: ({ error }) => {
+      toast.error(error.serverError);
+    },
+  });
+
+  const onSubmit = async () => {
+    if (!workspaceId) return;
+
+    await executeAsync({
+      workspaceId,
+      step: "connect-dub",
+    });
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
+    <form onSubmit={onSubmit} className="space-y-10">
       <div className="space-y-6">
         <p className="text-sm text-neutral-600">
           Ensuring your program is connect is simple, select the best guide that
@@ -56,17 +64,20 @@ export function Form() {
                   {name}
                 </span>
               </div>
-              <Button
-                text="Read guide"
-                variant="secondary"
-                className="h-8 w-fit px-3"
-              />
+              <Link href={href} target="_blank" rel="noopener noreferrer">
+                <Button
+                  type="button"
+                  text="Read guide"
+                  variant="secondary"
+                  className="h-8 w-fit px-3"
+                />
+              </Link>
             </div>
           ))}
         </div>
       </div>
 
-      <Button text="Continue" className="w-full" loading={isSubmitting} />
+      <Button text="Continue" className="w-full" loading={isPending} />
     </form>
   );
 }

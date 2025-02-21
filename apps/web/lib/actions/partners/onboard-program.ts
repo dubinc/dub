@@ -16,67 +16,7 @@ export const onboardProgramAction = authActionClient
       data,
       workspace,
     });
-
-    // switch (data.step) {
-    //   case "fill-basic-info":
-    //     await fillBasicInfo({
-    //       data,
-    //       workspace,
-    //     });
-    //     break;
-    //   case "configure-reward":
-    //     await storeOnboardingProgress({
-    //       data,
-    //       workspace,
-    //     });
-    //     break;
-    //   case "invite-partners":
-    //     await invitePartners(data);
-    //     break;
-    //   case "connect-dub":
-    //     await connectDub(data);
-    //     break;
-    //   case "create-program":
-    //     await createProgram(data);
-    //     break;
-    // }
   });
-
-// async function fillBasicInfo({
-//   data,
-//   workspace,
-// }: {
-//   data: z.infer<typeof fillBasicInfoSchema>;
-//   workspace: Project;
-// }) {
-//   const { domain } = data;
-
-//   if (!domain) {
-//     return;
-//   }
-
-//   await getDomainOrThrow({
-//     workspace,
-//     domain,
-//   });
-
-//   await storeOnboardingProgress({
-//     workspace,
-//     data,
-//   });
-// }
-// async function invitePartners(data: z.infer<typeof invitePartnersSchema>) {
-//   // TODO:
-//   //
-// }
-
-// async function connectDub(data: z.infer<typeof connectDubSchema>) {
-//   //
-// }
-
-// async function createProgram(data: z.infer<typeof createProgramSchema>) {
-//   //
-// }
 
 const storeOnboardingProgress = async ({
   workspace,

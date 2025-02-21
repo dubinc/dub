@@ -51,10 +51,12 @@ export const invitePartnersSchema = z.object({
 
 export const connectDubSchema = z.object({
   step: z.literal("connect-dub"),
+  workspaceId: z.string(),
 });
 
 export const createProgramSchema = z.object({
   step: z.literal("create-program"),
+  workspaceId: z.string(),
 });
 
 export const onboardProgramSchema = z.discriminatedUnion("step", [
