@@ -10,6 +10,7 @@ import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 const LINK_TYPES = [
   {
@@ -59,11 +60,11 @@ export function Form() {
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
-      router.push(`/${workspaceSlug}/programs/onboarding/rewards`);
       mutateWorkspace();
+      router.push(`/${workspaceSlug}/programs/onboarding/rewards`);
     },
-    onError: (error) => {
-      console.error(error);
+    onError: ({ error }) => {
+      toast.error(error.serverError);
     },
   });
 
