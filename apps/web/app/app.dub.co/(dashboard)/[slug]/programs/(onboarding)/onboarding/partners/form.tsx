@@ -19,11 +19,6 @@ export function Form() {
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const [keyErrors, setKeyErrors] = useState<{ [key: number]: string }>({});
 
-  const [focusedField, setFocusedField] = useState<{
-    index: number;
-    field: "email" | "key";
-  } | null>(null);
-
   const {
     register,
     control,
@@ -50,9 +45,7 @@ export function Form() {
   const partners = watch("partners");
   const [debouncedPartners] = useDebounce(partners, 500);
 
-  const domain = programOnboarding?.domain;
-
-  console.log(programOnboarding);
+  const domain = "dub.sh";
 
   const generateKeyFromEmail = (email: string) => {
     if (!email) {
@@ -61,42 +54,47 @@ export function Form() {
 
     const prefix = email.split("@")[0];
     const randomNum = Math.floor(1000 + Math.random() * 9000); // 4 digit number
-
     return `${prefix}${randomNum}`;
   };
 
   const validateKey = async (key: string, index: number) => {
-    if (!key) {
+    if (!key || !domain) {
       setKeyErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors[index];
         return newErrors;
       });
-
       return;
     }
 
-    if (!domain) {
-      return;
+    try {
+      const response = await fetch(
+        `/api/links/exists?domain=${domain}&key=${key}&workspaceId=${workspaceId}`,
+      );
+
+      const { error } = await response.json();
+
+      setKeyErrors((prev) => {
+        const newErrors = { ...prev };
+
+        if (error) {
+          if (error.message.includes("Duplicate key")) {
+            error.message = "Referral link already taken.";
+          }
+
+          newErrors[index] = error.message;
+        } else {
+          delete newErrors[index];
+        }
+
+        return newErrors;
+      });
+    } catch (error) {
+      setKeyErrors((prev) => ({
+        ...prev,
+        [index]: "Error checking key availability",
+      }));
     }
-
-    const response = await fetch(
-      `/api/links/exists?domain=${domain}&key=${key}&workspaceId=${workspaceId}`,
-    );
-
-    const { error } = await response.json();
-
-    setKeyErrors((prev) => {
-      const newErrors = { ...prev };
-
-      if (error) {
-        newErrors[index] = error.message;
-      } else {
-        delete newErrors[index];
-      }
-
-      return newErrors;
-    });
   };
 
   useEffect(() => {
@@ -111,20 +109,13 @@ export function Form() {
     });
   }, [debouncedPartners]);
 
-  useEffect(() => {
-    if (!focusedField || !partners) {
-      return;
-    }
+  const handleKeyFocus = (index: number) => {
+    const partner = partners?.[index];
 
-    const { index, field } = focusedField;
-
-    if (field === "key") {
-      const partner = partners[index];
-      if (partner?.email && !partner.key) {
-        setValue(`partners.${index}.key`, generateKeyFromEmail(partner.email));
-      }
+    if (partner?.email && !partner.key) {
+      setValue(`partners.${index}.key`, generateKeyFromEmail(partner.email));
     }
-  }, [focusedField]);
+  };
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
@@ -192,7 +183,6 @@ export function Form() {
                   type="email"
                   placeholder="panic@thedis.co"
                   className="mt-2"
-                  onFocus={() => setFocusedField({ index, field: "email" })}
                 />
               </div>
 
@@ -223,11 +213,11 @@ export function Form() {
                           keyErrors[index] &&
                             "text-red-900 placeholder-red-300",
                         )}
-                        onFocus={() => setFocusedField({ index, field: "key" })}
+                        onFocus={() => handleKeyFocus(index)}
                       />
                     </div>
                     {keyErrors[index] && (
-                      <p className="mt-2 text-sm text-red-600">
+                      <p className="mt-2 text-xs text-red-700">
                         {keyErrors[index]}
                       </p>
                     )}
