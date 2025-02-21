@@ -12,7 +12,7 @@ import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { LINK_TYPES } from "../new/form";
+import { LINK_TYPES } from "../form";
 
 export function Form() {
   const router = useRouter();
@@ -64,19 +64,19 @@ export function Form() {
       content: reward ? (
         <ProgramRewardDescription reward={reward as RewardProps} />
       ) : null,
-      href: `/${workspaceSlug}/programs/onboarding/rewards`,
+      href: `/${workspaceSlug}/programs/new/rewards`,
     },
     {
       title: "Referral link structure",
       content: LINK_TYPES.find(
         (linkType) => linkType.value === program?.linkType,
       )?.preview,
-      href: `/${workspaceSlug}/programs/onboarding/new`,
+      href: `/${workspaceSlug}/programs/new`,
     },
     {
       title: "Destination URL",
       content: program?.url,
-      href: `/${workspaceSlug}/programs/onboarding/new`,
+      href: `/${workspaceSlug}/programs/new`,
     },
   ] as const;
 

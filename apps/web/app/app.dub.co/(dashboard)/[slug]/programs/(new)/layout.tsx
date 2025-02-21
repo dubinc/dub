@@ -1,7 +1,7 @@
 import { Button, Wordmark } from "@dub/ui";
 import RootProviders from "app/providers";
 import Link from "next/link";
-import { Steps } from "./onboarding/steps";
+import { Steps } from "./new/steps";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (

@@ -5,7 +5,7 @@ import { cn } from "@dub/utils";
 import { Check, Lock, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export function Steps() {
   const pathname = usePathname();
@@ -21,27 +21,27 @@ export function Steps() {
     {
       step: 1,
       label: "Getting started",
-      href: `/${slug}/programs/onboarding/new`,
+      href: `/${slug}/programs/new`,
     },
     {
       step: 2,
       label: "Configure reward",
-      href: `/${slug}/programs/onboarding/rewards`,
+      href: `/${slug}/programs/new/rewards`,
     },
     {
       step: 3,
       label: "Invite partners",
-      href: `/${slug}/programs/onboarding/partners`,
+      href: `/${slug}/programs/new/partners`,
     },
     {
       step: 4,
       label: "Connect Dub",
-      href: `/${slug}/programs/onboarding/connect`,
+      href: `/${slug}/programs/new/connect`,
     },
     {
       step: 5,
       label: "Overview",
-      href: `/${slug}/programs/onboarding/overview`,
+      href: `/${slug}/programs/new/overview`,
       isLocked: true,
     },
   ];

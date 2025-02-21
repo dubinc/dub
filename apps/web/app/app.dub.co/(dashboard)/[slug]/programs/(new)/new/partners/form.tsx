@@ -123,7 +123,7 @@ export function Form() {
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
       mutateWorkspace();
-      router.push(`/${workspaceSlug}/programs/onboarding/connect`);
+      router.push(`/${workspaceSlug}/programs/new/connect`);
     },
     onError: ({ error }) => {
       console.log(error);

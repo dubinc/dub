@@ -1,10 +1,19 @@
-import { Button, NavWordmark } from "@dub/ui";
+import usePrograms from "@/lib/swr/use-programs";
+import useWorkspace from "@/lib/swr/use-workspace";
+import { buttonVariants, NavWordmark } from "@dub/ui";
+import { cn } from "@dub/utils";
+import Link from "next/link";
 
 export function CreateProgramCard() {
-  return (
-    <div className="relative mt-6 flex flex-col gap-3 overflow-hidden rounded-lg border border-black/[0.1] bg-white p-3 pt-4 shadow-[0px_1px_1px_0px_#0000000A] [box-shadow:inset_0px_0px_8px_0px_#FFFFFF]">
-      <div className="absolute inset-0 opacity-[0.08] [background:conic-gradient(from_0deg_at_50%_50%,#F35066_0deg,#F35066_117deg,#9071F9_180deg,#5182FC_240deg,#F35066_360deg)]" />
+  const { programs } = usePrograms();
+  const { partnersEnabled, slug } = useWorkspace();
 
+  if (!partnersEnabled || (programs && programs.length > 0)) {
+    return null;
+  }
+
+  return (
+    <div className="relative mt-6 flex flex-col gap-3 overflow-hidden rounded-lg border bg-white p-3 pt-4">
       <div className="relative flex items-center gap-2">
         <NavWordmark variant="symbol" className="h-4 w-4" />
       </div>
@@ -16,7 +25,15 @@ export function CreateProgramCard() {
         </p>
       </div>
 
-      <Button text="Create program" className="relative" />
+      <Link
+        href={`/${slug}/programs/new`}
+        className={cn(
+          buttonVariants({ variant: "primary" }),
+          "flex h-10 items-center justify-center rounded-lg border px-3 text-sm",
+        )}
+      >
+        Create program
+      </Link>
     </div>
   );
 }

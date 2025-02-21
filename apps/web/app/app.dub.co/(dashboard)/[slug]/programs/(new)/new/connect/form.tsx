@@ -29,7 +29,7 @@ export function Form() {
   const onClick = async () => {
     if (!workspaceId) return;
     setIsPending(true);
-    router.push(`/${workspaceSlug}/programs/onboarding/overview`);
+    router.push(`/${workspaceSlug}/programs/new/overview`);
   };
 
   return (

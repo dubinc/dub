@@ -93,7 +93,7 @@ export function Form() {
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
       mutateWorkspace();
-      router.push(`/${workspaceSlug}/programs/onboarding/partners`);
+      router.push(`/${workspaceSlug}/programs/new/partners`);
     },
     onError: ({ error }) => {
       console.log(error);
