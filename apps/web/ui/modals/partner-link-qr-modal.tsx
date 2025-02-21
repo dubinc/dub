@@ -22,7 +22,6 @@ import {
   PropsWithChildren,
   SetStateAction,
   useCallback,
-  useId,
   useMemo,
   useRef,
   useState,
@@ -76,7 +75,6 @@ function PartnerLinkQRModalInner({
   showLinkQRModal: boolean;
   setShowLinkQRModal: Dispatch<SetStateAction<boolean>>;
 } & PartnerLinkQRModalProps) {
-  const id = useId();
   const { isMobile } = useMediaQuery();
 
   const url = useMemo(() => {
