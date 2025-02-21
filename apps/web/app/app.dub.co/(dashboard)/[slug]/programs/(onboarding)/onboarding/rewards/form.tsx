@@ -24,6 +24,7 @@ import {
   UseFormSetValue,
   UseFormWatch,
 } from "react-hook-form";
+import { toast } from "sonner";
 import useSWR from "swr";
 
 // TODO:
@@ -70,8 +71,6 @@ export function Form() {
   const [programOnboarding, _, { mutateWorkspace }] =
     useWorkspaceStore<ConfigureReward>("programOnboarding");
 
-  console.log(programOnboarding);
-
   const {
     register,
     handleSubmit,
@@ -97,11 +96,11 @@ export function Form() {
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
-      router.push(`/${workspaceSlug}/programs/onboarding/rewards`);
       mutateWorkspace();
+      router.push(`/${workspaceSlug}/programs/onboarding/partners`);
     },
-    onError: (error) => {
-      console.error(error);
+    onError: ({ error }) => {
+      toast.error(error.serverError);
     },
   });
 
@@ -111,22 +110,22 @@ export function Form() {
     }
 
     if (programType === "import" && rewardfulApiToken && !rewardfulCampaignId) {
-      const response = await fetch(
-        `/api/programs/rewardful/campaigns?token=${rewardfulApiToken}`,
-      );
+      // const response = await fetch(
+      //   `/api/programs/rewardful/campaigns?token=${rewardfulApiToken}`,
+      // );
 
-      if (!response.ok) {
-        return;
-      }
+      // if (!response.ok) {
+      //   return;
+      // }
 
-      const campaigns = await response.json();
+      // const campaigns = await response.json();
 
-      if (campaigns.length === 0) {
-        return;
-      }
+      // if (campaigns.length === 0) {
+      //   return;
+      // }
 
-      setCampaigns(campaigns);
-      setValue("rewardfulCampaignId", campaigns[0].id);
+      // setCampaigns(campaigns);
+      // setValue("rewardfulCampaignId", campaigns[0].id);
       return;
     }
 
