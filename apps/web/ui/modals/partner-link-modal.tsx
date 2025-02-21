@@ -73,7 +73,7 @@ function QRCodePreview({
   const { isMobile } = useMediaQuery();
 
   const [data, setData] = useLocalStorage<QRCodeDesign>(
-    `partner-qr-code-design-${programId}`,
+    `qr-code-design-program-${programId}`,
     {
       fgColor: "#000000",
     },
@@ -84,6 +84,7 @@ function QRCodePreview({
       domain: shortLinkDomain,
       key: _key,
     },
+    programId,
     onSave: (data) => setData(data),
   });
 

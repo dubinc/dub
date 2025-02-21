@@ -12,6 +12,7 @@ import {
   SimpleTooltipContent,
   Tooltip,
   useCopyToClipboard,
+  useLocalStorage,
   useMediaQuery,
 } from "@dub/ui";
 import { Check, Copy, Download, Hyperlink, Photo } from "@dub/ui/icons";
@@ -47,6 +48,7 @@ export type QRCodeDesign = {
 
 type PartnerLinkQRModalProps = {
   props: QRLinkProps;
+  programId: string;
   onSave?: (data: QRCodeDesign) => void;
 };
 
@@ -69,6 +71,7 @@ function PartnerLinkQRModal(
 
 function PartnerLinkQRModalInner({
   props,
+  programId,
   onSave,
   setShowLinkQRModal,
 }: {
@@ -83,9 +86,14 @@ function PartnerLinkQRModalInner({
       : undefined;
   }, [props.key, props.domain]);
 
-  const [data, setData] = useState<QRCodeDesign>({
-    fgColor: "#000000",
-  });
+  const [dataPersisted, setDataPersisted] = useLocalStorage<QRCodeDesign>(
+    `qr-code-design-program-${programId}`,
+    {
+      fgColor: "#000000",
+    },
+  );
+
+  const [data, setData] = useState(dataPersisted);
 
   const qrData = useMemo(
     () =>
@@ -110,6 +118,7 @@ function PartnerLinkQRModalInner({
         e.preventDefault();
         e.stopPropagation();
         setShowLinkQRModal(false);
+        setDataPersisted(data);
         onSave?.(data);
       }}
     >

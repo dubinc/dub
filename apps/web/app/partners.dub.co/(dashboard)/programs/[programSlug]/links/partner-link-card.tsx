@@ -1,5 +1,6 @@
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
+import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerLinkProps } from "@/lib/types";
 import {
   ArrowTurnRight2,
@@ -22,6 +23,7 @@ import {
 import Link from "next/link";
 import { ComponentProps, useMemo } from "react";
 import { usePartnerLinksContext } from "./page-client";
+import { PartnerLinkControls } from "./partner-link-controls";
 
 const CHARTS = [
   {
@@ -44,6 +46,7 @@ const CHARTS = [
 
 export function PartnerLinkCard({ link }: { link: PartnerLinkProps }) {
   const { start, end, interval } = usePartnerLinksContext();
+  const { programEnrollment } = useProgramEnrollment();
 
   const { data: totals } = usePartnerAnalytics(
     {
@@ -180,6 +183,12 @@ export function PartnerLinkCard({ link }: { link: PartnerLinkProps }) {
               )}
             </div>
           </Link>
+          {programEnrollment && (
+            <PartnerLinkControls
+              link={link}
+              programId={programEnrollment?.programId}
+            />
+          )}
         </div>
       </div>
 
