@@ -1,6 +1,5 @@
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerLinkProps } from "@/lib/types";
 import {
   ArrowTurnRight2,
@@ -45,7 +44,6 @@ const CHARTS = [
 
 export function PartnerLinkCard({ link }: { link: PartnerLinkProps }) {
   const { start, end, interval } = usePartnerLinksContext();
-  const { slug } = useWorkspace();
 
   const { data: totals } = usePartnerAnalytics(
     {
@@ -108,7 +106,7 @@ export function PartnerLinkCard({ link }: { link: PartnerLinkProps }) {
   );
 
   return (
-    <CardList.Card>
+    <CardList.Card innerClassName="px-4 py-4" hoverStateEnabled={false}>
       <div className="flex items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-3">
           <div className="relative hidden shrink-0 items-center justify-center sm:flex">
