@@ -179,8 +179,14 @@ export function OnboardingForm({
           control={control}
           name="country"
           rules={{ required: true }}
-          render={({ field }) => <CountryCombobox {...field} />}
+          render={({ field }) => (
+            // Disable the combobox if the partner already has a country
+            <CountryCombobox {...field} disabled={!!partner?.country} />
+          )}
         />
+        <p className="mt-1.5 text-xs text-neutral-500">
+          Your country cannot be changed once set.
+        </p>
       </label>
 
       <label>
@@ -203,7 +209,7 @@ export function OnboardingForm({
 
       <Button
         type="submit"
-        text={`${partner ? "Update" : "Create"} partner account`}
+        text="Continue"
         className="mt-2"
         loading={isPending || isSubmitting || isSubmitSuccessful}
       />
@@ -214,9 +220,11 @@ export function OnboardingForm({
 function CountryCombobox({
   value,
   onChange,
+  disabled,
 }: {
   value: string;
   onChange: (value: string) => void;
+  disabled?: boolean;
 }) {
   const options = useMemo(
     () =>
@@ -261,7 +269,9 @@ function CountryCombobox({
           "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
           "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
           !value && "text-neutral-400",
+          disabled && "cursor-not-allowed",
         ),
+        disabled,
       }}
     />
   );

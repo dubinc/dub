@@ -1,6 +1,6 @@
 import { parse } from "@/lib/middleware/utils";
 import { NextRequest, NextResponse } from "next/server";
-import { getDefaultPartner } from "./utils/get-default-partner";
+import { getDefaultPartnerId } from "./utils/get-default-partner";
 import { getUserViaToken } from "./utils/get-user-via-token";
 
 const AUTHENTICATED_PATHS = [
@@ -38,9 +38,9 @@ export default async function PartnersMiddleware(req: NextRequest) {
       ),
     );
   } else if (user) {
-    const defaultPartner = await getDefaultPartner(user);
+    const defaultPartnerId = await getDefaultPartnerId(user);
 
-    if (!defaultPartner && !path.startsWith("/onboarding")) {
+    if (!defaultPartnerId && !path.startsWith("/onboarding")) {
       return NextResponse.redirect(new URL("/onboarding", req.url));
     } else if (path === "/" || path.startsWith("/pn_")) {
       return NextResponse.redirect(new URL("/programs", req.url));
