@@ -298,16 +298,12 @@ function PartnerLinkModalContent({
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-2 border-t border-neutral-200 bg-neutral-50 p-4">
-        <Button
-          text="Cancel"
-          variant="secondary"
-          onClick={() => setShowPartnerLinkModal(false)}
-        />
+      <div className="flex items-center justify-end border-t border-neutral-200 bg-neutral-50 p-4">
         <Button
           text={isSubmitting ? "Creating..." : "Create Link"}
           loading={isSubmitting}
           type="submit"
+          className="w-fit"
         />
       </div>
     </form>
