@@ -17,6 +17,7 @@ import { Pen2, QRCode as QRCodeIcon } from "@dub/ui/icons";
 import { getDomainWithoutWWW, linkConstructor } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 
+import { mutatePrefix } from "@/lib/swr/mutate";
 import {
   Dispatch,
   SetStateAction,
@@ -69,7 +70,6 @@ function QRCodePreview({
   shortLinkDomain: string;
   _key: string;
 }) {
-  const { programEnrollment } = useProgramEnrollment();
   const { isMobile } = useMediaQuery();
 
   const [data, setData] = useLocalStorage<QRCodeDesign>(
@@ -205,6 +205,10 @@ function PartnerLinkModalContent({
           const { error } = result;
           throw new Error(error.message);
         }
+
+        await mutatePrefix(
+          `/api/partner-profile/programs/${programEnrollment?.program?.id}/links`,
+        );
 
         setShowPartnerLinkModal(false);
       })}

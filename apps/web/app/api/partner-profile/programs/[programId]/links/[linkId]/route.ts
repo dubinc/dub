@@ -1,35 +1,36 @@
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
-import { createLink, processLink } from "@/lib/api/links";
+import { processLink, updateLink } from "@/lib/api/links";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { NewLinkProps } from "@/lib/types";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
-import { PartnerLinkSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
 import { getApexDomain } from "@dub/utils";
 import { NextResponse } from "next/server";
 
-// GET /api/partner-profile/programs/[programId]/links - get a partner's links in a program
-export const GET = withPartnerProfile(async ({ partner, params }) => {
-  const { links } = await getProgramEnrollmentOrThrow({
-    partnerId: partner.id,
-    programId: params.programId,
-  });
-
-  return NextResponse.json(links.map((link) => PartnerLinkSchema.parse(link)));
-});
-
-// POST /api/partner-profile/[programId]/links - create a link for a partner
-export const POST = withPartnerProfile(
+// PATCH /api/partner-profile/[programId]/links/[linkId] - update a link for a partner
+export const PATCH = withPartnerProfile(
   async ({ partner, params, req, session }) => {
     const { url, key, comments } = createPartnerLinkSchema
       .pick({ url: true, key: true, comments: true })
       .parse(await parseRequestBody(req));
 
-    const { program, tenantId } = await getProgramEnrollmentOrThrow({
+    const { programId, linkId } = params;
+
+    const { program, links } = await getProgramEnrollmentOrThrow({
       partnerId: partner.id,
-      programId: params.programId,
+      programId,
     });
+
+    const link = links.find((link) => link.id === linkId);
+
+    if (!link) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Link not found.",
+      });
+    }
 
     if (!program.domain || !program.url) {
       throw new DubApiError({
@@ -63,20 +64,31 @@ export const POST = withPartnerProfile(
       });
     }
 
-    const { link, error, code } = await processLink({
+    // if domain and key are the same, we don't need to check if the key exists
+    const skipKeyChecks = link.key.toLowerCase() === key?.toLowerCase();
+
+    const {
+      link: processedLink,
+      error,
+      code,
+    } = await processLink({
       payload: {
-        domain: program.domain,
+        ...link,
+        // coerce types
+        expiresAt:
+          link.expiresAt instanceof Date
+            ? link.expiresAt.toISOString()
+            : link.expiresAt,
+        geo: link.geo as NewLinkProps["geo"],
+
+        // merge in new props
         key: key || undefined,
         url: url || program.url,
-        programId: program.id,
-        tenantId,
-        partnerId: partner.id,
-        folderId: program.defaultFolderId,
         comments,
-        trackConversion: true,
       },
       workspace: workspace as any,
       userId: session.user.id,
+      skipKeyChecks,
       skipProgramChecks: true, // skip this cause we've already validated the program above
     });
 
@@ -87,7 +99,14 @@ export const POST = withPartnerProfile(
       });
     }
 
-    const partnerLink = await createLink(link);
+    const partnerLink = await updateLink({
+      oldLink: {
+        domain: link.domain,
+        key: link.key,
+        image: link.image,
+      },
+      updatedLink: processedLink,
+    });
 
     return NextResponse.json(partnerLink, { status: 201 });
   },
