@@ -13,11 +13,11 @@ import {
   useLocalStorage,
   useMediaQuery,
 } from "@dub/ui";
-import { Pen2, QRCode as QRCodeIcon } from "@dub/ui/icons";
+import { ArrowTurnLeft, Pen2, QRCode as QRCodeIcon } from "@dub/ui/icons";
 import { getDomainWithoutWWW, linkConstructor } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 
-import { mutatePrefix } from "@/lib/swr/mutate";
+import { mutateSuffix } from "@/lib/swr/mutate";
 import { PartnerLinkProps } from "@/lib/types";
 import {
   Dispatch,
@@ -29,6 +29,7 @@ import {
 } from "react";
 import { useForm } from "react-hook-form";
 import TextareaAutosize from "react-textarea-autosize";
+import { toast } from "sonner";
 import type { QRCodeDesign } from "./partner-link-qr-modal";
 import { usePartnerLinkQRModal } from "./partner-link-qr-modal";
 
@@ -163,7 +164,16 @@ function PartnerLinkModalContent({
     "dub.co";
   const shortLinkDomain = programEnrollment?.program?.domain || "dub.sh";
 
-  const form = useForm<PartnerLinkFormData>();
+  const form = useForm<PartnerLinkFormData>({
+    defaultValues: link
+      ? {
+          url: link.url.replace(`https://${destinationDomain}/`, ""),
+          key: link.key,
+          comments: link.comments ?? "",
+        }
+      : undefined,
+  });
+
   const formRef = useRef<HTMLFormElement>(null);
   const { handleKeyDown } = useEnterSubmit(formRef);
 
@@ -171,10 +181,15 @@ function PartnerLinkModalContent({
     register,
     watch,
     handleSubmit,
-    formState: { isSubmitting },
+    formState: { isDirty, isSubmitting, isSubmitSuccessful },
   } = form;
 
-  const key = watch("key");
+  const [key, url] = watch("key", "url");
+
+  const saveDisabled = useMemo(
+    () => Boolean(isSubmitting || isSubmitSuccessful || (link && !isDirty)),
+    [isSubmitting, isSubmitSuccessful, link, isDirty],
+  );
 
   const shortLink = useMemo(
     () =>
@@ -190,9 +205,11 @@ function PartnerLinkModalContent({
       ref={formRef}
       onSubmit={handleSubmit(async (data) => {
         const response = await fetch(
-          `/api/partner-profile/programs/${programEnrollment?.program?.id}/links`,
+          `/api/partner-profile/programs/${programEnrollment?.program?.id}/links${
+            link ? `/${link.id}` : ""
+          }`,
           {
-            method: "POST",
+            method: link ? "PATCH" : "POST",
             headers: {
               "Content-Type": "application/json",
             },
@@ -213,8 +230,10 @@ function PartnerLinkModalContent({
           throw new Error(error.message);
         }
 
-        await mutatePrefix(
-          `/api/partner-profile/programs/${programEnrollment?.program?.id}/links`,
+        await mutateSuffix(`/links`);
+
+        toast.success(
+          link ? "Successfully updated link!" : "Successfully created link!",
         );
 
         setShowPartnerLinkModal(false);
@@ -222,7 +241,9 @@ function PartnerLinkModalContent({
     >
       <div className="flex flex-col items-start justify-between gap-6 px-6 py-4">
         <div className="flex w-full items-center justify-between">
-          <h3 className="text-lg font-medium">New Link</h3>
+          <h3 className="text-lg font-medium">
+            {link ? "Edit Link" : "New Link"}
+          </h3>
           <button
             type="button"
             onClick={() => setShowPartnerLinkModal(false)}
@@ -338,10 +359,18 @@ function PartnerLinkModalContent({
 
       <div className="flex items-center justify-end border-t border-neutral-200 bg-neutral-50 p-4">
         <Button
-          text={isSubmitting ? "Creating..." : "Create Link"}
-          loading={isSubmitting}
           type="submit"
-          className="w-fit"
+          disabled={saveDisabled}
+          loading={isSubmitting || isSubmitSuccessful}
+          text={
+            <span className="flex items-center gap-2">
+              {link ? "Save changes" : "Create link"}
+              <div className="rounded border border-white/20 p-1">
+                <ArrowTurnLeft className="size-3.5" />
+              </div>
+            </span>
+          }
+          className="h-8 w-fit pl-2.5 pr-1.5"
         />
       </div>
     </form>
@@ -349,7 +378,7 @@ function PartnerLinkModalContent({
 }
 
 export function usePartnerLinkModal(
-  props: Omit<
+  props?: Omit<
     PartnerLinkModalProps,
     "showPartnerLinkModal" | "setShowPartnerLinkModal"
   >,

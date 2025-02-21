@@ -10,7 +10,11 @@ export default function usePartnerLinks(opts?: { programId?: string }) {
   const { programSlug } = useParams();
   const programIdToUse = opts?.programId ?? programSlug;
 
-  const { data: links, error } = useSWR<PartnerLinkProps[]>(
+  const {
+    data: links,
+    error,
+    isValidating,
+  } = useSWR<PartnerLinkProps[]>(
     programIdToUse &&
       partnerId &&
       `/api/partner-profile/programs/${programIdToUse}/links`,
@@ -24,5 +28,6 @@ export default function usePartnerLinks(opts?: { programId?: string }) {
     links,
     error,
     loading: !links && !error,
+    isValidating,
   };
 }

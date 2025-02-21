@@ -53,6 +53,7 @@ export const PartnerLinkSchema = LinkSchema.pick({
   leads: true,
   sales: true,
   saleAmount: true,
+  comments: true,
 });
 
 export const ProgramEnrollmentSchema = z.object({

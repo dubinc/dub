@@ -28,7 +28,7 @@ export function usePartnerLinksContext() {
 
 export function ProgramLinksPageClient() {
   const { searchParamsObj } = useRouterStuff();
-  const { links, error, loading } = usePartnerLinks();
+  const { links, error, loading, isValidating } = usePartnerLinks();
   const { setShowPartnerLinkModal, PartnerLinkModal } = usePartnerLinkModal();
 
   const {
@@ -65,7 +65,7 @@ export function ProgramLinksPageClient() {
         }}
       >
         <ChartTooltipSync>
-          <CardList>
+          <CardList loading={isValidating}>
             {error ? (
               <div className="flex items-center justify-center px-5 py-3">
                 <p className="text-sm text-neutral-600">
