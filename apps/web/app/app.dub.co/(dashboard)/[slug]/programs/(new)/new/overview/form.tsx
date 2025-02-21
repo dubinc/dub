@@ -22,7 +22,7 @@ export function Form() {
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: ({ data }) => {
       if (data?.id) {
-        router.push(`/${workspaceSlug}/programs/${data.id}`);
+        router.push(`/${workspaceSlug}/programs/${data.id}?onboarded-program`);
       }
     },
     onError: ({ error }) => {
