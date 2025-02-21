@@ -1,65 +1,91 @@
 "use client";
 
-import { Button, CircleCheckFill, Input } from "@dub/ui";
+import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
+import useWorkspace from "@/lib/swr/use-workspace";
+import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
+import { InvitePartners } from "@/lib/zod/schemas/program-onboarding";
+import { Button, Input } from "@dub/ui";
 import { Plus, Trash2 } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
+import { useRouter } from "next/navigation";
 import { useFieldArray, useForm } from "react-hook-form";
-import { z } from "zod";
-
-const formSchema = z.object({
-  partners: z
-    .array(
-      z.object({
-        email: z.string().email("Please enter a valid email"),
-        referralLink: z.string().min(1, "Please enter a referral link"),
-      }),
-    )
-    .min(1, "Add at least one partner"),
-});
-
-type Form = z.infer<typeof formSchema>;
+import { toast } from "sonner";
 
 export function Form() {
+  const router = useRouter();
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+
   const {
     register,
     control,
     handleSubmit,
-    formState: { isSubmitting, isValid },
-  } = useForm<Form>({
+    formState: { isSubmitting },
+  } = useForm<InvitePartners>({
     defaultValues: {
-      partners: [{ email: "", referralLink: "panic" }],
+      partners: [{ email: "", key: "" }],
     },
-    mode: "onChange",
   });
+
+  const [programOnboarding, _, { mutateWorkspace }] = useWorkspaceStore<{
+    rewardfulAffiliateCount: number;
+  }>("programOnboarding");
 
   const { fields, append, remove } = useFieldArray({
     name: "partners",
     control,
   });
 
-  const onSubmit = async (data: Form) => {
-    console.log(data);
-    // TODO: Handle form submission
+  const { executeAsync, isPending } = useAction(onboardProgramAction, {
+    onSuccess: () => {
+      mutateWorkspace();
+      router.push(`/${workspaceSlug}/programs/onboarding/partners`);
+    },
+    onError: ({ error }) => {
+      toast.error(error.serverError);
+    },
+  });
+
+  const onSubmit = async (data: InvitePartners) => {
+    if (!workspaceId) {
+      return;
+    }
+
+    await executeAsync({
+      ...data,
+      workspaceId,
+      step: "invite-partners",
+    });
   };
+
+  console.log(programOnboarding);
 
   return (
     <div className="space-y-6">
-      <div className="space-y-3">
-        <p className="text-sm text-neutral-600">
-          Invite new partners in addition to those being imported.
-        </p>
+      {programOnboarding?.rewardfulAffiliateCount && (
+        <div className="space-y-3">
+          <p className="text-sm text-neutral-600">
+            Invite new partners in addition to those being imported.
+          </p>
 
-        <div className="mt-10 flex items-center justify-between rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3">
-          <div className="flex items-center gap-2">
-            <div className="flex size-5 items-center justify-center rounded-full bg-blue-600">
-              <CircleCheckFill className="size-4 text-white" />
+          <div className="mt-10 flex items-center justify-between rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3">
+            <div className="flex items-center gap-2">
+              <div className="flex size-5 items-center justify-center rounded-full bg-blue-600">
+                <img
+                  src="https://assets.dub.co/misc/icons/rewardful.svg"
+                  alt="Rewardful logo"
+                  className="size-5"
+                />
+              </div>
+              <span className="text-sm font-medium text-neutral-800">
+                Affiliates importing
+              </span>
             </div>
-            <span className="text-sm font-medium text-neutral-800">
-              Affiliates importing
+            <span className="text-sm text-neutral-600">
+              {programOnboarding.rewardfulAffiliateCount}
             </span>
           </div>
-          <span className="text-sm font-medium text-neutral-800">12</span>
         </div>
-      </div>
+      )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
         <div className="flex flex-col gap-3">
@@ -73,7 +99,7 @@ export function Form() {
                   {index === 0 && "Email"}
                 </label>
                 <Input
-                  {...register(`partners.${index}.email`, { required: true })}
+                  {...register(`partners.${index}.email`)}
                   type="email"
                   placeholder="panic@thedis.co"
                   className="mt-2"
@@ -93,9 +119,7 @@ export function Form() {
                         </span>
                       </div>
                       <input
-                        {...register(`partners.${index}.referralLink`, {
-                          required: true,
-                        })}
+                        {...register(`partners.${index}.key`)}
                         type="text"
                         placeholder="panic"
                         className="w-full border-0 bg-transparent px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-0"
@@ -122,7 +146,7 @@ export function Form() {
             className="w-fit"
             onClick={() => {
               if (fields.length < 10) {
-                append({ email: "", referralLink: "panic" });
+                append({ email: "", key: "" });
               }
             }}
             disabled={fields.length >= 10}
@@ -137,8 +161,8 @@ export function Form() {
         <Button
           text="Continue"
           className="w-full"
-          loading={isSubmitting}
-          disabled={!isValid || isSubmitting}
+          loading={isSubmitting || isPending}
+          disabled={isSubmitting || isPending}
         />
       </form>
     </div>

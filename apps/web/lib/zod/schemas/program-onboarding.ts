@@ -26,6 +26,7 @@ export const configureRewardSchema = z
     programType: z.enum(["new", "import"]),
     rewardfulApiToken: z.string().optional(),
     rewardfulCampaignId: z.string().optional(),
+    rewardfulAffiliateCount: z.number().optional(),
   })
   .merge(
     createOrUpdateRewardSchema.pick({
@@ -37,6 +38,15 @@ export const configureRewardSchema = z
 
 export const invitePartnersSchema = z.object({
   step: z.literal("invite-partners"),
+  workspaceId: z.string(),
+  partners: z
+    .array(
+      z.object({
+        email: z.string().email("Please enter a valid email"),
+        key: z.string().min(1, "Please enter a referral key"),
+      }),
+    )
+    .nullable(),
 });
 
 export const connectDubSchema = z.object({
@@ -56,7 +66,11 @@ export const onboardProgramSchema = z.discriminatedUnion("step", [
 ]);
 
 export type BasicInfo = z.infer<typeof fillBasicInfoSchema>;
+
 export type ConfigureReward = z.infer<typeof configureRewardSchema>;
+
 export type InvitePartners = z.infer<typeof invitePartnersSchema>;
+
 export type ConnectDub = z.infer<typeof connectDubSchema>;
+
 export type CreateProgram = z.infer<typeof createProgramSchema>;

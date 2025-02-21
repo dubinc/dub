@@ -1,8 +1,8 @@
 "use server";
 
+import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { createId } from "@/lib/api/utils";
 import {
-  configureRewardSchema,
   connectDubSchema,
   createProgramSchema,
   fillBasicInfoSchema,
@@ -21,43 +21,52 @@ export const onboardProgramAction = authActionClient
 
     switch (data.step) {
       case "fill-basic-info":
-        return fillBasicInfo(data, workspace);
+        await fillBasicInfo({
+          data,
+          workspace,
+        });
+        break;
       case "configure-reward":
-        return configureReward(data, workspace);
+        await storeOnboardingProgress({
+          data,
+          workspace,
+        });
+        break;
       case "invite-partners":
-        return invitePartners(data);
+        await invitePartners(data);
+        break;
       case "connect-dub":
-        return connectDub(data);
+        await connectDub(data);
+        break;
       case "create-program":
-        return createProgram(data);
+        await createProgram(data);
+        break;
     }
   });
 
-async function fillBasicInfo(
-  data: z.infer<typeof fillBasicInfoSchema>,
-  workspace: Project,
-) {
-  // TODO:
-  // Check the domain belongs to the workspace
+async function fillBasicInfo({
+  data,
+  workspace,
+}: {
+  data: z.infer<typeof fillBasicInfoSchema>;
+  workspace: Project;
+}) {
+  const { domain } = data;
+
+  if (!domain) {
+    return;
+  }
+
+  await getDomainOrThrow({
+    workspace,
+    domain,
+  });
 
   await storeOnboardingProgress({
     workspace,
     data,
   });
 }
-
-async function configureReward(
-  data: z.infer<typeof configureRewardSchema>,
-  workspace: Project,
-) {
-  console.log("configureReward", data);
-
-  await storeOnboardingProgress({
-    workspace,
-    data,
-  });
-}
-
 async function invitePartners(data: z.infer<typeof invitePartnersSchema>) {
   //
 }

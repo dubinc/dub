@@ -355,7 +355,7 @@ const NewProgramForm = ({ register, watch, setValue }: FormProps) => {
   );
 };
 
-const ImportProgramForm = ({ register, watch }: FormProps) => {
+const ImportProgramForm = ({ register, watch, setValue }: FormProps) => {
   const [rewardfulCampaignId, rewardfulApiToken] = watch([
     "rewardfulCampaignId",
     "rewardfulApiToken",
@@ -363,15 +363,21 @@ const ImportProgramForm = ({ register, watch }: FormProps) => {
 
   const { campaigns } = useRewardfulCampaigns(rewardfulApiToken);
 
+  const selectedCampaign = campaigns.find(
+    (campaign) => campaign.id === rewardfulCampaignId,
+  );
+
+  useEffect(() => {
+    if (selectedCampaign) {
+      setValue("rewardfulAffiliateCount", selectedCampaign.affiliates);
+    }
+  }, [selectedCampaign, setValue]);
+
   const formatCommission = useCallback((campaign: RewardfulCampaign) => {
     return campaign.reward_type === "percent"
       ? `${campaign.commission_percent}%`
       : `$${(campaign.commission_amount_cents / 100).toFixed(2)}`;
   }, []);
-
-  const selectedCampaign = campaigns.find(
-    (campaign) => campaign.id === rewardfulCampaignId,
-  );
 
   return (
     <div className="space-y-6">

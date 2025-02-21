@@ -62,7 +62,7 @@ export async function GET() {
       visitors: 150,
       leads: 39,
       conversions: 7,
-      affiliates: 12,
+      affiliates: 45,
     },
   ];
 
