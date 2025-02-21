@@ -217,7 +217,7 @@ function PartnerLinkModalContent({
               ...data,
               url: linkConstructor({
                 domain: destinationDomain,
-                key: data.key,
+                key: data.url,
               }),
             }),
           },
