@@ -9,6 +9,8 @@ import { prisma } from "@dub/prisma";
 import { getApexDomain } from "@dub/utils";
 import { NextResponse } from "next/server";
 
+const PARTNER_LINKS_LIMIT = 10;
+
 // GET /api/partner-profile/programs/[programId]/links - get a partner's links in a program
 export const GET = withPartnerProfile(async ({ partner, params }) => {
   const { links } = await getProgramEnrollmentOrThrow({
@@ -26,7 +28,7 @@ export const POST = withPartnerProfile(
       .pick({ url: true, key: true, comments: true })
       .parse(await parseRequestBody(req));
 
-    const { program, tenantId } = await getProgramEnrollmentOrThrow({
+    const { program, links, tenantId } = await getProgramEnrollmentOrThrow({
       partnerId: partner.id,
       programId: params.programId,
     });
@@ -36,6 +38,13 @@ export const POST = withPartnerProfile(
         code: "bad_request",
         message:
           "This program needs a domain and URL set before creating a link.",
+      });
+    }
+
+    if (links.length >= PARTNER_LINKS_LIMIT) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: `You have reached the limit of ${PARTNER_LINKS_LIMIT} program links.`,
       });
     }
 
