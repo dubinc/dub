@@ -22,6 +22,7 @@ export default function usePartnerAnalytics(
         {
           event: params?.event ?? "composite",
           groupBy: params?.groupBy ?? "count",
+          ...(params?.linkId && { linkId: params.linkId }),
           ...VALID_ANALYTICS_FILTERS.reduce(
             (acc, filter) => ({
               ...acc,

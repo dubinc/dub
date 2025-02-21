@@ -6,7 +6,7 @@ import { ProgramLinksPageClient } from "./page-client";
 export default function ProgramLinks() {
   return (
     <PageContent title="Links" hideReferButton>
-      <MaxWidthWrapper>
+      <MaxWidthWrapper className="pb-10">
         <ProgramLinksPageClient />
       </MaxWidthWrapper>
     </PageContent>
