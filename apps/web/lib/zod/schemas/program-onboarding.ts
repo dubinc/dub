@@ -2,14 +2,6 @@ import { CommissionType } from "@prisma/client";
 import { z } from "zod";
 import { RECURRING_MAX_DURATIONS } from "./rewards";
 
-// const PROGRAM_ONBOARDING_STEPS = [
-//   "fill-basic-info",
-//   "configure-reward",
-//   "invite-partners",
-//   "connect-dub",
-//   "create-program",
-// ] as const;
-
 // Getting started
 export const programInfoSchema = z.object({
   name: z.string().max(100),
@@ -52,8 +44,6 @@ export const programRewardSchema = z
 
 // Invite partners
 export const programInvitePartnersSchema = z.object({
-  step: z.literal("invite-partners"),
-  workspaceId: z.string(),
   partners: z
     .array(
       z.object({
