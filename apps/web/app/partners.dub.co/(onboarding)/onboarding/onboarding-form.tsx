@@ -181,6 +181,9 @@ export function OnboardingForm({
           rules={{ required: true }}
           render={({ field }) => <CountryCombobox {...field} />}
         />
+        <p className="mt-1.5 text-xs text-neutral-500">
+          Your country cannot be changed once set.
+        </p>
       </label>
 
       <label>

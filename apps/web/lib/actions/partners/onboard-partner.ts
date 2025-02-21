@@ -69,7 +69,7 @@ export const onboardPartnerAction = authUserActionClient
               users: {
                 create: {
                   userId: user.id,
-                  role: "owner" as const,
+                  role: "owner",
                 },
               },
             },
