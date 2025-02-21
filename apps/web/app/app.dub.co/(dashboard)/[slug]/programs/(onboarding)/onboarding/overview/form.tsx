@@ -3,6 +3,7 @@
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
+import { RewardProps } from "@/lib/types";
 import {
   BasicInfo,
   ConfigureReward,
@@ -17,7 +18,7 @@ import { toast } from "sonner";
 import { LINK_TYPES } from "../new/form";
 
 type ProgramOnboarding = Pick<BasicInfo, "url" | "linkType"> &
-  Pick<ConfigureReward, "type" | "amount" | "maxDuration">;
+  Pick<ConfigureReward, "type" | "amount" | "maxDuration" | "rewardful">;
 
 export function Form() {
   const router = useRouter();
@@ -43,18 +44,32 @@ export function Form() {
     });
   };
 
+  const reward = program?.rewardful?.campaign
+    ? {
+        type:
+          program?.rewardful?.campaign.reward_type === "amount"
+            ? "flat"
+            : "percentage",
+        amount:
+          program?.rewardful?.campaign.reward_type === "amount"
+            ? program?.rewardful?.campaign.commission_amount_cents
+            : program?.rewardful?.campaign.commission_percent,
+        maxDuration:
+          program?.rewardful?.campaign.max_commission_period_months ?? 0,
+        event: "sale",
+      }
+    : {
+        type: program?.type ?? "flat",
+        amount: program?.amount ?? 0,
+        maxDuration: program?.maxDuration ?? 0,
+        event: "sale",
+      };
+
   const SECTIONS = [
     {
       title: "Reward",
-      content: program ? (
-        <ProgramRewardDescription
-          reward={{
-            type: program.type,
-            amount: program.amount,
-            maxDuration: program.maxDuration,
-            event: "sale",
-          }}
-        />
+      content: reward ? (
+        <ProgramRewardDescription reward={reward as RewardProps} />
       ) : null,
       href: `/${workspaceSlug}/programs/onboarding/rewards`,
     },
@@ -71,8 +86,6 @@ export function Form() {
       href: `/${workspaceSlug}/programs/onboarding/new`,
     },
   ] as const;
-
-  console.log(program);
 
   return (
     <form onSubmit={onSubmit} className="space-y-6">

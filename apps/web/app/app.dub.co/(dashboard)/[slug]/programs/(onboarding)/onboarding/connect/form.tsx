@@ -36,7 +36,9 @@ export function Form() {
     },
   });
 
-  const onSubmit = async () => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
     if (!workspaceId) return;
 
     await executeAsync({
@@ -46,7 +48,7 @@ export function Form() {
   };
 
   return (
-    <form onSubmit={onSubmit} className="space-y-10">
+    <form onSubmit={onSubmit} className="space-y-10" method="POST">
       <div className="space-y-6">
         <p className="text-sm text-neutral-600">
           Ensuring your program is connect is simple, select the best guide that
@@ -78,7 +80,12 @@ export function Form() {
         </div>
       </div>
 
-      <Button text="Continue" className="w-full" loading={isPending} />
+      <Button
+        text="Continue"
+        className="w-full"
+        loading={isPending}
+        type="submit"
+      />
     </form>
   );
 }

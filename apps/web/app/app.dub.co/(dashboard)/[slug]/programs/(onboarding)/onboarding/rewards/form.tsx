@@ -34,7 +34,6 @@ type FormProps = {
   register: UseFormRegister<ConfigureReward>;
   watch: UseFormWatch<ConfigureReward>;
   setValue: UseFormSetValue<ConfigureReward>;
-  campaigns?: RewardfulCampaign[];
 };
 
 const PROGRAM_TYPES = [
@@ -66,7 +65,6 @@ const useRewardfulCampaigns = (apiToken?: string) => {
 export function Form() {
   const router = useRouter();
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
-  const [campaigns, setCampaigns] = useState<RewardfulCampaign[]>([]);
 
   const [program, _, { mutateWorkspace }] =
     useWorkspaceStore<ConfigureReward>("programOnboarding");
@@ -95,6 +93,7 @@ export function Form() {
       router.push(`/${workspaceSlug}/programs/onboarding/partners`);
     },
     onError: ({ error }) => {
+      console.log(error);
       toast.error(error.serverError);
     },
   });
@@ -106,8 +105,8 @@ export function Form() {
 
     if (
       programType === "import" &&
-      rewardful.apiToken &&
-      !rewardful.campaign?.id
+      rewardful?.apiToken &&
+      !rewardful?.campaign?.id
     ) {
       // const response = await fetch(
       //   `/api/programs/rewardful/campaigns?token=${rewardfulApiToken}`,
@@ -124,8 +123,20 @@ export function Form() {
       // return;
     }
 
-    await executeAsync({
+    const programData = {
       ...data,
+      ...(programType === "new" && {
+        rewardful: undefined,
+      }),
+      ...(programType === "import" && {
+        type: null,
+        amount: null,
+        maxDuration: null,
+      }),
+    };
+
+    await executeAsync({
+      ...programData,
       workspaceId,
       step: "configure-reward",
     });
@@ -135,7 +146,7 @@ export function Form() {
     isSubmitting ||
     isPending ||
     (programType === "import" &&
-      (!rewardful.apiToken || !rewardful.campaign?.id));
+      (!rewardful?.apiToken || !rewardful?.campaign?.id));
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
@@ -192,7 +203,6 @@ export function Form() {
           register={register}
           watch={watch}
           setValue={setValue}
-          campaigns={campaigns}
         />
       )}
 
@@ -352,11 +362,11 @@ const NewProgramForm = ({ register, watch, setValue }: FormProps) => {
 };
 
 const ImportProgramForm = ({ register, watch, setValue }: FormProps) => {
-  const [rewardful] = watch(["rewardful"]);
-  const { campaigns } = useRewardfulCampaigns(rewardful.apiToken);
+  const rewardful = watch("rewardful");
+  const { campaigns } = useRewardfulCampaigns(rewardful?.apiToken);
 
   const selectedCampaign = campaigns.find(
-    (campaign) => campaign.id === rewardful.campaign?.id,
+    (campaign) => campaign.id === rewardful?.campaign?.id,
   );
 
   useEffect(() => {

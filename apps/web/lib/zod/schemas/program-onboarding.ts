@@ -1,5 +1,6 @@
+import { CommissionType } from "@prisma/client";
 import { z } from "zod";
-import { createOrUpdateRewardSchema } from "./rewards";
+import { RECURRING_MAX_DURATIONS } from "./rewards";
 
 // const PROGRAM_ONBOARDING_STEPS = [
 //   "fill-basic-info",
@@ -24,25 +25,30 @@ export const configureRewardSchema = z
     step: z.literal("configure-reward"),
     workspaceId: z.string(),
     programType: z.enum(["new", "import"]),
-    rewardful: z.object({
-      apiToken: z.string(),
-      campaign: z
-        .object({
+    rewardful: z
+      .object({
+        apiToken: z.string(),
+        campaign: z.object({
           id: z.string(),
           affiliates: z.number(),
-          commission_amount_cents: z.number(),
+          commission_amount_cents: z.number().nullable(),
           max_commission_period_months: z.number(),
           reward_type: z.enum(["amount", "percent"]),
-          commission_percent: z.number(),
-        })
-        .optional(),
-    }),
+          commission_percent: z.number().nullable(),
+        }),
+      })
+      .nullish(),
   })
   .merge(
-    createOrUpdateRewardSchema.pick({
-      type: true,
-      amount: true,
-      maxDuration: true,
+    z.object({
+      type: z.nativeEnum(CommissionType).nullish(),
+      amount: z.number().min(0).nullish(),
+      maxDuration: z.coerce
+        .number()
+        .refine((val) => RECURRING_MAX_DURATIONS.includes(val), {
+          message: `Max duration must be ${RECURRING_MAX_DURATIONS.join(", ")}`,
+        })
+        .nullish(),
     }),
   );
 

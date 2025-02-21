@@ -123,12 +123,19 @@ export function Form() {
       router.push(`/${workspaceSlug}/programs/onboarding/connect`);
     },
     onError: ({ error }) => {
+      console.log(error);
       toast.error(error.serverError);
     },
   });
 
   const onSubmit = async (data: InvitePartners) => {
     if (!workspaceId) return;
+
+    data.partners =
+      data?.partners?.filter(
+        (partner) => partner.email !== "" && partner.key !== "",
+      ) ?? null;
+
     await executeAsync({
       ...data,
       workspaceId,
