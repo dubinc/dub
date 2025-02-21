@@ -14,7 +14,9 @@ export function PartnerLinkControls({
   link: PartnerLinkProps;
   programId: string;
 }) {
-  const { setShowPartnerLinkModal, PartnerLinkModal } = usePartnerLinkModal();
+  const { setShowPartnerLinkModal, PartnerLinkModal } = usePartnerLinkModal({
+    link,
+  });
 
   const { setShowLinkQRModal, LinkQRModal } = usePartnerLinkQRModal({
     props: {
@@ -42,7 +44,7 @@ export function PartnerLinkControls({
                   setShowPartnerLinkModal(true);
                 }}
                 icon={<PenWriting className="size-4" />}
-                className="h-9 px-2 font-medium"
+                className="h-9 justify-start px-2 font-medium"
               />
               <Button
                 text="QR Code"
@@ -52,7 +54,7 @@ export function PartnerLinkControls({
                   setShowLinkQRModal(true);
                 }}
                 icon={<QRCode className="size-4" />}
-                className="h-9 px-2 font-medium"
+                className="h-9 justify-start px-2 font-medium"
               />
             </div>
           </div>

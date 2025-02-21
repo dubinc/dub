@@ -18,6 +18,7 @@ import { getDomainWithoutWWW, linkConstructor } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 
 import { mutatePrefix } from "@/lib/swr/mutate";
+import { PartnerLinkProps } from "@/lib/types";
 import {
   Dispatch,
   SetStateAction,
@@ -38,11 +39,13 @@ interface PartnerLinkFormData {
 }
 
 interface PartnerLinkModalProps {
+  link?: PartnerLinkProps;
   showPartnerLinkModal: boolean;
   setShowPartnerLinkModal: Dispatch<SetStateAction<boolean>>;
 }
 
 export function PartnerLinkModal({
+  link,
   showPartnerLinkModal,
   setShowPartnerLinkModal,
 }: PartnerLinkModalProps) {
@@ -53,6 +56,7 @@ export function PartnerLinkModal({
       className="max-w-lg"
     >
       <PartnerLinkModalContent
+        link={link}
         setShowPartnerLinkModal={setShowPartnerLinkModal}
       />
     </Modal>
@@ -147,8 +151,10 @@ function QRCodePreview({
 }
 
 function PartnerLinkModalContent({
+  link,
   setShowPartnerLinkModal,
 }: {
+  link?: PartnerLinkProps;
   setShowPartnerLinkModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const { programEnrollment } = useProgramEnrollment();
@@ -342,7 +348,12 @@ function PartnerLinkModalContent({
   );
 }
 
-export function usePartnerLinkModal() {
+export function usePartnerLinkModal(
+  props: Omit<
+    PartnerLinkModalProps,
+    "showPartnerLinkModal" | "setShowPartnerLinkModal"
+  >,
+) {
   const [showPartnerLinkModal, setShowPartnerLinkModal] = useState(false);
 
   const PartnerLinkModalCallback = useCallback(() => {
@@ -350,6 +361,7 @@ export function usePartnerLinkModal() {
       <PartnerLinkModal
         showPartnerLinkModal={showPartnerLinkModal}
         setShowPartnerLinkModal={setShowPartnerLinkModal}
+        {...props}
       />
     );
   }, [showPartnerLinkModal]);
