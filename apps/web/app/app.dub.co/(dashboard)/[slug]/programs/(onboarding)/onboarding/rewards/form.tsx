@@ -68,7 +68,7 @@ export function Form() {
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const [campaigns, setCampaigns] = useState<RewardfulCampaign[]>([]);
 
-  const [programOnboarding, _, { mutateWorkspace }] =
+  const [program, _, { mutateWorkspace }] =
     useWorkspaceStore<ConfigureReward>("programOnboarding");
 
   const {
@@ -79,20 +79,15 @@ export function Form() {
     formState: { isSubmitting },
   } = useForm<ConfigureReward>({
     defaultValues: {
-      programType: programOnboarding?.programType || "new",
-      type: programOnboarding?.type || "flat",
-      maxDuration: programOnboarding?.maxDuration ?? 0,
-      amount: programOnboarding?.amount || 0,
-      rewardfulApiToken: programOnboarding?.rewardfulApiToken,
-      rewardfulCampaignId: programOnboarding?.rewardfulCampaignId,
+      programType: program?.programType || "new",
+      type: program?.type || "flat",
+      maxDuration: program?.maxDuration ?? 0,
+      amount: program?.amount || 0,
+      rewardful: program?.rewardful,
     },
   });
 
-  const [programType, rewardfulApiToken, rewardfulCampaignId] = watch([
-    "programType",
-    "rewardfulApiToken",
-    "rewardfulCampaignId",
-  ]);
+  const [programType, rewardful] = watch(["programType", "rewardful"]);
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
@@ -109,24 +104,24 @@ export function Form() {
       return;
     }
 
-    if (programType === "import" && rewardfulApiToken && !rewardfulCampaignId) {
+    if (
+      programType === "import" &&
+      rewardful.apiToken &&
+      !rewardful.campaign?.id
+    ) {
       // const response = await fetch(
       //   `/api/programs/rewardful/campaigns?token=${rewardfulApiToken}`,
       // );
-
       // if (!response.ok) {
       //   return;
       // }
-
       // const campaigns = await response.json();
-
       // if (campaigns.length === 0) {
       //   return;
       // }
-
       // setCampaigns(campaigns);
       // setValue("rewardfulCampaignId", campaigns[0].id);
-      return;
+      // return;
     }
 
     await executeAsync({
@@ -139,7 +134,8 @@ export function Form() {
   const buttonDisabled =
     isSubmitting ||
     isPending ||
-    (programType === "import" && (!rewardfulApiToken || !rewardfulCampaignId));
+    (programType === "import" &&
+      (!rewardful.apiToken || !rewardful.campaign?.id));
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
@@ -356,20 +352,16 @@ const NewProgramForm = ({ register, watch, setValue }: FormProps) => {
 };
 
 const ImportProgramForm = ({ register, watch, setValue }: FormProps) => {
-  const [rewardfulCampaignId, rewardfulApiToken] = watch([
-    "rewardfulCampaignId",
-    "rewardfulApiToken",
-  ]);
-
-  const { campaigns } = useRewardfulCampaigns(rewardfulApiToken);
+  const [rewardful] = watch(["rewardful"]);
+  const { campaigns } = useRewardfulCampaigns(rewardful.apiToken);
 
   const selectedCampaign = campaigns.find(
-    (campaign) => campaign.id === rewardfulCampaignId,
+    (campaign) => campaign.id === rewardful.campaign?.id,
   );
 
   useEffect(() => {
     if (selectedCampaign) {
-      setValue("rewardfulAffiliateCount", selectedCampaign.affiliates);
+      setValue("rewardful.campaign", selectedCampaign);
     }
   }, [selectedCampaign, setValue]);
 
@@ -409,7 +401,7 @@ const ImportProgramForm = ({ register, watch, setValue }: FormProps) => {
           Rewardful API secret
         </label>
         <Input
-          {...register("rewardfulApiToken")}
+          {...register("rewardful.apiToken")}
           type="password"
           placeholder="API token"
           className="mt-2 max-w-full"
@@ -434,7 +426,7 @@ const ImportProgramForm = ({ register, watch, setValue }: FormProps) => {
           </label>
           <div className="relative mt-2">
             <select
-              {...register("rewardfulCampaignId")}
+              {...register("rewardful.campaign.id")}
               className="block w-full appearance-none rounded-md border border-neutral-200 bg-white px-3 py-2 pr-8 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
             >
               <option value="">Select a campaign</option>

@@ -9,7 +9,10 @@ export function ProgramRewardDescription({
   periodClassName,
   hideIfZero = true,
 }: {
-  reward?: RewardProps | null;
+  reward?: Pick<
+    RewardProps,
+    "amount" | "type" | "event" | "maxDuration"
+  > | null;
   discount?: DiscountProps | null;
   amountClassName?: string;
   periodClassName?: string;

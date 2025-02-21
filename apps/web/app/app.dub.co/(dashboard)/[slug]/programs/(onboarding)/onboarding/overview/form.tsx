@@ -1,51 +1,82 @@
 "use client";
 
+import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
+import useWorkspace from "@/lib/swr/use-workspace";
+import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
+import {
+  BasicInfo,
+  ConfigureReward,
+} from "@/lib/zod/schemas/program-onboarding";
+import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { Button } from "@dub/ui";
 import { Pencil } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { toast } from "sonner";
+import { LINK_TYPES } from "../new/form";
 
-const formSchema = z.object({
-  // No form fields needed as this is just for navigation
-});
-
-type Form = z.infer<typeof formSchema>;
-
-const SECTIONS = [
-  {
-    title: "Reward",
-    content:
-      "Earn $10.00 for each conversion, and again for every conversion of the customers lifetime.",
-    step: "rewards",
-  },
-  {
-    title: "Referral link structure",
-    content: "refer.dub.co/partner-name",
-    step: "new",
-  },
-  {
-    title: "Destination URL",
-    content: "dub.co",
-    step: "new",
-  },
-] as const;
+type ProgramOnboarding = Pick<BasicInfo, "url" | "linkType"> &
+  Pick<ConfigureReward, "type" | "amount" | "maxDuration">;
 
 export function Form() {
   const router = useRouter();
-  const {
-    handleSubmit,
-    formState: { isSubmitting },
-  } = useForm<Form>();
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
-  const onSubmit = async (data: Form) => {
-    console.log(data);
-    // TODO: Handle form submission
+  const [program] = useWorkspaceStore<ProgramOnboarding>("programOnboarding");
+
+  const { executeAsync, isPending } = useAction(onboardProgramAction, {
+    onSuccess: () => {
+      router.push(`/${workspaceSlug}/programs/onboarding/overview`);
+    },
+    onError: ({ error }) => {
+      toast.error(error.serverError);
+    },
+  });
+
+  const onSubmit = async () => {
+    if (!workspaceId) return;
+
+    await executeAsync({
+      workspaceId,
+      step: "create-program",
+    });
   };
 
+  const SECTIONS = [
+    {
+      title: "Reward",
+      content: program ? (
+        <ProgramRewardDescription
+          reward={{
+            type: program.type,
+            amount: program.amount,
+            maxDuration: program.maxDuration,
+            event: "sale",
+          }}
+        />
+      ) : null,
+      href: `/${workspaceSlug}/programs/onboarding/rewards`,
+    },
+    {
+      title: "Referral link structure",
+      content: LINK_TYPES.find(
+        (linkType) => linkType.value === program?.linkType,
+      )?.preview,
+      href: `/${workspaceSlug}/programs/onboarding/new`,
+    },
+    {
+      title: "Destination URL",
+      content: program?.url,
+      href: `/${workspaceSlug}/programs/onboarding/new`,
+    },
+  ] as const;
+
+  console.log(program);
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      {SECTIONS.map(({ title, content, step }) => (
+    <form onSubmit={onSubmit} className="space-y-6">
+      {SECTIONS.map(({ title, content, href }) => (
         <div
           key={title}
           className="rounded-lg border border-neutral-200 bg-neutral-50 p-6"
@@ -54,12 +85,13 @@ export function Form() {
             <div className="text-sm font-semibold text-neutral-800">
               {title}
             </div>
-            <Button
-              text={<Pencil className="size-4" />}
-              variant="outline"
-              className="h-8 w-8 shrink-0 p-0"
-              onClick={() => router.push(`?step=${step}`)}
-            />
+            <Link href={href}>
+              <Button
+                text={<Pencil className="size-4" />}
+                variant="outline"
+                className="h-8 w-8 shrink-0 p-0"
+              />
+            </Link>
           </div>
           <div className="mt-1.5 text-sm font-normal text-neutral-700">
             {content}
@@ -70,7 +102,7 @@ export function Form() {
       <Button
         text="Create program"
         className="mt-6 w-full"
-        loading={isSubmitting}
+        loading={isPending}
       />
     </form>
   );

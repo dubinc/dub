@@ -24,9 +24,19 @@ export const configureRewardSchema = z
     step: z.literal("configure-reward"),
     workspaceId: z.string(),
     programType: z.enum(["new", "import"]),
-    rewardfulApiToken: z.string().optional(),
-    rewardfulCampaignId: z.string().optional(),
-    rewardfulAffiliateCount: z.number().optional(),
+    rewardful: z.object({
+      apiToken: z.string(),
+      campaign: z
+        .object({
+          id: z.string(),
+          affiliates: z.number(),
+          commission_amount_cents: z.number(),
+          max_commission_period_months: z.number(),
+          reward_type: z.enum(["amount", "percent"]),
+          commission_percent: z.number(),
+        })
+        .optional(),
+    }),
   })
   .merge(
     createOrUpdateRewardSchema.pick({
@@ -72,7 +82,3 @@ export type BasicInfo = z.infer<typeof fillBasicInfoSchema>;
 export type ConfigureReward = z.infer<typeof configureRewardSchema>;
 
 export type InvitePartners = z.infer<typeof invitePartnersSchema>;
-
-export type ConnectDub = z.infer<typeof connectDubSchema>;
-
-export type CreateProgram = z.infer<typeof createProgramSchema>;

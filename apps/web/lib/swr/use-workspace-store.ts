@@ -35,5 +35,7 @@ export function useWorkspaceStore<T>(
     mutate(`/api/workspaces/${slug}`);
   };
 
+  console.log(item);
+
   return [item, setItem, { loading, mutateWorkspace }];
 }

@@ -12,7 +12,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-const LINK_TYPES = [
+export const LINK_TYPES = [
   {
     value: "short",
     label: "Short link",
