@@ -126,7 +126,7 @@ export function Form() {
     const programData = {
       ...data,
       ...(programType === "new" && {
-        rewardful: undefined,
+        rewardful: null,
       }),
       ...(programType === "import" && {
         type: null,
