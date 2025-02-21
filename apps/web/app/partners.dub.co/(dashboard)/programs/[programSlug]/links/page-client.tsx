@@ -57,7 +57,7 @@ export function ProgramLinksPageClient() {
       <div className="flex items-center justify-between">
         <SimpleDateRangePicker
           className="w-fit"
-          align="end"
+          align="start"
           defaultInterval="30d"
         />
         <Button
