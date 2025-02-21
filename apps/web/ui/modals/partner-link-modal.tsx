@@ -1,6 +1,7 @@
 "use client";
 
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
+import { X } from "@/ui/shared/icons";
 import { QRCode } from "@/ui/shared/qr-code";
 import {
   Button,
@@ -9,13 +10,13 @@ import {
   ShimmerDots,
   SimpleTooltipContent,
   useEnterSubmit,
-  useKeyboardShortcut,
   useLocalStorage,
   useMediaQuery,
 } from "@dub/ui";
 import { Pen2, QRCode as QRCodeIcon } from "@dub/ui/icons";
 import { getDomainWithoutWWW, linkConstructor } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
+
 import {
   Dispatch,
   SetStateAction,
@@ -58,10 +59,12 @@ export function PartnerLinkModal({
 }
 
 function QRCodePreview({
+  programId,
   shortLink,
   shortLinkDomain,
   _key,
 }: {
+  programId: string;
   shortLink: string;
   shortLinkDomain: string;
   _key: string;
@@ -70,7 +73,7 @@ function QRCodePreview({
   const { isMobile } = useMediaQuery();
 
   const [data, setData] = useLocalStorage<QRCodeDesign>(
-    `partner-qr-code-design-${programEnrollment?.program?.id}`,
+    `partner-qr-code-design-${programId}`,
     {
       fgColor: "#000000",
     },
@@ -147,12 +150,10 @@ function PartnerLinkModalContent({
 }: {
   setShowPartnerLinkModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { isMobile } = useMediaQuery();
-
   const { programEnrollment } = useProgramEnrollment();
-  const destinationDomain = getDomainWithoutWWW(
-    programEnrollment?.program?.url || "https://dub.co",
-  );
+  const destinationDomain =
+    getDomainWithoutWWW(programEnrollment?.program?.url || "https://dub.co") ??
+    "dub.co";
   const shortLinkDomain = programEnrollment?.program?.domain || "dub.sh";
 
   const form = useForm<PartnerLinkFormData>();
@@ -166,7 +167,7 @@ function PartnerLinkModalContent({
     formState: { isSubmitting },
   } = form;
 
-  const [url, key] = watch(["url", "key"]);
+  const key = watch("key");
 
   const shortLink = useMemo(
     () =>
@@ -177,25 +178,48 @@ function PartnerLinkModalContent({
     [shortLinkDomain, key],
   );
 
-  const { LinkQRModal, setShowLinkQRModal } = usePartnerLinkQRModal({
-    props: {
-      domain: shortLinkDomain,
-      key,
-    },
-  });
-
   return (
     <form
       ref={formRef}
       onSubmit={handleSubmit(async (data) => {
-        // TODO: Implement link creation
-        console.log("Creating link:", data);
+        const response = await fetch(
+          `/api/partner-profile/programs/${programEnrollment?.program?.id}/links`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              ...data,
+              url: linkConstructor({
+                domain: destinationDomain,
+                key: data.key,
+              }),
+            }),
+          },
+        );
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          const { error } = result;
+          throw new Error(error.message);
+        }
+
         setShowPartnerLinkModal(false);
       })}
     >
-      <LinkQRModal />
       <div className="flex flex-col items-start justify-between gap-6 px-6 py-4">
-        <h3 className="text-lg font-medium">New Link</h3>
+        <div className="flex w-full items-center justify-between">
+          <h3 className="text-lg font-medium">New Link</h3>
+          <button
+            type="button"
+            onClick={() => setShowPartnerLinkModal(false)}
+            className="group rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none active:bg-neutral-200"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
 
         <div className="flex w-full flex-col gap-6">
           <div>
@@ -290,11 +314,14 @@ function PartnerLinkModalContent({
             />
           </div>
 
-          <QRCodePreview
-            shortLink={shortLink}
-            shortLinkDomain={shortLinkDomain}
-            _key={key}
-          />
+          {programEnrollment && (
+            <QRCodePreview
+              programId={programEnrollment.program.id}
+              shortLink={shortLink}
+              shortLinkDomain={shortLinkDomain}
+              _key={key}
+            />
+          )}
         </div>
       </div>
 
@@ -312,8 +339,6 @@ function PartnerLinkModalContent({
 
 export function usePartnerLinkModal() {
   const [showPartnerLinkModal, setShowPartnerLinkModal] = useState(false);
-
-  useKeyboardShortcut("c", () => setShowPartnerLinkModal(true));
 
   const PartnerLinkModalCallback = useCallback(() => {
     return (
