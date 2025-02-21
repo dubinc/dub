@@ -38,10 +38,10 @@ export async function getDefaultPartnerId(user: UserProps) {
         },
       });
 
-      if (partner) {
-        console.log(
-          "Found partner with the same email, linking user to partner",
-        );
+      // if there is already a partner profile with the same email + has a country assigned
+      // link the user to the partner profile
+      // else they need to either create a new partner profile or set their country
+      if (partner?.country) {
         await prismaEdge.user.update({
           where: {
             id: user.id,

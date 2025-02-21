@@ -16,7 +16,7 @@ model Partner {
   image             String?
   bio               String?       @db.LongText
   description       String?       @db.LongText
-  country           String        @default("US")
+  country           String?
   status            PartnerStatus @default(default)
   stripeConnectId   String?       @unique
   payoutsEnabled    Boolean       @default(false)
