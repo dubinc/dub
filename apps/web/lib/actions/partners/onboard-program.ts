@@ -1,5 +1,6 @@
 "use server";
 
+import { createLink } from "@/lib/api/links";
 import { createId } from "@/lib/api/utils";
 import { rewardfulImporter } from "@/lib/rewardful/importer";
 import { storage } from "@/lib/storage";
@@ -7,9 +8,11 @@ import {
   onboardProgramSchema,
   programDataSchema,
 } from "@/lib/zod/schemas/program-onboarding";
+import { sendEmail } from "@dub/email";
+import { PartnerInvite } from "@dub/email/templates/partner-invite";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
-import { Project, Reward, User } from "@prisma/client";
+import { Program, Project, Reward, User } from "@prisma/client";
 import slugify from "@sindresorhus/slugify";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
@@ -71,6 +74,7 @@ const createProgram = async ({
   user: Pick<User, "id">;
 }) => {
   const store = workspace.store as Record<string, any>;
+
   const {
     name,
     domain,
@@ -151,7 +155,16 @@ const createProgram = async ({
 
   // invite the partners
   if (partners && partners.length > 0) {
-    //
+    await Promise.all(
+      partners.map((partner) =>
+        invitePartner({
+          workspace,
+          program,
+          partner,
+          userId: user.id,
+        }),
+      ),
+    );
   }
 
   waitUntil(
@@ -170,3 +183,50 @@ const createProgram = async ({
 
   return program;
 };
+
+async function invitePartner({
+  workspace,
+  program,
+  partner,
+  userId,
+}: {
+  workspace: Pick<Project, "id">;
+  program: Pick<Program, "id" | "name" | "logo" | "url" | "domain">;
+  partner: {
+    email: string;
+    key: string;
+  };
+  userId: string;
+}) {
+  const link = await createLink({
+    userId,
+    url: program.url!,
+    domain: program.domain!,
+    key: partner.key,
+    trackConversion: true,
+    projectId: workspace.id,
+    programId: program.id,
+  });
+
+  await prisma.programInvite.create({
+    data: {
+      id: createId({ prefix: "pgi_" }),
+      email: partner.email,
+      linkId: link.id,
+      programId: program.id,
+    },
+  });
+
+  await sendEmail({
+    subject: `${program.name} invited you to join Dub Partners`,
+    email: partner.email,
+    react: PartnerInvite({
+      email: partner.email,
+      appName: `${process.env.NEXT_PUBLIC_APP_NAME}`,
+      program: {
+        name: program.name,
+        logo: program.logo,
+      },
+    }),
+  });
+}

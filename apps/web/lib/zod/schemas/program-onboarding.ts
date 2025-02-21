@@ -51,6 +51,7 @@ export const programInvitePartnersSchema = z.object({
         key: z.string().min(1, "Please enter a referral key"),
       }),
     )
+    .max(10, "You can only invite up to 10 partners.")
     .nullable(),
 });
 
