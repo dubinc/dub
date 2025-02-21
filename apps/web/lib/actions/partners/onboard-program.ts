@@ -23,7 +23,7 @@ export const onboardProgramAction = authActionClient
       case "fill-basic-info":
         return fillBasicInfo(data, workspace);
       case "configure-reward":
-        return configureReward(data);
+        return configureReward(data, workspace);
       case "invite-partners":
         return invitePartners(data);
       case "connect-dub":
@@ -37,12 +37,8 @@ async function fillBasicInfo(
   data: z.infer<typeof fillBasicInfoSchema>,
   workspace: Project,
 ) {
-  const store =
-    (workspace.store as Record<string, any> | undefined | null) ?? {};
-
-  // Check programId exists within the programOnboarding object
-  // If it does, update the object with the new data
-  // If it doesn't, create a new programOnboarding object
+  // TODO:
+  // Check the domain belongs to the workspace
 
   await storeOnboardingProgress({
     workspace,
@@ -50,8 +46,16 @@ async function fillBasicInfo(
   });
 }
 
-async function configureReward(data: z.infer<typeof configureRewardSchema>) {
-  //
+async function configureReward(
+  data: z.infer<typeof configureRewardSchema>,
+  workspace: Project,
+) {
+  console.log("configureReward", data);
+
+  await storeOnboardingProgress({
+    workspace,
+    data,
+  });
 }
 
 async function invitePartners(data: z.infer<typeof invitePartnersSchema>) {
@@ -66,12 +70,6 @@ async function createProgram(data: z.infer<typeof createProgramSchema>) {
   //
 }
 
-// TODO:
-// Form validation based on each step
-// Create a program ID after submitting the first step
-// Store the data on the workspace store
-// Remove the data from the workspace store after finishing the onboarding
-// Send the owner a new email after the program creation
 
 const storeOnboardingProgress = async ({
   workspace,
@@ -103,4 +101,9 @@ const storeOnboardingProgress = async ({
 };
 
 // TODO:
+// Form validation based on each step
+// Create a program ID after submitting the first step
+// Store the data on the workspace store
+// Remove the data from the workspace store after finishing the onboarding
+// Send the owner a new email after the program creation
 // Remove workspaceId from the programOnboarding object

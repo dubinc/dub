@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { createOrUpdateRewardSchema } from "./rewards";
 
 // const PROGRAM_ONBOARDING_STEPS = [
 //   "fill-basic-info",
@@ -10,17 +11,29 @@ import { z } from "zod";
 
 export const fillBasicInfoSchema = z.object({
   step: z.literal("fill-basic-info"),
+  workspaceId: z.string(),
   name: z.string().max(100),
   logo: z.string().nullish(),
   domain: z.string().nullish(),
   url: z.string().url("Enter a valid URL").max(255).nullish(),
   linkType: z.enum(["short", "query", "dynamic"]).default("short"),
-  workspaceId: z.string(),
 });
 
-export const configureRewardSchema = z.object({
-  step: z.literal("configure-reward"),
-});
+export const configureRewardSchema = z
+  .object({
+    step: z.literal("configure-reward"),
+    workspaceId: z.string(),
+    programType: z.enum(["new", "import"]),
+    rewardfulApiToken: z.string().optional(),
+    rewardfulCampaignId: z.string().optional(),
+  })
+  .merge(
+    createOrUpdateRewardSchema.pick({
+      type: true,
+      amount: true,
+      maxDuration: true,
+    }),
+  );
 
 export const invitePartnersSchema = z.object({
   step: z.literal("invite-partners"),
@@ -42,8 +55,8 @@ export const onboardProgramSchema = z.discriminatedUnion("step", [
   createProgramSchema,
 ]);
 
-export type ProgramBasicInfo = z.infer<typeof fillBasicInfoSchema>;
-export type ProgramReward = z.infer<typeof configureRewardSchema>;
-export type ProgramPartners = z.infer<typeof invitePartnersSchema>;
-export type ProgramConnectDub = z.infer<typeof connectDubSchema>;
-export type ProgramCreateProgram = z.infer<typeof createProgramSchema>;
+export type BasicInfo = z.infer<typeof fillBasicInfoSchema>;
+export type ConfigureReward = z.infer<typeof configureRewardSchema>;
+export type InvitePartners = z.infer<typeof invitePartnersSchema>;
+export type ConnectDub = z.infer<typeof connectDubSchema>;
+export type CreateProgram = z.infer<typeof createProgramSchema>;

@@ -4,23 +4,12 @@ import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
 import useDomains from "@/lib/swr/use-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
-import { ProgramBasicInfo } from "@/lib/zod/schemas/program-onboarding";
+import { BasicInfo } from "@/lib/zod/schemas/program-onboarding";
 import { Badge, Button, CircleCheckFill, Input, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
-
-const schema = z.object({
-  name: z.string().max(100),
-  logo: z.string().nullish(),
-  domain: z.string().nullish(),
-  url: z.string().url("Enter a valid URL").max(255).nullish(),
-  linkType: z.enum(["short", "query", "dynamic"]).default("short"),
-});
-
-type Form = z.infer<typeof schema>;
 
 const LINK_TYPES = [
   {
@@ -50,18 +39,15 @@ export function Form() {
   const { activeWorkspaceDomains, loading } = useDomains();
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
-  const [programOnboarding, _, { loading: loadingProgram }] = useWorkspaceStore<
-    ProgramBasicInfo | undefined
-  >("programOnboarding");
-
-  console.log(programOnboarding);
+  const [programOnboarding] =
+    useWorkspaceStore<BasicInfo>("programOnboarding");
 
   const {
     register,
     handleSubmit,
     watch,
     formState: { isSubmitting },
-  } = useForm<Form>({
+  } = useForm<BasicInfo>({
     defaultValues: {
       linkType: "short",
       domain: programOnboarding?.domain,
@@ -80,7 +66,7 @@ export function Form() {
     },
   });
 
-  const onSubmit = async (data: Form) => {
+  const onSubmit = async (data: BasicInfo) => {
     if (!workspaceId) {
       return;
     }

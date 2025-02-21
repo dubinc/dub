@@ -1,6 +1,10 @@
 "use client";
 
+import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
+import useWorkspace from "@/lib/swr/use-workspace";
+import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
+import { ConfigureReward } from "@/lib/zod/schemas/program-onboarding";
 import {
   COMMISSION_TYPES,
   RECURRING_MAX_DURATIONS,
@@ -8,26 +12,15 @@ import {
 import { Button, CircleCheckFill, Input } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { ChevronDown } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm, UseFormRegister, UseFormWatch } from "react-hook-form";
-import { z } from "zod";
-
-const formSchema = z.object({
-  programType: z.enum(["new", "import"]),
-  apiToken: z.string().optional(),
-  campaignId: z.string().optional(),
-  // Keep existing reward schema fields for new program flow
-  type: z.string().optional(),
-  maxDuration: z.number().optional(),
-  amount: z.number().optional(),
-});
-
-type Form = z.infer<typeof formSchema>;
 
 type FormProps = {
-  register: UseFormRegister<Form>;
-  watch: UseFormWatch<Form>;
+  register: UseFormRegister<ConfigureReward>;
+  watch: UseFormWatch<ConfigureReward>;
 };
 
 const PROGRAM_TYPES = [
@@ -44,25 +37,50 @@ const PROGRAM_TYPES = [
 ] as const;
 
 export function Form() {
+  const router = useRouter();
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+
+  const [programOnboarding] =
+    useWorkspaceStore<ConfigureReward>("programOnboarding");
+
   const {
     register,
     handleSubmit,
     watch,
     formState: { isSubmitting },
-  } = useForm<Form>({
+  } = useForm<ConfigureReward>({
     defaultValues: {
-      programType: "new",
-      type: "flat",
-      maxDuration: 0,
+      programType: programOnboarding?.programType || "new",
+      type: programOnboarding?.type || "flat",
+      maxDuration: programOnboarding?.maxDuration || 0,
+      amount: programOnboarding?.amount || 0,
+      rewardfulApiToken: programOnboarding?.rewardfulApiToken,
+      rewardfulCampaignId: programOnboarding?.rewardfulCampaignId,
     },
   });
 
-  const programType = watch("programType");
+  const { executeAsync, isPending } = useAction(onboardProgramAction, {
+    onSuccess: () => {
+      router.push(`/${workspaceSlug}/programs/onboarding/rewards`);
+    },
+    onError: (error) => {
+      console.error(error);
+    },
+  });
 
-  const onSubmit = async (data: Form) => {
-    console.log(data);
-    // TODO: Handle form submission
+  const onSubmit = async (data: ConfigureReward) => {
+    if (!workspaceId) {
+      return;
+    }
+
+    await executeAsync({
+      ...data,
+      workspaceId,
+      step: "configure-reward",
+    });
   };
+
+  const programType = watch("programType");
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
@@ -121,8 +139,8 @@ export function Form() {
       <Button
         text="Continue"
         className="w-full"
-        loading={isSubmitting}
-        disabled={isSubmitting}
+        loading={isSubmitting || isPending}
+        disabled={isSubmitting || isPending}
       />
     </form>
   );
@@ -267,7 +285,7 @@ const NewProgramForm = ({ register, watch }: FormProps) => {
 };
 
 const ImportProgramForm = ({ register, watch }: FormProps) => {
-  const selectedCampaignId = watch("campaignId");
+  const selectedCampaignId = watch("rewardfulCampaignId");
 
   return (
     <div className="space-y-6">
@@ -299,7 +317,7 @@ const ImportProgramForm = ({ register, watch }: FormProps) => {
           Rewardful API secret
         </label>
         <Input
-          {...register("apiToken")}
+          {...register("rewardfulApiToken")}
           type="password"
           placeholder="API token"
           className="mt-2 max-w-full"
@@ -323,7 +341,7 @@ const ImportProgramForm = ({ register, watch }: FormProps) => {
         </label>
         <div className="relative mt-2">
           <select
-            {...register("campaignId")}
+            {...register("rewardfulCampaignId")}
             className="block w-full appearance-none rounded-md border border-neutral-200 bg-white px-3 py-2 pr-8 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
           >
             <option value="campaign2">Campaign 2</option>
