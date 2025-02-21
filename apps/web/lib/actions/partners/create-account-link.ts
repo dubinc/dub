@@ -1,7 +1,9 @@
 "use server";
 
 import { stripe } from "@/lib/stripe";
-import { PARTNERS_DOMAIN } from "@dub/utils";
+import { createConnectedAccount } from "@/lib/stripe/create-connected-account";
+import { prisma } from "@dub/prisma";
+import { CONNECT_SUPPORTED_COUNTRIES, PARTNERS_DOMAIN } from "@dub/utils";
 import { authPartnerActionClient } from "../safe-action";
 
 export const createAccountLinkAction = authPartnerActionClient.action(
@@ -9,7 +11,32 @@ export const createAccountLinkAction = authPartnerActionClient.action(
     let { partner } = ctx;
 
     if (!partner.stripeConnectId) {
-      throw new Error("Partner does not have a Stripe Connect account.");
+      // this should never happen
+      if (!partner.email) {
+        throw new Error(
+          "Partner does not have an email. Please contact support to update your email.",
+        );
+      }
+
+      // guard against unsupported countries
+      if (!CONNECT_SUPPORTED_COUNTRIES.includes(partner.country)) {
+        throw new Error(
+          "Your current country is not supported for Stripe Connect. Please contact support to update your country.",
+        );
+      }
+      // create a new account
+      const connectedAccount = await createConnectedAccount({
+        name: partner.name,
+        email: partner.email,
+        country: partner.country,
+      });
+
+      partner.stripeConnectId = connectedAccount.id;
+
+      await prisma.partner.update({
+        where: { id: partner.id },
+        data: { stripeConnectId: connectedAccount.id },
+      });
     }
 
     const { url } = partner.payoutsEnabled
