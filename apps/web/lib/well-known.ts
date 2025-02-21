@@ -8,9 +8,9 @@ export type WellKnownConfig = {
   "assetlinks.json": any[];
 };
 
-export const supportedFiles = [
+export const supportedWellKnownFiles = [
   "apple-app-site-association",
   "assetlinks.json",
-] as const;
+];
 
-export type SupportedFiles = (typeof supportedFiles)[number];
+export type SupportedWellKnownFiles = keyof WellKnownConfig;

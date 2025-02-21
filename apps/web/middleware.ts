@@ -17,6 +17,7 @@ import {
 import { PARTNERS_HOSTNAMES } from "@dub/utils/src/constants";
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
 import PartnersMiddleware from "./lib/middleware/partners";
+import { supportedWellKnownFiles } from "./lib/well-known";
 
 export const config = {
   matcher: [
@@ -54,9 +55,11 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   // for .well-known routes
   if (path.startsWith("/.well-known/")) {
     const file = path.split("/.well-known/").pop();
-    return NextResponse.rewrite(
-      new URL(`/wellknown/${domain}/${file}`, req.url),
-    );
+    if (file && supportedWellKnownFiles.includes(file)) {
+      return NextResponse.rewrite(
+        new URL(`/wellknown/${domain}/${file}`, req.url),
+      );
+    }
   }
 
   // default redirects for dub.sh

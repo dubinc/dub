@@ -1,16 +1,20 @@
+import {
+  SupportedWellKnownFiles,
+  supportedWellKnownFiles,
+  WellKnownConfig,
+} from "@/lib/well-known";
 import { prismaEdge } from "@dub/prisma/edge";
 import { NextRequest, NextResponse } from "next/server";
-import { SupportedFiles, supportedFiles, WellKnownConfig } from "./utils";
 
 export const runtime = "edge";
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { domain: string; file: SupportedFiles } },
+  { params }: { params: { domain: string; file: SupportedWellKnownFiles } },
 ) {
   const { domain, file } = params;
 
-  if (!supportedFiles.includes(file)) {
+  if (!supportedWellKnownFiles.includes(file)) {
     return NextResponse.json({ error: "File not supported" }, { status: 400 });
   }
 
@@ -25,7 +29,7 @@ export async function GET(
       },
     });
 
-  let response: WellKnownConfig[SupportedFiles];
+  let response: WellKnownConfig[SupportedWellKnownFiles];
   switch (file) {
     case "apple-app-site-association":
       response =
