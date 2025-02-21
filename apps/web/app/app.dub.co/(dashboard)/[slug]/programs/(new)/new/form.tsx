@@ -8,11 +8,19 @@ import {
   ProgramData,
   programInfoSchema,
 } from "@/lib/zod/schemas/program-onboarding";
-import { Badge, Button, CircleCheckFill, Input, useMediaQuery } from "@dub/ui";
+import {
+  Badge,
+  Button,
+  CircleCheckFill,
+  FileUpload,
+  Input,
+  useMediaQuery,
+} from "@dub/ui";
 import { cn } from "@dub/utils";
+import { Plus } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -54,6 +62,7 @@ export function Form() {
     handleSubmit,
     watch,
     formState: { isSubmitting },
+    control,
   } = useForm<Form>({
     defaultValues: {
       linkType: "short",
@@ -100,26 +109,35 @@ export function Form() {
         />
       </div>
 
-      {/* <div>
+      <div>
         <label className="block text-sm font-medium text-neutral-800">
           Logo
-          <span className="ml-1 text-sm font-normal text-neutral-500">
-            (A square logo that will be used in various parts of your program)
-          </span>
         </label>
-        <Input
-          {...register("logo")}
-          placeholder="Upload logo"
-          className={cn(
-            "mt-2",
-            errors.logo &&
-              "border-red-500 focus:border-red-500 focus:ring-red-500",
-          )}
-        />
-        {errors.logo && (
-          <p className="mt-1 text-sm text-red-500">{errors.logo.message}</p>
-        )}
-      </div> */}
+        <p className="mb-4 mt-1 text-sm text-neutral-600">
+          A square logo that will be used in various parts of your program
+        </p>
+        <div className="flex w-full items-center justify-center gap-2 rounded-lg border border-neutral-200 p-1">
+          <Controller
+            control={control}
+            name="logo"
+            rules={{ required: true }}
+            render={({ field }) => (
+              <FileUpload
+                accept="images"
+                className="size-14 rounded-lg"
+                iconClassName="size-4 text-neutral-800"
+                icon={Plus}
+                variant="plain"
+                imageSrc={field.value}
+                readFile
+                onChange={({ src }) => field.onChange(src)}
+                content={null}
+                maxFileSizeMB={2}
+              />
+            )}
+          />
+        </div>
+      </div>
 
       <div className="space-y-6">
         <div className="space-y-1">

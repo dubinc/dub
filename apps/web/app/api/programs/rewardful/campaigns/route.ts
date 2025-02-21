@@ -7,9 +7,6 @@ const schema = z.object({
   token: z.string(),
 });
 
-// TODO:
-// Move this to /api/rewardful/campaigns
-
 // GET /api/programs/rewardful/campaigns - list rewardful campaigns
 export const GET = withSession(async ({ searchParams }) => {
   const { token } = schema.parse(searchParams);
