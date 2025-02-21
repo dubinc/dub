@@ -126,9 +126,9 @@ export function PartnerLinkCard({ link }: { link: PartnerLinkProps }) {
         {CHARTS.map((chart) => (
           <div
             key={chart.key}
-            className="rounded-lg border border-neutral-200 px-1.5 py-1.5 lg:px-3"
+            className="rounded-lg border border-neutral-200 px-2 py-1.5 lg:px-3"
           >
-            <div className="flex flex-col gap-1 pl-3 pt-3 lg:pl-1.5">
+            <div className="flex flex-col gap-1 pl-2 pt-3 lg:pl-1.5">
               <span className="text-sm font-semibold leading-none text-neutral-800">
                 {chart.label}
               </span>
