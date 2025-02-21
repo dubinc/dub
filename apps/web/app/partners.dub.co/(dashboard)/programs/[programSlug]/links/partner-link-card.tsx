@@ -1,16 +1,20 @@
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerLinkProps } from "@/lib/types";
 import {
   ArrowTurnRight2,
   CardList,
   CopyButton,
   CursorRays,
+  InvoiceDollar,
   LinkLogo,
   LoadingSpinner,
+  UserCheck,
 } from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis } from "@dub/ui/charts";
 import {
+  cn,
   currencyFormatter,
   getApexDomain,
   getPrettyUrl,
@@ -41,6 +45,7 @@ const CHARTS = [
 
 export function PartnerLinkCard({ link }: { link: PartnerLinkProps }) {
   const { start, end, interval } = usePartnerLinksContext();
+  const { slug } = useWorkspace();
 
   const { data: totals } = usePartnerAnalytics(
     {
@@ -76,8 +81,34 @@ export function PartnerLinkCard({ link }: { link: PartnerLinkProps }) {
     }));
   }, [timeseries]);
 
+  const stats = useMemo(
+    () => [
+      {
+        id: "clicks",
+        icon: CursorRays,
+        value: totals?.clicks ?? 0,
+        iconClassName: "data-[active=true]:text-blue-500",
+      },
+      {
+        id: "leads",
+        icon: UserCheck,
+        value: totals?.leads ?? 0,
+        className: "hidden sm:flex",
+        iconClassName: "data-[active=true]:text-purple-500",
+      },
+      {
+        id: "sales",
+        icon: InvoiceDollar,
+        value: (totals?.saleAmount ?? 0) / 100,
+        className: "hidden sm:flex",
+        iconClassName: "data-[active=true]:text-teal-500",
+      },
+    ],
+    [totals],
+  );
+
   return (
-    <CardList.Card innerClassName="py-4" hoverStateEnabled={false}>
+    <CardList.Card>
       <div className="flex items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-3">
           <div className="relative hidden shrink-0 items-center justify-center sm:flex">
@@ -124,14 +155,36 @@ export function PartnerLinkCard({ link }: { link: PartnerLinkProps }) {
 
         <div className="flex items-center gap-2">
           <Link
-            href="#"
-            className="flex items-center gap-1 overflow-hidden rounded-md border border-neutral-200 bg-neutral-50 px-2 py-0.5 text-sm text-neutral-600 transition-colors hover:bg-white"
+            href={`#`}
+            className="overflow-hidden rounded-md border border-neutral-200 bg-neutral-50 p-0.5 text-sm text-neutral-600 transition-colors hover:bg-white"
           >
-            <CursorRays className="h-4 w-4 text-neutral-600" />
-            <span>{nFormatter(link.clicks)}</span>
+            <div className="flex items-center gap-0.5">
+              {stats.map(
+                ({ id, icon: Icon, value, className, iconClassName }) => (
+                  <div
+                    key={id}
+                    className={cn(
+                      "flex items-center gap-1 whitespace-nowrap rounded-md px-1 py-px transition-colors",
+                      className,
+                    )}
+                  >
+                    <Icon
+                      data-active={value > 0}
+                      className={cn("h-4 w-4 shrink-0", iconClassName)}
+                    />
+                    <span>
+                      {id === "sales"
+                        ? currencyFormatter(value)
+                        : nFormatter(value)}
+                    </span>
+                  </div>
+                ),
+              )}
+            </div>
           </Link>
         </div>
       </div>
+
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
         {CHARTS.map((chart) => (
           <div
