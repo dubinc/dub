@@ -15,7 +15,6 @@ import {
   updateDomainBodySchema,
 } from "@/lib/zod/schemas/domains";
 import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
 import { combineWords, nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -44,7 +43,6 @@ export const PATCH = withWorkspace(
       slug: domain,
       registeredDomain,
       logo: oldLogo,
-      deepLink: existingDeepLink,
     } = await getDomainOrThrow({
       workspace,
       domain: params.domain,
@@ -58,7 +56,8 @@ export const PATCH = withWorkspace(
       notFoundUrl,
       logo,
       archived,
-      deepLink,
+      assetLinks,
+      appleAppSiteAssociation,
     } = updateDomainBodySchema.parse(await parseRequestBody(req));
 
     if (workspace.plan === "free") {
@@ -122,11 +121,9 @@ export const PATCH = withWorkspace(
         expiredUrl,
         notFoundUrl,
         logo: deleteLogo ? null : logoUploaded?.url || oldLogo,
-        ...(deepLink && {
-          deepLink: {
-            ...(existingDeepLink as Prisma.JsonObject),
-            ...deepLink,
-          },
+        ...(assetLinks && { assetLinks: JSON.parse(assetLinks) }),
+        ...(appleAppSiteAssociation && {
+          appleAppSiteAssociation: JSON.parse(appleAppSiteAssociation),
         }),
       },
       include: {

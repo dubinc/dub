@@ -78,8 +78,15 @@ export const GET = withWorkspace(
 export const POST = withWorkspace(
   async ({ req, workspace, session }) => {
     const body = await parseRequestBody(req);
-    const { slug, logo, expiredUrl, notFoundUrl, placeholder, deepLink } =
-      createDomainBodySchema.parse(body);
+    const {
+      slug,
+      logo,
+      expiredUrl,
+      notFoundUrl,
+      placeholder,
+      assetLinks,
+      appleAppSiteAssociation,
+    } = createDomainBodySchema.parse(body);
 
     const totalDomains = await prisma.domain.count({
       where: {
@@ -150,7 +157,11 @@ export const POST = withWorkspace(
           expiredUrl,
           notFoundUrl,
           ...(logoUploaded && { logo: logoUploaded.url }),
-          ...(deepLink && { deepLink }),
+          ...(assetLinks && { assetLinks: JSON.parse(assetLinks) }),
+          ...(appleAppSiteAssociation && {
+            appleAppSiteAssociation: JSON.parse(appleAppSiteAssociation),
+          }),
+        },
       }),
 
       createLink({
