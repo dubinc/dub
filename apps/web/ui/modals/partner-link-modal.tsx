@@ -13,7 +13,7 @@ import {
   useMediaQuery,
 } from "@dub/ui";
 import { Pen2, QRCode as QRCodeIcon } from "@dub/ui/icons";
-import { DUB_QR_LOGO, getDomainWithoutWWW, linkConstructor } from "@dub/utils";
+import { getDomainWithoutWWW, linkConstructor } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Dispatch,
@@ -25,7 +25,7 @@ import {
 } from "react";
 import { useForm } from "react-hook-form";
 import TextareaAutosize from "react-textarea-autosize";
-import { useLinkQRModal } from "./link-qr-modal";
+import { usePartnerLinkQRModal } from "./partner-link-qr-modal";
 
 interface PartnerLinkFormData {
   url: string;
@@ -90,7 +90,7 @@ function PartnerLinkModalContent({
     [shortLinkDomain, key],
   );
 
-  const { LinkQRModal, setShowLinkQRModal } = useLinkQRModal({
+  const { LinkQRModal, setShowLinkQRModal } = usePartnerLinkQRModal({
     props: {
       domain: shortLinkDomain,
       key,
@@ -238,7 +238,7 @@ function PartnerLinkModalContent({
                     transition={{ duration: 0.1 }}
                     className="relative flex size-full items-center justify-center"
                   >
-                    <QRCode url={shortLink} logo={DUB_QR_LOGO} scale={0.5} />
+                    <QRCode url={shortLink} scale={0.5} hideLogo />
                   </motion.div>
                 </AnimatePresence>
               ) : (
