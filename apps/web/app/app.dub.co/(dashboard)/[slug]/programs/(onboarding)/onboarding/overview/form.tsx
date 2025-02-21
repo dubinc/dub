@@ -21,9 +21,9 @@ export function Form() {
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: ({ data }) => {
-      // router.push(`/${workspaceSlug}/programs/onboarding`);
-      // TODO:
-      // Redirect to the new program page
+      if (data?.id) {
+        router.push(`/${workspaceSlug}/programs/${data.id}`);
+      }
     },
     onError: ({ error }) => {
       toast.error(error.serverError);
