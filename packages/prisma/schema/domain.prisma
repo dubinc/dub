@@ -1,5 +1,5 @@
 model Domain {
-  id               String            @id @default(cuid())
+  id                String            @id @default(cuid())
   slug             String            @unique
   verified         Boolean           @default(false)
   placeholder      String?
@@ -9,6 +9,8 @@ model Domain {
   archived         Boolean           @default(false)
   lastChecked      DateTime          @default(now())
   logo             String?
+  appleAppSiteAssociation Json?
+  assetLinks       Json?
   links            Link[]
   project          Project?          @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId        String?
