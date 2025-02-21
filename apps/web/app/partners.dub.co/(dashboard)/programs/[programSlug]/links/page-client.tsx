@@ -3,8 +3,9 @@
 import { intervals } from "@/lib/analytics/constants";
 import { IntervalOptions } from "@/lib/analytics/types";
 import usePartnerLinks from "@/lib/swr/use-partner-links";
+import { usePartnerLinkModal } from "@/ui/modals/partner-link-modal";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
-import { CardList, useRouterStuff } from "@dub/ui";
+import { Button, CardList, useRouterStuff } from "@dub/ui";
 import { ChartTooltipSync } from "@dub/ui/charts";
 import { createContext, useContext } from "react";
 import { PartnerLinkCard } from "./partner-link-card";
@@ -28,6 +29,7 @@ export function usePartnerLinksContext() {
 export function ProgramLinksPageClient() {
   const { searchParamsObj } = useRouterStuff();
   const { links, error, loading } = usePartnerLinks();
+  const { setShowPartnerLinkModal, PartnerLinkModal } = usePartnerLinkModal();
 
   const {
     start,
@@ -41,11 +43,20 @@ export function ProgramLinksPageClient() {
 
   return (
     <div className="flex flex-col gap-5">
-      <SimpleDateRangePicker
-        className="w-fit"
-        align="end"
-        defaultInterval="30d"
-      />
+      <PartnerLinkModal />
+      <div className="flex items-center justify-between">
+        <SimpleDateRangePicker
+          className="w-fit"
+          align="end"
+          defaultInterval="30d"
+        />
+        <Button
+          text="Create Link"
+          className="w-fit"
+          shortcut="C"
+          onClick={() => setShowPartnerLinkModal(true)}
+        />
+      </div>
       <PartnerLinksContext.Provider
         value={{
           start: start ? new Date(start) : undefined,
