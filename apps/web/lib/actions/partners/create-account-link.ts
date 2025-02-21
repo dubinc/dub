@@ -14,7 +14,13 @@ export const createAccountLinkAction = authPartnerActionClient.action(
       // this should never happen
       if (!partner.email) {
         throw new Error(
-          "Partner does not have an email. Please contact support to update your email.",
+          "Partner does not have a valid email. Please contact support to update your email.",
+        );
+      }
+
+      if (!partner.country) {
+        throw new Error(
+          "You haven't set your country yet. Please go to partners.dub.co/onboarding to set your country.",
         );
       }
 
