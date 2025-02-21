@@ -1,4 +1,10 @@
-import { AnimatedSizeContainer, ClientOnly, Icon, NavWordmark } from "@dub/ui";
+import {
+  AnimatedSizeContainer,
+  Button,
+  ClientOnly,
+  Icon,
+  NavWordmark,
+} from "@dub/ui";
 import { cn } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, ChevronLeft } from "lucide-react";
@@ -123,6 +129,22 @@ export function SidebarNav<T extends Record<any, any>>({
                     </div>
                   ))}
                 </div>
+
+                <div className="flex flex-col gap-3 rounded-lg border-neutral-300 bg-red-100 p-3 pt-4">
+                  {/* ad icon */}
+
+                  <div className="flex flex-col gap-1">
+                    <h1 className="text-sm font-semibold text-neutral-900">
+                      Dub Partners
+                    </h1>
+                    <p className="text-sm text-neutral-800">
+                      Grow your revenue on autopilot with Dub Partners
+                    </p>
+                  </div>
+
+                  <Button text="Create program" />
+                </div>
+
                 <AnimatePresence>
                   {showNews && (
                     <motion.div
