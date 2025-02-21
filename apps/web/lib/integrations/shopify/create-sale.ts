@@ -130,74 +130,57 @@ export async function createShopifySale({
     });
 
     if (reward) {
-      let eligibleForCommission = true;
+      const earnings = calculateSaleEarnings({
+        reward,
+        sale: {
+          quantity: 1,
+          amount: saleData.amount,
+        },
+      });
 
-      if (reward.maxDuration === 0) {
-        const commissionCount = await prisma.commission.count({
-          where: {
-            type: "sale",
-            customerId: customer.id,
-          },
-        });
+      await prisma.commission.create({
+        data: {
+          id: createId({ prefix: "cm_" }),
+          programId: link.programId,
+          linkId: link.id,
+          partnerId: link.partnerId,
+          eventId: saleData.event_id,
+          customerId: customer.id,
+          quantity: 1,
+          type: "sale",
+          amount,
+          earnings,
+          invoiceId,
+          currency,
+        },
+      });
 
-        if (commissionCount > 0) {
-          eligibleForCommission = false;
-        }
-      }
+      waitUntil(
+        (async () => {
+          const program = await prisma.program.findUniqueOrThrow({
+            where: {
+              id: link.programId!,
+            },
+            select: {
+              id: true,
+              name: true,
+              logo: true,
+            },
+          });
 
-      if (eligibleForCommission) {
-        const earnings = calculateSaleEarnings({
-          reward,
-          sale: {
-            quantity: 1,
-            amount: saleData.amount,
-          },
-        });
-
-        await prisma.commission.create({
-          data: {
-            id: createId({ prefix: "cm_" }),
-            programId: link.programId,
-            linkId: link.id,
-            partnerId: link.partnerId,
-            eventId: saleData.event_id,
-            customerId: customer.id,
-            quantity: 1,
-            type: "sale",
-            amount,
-            earnings,
-            invoiceId,
-            currency,
-          },
-        });
-
-        waitUntil(
-          (async () => {
-            const program = await prisma.program.findUniqueOrThrow({
-              where: {
-                id: link.programId!,
-              },
-              select: {
-                id: true,
-                name: true,
-                logo: true,
-              },
-            });
-
-            await notifyPartnerSale({
-              program,
-              partner: {
-                id: link.partnerId!,
-                referralLink: link.shortLink,
-              },
-              sale: {
-                amount: saleData.amount,
-                earnings,
-              },
-            });
-          })(),
-        );
-      }
+          await notifyPartnerSale({
+            program,
+            partner: {
+              id: link.partnerId!,
+              referralLink: link.shortLink,
+            },
+            sale: {
+              amount: saleData.amount,
+              earnings,
+            },
+          });
+        })(),
+      );
     }
   }
 }
