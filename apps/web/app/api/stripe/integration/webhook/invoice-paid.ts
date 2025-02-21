@@ -125,15 +125,18 @@ export async function invoicePaid(event: Stripe.Event) {
     if (reward) {
       let eligibleForCommission = true;
 
-      if (reward.maxDuration === 0) {
+      if (typeof reward.maxDuration === "number") {
         const commissionCount = await prisma.commission.count({
           where: {
-            type: "sale",
+            partnerId: link.partnerId,
             customerId: customer.id,
+            type: "sale",
           },
         });
 
-        if (commissionCount > 0) {
+        if (reward.maxDuration === 0 && commissionCount > 0) {
+          eligibleForCommission = false;
+        } else if (commissionCount >= reward.maxDuration) {
           eligibleForCommission = false;
         }
       }
