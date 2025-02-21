@@ -155,52 +155,69 @@ export const POST = withWorkspaceEdge(
           });
 
           if (reward) {
-            const earnings = calculateSaleEarnings({
-              reward,
-              sale: {
-                quantity: 1,
-                amount: saleData.amount,
-              },
-            });
+            let eligibleForCommission = true;
 
-            await prismaEdge.commission.create({
-              data: {
-                id: createId({ prefix: "cm_" }),
-                programId: link.programId,
-                linkId: link.id,
-                partnerId: link.partnerId,
-                eventId,
-                customerId: customer.id,
-                quantity: 1,
-                type: "sale",
-                amount: saleData.amount,
-                earnings,
-                invoiceId,
-              },
-            });
+            if (reward.maxDuration === 0) {
+              const commissionCount = await prismaEdge.commission.count({
+                where: {
+                  type: "sale",
+                  customerId: customer.id,
+                },
+              });
 
-            const program = await prismaEdge.program.findUniqueOrThrow({
-              where: {
-                id: link.programId!,
-              },
-              select: {
-                id: true,
-                name: true,
-                logo: true,
-              },
-            });
+              if (commissionCount > 0) {
+                eligibleForCommission = false;
+              }
+            }
 
-            await notifyPartnerSale({
-              program,
-              partner: {
-                id: link.partnerId!,
-                referralLink: link.shortLink,
-              },
-              sale: {
-                amount: saleData.amount,
-                earnings,
-              },
-            });
+            if (eligibleForCommission) {
+              const earnings = calculateSaleEarnings({
+                reward,
+                sale: {
+                  quantity: 1,
+                  amount: saleData.amount,
+                },
+              });
+
+              await prismaEdge.commission.create({
+                data: {
+                  id: createId({ prefix: "cm_" }),
+                  programId: link.programId,
+                  linkId: link.id,
+                  partnerId: link.partnerId,
+                  eventId,
+                  customerId: customer.id,
+                  quantity: 1,
+                  type: "sale",
+                  amount: saleData.amount,
+                  earnings,
+                  invoiceId,
+                },
+              });
+
+              const program = await prismaEdge.program.findUniqueOrThrow({
+                where: {
+                  id: link.programId!,
+                },
+                select: {
+                  id: true,
+                  name: true,
+                  logo: true,
+                },
+              });
+
+              await notifyPartnerSale({
+                program,
+                partner: {
+                  id: link.partnerId!,
+                  referralLink: link.shortLink,
+                },
+                sale: {
+                  amount: saleData.amount,
+                  earnings,
+                },
+              });
+            }
           }
         }
 
