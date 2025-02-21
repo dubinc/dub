@@ -39,9 +39,9 @@ export const GET = withWorkspace(
 export const PATCH = withWorkspace(
   async ({ req, workspace, params }) => {
     const {
+      id: domainId,
       slug: domain,
       registeredDomain,
-      id: domainId,
       logo: oldLogo,
     } = await getDomainOrThrow({
       workspace,
@@ -54,8 +54,10 @@ export const PATCH = withWorkspace(
       placeholder,
       expiredUrl,
       notFoundUrl,
-      archived,
       logo,
+      archived,
+      assetLinks,
+      appleAppSiteAssociation,
     } = updateDomainBodySchema.parse(await parseRequestBody(req));
 
     if (workspace.plan === "free") {
@@ -119,6 +121,10 @@ export const PATCH = withWorkspace(
         expiredUrl,
         notFoundUrl,
         logo: deleteLogo ? null : logoUploaded?.url || oldLogo,
+        ...(assetLinks && { assetLinks: JSON.parse(assetLinks) }),
+        ...(appleAppSiteAssociation && {
+          appleAppSiteAssociation: JSON.parse(appleAppSiteAssociation),
+        }),
       },
       include: {
         registeredDomain: true,

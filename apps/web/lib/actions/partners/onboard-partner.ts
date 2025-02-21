@@ -52,12 +52,6 @@ export const onboardPartnerAction = authUserActionClient
       ...(description && { description }),
       image: imageUrl,
       ...(connectedAccount && { stripeConnectId: connectedAccount.id }),
-      users: {
-        create: {
-          userId: user.id,
-          role: "owner" as const,
-        },
-      },
     };
 
     await Promise.all([
@@ -72,6 +66,12 @@ export const onboardPartnerAction = authUserActionClient
             data: {
               id: partnerId,
               ...payload,
+              users: {
+                create: {
+                  userId: user.id,
+                  role: "owner" as const,
+                },
+              },
             },
           }),
 
