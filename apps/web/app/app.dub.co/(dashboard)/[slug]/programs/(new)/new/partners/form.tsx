@@ -4,6 +4,7 @@ import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { ProgramData } from "@/lib/zod/schemas/program-onboarding";
+import { AlertCircleFill } from "@/ui/shared/icons";
 import { Button, Input } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Plus, Trash2 } from "lucide-react";
@@ -62,7 +63,7 @@ export function Form() {
 
     try {
       const res = await fetch(
-        `/api/links/exists?domain=dub.sh&key=zuck&workspaceId=${workspaceId}`,
+        `/api/links/exists?domain=${domain}&key=${value}&workspaceId=${workspaceId}`,
       );
 
       const { error } = await res.json();
@@ -185,12 +186,17 @@ export function Form() {
                   <div className="mt-2 w-full">
                     <div
                       className={cn(
-                        "flex items-stretch overflow-hidden rounded-md border border-neutral-200 bg-white focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500",
+                        "relative flex items-stretch overflow-hidden rounded-md border border-neutral-200 bg-white focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500",
                         keyErrors[index] &&
-                          "border-red-300 focus-within:border-red-500 focus-within:ring-red-500",
+                          "border-red-500 focus-within:border-red-500 focus-within:ring-red-500",
                       )}
                     >
-                      <div className="flex items-center border-r border-neutral-300 bg-neutral-100 px-3">
+                      <div
+                        className={cn(
+                          "flex items-center border-r border-neutral-300 bg-neutral-100 px-3",
+                          keyErrors[index] && "border-red-500",
+                        )}
+                      >
                         <span className="text-sm font-medium text-neutral-800">
                           {domain}
                         </span>
@@ -204,13 +210,19 @@ export function Form() {
                         className={cn(
                           "w-full border-0 bg-transparent px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-0",
                           keyErrors[index] &&
-                            "text-red-900 placeholder-red-300",
+                            "pr-10 text-red-900 placeholder-red-300",
                         )}
                       />
+
+                      {keyErrors[index] && (
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                          <AlertCircleFill className="h-5 w-5 text-red-500" />
+                        </div>
+                      )}
                     </div>
 
                     {keyErrors[index] && (
-                      <p className="mt-2 text-xs text-red-400">
+                      <p className="mt-2 text-xs text-red-500">
                         {keyErrors[index]}
                       </p>
                     )}
@@ -241,6 +253,7 @@ export function Form() {
             }}
             disabled={fields.length >= 10}
           />
+
           {fields.length >= 10 && (
             <p className="text-sm text-neutral-600">
               You can add up to 10 partners at a time

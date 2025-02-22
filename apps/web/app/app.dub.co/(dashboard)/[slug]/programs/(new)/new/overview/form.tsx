@@ -2,7 +2,6 @@
 
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { ProgramData } from "@/lib/zod/schemas/program-onboarding";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { CommissionType, EventType } from "@dub/prisma/client";
@@ -11,15 +10,17 @@ import { Pencil } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { LINK_TYPES } from "../form";
 
 export function Form() {
   const router = useRouter();
-  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
-  const [programOnboarding, __, { mutateWorkspace }] = useWorkspaceStore<ProgramData>("programOnboarding");
   const { getValues } = useFormContext<ProgramData>();
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+
+  const data = getValues();
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: ({ data }) => {
@@ -35,8 +36,6 @@ export function Form() {
   const onClick = async () => {
     if (!workspaceId) return;
 
-    const data = getValues();
-
     await executeAsync({
       ...data,
       workspaceId,
@@ -44,43 +43,69 @@ export function Form() {
     });
   };
 
-  const rewardful = programOnboarding?.rewardful?.campaign;
+  const isValid = useMemo(() => {
+    const {
+      name,
+      url,
+      domain,
+      logo,
+      programType,
+      rewardful,
+      type,
+      amount,
+      maxDuration,
+    } = data;
 
-  const reward = rewardful
+    if (!name || !url || !domain || !logo) {
+      return false;
+    }
+
+    if (programType === "new" && (!amount || !type || !maxDuration)) {
+      return false;
+    }
+
+    if (programType === "import" && (!rewardful || !rewardful.id)) {
+      return false;
+    }
+
+    return true;
+  }, [data]);
+
+  const reward = data.rewardful
     ? {
-        type: rewardful.reward_type === "amount" ? ("flat" as const) : ("percentage" as const),
+        type:
+          data.rewardful.reward_type === "amount"
+            ? ("flat" as const)
+            : ("percentage" as const),
         amount:
-          rewardful.reward_type === "amount"
-            ? rewardful.commission_amount_cents ?? 0
-            : rewardful.commission_percent ?? 0,
-        maxDuration: rewardful.max_commission_period_months,
+          data.rewardful.reward_type === "amount"
+            ? data.rewardful.commission_amount_cents ?? 0
+            : data.rewardful.commission_percent ?? 0,
+        maxDuration: data.rewardful.max_commission_period_months,
         event: "sale" as EventType,
       }
     : {
-        type: (programOnboarding?.type ?? "flat") as CommissionType,
-        amount: programOnboarding?.amount ?? 0,
-        maxDuration: programOnboarding?.maxDuration ?? 0,
+        type: (data.type ?? "flat") as CommissionType,
+        amount: data.amount ?? 0,
+        maxDuration: data.maxDuration ?? 0,
         event: "sale" as EventType,
       };
 
   const SECTIONS = [
     {
       title: "Reward",
-      content: reward ? (
-        <ProgramRewardDescription reward={reward} />
-      ) : null,
+      content: reward ? <ProgramRewardDescription reward={reward} /> : null,
       href: `/${workspaceSlug}/programs/new/rewards`,
     },
     {
       title: "Referral link structure",
-      content: LINK_TYPES.find(
-        (linkType) => linkType.value === programOnboarding?.linkType,
-      )?.preview,
+      content: LINK_TYPES.find((linkType) => linkType.value === data.linkType)
+        ?.preview,
       href: `/${workspaceSlug}/programs/new`,
     },
     {
       title: "Destination URL",
-      content: programOnboarding?.url,
+      content: data.url,
       href: `/${workspaceSlug}/programs/new`,
     },
   ] as const;
@@ -116,6 +141,12 @@ export function Form() {
         loading={isPending}
         type="button"
         onClick={onClick}
+        disabled={!isValid}
+        disabledTooltip={
+          !isValid
+            ? "Please fill all the required fields to create a program."
+            : undefined
+        }
       />
     </div>
   );
