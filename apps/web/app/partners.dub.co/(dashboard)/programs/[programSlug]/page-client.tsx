@@ -90,14 +90,14 @@ export default function ProgramPageClient() {
             }}
             className="overflow-hidden"
           >
-            <div className="relative z-0 mb-10 flex flex-col overflow-hidden rounded-lg border border-neutral-300 p-4 md:p-6">
+            <div className="relative z-0 mb-4 flex flex-col overflow-hidden rounded-lg border border-neutral-300 p-4 sm:mb-10 md:p-6">
               {program && (
                 <HeroBackground
                   logo={program.logo}
                   color={program.brandColor}
                 />
               )}
-              <span className="flex items-center gap-2 text-sm text-neutral-500">
+              <span className="mt-2 flex items-center gap-2 text-sm text-neutral-500">
                 <MoneyBill className="size-4" />
                 Refer and earn
               </span>
