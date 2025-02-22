@@ -1,3 +1,4 @@
+import { verifyAnalyticsAllowedHostnames } from "@/lib/analytics/verify-analytics-allowed-hostnames";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { includeTags } from "@/lib/api/links/include-tags";
@@ -53,9 +54,11 @@ export const POST = withAxiom(
         });
       }
 
-      const linkKey = urlObj.pathname.slice(1);
+      let linkKey = urlObj.pathname.slice(1);
+      if (linkKey === "") {
+        linkKey = "_root";
+      }
 
-      // might wanna cache this
       const { rows } = await conn.execute<{
         id: string;
         url: string;
@@ -102,25 +105,7 @@ export const POST = withAxiom(
       }
 
       const allowedHostnames = link.allowedHostnames;
-
-      if (allowedHostnames && allowedHostnames.length > 0) {
-        const source = req.headers.get("referer") || req.headers.get("origin");
-        const sourceUrl = source ? new URL(source) : null;
-        const hostname = sourceUrl?.hostname.replace(/^www\./, "");
-
-        if (!hostname || !allowedHostnames.includes(hostname)) {
-          console.error("Hostname not allowed.", {
-            hostname,
-            allowedHostnames,
-          });
-          throw new DubApiError({
-            code: "forbidden",
-            message: `Hostname ${hostname} not included in allowed hostnames (${allowedHostnames.join(
-              ", ",
-            )}).`,
-          });
-        }
-      }
+      verifyAnalyticsAllowedHostnames({ allowedHostnames, req });
 
       const cacheKey = `recordClick:${link.id}:${ip}`;
       let clickId = await redis.get<string>(cacheKey);
