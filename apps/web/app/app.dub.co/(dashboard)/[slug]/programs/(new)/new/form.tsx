@@ -4,10 +4,7 @@ import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
 import useDomains from "@/lib/swr/use-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
-import {
-  ProgramData,
-  programInfoSchema,
-} from "@/lib/zod/schemas/program-onboarding";
+import { ProgramData } from "@/lib/zod/schemas/program-onboarding";
 import {
   Badge,
   Button,
@@ -22,7 +19,6 @@ import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { Controller, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
 
 export const LINK_TYPES = [
   {
@@ -46,8 +42,6 @@ export const LINK_TYPES = [
   },
 ];
 
-type Form = z.infer<typeof programInfoSchema>;
-
 export function Form() {
   const router = useRouter();
   const { isMobile } = useMediaQuery();
@@ -61,9 +55,9 @@ export function Form() {
     register,
     handleSubmit,
     watch,
-    formState: { isSubmitting },
     control,
-  } = useFormContext<Form>();
+    formState: { isSubmitting, isDirty },
+  } = useFormContext<ProgramData>();
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
@@ -75,17 +69,20 @@ export function Form() {
     },
   });
 
-  const onSubmit = async (data: Form) => {
-    if (!workspaceId) {
-      return;
-    }
+  const onSubmit = async (data: ProgramData) => {
+    if (!workspaceId) return;
 
     await executeAsync({
       ...data,
       workspaceId,
-      step: "fill-basic-info",
+      step: "get-started",
     });
   };
+
+  const [name, url, domain, logo] = watch(["name", "url", "domain", "logo"]);
+
+  const buttonDisabled =
+    isSubmitting || isPending || !isDirty || !name || !url || !domain || !logo;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
@@ -241,7 +238,7 @@ export function Form() {
         text="Continue"
         className="w-full"
         loading={isSubmitting || isPending}
-        disabled={isSubmitting || isPending}
+        disabled={buttonDisabled}
         type="submit"
       />
     </form>

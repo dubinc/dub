@@ -3,6 +3,7 @@
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { RewardfulCampaign } from "@/lib/rewardful/types";
+import { useRewardfulCampaigns } from "@/lib/swr/use-rewardful-campaigns";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { programRewardSchema } from "@/lib/zod/schemas/program-onboarding";
@@ -12,7 +13,6 @@ import {
 } from "@/lib/zod/schemas/rewards";
 import { Button, CircleCheckFill, Input, InputSelect } from "@dub/ui";
 import { capitalize, cn } from "@dub/utils";
-import { fetcher } from "@dub/utils/src";
 import { ChevronDown } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
@@ -25,11 +25,7 @@ import {
   UseFormWatch,
 } from "react-hook-form";
 import { toast } from "sonner";
-import useSWR from "swr";
 import { z } from "zod";
-
-// TODO:
-// Convert this to use context
 
 type Form = z.infer<typeof programRewardSchema>;
 
@@ -60,33 +56,25 @@ const IMPORT_SOURCES = [
   },
 ];
 
-const useRewardfulCampaigns = (apiToken?: string) => {
-  const { data, error } = useSWR<RewardfulCampaign[]>(
-    apiToken ? `/api/programs/rewardful/campaigns?token=${apiToken}` : null,
-    fetcher,
-  );
-
-  return {
-    campaigns: data || [],
-    loading: !data && !error,
-    error,
-  };
-};
-
 export function Form() {
   const router = useRouter();
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
-  const [_, __, { mutateWorkspace }] = useWorkspaceStore<Form>("programOnboarding");
+  const [_, __, { mutateWorkspace }] =
+    useWorkspaceStore<Form>("programOnboarding");
 
   const {
     register,
     handleSubmit,
     watch,
     setValue,
-    formState: { isSubmitting },
+    formState: { isSubmitting, isDirty },
   } = useFormContext<Form>();
 
-  const [programType, rewardful] = watch(["programType", "rewardful"]);
+  const [programType, rewardful, amount] = watch([
+    "programType",
+    "rewardful",
+    "amount",
+  ]);
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
@@ -132,8 +120,10 @@ export function Form() {
   const buttonDisabled =
     isSubmitting ||
     isPending ||
+    !isDirty ||
     (programType === "import" &&
-      (!rewardful?.apiToken || !rewardful?.campaign?.id));
+      (!rewardful?.apiToken || !rewardful?.campaign?.id)) ||
+    (programType === "new" && !amount);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
@@ -349,9 +339,12 @@ const NewProgramForm = ({ register, watch, setValue }: FormProps) => {
 };
 
 const ImportProgramForm = ({ register, watch, setValue }: FormProps) => {
-  const rewardful = watch("rewardful");
-  const { campaigns } = useRewardfulCampaigns(rewardful?.apiToken);
   const [selectedSource, setSelectedSource] = useState(IMPORT_SOURCES[0]);
+
+  const rewardful = watch("rewardful");
+  const { campaigns } = useRewardfulCampaigns({
+    enabled: !!rewardful?.apiToken,
+  });
 
   const selectedCampaign = campaigns.find(
     (campaign) => campaign.id === rewardful?.campaign?.id,

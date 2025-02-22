@@ -62,7 +62,7 @@ export const programDataSchema = programInfoSchema
 export const onboardProgramSchema = z.discriminatedUnion("step", [
   programInfoSchema.merge(
     z.object({
-      step: z.literal("fill-basic-info"),
+      step: z.literal("get-started"),
       workspaceId: z.string(),
     }),
   ),

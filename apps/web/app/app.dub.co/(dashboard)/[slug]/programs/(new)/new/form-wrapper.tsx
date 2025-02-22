@@ -11,6 +11,9 @@ export function FormWrapper({ children }: { children: React.ReactNode }) {
   const methods = useForm<ProgramData>({
     defaultValues: {
       ...programOnboarding,
+      linkType: programOnboarding?.linkType ?? "short",
+      programType: programOnboarding?.programType ?? "new",
+      amount: programOnboarding?.amount ?? null
     },
   });
 
