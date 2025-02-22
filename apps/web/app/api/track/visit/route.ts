@@ -81,6 +81,7 @@ export const POST = withAxiom(
             key: linkKey,
             url,
             shortLink: linkConstructorSimple({ domain, key: linkKey }),
+            trackConversion: true,
             folderId: "fold_fjA8lslBy2qFcosUrwWFxmfk",
           },
           include: {
