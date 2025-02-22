@@ -7,6 +7,7 @@ import { usePartnerLinkModal } from "@/ui/modals/partner-link-modal";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import { Button, CardList, useKeyboardShortcut, useRouterStuff } from "@dub/ui";
 import { ChartTooltipSync } from "@dub/ui/charts";
+import { useParams } from "next/navigation";
 import { createContext, useContext, useMemo } from "react";
 import { PartnerLinkCard } from "./partner-link-card";
 
@@ -27,6 +28,7 @@ export function usePartnerLinksContext() {
 }
 
 export function ProgramLinksPageClient() {
+  const { programSlug } = useParams() as { programSlug: string };
   const { searchParamsObj } = useRouterStuff();
   const { links, error, loading, isValidating } = usePartnerLinks();
   const { setShowPartnerLinkModal, PartnerLinkModal } = usePartnerLinkModal();
@@ -62,12 +64,14 @@ export function ProgramLinksPageClient() {
           align="start"
           defaultInterval="30d"
         />
-        <Button
-          text="Create Link"
-          className="w-fit"
-          shortcut="C"
-          onClick={() => setShowPartnerLinkModal(true)}
-        />
+        {["dub", "acme"].includes(programSlug) && (
+          <Button
+            text="Create Link"
+            className="w-fit"
+            shortcut="C"
+            onClick={() => setShowPartnerLinkModal(true)}
+          />
+        )}
       </div>
       <PartnerLinksContext.Provider
         value={{
