@@ -6,7 +6,6 @@ import { Button, Wordmark } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -17,7 +16,7 @@ export function Header() {
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
-     // router.push(`/${workspaceSlug}`);
+      router.push(`/${workspaceSlug}`);
     },
     onError: ({ error }) => {
       toast.error(error.serverError);
@@ -27,12 +26,8 @@ export function Header() {
   const saveAndExit = async () => {
     if (!workspaceId) return;
 
-    const data = getValues();
-
-    console.log("saveAndExit", data);
-
     await executeAsync({
-      ...data,
+      ...getValues(),
       workspaceId,
       step: "save-and-exit",
     });
