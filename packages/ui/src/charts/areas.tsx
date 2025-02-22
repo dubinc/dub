@@ -8,6 +8,7 @@ import { useChartContext, useChartTooltipContext } from "./chart-context";
 
 export function Areas({
   seriesStyles,
+  showLatestValueCircle = true,
 }: {
   seriesStyles?: {
     id: string;
@@ -16,6 +17,7 @@ export function Areas({
     areaFill?: string;
     lineStroke?: string;
   }[];
+  showLatestValueCircle?: boolean;
 }) {
   const { data, series, margin, xScale, yScale, startDate, endDate } =
     useChartContext();
@@ -114,8 +116,8 @@ export function Areas({
                   )}
                 </Area>
 
-                {/* Latest value dot */}
-                {!tooltipData && (
+                {/* Latest value circle */}
+                {showLatestValueCircle && !tooltipData && (
                   <Circle
                     cx={xScale(data.at(-1)!.date)}
                     cy={yScale(s.valueAccessor(data.at(-1)!))}
