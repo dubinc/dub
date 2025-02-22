@@ -6,6 +6,7 @@ import { storage } from "@/lib/storage";
 import { createConnectedAccount } from "@/lib/stripe/create-connected-account";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import { CONNECT_SUPPORTED_COUNTRIES, nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { authUserActionClient } from "../safe-action";
@@ -45,17 +46,25 @@ export const onboardPartnerAction = authUserActionClient
       .upload(`partners/${partnerId}/image_${nanoid(7)}`, image)
       .then(({ url }) => url);
 
-    const payload = {
+    const payload: Prisma.PartnerCreateInput = {
       name,
       email: user.email,
-      country,
+      country: existingPartner?.country || country, // country cannot be changed once set
       ...(description && { description }),
       image: imageUrl,
       ...(connectedAccount && { stripeConnectId: connectedAccount.id }),
       users: {
-        create: {
-          userId: user.id,
-          role: "owner" as const,
+        connectOrCreate: {
+          where: {
+            userId_partnerId: {
+              userId: user.id,
+              partnerId: partnerId,
+            },
+          },
+          create: {
+            userId: user.id,
+            role: "owner",
+          },
         },
       },
     };

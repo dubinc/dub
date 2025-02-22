@@ -53,7 +53,7 @@ export const PartnerSchema = z.object({
   email: z.string().nullable(),
   image: z.string().nullable(),
   description: z.string().nullish(),
-  country: z.string(),
+  country: z.string().nullable(),
   status: z.nativeEnum(PartnerStatus),
   stripeConnectId: z.string().nullable(),
   payoutsEnabled: z.boolean(),
@@ -220,6 +220,7 @@ export const createPartnerLinkSchema = z
       .describe(
         "The short link slug. If not provided, a random 7-character slug will be generated.",
       ),
+    comments: z.string().nullish().describe("The comments for the short link."),
   })
   .merge(
     createPartnerSchema.pick({
