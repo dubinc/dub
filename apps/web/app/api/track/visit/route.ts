@@ -30,9 +30,9 @@ const CORS_HEADERS = {
 export const POST = withAxiom(
   async (req: AxiomRequest) => {
     try {
-      const { domain, url } = await parseRequestBody(req);
+      const { domain, url, referrer } = await parseRequestBody(req);
 
-      if (!domain || url) {
+      if (!domain || !url) {
         throw new DubApiError({
           code: "bad_request",
           message: "Missing domain or url",
@@ -124,6 +124,7 @@ export const POST = withAxiom(
             url: finalUrl,
             skipRatelimit: true,
             workspaceId: link.projectId,
+            ...(referrer && { referrer }),
           }),
         );
       }
