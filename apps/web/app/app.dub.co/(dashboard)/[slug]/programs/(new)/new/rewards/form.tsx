@@ -1,6 +1,7 @@
 "use client";
 
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
+import { setRewardfulTokenAction } from "@/lib/actions/partners/set-rewardful-token";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { RewardfulCampaign } from "@/lib/rewardful/types";
 import { useRewardfulCampaigns } from "@/lib/swr/use-rewardful-campaigns";
@@ -90,13 +91,12 @@ export function Form() {
   const onSubmit = async (data: Form) => {
     if (!workspaceId) return;
 
-    if (
-      programType === "import" &&
-      rewardful?.apiToken &&
-      !rewardful?.campaign?.id
-    ) {
-      return;
-    }
+    // if (
+    //   programType === "import" &&
+    //   !rewardful?.apiToken &&
+    //   !rewardful?.campaign?.id
+    // ) {
+    // }
 
     const programData = {
       ...data,
@@ -121,9 +121,11 @@ export function Form() {
     isSubmitting ||
     isPending ||
     !isDirty ||
-    (programType === "import" &&
-      (!rewardful?.apiToken || !rewardful?.campaign?.id)) ||
-    (programType === "new" && !amount);
+    (programType === "new" && !amount) ||
+    (programType === "import" && (!rewardful || !rewardful.id));
+
+  const hideContinueButton =
+    programType === "import" && (!rewardful || !rewardful.id);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
@@ -183,12 +185,14 @@ export function Form() {
         />
       )}
 
-      <Button
-        text="Continue"
-        className="w-full"
-        loading={isSubmitting || isPending}
-        disabled={buttonDisabled}
-      />
+      {!hideContinueButton && (
+        <Button
+          text="Continue"
+          className="w-full"
+          loading={isSubmitting || isPending}
+          disabled={buttonDisabled}
+        />
+      )}
     </form>
   );
 }
@@ -339,20 +343,34 @@ const NewProgramForm = ({ register, watch, setValue }: FormProps) => {
 };
 
 const ImportProgramForm = ({ register, watch, setValue }: FormProps) => {
+  const [token, setToken] = useState("");
+  const { id: workspaceId } = useWorkspace();
   const [selectedSource, setSelectedSource] = useState(IMPORT_SOURCES[0]);
 
+  const {
+    executeAsync: setRewardfulToken,
+    isPending: isSettingRewardfulToken,
+  } = useAction(setRewardfulTokenAction, {
+    onError: ({ error }) => {
+      toast.error(error.serverError);
+    },
+  });
+
   const rewardful = watch("rewardful");
-  const { campaigns } = useRewardfulCampaigns({
-    enabled: !!rewardful?.apiToken,
+
+  const { campaigns, loading: isLoadingCampaigns } = useRewardfulCampaigns({
+    enabled: !!token || !!rewardful?.id,
   });
 
   const selectedCampaign = campaigns.find(
-    (campaign) => campaign.id === rewardful?.campaign?.id,
+    (campaign) => campaign.id === rewardful?.id,
   );
+
+  console.log("Selected campaign", selectedCampaign);
 
   useEffect(() => {
     if (selectedCampaign) {
-      setValue("rewardful.campaign", selectedCampaign);
+      setValue("rewardful", selectedCampaign);
     }
   }, [selectedCampaign, setValue]);
 
@@ -394,10 +412,11 @@ const ImportProgramForm = ({ register, watch, setValue }: FormProps) => {
           Rewardful API secret
         </label>
         <Input
-          {...register("rewardful.apiToken")}
           type="password"
           placeholder="API token"
           className="mt-2 max-w-full"
+          value={token}
+          onChange={(e) => setToken(e.target.value)}
         />
         <div className="mt-2 text-xs font-normal leading-[1.1] text-neutral-600">
           Find your Rewardful API secret on your{" "}
@@ -419,7 +438,7 @@ const ImportProgramForm = ({ register, watch, setValue }: FormProps) => {
           </label>
           <div className="relative mt-2">
             <select
-              {...register("rewardful.campaign.id")}
+              {...register("rewardful.id")}
               className="block w-full appearance-none rounded-md border border-neutral-200 bg-white px-3 py-2 pr-8 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
             >
               <option value="">Select a campaign</option>
@@ -442,7 +461,7 @@ const ImportProgramForm = ({ register, watch, setValue }: FormProps) => {
         </div>
       )}
 
-      {selectedCampaign && (
+      {selectedCampaign ? (
         <div className="grid grid-cols-2 gap-6 rounded-lg border border-neutral-300 bg-neutral-50 p-6">
           <div>
             <div className="text-sm text-neutral-500">Type</div>
@@ -469,6 +488,21 @@ const ImportProgramForm = ({ register, watch, setValue }: FormProps) => {
             </div>
           </div>
         </div>
+      ) : (
+        <Button
+          text="Fetch campaigns"
+          className="w-full"
+          disabled={isSettingRewardfulToken || !token}
+          loading={isSettingRewardfulToken}
+          onClick={async () => {
+            if (!workspaceId || !token) return;
+
+            await setRewardfulToken({
+              workspaceId,
+              token,
+            });
+          }}
+        />
       )}
     </div>
   );

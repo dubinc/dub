@@ -2,7 +2,6 @@
 
 import { createLink } from "@/lib/api/links";
 import { createId } from "@/lib/api/utils";
-import { rewardfulImporter } from "@/lib/rewardful/importer";
 import { storage } from "@/lib/storage";
 import {
   onboardProgramSchema,
@@ -150,18 +149,18 @@ const createProgram = async ({
   });
 
   // import the rewardful campaign if it exists
-  if (rewardful) {
-    await rewardfulImporter.setCredentials(program.id, {
-      token: rewardful.apiToken,
-      campaignId: rewardful.campaign.id,
-      userId: user.id,
-    });
+  // if (rewardful) {
+  //   await rewardfulImporter.setCredentials(program.id, {
+  //     token: rewardful.apiToken,
+  //     campaignId: rewardful.campaign.id,
+  //     userId: user.id,
+  //   });
 
-    await rewardfulImporter.queue({
-      programId: program.id,
-      action: "import-campaign",
-    });
-  }
+  //   await rewardfulImporter.queue({
+  //     programId: program.id,
+  //     action: "import-campaign",
+  //   });
+  // }
 
   // invite the partners
   if (partners && partners.length > 0) {

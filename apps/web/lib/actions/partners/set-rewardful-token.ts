@@ -3,12 +3,10 @@
 import { RewardfulApi } from "@/lib/rewardful/api";
 import { rewardfulImporter } from "@/lib/rewardful/importer";
 import { z } from "zod";
-import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
 import { authActionClient } from "../safe-action";
 
 const schema = z.object({
   workspaceId: z.string(),
-  programId: z.string(),
   token: z.string(),
 });
 
@@ -16,14 +14,14 @@ export const setRewardfulTokenAction = authActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { token, programId } = parsedInput;
+    const { token } = parsedInput;
 
-    await getProgramOrThrow({
-      workspaceId: workspace.id,
-      programId,
-    });
+    if (!workspace.partnersEnabled) {
+      throw new Error("You are not allowed to perform this action.");
+    }
 
     const rewardfulApi = new RewardfulApi({ token });
+
     try {
       await rewardfulApi.listCampaigns();
     } catch (error) {
@@ -31,7 +29,7 @@ export const setRewardfulTokenAction = authActionClient
       throw new Error("Invalid Rewardful token");
     }
 
-    await rewardfulImporter.setCredentials(programId, {
+    await rewardfulImporter.setCredentials(workspace.id, {
       userId: user.id,
       token,
       campaignId: "", // We'll set in the second step after choosing the campaign

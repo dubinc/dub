@@ -107,7 +107,6 @@ function ImportRewardfulModal({
 
     await setRewardfulToken({
       workspaceId,
-      programId: program.id,
       token: apiToken,
     });
   };

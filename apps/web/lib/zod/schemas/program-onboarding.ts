@@ -17,15 +17,12 @@ export const programRewardSchema = z
     programType: z.enum(["new", "import"]),
     rewardful: z
       .object({
-        apiToken: z.string(),
-        campaign: z.object({
-          id: z.string(),
-          affiliates: z.number(),
-          commission_amount_cents: z.number().nullable(),
-          max_commission_period_months: z.number(),
-          reward_type: z.enum(["amount", "percent"]),
-          commission_percent: z.number().nullable(),
-        }),
+        id: z.string(),
+        affiliates: z.number(),
+        commission_amount_cents: z.number().nullable(),
+        max_commission_period_months: z.number(),
+        reward_type: z.enum(["amount", "percent"]),
+        commission_percent: z.number().nullable(),
       })
       .nullish(),
   })
