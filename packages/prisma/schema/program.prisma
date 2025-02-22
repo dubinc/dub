@@ -41,13 +41,6 @@ model Program {
   defaultRewardId   String? // default reward for the program
   landerData        Json?       @db.Json
 
-  // Commission details
-  // TODO: Remove this after merging Rewards PR
-  commissionAmount   Int                 @default(0)
-  commissionType     CommissionType      @default(percentage)
-  commissionDuration Int?
-  commissionInterval CommissionInterval?
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
