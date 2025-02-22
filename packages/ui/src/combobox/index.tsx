@@ -32,6 +32,7 @@ export type ComboboxOption<TMeta = any> = {
   icon?: Icon | ReactNode;
   disabledTooltip?: ReactNode;
   meta?: TMeta;
+  separatorAfter?: boolean;
 };
 
 export type ComboboxProps<
@@ -374,45 +375,50 @@ function Option({
   className?: string;
 }) {
   return (
-    <DisabledTooltip disabledTooltip={option.disabledTooltip}>
-      <Command.Item
-        className={cn(
-          "flex cursor-pointer items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm",
-          "data-[selected=true]:bg-neutral-100",
-          Boolean(option.disabledTooltip) && "cursor-not-allowed opacity-50",
-          className,
-        )}
-        disabled={!!option.disabledTooltip}
-        onSelect={onSelect}
-        value={option.label + option?.value}
-      >
-        {multiple && (
-          <div className="shrink-0 text-neutral-600">
-            {selected ? (
-              <CheckboxCheckedFill className="size-4 text-neutral-600" />
-            ) : (
-              <CheckboxUnchecked className="size-4 text-neutral-400" />
-            )}
-          </div>
-        )}
-        <div className="flex min-w-0 grow items-center gap-1">
-          {option.icon && (
-            <span className="shrink-0 text-neutral-600">
-              {isReactNode(option.icon) ? (
-                option.icon
-              ) : (
-                <option.icon className="h-4 w-4" />
-              )}
-            </span>
+    <>
+      <DisabledTooltip disabledTooltip={option.disabledTooltip}>
+        <Command.Item
+          className={cn(
+            "flex cursor-pointer items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm",
+            "data-[selected=true]:bg-neutral-100",
+            Boolean(option.disabledTooltip) && "cursor-not-allowed opacity-50",
+            className,
           )}
-          <span className="grow truncate">{option.label}</span>
-        </div>
-        {right}
-        {!multiple && selected && (
-          <Check2 className="size-4 shrink-0 text-neutral-600" />
-        )}
-      </Command.Item>
-    </DisabledTooltip>
+          disabled={!!option.disabledTooltip}
+          onSelect={onSelect}
+          value={option.label + option?.value}
+        >
+          {multiple && (
+            <div className="shrink-0 text-neutral-600">
+              {selected ? (
+                <CheckboxCheckedFill className="size-4 text-neutral-600" />
+              ) : (
+                <CheckboxUnchecked className="size-4 text-neutral-400" />
+              )}
+            </div>
+          )}
+          <div className="flex min-w-0 grow items-center gap-1">
+            {option.icon && (
+              <span className="shrink-0 text-neutral-600">
+                {isReactNode(option.icon) ? (
+                  option.icon
+                ) : (
+                  <option.icon className="h-4 w-4" />
+                )}
+              </span>
+            )}
+            <span className="grow truncate">{option.label}</span>
+          </div>
+          {right}
+          {!multiple && selected && (
+            <Check2 className="size-4 shrink-0 text-neutral-600" />
+          )}
+        </Command.Item>
+      </DisabledTooltip>
+      {option.separatorAfter && (
+        <Command.Separator className="-mx-1 my-1 h-px bg-neutral-200" />
+      )}
+    </>
   );
 }
 
