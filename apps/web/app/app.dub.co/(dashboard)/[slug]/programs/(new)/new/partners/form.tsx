@@ -9,9 +9,16 @@ import { cn } from "@dub/utils";
 import { Plus, Trash2 } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
+
+const generateKeyFromEmail = (email: string) => {
+  if (!email) return "";
+  const prefix = email.split("@")[0];
+  const randomNum = Math.floor(1000 + Math.random() * 9000);
+  return `${prefix}${randomNum}`;
+};
 
 export function Form() {
   const router = useRouter();
@@ -35,16 +42,20 @@ export function Form() {
 
   const [rewardful, domain] = watch(["rewardful", "domain"]);
 
-  const generateKeyFromEmail = useCallback((email: string) => {
-    if (!email) return "";
-    const prefix = email.split("@")[0];
-    const randomNum = Math.floor(1000 + Math.random() * 9000);
-    return `${prefix}${randomNum}`;
-  }, []);
+  const { executeAsync, isPending } = useAction(onboardProgramAction, {
+    onSuccess: () => {
+      mutateWorkspace();
+      router.push(`/${workspaceSlug}/programs/new/connect`);
+    },
+    onError: ({ error }) => {
+      toast.error(error.serverError);
+    },
+  });
 
   const handleKeyFocus = (index: number) => {
     const email = watch(`partners.${index}.email`);
     const currentKey = watch(`partners.${index}.key`);
+
     if (email && !currentKey) {
       setValue(`partners.${index}.key`, generateKeyFromEmail(email));
     }
@@ -71,16 +82,6 @@ export function Form() {
       }
     }
   };
-
-  const { executeAsync, isPending } = useAction(onboardProgramAction, {
-    onSuccess: () => {
-      mutateWorkspace();
-      router.push(`/${workspaceSlug}/programs/new/overview`);
-    },
-    onError: ({ error }) => {
-      toast.error(error.serverError);
-    },
-  });
 
   const onSubmit = async (data: ProgramData) => {
     if (!workspaceId) return;
