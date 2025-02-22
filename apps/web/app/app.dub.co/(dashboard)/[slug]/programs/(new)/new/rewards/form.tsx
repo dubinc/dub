@@ -19,7 +19,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import {
-  useForm,
+  useFormContext,
   UseFormRegister,
   UseFormSetValue,
   UseFormWatch,
@@ -39,7 +39,7 @@ type FormProps = {
   setValue: UseFormSetValue<Form>;
 };
 
-const PROGRAM_TYPES = [
+export const PROGRAM_TYPES = [
   {
     value: "new",
     label: "New program",
@@ -76,9 +76,7 @@ const useRewardfulCampaigns = (apiToken?: string) => {
 export function Form() {
   const router = useRouter();
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
-
-  const [program, _, { mutateWorkspace }] =
-    useWorkspaceStore<Form>("programOnboarding");
+  const [_, __, { mutateWorkspace }] = useWorkspaceStore<Form>("programOnboarding");
 
   const {
     register,
@@ -86,15 +84,7 @@ export function Form() {
     watch,
     setValue,
     formState: { isSubmitting },
-  } = useForm<Form>({
-    defaultValues: {
-      programType: program?.programType || "new",
-      type: program?.type || "flat",
-      maxDuration: program?.maxDuration ?? 0,
-      amount: program?.amount || 0,
-      rewardful: program?.rewardful,
-    },
-  });
+  } = useFormContext<Form>();
 
   const [programType, rewardful] = watch(["programType", "rewardful"]);
 
@@ -110,28 +100,14 @@ export function Form() {
   });
 
   const onSubmit = async (data: Form) => {
-    if (!workspaceId) {
-      return;
-    }
+    if (!workspaceId) return;
 
     if (
       programType === "import" &&
       rewardful?.apiToken &&
       !rewardful?.campaign?.id
     ) {
-      // const response = await fetch(
-      //   `/api/programs/rewardful/campaigns?token=${rewardfulApiToken}`,
-      // );
-      // if (!response.ok) {
-      //   return;
-      // }
-      // const campaigns = await response.json();
-      // if (campaigns.length === 0) {
-      //   return;
-      // }
-      // setCampaigns(campaigns);
-      // setValue("rewardfulCampaignId", campaigns[0].id);
-      // return;
+      return;
     }
 
     const programData = {

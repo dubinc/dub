@@ -3,30 +3,22 @@
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
-import {
-  ProgramData,
-  programInvitePartnersSchema,
-} from "@/lib/zod/schemas/program-onboarding";
+import { ProgramData } from "@/lib/zod/schemas/program-onboarding";
 import { Button, Input } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Plus, Trash2 } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useFieldArray, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { useDebounce } from "use-debounce";
-import { z } from "zod";
-
-type Form = z.infer<typeof programInvitePartnersSchema>;
 
 export function Form() {
   const router = useRouter();
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const [keyErrors, setKeyErrors] = useState<{ [key: number]: string }>({});
-
-  const [programOnboarding, _, { mutateWorkspace }] =
-    useWorkspaceStore<ProgramData>("programOnboarding");
+  const [programOnboarding, __, { mutateWorkspace }] = useWorkspaceStore<ProgramData>("programOnboarding");
 
   const {
     register,
@@ -35,13 +27,7 @@ export function Form() {
     setValue,
     watch,
     formState: { isSubmitting },
-  } = useForm<Form>({
-    defaultValues: {
-      partners: programOnboarding?.partners?.length
-        ? programOnboarding.partners
-        : [{ email: "", key: "" }],
-    },
-  });
+  } = useFormContext<ProgramData>();
 
   const { fields, append, remove } = useFieldArray({
     name: "partners",
@@ -58,80 +44,27 @@ export function Form() {
     return `${prefix}${randomNum}`;
   };
 
-  const validateKey = async (key: string, index: number) => {
-    if (!key || !programOnboarding?.domain) {
-      setKeyErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors[index];
-        return newErrors;
-      });
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        `/api/links/exists?domain=${programOnboarding.domain}&key=${key}&workspaceId=${workspaceId}`,
-      );
-      const { error } = await response.json();
-
-      setKeyErrors((prev) => {
-        const newErrors = { ...prev };
-        if (error) {
-          if (error.message.includes("Duplicate key")) {
-            error.message = "Referral link already taken.";
-          }
-          newErrors[index] = error.message;
-        } else {
-          delete newErrors[index];
-        }
-        return newErrors;
-      });
-    } catch (error) {
-      setKeyErrors((prev) => ({
-        ...prev,
-        [index]: "Error checking key availability",
-      }));
-    }
-  };
-
-  useEffect(() => {
-    if (programOnboarding?.partners?.length) {
-      programOnboarding.partners.forEach((partner, index) => {
-        if (partner.key) {
-          validateKey(partner.key, index);
-        }
-      });
-    }
-  }, []);
-
   useEffect(() => {
     if (!debouncedPartners) return;
+
     debouncedPartners.forEach((partner, index) => {
-      if (partner.key) {
-        validateKey(partner.key, index);
+      if (partner.email && !partner.key) {
+        setValue(`partners.${index}.key`, generateKeyFromEmail(partner.email));
       }
     });
-  }, [debouncedPartners]);
-
-  const handleKeyFocus = (index: number) => {
-    const partner = partners?.[index];
-    if (partner?.email && !partner.key) {
-      setValue(`partners.${index}.key`, generateKeyFromEmail(partner.email));
-    }
-  };
+  }, [debouncedPartners, setValue]);
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
       mutateWorkspace();
-      router.push(`/${workspaceSlug}/programs/new/connect`);
+      router.push(`/${workspaceSlug}/programs/new/overview`);
     },
     onError: ({ error }) => {
-      console.log(error);
       toast.error(error.serverError);
     },
   });
 
-  const onSubmit = async (data: Form) => {
+  const onSubmit = async (data: ProgramData) => {
     if (!workspaceId) return;
 
     data.partners =
@@ -220,7 +153,6 @@ export function Form() {
                           keyErrors[index] &&
                             "text-red-900 placeholder-red-300",
                         )}
-                        onFocus={() => handleKeyFocus(index)}
                       />
                     </div>
                     {keyErrors[index] && (
