@@ -63,6 +63,7 @@ export function PartnerLinkCard({
   const { programEnrollment } = useProgramEnrollment();
   const { setShowPartnerLinkModal, PartnerLinkModal } = usePartnerLinkModal({
     link,
+    isDefaultLink,
   });
 
   const ref = useRef<HTMLDivElement>(null);
