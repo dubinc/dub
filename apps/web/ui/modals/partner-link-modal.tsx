@@ -346,7 +346,7 @@ function PartnerLinkModalContent({
               </div>
               {lockKey && (
                 <button
-                  className="flex h-6 items-center space-x-2 text-sm text-neutral-500 transition-all duration-75 hover:text-black active:scale-95"
+                  className="flex h-5 items-center space-x-2 text-sm text-neutral-500 transition-all duration-75 hover:text-black active:scale-95"
                   type="button"
                   onClick={() => {
                     window.confirm(
