@@ -55,6 +55,7 @@ export const POST = withAxiom(
 
       const linkKey = urlObj.pathname.slice(1);
 
+      // might wanna cache this
       const { rows } = await conn.execute<{
         id: string;
         url: string;

@@ -42,6 +42,7 @@ export const POST = withAxiom(
         });
       }
 
+      // might wanna cache this
       const { rows } = await conn.execute<{
         id: string;
         url: string;
