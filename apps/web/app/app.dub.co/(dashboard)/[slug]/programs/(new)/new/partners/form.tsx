@@ -9,16 +9,10 @@ import { cn } from "@dub/utils";
 import { Plus, Trash2 } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
-
-const generateKeyFromEmail = (email: string) => {
-  if (!email) return "";
-  const prefix = email.split("@")[0];
-  const randomNum = Math.floor(1000 + Math.random() * 9000);
-  return `${prefix}${randomNum}`;
-};
+import { useDebounce } from "use-debounce";
 
 export function Form() {
   const router = useRouter();
@@ -40,7 +34,73 @@ export function Form() {
     control,
   });
 
-  const [rewardful, domain] = watch(["rewardful", "domain"]);
+  const [rewardful, domain, partners] = watch([
+    "rewardful",
+    "domain",
+    "partners",
+  ]);
+
+  const [debouncedPartners] = useDebounce(partners, 500);
+
+  const generateKeyFromEmail = useCallback((email: string) => {
+    if (!email) return "";
+    const prefix = email.split("@")[0];
+    const randomNum = Math.floor(1000 + Math.random() * 9000);
+    return `${prefix}${randomNum}`;
+  }, []);
+
+  const handleKeyFocus = (index: number) => {
+    const email = watch(`partners.${index}.email`);
+    const currentKey = watch(`partners.${index}.key`);
+    if (email && !currentKey) {
+      setValue(`partners.${index}.key`, generateKeyFromEmail(email));
+    }
+  };
+
+  const runKeyChecks = async (index: number, value: string) => {
+    if (!value || !domain || !workspaceId) return;
+
+    try {
+      const res = await fetch(
+        `/api/links/exists?domain=dub.sh&key=zuck&workspaceId=${workspaceId}`,
+      );
+
+      const { error } = await res.json();
+
+      if (error) {
+        setKeyErrors((prev) => ({
+          ...prev,
+          [index]: error.message,
+        }));
+      } else {
+        setKeyErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors[index];
+          return newErrors;
+        });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleKeyChange = (index: number, key: string) => {
+    setKeyErrors((prev) => {
+      const newErrors = { ...prev };
+      delete newErrors[index];
+      return newErrors;
+    });
+  };
+
+  useEffect(() => {
+    if (!debouncedPartners) return;
+
+    debouncedPartners.forEach((partner, index) => {
+      if (partner.key) {
+        runKeyChecks(index, partner.key);
+      }
+    });
+  }, [debouncedPartners, domain, workspaceId]);
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
@@ -51,37 +111,6 @@ export function Form() {
       toast.error(error.serverError);
     },
   });
-
-  const handleKeyFocus = (index: number) => {
-    const email = watch(`partners.${index}.email`);
-    const currentKey = watch(`partners.${index}.key`);
-
-    if (email && !currentKey) {
-      setValue(`partners.${index}.key`, generateKeyFromEmail(email));
-    }
-  };
-
-  const handleKeyChange = (index: number, key: string) => {
-    setKeyErrors((prev) => {
-      const newErrors = { ...prev };
-      delete newErrors[index];
-      return newErrors;
-    });
-
-    if (key) {
-      if (!/^[a-zA-Z0-9-]+$/.test(key)) {
-        setKeyErrors((prev) => ({
-          ...prev,
-          [index]: "Only letters, numbers, and hyphens are allowed",
-        }));
-      } else if (key.length < 3) {
-        setKeyErrors((prev) => ({
-          ...prev,
-          [index]: "Key must be at least 3 characters long",
-        }));
-      }
-    }
-  };
 
   const onSubmit = async (data: ProgramData) => {
     if (!workspaceId) return;
@@ -181,7 +210,7 @@ export function Form() {
                     </div>
 
                     {keyErrors[index] && (
-                      <p className="mt-2 text-xs text-red-700">
+                      <p className="mt-2 text-xs text-red-400">
                         {keyErrors[index]}
                       </p>
                     )}
