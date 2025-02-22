@@ -1,6 +1,9 @@
 import z from "@/lib/zod";
 import { metaTagsSchema } from "@/lib/zod/schemas/metatags";
-import { PartnerEarningsSchema } from "@/lib/zod/schemas/partner-profile";
+import {
+  PartnerEarningsSchema,
+  PartnerProfileLinkSchema,
+} from "@/lib/zod/schemas/partner-profile";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import {
   CommissionStatus,
@@ -48,10 +51,10 @@ import {
   ProgramSaleSchema,
 } from "./zod/schemas/program-sales";
 import {
-  PartnerLinkSchema,
   PartnerProgramInviteSchema,
   ProgramEnrollmentSchema,
   ProgramInviteSchema,
+  ProgramPartnerLinkSchema,
   ProgramSchema,
 } from "./zod/schemas/programs";
 import { RewardSchema } from "./zod/schemas/rewards";
@@ -363,7 +366,9 @@ export type CustomerProps = z.infer<typeof CustomerSchema>;
 
 export type PartnerProps = z.infer<typeof PartnerSchema>;
 
-export type PartnerLinkProps = z.infer<typeof PartnerLinkSchema>;
+export type ProgramPartnerLinkProps = z.infer<typeof ProgramPartnerLinkSchema>;
+
+export type PartnerProfileLinkProps = z.infer<typeof PartnerProfileLinkSchema>;
 
 export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema>;
 

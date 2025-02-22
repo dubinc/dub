@@ -4,7 +4,7 @@ import { DateRangePicker, useRouterStuff } from "@dub/ui";
 export default function SimpleDateRangePicker({
   className,
   align = "center",
-  defaultInterval = "1y",
+  defaultInterval = "30d",
 }: {
   className?: string;
   align?: "start" | "center" | "end";

@@ -53,6 +53,7 @@ const partnerAnalyticsSchema = analyticsQuerySchema
     start: true,
     end: true,
     groupBy: true,
+    linkId: true,
   })
   .partial();
 

@@ -62,3 +62,18 @@ export const getPartnerEarningsTimeseriesSchema =
   getPartnerEarningsCountQuerySchema.extend({
     timezone: z.string().optional(),
   });
+
+export const PartnerProfileLinkSchema = LinkSchema.pick({
+  id: true,
+  domain: true,
+  key: true,
+  shortLink: true,
+  url: true,
+  clicks: true,
+  leads: true,
+  sales: true,
+  saleAmount: true,
+  comments: true,
+}).extend({
+  createdAt: z.string().or(z.date()),
+});
