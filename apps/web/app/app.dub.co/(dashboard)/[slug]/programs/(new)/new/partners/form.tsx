@@ -34,6 +34,13 @@ export function Form() {
     control,
   });
 
+  const generateKeyFromEmail = (email: string) => {
+    if (!email) return "";
+    const prefix = email.split("@")[0];
+    const randomNum = Math.floor(1000 + Math.random() * 9000);
+    return `${prefix}${randomNum}`;
+  };
+
   const [partners, rewardful, domain] = watch([
     "partners",
     "rewardful",
@@ -41,13 +48,6 @@ export function Form() {
   ]);
 
   const [debouncedPartners] = useDebounce(partners, 500);
-
-  const generateKeyFromEmail = (email: string) => {
-    if (!email) return "";
-    const prefix = email.split("@")[0];
-    const randomNum = Math.floor(1000 + Math.random() * 9000);
-    return `${prefix}${randomNum}`;
-  };
 
   useEffect(() => {
     if (!debouncedPartners) return;
@@ -112,8 +112,11 @@ export function Form() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
-        <div className="flex flex-col gap-3">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="space-y-10 overflow-x-auto"
+      >
+        <div className="flex flex-col gap-2">
           {fields.map((field, index) => (
             <div
               key={field.id}
@@ -160,12 +163,14 @@ export function Form() {
                         )}
                       />
                     </div>
+
                     {keyErrors[index] && (
                       <p className="mt-2 text-xs text-red-700">
                         {keyErrors[index]}
                       </p>
                     )}
                   </div>
+
                   {index > 0 && (
                     <Button
                       variant="outline"
