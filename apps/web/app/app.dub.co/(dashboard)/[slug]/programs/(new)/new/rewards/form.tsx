@@ -10,15 +10,10 @@ import {
   COMMISSION_TYPES,
   RECURRING_MAX_DURATIONS,
 } from "@/lib/zod/schemas/rewards";
-import {
-  Button,
-  CircleCheckFill,
-  Input,
-  InputSelect,
-  InputSelectItemProps,
-} from "@dub/ui";
+import { Button, CircleCheckFill, Input, InputSelect } from "@dub/ui";
 import { capitalize, cn } from "@dub/utils";
 import { fetcher } from "@dub/utils/src";
+import { ChevronDown } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -454,34 +449,18 @@ const ImportProgramForm = ({ register, watch, setValue }: FormProps) => {
             Campaign to import
           </label>
           <div className="relative mt-2">
-            <InputSelect
-              items={campaigns.map((campaign) => ({
-                id: campaign.id,
-                value: campaign.name,
-                label: `${campaign.affiliates} affiliates`,
-              }))}
-              selectedItem={
-                selectedCampaign
-                  ? {
-                      id: selectedCampaign.id,
-                      value: selectedCampaign.name,
-                      label: `${selectedCampaign.affiliates} affiliates`,
-                    }
-                  : null
-              }
-              setSelectedItem={(item: InputSelectItemProps | null) => {
-                if (item) {
-                  const campaign = campaigns.find((c) => c.id === item.id);
-                  if (campaign) {
-                    setValue("rewardful.campaign", campaign);
-                  }
-                }
-              }}
-              className="w-full"
-              inputAttrs={{
-                placeholder: "Select a campaign",
-              }}
-            />
+            <select
+              {...register("rewardful.campaign.id")}
+              className="block w-full appearance-none rounded-md border border-neutral-200 bg-white px-3 py-2 pr-8 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
+            >
+              <option value="">Select a campaign</option>
+              {campaigns.map(({ id, name }) => (
+                <option key={id} value={id}>
+                  {name}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
           </div>
           <Link
             href="#"
