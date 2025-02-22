@@ -5,7 +5,7 @@ import { cn } from "@dub/utils";
 import { Check, Lock, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export function Steps() {
   const pathname = usePathname();
@@ -13,9 +13,9 @@ export function Steps() {
   const [isOpen, setIsOpen] = useState(false);
   const { slug } = useParams<{ slug: string }>();
 
-  // useEffect(() => {
-  //   document.body.style.overflow = isOpen && isMobile ? "hidden" : "auto";
-  // }, [isOpen, isMobile]);
+  useEffect(() => {
+    document.body.style.overflow = isOpen && isMobile ? "hidden" : "auto";
+  }, [isOpen, isMobile]);
 
   const steps = [
     {
