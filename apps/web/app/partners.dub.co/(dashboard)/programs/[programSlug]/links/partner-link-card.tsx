@@ -142,7 +142,7 @@ export function PartnerLinkCard({
 
   return (
     <CardList.Card
-      innerClassName="px-0 py-0"
+      innerClassName="px-0 py-0 hover:cursor-pointer"
       onClick={() => setShowPartnerLinkModal(true)}
     >
       <PartnerLinkModal />
