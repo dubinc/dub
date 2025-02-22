@@ -151,7 +151,7 @@ export default function Main() {
                             : totalEvents[id]
                         }
                         className={cn(
-                          "text-2xl font-medium sm:text-3xl",
+                          "text-xl font-medium sm:text-3xl",
                           showPaywall && "opacity-30",
                         )}
                         format={

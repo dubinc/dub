@@ -129,6 +129,18 @@ export const createDomainBodySchema = z.object({
     .nullish()
     .transform((v) => v || null)
     .describe("The logo of the domain."),
+  assetLinks: z
+    .string()
+    .nullish()
+    .describe(
+      "assetLinks.json configuration file (for deep link support on Android).",
+    ),
+  appleAppSiteAssociation: z
+    .string()
+    .nullish()
+    .describe(
+      "apple-app-site-association configuration file (for deep link support on iOS).",
+    ),
 });
 
 export const updateDomainBodySchema = createDomainBodySchema.partial();

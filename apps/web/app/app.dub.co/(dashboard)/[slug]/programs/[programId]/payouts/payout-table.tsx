@@ -207,7 +207,7 @@ export function PayoutTable() {
               onSearchChange={setSearch}
               onSelectedFilterChange={setSelectedFilter}
             />
-            <SimpleDateRangePicker className="w-fit" />
+            <SimpleDateRangePicker className="w-fit" defaultInterval="all" />
           </div>
           <AnimatedSizeContainer height>
             <div>

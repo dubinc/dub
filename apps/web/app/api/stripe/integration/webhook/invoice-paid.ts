@@ -10,6 +10,7 @@ import { transformSaleEventData } from "@/lib/webhook/transform";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { differenceInMonths } from "date-fns";
 import type Stripe from "stripe";
 
 // Handle event "invoice.paid"
@@ -123,56 +124,88 @@ export async function invoicePaid(event: Stripe.Event) {
     });
 
     if (reward) {
-      const earnings = calculateSaleEarnings({
-        reward,
-        sale: {
-          quantity: 1,
-          amount: saleData.amount,
-        },
-      });
+      let eligibleForCommission = true;
 
-      await prisma.commission.create({
-        data: {
-          id: createId({ prefix: "cm_" }),
-          programId: link.programId,
-          linkId: link.id,
-          partnerId: link.partnerId,
-          eventId,
-          customerId: customer.id,
-          quantity: 1,
-          type: "sale",
-          amount: saleData.amount,
-          earnings,
-          invoiceId,
-        },
-      });
+      if (typeof reward.maxDuration === "number") {
+        // Get the first commission (earliest sale) for this customer-partner pair
+        const firstCommission = await prisma.commission.findFirst({
+          where: {
+            partnerId: link.partnerId,
+            customerId: customer.id,
+            type: "sale",
+          },
+          orderBy: {
+            createdAt: "asc",
+          },
+        });
 
-      waitUntil(
-        (async () => {
-          const program = await prisma.program.findUniqueOrThrow({
-            where: {
-              id: link.programId!,
-            },
-            select: {
-              id: true,
-              name: true,
-              logo: true,
-            },
-          });
+        if (reward.maxDuration === 0 && firstCommission) {
+          eligibleForCommission = false;
+        } else if (firstCommission) {
+          // Calculate months difference between first commission and now
+          const monthsDifference = differenceInMonths(
+            new Date(),
+            firstCommission.createdAt,
+          );
 
-          await notifyPartnerSale({
-            program,
-            partner: {
-              id: link.partnerId!,
-              referralLink: link.shortLink,
-            },
-            sale: {
-              amount: saleData.amount,
-              earnings,
-            },
-          });
-        })(),
-      );
+          if (monthsDifference >= reward.maxDuration) {
+            eligibleForCommission = false;
+          }
+        }
+      }
+
+      if (eligibleForCommission) {
+        const earnings = calculateSaleEarnings({
+          reward,
+          sale: {
+            quantity: 1,
+            amount: saleData.amount,
+          },
+        });
+
+        await prisma.commission.create({
+          data: {
+            id: createId({ prefix: "cm_" }),
+            programId: link.programId,
+            linkId: link.id,
+            partnerId: link.partnerId,
+            eventId,
+            customerId: customer.id,
+            quantity: 1,
+            type: "sale",
+            amount: saleData.amount,
+            earnings,
+            invoiceId,
+          },
+        });
+
+        waitUntil(
+          (async () => {
+            const program = await prisma.program.findUniqueOrThrow({
+              where: {
+                id: link.programId!,
+              },
+              select: {
+                id: true,
+                name: true,
+                logo: true,
+              },
+            });
+
+            await notifyPartnerSale({
+              program,
+              partner: {
+                id: link.partnerId!,
+                referralLink: link.shortLink,
+              },
+              sale: {
+                amount: saleData.amount,
+                earnings,
+              },
+            });
+          })(),
+        );
+      }
     }
   }
 

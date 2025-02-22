@@ -65,30 +65,25 @@ export const GET = withWorkspace(
         pe.partnerId, 
         pe.tenantId,
         pe.createdAt as enrollmentCreatedAt,
-        COALESCE(SUM(DISTINCT l.clicks), 0) as totalClicks,
-        COALESCE(SUM(DISTINCT l.leads), 0) as totalLeads,
-        COALESCE(SUM(DISTINCT l.sales), 0) as totalSales,
-        COALESCE(SUM(c.amount), 0) as totalSaleAmount,
-        COALESCE(SUM(c.earnings), 0) as totalEarnings,
-        (
-          SELECT JSON_ARRAYAGG(
+        COALESCE(SUM(l.clicks), 0) as totalClicks,
+        COALESCE(SUM(l.leads), 0) as totalLeads,
+        COALESCE(SUM(l.sales), 0) as totalSales,
+        COALESCE(SUM(l.saleAmount), 0) as totalSaleAmount,
+        JSON_ARRAYAGG(
+          IF(l.id IS NOT NULL,
             JSON_OBJECT(
-              'id', l2.id,
-              'domain', l2.domain,
-              'key', l2.key,
-              'shortLink', l2.shortLink,
-              'url', l2.url,
-              'clicks', CAST(l2.clicks AS SIGNED),
-              'leads', CAST(l2.leads AS SIGNED),
-              'sales', CAST(l2.sales AS SIGNED),
-              'saleAmount', CAST(l2.saleAmount AS SIGNED)
-            )
+              'id', l.id,
+              'domain', l.domain,
+              'key', l.key,
+              'shortLink', l.shortLink,
+              'url', l.url,
+              'clicks', CAST(l.clicks AS SIGNED),
+              'leads', CAST(l.leads AS SIGNED),
+              'sales', CAST(l.sales AS SIGNED),
+              'saleAmount', CAST(l.saleAmount AS SIGNED)
+            ),
+            NULL
           )
-          FROM (
-            SELECT DISTINCT l.id, l.domain, l.key, l.shortLink, l.url, l.clicks, l.leads, l.sales, l.saleAmount
-            FROM Link l
-            WHERE l.programId = pe.programId AND l.partnerId = pe.partnerId
-          ) l2
         ) as links
       FROM 
         ProgramEnrollment pe 
@@ -96,8 +91,6 @@ export const GET = withWorkspace(
         Partner p ON p.id = pe.partnerId 
       LEFT JOIN 
         Link l ON l.programId = pe.programId AND l.partnerId = pe.partnerId
-      LEFT JOIN
-        Commission c ON c.linkId = l.id
       WHERE 
         pe.programId = ${program.id}
         ${status ? Prisma.sql`AND pe.status = ${status}` : Prisma.sql`AND pe.status != 'rejected'`}
@@ -119,7 +112,6 @@ export const GET = withWorkspace(
         leads: Number(partner.totalLeads),
         sales: Number(partner.totalSales),
         saleAmount: Number(partner.totalSaleAmount),
-        earnings: Number(partner.totalEarnings),
         links: partner.links.filter((link: any) => link !== null),
       };
     });
