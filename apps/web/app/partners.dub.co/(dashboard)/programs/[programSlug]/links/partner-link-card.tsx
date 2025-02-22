@@ -3,6 +3,7 @@ import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerLinkProps } from "@/lib/types";
 import { CommentsBadge } from "@/ui/links/comments-badge";
+import { usePartnerLinkModal } from "@/ui/modals/partner-link-modal";
 import {
   ArrowTurnRight2,
   BlurImage,
@@ -26,7 +27,6 @@ import {
 import Link from "next/link";
 import { ComponentProps, useMemo } from "react";
 import { usePartnerLinksContext } from "./page-client";
-import { PartnerLinkControls } from "./partner-link-controls";
 
 const CHARTS = [
   {
@@ -59,6 +59,9 @@ export function PartnerLinkCard({
 }) {
   const { start, end, interval } = usePartnerLinksContext();
   const { programEnrollment } = useProgramEnrollment();
+  const { setShowPartnerLinkModal, PartnerLinkModal } = usePartnerLinkModal({
+    link,
+  });
 
   const { data: totals } = usePartnerAnalytics(
     {
@@ -121,7 +124,11 @@ export function PartnerLinkCard({
   );
 
   return (
-    <CardList.Card innerClassName="px-0 py-0" hoverStateEnabled={false}>
+    <CardList.Card
+      innerClassName="px-0 py-0"
+      onClick={() => setShowPartnerLinkModal(true)}
+    >
+      <PartnerLinkModal />
       {isDefaultLink && (
         <div className="flex items-center justify-between gap-4 rounded-t-[11px] border-b border-neutral-200 bg-neutral-100 px-5 py-2">
           <div className="flex items-center gap-1.5">
@@ -225,12 +232,6 @@ export function PartnerLinkCard({
                 )}
               </div>
             </Link>
-            {programEnrollment && (
-              <PartnerLinkControls
-                link={link}
-                programId={programEnrollment?.programId}
-              />
-            )}
           </div>
         </div>
 

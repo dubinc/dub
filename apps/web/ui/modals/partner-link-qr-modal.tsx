@@ -1,4 +1,5 @@
 import { getQRAsCanvas, getQRAsSVGDataUri, getQRData } from "@/lib/qr";
+import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { QRLinkProps } from "@/lib/types";
 import { QRCode } from "@/ui/shared/qr-code";
 import {
@@ -44,6 +45,7 @@ const DEFAULT_COLORS = [
 
 export type QRCodeDesign = {
   fgColor: string;
+  logo?: string;
 };
 
 type PartnerLinkQRModalProps = {
@@ -79,6 +81,8 @@ function PartnerLinkQRModalInner({
   setShowLinkQRModal: Dispatch<SetStateAction<boolean>>;
 } & PartnerLinkQRModalProps) {
   const { isMobile } = useMediaQuery();
+  const { programEnrollment } = useProgramEnrollment();
+  const { logo } = programEnrollment?.program ?? {};
 
   const url = useMemo(() => {
     return props.key && props.domain
@@ -90,6 +94,7 @@ function PartnerLinkQRModalInner({
     `qr-code-design-program-${programId}`,
     {
       fgColor: "#000000",
+      logo: logo ?? undefined,
     },
   );
 
@@ -101,9 +106,10 @@ function PartnerLinkQRModalInner({
         ? getQRData({
             url,
             fgColor: data.fgColor,
+            logo: logo ?? undefined,
           })
         : null,
-    [url, data],
+    [url, data, logo],
   );
 
   const onColorChange = useDebouncedCallback(
@@ -192,7 +198,7 @@ function PartnerLinkQRModalInner({
                 transition={{ duration: 0.1 }}
                 className="relative flex size-full items-center justify-center"
               >
-                <QRCode url={url} fgColor={data.fgColor} scale={1} hideLogo />
+                <QRCode url={url} scale={1} {...data} />
               </motion.div>
             </AnimatePresence>
           )}

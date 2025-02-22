@@ -76,11 +76,14 @@ function QRCodePreview({
   _key: string;
 }) {
   const { isMobile } = useMediaQuery();
+  const { programEnrollment } = useProgramEnrollment();
+  const { logo } = programEnrollment?.program ?? {};
 
   const [data, setData] = useLocalStorage<QRCodeDesign>(
     `qr-code-design-program-${programId}`,
     {
       fgColor: "#000000",
+      logo: logo ?? undefined,
     },
   );
 
@@ -130,12 +133,7 @@ function QRCodePreview({
               transition={{ duration: 0.1 }}
               className="relative flex size-full items-center justify-center"
             >
-              <QRCode
-                url={shortLink}
-                scale={0.5}
-                hideLogo
-                fgColor={data.fgColor}
-              />
+              <QRCode url={shortLink} scale={0.5} {...data} />
             </motion.div>
           </AnimatePresence>
         ) : (
