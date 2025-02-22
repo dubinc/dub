@@ -151,7 +151,14 @@ const createProgram = async ({
   });
 
   // import the rewardful campaign if it exists
-  if (rewardful) {
+  if (rewardful && rewardful.id) {
+    const credentials = await rewardfulImporter.getCredentials(workspace.id);
+
+    await rewardfulImporter.setCredentials(workspace.id, {
+      ...credentials,
+      campaignId: rewardful.id,
+    });
+
     await rewardfulImporter.queue({
       programId: program.id,
       action: "import-campaign",
@@ -172,14 +179,16 @@ const createProgram = async ({
     );
   }
 
-  let validHostname: string | undefined;
+  let validHostnames: string[] | undefined;
 
   if (linkType === "query" && url) {
     const hostname = new URL(url).hostname;
 
     if (hostname) {
-      validHostname = validateAllowedHostnames([hostname])?.[0];
+      validHostnames = validateAllowedHostnames([hostname]);
     }
+
+    console.log({ validHostnames });
   }
 
   waitUntil(
@@ -188,8 +197,8 @@ const createProgram = async ({
         id: workspace.id,
       },
       data: {
-        ...(validHostname && {
-          allowedHostnames: [validHostname],
+        ...(validHostnames && {
+          allowedHostnames: validHostnames,
         }),
         store: {
           ...store,
@@ -216,35 +225,39 @@ async function invitePartner({
   };
   userId: string;
 }) {
-  const link = await createLink({
-    userId,
-    url: program.url!,
-    domain: program.domain!,
-    key: partner.key,
-    trackConversion: true,
-    projectId: workspace.id,
-    programId: program.id,
-  });
-
-  await prisma.programInvite.create({
-    data: {
-      id: createId({ prefix: "pgi_" }),
-      email: partner.email,
-      linkId: link.id,
+  try {
+    const link = await createLink({
+      userId,
+      url: program.url!,
+      domain: program.domain!,
+      key: partner.key,
+      trackConversion: true,
+      projectId: workspace.id,
       programId: program.id,
-    },
-  });
+    });
 
-  await sendEmail({
-    subject: `${program.name} invited you to join Dub Partners`,
-    email: partner.email,
-    react: PartnerInvite({
-      email: partner.email,
-      appName: `${process.env.NEXT_PUBLIC_APP_NAME}`,
-      program: {
-        name: program.name,
-        logo: program.logo,
+    await prisma.programInvite.create({
+      data: {
+        id: createId({ prefix: "pgi_" }),
+        email: partner.email,
+        linkId: link.id,
+        programId: program.id,
       },
-    }),
-  });
+    });
+
+    await sendEmail({
+      subject: `${program.name} invited you to join Dub Partners`,
+      email: partner.email,
+      react: PartnerInvite({
+        email: partner.email,
+        appName: `${process.env.NEXT_PUBLIC_APP_NAME}`,
+        program: {
+          name: program.name,
+          logo: program.logo,
+        },
+      }),
+    });
+  } catch (error) {
+    console.error("invitePartner", error);
+  }
 }

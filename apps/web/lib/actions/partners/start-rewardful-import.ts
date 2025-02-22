@@ -32,7 +32,7 @@ export const startRewardfulImportAction = authActionClient
 
     const credentials = await rewardfulImporter.getCredentials(workspace.id);
 
-    await rewardfulImporter.setCredentials(programId, {
+    await rewardfulImporter.setCredentials(workspace.id, {
       ...credentials,
       campaignId,
     });
