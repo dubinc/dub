@@ -55,6 +55,10 @@ export const programInvitePartnersSchema = z.object({
     .nullable(),
 });
 
+export const programDataSchema = programInfoSchema
+  .merge(programRewardSchema)
+  .merge(programInvitePartnersSchema);
+
 export const onboardProgramSchema = z.discriminatedUnion("step", [
   programInfoSchema.merge(
     z.object({
@@ -81,10 +85,13 @@ export const onboardProgramSchema = z.discriminatedUnion("step", [
     step: z.literal("create-program"),
     workspaceId: z.string(),
   }),
-]);
 
-export const programDataSchema = programInfoSchema
-  .merge(programRewardSchema)
-  .merge(programInvitePartnersSchema);
+  programDataSchema.partial().merge(
+    z.object({
+      step: z.literal("save-and-exit"),
+      workspaceId: z.string(),
+    }),
+  ),
+]);
 
 export type ProgramData = z.infer<typeof programDataSchema>;

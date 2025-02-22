@@ -1,18 +1,41 @@
 "use client";
 
+import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, Wordmark } from "@dub/ui";
+import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useFormContext } from "react-hook-form";
+import { toast } from "sonner";
 
 export function Header() {
   const router = useRouter();
-  const [saving, setSaving] = useState(false);
-  const { id: workspaceId } = useWorkspace();
+  const { getValues } = useFormContext();
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
-  const handleSaveAndExit = async () => {
+  const { executeAsync, isPending } = useAction(onboardProgramAction, {
+    onSuccess: () => {
+     // router.push(`/${workspaceSlug}`);
+    },
+    onError: ({ error }) => {
+      toast.error(error.serverError);
+    },
+  });
+
+  const saveAndExit = async () => {
     if (!workspaceId) return;
+
+    const data = getValues();
+
+    console.log("saveAndExit", data);
+
+    await executeAsync({
+      ...data,
+      workspaceId,
+      step: "save-and-exit",
+    });
   };
 
   return (
@@ -37,8 +60,8 @@ export function Header() {
           text="Save and exit"
           variant="secondary"
           className="h-7 w-auto"
-          loading={saving}
-          onClick={handleSaveAndExit}
+          loading={isPending}
+          onClick={saveAndExit}
         />
       </div>
     </header>

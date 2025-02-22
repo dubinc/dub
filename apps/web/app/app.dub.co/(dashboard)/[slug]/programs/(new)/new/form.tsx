@@ -20,7 +20,7 @@ import { cn } from "@dub/utils";
 import { Plus } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -54,7 +54,7 @@ export function Form() {
   const { activeWorkspaceDomains, loading } = useDomains();
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
-  const [programOnboarding, _, { mutateWorkspace }] =
+  const [_, __, { mutateWorkspace }] =
     useWorkspaceStore<ProgramData>("programOnboarding");
 
   const {
@@ -63,15 +63,7 @@ export function Form() {
     watch,
     formState: { isSubmitting },
     control,
-  } = useForm<Form>({
-    defaultValues: {
-      linkType: "short",
-      domain: programOnboarding?.domain,
-      url: programOnboarding?.url,
-      name: programOnboarding?.name,
-      logo: programOnboarding?.logo,
-    },
-  });
+  } = useFormContext<Form>();
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
@@ -250,6 +242,7 @@ export function Form() {
         className="w-full"
         loading={isSubmitting || isPending}
         disabled={isSubmitting || isPending}
+        type="submit"
       />
     </form>
   );
