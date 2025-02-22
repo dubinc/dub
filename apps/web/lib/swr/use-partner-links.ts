@@ -2,7 +2,7 @@ import { fetcher } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
-import { PartnerLinkProps } from "../types";
+import { PartnerProfileLinkProps } from "../types";
 
 export default function usePartnerLinks(opts?: { programId?: string }) {
   const { data: session } = useSession();
@@ -14,7 +14,7 @@ export default function usePartnerLinks(opts?: { programId?: string }) {
     data: links,
     error,
     isValidating,
-  } = useSWR<PartnerLinkProps[]>(
+  } = useSWR<PartnerProfileLinkProps[]>(
     programIdToUse &&
       partnerId &&
       `/api/partner-profile/programs/${programIdToUse}/links`,

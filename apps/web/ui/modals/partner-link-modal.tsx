@@ -2,7 +2,7 @@
 
 import { mutateSuffix } from "@/lib/swr/mutate";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import { PartnerLinkProps } from "@/lib/types";
+import { PartnerProfileLinkProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import { QRCode } from "@/ui/shared/qr-code";
 import {
@@ -40,7 +40,7 @@ interface PartnerLinkFormData {
 }
 
 interface PartnerLinkModalProps {
-  link?: PartnerLinkProps;
+  link?: PartnerProfileLinkProps;
   showPartnerLinkModal: boolean;
   setShowPartnerLinkModal: Dispatch<SetStateAction<boolean>>;
 }
@@ -153,7 +153,7 @@ function PartnerLinkModalContent({
   link,
   setShowPartnerLinkModal,
 }: {
-  link?: PartnerLinkProps;
+  link?: PartnerProfileLinkProps;
   setShowPartnerLinkModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const { programEnrollment } = useProgramEnrollment();

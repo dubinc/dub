@@ -43,7 +43,7 @@ export const createProgramSchema = z.object({
     }),
 });
 
-export const PartnerLinkSchema = LinkSchema.pick({
+export const ProgramPartnerLinkSchema = LinkSchema.pick({
   id: true,
   domain: true,
   key: true,
@@ -53,9 +53,6 @@ export const PartnerLinkSchema = LinkSchema.pick({
   leads: true,
   sales: true,
   saleAmount: true,
-  comments: true,
-}).extend({
-  createdAt: z.string().or(z.date()),
 });
 
 export const ProgramEnrollmentSchema = z.object({
@@ -64,7 +61,7 @@ export const ProgramEnrollmentSchema = z.object({
   programId: z.string(),
   program: ProgramSchema,
   status: z.nativeEnum(ProgramEnrollmentStatus),
-  links: z.array(PartnerLinkSchema).nullable(),
+  links: z.array(ProgramPartnerLinkSchema).nullable(),
   reward: RewardSchema.nullish(),
   discount: DiscountSchema.nullish(),
   createdAt: z.date(),

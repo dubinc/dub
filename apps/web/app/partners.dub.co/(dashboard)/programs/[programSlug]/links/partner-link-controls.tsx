@@ -1,4 +1,4 @@
-import { PartnerLinkProps } from "@/lib/types";
+import { PartnerProfileLinkProps } from "@/lib/types";
 import { usePartnerLinkModal } from "@/ui/modals/partner-link-modal";
 import { usePartnerLinkQRModal } from "@/ui/modals/partner-link-qr-modal";
 import { ThreeDots } from "@/ui/shared/icons";
@@ -13,7 +13,7 @@ export function PartnerLinkControls({
   link,
   programId,
 }: {
-  link: PartnerLinkProps;
+  link: PartnerProfileLinkProps;
   programId: string;
 }) {
   const { setShowPartnerLinkModal, PartnerLinkModal } = usePartnerLinkModal({

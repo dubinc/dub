@@ -1,7 +1,7 @@
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import { PartnerLinkProps } from "@/lib/types";
+import { PartnerProfileLinkProps } from "@/lib/types";
 import { CommentsBadge } from "@/ui/links/comments-badge";
 import { usePartnerLinkModal } from "@/ui/modals/partner-link-modal";
 import {
@@ -55,7 +55,7 @@ export function PartnerLinkCard({
   link,
   isDefaultLink,
 }: {
-  link: PartnerLinkProps;
+  link: PartnerProfileLinkProps;
   isDefaultLink?: boolean;
 }) {
   const { getQueryString } = useRouterStuff();

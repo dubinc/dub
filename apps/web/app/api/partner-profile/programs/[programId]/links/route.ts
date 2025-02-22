@@ -3,8 +3,8 @@ import { createLink, processLink } from "@/lib/api/links";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
-import { PartnerLinkSchema } from "@/lib/zod/schemas/programs";
 import { getApexDomain } from "@dub/utils";
 import { NextResponse } from "next/server";
 
@@ -17,7 +17,9 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     programId: params.programId,
   });
 
-  return NextResponse.json(links.map((link) => PartnerLinkSchema.parse(link)));
+  return NextResponse.json(
+    links.map((link) => PartnerProfileLinkSchema.parse(link)),
+  );
 });
 
 // POST /api/partner-profile/[programId]/links - create a link for a partner
