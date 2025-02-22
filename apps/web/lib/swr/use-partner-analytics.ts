@@ -6,7 +6,10 @@ import { VALID_ANALYTICS_FILTERS } from "../analytics/constants";
 import { PartnerAnalyticsFilters } from "../analytics/types";
 
 export default function usePartnerAnalytics(
-  params?: PartnerAnalyticsFilters & { programId?: string },
+  params: PartnerAnalyticsFilters & {
+    programId?: string;
+    enabled?: boolean;
+  },
   options?: SWRConfiguration,
 ) {
   const { data: session } = useSession();
@@ -19,6 +22,7 @@ export default function usePartnerAnalytics(
   const { data, error } = useSWR<any>(
     partnerId &&
       programIdToUse &&
+      params.enabled !== false &&
       `/api/partner-profile/programs/${programIdToUse}/analytics?${new URLSearchParams(
         {
           event: params?.event ?? "composite",

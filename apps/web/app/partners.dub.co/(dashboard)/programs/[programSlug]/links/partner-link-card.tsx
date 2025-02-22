@@ -13,19 +13,20 @@ import {
   InvoiceDollar,
   LinkLogo,
   LoadingSpinner,
+  useInViewport,
   UserCheck,
+  useRouterStuff,
 } from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis } from "@dub/ui/charts";
 import {
   cn,
-  currencyFormatter,
   DICEBEAR_AVATAR_URL,
   getApexDomain,
   getPrettyUrl,
-  nFormatter,
 } from "@dub/utils";
+import NumberFlow from "@number-flow/react";
 import Link from "next/link";
-import { ComponentProps, useMemo } from "react";
+import { ComponentProps, useMemo, useRef } from "react";
 import { usePartnerLinksContext } from "./page-client";
 
 const CHARTS = [
@@ -57,24 +58,20 @@ export function PartnerLinkCard({
   link: PartnerLinkProps;
   isDefaultLink?: boolean;
 }) {
+  const { getQueryString } = useRouterStuff();
   const { start, end, interval } = usePartnerLinksContext();
   const { programEnrollment } = useProgramEnrollment();
   const { setShowPartnerLinkModal, PartnerLinkModal } = usePartnerLinkModal({
     link,
   });
 
-  const { data: totals } = usePartnerAnalytics(
-    {
-      linkId: link.id,
-      event: "composite",
-      interval,
-      start,
-      end,
-    },
-    {
-      keepPreviousData: false,
-    },
-  );
+  const ref = useRef<HTMLDivElement>(null);
+  const isVisible = useInViewport(ref);
+  const lastValidTotals = useRef<{
+    clicks: number;
+    leads: number;
+    saleAmount: number;
+  } | null>(null);
 
   const { data: timeseries, error } = usePartnerAnalytics(
     {
@@ -84,11 +81,30 @@ export function PartnerLinkCard({
       interval,
       start,
       end,
+      enabled: isVisible,
     },
     {
       keepPreviousData: false,
     },
   );
+
+  const totals = useMemo(() => {
+    const newTotals = timeseries?.reduce(
+      (acc, { clicks, leads, saleAmount }) => ({
+        clicks: acc.clicks + clicks,
+        leads: acc.leads + leads,
+        saleAmount: acc.saleAmount + saleAmount,
+      }),
+      { clicks: 0, leads: 0, saleAmount: 0 },
+    );
+
+    if (newTotals) {
+      lastValidTotals.current = newTotals;
+      return newTotals;
+    }
+
+    return lastValidTotals.current ?? { clicks: 0, leads: 0, saleAmount: 0 };
+  }, [timeseries]);
 
   const chartData = useMemo(() => {
     return timeseries?.map(({ start, clicks, leads, saleAmount }) => ({
@@ -157,7 +173,7 @@ export function PartnerLinkCard({
           </a>
         </div>
       )}
-      <div className="p-4">
+      <div className="p-4" ref={ref}>
         <div className="flex items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3">
             <div className="relative hidden shrink-0 items-center justify-center sm:flex">
@@ -205,7 +221,12 @@ export function PartnerLinkCard({
 
           <div className="flex items-center gap-2">
             <Link
-              href={`/programs/${programEnrollment?.program.slug}/links/analytics?domain=${link.domain}&key=${link.key}`}
+              href={`/programs/${programEnrollment?.program.slug}/links/analytics${getQueryString(
+                {
+                  domain: link.domain,
+                  key: link.key,
+                },
+              )}`}
               className="overflow-hidden rounded-md border border-neutral-200 bg-neutral-50 p-0.5 text-sm text-neutral-600 transition-colors hover:bg-white"
             >
               <div className="flex items-center gap-0.5">
@@ -222,10 +243,23 @@ export function PartnerLinkCard({
                         data-active={value > 0}
                         className={cn("h-4 w-4 shrink-0", iconClassName)}
                       />
-                      <span>
-                        {id === "sales"
-                          ? currencyFormatter(value)
-                          : nFormatter(value)}
+                      <span className="text-xs font-medium text-neutral-600">
+                        <NumberFlow
+                          value={id === "sales" ? value / 100 : value}
+                          format={
+                            id === "sales"
+                              ? {
+                                  style: "currency",
+                                  currency: "USD",
+                                  // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
+                                  trailingZeroDisplay: "stripIfInteger",
+                                }
+                              : {
+                                  notation:
+                                    value > 999999 ? "compact" : "standard",
+                                }
+                          }
+                        />
                       </span>
                     </div>
                   ),
@@ -239,7 +273,13 @@ export function PartnerLinkCard({
           {CHARTS.map((chart) => (
             <Link
               key={chart.key}
-              href={`/programs/${programEnrollment?.program.slug}/links/analytics?domain=${link.domain}&key=${link.key}&event=${chart.key === "saleAmount" ? "sales" : chart.key}`}
+              href={`/programs/${programEnrollment?.program.slug}/links/analytics${getQueryString(
+                {
+                  domain: link.domain,
+                  key: link.key,
+                  event: chart.key === "saleAmount" ? "sales" : chart.key,
+                },
+              )}`}
               className="rounded-lg border border-neutral-200 px-2 py-1.5 lg:px-3"
             >
               <div className="flex flex-col gap-1 pl-2 pt-3 lg:pl-1.5">
@@ -253,12 +293,28 @@ export function PartnerLinkCard({
                 </div>
                 {totals ? (
                   <span className="text-base font-medium leading-none text-neutral-600">
-                    {chart.currency
-                      ? currencyFormatter(totals[chart.key] / 100, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })
-                      : nFormatter(totals[chart.key])}
+                    <NumberFlow
+                      value={
+                        chart.currency
+                          ? totals[chart.key] / 100
+                          : totals[chart.key]
+                      }
+                      format={
+                        chart.currency
+                          ? {
+                              style: "currency",
+                              currency: "USD",
+                              // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
+                              trailingZeroDisplay: "stripIfInteger",
+                            }
+                          : {
+                              notation:
+                                totals[chart.key] > 999999
+                                  ? "compact"
+                                  : "standard",
+                            }
+                      }
+                    />
                   </span>
                 ) : (
                   <div className="h-4 w-12 animate-pulse rounded bg-neutral-200" />
@@ -326,12 +382,14 @@ function LinkEventsChart({
                   })}
                 </span>
                 <p className="text-right text-neutral-500">
-                  {currency
-                    ? currencyFormatter(series.valueAccessor(d), {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })
-                    : nFormatter(series.valueAccessor(d))}
+                  {currency ? (
+                    <NumberFlow
+                      value={series.valueAccessor(d)}
+                      format={{ style: "currency", currency: "USD" }}
+                    />
+                  ) : (
+                    <NumberFlow value={series.valueAccessor(d)} />
+                  )}
                 </p>
               </div>
             </>
