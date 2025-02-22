@@ -30,21 +30,26 @@ const CORS_HEADERS = {
 export const POST = withAxiom(
   async (req: AxiomRequest) => {
     try {
-      const { domain, key, url } = await parseRequestBody(req);
+      const { domain, url } = await parseRequestBody(req);
 
-      if (!domain || !key) {
+      if (!domain || url) {
         throw new DubApiError({
           code: "bad_request",
-          message: "Missing domain or key",
+          message: "Missing domain or url",
         });
       }
 
       const urlObj = new URL(url);
 
+      let linkKey = urlObj.pathname.slice(1);
+      if (linkKey === "") {
+        linkKey = "_root";
+      }
+
       const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
 
       const { success } = await ratelimit().limit(
-        `track-click:${domain}-${key}:${ip}`,
+        `track-click:${domain}-${linkKey}:${ip}`,
       );
 
       if (!success) {
@@ -52,11 +57,6 @@ export const POST = withAxiom(
           code: "rate_limit_exceeded",
           message: "Don't DDoS me pls 🥺",
         });
-      }
-
-      let linkKey = urlObj.pathname.slice(1);
-      if (linkKey === "") {
-        linkKey = "_root";
       }
 
       const { rows } = await conn.execute<{
