@@ -15,17 +15,15 @@ export const GET = withPartnerProfile(
     const parsedParams = analyticsQuerySchema
       .omit({
         workspaceId: true,
-        domain: true,
-        key: true,
         externalId: true,
         tenantId: true,
       })
       .parse(searchParams);
 
     const response = await getAnalytics({
-      ...parsedParams,
       programId: program.id,
       partnerId: partner.id,
+      ...parsedParams,
     });
 
     return NextResponse.json(response);

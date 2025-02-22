@@ -262,7 +262,7 @@ export default function Toggle({
   // Some suggestions will only appear if previously requested (see isRequested above)
   const aiFilterSuggestions = useMemo(
     () => [
-      ...(dashboardProps
+      ...(dashboardProps || partnerPage
         ? []
         : [
             {
@@ -287,180 +287,164 @@ export default function Toggle({
         icon: QRCode,
       },
     ],
-    [primaryDomain, dashboardProps],
+    [primaryDomain, dashboardProps, partnerPage],
   );
 
   const [streaming, setStreaming] = useState<boolean>(false);
 
+  const LinkFilterItem = {
+    key: "link",
+    icon: Hyperlink,
+    label: "Link",
+    getOptionIcon: (value, props) => {
+      const url = props.option?.data?.url;
+      const [domain, key] = value.split("/");
+
+      return <LinkIcon url={url} domain={domain} linkKey={key} />;
+    },
+    options:
+      links?.map(
+        ({ domain, key, url, count }: LinkProps & { count?: number }) => ({
+          value: linkConstructor({ domain, key, pretty: true }),
+          label: linkConstructor({ domain, key, pretty: true }),
+          right: nFormatter(count, { full: true }),
+          data: { url },
+        }),
+      ) ?? null,
+  };
+
   const filters: ComponentProps<typeof Filter.Select>["filters"] = useMemo(
     () => [
-      ...(partnerPage
+      {
+        key: "ai",
+        icon: Magic,
+        label: "Ask AI",
+        separatorAfter: true,
+        options:
+          aiFilterSuggestions?.map(({ icon, value }) => ({
+            value,
+            label: value,
+            icon,
+          })) ?? null,
+      },
+      ...(dashboardProps
         ? []
-        : [
-            {
-              key: "ai",
-              icon: Magic,
-              label: "Ask AI",
-              separatorAfter: true,
-              options:
-                aiFilterSuggestions?.map(({ icon, value }) => ({
-                  value,
-                  label: value,
-                  icon,
-                })) ?? null,
-            },
-          ]),
-      ...(dashboardProps || partnerPage
-        ? []
-        : [
-            ...(flags?.linkFolders
-              ? [
-                  {
-                    key: "folderId",
-                    icon: Folder,
-                    label: "Folder",
-                    shouldFilter: !foldersAsync,
-                    getOptionIcon: (value, props) => {
-                      const folderName = props.option?.label;
-                      const folder = folders?.find(
-                        ({ name }) => name === folderName,
-                      );
+        : partnerPage
+          ? [LinkFilterItem]
+          : [
+              ...(flags?.linkFolders
+                ? [
+                    {
+                      key: "folderId",
+                      icon: Folder,
+                      label: "Folder",
+                      shouldFilter: !foldersAsync,
+                      getOptionIcon: (value, props) => {
+                        const folderName = props.option?.label;
+                        const folder = folders?.find(
+                          ({ name }) => name === folderName,
+                        );
 
-                      return folder ? (
-                        <FolderIcon
-                          folder={folder}
-                          shape="square"
-                          iconClassName="size-3"
-                        />
-                      ) : null;
-                    },
-                    options:
-                      folders?.map((folder) => ({
-                        value: folder.id,
-                        icon: (
+                        return folder ? (
                           <FolderIcon
                             folder={folder}
                             shape="square"
                             iconClassName="size-3"
                           />
-                        ),
-                        label: folder.name,
-                      })) ?? null,
+                        ) : null;
+                      },
+                      options:
+                        folders?.map((folder) => ({
+                          value: folder.id,
+                          icon: (
+                            <FolderIcon
+                              folder={folder}
+                              shape="square"
+                              iconClassName="size-3"
+                            />
+                          ),
+                          label: folder.name,
+                        })) ?? null,
+                    },
+                  ]
+                : []),
+              {
+                key: "tagIds",
+                icon: Tag,
+                label: "Tag",
+                multiple: true,
+                shouldFilter: !tagsAsync,
+                getOptionIcon: (value, props) => {
+                  const tagColor =
+                    props.option?.data?.color ??
+                    tags?.find(({ id }) => id === value)?.color;
+                  return tagColor ? (
+                    <TagBadge color={tagColor} withIcon className="sm:p-1" />
+                  ) : null;
+                },
+                options:
+                  tags?.map(({ id, name, color }) => ({
+                    value: id,
+                    icon: (
+                      <TagBadge color={color} withIcon className="sm:p-1" />
+                    ),
+                    label: name,
+                    data: { color },
+                  })) ?? null,
+              },
+              {
+                key: "domain",
+                icon: Globe2,
+                label: "Domain",
+                shouldFilter: !domainsAsync,
+                getOptionIcon: (value) => (
+                  <BlurImage
+                    src={`${GOOGLE_FAVICON_URL}${value}`}
+                    alt={value}
+                    className="h-4 w-4 rounded-full"
+                    width={16}
+                    height={16}
+                  />
+                ),
+                options: loadingDomains
+                  ? null
+                  : [
+                      ...domains.map((domain) => ({
+                        value: domain.slug,
+                        label: domain.slug,
+                      })),
+                      // Add currently filtered domain if not already in the list
+                      ...(!searchParamsObj.domain ||
+                      domains.some((d) => d.slug === searchParamsObj.domain)
+                        ? []
+                        : [
+                            {
+                              value: searchParamsObj.domain,
+                              label: searchParamsObj.domain,
+                              hideDuringSearch: true,
+                            },
+                          ]),
+                    ],
+              },
+              LinkFilterItem,
+              {
+                key: "root",
+                icon: Sliders,
+                label: "Link type",
+                options: [
+                  {
+                    value: true,
+                    icon: Globe2,
+                    label: "Root domain link",
                   },
-                ]
-              : []),
-            {
-              key: "tagIds",
-              icon: Tag,
-              label: "Tag",
-              multiple: true,
-              shouldFilter: !tagsAsync,
-              getOptionIcon: (value, props) => {
-                const tagColor =
-                  props.option?.data?.color ??
-                  tags?.find(({ id }) => id === value)?.color;
-                return tagColor ? (
-                  <TagBadge color={tagColor} withIcon className="sm:p-1" />
-                ) : null;
+                  {
+                    value: false,
+                    icon: Hyperlink,
+                    label: "Regular short link",
+                  },
+                ],
               },
-              options:
-                tags?.map(({ id, name, color }) => ({
-                  value: id,
-                  icon: <TagBadge color={color} withIcon className="sm:p-1" />,
-                  label: name,
-                  data: { color },
-                })) ?? null,
-            },
-            {
-              key: "domain",
-              icon: Globe2,
-              label: "Domain",
-              shouldFilter: !domainsAsync,
-              getOptionIcon: (value) => (
-                <BlurImage
-                  src={`${GOOGLE_FAVICON_URL}${value}`}
-                  alt={value}
-                  className="h-4 w-4 rounded-full"
-                  width={16}
-                  height={16}
-                />
-              ),
-              options: loadingDomains
-                ? null
-                : [
-                    ...domains.map((domain) => ({
-                      value: domain.slug,
-                      label: domain.slug,
-                    })),
-                    // Add currently filtered domain if not already in the list
-                    ...(!searchParamsObj.domain ||
-                    domains.some((d) => d.slug === searchParamsObj.domain)
-                      ? []
-                      : [
-                          {
-                            value: searchParamsObj.domain,
-                            label: searchParamsObj.domain,
-                            hideDuringSearch: true,
-                          },
-                        ]),
-                  ],
-            },
-            {
-              key: "link",
-              icon: Hyperlink,
-              label: "Link",
-              getOptionIcon: (value, props) => {
-                const url = props.option?.data?.url;
-                const [domain, key] = value.split("/");
-
-                return <LinkIcon url={url} domain={domain} linkKey={key} />;
-              },
-              options:
-                links?.map(
-                  ({
-                    domain,
-                    key,
-                    url,
-                    count,
-                  }: LinkProps & { count?: number }) => ({
-                    value: linkConstructor({ domain, key, pretty: true }),
-                    label: linkConstructor({ domain, key, pretty: true }),
-                    right: nFormatter(count, { full: true }),
-                    data: { url },
-                  }),
-                ) ?? null,
-            },
-            {
-              key: "root",
-              icon: Sliders,
-              label: "Link type",
-              options: [
-                {
-                  value: true,
-                  icon: Globe2,
-                  label: "Root domain link",
-                },
-                {
-                  value: false,
-                  icon: Hyperlink,
-                  label: "Regular short link",
-                },
-              ],
-            },
-          ]),
-      {
-        key: "trigger",
-        icon: CursorRays,
-        label: "Trigger",
-        options:
-          triggers?.map(({ trigger, count }) => ({
-            value: trigger,
-            label: TRIGGER_DISPLAY[trigger],
-            icon: trigger === "qr" ? QRCode : CursorRays,
-            right: nFormatter(count, { full: true }),
-          })) ?? null,
-        separatorAfter: !dashboardProps && !partnerPage,
-      },
+            ]),
       {
         key: "country",
         icon: FlagWavy,
@@ -576,6 +560,19 @@ export default function Toggle({
             label: os,
             right: nFormatter(count, { full: true }),
           })) ?? null,
+      },
+      {
+        key: "trigger",
+        icon: CursorRays,
+        label: "Trigger",
+        options:
+          triggers?.map(({ trigger, count }) => ({
+            value: trigger,
+            label: TRIGGER_DISPLAY[trigger],
+            icon: trigger === "qr" ? QRCode : CursorRays,
+            right: nFormatter(count, { full: true }),
+          })) ?? null,
+        separatorAfter: !dashboardProps && !partnerPage,
       },
       {
         key: "referer",
