@@ -85,7 +85,7 @@ function ImportRewardfulModal({
       program?.id &&
       workspaceId &&
       step === "campaigns" &&
-      `/api/programs/${program.id}/rewardful/campaigns?workspaceId=${workspaceId}`,
+      `/api/programs/rewardful/campaigns?workspaceId=${workspaceId}`,
     fetcher,
   );
 

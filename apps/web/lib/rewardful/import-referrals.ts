@@ -72,7 +72,7 @@ export async function importReferrals({
   }
 
   // Imports finished
-  await rewardfulImporter.deleteCredentials(programId);
+  await rewardfulImporter.deleteCredentials(workspace.id);
 
   const { email } = await prisma.user.findUniqueOrThrow({
     where: {

@@ -17,7 +17,7 @@ class RewardfulApiError extends DubApiError {
 }
 
 export class RewardfulApi {
-  private readonly baseUrl = "http://api.localhost:8888/mock/rewardful";
+  private readonly baseUrl = "https://api.getrewardful.com/v1";
   private readonly token: string;
 
   constructor({ token }: { token: string }) {

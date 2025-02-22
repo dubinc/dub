@@ -15,7 +15,6 @@ import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { Program, Project, Reward, User } from "@prisma/client";
 import slugify from "@sindresorhus/slugify";
-import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
 
@@ -191,22 +190,23 @@ const createProgram = async ({
     console.log({ validHostnames });
   }
 
-  waitUntil(
-    prisma.project.update({
-      where: {
-        id: workspace.id,
+  // TODO:
+  // waitUntil is not working here
+
+  await prisma.project.update({
+    where: {
+      id: workspace.id,
+    },
+    data: {
+      ...(validHostnames && {
+        allowedHostnames: validHostnames,
+      }),
+      store: {
+        ...store,
+        programOnboarding: undefined,
       },
-      data: {
-        ...(validHostnames && {
-          allowedHostnames: validHostnames,
-        }),
-        store: {
-          ...store,
-          programOnboarding: undefined,
-        },
-      },
-    }),
-  );
+    },
+  });
 
   return program;
 };
