@@ -1,3 +1,5 @@
+// @ts-nocheck – since this contains old schema code
+
 import { createId } from "@/lib/api/utils";
 import { prisma } from "@dub/prisma";
 import { EventType } from "@prisma/client";

@@ -16,7 +16,7 @@ export default function useProgramRevenue(params?: PartnerAnalyticsFilters) {
             start: params.start.toISOString(),
             end: params.end.toISOString(),
           }
-        : { interval: params?.interval ?? "1y" }),
+        : { interval: params?.interval ?? "30d" }),
       groupBy: params?.groupBy ?? "count",
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       workspaceId: workspaceId!,

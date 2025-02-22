@@ -365,7 +365,6 @@ function EarningsTableControls() {
         <SimpleDateRangePicker
           className="w-full sm:min-w-[200px] md:w-fit"
           align="start"
-          defaultInterval="30d"
         />
       </div>
 

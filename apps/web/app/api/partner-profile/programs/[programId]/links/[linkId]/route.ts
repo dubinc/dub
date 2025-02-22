@@ -1,51 +1,41 @@
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
-import { createLink, processLink } from "@/lib/api/links";
+import { processLink, updateLink } from "@/lib/api/links";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
+import { NewLinkProps } from "@/lib/types";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { getApexDomain } from "@dub/utils";
 import { NextResponse } from "next/server";
 
-const PARTNER_LINKS_LIMIT = 5;
-
-// GET /api/partner-profile/programs/[programId]/links - get a partner's links in a program
-export const GET = withPartnerProfile(async ({ partner, params }) => {
-  const { links } = await getProgramEnrollmentOrThrow({
-    partnerId: partner.id,
-    programId: params.programId,
-  });
-
-  return NextResponse.json(
-    links.map((link) => PartnerProfileLinkSchema.parse(link)),
-  );
-});
-
-// POST /api/partner-profile/[programId]/links - create a link for a partner
-export const POST = withPartnerProfile(
+// PATCH /api/partner-profile/[programId]/links/[linkId] - update a link for a partner
+export const PATCH = withPartnerProfile(
   async ({ partner, params, req, session }) => {
     const { url, key, comments } = createPartnerLinkSchema
       .pick({ url: true, key: true, comments: true })
       .parse(await parseRequestBody(req));
 
-    const { program, links, tenantId } = await getProgramEnrollmentOrThrow({
+    const { programId, linkId } = params;
+
+    const { program, links } = await getProgramEnrollmentOrThrow({
       partnerId: partner.id,
-      programId: params.programId,
+      programId,
     });
+
+    const link = links.find((link) => link.id === linkId);
+
+    if (!link) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Link not found.",
+      });
+    }
 
     if (!program.domain || !program.url) {
       throw new DubApiError({
         code: "bad_request",
         message:
           "This program needs a domain and URL set before creating a link.",
-      });
-    }
-
-    if (links.length >= PARTNER_LINKS_LIMIT) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: `You have reached the limit of ${PARTNER_LINKS_LIMIT} program links.`,
       });
     }
 
@@ -56,23 +46,34 @@ export const POST = withPartnerProfile(
       });
     }
 
-    const { link, error, code } = await processLink({
+    // if domain and key are the same, we don't need to check if the key exists
+    const skipKeyChecks = link.key.toLowerCase() === key?.toLowerCase();
+
+    const {
+      link: processedLink,
+      error,
+      code,
+    } = await processLink({
       payload: {
-        domain: program.domain,
+        ...link,
+        // coerce types
+        expiresAt:
+          link.expiresAt instanceof Date
+            ? link.expiresAt.toISOString()
+            : link.expiresAt,
+        geo: link.geo as NewLinkProps["geo"],
+
+        // merge in new props
         key: key || undefined,
         url: url || program.url,
-        programId: program.id,
-        tenantId,
-        partnerId: partner.id,
-        folderId: program.defaultFolderId,
         comments,
-        trackConversion: true,
       },
       workspace: {
         id: program.workspaceId,
         plan: "business",
       },
       userId: session.user.id,
+      skipKeyChecks,
       skipFolderChecks: true, // can't be changed by the partner
       skipProgramChecks: true, // can't be changed by the partner
       skipExternalIdChecks: true, // can't be changed by the partner
@@ -85,7 +86,14 @@ export const POST = withPartnerProfile(
       });
     }
 
-    const partnerLink = await createLink(link);
+    const partnerLink = await updateLink({
+      oldLink: {
+        domain: link.domain,
+        key: link.key,
+        image: link.image,
+      },
+      updatedLink: processedLink,
+    });
 
     return NextResponse.json(partnerLink, { status: 201 });
   },
