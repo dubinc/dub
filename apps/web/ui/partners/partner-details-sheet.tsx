@@ -24,15 +24,19 @@ import {
   COUNTRIES,
   currencyFormatter,
   DICEBEAR_AVATAR_URL,
+  fetcher,
   getPrettyUrl,
   nFormatter,
 } from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
+import { ProgramApplication } from "@prisma/client";
+import Linkify from "linkify-react";
 import { ChevronLeft } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { toast } from "sonner";
+import useSWRImmutable from "swr/immutable";
 import { AnimatedEmptyState } from "../shared/animated-empty-state";
 import { useCreatePayoutSheet } from "./create-payout-sheet";
 import { PartnerLinkSelector } from "./partner-link-selector";
@@ -207,11 +211,7 @@ function PartnerDetailsSheetContent({
               {tab === "links" && <PartnerLinks partner={partner} />}
             </>
           ) : (
-            <div className="flex flex-col gap-6 text-sm text-neutral-500">
-              <h3 className="text-base font-semibold text-neutral-900">
-                About this partner
-              </h3>
-
+            <div className="grid gap-6 text-sm text-neutral-500">
               <div>
                 <h4 className="font-semibold text-neutral-900">Description</h4>
                 <p className="mt-1.5">
@@ -222,6 +222,9 @@ function PartnerDetailsSheetContent({
                   )}
                 </p>
               </div>
+              {partner.applicationId && (
+                <PartnerApplication applicationId={partner.applicationId} />
+              )}
             </div>
           )}
         </div>
@@ -250,6 +253,60 @@ function PartnerDetailsSheetContent({
         </>
       )}
     </>
+  );
+}
+
+function PartnerApplication({ applicationId }: { applicationId: string }) {
+  const { id: workspaceId } = useWorkspace();
+  const { program } = useProgram();
+
+  const { data: application } = useSWRImmutable<ProgramApplication>(
+    program &&
+      workspaceId &&
+      `/api/programs/${program.id}/applications/${applicationId}?workspaceId=${workspaceId}`,
+    fetcher,
+  );
+
+  const fields = [
+    {
+      title: "Website / Social Media channels",
+      value: application?.website,
+    },
+    {
+      title: `How do you plan to promote ${program?.name}?`,
+      value: application?.proposal,
+    },
+    {
+      title: "Any additional questions or comments?",
+      value: application?.comments,
+    },
+  ];
+
+  return (
+    <div className="grid gap-6">
+      {fields.map((field) => (
+        <div key={field.title}>
+          <h4 className="font-semibold text-neutral-900">{field.title}</h4>
+          <div className="mt-1.5">
+            {field.value || field.value === "" ? (
+              <Linkify
+                as="p"
+                options={{
+                  target: "_blank",
+                  rel: "noopener noreferrer nofollow",
+                  className:
+                    "underline underline-offset-4 text-neutral-400 hover:text-neutral-700",
+                }}
+              >
+                {field.value || "No response provided"}
+              </Linkify>
+            ) : (
+              <div className="h-5 w-28 min-w-0 animate-pulse rounded-md bg-neutral-200" />
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }
 
