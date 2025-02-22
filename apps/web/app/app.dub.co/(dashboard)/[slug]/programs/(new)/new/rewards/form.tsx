@@ -68,7 +68,7 @@ export function Form() {
     handleSubmit,
     watch,
     setValue,
-    formState: { isSubmitting, isDirty },
+    formState: { isSubmitting },
   } = useFormContext<Form>();
 
   const [programType, rewardful, amount] = watch([
@@ -90,13 +90,6 @@ export function Form() {
 
   const onSubmit = async (data: Form) => {
     if (!workspaceId) return;
-
-    // if (
-    //   programType === "import" &&
-    //   !rewardful?.apiToken &&
-    //   !rewardful?.campaign?.id
-    // ) {
-    // }
 
     const programData = {
       ...data,
@@ -120,7 +113,6 @@ export function Form() {
   const buttonDisabled =
     isSubmitting ||
     isPending ||
-    !isDirty ||
     (programType === "new" && !amount) ||
     (programType === "import" && (!rewardful || !rewardful.id));
 
@@ -328,8 +320,8 @@ const NewProgramForm = ({ register, watch, setValue }: FormProps) => {
                 valueAsNumber: true,
                 min: 0,
                 max: type === "flat" ? 1000 : 100,
+                onChange: handleMoneyInputChange,
               })}
-              onChange={handleMoneyInputChange}
               onKeyDown={handleMoneyKeyDown}
             />
             <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
@@ -362,11 +354,9 @@ const ImportProgramForm = ({ register, watch, setValue }: FormProps) => {
     enabled: !!token || !!rewardful?.id,
   });
 
-  const selectedCampaign = campaigns.find(
+  const selectedCampaign = campaigns?.find(
     (campaign) => campaign.id === rewardful?.id,
   );
-
-  console.log("Selected campaign", selectedCampaign);
 
   useEffect(() => {
     if (selectedCampaign) {
@@ -431,37 +421,35 @@ const ImportProgramForm = ({ register, watch, setValue }: FormProps) => {
         </div>
       </div>
 
-      {campaigns.length > 0 && (
-        <div>
-          <label className="text-sm font-medium text-neutral-800">
-            Campaign to import
-          </label>
-          <div className="relative mt-2">
-            <select
-              {...register("rewardful.id")}
-              className="block w-full appearance-none rounded-md border border-neutral-200 bg-white px-3 py-2 pr-8 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
-            >
-              <option value="">Select a campaign</option>
-              {campaigns.map(({ id, name }) => (
-                <option key={id} value={id}>
-                  {name}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
-          </div>
-          <Link
-            href="#"
-            className="mt-2 text-xs font-normal leading-[1.1] text-neutral-600 underline decoration-solid decoration-auto underline-offset-auto"
-            target="_blank"
-            rel="noopener noreferrer"
+      <div>
+        <label className="text-sm font-medium text-neutral-800">
+          Campaign to import
+        </label>
+        <div className="relative mt-2">
+          <select
+            {...register("rewardful.id")}
+            className="block w-full appearance-none rounded-md border border-neutral-200 bg-white px-3 py-2 pr-8 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
           >
-            Want to migrate more than one campaign?
-          </Link>
+            <option value="">Select a campaign</option>
+            {campaigns?.map(({ id, name }) => (
+              <option key={id} value={id}>
+                {name}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="absolute right-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
         </div>
-      )}
+        <Link
+          href="#"
+          className="mt-2 text-xs font-normal leading-[1.1] text-neutral-600 underline decoration-solid decoration-auto underline-offset-auto"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Want to migrate more than one campaign?
+        </Link>
+      </div>
 
-      {selectedCampaign ? (
+      {selectedCampaign && (
         <div className="grid grid-cols-2 gap-6 rounded-lg border border-neutral-300 bg-neutral-50 p-6">
           <div>
             <div className="text-sm text-neutral-500">Type</div>
@@ -488,7 +476,9 @@ const ImportProgramForm = ({ register, watch, setValue }: FormProps) => {
             </div>
           </div>
         </div>
-      ) : (
+      )}
+
+      {token && !rewardful?.id && (
         <Button
           text="Fetch campaigns"
           className="w-full"

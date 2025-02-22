@@ -47,16 +47,14 @@ export function Form() {
   const { isMobile } = useMediaQuery();
   const { activeWorkspaceDomains, loading } = useDomains();
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
-
-  const [_, __, { mutateWorkspace }] =
-    useWorkspaceStore<ProgramData>("programOnboarding");
+  const [_, __, { mutateWorkspace }] = useWorkspaceStore("programOnboarding");
 
   const {
     register,
     handleSubmit,
     watch,
     control,
-    formState: { isSubmitting, isDirty },
+    formState: { isSubmitting },
   } = useFormContext<ProgramData>();
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
@@ -82,7 +80,7 @@ export function Form() {
   const [name, url, domain, logo] = watch(["name", "url", "domain", "logo"]);
 
   const buttonDisabled =
-    isSubmitting || isPending || !isDirty || !name || !url || !domain || !logo;
+    isSubmitting || isPending || !name || !url || !domain || !logo;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">

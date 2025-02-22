@@ -18,7 +18,7 @@ export function Form() {
   const router = useRouter();
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const [keyErrors, setKeyErrors] = useState<{ [key: number]: string }>({});
-  const [programOnboarding, __, { mutateWorkspace }] = useWorkspaceStore<ProgramData>("programOnboarding");
+  const [_, __, { mutateWorkspace }] = useWorkspaceStore("programOnboarding");
 
   const {
     register,
@@ -34,7 +34,12 @@ export function Form() {
     control,
   });
 
-  const partners = watch("partners");
+  const [partners, rewardful, domain] = watch([
+    "partners",
+    "rewardful",
+    "domain",
+  ]);
+
   const [debouncedPartners] = useDebounce(partners, 500);
 
   const generateKeyFromEmail = (email: string) => {
@@ -81,7 +86,7 @@ export function Form() {
 
   return (
     <div className="space-y-6">
-      {programOnboarding?.rewardful?.campaign?.affiliates && (
+      {rewardful?.affiliates && (
         <div className="space-y-3">
           <p className="text-sm text-neutral-600">
             Invite new partners in addition to those being imported.
@@ -101,7 +106,7 @@ export function Form() {
               </span>
             </div>
             <span className="text-sm text-neutral-600">
-              {programOnboarding?.rewardful?.campaign?.affiliates}
+              {rewardful?.affiliates}
             </span>
           </div>
         </div>
@@ -141,7 +146,7 @@ export function Form() {
                     >
                       <div className="flex items-center border-r border-neutral-300 bg-neutral-100 px-3">
                         <span className="text-sm font-medium text-neutral-800">
-                          {programOnboarding?.domain}
+                          {domain}
                         </span>
                       </div>
                       <input

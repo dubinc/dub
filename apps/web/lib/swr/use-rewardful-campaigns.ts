@@ -18,8 +18,8 @@ export const useRewardfulCampaigns = ({
   );
 
   return {
-    campaigns: data || [],
-    loading: !data && !error,
+    campaigns: data,
+    loading: !data && !error && enabled,
     error,
   };
 };

@@ -13,7 +13,8 @@ export function FormWrapper({ children }: { children: React.ReactNode }) {
       ...programOnboarding,
       linkType: programOnboarding?.linkType ?? "short",
       programType: programOnboarding?.programType ?? "new",
-      amount: programOnboarding?.amount ?? null
+      amount: programOnboarding?.amount ?? null,
+      partners: programOnboarding?.partners ?? [{ email: "", key: "" }],
     },
   });
 
