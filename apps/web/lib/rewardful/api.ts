@@ -2,6 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import {
   RewardfulAffiliate,
   RewardfulCampaign,
+  RewardfulCommission,
   RewardfulReferral,
 } from "./types";
 
@@ -82,6 +83,20 @@ export class RewardfulApi {
 
     const { data } = await this.fetch<{ data: RewardfulReferral[] }>(
       `${this.baseUrl}/referrals?${searchParams.toString()}`,
+    );
+
+    return data;
+  }
+
+  async listCommissions({ page = 1 }: { page?: number }) {
+    const searchParams = new URLSearchParams();
+    searchParams.append("expand[]", "sale");
+    searchParams.append("expand[]", "campaign");
+    searchParams.append("page", page.toString());
+    searchParams.append("limit", PAGE_LIMIT.toString());
+
+    const { data } = await this.fetch<{ data: RewardfulCommission[] }>(
+      `${this.baseUrl}/commissions?${searchParams.toString()}`,
     );
 
     return data;
