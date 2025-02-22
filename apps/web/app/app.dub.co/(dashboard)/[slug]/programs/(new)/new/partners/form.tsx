@@ -9,10 +9,9 @@ import { cn } from "@dub/utils";
 import { Plus, Trash2 } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
-import { useDebounce } from "use-debounce";
 
 export function Form() {
   const router = useRouter();
@@ -34,30 +33,48 @@ export function Form() {
     control,
   });
 
-  const generateKeyFromEmail = (email: string) => {
+  const [rewardful, domain] = watch(["rewardful", "domain"]);
+
+  const generateKeyFromEmail = useCallback((email: string) => {
     if (!email) return "";
     const prefix = email.split("@")[0];
     const randomNum = Math.floor(1000 + Math.random() * 9000);
     return `${prefix}${randomNum}`;
+  }, []);
+
+  const handleEmailChange = (index: number, email: string) => {
+    // Remove automatic key generation on email change
   };
 
-  const [partners, rewardful, domain] = watch([
-    "partners",
-    "rewardful",
-    "domain",
-  ]);
+  const handleKeyFocus = (index: number) => {
+    const email = watch(`partners.${index}.email`);
+    const currentKey = watch(`partners.${index}.key`);
+    if (email && !currentKey) {
+      setValue(`partners.${index}.key`, generateKeyFromEmail(email));
+    }
+  };
 
-  const [debouncedPartners] = useDebounce(partners, 500);
-
-  useEffect(() => {
-    if (!debouncedPartners) return;
-
-    debouncedPartners.forEach((partner, index) => {
-      if (partner.email && !partner.key) {
-        setValue(`partners.${index}.key`, generateKeyFromEmail(partner.email));
-      }
+  const handleKeyChange = (index: number, key: string) => {
+    setKeyErrors((prev) => {
+      const newErrors = { ...prev };
+      delete newErrors[index];
+      return newErrors;
     });
-  }, [debouncedPartners, setValue]);
+
+    if (key) {
+      if (!/^[a-zA-Z0-9-]+$/.test(key)) {
+        setKeyErrors((prev) => ({
+          ...prev,
+          [index]: "Only letters, numbers, and hyphens are allowed",
+        }));
+      } else if (key.length < 3) {
+        setKeyErrors((prev) => ({
+          ...prev,
+          [index]: "Key must be at least 3 characters long",
+        }));
+      }
+    }
+  };
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
@@ -131,6 +148,7 @@ export function Form() {
                   type="email"
                   placeholder="panic@thedis.co"
                   className="mt-2"
+                  onChange={(e) => handleEmailChange(index, e.target.value)}
                 />
               </div>
 
@@ -156,6 +174,8 @@ export function Form() {
                         {...register(`partners.${index}.key`)}
                         type="text"
                         placeholder="panic"
+                        onFocus={() => handleKeyFocus(index)}
+                        onChange={(e) => handleKeyChange(index, e.target.value)}
                         className={cn(
                           "w-full border-0 bg-transparent px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-0",
                           keyErrors[index] &&
