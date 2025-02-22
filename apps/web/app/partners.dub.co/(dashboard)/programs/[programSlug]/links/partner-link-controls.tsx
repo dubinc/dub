@@ -7,6 +7,8 @@ import { QRCode } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { useState } from "react";
 
+// this is unused for now
+// at least until we have more controls available for partner links
 export function PartnerLinkControls({
   link,
   programId,
