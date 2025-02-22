@@ -16,7 +16,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </h1>
         </div>
         <div className="flex items-center gap-2">
-          <Button text="Cancel" variant="outline" className="h-7 w-auto" />
+          <Link
+            href="/"
+            className="group flex h-7 w-auto items-center justify-center gap-2 whitespace-nowrap rounded-md border border-transparent px-4 text-sm text-neutral-600 transition-all hover:bg-neutral-100"
+          >
+            Cancel
+          </Link>
+
           <Button
             text="Save and exit"
             variant="secondary"
