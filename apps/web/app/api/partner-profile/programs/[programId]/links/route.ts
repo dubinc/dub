@@ -8,7 +8,7 @@ import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { getApexDomain } from "@dub/utils";
 import { NextResponse } from "next/server";
 
-const PARTNER_LINKS_LIMIT = 10;
+const PARTNER_LINKS_LIMIT = 5;
 
 // GET /api/partner-profile/programs/[programId]/links - get a partner's links in a program
 export const GET = withPartnerProfile(async ({ partner, params }) => {
