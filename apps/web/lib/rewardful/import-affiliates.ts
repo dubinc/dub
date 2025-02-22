@@ -17,15 +17,6 @@ export async function importAffiliates({
   rewardId?: string;
   page: number;
 }) {
-  const { token, userId, campaignId } =
-    await rewardfulImporter.getCredentials(programId);
-
-  const rewardfulApi = new RewardfulApi({ token });
-
-  let currentPage = page;
-  let hasMoreAffiliates = true;
-  let processedBatches = 0;
-
   const { workspace, ...program } = await prisma.program.findUniqueOrThrow({
     where: {
       id: programId,
@@ -34,6 +25,16 @@ export async function importAffiliates({
       workspace: true,
     },
   });
+
+  const { token, userId, campaignId } = await rewardfulImporter.getCredentials(
+    workspace.id,
+  );
+
+  const rewardfulApi = new RewardfulApi({ token });
+
+  let currentPage = page;
+  let hasMoreAffiliates = true;
+  let processedBatches = 0;
 
   while (hasMoreAffiliates && processedBatches < MAX_BATCHES) {
     const affiliates = await rewardfulApi.listAffiliates({

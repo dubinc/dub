@@ -2,6 +2,8 @@
 
 import { createLink } from "@/lib/api/links";
 import { createId } from "@/lib/api/utils";
+import { validateAllowedHostnames } from "@/lib/api/validate-allowed-hostnames";
+import { rewardfulImporter } from "@/lib/rewardful/importer";
 import { storage } from "@/lib/storage";
 import {
   onboardProgramSchema,
@@ -29,7 +31,7 @@ export const onboardProgramAction = authActionClient
     });
 
     if (programsCount > 0 || !workspace.partnersEnabled) {
-      // throw new Error("You are not allowed to create a new program.");
+      throw new Error("You are not allowed to create a new program.");
     }
 
     await handleOnboardingProgress({
@@ -149,18 +151,12 @@ const createProgram = async ({
   });
 
   // import the rewardful campaign if it exists
-  // if (rewardful) {
-  //   await rewardfulImporter.setCredentials(program.id, {
-  //     token: rewardful.apiToken,
-  //     campaignId: rewardful.campaign.id,
-  //     userId: user.id,
-  //   });
-
-  //   await rewardfulImporter.queue({
-  //     programId: program.id,
-  //     action: "import-campaign",
-  //   });
-  // }
+  if (rewardful) {
+    await rewardfulImporter.queue({
+      programId: program.id,
+      action: "import-campaign",
+    });
+  }
 
   // invite the partners
   if (partners && partners.length > 0) {
@@ -176,12 +172,25 @@ const createProgram = async ({
     );
   }
 
+  let validHostname: string | undefined;
+
+  if (linkType === "query" && url) {
+    const hostname = new URL(url).hostname;
+
+    if (hostname) {
+      validHostname = validateAllowedHostnames([hostname])?.[0];
+    }
+  }
+
   waitUntil(
     prisma.project.update({
       where: {
         id: workspace.id,
       },
       data: {
+        ...(validHostname && {
+          allowedHostnames: [validHostname],
+        }),
         store: {
           ...store,
           programOnboarding: undefined,

@@ -49,7 +49,13 @@ export const programInvitePartnersSchema = z.object({
       }),
     )
     .max(10, "You can only invite up to 10 partners.")
-    .nullable(),
+    .nullable()
+    .transform(
+      (partners) =>
+        partners?.filter(
+          (partner) => partner.email.trim() && partner.key.trim(),
+        ) || null,
+    ),
 });
 
 export const programDataSchema = programInfoSchema

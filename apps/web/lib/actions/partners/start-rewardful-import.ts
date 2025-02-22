@@ -30,7 +30,7 @@ export const startRewardfulImportAction = authActionClient
       throw new Error("Program URL is not set.");
     }
 
-    const credentials = await rewardfulImporter.getCredentials(programId);
+    const credentials = await rewardfulImporter.getCredentials(workspace.id);
 
     await rewardfulImporter.setCredentials(programId, {
       ...credentials,

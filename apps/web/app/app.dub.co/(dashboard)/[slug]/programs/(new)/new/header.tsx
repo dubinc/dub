@@ -1,6 +1,7 @@
 "use client";
 
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
+import usePrograms from "@/lib/swr/use-programs";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, Wordmark } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
@@ -11,14 +12,21 @@ import { toast } from "sonner";
 
 export function Header() {
   const router = useRouter();
+  const { programs } = usePrograms();
   const { getValues } = useFormContext();
+  const { partnersEnabled } = useWorkspace();
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+
+  if ((programs && programs.length > 0) || !partnersEnabled) {
+    router.push(`/${workspaceSlug}`);
+  }
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
       router.push(`/${workspaceSlug}`);
     },
     onError: ({ error }) => {
+      console.log(error);
       toast.error(error.serverError);
     },
   });
@@ -26,8 +34,15 @@ export function Header() {
   const saveAndExit = async () => {
     if (!workspaceId) return;
 
+    const data = getValues();
+
+    data.partners =
+      data?.partners?.filter(
+        (partner) => partner.email !== "" && partner.key !== "",
+      ) ?? null;
+
     await executeAsync({
-      ...getValues(),
+      ...data,
       workspaceId,
       step: "save-and-exit",
     });
