@@ -1,10 +1,10 @@
 import { verifyAnalyticsAllowedHostnames } from "@/lib/analytics/verify-analytics-allowed-hostnames";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
-import { conn } from "@/lib/planetscale/connection";
+import { getLinkWithAllowedHostnames } from "@/lib/planetscale/get-link-with-allowed-hostnames";
 import { recordClick } from "@/lib/tinybird";
 import { ratelimit, redis } from "@/lib/upstash";
-import { isValidUrl, LOCALHOST_IP, nanoid, punyEncode } from "@dub/utils";
+import { isValidUrl, LOCALHOST_IP, nanoid } from "@dub/utils";
 import { ipAddress, waitUntil } from "@vercel/functions";
 import { AxiomRequest, withAxiom } from "next-axiom";
 import { NextResponse } from "next/server";
@@ -43,19 +43,7 @@ export const POST = withAxiom(
         });
       }
 
-      // might wanna cache this
-      const { rows } = await conn.execute<{
-        id: string;
-        url: string;
-        projectId: string;
-        allowedHostnames: string[];
-      }>(
-        "SELECT Link.id, Link.url, projectId, allowedHostnames FROM Link LEFT JOIN Project ON Link.projectId = Project.id WHERE domain = ? AND `key` = ?",
-        [domain, punyEncode(decodeURIComponent(key))],
-      );
-
-      const link =
-        rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
+      const link = await getLinkWithAllowedHostnames(domain, key);
 
       if (!link) {
         throw new DubApiError({

@@ -3,7 +3,7 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { createId, parseRequestBody } from "@/lib/api/utils";
-import { conn } from "@/lib/planetscale/connection";
+import { getLinkWithAllowedHostnames } from "@/lib/planetscale/get-link-with-allowed-hostnames";
 import { recordClick, recordLink } from "@/lib/tinybird";
 import { ratelimit, redis } from "@/lib/upstash";
 import { prismaEdge } from "@dub/prisma/edge";
@@ -12,7 +12,6 @@ import {
   linkConstructorSimple,
   LOCALHOST_IP,
   nanoid,
-  punyEncode,
 } from "@dub/utils";
 import { ipAddress, waitUntil } from "@vercel/functions";
 import { AxiomRequest, withAxiom } from "next-axiom";
@@ -59,21 +58,22 @@ export const POST = withAxiom(
         });
       }
 
-      const { rows } = await conn.execute<{
-        id: string;
-        url: string;
-        projectId: string;
-        allowedHostnames: string[];
-      }>(
-        "SELECT Link.id, Link.url, projectId, allowedHostnames FROM Link LEFT JOIN Project ON Link.projectId = Project.id WHERE domain = ? AND `key` = ?",
-        [domain, punyEncode(decodeURIComponent(linkKey))],
-      );
-
-      let link =
-        rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
+      let link = await getLinkWithAllowedHostnames(domain, linkKey);
 
       if (!link) {
-        // create new link if not exist
+        // get root domain link
+        const rootDomainLink = await getLinkWithAllowedHostnames(
+          domain,
+          "_root",
+        );
+
+        if (!rootDomainLink) {
+          throw new DubApiError({
+            code: "not_found",
+            message: "siteDomain not found – have you created it on Dub yet?",
+          });
+        }
+
         const newLink = await prismaEdge.link.create({
           data: {
             id: createId("link_"),
@@ -82,27 +82,19 @@ export const POST = withAxiom(
             url,
             shortLink: linkConstructorSimple({ domain, key: linkKey }),
             trackConversion: true,
-            folderId: "fold_fjA8lslBy2qFcosUrwWFxmfk",
+            projectId: rootDomainLink.projectId,
+            folderId: rootDomainLink.folderId,
+            userId: rootDomainLink.userId,
           },
-          include: {
-            ...includeTags,
-            project: {
-              select: {
-                allowedHostnames: true,
-              },
-            },
-          },
+          include: includeTags,
         });
         waitUntil(
           Promise.allSettled([linkCache.set(newLink), recordLink(newLink)]),
         );
 
         link = {
-          id: newLink.id,
-          url: newLink.url,
-          projectId: newLink.projectId!,
-          allowedHostnames:
-            (newLink.project?.allowedHostnames as string[]) || [],
+          ...newLink,
+          ...rootDomainLink,
         };
       }
 
