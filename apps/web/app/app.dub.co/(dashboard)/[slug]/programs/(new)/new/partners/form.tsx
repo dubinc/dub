@@ -42,10 +42,6 @@ export function Form() {
     return `${prefix}${randomNum}`;
   }, []);
 
-  const handleEmailChange = (index: number, email: string) => {
-    // Remove automatic key generation on email change
-  };
-
   const handleKeyFocus = (index: number) => {
     const email = watch(`partners.${index}.email`);
     const currentKey = watch(`partners.${index}.key`);
@@ -148,7 +144,6 @@ export function Form() {
                   type="email"
                   placeholder="panic@thedis.co"
                   className="mt-2"
-                  onChange={(e) => handleEmailChange(index, e.target.value)}
                 />
               </div>
 
