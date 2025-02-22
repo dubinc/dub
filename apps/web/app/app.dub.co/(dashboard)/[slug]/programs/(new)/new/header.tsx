@@ -28,7 +28,18 @@ export function Header() {
   });
 
   if (programsLoading || workspaceLoading) {
-    return null;
+    return (
+      <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-neutral-200 bg-white px-4">
+        <div className="flex items-center gap-5">
+          <div className="h-7 w-20 animate-pulse rounded-md bg-neutral-200" />
+          <div className="hidden h-5 w-40 animate-pulse rounded-md bg-neutral-200 md:block" />
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="h-7 w-16 animate-pulse rounded-md bg-neutral-200" />
+          <div className="h-7 w-24 animate-pulse rounded-md bg-neutral-200" />
+        </div>
+      </header>
+    );
   }
 
   if ((programs && programs.length > 0) || !partnersEnabled) {
