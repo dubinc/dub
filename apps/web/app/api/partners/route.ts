@@ -64,6 +64,7 @@ export const GET = withWorkspace(
         pe.programId, 
         pe.partnerId, 
         pe.tenantId,
+        pe.applicationId,
         pe.createdAt as enrollmentCreatedAt,
         COALESCE(SUM(l.clicks), 0) as totalClicks,
         COALESCE(SUM(l.leads), 0) as totalLeads,
