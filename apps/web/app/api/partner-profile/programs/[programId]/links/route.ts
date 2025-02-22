@@ -5,7 +5,6 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { PartnerLinkSchema } from "@/lib/zod/schemas/programs";
-import { prisma } from "@dub/prisma";
 import { getApexDomain } from "@dub/utils";
 import { NextResponse } from "next/server";
 
@@ -55,23 +54,6 @@ export const POST = withPartnerProfile(
       });
     }
 
-    const workspace = await prisma.project.findUnique({
-      select: {
-        id: true,
-        plan: true,
-      },
-      where: {
-        id: program.workspaceId,
-      },
-    });
-
-    if (!workspace) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "Workspace not found for program.",
-      });
-    }
-
     const { link, error, code } = await processLink({
       payload: {
         domain: program.domain,
@@ -84,7 +66,10 @@ export const POST = withPartnerProfile(
         comments,
         trackConversion: true,
       },
-      workspace: workspace as any,
+      workspace: {
+        id: program.workspaceId,
+        plan: "business",
+      },
       userId: session.user.id,
       skipFolderChecks: true, // can't be changed by the partner
       skipProgramChecks: true, // can't be changed by the partner
