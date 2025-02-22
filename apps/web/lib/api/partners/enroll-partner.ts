@@ -2,7 +2,11 @@
 
 import { createId } from "@/lib/api/utils";
 import { recordLink } from "@/lib/tinybird";
-import { PartnerLinkProps, ProgramProps, WorkspaceProps } from "@/lib/types";
+import {
+  ProgramPartnerLinkProps,
+  ProgramProps,
+  WorkspaceProps,
+} from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
@@ -28,7 +32,7 @@ export const enrollPartner = async ({
     country?: string | null;
     description?: string | null;
   };
-  link: PartnerLinkProps;
+  link: ProgramPartnerLinkProps;
 }) => {
   if (partner.email) {
     const programEnrollment = await prisma.programEnrollment.findFirst({
