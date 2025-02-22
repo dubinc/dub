@@ -131,7 +131,7 @@ export function PartnerLinkCard({
       {
         id: "sales",
         icon: InvoiceDollar,
-        value: (totals?.saleAmount ?? 0) / 100,
+        value: totals?.saleAmount ?? 0,
         className: "hidden sm:flex",
         iconClassName: "data-[active=true]:text-teal-500",
       },
