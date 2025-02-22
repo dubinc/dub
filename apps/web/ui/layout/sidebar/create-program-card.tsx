@@ -6,7 +6,12 @@ import Link from "next/link";
 
 export function CreateProgramCard() {
   const { programs, loading: programsLoading } = usePrograms();
-  const { partnersEnabled, slug, loading: workspaceLoading } = useWorkspace();
+  const {
+    partnersEnabled,
+    slug,
+    loading: workspaceLoading,
+    store,
+  } = useWorkspace();
 
   if (
     !partnersEnabled ||
@@ -37,7 +42,7 @@ export function CreateProgramCard() {
           "flex h-8 items-center justify-center rounded-md border px-3 text-sm",
         )}
       >
-        Create program
+        {store?.programOnboarding ? "Finish creating" : "Create program"}
       </Link>
     </div>
   );

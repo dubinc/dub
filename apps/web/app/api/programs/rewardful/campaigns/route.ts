@@ -13,6 +13,11 @@ export const GET = withWorkspace(async ({ workspace }) => {
     });
   }
 
+  throw new DubApiError({
+    code: "forbidden",
+    message: "Partners are not enabled for this workspace",
+  });
+
   const { token } = await rewardfulImporter.getCredentials(workspace.id);
   const rewardfulApi = new RewardfulApi({ token });
 

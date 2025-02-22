@@ -12,14 +12,10 @@ import { toast } from "sonner";
 
 export function Header() {
   const router = useRouter();
-  const { programs } = usePrograms();
   const { getValues } = useFormContext();
-  const { partnersEnabled } = useWorkspace();
+  const { programs, loading: programsLoading } = usePrograms();
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
-
-  if ((programs && programs.length > 0) || !partnersEnabled) {
-    router.push(`/${workspaceSlug}`);
-  }
+  const { partnersEnabled, loading: workspaceLoading } = useWorkspace();
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
@@ -30,6 +26,14 @@ export function Header() {
       toast.error(error.serverError);
     },
   });
+
+  if (programsLoading || workspaceLoading) {
+    return null;
+  }
+
+  if ((programs && programs.length > 0) || !partnersEnabled) {
+    router.push(`/${workspaceSlug}`);
+  }
 
   const saveAndExit = async () => {
     if (!workspaceId) return;
