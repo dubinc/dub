@@ -5,7 +5,7 @@ import { IntervalOptions } from "@/lib/analytics/types";
 import usePartnerLinks from "@/lib/swr/use-partner-links";
 import { usePartnerLinkModal } from "@/ui/modals/partner-link-modal";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
-import { Button, CardList, useRouterStuff } from "@dub/ui";
+import { Button, CardList, useKeyboardShortcut, useRouterStuff } from "@dub/ui";
 import { ChartTooltipSync } from "@dub/ui/charts";
 import { createContext, useContext, useMemo } from "react";
 import { PartnerLinkCard } from "./partner-link-card";
@@ -50,6 +50,8 @@ export function ProgramLinksPageClient() {
       )[0]?.id,
     [links],
   );
+
+  useKeyboardShortcut("c", () => setShowPartnerLinkModal(true));
 
   return (
     <div className="flex flex-col gap-5">

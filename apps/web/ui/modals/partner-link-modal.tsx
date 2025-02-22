@@ -1,6 +1,8 @@
 "use client";
 
+import { mutateSuffix } from "@/lib/swr/mutate";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
+import { PartnerLinkProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import { QRCode } from "@/ui/shared/qr-code";
 import {
@@ -9,6 +11,7 @@ import {
   Modal,
   ShimmerDots,
   SimpleTooltipContent,
+  useCopyToClipboard,
   useEnterSubmit,
   useLocalStorage,
   useMediaQuery,
@@ -16,9 +19,6 @@ import {
 import { ArrowTurnLeft, Pen2, QRCode as QRCodeIcon } from "@dub/ui/icons";
 import { getDomainWithoutWWW, linkConstructor } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
-
-import { mutateSuffix } from "@/lib/swr/mutate";
-import { PartnerLinkProps } from "@/lib/types";
 import {
   Dispatch,
   SetStateAction,
@@ -184,7 +184,10 @@ function PartnerLinkModalContent({
     formState: { isDirty, isSubmitting, isSubmitSuccessful },
   } = form;
 
-  const [key, url] = watch("key", "url");
+  const { isMobile } = useMediaQuery();
+  const [, copyToClipboard] = useCopyToClipboard();
+
+  const [key, _url] = watch("key", "url");
 
   const saveDisabled = useMemo(
     () => Boolean(isSubmitting || isSubmitSuccessful || (link && !isDirty)),
@@ -228,14 +231,18 @@ function PartnerLinkModalContent({
         if (!response.ok) {
           const { error } = result;
           toast.error(error.message);
-          throw new Error(error.message);
         }
 
         await mutateSuffix(`/links`);
 
-        toast.success(
-          link ? "Successfully updated link!" : "Successfully created link!",
-        );
+        if (!link) {
+          try {
+            await copyToClipboard(result.shortLink);
+            toast.success("Copied short link to clipboard!");
+          } catch (err) {
+            toast.success("Successfully created link!");
+          }
+        } else toast.success("Successfully updated short link!");
 
         setShowPartnerLinkModal(false);
       })}
@@ -275,13 +282,25 @@ function PartnerLinkModalContent({
             </div>
             <div className="mt-2 flex rounded-md">
               <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
-                {destinationDomain}/
+                {destinationDomain}
               </span>
               <input
                 {...register("url", { required: false })}
                 type="text"
                 id="url"
                 placeholder="(optional)"
+                autoFocus={!isMobile}
+                onPaste={(e: React.ClipboardEvent<HTMLInputElement>) => {
+                  e.preventDefault();
+                  // if pasting in a URL, extract the pathname
+                  const text = e.clipboardData.getData("text/plain");
+                  try {
+                    const url = new URL(text);
+                    e.currentTarget.value = url.pathname.slice(1);
+                  } catch (err) {
+                    e.currentTarget.value = text;
+                  }
+                }}
                 className="block w-full rounded-r-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
               />
             </div>
@@ -307,7 +326,7 @@ function PartnerLinkModalContent({
             </div>
             <div className="mt-2 flex rounded-md">
               <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
-                {shortLinkDomain}/
+                {shortLinkDomain}
               </span>
               <input
                 {...register("key", { required: true })}
