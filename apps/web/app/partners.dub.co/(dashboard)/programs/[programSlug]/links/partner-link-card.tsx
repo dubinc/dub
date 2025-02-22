@@ -31,16 +31,19 @@ import { PartnerLinkControls } from "./partner-link-controls";
 const CHARTS = [
   {
     key: "clicks",
+    icon: CursorRays,
     label: "Clicks",
     colorClassName: "text-blue-500",
   },
   {
     key: "leads",
+    icon: UserCheck,
     label: "Leads",
     colorClassName: "text-purple-500",
   },
   {
     key: "saleAmount",
+    icon: InvoiceDollar,
     label: "Sales",
     colorClassName: "text-teal-500",
     currency: true,
@@ -233,14 +236,20 @@ export function PartnerLinkCard({
 
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
           {CHARTS.map((chart) => (
-            <div
+            <Link
               key={chart.key}
+              href={`/programs/${programEnrollment?.program.slug}/links/analytics?domain=${link.domain}&key=${link.key}&event=${chart.key === "saleAmount" ? "sales" : chart.key}`}
               className="rounded-lg border border-neutral-200 px-2 py-1.5 lg:px-3"
             >
               <div className="flex flex-col gap-1 pl-2 pt-3 lg:pl-1.5">
-                <span className="text-sm font-semibold leading-none text-neutral-800">
-                  {chart.label}
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <chart.icon
+                    className={cn("h-4 w-4 shrink-0", chart.colorClassName)}
+                  />
+                  <span className="text-sm font-semibold leading-none text-neutral-800">
+                    {chart.label}
+                  </span>
+                </div>
                 {totals ? (
                   <span className="text-base font-medium leading-none text-neutral-600">
                     {chart.currency
@@ -279,7 +288,7 @@ export function PartnerLinkCard({
                   </div>
                 )}
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>
