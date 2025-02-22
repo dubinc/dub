@@ -2,6 +2,7 @@ import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerLinkProps } from "@/lib/types";
+import { CommentsBadge } from "@/ui/links/comments-badge";
 import {
   ArrowTurnRight2,
   BlurImage,
@@ -176,6 +177,7 @@ export function PartnerLinkCard({
                   variant="neutral"
                   className="p-1.5"
                 />
+                {link.comments && <CommentsBadge comments={link.comments} />}
               </div>
               <div className="flex items-center gap-1">
                 <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-neutral-400" />

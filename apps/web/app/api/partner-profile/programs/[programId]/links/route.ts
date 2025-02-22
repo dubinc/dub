@@ -86,7 +86,9 @@ export const POST = withPartnerProfile(
       },
       workspace: workspace as any,
       userId: session.user.id,
-      skipProgramChecks: true, // skip this cause we've already validated the program above
+      skipFolderChecks: true, // can't be changed by the partner
+      skipProgramChecks: true, // can't be changed by the partner
+      skipExternalIdChecks: true, // can't be changed by the partner
     });
 
     if (error != null) {

@@ -89,7 +89,9 @@ export const PATCH = withPartnerProfile(
       workspace: workspace as any,
       userId: session.user.id,
       skipKeyChecks,
-      skipProgramChecks: true, // skip this cause we've already validated the program above
+      skipFolderChecks: true, // can't be changed by the partner
+      skipProgramChecks: true, // can't be changed by the partner
+      skipExternalIdChecks: true, // can't be changed by the partner
     });
 
     if (error != null) {
