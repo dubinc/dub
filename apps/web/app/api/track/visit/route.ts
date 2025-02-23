@@ -94,7 +94,10 @@ export const POST = withAxiom(
 
         link = {
           ...newLink,
-          ...rootDomainLink,
+          projectId: rootDomainLink.projectId,
+          folderId: rootDomainLink.folderId,
+          userId: rootDomainLink.userId,
+          allowedHostnames: rootDomainLink.allowedHostnames,
         };
       }
 
