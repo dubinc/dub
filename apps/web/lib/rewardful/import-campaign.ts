@@ -4,8 +4,18 @@ import { RewardfulApi } from "./api";
 import { rewardfulImporter } from "./importer";
 
 export async function importCampaign({ programId }: { programId: string }) {
-  const { token, campaignId } =
-    await rewardfulImporter.getCredentials(programId);
+  const { workspace } = await prisma.program.findUniqueOrThrow({
+    where: {
+      id: programId,
+    },
+    include: {
+      workspace: true,
+    },
+  });
+
+  const { token, campaignId } = await rewardfulImporter.getCredentials(
+    workspace.id,
+  );
 
   const rewardfulApi = new RewardfulApi({ token });
 

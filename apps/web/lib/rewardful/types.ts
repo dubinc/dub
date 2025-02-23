@@ -13,7 +13,6 @@ export interface RewardfulCampaign {
   max_commission_period_months: number;
   reward_type: "amount" | "percent";
   commission_percent: number;
-  // stripe_coupon_id: string;
   created_at: string;
   updated_at: string;
 }
