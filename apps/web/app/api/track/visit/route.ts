@@ -1,7 +1,5 @@
 import { verifyAnalyticsAllowedHostnames } from "@/lib/analytics/verify-analytics-allowed-hostnames";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { linkCache } from "@/lib/api/links/cache";
-import { includeTags } from "@/lib/api/links/include-tags";
 import { createId, parseRequestBody } from "@/lib/api/utils";
 import { getLinkWithAllowedHostnames } from "@/lib/planetscale/get-link-with-allowed-hostnames";
 import { recordClick, recordLink } from "@/lib/tinybird";
@@ -86,11 +84,9 @@ export const POST = withAxiom(
             folderId: rootDomainLink.folderId,
             userId: rootDomainLink.userId,
           },
-          include: includeTags,
         });
-        waitUntil(
-          Promise.allSettled([linkCache.set(newLink), recordLink(newLink)]),
-        );
+        // TODO: we might need to set redis cache when we start using redis to fetch link data
+        waitUntil(recordLink(newLink));
 
         link = {
           ...newLink,
