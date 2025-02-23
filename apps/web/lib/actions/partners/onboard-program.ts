@@ -1,10 +1,11 @@
 "use server";
 
-import { createLink } from "@/lib/api/links";
+import { createLink, processLink } from "@/lib/api/links";
 import { createId } from "@/lib/api/utils";
 import { validateAllowedHostnames } from "@/lib/api/validate-allowed-hostnames";
 import { rewardfulImporter } from "@/lib/rewardful/importer";
 import { storage } from "@/lib/storage";
+import { PlanProps } from "@/lib/types";
 import {
   onboardProgramSchema,
   programDataSchema,
@@ -80,7 +81,7 @@ const createProgram = async ({
   workspace,
   user,
 }: {
-  workspace: Pick<Project, "id" | "store">;
+  workspace: Pick<Project, "id" | "store" | "plan">;
   user: Pick<User, "id">;
 }) => {
   const store = workspace.store as Record<string, any>;
@@ -217,7 +218,7 @@ async function invitePartner({
   partner,
   userId,
 }: {
-  workspace: Pick<Project, "id">;
+  workspace: Pick<Project, "id" | "plan">;
   program: Pick<Program, "id" | "name" | "logo" | "url" | "domain">;
   partner: {
     email: string;
@@ -225,27 +226,39 @@ async function invitePartner({
   };
   userId: string;
 }) {
-  try {
-    const link = await createLink({
-      userId,
+  const { link: partnerLink, error } = await processLink({
+    payload: {
       url: program.url!,
       domain: program.domain!,
       key: partner.key,
-      trackConversion: true,
-      projectId: workspace.id,
       programId: program.id,
-    });
+      trackConversion: true,
+    },
+    workspace: {
+      id: workspace.id,
+      plan: workspace.plan as PlanProps,
+    },
+    userId,
+  });
 
-    await prisma.programInvite.create({
+  if (error != null) {
+    console.log("Error creating partner link", error);
+    return;
+  }
+
+  const link = await createLink(partnerLink);
+
+  await Promise.all([
+    prisma.programInvite.create({
       data: {
         id: createId({ prefix: "pgi_" }),
         email: partner.email,
         linkId: link.id,
         programId: program.id,
       },
-    });
+    }),
 
-    await sendEmail({
+    sendEmail({
       subject: `${program.name} invited you to join Dub Partners`,
       email: partner.email,
       react: PartnerInvite({
@@ -256,8 +269,6 @@ async function invitePartner({
           logo: program.logo,
         },
       }),
-    });
-  } catch (error) {
-    console.error("invitePartner", error);
-  }
+    }),
+  ]);
 }
