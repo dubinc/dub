@@ -12,6 +12,7 @@ export const importSteps = z.enum([
   "import-campaign",
   "import-affiliates",
   "import-referrals",
+  "import-commissions",
 ]);
 
 class RewardfulImporter {
