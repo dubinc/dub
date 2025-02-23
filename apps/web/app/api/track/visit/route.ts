@@ -1,10 +1,16 @@
 import { verifyAnalyticsAllowedHostnames } from "@/lib/analytics/verify-analytics-allowed-hostnames";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { parseRequestBody } from "@/lib/api/utils";
+import { createId, parseRequestBody } from "@/lib/api/utils";
 import { getLinkWithAllowedHostnames } from "@/lib/planetscale/get-link-with-allowed-hostnames";
-import { recordClick } from "@/lib/tinybird";
+import { recordClick, recordLink } from "@/lib/tinybird";
 import { ratelimit, redis } from "@/lib/upstash";
-import { isValidUrl, LOCALHOST_IP, nanoid } from "@dub/utils";
+import { prismaEdge } from "@dub/prisma/edge";
+import {
+  isValidUrl,
+  linkConstructorSimple,
+  LOCALHOST_IP,
+  nanoid,
+} from "@dub/utils";
 import { ipAddress, waitUntil } from "@vercel/functions";
 import { AxiomRequest, withAxiom } from "next-axiom";
 import { NextResponse } from "next/server";
@@ -17,23 +23,30 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
-// POST /api/track/click – Track a click event from the client-side
+// POST /api/track/visit – Track a visit event from the client-side
 export const POST = withAxiom(
   async (req: AxiomRequest) => {
     try {
-      const { domain, key, url } = await parseRequestBody(req);
+      const { domain, url, referrer } = await parseRequestBody(req);
 
-      if (!domain || !key) {
+      if (!domain || !url) {
         throw new DubApiError({
           code: "bad_request",
-          message: "Missing domain or key",
+          message: "Missing domain or url",
         });
+      }
+
+      const urlObj = new URL(url);
+
+      let linkKey = urlObj.pathname.slice(1);
+      if (linkKey === "") {
+        linkKey = "_root";
       }
 
       const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
 
       const { success } = await ratelimit().limit(
-        `track-click:${domain}-${key}:${ip}`,
+        `track-click:${domain}-${linkKey}:${ip}`,
       );
 
       if (!success) {
@@ -43,13 +56,45 @@ export const POST = withAxiom(
         });
       }
 
-      const link = await getLinkWithAllowedHostnames(domain, key);
+      let link = await getLinkWithAllowedHostnames(domain, linkKey);
 
       if (!link) {
-        throw new DubApiError({
-          code: "not_found",
-          message: `Link not found for domain: ${domain} and key: ${key}.`,
+        // get root domain link
+        const rootDomainLink = await getLinkWithAllowedHostnames(
+          domain,
+          "_root",
+        );
+
+        if (!rootDomainLink) {
+          throw new DubApiError({
+            code: "not_found",
+            message: "siteDomain not found – have you created it on Dub yet?",
+          });
+        }
+
+        const newLink = await prismaEdge.link.create({
+          data: {
+            id: createId("link_"),
+            domain,
+            key: linkKey,
+            url: url.split("?")[0], // don't include query params when creating the link
+            shortLink: linkConstructorSimple({ domain, key: linkKey }),
+            trackConversion: true,
+            projectId: rootDomainLink.projectId,
+            folderId: rootDomainLink.folderId,
+            userId: rootDomainLink.userId,
+          },
         });
+        // TODO: we might need to set redis cache when we start using redis to fetch link data
+        waitUntil(recordLink(newLink));
+
+        link = {
+          ...newLink,
+          projectId: rootDomainLink.projectId,
+          folderId: rootDomainLink.folderId,
+          userId: rootDomainLink.userId,
+          allowedHostnames: rootDomainLink.allowedHostnames,
+        };
       }
 
       const allowedHostnames = link.allowedHostnames;
@@ -70,6 +115,7 @@ export const POST = withAxiom(
             url: finalUrl,
             skipRatelimit: true,
             workspaceId: link.projectId,
+            ...(referrer && { referrer }),
           }),
         );
       }

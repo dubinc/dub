@@ -33,6 +33,7 @@ export async function recordClick({
   skipRatelimit,
   workspaceId,
   timestamp,
+  referrer,
 }: {
   req: Request;
   linkId: string;
@@ -42,6 +43,7 @@ export async function recordClick({
   skipRatelimit?: boolean;
   workspaceId: string | undefined;
   timestamp?: string;
+  referrer?: string;
 }) {
   const searchParams = new URL(req.url).searchParams;
 
@@ -89,7 +91,7 @@ export async function recordClick({
   const isEuCountry = geo.country && EU_COUNTRY_CODES.includes(geo.country);
 
   const ua = userAgent(req);
-  const referer = req.headers.get("referer");
+  const referer = referrer || req.headers.get("referer");
 
   const identity_hash = await getIdentityHash(req);
 
