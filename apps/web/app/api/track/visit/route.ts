@@ -79,7 +79,7 @@ export const POST = withAxiom(
             id: createId("link_"),
             domain,
             key: linkKey,
-            url,
+            url: url.split("?")[0], // don't include query params when creating the link
             shortLink: linkConstructorSimple({ domain, key: linkKey }),
             trackConversion: true,
             projectId: rootDomainLink.projectId,
