@@ -1,15 +1,18 @@
 import { redis } from "@/lib/upstash";
+import { z } from "zod";
 import { createId } from "../api/utils";
+import { createPartnerSchema } from "../zod/schemas/partners";
 import {
   EMBED_PUBLIC_TOKEN_EXPIRY,
   EMBED_PUBLIC_TOKEN_LENGTH,
   EMBED_PUBLIC_TOKEN_PREFIX,
 } from "./constants";
 
-interface EmbedTokenProps {
+type EmbedTokenProps = {
   programId: string;
-  partnerId: string;
-}
+  partnerId?: string;
+  partner?: Omit<z.infer<typeof createPartnerSchema>, "programId">;
+};
 
 class EmbedToken {
   async create(props: EmbedTokenProps) {
