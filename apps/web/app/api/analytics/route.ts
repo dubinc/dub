@@ -14,6 +14,27 @@ import {
 import { Link } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
+type Endpoint = "count" |
+  "timeseries" |
+  "continents" |
+  "regions" |
+  "countries" |
+  "cities" |
+  "devices" |
+  "browsers" |
+  "os" |
+  "trigger" |
+  "triggers" |
+  "referers" |
+  "referer_urls" |
+  "top_links" |
+  "top_urls" |
+  "utm_sources" |
+  "utm_mediums" |
+  "utm_campaigns" |
+  "utm_terms" |
+  "utm_contents";
+
 // GET /api/analytics – get analytics
 export const GET = withWorkspace(
   async ({ params, searchParams, workspace, session }) => {
@@ -23,7 +44,7 @@ export const GET = withWorkspace(
       analyticsPathParamsSchema.parse(params);
 
     // for backwards compatibility (we used to support /analytics/[endpoint] as well)
-    if (!oldType && oldEvent && VALID_ANALYTICS_ENDPOINTS.includes(oldEvent)) {
+    if (!oldType && oldEvent && VALID_ANALYTICS_ENDPOINTS.includes(oldEvent as Endpoint)) {
       oldType = oldEvent;
       oldEvent = undefined;
     }
@@ -49,16 +70,16 @@ export const GET = withWorkspace(
     groupBy = oldType || groupBy;
 
     if (domain) {
-      await getDomainOrThrow({ workspace, domain });
+      await getDomainOrThrow({ workspace, domain: domain as string });
     }
 
     if (linkId || externalId || (domain && key)) {
       link = await getLinkOrThrow({
         workspaceId: workspace.id,
-        linkId,
-        externalId,
-        domain,
-        key,
+        linkId: linkId as string,
+        externalId: externalId as string,
+        domain: domain as string,
+        key: key as string,
       });
     }
 
@@ -68,7 +89,7 @@ export const GET = withWorkspace(
       await verifyFolderAccess({
         workspace,
         userId: session.user.id,
-        folderId: folderIdToVerify,
+        folderId: folderIdToVerify as string,
         requiredPermission: "folders.read",
       });
     }
@@ -76,9 +97,9 @@ export const GET = withWorkspace(
     validDateRangeForPlan({
       plan: workspace.plan,
       dataAvailableFrom: workspace.createdAt,
-      interval,
-      start,
-      end,
+      interval: interval as string,
+      start: start as Date,
+      end: end as Date,
       throwError: true,
     });
 
