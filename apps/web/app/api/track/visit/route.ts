@@ -17,35 +17,46 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
-// POST /api/track/click – Track a click event from the client-side
+// POST /api/track/visit – Track a visit event from the client-side
 export const POST = withAxiom(
   async (req: AxiomRequest) => {
     try {
-      const { domain, key, url, referrer } = await parseRequestBody(req);
+      const { domain, url, referrer } = await parseRequestBody(req);
 
-      if (!domain || !key) {
+      if (!domain || !url) {
         throw new DubApiError({
           code: "bad_request",
-          message: "Missing domain or key",
+          message: "Missing domain or url",
         });
       }
 
-      const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
+      const urlObj = new URL(url);
 
-      const cacheKey = `recordClick:${domain}:${key}:${ip}`;
+      let linkKey = urlObj.pathname.slice(1);
+      if (linkKey === "") {
+        linkKey = "_root";
+      }
+
+      const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
+      const cacheKey = `recordClick:${domain}:${linkKey}:${ip}`;
+
       let clickId = await redis.get<string>(cacheKey);
 
       // only generate + record a new click ID if it's not already cached in Redis
       if (!clickId) {
         clickId = nanoid(16);
 
-        const link = await getLinkWithAllowedHostnames(domain, key);
+        let link = await getLinkWithAllowedHostnames(domain, linkKey);
 
         if (!link) {
-          throw new DubApiError({
-            code: "not_found",
-            message: `Link not found for domain: ${domain} and key: ${key}.`,
-          });
+          return NextResponse.json(
+            {
+              clickId: null,
+            },
+            {
+              headers: CORS_HEADERS,
+            },
+          );
         }
 
         const allowedHostnames = link.allowedHostnames;

@@ -172,7 +172,6 @@ async function createReferral({
     url: link.url,
     workspaceId: workspace.id,
     timestamp: new Date(referral.created_at).toISOString(),
-    skipRatelimit: true,
   });
 
   const clickEvent = clickEventSchemaTB.parse({

@@ -26,21 +26,23 @@ import { transformClickEventData } from "../webhook/transform";
  **/
 export async function recordClick({
   req,
-  linkId,
   clickId,
+  linkId,
+  domain,
+  key,
   url,
   webhookIds,
-  skipRatelimit,
   workspaceId,
   timestamp,
   referrer,
 }: {
   req: Request;
-  linkId: string;
   clickId: string;
+  linkId: string;
+  domain?: string;
+  key?: string;
   url?: string;
   webhookIds?: string[];
-  skipRatelimit?: boolean;
   workspaceId: string | undefined;
   timestamp?: string;
   referrer?: string;
@@ -61,10 +63,11 @@ export async function recordClick({
 
   const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
 
-  const cacheKey = `recordClick:${linkId}:${ip}`;
+  const cacheKey = `recordClick:${domain}:${key}:${ip}`;
 
-  if (!skipRatelimit) {
-    // by default, we deduplicate clicks from the same IP address + link ID – only record 1 click per hour
+  // by default, we deduplicate clicks for a domain + key pair from the same IP address – only record 1 click per hour
+  // we only need to do these if domain + key are defined (only in middleware/link and not /api/track/:path endpoints)
+  if (domain && key) {
     // here, we check if the clickId is cached in Redis within the last hour
     const cachedClickId = await redis.get<string>(cacheKey);
     if (cachedClickId) {
