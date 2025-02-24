@@ -1,6 +1,5 @@
 import "dotenv-flow/config";
 import { XMLParser } from "fast-xml-parser";
-import fetch from "node-fetch";
 import { dub } from "../lib/dub";
 
 async function fetchSitemap(url: string) {
