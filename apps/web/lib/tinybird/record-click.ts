@@ -40,8 +40,8 @@ export async function recordClick({
   req: Request;
   clickId: string;
   linkId: string;
-  domain?: string;
-  key?: string;
+  domain: string;
+  key: string;
   url?: string;
   webhookIds?: string[];
   workspaceId: string | undefined;

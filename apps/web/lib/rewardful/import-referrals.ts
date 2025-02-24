@@ -170,7 +170,10 @@ async function createReferral({
     linkId: link.id,
     clickId: nanoid(16),
     url: link.url,
+    domain: link.domain,
+    key: link.key,
     workspaceId: workspace.id,
+    skipRatelimit: true,
     timestamp: new Date(referral.created_at).toISOString(),
   });
 
