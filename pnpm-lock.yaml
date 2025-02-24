@@ -222,6 +222,9 @@ importers:
       jszip:
         specifier: ^3.10.1
         version: 3.10.1
+      linkify-react:
+        specifier: ^4.1.3
+        version: 4.1.3(linkifyjs@4.1.3)(react@18.2.0)
       lucide-react:
         specifier: ^0.462.0
         version: 0.462.0(react@18.2.0)

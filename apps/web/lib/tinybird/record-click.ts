@@ -26,22 +26,28 @@ import { transformClickEventData } from "../webhook/transform";
  **/
 export async function recordClick({
   req,
-  linkId,
   clickId,
+  linkId,
+  domain,
+  key,
   url,
   webhookIds,
-  skipRatelimit,
   workspaceId,
+  skipRatelimit,
   timestamp,
+  referrer,
 }: {
   req: Request;
-  linkId: string;
   clickId: string;
+  linkId: string;
+  domain: string;
+  key: string;
   url?: string;
   webhookIds?: string[];
-  skipRatelimit?: boolean;
   workspaceId: string | undefined;
+  skipRatelimit?: boolean;
   timestamp?: string;
+  referrer?: string;
 }) {
   const searchParams = new URL(req.url).searchParams;
 
@@ -59,10 +65,11 @@ export async function recordClick({
 
   const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
 
-  const cacheKey = `recordClick:${linkId}:${ip}`;
+  const cacheKey = `recordClick:${domain}:${key}:${ip}`;
 
+  // by default, we deduplicate clicks for a domain + key pair from the same IP address – only record 1 click per hour
+  // we only need to do these if skipRatelimit is not true (we skip it in /api/track/:path endpoints)
   if (!skipRatelimit) {
-    // by default, we deduplicate clicks from the same IP address + link ID – only record 1 click per hour
     // here, we check if the clickId is cached in Redis within the last hour
     const cachedClickId = await redis.get<string>(cacheKey);
     if (cachedClickId) {
@@ -89,7 +96,7 @@ export async function recordClick({
   const isEuCountry = geo.country && EU_COUNTRY_CODES.includes(geo.country);
 
   const ua = userAgent(req);
-  const referer = req.headers.get("referer");
+  const referer = referrer || req.headers.get("referer");
 
   const identity_hash = await getIdentityHash(req);
 
