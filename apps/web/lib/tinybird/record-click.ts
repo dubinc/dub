@@ -33,6 +33,7 @@ export async function recordClick({
   url,
   webhookIds,
   workspaceId,
+  skipRatelimit,
   timestamp,
   referrer,
 }: {
@@ -44,6 +45,7 @@ export async function recordClick({
   url?: string;
   webhookIds?: string[];
   workspaceId: string | undefined;
+  skipRatelimit?: boolean;
   timestamp?: string;
   referrer?: string;
 }) {
@@ -66,8 +68,8 @@ export async function recordClick({
   const cacheKey = `recordClick:${domain}:${key}:${ip}`;
 
   // by default, we deduplicate clicks for a domain + key pair from the same IP address – only record 1 click per hour
-  // we only need to do these if domain + key are defined (only in middleware/link and not /api/track/:path endpoints)
-  if (domain && key) {
+  // we only need to do these if skipRatelimit is not true (we skip it in /api/track/:path endpoints)
+  if (!skipRatelimit) {
     // here, we check if the clickId is cached in Redis within the last hour
     const cachedClickId = await redis.get<string>(cacheKey);
     if (cachedClickId) {

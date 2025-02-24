@@ -32,13 +32,13 @@ export const POST = withAxiom(
 
       const urlObj = new URL(url);
 
-      let linkKey = urlObj.pathname.slice(1);
-      if (linkKey === "") {
-        linkKey = "_root";
+      let key = urlObj.pathname.slice(1);
+      if (key === "") {
+        key = "_root";
       }
 
       const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
-      const cacheKey = `recordClick:${domain}:${linkKey}:${ip}`;
+      const cacheKey = `recordClick:${domain}:${key}:${ip}`;
 
       let clickId = await redis.get<string>(cacheKey);
 
@@ -46,7 +46,7 @@ export const POST = withAxiom(
       if (!clickId) {
         clickId = nanoid(16);
 
-        let link = await getLinkWithAllowedHostnames(domain, linkKey);
+        let link = await getLinkWithAllowedHostnames(domain, key);
 
         if (!link) {
           return NextResponse.json(
@@ -69,8 +69,11 @@ export const POST = withAxiom(
             req,
             clickId,
             linkId: link.id,
+            domain,
+            key,
             url: finalUrl,
             workspaceId: link.projectId,
+            skipRatelimit: true,
             ...(referrer && { referrer }),
           }),
         );

@@ -58,8 +58,11 @@ export const POST = withAxiom(
             req,
             clickId,
             linkId: link.id,
+            domain,
+            key,
             url: finalUrl,
             workspaceId: link.projectId,
+            skipRatelimit: true,
             ...(referrer && { referrer }),
           }),
         );
