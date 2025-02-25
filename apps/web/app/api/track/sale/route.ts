@@ -23,7 +23,7 @@ import { determinePartnerReward } from "../determine-partner-reward-edge";
 // POST /api/track/sale – Track a sale conversion event
 export const POST = withWorkspace(
   async ({ req, workspace }) => {
-    const {
+    let {
       externalId,
       customerId, // deprecated
       paymentProcessor,
@@ -94,6 +94,17 @@ export const POST = withWorkspace(
     const clickData = clickEventSchemaTB
       .omit({ timestamp: true })
       .parse(leadEvent.data[0]);
+
+    // if currency is not USD, convert it to USD
+    if (currency !== "usd") {
+      const fxRates = await redis.hget("fxRates:usd", currency.toUpperCase()); // e.g. for MYR it'll be around 4.4
+      if (fxRates) {
+        currency = "usd";
+        // convert amount to USD (in cents) based on the FX rate
+        // round it to 0 decimal places
+        amount = Math.round(amount / Number(fxRates));
+      }
+    }
 
     const eventId = nanoid(16);
 
