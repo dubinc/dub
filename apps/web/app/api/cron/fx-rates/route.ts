@@ -7,7 +7,7 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 
 // Cron to update the Foreign Exchange Rates in Redis
-// Runs once every day at 00:00 (0 0 * * *)
+// Runs once every day at 08:00 AM UTC (0 8 * * *)
 export async function GET(req: Request) {
   try {
     await verifyVercelSignature(req);
