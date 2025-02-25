@@ -13,7 +13,7 @@ export const metadata = constructMetadata();
 export default async function Layout({ children }: { children: ReactNode }) {
   return (
     <>
-      <div className="min-h-screen w-full bg-white">
+      <div className="bg-bgMain min-h-screen w-full">
         <MainNav
           sidebar={AppSidebarNav}
           toolContent={

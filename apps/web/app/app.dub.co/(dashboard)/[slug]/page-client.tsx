@@ -27,6 +27,7 @@ import {
 } from "@dub/ui";
 import { Download, Globe, TableIcon, Tag } from "@dub/ui/icons";
 import { useSession } from "next-auth/react";
+import { useTheme } from "next-themes";
 import { useRouter, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
 import {
@@ -63,6 +64,7 @@ function WorkspaceLinks() {
   const { id: workspaceId, slug } = useWorkspace();
   const { LinkBuilder, CreateLinkButton } = useLinkBuilder();
   const { AddEditTagModal, setShowAddEditTagModal } = useAddEditTagModal();
+  const { setTheme, theme } = useTheme();
 
   const {
     filters,

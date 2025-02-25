@@ -2,6 +2,52 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --bg-color-main: white;
+  --bg-color-secondary: black;
+  /* --bg-color- */
+  --netural-100: #f5f5f5;
+
+  /* sidenav */
+
+  /* text */
+
+  --netural-600: #525252;
+  --netural-200-50: rgb(229 229 229 / 0.5); /* hover */
+  --netural-200-80: rgb(229 229 229 / 0.8);
+
+  /* data-active */
+  --blue-100-50: rgb(219 234 254 / 0.5);
+  --blue-600: #2563eb;
+  --blue-100-80: rgb(219 234 254 /0.8);
+  --blue-100: #dbeafe;
+
+  /* icon */
+  --netural-500: #737373;
+}
+.dark {
+  --bg-color-main: black;
+  --bg-color-secondary: white;
+  --netural-100: #f5f5f5;
+
+  /* sidenav */
+
+  /* text */
+
+  --netural-600: #a3a3a3; /* netural-400 */
+  --netural-200-50: rgb(38 38 38 / 0.5); /* hover 800-50 */
+  --netural-200-80: rgb(38 38 38 / 0.2); /* hover 800-20 */
+
+  /* data-active */
+  --blue-100-50: rgb(30 58 138 / 0.5); /* -900-50 */
+  --blue-600: #60a5fa; /* 400 */
+  --blue-100-80: rgb(30 58 138 / 0.2); /* -900-20 */
+  --blue-100: #1e3a8a; /* -900 */
+
+  /* icon */
+  --netural-500: #737373;
+}
+
 code {
   counter-reset: step;
   counter-increment: step 0;

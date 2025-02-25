@@ -8,6 +8,7 @@ import {
   useRemoveGAParams,
 } from "@dub/ui";
 import PlausibleProvider from "next-plausible";
+import { ThemeProvider } from "next-themes";
 import posthog from "posthog-js";
 import { PostHogProvider } from "posthog-js/react";
 import { ReactNode } from "react";
@@ -27,30 +28,32 @@ export default function RootProviders({ children }: { children: ReactNode }) {
   useRemoveGAParams();
 
   return (
-    <PostHogProvider client={posthog}>
-      <PlausibleProvider
-        domain="dub.co"
-        revenue
-        scriptProps={{
-          src: "/_proxy/plausible/script.js",
-          // @ts-ignore
-          "data-api": "/_proxy/plausible/event",
-        }}
-      />
-      <TooltipProvider>
-        <KeyboardShortcutProvider>
-          <Toaster closeButton className="pointer-events-auto" />
-          <PosthogPageview />
-          {children}
-          <DubAnalytics
-            apiHost="/_proxy/dub"
-            shortDomain="refer.dub.co"
-            cookieOptions={{
-              domain: ".dub.co",
-            }}
-          />
-        </KeyboardShortcutProvider>
-      </TooltipProvider>
-    </PostHogProvider>
+    <ThemeProvider attribute={"class"}>
+      <PostHogProvider client={posthog}>
+        <PlausibleProvider
+          domain="dub.co"
+          revenue
+          scriptProps={{
+            src: "/_proxy/plausible/script.js",
+            // @ts-ignore
+            "data-api": "/_proxy/plausible/event",
+          }}
+        />
+        <TooltipProvider>
+          <KeyboardShortcutProvider>
+            <Toaster closeButton className="pointer-events-auto" />
+            <PosthogPageview />
+            {children}
+            <DubAnalytics
+              apiHost="/_proxy/dub"
+              shortDomain="refer.dub.co"
+              cookieOptions={{
+                domain: ".dub.co",
+              }}
+            />
+          </KeyboardShortcutProvider>
+        </TooltipProvider>
+      </PostHogProvider>
+    </ThemeProvider>
   );
 }
