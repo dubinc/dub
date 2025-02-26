@@ -74,7 +74,7 @@ export function Form() {
       if (error) {
         setKeyErrors((prev) => ({
           ...prev,
-          [index]: error.message,
+          [index]: error.message.replace("Duplicate key: ", ""),
         }));
       } else {
         setKeyErrors((prev) => {
@@ -170,34 +170,32 @@ export function Form() {
         </div>
       )}
 
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="space-y-10 overflow-x-auto"
-      >
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
         <div className="flex flex-col gap-2">
           {fields.map((field, index) => (
             <div
               key={field.id}
-              className="flex flex-col gap-4 sm:flex-row sm:items-start"
+              className="flex flex-col gap-3 sm:flex-row sm:items-center"
             >
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-neutral-800">
+              <div className="w-full sm:w-1/2">
+                <label className="mb-2 block text-sm font-medium text-neutral-800">
                   {index === 0 && "Email"}
                 </label>
                 <Input
                   {...register(`partners.${index}.email`)}
                   type="email"
                   placeholder="panic@thedis.co"
-                  className="mt-2"
                 />
+
+                <p className="py-1 text-xs text-red-500"> &nbsp;</p>
               </div>
 
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-neutral-800">
+              <div className="w-full sm:w-1/2">
+                <label className="mb-2 block text-sm font-medium text-neutral-800">
                   {index === 0 && "Referral link"}
                 </label>
                 <div className="flex items-center gap-2">
-                  <div className="mt-2 w-full">
+                  <div className="relative w-full">
                     <div
                       className={cn(
                         "relative flex items-stretch overflow-hidden rounded-md border border-neutral-200 bg-white focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500",
@@ -224,33 +222,33 @@ export function Form() {
                         className={cn(
                           "w-full border-0 bg-transparent px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-0",
                           keyErrors[index] &&
-                            "pr-10 text-red-900 placeholder-red-300",
+                            "pr-10 text-red-700 placeholder-red-300",
                         )}
                       />
 
                       {keyErrors[index] && (
                         <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                          <AlertCircleFill className="h-5 w-5 text-red-500" />
+                          <AlertCircleFill className="h-5 w-5 text-red-700" />
                         </div>
                       )}
                     </div>
-
-                    {keyErrors[index] && (
-                      <p className="mt-2 text-xs text-red-500">
-                        {keyErrors[index]}
-                      </p>
-                    )}
                   </div>
 
-                  {index > 0 && (
-                    <Button
-                      variant="outline"
-                      icon={<Trash2 className="size-4" />}
-                      className="mt-2 h-10 w-10 shrink-0 p-0"
-                      onClick={() => remove(index)}
-                    />
-                  )}
+                  <div className="flex w-10">
+                    {index > 0 && (
+                      <Button
+                        variant="outline"
+                        icon={<Trash2 className="size-4" />}
+                        className="size-8 w-full shrink-0 p-0"
+                        onClick={() => remove(index)}
+                      />
+                    )}
+                  </div>
                 </div>
+
+                <p className="py-1 text-xs text-red-700">
+                  {keyErrors[index] && keyErrors[index]}
+                </p>
               </div>
             </div>
           ))}
