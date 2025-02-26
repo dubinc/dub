@@ -3,7 +3,7 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { createId, parseRequestBody } from "@/lib/api/utils";
-import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
+import { withWorkspace } from "@/lib/auth";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhookOnEdge } from "@/lib/webhook/publish-edge";
@@ -13,19 +13,17 @@ import {
   trackSaleRequestSchema,
   trackSaleResponseSchema,
 } from "@/lib/zod/schemas/sales";
-import { prismaEdge } from "@dub/prisma/edge";
+import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { differenceInMonths } from "date-fns";
 import { NextResponse } from "next/server";
 import { determinePartnerReward } from "../determine-partner-reward-edge";
 
-export const runtime = "edge";
-
 // POST /api/track/sale – Track a sale conversion event
-export const POST = withWorkspaceEdge(
+export const POST = withWorkspace(
   async ({ req, workspace }) => {
-    const {
+    let {
       externalId,
       customerId, // deprecated
       paymentProcessor,
@@ -63,7 +61,7 @@ export const POST = withWorkspaceEdge(
     }
 
     // Find customer
-    const customer = await prismaEdge.customer.findUnique({
+    const customer = await prisma.customer.findUnique({
       where: {
         projectId_externalId: {
           projectId: workspace.id,
@@ -97,6 +95,18 @@ export const POST = withWorkspaceEdge(
       .omit({ timestamp: true })
       .parse(leadEvent.data[0]);
 
+    // if currency is not USD, convert it to USD  based on the current FX rate
+    // TODO: allow custom "defaultCurrency" on workspace table in the future
+    if (currency !== "usd") {
+      const fxRates = await redis.hget("fxRates:usd", currency.toUpperCase()); // e.g. for MYR it'll be around 4.4
+      if (fxRates) {
+        currency = "usd";
+        // convert amount to USD (in cents) based on the current FX rate
+        // round it to 0 decimal places
+        amount = Math.round(amount / Number(fxRates));
+      }
+    }
+
     const eventId = nanoid(16);
 
     const saleData = {
@@ -117,7 +127,7 @@ export const POST = withWorkspaceEdge(
           recordSale(saleData),
 
           // update link sales count
-          prismaEdge.link.update({
+          prisma.link.update({
             where: {
               id: clickData.link_id,
             },
@@ -132,7 +142,7 @@ export const POST = withWorkspaceEdge(
             include: includeTags,
           }),
           // update workspace sales usage
-          prismaEdge.project.update({
+          prisma.project.update({
             where: {
               id: workspace.id,
             },
@@ -160,7 +170,7 @@ export const POST = withWorkspaceEdge(
 
             if (typeof reward.maxDuration === "number") {
               // Get the first commission (earliest sale) for this customer-partner pair
-              const firstCommission = await prismaEdge.commission.findFirst({
+              const firstCommission = await prisma.commission.findFirst({
                 where: {
                   partnerId: link.partnerId,
                   customerId: customer.id,
@@ -195,7 +205,7 @@ export const POST = withWorkspaceEdge(
                 },
               });
 
-              await prismaEdge.commission.create({
+              await prisma.commission.create({
                 data: {
                   id: createId({ prefix: "cm_" }),
                   programId: link.programId,
@@ -211,7 +221,7 @@ export const POST = withWorkspaceEdge(
                 },
               });
 
-              const program = await prismaEdge.program.findUniqueOrThrow({
+              const program = await prisma.program.findUniqueOrThrow({
                 where: {
                   id: link.programId!,
                 },

@@ -3,7 +3,7 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { getLinkWithAllowedHostnames } from "@/lib/planetscale/get-link-with-allowed-hostnames";
 import { recordClick } from "@/lib/tinybird";
-import { ratelimit, redis } from "@/lib/upstash";
+import { redis } from "@/lib/upstash";
 import { isValidUrl, LOCALHOST_IP, nanoid } from "@dub/utils";
 import { ipAddress, waitUntil } from "@vercel/functions";
 import { AxiomRequest, withAxiom } from "next-axiom";
@@ -21,7 +21,7 @@ const CORS_HEADERS = {
 export const POST = withAxiom(
   async (req: AxiomRequest) => {
     try {
-      const { domain, key, url } = await parseRequestBody(req);
+      const { domain, key, url, referrer } = await parseRequestBody(req);
 
       if (!domain || !key) {
         throw new DubApiError({
@@ -32,34 +32,25 @@ export const POST = withAxiom(
 
       const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
 
-      const { success } = await ratelimit().limit(
-        `track-click:${domain}-${key}:${ip}`,
-      );
-
-      if (!success) {
-        throw new DubApiError({
-          code: "rate_limit_exceeded",
-          message: "Don't DDoS me pls 🥺",
-        });
-      }
-
-      const link = await getLinkWithAllowedHostnames(domain, key);
-
-      if (!link) {
-        throw new DubApiError({
-          code: "not_found",
-          message: `Link not found for domain: ${domain} and key: ${key}.`,
-        });
-      }
-
-      const allowedHostnames = link.allowedHostnames;
-      verifyAnalyticsAllowedHostnames({ allowedHostnames, req });
-
-      const cacheKey = `recordClick:${link.id}:${ip}`;
+      const cacheKey = `recordClick:${domain}:${key}:${ip}`;
       let clickId = await redis.get<string>(cacheKey);
 
+      // only generate + record a new click ID if it's not already cached in Redis
       if (!clickId) {
         clickId = nanoid(16);
+
+        const link = await getLinkWithAllowedHostnames(domain, key);
+
+        if (!link) {
+          throw new DubApiError({
+            code: "not_found",
+            message: `Link not found for domain: ${domain} and key: ${key}.`,
+          });
+        }
+
+        const allowedHostnames = link.allowedHostnames;
+        verifyAnalyticsAllowedHostnames({ allowedHostnames, req });
+
         const finalUrl = isValidUrl(url) ? url : link.url;
 
         waitUntil(
@@ -67,9 +58,12 @@ export const POST = withAxiom(
             req,
             clickId,
             linkId: link.id,
+            domain,
+            key,
             url: finalUrl,
-            skipRatelimit: true,
             workspaceId: link.projectId,
+            skipRatelimit: true,
+            ...(referrer && { referrer }),
           }),
         );
       }

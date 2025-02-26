@@ -242,11 +242,16 @@ export default function AnalyticsProvider({
         - it's filtered by a link, or
         - the workspace has more than 50 domains
         - is admin page
+        - is filtered by a folder or tag
       - Otherwise, hide root domain links
   */
   const root = searchParams.get("root")
     ? searchParams.get("root") === "true"
-    : (domain && key) || (domains && domains?.length > 50) || adminPage
+    : (domain && key) ||
+        (domains && domains?.length > 50) ||
+        adminPage ||
+        folderId ||
+        tagIds
       ? undefined
       : "false";
 

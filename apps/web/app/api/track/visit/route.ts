@@ -1,16 +1,10 @@
 import { verifyAnalyticsAllowedHostnames } from "@/lib/analytics/verify-analytics-allowed-hostnames";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { createId, parseRequestBody } from "@/lib/api/utils";
+import { parseRequestBody } from "@/lib/api/utils";
 import { getLinkWithAllowedHostnames } from "@/lib/planetscale/get-link-with-allowed-hostnames";
-import { recordClick, recordLink } from "@/lib/tinybird";
-import { ratelimit, redis } from "@/lib/upstash";
-import { prismaEdge } from "@dub/prisma/edge";
-import {
-  isValidUrl,
-  linkConstructorSimple,
-  LOCALHOST_IP,
-  nanoid,
-} from "@dub/utils";
+import { recordClick } from "@/lib/tinybird";
+import { redis } from "@/lib/upstash";
+import { isValidUrl, LOCALHOST_IP, nanoid } from "@dub/utils";
 import { ipAddress, waitUntil } from "@vercel/functions";
 import { AxiomRequest, withAxiom } from "next-axiom";
 import { NextResponse } from "next/server";
@@ -38,73 +32,36 @@ export const POST = withAxiom(
 
       const urlObj = new URL(url);
 
-      let linkKey = urlObj.pathname.slice(1);
-      if (linkKey === "") {
-        linkKey = "_root";
+      let key = urlObj.pathname.slice(1);
+      if (key === "") {
+        key = "_root";
       }
 
       const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
+      const cacheKey = `recordClick:${domain}:${key}:${ip}`;
 
-      const { success } = await ratelimit().limit(
-        `track-click:${domain}-${linkKey}:${ip}`,
-      );
-
-      if (!success) {
-        throw new DubApiError({
-          code: "rate_limit_exceeded",
-          message: "Don't DDoS me pls 🥺",
-        });
-      }
-
-      let link = await getLinkWithAllowedHostnames(domain, linkKey);
-
-      if (!link) {
-        // get root domain link
-        const rootDomainLink = await getLinkWithAllowedHostnames(
-          domain,
-          "_root",
-        );
-
-        if (!rootDomainLink) {
-          throw new DubApiError({
-            code: "not_found",
-            message: "siteDomain not found – have you created it on Dub yet?",
-          });
-        }
-
-        const newLink = await prismaEdge.link.create({
-          data: {
-            id: createId("link_"),
-            domain,
-            key: linkKey,
-            url: url.split("?")[0], // don't include query params when creating the link
-            shortLink: linkConstructorSimple({ domain, key: linkKey }),
-            trackConversion: true,
-            projectId: rootDomainLink.projectId,
-            folderId: rootDomainLink.folderId,
-            userId: rootDomainLink.userId,
-          },
-        });
-        // TODO: we might need to set redis cache when we start using redis to fetch link data
-        waitUntil(recordLink(newLink));
-
-        link = {
-          ...newLink,
-          projectId: rootDomainLink.projectId,
-          folderId: rootDomainLink.folderId,
-          userId: rootDomainLink.userId,
-          allowedHostnames: rootDomainLink.allowedHostnames,
-        };
-      }
-
-      const allowedHostnames = link.allowedHostnames;
-      verifyAnalyticsAllowedHostnames({ allowedHostnames, req });
-
-      const cacheKey = `recordClick:${link.id}:${ip}`;
       let clickId = await redis.get<string>(cacheKey);
 
+      // only generate + record a new click ID if it's not already cached in Redis
       if (!clickId) {
         clickId = nanoid(16);
+
+        let link = await getLinkWithAllowedHostnames(domain, key);
+
+        if (!link) {
+          return NextResponse.json(
+            {
+              clickId: null,
+            },
+            {
+              headers: CORS_HEADERS,
+            },
+          );
+        }
+
+        const allowedHostnames = link.allowedHostnames;
+        verifyAnalyticsAllowedHostnames({ allowedHostnames, req });
+
         const finalUrl = isValidUrl(url) ? url : link.url;
 
         waitUntil(
@@ -112,9 +69,11 @@ export const POST = withAxiom(
             req,
             clickId,
             linkId: link.id,
+            domain,
+            key,
             url: finalUrl,
-            skipRatelimit: true,
             workspaceId: link.projectId,
+            skipRatelimit: true,
             ...(referrer && { referrer }),
           }),
         );
