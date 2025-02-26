@@ -56,6 +56,19 @@ export const POST = withWorkspace(
     }
 
     if (partner) {
+      const program = await prisma.program.findUnique({
+        where: {
+          id: programId,
+        },
+      });
+
+      if (!program || program.workspaceId !== workspace.id) {
+        throw new DubApiError({
+          message: `Program with ID ${programId} not found.`,
+          code: "not_found",
+        });
+      }
+
       const existingPartner = await prisma.partner.findUnique({
         where: {
           email: partner.email,
@@ -72,12 +85,6 @@ export const POST = withWorkspace(
       if (existingPartner) {
         // partner exists but is not enrolled in the program
         if (existingPartner.programs.length === 0) {
-          const program = await prisma.program.findUniqueOrThrow({
-            where: {
-              id: programId,
-            },
-          });
-
           const enrolledPartner = await createLinkAndEnrollPartner({
             workspace,
             program,
