@@ -103,7 +103,7 @@ export const POST = withWorkspace(
       programId,
       ...(programEnrollment
         ? { partnerId: programEnrollment.partnerId }
-        : partner
+        : partner // we'll create the parter during the initial loading of the embed page
           ? { partner: { ...partner, userId: session.user.id } }
           : null),
     });
