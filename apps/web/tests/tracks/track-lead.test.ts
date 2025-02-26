@@ -1,6 +1,8 @@
+import { getLeadEvent } from "@/lib/tinybird";
 import { TrackLeadResponse } from "@/lib/types";
+import { prisma } from "@dub/prisma";
 import { randomCustomer } from "tests/utils/helpers";
-import { E2E_CLICK_ID } from "tests/utils/resource";
+import { E2E_CLICK_ID, E2E_WORKSPACE_ID } from "tests/utils/resource";
 import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 
@@ -15,7 +17,7 @@ describe("POST /track/lead", async () => {
       body: {
         clickId: E2E_CLICK_ID,
         eventName: "Signup",
-        customerId: customer.id,
+        externalId: customer.id,
         customerName: customer.name,
         customerEmail: customer.email,
         customerAvatar: customer.avatar,
@@ -40,13 +42,13 @@ describe("POST /track/lead", async () => {
     });
   });
 
-  test("duplicate request with same customerId", async () => {
+  test("duplicate request with same externalId", async () => {
     const response = await http.post<TrackLeadResponse>({
       path: "/track/lead",
       body: {
         clickId: E2E_CLICK_ID,
         eventName: "Signup",
-        customerId: customer.id,
+        externalId: customer.id,
       },
     });
 
@@ -67,7 +69,7 @@ describe("POST /track/lead", async () => {
       body: {
         clickId: E2E_CLICK_ID,
         eventName: "Start Trial",
-        customerId: customer2.id,
+        externalId: customer2.id,
         customerName: customer2.name,
         customerEmail: customer2.email,
         customerAvatar: customer2.avatar,
@@ -91,5 +93,38 @@ describe("POST /track/lead", async () => {
         externalId: customer2.id,
       },
     });
+  });
+
+  test("track a lead with sync mode", async () => {
+    const customer3 = randomCustomer();
+    const response = await http.post<TrackLeadResponse>({
+      path: "/track/lead",
+      body: {
+        clickId: E2E_CLICK_ID,
+        eventName: "Signup",
+        externalId: customer3.id,
+        customerName: customer3.name,
+        customerEmail: customer3.email,
+        customerAvatar: customer3.avatar,
+        mode: "sync",
+      },
+    });
+    expect(response.status).toEqual(200);
+
+    const createdCustomer = await prisma.customer.findUniqueOrThrow({
+      where: {
+        projectId_externalId: {
+          projectId: E2E_WORKSPACE_ID.replace("ws_", ""),
+          externalId: customer3.id,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+    const leadEvent = await getLeadEvent({ customerId: createdCustomer.id });
+    expect(leadEvent.data.length).toEqual(1);
+    expect(leadEvent.data[0].event_name).toEqual("Signup");
+    expect(leadEvent.data[0].customer_id).toEqual(createdCustomer.id);
   });
 });
