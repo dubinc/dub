@@ -2,7 +2,7 @@ import { sendEmail } from "@dub/email";
 import { CampaignImported } from "@dub/email/templates/campaign-imported";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
-import { CommissionStatus, Program, Project } from "@prisma/client";
+import { CommissionStatus, Program } from "@prisma/client";
 import { getLeadEvent } from "../tinybird";
 import { recordSaleWithTimestamp } from "../tinybird/record-sale";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
@@ -17,23 +17,21 @@ export async function importCommissions({
   programId: string;
   page: number;
 }) {
-  const { token, userId, campaignId } =
-    await rewardfulImporter.getCredentials(programId);
+  const program = await prisma.program.findUniqueOrThrow({
+    where: {
+      id: programId,
+    },
+  });
+
+  const { token, userId, campaignId } = await rewardfulImporter.getCredentials(
+    program.workspaceId,
+  );
 
   const rewardfulApi = new RewardfulApi({ token });
 
   let currentPage = page;
   let hasMoreCommissions = true;
   let processedBatches = 0;
-
-  const { workspace, ...program } = await prisma.program.findUniqueOrThrow({
-    where: {
-      id: programId,
-    },
-    include: {
-      workspace: true,
-    },
-  });
 
   while (hasMoreCommissions && processedBatches < MAX_BATCHES) {
     const commissions = await rewardfulApi.listCommissions({
@@ -49,7 +47,6 @@ export async function importCommissions({
       commissions.map((commission) =>
         createCommission({
           commission,
-          workspace,
           program,
           campaignId,
         }),
@@ -70,23 +67,30 @@ export async function importCommissions({
   }
 
   // Imports finished
-  await rewardfulImporter.deleteCredentials(programId);
+  await rewardfulImporter.deleteCredentials(program.workspaceId);
 
-  const { email } = await prisma.user.findUniqueOrThrow({
+  const workspaceUser = await prisma.projectUsers.findUniqueOrThrow({
     where: {
-      id: userId,
+      userId_projectId: {
+        userId,
+        projectId: program.workspaceId,
+      },
+    },
+    include: {
+      project: true,
+      user: true,
     },
   });
 
-  if (email) {
+  if (workspaceUser && workspaceUser.user.email) {
     await sendEmail({
-      email,
+      email: workspaceUser.user.email,
       subject: "Rewardful campaign imported",
       react: CampaignImported({
-        email,
-        provider: "Rewardful",
-        workspace,
+        email: workspaceUser.user.email,
+        workspace: workspaceUser.project,
         program,
+        provider: "Rewardful",
       }),
     });
   }
@@ -95,12 +99,10 @@ export async function importCommissions({
 // Backfill historical commissions
 async function createCommission({
   commission,
-  workspace,
   program,
   campaignId,
 }: {
   commission: RewardfulCommission;
-  workspace: Project;
   program: Program;
   campaignId: string;
 }) {
@@ -227,7 +229,7 @@ async function createCommission({
     }),
 
     prisma.project.update({
-      where: { id: workspace.id },
+      where: { id: program.workspaceId },
       data: {
         usage: { increment: 1 },
         // salesUsage: { increment: sale.sale_amount_cents },

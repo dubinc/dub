@@ -16,15 +16,6 @@ export async function importReferrals({
   programId: string;
   page: number;
 }) {
-  const { token, campaignId } =
-    await rewardfulImporter.getCredentials(programId);
-
-  const rewardfulApi = new RewardfulApi({ token });
-
-  let currentPage = page;
-  let hasMoreReferrals = true;
-  let processedBatches = 0;
-
   const { workspace, ...program } = await prisma.program.findUniqueOrThrow({
     where: {
       id: programId,
@@ -33,6 +24,16 @@ export async function importReferrals({
       workspace: true,
     },
   });
+
+  const { token, campaignId } = await rewardfulImporter.getCredentials(
+    workspace.id,
+  );
+
+  const rewardfulApi = new RewardfulApi({ token });
+
+  let currentPage = page;
+  let hasMoreReferrals = true;
+  let processedBatches = 0;
 
   while (hasMoreReferrals && processedBatches < MAX_BATCHES) {
     const referrals = await rewardfulApi.listReferrals({
