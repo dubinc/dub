@@ -1,5 +1,3 @@
-import { sendEmail } from "@dub/email";
-import { CampaignImported } from "@dub/email/templates/campaign-imported";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { Program, Project } from "@prisma/client";
@@ -27,7 +25,7 @@ export async function importReferrals({
     },
   });
 
-  const { token, userId, campaignId } = await rewardfulImporter.getCredentials(
+  const { token, campaignId } = await rewardfulImporter.getCredentials(
     workspace.id,
   );
 
@@ -71,27 +69,10 @@ export async function importReferrals({
     });
   }
 
-  // Imports finished
-  await rewardfulImporter.deleteCredentials(workspace.id);
-
-  const { email } = await prisma.user.findUniqueOrThrow({
-    where: {
-      id: userId,
-    },
+  await rewardfulImporter.queue({
+    programId: program.id,
+    action: "import-commissions",
   });
-
-  if (email) {
-    await sendEmail({
-      email,
-      subject: "Rewardful campaign imported",
-      react: CampaignImported({
-        email,
-        provider: "Rewardful",
-        workspace,
-        program,
-      }),
-    });
-  }
 }
 
 // Create individual referral entries
