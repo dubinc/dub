@@ -7,6 +7,12 @@ export const recordLead = tb.buildIngestEndpoint({
   event: leadEventSchemaTB,
 });
 
+export const recordLeadSync = tb.buildIngestEndpoint({
+  datasource: "dub_lead_events",
+  event: leadEventSchemaTB,
+  wait: true,
+});
+
 export const recordLeadWithTimestamp = tb.buildIngestEndpoint({
   datasource: "dub_lead_events",
   event: leadEventSchemaTB.extend({
