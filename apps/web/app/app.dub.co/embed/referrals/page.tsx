@@ -1,4 +1,4 @@
-import { getEmbedData } from "../utils";
+import { getEmbedData } from "./utils";
 import { EmbedInlinePageClient } from "./page-client";
 
 export default async function EmbedInlinePage({
