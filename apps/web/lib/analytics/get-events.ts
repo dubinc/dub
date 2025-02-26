@@ -3,7 +3,6 @@ import { prisma } from "@dub/prisma";
 import { Link } from "@dub/prisma/client";
 import { transformLink } from "../api/links";
 import { generateRandomName } from "../names";
-import { tbDemo } from "../tinybird/demo-client";
 import z from "../zod";
 import { eventsFilterTB } from "../zod/schemas/analytics";
 import {
@@ -67,7 +66,7 @@ export const getEvents = async (params: EventsFilters) => {
     sortOrder = order;
   }
 
-  const pipe = (isDemo ? tbDemo : tb).buildPipe({
+  const pipe = tb.buildPipe({
     pipe: "v2_events",
     parameters: eventsFilterTB,
     data:
