@@ -121,6 +121,17 @@ export function Form() {
         (partner) => partner.email !== "" && partner.key !== "",
       ) ?? null;
 
+    if (data.partners && data.partners.length > 0) {
+      await Promise.all(
+        data.partners.map((partner, index) => runKeyChecks(index, partner.key)),
+      );
+
+      if (Object.keys(keyErrors).length > 0) {
+        toast.error("Please check the referral link for each partner.");
+        return;
+      }
+    }
+
     await executeAsync({
       ...data,
       workspaceId,

@@ -91,6 +91,7 @@ export function Form() {
       ...data,
       ...(programType === "new" && {
         rewardful: null,
+        apiKeyPrefix: null,
       }),
       ...(programType === "import" && {
         type: null,
@@ -339,6 +340,9 @@ const ImportProgramForm = ({ register, watch, setValue }: FormProps) => {
     executeAsync: setRewardfulToken,
     isPending: isSettingRewardfulToken,
   } = useAction(setRewardfulTokenAction, {
+    onSuccess: ({ data }) => {
+      setValue("rewardful.maskedToken", data?.maskedToken);
+    },
     onError: ({ error }) => {
       toast.error(error.serverError);
     },
@@ -347,7 +351,7 @@ const ImportProgramForm = ({ register, watch, setValue }: FormProps) => {
   const rewardful = watch("rewardful");
 
   const { campaigns, loading: isLoadingCampaigns } = useRewardfulCampaigns({
-    enabled: !!token || !!rewardful?.id,
+    enabled: !!rewardful?.maskedToken,
   });
 
   const selectedCampaign = campaigns?.find(
@@ -356,7 +360,10 @@ const ImportProgramForm = ({ register, watch, setValue }: FormProps) => {
 
   useEffect(() => {
     if (selectedCampaign) {
-      setValue("rewardful", selectedCampaign);
+      setValue("rewardful", {
+        ...rewardful,
+        ...selectedCampaign,
+      });
     }
   }, [selectedCampaign, setValue]);
 
@@ -401,7 +408,7 @@ const ImportProgramForm = ({ register, watch, setValue }: FormProps) => {
           type="password"
           placeholder="API token"
           className="mt-2 max-w-full"
-          value={token}
+          value={token || rewardful?.maskedToken || ""}
           onChange={(e) => setToken(e.target.value)}
         />
         <div className="mt-2 text-xs font-normal leading-[1.1] text-neutral-600">
@@ -417,33 +424,41 @@ const ImportProgramForm = ({ register, watch, setValue }: FormProps) => {
         </div>
       </div>
 
-      <div>
-        <label className="text-sm font-medium text-neutral-800">
-          Campaign to import
-        </label>
-        <div className="relative mt-2">
-          <select
-            {...register("rewardful.id")}
-            className="block w-full appearance-none rounded-md border border-neutral-200 bg-white px-3 py-2 pr-8 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
+      {rewardful?.maskedToken && (
+        <div>
+          <label className="text-sm font-medium text-neutral-800">
+            Campaign to import
+          </label>
+          <div className="relative mt-2">
+            {isLoadingCampaigns ? (
+              <div className="h-10 w-full animate-pulse rounded-md bg-neutral-200" />
+            ) : (
+              <>
+                <select
+                  {...register("rewardful.id")}
+                  className="block w-full appearance-none rounded-md border border-neutral-200 bg-white px-3 py-2 pr-8 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
+                >
+                  <option value="">Select a campaign</option>
+                  {campaigns?.map(({ id, name }) => (
+                    <option key={id} value={id}>
+                      {name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
+              </>
+            )}
+          </div>
+          <Link
+            href="#"
+            className="mt-2 text-xs font-normal leading-[1.1] text-neutral-600 underline decoration-solid decoration-auto underline-offset-auto"
+            target="_blank"
+            rel="noopener noreferrer"
           >
-            <option value="">Select a campaign</option>
-            {campaigns?.map(({ id, name }) => (
-              <option key={id} value={id}>
-                {name}
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="absolute right-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
+            Want to migrate more than one campaign?
+          </Link>
         </div>
-        <Link
-          href="#"
-          className="mt-2 text-xs font-normal leading-[1.1] text-neutral-600 underline decoration-solid decoration-auto underline-offset-auto"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Want to migrate more than one campaign?
-        </Link>
-      </div>
+      )}
 
       {selectedCampaign && (
         <div className="grid grid-cols-2 gap-6 rounded-lg border border-neutral-300 bg-neutral-50 p-6">
@@ -474,14 +489,14 @@ const ImportProgramForm = ({ register, watch, setValue }: FormProps) => {
         </div>
       )}
 
-      {token && !rewardful?.id && (
+      {!rewardful?.id && (
         <Button
           text="Fetch campaigns"
           className="w-full"
           disabled={isSettingRewardfulToken || !token}
           loading={isSettingRewardfulToken}
           onClick={async () => {
-            if (!workspaceId || !token) return;
+            if (!workspaceId) return;
 
             await setRewardfulToken({
               workspaceId,

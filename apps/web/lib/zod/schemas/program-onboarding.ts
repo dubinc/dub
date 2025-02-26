@@ -7,7 +7,12 @@ export const programInfoSchema = z.object({
   name: z.string().max(100),
   logo: z.string().nullish(),
   domain: z.string().nullish(),
-  url: z.string().url("Enter a valid URL").max(255).nullish(),
+  url: z
+    .string()
+    .url("Enter a valid URL")
+    .max(255)
+    .transform((str) => (str === "" ? null : str))
+    .nullish(),
   linkType: z.enum(["short", "query", "dynamic"]).default("short"),
 });
 
@@ -17,6 +22,7 @@ export const programRewardSchema = z
     programType: z.enum(["new", "import"]),
     rewardful: z
       .object({
+        maskedToken: z.string().nullish(),
         id: z.string(),
         affiliates: z.number(),
         commission_amount_cents: z.number().nullable(),

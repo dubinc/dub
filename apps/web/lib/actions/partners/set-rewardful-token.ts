@@ -34,4 +34,8 @@ export const setRewardfulTokenAction = authActionClient
       token,
       campaignId: "", // We'll set in the second step after choosing the campaign
     });
+
+    return {
+      maskedToken: token.slice(0, 3) + "*".repeat(token.length - 3),
+    };
   });

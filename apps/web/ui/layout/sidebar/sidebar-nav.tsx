@@ -125,7 +125,7 @@ export function SidebarNav<T extends Record<any, any>>({
                   ))}
                 </div>
 
-                <CreateProgramCard />
+                {currentArea === "default" && <CreateProgramCard />}
 
                 <AnimatePresence>
                   {showNews && (

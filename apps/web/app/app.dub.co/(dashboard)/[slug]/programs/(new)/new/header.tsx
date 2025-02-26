@@ -54,12 +54,29 @@ export function Header() {
   const saveAndExit = async () => {
     if (!workspaceId) return;
 
-    const data = getValues();
+    let data = getValues();
 
-    data.partners =
-      data?.partners?.filter(
-        (partner) => partner.email !== "" && partner.key !== "",
-      ) ?? null;
+    console.log("getValues", data);
+
+    data = {
+      ...data,
+      url: data.url === "" ? null : data.url,
+
+      partners:
+        data?.partners?.filter(
+          (partner) => partner.email !== "" && partner.key !== "",
+        ) ?? null,
+
+      ...(data.programType === "new" && {
+        rewardful: null,
+      }),
+
+      ...(data.programType === "import" && {
+        type: null,
+        amount: null,
+        maxDuration: null,
+      }),
+    };
 
     await executeAsync({
       ...data,
