@@ -123,6 +123,20 @@ async function createCommission({
     return;
   }
 
+  const commissionExists = await prisma.commission.findUnique({
+    where: {
+      programId_invoiceId: {
+        programId: program.id,
+        invoiceId: sale.id,
+      },
+    },
+  });
+
+  if (commissionExists) {
+    console.log(`Commission ${commission.id} already exists, skipping...`);
+    return;
+  }
+
   const customerFound = await prisma.customer.findUnique({
     where: {
       stripeCustomerId: sale.referral.stripe_customer_id,
@@ -180,7 +194,7 @@ async function createCommission({
         currency: sale.currency.toLowerCase(),
         quantity: 1,
         status: "paid",
-        invoiceId: sale.id, // this is not the actual invoice ID
+        invoiceId: sale.id, // this is not the actual invoice ID, but we use this to deduplicate the sales
         createdAt: new Date(sale.created_at),
       },
     }),
