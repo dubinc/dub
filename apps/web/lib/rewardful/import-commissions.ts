@@ -211,7 +211,7 @@ async function createCommission({
     recordSaleWithTimestamp({
       ...clickData,
       event_id: eventId,
-      event_name: "Purchase",
+      event_name: "Invoice paid",
       amount: sale.sale_amount_cents,
       customer_id: customerFound.id,
       payment_processor: "stripe",
