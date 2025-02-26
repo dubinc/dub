@@ -237,12 +237,12 @@ export function Form() {
                     </div>
                   </div>
 
-                  <div className="flex w-8">
+                  <div className="mt-2 flex w-8">
                     {index > 0 && (
                       <Button
                         variant="outline"
                         icon={<Trash2 className="size-4" />}
-                        className="size-8 w-full p-0"
+                        className="size-[38px] w-full p-0"
                         onClick={() => remove(index)}
                       />
                     )}
@@ -256,18 +256,20 @@ export function Form() {
             </div>
           ))}
 
-          <Button
-            text="Add partner"
-            variant="secondary"
-            icon={<Plus className="size-4" />}
-            className="w-fit"
-            onClick={() => {
-              if (fields.length < 10) {
-                append({ email: "", key: "" });
-              }
-            }}
-            disabled={fields.length >= 10}
-          />
+          <div className="mb-10">
+            <Button
+              text="Add partner"
+              variant="secondary"
+              icon={<Plus className="size-4" />}
+              className="w-fit"
+              onClick={() => {
+                if (fields.length < 10) {
+                  append({ email: "", key: "" });
+                }
+              }}
+              disabled={fields.length >= 10}
+            />
+          </div>
 
           {fields.length >= 10 && (
             <p className="text-sm text-neutral-600">
