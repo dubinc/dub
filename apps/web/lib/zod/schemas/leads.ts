@@ -67,10 +67,10 @@ export const trackLeadRequestSchema = z.object({
     .default(null)
     .describe("Additional metadata to be stored with the lead event"),
   mode: z
-    .enum(["sync", "async"])
+    .enum(["async", "wait"])
     .default("async")
     .describe(
-      "The mode to use for tracking the lead event. `sync` will block the request until the lead event is fully recorded in Dub; `async` will not block the request.",
+      "The mode to use for tracking the lead event. `async` will not block the request; `wait` will block the request until the lead event is fully recorded in Dub.",
     ),
 });
 

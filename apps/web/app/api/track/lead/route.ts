@@ -85,8 +85,9 @@ export const POST = withWorkspace(
     const leadEventId = nanoid(16);
 
     // Handle customer creation and lead recording based on mode
-    if (mode === "sync") {
+    if (mode === "wait") {
       // Execute customer creation synchronously
+      // TODO: Find a way to reuse this code with the one in async mode
       customer = await prisma.customer.upsert({
         where: {
           projectId_externalId: {
