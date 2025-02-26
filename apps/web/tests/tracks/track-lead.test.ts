@@ -59,4 +59,37 @@ describe("POST /track/lead", async () => {
       },
     });
   });
+
+  test("track a lead with eventQuantity", async () => {
+    const customer2 = randomCustomer();
+    const response = await http.post<TrackLeadResponse>({
+      path: "/track/lead",
+      body: {
+        clickId: E2E_CLICK_ID,
+        eventName: "Start Trial",
+        customerId: customer2.id,
+        customerName: customer2.name,
+        customerEmail: customer2.email,
+        customerAvatar: customer2.avatar,
+        eventQuantity: 2,
+      },
+    });
+
+    expect(response.status).toEqual(200);
+    expect(response.data).toStrictEqual({
+      clickId: E2E_CLICK_ID,
+      customerName: customer2.name,
+      customerEmail: customer2.email,
+      customerAvatar: customer2.avatar,
+      click: {
+        id: E2E_CLICK_ID,
+      },
+      customer: {
+        name: customer2.name,
+        email: customer2.email,
+        avatar: customer2.avatar,
+        externalId: customer2.id,
+      },
+    });
+  });
 });

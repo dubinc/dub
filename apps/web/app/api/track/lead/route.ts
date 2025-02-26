@@ -3,7 +3,7 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { createId, parseRequestBody } from "@/lib/api/utils";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
 import { generateRandomName } from "@/lib/names";
-import { getClickEvent, recordLead } from "@/lib/tinybird";
+import { getClickEvent, recordLeadSync } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhookOnEdge } from "@/lib/webhook/publish-edge";
 import { transformLeadEventData } from "@/lib/webhook/transform";
@@ -113,7 +113,7 @@ export const POST = withWorkspaceEdge(
       metadata: metadata ? JSON.stringify(metadata) : "",
     };
 
-    await recordLead(
+    await recordLeadSync(
       eventQuantity
         ? Array(eventQuantity)
             .fill(null)
