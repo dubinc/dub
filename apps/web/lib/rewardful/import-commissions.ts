@@ -108,7 +108,7 @@ async function createCommission({
 }) {
   if (commission.campaign.id !== campaignId) {
     console.log(
-      `Commission ${commission.id} not in campaign ${campaignId} (they're in ${commission.campaign.id}). Skipping...`,
+      `Affiliate ${commission?.sale?.affiliate?.email} for commission ${commission.id}) not in campaign ${campaignId} (they're in ${commission.campaign.id}). Skipping...`,
     );
     return;
   }
@@ -211,7 +211,7 @@ async function createCommission({
     recordSaleWithTimestamp({
       ...clickData,
       event_id: eventId,
-      event_name: "Purchase",
+      event_name: "Invoice paid",
       amount: sale.sale_amount_cents,
       customer_id: customerFound.id,
       payment_processor: "stripe",
@@ -225,14 +225,6 @@ async function createCommission({
       data: {
         sales: { increment: 1 },
         saleAmount: { increment: sale.sale_amount_cents },
-      },
-    }),
-
-    prisma.project.update({
-      where: { id: program.workspaceId },
-      data: {
-        usage: { increment: 1 },
-        // salesUsage: { increment: sale.sale_amount_cents },
       },
     }),
   ]);
