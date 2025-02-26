@@ -192,6 +192,9 @@ importers:
       dub:
         specifier: ^0.54.1
         version: 0.54.1(zod@3.22.4)
+      fast-xml-parser:
+        specifier: ^5.0.6
+        version: 5.0.6
       framer-motion:
         specifier: ^10.16.16
         version: 10.18.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -7076,6 +7079,10 @@ packages:
     resolution: {integrity: sha512-rmrXUXwbJedoXkStenj1kkljNF7ugn5ZjR9FJcwmCfcCbtOMDghPajbc+Tck6vE6F5XsDmx+Pr2le9fw8+pXBg==}
     hasBin: true
 
+  fast-xml-parser@5.0.6:
+    resolution: {integrity: sha512-5zIl0jWsewL5LdneswG6aJXx1YH1FXQ02UVIe/CZI3wXhI3SqP62bjcIYRNOgU43/MnN1t/MCpH6UoOtBrDNug==}
+    hasBin: true
+
   fastq@1.15.0:
     resolution: {integrity: sha512-wBrocU2LCXXa+lWBt8RoIRD89Fi8OdABODa/kEnyeyjS5aZO5/GNvI5sEINADqP/h8M29UHTHUb53sUu5Ihqdw==}
 
@@ -10424,6 +10431,9 @@ packages:
 
   strnum@1.0.5:
     resolution: {integrity: sha512-J8bbNyKKXl5qYcR36TIO8W3mVGVHrmmxsd5PAItGkmyzwJvybiw2IVq5nqd0i4LSNSkB/sx9VHllbfFdr9k1JA==}
+
+  strnum@2.0.4:
+    resolution: {integrity: sha512-qrXhLMohxtEPKMlajtNaOp5zvAQUo6L3fNcdiJKzWH98kGfklqGwmxhFjM7DzxsuoVM7rJeiYr+lEcu4Jlu9UQ==}
 
   style-to-object@1.0.6:
     resolution: {integrity: sha512-khxq+Qm3xEyZfKd/y9L3oIWQimxuc4STrQKtQn8aSDRHb8mFgpukgX1hdzfrMEW6JCjyJ8p89x+IUMVnCBI1PA==}
@@ -19224,6 +19234,10 @@ snapshots:
     dependencies:
       strnum: 1.0.5
 
+  fast-xml-parser@5.0.6:
+    dependencies:
+      strnum: 2.0.4
+
   fastq@1.15.0:
     dependencies:
       reusify: 1.0.4
@@ -23603,6 +23617,8 @@ snapshots:
       qs: 6.11.2
 
   strnum@1.0.5: {}
+
+  strnum@2.0.4: {}
 
   style-to-object@1.0.6:
     dependencies:

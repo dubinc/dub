@@ -9,8 +9,7 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 
 /**
- * TODO:
- * - Use a cron job (similar to how we do it for usage cron) to account for the future where we have a lot of links to process
+ * TODO: Use a cron job (similar to how we do it for usage cron) to account for the future where we have a lot of links to process
  */
 
 // This route is used aggregate clicks events on daily basis for Program links and add to the Commission table
