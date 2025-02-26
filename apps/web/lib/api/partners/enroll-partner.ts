@@ -23,10 +23,6 @@ import { createLink } from "../links/create-link";
 import { includeTags } from "../links/include-tags";
 import { processLink } from "../links/process-link";
 
-// TODO:
-// update enrollPartner to accept a optional linkId and move link creation here
-
-
 export const enrollPartner = async ({
   program,
   tenantId,
