@@ -43,28 +43,17 @@ export const tokenSchema = z.object({
 });
 
 export const createEmbedTokenSchema = z
-  .union([
-    z.object({
-      programId: z.string(),
-      partnerId: z.string(),
-    }),
-
-    z.object({
-      programId: z.string(),
-      tenantId: z.string(),
-    }),
-
-    z.object({
-      programId: z.string(),
-      partner: createPartnerSchema.omit({ programId: true }),
-    }),
-  ])
+  .object({
+    programId: z.string(),
+    partnerId: z.string().optional(),
+    tenantId: z.string().optional(),
+    partner: createPartnerSchema.omit({ programId: true }).optional(),
+  })
   .superRefine((data, ctx) => {
-    if (!("partnerId" in data || "tenantId" in data || "partner" in data)) {
+    if (!data.partnerId && !data.tenantId && !data.partner) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message:
-          "You must provide either partnerId, tenantId, or partner object",
+        message: "You must provide either partnerId, tenantId, or partner.",
       });
     }
   });
