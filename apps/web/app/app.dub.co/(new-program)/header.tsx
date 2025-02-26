@@ -56,8 +56,6 @@ export function Header() {
 
     let data = getValues();
 
-    console.log("getValues", data);
-
     data = {
       ...data,
       url: data.url === "" ? null : data.url,
