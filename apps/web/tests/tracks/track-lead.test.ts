@@ -95,7 +95,7 @@ describe("POST /track/lead", async () => {
     });
   });
 
-  test("track a lead with sync mode", async () => {
+  test("track a lead with mode = 'wait'", async () => {
     const customer3 = randomCustomer();
     const response = await http.post<TrackLeadResponse>({
       path: "/track/lead",
@@ -106,7 +106,7 @@ describe("POST /track/lead", async () => {
         customerName: customer3.name,
         customerEmail: customer3.email,
         customerAvatar: customer3.avatar,
-        mode: "sync",
+        mode: "wait",
       },
     });
     expect(response.status).toEqual(200);
