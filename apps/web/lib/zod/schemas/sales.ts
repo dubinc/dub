@@ -44,7 +44,9 @@ export const trackSaleRequestSchema = z.object({
     .string()
     .nullish()
     .default(null)
-    .describe("The invoice ID of the sale."),
+    .describe(
+      "The invoice ID of the sale. Can be used as a idempotency key – only one sale event can be recorded for a given invoice ID.",
+    ),
   currency: z
     .string()
     .default("usd")

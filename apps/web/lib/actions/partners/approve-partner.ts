@@ -47,18 +47,17 @@ export const approvePartnerAction = authActionClient
         },
         data: {
           status: "approved",
-          linkId: link.id,
-          discountId: program?.discounts?.[0]?.id || null,
         },
       }),
 
-      // update link to have programId
+      // update link to have programId and partnerId
       prisma.link.update({
         where: {
           id: linkId,
         },
         data: {
           programId,
+          partnerId,
         },
         include: {
           tags: {
@@ -70,10 +69,9 @@ export const approvePartnerAction = authActionClient
       }),
     ]);
 
+    // TODO: [partners] Notify partner of approval?
     // TODO: send partner.created webhook
     waitUntil(recordLink(updatedLink));
-
-    // TODO: [partners] Notify partner of approval?
 
     return {
       ok: true,
