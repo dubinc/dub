@@ -1,7 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { createId, parseRequestBody } from "@/lib/api/utils";
-import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
+import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
 import { getClickEvent, recordLeadSync } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
@@ -11,16 +11,14 @@ import {
   trackLeadRequestSchema,
   trackLeadResponseSchema,
 } from "@/lib/zod/schemas/leads";
-import { prismaEdge } from "@dub/prisma/edge";
+import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import { determinePartnerReward } from "../determine-partner-reward-edge";
 
-export const runtime = "edge";
-
 // POST /api/track/lead – Track a lead conversion event
-export const POST = withWorkspaceEdge(
+export const POST = withWorkspace(
   async ({ req, workspace }) => {
     const {
       clickId,
@@ -32,6 +30,7 @@ export const POST = withWorkspaceEdge(
       customerEmail,
       customerAvatar,
       metadata,
+      mode,
     } = trackLeadRequestSchema.parse(await parseRequestBody(req));
 
     const customerExternalId = externalId || customerId;
@@ -81,7 +80,7 @@ export const POST = withWorkspaceEdge(
     const finalCustomerName =
       customerName || customerEmail || generateRandomName();
 
-    const customer = await prismaEdge.customer.upsert({
+    const customer = await prisma.customer.upsert({
       where: {
         projectId_externalId: {
           projectId: workspace.id,
@@ -112,23 +111,24 @@ export const POST = withWorkspaceEdge(
       customer_id: customer.id,
       metadata: metadata ? JSON.stringify(metadata) : "",
     };
+    const recordLeadPayload = eventQuantity
+      ? Array(eventQuantity)
+          .fill(null)
+          .map(() => ({
+            ...leadEventPayload,
+            event_id: nanoid(16),
+          }))
+      : leadEventPayload;
 
-    await recordLeadSync(
-      eventQuantity
-        ? Array(eventQuantity)
-            .fill(null)
-            .map(() => ({
-              ...leadEventPayload,
-              event_id: nanoid(16),
-            }))
-        : leadEventPayload,
-    );
+    if (mode === "sync") {
+      await recordLeadSync(recordLeadPayload);
+    }
 
     waitUntil(
       (async () => {
         const [link, _project] = await Promise.all([
           // update link leads count
-          prismaEdge.link.update({
+          prisma.link.update({
             where: {
               id: clickData.link_id,
             },
@@ -141,7 +141,7 @@ export const POST = withWorkspaceEdge(
           }),
 
           // update workspace usage
-          prismaEdge.project.update({
+          prisma.project.update({
             where: {
               id: workspace.id,
             },
@@ -161,7 +161,7 @@ export const POST = withWorkspaceEdge(
           });
 
           if (reward) {
-            await prismaEdge.commission.create({
+            await prisma.commission.create({
               data: {
                 id: createId({ prefix: "cm_" }),
                 programId: link.programId,

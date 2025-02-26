@@ -66,6 +66,12 @@ export const trackLeadRequestSchema = z.object({
     .nullish()
     .default(null)
     .describe("Additional metadata to be stored with the lead event"),
+  mode: z
+    .enum(["sync", "async"])
+    .default("async")
+    .describe(
+      "The mode to use to track the lead event. `sync` will block the request until the lead event is fully tracked, `async` will not block the request.",
+    ),
 });
 
 export const trackLeadResponseSchema = z.object({
