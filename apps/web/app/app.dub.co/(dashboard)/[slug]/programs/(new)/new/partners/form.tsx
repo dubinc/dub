@@ -170,32 +170,35 @@ export function Form() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
+      <form onSubmit={handleSubmit(onSubmit)} className="">
+        <div className="grid grid-cols-2 gap-2">
+          <label className="block text-sm font-medium text-neutral-800">
+            Email
+          </label>
+
+          <label className="block text-sm font-medium text-neutral-800">
+            Referral link
+          </label>
+        </div>
+
         <div className="flex flex-col gap-2">
           {fields.map((field, index) => (
             <div
               key={field.id}
               className="flex flex-col gap-3 sm:flex-row sm:items-center"
             >
-              <div className="w-full sm:w-1/2">
-                <label className="mb-2 block text-sm font-medium text-neutral-800">
-                  {index === 0 && "Email"}
-                </label>
+              <div className="h-16 w-full sm:w-1/2">
                 <Input
                   {...register(`partners.${index}.email`)}
                   type="email"
                   placeholder="panic@thedis.co"
+                  className="mt-2"
                 />
-
-                <p className="py-1 text-xs text-red-500"> &nbsp;</p>
               </div>
 
-              <div className="w-full sm:w-1/2">
-                <label className="mb-2 block text-sm font-medium text-neutral-800">
-                  {index === 0 && "Referral link"}
-                </label>
-                <div className="flex items-center gap-2">
-                  <div className="relative w-full">
+              <div className="h-16 w-full sm:w-1/2">
+                <div className="flex items-center gap-1">
+                  <div className="relative mt-2 w-full">
                     <div
                       className={cn(
                         "relative flex items-stretch overflow-hidden rounded-md border border-neutral-200 bg-white focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500",
@@ -234,12 +237,12 @@ export function Form() {
                     </div>
                   </div>
 
-                  <div className="flex w-10">
+                  <div className="flex w-8">
                     {index > 0 && (
                       <Button
                         variant="outline"
                         icon={<Trash2 className="size-4" />}
-                        className="size-8 w-full shrink-0 p-0"
+                        className="size-8 w-full p-0"
                         onClick={() => remove(index)}
                       />
                     )}
