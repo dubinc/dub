@@ -100,11 +100,11 @@ function WorkspaceLinks() {
                   onRemove={onRemove}
                   onSearchChange={setSearch}
                   onSelectedFilterChange={setSelectedFilter}
-                  className="w-full"
+                  className="bg-bgMain text-neutral900 border-neutral200 w-full"
                   emptyState={{
                     tagIds: (
                       <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">
-                        <div className="flex items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+                        <div className="border-neutral200 flex items-center justify-center rounded-2xl border bg-neutral-500 p-3">
                           <Tag className="size-6 text-neutral-700" />
                         </div>
                         <p className="mt-2 font-medium text-neutral-950">
@@ -145,7 +145,9 @@ function WorkspaceLinks() {
                       </div>
                     ),
                   }}
-                />
+                >
+                  <span className="text-neutral900">Filter</span>
+                </Filter.Select>
               </div>
               <div className="grow basis-0 md:grow-0">
                 <LinkDisplay />
@@ -155,14 +157,14 @@ function WorkspaceLinks() {
               <div className="w-full md:w-56 lg:w-64">
                 <SearchBoxPersisted
                   loading={isValidating}
-                  inputClassName="h-10"
+                  inputClassName="h-10 bg-bgMain border-neutral200"
                 />
               </div>
 
               {isLoading ? (
                 <div className="flex grow-0 animate-pulse items-center space-x-2">
-                  <div className="h-10 w-24 rounded-md bg-neutral-200" />
-                  <div className="h-10 w-10 rounded-md bg-neutral-200" />
+                  <div className="bg-neutral200 h-10 w-24 rounded-md" />
+                  <div className="bg-neutral200 h-10 w-10 rounded-md" />
                 </div>
               ) : canCreateLinks ? (
                 <>
@@ -315,7 +317,7 @@ const MoreLinkOptions = () => {
         <Button
           onClick={() => setOpenPopover(!openPopover)}
           variant="secondary"
-          className="w-auto px-1.5"
+          className="bg-netural100 border-neutral200 w-auto px-1.5"
           icon={<ThreeDots className="h-5 w-5 text-neutral-500" />}
         />
       </Popover>

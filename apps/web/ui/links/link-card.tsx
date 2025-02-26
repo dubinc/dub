@@ -65,6 +65,7 @@ export function LinkCard({ link }: { link: ResponseLink }) {
               </Link>
             ),
           })}
+        outerClassName="bg-bgMain border-neutral200 "
       >
         <div className="min-w-0 grow">
           <LinkTitleColumn link={link} />

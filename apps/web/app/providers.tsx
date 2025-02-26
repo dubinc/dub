@@ -29,6 +29,7 @@ export default function RootProviders({ children }: { children: ReactNode }) {
 
   return (
     <ThemeProvider attribute={"class"}>
+      {/* <Theme appearance="dark"> */}
       <PostHogProvider client={posthog}>
         <PlausibleProvider
           domain="dub.co"
@@ -54,6 +55,7 @@ export default function RootProviders({ children }: { children: ReactNode }) {
           </KeyboardShortcutProvider>
         </TooltipProvider>
       </PostHogProvider>
+      {/* </Theme> */}
     </ThemeProvider>
   );
 }

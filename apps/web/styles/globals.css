@@ -5,47 +5,57 @@
 :root {
   --bg-color-main: white;
   --bg-color-secondary: black;
-  /* --bg-color- */
+
+  --netural-50: #fafafa;
   --netural-100: #f5f5f5;
-
-  /* sidenav */
-
-  /* text */
-
   --netural-600: #525252;
+  --netural-200: #e5e5e5;
   --netural-200-50: rgb(229 229 229 / 0.5); /* hover */
   --netural-200-80: rgb(229 229 229 / 0.8);
+  --netural-300: #d4d4d4;
+  --netural-400: #a3a3a3;
+  --netural-500: #737373;
+  --netural-700: #404040;
+  --netural-800: #262626;
+  --netural-900: #171717;
+  --netural-950: #0a0a0a;
 
-  /* data-active */
   --blue-100-50: rgb(219 234 254 / 0.5);
   --blue-600: #2563eb;
   --blue-100-80: rgb(219 234 254 /0.8);
   --blue-100: #dbeafe;
-
+  --blue-400: #60a5fa;
+  --blue-900-20: rgb(30 58 138 / 0.2);
   /* icon */
-  --netural-500: #737373;
 }
 .dark {
   --bg-color-main: black;
   --bg-color-secondary: white;
-  --netural-100: #f5f5f5;
 
-  /* sidenav */
-
-  /* text */
-
+  --netural-50: #0a0a0a;
+  --netural-100: #171717;
   --netural-600: #a3a3a3; /* netural-400 */
+  --netural-200: #262626; /* -800  */
   --netural-200-50: rgb(38 38 38 / 0.5); /* hover 800-50 */
   --netural-200-80: rgb(38 38 38 / 0.2); /* hover 800-20 */
+  --netural-300: #404040; /* -700 */
+
+  --netural-400: #262626; /* -800 */
+  --netural-500: #737373;
+  --netural-700: #d4d4d4; /* -300  */
+  --netural-800: #e5e5e5; /* -800  */
+  --netural-900: #f5f5f5; /* -100 */
+  --netural-950: #fafafa; /* -50 */
 
   /* data-active */
   --blue-100-50: rgb(30 58 138 / 0.5); /* -900-50 */
   --blue-600: #60a5fa; /* 400 */
   --blue-100-80: rgb(30 58 138 / 0.2); /* -900-20 */
   --blue-100: #1e3a8a; /* -900 */
+  --blue-400: #2563eb; /* -800*/
+  --blue-900-20: rgb(219 234 254 / 0.8); /* -100/80*/
 
-  /* icon */
-  --netural-500: #737373;
+  /* icon  */
 }
 
 code {

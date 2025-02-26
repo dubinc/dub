@@ -222,7 +222,7 @@ export const LinksToolbar = memo(
                   <PaginationControls
                     pagination={pagination}
                     setPagination={setPagination}
-                    totalCount={linksCount}
+                    totalCount={100}
                     unit={(plural) => `${plural ? "links" : "link"}`}
                   >
                     {loading ? (

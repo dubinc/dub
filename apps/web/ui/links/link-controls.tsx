@@ -342,9 +342,9 @@ export function LinkControls({ link }: { link: ResponseLink }) {
           variant="secondary"
           className={cn(
             "h-8 px-1.5 outline-none transition-all duration-200",
-            "border-transparent data-[state=open]:border-neutral-500 sm:group-hover/card:data-[state=closed]:border-neutral-200",
+            "sm:group-hover/card:data-[state=closed]:border-neutral200 data-[state=open]:border-neutral500 bg-bgMain border-transparent",
           )}
-          icon={<ThreeDots className="h-5 w-5 shrink-0" />}
+          icon={<ThreeDots className="text-bgSecondary h-5 w-5 shrink-0" />}
           onClick={() => {
             setOpenPopover(!openPopover);
           }}
