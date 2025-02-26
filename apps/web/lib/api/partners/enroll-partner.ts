@@ -1,5 +1,6 @@
 "use server";
 
+import { ErrorCodes } from "@/lib/api/errors";
 import { createId } from "@/lib/api/utils";
 import { recordLink } from "@/lib/tinybird";
 import {
@@ -8,12 +9,23 @@ import {
   WorkspaceProps,
 } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
+import { linkEventSchema } from "@/lib/zod/schemas/links";
+import {
+  createPartnerSchema,
+  EnrolledPartnerSchema,
+} from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { z } from "zod";
 import { DubApiError } from "../errors";
+import { createLink } from "../links/create-link";
 import { includeTags } from "../links/include-tags";
+import { processLink } from "../links/process-link";
+
+// TODO:
+// update enrollPartner to accept a optional linkId and move link creation here
+
 
 export const enrollPartner = async ({
   program,
@@ -142,4 +154,83 @@ export const enrollPartner = async ({
   );
 
   return enrolledPartner;
+};
+
+// a variant of enrollPartner that creates a link and enrolls a partner
+export const createLinkAndEnrollPartner = async ({
+  workspace,
+  program,
+  partner,
+  userId,
+}: {
+  workspace: Pick<WorkspaceProps, "id" | "plan" | "webhookEnabled">;
+  program: Pick<ProgramProps, "id" | "defaultFolderId" | "domain" | "url">;
+  partner: z.infer<typeof createPartnerSchema>;
+  userId: string;
+}) => {
+  if (!program.domain || !program.url) {
+    throw new DubApiError({
+      code: "bad_request",
+      message:
+        "You need to set a domain and url for this program before creating a partner.",
+    });
+  }
+
+  const {
+    name,
+    email,
+    image,
+    country,
+    description,
+    tenantId,
+    linkProps,
+    username,
+    programId,
+  } = partner;
+
+  const { link, error, code } = await processLink({
+    workspace,
+    userId,
+    payload: {
+      ...linkProps,
+      domain: program.domain,
+      key: username,
+      url: program.url,
+      programId,
+      tenantId,
+      folderId: program.defaultFolderId,
+      trackConversion: true,
+    },
+  });
+
+  if (error != null) {
+    throw new DubApiError({
+      code: code as ErrorCodes,
+      message: error,
+    });
+  }
+
+  const partnerLink = await createLink(link);
+
+  waitUntil(
+    sendWorkspaceWebhook({
+      trigger: "link.created",
+      workspace,
+      data: linkEventSchema.parse(partnerLink),
+    }),
+  );
+
+  return await enrollPartner({
+    program,
+    tenantId,
+    link: partnerLink,
+    workspace,
+    partner: {
+      name,
+      email,
+      image,
+      country,
+      description,
+    },
+  });
 };

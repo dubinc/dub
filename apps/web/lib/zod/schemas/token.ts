@@ -42,22 +42,32 @@ export const tokenSchema = z.object({
   }),
 });
 
-export const createEmbedTokenSchema = z.union([
-  z.object({
-    programId: z.string(),
-    partnerId: z.string(),
-  }),
+export const createEmbedTokenSchema = z
+  .union([
+    z.object({
+      programId: z.string(),
+      partnerId: z.string(),
+    }),
 
-  z.object({
-    programId: z.string(),
-    tenantId: z.string(),
-  }),
+    z.object({
+      programId: z.string(),
+      tenantId: z.string(),
+    }),
 
-  z.object({
-    programId: z.string(),
-    partner: createPartnerSchema.omit({ programId: true }),
-  }),
-]);
+    z.object({
+      programId: z.string(),
+      partner: createPartnerSchema.omit({ programId: true }),
+    }),
+  ])
+  .superRefine((data, ctx) => {
+    if (!("partnerId" in data || "tenantId" in data || "partner" in data)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "You must provide either partnerId, tenantId, or partner object",
+      });
+    }
+  });
 
 export const EmbedTokenSchema = z.object({
   publicToken: z.string(),

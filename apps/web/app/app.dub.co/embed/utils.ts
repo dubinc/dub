@@ -1,29 +1,88 @@
+import { createLinkAndEnrollPartner } from "@/lib/api/partners/enroll-partner";
 import { embedToken } from "@/lib/embed/embed-token";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
+import { WorkspaceProps } from "@/lib/types";
 import { DiscountSchema } from "@/lib/zod/schemas/discount";
 import { prisma } from "@dub/prisma";
+import { Discount, Link, Program, ProgramEnrollment } from "@prisma/client";
 import { notFound } from "next/navigation";
 
 export const getEmbedData = async (token: string) => {
-  const { programId, partnerId } = (await embedToken.get(token)) ?? {};
+  const { programId, partnerId, partner } = (await embedToken.get(token)) ?? {};
 
-  if (!programId || !partnerId) {
+  if (!programId || !partnerId || !partner) {
+    console.error("[Embed] No programId, partnerId, or partner found.");
     notFound();
   }
 
-  const programEnrollment = await prisma.programEnrollment.findUnique({
-    where: {
-      partnerId_programId: {
-        partnerId,
-        programId,
+  let programEnrollment:
+    | (ProgramEnrollment & {
+        links: Link[];
+        program: Program;
+        discount: Discount | null;
+      })
+    | null = null;
+
+  if (partnerId) {
+    programEnrollment = await prisma.programEnrollment.findUnique({
+      where: {
+        partnerId_programId: {
+          partnerId,
+          programId,
+        },
       },
-    },
-    include: {
-      links: true,
-      program: true,
-      discount: true,
-    },
-  });
+      include: {
+        links: true,
+        program: true,
+        discount: true,
+      },
+    });
+  }
+
+  if (partner) {
+    const { email } = partner;
+
+    const partnerFound = await prisma.partner.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    if (!partnerFound) {
+      const { workspace, ...program } = await prisma.program.findUniqueOrThrow({
+        where: {
+          id: programId,
+        },
+        include: {
+          workspace: true,
+        },
+      });
+
+      await createLinkAndEnrollPartner({
+        workspace: workspace as WorkspaceProps,
+        program,
+        partner: {
+          ...partner,
+          programId,
+        },
+        userId: "", // TODO: fix this
+      });
+
+      programEnrollment = await prisma.programEnrollment.findUnique({
+        where: {
+          partnerId_programId: {
+            partnerId,
+            programId,
+          },
+        },
+        include: {
+          links: true,
+          program: true,
+          discount: true,
+        },
+      });
+    }
+  }
 
   if (!programEnrollment) {
     notFound();

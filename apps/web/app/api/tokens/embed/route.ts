@@ -9,7 +9,7 @@ import {
   EmbedTokenSchema,
 } from "@/lib/zod/schemas/token";
 import { prisma } from "@dub/prisma";
-import { ProgramEnrollment } from "@prisma/client";
+import { Partner, ProgramEnrollment } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // POST /api/tokens/embed - create a new embed token for the given partner/tenant
@@ -19,12 +19,16 @@ export const POST = withWorkspace(
 
     const { programId } = data;
 
-    // if (!("partnerId" in data) && !("tenantId" in data)) {
-    //   throw new DubApiError({
-    //     message: "Partner ID or tenant ID is required.",
-    //     code: "bad_request",
-    //   });
-    // }
+    if (
+      !("partnerId" in data) &&
+      !("tenantId" in data) &&
+      !("partner" in data)
+    ) {
+      throw new DubApiError({
+        message: "Partner ID or tenant ID or partner is required.",
+        code: "bad_request",
+      });
+    }
 
     let programEnrollment: ProgramEnrollment | null = null;
 
@@ -38,30 +42,29 @@ export const POST = withWorkspace(
           program: true,
         },
       });
-    }
 
-    if (!programEnrollment) {
-      const program = await prisma.program.findUniqueOrThrow({
-        where: {
-          id: programId,
-        },
-      });
-
-      if (program.workspaceId !== workspace.id) {
+      if (!programEnrollment) {
         throw new DubApiError({
-          message: `Program with ID ${programId} does not belong to this workspace.`,
-          code: "bad_request",
+          message: `Partner with ${
+            "partnerId" in data
+              ? `ID ${data.partnerId}`
+              : `tenant ID ${data.tenantId}`
+          } does not enroll in this program ${programId}.`,
+          code: "not_found",
         });
       }
     }
 
+    let existingPartner: Partner | null = null;
+
     if ("partner" in data) {
-      const existingPartner = await prisma.partner.findUnique({
+      existingPartner = await prisma.partner.findUnique({
         where: {
           email: data.partner.email,
         },
       });
 
+      // partner exists
       if (existingPartner) {
         programEnrollment = await prisma.programEnrollment.findUnique({
           where: {
@@ -72,6 +75,7 @@ export const POST = withWorkspace(
           },
         });
 
+        // partner exists but is not enrolled in the program
         if (!programEnrollment) {
           const program = await prisma.program.findUniqueOrThrow({
             where: {
@@ -103,9 +107,6 @@ export const POST = withWorkspace(
             },
           });
 
-          // TODO:
-          // Handle case when the shortlink key is already taken
-
           if (error != null) {
             throw new DubApiError({
               code: code as ErrorCodes,
@@ -115,35 +116,35 @@ export const POST = withWorkspace(
 
           const partnerLink = await createLink(link);
 
-          await enrollPartner({
+          // TODO: Send webhook
+
+          const enrolledPartner = await enrollPartner({
             program,
             tenantId,
             workspace,
             link: partnerLink,
             partner: data.partner,
           });
+
+          programEnrollment = await prisma.programEnrollment.findUnique({
+            where: {
+              partnerId_programId: {
+                partnerId: enrolledPartner.id,
+                programId,
+              },
+            },
+          });
         }
       }
     }
 
-    // if (
-    //   !programEnrollment ||
-    //   programEnrollment.program.workspaceId !== workspace.id
-    // ) {
-    //   throw new DubApiError({
-    //     message: `Partner with ${
-    //       partnerId ? `ID ${partnerId}` : `tenant ID ${tenantId}`
-    //     } not enrolled in this workspace's program ${programId}.`,
-    //     code: "not_found",
-    //   });
-    // }
-
     const response = await embedToken.create({
       programId,
       ...(programEnrollment && { partnerId: programEnrollment.partnerId }),
-      ...("partner" in data && {
-        partner: data.partner,
-      }),
+      ...(!existingPartner &&
+        "partner" in data && {
+          partner: data.partner,
+        }),
     });
 
     return NextResponse.json(EmbedTokenSchema.parse(response), {
