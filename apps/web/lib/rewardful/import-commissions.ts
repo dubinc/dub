@@ -223,7 +223,7 @@ async function createCommission({
       where: { id: workspace.id },
       data: {
         usage: { increment: 1 },
-        salesUsage: { increment: sale.sale_amount_cents },
+        // salesUsage: { increment: sale.sale_amount_cents },
       },
     }),
   ]);
