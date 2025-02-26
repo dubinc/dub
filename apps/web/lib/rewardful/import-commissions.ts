@@ -123,7 +123,7 @@ async function createCommission({
     return;
   }
 
-  const commissionExists = await prisma.commission.findUnique({
+  const commissionFound = await prisma.commission.findUnique({
     where: {
       programId_invoiceId: {
         programId: program.id,
@@ -132,7 +132,7 @@ async function createCommission({
     },
   });
 
-  if (commissionExists) {
+  if (commissionFound) {
     console.log(`Commission ${commission.id} already exists, skipping...`);
     return;
   }
