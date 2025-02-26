@@ -66,7 +66,6 @@ model ProgramEnrollment {
   partnerId        String
   programId        String
   tenantId         String?
-  linkId           String?                 @unique // TODO: Remove after the migration
   commissionAmount Int? // custom commission amount for this partner // TODO: Remove after the migration
   discountId       String? // custom discount for this partner
   applicationId    String?                 @unique
