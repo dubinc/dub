@@ -8,7 +8,7 @@ export default function usePartnerProgramInvites() {
   const partnerId = session?.user?.["defaultPartnerId"];
 
   const { data: programInvites } = useSWR<PartnerProgramInviteProps[]>(
-    partnerId && `/api/partner-profile/programs/invites`,
+    partnerId && "/api/partner-profile/programs/invites",
     fetcher,
     {
       dedupingInterval: 60000,

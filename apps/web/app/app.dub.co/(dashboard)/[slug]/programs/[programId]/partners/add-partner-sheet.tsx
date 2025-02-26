@@ -98,6 +98,7 @@ function AddPartnerSheetContent({ setIsOpen }: AddPartnerSheetProps) {
         url: program?.url,
         trackConversion: true,
         programId: program?.id,
+        folderId: program?.defaultFolderId,
       }),
     });
 
