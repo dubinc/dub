@@ -14,11 +14,16 @@ export function Header() {
   const router = useRouter();
   const { getValues } = useFormContext();
   const { programs, loading: programsLoading } = usePrograms();
-  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+  const {
+    id: workspaceId,
+    slug: workspaceSlug,
+    mutate: mutateWorkspace,
+  } = useWorkspace();
   const { partnersEnabled, loading: workspaceLoading } = useWorkspace();
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
-    onSuccess: () => {
+    onSuccess: async () => {
+      await mutateWorkspace();
       router.push(`/${workspaceSlug}`);
     },
     onError: ({ error }) => {
