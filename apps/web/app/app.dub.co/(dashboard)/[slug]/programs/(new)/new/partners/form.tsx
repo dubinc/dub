@@ -10,10 +10,19 @@ import { cn } from "@dub/utils";
 import { Plus, Trash2 } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { useDebounce } from "use-debounce";
+
+const generateKeyFromEmail = (email: string) => {
+  if (!email) return "";
+
+  const prefix = email.split("@")[0];
+  const randomNum = Math.floor(1000 + Math.random() * 9000);
+
+  return `${prefix}-${randomNum}`;
+};
 
 export function Form() {
   const router = useRouter();
@@ -43,16 +52,10 @@ export function Form() {
 
   const [debouncedPartners] = useDebounce(partners, 500);
 
-  const generateKeyFromEmail = useCallback((email: string) => {
-    if (!email) return "";
-    const prefix = email.split("@")[0];
-    const randomNum = Math.floor(1000 + Math.random() * 9000);
-    return `${prefix}${randomNum}`;
-  }, []);
-
   const handleKeyFocus = (index: number) => {
     const email = watch(`partners.${index}.email`);
     const currentKey = watch(`partners.${index}.key`);
+
     if (email && !currentKey) {
       setValue(`partners.${index}.key`, generateKeyFromEmail(email));
     }
