@@ -49,13 +49,6 @@ export const getEmbedData = async (token: string) => {
       where: {
         email,
       },
-      // include: {
-      //   programs: {
-      //     where: {
-      //       programId,
-      //     },
-      //   },
-      // },
     });
 
     if (!partnerFound) {
@@ -78,26 +71,28 @@ export const getEmbedData = async (token: string) => {
         userId: "cm1ypncqa0000tc44pfgxp6qs", // TODO: fix this
       });
 
-      programEnrollment = await prisma.programEnrollment.findUnique({
-        where: {
-          partnerId_programId: {
-            partnerId: enrolledPartner.id,
-            programId,
-          },
-        },
-        include: {
-          links: true,
-          program: true,
-          discount: true,
-        },
-      });
-
       partnerId = enrolledPartner.id;
 
-      await embedToken.update(token, {
-        programId,
-        partnerId,
-      });
+      [programEnrollment] = await Promise.all([
+        prisma.programEnrollment.findUnique({
+          where: {
+            partnerId_programId: {
+              partnerId,
+              programId,
+            },
+          },
+          include: {
+            links: true,
+            program: true,
+            discount: true,
+          },
+        }),
+
+        embedToken.update(token, {
+          programId,
+          partnerId,
+        }),
+      ]);
     }
   }
 
