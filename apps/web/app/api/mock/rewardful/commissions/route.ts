@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     updated_at: `2020-08-${19 + i}T16:28:31.164Z`,
     amount: 3000 + i * 1000,
     currency: "USD",
-    state: ["due", "paid", "voided"][i % 3],
+    state: ["pending", "due", "paid", "voided"][i % 4],
     due_at: `2020-09-${18 + i}T16:28:25.000Z`,
     paid_at: i % 3 === 1 ? `2020-09-${20 + i}T16:28:25.000Z` : null,
     voided_at: i % 3 === 2 ? `2020-09-${21 + i}T16:28:25.000Z` : null,

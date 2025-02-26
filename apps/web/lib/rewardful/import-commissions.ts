@@ -2,7 +2,7 @@ import { sendEmail } from "@dub/email";
 import { CampaignImported } from "@dub/email/templates/campaign-imported";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
-import { Program, Project } from "@prisma/client";
+import { CommissionStatus, Program, Project } from "@prisma/client";
 import { getLeadEvent } from "../tinybird";
 import { recordSaleWithTimestamp } from "../tinybird/record-sale";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
@@ -181,6 +181,13 @@ async function createCommission({
 
   const eventId = nanoid(16);
 
+  const toDubStatus: Record<RewardfulCommission["state"], CommissionStatus> = {
+    pending: "pending",
+    due: "pending",
+    paid: "paid",
+    voided: "refunded",
+  };
+
   await Promise.all([
     prisma.commission.create({
       data: {
@@ -193,7 +200,7 @@ async function createCommission({
         amount: sale.sale_amount_cents,
         currency: sale.currency.toLowerCase(),
         quantity: 1,
-        status: "paid",
+        status: toDubStatus[commission.state],
         invoiceId: sale.id, // this is not the actual invoice ID, but we use this to deduplicate the sales
         createdAt: new Date(sale.created_at),
       },
@@ -207,8 +214,8 @@ async function createCommission({
       customer_id: customerFound.id,
       payment_processor: "stripe",
       currency: sale.currency.toLowerCase(),
-      timestamp: new Date(sale.created_at).toISOString(),
       metadata: JSON.stringify(commission),
+      timestamp: new Date(sale.created_at).toISOString(),
     }),
 
     prisma.link.update({
