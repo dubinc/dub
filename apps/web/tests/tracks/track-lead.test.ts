@@ -1,52 +1,55 @@
-import { TrackLeadResponse } from "@/lib/types";
+import { TrackLeadResponse, TrackSaleResponse } from "@/lib/types";
 import { randomCustomer } from "tests/utils/helpers";
 import { E2E_CLICK_ID } from "tests/utils/resource";
 import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 
+// Helper function to verify lead tracking response
+const expectValidLeadResponse = (
+  response: { status: number; data: TrackLeadResponse },
+  customer: any,
+) => {
+  expect(response.status).toEqual(200);
+  expect(response.data).toStrictEqual({
+    clickId: E2E_CLICK_ID,
+    customerName: customer.name,
+    customerEmail: customer.email,
+    customerAvatar: customer.avatar,
+    click: {
+      id: E2E_CLICK_ID,
+    },
+    customer,
+  });
+};
+
 describe("POST /track/lead", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
-  const customer = randomCustomer();
 
+  const customer1 = randomCustomer();
   test("track a lead", async () => {
     const response = await http.post<TrackLeadResponse>({
       path: "/track/lead",
       body: {
         clickId: E2E_CLICK_ID,
         eventName: "Signup",
-        customerId: customer.id,
-        customerName: customer.name,
-        customerEmail: customer.email,
-        customerAvatar: customer.avatar,
+        externalId: customer1.externalId,
+        customerName: customer1.name,
+        customerEmail: customer1.email,
+        customerAvatar: customer1.avatar,
       },
     });
 
-    expect(response.status).toEqual(200);
-    expect(response.data).toStrictEqual({
-      clickId: E2E_CLICK_ID,
-      customerName: customer.name,
-      customerEmail: customer.email,
-      customerAvatar: customer.avatar,
-      click: {
-        id: E2E_CLICK_ID,
-      },
-      customer: {
-        name: customer.name,
-        email: customer.email,
-        avatar: customer.avatar,
-        externalId: customer.id,
-      },
-    });
+    expectValidLeadResponse(response, customer1);
   });
 
-  test("duplicate request with same customerId", async () => {
+  test("duplicate request with same externalId", async () => {
     const response = await http.post<TrackLeadResponse>({
       path: "/track/lead",
       body: {
         clickId: E2E_CLICK_ID,
         eventName: "Signup",
-        customerId: customer.id,
+        externalId: customer1.externalId,
       },
     });
 
@@ -55,8 +58,55 @@ describe("POST /track/lead", async () => {
       error: {
         code: "conflict",
         doc_url: "https://dub.co/docs/api-reference/errors#conflict",
-        message: `Customer with externalId ${customer.id} and event name Signup has already been recorded.`,
+        message: `Customer with externalId ${customer1.externalId} and event name Signup has already been recorded.`,
       },
     });
+  });
+
+  test("track a lead with eventQuantity", async () => {
+    const customer2 = randomCustomer();
+    const response = await http.post<TrackLeadResponse>({
+      path: "/track/lead",
+      body: {
+        clickId: E2E_CLICK_ID,
+        eventName: "Start Trial",
+        externalId: customer2.externalId,
+        customerName: customer2.name,
+        customerEmail: customer2.email,
+        customerAvatar: customer2.avatar,
+        eventQuantity: 2,
+      },
+    });
+
+    expectValidLeadResponse(response, customer2);
+  });
+
+  test("track a lead with mode = 'wait' + track a sale right after", async () => {
+    const customer3 = randomCustomer();
+    const response = await http.post<TrackLeadResponse>({
+      path: "/track/lead",
+      body: {
+        clickId: E2E_CLICK_ID,
+        eventName: "Signup",
+        externalId: customer3.externalId,
+        customerName: customer3.name,
+        customerEmail: customer3.email,
+        customerAvatar: customer3.avatar,
+        mode: "wait",
+      },
+    });
+    expectValidLeadResponse(response, customer3);
+
+    const saleResponse = await http.post<TrackSaleResponse>({
+      path: "/track/sale",
+      body: {
+        externalId: customer3.externalId,
+        eventName: "Purchase",
+        amount: 500,
+        paymentProcessor: "stripe",
+      },
+    });
+
+    expect(saleResponse.status).toEqual(200);
   });
 });

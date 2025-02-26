@@ -136,6 +136,7 @@ export const enrollPartner = async ({
             programId: program.id,
             partnerId: upsertedPartner.id,
             folderId: program.defaultFolderId,
+            trackConversion: true,
           },
           include: includeTags,
         })

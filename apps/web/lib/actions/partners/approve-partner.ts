@@ -37,7 +37,7 @@ export const approvePartnerAction = authActionClient
       throw new Error("Link is already associated with another partner.");
     }
 
-    const [_, updatedLink] = await Promise.all([
+    const [programEnrollment, updatedLink] = await Promise.all([
       prisma.programEnrollment.update({
         where: {
           partnerId_programId: {
@@ -47,6 +47,9 @@ export const approvePartnerAction = authActionClient
         },
         data: {
           status: "approved",
+        },
+        include: {
+          partner: true,
         },
       }),
 
@@ -58,6 +61,7 @@ export const approvePartnerAction = authActionClient
         data: {
           programId,
           partnerId,
+          folderId: program.defaultFolderId,
         },
         include: {
           tags: {
@@ -69,9 +73,15 @@ export const approvePartnerAction = authActionClient
       }),
     ]);
 
-    // TODO: [partners] Notify partner of approval?
-    // TODO: send partner.created webhook
-    waitUntil(recordLink(updatedLink));
+    const partner = programEnrollment.partner;
+
+    waitUntil(
+      Promise.allSettled([
+        recordLink(updatedLink),
+        // TODO: [partners] Notify partner of approval?
+        // TODO: send partner.created webhook
+      ]),
+    );
 
     return {
       ok: true,
