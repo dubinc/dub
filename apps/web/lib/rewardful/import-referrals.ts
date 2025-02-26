@@ -201,10 +201,5 @@ async function createReferral({
       where: { id: link.id },
       data: { leads: { increment: 1 } },
     }),
-
-    prisma.project.update({
-      where: { id: workspace.id },
-      data: { usage: { increment: 1 } },
-    }),
   ]);
 }

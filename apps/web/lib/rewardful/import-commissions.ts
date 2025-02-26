@@ -227,13 +227,5 @@ async function createCommission({
         saleAmount: { increment: sale.sale_amount_cents },
       },
     }),
-
-    prisma.project.update({
-      where: { id: program.workspaceId },
-      data: {
-        usage: { increment: 1 },
-        // salesUsage: { increment: sale.sale_amount_cents },
-      },
-    }),
   ]);
 }
