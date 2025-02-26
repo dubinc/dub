@@ -76,57 +76,57 @@ export const POST = withWorkspaceEdge(
       });
     }
 
+    const clickData = clickEvent.data[0];
+
     const finalCustomerName =
       customerName || customerEmail || generateRandomName();
 
+    const customer = await prismaEdge.customer.upsert({
+      where: {
+        projectId_externalId: {
+          projectId: workspace.id,
+          externalId: customerExternalId,
+        },
+      },
+      create: {
+        id: createId({ prefix: "cus_" }),
+        name: finalCustomerName,
+        email: customerEmail,
+        avatar: customerAvatar,
+        externalId: customerExternalId,
+        projectId: workspace.id,
+        projectConnectId: workspace.stripeConnectId,
+        clickId: clickData.click_id,
+        linkId: clickData.link_id,
+        country: clickData.country,
+        clickedAt: new Date(clickData.timestamp + "Z"),
+      },
+      update: {}, // no updates needed if the customer exists
+    });
+
+    const eventId = nanoid(16);
+    const leadEventPayload = {
+      ...clickData,
+      event_id: eventId,
+      event_name: eventName,
+      customer_id: customer.id,
+      metadata: metadata ? JSON.stringify(metadata) : "",
+    };
+
+    await recordLead(
+      eventQuantity
+        ? Array(eventQuantity)
+            .fill(null)
+            .map(() => ({
+              ...leadEventPayload,
+              event_id: nanoid(16),
+            }))
+        : leadEventPayload,
+    );
+
     waitUntil(
       (async () => {
-        const clickData = clickEvent.data[0];
-
-        const customer = await prismaEdge.customer.upsert({
-          where: {
-            projectId_externalId: {
-              projectId: workspace.id,
-              externalId: customerExternalId,
-            },
-          },
-          create: {
-            id: createId({ prefix: "cus_" }),
-            name: finalCustomerName,
-            email: customerEmail,
-            avatar: customerAvatar,
-            externalId: customerExternalId,
-            projectId: workspace.id,
-            projectConnectId: workspace.stripeConnectId,
-            clickId: clickData.click_id,
-            linkId: clickData.link_id,
-            country: clickData.country,
-            clickedAt: new Date(clickData.timestamp + "Z"),
-          },
-          update: {}, // no updates needed if the customer exists
-        });
-
-        const eventId = nanoid(16);
-        const leadEventPayload = {
-          ...clickData,
-          event_id: eventId,
-          event_name: eventName,
-          customer_id: customer.id,
-          metadata: metadata ? JSON.stringify(metadata) : "",
-        };
-
-        const [_lead, link, _project] = await Promise.all([
-          recordLead(
-            eventQuantity
-              ? Array(eventQuantity)
-                  .fill(null)
-                  .map(() => ({
-                    ...leadEventPayload,
-                    event_id: nanoid(16),
-                  }))
-              : leadEventPayload,
-          ),
-
+        const [link, _project] = await Promise.all([
           // update link leads count
           prismaEdge.link.update({
             where: {
