@@ -136,6 +136,10 @@ export const POST = withWorkspace(
 
       // Use recordLeadSync which waits for the operation to complete
       await recordLeadSync(createLeadEventPayload(customer.id));
+
+      // Add a small delay to ensure the operation is fully processed
+      // This helps mitigate any potential race conditions
+      await new Promise((resolve) => setTimeout(resolve, 500)); // 500ms buffer
     }
 
     waitUntil(
