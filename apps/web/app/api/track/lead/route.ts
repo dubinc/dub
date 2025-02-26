@@ -79,16 +79,11 @@ export const POST = withWorkspace(
     const clickData = clickEvent.data[0];
     const finalCustomerName =
       customerName || customerEmail || generateRandomName();
-
-    let customer: Customer | undefined;
-
     const leadEventId = nanoid(16);
 
-    // Handle customer creation and lead recording based on mode
-    if (mode === "wait") {
-      // Execute customer creation synchronously
-      // TODO: Find a way to reuse this code with the one in async mode
-      customer = await prisma.customer.upsert({
+    // Create a function to handle customer upsert to avoid duplication
+    const upsertCustomer = async () => {
+      return prisma.customer.upsert({
         where: {
           projectId_externalId: {
             projectId: workspace.id,
@@ -110,74 +105,47 @@ export const POST = withWorkspace(
         },
         update: {}, // no updates needed if the customer exists
       });
+    };
 
-      const leadEventPayload = {
+    // Create a function to prepare the lead event payload
+    const createLeadEventPayload = (customerId: string) => {
+      const basePayload = {
         ...clickData,
         event_id: leadEventId,
         event_name: eventName,
-        customer_id: customer.id,
+        customer_id: customerId,
         metadata: metadata ? JSON.stringify(metadata) : "",
       };
 
+      return eventQuantity
+        ? Array(eventQuantity)
+            .fill(null)
+            .map(() => ({
+              ...basePayload,
+              event_id: nanoid(16),
+            }))
+        : basePayload;
+    };
+
+    let customer: Customer | undefined;
+
+    // Handle customer creation and lead recording based on mode
+    if (mode === "wait") {
+      // Execute customer creation synchronously
+      customer = await upsertCustomer();
+
       // Use recordLeadSync which waits for the operation to complete
-      await recordLeadSync(
-        eventQuantity
-          ? Array(eventQuantity)
-              .fill(null)
-              .map(() => ({
-                ...leadEventPayload,
-                event_id: nanoid(16),
-              }))
-          : leadEventPayload,
-      );
+      await recordLeadSync(createLeadEventPayload(customer.id));
     }
 
     waitUntil(
       (async () => {
         // For async mode, create customer in the background
         if (mode === "async") {
-          customer = await prisma.customer.upsert({
-            where: {
-              projectId_externalId: {
-                projectId: workspace.id,
-                externalId: customerExternalId,
-              },
-            },
-            create: {
-              id: createId({ prefix: "cus_" }),
-              name: finalCustomerName,
-              email: customerEmail,
-              avatar: customerAvatar,
-              externalId: customerExternalId,
-              projectId: workspace.id,
-              projectConnectId: workspace.stripeConnectId,
-              clickId: clickData.click_id,
-              linkId: clickData.link_id,
-              country: clickData.country,
-              clickedAt: new Date(clickData.timestamp + "Z"),
-            },
-            update: {}, // no updates needed if the customer exists
-          });
-
-          const leadEventPayload = {
-            ...clickData,
-            event_id: leadEventId,
-            event_name: eventName,
-            customer_id: customer.id,
-            metadata: metadata ? JSON.stringify(metadata) : "",
-          };
+          customer = await upsertCustomer();
 
           // Use recordLead which doesn't wait
-          await recordLead(
-            eventQuantity
-              ? Array(eventQuantity)
-                  .fill(null)
-                  .map(() => ({
-                    ...leadEventPayload,
-                    event_id: nanoid(16),
-                  }))
-              : leadEventPayload,
-          );
+          await recordLead(createLeadEventPayload(customer.id));
         }
 
         // Always process link/project updates, partner rewards, and webhooks in the background
