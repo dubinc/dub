@@ -104,7 +104,7 @@ export const POST = withWorkspace(
       ...(programEnrollment
         ? { partnerId: programEnrollment.partnerId }
         : partner
-          ? { partner }
+          ? { partner: { ...partner, userId: session.user.id } }
           : null),
     });
 

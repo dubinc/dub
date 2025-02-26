@@ -68,7 +68,7 @@ export const getEmbedData = async (token: string) => {
           ...partner,
           programId,
         },
-        userId: "cm1ypncqa0000tc44pfgxp6qs", // TODO: fix this
+        userId: partner.userId,
       });
 
       partnerId = enrolledPartner.id;

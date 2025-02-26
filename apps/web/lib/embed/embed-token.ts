@@ -11,7 +11,9 @@ import {
 type EmbedTokenProps = {
   programId: string;
   partnerId?: string;
-  partner?: Omit<z.infer<typeof createPartnerSchema>, "programId">;
+  partner?: Omit<z.infer<typeof createPartnerSchema>, "programId"> & {
+    userId: string;
+  };
 };
 
 class EmbedToken {
