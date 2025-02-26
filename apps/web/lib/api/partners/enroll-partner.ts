@@ -199,6 +199,12 @@ export const createLinkAndEnrollPartner = async ({
     },
   });
 
+  // TODO:
+  // Instead of throwing an error, we should try to create a link with a random key
+  // if (code === "conflict") {
+
+  // }
+
   if (error != null) {
     throw new DubApiError({
       code: code as ErrorCodes,
