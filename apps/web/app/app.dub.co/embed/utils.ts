@@ -8,10 +8,15 @@ import { Discount, Link, Program, ProgramEnrollment } from "@prisma/client";
 import { notFound } from "next/navigation";
 
 export const getEmbedData = async (token: string) => {
-  const { programId, partnerId, partner } = (await embedToken.get(token)) ?? {};
+  let { programId, partnerId, partner } = (await embedToken.get(token)) ?? {};
 
-  if (!programId || !partnerId || !partner) {
-    console.error("[Embed] No programId, partnerId, or partner found.");
+  if (!programId) {
+    console.error("[Embed] No programId found.");
+    notFound();
+  }
+
+  if (!partnerId && !partner) {
+    console.error("[Embed] No partnerId or partner found.");
     notFound();
   }
 
@@ -37,15 +42,20 @@ export const getEmbedData = async (token: string) => {
         discount: true,
       },
     });
-  }
-
-  if (partner) {
+  } else if (partner) {
     const { email } = partner;
 
     const partnerFound = await prisma.partner.findUnique({
       where: {
         email,
       },
+      // include: {
+      //   programs: {
+      //     where: {
+      //       programId,
+      //     },
+      //   },
+      // },
     });
 
     if (!partnerFound) {
@@ -58,20 +68,20 @@ export const getEmbedData = async (token: string) => {
         },
       });
 
-      await createLinkAndEnrollPartner({
+      const enrolledPartner = await createLinkAndEnrollPartner({
         workspace: workspace as WorkspaceProps,
         program,
         partner: {
           ...partner,
           programId,
         },
-        userId: "", // TODO: fix this
+        userId: "cm1ypncqa0000tc44pfgxp6qs", // TODO: fix this
       });
 
       programEnrollment = await prisma.programEnrollment.findUnique({
         where: {
           partnerId_programId: {
-            partnerId,
+            partnerId: enrolledPartner.id,
             programId,
           },
         },
@@ -80,6 +90,13 @@ export const getEmbedData = async (token: string) => {
           program: true,
           discount: true,
         },
+      });
+
+      partnerId = enrolledPartner.id;
+
+      await embedToken.update(token, {
+        programId,
+        partnerId,
       });
     }
   }
@@ -90,7 +107,7 @@ export const getEmbedData = async (token: string) => {
 
   const reward = await determinePartnerReward({
     programId,
-    partnerId,
+    partnerId: programEnrollment.partnerId,
     event: "sale",
   });
 

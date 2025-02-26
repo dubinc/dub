@@ -35,6 +35,18 @@ class EmbedToken {
   async get(token: string) {
     return await redis.get<EmbedTokenProps>(token);
   }
+
+  async update(token: string, props: EmbedTokenProps) {
+    const existingProps = await this.get(token);
+
+    if (!existingProps) {
+      throw new Error("Token not found.");
+    }
+
+    await redis.set(token, JSON.stringify(props), {
+      ex: EMBED_PUBLIC_TOKEN_EXPIRY,
+    });
+  }
 }
 
 export const embedToken = new EmbedToken();

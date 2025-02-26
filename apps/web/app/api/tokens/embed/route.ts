@@ -24,20 +24,18 @@ export const POST = withWorkspace(
       });
     }
 
-    let programEnrollment: ProgramEnrollment | null = null;
+    let programEnrollment: Pick<ProgramEnrollment, "partnerId"> | null = null;
 
     if (partnerId) {
       programEnrollment = await prisma.programEnrollment.findUnique({
         where: {
-          partnerId_programId: { partnerId, programId },
-        },
-        include: {
-          program: true,
+          partnerId_programId: {
+            partnerId,
+            programId,
+          },
         },
       });
-    }
-
-    if (tenantId) {
+    } else if (tenantId) {
       programEnrollment = await prisma.programEnrollment.findUnique({
         where: {
           tenantId_programId: {
@@ -45,13 +43,10 @@ export const POST = withWorkspace(
             programId,
           },
         },
-        include: {
-          program: true,
-        },
       });
     }
 
-    if (!programEnrollment) {
+    if ((partnerId || tenantId) && !programEnrollment) {
       throw new DubApiError({
         message: `Partner with ${
           partnerId ? `ID ${partnerId}` : `tenant ID ${tenantId}`
@@ -65,20 +60,18 @@ export const POST = withWorkspace(
         where: {
           email: partner.email,
         },
-      });
-
-      if (existingPartner) {
-        programEnrollment = await prisma.programEnrollment.findUnique({
-          where: {
-            partnerId_programId: {
-              partnerId: existingPartner.id,
+        include: {
+          programs: {
+            where: {
               programId,
             },
           },
-        });
+        },
+      });
 
+      if (existingPartner) {
         // partner exists but is not enrolled in the program
-        if (!programEnrollment) {
+        if (existingPartner.programs.length === 0) {
           const program = await prisma.program.findUniqueOrThrow({
             where: {
               id: programId,
@@ -95,14 +88,13 @@ export const POST = withWorkspace(
             userId: session.user.id,
           });
 
-          programEnrollment = await prisma.programEnrollment.findUnique({
-            where: {
-              partnerId_programId: {
-                partnerId: enrolledPartner.id,
-                programId,
-              },
-            },
-          });
+          programEnrollment = {
+            partnerId: enrolledPartner.id,
+          };
+        } else {
+          programEnrollment = {
+            partnerId: existingPartner.id,
+          };
         }
       }
     }
