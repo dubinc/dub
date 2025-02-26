@@ -102,27 +102,30 @@ export const getEmbedData = async (token: string) => {
   }
 
   if (!programEnrollment) {
+    console.error("[Embed] No program enrollment found.");
     notFound();
   }
 
-  const reward = await determinePartnerReward({
-    programId,
-    partnerId: programEnrollment.partnerId,
-    event: "sale",
-  });
-
   const { program, links } = programEnrollment;
 
-  const payouts = await prisma.payout.groupBy({
-    by: ["status"],
-    _sum: {
-      amount: true,
-    },
-    where: {
-      programId: program.id,
-      partnerId: programEnrollment?.partnerId,
-    },
-  });
+  const [reward, payouts] = await Promise.all([
+    determinePartnerReward({
+      programId,
+      partnerId: programEnrollment.partnerId,
+      event: "sale",
+    }),
+
+    prisma.payout.groupBy({
+      by: ["status"],
+      _sum: {
+        amount: true,
+      },
+      where: {
+        programId: program.id,
+        partnerId: programEnrollment?.partnerId,
+      },
+    }),
+  ]);
 
   return {
     program,
