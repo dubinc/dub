@@ -16,7 +16,7 @@ export async function importReferrals({
   programId: string;
   page: number;
 }) {
-  const { token, userId, campaignId } =
+  const { token, campaignId } =
     await rewardfulImporter.getCredentials(programId);
 
   const rewardfulApi = new RewardfulApi({ token });
@@ -67,6 +67,11 @@ export async function importReferrals({
       page: currentPage,
     });
   }
+
+  await rewardfulImporter.queue({
+    programId: program.id,
+    action: "import-commissions",
+  });
 }
 
 // Create individual referral entries

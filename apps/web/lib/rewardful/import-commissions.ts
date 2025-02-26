@@ -1,7 +1,11 @@
 import { sendEmail } from "@dub/email";
 import { CampaignImported } from "@dub/email/templates/campaign-imported";
 import { prisma } from "@dub/prisma";
+import { nanoid } from "@dub/utils";
 import { Program, Project } from "@prisma/client";
+import { getLeadEvent } from "../tinybird";
+import { recordSaleWithTimestamp } from "../tinybird/record-sale";
+import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { RewardfulApi } from "./api";
 import { MAX_BATCHES, rewardfulImporter } from "./importer";
 import { RewardfulCommission } from "./types";
@@ -123,6 +127,9 @@ async function createCommission({
     where: {
       stripeCustomerId: sale.referral.stripe_customer_id,
     },
+    include: {
+      link: true,
+    },
   });
 
   if (!customerFound) {
@@ -132,21 +139,78 @@ async function createCommission({
     return;
   }
 
+  if (
+    !customerFound.linkId ||
+    !customerFound.clickId ||
+    !customerFound.link?.partnerId
+  ) {
+    console.log(
+      `No link or click ID or partner ID found for customer ${customerFound.id}, skipping...`,
+    );
+    return;
+  }
+
+  const leadEvent = await getLeadEvent({
+    customerId: customerFound.id,
+  });
+
+  if (!leadEvent || leadEvent.data.length === 0) {
+    console.log(
+      `No lead event found for customer ${customerFound.id}, skipping...`,
+    );
+    return;
+  }
+
+  const clickData = clickEventSchemaTB
+    .omit({ timestamp: true })
+    .parse(leadEvent.data[0]);
+
+  const eventId = nanoid(16);
+
   await Promise.all([
-    // recordSaleWithTimestamp({
-    //   ...clickEvent,
-    //   event_id: nanoid(16),
-    //   event_name: "Sign up",
-    //   customer_id: customerId,
-    //   timestamp: new Date(referral.became_lead_at).toISOString(),
-    // }),
-    // prisma.link.update({
-    //   where: { id: link.id },
-    //   data: { leads: { increment: 1 } },
-    // }),
-    // prisma.project.update({
-    //   where: { id: workspace.id },
-    //   data: { usage: { increment: 1 } },
-    // }),
+    prisma.commission.create({
+      data: {
+        eventId,
+        type: "sale",
+        programId: program.id,
+        partnerId: customerFound.link.partnerId,
+        linkId: customerFound.linkId,
+        customerId: customerFound.id,
+        amount: sale.sale_amount_cents,
+        currency: sale.currency.toLowerCase(),
+        quantity: 1,
+        status: "paid",
+        invoiceId: sale.id, // this is not the actual invoice ID
+        createdAt: new Date(sale.created_at),
+      },
+    }),
+
+    recordSaleWithTimestamp({
+      ...clickData,
+      event_id: eventId,
+      event_name: "Purchase",
+      amount: sale.sale_amount_cents,
+      customer_id: customerFound.id,
+      payment_processor: "stripe",
+      currency: sale.currency.toLowerCase(),
+      timestamp: new Date(sale.created_at).toISOString(),
+      metadata: JSON.stringify(commission),
+    }),
+
+    prisma.link.update({
+      where: { id: customerFound.linkId },
+      data: {
+        sales: { increment: 1 },
+        saleAmount: { increment: sale.sale_amount_cents },
+      },
+    }),
+
+    prisma.project.update({
+      where: { id: workspace.id },
+      data: {
+        usage: { increment: 1 },
+        salesUsage: { increment: sale.sale_amount_cents },
+      },
+    }),
   ]);
 }
