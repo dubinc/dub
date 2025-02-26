@@ -1,6 +1,6 @@
-import { FormWrapper } from "./new/form-wrapper";
-import { Header } from "./new/header";
-import { Steps } from "./new/steps";
+import { FormWrapper } from "./form-wrapper";
+import { Header } from "./header";
+import { Steps } from "./steps";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
