@@ -1,7 +1,7 @@
+import { ReferralsEmbedPageClient } from "./page-client";
 import { getEmbedData } from "./utils";
-import { EmbedInlinePageClient } from "./page-client";
 
-export default async function EmbedInlinePage({
+export default async function ReferralsEmbedPage({
   searchParams,
 }: {
   searchParams: { token: string };
@@ -10,5 +10,5 @@ export default async function EmbedInlinePage({
 
   const embedData = await getEmbedData(token);
 
-  return <EmbedInlinePageClient {...embedData} />;
+  return <ReferralsEmbedPageClient {...embedData} />;
 }

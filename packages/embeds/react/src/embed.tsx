@@ -11,10 +11,10 @@ type DubEmbedProps = {
 } & HTMLProps<HTMLDivElement>;
 
 export const DubEmbed = memo(({ token, options, ...rest }: DubEmbedProps) => (
-  <DubInline options={{ ...options, token }} {...rest} />
+  <DubEmbedInner options={{ ...options, token }} {...rest} />
 ));
 
-function DubInline({
+function DubEmbedInner({
   options,
   ...rest
 }: { options: DubEmbedOptions } & HTMLProps<HTMLDivElement>) {
