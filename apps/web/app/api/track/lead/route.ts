@@ -66,6 +66,7 @@ export const POST = withWorkspace(
         message: `Customer with externalId ${customerExternalId} and event name ${eventName} has already been recorded.`,
       });
     }
+
     // Find click event
     const clickEvent = await getClickEvent({ clickId });
 
@@ -134,12 +135,17 @@ export const POST = withWorkspace(
       // Execute customer creation synchronously
       customer = await upsertCustomer();
 
-      // Use recordLeadSync which waits for the operation to complete
-      await recordLeadSync(createLeadEventPayload(customer.id));
+      const leadEventPayload = createLeadEventPayload(customer.id);
 
-      // Add a small delay to ensure the operation is fully processed
-      // This helps mitigate any potential race conditions
-      await new Promise((resolve) => setTimeout(resolve, 500)); // 500ms buffer
+      await Promise.all([
+        // Use recordLeadSync which waits for the operation to complete
+        recordLeadSync(leadEventPayload),
+
+        // Cache the latest lead event for 5 minutes because the ingested event is not available immediately on Tinybird
+        redis.set(`latestLeadEvent:${customer.id}`, leadEventPayload, {
+          ex: 60 * 5,
+        }),
+      ]);
     }
 
     waitUntil(
