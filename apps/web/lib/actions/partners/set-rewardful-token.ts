@@ -31,7 +31,7 @@ export const setRewardfulTokenAction = authActionClient
       throw new Error("Invalid Rewardful token");
     }
 
-    await rewardfulImporter.setCredentials(programId, {
+    await rewardfulImporter.setCredentials(workspace.id, {
       userId: user.id,
       token,
       campaignId: "", // We'll set in the second step after choosing the campaign
