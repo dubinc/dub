@@ -11,12 +11,12 @@ export const getEmbedData = async (token: string) => {
   let { programId, partnerId, partner } = (await embedToken.get(token)) ?? {};
 
   if (!programId) {
-    console.error("[Embed] No programId found.");
+    console.error("[Referrals Embed] No programId found.");
     notFound();
   }
 
   if (!partnerId && !partner) {
-    console.error("[Embed] No partnerId or partner found.");
+    console.error("[Referrals Embed] No partnerId or partner found.");
     notFound();
   }
 
@@ -69,6 +69,7 @@ export const getEmbedData = async (token: string) => {
           programId,
         },
         userId: partner.userId,
+        generateRandomKey: true,
       });
 
       partnerId = enrolledPartner.id;
@@ -97,7 +98,7 @@ export const getEmbedData = async (token: string) => {
   }
 
   if (!programEnrollment) {
-    console.error("[Embed] No program enrollment found.");
+    console.error("[Referrals Embed] No program enrollment found.");
     notFound();
   }
 

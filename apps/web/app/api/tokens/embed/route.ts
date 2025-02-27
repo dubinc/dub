@@ -79,6 +79,7 @@ export const POST = withWorkspace(
               programId,
             },
             userId: session.user.id,
+            generateRandomKey: true,
           });
 
           programEnrollment = {

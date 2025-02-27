@@ -4,6 +4,7 @@ import { ErrorCodes } from "@/lib/api/errors";
 import { createId } from "@/lib/api/utils";
 import { recordLink } from "@/lib/tinybird";
 import {
+  ProcessedLinkProps,
   ProgramPartnerLinkProps,
   ProgramProps,
   WorkspaceProps,
@@ -16,6 +17,7 @@ import {
 } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
+import { generateRandomString } from "@dub/utils/src";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { DubApiError } from "../errors";
@@ -51,6 +53,9 @@ export const enrollPartner = async ({
         },
       },
     });
+
+    // TODO:
+    // Instead of throwing an error, should we return the existing partner program enrollment?
 
     if (programEnrollment) {
       throw new DubApiError({
@@ -159,11 +164,13 @@ export const createLinkAndEnrollPartner = async ({
   program,
   partner,
   userId,
+  generateRandomKey = false,
 }: {
   workspace: Pick<WorkspaceProps, "id" | "plan" | "webhookEnabled">;
   program: Pick<ProgramProps, "id" | "defaultFolderId" | "domain" | "url">;
   partner: z.infer<typeof createPartnerSchema>;
   userId: string;
+  generateRandomKey?: boolean;
 }) => {
   if (!program.domain || !program.url) {
     throw new DubApiError({
@@ -185,26 +192,42 @@ export const createLinkAndEnrollPartner = async ({
     programId,
   } = partner;
 
-  const { link, error, code } = await processLink({
-    workspace,
-    userId,
-    payload: {
-      ...linkProps,
-      domain: program.domain,
-      key: username,
-      url: program.url,
-      programId,
-      tenantId,
-      folderId: program.defaultFolderId,
-      trackConversion: true,
-    },
-  });
+  let link: ProcessedLinkProps;
+  let error: string | null;
+  let code: ErrorCodes | null;
+  let currentKey = username;
 
-  // TODO:
-  // Instead of throwing an error, we should try to create a link with a random key
-  // if (code === "conflict") {
+  while (true) {
+    const result = await processLink({
+      workspace,
+      userId,
+      payload: {
+        ...linkProps,
+        domain: program.domain,
+        key: currentKey,
+        url: program.url,
+        programId,
+        tenantId,
+        folderId: program.defaultFolderId,
+        trackConversion: true,
+      },
+    });
 
-  // }
+    if (
+      generateRandomKey &&
+      result.code === "conflict" &&
+      result.error.startsWith("Duplicate key")
+    ) {
+      currentKey = username + generateRandomString(4).toLowerCase();
+      continue;
+    }
+
+    // if we get here, either there was a different error or it succeeded
+    link = result.link as ProcessedLinkProps;
+    error = result.error;
+    code = result.code as ErrorCodes;
+    break;
+  }
 
   if (error != null) {
     throw new DubApiError({

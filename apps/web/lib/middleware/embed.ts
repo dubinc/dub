@@ -9,9 +9,9 @@ export default async function EmbedMiddleware(req: NextRequest) {
   const token = req.nextUrl.searchParams.get("token");
 
   if (token) {
-    const linkId = await embedToken.get(token);
+    const tokenData = await embedToken.get(token);
 
-    if (linkId) {
+    if (tokenData) {
       return NextResponse.rewrite(new URL(`/app.dub.co${fullPath}`, req.url), {
         headers: {
           "Set-Cookie": `${EMBED_PUBLIC_TOKEN_COOKIE_NAME}=${token}; HttpOnly; Secure; SameSite=None; Path=/`,
