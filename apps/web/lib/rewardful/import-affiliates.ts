@@ -1,5 +1,5 @@
 import { prisma } from "@dub/prisma";
-import { Program, Project } from "@dub/prisma/client";
+import { Program } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { bulkCreateLinks } from "../api/links";
 import { createId } from "../api/utils";
@@ -17,23 +17,21 @@ export async function importAffiliates({
   rewardId?: string;
   page: number;
 }) {
-  const { token, userId, campaignId } =
-    await rewardfulImporter.getCredentials(programId);
+  const program = await prisma.program.findUniqueOrThrow({
+    where: {
+      id: programId,
+    },
+  });
+
+  const { token, userId, campaignId } = await rewardfulImporter.getCredentials(
+    program.workspaceId,
+  );
 
   const rewardfulApi = new RewardfulApi({ token });
 
   let currentPage = page;
   let hasMoreAffiliates = true;
   let processedBatches = 0;
-
-  const { workspace, ...program } = await prisma.program.findUniqueOrThrow({
-    where: {
-      id: programId,
-    },
-    include: {
-      workspace: true,
-    },
-  });
 
   while (hasMoreAffiliates && processedBatches < MAX_BATCHES) {
     const affiliates = await rewardfulApi.listAffiliates({
@@ -60,7 +58,6 @@ export async function importAffiliates({
       await Promise.all(
         activeAffiliates.map((affiliate) =>
           createPartnerAndLinks({
-            workspace,
             program,
             affiliate,
             userId,
@@ -87,13 +84,11 @@ export async function importAffiliates({
 
 // Create partner and their links
 async function createPartnerAndLinks({
-  workspace,
   program,
   affiliate,
   userId,
   rewardId,
 }: {
-  workspace: Project;
   program: Program;
   affiliate: RewardfulAffiliate;
   userId: string;
@@ -151,7 +146,7 @@ async function createPartnerAndLinks({
       partnerId: partner.id,
       folderId: program.defaultFolderId,
       userId,
-      projectId: workspace.id,
+      projectId: program.workspaceId,
     })),
   });
 
