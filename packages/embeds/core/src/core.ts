@@ -27,13 +27,7 @@ class DubEmbed {
   renderEmbed() {
     console.debug("[Dub] Rendering embed.");
 
-    const {
-      token,
-      root,
-      containerStyles,
-      onError,
-      data = "referrals",
-    } = this.options;
+    const { token, root, containerStyles, onError, data } = this.options;
 
     const existingContainer = document.getElementById(DUB_CONTAINER_ID);
 

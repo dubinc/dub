@@ -51,5 +51,5 @@ export function ReferralsPageClient() {
     );
   }
 
-  return <DubEmbed token={publicToken} />;
+  return <DubEmbed data="referrals" token={publicToken} />;
 }

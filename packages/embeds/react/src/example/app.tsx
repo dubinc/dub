@@ -15,7 +15,7 @@ const Embed = () => {
     createToken();
   }, []);
 
-  return <DubEmbed token={token}  />;
+  return <DubEmbed data="referrals" token={token} />;
 };
 
 ReactDom.render(<Embed />, document.getElementById("root"));
