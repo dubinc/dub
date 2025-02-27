@@ -4,13 +4,13 @@ import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
 import usePrograms from "@/lib/swr/use-programs";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, Wordmark, useMediaQuery } from "@dub/ui";
+import { Menu } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
-import { useEffect } from "react";
-import { Menu } from "lucide-react";
 import { useSidebar } from "./sidebar-context";
 
 export function Header() {
@@ -20,7 +20,7 @@ export function Header() {
   const { partnersEnabled, loading: workspaceLoading } = useWorkspace();
   const { isOpen, setIsOpen } = useSidebar();
   const { isMobile } = useMediaQuery();
-  
+
   const {
     id: workspaceId,
     slug: workspaceSlug,

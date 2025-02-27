@@ -21,7 +21,7 @@ const GUIDES = [
   },
 ] as const;
 
-export function Form() {
+export function PageClient() {
   const router = useRouter();
   const [isPending, setIsPending] = useState(false);
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();

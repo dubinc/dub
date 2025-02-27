@@ -15,7 +15,7 @@ import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { LINK_TYPES } from "../form";
 
-export function Form() {
+export function PageClient() {
   const router = useRouter();
   const { getValues } = useFormContext<ProgramData>();
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();

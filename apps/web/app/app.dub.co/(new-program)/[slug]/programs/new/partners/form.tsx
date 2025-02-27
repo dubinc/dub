@@ -2,7 +2,6 @@
 
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { ProgramData } from "@/lib/zod/schemas/program-onboarding";
 import { AlertCircleFill } from "@/ui/shared/icons";
 import { Button, Input } from "@dub/ui";
@@ -26,9 +25,8 @@ const generateKeyFromEmail = (email: string) => {
 
 export function Form() {
   const router = useRouter();
-  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const [keyErrors, setKeyErrors] = useState<{ [key: number]: string }>({});
-  const [_, __, { mutateWorkspace }] = useWorkspaceStore("programOnboarding");
+  const { id: workspaceId, slug: workspaceSlug, mutate } = useWorkspace();
 
   const {
     register,
@@ -108,7 +106,7 @@ export function Form() {
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
-      mutateWorkspace();
+      mutate();
       router.push(`/${workspaceSlug}/programs/new/connect`);
     },
     onError: ({ error }) => {

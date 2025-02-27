@@ -6,7 +6,6 @@ import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { RewardfulCampaign } from "@/lib/rewardful/types";
 import { useRewardfulCampaigns } from "@/lib/swr/use-rewardful-campaigns";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { ProgramData } from "@/lib/zod/schemas/program-onboarding";
 import {
   COMMISSION_TYPES,
@@ -56,8 +55,7 @@ const IMPORT_SOURCES = [
 
 export function Form() {
   const router = useRouter();
-  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
-  const [_, __, { mutateWorkspace }] = useWorkspaceStore("programOnboarding");
+  const { id: workspaceId, slug: workspaceSlug, mutate } = useWorkspace();
 
   const {
     register,
@@ -75,7 +73,7 @@ export function Form() {
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
-      mutateWorkspace();
+      mutate();
       router.push(`/${workspaceSlug}/programs/new/partners`);
     },
     onError: ({ error }) => {

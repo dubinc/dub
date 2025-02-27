@@ -3,7 +3,6 @@
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
 import useDomains from "@/lib/swr/use-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { ProgramData } from "@/lib/zod/schemas/program-onboarding";
 import {
   Badge,
@@ -46,8 +45,7 @@ export function Form() {
   const router = useRouter();
   const { isMobile } = useMediaQuery();
   const { activeWorkspaceDomains, loading } = useDomains();
-  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
-  const [_, __, { mutateWorkspace }] = useWorkspaceStore("programOnboarding");
+  const { id: workspaceId, slug: workspaceSlug, mutate } = useWorkspace();
 
   const {
     register,
@@ -59,7 +57,7 @@ export function Form() {
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
-      mutateWorkspace();
+      mutate();
       router.push(`/${workspaceSlug}/programs/new/rewards`);
     },
     onError: ({ error }) => {
