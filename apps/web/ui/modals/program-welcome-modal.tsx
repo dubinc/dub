@@ -46,7 +46,7 @@ function ProgramWelcomeModal({
                 {loading ? (
                   <div className="h-6 w-32 animate-pulse rounded-md bg-gray-200" />
                 ) : (
-                  program?.name
+                  `${program?.name} created!`
                 )}
               </h1>
               <p className="mt-2 text-sm text-neutral-600">
