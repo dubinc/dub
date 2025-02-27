@@ -4,6 +4,7 @@ import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { createId, parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhookOnEdge } from "@/lib/webhook/publish-edge";
@@ -20,7 +21,6 @@ import { waitUntil } from "@vercel/functions";
 import { differenceInMonths } from "date-fns";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { determinePartnerReward } from "../determine-partner-reward-edge";
 
 type LeadEvent = z.infer<typeof leadEventSchemaTB>;
 

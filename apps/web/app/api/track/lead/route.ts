@@ -3,6 +3,7 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { createId, parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
+import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { getClickEvent, recordLead, recordLeadSync } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhookOnEdge } from "@/lib/webhook/publish-edge";
@@ -16,7 +17,6 @@ import { nanoid } from "@dub/utils";
 import { Customer } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
-import { determinePartnerReward } from "../determine-partner-reward-edge";
 
 // POST /api/track/lead – Track a lead conversion event
 export const POST = withWorkspace(
