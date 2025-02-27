@@ -2,15 +2,16 @@
 
 import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { Check, Lock, Menu, X } from "lucide-react";
+import { Check, Lock, X } from "lucide-react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useSidebar } from "./sidebar-context";
 
 export function Steps() {
   const pathname = usePathname();
   const { isMobile } = useMediaQuery();
-  const [isOpen, setIsOpen] = useState(false);
+  const { isOpen, setIsOpen } = useSidebar();
   const { slug } = useParams<{ slug: string }>();
 
   useEffect(() => {
@@ -50,13 +51,6 @@ export function Steps() {
 
   return (
     <>
-      <button
-        onClick={() => setIsOpen(true)}
-        className="fixed left-4 top-[72px] z-20 rounded-md p-1 hover:bg-neutral-100 md:hidden"
-      >
-        <Menu className="h-5 w-5 text-neutral-600" />
-      </button>
-
       <div
         className={cn(
           "fixed left-0 top-14 z-20 h-[calc(100vh-3.5rem)] w-screen transition-[background-color,backdrop-filter] md:sticky md:top-0 md:z-0 md:h-[calc(100vh-3.5rem)] md:w-full md:bg-transparent",

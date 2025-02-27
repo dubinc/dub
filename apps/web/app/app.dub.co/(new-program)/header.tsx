@@ -3,23 +3,33 @@
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
 import usePrograms from "@/lib/swr/use-programs";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { Button, Wordmark } from "@dub/ui";
+import { Button, Wordmark, useMediaQuery } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
+import { useEffect } from "react";
+import { Menu } from "lucide-react";
+import { useSidebar } from "./sidebar-context";
 
 export function Header() {
   const router = useRouter();
   const { getValues } = useFormContext();
   const { programs, loading: programsLoading } = usePrograms();
+  const { partnersEnabled, loading: workspaceLoading } = useWorkspace();
+  const { isOpen, setIsOpen } = useSidebar();
+  const { isMobile } = useMediaQuery();
+  
   const {
     id: workspaceId,
     slug: workspaceSlug,
     mutate: mutateWorkspace,
   } = useWorkspace();
-  const { partnersEnabled, loading: workspaceLoading } = useWorkspace();
+
+  useEffect(() => {
+    document.body.style.overflow = isOpen && isMobile ? "hidden" : "auto";
+  }, [isOpen, isMobile]);
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: async () => {
@@ -86,6 +96,12 @@ export function Header() {
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-neutral-200 bg-white px-4">
       <div className="flex items-center gap-5">
+        <button
+          onClick={() => setIsOpen(true)}
+          className="rounded-md p-1 hover:bg-neutral-100 md:hidden"
+        >
+          <Menu className="h-5 w-5 text-neutral-600" />
+        </button>
         <Link href="/" className="flex items-center">
           <Wordmark className="h-7" />
         </Link>
