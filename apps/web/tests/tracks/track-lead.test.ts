@@ -87,7 +87,7 @@ describe("POST /track/lead", async () => {
       path: "/track/lead",
       body: {
         clickId: E2E_CLICK_ID,
-        eventName: "Signup",
+        eventName: "Mode=Wait Signup",
         externalId: customer3.externalId,
         customerName: customer3.name,
         customerEmail: customer3.email,
@@ -101,7 +101,7 @@ describe("POST /track/lead", async () => {
       path: "/track/sale",
       body: {
         externalId: customer3.externalId,
-        eventName: "Purchase",
+        eventName: "Mode=Wait Purchase",
         amount: 500,
         paymentProcessor: "stripe",
       },
