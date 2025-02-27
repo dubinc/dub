@@ -102,7 +102,7 @@ export function Steps() {
                         current && "bg-blue-500 text-white",
                         !current &&
                           !completed &&
-                          "bg-neutral-200 text-neutral-600",
+                          "border border-neutral-200 text-neutral-500",
                         isLocked && "bg-neutral-200",
                       )}
                     >
