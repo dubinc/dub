@@ -139,6 +139,33 @@ async function createCommission({
     return;
   }
 
+  // here, we also check for commissions that have already been recorded on Dub
+  // e.g. during the transition period
+  // since we don't have the Stripe invoiceId from Rewardful, we use the referral's Stripe customer ID
+  // and check for commissions that were created with the same amount and within a +-1 hour window
+  const chargedAt = new Date(sale.charged_at);
+  const trackedCommission = await prisma.commission.findFirst({
+    where: {
+      programId: program.id,
+      type: "sale",
+      customer: {
+        stripeCustomerId: sale.referral.stripe_customer_id,
+      },
+      amount: sale.sale_amount_cents,
+      createdAt: {
+        gte: new Date(chargedAt.getTime() - 60 * 60 * 1000), // 1 hour before
+        lte: new Date(chargedAt.getTime() + 60 * 60 * 1000), // 1 hour after
+      },
+    },
+  });
+
+  if (trackedCommission) {
+    console.log(
+      `Commission ${trackedCommission.id} was already recorded on Dub, skipping...`,
+    );
+    return;
+  }
+
   const customerFound = await prisma.customer.findUnique({
     where: {
       stripeCustomerId: sale.referral.stripe_customer_id,
