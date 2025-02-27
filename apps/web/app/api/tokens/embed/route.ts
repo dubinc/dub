@@ -26,36 +26,22 @@ export const POST = withWorkspace(
 
     let programEnrollment: Pick<ProgramEnrollment, "partnerId"> | null = null;
 
-    if (partnerId) {
+    if (partnerId || tenantId) {
       programEnrollment = await prisma.programEnrollment.findUnique({
-        where: {
-          partnerId_programId: {
-            partnerId,
-            programId,
-          },
-        },
+        where: partnerId
+          ? { partnerId_programId: { partnerId, programId } }
+          : { tenantId_programId: { tenantId: tenantId!, programId } },
       });
-    } else if (tenantId) {
-      programEnrollment = await prisma.programEnrollment.findUnique({
-        where: {
-          tenantId_programId: {
-            tenantId,
-            programId,
-          },
-        },
-      });
-    }
 
-    if ((partnerId || tenantId) && !programEnrollment) {
-      throw new DubApiError({
-        message: `Partner with ${
-          partnerId ? `ID ${partnerId}` : `tenant ID ${tenantId}`
-        } does not enroll in this program ${programId}.`,
-        code: "not_found",
-      });
-    }
-
-    if (partner) {
+      if (!programEnrollment) {
+        throw new DubApiError({
+          message: `Partner with ${
+            partnerId ? `ID ${partnerId}` : `tenant ID ${tenantId}`
+          } does not enroll in this program ${programId}.`,
+          code: "not_found",
+        });
+      }
+    } else if (partner) {
       const program = await prisma.program.findUnique({
         where: {
           id: programId,
