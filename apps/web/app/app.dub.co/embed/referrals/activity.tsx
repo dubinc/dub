@@ -14,7 +14,7 @@ export function EmbedActivity({
   sales: number;
 }) {
   const { data: analytics } = useSWR<AnalyticsTimeseries[]>(
-    `/api/embed/analytics`,
+    "/api/embed/referrals/analytics",
     fetcher,
     {
       keepPreviousData: true,
