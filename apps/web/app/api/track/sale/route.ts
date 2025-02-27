@@ -4,11 +4,13 @@ import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { createId, parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhookOnEdge } from "@/lib/webhook/publish-edge";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
+import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import {
   trackSaleRequestSchema,
   trackSaleResponseSchema,
@@ -18,7 +20,9 @@ import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { differenceInMonths } from "date-fns";
 import { NextResponse } from "next/server";
-import { determinePartnerReward } from "../determine-partner-reward-edge";
+import { z } from "zod";
+
+type LeadEvent = z.infer<typeof leadEventSchemaTB>;
 
 // POST /api/track/sale – Track a sale conversion event
 export const POST = withWorkspace(
@@ -84,16 +88,29 @@ export const POST = withWorkspace(
       eventName: leadEventName,
     });
 
+    let leadEventData: LeadEvent | null = null;
+
     if (!leadEvent || leadEvent.data.length === 0) {
-      throw new DubApiError({
-        code: "not_found",
-        message: `Lead event not found for externalId: ${customerExternalId}`,
-      });
+      // Check cache to see if the lead event exists
+      const cachedLeadEvent = await redis.get<LeadEvent>(
+        `latestLeadEvent:${customer.id}`,
+      );
+
+      if (!cachedLeadEvent) {
+        throw new DubApiError({
+          code: "not_found",
+          message: `Lead event not found for externalId: ${customerExternalId}`,
+        });
+      }
+
+      leadEventData = cachedLeadEvent;
+    } else {
+      leadEventData = leadEvent.data[0];
     }
 
     const clickData = clickEventSchemaTB
       .omit({ timestamp: true })
-      .parse(leadEvent.data[0]);
+      .parse(leadEventData);
 
     // if currency is not USD, convert it to USD  based on the current FX rate
     // TODO: allow custom "defaultCurrency" on workspace table in the future
