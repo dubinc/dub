@@ -3,6 +3,7 @@ import { CampaignImported } from "@dub/email/templates/campaign-imported";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { CommissionStatus, Program } from "@prisma/client";
+import { createId } from "../api/utils";
 import { getLeadEvent } from "../tinybird";
 import { recordSaleWithTimestamp } from "../tinybird/record-sale";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
@@ -220,6 +221,7 @@ async function createCommission({
   await Promise.all([
     prisma.commission.create({
       data: {
+        id: createId({ prefix: "cm_" }),
         eventId,
         type: "sale",
         programId: program.id,
