@@ -129,11 +129,14 @@ function ImportBitlyModal({
                   body: JSON.stringify({
                     selectedDomains,
                     selectedGroupTags,
+                    folderId: searchParams.get("folderId"),
                   }),
                 }).then(async (res) => {
                   if (res.ok) {
                     await mutate();
-                    router.push(`/${slug}`);
+                    queryParams({
+                      del: "import",
+                    });
                   } else {
                     setImporting(false);
                     throw new Error();

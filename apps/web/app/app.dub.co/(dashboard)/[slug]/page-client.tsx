@@ -24,6 +24,7 @@ import {
   Popover,
   Tooltip,
   TooltipContent,
+  useRouterStuff,
 } from "@dub/ui";
 import { Download, Globe, TableIcon, Tag } from "@dub/ui/icons";
 import { useSession } from "next-auth/react";
@@ -199,7 +200,7 @@ function WorkspaceLinks() {
 }
 
 const MoreLinkOptions = () => {
-  const router = useRouter();
+  const { queryParams } = useRouterStuff();
   const { slug } = useWorkspace();
   const [openPopover, setOpenPopover] = useState(false);
   const [_state, setState] = useState<"default" | "import">("default");
@@ -222,7 +223,11 @@ const MoreLinkOptions = () => {
               <ImportOption
                 onClick={() => {
                   setOpenPopover(false);
-                  router.push(`/${slug}?import=bitly`);
+                  queryParams({
+                    set: {
+                      import: "bitly",
+                    },
+                  });
                 }}
                 setOpenPopover={setOpenPopover}
               >
@@ -240,7 +245,11 @@ const MoreLinkOptions = () => {
               <ImportOption
                 onClick={() => {
                   setOpenPopover(false);
-                  router.push(`/${slug}?import=rebrandly`);
+                  queryParams({
+                    set: {
+                      import: "rebrandly",
+                    },
+                  });
                 }}
                 setOpenPopover={setOpenPopover}
               >
@@ -258,7 +267,11 @@ const MoreLinkOptions = () => {
               <ImportOption
                 onClick={() => {
                   setOpenPopover(false);
-                  router.push(`/${slug}?import=short`);
+                  queryParams({
+                    set: {
+                      import: "short",
+                    },
+                  });
                 }}
                 setOpenPopover={setOpenPopover}
               >
@@ -276,7 +289,11 @@ const MoreLinkOptions = () => {
               <ImportOption
                 onClick={() => {
                   setOpenPopover(false);
-                  router.push(`/${slug}?import=csv`);
+                  queryParams({
+                    set: {
+                      import: "csv",
+                    },
+                  });
                 }}
                 setOpenPopover={setOpenPopover}
               >
