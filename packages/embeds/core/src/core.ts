@@ -1,4 +1,4 @@
-import { DUB_CONTAINER_ID, EMBED_URL } from "./constants";
+import { DUB_CONTAINER_ID, EMBED_REFERRALS_URL } from "./constants";
 import { EmbedError } from "./error";
 import { DubEmbedOptions, DubInitResult, IframeMessage } from "./types";
 
@@ -27,7 +27,13 @@ class DubEmbed {
   renderEmbed() {
     console.debug("[Dub] Rendering embed.");
 
-    const { token, root, containerStyles, onError } = this.options;
+    const {
+      token,
+      root,
+      containerStyles,
+      onError,
+      data = "referrals",
+    } = this.options;
 
     const existingContainer = document.getElementById(DUB_CONTAINER_ID);
 
@@ -45,7 +51,14 @@ class DubEmbed {
       ...containerStyles,
     });
 
-    const iframe = createIframe(EMBED_URL, token);
+    const iframeUrl = data === "referrals" ? EMBED_REFERRALS_URL : "";
+
+    if (!iframeUrl) {
+      console.error("[Dub] Invalid embed data type.");
+      return null;
+    }
+
+    const iframe = createIframe(iframeUrl, token);
     container.appendChild(iframe);
 
     // Listen the message from the iframe

@@ -18,6 +18,8 @@ export type DubEmbedOptions = {
 
   // The styles for the embed container
   containerStyles?: Partial<CSSStyleDeclaration>;
+
+  data?: "referrals";
 };
 
 export interface IframeMessage {
