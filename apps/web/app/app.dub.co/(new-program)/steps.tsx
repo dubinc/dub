@@ -103,13 +103,12 @@ export function Steps() {
                         !current &&
                           !completed &&
                           "border border-neutral-200 text-neutral-500",
-                        isLocked && "bg-neutral-200",
                       )}
                     >
                       {isLocked ? (
-                        <Lock className="h-3 w-3" />
+                        <Lock className="size-3" />
                       ) : completed ? (
-                        <Check className="h-3 w-3" />
+                        <Check className="size-3" />
                       ) : (
                         step
                       )}
