@@ -29,7 +29,7 @@ export const trackSaleRequestSchema = z.object({
     .min(0, "amount cannot be negative")
     .describe("The amount of the sale. Should be passed in cents."),
   paymentProcessor: z
-    .enum(["stripe", "shopify", "paddle"])
+    .enum(["stripe", "shopify", "polar", "paddle", "custom"])
     .describe("The payment processor via which the sale was made."),
   eventName: z
     .string()
