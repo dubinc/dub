@@ -1,7 +1,7 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { getSalesCountQuerySchema } from "@/lib/zod/schemas/partners";
+import { getProgramSalesCountQuerySchema } from "@/lib/zod/schemas/program-sales";
 import { prisma } from "@dub/prisma";
 import { CommissionStatus } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
@@ -16,7 +16,7 @@ export const GET = withWorkspace(
       programId,
     });
 
-    const parsed = getSalesCountQuerySchema.parse(searchParams);
+    const parsed = getProgramSalesCountQuerySchema.parse(searchParams);
     const { status, partnerId, payoutId } = parsed;
 
     const { startDate, endDate } = getStartEndDates(parsed);

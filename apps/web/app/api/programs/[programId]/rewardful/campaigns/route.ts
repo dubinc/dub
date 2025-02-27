@@ -13,7 +13,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     programId,
   });
 
-  const { token } = await rewardfulImporter.getCredentials(programId);
+  const { token } = await rewardfulImporter.getCredentials(workspace.id);
   const rewardfulApi = new RewardfulApi({ token });
   const campaigns = await rewardfulApi.listCampaigns();
 

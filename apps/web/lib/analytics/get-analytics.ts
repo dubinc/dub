@@ -4,7 +4,6 @@ import { UTM_TAGS_PLURAL_LIST } from "@/lib/zod/schemas/utm";
 import { prismaEdge } from "@dub/prisma/edge";
 import { linkConstructor, punyEncode } from "@dub/utils";
 import { conn } from "../planetscale";
-import { tbDemo } from "../tinybird/demo-client";
 import z from "../zod";
 import { analyticsFilterTB } from "../zod/schemas/analytics";
 import { analyticsResponse } from "../zod/schemas/analytics-response";
@@ -80,7 +79,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
   }
 
   // Create a Tinybird pipe
-  const pipe = (isDemo ? tbDemo : tb).buildPipe({
+  const pipe = tb.buildPipe({
     pipe: `v2_${UTM_TAGS_PLURAL_LIST.includes(groupBy) ? "utms" : groupBy}`,
     parameters: analyticsFilterTB,
     data:

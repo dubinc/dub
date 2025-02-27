@@ -1,7 +1,9 @@
-import { prisma } from "@dub/prisma";
+import { RewardSchema } from "@/lib/zod/schemas/rewards";
 import { EventType } from "@dub/prisma/client";
-import { RewardSchema } from "../zod/schemas/rewards";
+import { prismaEdge } from "@dub/prisma/edge";
 
+// this is a duplicate of the function in /lib/partners/determine-partner-reward.ts
+// TODO: ideally this should just be a single function in the future
 export const determinePartnerReward = async ({
   event,
   partnerId,
@@ -11,10 +13,10 @@ export const determinePartnerReward = async ({
   partnerId: string;
   programId: string;
 }) => {
-  const rewards = await prisma.reward.findMany({
+  const rewards = await prismaEdge.reward.findMany({
     where: {
-      event,
       programId,
+      event,
       OR: [
         // program-wide
         {
@@ -27,8 +29,8 @@ export const determinePartnerReward = async ({
           partners: {
             some: {
               programEnrollment: {
-                programId,
                 partnerId,
+                programId,
               },
             },
           },

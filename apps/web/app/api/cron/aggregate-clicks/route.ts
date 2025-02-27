@@ -2,21 +2,14 @@ import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { createId } from "@/lib/api/utils";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
-import { determinePartnerReward } from "@/lib/partners/rewards";
+import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
 /**
- * TODO:
- * - Use a cron job (similar to how we do it for usage cron) to account for the future where we have a lot of links to process
- * - Might be better to read directly from the Reward table and fetch relevant links from there
- * - Once these are ready, we'll add back the cron job in vercel.json
-    {
-      "path": "/api/cron/aggregate-clicks",
-      "schedule": "0 0 * * *"
-    },
+ * TODO: Use a cron job (similar to how we do it for usage cron) to account for the future where we have a lot of links to process
  */
 
 // This route is used aggregate clicks events on daily basis for Program links and add to the Commission table

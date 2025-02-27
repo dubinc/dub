@@ -1,9 +1,9 @@
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { createId, parseRequestBody } from "@/lib/api/utils";
-import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
+import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
-import { getClickEvent, recordLead } from "@/lib/tinybird";
+import { getClickEvent, recordLead, recordLeadSync } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhookOnEdge } from "@/lib/webhook/publish-edge";
 import { transformLeadEventData } from "@/lib/webhook/transform";
@@ -11,26 +11,27 @@ import {
   trackLeadRequestSchema,
   trackLeadResponseSchema,
 } from "@/lib/zod/schemas/leads";
-import { prismaEdge } from "@dub/prisma/edge";
+import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
+import { Customer } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
-import { determinePartnerReward } from "../rewards";
-
-export const runtime = "edge";
+import { determinePartnerReward } from "../determine-partner-reward-edge";
 
 // POST /api/track/lead – Track a lead conversion event
-export const POST = withWorkspaceEdge(
+export const POST = withWorkspace(
   async ({ req, workspace }) => {
     const {
       clickId,
       eventName,
+      eventQuantity,
       externalId,
       customerId, // deprecated (but we'll support it for backwards compatibility)
       customerName,
       customerEmail,
       customerAvatar,
       metadata,
+      mode = "async", // Default to async mode if not specified
     } = trackLeadRequestSchema.parse(await parseRequestBody(req));
 
     const customerExternalId = externalId || customerId;
@@ -75,68 +76,105 @@ export const POST = withWorkspaceEdge(
       });
     }
 
+    const clickData = clickEvent.data[0];
     const finalCustomerName =
       customerName || customerEmail || generateRandomName();
+    const leadEventId = nanoid(16);
+
+    // Create a function to handle customer upsert to avoid duplication
+    const upsertCustomer = async () => {
+      return prisma.customer.upsert({
+        where: {
+          projectId_externalId: {
+            projectId: workspace.id,
+            externalId: customerExternalId,
+          },
+        },
+        create: {
+          id: createId({ prefix: "cus_" }),
+          name: finalCustomerName,
+          email: customerEmail,
+          avatar: customerAvatar,
+          externalId: customerExternalId,
+          projectId: workspace.id,
+          projectConnectId: workspace.stripeConnectId,
+          clickId: clickData.click_id,
+          linkId: clickData.link_id,
+          country: clickData.country,
+          clickedAt: new Date(clickData.timestamp + "Z"),
+        },
+        update: {}, // no updates needed if the customer exists
+      });
+    };
+
+    // Create a function to prepare the lead event payload
+    const createLeadEventPayload = (customerId: string) => {
+      const basePayload = {
+        ...clickData,
+        event_id: leadEventId,
+        event_name: eventName,
+        customer_id: customerId,
+        metadata: metadata ? JSON.stringify(metadata) : "",
+      };
+
+      return eventQuantity
+        ? Array(eventQuantity)
+            .fill(null)
+            .map(() => ({
+              ...basePayload,
+              event_id: nanoid(16),
+            }))
+        : basePayload;
+    };
+
+    let customer: Customer | undefined;
+
+    // Handle customer creation and lead recording based on mode
+    if (mode === "wait") {
+      // Execute customer creation synchronously
+      customer = await upsertCustomer();
+
+      // Use recordLeadSync which waits for the operation to complete
+      await recordLeadSync(createLeadEventPayload(customer.id));
+
+      // Add a small delay to ensure the operation is fully processed
+      // This helps mitigate any potential race conditions
+      await new Promise((resolve) => setTimeout(resolve, 500)); // 500ms buffer
+    }
 
     waitUntil(
       (async () => {
-        const clickData = clickEvent.data[0];
+        // For async mode, create customer in the background
+        if (mode === "async") {
+          customer = await upsertCustomer();
 
-        const customer = await prismaEdge.customer.upsert({
-          where: {
-            projectId_externalId: {
-              projectId: workspace.id,
-              externalId: customerExternalId,
-            },
-          },
-          create: {
-            id: createId({ prefix: "cus_" }),
-            name: finalCustomerName,
-            email: customerEmail,
-            avatar: customerAvatar,
-            externalId: customerExternalId,
-            projectId: workspace.id,
-            projectConnectId: workspace.stripeConnectId,
-            clickId: clickData.click_id,
-            linkId: clickData.link_id,
-            country: clickData.country,
-            clickedAt: new Date(clickData.timestamp + "Z"),
-          },
-          update: {}, // no updates needed if the customer exists
-        });
+          // Use recordLead which doesn't wait
+          await recordLead(createLeadEventPayload(customer.id));
+        }
 
-        const eventId = nanoid(16);
-
-        const [_lead, link, _project] = await Promise.all([
-          recordLead({
-            ...clickData,
-            event_id: eventId,
-            event_name: eventName,
-            customer_id: customer.id,
-            metadata: metadata ? JSON.stringify(metadata) : "",
-          }),
-
+        // Always process link/project updates, partner rewards, and webhooks in the background
+        const [link, _project] = await Promise.all([
           // update link leads count
-          prismaEdge.link.update({
+          prisma.link.update({
             where: {
               id: clickData.link_id,
             },
             data: {
               leads: {
-                increment: 1,
+                increment: eventQuantity ?? 1,
               },
             },
             include: includeTags,
           }),
 
           // update workspace usage
-          prismaEdge.project.update({
+          prisma.project.update({
             where: {
               id: workspace.id,
             },
             data: {
               usage: {
-                increment: 1,
+                increment: eventQuantity ?? 1,
               },
             },
           }),
@@ -150,18 +188,20 @@ export const POST = withWorkspaceEdge(
           });
 
           if (reward) {
-            await prismaEdge.commission.create({
+            await prisma.commission.create({
               data: {
                 id: createId({ prefix: "cm_" }),
                 programId: link.programId,
                 linkId: link.id,
                 partnerId: link.partnerId,
-                eventId,
-                customerId: customer.id,
+                eventId: leadEventId,
+                customerId: customer?.id,
                 type: "lead",
                 amount: 0,
-                quantity: 1,
-                earnings: reward.amount,
+                quantity: eventQuantity ?? 1,
+                earnings: eventQuantity
+                  ? reward.amount * eventQuantity
+                  : reward.amount,
               },
             });
           }

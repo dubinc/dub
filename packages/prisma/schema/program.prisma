@@ -42,13 +42,6 @@ model Program {
   defaultDiscountId String? // default discount for the program
   landerData        Json?       @db.Json
 
-  // Commission details
-  // TODO: Remove this after merging Rewards PR
-  commissionAmount   Int                 @default(0)
-  commissionType     CommissionType      @default(percentage)
-  commissionDuration Int?
-  commissionInterval CommissionInterval?
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -74,7 +67,6 @@ model ProgramEnrollment {
   partnerId        String
   programId        String
   tenantId         String?
-  linkId           String?                 @unique // TODO: Remove after the migration
   commissionAmount Int? // custom commission amount for this partner // TODO: Remove after the migration
   discountId       String? // custom discount for this partner
   applicationId    String?                 @unique

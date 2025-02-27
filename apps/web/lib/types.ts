@@ -1,5 +1,9 @@
 import z from "@/lib/zod";
 import { metaTagsSchema } from "@/lib/zod/schemas/metatags";
+import {
+  PartnerEarningsSchema,
+  PartnerProfileLinkSchema,
+} from "@/lib/zod/schemas/partner-profile";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import {
   CommissionStatus,
@@ -36,23 +40,21 @@ import {
 } from "./zod/schemas/leads";
 import { createLinkBodySchema } from "./zod/schemas/links";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
-import {
-  EnrolledPartnerSchema,
-  PartnerEarningsSchema,
-  PartnerSchema,
-  SaleResponseSchema,
-  SaleSchema,
-} from "./zod/schemas/partners";
+import { EnrolledPartnerSchema, PartnerSchema } from "./zod/schemas/partners";
 import {
   PartnerPayoutResponseSchema,
   PayoutResponseSchema,
   PayoutSchema,
 } from "./zod/schemas/payouts";
 import {
-  PartnerLinkSchema,
+  ProgramSaleResponseSchema,
+  ProgramSaleSchema,
+} from "./zod/schemas/program-sales";
+import {
   PartnerProgramInviteSchema,
   ProgramEnrollmentSchema,
   ProgramInviteSchema,
+  ProgramPartnerLinkSchema,
   ProgramSchema,
 } from "./zod/schemas/programs";
 import { RewardSchema } from "./zod/schemas/rewards";
@@ -352,11 +354,11 @@ export type UsageResponse = z.infer<typeof usageResponse>;
 
 export type PartnersCount = Record<ProgramEnrollmentStatus | "all", number>;
 
-export type SaleProps = z.infer<typeof SaleSchema>;
+export type SaleProps = z.infer<typeof ProgramSaleSchema>;
 
 export type SalesCount = Record<CommissionStatus | "all", number>;
 
-export type SaleResponse = z.infer<typeof SaleResponseSchema>;
+export type SaleResponse = z.infer<typeof ProgramSaleResponseSchema>;
 
 export type PartnerEarningsResponse = z.infer<typeof PartnerEarningsSchema>;
 
@@ -364,7 +366,9 @@ export type CustomerProps = z.infer<typeof CustomerSchema>;
 
 export type PartnerProps = z.infer<typeof PartnerSchema>;
 
-export type PartnerLinkProps = z.infer<typeof PartnerLinkSchema>;
+export type ProgramPartnerLinkProps = z.infer<typeof ProgramPartnerLinkSchema>;
+
+export type PartnerProfileLinkProps = z.infer<typeof PartnerProfileLinkSchema>;
 
 export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema>;
 
@@ -433,4 +437,4 @@ export type FolderSummary = Pick<
 
 // Rewards
 
-export type RewardProp = z.infer<typeof RewardSchema>;
+export type RewardProps = z.infer<typeof RewardSchema>;

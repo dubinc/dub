@@ -1,9 +1,10 @@
 "use client";
 import { cn } from "@dub/utils";
 /* 
-  This Analytics component lives in 2 different places:
+  This Analytics component lives in several different places:
   1. Workspace analytics page, e.g. app.dub.co/dub/analytics
-  2. Public stats page, e.g. dub.sh/stats/github, stey.me/stats/weathergpt
+  2. Public stats page, e.g. app.dub.co/share/dash_6NSA6vNm017MZwfzt8SubNSZ
+  3. Partner program links page, e.g. partners.dub.co/programs/dub/links/analytics
 */
 
 import useWorkspace from "@/lib/swr/use-workspace";

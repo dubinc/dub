@@ -1,9 +1,10 @@
+import { verifyAnalyticsAllowedHostnames } from "@/lib/analytics/verify-analytics-allowed-hostnames";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
-import { conn } from "@/lib/planetscale/connection";
+import { getLinkWithAllowedHostnames } from "@/lib/planetscale/get-link-with-allowed-hostnames";
 import { recordClick } from "@/lib/tinybird";
-import { ratelimit, redis } from "@/lib/upstash";
-import { isValidUrl, LOCALHOST_IP, nanoid, punyEncode } from "@dub/utils";
+import { redis } from "@/lib/upstash";
+import { isValidUrl, LOCALHOST_IP, nanoid } from "@dub/utils";
 import { ipAddress, waitUntil } from "@vercel/functions";
 import { AxiomRequest, withAxiom } from "next-axiom";
 import { NextResponse } from "next/server";
@@ -16,11 +17,11 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
-// POST /api/track/click – Track a click event from client side
+// POST /api/track/click – Track a click event from the client-side
 export const POST = withAxiom(
   async (req: AxiomRequest) => {
     try {
-      const { domain, key, url } = await parseRequestBody(req);
+      const { domain, key, url, referrer } = await parseRequestBody(req);
 
       if (!domain || !key) {
         throw new DubApiError({
@@ -31,63 +32,25 @@ export const POST = withAxiom(
 
       const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
 
-      const { success } = await ratelimit().limit(
-        `track-click:${domain}-${key}:${ip}`,
-      );
-
-      if (!success) {
-        throw new DubApiError({
-          code: "rate_limit_exceeded",
-          message: "Don't DDoS me pls 🥺",
-        });
-      }
-
-      const { rows } = await conn.execute<{
-        id: string;
-        url: string;
-        projectId: string;
-        allowedHostnames: string[];
-      }>(
-        "SELECT Link.id, Link.url, projectId, allowedHostnames FROM Link LEFT JOIN Project ON Link.projectId = Project.id WHERE domain = ? AND `key` = ?",
-        [domain, punyEncode(decodeURIComponent(key))],
-      );
-
-      const link =
-        rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
-
-      if (!link) {
-        throw new DubApiError({
-          code: "not_found",
-          message: `Link not found for domain: ${domain} and key: ${key}.`,
-        });
-      }
-
-      const allowedHostnames = link.allowedHostnames;
-
-      if (allowedHostnames && allowedHostnames.length > 0) {
-        const source = req.headers.get("referer") || req.headers.get("origin");
-        const sourceUrl = source ? new URL(source) : null;
-        const hostname = sourceUrl?.hostname.replace(/^www\./, "");
-
-        if (!hostname || !allowedHostnames.includes(hostname)) {
-          console.error("Hostname not allowed.", {
-            hostname,
-            allowedHostnames,
-          });
-          throw new DubApiError({
-            code: "forbidden",
-            message: `Hostname ${hostname} not included in allowed hostnames (${allowedHostnames.join(
-              ", ",
-            )}).`,
-          });
-        }
-      }
-
-      const cacheKey = `recordClick:${link.id}:${ip}`;
+      const cacheKey = `recordClick:${domain}:${key}:${ip}`;
       let clickId = await redis.get<string>(cacheKey);
 
+      // only generate + record a new click ID if it's not already cached in Redis
       if (!clickId) {
         clickId = nanoid(16);
+
+        const link = await getLinkWithAllowedHostnames(domain, key);
+
+        if (!link) {
+          throw new DubApiError({
+            code: "not_found",
+            message: `Link not found for domain: ${domain} and key: ${key}.`,
+          });
+        }
+
+        const allowedHostnames = link.allowedHostnames;
+        verifyAnalyticsAllowedHostnames({ allowedHostnames, req });
+
         const finalUrl = isValidUrl(url) ? url : link.url;
 
         waitUntil(
@@ -95,9 +58,12 @@ export const POST = withAxiom(
             req,
             clickId,
             linkId: link.id,
+            domain,
+            key,
             url: finalUrl,
-            skipRatelimit: true,
             workspaceId: link.projectId,
+            skipRatelimit: true,
+            ...(referrer && { referrer }),
           }),
         );
       }

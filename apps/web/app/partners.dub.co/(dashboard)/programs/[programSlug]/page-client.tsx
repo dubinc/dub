@@ -2,6 +2,7 @@
 
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { IntervalOptions } from "@/lib/analytics/types";
+import { useSyncedLocalStorage } from "@/lib/hooks/use-synced-local-storage";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-timeseries";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
@@ -26,6 +27,7 @@ import { Check, Copy, LoadingSpinner, MoneyBill } from "@dub/ui/icons";
 import { cn, currencyFormatter, getPrettyUrl, nFormatter } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import { LinearGradient } from "@visx/gradient";
+import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
@@ -44,12 +46,17 @@ const ProgramOverviewContext = createContext<{
   interval: IntervalOptions;
   color?: string;
 }>({
-  interval: "1y",
+  interval: "30d",
 });
 
 export default function ProgramPageClient() {
   const { getQueryString, searchParamsObj } = useRouterStuff();
   const { programSlug } = useParams();
+
+  const [hideDetails, _setHideDetails] = useSyncedLocalStorage(
+    `hide-program-details:${programSlug}`,
+    false,
+  );
 
   const { programEnrollment } = useProgramEnrollment();
   const [copied, copyToClipboard] = useCopyToClipboard();
@@ -57,7 +64,7 @@ export default function ProgramPageClient() {
   const {
     start,
     end,
-    interval = "1y",
+    interval = "30d",
   } = searchParamsObj as {
     start?: string;
     end?: string;
@@ -69,70 +76,90 @@ export default function ProgramPageClient() {
 
   return (
     <MaxWidthWrapper className="pb-10">
-      <div className="relative z-0 flex flex-col overflow-hidden rounded-lg border border-neutral-300 p-4 md:p-6">
-        {program && (
-          <HeroBackground logo={program.logo} color={program.brandColor} />
-        )}
-        <span className="flex items-center gap-2 text-sm text-neutral-500">
-          <MoneyBill className="size-4" />
-          Refer and earn
-        </span>
-        <div className="relative mt-24 text-lg text-neutral-900 sm:max-w-[50%]">
-          {program ? (
-            <ProgramRewardDescription
-              reward={programEnrollment?.reward}
-              discount={programEnrollment?.discount}
-            />
-          ) : (
-            <div className="h-7 w-5/6 animate-pulse rounded-md bg-neutral-200" />
-          )}
-        </div>
-        <span className="mb-1.5 mt-6 block text-sm text-neutral-800">
-          Referral link
-        </span>
-        <div className="xs:flex-row relative flex flex-col items-center gap-2">
-          {masterLink ? (
-            <input
-              type="text"
-              readOnly
-              value={getPrettyUrl(masterLink.shortLink)}
-              className="xs:w-auto h-10 w-full rounded-md border border-neutral-300 px-3 text-sm focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 lg:min-w-64 xl:min-w-72"
-            />
-          ) : (
-            <div className="h-10 w-16 animate-pulse rounded-md bg-neutral-200 lg:w-72" />
-          )}
-          <Button
-            icon={
-              <div className="relative size-4">
-                <div
-                  className={cn(
-                    "absolute inset-0 transition-[transform,opacity]",
-                    copied && "translate-y-1 opacity-0",
-                  )}
-                >
-                  <Copy className="size-4" />
-                </div>
-                <div
-                  className={cn(
-                    "absolute inset-0 transition-[transform,opacity]",
-                    !copied && "translate-y-1 opacity-0",
-                  )}
-                >
-                  <Check className="size-4" />
-                </div>
-              </div>
-            }
-            text={copied ? "Copied link" : "Copy link"}
-            className="xs:w-fit"
-            disabled={!masterLink}
-            onClick={() => {
-              if (masterLink) {
-                copyToClipboard(masterLink.shortLink);
-              }
+      <AnimatePresence mode="wait" initial={false}>
+        {!hideDetails && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{
+              type: "spring",
+              stiffness: 300,
+              damping: 30,
+              opacity: { duration: 0.2 },
             }}
-          />
-        </div>
-      </div>
+            className="overflow-hidden"
+          >
+            <div className="relative z-0 mb-4 flex flex-col overflow-hidden rounded-lg border border-neutral-300 p-4 sm:mb-10 md:p-6">
+              {program && (
+                <HeroBackground
+                  logo={program.logo}
+                  color={program.brandColor}
+                />
+              )}
+              <span className="mt-2 flex items-center gap-2 text-sm text-neutral-500">
+                <MoneyBill className="size-4" />
+                Refer and earn
+              </span>
+              <div className="relative mt-24 text-lg text-neutral-900 sm:max-w-[50%]">
+                {program ? (
+                  <ProgramRewardDescription
+                    reward={programEnrollment?.reward}
+                    discount={programEnrollment?.discount}
+                  />
+                ) : (
+                  <div className="h-7 w-5/6 animate-pulse rounded-md bg-neutral-200" />
+                )}
+              </div>
+              <span className="mb-1.5 mt-6 block text-sm text-neutral-800">
+                Referral link
+              </span>
+              <div className="xs:flex-row relative flex flex-col items-center gap-2">
+                {masterLink ? (
+                  <input
+                    type="text"
+                    readOnly
+                    value={getPrettyUrl(masterLink.shortLink)}
+                    className="xs:w-auto h-10 w-full rounded-md border border-neutral-300 px-3 text-sm focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 lg:min-w-64 xl:min-w-72"
+                  />
+                ) : (
+                  <div className="h-10 w-16 animate-pulse rounded-md bg-neutral-200 lg:w-72" />
+                )}
+                <Button
+                  icon={
+                    <div className="relative size-4">
+                      <div
+                        className={cn(
+                          "absolute inset-0 transition-[transform,opacity]",
+                          copied && "translate-y-1 opacity-0",
+                        )}
+                      >
+                        <Copy className="size-4" />
+                      </div>
+                      <div
+                        className={cn(
+                          "absolute inset-0 transition-[transform,opacity]",
+                          !copied && "translate-y-1 opacity-0",
+                        )}
+                      >
+                        <Check className="size-4" />
+                      </div>
+                    </div>
+                  }
+                  text={copied ? "Copied link" : "Copy link"}
+                  className="xs:w-fit"
+                  disabled={!masterLink}
+                  onClick={() => {
+                    if (masterLink) {
+                      copyToClipboard(masterLink.shortLink);
+                    }
+                  }}
+                />
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <ProgramOverviewContext.Provider
         value={{
           start: start ? new Date(start) : undefined,
@@ -142,7 +169,7 @@ export default function ProgramPageClient() {
         }}
       >
         <ChartTooltipSync>
-          <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <div className="group rounded-lg border border-neutral-300 p-5 pb-3 lg:col-span-2">
               <EarningsChart />
             </div>
@@ -219,7 +246,7 @@ function EarningsChart() {
                 format={{
                   style: "currency",
                   currency: "USD",
-                  // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
+                  // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
                   trailingZeroDisplay: "stripIfInteger",
                 }}
               />
@@ -304,7 +331,7 @@ function StatCard({
           )}
         </div>
         <ViewMoreButton
-          href={`/programs/${programSlug}/analytics?event=${event}${getQueryString()?.replace("?", "&")}`}
+          href={`/programs/${programSlug}/links/analytics?event=${event}${getQueryString()?.replace("?", "&")}`}
         />
       </div>
       <div className="mt-2 h-44 w-full">

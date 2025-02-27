@@ -1,5 +1,5 @@
 import { prisma } from "@dub/prisma";
-import { Program, Project } from "@dub/prisma/client";
+import { Program } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { bulkCreateLinks } from "../api/links";
 import { createId } from "../api/utils";
@@ -10,28 +10,28 @@ import { RewardfulAffiliate } from "./types";
 // Import Rewardful affiliates
 export async function importAffiliates({
   programId,
+  rewardId,
   page,
 }: {
   programId: string;
+  rewardId?: string;
   page: number;
 }) {
-  const { token, userId, campaignId } =
-    await rewardfulImporter.getCredentials(programId);
+  const program = await prisma.program.findUniqueOrThrow({
+    where: {
+      id: programId,
+    },
+  });
+
+  const { token, userId, campaignId } = await rewardfulImporter.getCredentials(
+    program.workspaceId,
+  );
 
   const rewardfulApi = new RewardfulApi({ token });
 
   let currentPage = page;
   let hasMoreAffiliates = true;
   let processedBatches = 0;
-
-  const { workspace, ...program } = await prisma.program.findUniqueOrThrow({
-    where: {
-      id: programId,
-    },
-    include: {
-      workspace: true,
-    },
-  });
 
   while (hasMoreAffiliates && processedBatches < MAX_BATCHES) {
     const affiliates = await rewardfulApi.listAffiliates({
@@ -58,10 +58,10 @@ export async function importAffiliates({
       await Promise.all(
         activeAffiliates.map((affiliate) =>
           createPartnerAndLinks({
-            workspace,
             program,
             affiliate,
             userId,
+            rewardId,
           }),
         ),
       );
@@ -72,24 +72,27 @@ export async function importAffiliates({
     processedBatches++;
   }
 
+  const action = hasMoreAffiliates ? "import-affiliates" : "import-referrals";
+
   await rewardfulImporter.queue({
     programId: program.id,
-    action: hasMoreAffiliates ? "import-affiliates" : "import-referrals",
+    action,
+    ...(action === "import-affiliates" && rewardId && { rewardId }),
     ...(hasMoreAffiliates ? { page: currentPage } : {}),
   });
 }
 
 // Create partner and their links
 async function createPartnerAndLinks({
-  workspace,
   program,
   affiliate,
   userId,
+  rewardId,
 }: {
-  workspace: Project;
   program: Program;
   affiliate: RewardfulAffiliate;
   userId: string;
+  rewardId?: string;
 }) {
   const partner = await prisma.partner.upsert({
     where: {
@@ -143,7 +146,22 @@ async function createPartnerAndLinks({
       partnerId: partner.id,
       folderId: program.defaultFolderId,
       userId,
-      projectId: workspace.id,
+      projectId: program.workspaceId,
     })),
   });
+
+  if (rewardId) {
+    const partnerReward = {
+      programEnrollmentId: programEnrollment.id,
+      rewardId,
+    };
+
+    await prisma.partnerReward.upsert({
+      where: {
+        programEnrollmentId_rewardId: partnerReward,
+      },
+      create: partnerReward,
+      update: {},
+    });
+  }
 }

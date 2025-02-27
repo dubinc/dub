@@ -26,10 +26,10 @@ export function usePartnerEarningsTimeseries(
                 start: params.start.toISOString(),
                 end: params.end.toISOString(),
               }
-            : { interval: params?.interval ?? "1y" }),
+            : { interval: params?.interval ?? "30d" }),
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         },
-        { include: ["linkId", "customerId", "status"] },
+        { include: ["type", "linkId", "customerId", "status"] },
       )}`,
     fetcher,
     {

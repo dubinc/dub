@@ -49,14 +49,14 @@ export function PartnerInvite({
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              {program.name} uses Dub Partners to power their partnership
-              programs and wants to partner with great people like yourself!
+              {program.name} uses Dub Partners to power their affiliate program
+              and wants to partner with great people like yourself!
             </Text>
 
             <Section className="mb-12 mt-8">
               <Link
                 className="rounded-md bg-neutral-900 px-4 py-3 text-[12px] font-medium text-white no-underline"
-                href="https://partners.dub.co"
+                href="https://partners.dub.co/register"
               >
                 Accept Invite
               </Link>

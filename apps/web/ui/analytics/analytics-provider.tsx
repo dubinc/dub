@@ -140,11 +140,9 @@ export default function AnalyticsProvider({
     };
   }, [searchParams?.get("start"), searchParams?.get("end")]);
 
-  const defaultInterval = partnerPage ? "1y" : "30d";
-
   // Only set interval if start and end are not provided
   const interval =
-    start || end ? undefined : searchParams?.get("interval") ?? defaultInterval;
+    start || end ? undefined : searchParams?.get("interval") ?? "30d";
 
   const selectedTab: EventType = useMemo(() => {
     const event = searchParams.get("event");
@@ -204,9 +202,9 @@ export default function AnalyticsProvider({
       };
     } else if (partner?.id && programSlug) {
       return {
-        basePath: `/api/partner-profile/programs/${programSlug}/analytics`,
+        basePath: `/api/partner-profile/programs/${programSlug}/links/analytics`,
         baseApiPath: `/api/partner-profile/programs/${programSlug}/analytics`,
-        eventsApiPath: `/api/partner-profile/programs/${programSlug}/events`,
+        eventsApiPath: `/api/partner-profile/programs/${programSlug}/links/events`,
         domain: domainSlug,
       };
     } else if (dashboardId) {
@@ -244,11 +242,16 @@ export default function AnalyticsProvider({
         - it's filtered by a link, or
         - the workspace has more than 50 domains
         - is admin page
+        - is filtered by a folder or tag
       - Otherwise, hide root domain links
   */
   const root = searchParams.get("root")
     ? searchParams.get("root") === "true"
-    : (domain && key) || (domains && domains?.length > 50) || adminPage
+    : (domain && key) ||
+        (domains && domains?.length > 50) ||
+        adminPage ||
+        folderId ||
+        tagIds
       ? undefined
       : "false";
 

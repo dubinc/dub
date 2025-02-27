@@ -1,6 +1,6 @@
 "use client";
 
-import { DiscountProps, RewardProp } from "@/lib/types";
+import { DiscountProps, RewardProps } from "@/lib/types";
 import { HeroBackground } from "@/ui/partners/hero-background";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { Link, PayoutStatus, Program } from "@dub/prisma/client";
@@ -36,7 +36,7 @@ export function EmbedInlinePageClient({
 }: {
   program: Program;
   links: Link[];
-  reward: RewardProp | null;
+  reward: RewardProps | null;
   discount?: DiscountProps | null;
   payouts: {
     status: PayoutStatus;

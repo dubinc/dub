@@ -65,8 +65,18 @@ export function AnalyticsCard<T extends string>({
         setShowModal={setShowModal}
         className="max-w-lg px-0"
       >
-        <div className="border-b border-neutral-200 px-6 py-4">
+        <div className="flex items-center justify-between border-b border-neutral-200 px-6 py-4">
           <h1 className="text-lg font-semibold">{selectedTab?.label}</h1>
+          <div className="flex items-center gap-1 text-neutral-500">
+            {event === "sales" ? (
+              <InvoiceDollar className="h-4 w-4" />
+            ) : event === "leads" ? (
+              <UserCheck className="h-4 w-4" />
+            ) : (
+              <CursorRays className="h-4 w-4" />
+            )}
+            <p className="text-xs uppercase">{event}</p>
+          </div>
         </div>
         {subTabs && selectedSubTabId && onSelectSubTab && (
           <SubTabs
@@ -79,7 +89,7 @@ export function AnalyticsCard<T extends string>({
       </Modal>
       <div
         className={cn(
-          "relative z-0 h-[400px] overflow-hidden border border-neutral-200 bg-white sm:rounded-xl",
+          "group relative z-0 h-[400px] overflow-hidden border border-neutral-200 bg-white sm:rounded-xl",
           className,
         )}
       >

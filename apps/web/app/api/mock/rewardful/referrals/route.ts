@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
       email: `affiliate${i}@example.com`,
       leads: 3 + i,
       campaign: {
-        id: `ae37c8ce-f82b-4e1b-9653-b802ae459a${i}2`,
+        id: "ceaef6d9-767e-49aa-a6ab-46c02aa79604",
         name: `Campaign ${i + 1}`,
         created_at: `2020-04-${20 + i}T00:24:08.199Z`,
         updated_at: `2020-04-${20 + i}T00:24:08.199Z`,
@@ -95,5 +95,7 @@ export async function GET(request: NextRequest) {
   const endIndex = startIndex + limit;
   const slicedReferrals = referrals.slice(startIndex, endIndex);
 
-  return NextResponse.json(slicedReferrals.length > 0 ? slicedReferrals : []);
+  return NextResponse.json({
+    data: slicedReferrals.length > 0 ? slicedReferrals : [],
+  });
 }

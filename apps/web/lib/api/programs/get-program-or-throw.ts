@@ -1,4 +1,4 @@
-import { RewardProp } from "@/lib/types";
+import { RewardProps } from "@/lib/types";
 import { ProgramSchema } from "@/lib/zod/schemas/programs";
 import { RewardSchema } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
@@ -46,7 +46,7 @@ export const getProgramOrThrow = async (
     });
   }
 
-  let defaultReward: RewardProp | null = null;
+  let defaultReward: RewardProps | null = null;
 
   if (includeDefaultReward && program.defaultRewardId) {
     defaultReward = await getRewardOrThrow({

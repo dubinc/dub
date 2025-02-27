@@ -6,7 +6,7 @@ import { LinkSchema } from "./links";
 import { RewardSchema } from "./rewards";
 import { parseDateSchema } from "./utils";
 
-export const HOLDING_PERIOD_DAYS = [0, 30, 60, 90];
+export const HOLDING_PERIOD_DAYS = [0, 14, 30, 60, 90];
 
 export const ProgramSchema = z.object({
   id: z.string(),
@@ -44,7 +44,7 @@ export const createProgramSchema = z.object({
     }),
 });
 
-export const PartnerLinkSchema = LinkSchema.pick({
+export const ProgramPartnerLinkSchema = LinkSchema.pick({
   id: true,
   domain: true,
   key: true,
@@ -62,7 +62,7 @@ export const ProgramEnrollmentSchema = z.object({
   programId: z.string(),
   program: ProgramSchema,
   status: z.nativeEnum(ProgramEnrollmentStatus),
-  links: z.array(PartnerLinkSchema).nullable(),
+  links: z.array(ProgramPartnerLinkSchema).nullable(),
   reward: RewardSchema.nullish(),
   discount: DiscountSchema.nullish(),
   createdAt: z.date(),
@@ -76,7 +76,7 @@ export const ProgramInviteSchema = z.object({
 });
 
 export const getProgramMetricsQuerySchema = z.object({
-  interval: z.enum(intervals).default("1y"),
+  interval: z.enum(intervals).default("30d"),
   start: parseDateSchema.optional(),
   end: parseDateSchema.optional(),
 });

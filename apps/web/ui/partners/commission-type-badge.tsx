@@ -1,4 +1,4 @@
-import { PartnerEarningsSchema } from "@/lib/zod/schemas/partners";
+import { PartnerEarningsSchema } from "@/lib/zod/schemas/partner-profile";
 import { capitalize } from "@dub/utils";
 import { z } from "zod";
 import { CommissionTypeIcon } from "./comission-type-icon";

@@ -196,8 +196,10 @@ export default async function LinkMiddleware(
     ev.waitUntil(
       recordClick({
         req,
-        linkId,
         clickId,
+        linkId,
+        domain,
+        key,
         url,
         webhookIds,
         workspaceId,
@@ -241,8 +243,10 @@ export default async function LinkMiddleware(
     ev.waitUntil(
       recordClick({
         req,
-        linkId,
         clickId,
+        linkId,
+        domain,
+        key,
         url,
         webhookIds,
         workspaceId,
@@ -275,8 +279,10 @@ export default async function LinkMiddleware(
     ev.waitUntil(
       recordClick({
         req,
-        linkId,
         clickId,
+        linkId,
+        domain,
+        key,
         url,
         webhookIds,
         workspaceId,
@@ -311,8 +317,10 @@ export default async function LinkMiddleware(
     ev.waitUntil(
       recordClick({
         req,
-        linkId,
         clickId,
+        linkId,
+        domain,
+        key,
         url: ios,
         webhookIds,
         workspaceId,
@@ -341,8 +349,10 @@ export default async function LinkMiddleware(
     ev.waitUntil(
       recordClick({
         req,
-        linkId,
         clickId,
+        linkId,
+        domain,
+        key,
         url: android,
         webhookIds,
         workspaceId,
@@ -371,8 +381,10 @@ export default async function LinkMiddleware(
     ev.waitUntil(
       recordClick({
         req,
-        linkId,
         clickId,
+        linkId,
+        domain,
+        key,
         url: geo[country],
         webhookIds,
         workspaceId,
@@ -401,8 +413,10 @@ export default async function LinkMiddleware(
     ev.waitUntil(
       recordClick({
         req,
-        linkId,
         clickId,
+        linkId,
+        domain,
+        key,
         url,
         webhookIds,
         workspaceId,

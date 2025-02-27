@@ -12,18 +12,19 @@ export const importSteps = z.enum([
   "import-campaign",
   "import-affiliates",
   "import-referrals",
+  "import-commissions",
 ]);
 
 class RewardfulImporter {
-  async setCredentials(programId: string, payload: RewardfulConfig) {
-    await redis.set(`${CACHE_KEY_PREFIX}:${programId}`, payload, {
+  async setCredentials(workspaceId: string, payload: RewardfulConfig) {
+    await redis.set(`${CACHE_KEY_PREFIX}:${workspaceId}`, payload, {
       ex: CACHE_EXPIRY,
     });
   }
 
-  async getCredentials(programId: string): Promise<RewardfulConfig> {
+  async getCredentials(workspaceId: string): Promise<RewardfulConfig> {
     const config = await redis.get<RewardfulConfig>(
-      `${CACHE_KEY_PREFIX}:${programId}`,
+      `${CACHE_KEY_PREFIX}:${workspaceId}`,
     );
 
     if (!config) {
@@ -33,12 +34,13 @@ class RewardfulImporter {
     return config;
   }
 
-  async deleteCredentials(programId: string) {
-    return await redis.del(`${CACHE_KEY_PREFIX}:${programId}`);
+  async deleteCredentials(workspaceId: string) {
+    return await redis.del(`${CACHE_KEY_PREFIX}:${workspaceId}`);
   }
 
   async queue(body: {
     programId: string;
+    rewardId?: string;
     action?: z.infer<typeof importSteps>;
     page?: number;
   }) {

@@ -7,7 +7,7 @@ import StripeConnectButton from "@/ui/partners/stripe-connect-button";
 import { AlertCircleFill } from "@/ui/shared/icons";
 import { PayoutStatus } from "@dub/prisma/client";
 import { AnimatedSizeContainer, MoneyBills2, Tooltip } from "@dub/ui";
-import { CONNECT_SUPPORTED_COUNTRIES, currencyFormatter } from "@dub/utils";
+import { currencyFormatter } from "@dub/utils";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 
@@ -77,14 +77,12 @@ export function PayoutStats() {
             )}
           </div>
         </div>
-        {partner &&
-          !partner.payoutsEnabled &&
-          CONNECT_SUPPORTED_COUNTRIES.includes(partner.country) && (
-            <StripeConnectButton
-              className="mt-4 h-9 w-full"
-              text="Connect payouts"
-            />
-          )}
+        {partner && !partner.payoutsEnabled && (
+          <StripeConnectButton
+            className="mt-4 h-9 w-full"
+            text="Connect payouts"
+          />
+        )}
       </div>
     </AnimatedSizeContainer>
   );

@@ -1,4 +1,4 @@
-import { PartnerEarningsSchema } from "@/lib/zod/schemas/partners";
+import { PartnerEarningsSchema } from "@/lib/zod/schemas/partner-profile";
 import { CursorRays, InvoiceDollar, UserCheck } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { z } from "zod";

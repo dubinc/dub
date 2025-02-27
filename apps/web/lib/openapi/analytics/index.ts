@@ -31,6 +31,9 @@ const retrieveAnalytics: ZodOpenApiOperationObject = {
               .array(analyticsResponse.countries)
               .openapi({ title: "AnalyticsCountries" }),
             z
+              .array(analyticsResponse.regions)
+              .openapi({ title: "AnalyticsRegions" }),
+            z
               .array(analyticsResponse.cities)
               .openapi({ title: "AnalyticsCities" }),
             z

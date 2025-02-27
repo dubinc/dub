@@ -2,7 +2,7 @@ import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
-import { partnerEarningsTimeseriesSchema } from "@/lib/zod/schemas/partners";
+import { getPartnerEarningsTimeseriesSchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@prisma/client";
 import { DateTime } from "luxon";
@@ -18,7 +18,7 @@ export const GET = withPartnerProfile(
 
     const {
       groupBy,
-      type = "sale",
+      type,
       status,
       linkId,
       customerId,
@@ -27,7 +27,7 @@ export const GET = withPartnerProfile(
       start,
       end,
       timezone,
-    } = partnerEarningsTimeseriesSchema.parse(searchParams);
+    } = getPartnerEarningsTimeseriesSchema.parse(searchParams);
 
     const { startDate, endDate, granularity } = getStartEndDates({
       interval,
@@ -54,6 +54,7 @@ export const GET = withPartnerProfile(
         AND createdAt < ${endDate}
         AND programId = ${program.id}
         AND partnerId = ${partner.id}
+        ${type ? Prisma.sql`AND type = ${type}` : Prisma.sql``}
         ${payoutId ? Prisma.sql`AND payoutId = ${payoutId}` : Prisma.sql``}
         ${linkId ? Prisma.sql`AND linkId = ${linkId}` : Prisma.sql``}
         ${customerId ? Prisma.sql`AND customerId = ${customerId}` : Prisma.sql``}
@@ -92,11 +93,12 @@ export const GET = withPartnerProfile(
         data: groupBy
           ? {
               ...(groupBy === "type"
-                ? {
-                    sale: 0,
-                    lead: 0,
-                    click: 0,
-                  }
+                ? Object.fromEntries(
+                    ["sale", "lead", "click"]
+                      // only show filtered type if type filter is provided
+                      .filter((t) => (type ? type === t : true))
+                      .map((t) => [t, 0]),
+                  )
                 : Object.fromEntries(
                     links
                       // only show filtered link if linkId filter is provided

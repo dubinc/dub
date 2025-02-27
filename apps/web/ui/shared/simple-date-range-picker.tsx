@@ -4,9 +4,11 @@ import { DateRangePicker, useRouterStuff } from "@dub/ui";
 export default function SimpleDateRangePicker({
   className,
   align = "center",
+  defaultInterval = "30d",
 }: {
   className?: string;
   align?: "start" | "center" | "end";
+  defaultInterval?: string;
 }) {
   const { queryParams, searchParamsObj } = useRouterStuff();
   const { start, end, interval } = searchParamsObj as {
@@ -27,7 +29,7 @@ export default function SimpleDateRangePicker({
             }
           : undefined
       }
-      presetId={!start || !end ? interval ?? "1y" : undefined}
+      presetId={!start || !end ? interval ?? defaultInterval : undefined}
       onChange={(range, preset) => {
         if (preset) {
           queryParams({

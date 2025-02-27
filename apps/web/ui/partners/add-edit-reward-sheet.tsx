@@ -10,7 +10,7 @@ import useProgram from "@/lib/swr/use-program";
 import useRewardPartners from "@/lib/swr/use-reward-partners";
 import useRewards from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { EnrolledPartnerProps, RewardProp } from "@/lib/types";
+import { EnrolledPartnerProps, RewardProps } from "@/lib/types";
 import {
   createRewardSchema,
   RECURRING_MAX_DURATIONS,
@@ -49,7 +49,7 @@ import { z } from "zod";
 interface RewardSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   event: EventType;
-  reward?: RewardProp;
+  reward?: RewardProps;
 }
 
 type FormData = z.infer<typeof createRewardSchema>;
@@ -265,6 +265,10 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
       return;
     }
 
+    if (!window.confirm("Are you sure you want to delete this reward?")) {
+      return;
+    }
+
     await deleteReward({
       workspaceId,
       programId: program.id,
@@ -289,7 +293,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
   }, [allPartners, partnerIds]);
 
   const selectedPartnersTable = useTable({
-    data: selectedPartners,
+    data: displayPartners,
     columns: [
       {
         header: "Partner",
@@ -338,6 +342,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
         size: 50,
       },
     ],
+    loading: isLoadingRewardPartners,
     thClassName: () => cn("border-l-0"),
     tdClassName: () => cn("border-l-0"),
     className: "[&_tr:last-child>td]:border-b-transparent",
@@ -675,27 +680,18 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                   />
                 </div>
                 <div className="mt-4">
-                  {isLoadingRewardPartners ? (
-                    <div className="flex items-center justify-center py-8">
-                      <LoadingSpinner className="size-4" />
-                    </div>
-                  ) : displayPartners.length > 0 ? (
-                    <Table {...selectedPartnersTable} />
-                  ) : (
-                    <div className="flex flex-col items-center justify-center gap-4 rounded-lg bg-neutral-50 py-12">
-                      <div className="flex items-center justify-center">
-                        <Users className="size-6 text-neutral-800" />
-                      </div>
-                      <div className="flex flex-col items-center gap-1 px-4 text-center">
-                        <p className="text-base font-medium text-neutral-900">
-                          Eligible partners
-                        </p>
-                        <p className="text-sm text-neutral-600">
-                          No eligible partners added yet
-                        </p>
-                      </div>
-                    </div>
-                  )}
+                  <PartnersTable
+                    partners={displayPartners}
+                    loading={isLoadingRewardPartners}
+                    partnerIds={partnerIds}
+                    setValue={setValue}
+                    setSelectedPartners={setSelectedPartners}
+                    pagination={reward ? pagination : undefined}
+                    setPagination={reward ? setPagination : undefined}
+                    partnersCount={
+                      reward ? partnersCount : selectedPartners.length
+                    }
+                  />
                 </div>
               </div>
             )}
@@ -792,4 +788,115 @@ export function useRewardSheet(
     ),
     setIsOpen,
   };
+}
+
+interface PartnersTableProps {
+  partners: EnrolledPartnerProps[];
+  loading: boolean;
+  partnerIds: string[] | null;
+  setValue: any; // TODO: Type this properly with UseFormSetValue
+  setSelectedPartners: Dispatch<SetStateAction<EnrolledPartnerProps[]>>;
+  pagination?: any; // TODO: Type this properly
+  setPagination?: any; // TODO: Type this properly
+  partnersCount: number;
+}
+
+function PartnersTable({
+  partners,
+  loading,
+  partnerIds,
+  setValue,
+  setSelectedPartners,
+  pagination,
+  setPagination,
+  partnersCount,
+}: PartnersTableProps) {
+  const table = useTable({
+    data: partners,
+    columns: [
+      {
+        header: "Partner",
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            <img
+              src={
+                row.original.image ||
+                `${DICEBEAR_AVATAR_URL}${row.original.name}`
+              }
+              alt={row.original.name}
+              className="size-6 rounded-full"
+            />
+            <span className="text-sm text-neutral-700">
+              {row.original.name}
+            </span>
+          </div>
+        ),
+      },
+      {
+        header: "Email",
+        cell: ({ row }) => (
+          <div className="text-sm text-neutral-600">{row.original.email}</div>
+        ),
+      },
+      {
+        id: "actions",
+        cell: ({ row }) => (
+          <div className="flex justify-end">
+            <Button
+              variant="secondary"
+              icon={<X className="size-4" />}
+              className="h-8 w-8 rounded-md border-0 bg-neutral-50 p-0"
+              onClick={() => {
+                const newPartnerIds = (partnerIds || []).filter(
+                  (id) => id !== row.original.id,
+                );
+                setValue("partnerIds", newPartnerIds);
+                setSelectedPartners((prev) =>
+                  prev.filter((p) => p.id !== row.original.id),
+                );
+              }}
+            />
+          </div>
+        ),
+        size: 50,
+      },
+    ],
+    loading,
+    thClassName: () => cn("border-l-0"),
+    tdClassName: () => cn("border-l-0"),
+    className: "[&_tr:last-child>td]:border-b-transparent",
+    scrollWrapperClassName: "min-h-[40px]",
+    resourceName: (p) => `eligible partner${p ? "s" : ""}`,
+    pagination,
+    onPaginationChange: setPagination,
+    rowCount: partnersCount,
+  });
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center rounded-lg border border-neutral-200 bg-white py-8">
+        <LoadingSpinner className="size-4" />
+      </div>
+    );
+  }
+
+  if (partners.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-neutral-200 bg-neutral-50 py-10">
+        <div className="flex items-center justify-center">
+          <Users className="size-5 text-neutral-500" />
+        </div>
+        <div className="flex flex-col items-center gap-1 px-4 text-center">
+          <p className="text-sm font-medium text-neutral-600">
+            Eligible partners
+          </p>
+          <p className="text-sm text-neutral-500">
+            No eligible partners added yet
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return <Table {...table} />;
 }

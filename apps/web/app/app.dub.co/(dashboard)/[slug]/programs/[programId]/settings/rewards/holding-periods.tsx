@@ -21,7 +21,7 @@ export function HoldingPeriods() {
   const form = useForm<FormData>({
     mode: "onBlur",
     defaultValues: {
-      holdingPeriodDays: program?.holdingPeriodDays || 30,
+      holdingPeriodDays: program?.holdingPeriodDays,
     },
   });
 

@@ -73,7 +73,7 @@ function Stat({
       <div className="w-full">
         <div className="text-sm text-neutral-500">{label}</div>
         {isLoading ? (
-          <div className="h-7 w-24 animate-pulse rounded-md bg-neutral-200 md:mt-2 md:h-8 lg:h-9" />
+          <div className="h-7 w-24 animate-pulse rounded-md bg-neutral-200 md:mt-2.5 md:h-8 lg:h-11" />
         ) : (
           <div className="truncate text-xl text-neutral-800 md:mt-2 md:text-2xl lg:text-3xl">
             {error ? (

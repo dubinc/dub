@@ -64,12 +64,12 @@ export const GET = withWorkspace(
         pe.programId, 
         pe.partnerId, 
         pe.tenantId,
+        pe.applicationId,
         pe.createdAt as enrollmentCreatedAt,
-        COALESCE(SUM(DISTINCT l.clicks), 0) as totalClicks,
-        COALESCE(SUM(DISTINCT l.leads), 0) as totalLeads,
-        COALESCE(SUM(DISTINCT l.sales), 0) as totalSales,
-        COALESCE(SUM(c.amount), 0) as totalSaleAmount,
-        COALESCE(SUM(c.earnings), 0) as totalEarnings,
+        COALESCE(SUM(l.clicks), 0) as totalClicks,
+        COALESCE(SUM(l.leads), 0) as totalLeads,
+        COALESCE(SUM(l.sales), 0) as totalSales,
+        COALESCE(SUM(l.saleAmount), 0) as totalSaleAmount,
         JSON_ARRAYAGG(
           IF(l.id IS NOT NULL,
             JSON_OBJECT(
@@ -92,8 +92,6 @@ export const GET = withWorkspace(
         Partner p ON p.id = pe.partnerId 
       LEFT JOIN 
         Link l ON l.programId = pe.programId AND l.partnerId = pe.partnerId
-      LEFT JOIN
-        Commission c ON c.linkId = l.id
       WHERE 
         pe.programId = ${program.id}
         ${status ? Prisma.sql`AND pe.status = ${status}` : Prisma.sql`AND pe.status != 'rejected'`}
@@ -115,7 +113,6 @@ export const GET = withWorkspace(
         leads: Number(partner.totalLeads),
         sales: Number(partner.totalSales),
         saleAmount: Number(partner.totalSaleAmount),
-        earnings: Number(partner.totalEarnings),
         links: partner.links.filter((link: any) => link !== null),
       };
     });
