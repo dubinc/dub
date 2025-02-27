@@ -219,55 +219,6 @@ export function PartnerLinkCard({
               </div>
             </div>
           </div>
-
-          <div className="flex items-center gap-2">
-            <Link
-              href={`/programs/${programEnrollment?.program.slug}/links/analytics${getQueryString(
-                {
-                  domain: link.domain,
-                  key: link.key,
-                },
-              )}`}
-              className="overflow-hidden rounded-md border border-neutral-200 bg-neutral-50 p-0.5 text-sm text-neutral-600 transition-colors hover:bg-white"
-            >
-              <div className="flex items-center gap-0.5">
-                {stats.map(
-                  ({ id, icon: Icon, value, className, iconClassName }) => (
-                    <div
-                      key={id}
-                      className={cn(
-                        "flex items-center gap-1 whitespace-nowrap rounded-md px-1 py-px transition-colors",
-                        className,
-                      )}
-                    >
-                      <Icon
-                        data-active={value > 0}
-                        className={cn("h-4 w-4 shrink-0", iconClassName)}
-                      />
-                      <span className="text-xs font-medium text-neutral-600">
-                        <NumberFlow
-                          value={id === "sales" ? value / 100 : value}
-                          format={
-                            id === "sales"
-                              ? {
-                                  style: "currency",
-                                  currency: "USD",
-                                  // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
-                                  trailingZeroDisplay: "stripIfInteger",
-                                }
-                              : {
-                                  notation:
-                                    value > 999999 ? "compact" : "standard",
-                                }
-                          }
-                        />
-                      </span>
-                    </div>
-                  ),
-                )}
-              </div>
-            </Link>
-          </div>
         </div>
 
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -321,7 +272,7 @@ export function PartnerLinkCard({
                   <div className="h-4 w-12 animate-pulse rounded bg-neutral-200" />
                 )}
               </div>
-              <div className="h-18 sm:h-24">
+              <div className="h-20 sm:h-24">
                 {chartData ? (
                   <LinkEventsChart
                     key={`${interval}-${start}-${end}`}
@@ -374,7 +325,7 @@ function LinkEventsChart({
         tooltipContent={(d) => {
           return (
             <>
-              <div className="flex justify-between gap-6 whitespace-nowrap p-2 text-xs leading-none">
+              <div className="flex items-center justify-between gap-6 whitespace-nowrap p-2 text-xs leading-none">
                 <span className="font-medium text-neutral-700">
                   {formatDateTooltip(d.date, {
                     interval,

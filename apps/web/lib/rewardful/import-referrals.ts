@@ -1,5 +1,3 @@
-import { sendEmail } from "@dub/email";
-import { CampaignImported } from "@dub/email/templates/campaign-imported";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { Program, Project } from "@prisma/client";
@@ -18,15 +16,6 @@ export async function importReferrals({
   programId: string;
   page: number;
 }) {
-  const { token, userId, campaignId } =
-    await rewardfulImporter.getCredentials(programId);
-
-  const rewardfulApi = new RewardfulApi({ token });
-
-  let currentPage = page;
-  let hasMoreReferrals = true;
-  let processedBatches = 0;
-
   const { workspace, ...program } = await prisma.program.findUniqueOrThrow({
     where: {
       id: programId,
@@ -35,6 +24,16 @@ export async function importReferrals({
       workspace: true,
     },
   });
+
+  const { token, campaignId } = await rewardfulImporter.getCredentials(
+    workspace.id,
+  );
+
+  const rewardfulApi = new RewardfulApi({ token });
+
+  let currentPage = page;
+  let hasMoreReferrals = true;
+  let processedBatches = 0;
 
   while (hasMoreReferrals && processedBatches < MAX_BATCHES) {
     const referrals = await rewardfulApi.listReferrals({
@@ -70,27 +69,10 @@ export async function importReferrals({
     });
   }
 
-  // Imports finished
-  await rewardfulImporter.deleteCredentials(programId);
-
-  const { email } = await prisma.user.findUniqueOrThrow({
-    where: {
-      id: userId,
-    },
+  await rewardfulImporter.queue({
+    programId: program.id,
+    action: "import-commissions",
   });
-
-  if (email) {
-    await sendEmail({
-      email,
-      subject: "Rewardful campaign imported",
-      react: CampaignImported({
-        email,
-        provider: "Rewardful",
-        workspace,
-        program,
-      }),
-    });
-  }
 }
 
 // Create individual referral entries
@@ -170,9 +152,11 @@ async function createReferral({
     linkId: link.id,
     clickId: nanoid(16),
     url: link.url,
+    domain: link.domain,
+    key: link.key,
     workspaceId: workspace.id,
-    timestamp: new Date(referral.created_at).toISOString(),
     skipRatelimit: true,
+    timestamp: new Date(referral.created_at).toISOString(),
   });
 
   const clickEvent = clickEventSchemaTB.parse({
@@ -216,11 +200,6 @@ async function createReferral({
     prisma.link.update({
       where: { id: link.id },
       data: { leads: { increment: 1 } },
-    }),
-
-    prisma.project.update({
-      where: { id: workspace.id },
-      data: { usage: { increment: 1 } },
     }),
   ]);
 }

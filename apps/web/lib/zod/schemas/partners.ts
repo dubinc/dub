@@ -86,6 +86,9 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
     sales: z.number().default(0),
     saleAmount: z.number().default(0),
     earnings: z.number().default(0),
+  })
+  .extend({
+    applicationId: z.string().nullish(),
   });
 
 export const LeaderboardPartnerSchema = z.object({

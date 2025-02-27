@@ -249,6 +249,7 @@ export const createLinkBodySchema = z.object({
     ),
   folderId: z
     .string()
+    .transform((v) => (v === "" ? null : v))
     .nullish()
     .describe("The unique ID existing folder to assign the short link to."),
   comments: z.string().nullish().describe("The comments for the short link."),

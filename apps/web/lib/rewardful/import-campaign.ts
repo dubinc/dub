@@ -4,8 +4,15 @@ import { RewardfulApi } from "./api";
 import { rewardfulImporter } from "./importer";
 
 export async function importCampaign({ programId }: { programId: string }) {
+  const { defaultRewardId, workspaceId } =
+    await prisma.program.findUniqueOrThrow({
+      where: {
+        id: programId,
+      },
+    });
+
   const { token, campaignId } =
-    await rewardfulImporter.getCredentials(programId);
+    await rewardfulImporter.getCredentials(workspaceId);
 
   const rewardfulApi = new RewardfulApi({ token });
 
@@ -17,12 +24,6 @@ export async function importCampaign({ programId }: { programId: string }) {
     max_commission_period_months,
     reward_type,
   } = campaign;
-
-  const { defaultRewardId } = await prisma.program.findUniqueOrThrow({
-    where: {
-      id: programId,
-    },
-  });
 
   const reward = await prisma.reward.create({
     data: {
