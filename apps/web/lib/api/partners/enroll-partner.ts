@@ -31,6 +31,7 @@ export const enrollPartner = async ({
   workspace,
   link,
   partner,
+  skipPartnerCheck = false,
 }: {
   program: Pick<ProgramProps, "id" | "defaultFolderId">;
   tenantId?: string;
@@ -43,8 +44,9 @@ export const enrollPartner = async ({
     description?: string | null;
   };
   link: ProgramPartnerLinkProps;
+  skipPartnerCheck?: boolean;
 }) => {
-  if (partner.email) {
+  if (!skipPartnerCheck && partner.email) {
     const programEnrollment = await prisma.programEnrollment.findFirst({
       where: {
         programId: program.id,
@@ -53,9 +55,6 @@ export const enrollPartner = async ({
         },
       },
     });
-
-    // TODO:
-    // Instead of throwing an error, should we return the existing partner program enrollment?
 
     if (programEnrollment) {
       throw new DubApiError({
@@ -258,5 +257,6 @@ export const createLinkAndEnrollPartner = async ({
       country,
       description,
     },
+    skipPartnerCheck: true,
   });
 };
