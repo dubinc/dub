@@ -18,6 +18,8 @@ type FormData = {
   website?: string;
   proposal: string;
   comments?: string;
+  ageVerification: boolean;
+  termsAgreement: boolean;
 };
 
 export function ProgramApplicationForm({
@@ -177,6 +179,36 @@ export function ProgramApplicationForm({
           {...register("comments")}
         />
       </label>
+
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          id="ageVerification"
+          className={cn(
+            "h-4 w-4 rounded border-neutral-300 text-[var(--brand)] focus:ring-[var(--brand)]",
+            errors.ageVerification && "border-red-400 focus:ring-red-500",
+          )}
+          {...register("ageVerification", { required: true })}
+        />
+        <label htmlFor="ageVerification" className="text-sm text-neutral-800">
+          I am 21 years or older
+        </label>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          id="termsAgreement"
+          className={cn(
+            "h-4 w-4 rounded border-neutral-300 text-[var(--brand)] focus:ring-[var(--brand)]",
+            errors.termsAgreement && "border-red-400 focus:ring-red-500",
+          )}
+          {...register("termsAgreement", { required: true })}
+        />
+        <label htmlFor="termsAgreement" className="text-sm text-neutral-800">
+          I agree to the {program.name} affiliate participation agreement
+        </label>
+      </div>
 
       <Button
         text="Submit application"
