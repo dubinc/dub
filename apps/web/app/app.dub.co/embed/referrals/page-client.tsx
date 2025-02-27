@@ -16,13 +16,13 @@ import {
 import { cn, getPrettyUrl } from "@dub/utils";
 import { AnimatePresence } from "framer-motion";
 import { CSSProperties, useState } from "react";
+import { LinkToken } from "../token";
 import { EmbedActivity } from "./activity";
 import { EmbedEarnings } from "./earnings";
 import { EmbedFAQ } from "./faq";
 import { EmbedLeaderboard } from "./leaderboard";
 import { EmbedPayouts } from "./payouts";
 import { EmbedQuickstart } from "./quickstart";
-import { LinkToken } from "./token";
 
 const tabs = ["Quickstart", "Earnings", "Leaderboard", "FAQ"];
 

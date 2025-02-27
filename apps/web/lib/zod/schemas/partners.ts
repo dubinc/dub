@@ -137,10 +137,10 @@ export const createPartnerSchema = z.object({
     ),
   username: z
     .string()
-    .min(1)
     .max(100)
+    .nullish()
     .describe(
-      "A unique username for the partner in your system. This will be used to create a short link for the partner using your program's default domain.",
+      "A unique username for the partner in your system (max 100 characters). This will be used to create a short link for the partner using your program's default domain. If not provided, a random 7-character slug will be generated.",
     ),
   image: z
     .string()

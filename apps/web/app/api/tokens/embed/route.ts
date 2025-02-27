@@ -14,10 +14,14 @@ import { NextResponse } from "next/server";
 // POST /api/tokens/embed - create a new embed token for the given partner/tenant
 export const POST = withWorkspace(
   async ({ workspace, req, session }) => {
-    const { programId, partnerId, tenantId, partner } =
-      createEmbedTokenSchema.parse(await parseRequestBody(req));
+    const {
+      programId,
+      partnerId,
+      tenantId,
+      partner: partnerProps,
+    } = createEmbedTokenSchema.parse(await parseRequestBody(req));
 
-    if (!partnerId && !tenantId && !partner) {
+    if (!partnerId && !tenantId && !partnerProps) {
       throw new DubApiError({
         message: "You must provide either partnerId, tenantId, or partner.",
         code: "bad_request",
@@ -26,80 +30,103 @@ export const POST = withWorkspace(
 
     let programEnrollment: Pick<ProgramEnrollment, "partnerId"> | null = null;
 
-    if (partnerId || tenantId) {
+    if (partnerId) {
       programEnrollment = await prisma.programEnrollment.findUnique({
-        where: partnerId
-          ? { partnerId_programId: { partnerId, programId } }
-          : { tenantId_programId: { tenantId: tenantId!, programId } },
+        where: { partnerId_programId: { partnerId, programId } },
       });
 
       if (!programEnrollment) {
         throw new DubApiError({
-          message: `Partner with ${
-            partnerId ? `ID ${partnerId}` : `tenant ID ${tenantId}`
-          } does not enroll in this program ${programId}.`,
+          message: `Partner with ID ${partnerId} is not enrolled in this program (${programId}).`,
           code: "not_found",
         });
       }
-    } else if (partner) {
-      const program = await prisma.program.findUnique({
-        where: {
-          id: programId,
-        },
+    } else if (tenantId) {
+      programEnrollment = await prisma.programEnrollment.findUnique({
+        where: { tenantId_programId: { tenantId, programId } },
       });
 
-      if (!program || program.workspaceId !== workspace.id) {
-        throw new DubApiError({
-          message: `Program with ID ${programId} not found.`,
-          code: "not_found",
+      // if there's no programEnrollment (no partner or partner not enrolled in program)
+      if (!programEnrollment) {
+        if (!partnerProps) {
+          throw new DubApiError({
+            message: `Partner with tenant ID ${tenantId} is not enrolled in this program (${programId}). Pass a "partner" object to enroll the partner on-demand.`,
+            code: "not_found",
+          });
+        }
+        const program = await prisma.program.findUnique({
+          where: {
+            id: programId,
+          },
         });
-      }
 
-      const existingPartner = await prisma.partner.findUnique({
-        where: {
-          email: partner.email,
-        },
-        include: {
-          programs: {
-            where: {
-              programId,
+        if (!program || program.workspaceId !== workspace.id) {
+          throw new DubApiError({
+            message: `Program with ID ${programId} not found.`,
+            code: "not_found",
+          });
+        }
+
+        const upsertedPartner = await prisma.partner.upsert({
+          where: {
+            email: partnerProps.email,
+          },
+          create: {
+            email: partnerProps.email,
+            name: partnerProps.name,
+            image: partnerProps.image,
+          },
+          update: {},
+          include: {
+            programs: {
+              where: {
+                programId,
+              },
             },
           },
-        },
-      });
+        });
 
-      if (existingPartner) {
-        // partner exists but is not enrolled in the program
-        if (existingPartner.programs.length === 0) {
-          const enrolledPartner = await createLinkAndEnrollPartner({
+        programEnrollment = {
+          partnerId: upsertedPartner.id,
+        };
+
+        // partner exists but is not enrolled in the program, we need to enroll them
+        if (upsertedPartner.programs.length === 0) {
+          await createLinkAndEnrollPartner({
             workspace,
             program,
             partner: {
-              ...partner,
+              ...partnerProps,
               programId,
+              tenantId, // also set tenantId for easy future retrieval
             },
             userId: session.user.id,
-            generateRandomKey: true,
           });
-
-          programEnrollment = {
-            partnerId: enrolledPartner.id,
-          };
         } else {
-          programEnrollment = {
-            partnerId: existingPartner.id,
-          };
+          // update the partner's program enrollment to use the passed tenantId
+          await prisma.programEnrollment.update({
+            where: {
+              partnerId_programId: {
+                partnerId: upsertedPartner.id,
+                programId,
+              },
+            },
+            data: {
+              tenantId,
+            },
+          });
         }
       }
+    } else {
+      throw new DubApiError({
+        message: "You must provide either partnerId, tenantId, or partner.",
+        code: "bad_request",
+      });
     }
 
     const response = await embedToken.create({
       programId,
-      ...(programEnrollment
-        ? { partnerId: programEnrollment.partnerId }
-        : partner // we'll create the parter during the initial loading of the embed page
-          ? { partner: { ...partner, userId: session.user.id } }
-          : null),
+      partnerId: programEnrollment.partnerId,
     });
 
     return NextResponse.json(EmbedTokenSchema.parse(response), {

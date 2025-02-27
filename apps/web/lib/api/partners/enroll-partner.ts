@@ -17,7 +17,7 @@ import {
 } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
-import { generateRandomString } from "@dub/utils/src";
+import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { DubApiError } from "../errors";
@@ -163,13 +163,11 @@ export const createLinkAndEnrollPartner = async ({
   program,
   partner,
   userId,
-  generateRandomKey = false,
 }: {
   workspace: Pick<WorkspaceProps, "id" | "plan" | "webhookEnabled">;
   program: Pick<ProgramProps, "id" | "defaultFolderId" | "domain" | "url">;
   partner: z.infer<typeof createPartnerSchema>;
   userId: string;
-  generateRandomKey?: boolean;
 }) => {
   if (!program.domain || !program.url) {
     throw new DubApiError({
@@ -194,7 +192,7 @@ export const createLinkAndEnrollPartner = async ({
   let link: ProcessedLinkProps;
   let error: string | null;
   let code: ErrorCodes | null;
-  let currentKey = username;
+  let currentKey = username ?? nanoid();
 
   while (true) {
     const result = await processLink({
@@ -213,11 +211,10 @@ export const createLinkAndEnrollPartner = async ({
     });
 
     if (
-      generateRandomKey &&
       result.code === "conflict" &&
       result.error.startsWith("Duplicate key")
     ) {
-      currentKey = username + generateRandomString(4).toLowerCase();
+      currentKey = username + nanoid(4).toLowerCase();
       continue;
     }
 
