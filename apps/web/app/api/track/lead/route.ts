@@ -3,6 +3,7 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { createId, parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
+import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { getClickEvent, recordLead, recordLeadSync } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhookOnEdge } from "@/lib/webhook/publish-edge";
@@ -16,7 +17,6 @@ import { nanoid } from "@dub/utils";
 import { Customer } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
-import { determinePartnerReward } from "../determine-partner-reward-edge";
 
 // POST /api/track/lead – Track a lead conversion event
 export const POST = withWorkspace(
@@ -66,6 +66,7 @@ export const POST = withWorkspace(
         message: `Customer with externalId ${customerExternalId} and event name ${eventName} has already been recorded.`,
       });
     }
+
     // Find click event
     const clickEvent = await getClickEvent({ clickId });
 
@@ -134,12 +135,17 @@ export const POST = withWorkspace(
       // Execute customer creation synchronously
       customer = await upsertCustomer();
 
-      // Use recordLeadSync which waits for the operation to complete
-      await recordLeadSync(createLeadEventPayload(customer.id));
+      const leadEventPayload = createLeadEventPayload(customer.id);
 
-      // Add a small delay to ensure the operation is fully processed
-      // This helps mitigate any potential race conditions
-      await new Promise((resolve) => setTimeout(resolve, 500)); // 500ms buffer
+      await Promise.all([
+        // Use recordLeadSync which waits for the operation to complete
+        recordLeadSync(leadEventPayload),
+
+        // Cache the latest lead event for 5 minutes because the ingested event is not available immediately on Tinybird
+        redis.set(`latestLeadEvent:${customer.id}`, leadEventPayload, {
+          ex: 60 * 5,
+        }),
+      ]);
     }
 
     waitUntil(
