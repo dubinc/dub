@@ -22,7 +22,7 @@ export const importLinksFromBitly = async ({
   userId: string;
   bitlyGroup: string;
   domains: string[];
-  folderId: string;
+  folderId?: string;
   tagsToId?: Record<string, string>;
   bitlyApiKey: string;
   searchAfter?: string | null;

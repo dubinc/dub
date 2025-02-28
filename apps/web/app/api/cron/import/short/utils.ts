@@ -6,7 +6,7 @@ import { randomBadgeColor } from "@/ui/links/tag-badge";
 import { sendEmail } from "@dub/email";
 import { LinksImported } from "@dub/email/templates/links-imported";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, linkConstructorSimple } from "@dub/utils";
 
 export const importLinksFromShort = async ({
   workspaceId,
@@ -70,6 +70,10 @@ export const importLinksFromShort = async ({
           domain,
           key: path,
           url: originalURL,
+          shortLink: linkConstructorSimple({
+            domain,
+            key: path,
+          }),
           title,
           ios: iphoneURL,
           android: androidURL,
@@ -84,19 +88,18 @@ export const importLinksFromShort = async ({
   // check if links are already in the database
   const alreadyCreatedLinks = await prisma.link.findMany({
     where: {
-      domain,
-      key: {
-        in: importedLinks.map((link) => link.key),
+      shortLink: {
+        in: importedLinks.map((link) => link.shortLink),
       },
     },
     select: {
-      key: true,
+      shortLink: true,
     },
   });
 
   // filter out links that are already in the database
   const linksToCreate = importedLinks.filter(
-    (link) => !alreadyCreatedLinks.some((l) => l.key === link.key),
+    (link) => !alreadyCreatedLinks.some((l) => l.shortLink === link.shortLink),
   );
 
   // import tags into database

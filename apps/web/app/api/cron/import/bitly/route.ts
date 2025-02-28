@@ -16,7 +16,7 @@ export async function POST(req: Request) {
     await verifyQstashSignature({ req, rawBody });
 
     const body = JSON.parse(rawBody);
-    const { workspaceId, bitlyGroup, importTags, folderId } = body;
+    const { workspaceId, bitlyGroup, importTags } = body;
 
     try {
       const bitlyApiKey = await redis.get(`import:bitly:${workspaceId}`);
