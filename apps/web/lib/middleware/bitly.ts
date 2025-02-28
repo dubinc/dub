@@ -17,35 +17,35 @@ type BitlyLink = {
 };
 
 // Create a new Bitly link in Dub on-demand
-export const importBitlyLink = async (bitlyLink: string) => {
+export const importBitlyLink = async (shortKey: string) => {
   const workspaceId = "";
   const userId = "";
   const folderId = "";
 
-  const bitlyApiKey = await redis.get(`import:bitly:${workspaceId}`); // TODO: We might want to move this to a different key
+  const apiKey = await redis.get<string>(`import:bitly:${workspaceId}`);
 
-  if (!bitlyApiKey) {
+  if (!apiKey) {
     console.error(`[Bitly] No API key found for workspace ${workspaceId}`);
     return null;
   }
 
-  const response = await fetch(
-    `https://api-ssl.bitly.com/v4/bitlinks/${bitlyLink}`,
-    {
-      headers: {
-        Authorization: `Bearer ${bitlyApiKey}`,
-      },
-    },
-  );
+  let link: BitlyLink | null = null;
 
-  const data = await response.json();
+  for (const domain of ["buff.ly", "bit.ly"]) {
+    link = await fetchBitlyLink({
+      domain,
+      shortKey,
+      apiKey,
+    });
 
-  if (!response.ok) {
-    console.error(`[Bitly] Error retrieving Bitly link: ${bitlyLink}`, data);
-    return null;
+    if (link) {
+      break;
+    }
   }
 
-  const link = data as BitlyLink;
+  if (!link) {
+    return null;
+  }
 
   const [domain, key] = link.id.split("/");
 
@@ -109,3 +109,29 @@ export const importBitlyLink = async (bitlyLink: string) => {
 
   return newLink as unknown as EdgeLinkProps;
 };
+
+async function fetchBitlyLink({
+  domain,
+  shortKey,
+  apiKey,
+}: {
+  domain: string;
+  shortKey: string;
+  apiKey: string;
+}) {
+  const response = await fetch(
+    `https://api-ssl.bitly.com/v4/bitlinks/${domain}/${shortKey}`,
+    {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+      },
+    },
+  );
+
+  if (!response.ok) {
+    console.error(`[Bitly] Link ${domain}/${shortKey} not found.`);
+    return null;
+  }
+
+  return await response.json();
+}
