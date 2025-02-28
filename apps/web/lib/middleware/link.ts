@@ -26,6 +26,7 @@ import {
 import { linkCache } from "../api/links/cache";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
+import { importBitlyLink } from "./bitly";
 import { hasEmptySearchParams } from "./utils/has-empty-search-params";
 
 export default async function LinkMiddleware(
@@ -68,25 +69,34 @@ export default async function LinkMiddleware(
   let link = await linkCache.get({ domain, key });
 
   if (!link) {
-    const linkData = await getLinkViaEdge(domain, key);
+    let linkData = await getLinkViaEdge(domain, key);
 
     if (!linkData) {
-      // check if domain has notFoundUrl configured
-      const domainData = await getDomainViaEdge(domain);
-      if (domainData?.notFoundUrl) {
-        return NextResponse.redirect(domainData.notFoundUrl, {
-          headers: {
-            ...DUB_HEADERS,
-            "X-Robots-Tag": "googlebot: noindex",
-            // pass the Referer value to the not found URL
-            Referer: req.url,
-          },
-          status: 302,
-        });
-      } else {
-        return NextResponse.rewrite(new URL(`/${domain}/not-found`, req.url), {
-          headers: DUB_HEADERS,
-        });
+      if (domain === "buff.ly" || domain === "dev.buff.ly") {
+        linkData = await importBitlyLink(originalKey);
+      }
+
+      if (!linkData) {
+        // check if domain has notFoundUrl configured
+        const domainData = await getDomainViaEdge(domain);
+        if (domainData?.notFoundUrl) {
+          return NextResponse.redirect(domainData.notFoundUrl, {
+            headers: {
+              ...DUB_HEADERS,
+              "X-Robots-Tag": "googlebot: noindex",
+              // pass the Referer value to the not found URL
+              Referer: req.url,
+            },
+            status: 302,
+          });
+        } else {
+          return NextResponse.rewrite(
+            new URL(`/${domain}/not-found`, req.url),
+            {
+              headers: DUB_HEADERS,
+            },
+          );
+        }
       }
     }
 

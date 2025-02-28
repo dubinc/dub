@@ -31,16 +31,6 @@ export async function getLinksCount({
     projectId: workspaceId,
     archived: showArchived ? undefined : false,
     AND: [
-      ...(search
-        ? [
-            {
-              OR: [
-                { shortLink: { contains: search } },
-                { url: { contains: search } },
-              ],
-            },
-          ]
-        : []),
       ...(folderIds
         ? [
             {
@@ -61,6 +51,16 @@ export async function getLinksCount({
               folderId: folderId || null,
             },
           ]),
+      ...(search
+        ? [
+            {
+              OR: [
+                { shortLink: { contains: search } },
+                { url: { contains: search } },
+              ],
+            },
+          ]
+        : []),
     ],
     ...(domain &&
       groupBy !== "domain" && {

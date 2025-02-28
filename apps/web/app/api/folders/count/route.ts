@@ -1,11 +1,14 @@
 import { withWorkspace } from "@/lib/auth";
+import { listFoldersQuerySchema } from "@/lib/zod/schemas/folders";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/folders/count - get count of folders
 export const GET = withWorkspace(
-  async ({ workspace, headers, session }) => {
-    // const { search } = getTagsCountQuerySchema.parse(searchParams);
+  async ({ workspace, headers, session, searchParams }) => {
+    const { search } = listFoldersQuerySchema
+      .omit({ page: true, pageSize: true })
+      .parse(searchParams);
 
     const count = await prisma.folder.count({
       where: {
@@ -27,11 +30,11 @@ export const GET = withWorkspace(
             role: null,
           },
         },
-        // ...(search && {
-        //   name: {
-        //     contains: search,
-        //   },
-        // }),
+        ...(search && {
+          name: {
+            contains: search,
+          },
+        }),
       },
     });
 
