@@ -24,45 +24,33 @@ export const importBitlyLink = async (shortKey: string) => {
   const userId = "";
   const folderId = "";
 
-  const bitlyApiKey = await redis.get(`import:bitly:${workspaceId}`); // TODO: We might want to move this to a different key
+  const apiKey = await redis.get<string>(`import:bitly:${workspaceId}`); // TODO: We might want to move this to a different key
 
-  if (!bitlyApiKey) {
+  if (!apiKey) {
     console.error(`[Bitly] No API key found for workspace ${workspaceId}`);
     return null;
   }
 
-  // First try buff.ly
-  let response = await fetch(
-    `https://api-ssl.bitly.com/v4/bitlinks/buff.ly/${shortKey}`,
-    {
-      headers: {
-        Authorization: `Bearer ${bitlyApiKey}`,
-      },
-    },
-  );
+  let link: BitlyLink | null = null;
 
-  let data = await response.json();
+  for (const domain of ["buff.ly", "bit.ly"]) {
+    link = await fetchBitlyLink({
+      domain,
+      shortKey,
+      apiKey,
+    });
 
-  // If the link is not found, try bit.ly
-  if (!response.ok) {
-    response = await fetch(
-      `https://api-ssl.bitly.com/v4/bitlinks/bit.ly/${shortKey}`,
-      {
-        headers: {
-          Authorization: `Bearer ${bitlyApiKey}`,
-        },
-      },
-    );
-
-    if (!response.ok) {
-      console.error("[Bitly] Error retrieving Bitly link", data);
-      return null;
+    if (link) {
+      break;
     }
-
-    data = await response.json();
   }
 
-  const link = data as BitlyLink;
+  if (!link) {
+    console.error(
+      "[Bitly] Error retrieving Bitly link - not found in any domain",
+    );
+    return null;
+  }
 
   const [domain, key] = link.id.split("/");
 
@@ -126,3 +114,28 @@ export const importBitlyLink = async (shortKey: string) => {
 
   return newLink as unknown as EdgeLinkProps;
 };
+
+async function fetchBitlyLink({
+  domain,
+  shortKey,
+  apiKey,
+}: {
+  domain: string;
+  shortKey: string;
+  apiKey: string;
+}) {
+  const response = await fetch(
+    `https://api-ssl.bitly.com/v4/bitlinks/${domain}/${shortKey}`,
+    {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+      },
+    },
+  );
+
+  if (!response.ok) {
+    return null;
+  }
+
+  return await response.json();
+}
