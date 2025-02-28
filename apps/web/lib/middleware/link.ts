@@ -72,7 +72,7 @@ export default async function LinkMiddleware(
     let linkData = await getLinkViaEdge(domain, key);
 
     if (!linkData) {
-      if (domain === "buff.ly") {
+      if (domain === "buff.ly" || domain === "dev.buff.ly") {
         linkData = await importBitlyLink(originalKey);
       }
 
