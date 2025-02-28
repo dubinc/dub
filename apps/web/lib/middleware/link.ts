@@ -26,6 +26,7 @@ import {
 import { linkCache } from "../api/links/cache";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
+import { importBitlyLink } from "./bitly";
 import { hasEmptySearchParams } from "./utils/has-empty-search-params";
 
 export default async function LinkMiddleware(
@@ -71,6 +72,10 @@ export default async function LinkMiddleware(
     let linkData = await getLinkViaEdge(domain, key);
 
     if (!linkData) {
+      if (domain === "buff.ly") {
+        linkData = await importBitlyLink(key);
+      }
+
       if (!linkData) {
         // check if domain has notFoundUrl configured
         const domainData = await getDomainViaEdge(domain);

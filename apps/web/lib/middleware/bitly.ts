@@ -16,8 +16,10 @@ type BitlyLink = {
   tags: string[];
 };
 
+// https://buff.ly/4hYdRCC https://bit.ly/4hYdRCC
+
 // Create a new Bitly link in Dub on-demand
-export const importBitlyLink = async (bitlyLink: string) => {
+export const importBitlyLink = async (shortKey: string) => {
   const workspaceId = "";
   const userId = "";
   const folderId = "";
@@ -29,8 +31,9 @@ export const importBitlyLink = async (bitlyLink: string) => {
     return null;
   }
 
-  const response = await fetch(
-    `https://api-ssl.bitly.com/v4/bitlinks/${bitlyLink}`,
+  // First try buff.ly
+  let response = await fetch(
+    `https://api-ssl.bitly.com/v4/bitlinks/buff.ly/${shortKey}`,
     {
       headers: {
         Authorization: `Bearer ${bitlyApiKey}`,
@@ -38,11 +41,25 @@ export const importBitlyLink = async (bitlyLink: string) => {
     },
   );
 
-  const data = await response.json();
+  let data = await response.json();
 
+  // If the link is not found, try bit.ly
   if (!response.ok) {
-    console.error(`[Bitly] Error retrieving Bitly link: ${bitlyLink}`, data);
-    return null;
+    response = await fetch(
+      `https://api-ssl.bitly.com/v4/bitlinks/bit.ly/${shortKey}`,
+      {
+        headers: {
+          Authorization: `Bearer ${bitlyApiKey}`,
+        },
+      },
+    );
+
+    if (!response.ok) {
+      console.error("[Bitly] Error retrieving Bitly link", data);
+      return null;
+    }
+
+    data = await response.json();
   }
 
   const link = data as BitlyLink;
