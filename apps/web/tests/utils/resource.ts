@@ -13,7 +13,7 @@ export const E2E_TAG = {
 };
 
 export const E2E_TAG_2 = {
-  id: "tag_8eyd9MfjUCCkRnGDt1hbe4v3",
+  id: "tag_sfaXFOt0kFLtEV3Z5wtywbTl",
   name: "E2E Tests 2 (DO NOT DELETE)",
   color: "blue",
 };

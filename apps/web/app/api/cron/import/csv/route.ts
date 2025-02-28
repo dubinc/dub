@@ -14,6 +14,7 @@ import {
   DEFAULT_LINK_PROPS,
   DUB_DOMAINS_ARRAY,
   getPrettyUrl,
+  linkConstructorSimple,
   log,
   normalizeString,
   parseDateTime,
@@ -94,6 +95,10 @@ export async function POST(req: Request) {
             ),
             domain,
             key,
+            shortLink: linkConstructorSimple({
+              domain,
+              key,
+            }),
             createdAt: mapping.createdAt
               ? parseDateTime(getValueByNormalizedKey(mapping.createdAt)) ||
                 undefined
@@ -168,21 +173,20 @@ export async function POST(req: Request) {
           // Find links that already exist in the workspace
           const alreadyCreatedLinks = await prisma.link.findMany({
             where: {
-              domain: {
-                in: domains.map((domain) => domain.slug),
-              },
-              key: {
+              shortLink: {
                 in: data.map((row) => {
                   const result = mapper(row);
                   return "success" in result && result.success
-                    ? result.data.key
-                    : result.link.key;
+                    ? result.data.shortLink
+                    : linkConstructorSimple({
+                        domain: result.link.domain,
+                        key: result.link.key,
+                      });
                 }),
               },
             },
             select: {
-              domain: true,
-              key: true,
+              shortLink: true,
             },
           });
 
@@ -194,9 +198,7 @@ export async function POST(req: Request) {
                 "success" in result &&
                 result.success === true &&
                 !alreadyCreatedLinks.some(
-                  (l) =>
-                    l.domain === result.data.domain &&
-                    l.key === result.data.key,
+                  (l) => l.shortLink === result.data.shortLink,
                 ) &&
                 result.data.key !== "_root",
             )
