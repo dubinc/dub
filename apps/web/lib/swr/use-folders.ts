@@ -6,8 +6,10 @@ import useWorkspace from "./use-workspace";
 
 export default function useFolders({
   includeParams = false,
+  includeLinkCount = false,
 }: {
   includeParams?: boolean;
+  includeLinkCount?: boolean;
 } = {}) {
   const { id: workspaceId, plan, flags } = useWorkspace();
   const { getQueryString } = useRouterStuff();
@@ -22,7 +24,7 @@ export default function useFolders({
     isLoading,
   } = useSWR<Folder[]>(
     workspaceId && flags?.linkFolders && plan !== "free"
-      ? `/api/folders${qs}`
+      ? `/api/folders${qs}${includeLinkCount ? "&includeLinkCount=true" : ""}`
       : null,
     fetcher,
     {

@@ -15,13 +15,14 @@ import { NextResponse } from "next/server";
 // GET /api/folders - get all folders for a workspace
 export const GET = withWorkspace(
   async ({ workspace, headers, session, searchParams }) => {
-    const { search } = listFoldersQuerySchema.parse(searchParams);
+    const { search, includeLinkCount } =
+      listFoldersQuerySchema.parse(searchParams);
 
     const folders = await getFolders({
       workspaceId: workspace.id,
       userId: session.user.id,
-      includeLinkCount: true,
       search,
+      includeLinkCount,
     });
 
     return NextResponse.json(FolderSchema.array().parse(folders), {
