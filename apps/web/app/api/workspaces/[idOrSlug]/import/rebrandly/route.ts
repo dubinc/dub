@@ -84,7 +84,7 @@ export const PUT = withWorkspace(async ({ req, workspace }) => {
 
 // POST /api/workspaces/[idOrSlug]/import/rebrandly - create job to import links from Rebrandly
 export const POST = withWorkspace(async ({ req, workspace, session }) => {
-  const { selectedDomains, importTags } = await req.json();
+  const { selectedDomains, importTags, folderId } = await req.json();
 
   const domains = await prisma.domain.findMany({
     where: { projectId: workspace.id },
@@ -114,6 +114,7 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
         domain,
         key: "_root",
         url: "",
+        folderId,
         userId: session?.user?.id,
         projectId: workspace.id,
       })),
@@ -129,6 +130,7 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
           userId: session?.user?.id,
           domainId: id,
           domain,
+          folderId,
           importTags,
         },
       }),
