@@ -16,8 +16,6 @@ type BitlyLink = {
   tags: string[];
 };
 
-// https://buff.ly/4hYdRCC https://bit.ly/4hYdRCC
-
 // Create a new Bitly link in Dub on-demand
 export const importBitlyLink = async (shortKey: string) => {
   const workspaceId = "";
