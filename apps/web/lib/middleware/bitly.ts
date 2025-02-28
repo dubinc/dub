@@ -14,6 +14,7 @@ type BitlyLink = {
   tags: string[];
 };
 
+// Create a new Bitly link in Dub on-demand
 export const createBitlyLink = async (bitlyLink: string) => {
   const response = await fetch(
     `https://api-ssl.bitly.com/v4/bitlinks/${bitlyLink}`,

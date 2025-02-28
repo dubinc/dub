@@ -10,6 +10,17 @@ import {
   linkConstructorSimple,
 } from "@dub/utils";
 
+interface RateLimitResponse {
+  platform_limits: {
+    endpoint: string;
+    methods: {
+      name: string;
+      limit: number;
+      count: number;
+    }[];
+  }[];
+}
+
 // Note: rate limit for /groups/{group_guid}/bitlinks is 1500 per hour or 150 per minute
 export const importLinksFromBitly = async ({
   workspaceId,
@@ -32,7 +43,7 @@ export const importLinksFromBitly = async ({
   searchAfter?: string | null;
   count?: number;
 }) => {
-  const data = await fetch(
+  const response = await fetch(
     `https://api-ssl.bitly.com/v4/groups/${bitlyGroup}/bitlinks?size=100${
       searchAfter ? `&search_after=${searchAfter}` : ""
     }`,
@@ -42,7 +53,25 @@ export const importLinksFromBitly = async ({
         Authorization: `Bearer ${bitlyApiKey}`,
       },
     },
-  ).then((res) => res.json());
+  );
+
+
+  if (!response.ok && response.status === 429) {
+    return await queueBitlyImport({
+      workspaceId,
+      userId,
+      bitlyGroup,
+      domains,
+      folderId,
+      tagsToId,
+      nextSearchAfter: searchAfter,
+      count,
+      rateLimited: true,
+    });
+  }
+
+  const data = await response.json();
+
   const { links, pagination } = data;
   const nextSearchAfter = pagination.search_after;
 
@@ -236,18 +265,79 @@ export const importLinksFromBitly = async ({
     ]);
     return count;
   } else {
-    return await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/bitly`,
-      body: {
-        workspaceId,
-        userId,
-        bitlyGroup,
-        domains,
-        folderId,
-        importTags: tagsToId ? true : false,
-        searchAfter: nextSearchAfter,
-        count,
-      },
+    return await queueBitlyImport({
+      workspaceId,
+      userId,
+      bitlyGroup,
+      domains,
+      folderId,
+      tagsToId,
+      nextSearchAfter,
+      count,
     });
   }
+};
+
+// Queue a Bitly import
+export const queueBitlyImport = async (payload: {
+  workspaceId: string;
+  userId: string;
+  bitlyGroup: string;
+  domains: string[];
+  folderId?: string;
+  tagsToId?: Record<string, string>;
+  nextSearchAfter?: string | null;
+  count?: number;
+  rateLimited?: boolean;
+  delay?: number;
+}) => {
+  const { tagsToId, nextSearchAfter, delay, ...rest } = payload;
+
+  return await qstash.publishJSON({
+    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/bitly`,
+    body: {
+      ...rest,
+      importTags: tagsToId ? true : false,
+      searchAfter: nextSearchAfter,
+    },
+    ...(delay && { delay }),
+  });
+};
+
+// Handle rate limited requests
+export const checkIfRateLimited = async (bitlyApiKey: unknown, body: any) => {
+  const path = "/groups/{group_guid}/bitlinks";
+
+  const response = await fetch(
+    `https://api-ssl.bitly.com/v4/user/platform_limits?path=${path}`,
+    {
+      headers: {
+        Authorization: `Bearer ${bitlyApiKey}`,
+        "Content-Type": "application/json",
+      },
+    },
+  );
+
+  const data = (await response.json()) as RateLimitResponse;
+
+  const endpoint = data.platform_limits[0].methods.find(
+    (method) => method.name === "GET",
+  )!;
+
+  const limit = endpoint.limit;
+  const currentUsage = endpoint.count;
+
+  console.log("checkIfRateLimited", endpoint);
+
+  const isRateLimited = limit - currentUsage === 0;
+
+  if (isRateLimited) {
+    await queueBitlyImport({
+      ...body,
+      rateLimited: true,
+      delay: 2 * 60, // try again after 2 minutes
+    });
+  }
+
+  return isRateLimited;
 };
