@@ -63,7 +63,7 @@ export const importBitlyLink = async (shortKey: string) => {
     id: createId({ prefix: "link_" }),
     projectId: workspaceId,
     userId,
-    domain,
+    domain: "buff.ly",
     key,
     url: sanitizedUrl,
     shortLink: linkConstructorSimple({
