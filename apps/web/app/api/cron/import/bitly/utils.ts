@@ -31,6 +31,8 @@ export const importLinksFromBitly = async ({
   tagsToId,
   bitlyApiKey,
   searchAfter = null,
+  createdBefore = null,
+  createdAfter = null,
   count = 0,
 }: {
   workspaceId: string;
@@ -41,12 +43,19 @@ export const importLinksFromBitly = async ({
   tagsToId?: Record<string, string>;
   bitlyApiKey: string;
   searchAfter?: string | null;
+  createdBefore?: string | null;
+  createdAfter?: string | null;
   count?: number;
 }) => {
   const response = await fetch(
-    `https://api-ssl.bitly.com/v4/groups/${bitlyGroup}/bitlinks?size=100${
-      searchAfter ? `&search_after=${searchAfter}` : ""
-    }`,
+    `https://api-ssl.bitly.com/v4/groups/${bitlyGroup}/bitlinks?${new URLSearchParams(
+      {
+        size: "100",
+        ...(searchAfter && { search_after: searchAfter }),
+        ...(createdBefore && { created_before: createdBefore }),
+        ...(createdAfter && { created_after: createdAfter }),
+      },
+    )}`,
     {
       headers: {
         "Content-Type": "application/json",
@@ -186,6 +195,8 @@ export const importLinksFromBitly = async ({
     importedLinksLength: importedLinks.length,
     count,
     nextSearchAfter,
+    createdBefore,
+    createdAfter,
   });
 
   // wait 500 ms before making another request
@@ -272,6 +283,8 @@ export const importLinksFromBitly = async ({
       folderId,
       tagsToId,
       nextSearchAfter,
+      createdBefore,
+      createdAfter,
       count,
     });
   }
@@ -286,6 +299,8 @@ export const queueBitlyImport = async (payload: {
   folderId?: string;
   tagsToId?: Record<string, string>;
   nextSearchAfter?: string | null;
+  createdBefore?: string | null;
+  createdAfter?: string | null;
   count?: number;
   rateLimited?: boolean;
   delay?: number;
