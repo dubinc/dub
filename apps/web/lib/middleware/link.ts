@@ -73,7 +73,7 @@ export default async function LinkMiddleware(
 
     if (!linkData) {
       if (domain === "buff.ly") {
-        linkData = await importBitlyLink(key);
+        linkData = await importBitlyLink(originalKey);
       }
 
       if (!linkData) {
