@@ -62,9 +62,13 @@ export const PATCH = withWorkspace(
       });
     }
 
+    // Recalculate the earnings based on the new amount
     const earnings = calculateSaleEarnings({
       reward,
-      sale,
+      sale: {
+        amount,
+        quantity: sale.quantity,
+      },
     });
 
     const updatedSale = await prisma.commission.update({
@@ -76,6 +80,24 @@ export const PATCH = withWorkspace(
         earnings,
       },
     });
+
+    // If the sale has already been paid, we need to update the payout
+    if (sale.status === "processed" && sale.payoutId) {
+      const earningsDifference = earnings - sale.earnings;
+
+      await prisma.payout.update({
+        where: {
+          id: sale.payoutId,
+        },
+        data: {
+          amount: {
+            ...(earningsDifference < 0
+              ? { decrement: Math.abs(earningsDifference) }
+              : { increment: earningsDifference }),
+          },
+        },
+      });
+    }
 
     return NextResponse.json(ProgramSaleSchema.parse(updatedSale));
   },
