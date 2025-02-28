@@ -11,7 +11,7 @@ import {
 } from "@dub/ui";
 import { APP_DOMAIN_WITH_NGROK, fetcher } from "@dub/utils";
 import { ArrowRight, ServerOff } from "lucide-react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -31,8 +31,8 @@ function ImportBitlyModal({
   setShowImportBitlyModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const router = useRouter();
-  const { slug } = useParams() as { slug?: string };
   const searchParams = useSearchParams();
+  const folderId = searchParams.get("folderId");
   const { id: workspaceId } = useWorkspace();
 
   const [redirecting, setRedirecting] = useState(false);
@@ -74,7 +74,12 @@ function ImportBitlyModal({
     }
   }, [searchParams]);
 
-  const bitlyOAuthURL = `https://bitly.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_BITLY_CLIENT_ID}&redirect_uri=${APP_DOMAIN_WITH_NGROK}/api/callback/bitly&state=${workspaceId}`;
+  const bitlyOAuthURL = `https://bitly.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_BITLY_CLIENT_ID}&redirect_uri=${APP_DOMAIN_WITH_NGROK}/api/callback/bitly&state=${JSON.stringify(
+    {
+      workspaceId,
+      ...(folderId ? { folderId } : {}),
+    },
+  )}`;
 
   const isSelected = (domain: string) => {
     return selectedDomains.find((d) => d.domain === domain) ? true : false;
@@ -129,7 +134,7 @@ function ImportBitlyModal({
                   body: JSON.stringify({
                     selectedDomains,
                     selectedGroupTags,
-                    folderId: searchParams.get("folderId"),
+                    ...(folderId ? { folderId } : {}),
                   }),
                 }).then(async (res) => {
                   if (res.ok) {
