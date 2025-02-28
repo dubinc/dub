@@ -1,3 +1,4 @@
+import { redis } from "@/lib/upstash";
 import { getUrlFromStringIfValid, linkConstructorSimple } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { ExpandedLink } from "../api/links";
@@ -16,11 +17,22 @@ type BitlyLink = {
 
 // Create a new Bitly link in Dub on-demand
 export const createBitlyLink = async (bitlyLink: string) => {
+  const workspaceId = "";
+  const userId = "";
+  const folderId = "";
+
+  const bitlyApiKey = await redis.get(`import:bitly:${workspaceId}`); // TODO: We might want to move this to a different key
+
+  if (!bitlyApiKey) {
+    console.error(`[Bitly] No API key found for workspace ${workspaceId}`);
+    return null;
+  }
+
   const response = await fetch(
     `https://api-ssl.bitly.com/v4/bitlinks/${bitlyLink}`,
     {
       headers: {
-        Authorization: "Bearer xxxx", // TODO: add token
+        Authorization: `Bearer ${bitlyApiKey}`,
       },
     },
   );
@@ -46,10 +58,6 @@ export const createBitlyLink = async (bitlyLink: string) => {
     return null;
   }
 
-  const workspaceId = "";
-  const userId = "";
-  const folderId = "";
-
   const newLink = {
     id: createId({ prefix: "link_" }),
     projectId: workspaceId,
@@ -62,10 +70,13 @@ export const createBitlyLink = async (bitlyLink: string) => {
       key,
     }),
     archived: link.archived,
-    createdAt: new Date(link.created_at),
-    updatedAt: new Date(link.created_at),
     folderId,
     tagIds: [], // TODO: add tags
+    createdAt: new Date(link.created_at),
+    updatedAt: new Date(link.created_at),
+    tenantId: null,
+    programId: null,
+    partnerId: null,
   };
 
   console.log("[Bitly] Creating link", newLink);
@@ -91,9 +102,6 @@ export const createBitlyLink = async (bitlyLink: string) => {
   waitUntil(
     recordLink({
       ...newLink,
-      tenantId: "",
-      programId: "",
-      partnerId: "",
       tags: [],
     } as unknown as ExpandedLink),
   );
