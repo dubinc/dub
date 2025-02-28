@@ -29,24 +29,26 @@ export const getReferralsEmbedData = async (token: string) => {
     notFound();
   }
 
-  const reward = await determinePartnerReward({
-    programId,
-    partnerId,
-    event: "sale",
-  });
+  const [reward, payouts] = await Promise.all([
+    determinePartnerReward({
+      programId,
+      partnerId,
+      event: "sale",
+    }),
+
+    prisma.payout.groupBy({
+      by: ["status"],
+      _sum: {
+        amount: true,
+      },
+      where: {
+        programId,
+        partnerId,
+      },
+    }),
+  ]);
 
   const { program, links } = programEnrollment;
-
-  const payouts = await prisma.payout.groupBy({
-    by: ["status"],
-    _sum: {
-      amount: true,
-    },
-    where: {
-      programId: program.id,
-      partnerId: programEnrollment?.partnerId,
-    },
-  });
 
   return {
     program,

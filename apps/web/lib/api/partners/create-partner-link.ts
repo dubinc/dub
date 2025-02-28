@@ -10,7 +10,9 @@ import { DubApiError } from "../errors";
 import { createLink } from "../links/create-link";
 import { processLink } from "../links/process-link";
 
-// createing partner link
+type CreatePartnerProps = z.infer<typeof createPartnerSchema>;
+
+// create a partner link
 export const createPartnerLink = async ({
   workspace,
   program,
@@ -18,8 +20,8 @@ export const createPartnerLink = async ({
   userId,
 }: {
   workspace: Pick<WorkspaceProps, "id" | "plan" | "webhookEnabled">;
-  program: Pick<ProgramProps, "defaultFolderId" | "domain" | "url">;
-  partner: z.infer<typeof createPartnerSchema>;
+  program: Pick<ProgramProps, "defaultFolderId" | "domain" | "url" | "id">;
+  partner: Pick<CreatePartnerProps, "tenantId" | "linkProps" | "username">;
   userId: string;
 }) => {
   if (!program.domain || !program.url) {
@@ -30,7 +32,7 @@ export const createPartnerLink = async ({
     });
   }
 
-  const { tenantId, linkProps, username, programId } = partner;
+  const { tenantId, linkProps, username } = partner;
 
   let link: ProcessedLinkProps;
   let error: string | null;
@@ -46,7 +48,7 @@ export const createPartnerLink = async ({
         domain: program.domain,
         key: currentKey,
         url: program.url,
-        programId,
+        programId: program.id,
         tenantId,
         folderId: program.defaultFolderId,
         trackConversion: true,

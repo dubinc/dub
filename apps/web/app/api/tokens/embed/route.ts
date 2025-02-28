@@ -1,6 +1,9 @@
 import { DubApiError } from "@/lib/api/errors";
 import { createPartnerLink } from "@/lib/api/partners/create-partner-link";
-import { enrollPartner } from "@/lib/api/partners/enroll-partner";
+import {
+  enrollPartner,
+  enrollPartnerInProgram,
+} from "@/lib/api/partners/enroll-partner";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { embedToken } from "@/lib/embed/embed-token";
@@ -22,15 +25,9 @@ export const POST = withWorkspace(
       partner: partnerProps,
     } = createEmbedTokenSchema.parse(await parseRequestBody(req));
 
-    if (!partnerId && !tenantId && !partnerProps) {
-      throw new DubApiError({
-        message: "You must provide either partnerId, tenantId, or partner.",
-        code: "bad_request",
-      });
-    }
-
     let programEnrollment: Pick<ProgramEnrollment, "partnerId"> | null = null;
 
+    // find the program enrollment for the given partnerId or tenantId
     if (partnerId || tenantId) {
       programEnrollment = await prisma.programEnrollment.findUnique({
         where: partnerId
@@ -40,7 +37,10 @@ export const POST = withWorkspace(
           partnerId: true,
         },
       });
-    } else if (partnerProps) {
+    }
+
+    // check if the partner exists based on the email and create or enroll them
+    else if (partnerProps) {
       const program = await prisma.program.findUnique({
         where: {
           id: programId,
@@ -74,23 +74,23 @@ export const POST = withWorkspace(
         },
       });
 
-      // Partner does not exist, we need to create them
+      // partner does not exist, we need to create them
       if (!partner) {
+        console.log("partner does not exist, we need to create them");
+
         const partnerLink = await createPartnerLink({
           workspace,
           program,
-          partner: {
-            ...partnerProps,
-            programId,
-          },
+          partner: partnerProps,
           userId: session.user.id,
         });
 
         const enrolledPartner = await enrollPartner({
-          workspace,
           program,
-          partner: partnerProps,
+          tenantId: partnerProps.tenantId,
+          workspace,
           link: partnerLink,
+          partner: partnerProps,
           skipPartnerCheck: true,
         });
 
@@ -98,18 +98,47 @@ export const POST = withWorkspace(
           partnerId: enrolledPartner.id,
         };
       }
-      // Partner exists but is not enrolled in the program, we need to enroll them
+
+      // partner exists but is not enrolled in the program, we need to enroll them
       else if (partner.programs.length === 0) {
-        //
+        console.log(
+          "partner exists but is not enrolled in the program, we need to enroll them",
+        );
+
+        const enrolledPartner = await enrollPartnerInProgram({
+          workspace,
+          program,
+          partner: {
+            id: partner.id,
+            tenantId: partnerProps.tenantId,
+            linkProps: partnerProps.linkProps,
+            username: partnerProps.username,
+          },
+          userId: session.user.id,
+        });
+
+        programEnrollment = {
+          partnerId: enrolledPartner.id,
+        };
+      }
+
+      // partner exists and is enrolled in the program, we can use the existing partnerId
+      else {
+        console.log(
+          "partner exists and is enrolled in the program, we can use the existing partnerId",
+        );
+
+        programEnrollment = {
+          partnerId: partner.programs[0].partnerId,
+        };
       }
     }
 
     if (!programEnrollment) {
-      // TODO:
-      // Fix this partnerId not always being set
-
       throw new DubApiError({
-        message: `Partner with ID ${partnerId} is not enrolled in this program (${programId}).`,
+        message: `Partner with ${partnerId ? "ID" : "tenantId"} ${
+          partnerId ?? tenantId
+        } is not enrolled in this program (${programId}).`,
         code: "not_found",
       });
     }
@@ -134,4 +163,3 @@ export const POST = withWorkspace(
     ],
   },
 );
-
