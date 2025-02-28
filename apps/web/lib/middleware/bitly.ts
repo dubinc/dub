@@ -22,7 +22,7 @@ export const importBitlyLink = async (shortKey: string) => {
   const userId = "";
   const folderId = "";
 
-  const apiKey = await redis.get<string>(`import:bitly:${workspaceId}`); // TODO: We might want to move this to a different key
+  const apiKey = await redis.get<string>(`import:bitly:${workspaceId}`);
 
   if (!apiKey) {
     console.error(`[Bitly] No API key found for workspace ${workspaceId}`);
