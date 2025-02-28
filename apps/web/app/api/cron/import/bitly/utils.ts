@@ -4,7 +4,7 @@ import { redis } from "@/lib/upstash";
 import { sendEmail } from "@dub/email";
 import { LinksImported } from "@dub/email/templates/links-imported";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, linkConstructorSimple } from "@dub/utils";
 
 // Note: rate limit for /groups/{group_guid}/bitlinks is 1500 per hour or 150 per minute
 export const importLinksFromBitly = async ({
@@ -12,6 +12,7 @@ export const importLinksFromBitly = async ({
   userId,
   bitlyGroup,
   domains,
+  folderId,
   tagsToId,
   bitlyApiKey,
   searchAfter = null,
@@ -21,6 +22,7 @@ export const importLinksFromBitly = async ({
   userId: string;
   bitlyGroup: string;
   domains: string[];
+  folderId?: string;
   tagsToId?: Record<string, string>;
   bitlyApiKey: string;
   searchAfter?: string | null;
@@ -67,10 +69,15 @@ export const importLinksFromBitly = async ({
         domain,
         key,
         url,
+        shortLink: linkConstructorSimple({
+          domain,
+          key,
+        }),
         title,
         archived,
         createdAt,
         tagIds,
+        folderId,
       };
 
       return [
@@ -93,6 +100,10 @@ export const importLinksFromBitly = async ({
               ...linkDetails,
               domain: customDomain,
               key: customKey,
+              shortLink: linkConstructorSimple({
+                domain: customDomain,
+                key: customKey,
+              }),
             };
           }) ?? []),
       ];
@@ -102,25 +113,22 @@ export const importLinksFromBitly = async ({
   // check if links are already in the database
   const alreadyCreatedLinks = await prisma.link.findMany({
     where: {
-      domain: {
-        in: domains,
-      },
-      key: {
-        in: importedLinks.map((link) => link.key),
+      shortLink: {
+        in: importedLinks.map((link) => link.shortLink),
       },
     },
     select: {
-      domain: true,
-      key: true,
+      shortLink: true,
     },
   });
 
   // filter out links that are already in the database
   const linksToCreate = importedLinks.filter(
-    (link) =>
-      !alreadyCreatedLinks.some(
-        (l) => l.domain === link.domain && l.key === link.key,
-      ),
+    (link) => !alreadyCreatedLinks.some((l) => l.shortLink === link.shortLink),
+  );
+
+  console.log(
+    `Found ${alreadyCreatedLinks.length} links that have already been imported, skipping them and creating ${linksToCreate.length} new links...`,
   );
 
   // bulk create links
@@ -217,6 +225,7 @@ export const importLinksFromBitly = async ({
         userId,
         bitlyGroup,
         domains,
+        folderId,
         importTags: tagsToId ? true : false,
         searchAfter: nextSearchAfter,
         count,
