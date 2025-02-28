@@ -41,7 +41,7 @@ export const MoveLinkForm = ({
         body: JSON.stringify({
           linkIds: links.map(({ id }) => id),
           data: {
-            folderId: selectedFolderId === "unsorted" ? "" : selectedFolderId,
+            folderId: selectedFolderId === "unsorted" ? null : selectedFolderId,
           },
         }),
       },

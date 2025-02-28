@@ -46,14 +46,19 @@ export const PATCH = withWorkspace(
       await parseRequestBody(req),
     );
 
-    const { canManageFolderPermissions } = getPlanCapabilities(workspace.plan);
+    if (accessLevel) {
+      const { canManageFolderPermissions } = getPlanCapabilities(
+        workspace.plan,
+      );
 
-    if (!canManageFolderPermissions && accessLevel !== "write") {
-      throw new DubApiError({
-        code: "forbidden",
-        message:
-          "You can only set access levels for folders on Business plans and above. Upgrade to Business to continue.",
-      });
+      // accessLevel is only allowed to be set on Business plans and above otherwise it should be always "write"
+      if (!canManageFolderPermissions && accessLevel !== "write") {
+        throw new DubApiError({
+          code: "forbidden",
+          message:
+            "You can only set access levels for folders on Business plans and above. Upgrade to Business to continue.",
+        });
+      }
     }
 
     await verifyFolderAccess({
