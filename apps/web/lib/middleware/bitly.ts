@@ -16,11 +16,11 @@ type BitlyLink = {
   tags: string[];
 };
 
-// Create a new Bitly link in Dub on-demand
+// Create a new buff.ly link in Dub on-demand
 export const importBitlyLink = async (shortKey: string) => {
-  const workspaceId = "";
-  const userId = "";
-  const folderId = "";
+  const workspaceId = "cm05wnnpo000711ztj05wwdbu";
+  const userId = "cm05wnd49000411ztg2xbup0i";
+  const folderId = "fold_LIZsdjTgFVbQVGYSUmYAi5vT";
 
   const apiKey = await redis.get<string>(`import:bitly:${workspaceId}`);
 
