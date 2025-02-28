@@ -55,7 +55,6 @@ export const importLinksFromBitly = async ({
     },
   );
 
-
   if (!response.ok && response.status === 429) {
     return await queueBitlyImport({
       workspaceId,
@@ -329,7 +328,7 @@ export const checkIfRateLimited = async (bitlyApiKey: unknown, body: any) => {
 
   console.log("checkIfRateLimited", endpoint);
 
-  const isRateLimited = limit - currentUsage === 0;
+  const isRateLimited = currentUsage >= limit;
 
   if (isRateLimited) {
     await queueBitlyImport({
