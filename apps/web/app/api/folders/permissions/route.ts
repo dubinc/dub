@@ -13,6 +13,7 @@ export const GET = withWorkspace(
     const folders = await getFolders({
       workspaceId: workspace.id,
       userId: session.user.id,
+      pageSize: 200, // TODO: Handle pagination
     });
 
     const folderUsers = await prisma.folderUser.findMany({

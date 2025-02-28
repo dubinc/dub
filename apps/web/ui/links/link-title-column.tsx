@@ -1,7 +1,7 @@
 "use client";
 
 import useDomain from "@/lib/swr/use-domain";
-import useFolders from "@/lib/swr/use-folders";
+import useFolder from "@/lib/swr/use-folder";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   ArrowTurnRight2,
@@ -75,8 +75,7 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
 
   const searchParams = useSearchParams();
   const { slug } = useWorkspace();
-  const { folders } = useFolders();
-  const folder = folders?.find((folder) => folder.id === link.folderId);
+  const { folder } = useFolder({ folderId: link.folderId });
 
   return (
     <div

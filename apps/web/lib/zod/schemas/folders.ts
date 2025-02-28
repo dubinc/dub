@@ -5,6 +5,7 @@ import {
 import { FolderAccessLevel } from "@/lib/types";
 import z from "@/lib/zod";
 import { FolderUserRole } from "@dub/prisma/client";
+import { getPaginationQuerySchema } from "./misc";
 
 const workspaceFolderAccess = z
   .enum(
@@ -38,13 +39,15 @@ export const createFolderSchema = z.object({
   accessLevel: workspaceFolderAccess,
 });
 
-export const listFoldersQuerySchema = z.object({
-  search: z
-    .string()
-    .optional()
-    .describe("The search term to filter the folders by."),
-});
+export const FOLDERS_MAX_PAGE_SIZE = 50;
+
+export const listFoldersQuerySchema = z
+  .object({
+    search: z
+      .string()
+      .optional()
+      .describe("The search term to filter the folders by."),
+  })
+  .merge(getPaginationQuerySchema({ pageSize: FOLDERS_MAX_PAGE_SIZE }));
 
 export const updateFolderSchema = createFolderSchema.partial();
-
-export const FOLDERS_MAX_PAGE_SIZE = 50;

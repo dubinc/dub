@@ -1,14 +1,16 @@
 "use client";
 
 import useFolders from "@/lib/swr/use-folders";
+import useFoldersCount from "@/lib/swr/use-folders-count";
 import useLinksCount from "@/lib/swr/use-links-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Folder } from "@/lib/types";
+import { FOLDERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/folders";
 import { FolderCard } from "@/ui/folders/folder-card";
 import { FolderCardPlaceholder } from "@/ui/folders/folder-card-placeholder";
 import { useAddFolderModal } from "@/ui/modals/add-folder-modal";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import { useRouterStuff } from "@dub/ui";
+import { PaginationControls, usePagination, useRouterStuff } from "@dub/ui";
 import { useRouter, useSearchParams } from "next/navigation";
 
 const allLinkFolder: Folder = {
@@ -28,6 +30,9 @@ export const FoldersPageClient = () => {
 
   const { AddFolderButton, AddFolderModal } = useAddFolderModal();
 
+  const { data: foldersCount } = useFoldersCount({
+    includeParams: true,
+  });
   const { folders, loading, isValidating } = useFolders({
     includeParams: true,
   });
@@ -42,6 +47,8 @@ export const FoldersPageClient = () => {
   if (flags && !flags.linkFolders) {
     router.push("/settings");
   }
+
+  const { pagination, setPagination } = usePagination(FOLDERS_MAX_PAGE_SIZE);
 
   return (
     <>
@@ -81,6 +88,14 @@ export const FoldersPageClient = () => {
             </>
           )}
         </div>
+      </div>
+      <div className="sticky bottom-0 rounded-b-[inherit] border-t border-neutral-200 bg-white px-3.5 py-2">
+        <PaginationControls
+          pagination={pagination}
+          setPagination={setPagination}
+          totalCount={foldersCount || 0}
+          unit={(p) => `folder${p ? "s" : ""}`}
+        />
       </div>
     </>
   );

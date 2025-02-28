@@ -33,6 +33,7 @@ export type ComboboxOption<TMeta = any> = {
   disabledTooltip?: ReactNode;
   meta?: TMeta;
   separatorAfter?: boolean;
+  first?: boolean;
 };
 
 export type ComboboxProps<
@@ -145,9 +146,12 @@ export function Combobox({
     (options: ComboboxOption[], search: string) => {
       return search === ""
         ? [
+            ...options.filter(
+              (o) => o.first && !selected.some((s) => s.value === o.value),
+            ),
             ...selected,
             ...options.filter(
-              (o) => selected.findIndex((s) => s.value === o.value) === -1,
+              (o) => !o.first && !selected.some((s) => s.value === o.value),
             ),
           ]
         : options;
