@@ -68,25 +68,30 @@ export default async function LinkMiddleware(
   let link = await linkCache.get({ domain, key });
 
   if (!link) {
-    const linkData = await getLinkViaEdge(domain, key);
+    let linkData = await getLinkViaEdge(domain, key);
 
     if (!linkData) {
-      // check if domain has notFoundUrl configured
-      const domainData = await getDomainViaEdge(domain);
-      if (domainData?.notFoundUrl) {
-        return NextResponse.redirect(domainData.notFoundUrl, {
-          headers: {
-            ...DUB_HEADERS,
-            "X-Robots-Tag": "googlebot: noindex",
-            // pass the Referer value to the not found URL
-            Referer: req.url,
-          },
-          status: 302,
-        });
-      } else {
-        return NextResponse.rewrite(new URL(`/${domain}/not-found`, req.url), {
-          headers: DUB_HEADERS,
-        });
+      if (!linkData) {
+        // check if domain has notFoundUrl configured
+        const domainData = await getDomainViaEdge(domain);
+        if (domainData?.notFoundUrl) {
+          return NextResponse.redirect(domainData.notFoundUrl, {
+            headers: {
+              ...DUB_HEADERS,
+              "X-Robots-Tag": "googlebot: noindex",
+              // pass the Referer value to the not found URL
+              Referer: req.url,
+            },
+            status: 302,
+          });
+        } else {
+          return NextResponse.rewrite(
+            new URL(`/${domain}/not-found`, req.url),
+            {
+              headers: DUB_HEADERS,
+            },
+          );
+        }
       }
     }
 
