@@ -1,5 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
-import { createLinkAndEnrollPartner } from "@/lib/api/partners/enroll-partner";
+import { createPartnerLink } from "@/lib/api/partners/create-partner-link";
+import { enrollPartner } from "@/lib/api/partners/enroll-partner";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -138,11 +139,19 @@ export const POST = withWorkspace(
       programId,
     });
 
-    const partner = await createLinkAndEnrollPartner({
+    const partnerLink = await createPartnerLink({
       workspace,
       program,
       partner: data,
       userId: session.user.id,
+    });
+
+    const partner = await enrollPartner({
+      program,
+      tenantId: data.tenantId,
+      workspace,
+      link: partnerLink,
+      partner: data,
     });
 
     return NextResponse.json(partner, {

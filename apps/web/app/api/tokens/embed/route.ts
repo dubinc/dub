@@ -1,6 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { createLinkAndEnrollPartner } from "@/lib/api/partners/enroll-partner";
-import { parseRequestBody } from "@/lib/api/utils";
+import { createId, parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { embedToken } from "@/lib/embed/embed-token";
 import {
@@ -30,6 +30,7 @@ export const POST = withWorkspace(
 
     let programEnrollment: Pick<ProgramEnrollment, "partnerId"> | null = null;
 
+    // if partnerId is provided, use it to find the program enrollment
     if (partnerId) {
       programEnrollment = await prisma.programEnrollment.findUnique({
         where: { partnerId_programId: { partnerId, programId } },
@@ -41,12 +42,13 @@ export const POST = withWorkspace(
           code: "not_found",
         });
       }
+      // if tenantId is provided, use it to find the program enrollment
     } else if (tenantId) {
       programEnrollment = await prisma.programEnrollment.findUnique({
         where: { tenantId_programId: { tenantId, programId } },
       });
 
-      // if there's no programEnrollment (no partner or partner not enrolled in program)
+      // if there's no programEnrollment (partner doesn't exist / partner is not enrolled in program)
       if (!programEnrollment) {
         if (!partnerProps) {
           throw new DubApiError({
@@ -72,6 +74,7 @@ export const POST = withWorkspace(
             email: partnerProps.email,
           },
           create: {
+            id: createId("pn_"),
             email: partnerProps.email,
             name: partnerProps.name,
             image: partnerProps.image,
