@@ -3,6 +3,7 @@ import { getUrlFromStringIfValid, linkConstructorSimple } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { ExpandedLink } from "../api/links";
 import { createId } from "../api/utils";
+import { EdgeLinkProps } from "../planetscale";
 import { conn } from "../planetscale/connection";
 import { recordLink } from "../tinybird/record-link";
 
@@ -16,10 +17,10 @@ type BitlyLink = {
 };
 
 // Create a new Bitly link in Dub on-demand
-export const createBitlyLink = async (bitlyLink: string) => {
-  const workspaceId = "";
-  const userId = "";
-  const folderId = "";
+export const importBitlyLink = async (bitlyLink: string) => {
+  const workspaceId = "cl7pj5kq4006835rbjlt2ofka";
+  const userId = "cm1ypncqa0000tc44pfgxp6qs";
+  const folderId = "cm7oiaon50003sz0bdpm36snu";
 
   const bitlyApiKey = await redis.get(`import:bitly:${workspaceId}`); // TODO: We might want to move this to a different key
 
@@ -74,15 +75,12 @@ export const createBitlyLink = async (bitlyLink: string) => {
     tagIds: [], // TODO: add tags
     createdAt: new Date(link.created_at),
     updatedAt: new Date(link.created_at),
-    tenantId: null,
-    programId: null,
-    partnerId: null,
   };
 
   console.log("[Bitly] Creating link", newLink);
 
   await conn.execute(
-    "INSERT INTO Link (id, projectId, userId, domain, `key`, url, shortLink, archived, createdAt, updatedAt, folderId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    "INSERT INTO Link (id, projectId, userId, domain, `key`, url, shortLink, archived, folderId, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
     [
       newLink.id,
       newLink.projectId,
@@ -92,9 +90,9 @@ export const createBitlyLink = async (bitlyLink: string) => {
       newLink.url,
       newLink.shortLink,
       newLink.archived,
+      newLink.folderId,
       newLink.createdAt,
       newLink.updatedAt,
-      newLink.folderId,
     ],
   );
 
@@ -102,9 +100,12 @@ export const createBitlyLink = async (bitlyLink: string) => {
   waitUntil(
     recordLink({
       ...newLink,
+      tenantId: null,
+      programId: null,
+      partnerId: null,
       tags: [],
     } as unknown as ExpandedLink),
   );
 
-  return newLink;
+  return newLink as unknown as EdgeLinkProps;
 };
