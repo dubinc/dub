@@ -1,6 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
-import { createLinkAndEnrollPartner } from "@/lib/api/partners/enroll-partner";
-import { createId, parseRequestBody } from "@/lib/api/utils";
+import { createPartnerLink } from "@/lib/api/partners/create-partner-link";
+import { enrollPartner } from "@/lib/api/partners/enroll-partner";
+import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { embedToken } from "@/lib/embed/embed-token";
 import {
@@ -30,100 +31,86 @@ export const POST = withWorkspace(
 
     let programEnrollment: Pick<ProgramEnrollment, "partnerId"> | null = null;
 
-    // if partnerId is provided, use it to find the program enrollment
-    if (partnerId) {
+    if (partnerId || tenantId) {
       programEnrollment = await prisma.programEnrollment.findUnique({
-        where: { partnerId_programId: { partnerId, programId } },
+        where: partnerId
+          ? { partnerId_programId: { partnerId, programId } }
+          : { tenantId_programId: { tenantId: tenantId!, programId } },
+        select: {
+          partnerId: true,
+        },
+      });
+    } else if (partnerProps) {
+      const program = await prisma.program.findUnique({
+        where: {
+          id: programId,
+        },
+        select: {
+          id: true,
+          workspaceId: true,
+          defaultFolderId: true,
+          domain: true,
+          url: true,
+        },
       });
 
-      if (!programEnrollment) {
+      if (!program || program.workspaceId !== workspace.id) {
         throw new DubApiError({
-          message: `Partner with ID ${partnerId} is not enrolled in this program (${programId}).`,
+          message: `Program with ID ${programId} not found.`,
           code: "not_found",
         });
       }
-      // if tenantId is provided, use it to find the program enrollment
-    } else if (tenantId) {
-      programEnrollment = await prisma.programEnrollment.findUnique({
-        where: { tenantId_programId: { tenantId, programId } },
-      });
 
-      // if there's no programEnrollment (partner doesn't exist / partner is not enrolled in program)
-      if (!programEnrollment) {
-        if (!partnerProps) {
-          throw new DubApiError({
-            message: `Partner with tenant ID ${tenantId} is not enrolled in this program (${programId}). Pass a "partner" object to enroll the partner on-demand.`,
-            code: "not_found",
-          });
-        }
-        const program = await prisma.program.findUnique({
-          where: {
-            id: programId,
-          },
-        });
-
-        if (!program || program.workspaceId !== workspace.id) {
-          throw new DubApiError({
-            message: `Program with ID ${programId} not found.`,
-            code: "not_found",
-          });
-        }
-
-        const upsertedPartner = await prisma.partner.upsert({
-          where: {
-            email: partnerProps.email,
-          },
-          create: {
-            id: createId("pn_"),
-            email: partnerProps.email,
-            name: partnerProps.name,
-            image: partnerProps.image,
-          },
-          update: {},
-          include: {
-            programs: {
-              where: {
-                programId,
-              },
+      const partner = await prisma.partner.findUnique({
+        where: {
+          email: partnerProps.email,
+        },
+        include: {
+          programs: {
+            where: {
+              programId,
             },
           },
+        },
+      });
+
+      // Partner does not exist, we need to create them
+      if (!partner) {
+        const partnerLink = await createPartnerLink({
+          workspace,
+          program,
+          partner: {
+            ...partnerProps,
+            programId,
+          },
+          userId: session.user.id,
+        });
+
+        const enrolledPartner = await enrollPartner({
+          workspace,
+          program,
+          partner: partnerProps,
+          link: partnerLink,
+          skipPartnerCheck: true,
         });
 
         programEnrollment = {
-          partnerId: upsertedPartner.id,
+          partnerId: enrolledPartner.id,
         };
-
-        // partner exists but is not enrolled in the program, we need to enroll them
-        if (upsertedPartner.programs.length === 0) {
-          await createLinkAndEnrollPartner({
-            workspace,
-            program,
-            partner: {
-              ...partnerProps,
-              programId,
-              tenantId, // also set tenantId for easy future retrieval
-            },
-            userId: session.user.id,
-          });
-        } else {
-          // update the partner's program enrollment to use the passed tenantId
-          await prisma.programEnrollment.update({
-            where: {
-              partnerId_programId: {
-                partnerId: upsertedPartner.id,
-                programId,
-              },
-            },
-            data: {
-              tenantId,
-            },
-          });
-        }
       }
-    } else {
+      // Partner exists but is not enrolled in the program, we need to enroll them
+      else if (partner.programs.length === 0) {
+        //
+      }
+    }
+
+    if (!programEnrollment) {
+      // TODO:
+      // Fix this partnerId not always being set
+
       throw new DubApiError({
-        message: "You must provide either partnerId, tenantId, or partner.",
-        code: "bad_request",
+        message: `Partner with ID ${partnerId} is not enrolled in this program (${programId}).`,
+        code: "not_found",
       });
     }
 
@@ -147,3 +134,4 @@ export const POST = withWorkspace(
     ],
   },
 );
+

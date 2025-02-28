@@ -136,6 +136,8 @@ export const enrollPartner = async ({
         })
         .then((link) => recordLink(link)),
 
+      // TODO:
+      // We should send this for new partners only and not for existing partners
       sendWorkspaceWebhook({
         workspace,
         trigger: "partner.created",

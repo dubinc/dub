@@ -18,7 +18,7 @@ export const createPartnerLink = async ({
   userId,
 }: {
   workspace: Pick<WorkspaceProps, "id" | "plan" | "webhookEnabled">;
-  program: Pick<ProgramProps, "id" | "defaultFolderId" | "domain" | "url">;
+  program: Pick<ProgramProps, "defaultFolderId" | "domain" | "url">;
   partner: z.infer<typeof createPartnerSchema>;
   userId: string;
 }) => {
