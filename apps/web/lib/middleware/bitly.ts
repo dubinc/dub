@@ -46,9 +46,6 @@ export const importBitlyLink = async (shortKey: string) => {
   }
 
   if (!link) {
-    console.error(
-      "[Bitly] Error retrieving Bitly link - not found in any domain",
-    );
     return null;
   }
 
@@ -134,6 +131,7 @@ async function fetchBitlyLink({
   );
 
   if (!response.ok) {
+    console.error(`[Bitly] Link ${domain}/${shortKey} not found.`);
     return null;
   }
 
