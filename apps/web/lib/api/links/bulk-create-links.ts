@@ -15,8 +15,10 @@ import {
 
 export async function bulkCreateLinks({
   links,
+  skipRedisCache = false,
 }: {
   links: ProcessedLinkProps[];
+  skipRedisCache?: boolean;
 }) {
   if (links.length === 0) return [];
 
@@ -196,7 +198,10 @@ export async function bulkCreateLinks({
 
   waitUntil(
     Promise.all([
-      propagateBulkLinkChanges(createdLinksData),
+      propagateBulkLinkChanges({
+        links: createdLinksData,
+        skipRedisCache,
+      }),
       updateLinksUsage({
         workspaceId: links[0].projectId!, // this will always be present
         increment: links.length,
