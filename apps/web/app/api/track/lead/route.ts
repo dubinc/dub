@@ -142,9 +142,15 @@ export const POST = withWorkspace(
         recordLeadSync(leadEventPayload),
 
         // Cache the latest lead event for 5 minutes because the ingested event is not available immediately on Tinybird
-        redis.set(`latestLeadEvent:${customer.id}`, leadEventPayload, {
-          ex: 60 * 5,
-        }),
+        redis.set(
+          `latestLeadEvent:${customer.id}`,
+          Array.isArray(leadEventPayload)
+            ? leadEventPayload[0]
+            : leadEventPayload,
+          {
+            ex: 60 * 5,
+          },
+        ),
       ]);
     }
 
