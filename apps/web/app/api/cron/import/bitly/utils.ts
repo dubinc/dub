@@ -6,6 +6,45 @@ import { LinksImported } from "@dub/email/templates/links-imported";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, linkConstructorSimple } from "@dub/utils";
 
+// Function to sanitize strings with potentially malformed escape sequences
+const sanitizeString = (
+  str: string | null | undefined,
+): string | null | undefined => {
+  if (!str) return str;
+  try {
+    // Check if the string contains any potentially problematic escape sequences
+    const problematicEscapeRegex =
+      /\\(u[0-9a-fA-F]{0,3}|x[0-9a-fA-F]?)(?![0-9a-fA-F])/g;
+
+    if (problematicEscapeRegex.test(str)) {
+      console.log(`Found problematic escape sequence in string: ${str}`);
+
+      // Log each problematic escape sequence
+      let match;
+      problematicEscapeRegex.lastIndex = 0; // Reset regex state
+      while ((match = problematicEscapeRegex.exec(str)) !== null) {
+        console.log(
+          `Problematic escape at position ${match.index}: ${match[0]}`,
+        );
+      }
+    }
+
+    // Reset regex state
+    problematicEscapeRegex.lastIndex = 0;
+
+    // Replace any potentially problematic escape sequences
+    return str.replace(
+      problematicEscapeRegex,
+      // Replace with the literal characters
+      (match) => match.replace("\\", "\\\\"),
+    );
+  } catch (e) {
+    // If string processing fails, return a sanitized version
+    console.error(`Error sanitizing string: ${e}`);
+    return str.replace(/\\/g, "\\\\"); // Double escape all backslashes
+  }
+};
+
 // Note: rate limit for /groups/{group_guid}/bitlinks is 1500 per hour or 150 per minute
 export const importLinksFromBitly = async ({
   workspaceId,
@@ -61,6 +100,14 @@ export const importLinksFromBitly = async ({
       if (!domains.includes(domain)) {
         return [];
       }
+
+      // Sanitize the URL and skip if it becomes empty after sanitization
+      const sanitizedUrl = sanitizeString(url) || "";
+      if (sanitizedUrl === "") {
+        console.log(`Skipping link with empty URL after sanitization: ${id}`);
+        return [];
+      }
+
       const createdAt = new Date(created_at).toISOString();
       const tagIds = tagsToId ? tags.map((tag: string) => tagsToId[tag]) : [];
       const linkDetails = {
@@ -68,12 +115,12 @@ export const importLinksFromBitly = async ({
         userId,
         domain,
         key,
-        url,
+        url: sanitizedUrl,
         shortLink: linkConstructorSimple({
           domain,
           key,
         }),
-        title,
+        title: sanitizeString(title),
         archived,
         createdAt,
         tagIds,
@@ -85,27 +132,44 @@ export const importLinksFromBitly = async ({
         // if link has custom bitlinks, add them to the list of links to import
         ...(custom_bitlinks
           ?.filter((customBitlink: string) => {
-            const customDomain = new URL(customBitlink).hostname;
-            // only import custom bitlinks that have the same domain as the domains
-            // that were previously imported into the workspace from bitly
-            return domains.includes(customDomain);
+            try {
+              const customDomain = new URL(customBitlink).hostname;
+              // only import custom bitlinks that have the same domain as the domains
+              // that were previously imported into the workspace from bitly
+              return domains.includes(customDomain);
+            } catch (e) {
+              console.error(
+                `Invalid custom bitlink, skipping: ${customBitlink}`,
+              );
+              return false;
+            }
           })
           .map((customBitlink: string) => {
-            // here we are getting the customDomain again just in case
-            // the custom bitlink doesn't have the same domain as the
-            // original bitlink, but it should
-            const customDomain = new URL(customBitlink).hostname;
-            const customKey = new URL(customBitlink).pathname.slice(1);
-            return {
-              ...linkDetails,
-              domain: customDomain,
-              key: customKey,
-              shortLink: linkConstructorSimple({
+            try {
+              // here we are getting the customDomain again just in case
+              // the custom bitlink doesn't have the same domain as the
+              // original bitlink, but it should
+              const customDomain = new URL(customBitlink).hostname;
+              const customKey = new URL(customBitlink).pathname.slice(1);
+
+              // Create a copy with the new domain and key
+              return {
+                ...linkDetails,
                 domain: customDomain,
                 key: customKey,
-              }),
-            };
-          }) ?? []),
+                shortLink: linkConstructorSimple({
+                  domain: customDomain,
+                  key: customKey,
+                }),
+              };
+            } catch (e) {
+              console.error(
+                `Error processing custom bitlink, skipping: ${customBitlink}`,
+              );
+              return null;
+            }
+          })
+          .filter(Boolean) ?? []),
       ];
     },
   );
