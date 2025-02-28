@@ -18,9 +18,9 @@ type BitlyLink = {
 
 // Create a new Bitly link in Dub on-demand
 export const importBitlyLink = async (bitlyLink: string) => {
-  const workspaceId = "cl7pj5kq4006835rbjlt2ofka";
-  const userId = "cm1ypncqa0000tc44pfgxp6qs";
-  const folderId = "cm7oiaon50003sz0bdpm36snu";
+  const workspaceId = "";
+  const userId = "";
+  const folderId = "";
 
   const bitlyApiKey = await redis.get(`import:bitly:${workspaceId}`); // TODO: We might want to move this to a different key
 
