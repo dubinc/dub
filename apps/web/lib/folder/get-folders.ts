@@ -60,7 +60,7 @@ export const getFolders = async ({
     orderBy: {
       createdAt: "asc",
     },
-    take: 100,
+    take: 200,
 
     // TODO: Add pagination
   });
