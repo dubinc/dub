@@ -32,7 +32,7 @@ export default function LinksContainer({
   const { viewMode, sortBy, showArchived } = useContext(LinksDisplayContext);
 
   const { links, isValidating } = useLinks({ sortBy, showArchived });
-  const { data: count } = useLinksCount<number>({ showArchived });
+  const { data: count } = useLinksCount<number>({ query: { showArchived } });
 
   return (
     <MaxWidthWrapper className="grid gap-y-2">

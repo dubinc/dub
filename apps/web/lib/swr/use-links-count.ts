@@ -8,9 +8,15 @@ import useWorkspace from "./use-workspace";
 
 const partialQuerySchema = getLinksCountQuerySchema.partial();
 
-export default function useLinksCount<T = any>(
-  opts: z.infer<typeof partialQuerySchema> & { ignoreParams?: boolean } = {},
-) {
+export default function useLinksCount<T = any>({
+  query,
+  ignoreParams,
+  enabled = true,
+}: {
+  query?: z.infer<typeof partialQuerySchema>;
+  ignoreParams?: boolean;
+  enabled?: boolean;
+} = {}) {
   const { id: workspaceId } = useWorkspace();
   const { getQueryString } = useRouterStuff();
 
@@ -22,25 +28,25 @@ export default function useLinksCount<T = any>(
   }, []);
 
   const { data, error } = useSWR<any>(
-    workspaceId
-      ? `/api/links/count${
-          opts.ignoreParams
-            ? `?workspaceId=${workspaceId}`
-            : getQueryString(
-                {
-                  workspaceId,
-                  ...opts,
-                },
-                {
+    !enabled
+      ? null
+      : workspaceId
+        ? `/api/links/count${getQueryString(
+            {
+              workspaceId,
+              ...query,
+            },
+            ignoreParams
+              ? { include: [] }
+              : {
                   exclude: ["import", "upgrade", "newLink"],
                 },
-              )
-        }`
-      : admin
-        ? `/api/admin/links/count${getQueryString({
-            ...opts,
-          })}`
-        : null,
+          )}`
+        : admin
+          ? `/api/admin/links/count${getQueryString({
+              ...query,
+            })}`
+          : null,
     fetcher,
     {
       dedupingInterval: 60000,
