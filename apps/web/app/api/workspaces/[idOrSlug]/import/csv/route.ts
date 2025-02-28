@@ -8,6 +8,7 @@ import { NextResponse } from "next/server";
 export const POST = withWorkspace(async ({ req, workspace, session }) => {
   const formData = await req.formData();
   const id = formData.get("id") as string;
+  const folderId = formData.get("folderId") as string | null;
   const mapping = linkMappingSchema.parse(
     Object.fromEntries(
       Array.from(formData.entries()).filter(([key]) => key !== "id"),
@@ -20,6 +21,7 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
       workspaceId: workspace.id,
       userId: session?.user?.id,
       id,
+      folderId,
       url: `csv-uploads/${id}.csv`,
       mapping,
     },

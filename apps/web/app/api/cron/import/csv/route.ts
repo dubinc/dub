@@ -50,7 +50,7 @@ export async function POST(req: Request) {
     await verifyQstashSignature({ req, rawBody });
 
     const body = JSON.parse(rawBody);
-    const { workspaceId, userId, id, url } = body;
+    const { workspaceId, userId, id, folderId, url } = body;
     const mapping = linkMappingSchema.parse(body.mapping);
 
     if (!id || !url) throw new Error("Missing ID or URL for the import file");
@@ -295,6 +295,7 @@ export async function POST(req: Request) {
                       ...link,
                       tagNames: tags || undefined,
                     }),
+                    folderId,
                     createdAt: createdAt?.toISOString(),
                   },
                   workspace,

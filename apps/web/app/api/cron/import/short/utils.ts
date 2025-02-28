@@ -13,6 +13,7 @@ export const importLinksFromShort = async ({
   userId,
   domainId,
   domain,
+  folderId,
   importTags,
   pageToken = null,
   count = 0,
@@ -22,6 +23,7 @@ export const importLinksFromShort = async ({
   userId: string;
   domainId: number;
   domain: string;
+  folderId?: string;
   importTags?: boolean;
   pageToken?: string | null;
   count?: number;
@@ -79,6 +81,7 @@ export const importLinksFromShort = async ({
           android: androidURL,
           archived,
           tags,
+          folderId,
           createdAt,
         };
       },
@@ -231,6 +234,7 @@ export const importLinksFromShort = async ({
         userId,
         domainId,
         domain,
+        folderId,
         pageToken: nextPageToken,
         count,
       },
