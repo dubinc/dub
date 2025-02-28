@@ -4,46 +4,11 @@ import { redis } from "@/lib/upstash";
 import { sendEmail } from "@dub/email";
 import { LinksImported } from "@dub/email/templates/links-imported";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK, linkConstructorSimple } from "@dub/utils";
-
-// Function to sanitize strings with potentially malformed escape sequences
-const sanitizeString = (
-  str: string | null | undefined,
-): string | null | undefined => {
-  if (!str) return str;
-  try {
-    // Check if the string contains any potentially problematic escape sequences
-    const problematicEscapeRegex =
-      /\\(u[0-9a-fA-F]{0,3}|x[0-9a-fA-F]?)(?![0-9a-fA-F])/g;
-
-    if (problematicEscapeRegex.test(str)) {
-      console.log(`Found problematic escape sequence in string: ${str}`);
-
-      // Log each problematic escape sequence
-      let match;
-      problematicEscapeRegex.lastIndex = 0; // Reset regex state
-      while ((match = problematicEscapeRegex.exec(str)) !== null) {
-        console.log(
-          `Problematic escape at position ${match.index}: ${match[0]}`,
-        );
-      }
-    }
-
-    // Reset regex state
-    problematicEscapeRegex.lastIndex = 0;
-
-    // Replace any potentially problematic escape sequences
-    return str.replace(
-      problematicEscapeRegex,
-      // Replace with the literal characters
-      (match) => match.replace("\\", "\\\\"),
-    );
-  } catch (e) {
-    // If string processing fails, return a sanitized version
-    console.error(`Error sanitizing string: ${e}`);
-    return str.replace(/\\/g, "\\\\"); // Double escape all backslashes
-  }
-};
+import {
+  APP_DOMAIN_WITH_NGROK,
+  getUrlFromStringIfValid,
+  linkConstructorSimple,
+} from "@dub/utils";
 
 // Note: rate limit for /groups/{group_guid}/bitlinks is 1500 per hour or 150 per minute
 export const importLinksFromBitly = async ({
@@ -83,15 +48,7 @@ export const importLinksFromBitly = async ({
 
   // convert links to format that can be imported into database
   const importedLinks = links.flatMap(
-    ({
-      id,
-      long_url: url,
-      title,
-      archived,
-      created_at,
-      custom_bitlinks,
-      tags,
-    }) => {
+    ({ id, long_url: url, archived, created_at, custom_bitlinks, tags }) => {
       if (!id || !url) {
         return [];
       }
@@ -101,10 +58,9 @@ export const importLinksFromBitly = async ({
         return [];
       }
 
-      // Sanitize the URL and skip if it becomes empty after sanitization
-      const sanitizedUrl = sanitizeString(url) || "";
-      if (sanitizedUrl === "") {
-        console.log(`Skipping link with empty URL after sanitization: ${id}`);
+      const sanitizedUrl = getUrlFromStringIfValid(url);
+      // skip if url is not valid
+      if (!sanitizedUrl) {
         return [];
       }
 
@@ -120,7 +76,6 @@ export const importLinksFromBitly = async ({
           domain,
           key,
         }),
-        title: sanitizeString(title),
         archived,
         createdAt,
         tagIds,
@@ -194,7 +149,6 @@ export const importLinksFromBitly = async ({
   console.log(
     `Found ${alreadyCreatedLinks.length} links that have already been imported, skipping them and creating ${linksToCreate.length} new links...`,
   );
-
   // bulk create links
   await bulkCreateLinks({ links: linksToCreate });
 
