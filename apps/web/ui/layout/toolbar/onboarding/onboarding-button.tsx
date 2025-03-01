@@ -3,6 +3,7 @@
 import useDomainsCount from "@/lib/swr/use-domains-count";
 import useLinksCount from "@/lib/swr/use-links-count";
 import useUsers from "@/lib/swr/use-users";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { CheckCircleFill, ThreeDots } from "@/ui/shared/icons";
 import { Button, Popover, useLocalStorage, useMediaQuery } from "@dub/ui";
 import { CircleDotted, ExpandingArrow } from "@dub/ui/icons";
@@ -29,11 +30,13 @@ function OnboardingButtonInner({
   onHideForever: () => void;
 }) {
   const { slug } = useParams() as { slug: string };
+  const { hasExtremeLinks } = useWorkspace();
 
   const { data: domainsCount, loading: domainsLoading } = useDomainsCount({
     ignoreParams: true,
   });
   const { data: linksCount, loading: linksLoading } = useLinksCount<number>({
+    enabled: !hasExtremeLinks,
     ignoreParams: true,
   });
   const { users, loading: usersLoading } = useUsers();
@@ -49,7 +52,7 @@ function OnboardingButtonInner({
       {
         display: "Create a new Dub link",
         cta: `/${slug}`,
-        checked: linksCount > 0,
+        checked: hasExtremeLinks || linksCount > 0,
       },
       {
         display: "Set up your custom domain",
@@ -62,7 +65,7 @@ function OnboardingButtonInner({
         checked: (users && users.length > 1) || (invites && invites.length > 0),
       },
     ];
-  }, [slug, domainsCount, linksCount, users, invites]);
+  }, [slug, domainsCount, hasExtremeLinks, linksCount, users, invites]);
 
   const [isOpen, setIsOpen] = useState(false);
 

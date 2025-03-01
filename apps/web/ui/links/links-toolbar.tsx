@@ -47,7 +47,7 @@ export const LinksToolbar = memo(
     links: ResponseLink[];
     linksCount: number;
   }) => {
-    const { flags, slug, plan } = useWorkspace();
+    const { flags, slug, plan, hasExtremeLinks } = useWorkspace();
     const { folders } = useFolderPermissions();
     const conversionsEnabled = !!plan && plan !== "free" && plan !== "pro";
 
@@ -225,12 +225,16 @@ export const LinksToolbar = memo(
                     totalCount={linksCount}
                     unit={(plural) => `${plural ? "links" : "link"}`}
                   >
-                    {loading ? (
-                      <LoadingSpinner className="size-3.5" />
-                    ) : (
-                      <div className="hidden sm:block">
-                        <ArchivedLinksHint />
-                      </div>
+                    {!hasExtremeLinks && (
+                      <>
+                        {loading ? (
+                          <LoadingSpinner className="size-3.5" />
+                        ) : (
+                          <div className="hidden sm:block">
+                            <ArchivedLinksHint />
+                          </div>
+                        )}
+                      </>
                     )}
                   </PaginationControls>
                   <div className="flex items-center gap-2 pt-3 sm:hidden">

@@ -1,4 +1,4 @@
-import { cn, nFormatter } from "@dub/utils";
+import { cn, nFormatter, WORKSPACE_EXTREME_LINKS_LIMIT } from "@dub/utils";
 import { PaginationState } from "@tanstack/react-table";
 import { PropsWithChildren } from "react";
 
@@ -46,7 +46,9 @@ export function PaginationControls({
             </>
           )}
           <span className="font-medium">
-            {nFormatter(totalCount, { full: true })}
+            {isFinite(totalCount)
+              ? nFormatter(totalCount, { full: true })
+              : nFormatter(WORKSPACE_EXTREME_LINKS_LIMIT) + "+"}
           </span>{" "}
           {typeof unit === "function" ? unit(totalCount !== 1) : unit}
         </div>

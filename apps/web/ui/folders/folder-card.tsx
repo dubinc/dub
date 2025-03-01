@@ -9,7 +9,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { Folder } from "@/lib/types";
 import { useIntersectionObserver } from "@dub/ui";
 import { Globe } from "@dub/ui/icons";
-import { nFormatter } from "@dub/utils";
+import { cn, nFormatter } from "@dub/utils";
 import Link from "next/link";
 import { useRef } from "react";
 import { FolderActions } from "./folder-actions";
@@ -17,7 +17,11 @@ import { FolderIcon } from "./folder-icon";
 import { RequestFolderEditAccessButton } from "./request-edit-button";
 
 export const FolderCard = ({ folder }: { folder: Folder }) => {
-  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+  const {
+    id: workspaceId,
+    slug: workspaceSlug,
+    hasExtremeLinks,
+  } = useWorkspace();
 
   const { isLoading: isPermissionsLoading } = useFolderPermissions();
   const canCreateLinks = useCheckFolderPermission(
@@ -28,7 +32,12 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
   const unsortedLinks = folder.id === "unsorted";
 
   return (
-    <div className="hover:drop-shadow-card-hover relative flex flex-col justify-between rounded-xl border border-neutral-200 bg-white px-5 py-4 transition-all duration-200 sm:h-36">
+    <div
+      className={cn(
+        "hover:drop-shadow-card-hover relative flex flex-col justify-between rounded-xl border border-neutral-200 bg-white px-5 py-4 transition-all duration-200 sm:h-36",
+        hasExtremeLinks && "sm:h-32",
+      )}
+    >
       <Link
         href={`/${workspaceSlug}${unsortedLinks ? "" : `?folderId=${folder.id}`}`}
         className="absolute inset-0 h-full w-full"
@@ -60,7 +69,7 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
           )}
         </span>
 
-        <LinksCount folderId={folder.id} />
+        {!hasExtremeLinks && <LinksCount folderId={folder.id} />}
       </div>
     </div>
   );

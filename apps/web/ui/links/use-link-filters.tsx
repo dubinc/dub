@@ -1,7 +1,9 @@
+import useDomains from "@/lib/swr/use-domains";
 import useLinksCount from "@/lib/swr/use-links-count";
 import useTags from "@/lib/swr/use-tags";
 import useTagsCount from "@/lib/swr/use-tags-count";
 import useUsers from "@/lib/swr/use-users";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { TagProps } from "@/lib/types";
 import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
 import { Avatar, BlurImage, Globe, Tag, User, useRouterStuff } from "@dub/ui";
@@ -12,6 +14,8 @@ import { LinksDisplayContext } from "./links-display-provider";
 import TagBadge from "./tag-badge";
 
 export function useLinkFilters() {
+  const { hasExtremeLinks } = useWorkspace();
+
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
@@ -46,7 +50,7 @@ export function useLinkFilters() {
             icon: <TagBadge color={color} withIcon className="sm:p-1" />,
             label: name,
             data: { color },
-            right: count,
+            right: !hasExtremeLinks ? count : undefined,
             hideDuringSearch,
           })) ?? null,
       },
@@ -66,7 +70,9 @@ export function useLinkFilters() {
         options: domains.map(({ slug, count }) => ({
           value: slug,
           label: slug,
-          right: nFormatter(count, { full: true }),
+          right: !hasExtremeLinks
+            ? nFormatter(count, { full: true })
+            : undefined,
         })),
       },
       {
@@ -88,11 +94,11 @@ export function useLinkFilters() {
                 className="h-4 w-4"
               />
             ),
-            right: count,
+            right: !hasExtremeLinks ? count : undefined,
           })) ?? null,
       },
     ];
-  }, [domains, tags, users]);
+  }, [domains, tags, users, hasExtremeLinks]);
 
   const selectedTagIds = useMemo(
     () => searchParamsObj["tagIds"]?.split(",")?.filter(Boolean) ?? [],
@@ -162,6 +168,7 @@ export function useLinkFilters() {
 }
 
 function useTagFilterOptions(search: string) {
+  const { hasExtremeLinks } = useWorkspace();
   const { searchParamsObj } = useRouterStuff();
 
   const tagIds = useMemo(
@@ -186,7 +193,7 @@ function useTagFilterOptions(search: string) {
       tagId: string;
       _count: number;
     }[]
-  >({ query: { groupBy: "tagId", showArchived } });
+  >({ enabled: !hasExtremeLinks, query: { groupBy: "tagId", showArchived } });
 
   const tagsResult = useMemo(() => {
     return loadingTags ||
@@ -220,6 +227,7 @@ function useTagFilterOptions(search: string) {
 }
 
 function useDomainFilterOptions() {
+  const { hasExtremeLinks } = useWorkspace();
   const { showArchived } = useContext(LinksDisplayContext);
 
   const { data: domainsCount } = useLinksCount<
@@ -228,13 +236,21 @@ function useDomainFilterOptions() {
       _count: number;
     }[]
   >({
+    enabled: !hasExtremeLinks,
     query: {
       groupBy: "domain",
       showArchived,
     },
   });
 
+  const { allActiveDomains } = useDomains();
+
   return useMemo(() => {
+    if (hasExtremeLinks)
+      return allActiveDomains && allActiveDomains.length > 0
+        ? allActiveDomains.map(({ slug }) => ({ slug, count: 0 }))
+        : [];
+
     if (!domainsCount || domainsCount.length === 0) return [];
 
     return domainsCount
@@ -243,10 +259,11 @@ function useDomainFilterOptions() {
         count: _count,
       }))
       .sort((a, b) => b.count - a.count);
-  }, [domainsCount]);
+  }, [hasExtremeLinks, domainsCount]);
 }
 
 function useUserFilterOptions() {
+  const { hasExtremeLinks } = useWorkspace();
   const { users } = useUsers();
   const { showArchived } = useContext(LinksDisplayContext);
 
@@ -256,6 +273,7 @@ function useUserFilterOptions() {
       _count: number;
     }[]
   >({
+    enabled: !hasExtremeLinks,
     query: {
       groupBy: "userId",
       showArchived,

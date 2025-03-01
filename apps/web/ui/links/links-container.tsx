@@ -2,6 +2,7 @@
 
 import useLinks from "@/lib/swr/use-links";
 import useLinksCount from "@/lib/swr/use-links-count";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { ExpandedLinkProps, UserProps } from "@/lib/types";
 import { CardList, MaxWidthWrapper } from "@dub/ui";
 import { CursorRays, Hyperlink } from "@dub/ui/icons";
@@ -31,8 +32,12 @@ export default function LinksContainer({
 }) {
   const { viewMode, sortBy, showArchived } = useContext(LinksDisplayContext);
 
+  const { hasExtremeLinks } = useWorkspace();
   const { links, isValidating } = useLinks({ sortBy, showArchived });
-  const { data: count } = useLinksCount<number>({ query: { showArchived } });
+  const { data: count } = useLinksCount<number>({
+    enabled: !hasExtremeLinks,
+    query: { showArchived },
+  });
 
   return (
     <MaxWidthWrapper className="grid gap-y-2">
@@ -68,6 +73,7 @@ function LinksList({
   loading?: boolean;
   compact: boolean;
 }) {
+  const { hasExtremeLinks } = useWorkspace();
   const searchParams = useSearchParams();
 
   const [openMenuLinkId, setOpenMenuLinkId] = useState<string | null>(null);
@@ -135,7 +141,9 @@ function LinksList({
           <LinksToolbar
             loading={!!loading}
             links={links}
-            linksCount={count ?? links?.length ?? 0}
+            linksCount={
+              hasExtremeLinks ? Infinity : count ?? links?.length ?? 0
+            }
           />
         )}
       </LinkSelectionProvider>
