@@ -334,6 +334,7 @@ export const checkIfRateLimited = async (bitlyApiKey: unknown, body: any) => {
   const currentUsage = endpoint.count;
 
   console.log("checkIfRateLimited", endpoint);
+  console.log("originalBody", body);
 
   const isRateLimited = currentUsage >= limit;
 
