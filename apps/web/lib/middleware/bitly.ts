@@ -61,35 +61,40 @@ export const importBitlyLink = async (shortKey: string) => {
 
   console.log("[Bitly] Creating link", newLink);
 
-  await conn.execute(
-    "INSERT INTO Link (id, projectId, userId, domain, `key`, url, shortLink, archived, folderId, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-    [
-      newLink.id,
-      newLink.projectId,
-      newLink.userId,
-      newLink.domain,
-      newLink.key,
-      newLink.url,
-      newLink.shortLink,
-      newLink.archived,
-      newLink.folderId,
-      newLink.createdAt,
-      newLink.updatedAt,
-    ],
-  );
+  try {
+    await conn.execute(
+      "INSERT INTO Link (id, projectId, userId, domain, `key`, url, shortLink, archived, folderId, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      [
+        newLink.id,
+        newLink.projectId,
+        newLink.userId,
+        newLink.domain,
+        newLink.key,
+        newLink.url,
+        newLink.shortLink,
+        newLink.archived,
+        newLink.folderId,
+        newLink.createdAt,
+        newLink.updatedAt,
+      ],
+    );
 
-  // TODO: fetch tags
-  waitUntil(
-    recordLink({
-      ...newLink,
-      tenantId: null,
-      programId: null,
-      partnerId: null,
-      tags: [],
-    } as unknown as ExpandedLink),
-  );
+    // TODO: fetch tags
+    waitUntil(
+      recordLink({
+        ...newLink,
+        tenantId: null,
+        programId: null,
+        partnerId: null,
+        tags: [],
+      } as unknown as ExpandedLink),
+    );
 
-  return newLink as unknown as EdgeLinkProps;
+    return newLink as unknown as EdgeLinkProps;
+  } catch (error) {
+    console.error("[Bitly] Error creating link", error);
+    return null;
+  }
 };
 
 async function fetchBitlyLink({
