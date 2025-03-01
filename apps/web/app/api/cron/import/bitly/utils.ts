@@ -305,7 +305,14 @@ export const queueBitlyImport = async (payload: {
   rateLimited?: boolean;
   delay?: number;
 }) => {
-  const { tagsToId, nextSearchAfter, delay, ...rest } = payload;
+  const {
+    tagsToId,
+    nextSearchAfter,
+    delay,
+    createdBefore,
+    createdAfter,
+    ...rest
+  } = payload;
 
   return await qstash.publishJSON({
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/bitly`,
@@ -313,6 +320,8 @@ export const queueBitlyImport = async (payload: {
       ...rest,
       importTags: tagsToId ? true : false,
       searchAfter: nextSearchAfter,
+      ...(createdBefore && { createdBefore }),
+      ...(createdAfter && { createdAfter }),
     },
     ...(delay && { delay }),
   });
