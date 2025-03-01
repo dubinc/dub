@@ -8,6 +8,11 @@ import { conn } from "../planetscale/connection";
 import { recordLink } from "../tinybird/record-link";
 
 const crawlBitlyResultSchema = z.object({
+  id: z.string(),
+  long_url: z.string(),
+  created_at: z.string(),
+});
+
 // Create a new Bitly-hosted link to Dub on-demand (e.g. buff.ly)
 export const importBitlyLink = async ({
   domain,
@@ -16,13 +21,9 @@ export const importBitlyLink = async ({
   domain: string;
   shortKey: string;
 }) => {
-  // const workspaceId = "cm05wnnpo000711ztj05wwdbu";
-  // const userId = "cm05wnd49000411ztg2xbup0i";
-  // const folderId = "fold_LIZsdjTgFVbQVGYSUmYAi5vT";
-
-  const workspaceId = "cm7qknttg00049kc9l62n03wl";
-  const userId = "cm1ze0ukn0000ekkt7zks59hd";
-  const folderId = "fold_LafRWmSfgexbQxm4Tfvxg2dQ";
+  const workspaceId = "cm05wnnpo000711ztj05wwdbu";
+  const userId = "cm05wnd49000411ztg2xbup0i";
+  const folderId = "fold_LIZsdjTgFVbQVGYSUmYAi5vT";
 
   let link: z.infer<typeof crawlBitlyResultSchema> | null = null;
 
