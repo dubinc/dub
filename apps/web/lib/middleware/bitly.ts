@@ -13,17 +13,10 @@ export const importBitlyLink = async (shortKey: string) => {
   const userId = "cm05wnd49000411ztg2xbup0i";
   const folderId = "fold_LIZsdjTgFVbQVGYSUmYAi5vT";
 
-  const apiKey = await redis.get<string>(`import:bitly:${workspaceId}`);
-
-  if (!apiKey) {
-    console.error(`[Bitly] No API key found for workspace ${workspaceId}`);
-    return null;
-  }
-
-  const link = await fetchBitlyLink({
+  const link = await crawlBitlyLink({
     domain: "buff.ly",
     shortKey,
-    apiKey,
+    workspaceId,
   });
 
   if (!link) {
@@ -97,15 +90,60 @@ export const importBitlyLink = async (shortKey: string) => {
   }
 };
 
-async function fetchBitlyLink({
+async function crawlBitlyLink({
   domain,
   shortKey,
-  apiKey,
+  workspaceId,
 }: {
   domain: string;
   shortKey: string;
-  apiKey: string;
+  workspaceId: string;
 }) {
+  const response = await fetch(`https://bit.ly/${shortKey}`, {
+    redirect: "manual",
+    headers: {
+      Host: "buff.ly",
+      "User-Agent":
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    },
+  });
+
+  if (!response.ok && response.status !== 301 && response.status !== 302) {
+    console.error(`[Bitly] Link ${domain}/${shortKey} not found.`);
+    return await fetchBitlyLink({ domain, shortKey, workspaceId });
+  }
+
+  const destinationUrl = response.headers.get("location");
+  if (!destinationUrl) {
+    console.error(`[Bitly] No redirect URL found for ${domain}/${shortKey}`);
+    return null;
+  }
+
+  console.log(`[Bitly] Found link ${domain}/${shortKey} -> ${destinationUrl}`);
+
+  return {
+    id: `buff.ly/${shortKey}`,
+    long_url: destinationUrl,
+    created_at: new Date().toISOString(),
+  };
+}
+
+async function fetchBitlyLink({
+  domain,
+  shortKey,
+  workspaceId,
+}: {
+  domain: string;
+  shortKey: string;
+  workspaceId: string;
+}) {
+  const apiKey = await redis.get<string>(`import:bitly:${workspaceId}`);
+
+  if (!apiKey) {
+    console.error(`[Bitly] No API key found for workspace ${workspaceId}`);
+    return null;
+  }
+
   const response = await fetch(
     `https://api-ssl.bitly.com/v4/bitlinks/${domain}/${shortKey}`,
     {
@@ -117,35 +155,10 @@ async function fetchBitlyLink({
 
   if (!response.ok) {
     console.log(
-      `[Bitly] Hit rate limit, crawling bit.ly/${shortKey} instead...`,
+      `[Bitly] Hit rate limit, returning 404 for ${domain}/${shortKey}`,
     );
-    return await crawlBitlyLink(shortKey);
+    return null;
   }
 
   return await response.json();
-}
-
-async function crawlBitlyLink(shortKey: string) {
-  const response = await fetch(`https://bit.ly/${shortKey}`, {
-    redirect: "manual",
-  });
-
-  if (!response.ok && response.status !== 301 && response.status !== 302) {
-    console.error(`[Bitly] Link bit.ly/${shortKey} not found.`);
-    return null;
-  }
-
-  const destinationUrl = response.headers.get("location");
-  if (!destinationUrl) {
-    console.error(`[Bitly] No redirect URL found for bit.ly/${shortKey}`);
-    return null;
-  }
-
-  console.log(`[Bitly] Found link buff.ly/${shortKey} -> ${destinationUrl}`);
-
-  return {
-    id: `buff.ly/${shortKey}`,
-    long_url: destinationUrl,
-    created_at: new Date().toISOString(),
-  };
 }
