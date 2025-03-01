@@ -14,6 +14,8 @@ model Project {
   shopifyStoreId    String?   @unique // for Shopify Integration
   invoicePrefix     String?   @unique // The prefix for the customer used to generate unique invoice numbers
 
+  totalLinks Int @default(0) // Total number of links in the workspace
+
   usage        Int @default(0)
   usageLimit   Int @default(1000)
   linksUsage   Int @default(0)
