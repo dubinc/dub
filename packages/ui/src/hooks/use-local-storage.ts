@@ -12,7 +12,7 @@ function getItemFromLocalStorage(key: string) {
 export function useLocalStorage<T>(
   key: string,
   initialValue: T,
-): [T, (value: T) => void] {
+): [T, (value: T) => void, { remove: () => void }] {
   const [storedValue, setStoredValue] = useState(
     getItemFromLocalStorage(key) ?? initialValue,
   );
@@ -30,5 +30,14 @@ export function useLocalStorage<T>(
     window.localStorage.setItem(key, JSON.stringify(value));
   };
 
-  return [storedValue, setValue];
+  return [
+    storedValue,
+    setValue,
+    {
+      remove: () => {
+        setStoredValue(initialValue);
+        window.localStorage.removeItem(key);
+      },
+    },
+  ];
 }

@@ -31,6 +31,7 @@ export default function LinkDisplay() {
     setShowArchived,
     displayProperties,
     setDisplayProperties,
+    isLoading,
     isDirty,
     persist,
     reset,
@@ -39,7 +40,7 @@ export default function LinkDisplay() {
   const [openPopover, setOpenPopover] = useState(false);
   const { queryParams } = useRouterStuff();
 
-  useKeyboardShortcut("a", () => setShowArchived((o) => !o));
+  useKeyboardShortcut("a", () => setShowArchived(!showArchived));
 
   return (
     <Popover
@@ -170,7 +171,14 @@ export default function LinkDisplay() {
                     className="h-8 w-auto px-2"
                     variant="primary"
                     text="Set as default"
-                    onClick={persist}
+                    onClick={() => {
+                      if (
+                        window.confirm(
+                          "Set this configuration as the default for everyone in this workspace?",
+                        )
+                      )
+                        persist();
+                    }}
                   />
                 </div>
               </motion.div>
@@ -183,13 +191,14 @@ export default function LinkDisplay() {
     >
       <Button
         variant="secondary"
+        disabled={isLoading}
         className="hover:bg-white [&>div]:w-full"
         textWrapperClassName="!overflow-visible"
         text={
           <div className="flex w-full items-center gap-2">
             <div className="relative shrink-0">
               <Sliders className="h-4 w-4" />
-              {isDirty && (
+              {isDirty && !isLoading && (
                 <div className="absolute -right-0.5 -top-0.5 size-2 rounded-full bg-blue-500">
                   <div className="h-full w-full animate-pulse rounded-full ring-2 ring-blue-500/40" />
                 </div>
