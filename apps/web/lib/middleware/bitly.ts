@@ -7,25 +7,25 @@ import { EdgeLinkProps } from "../planetscale";
 import { conn } from "../planetscale/connection";
 import { recordLink } from "../tinybird/record-link";
 
-// Create a new buff.ly link in Dub on-demand
-export const importBitlyLink = async (shortKey: string) => {
+// Create a new Bitly-hosted link to Dub on-demand (e.g. buff.ly)
+export const importBitlyLink = async ({
+  domain,
+  shortKey,
+}: {
+  domain: string;
+  shortKey: string;
+}) => {
   const workspaceId = "cm05wnnpo000711ztj05wwdbu";
   const userId = "cm05wnd49000411ztg2xbup0i";
   const folderId = "fold_LIZsdjTgFVbQVGYSUmYAi5vT";
 
   const link = await crawlBitlyLink({
-    domain: "buff.ly",
+    domain,
     shortKey,
     workspaceId,
   });
 
   if (!link) {
-    return null;
-  }
-
-  const [domain, key] = link.id.split("/");
-
-  if (!domain || !key) {
     return null;
   }
 
@@ -39,12 +39,12 @@ export const importBitlyLink = async (shortKey: string) => {
     id: createId({ prefix: "link_" }),
     projectId: workspaceId,
     userId,
-    domain: "buff.ly",
-    key,
+    domain,
+    key: shortKey,
     url: sanitizedUrl,
     shortLink: linkConstructorSimple({
       domain,
-      key,
+      key: shortKey,
     }),
     archived: link.archived ?? false,
     folderId,
@@ -102,7 +102,7 @@ async function crawlBitlyLink({
   const response = await fetch(`https://bit.ly/${shortKey}`, {
     redirect: "manual",
     headers: {
-      Host: "buff.ly",
+      Host: domain,
       "User-Agent":
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     },
@@ -122,7 +122,7 @@ async function crawlBitlyLink({
   console.log(`[Bitly] Found link ${domain}/${shortKey} -> ${destinationUrl}`);
 
   return {
-    id: `buff.ly/${shortKey}`,
+    id: `${domain}/${shortKey}`,
     long_url: destinationUrl,
     created_at: new Date().toISOString(),
   };
