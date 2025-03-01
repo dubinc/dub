@@ -109,7 +109,9 @@ async function crawlBitlyLink({
   });
 
   if (!response.ok && response.status !== 301 && response.status !== 302) {
-    console.error(`[Bitly] Link ${domain}/${shortKey} not found.`);
+    console.error(
+      `[Bitly] Link ${domain}/${shortKey} not found. Falling back to API...`,
+    );
     return await fetchBitlyLink({ domain, shortKey, workspaceId });
   }
 
@@ -155,7 +157,7 @@ async function fetchBitlyLink({
 
   if (!response.ok) {
     console.log(
-      `[Bitly] Hit rate limit, returning 404 for ${domain}/${shortKey}`,
+      `[Bitly] Hit rate limit, returning 404 for ${domain}/${shortKey} for now...`,
     );
     return null;
   }
