@@ -35,11 +35,12 @@ export const FoldersPageClient = () => {
   });
   const { folders, loading, isValidating } = useFolders({
     includeParams: true,
-    includeLinkCount: true,
   });
 
   const { data: allLinksCount } = useLinksCount({
-    showArchived: true,
+    query: {
+      showArchived: true,
+    },
   });
 
   const showAllLinkFolder =
