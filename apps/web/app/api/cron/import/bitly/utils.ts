@@ -69,7 +69,7 @@ export const importLinksFromBitly = async ({
       domains,
       folderId,
       tagsToId,
-      nextSearchAfter: searchAfter,
+      searchAfter,
       count,
       rateLimited: true,
     });
@@ -278,7 +278,7 @@ export const importLinksFromBitly = async ({
       domains,
       folderId,
       tagsToId,
-      nextSearchAfter,
+      searchAfter: nextSearchAfter,
       count,
     });
   }
@@ -292,19 +292,18 @@ export const queueBitlyImport = async (payload: {
   domains: string[];
   folderId?: string;
   tagsToId?: Record<string, string>;
-  nextSearchAfter?: string | null;
+  searchAfter?: string | null;
   count?: number;
   rateLimited?: boolean;
   delay?: number;
 }) => {
-  const { tagsToId, nextSearchAfter, delay, ...rest } = payload;
+  const { tagsToId, delay, ...rest } = payload;
 
   return await qstash.publishJSON({
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/bitly`,
     body: {
       ...rest,
       importTags: tagsToId ? true : false,
-      searchAfter: nextSearchAfter,
     },
     ...(delay && { delay }),
   });
