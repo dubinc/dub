@@ -259,7 +259,7 @@ function useDomainFilterOptions() {
         count: _count,
       }))
       .sort((a, b) => b.count - a.count);
-  }, [hasExtremeLinks, domainsCount]);
+  }, [hasExtremeLinks, allActiveDomains, domainsCount]);
 }
 
 function useUserFilterOptions() {
