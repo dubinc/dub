@@ -32,7 +32,6 @@ export const importLinksFromBitly = async ({
   bitlyApiKey,
   searchAfter = null,
   createdBefore = null,
-  createdAfter = null,
   count = 0,
 }: {
   workspaceId: string;
@@ -44,7 +43,6 @@ export const importLinksFromBitly = async ({
   bitlyApiKey: string;
   searchAfter?: string | null;
   createdBefore?: string | null;
-  createdAfter?: string | null;
   count?: number;
 }) => {
   const response = await fetch(
@@ -53,7 +51,6 @@ export const importLinksFromBitly = async ({
         size: "100",
         ...(searchAfter && { search_after: searchAfter }),
         ...(createdBefore && { created_before: createdBefore }),
-        ...(createdAfter && { created_after: createdAfter }),
       },
     )}`,
     {
@@ -194,9 +191,8 @@ export const importLinksFromBitly = async ({
   console.log({
     importedLinksLength: importedLinks.length,
     count,
-    nextSearchAfter,
     createdBefore,
-    createdAfter,
+    nextSearchAfter,
   });
 
   // wait 500 ms before making another request
@@ -283,8 +279,6 @@ export const importLinksFromBitly = async ({
       folderId,
       tagsToId,
       nextSearchAfter,
-      createdBefore,
-      createdAfter,
       count,
     });
   }
@@ -299,20 +293,11 @@ export const queueBitlyImport = async (payload: {
   folderId?: string;
   tagsToId?: Record<string, string>;
   nextSearchAfter?: string | null;
-  createdBefore?: string | null;
-  createdAfter?: string | null;
   count?: number;
   rateLimited?: boolean;
   delay?: number;
 }) => {
-  const {
-    tagsToId,
-    nextSearchAfter,
-    delay,
-    createdBefore,
-    createdAfter,
-    ...rest
-  } = payload;
+  const { tagsToId, nextSearchAfter, delay, ...rest } = payload;
 
   return await qstash.publishJSON({
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/bitly`,
@@ -320,8 +305,6 @@ export const queueBitlyImport = async (payload: {
       ...rest,
       importTags: tagsToId ? true : false,
       searchAfter: nextSearchAfter,
-      ...(createdBefore && { createdBefore }),
-      ...(createdAfter && { createdAfter }),
     },
     ...(delay && { delay }),
   });
