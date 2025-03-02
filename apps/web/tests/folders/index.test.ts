@@ -1,6 +1,5 @@
 import z from "@/lib/zod";
 import { FolderSchema } from "@/lib/zod/schemas/folders";
-import { FolderType } from "@prisma/client";
 import { randomId } from "tests/utils/helpers";
 import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
@@ -9,7 +8,7 @@ type FolderRecord = z.infer<typeof FolderSchema>;
 
 const expectedFolder = {
   id: expect.any(String),
-  type: FolderType.default,
+  type: "default",
   linkCount: expect.any(Number),
   createdAt: expect.any(String),
   updatedAt: expect.any(String),
