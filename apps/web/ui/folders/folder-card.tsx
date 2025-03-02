@@ -4,11 +4,14 @@ import {
   useCheckFolderPermission,
   useFolderPermissions,
 } from "@/lib/swr/use-folder-permissions";
+import useLinksCount from "@/lib/swr/use-links-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Folder } from "@/lib/types";
+import { useIntersectionObserver } from "@dub/ui";
 import { Globe } from "@dub/ui/icons";
 import { nFormatter } from "@dub/utils";
 import Link from "next/link";
+import { useRef } from "react";
 import { FolderActions } from "./folder-actions";
 import { FolderIcon } from "./folder-icon";
 import { RequestFolderEditAccessButton } from "./request-edit-button";
@@ -34,7 +37,7 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
         <FolderIcon folder={folder} />
 
         {!unsortedLinks && (
-          <div className="relative z-10 flex items-center justify-end gap-1">
+          <div className="relative flex items-center justify-end gap-1">
             {!isPermissionsLoading && !canCreateLinks && (
               <RequestFolderEditAccessButton
                 folderId={folder.id}
@@ -57,13 +60,40 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
           )}
         </span>
 
-        <div className="mt-1.5 flex items-center gap-1 text-neutral-500">
-          <Globe className="size-3.5" />
-          <span className="text-sm font-normal">
-            {nFormatter(folder.linkCount)} link{folder.linkCount !== 1 && "s"}
-          </span>
-        </div>
+        <LinksCount folderId={folder.id} />
       </div>
     </div>
   );
 };
+
+function LinksCount({ folderId }: { folderId: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  const entry = useIntersectionObserver(ref);
+  const isInView = entry?.isIntersecting;
+
+  const { data: linkCount, loading } = useLinksCount({
+    enabled: isInView,
+    ignoreParams: true,
+    query:
+      folderId === "unsorted"
+        ? {}
+        : {
+            folderId,
+          },
+  });
+
+  return (
+    <div ref={ref} className="mt-1.5 flex items-center gap-1 text-neutral-500">
+      <Globe className="size-3.5" />
+
+      {loading ? (
+        <div className="h-5 w-12 animate-pulse rounded-md bg-neutral-200" />
+      ) : (
+        <span className="text-sm font-normal">
+          {nFormatter(linkCount)} link{linkCount !== 1 && "s"}
+        </span>
+      )}
+    </div>
+  );
+}
