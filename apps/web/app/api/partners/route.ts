@@ -56,6 +56,8 @@ export const GET = withWorkspace(
       earnings: "totalSaleAmount",
     };
 
+    console.time("query");
+
     const partners = (await prisma.$queryRaw`
       SELECT 
         p.*, 
@@ -66,32 +68,48 @@ export const GET = withWorkspace(
         pe.tenantId,
         pe.applicationId,
         pe.createdAt as enrollmentCreatedAt,
-        COALESCE(SUM(l.clicks), 0) as totalClicks,
-        COALESCE(SUM(l.leads), 0) as totalLeads,
-        COALESCE(SUM(l.sales), 0) as totalSales,
-        COALESCE(SUM(l.saleAmount), 0) as totalSaleAmount,
-        JSON_ARRAYAGG(
-          IF(l.id IS NOT NULL,
-            JSON_OBJECT(
-              'id', l.id,
-              'domain', l.domain,
-              'key', l.key,
-              'shortLink', l.shortLink,
-              'url', l.url,
-              'clicks', CAST(l.clicks AS SIGNED),
-              'leads', CAST(l.leads AS SIGNED),
-              'sales', CAST(l.sales AS SIGNED),
-              'saleAmount', CAST(l.saleAmount AS SIGNED)
-            ),
-            NULL
-          )
+        COALESCE(metrics.totalClicks, 0) as totalClicks,
+        COALESCE(metrics.totalLeads, 0) as totalLeads,
+        COALESCE(metrics.totalSales, 0) as totalSales,
+        COALESCE(metrics.totalSaleAmount, 0) as totalSaleAmount,
+        COALESCE(
+          JSON_ARRAYAGG(
+            IF(l.id IS NOT NULL,
+              JSON_OBJECT(
+                'id', l.id,
+                'domain', l.domain,
+                'key', l.\`key\`,
+                'shortLink', l.shortLink,
+                'url', l.url,
+                'clicks', CAST(l.clicks AS SIGNED),
+                'leads', CAST(l.leads AS SIGNED),
+                'sales', CAST(l.sales AS SIGNED),
+                'saleAmount', CAST(l.saleAmount AS SIGNED)
+              ),
+              NULL
+            )
+          ),
+          JSON_ARRAY()
         ) as links
       FROM 
         ProgramEnrollment pe 
       INNER JOIN 
         Partner p ON p.id = pe.partnerId 
-      LEFT JOIN 
-        Link l ON l.programId = pe.programId AND l.partnerId = pe.partnerId
+      LEFT JOIN Link l ON l.programId = pe.programId 
+        AND l.partnerId = pe.partnerId
+        AND l.programId = ${program.id}
+      LEFT JOIN (
+        SELECT 
+          partnerId,
+          SUM(clicks) as totalClicks,
+          SUM(leads) as totalLeads,
+          SUM(sales) as totalSales,
+          SUM(saleAmount) as totalSaleAmount
+        FROM Link
+        WHERE programId = ${program.id}
+          AND partnerId IS NOT NULL
+        GROUP BY partnerId
+      ) metrics ON metrics.partnerId = pe.partnerId
       WHERE 
         pe.programId = ${program.id}
         ${status ? Prisma.sql`AND pe.status = ${status}` : Prisma.sql`AND pe.status != 'rejected'`}
@@ -100,9 +118,11 @@ export const GET = withWorkspace(
         ${search ? Prisma.sql`AND (LOWER(p.name) LIKE LOWER(${`%${search}%`}) OR LOWER(p.email) LIKE LOWER(${`%${search}%`}))` : Prisma.sql``}
         ${ids && ids.length > 0 ? Prisma.sql`AND pe.partnerId IN (${Prisma.join(ids)})` : Prisma.sql``}
       GROUP BY 
-        p.id, pe.id
+        p.id, pe.id, metrics.totalClicks, metrics.totalLeads, metrics.totalSales, metrics.totalSaleAmount
       ORDER BY ${Prisma.raw(sortColumnsMap[sortBy])} ${Prisma.raw(sortOrder)}
       LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`) satisfies Array<any>;
+
+    console.timeEnd("query");
 
     const response = partners.map((partner) => {
       return {
