@@ -18,7 +18,7 @@ export const POST = async (req: Request) => {
   // @see: https://support.bitly.com/hc/en-us/articles/360030780892-What-characters-are-supported-when-customizing-links
   const invalidBitlyKeyRegex = /[`~,.<>;':"/\\[\]^{}()=+!*@&$£?%#|]/;
   if (invalidBitlyKeyRegex.test(key)) {
-    return NextResponse.json({ error: "Invalid key" }, { status: 400 });
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
   const link = await crawlBitlyLink({ domain, key, workspaceId });
