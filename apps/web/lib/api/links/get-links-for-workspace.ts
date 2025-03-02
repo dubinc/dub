@@ -11,6 +11,7 @@ export async function getLinksForWorkspace({
   tagIds,
   tagNames,
   search,
+  searchMode,
   sort, // Deprecated
   sortBy,
   sortOrder,
@@ -60,14 +61,17 @@ export async function getLinksForWorkspace({
           }),
       ...(domain && { domain }),
       ...(search && {
-        OR: [
-          {
-            shortLink: { contains: search },
-          },
-          {
-            url: { contains: search },
-          },
-        ],
+        ...(searchMode === "fuzzy" && {
+          OR: [
+            {
+              shortLink: { contains: search },
+            },
+            {
+              url: { contains: search },
+            },
+          ],
+        }),
+        ...(searchMode === "exact" && { shortLink: { startsWith: search } }),
       }),
       ...(withTags && {
         tags: {

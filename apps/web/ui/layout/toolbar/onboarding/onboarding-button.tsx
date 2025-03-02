@@ -1,7 +1,6 @@
 "use client";
 
 import useDomainsCount from "@/lib/swr/use-domains-count";
-import useLinksCount from "@/lib/swr/use-links-count";
 import useUsers from "@/lib/swr/use-users";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CheckCircleFill, ThreeDots } from "@/ui/shared/icons";
@@ -30,13 +29,9 @@ function OnboardingButtonInner({
   onHideForever: () => void;
 }) {
   const { slug } = useParams() as { slug: string };
-  const { hasExtremeLinks } = useWorkspace();
+  const { totalLinks } = useWorkspace();
 
   const { data: domainsCount, loading: domainsLoading } = useDomainsCount({
-    ignoreParams: true,
-  });
-  const { data: linksCount, loading: linksLoading } = useLinksCount<number>({
-    enabled: !hasExtremeLinks,
     ignoreParams: true,
   });
   const { users, loading: usersLoading } = useUsers();
@@ -44,15 +39,14 @@ function OnboardingButtonInner({
     invites: true,
   });
 
-  const loading =
-    domainsLoading || linksLoading || usersLoading || invitesLoading;
+  const loading = domainsLoading || usersLoading || invitesLoading;
 
   const tasks = useMemo(() => {
     return [
       {
         display: "Create a new Dub link",
         cta: `/${slug}`,
-        checked: hasExtremeLinks || linksCount > 0,
+        checked: totalLinks ? totalLinks > 0 : true,
       },
       {
         display: "Set up your custom domain",
@@ -65,7 +59,7 @@ function OnboardingButtonInner({
         checked: (users && users.length > 1) || (invites && invites.length > 0),
       },
     ];
-  }, [slug, domainsCount, hasExtremeLinks, linksCount, users, invites]);
+  }, [slug, domainsCount, totalLinks, users, invites]);
 
   const [isOpen, setIsOpen] = useState(false);
 

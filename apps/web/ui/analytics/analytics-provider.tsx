@@ -3,6 +3,7 @@
 import {
   ANALYTICS_SALE_UNIT,
   ANALYTICS_VIEWS,
+  DUB_LINKS_ANALYTICS_INTERVAL,
   EVENT_TYPES,
   VALID_ANALYTICS_FILTERS,
 } from "@/lib/analytics/constants";
@@ -142,7 +143,9 @@ export default function AnalyticsProvider({
 
   // Only set interval if start and end are not provided
   const interval =
-    start || end ? undefined : searchParams?.get("interval") ?? "30d";
+    start || end
+      ? undefined
+      : searchParams?.get("interval") ?? DUB_LINKS_ANALYTICS_INTERVAL;
 
   const selectedTab: EventType = useMemo(() => {
     const event = searchParams.get("event");

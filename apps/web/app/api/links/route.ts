@@ -13,7 +13,7 @@ import {
   getLinksQuerySchemaExtended,
   linkEventSchema,
 } from "@/lib/zod/schemas/links";
-import { LOCALHOST_IP } from "@dub/utils";
+import { LOCALHOST_IP, WORKSPACE_EXTREME_LINKS_LIMIT } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -52,6 +52,10 @@ export const GET = withWorkspace(
       ...params,
       workspaceId: workspace.id,
       folderIds,
+      searchMode:
+        workspace.totalLinks > WORKSPACE_EXTREME_LINKS_LIMIT
+          ? "exact"
+          : "fuzzy",
     });
 
     return NextResponse.json(response, {
