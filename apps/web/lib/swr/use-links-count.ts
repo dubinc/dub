@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import useSWR from "swr";
 import z from "../zod";
 import { getLinksCountQuerySchema } from "../zod/schemas/links";
+import useFolder from "./use-folder";
 import useWorkspace from "./use-workspace";
 
 const partialQuerySchema = getLinksCountQuerySchema.partial();
@@ -11,14 +12,14 @@ const partialQuerySchema = getLinksCountQuerySchema.partial();
 export default function useLinksCount<T = any>({
   query,
   ignoreParams,
-  enabled = true,
+  enabled,
 }: {
   query?: z.infer<typeof partialQuerySchema>;
   ignoreParams?: boolean;
   enabled?: boolean;
 } = {}) {
   const { id: workspaceId } = useWorkspace();
-  const { getQueryString } = useRouterStuff();
+  const { searchParamsObj, getQueryString } = useRouterStuff();
 
   const [admin, setAdmin] = useState(false);
   useEffect(() => {
@@ -26,27 +27,28 @@ export default function useLinksCount<T = any>({
       setAdmin(true);
     }
   }, []);
+  const { folder: currentFolder } = useFolder({
+    folderId: searchParamsObj.folderId,
+  });
 
   const { data, error } = useSWR<any>(
-    !enabled
-      ? null
-      : workspaceId
-        ? `/api/links/count${getQueryString(
-            {
-              workspaceId,
-              ...query,
-            },
-            ignoreParams
-              ? { include: [] }
-              : {
-                  exclude: ["import", "upgrade", "newLink"],
-                },
-          )}`
-        : admin
-          ? `/api/admin/links/count${getQueryString({
-              ...query,
-            })}`
-          : null,
+    workspaceId && currentFolder?.type !== "mega" && enabled
+      ? `/api/links/count${getQueryString(
+          {
+            workspaceId,
+            ...query,
+          },
+          ignoreParams
+            ? { include: [] }
+            : {
+                exclude: ["import", "upgrade", "newLink"],
+              },
+        )}`
+      : admin
+        ? `/api/admin/links/count${getQueryString({
+            ...query,
+          })}`
+        : null,
     fetcher,
     {
       dedupingInterval: 60000,

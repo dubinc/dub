@@ -1,3 +1,4 @@
+import useFolder from "@/lib/swr/use-folder";
 import {
   Button,
   Popover,
@@ -15,6 +16,7 @@ import {
 import { cn } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useContext, useState } from "react";
 import LinkSort from "./link-sort";
 import {
@@ -35,6 +37,12 @@ export default function LinkDisplay() {
     persist,
     reset,
   } = useContext(LinksDisplayContext);
+
+  const searchParams = useSearchParams();
+  const folderId = searchParams.get("folderId");
+  const { folder: currentFolder } = useFolder({
+    folderId,
+  });
 
   const [openPopover, setOpenPopover] = useState(false);
   const { queryParams } = useRouterStuff();
@@ -74,15 +82,17 @@ export default function LinkDisplay() {
               );
             })}
           </div>
-          <div className="flex h-16 items-center justify-between gap-2 px-4">
-            <span className="flex items-center gap-2">
-              <ArrowsOppositeDirectionY className="h-4 w-4 text-neutral-800" />
-              Ordering
-            </span>
-            <div>
-              <LinkSort />
+          {currentFolder?.type !== "mega" && (
+            <div className="flex h-16 items-center justify-between gap-2 px-4">
+              <span className="flex items-center gap-2">
+                <ArrowsOppositeDirectionY className="h-4 w-4 text-neutral-800" />
+                Ordering
+              </span>
+              <div>
+                <LinkSort />
+              </div>
             </div>
-          </div>
+          )}
           <div className="group flex h-16 items-center justify-between gap-2 px-4">
             <div className="flex items-center gap-2">
               <div className="flex w-6 items-center justify-center">

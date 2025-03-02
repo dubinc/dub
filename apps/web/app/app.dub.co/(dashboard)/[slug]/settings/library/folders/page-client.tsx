@@ -15,6 +15,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 const allLinkFolder: Folder = {
   id: "unsorted",
   name: "Links",
+  type: "default",
   accessLevel: null,
   linkCount: 0,
   createdAt: new Date(),

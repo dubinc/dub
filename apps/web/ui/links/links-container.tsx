@@ -39,7 +39,6 @@ export default function LinksContainer({
 
   const { links, isValidating } = useLinks({ sortBy, showArchived });
   const { data: count } = useLinksCount<number>({
-    enabled: currentFolder && currentFolder?.type !== "mega",
     query: { showArchived },
   });
 
