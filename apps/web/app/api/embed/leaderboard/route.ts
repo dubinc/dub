@@ -21,9 +21,9 @@ export const GET = withEmbedToken(async ({ programId }) => {
     FROM 
       ProgramEnrollment pe 
     INNER JOIN 
-      Partner p ON p.id = pe.partnerId  AND p.showOnLeaderboard = true
+      Partner p ON p.id = pe.partnerId AND p.showOnLeaderboard = true
     LEFT JOIN 
-      Link l ON l.partnerId = pe.partnerId 
+      Link l ON l.programId = pe.programId AND l.partnerId = pe.partnerId
     WHERE 
       pe.programId = ${programId}
     GROUP BY 

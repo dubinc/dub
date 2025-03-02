@@ -1,19 +1,19 @@
 "use client";
-import { Badge, Copy, Globe2, Tick, useCopyToClipboard } from "@dub/ui";
+import { Badge, Copy, Tick, useCopyToClipboard } from "@dub/ui";
 import { capitalize, nFormatter } from "@dub/utils";
 import { toast } from "sonner";
 
 export interface UserInfoProps {
   email: string;
-  defaultDomainLinks: Record<string, number>;
   workspaces: {
     id: string;
     name: string;
     slug: string;
     plan: string;
     clicks: number;
-    domains: number;
     links: number;
+    sales: number;
+    folders: number;
   }[];
   impersonateUrl: {
     app: string;
@@ -33,19 +33,6 @@ export default function UserInfo({ data }: { data: UserInfoProps }) {
         text="partners.dub.co login link"
         url={data.impersonateUrl.partners}
       />
-      {Object.keys(data.defaultDomainLinks).length > 0 && (
-        <div className="grid divide-y divide-neutral-200">
-          {Object.entries(data.defaultDomainLinks).map(([domain, count]) => (
-            <div key={domain} className="flex justify-between py-2">
-              <div className="flex items-center space-x-2">
-                <Globe2 className="h-4 w-4" />
-                <span className="font-semibold text-neutral-700">{domain}</span>
-              </div>
-              <span className="text-neutral-500">{count}</span>
-            </div>
-          ))}
-        </div>
-      )}
       <div className="grid grid-cols-2 gap-4">
         {data.workspaces.map((workspace) => (
           <div
@@ -67,8 +54,10 @@ export default function UserInfo({ data }: { data: UserInfoProps }) {
               </span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="font-medium text-neutral-700">Domains</span>
-              <span className="text-neutral-500">{workspace.domains}</span>
+              <span className="font-medium text-neutral-700">Folders</span>
+              <span className="text-neutral-500">
+                {nFormatter(workspace.folders, { full: true })}
+              </span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="font-medium text-neutral-700">Links</span>
@@ -80,6 +69,12 @@ export default function UserInfo({ data }: { data: UserInfoProps }) {
               <span className="font-medium text-neutral-700">Clicks</span>
               <span className="text-neutral-500">
                 {nFormatter(workspace.clicks, { full: true })}
+              </span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="font-medium text-neutral-700">Sales</span>
+              <span className="text-neutral-500">
+                {nFormatter(workspace.sales, { full: true })}
               </span>
             </div>
           </div>

@@ -1,5 +1,5 @@
 import { unsortedLinks } from "@/lib/folder/constants";
-import useFolders from "@/lib/swr/use-folders";
+import useFolder from "@/lib/swr/use-folder";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderSummary } from "@/lib/types";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -11,21 +11,21 @@ export const FolderSwitcher = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { slug } = useWorkspace();
-  const { folders } = useFolders();
+
+  const folderId = searchParams.get("folderId");
+  const { folder } = useFolder({
+    folderId,
+  });
 
   const [selectedFolder, setSelectedFolder] = useState<FolderSummary | null>(
     unsortedLinks,
   );
 
   useEffect(() => {
-    const folderId = searchParams.get("folderId");
-
-    if (folders) {
-      const selectedFolder =
-        folders.find((folder) => folder.id === folderId) || unsortedLinks;
-      setSelectedFolder(selectedFolder);
+    if (folder && folder.id === folderId) {
+      setSelectedFolder(folder);
     }
-  }, [searchParams, folders]);
+  }, [folder, folderId]);
 
   const isUnsorted = selectedFolder?.id === "unsorted";
 

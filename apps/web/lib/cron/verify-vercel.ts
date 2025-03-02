@@ -1,6 +1,7 @@
 import { DubApiError } from "../api/errors";
 
 export const verifyVercelSignature = async (req: Request) => {
+  // skip verification in local development
   if (process.env.VERCEL !== "1") {
     return;
   }

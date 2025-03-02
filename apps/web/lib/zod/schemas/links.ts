@@ -43,6 +43,23 @@ const LinksQuerySchema = z.object({
     .union([z.string(), z.array(z.string())])
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
     .optional()
+    .openapi({
+      param: {
+        style: "form",
+        explode: false,
+      },
+      anyOf: [
+        {
+          type: "string",
+        },
+        {
+          type: "array",
+          items: {
+            type: "string",
+          },
+        },
+      ],
+    })
     .describe("The tag IDs to filter the links by."),
   tagNames: z
     .union([z.string(), z.array(z.string())])
@@ -249,6 +266,7 @@ export const createLinkBodySchema = z.object({
     ),
   folderId: z
     .string()
+    .transform((v) => (v === "" ? null : v))
     .nullish()
     .describe("The unique ID existing folder to assign the short link to."),
   comments: z.string().nullish().describe("The comments for the short link."),
