@@ -43,36 +43,48 @@ export async function getLinksForWorkspace({
     where: {
       projectId: workspaceId,
       archived: showArchived ? undefined : false,
-      ...(folderIds
-        ? {
-            OR: [
+      AND: [
+        ...(folderIds
+          ? [
               {
-                folderId: {
-                  in: folderIds,
-                },
+                OR: [
+                  {
+                    folderId: {
+                      in: folderIds,
+                    },
+                  },
+                  {
+                    folderId: null,
+                  },
+                ],
               },
+            ]
+          : [
               {
-                folderId: null,
+                folderId: folderId || null,
               },
-            ],
-          }
-        : {
-            folderId: folderId || null,
-          }),
+            ]),
+        ...(search
+          ? [
+              {
+                ...(searchMode === "fuzzy" && {
+                  OR: [
+                    {
+                      shortLink: { contains: search },
+                    },
+                    {
+                      url: { contains: search },
+                    },
+                  ],
+                }),
+                ...(searchMode === "exact" && {
+                  shortLink: { startsWith: search },
+                }),
+              },
+            ]
+          : []),
+      ],
       ...(domain && { domain }),
-      ...(search && {
-        ...(searchMode === "fuzzy" && {
-          OR: [
-            {
-              shortLink: { contains: search },
-            },
-            {
-              url: { contains: search },
-            },
-          ],
-        }),
-        ...(searchMode === "exact" && { shortLink: { startsWith: search } }),
-      }),
       ...(withTags && {
         tags: {
           some: {},
