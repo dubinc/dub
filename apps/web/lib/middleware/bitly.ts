@@ -20,10 +20,10 @@ const crawlBitlyResultSchema = z.object({
 // Create a new Bitly-hosted link to Dub on-demand (e.g. buff.ly)
 export const importBitlyLink = async ({
   domain,
-  shortKey,
+  key,
 }: {
   domain: string;
-  shortKey: string;
+  key: string;
 }) => {
   const workspaceId = "cm05wnnpo000711ztj05wwdbu";
   const userId = "cm05wnd49000411ztg2xbup0i";
@@ -34,7 +34,7 @@ export const importBitlyLink = async ({
   try {
     const result = await fetch(`${APP_DOMAIN}/api/links/crawl/bitly`, {
       method: "POST",
-      body: JSON.stringify({ domain, shortKey, workspaceId }),
+      body: JSON.stringify({ domain, key, workspaceId }),
     });
 
     if (result.status === 404) {
@@ -62,11 +62,11 @@ export const importBitlyLink = async ({
     projectId: workspaceId,
     userId,
     domain,
-    key: shortKey,
+    key,
     url: sanitizedUrl,
     shortLink: linkConstructorSimple({
       domain,
-      key: shortKey,
+      key,
     }),
     archived: false,
     folderId,
