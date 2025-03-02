@@ -1,14 +1,17 @@
 import { unsortedLinks } from "@/lib/folder/constants";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import useFolder from "@/lib/swr/use-folder";
 import useFolders from "@/lib/swr/use-folders";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderSummary } from "@/lib/types";
+import { FOLDERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/folders";
 import { Button, Combobox, TooltipContent } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { ChevronsUpDown } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { useDebounce } from "use-debounce";
 import { useAddFolderModal } from "../modals/add-folder-modal";
 import { FolderIcon } from "./folder-icon";
 
@@ -36,7 +39,26 @@ export const FolderDropdown = ({
   const router = useRouter();
   const { slug, plan } = useWorkspace();
   const searchParams = useSearchParams();
-  const { folders, loading } = useFolders();
+
+  const [search, setSearch] = useState("");
+  const [debouncedSearch] = useDebounce(search, 500);
+
+  // Whether to fetch search results from the backend
+  const [useAsync, setUseAsync] = useState(false);
+
+  const { folders, loading } = useFolders({
+    query: useAsync ? { search: debouncedSearch } : undefined,
+    options: {
+      keepPreviousData: true,
+    },
+  });
+
+  // If at any point the number of folders is greater than the max page size, we should fetch based on search
+  useEffect(() => {
+    if (folders && !useAsync && folders.length >= FOLDERS_MAX_PAGE_SIZE)
+      setUseAsync(true);
+  }, [folders, useAsync]);
+
   const [openPopover, setOpenPopover] = useState(false);
 
   const [selectedFolder, setSelectedFolder] = useState<FolderSummary | null>(
@@ -44,6 +66,10 @@ export const FolderDropdown = ({
   );
 
   const folderId = selectedFolderId || searchParams.get("folderId");
+
+  const { folder: selectedFolderData } = useFolder({
+    folderId,
+  });
 
   const { AddFolderModal, setShowAddFolderModal } = useAddFolderModal({
     onSuccess: (folder) => {
@@ -60,24 +86,33 @@ export const FolderDropdown = ({
     },
   });
 
+  // Update selected folder when folderId changes and selectedFolderData is available
   useEffect(() => {
-    if (folders) {
-      const folder = folders.find((f) => f.id === folderId) || unsortedLinks;
-      setSelectedFolder(folder);
-      onFolderSelect?.(folder);
-    }
-  }, [folderId, folders]);
+    if (folderId === selectedFolderData?.id)
+      setSelectedFolder(selectedFolderData);
+    else if (!folderId || folderId === "unsorted")
+      setSelectedFolder(unsortedLinks);
+  }, [folderId, selectedFolderData]);
 
   const { canAddFolder } = getPlanCapabilities(plan);
 
   const folderOptions = useMemo(() => {
-    const allFolders = [unsortedLinks, ...(folders || [])];
+    const allFolders = [
+      unsortedLinks,
+      ...(folders || []),
+      ...(selectedFolderData &&
+      !debouncedSearch &&
+      !folders?.find(({ id }) => id === selectedFolderData.id)
+        ? [selectedFolderData]
+        : []),
+    ];
     return [
       ...allFolders.map((folder) => ({
         value: folder.id,
         label: folder.name,
         icon: <FolderIcon className="mr-1" folder={folder} shape="square" />,
         meta: folder,
+        first: folder.id === "unsorted",
       })),
       {
         value: "create",
@@ -98,7 +133,7 @@ export const FolderDropdown = ({
         ) : undefined,
       },
     ];
-  }, [folders, canAddFolder, slug]);
+  }, [folders, selectedFolderData, canAddFolder, slug, debouncedSearch]);
 
   const selectedOption = useMemo(() => {
     if (!selectedFolder) return null;
@@ -112,7 +147,7 @@ export const FolderDropdown = ({
     };
   }, [selectedFolder]);
 
-  if (folderId && loading) {
+  if (folderId && folderId !== "unsorted" && !selectedFolderData) {
     return <FolderSwitcherPlaceholder />;
   }
 
@@ -209,19 +244,12 @@ export const FolderDropdown = ({
         }
         open={openPopover}
         onOpenChange={setOpenPopover}
+        shouldFilter={!useAsync}
+        onSearchChange={setSearch}
       >
         {selectedFolder ? selectedFolder.name : "Links"}
       </Combobox>
     </>
-  );
-};
-
-const FolderItemPlaceholder = () => {
-  return (
-    <div className="flex items-center gap-2 px-2 py-1.5">
-      <div className="size-6 animate-pulse rounded-md bg-neutral-200" />
-      <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
-    </div>
   );
 };
 

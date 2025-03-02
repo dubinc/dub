@@ -1,6 +1,6 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
-import useFolders from "@/lib/swr/use-folders";
+import useFoldersCount from "@/lib/swr/use-folders-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useArchiveLinkModal } from "@/ui/modals/archive-link-modal";
 import { useDeleteLinkModal } from "@/ui/modals/delete-link-modal";
@@ -36,7 +36,7 @@ import { LinksListContext, ResponseLink } from "./links-container";
 export function LinkControls({ link }: { link: ResponseLink }) {
   const { flags } = useWorkspace();
   const { slug } = useParams() as { slug?: string };
-  const { folders } = useFolders();
+  const { data: foldersCount } = useFoldersCount();
   const { hovered } = useContext(CardList.Card.Context);
   const searchParams = useSearchParams();
 
@@ -239,7 +239,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
             </div>
             <div className="border-t border-neutral-200" />
             <div className="grid gap-px p-2">
-              {flags?.linkFolders && folders && folders.length > 0 && (
+              {flags?.linkFolders && foldersCount && (
                 <Button
                   text="Move"
                   variant="outline"

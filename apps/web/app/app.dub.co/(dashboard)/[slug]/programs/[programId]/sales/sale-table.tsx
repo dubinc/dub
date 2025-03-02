@@ -130,6 +130,15 @@ const SaleTableBusinessInner = memo(
             }),
         },
         {
+          id: "commission",
+          header: "Commission",
+          accessorFn: (d) =>
+            currencyFormatter(d.earnings / 100, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }),
+        },
+        {
           header: "Status",
           cell: ({ row }) => {
             const badge = SaleStatusBadges[row.original.status];

@@ -186,7 +186,7 @@ function useTagFilterOptions(search: string) {
       tagId: string;
       _count: number;
     }[]
-  >({ groupBy: "tagId", showArchived });
+  >({ query: { groupBy: "tagId", showArchived } });
 
   const tagsResult = useMemo(() => {
     return loadingTags ||
@@ -228,8 +228,10 @@ function useDomainFilterOptions() {
       _count: number;
     }[]
   >({
-    groupBy: "domain",
-    showArchived,
+    query: {
+      groupBy: "domain",
+      showArchived,
+    },
   });
 
   return useMemo(() => {
@@ -254,8 +256,10 @@ function useUserFilterOptions() {
       _count: number;
     }[]
   >({
-    groupBy: "userId",
-    showArchived,
+    query: {
+      groupBy: "userId",
+      showArchived,
+    },
   });
 
   return useMemo(
