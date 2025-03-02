@@ -1,4 +1,4 @@
-import useFolder from "@/lib/swr/use-folder";
+import { useIsMegaFolder } from "@/lib/swr/use-is-mega-folder";
 import {
   Button,
   Popover,
@@ -16,7 +16,6 @@ import {
 import { cn } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
-import { useSearchParams } from "next/navigation";
 import { useContext, useState } from "react";
 import LinkSort from "./link-sort";
 import {
@@ -38,11 +37,7 @@ export default function LinkDisplay() {
     reset,
   } = useContext(LinksDisplayContext);
 
-  const searchParams = useSearchParams();
-  const folderId = searchParams.get("folderId");
-  const { folder: currentFolder } = useFolder({
-    folderId,
-  });
+  const { isMegaFolder } = useIsMegaFolder();
 
   const [openPopover, setOpenPopover] = useState(false);
   const { queryParams } = useRouterStuff();
@@ -82,7 +77,7 @@ export default function LinkDisplay() {
               );
             })}
           </div>
-          {currentFolder?.type !== "mega" && (
+          {!isMegaFolder && (
             <div className="flex h-16 items-center justify-between gap-2 px-4">
               <span className="flex items-center gap-2">
                 <ArrowsOppositeDirectionY className="h-4 w-4 text-neutral-800" />

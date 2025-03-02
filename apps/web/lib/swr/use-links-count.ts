@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import useSWR from "swr";
 import z from "../zod";
 import { getLinksCountQuerySchema } from "../zod/schemas/links";
-import useFolder from "./use-folder";
+import { useIsMegaFolder } from "./use-is-mega-folder";
 import useWorkspace from "./use-workspace";
 
 const partialQuerySchema = getLinksCountQuerySchema.partial();
@@ -12,14 +12,14 @@ const partialQuerySchema = getLinksCountQuerySchema.partial();
 export default function useLinksCount<T = any>({
   query,
   ignoreParams,
-  enabled,
+  enabled = true,
 }: {
   query?: z.infer<typeof partialQuerySchema>;
   ignoreParams?: boolean;
   enabled?: boolean;
 } = {}) {
   const { id: workspaceId } = useWorkspace();
-  const { searchParamsObj, getQueryString } = useRouterStuff();
+  const { getQueryString } = useRouterStuff();
 
   const [admin, setAdmin] = useState(false);
   useEffect(() => {
@@ -27,12 +27,10 @@ export default function useLinksCount<T = any>({
       setAdmin(true);
     }
   }, []);
-  const { folder: currentFolder } = useFolder({
-    folderId: searchParamsObj.folderId,
-  });
+  const { isMegaFolder } = useIsMegaFolder();
 
   const { data, error } = useSWR<any>(
-    workspaceId && currentFolder?.type !== "mega" && enabled
+    workspaceId && !isMegaFolder && enabled
       ? `/api/links/count${getQueryString(
           {
             workspaceId,

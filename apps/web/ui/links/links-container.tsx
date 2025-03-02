@@ -1,6 +1,6 @@
 "use client";
 
-import useFolder from "@/lib/swr/use-folder";
+import { useIsMegaFolder } from "@/lib/swr/use-is-mega-folder";
 import useLinks from "@/lib/swr/use-links";
 import useLinksCount from "@/lib/swr/use-links-count";
 import { ExpandedLinkProps, UserProps } from "@/lib/types";
@@ -31,11 +31,6 @@ export default function LinksContainer({
   CreateLinkButton: () => JSX.Element;
 }) {
   const { viewMode, sortBy, showArchived } = useContext(LinksDisplayContext);
-  const searchParams = useSearchParams();
-  const folderId = searchParams.get("folderId");
-  const { folder: currentFolder } = useFolder({
-    folderId,
-  });
 
   const { links, isValidating } = useLinks({ sortBy, showArchived });
   const { data: count } = useLinksCount<number>({
@@ -77,10 +72,7 @@ function LinksList({
   compact: boolean;
 }) {
   const searchParams = useSearchParams();
-  const folderId = searchParams.get("folderId");
-  const { folder: currentFolder } = useFolder({
-    folderId,
-  });
+  const { isMegaFolder } = useIsMegaFolder();
 
   const [openMenuLinkId, setOpenMenuLinkId] = useState<string | null>(null);
 
@@ -147,11 +139,7 @@ function LinksList({
           <LinksToolbar
             loading={!!loading}
             links={links}
-            linksCount={
-              currentFolder?.type === "mega"
-                ? Infinity
-                : count ?? links?.length ?? 0
-            }
+            linksCount={isMegaFolder ? Infinity : count ?? links?.length ?? 0}
           />
         )}
       </LinkSelectionProvider>

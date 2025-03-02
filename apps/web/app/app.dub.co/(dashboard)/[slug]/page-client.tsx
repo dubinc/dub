@@ -1,10 +1,10 @@
 "use client";
 
-import useFolder from "@/lib/swr/use-folder";
 import {
   useCheckFolderPermission,
   useFolderPermissions,
 } from "@/lib/swr/use-folder-permissions";
+import { useIsMegaFolder } from "@/lib/swr/use-is-mega-folder";
 import useLinks from "@/lib/swr/use-links";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { RequestFolderEditAccessButton } from "@/ui/folders/request-edit-button";
@@ -77,9 +77,7 @@ function WorkspaceLinks() {
   } = useLinkFilters();
 
   const folderId = searchParams.get("folderId");
-  const { folder: currentFolder } = useFolder({
-    folderId,
-  });
+  const { isMegaFolder } = useIsMegaFolder();
 
   const { isLoading } = useFolderPermissions();
   const canCreateLinks = useCheckFolderPermission(
@@ -95,7 +93,7 @@ function WorkspaceLinks() {
         <MaxWidthWrapper className="flex flex-col gap-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2 lg:flex-nowrap">
             <div className="flex w-full grow gap-2 md:w-auto">
-              {currentFolder?.type !== "mega" && (
+              {!isMegaFolder && (
                 <div className="grow basis-0 md:grow-0">
                   <Filter.Select
                     filters={filters}
