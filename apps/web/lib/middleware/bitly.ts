@@ -1,4 +1,8 @@
-import { getUrlFromStringIfValid, linkConstructorSimple } from "@dub/utils";
+import {
+  APP_DOMAIN,
+  getUrlFromStringIfValid,
+  linkConstructorSimple,
+} from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { ExpandedLink } from "../api/links";
@@ -28,12 +32,14 @@ export const importBitlyLink = async ({
   let link: z.infer<typeof crawlBitlyResultSchema> | null = null;
 
   try {
-    const result = await fetch("http://localhost:8888/api/links/crawl-bitly", {
+    const result = await fetch(`${APP_DOMAIN}/api/links/crawl/bitly`, {
       method: "POST",
       body: JSON.stringify({ domain, shortKey, workspaceId }),
     });
 
-    if (!result.ok) return null;
+    if (result.status === 404) {
+      return null;
+    }
 
     link = crawlBitlyResultSchema.parse(await result.json());
   } catch (e) {

@@ -1,7 +1,8 @@
 import { redis } from "@/lib/upstash";
+import { NextResponse } from "next/server";
 import { z } from "zod";
 
-// POST /api/links/crawl-bitly - receive webhooks for Dub
+// POST /api/links/crawl/bitly – crawl a bitly link
 export const POST = async (req: Request) => {
   const body = await req.json();
 
@@ -15,7 +16,9 @@ export const POST = async (req: Request) => {
 
   const link = await crawlBitlyLink({ domain, shortKey, workspaceId });
 
-  return new Response(JSON.stringify(link || null));
+  return link
+    ? NextResponse.json(link)
+    : NextResponse.json({ error: "Not found" }, { status: 404 });
 };
 
 async function crawlBitlyLink({
@@ -37,6 +40,7 @@ async function crawlBitlyLink({
     },
   });
 
+  // If the link is not found, fallback to the API
   if (!response.ok && response.status !== 301 && response.status !== 302) {
     console.error(
       `[Bitly] Link ${domain}/${shortKey} not found. Falling back to API...`,
