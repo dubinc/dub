@@ -1,6 +1,9 @@
 "use client";
 
-import { intervals } from "@/lib/analytics/constants";
+import {
+  DUB_PARTNERS_ANALYTICS_INTERVAL,
+  intervals,
+} from "@/lib/analytics/constants";
 import { IntervalOptions } from "@/lib/analytics/types";
 import usePartnerLinks from "@/lib/swr/use-partner-links";
 import { usePartnerLinkModal } from "@/ui/modals/partner-link-modal";
@@ -36,7 +39,7 @@ export function ProgramLinksPageClient() {
   const {
     start,
     end,
-    interval = "30d",
+    interval = DUB_PARTNERS_ANALYTICS_INTERVAL,
   } = searchParamsObj as {
     start?: string;
     end?: string;
@@ -62,7 +65,7 @@ export function ProgramLinksPageClient() {
         <SimpleDateRangePicker
           className="w-fit"
           align="start"
-          defaultInterval="30d"
+          defaultInterval={DUB_PARTNERS_ANALYTICS_INTERVAL}
         />
         {["dub", "acme"].includes(programSlug) && (
           <Button

@@ -1,5 +1,6 @@
 "use client";
 
+import { DUB_PARTNERS_ANALYTICS_INTERVAL } from "@/lib/analytics/constants";
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { IntervalOptions } from "@/lib/analytics/types";
 import usePartnerEarningsCount from "@/lib/swr/use-partner-earnings-count";
@@ -46,7 +47,7 @@ export function EarningsCompositeChart() {
   const {
     start,
     end,
-    interval = "30d",
+    interval = DUB_PARTNERS_ANALYTICS_INTERVAL,
     groupBy = "linkId",
   } = searchParamsObj as {
     start?: string;

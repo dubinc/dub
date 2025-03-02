@@ -1,5 +1,6 @@
 import { generateFilters } from "@/lib/ai/generate-filters";
 import {
+  DUB_LINKS_ANALYTICS_INTERVAL,
   INTERVAL_DISPLAYS,
   TRIGGER_DISPLAY,
   VALID_ANALYTICS_FILTERS,
@@ -786,7 +787,9 @@ export default function Toggle({
             }
           : undefined
       }
-      presetId={start && end ? undefined : interval ?? "30d"}
+      presetId={
+        start && end ? undefined : interval ?? DUB_LINKS_ANALYTICS_INTERVAL
+      }
       onChange={(range, preset) => {
         if (preset) {
           queryParams({
