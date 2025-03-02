@@ -48,7 +48,7 @@ export async function getLinksForWorkspace({
             OR: [
               {
                 folderId: {
-                  in: folderIds.filter((id) => id !== ""),
+                  in: folderIds,
                 },
               },
               {

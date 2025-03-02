@@ -1,4 +1,4 @@
-import { cn, nFormatter, WORKSPACE_EXTREME_LINKS_LIMIT } from "@dub/utils";
+import { cn, nFormatter } from "@dub/utils";
 import { PaginationState } from "@tanstack/react-table";
 import { PropsWithChildren } from "react";
 
@@ -15,12 +15,14 @@ export function PaginationControls({
   unit = (p) => `item${p ? "s" : ""}`,
   className,
   children,
+  showTotalCount = true,
 }: PropsWithChildren<{
   pagination: PaginationState;
   setPagination: (pagination: PaginationState) => void;
   totalCount: number;
   unit?: string | ((plural: boolean) => string);
   className?: string;
+  showTotalCount?: boolean;
 }>) {
   return (
     <div
@@ -42,14 +44,14 @@ export function PaginationControls({
                   totalCount,
                 )}
               </span>{" "}
-              of{" "}
+              {showTotalCount && "of "}
             </>
           )}
-          <span className="font-medium">
-            {isFinite(totalCount)
-              ? nFormatter(totalCount, { full: true })
-              : nFormatter(WORKSPACE_EXTREME_LINKS_LIMIT) + "+"}
-          </span>{" "}
+          {showTotalCount && (
+            <span className="font-medium">
+              {nFormatter(totalCount, { full: true })}
+            </span>
+          )}{" "}
           {typeof unit === "function" ? unit(totalCount !== 1) : unit}
         </div>
         {children}

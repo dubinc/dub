@@ -1,3 +1,4 @@
+import useFolder from "@/lib/swr/use-folder";
 import { useFolderPermissions } from "@/lib/swr/use-folder-permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
@@ -17,6 +18,7 @@ import {
   usePagination,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { useSearchParams } from "next/navigation";
 import { memo, ReactNode, useContext, useMemo } from "react";
 import { useArchiveLinkModal } from "../modals/archive-link-modal";
 import { useDeleteLinkModal } from "../modals/delete-link-modal";
@@ -47,7 +49,14 @@ export const LinksToolbar = memo(
     links: ResponseLink[];
     linksCount: number;
   }) => {
-    const { flags, slug, plan, hasExtremeLinks } = useWorkspace();
+    const { flags, slug, plan } = useWorkspace();
+
+    const searchParams = useSearchParams();
+    const folderId = searchParams.get("folderId");
+    const { folder: currentFolder } = useFolder({
+      folderId,
+    });
+
     const { folders } = useFolderPermissions();
     const conversionsEnabled = !!plan && plan !== "free" && plan !== "pro";
 
@@ -224,8 +233,9 @@ export const LinksToolbar = memo(
                     setPagination={setPagination}
                     totalCount={linksCount}
                     unit={(plural) => `${plural ? "links" : "link"}`}
+                    showTotalCount={currentFolder?.type !== "mega"}
                   >
-                    {!hasExtremeLinks && (
+                    {currentFolder?.type !== "mega" && (
                       <>
                         {loading ? (
                           <LoadingSpinner className="size-3.5" />

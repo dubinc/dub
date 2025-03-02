@@ -21,6 +21,7 @@ export const getFolderIdsToFilter = async ({
     const folders = await getFolders({
       workspaceId: workspace.id,
       userId,
+      excludeBulkFolders: true,
     });
 
     folderIds = folders.map((folder) => folder.id).concat("");

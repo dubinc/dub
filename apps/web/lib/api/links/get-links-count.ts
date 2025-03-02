@@ -37,7 +37,7 @@ export async function getLinksCount({
               OR: [
                 {
                   folderId: {
-                    in: folderIds.filter((id) => id !== ""),
+                    in: folderIds,
                   },
                 },
                 {

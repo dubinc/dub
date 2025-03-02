@@ -1,10 +1,5 @@
 import { ExpandedWorkspaceProps } from "@/lib/types";
-import {
-  PRO_PLAN,
-  WORKSPACE_EXTREME_LINKS_LIMIT,
-  fetcher,
-  getNextPlan,
-} from "@dub/utils";
+import { PRO_PLAN, fetcher, getNextPlan } from "@dub/utils";
 import { useParams, useSearchParams } from "next/navigation";
 import useSWR, { SWRConfiguration } from "swr";
 
@@ -42,8 +37,6 @@ export default function useWorkspace({
     exceededAI: workspace && workspace.aiUsage >= workspace.aiLimit,
     exceededDomains:
       workspace?.domains && workspace.domains.length >= workspace.domainsLimit,
-    hasExtremeLinks:
-      workspace && workspace.totalLinks > WORKSPACE_EXTREME_LINKS_LIMIT,
     error,
     mutate,
     loading: slug && !workspace && !error ? true : false,

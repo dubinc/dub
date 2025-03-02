@@ -1,8 +1,8 @@
 "use client";
 
+import useFolder from "@/lib/swr/use-folder";
 import useLinks from "@/lib/swr/use-links";
 import useLinksCount from "@/lib/swr/use-links-count";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { ExpandedLinkProps, UserProps } from "@/lib/types";
 import { CardList, MaxWidthWrapper } from "@dub/ui";
 import { CursorRays, Hyperlink } from "@dub/ui/icons";
@@ -31,11 +31,15 @@ export default function LinksContainer({
   CreateLinkButton: () => JSX.Element;
 }) {
   const { viewMode, sortBy, showArchived } = useContext(LinksDisplayContext);
+  const searchParams = useSearchParams();
+  const folderId = searchParams.get("folderId");
+  const { folder: currentFolder } = useFolder({
+    folderId,
+  });
 
-  const { hasExtremeLinks } = useWorkspace();
   const { links, isValidating } = useLinks({ sortBy, showArchived });
   const { data: count } = useLinksCount<number>({
-    enabled: !hasExtremeLinks,
+    enabled: currentFolder && currentFolder?.type !== "mega",
     query: { showArchived },
   });
 
@@ -73,8 +77,11 @@ function LinksList({
   loading?: boolean;
   compact: boolean;
 }) {
-  const { hasExtremeLinks } = useWorkspace();
   const searchParams = useSearchParams();
+  const folderId = searchParams.get("folderId");
+  const { folder: currentFolder } = useFolder({
+    folderId,
+  });
 
   const [openMenuLinkId, setOpenMenuLinkId] = useState<string | null>(null);
 
@@ -142,7 +149,9 @@ function LinksList({
             loading={!!loading}
             links={links}
             linksCount={
-              hasExtremeLinks ? Infinity : count ?? links?.length ?? 0
+              currentFolder?.type === "mega"
+                ? Infinity
+                : count ?? links?.length ?? 0
             }
           />
         )}

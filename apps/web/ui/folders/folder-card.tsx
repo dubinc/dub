@@ -17,11 +17,7 @@ import { FolderIcon } from "./folder-icon";
 import { RequestFolderEditAccessButton } from "./request-edit-button";
 
 export const FolderCard = ({ folder }: { folder: Folder }) => {
-  const {
-    id: workspaceId,
-    slug: workspaceSlug,
-    hasExtremeLinks,
-  } = useWorkspace();
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
   const { isLoading: isPermissionsLoading } = useFolderPermissions();
   const canCreateLinks = useCheckFolderPermission(
@@ -35,7 +31,7 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
     <div
       className={cn(
         "hover:drop-shadow-card-hover relative flex flex-col justify-between rounded-xl border border-neutral-200 bg-white px-5 py-4 transition-all duration-200 sm:h-36",
-        hasExtremeLinks && "sm:h-32",
+        folder.type === "mega" && "sm:h-32",
       )}
     >
       <Link
@@ -69,7 +65,7 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
           )}
         </span>
 
-        {!hasExtremeLinks && <LinksCount folderId={folder.id} />}
+        {folder.type !== "mega" && <LinksCount folderId={folder.id} />}
       </div>
     </div>
   );

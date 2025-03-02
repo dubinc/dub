@@ -3,19 +3,16 @@ import useLinksCount from "@/lib/swr/use-links-count";
 import useTags from "@/lib/swr/use-tags";
 import useTagsCount from "@/lib/swr/use-tags-count";
 import useUsers from "@/lib/swr/use-users";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { TagProps } from "@/lib/types";
 import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
 import { Avatar, BlurImage, Globe, Tag, User, useRouterStuff } from "@dub/ui";
-import { GOOGLE_FAVICON_URL, nFormatter } from "@dub/utils";
+import { GOOGLE_FAVICON_URL } from "@dub/utils";
 import { useContext, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 import { LinksDisplayContext } from "./links-display-provider";
 import TagBadge from "./tag-badge";
 
 export function useLinkFilters() {
-  const { hasExtremeLinks } = useWorkspace();
-
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
@@ -50,7 +47,7 @@ export function useLinkFilters() {
             icon: <TagBadge color={color} withIcon className="sm:p-1" />,
             label: name,
             data: { color },
-            right: !hasExtremeLinks ? count : undefined,
+            right: count,
             hideDuringSearch,
           })) ?? null,
       },
@@ -70,9 +67,7 @@ export function useLinkFilters() {
         options: domains.map(({ slug, count }) => ({
           value: slug,
           label: slug,
-          right: !hasExtremeLinks
-            ? nFormatter(count, { full: true })
-            : undefined,
+          right: count,
         })),
       },
       {
@@ -94,11 +89,11 @@ export function useLinkFilters() {
                 className="h-4 w-4"
               />
             ),
-            right: !hasExtremeLinks ? count : undefined,
+            right: count,
           })) ?? null,
       },
     ];
-  }, [domains, tags, users, hasExtremeLinks]);
+  }, [domains, tags, users]);
 
   const selectedTagIds = useMemo(
     () => searchParamsObj["tagIds"]?.split(",")?.filter(Boolean) ?? [],
@@ -168,7 +163,6 @@ export function useLinkFilters() {
 }
 
 function useTagFilterOptions(search: string) {
-  const { hasExtremeLinks } = useWorkspace();
   const { searchParamsObj } = useRouterStuff();
 
   const tagIds = useMemo(
@@ -193,7 +187,7 @@ function useTagFilterOptions(search: string) {
       tagId: string;
       _count: number;
     }[]
-  >({ enabled: !hasExtremeLinks, query: { groupBy: "tagId", showArchived } });
+  >({ query: { groupBy: "tagId", showArchived } });
 
   const tagsResult = useMemo(() => {
     return loadingTags ||
@@ -227,7 +221,6 @@ function useTagFilterOptions(search: string) {
 }
 
 function useDomainFilterOptions() {
-  const { hasExtremeLinks } = useWorkspace();
   const { showArchived } = useContext(LinksDisplayContext);
 
   const { data: domainsCount } = useLinksCount<
@@ -236,7 +229,6 @@ function useDomainFilterOptions() {
       _count: number;
     }[]
   >({
-    enabled: !hasExtremeLinks,
     query: {
       groupBy: "domain",
       showArchived,
@@ -246,10 +238,7 @@ function useDomainFilterOptions() {
   const { allActiveDomains } = useDomains();
 
   return useMemo(() => {
-    if (hasExtremeLinks)
-      return allActiveDomains && allActiveDomains.length > 0
-        ? allActiveDomains.map(({ slug }) => ({ slug, count: 0 }))
-        : [];
+    if (!domainsCount || domainsCount.length === 0) return [];
 
     if (!domainsCount || domainsCount.length === 0) return [];
 
@@ -259,11 +248,10 @@ function useDomainFilterOptions() {
         count: _count,
       }))
       .sort((a, b) => b.count - a.count);
-  }, [hasExtremeLinks, allActiveDomains, domainsCount]);
+  }, [allActiveDomains, domainsCount]);
 }
 
 function useUserFilterOptions() {
-  const { hasExtremeLinks } = useWorkspace();
   const { users } = useUsers();
   const { showArchived } = useContext(LinksDisplayContext);
 
@@ -273,7 +261,6 @@ function useUserFilterOptions() {
       _count: number;
     }[]
   >({
-    enabled: !hasExtremeLinks,
     query: {
       groupBy: "userId",
       showArchived,

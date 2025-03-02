@@ -13,7 +13,8 @@ import {
   getLinksQuerySchemaExtended,
   linkEventSchema,
 } from "@/lib/zod/schemas/links";
-import { LOCALHOST_IP, WORKSPACE_EXTREME_LINKS_LIMIT } from "@dub/utils";
+import { Folder } from "@dub/prisma/client";
+import { LOCALHOST_IP } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -27,8 +28,9 @@ export const GET = withWorkspace(
       await getDomainOrThrow({ workspace, domain });
     }
 
+    let selectedFolder: Pick<Folder, "id" | "type"> | null = null;
     if (folderId) {
-      await verifyFolderAccess({
+      selectedFolder = await verifyFolderAccess({
         workspace,
         userId: session.user.id,
         folderId,
@@ -40,7 +42,7 @@ export const GET = withWorkspace(
       - not filtering by folder
       - filtering by search, domain, or tags
     */
-    const folderIds =
+    let folderIds =
       !folderId && (search || domain || tagId || tagIds || tagNames)
         ? await getFolderIdsToFilter({
             workspace,
@@ -48,14 +50,18 @@ export const GET = withWorkspace(
           })
         : undefined;
 
+    if (Array.isArray(folderIds)) {
+      folderIds = folderIds?.filter((id) => id !== "");
+      if (folderIds.length === 0) {
+        folderIds = undefined;
+      }
+    }
+
     const response = await getLinksForWorkspace({
       ...params,
       workspaceId: workspace.id,
       folderIds,
-      searchMode:
-        workspace.totalLinks > WORKSPACE_EXTREME_LINKS_LIMIT
-          ? "exact"
-          : "fuzzy",
+      searchMode: selectedFolder?.type === "mega" ? "exact" : "fuzzy",
     });
 
     return NextResponse.json(response, {

@@ -46,7 +46,7 @@ function OnboardingButtonInner({
       {
         display: "Create a new Dub link",
         cta: `/${slug}`,
-        checked: totalLinks ? totalLinks > 0 : true,
+        checked: totalLinks === 0 ? false : true,
       },
       {
         display: "Set up your custom domain",

@@ -1,5 +1,6 @@
 "use client";
 
+import useFolder from "@/lib/swr/use-folder";
 import {
   useCheckFolderPermission,
   useFolderPermissions,
@@ -76,6 +77,9 @@ function WorkspaceLinks() {
   } = useLinkFilters();
 
   const folderId = searchParams.get("folderId");
+  const { folder: currentFolder } = useFolder({
+    folderId,
+  });
 
   const { isLoading } = useFolderPermissions();
   const canCreateLinks = useCheckFolderPermission(
@@ -91,61 +95,63 @@ function WorkspaceLinks() {
         <MaxWidthWrapper className="flex flex-col gap-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2 lg:flex-nowrap">
             <div className="flex w-full grow gap-2 md:w-auto">
-              <div className="grow basis-0 md:grow-0">
-                <Filter.Select
-                  filters={filters}
-                  activeFilters={activeFilters}
-                  onSelect={onSelect}
-                  onRemove={onRemove}
-                  onSearchChange={setSearch}
-                  onSelectedFilterChange={setSelectedFilter}
-                  className="w-full"
-                  emptyState={{
-                    tagIds: (
-                      <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">
-                        <div className="flex items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
-                          <Tag className="size-6 text-neutral-700" />
+              {currentFolder?.type !== "mega" && (
+                <div className="grow basis-0 md:grow-0">
+                  <Filter.Select
+                    filters={filters}
+                    activeFilters={activeFilters}
+                    onSelect={onSelect}
+                    onRemove={onRemove}
+                    onSearchChange={setSearch}
+                    onSelectedFilterChange={setSelectedFilter}
+                    className="w-full"
+                    emptyState={{
+                      tagIds: (
+                        <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">
+                          <div className="flex items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+                            <Tag className="size-6 text-neutral-700" />
+                          </div>
+                          <p className="mt-2 font-medium text-neutral-950">
+                            No tags found
+                          </p>
+                          <p className="mx-auto mt-1 w-full max-w-[180px] text-neutral-700">
+                            Add tags to organize your links
+                          </p>
+                          <div>
+                            <Button
+                              className="mt-1 h-8"
+                              onClick={() => setShowAddEditTagModal(true)}
+                              text="Add tag"
+                            />
+                          </div>
                         </div>
-                        <p className="mt-2 font-medium text-neutral-950">
-                          No tags found
-                        </p>
-                        <p className="mx-auto mt-1 w-full max-w-[180px] text-neutral-700">
-                          Add tags to organize your links
-                        </p>
-                        <div>
-                          <Button
-                            className="mt-1 h-8"
-                            onClick={() => setShowAddEditTagModal(true)}
-                            text="Add tag"
-                          />
+                      ),
+                      domain: (
+                        <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">
+                          <div className="flex items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+                            <Globe className="size-6 text-neutral-700" />
+                          </div>
+                          <p className="mt-2 font-medium text-neutral-950">
+                            No domains found
+                          </p>
+                          <p className="mx-auto mt-1 w-full max-w-[180px] text-neutral-700">
+                            Add a custom domain to match your brand
+                          </p>
+                          <div>
+                            <Button
+                              className="mt-1 h-8"
+                              onClick={() =>
+                                router.push(`/${slug}/settings/domains`)
+                              }
+                              text="Add domain"
+                            />
+                          </div>
                         </div>
-                      </div>
-                    ),
-                    domain: (
-                      <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">
-                        <div className="flex items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
-                          <Globe className="size-6 text-neutral-700" />
-                        </div>
-                        <p className="mt-2 font-medium text-neutral-950">
-                          No domains found
-                        </p>
-                        <p className="mx-auto mt-1 w-full max-w-[180px] text-neutral-700">
-                          Add a custom domain to match your brand
-                        </p>
-                        <div>
-                          <Button
-                            className="mt-1 h-8"
-                            onClick={() =>
-                              router.push(`/${slug}/settings/domains`)
-                            }
-                            text="Add domain"
-                          />
-                        </div>
-                      </div>
-                    ),
-                  }}
-                />
-              </div>
+                      ),
+                    }}
+                  />
+                </div>
+              )}
               <div className="grow basis-0 md:grow-0">
                 <LinkDisplay />
               </div>
