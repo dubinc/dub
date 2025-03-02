@@ -26,7 +26,7 @@ export function PageContent({
   const hasDescription = description !== undefined;
 
   return (
-    <div className="bg-neutral-100 md:bg-white">
+    <div className="bg-neutral100 md:bg-bgMain">
       <MaxWidthWrapper
         className={cn(
           "mt-3",
@@ -43,12 +43,12 @@ export function PageContent({
                     {titleBackButtonLink && (
                       <Link
                         href={titleBackButtonLink}
-                        className="rounded-lg p-1.5 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
+                        className="text-neutral500 hover:bg-neutral100 hover:text-neutral900 rounded-lg p-1.5 transition-colors"
                       >
                         <ChevronLeft className="size-5" />
                       </Link>
                     )}
-                    <h1 className="text-xl font-semibold leading-7 text-neutral-900 md:text-2xl">
+                    <h1 className="text-neutral900 text-xl font-semibold leading-7 md:text-2xl">
                       {title}
                     </h1>
                   </div>
@@ -71,10 +71,10 @@ export function PageContent({
           </div>
         </div>
       </MaxWidthWrapper>
-      <div className="bg-white pt-2.5 max-md:mt-3 max-md:rounded-t-[16px]">
+      <div className="bg-bgMain pt-2.5 max-md:mt-3 max-md:rounded-t-[16px]">
         {hasDescription && (
           <MaxWidthWrapper className="">
-            <p className="mb-3 mt-1 text-base text-neutral-500 md:hidden">
+            <p className="text-neutral500 mb-3 mt-1 text-base md:hidden">
               {description}
             </p>
           </MaxWidthWrapper>

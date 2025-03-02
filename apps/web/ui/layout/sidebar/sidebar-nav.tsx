@@ -60,7 +60,7 @@ export function SidebarNav<T extends Record<any, any>>({
 }) {
   return (
     <ClientOnly className="scrollbar-hide relative flex h-full w-full flex-col overflow-y-auto overflow-x-hidden">
-      <nav className="relative flex grow flex-col p-3 text-neutral-500">
+      <nav className="text-neutral500 relative flex grow flex-col p-3">
         <div className="relative flex items-start justify-between gap-1 pb-3">
           {Object.entries(areas).map(([area, areaConfig]) => {
             const { title, backHref } = areaConfig(data);
@@ -80,8 +80,8 @@ export function SidebarNav<T extends Record<any, any>>({
                 {...{ inert: area !== currentArea ? "" : undefined }}
               >
                 {title && backHref ? (
-                  <div className="py group -my-1 -ml-1 flex items-center gap-2 py-2 pr-1 text-sm font-medium text-neutral-900">
-                    <ChevronLeft className="size-4 text-neutral-500 transition-transform duration-100 group-hover:-translate-x-0.5" />
+                  <div className="py text-neutral100 group -my-1 -ml-1 flex items-center gap-2 py-2 pr-1 text-sm font-medium">
+                    <ChevronLeft className="text-neutral500 size-4 transition-transform duration-100 group-hover:-translate-x-0.5" />
                     {title}
                   </div>
                 ) : (
@@ -113,7 +113,7 @@ export function SidebarNav<T extends Record<any, any>>({
                   {content.map(({ name, items }, idx) => (
                     <div key={idx} className="flex flex-col gap-0.5">
                       {name && (
-                        <div className="mb-2 pl-1 text-sm text-neutral-500">
+                        <div className="text-neutral500 mb-2 pl-1 text-sm">
                           {name}
                         </div>
                       )}
@@ -176,18 +176,18 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
         onPointerEnter={() => setHovered(true)}
         onPointerLeave={() => setHovered(false)}
         className={cn(
-          "group flex items-center gap-2.5 rounded-md p-2 text-sm leading-none text-neutral-600 transition-[background-color,color,font-weight] duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80",
+          "text-neutral600 hover:bg-neutral200_50 active:bg-neutral200_80 group flex items-center gap-2.5 rounded-md p-2 text-sm leading-none transition-[background-color,color,font-weight] duration-75",
           "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
           isActive &&
             !items &&
-            "bg-blue-100/50 font-medium text-blue-600 hover:bg-blue-100/80 active:bg-blue-100",
+            "bg-blue100_50 text-blue600 active:bg-blue600 hover:bg-blue900_20 font-medium",
         )}
       >
         {Icon && (
           <Icon
             className={cn(
-              "size-4 text-neutral-500 transition-colors duration-75",
-              !items && "group-data-[active=true]:text-blue-600",
+              "text-neutral500 size-4 transition-colors duration-75",
+              !items && "group-data-[active=true]:text-blue400",
             )}
             data-hovered={hovered}
           />
@@ -196,7 +196,7 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
         {items && (
           <div className="flex grow justify-end">
             {items ? (
-              <ChevronDown className="size-3.5 text-neutral-500 transition-transform duration-75 group-data-[active=true]:rotate-180" />
+              <ChevronDown className="text-neutral500 size-3.5 transition-transform duration-75 group-data-[active=true]:rotate-180" />
             ) : null}
           </div>
         )}
@@ -215,7 +215,7 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
           >
             <div className="pl-px pt-1">
               <div className="pl-3.5">
-                <div className="flex flex-col gap-0.5 border-l border-neutral-200 pl-2">
+                <div className="border-neutral200 flex flex-col gap-0.5 border-l pl-2">
                   {items.map((item) => (
                     <NavItem key={item.name} item={item} />
                   ))}

@@ -100,13 +100,13 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
       <LinkIcon link={link} />
       <div className="h-[24px] min-w-0 overflow-hidden transition-[height] group-data-[variant=loose]/card-list:h-[46px]">
         <div className="flex items-center gap-2">
-          <div className="min-w-0 shrink grow-0 text-neutral-950">
+          <div className="text-neutral900 min-w-0 shrink grow-0">
             <div className="flex items-center gap-2">
               {displayProperties.includes("title") && link.title ? (
                 <span
                   className={cn(
-                    "min-w-0 truncate font-semibold leading-6 text-neutral-800",
-                    link.archived && "text-neutral-600",
+                    "text-neutral800 min-w-0 truncate font-semibold leading-6",
+                    link.archived && "text-neutral600",
                   )}
                 >
                   {link.title}
@@ -119,7 +119,7 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
                     rel="noopener noreferrer"
                     title={linkConstructor({ domain, key, pretty: true })}
                     className={cn(
-                      "font-semibold leading-6 text-neutral-800 transition-colors hover:text-black",
+                      "text-neutral800 hover:text-bgSecondary font-semibold leading-6 transition-colors",
                       link.archived && "text-neutral-600",
                     )}
                   >

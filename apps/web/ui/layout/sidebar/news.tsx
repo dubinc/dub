@@ -89,9 +89,9 @@ export function News({ articles }: { articles: NewsArticle[] }) {
             className="animate-slide-up-fade absolute inset-0 flex size-full flex-col items-center justify-center gap-3 [animation-duration:1s]"
             style={{ "--offset": "10px" } as CSSProperties}
           >
-            <div className="animate-fade-in absolute inset-0 rounded-lg border border-neutral-300 [animation-delay:2.3s] [animation-direction:reverse] [animation-duration:0.2s]" />
-            <AnimatedLogo className="w-1/3 text-neutral-500" />
-            <span className="animate-fade-in text-xs font-medium text-neutral-500 [animation-delay:2.3s] [animation-direction:reverse] [animation-duration:0.2s]">
+            <div className="animate-fade-in border-neutral300 absolute inset-0 rounded-lg border [animation-delay:2.3s] [animation-direction:reverse] [animation-duration:0.2s]" />
+            <AnimatedLogo className="text-neutral500 w-1/3" />
+            <span className="animate-fade-in text-neutral500 text-xs font-medium [animation-delay:2.3s] [animation-direction:reverse] [animation-duration:0.2s]">
               You're all caught up!
             </span>
           </div>
@@ -223,7 +223,7 @@ function NewsCard({
     <div
       ref={ref}
       className={cn(
-        "relative select-none gap-2 rounded-lg border border-neutral-200 bg-white p-3 text-[0.8125rem]",
+        "border-neutral200 bg-bgMain relative select-none gap-2 rounded-lg border p-3 text-[0.8125rem]",
         "translate-x-[calc(var(--dx)*1px)] rotate-[calc(var(--dx)*0.05deg)] opacity-[calc(1-max(var(--dx),-1*var(--dx))/var(--w)/2)]",
         "transition-shadow data-[dragging=true]:shadow-[0_4px_12px_0_#0000000D]",
       )}
@@ -233,14 +233,14 @@ function NewsCard({
     >
       <div className={cn(hideContent && "invisible")}>
         <div className="flex flex-col gap-1">
-          <span className="line-clamp-1 font-medium text-neutral-900">
+          <span className="text-neutral900 line-clamp-1 font-medium">
             {title}
           </span>
-          <p className="line-clamp-2 h-10 leading-5 text-neutral-500">
+          <p className="text-neutral500 line-clamp-2 h-10 leading-5">
             {description}
           </p>
         </div>
-        <div className="relative mt-3 aspect-[16/9] w-full shrink-0 overflow-hidden rounded border border-neutral-200 bg-neutral-100">
+        <div className="border-neutral200 bg-neutral100 relative mt-3 aspect-[16/9] w-full shrink-0 overflow-hidden rounded border">
           {image && (
             <Image
               src={image}
@@ -262,14 +262,14 @@ function NewsCard({
             <Link
               href={href || "https://dub.co"}
               target="_blank"
-              className="font-medium text-neutral-700 transition-colors duration-75 hover:text-neutral-900"
+              className="text-neutral700 hover:text-neutral900 font-medium transition-colors duration-75"
             >
               Read more
             </Link>
             <button
               type="button"
               onClick={dismiss}
-              className="text-neutral-600 transition-colors duration-75 hover:text-neutral-900"
+              className="text-neutral600 hover:text-neutral900 transition-colors duration-75"
             >
               Dismiss
             </button>

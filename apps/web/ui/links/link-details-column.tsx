@@ -202,9 +202,9 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
   return isMobile ? (
     <Link
       href={`/${slug}/analytics?domain=${domain}&key=${key}&interval=${plan === "free" ? "30d" : plan === "pro" ? "1y" : "all"}`}
-      className="flex items-center gap-1 rounded-md border border-neutral-200 bg-neutral-50 px-2 py-0.5 text-sm text-neutral-800"
+      className="border-neutral200 bg-neutral50 text-neutral800 flex items-center gap-1 rounded-md border px-2 py-0.5 text-sm"
     >
-      <CursorRays className="h-4 w-4 text-neutral-600" />
+      <CursorRays className="text-neutral600 h-4 w-4" />
       {nFormatter(link.clicks)}
     </Link>
   ) : (
@@ -214,10 +214,10 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
         key={modalShowCount}
         side="top"
         content={
-          <div className="flex flex-col gap-2.5 whitespace-nowrap p-3 text-neutral-600">
+          <div className="text-neutral600 bg-bgMain flex flex-col gap-2.5 whitespace-nowrap p-3">
             {stats.map(({ id: tab, value }) => (
               <div key={tab} className="text-sm leading-none">
-                <span className="font-medium text-neutral-950">
+                <span className="text-neutral950 font-medium">
                   {tab === "sales"
                     ? currencyFormatter(value / 100)
                     : nFormatter(value, { full: value < INFINITY_NUMBER })}
@@ -226,7 +226,7 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
                 {pluralize(tab.slice(0, -1), value)}
               </div>
             ))}
-            <p className="text-xs leading-none text-neutral-400">
+            <p className="text-neutral400 text-xs leading-none">
               {link.lastClicked
                 ? `Last clicked ${timeAgo(link.lastClicked, {
                     withAgo: true,
@@ -245,11 +245,11 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
                 disabled={!canManageLink}
               />
 
-              {link.dashboardId && (
+              {true && (
                 <CopyButton
                   value={`${APP_DOMAIN}/share/${link.dashboardId}`}
                   variant="neutral"
-                  className="h-7 items-center justify-center rounded-md border border-neutral-300 bg-white p-1.5 hover:bg-neutral-50 active:bg-neutral-100"
+                  className="border-neutral300 hover:bg-neutral50 bg-bgMain active:bg-neutral100 h-7 items-center justify-center rounded-md border p-1.5"
                 />
               )}
             </div>
@@ -259,8 +259,8 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
         <Link
           href={`/${slug}/analytics?domain=${domain}&key=${key}&interval=${plan === "free" ? "30d" : plan === "pro" ? "1y" : "all"}`}
           className={cn(
-            "overflow-hidden rounded-md border border-neutral-200 bg-neutral-50 p-0.5 text-sm text-neutral-600 transition-colors",
-            variant === "loose" ? "hover:bg-neutral-100" : "hover:bg-white",
+            "border-neutral200 bg-neutral50 text-neutral600 overflow-hidden rounded-md border p-0.5 text-sm transition-colors",
+            variant === "loose" ? "hover:bg-neutral100" : "hover:bg-bgMain",
           )}
         >
           <div className="hidden items-center gap-0.5 sm:flex">
@@ -287,8 +287,8 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
               ),
             )}
             {link.dashboardId && (
-              <div className="border-l border-neutral-200 px-1.5">
-                <ReferredVia className="h-4 w-4 shrink-0 text-neutral-600" />
+              <div className="border-neutral200 border-l px-1.5">
+                <ReferredVia className="text-neutral600 h-4 w-4 shrink-0" />
               </div>
             )}
           </div>

@@ -611,6 +611,7 @@ export function CreateLinkButton({
           />
         ) : undefined
       }
+      className="bg-bgSecondary text-bgMain"
       onClick={() => setShowLinkBuilder(true)}
       {...buttonProps}
     />

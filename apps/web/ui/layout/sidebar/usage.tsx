@@ -82,11 +82,11 @@ function UsageInner() {
       <AnimatedSizeContainer height>
         <div className="border-t border-neutral-300/80 p-3">
           <Link
-            className="group flex items-center gap-0.5 text-sm font-normal text-neutral-500 transition-colors hover:text-neutral-700"
+            className="text-neutral500 hover:text-neutral700 group flex items-center gap-0.5 text-sm font-normal transition-colors"
             href={`/${slug}/settings/billing`}
           >
             Usage
-            <ChevronRight className="size-3 text-neutral-400 transition-[color,transform] group-hover:translate-x-0.5 group-hover:text-neutral-500" />
+            <ChevronRight className="group-hover:text-neutral500 size-3 text-neutral-400 transition-[color,transform] group-hover:translate-x-0.5" />
           </Link>
 
           <div className="mt-4 flex flex-col gap-4">
@@ -208,14 +208,12 @@ const UsageRow = forwardRef<HTMLDivElement, UsageRowProps>(
       <div ref={ref}>
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <Icon className="size-3.5 text-neutral-600" />
-            <span className="text-xs font-medium text-neutral-700">
-              {label}
-            </span>
+            <Icon className="text-neutral600 size-3.5" />
+            <span className="text-neutral700 text-xs font-medium">{label}</span>
           </div>
           {!loading ? (
             <div className="flex items-center">
-              <span className="text-xs font-medium text-neutral-600">
+              <span className="text-neutral600 text-xs font-medium">
                 <NumberFlow
                   value={label === "Sales" ? usage / 100 : usage}
                   format={
@@ -233,15 +231,15 @@ const UsageRow = forwardRef<HTMLDivElement, UsageRowProps>(
                   className={cn(
                     "relative transition-colors duration-150",
                     showNextPlan && nextPlanLimit
-                      ? "text-neutral-400"
-                      : "text-neutral-600",
+                      ? "text-neutral400"
+                      : "text-neutral600",
                   )}
                 >
                   {label === "Sales" ? "$" : ""}
                   {formatNumber(label === "Sales" ? limit / 100 : limit)}
                   {showNextPlan && nextPlanLimit && (
                     <motion.span
-                      className="absolute bottom-[45%] left-0 h-[1px] bg-neutral-400"
+                      className="bg-neutral400 absolute bottom-[45%] left-0 h-[1px]"
                       initial={{ width: "0%" }}
                       animate={{ width: "100%" }}
                       transition={{
@@ -264,7 +262,7 @@ const UsageRow = forwardRef<HTMLDivElement, UsageRowProps>(
                       ease: [0.4, 0, 0.2, 1], // Custom cubic-bezier for smooth movement
                     }}
                   >
-                    <motion.span className="ml-1 whitespace-nowrap text-xs font-medium text-blue-600">
+                    <motion.span className="text-blue600 ml-1 whitespace-nowrap text-xs font-medium">
                       {formatNumber(nextPlanLimit)}
                     </motion.span>
                   </motion.div>
@@ -279,7 +277,7 @@ const UsageRow = forwardRef<HTMLDivElement, UsageRowProps>(
           <div className="mt-1.5">
             <div
               className={cn(
-                "h-0.5 w-full overflow-hidden rounded-full bg-neutral-900/10 transition-colors",
+                "bg-neutral900/10 h-0.5 w-full overflow-hidden rounded-full transition-colors",
                 loading && "bg-neutral-900/5",
               )}
             >
@@ -290,7 +288,7 @@ const UsageRow = forwardRef<HTMLDivElement, UsageRowProps>(
                 >
                   <div
                     className={cn(
-                      "size-full rounded-full bg-gradient-to-r from-transparent to-blue-600",
+                      "to-blue600 size-full rounded-full bg-gradient-to-r from-transparent",
                       warning && "to-rose-500",
                     )}
                     style={{

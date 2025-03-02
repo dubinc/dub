@@ -11,8 +11,9 @@ import {
 } from "@dub/ui";
 import { Book2, Check2, Plus } from "@dub/ui/icons";
 import { cn, DICEBEAR_AVATAR_URL } from "@dub/utils";
-import { ChevronsUpDown, HelpCircle } from "lucide-react";
+import { ChevronsUpDown, HelpCircle, Moon, Sun } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { useTheme } from "next-themes";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import {
@@ -91,7 +92,7 @@ export function WorkspaceDropdown() {
         <button
           onClick={() => setOpenPopover(!openPopover)}
           className={cn(
-            "flex w-full items-center justify-between rounded-lg p-1.5 text-left text-sm transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80 data-[state=open]:bg-neutral-200/80",
+            "data-[state=open]:bg-neutral200_80 hover:bg-neutral200_50 active:bg-neutral200_80 flex w-full items-center justify-between rounded-lg p-1.5 text-left text-sm transition-all duration-75",
             "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
           )}
         >
@@ -105,7 +106,7 @@ export function WorkspaceDropdown() {
               className="h-7 w-7 flex-none shrink-0 overflow-hidden rounded-full"
             />
             <div className={cn(key ? "hidden" : "block", "min-w-0 sm:block")}>
-              <div className="truncate text-sm font-medium leading-5 text-neutral-900">
+              <div className="text-neutral900 truncate text-sm font-medium leading-5">
                 {selected.name}
               </div>
               {selected.slug !== "/" && (
@@ -121,7 +122,7 @@ export function WorkspaceDropdown() {
             </div>
           </div>
           <ChevronsUpDown
-            className="size-4 shrink-0 text-neutral-400"
+            className="text-neutral400 size-4 shrink-0"
             aria-hidden="true"
           />
         </button>
@@ -133,9 +134,9 @@ export function WorkspaceDropdown() {
 function WorkspaceDropdownPlaceholder() {
   return (
     <div className="flex w-full animate-pulse items-center gap-x-1.5 rounded-lg p-1.5">
-      <div className="size-7 animate-pulse rounded-full bg-neutral-200" />
-      <div className="mb-px mt-0.5 h-8 w-28 grow animate-pulse rounded-md bg-neutral-200" />
-      <ChevronsUpDown className="h-4 w-4 text-neutral-400" aria-hidden="true" />
+      <div className="bg-neutral200 size-7 animate-pulse rounded-full" />
+      <div className="bg-neutral200 mb-px mt-0.5 h-8 w-28 grow animate-pulse rounded-md" />
+      <ChevronsUpDown className="text-neutral400 h-4 w-4" aria-hidden="true" />
     </div>
   );
 }
@@ -179,6 +180,7 @@ function WorkspaceList({
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
+  const { theme, setTheme } = useTheme();
 
   const href = useCallback(
     (slug: string) => {
@@ -198,9 +200,9 @@ function WorkspaceList({
       <div
         ref={scrollRef}
         onScroll={updateScrollProgress}
-        className="relative max-h-80 w-full space-y-0.5 overflow-auto rounded-lg bg-white text-base sm:w-64 sm:text-sm"
+        className="bg-bgMain relative max-h-80 w-full space-y-0.5 overflow-auto rounded-lg text-base sm:w-64 sm:text-sm"
       >
-        <div className="flex flex-col gap-0.5 border-b border-neutral-200 p-2">
+        <div className="border-neutral200 flex flex-col gap-0.5 p-2">
           {LINKS.map(({ name, icon: Icon, href, target }) => (
             <Link
               key={name}
@@ -212,14 +214,44 @@ function WorkspaceList({
               )}
               onClick={() => setOpenPopover(false)}
             >
-              <Icon className="size-4 text-neutral-500" />
-              <span className="block truncate text-neutral-600">{name}</span>
+              <Icon className="text-neutral500 size-4" />
+              <span className="text-neutral600 block truncate">{name}</span>
             </Link>
           ))}
+
+          <div className="border-neutral200 flex flex-col gap-0.5 border-b">
+            <button
+              className={cn(
+                "hover:bg-neutral200_50 flex w-full items-center gap-x-4 rounded-md px-2.5 py-2 transition-all duration-75 active:bg-neutral-200/80",
+                "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
+              )}
+              onClick={() => {
+                theme === "dark" ? setTheme("light") : setTheme("dark");
+              }}
+            >
+              {theme === "dark" ? (
+                <>
+                  <Moon className="text-neutral500 size-4" />
+
+                  <span className="text-neutral600 block truncate">
+                    {"dark"}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <Sun className="text-neutral500 size-4" />
+                  <span className="text-neutral600 block truncate">
+                    {"light"}
+                  </span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
+
         <div className="p-2">
           <div className="flex items-center justify-between pb-1">
-            <p className="px-1 text-xs font-medium text-neutral-500">
+            <p className="text-neutral500 px-1 text-xs font-medium">
               Workspaces
             </p>
           </div>
@@ -231,9 +263,9 @@ function WorkspaceList({
                   key={slug}
                   className={cn(
                     "relative flex w-full items-center gap-x-2 rounded-md px-2 py-1.5 transition-all duration-75",
-                    "hover:bg-neutral-200/50 active:bg-neutral-200/80",
+                    "hover:bg-neutral200_50 active:bg-neutral200_80",
                     "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
-                    isActive && "bg-neutral-200/50",
+                    isActive && "bg-neutral200_50",
                   )}
                   href={href(slug)}
                   shallow={false}
@@ -247,7 +279,7 @@ function WorkspaceList({
                     className="size-7 shrink-0 overflow-hidden rounded-full"
                   />
                   <div>
-                    <span className="block truncate text-sm leading-5 text-neutral-900 sm:max-w-[140px]">
+                    <span className="text-neutral900 block truncate text-sm leading-5 sm:max-w-[140px]">
                       {name}
                     </span>
                     {slug !== "/" && (
@@ -262,7 +294,7 @@ function WorkspaceList({
                     )}
                   </div>
                   {selected.slug === slug ? (
-                    <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-black">
+                    <span className="text-bg absolute inset-y-0 right-0 flex items-center pr-3">
                       <Check2 className="size-4" aria-hidden="true" />
                     </span>
                   ) : null}
@@ -275,7 +307,7 @@ function WorkspaceList({
                 setOpenPopover(false);
                 setShowAddWorkspaceModal(true);
               }}
-              className="group flex w-full cursor-pointer items-center gap-x-2 rounded-md p-2 text-neutral-700 transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80"
+              className="text-neutral700 group flex w-full cursor-pointer items-center gap-x-2 rounded-md p-2 transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80"
             >
               <Plus className="mx-1.5 size-4 text-neutral-500" />
               <span className="block truncate">Create new workspace</span>
