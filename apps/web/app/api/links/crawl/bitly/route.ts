@@ -6,15 +6,15 @@ import { z } from "zod";
 export const POST = async (req: Request) => {
   const body = await req.json();
 
-  const { domain, shortKey, workspaceId } = z
+  const { domain, key, workspaceId } = z
     .object({
       domain: z.string(),
-      shortKey: z.string(),
+      key: z.string(),
       workspaceId: z.string(),
     })
     .parse(body);
 
-  const link = await crawlBitlyLink({ domain, shortKey, workspaceId });
+  const link = await crawlBitlyLink({ domain, key, workspaceId });
 
   return link
     ? NextResponse.json(link)
@@ -23,14 +23,14 @@ export const POST = async (req: Request) => {
 
 async function crawlBitlyLink({
   domain,
-  shortKey,
+  key,
   workspaceId,
 }: {
   domain: string;
-  shortKey: string;
+  key: string;
   workspaceId: string;
 }) {
-  const response = await fetch(`https://bit.ly/${shortKey}`, {
+  const response = await fetch(`https://bit.ly/${key}`, {
     method: "HEAD",
     redirect: "manual",
     headers: {
@@ -43,21 +43,21 @@ async function crawlBitlyLink({
   // If the link is not found, fallback to the API
   if (!response.ok && response.status !== 301 && response.status !== 302) {
     console.error(
-      `[Bitly] Link ${domain}/${shortKey} not found. Falling back to API...`,
+      `[Bitly] Link ${domain}/${key} not found. Falling back to API...`,
     );
-    return await fetchBitlyLink({ domain, shortKey, workspaceId });
+    return await fetchBitlyLink({ domain, key, workspaceId });
   }
 
   const destinationUrl = response.headers.get("location");
   if (!destinationUrl) {
-    console.error(`[Bitly] No redirect URL found for ${domain}/${shortKey}`);
+    console.error(`[Bitly] No redirect URL found for ${domain}/${key}`);
     return null;
   }
 
-  console.log(`[Bitly] Found link ${domain}/${shortKey} -> ${destinationUrl}`);
+  console.log(`[Bitly] Found link ${domain}/${key} -> ${destinationUrl}`);
 
   return {
-    id: `${domain}/${shortKey}`,
+    id: `${domain}/${key}`,
     long_url: destinationUrl,
     created_at: new Date().toISOString(),
   };
@@ -65,11 +65,11 @@ async function crawlBitlyLink({
 
 async function fetchBitlyLink({
   domain,
-  shortKey,
+  key,
   workspaceId,
 }: {
   domain: string;
-  shortKey: string;
+  key: string;
   workspaceId: string;
 }) {
   const apiKey = await redis.get<string>(`import:bitly:${workspaceId}`);
@@ -80,7 +80,7 @@ async function fetchBitlyLink({
   }
 
   const response = await fetch(
-    `https://api-ssl.bitly.com/v4/bitlinks/${domain}/${shortKey}`,
+    `https://api-ssl.bitly.com/v4/bitlinks/${domain}/${key}`,
     {
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -90,7 +90,7 @@ async function fetchBitlyLink({
 
   if (!response.ok) {
     console.log(
-      `[Bitly] Hit rate limit, returning 404 for ${domain}/${shortKey} for now...`,
+      `[Bitly] Hit rate limit, returning 404 for ${domain}/${key} for now...`,
     );
     return null;
   }
