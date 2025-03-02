@@ -1,4 +1,3 @@
-import useDomains from "@/lib/swr/use-domains";
 import useLinksCount from "@/lib/swr/use-links-count";
 import useTags from "@/lib/swr/use-tags";
 import useTagsCount from "@/lib/swr/use-tags-count";
@@ -235,11 +234,7 @@ function useDomainFilterOptions() {
     },
   });
 
-  const { allActiveDomains } = useDomains();
-
   return useMemo(() => {
-    if (!domainsCount || domainsCount.length === 0) return [];
-
     if (!domainsCount || domainsCount.length === 0) return [];
 
     return domainsCount
@@ -248,7 +243,7 @@ function useDomainFilterOptions() {
         count: _count,
       }))
       .sort((a, b) => b.count - a.count);
-  }, [allActiveDomains, domainsCount]);
+  }, [domainsCount]);
 }
 
 function useUserFilterOptions() {
