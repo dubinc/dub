@@ -3,6 +3,7 @@
 import { createId } from "@/lib/api/utils";
 import { recordLink } from "@/lib/tinybird";
 import {
+  PartnerProps,
   ProgramPartnerLinkProps,
   ProgramProps,
   WorkspaceProps,
@@ -15,24 +16,21 @@ import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
 import { includeTags } from "../links/include-tags";
 
-export const enrollPartner = async ({
+export const createAndEnrollPartner = async ({
   program,
-  tenantId,
   workspace,
   link,
   partner,
+  tenantId,
 }: {
   program: Pick<ProgramProps, "id" | "defaultFolderId">;
-  tenantId?: string;
   workspace: Pick<WorkspaceProps, "id" | "webhookEnabled">;
-  partner: {
-    name: string;
-    email?: string | null;
-    image?: string | null;
-    country?: string | null;
-    description?: string | null;
-  };
   link: ProgramPartnerLinkProps;
+  partner: Pick<
+    PartnerProps,
+    "email" | "name" | "image" | "country" | "description"
+  >;
+  tenantId?: string;
 }) => {
   if (partner.email) {
     const programEnrollment = await prisma.programEnrollment.findFirst({

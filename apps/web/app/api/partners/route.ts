@@ -1,6 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
-import { createPartner } from "@/lib/api/partners/create-partner";
-import { enrollPartnerInProgram } from "@/lib/api/partners/enroll-partner-in-program";
+import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
+import { createPartnerLink } from "@/lib/api/partners/create-partner-link";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -150,42 +150,46 @@ export const GET = withWorkspace(
 // POST /api/partners - add a partner for a program
 export const POST = withWorkspace(
   async ({ workspace, req, session }) => {
-    const data = createPartnerSchema.parse(await parseRequestBody(req));
-
-    const { programId } = data;
+    const {
+      programId,
+      name,
+      email,
+      username,
+      image = null,
+      country = null,
+      description = null,
+      tenantId,
+      linkProps,
+    } = createPartnerSchema.parse(await parseRequestBody(req));
 
     const program = await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
     });
 
-    const newPartner = await createPartner({
-      name: data.name,
-      email: data.email,
-      country: data.country,
-      image: data.image,
-      description: data.description,
-    });
-
-    const enrolledPartner = await enrollPartnerInProgram({
-      workspace: {
-        id: workspace.id,
-        plan: workspace.plan,
-        webhookEnabled: workspace.webhookEnabled,
-      },
-      program: {
-        id: programId,
-        domain: program.domain,
-        url: program.url,
-        defaultFolderId: program.defaultFolderId,
-      },
+    const partnerLink = await createPartnerLink({
+      workspace,
+      program,
       partner: {
-        id: newPartner.id,
-        tenantId: data.tenantId,
-        username: data.username,
-        linkProps: data.linkProps,
+        tenantId,
+        username,
+        linkProps,
       },
       userId: session.user.id,
+    });
+
+    const enrolledPartner = await createAndEnrollPartner({
+      program,
+      link: partnerLink,
+      workspace,
+      partner: {
+        name,
+        email,
+        image,
+        country,
+        description,
+      },
+      tenantId,
     });
 
     return NextResponse.json(enrolledPartner, {

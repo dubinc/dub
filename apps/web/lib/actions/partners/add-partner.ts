@@ -1,6 +1,6 @@
 "use server";
 
-import { enrollPartner } from "@/lib/api/partners/enroll-partner";
+import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
 import { invitePartner } from "@/lib/api/partners/invite-partner";
 import { z } from "zod";
 import { getLinkOrThrow } from "../../api/links/get-link-or-throw";
@@ -56,13 +56,16 @@ export const addPartnerAction = authActionClient
         throw new Error("Name is required to enroll a partner.");
       }
 
-      return await enrollPartner({
+      return await createAndEnrollPartner({
         program,
         link,
         workspace,
         partner: {
           name,
-          email,
+          email: email ?? null,
+          image: null,
+          country: null,
+          description: null,
         },
       });
     }

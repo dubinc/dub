@@ -19,13 +19,13 @@ export const createPartnerLink = async ({
   program,
   partner,
   userId,
+  partnerId,
 }: {
   workspace: Pick<WorkspaceProps, "id" | "plan" | "webhookEnabled">;
   program: Pick<ProgramProps, "defaultFolderId" | "domain" | "url" | "id">;
-  partner: Pick<CreatePartnerProps, "tenantId" | "linkProps" | "username"> & {
-    id: string;
-  };
+  partner: Pick<CreatePartnerProps, "tenantId" | "linkProps" | "username">;
   userId: string;
+  partnerId?: string;
 }) => {
   if (!program.domain || !program.url) {
     throw new DubApiError({
@@ -49,13 +49,13 @@ export const createPartnerLink = async ({
       payload: {
         ...partner.linkProps,
         tenantId: partner.tenantId,
-        partnerId: partner.id,
         domain: program.domain,
         key: currentKey,
         url: program.url,
         programId: program.id,
         folderId: program.defaultFolderId,
         trackConversion: true,
+        partnerId,
       },
     });
 
