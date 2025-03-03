@@ -21,7 +21,9 @@ export const createPartnerLink = async ({
 }: {
   workspace: Pick<WorkspaceProps, "id" | "plan" | "webhookEnabled">;
   program: Pick<ProgramProps, "defaultFolderId" | "domain" | "url" | "id">;
-  partner: Pick<CreatePartnerProps, "tenantId" | "linkProps" | "username">;
+  partner: Pick<CreatePartnerProps, "tenantId" | "linkProps" | "username"> & {
+    id: string;
+  };
   userId: string;
 }) => {
   if (!program.domain || !program.url) {
@@ -32,7 +34,7 @@ export const createPartnerLink = async ({
     });
   }
 
-  const { tenantId, linkProps, username } = partner;
+  const { username } = partner;
 
   let link: ProcessedLinkProps;
   let error: string | null;
@@ -44,12 +46,13 @@ export const createPartnerLink = async ({
       workspace,
       userId,
       payload: {
-        ...linkProps,
+        ...partner.linkProps,
+        tenantId: partner.tenantId,
+        partnerId: partner.id,
         domain: program.domain,
         key: currentKey,
         url: program.url,
         programId: program.id,
-        tenantId,
         folderId: program.defaultFolderId,
         trackConversion: true,
       },

@@ -1,12 +1,10 @@
 import { DubApiError } from "@/lib/api/errors";
 import { createPartnerLink } from "@/lib/api/partners/create-partner-link";
-import {
-  enrollPartner,
-  enrollPartnerInProgram,
-} from "@/lib/api/partners/enroll-partner";
-import { parseRequestBody } from "@/lib/api/utils";
+import { createId, parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { embedToken } from "@/lib/embed/embed-token";
+import { ProgramProps, WorkspaceProps } from "@/lib/types";
+import { createPartnerSchema } from "@/lib/zod/schemas/partners";
 import {
   createEmbedTokenSchema,
   EmbedTokenSchema,
@@ -14,6 +12,7 @@ import {
 import { prisma } from "@dub/prisma";
 import { ProgramEnrollment } from "@prisma/client";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 // POST /api/tokens/embed - create a new embed token for the given partner/tenant
 export const POST = withWorkspace(
@@ -78,20 +77,27 @@ export const POST = withWorkspace(
       if (!partner) {
         console.log("partner does not exist, we need to create them");
 
-        const partnerLink = await createPartnerLink({
-          workspace,
-          program,
-          partner: partnerProps,
-          userId: session.user.id,
-        });
+        const newPartner = await createPartner(partnerProps);
 
-        const enrolledPartner = await enrollPartner({
-          program,
-          tenantId: partnerProps.tenantId,
-          workspace,
-          link: partnerLink,
-          partner: partnerProps,
-          skipPartnerCheck: true,
+        const enrolledPartner = await enrollPartnerInProgram({
+          workspace: {
+            id: workspace.id,
+            plan: workspace.plan,
+            webhookEnabled: workspace.webhookEnabled,
+          },
+          program: {
+            id: programId,
+            defaultFolderId: program.defaultFolderId,
+            domain: program.domain,
+            url: program.url,
+          },
+          partner: {
+            id: newPartner.id,
+            tenantId: partnerProps.tenantId,
+            linkProps: partnerProps.linkProps,
+            username: partnerProps.username,
+          },
+          userId: session.user.id,
         });
 
         programEnrollment = {
@@ -106,8 +112,17 @@ export const POST = withWorkspace(
         );
 
         const enrolledPartner = await enrollPartnerInProgram({
-          workspace,
-          program,
+          workspace: {
+            id: workspace.id,
+            plan: workspace.plan,
+            webhookEnabled: workspace.webhookEnabled,
+          },
+          program: {
+            id: programId,
+            defaultFolderId: program.defaultFolderId,
+            domain: program.domain,
+            url: program.url,
+          },
           partner: {
             id: partner.id,
             tenantId: partnerProps.tenantId,
@@ -163,3 +178,120 @@ export const POST = withWorkspace(
     ],
   },
 );
+
+type CreatePartnerProps = z.infer<typeof createPartnerSchema>;
+
+// Create a new partner
+const createPartner = async ({
+  name,
+  email,
+  country,
+  image,
+  description,
+}: Pick<
+  CreatePartnerProps,
+  "name" | "email" | "country" | "image" | "description"
+>) => {
+  if (!email) {
+    throw new DubApiError({
+      message: "Must provide an email address.",
+      code: "bad_request",
+    });
+  }
+
+  const partner = await prisma.partner.upsert({
+    where: {
+      email,
+    },
+    create: {
+      id: createId({ prefix: "pn_" }),
+      email,
+      name,
+      country,
+      image,
+      description,
+    },
+    update: {},
+  });
+
+  console.log("createPartner", partner);
+
+  return partner;
+};
+
+// Enroll an existing partner in a program
+export const enrollPartnerInProgram = async ({
+  workspace,
+  program,
+  partner,
+  userId,
+}: {
+  workspace: Pick<WorkspaceProps, "id" | "webhookEnabled" | "plan">;
+  program: Pick<ProgramProps, "id" | "defaultFolderId" | "url" | "domain">;
+  partner: Pick<CreatePartnerProps, "tenantId" | "username" | "linkProps"> & {
+    id: string;
+  };
+  userId: string;
+}) => {
+  const { id: partnerId, tenantId } = partner;
+
+  const partnerEnrollment = await prisma.programEnrollment.findUnique({
+    where: tenantId
+      ? { tenantId_programId: { tenantId, programId: program.id } }
+      : { partnerId_programId: { partnerId, programId: program.id } },
+  });
+
+  if (partnerEnrollment) {
+    throw new DubApiError({
+      message: `Partner with ${tenantId ? "tenantId" : "ID"} ${
+        tenantId ?? partnerId
+      } already enrolled in this program.`,
+      code: "conflict",
+    });
+  }
+
+  const partnerLink = await createPartnerLink({
+    workspace,
+    program,
+    partner,
+    userId,
+  });
+
+  console.log("createPartnerLink", partnerLink);
+
+  const programEnrollment = await prisma.programEnrollment.create({
+    data: {
+      id: createId({ prefix: "pge_" }),
+      programId: program.id,
+      partnerId: partner.id,
+      tenantId: partner.tenantId,
+      status: "approved",
+    },
+    include: {
+      program: true,
+      partner: true,
+    },
+  });
+
+  // const enrolledPartner = EnrolledPartnerSchema.parse({
+  //   ...programEnrollment,
+  //   ...programEnrollment.program,
+  //   ...programEnrollment.partner,
+  //   id: programEnrollment.partnerId,
+  //   status: programEnrollment.status,
+  //   links: [partnerLink],
+  // });
+
+  const enrolledPartner = {
+    ...programEnrollment,
+    ...programEnrollment.program,
+    ...programEnrollment.partner,
+    id: programEnrollment.partnerId,
+    status: programEnrollment.status,
+    links: [partnerLink],
+  };
+
+  console.log("enrollPartnerInProgram", enrolledPartner);
+
+  return enrolledPartner;
+};
