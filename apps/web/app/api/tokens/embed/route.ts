@@ -98,37 +98,7 @@ export const POST = withWorkspace(
         programEnrollment = {
           partnerId: enrolledPartner.id,
         };
-      }
-
-      // else if (partner.programs.length === 0) {
-      //   const partnerLink = await createPartnerLink({
-      //     workspace,
-      //     program,
-      //     partner: partnerProps,
-      //     userId: session.user.id,
-      //   });
-
-      //   const enrolledPartner = await createAndEnrollPartner({
-      //     program,
-      //     link: partnerLink,
-      //     workspace,
-      //     partner: {
-      //       name: partnerProps.name,
-      //       email: partnerProps.email,
-      //       image: partnerProps.image ?? null,
-      //       country: partnerProps.country ?? null,
-      //       description: partnerProps.description,
-      //     },
-      //     tenantId: partnerProps.tenantId,
-      //   });
-
-      //   programEnrollment = {
-      //     partnerId: enrolledPartner.id,
-      //   };
-      // }
-
-      // partner exists and is enrolled in the program, we can use the existing partnerId
-      else {
+      } else {
         console.log(
           "partner exists and is enrolled in the program, we can use the existing partnerId",
         );

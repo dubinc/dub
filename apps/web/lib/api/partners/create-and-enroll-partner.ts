@@ -3,7 +3,7 @@
 import { createId } from "@/lib/api/utils";
 import { recordLink } from "@/lib/tinybird";
 import {
-  PartnerProps,
+  CreatePartnerProps,
   ProgramPartnerLinkProps,
   ProgramProps,
   WorkspaceProps,
@@ -28,7 +28,7 @@ export const createAndEnrollPartner = async ({
   workspace: Pick<WorkspaceProps, "id" | "webhookEnabled">;
   link: ProgramPartnerLinkProps;
   partner: Pick<
-    PartnerProps,
+    CreatePartnerProps,
     "email" | "name" | "image" | "country" | "description"
   >;
   tenantId?: string;

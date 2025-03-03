@@ -1,11 +1,23 @@
 import { withSession } from "@/lib/auth";
+import { createEmbedTokenSchema } from "@/lib/zod/schemas/token";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 export const GET = withSession(async ({ session }) => {
   // const { publicToken } = await dub.embedTokens.create({
   //   programId: "prog_d8pl69xXCv4AoHNT281pHQdo",
   //   partnerId: dubPartnerId,
   // });
+
+  const partnerProps: z.infer<typeof createEmbedTokenSchema> = {
+    programId: "prog_d8pl69xXCv4AoHNT281pHQdo",
+    partner: {
+      name: session.user.name,
+      email: session.user.email,
+      image: session.user.image || null,
+      tenantId: session.user.id,
+    },
+  };
 
   const { publicToken } = await fetch(
     "http://localhost:8888/api/tokens/embed",
@@ -15,15 +27,7 @@ export const GET = withSession(async ({ session }) => {
         "Content-Type": "application/json",
         Authorization: `Bearer ${process.env.DUB_API_KEY}`,
       },
-      body: JSON.stringify({
-        programId: "prog_d8pl69xXCv4AoHNT281pHQdo",
-        tenantId: session.user.id,
-        partner: {
-          name: session.user.name,
-          email: session.user.email,
-          image: session.user.image,
-        },
-      }),
+      body: JSON.stringify(partnerProps),
     },
   ).then((res) => {
     if (!res.ok) {
@@ -31,8 +35,6 @@ export const GET = withSession(async ({ session }) => {
     }
     return res.json();
   });
-
-  console.log({ publicToken });
 
   return NextResponse.json({ publicToken });
 });

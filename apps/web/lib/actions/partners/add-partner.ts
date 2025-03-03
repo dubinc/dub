@@ -62,10 +62,7 @@ export const addPartnerAction = authActionClient
         workspace,
         partner: {
           name,
-          email: email ?? null,
-          image: null,
-          country: null,
-          description: null,
+          email: email ?? "",
         },
       });
     }
