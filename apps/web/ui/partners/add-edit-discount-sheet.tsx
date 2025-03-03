@@ -196,9 +196,6 @@ function DiscountSheetContent({
       programId: program.id,
     };
 
-    // console.log("payload", payload);
-    // return;
-
     if (!discount) {
       await createDiscount(payload);
     } else {
