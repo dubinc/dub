@@ -99,10 +99,6 @@ export const POST = withWorkspace(
           partnerId: enrolledPartner.id,
         };
       } else {
-        console.log(
-          "partner exists and is enrolled in the program, we can use the existing partnerId",
-        );
-
         programEnrollment = {
           partnerId: partner.programs[0].partnerId,
         };
