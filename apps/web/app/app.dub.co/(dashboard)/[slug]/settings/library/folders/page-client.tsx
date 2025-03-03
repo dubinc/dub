@@ -2,7 +2,6 @@
 
 import useFolders from "@/lib/swr/use-folders";
 import useFoldersCount from "@/lib/swr/use-folders-count";
-import useLinksCount from "@/lib/swr/use-links-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Folder } from "@/lib/types";
 import { FOLDERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/folders";
@@ -16,6 +15,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 const allLinkFolder: Folder = {
   id: "unsorted",
   name: "Links",
+  type: "default",
   accessLevel: null,
   linkCount: 0,
   createdAt: new Date(),
@@ -35,12 +35,6 @@ export const FoldersPageClient = () => {
   });
   const { folders, loading, isValidating } = useFolders({
     includeParams: true,
-  });
-
-  const { data: allLinksCount } = useLinksCount({
-    query: {
-      showArchived: true,
-    },
   });
 
   const showAllLinkFolder =
@@ -79,11 +73,7 @@ export const FoldersPageClient = () => {
             ))
           ) : (
             <>
-              {showAllLinkFolder && (
-                <FolderCard
-                  folder={{ ...allLinkFolder, linkCount: allLinksCount }}
-                />
-              )}
+              {showAllLinkFolder && <FolderCard folder={allLinkFolder} />}
               {folders?.map((folder) => (
                 <FolderCard key={folder.id} folder={folder} />
               ))}

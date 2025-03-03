@@ -1,4 +1,5 @@
 import { useFolderPermissions } from "@/lib/swr/use-folder-permissions";
+import { useIsMegaFolder } from "@/lib/swr/use-is-mega-folder";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   AnimatedSizeContainer,
@@ -48,6 +49,9 @@ export const LinksToolbar = memo(
     linksCount: number;
   }) => {
     const { flags, slug, plan } = useWorkspace();
+
+    const { isMegaFolder } = useIsMegaFolder();
+
     const { folders } = useFolderPermissions();
     const conversionsEnabled = !!plan && plan !== "free" && plan !== "pro";
 
@@ -224,13 +228,18 @@ export const LinksToolbar = memo(
                     setPagination={setPagination}
                     totalCount={linksCount}
                     unit={(plural) => `${plural ? "links" : "link"}`}
+                    showTotalCount={!isMegaFolder}
                   >
-                    {loading ? (
-                      <LoadingSpinner className="size-3.5" />
-                    ) : (
-                      <div className="hidden sm:block">
-                        <ArchivedLinksHint />
-                      </div>
+                    {!isMegaFolder && (
+                      <>
+                        {loading ? (
+                          <LoadingSpinner className="size-3.5" />
+                        ) : (
+                          <div className="hidden sm:block">
+                            <ArchivedLinksHint />
+                          </div>
+                        )}
+                      </>
                     )}
                   </PaginationControls>
                   <div className="flex items-center gap-2 pt-3 sm:hidden">
