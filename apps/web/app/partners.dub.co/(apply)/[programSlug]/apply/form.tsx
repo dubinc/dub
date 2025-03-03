@@ -25,7 +25,10 @@ type FormData = {
 export function ProgramApplicationForm({
   program,
 }: {
-  program: Pick<Program, "id" | "slug" | "name">;
+  program: Pick<
+    Program,
+    "id" | "slug" | "name" | "termsUrl" | "ageVerification"
+  >;
 }) {
   const { isMobile } = useMediaQuery();
   const router = useRouter();
@@ -180,35 +183,49 @@ export function ProgramApplicationForm({
         />
       </label>
 
-      <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          id="ageVerification"
-          className={cn(
-            "h-4 w-4 rounded border-neutral-300 text-[var(--brand)] focus:ring-[var(--brand)]",
-            errors.ageVerification && "border-red-400 focus:ring-red-500",
-          )}
-          {...register("ageVerification", { required: true })}
-        />
-        <label htmlFor="ageVerification" className="text-sm text-neutral-800">
-          I am 21 years or older
-        </label>
-      </div>
+      {program.ageVerification && (
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="ageVerification"
+            className={cn(
+              "h-4 w-4 rounded border-neutral-300 text-[var(--brand)] focus:ring-[var(--brand)]",
+              errors.ageVerification && "border-red-400 focus:ring-red-500",
+            )}
+            {...register("ageVerification", {
+              required: true,
+            })}
+          />
+          <label htmlFor="ageVerification" className="text-sm text-neutral-800">
+            I'm {program.ageVerification} years or older
+          </label>
+        </div>
+      )}
 
-      <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          id="termsAgreement"
-          className={cn(
-            "h-4 w-4 rounded border-neutral-300 text-[var(--brand)] focus:ring-[var(--brand)]",
-            errors.termsAgreement && "border-red-400 focus:ring-red-500",
-          )}
-          {...register("termsAgreement", { required: true })}
-        />
-        <label htmlFor="termsAgreement" className="text-sm text-neutral-800">
-          I agree to the {program.name} affiliate participation agreement
-        </label>
-      </div>
+      {program.termsUrl && (
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="termsAgreement"
+            className={cn(
+              "h-4 w-4 rounded border-neutral-300 text-[var(--brand)] focus:ring-[var(--brand)]",
+              errors.termsAgreement && "border-red-400 focus:ring-red-500",
+            )}
+            {...register("termsAgreement", { required: true })}
+          />
+          <label htmlFor="termsAgreement" className="text-sm text-neutral-800">
+            I agree to the{" "}
+            <a
+              href={program.termsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[var(--brand)] underline hover:opacity-80"
+            >
+              {program.name} affiliate participation agreement
+            </a>
+          </label>
+        </div>
+      )}
 
       <Button
         text="Submit application"
