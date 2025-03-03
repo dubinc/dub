@@ -1,6 +1,6 @@
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { DiscountProps, RewardProps } from "@/lib/types";
-import { cn, pluralize } from "@dub/utils";
+import { cn } from "@dub/utils";
 
 export function ProgramRewardDescription({
   reward,
@@ -56,11 +56,24 @@ export function ProgramRewardDescription({
               type: discount.type,
             })}
           </strong>{" "}
-          off for{" "}
+          off{" "}
           <strong className={cn("font-semibold", periodClassName)}>
-            {discount.duration
-              ? `${discount.duration} ${pluralize(discount.interval || "cycle", discount.duration)}.`
-              : "their first purchase."}
+            {discount.maxDuration === null ? (
+              <strong className={cn("font-semibold", periodClassName)}>
+                {" "}
+                for their lifetime
+              </strong>
+            ) : discount.maxDuration && discount.maxDuration > 1 ? (
+              <>
+                and again{" "}
+                <strong className={cn("font-semibold", periodClassName)}>
+                  every month for {discount.maxDuration} months
+                </strong>
+              </>
+            ) : (
+              " for their first purchase"
+            )}
+            .
           </strong>
         </>
       ) : null}

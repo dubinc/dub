@@ -1,15 +1,16 @@
-import { CommissionInterval, CommissionType } from "@dub/prisma/client";
+import { CommissionType } from "@dub/prisma/client";
 import { z } from "zod";
+import { getPaginationQuerySchema } from "./misc";
 import { RECURRING_MAX_DURATIONS } from "./rewards";
 
 export const DiscountSchema = z.object({
   id: z.string(),
-  couponId: z.string().nullable(),
-  couponTestId: z.string().nullable(),
   amount: z.number(),
   type: z.nativeEnum(CommissionType),
-  duration: z.number().nullable(),
-  interval: z.nativeEnum(CommissionInterval).nullable(),
+  maxDuration: z.number().nullable(),
+  couponId: z.string().nullable(),
+  couponTestId: z.string().nullable(),
+  partnersCount: z.number().nullish(),
 });
 
 export const createDiscountSchema = z.object({
@@ -20,7 +21,6 @@ export const createDiscountSchema = z.object({
       message: `Max duration must be ${RECURRING_MAX_DURATIONS.join(", ")}`,
     })
     .nullish(),
-  isDefault: z.boolean().optional().default(false),
   partnerIds: z.array(z.string()).nullish(),
   workspaceId: z.string(),
   programId: z.string(),
@@ -31,3 +31,13 @@ export const updateDiscountSchema = createDiscountSchema.merge(
     discountId: z.string(),
   }),
 );
+
+export const discountPartnersQuerySchema = z
+  .object({
+    discountId: z.string(),
+  })
+  .merge(
+    getPaginationQuerySchema({
+      pageSize: 25,
+    }),
+  );

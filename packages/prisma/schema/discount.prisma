@@ -8,7 +8,7 @@ model Discount {
   couponId     String?
   couponTestId String?
 
-  workspaceId String
+  // workspaceId String
   programId   String
 
   createdAt DateTime @default(now())

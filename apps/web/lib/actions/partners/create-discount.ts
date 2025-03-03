@@ -10,15 +10,17 @@ export const createDiscountAction = authActionClient
   .schema(createDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { programId, partnerIds, amount, maxDuration, isDefault } =
-      parsedInput;
+    const { programId, partnerIds, amount, maxDuration } = parsedInput;
 
     const program = await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
     });
 
+    console.log("createDiscountAction", { partnerIds, amount, maxDuration });
+
     let programEnrollments: { id: string }[] = [];
+    let isDefault = true;
 
     if (partnerIds) {
       programEnrollments = await prisma.programEnrollment.findMany({
@@ -36,28 +38,53 @@ export const createDiscountAction = authActionClient
       if (programEnrollments.length !== partnerIds.length) {
         throw new Error("Invalid partner IDs provided.");
       }
+
+      isDefault = false;
     }
+
+    if (program.defaultDiscountId && isDefault) {
+      throw new Error("A program can have only one default discount.");
+    }
+
+    const discountId = createId({ prefix: "dis_" });
 
     const discount = await prisma.discount.create({
       data: {
-        id: createId({ prefix: "dis_" }),
-        workspaceId: workspace.id,
+        id: discountId,
         programId,
         amount,
         maxDuration,
-        ...(programEnrollments && {
-          partners: {
-            createMany: {
-              data: programEnrollments.map(({ id }) => ({
-                programEnrollmentId: id,
-              })),
-            },
-          },
-        }),
+        // ...(programEnrollments && {
+        //   partners: {
+        //     update: programEnrollments.map(({ id }) => ({
+        //       where: {
+        //         id,
+        //         programId,
+        //       },
+        //       data: {
+        //         discountId,
+        //       },
+        //     })),
+        //   },
+        // }),
       },
     });
 
-    if (isDefault && !program.defaultDiscountId) {
+    if (partnerIds) {
+      await prisma.programEnrollment.updateMany({
+        where: {
+          programId,
+          partnerId: {
+            in: partnerIds,
+          },
+        },
+        data: {
+          discountId: discount.id,
+        },
+      });
+    }
+
+    if (isDefault) {
       await prisma.program.update({
         where: {
           id: programId,

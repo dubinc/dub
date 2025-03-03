@@ -3,10 +3,11 @@
 import useDiscounts from "@/lib/swr/use-discounts";
 import useProgram from "@/lib/swr/use-program";
 import type { DiscountProps } from "@/lib/types";
-import { useRewardSheet } from "@/ui/partners/add-edit-reward-sheet";
+import { useDiscountSheet } from "@/ui/partners/add-edit-discount-sheet";
+import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { EventType } from "@dub/prisma/client";
 import { Badge, Button, MoneyBill } from "@dub/ui";
-import { Gift } from "lucide-react";
+import { Cookie } from "lucide-react";
 
 export function ProgramSettingsDiscountsPageClient() {
   return (
@@ -25,8 +26,9 @@ const DefaultDiscount = () => {
     program?.defaultDiscountId &&
     discounts?.find((d) => d.id === program.defaultDiscountId);
 
-  const { RewardSheet, setIsOpen } = useRewardSheet({
-    event: "sale",
+  const { DiscountSheet, setIsOpen } = useDiscountSheet({
+    ...(defaultDiscount && { discount: defaultDiscount }),
+    isDefault: true,
   });
 
   return (
@@ -67,7 +69,7 @@ const DefaultDiscount = () => {
               />
             </div>
 
-            {RewardSheet}
+            {DiscountSheet}
           </>
         )}
       </div>
@@ -78,6 +80,10 @@ const DefaultDiscount = () => {
 const AdditionalDiscounts = () => {
   const { program } = useProgram();
   const { discounts, loading } = useDiscounts();
+
+  const { DiscountSheet, setIsOpen } = useDiscountSheet({
+    isDefault: false,
+  });
 
   const additionalDiscounts = discounts?.filter(
     (discount) => discount.id !== program?.defaultDiscountId,
@@ -99,8 +105,10 @@ const AdditionalDiscounts = () => {
             text="Create discount"
             variant="primary"
             className="h-9 w-fit"
+            onClick={() => setIsOpen(true)}
           />
         </div>
+
         {loading ? (
           <div className="flex flex-col gap-4">
             <DiscountSkeleton />
@@ -119,17 +127,15 @@ const AdditionalDiscounts = () => {
           />
         )}
       </div>
+      {DiscountSheet}
     </div>
   );
 };
 
 const Discount = ({ discount }: { discount: DiscountProps }) => {
-  const { RewardSheet, setIsOpen } = useRewardSheet({
-    event: discount.event,
-    discount,
+  const { DiscountSheet, setIsOpen } = useDiscountSheet({
+    ...(discount && { discount }),
   });
-
-  const Icon = events[reward.event].icon;
 
   return (
     <>
@@ -138,16 +144,12 @@ const Discount = ({ discount }: { discount: DiscountProps }) => {
         onClick={() => setIsOpen(true)}
       >
         <div className="flex size-10 items-center justify-center rounded-full border border-neutral-200 bg-white">
-          <Icon className="size-4 text-neutral-600" />
+          <Cookie className="size-4 text-neutral-600" />
         </div>
         <div className="flex flex-1 items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-sm font-normal">
-              <DiscountDescription
-                discount={discount}
-                // hideIfZero={false}
-                // amountClassName="text-blue-600"
-              />
+              <ProgramRewardDescription discount={discount} />
             </span>
           </div>
           {discount.partnersCount && discount?.partnersCount > 0 ? (
@@ -157,7 +159,7 @@ const Discount = ({ discount }: { discount: DiscountProps }) => {
           )}
         </div>
       </div>
-      {RewardSheet}
+      {DiscountSheet}
     </>
   );
 };
@@ -212,20 +214,12 @@ const EmptyState = ({
   return (
     <div className="flex flex-col items-center justify-center gap-4 rounded-lg bg-neutral-50 py-12">
       <div className="flex items-center justify-center">
-        <Gift className="size-6 text-neutral-800" />
+        <Cookie className="size-6 text-neutral-800" />
       </div>
       <div className="flex flex-col items-center gap-1 px-4 text-center">
         <p className="text-base font-medium text-neutral-900">{title}</p>
         <p className="text-sm text-neutral-600">{description}</p>
       </div>
-    </div>
-  );
-};
-
-const DiscountDescription = ({ discount }: { discount: DiscountProps }) => {
-  return (
-    <div>
-      <p>{discount.amount}</p>
     </div>
   );
 };

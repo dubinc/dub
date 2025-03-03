@@ -21,7 +21,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     include: {
       _count: {
         select: {
-          partners: true,
+          programEnrollments: true,
         },
       },
     },
@@ -32,7 +32,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
 
   const discountsWithPartnersCount = discounts.map((discount) => ({
     ...discount,
-    partnersCount: discount._count.partners,
+    partnersCount: discount._count.programEnrollments,
   }));
 
   return NextResponse.json(
