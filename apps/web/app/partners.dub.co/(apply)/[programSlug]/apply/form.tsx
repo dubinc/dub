@@ -221,7 +221,7 @@ export function ProgramApplicationForm({
               rel="noopener noreferrer"
               className="text-[var(--brand)] underline hover:opacity-80"
             >
-              {program.name} affiliate participation agreement
+              {program.name} Partner Program Terms ↗
             </a>
           </label>
         </div>
