@@ -6,10 +6,10 @@ import {
   EMBED_PUBLIC_TOKEN_PREFIX,
 } from "./constants";
 
-type EmbedTokenProps = {
+interface EmbedTokenProps {
   programId: string;
   partnerId: string;
-};
+}
 
 class EmbedToken {
   async create(props: EmbedTokenProps) {
