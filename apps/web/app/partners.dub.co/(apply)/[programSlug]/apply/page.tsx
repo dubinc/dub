@@ -54,9 +54,7 @@ export default async function ApplicationPage({
 
         {/* Application form */}
         <div className="mt-10">
-          <ProgramApplicationForm
-            program={{ id: program.id, name: program.name, slug: program.slug }}
-          />
+          <ProgramApplicationForm program={program} />
         </div>
       </div>
     </div>
