@@ -107,9 +107,7 @@ export const POST = withWorkspace(
 
     if (!programEnrollment) {
       throw new DubApiError({
-        message: `Partner with ${partnerId ? "ID" : "tenantId"} ${
-          partnerId ?? tenantId
-        } is not enrolled in this program (${programId}).`,
+        message: "The partner is not enrolled in this program.",
         code: "not_found",
       });
     }
