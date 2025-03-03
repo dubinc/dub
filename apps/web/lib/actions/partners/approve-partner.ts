@@ -1,5 +1,9 @@
 "use server";
 
+import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
+import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
+import { sendEmail } from "@dub/email";
+import { PartnerApplicationApproved } from "@dub/email/templates/partner-application-approved";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { getLinkOrThrow } from "../../api/links/get-link-or-throw";
@@ -33,11 +37,11 @@ export const approvePartnerAction = authActionClient
       }),
     ]);
 
-    if (link.programId) {
+    if (link.partnerId) {
       throw new Error("Link is already associated with another partner.");
     }
 
-    const [programEnrollment, updatedLink] = await Promise.all([
+    const [programEnrollment, updatedLink, reward] = await Promise.all([
       prisma.programEnrollment.update({
         where: {
           partnerId_programId: {
@@ -71,6 +75,12 @@ export const approvePartnerAction = authActionClient
           },
         },
       }),
+
+      determinePartnerReward({
+        programId,
+        partnerId,
+        event: "sale",
+      }),
     ]);
 
     const partner = programEnrollment.partner;
@@ -78,7 +88,27 @@ export const approvePartnerAction = authActionClient
     waitUntil(
       Promise.allSettled([
         recordLink(updatedLink),
-        // TODO: [partners] Notify partner of approval?
+
+        sendEmail({
+          subject: `Your application to join ${program.name} partner program has been approved!`,
+          email: partner.email!,
+          react: PartnerApplicationApproved({
+            program: {
+              name: program.name,
+              logo: program.logo,
+              slug: program.slug,
+            },
+            partner: {
+              name: partner.name,
+              email: partner.email!,
+              payoutsEnabled: partner.payoutsEnabled,
+            },
+            rewardDescription: ProgramRewardDescription({
+              reward,
+            }),
+          }),
+        }),
+
         // TODO: send partner.created webhook
       ]),
     );
