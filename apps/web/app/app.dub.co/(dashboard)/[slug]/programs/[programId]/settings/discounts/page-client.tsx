@@ -49,7 +49,7 @@ const DefaultDiscount = () => {
         {loading ? (
           <DiscountSkeleton />
         ) : defaultDiscount ? (
-          <Discount discount={defaultDiscount} />
+          <Discount discount={defaultDiscount} isDefault={true} />
         ) : (
           <>
             <div className="flex items-center justify-between gap-4 rounded-lg bg-neutral-50 p-4">
@@ -117,7 +117,11 @@ const AdditionalDiscounts = () => {
         ) : additionalDiscounts && additionalDiscounts.length > 0 ? (
           <div className="flex flex-col gap-4">
             {additionalDiscounts.map((discount) => (
-              <Discount key={discount.id} discount={discount} />
+              <Discount
+                key={discount.id}
+                discount={discount}
+                isDefault={false}
+              />
             ))}
           </div>
         ) : (
@@ -132,9 +136,16 @@ const AdditionalDiscounts = () => {
   );
 };
 
-const Discount = ({ discount }: { discount: DiscountProps }) => {
+const Discount = ({
+  discount,
+  isDefault,
+}: {
+  discount: DiscountProps;
+  isDefault: boolean;
+}) => {
   const { DiscountSheet, setIsOpen } = useDiscountSheet({
     ...(discount && { discount }),
+    isDefault,
   });
 
   return (

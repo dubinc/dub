@@ -17,10 +17,8 @@ export const createDiscountAction = authActionClient
       programId,
     });
 
-    console.log("createDiscountAction", { partnerIds, amount, maxDuration });
-
-    let programEnrollments: { id: string }[] = [];
     let isDefault = true;
+    let programEnrollments: { id: string }[] = [];
 
     if (partnerIds) {
       programEnrollments = await prisma.programEnrollment.findMany({
@@ -46,27 +44,12 @@ export const createDiscountAction = authActionClient
       throw new Error("A program can have only one default discount.");
     }
 
-    const discountId = createId({ prefix: "dis_" });
-
     const discount = await prisma.discount.create({
       data: {
-        id: discountId,
+        id: createId({ prefix: "dis_" }),
         programId,
         amount,
         maxDuration,
-        // ...(programEnrollments && {
-        //   partners: {
-        //     update: programEnrollments.map(({ id }) => ({
-        //       where: {
-        //         id,
-        //         programId,
-        //       },
-        //       data: {
-        //         discountId,
-        //       },
-        //     })),
-        //   },
-        // }),
       },
     });
 

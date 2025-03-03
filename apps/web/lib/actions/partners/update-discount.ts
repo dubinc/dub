@@ -10,19 +10,20 @@ export const updateDiscountAction = authActionClient
   .schema(updateDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { programId, partnerIds, discountId, amount, maxDuration } =
+    const { programId, discountId, partnerIds, amount, maxDuration } =
       parsedInput;
 
-    await getProgramOrThrow({
+    const program = await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
     });
 
     await getDiscountOrThrow({
-      discountId,
       programId,
+      discountId,
     });
 
+    const isDefault = program.defaultDiscountId === discountId;
     let programEnrollments: { id: string }[] = [];
 
     if (partnerIds) {
@@ -43,6 +44,10 @@ export const updateDiscountAction = authActionClient
       }
     }
 
+    if (isDefault && partnerIds) {
+      throw new Error("Default discount cannot be updated with partners.");
+    }
+
     await prisma.discount.update({
       where: {
         id: discountId,
@@ -50,15 +55,20 @@ export const updateDiscountAction = authActionClient
       data: {
         amount,
         maxDuration,
-        ...(programEnrollments && {
-          partners: {
-            createMany: {
-              data: programEnrollments.map(({ id }) => ({
-                programEnrollmentId: id,
-              })),
-            },
-          },
-        }),
       },
     });
+
+    if (partnerIds) {
+      await prisma.programEnrollment.updateMany({
+        where: {
+          programId,
+          partnerId: {
+            in: partnerIds,
+          },
+        },
+        data: {
+          discountId,
+        },
+      });
+    }
   });

@@ -19,11 +19,11 @@ export async function getDiscountOrThrow({
     ...(includePartnersCount && {
       include: {
         _count: {
-          select: { partners: true },
+          select: { programEnrollments: true },
         },
       },
     }),
-  })) as Discount & { _count?: { partners: number } };
+  })) as Discount & { _count?: { programEnrollments: number } };
 
   if (!discount) {
     throw new DubApiError({
@@ -35,14 +35,14 @@ export async function getDiscountOrThrow({
   if (discount.programId !== programId) {
     throw new DubApiError({
       code: "not_found",
-      message: "Discount does not belong to the program.",
+      message: "Discount does not belong to this program.",
     });
   }
 
   return DiscountSchema.parse({
     ...discount,
     ...(includePartnersCount && {
-      partnersCount: discount._count?.partners,
+      partnersCount: discount._count?.programEnrollments,
     }),
   });
 }

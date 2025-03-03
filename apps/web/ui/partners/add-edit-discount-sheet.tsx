@@ -52,19 +52,6 @@ interface DiscountSheetProps {
 
 type FormData = z.infer<typeof createRewardSchema>;
 
-const partnerTypes = [
-  {
-    key: "all",
-    label: "All Partners",
-    description: "Everyone is eligible",
-  },
-  {
-    key: "specific",
-    label: "Specific Partners",
-    description: "Select who is eligible",
-  },
-] as const;
-
 const discountTypes = [
   {
     label: "One-off",
@@ -92,9 +79,6 @@ function DiscountSheetContent({
   const { pagination, setPagination } = usePagination(25);
   const [isAddPartnersOpen, setIsAddPartnersOpen] = useState(false);
 
-  const [selectedPartnerType, setSelectedPartnerType] =
-    useState<(typeof partnerTypes)[number]["key"]>("all");
-
   const [isRecurring, setIsRecurring] = useState(
     discount ? discount.maxDuration !== 0 : false,
   );
@@ -107,7 +91,11 @@ function DiscountSheetContent({
     formState: { errors },
   } = useForm<FormData>({
     defaultValues: {
-      maxDuration: discount?.maxDuration,
+      maxDuration: discount
+        ? discount.maxDuration === null
+          ? Infinity
+          : discount.maxDuration
+        : 0,
       amount: discount?.amount,
       partnerIds: null,
     },
@@ -137,10 +125,6 @@ function DiscountSheetContent({
     return allPartners.filter((p) => partnerIds && partnerIds.includes(p.id));
   }, [discount, discountPartners, allPartners, partnerIds]);
 
-  const hasProgramWideDiscount = discounts?.some(
-    (discount) => discount.partnersCount === 0,
-  );
-
   const partnersCount = discount?.partnersCount || 0;
 
   useEffect(() => {
@@ -151,16 +135,6 @@ function DiscountSheetContent({
       );
     }
   }, [discountPartners, setValue]);
-
-  useEffect(() => {
-    if (discount) {
-      setSelectedPartnerType(discount.partnersCount === 0 ? "all" : "specific");
-    } else if (hasProgramWideDiscount) {
-      setSelectedPartnerType("specific");
-    } else {
-      setSelectedPartnerType("all");
-    }
-  }, [discount, hasProgramWideDiscount]);
 
   const { executeAsync: createDiscount, isPending: isCreating } = useAction(
     createDiscountAction,
@@ -222,6 +196,9 @@ function DiscountSheetContent({
       programId: program.id,
     };
 
+    // console.log("payload", payload);
+    // return;
+
     if (!discount) {
       await createDiscount(payload);
     } else {
@@ -234,6 +211,10 @@ function DiscountSheetContent({
 
   const onDelete = async () => {
     if (!workspaceId || !program || !discount) {
+      return;
+    }
+
+    if (!confirm("Are you sure you want to delete this discount?")) {
       return;
     }
 
@@ -323,8 +304,7 @@ function DiscountSheetContent({
   const buttonDisabled =
     isCreating ||
     isUpdating ||
-    (selectedPartnerType === "specific" &&
-      (!partnerIds || partnerIds.length === 0));
+    (!isDefault && (!partnerIds || partnerIds.length === 0));
 
   const canDeleteDiscount =
     discount && program?.defaultDiscountId !== discount.id;
@@ -477,7 +457,7 @@ function DiscountSheetContent({
               </div>
             </div>
 
-            {selectedPartnerType === "specific" && (
+            {!isDefault && (
               <div className="mt-2">
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-medium text-neutral-800">
@@ -555,8 +535,7 @@ function DiscountSheetContent({
                 loading={isCreating || isUpdating}
                 disabled={buttonDisabled || isDeleting}
                 disabledTooltip={
-                  selectedPartnerType === "specific" &&
-                  (!partnerIds || partnerIds.length === 0)
+                  !isDefault && (!partnerIds || partnerIds.length === 0)
                     ? "Please select at least one partner"
                     : undefined
                 }

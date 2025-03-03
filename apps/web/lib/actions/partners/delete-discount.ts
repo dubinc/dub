@@ -25,8 +25,8 @@ export const deleteDiscountAction = authActionClient
     });
 
     await getDiscountOrThrow({
-      discountId,
       programId,
+      discountId,
     });
 
     if (program.defaultDiscountId === discountId) {
@@ -39,6 +39,15 @@ export const deleteDiscountAction = authActionClient
     await prisma.discount.delete({
       where: {
         id: discountId,
+      },
+    });
+
+    await prisma.programEnrollment.updateMany({
+      where: {
+        discountId,
+      },
+      data: {
+        discountId: null,
       },
     });
   });
