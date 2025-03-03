@@ -26,7 +26,6 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     region,
     country,
     timezone = "UTC",
-    isDemo,
     isDeprecatedClicksEndpoint = false,
     dataAvailableFrom,
   } = params;
