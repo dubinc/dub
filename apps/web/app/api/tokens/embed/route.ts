@@ -1,6 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
-import { createPartner } from "@/lib/api/partners/create-partner";
-import { enrollPartnerInProgram } from "@/lib/api/partners/enroll-partner-in-program";
+import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
+import { createPartnerLink } from "@/lib/api/partners/create-partner-link";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { embedToken } from "@/lib/embed/embed-token";
@@ -71,69 +71,61 @@ export const POST = withWorkspace(
         },
       });
 
-      // partner does not exist, we need to create them
-      if (!partner) {
-        console.log("partner does not exist, we need to create them");
-
-        const newPartner = await createPartner(partnerProps);
-
-        const enrolledPartner = await enrollPartnerInProgram({
-          workspace: {
-            id: workspace.id,
-            plan: workspace.plan,
-            webhookEnabled: workspace.webhookEnabled,
-          },
-          program: {
-            id: programId,
-            defaultFolderId: program.defaultFolderId,
-            domain: program.domain,
-            url: program.url,
-          },
-          partner: {
-            id: newPartner.id,
-            tenantId: partnerProps.tenantId,
-            linkProps: partnerProps.linkProps,
-            username: partnerProps.username,
-          },
-          userId: session.user.id,
-        });
-
-        programEnrollment = {
-          partnerId: enrolledPartner.id,
-        };
-      }
-
+      // partner does not exist, we need to create them OR
       // partner exists but is not enrolled in the program, we need to enroll them
-      else if (partner.programs.length === 0) {
-        console.log(
-          "partner exists but is not enrolled in the program, we need to enroll them",
-        );
-
-        const enrolledPartner = await enrollPartnerInProgram({
-          workspace: {
-            id: workspace.id,
-            plan: workspace.plan,
-            webhookEnabled: workspace.webhookEnabled,
-          },
-          program: {
-            id: programId,
-            defaultFolderId: program.defaultFolderId,
-            domain: program.domain,
-            url: program.url,
-          },
-          partner: {
-            id: partner.id,
-            tenantId: partnerProps.tenantId,
-            linkProps: partnerProps.linkProps,
-            username: partnerProps.username,
-          },
+      if (!partner || partner.programs.length === 0) {
+        const partnerLink = await createPartnerLink({
+          workspace,
+          program,
+          partner: partnerProps,
           userId: session.user.id,
+        });
+
+        const enrolledPartner = await createAndEnrollPartner({
+          program,
+          link: partnerLink,
+          workspace,
+          partner: {
+            name: partnerProps.name,
+            email: partnerProps.email,
+            image: partnerProps.image ?? null,
+            country: partnerProps.country ?? null,
+            description: partnerProps.description,
+          },
+          tenantId: partnerProps.tenantId,
         });
 
         programEnrollment = {
           partnerId: enrolledPartner.id,
         };
       }
+
+      // else if (partner.programs.length === 0) {
+      //   const partnerLink = await createPartnerLink({
+      //     workspace,
+      //     program,
+      //     partner: partnerProps,
+      //     userId: session.user.id,
+      //   });
+
+      //   const enrolledPartner = await createAndEnrollPartner({
+      //     program,
+      //     link: partnerLink,
+      //     workspace,
+      //     partner: {
+      //       name: partnerProps.name,
+      //       email: partnerProps.email,
+      //       image: partnerProps.image ?? null,
+      //       country: partnerProps.country ?? null,
+      //       description: partnerProps.description,
+      //     },
+      //     tenantId: partnerProps.tenantId,
+      //   });
+
+      //   programEnrollment = {
+      //     partnerId: enrolledPartner.id,
+      //   };
+      // }
 
       // partner exists and is enrolled in the program, we can use the existing partnerId
       else {

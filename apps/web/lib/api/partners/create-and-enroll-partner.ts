@@ -22,6 +22,7 @@ export const createAndEnrollPartner = async ({
   link,
   partner,
   tenantId,
+  skipEnrollmentCheck = false,
 }: {
   program: Pick<ProgramProps, "id" | "defaultFolderId">;
   workspace: Pick<WorkspaceProps, "id" | "webhookEnabled">;
@@ -31,8 +32,9 @@ export const createAndEnrollPartner = async ({
     "email" | "name" | "image" | "country" | "description"
   >;
   tenantId?: string;
+  skipEnrollmentCheck?: boolean;
 }) => {
-  if (partner.email) {
+  if (!skipEnrollmentCheck && partner.email) {
     const programEnrollment = await prisma.programEnrollment.findFirst({
       where: {
         programId: program.id,
