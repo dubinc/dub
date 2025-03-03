@@ -1,4 +1,7 @@
-import { intervals } from "@/lib/analytics/constants";
+import {
+  DUB_PARTNERS_ANALYTICS_INTERVAL,
+  intervals,
+} from "@/lib/analytics/constants";
 import { ProgramEnrollmentStatus, ProgramType } from "@dub/prisma/client";
 import { z } from "zod";
 import { DiscountSchema } from "./discount";
@@ -76,7 +79,7 @@ export const ProgramInviteSchema = z.object({
 });
 
 export const getProgramMetricsQuerySchema = z.object({
-  interval: z.enum(intervals).default("30d"),
+  interval: z.enum(intervals).default(DUB_PARTNERS_ANALYTICS_INTERVAL),
   start: parseDateSchema.optional(),
   end: parseDateSchema.optional(),
 });

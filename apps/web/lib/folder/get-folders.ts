@@ -1,15 +1,22 @@
 import { prisma } from "@dub/prisma";
+import { FOLDERS_MAX_PAGE_SIZE } from "../zod/schemas/folders";
 
 export const getFolders = async ({
   workspaceId,
   userId,
   search,
   includeLinkCount = false,
+  excludeBulkFolders = false,
+  pageSize = FOLDERS_MAX_PAGE_SIZE,
+  page = 1,
 }: {
   workspaceId: string;
   userId: string;
   includeLinkCount?: boolean;
+  excludeBulkFolders?: boolean;
   search?: string;
+  pageSize?: number;
+  page?: number;
 }) => {
   const folders = await prisma.folder.findMany({
     where: {
@@ -42,10 +49,16 @@ export const getFolders = async ({
           contains: search,
         },
       }),
+      ...(excludeBulkFolders && {
+        type: {
+          not: "mega",
+        },
+      }),
     },
     select: {
       id: true,
       name: true,
+      type: true,
       accessLevel: true,
       createdAt: true,
       updatedAt: true,
@@ -60,9 +73,8 @@ export const getFolders = async ({
     orderBy: {
       createdAt: "asc",
     },
-    take: 100,
-
-    // TODO: Add pagination
+    take: pageSize,
+    skip: (page - 1) * pageSize,
   });
 
   return folders.map((folder) => ({

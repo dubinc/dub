@@ -43,6 +43,23 @@ const LinksQuerySchema = z.object({
     .union([z.string(), z.array(z.string())])
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
     .optional()
+    .openapi({
+      param: {
+        style: "form",
+        explode: false,
+      },
+      anyOf: [
+        {
+          type: "string",
+        },
+        {
+          type: "array",
+          items: {
+            type: "string",
+          },
+        },
+      ],
+    })
     .describe("The tag IDs to filter the links by."),
   tagNames: z
     .union([z.string(), z.array(z.string())])
@@ -659,6 +676,10 @@ export const getLinksQuerySchemaExtended = getLinksQuerySchemaBase.merge(
       .optional()
       .describe("Link IDs to filter by."),
     partnerId: z.string().optional().describe("Partner ID to filter by."),
+    searchMode: z
+      .enum(["fuzzy", "exact"])
+      .default("fuzzy")
+      .describe("Search mode to filter by."),
   }),
 );
 

@@ -11,6 +11,7 @@ export async function getLinksForWorkspace({
   tagIds,
   tagNames,
   search,
+  searchMode,
   sort, // Deprecated
   sortBy,
   sortOrder,
@@ -42,33 +43,48 @@ export async function getLinksForWorkspace({
     where: {
       projectId: workspaceId,
       archived: showArchived ? undefined : false,
-      ...(folderIds
-        ? {
-            OR: [
+      AND: [
+        ...(folderIds
+          ? [
               {
-                folderId: {
-                  in: folderIds.filter((id) => id !== ""),
-                },
+                OR: [
+                  {
+                    folderId: {
+                      in: folderIds,
+                    },
+                  },
+                  {
+                    folderId: null,
+                  },
+                ],
               },
+            ]
+          : [
               {
-                folderId: null,
+                folderId: folderId || null,
               },
-            ],
-          }
-        : {
-            folderId: folderId || null,
-          }),
+            ]),
+        ...(search
+          ? [
+              {
+                ...(searchMode === "fuzzy" && {
+                  OR: [
+                    {
+                      shortLink: { contains: search },
+                    },
+                    {
+                      url: { contains: search },
+                    },
+                  ],
+                }),
+                ...(searchMode === "exact" && {
+                  shortLink: { startsWith: search },
+                }),
+              },
+            ]
+          : []),
+      ],
       ...(domain && { domain }),
-      ...(search && {
-        OR: [
-          {
-            shortLink: { contains: search },
-          },
-          {
-            url: { contains: search },
-          },
-        ],
-      }),
       ...(withTags && {
         tags: {
           some: {},
