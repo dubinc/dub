@@ -1,4 +1,7 @@
-import { intervals } from "@/lib/analytics/constants";
+import {
+  DUB_PARTNERS_ANALYTICS_INTERVAL,
+  intervals,
+} from "@/lib/analytics/constants";
 import { CommissionStatus } from "@dub/prisma/client";
 import { z } from "zod";
 import { CustomerSchema } from "./customers";
@@ -28,7 +31,7 @@ export const getProgramSalesQuerySchema = z
     status: z.nativeEnum(CommissionStatus).optional(),
     sortBy: z.enum(["createdAt", "amount"]).default("createdAt"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
-    interval: z.enum(intervals).default("30d"),
+    interval: z.enum(intervals).default(DUB_PARTNERS_ANALYTICS_INTERVAL),
     start: parseDateSchema.optional(),
     end: parseDateSchema.optional(),
     customerId: z.string().optional(),

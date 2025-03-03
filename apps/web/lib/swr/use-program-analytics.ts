@@ -1,6 +1,7 @@
 import { fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
+import { DUB_PARTNERS_ANALYTICS_INTERVAL } from "../analytics/constants";
 import { PartnerAnalyticsFilters } from "../analytics/types";
 import useWorkspace from "./use-workspace";
 
@@ -16,7 +17,7 @@ export default function useProgramRevenue(params?: PartnerAnalyticsFilters) {
             start: params.start.toISOString(),
             end: params.end.toISOString(),
           }
-        : { interval: params?.interval ?? "30d" }),
+        : { interval: params?.interval ?? DUB_PARTNERS_ANALYTICS_INTERVAL }),
       groupBy: params?.groupBy ?? "count",
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       workspaceId: workspaceId!,

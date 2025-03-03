@@ -25,6 +25,9 @@ export const eventIntervals = [
   "all",
 ] as const;
 
+export const DUB_LINKS_ANALYTICS_INTERVAL = "24h";
+export const DUB_PARTNERS_ANALYTICS_INTERVAL = "30d";
+
 export const INTERVAL_DISPLAYS = [
   {
     display: "Last 24 hours",
