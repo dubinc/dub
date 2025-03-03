@@ -356,7 +356,14 @@ export type PartnersCount = Record<ProgramEnrollmentStatus | "all", number>;
 
 export type SaleProps = z.infer<typeof ProgramSaleSchema>;
 
-export type SalesCount = Record<CommissionStatus | "all", number>;
+export type SalesCount = Record<
+  CommissionStatus | "all",
+  {
+    count: number;
+    amount: number;
+    earnings: number;
+  }
+>;
 
 export type SaleResponse = z.infer<typeof ProgramSaleResponseSchema>;
 

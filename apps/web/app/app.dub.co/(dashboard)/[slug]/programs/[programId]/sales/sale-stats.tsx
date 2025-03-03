@@ -18,7 +18,9 @@ export function SaleStats() {
       <ProgramStatsFilter
         label="All"
         href={`/${slug}/programs/${programId}/sales`}
-        count={salesCount?.all}
+        count={salesCount?.all.count}
+        amount={salesCount?.all.amount}
+        earnings={salesCount?.all.earnings}
         icon={Users}
         iconClassName="text-neutral-600 bg-neutral-100"
         error={!!error}
@@ -31,7 +33,9 @@ export function SaleStats() {
             getNewPath: true,
           }) as string
         }
-        count={salesCount?.pending}
+        count={salesCount?.pending.count}
+        amount={salesCount?.pending.amount}
+        earnings={salesCount?.pending.earnings}
         icon={SaleStatusBadges.pending.icon}
         iconClassName={SaleStatusBadges.pending.className}
         error={!!error}
@@ -44,7 +48,9 @@ export function SaleStats() {
             getNewPath: true,
           }) as string
         }
-        count={salesCount?.processed}
+        count={salesCount?.processed.count}
+        amount={salesCount?.processed.amount}
+        earnings={salesCount?.processed.earnings}
         icon={SaleStatusBadges.processed.icon}
         iconClassName={SaleStatusBadges.processed.className}
         error={!!error}
@@ -57,7 +63,9 @@ export function SaleStats() {
             getNewPath: true,
           }) as string
         }
-        count={salesCount?.paid}
+        count={salesCount?.paid.count}
+        amount={salesCount?.paid.amount}
+        earnings={salesCount?.paid.earnings}
         icon={SaleStatusBadges.paid.icon}
         iconClassName={SaleStatusBadges.paid.className}
         error={!!error}

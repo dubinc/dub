@@ -1,5 +1,5 @@
 import { Icon } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, currencyFormatter } from "@dub/utils";
 import { nFormatter } from "@dub/utils/src/functions";
 import Link from "next/link";
 
@@ -7,6 +7,8 @@ export function ProgramStatsFilter({
   label,
   href,
   count,
+  amount,
+  earnings,
   icon: Icon,
   iconClassName,
   error,
@@ -14,6 +16,8 @@ export function ProgramStatsFilter({
   label: string;
   href: string;
   count: number | undefined;
+  amount: number | undefined;
+  earnings: number | undefined;
   icon: Icon;
   iconClassName?: string;
   error: boolean;
@@ -34,8 +38,24 @@ export function ProgramStatsFilter({
       <div>
         <div className="text-xs text-neutral-500">{label}</div>
         {count !== undefined || error ? (
-          <div className="text-base font-medium leading-tight text-neutral-800">
-            {error ? "-" : nFormatter(count, { full: true })}
+          <div className="flex items-end gap-1 text-base font-medium leading-tight text-neutral-800">
+            {error ? (
+              "-"
+            ) : (
+              <>
+                {nFormatter(count, { full: true })}
+                {amount !== undefined && (
+                  <span className="text-xs text-neutral-500">
+                    ({currencyFormatter(amount / 100)})
+                  </span>
+                )}
+                {earnings !== undefined && (
+                  <span className="text-xs text-neutral-500">
+                    ({currencyFormatter(earnings / 100)})
+                  </span>
+                )}
+              </>
+            )}
           </div>
         ) : (
           <div className="h-5 w-10 min-w-0 animate-pulse rounded-md bg-neutral-200" />

@@ -190,7 +190,7 @@ const SaleTableBusinessInner = memo(
       thClassName: "border-l-0",
       tdClassName: "border-l-0",
       resourceName: (p) => `sale${p ? "s" : ""}`,
-      rowCount: salesCount?.[status || "all"] ?? 0,
+      rowCount: salesCount?.[status || "all"].count ?? 0,
       loading,
       error: error ? "Failed to load sales" : undefined,
     });
