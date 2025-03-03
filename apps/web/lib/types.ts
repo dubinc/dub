@@ -40,7 +40,11 @@ import {
 } from "./zod/schemas/leads";
 import { createLinkBodySchema } from "./zod/schemas/links";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
-import { EnrolledPartnerSchema, PartnerSchema } from "./zod/schemas/partners";
+import {
+  createPartnerSchema,
+  EnrolledPartnerSchema,
+  PartnerSchema,
+} from "./zod/schemas/partners";
 import {
   PartnerPayoutResponseSchema,
   PayoutResponseSchema,
@@ -438,3 +442,5 @@ export type FolderSummary = Pick<
 // Rewards
 
 export type RewardProps = z.infer<typeof RewardSchema>;
+
+export type CreatePartnerProps = z.infer<typeof createPartnerSchema>;

@@ -1,16 +1,17 @@
 import { ErrorCodes } from "@/lib/api/errors";
-import { ProcessedLinkProps, ProgramProps, WorkspaceProps } from "@/lib/types";
+import {
+  CreatePartnerProps,
+  ProcessedLinkProps,
+  ProgramProps,
+  WorkspaceProps,
+} from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
-import { createPartnerSchema } from "@/lib/zod/schemas/partners";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { z } from "zod";
 import { DubApiError } from "../errors";
 import { createLink } from "../links/create-link";
 import { processLink } from "../links/process-link";
-
-type CreatePartnerProps = z.infer<typeof createPartnerSchema>;
 
 // create a partner link
 export const createPartnerLink = async ({

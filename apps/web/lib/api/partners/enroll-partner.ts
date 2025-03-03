@@ -8,17 +8,12 @@ import {
   WorkspaceProps,
 } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import {
-  createPartnerSchema,
-  EnrolledPartnerSchema,
-} from "@/lib/zod/schemas/partners";
+import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
-import { z } from "zod";
 import { DubApiError } from "../errors";
 import { includeTags } from "../links/include-tags";
-import { createPartnerLink } from "./create-partner-link";
 
 export const enrollPartner = async ({
   program,
@@ -153,4 +148,3 @@ export const enrollPartner = async ({
 
   return enrolledPartner;
 };
-

@@ -171,6 +171,7 @@ export const createPartnerSchema = z.object({
       geo: true,
       projectId: true,
       programId: true,
+      partnerId: true,
       webhookIds: true,
       trackConversion: true,
     })

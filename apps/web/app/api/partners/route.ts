@@ -1,6 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
-import { createPartnerLink } from "@/lib/api/partners/create-partner-link";
-import { enrollPartner } from "@/lib/api/partners/enroll-partner";
+import { createPartner } from "@/lib/api/partners/create-partner";
+import { enrollPartnerInProgram } from "@/lib/api/partners/enroll-partner-in-program";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -159,22 +159,36 @@ export const POST = withWorkspace(
       programId,
     });
 
-    const partnerLink = await createPartnerLink({
-      workspace,
-      program,
-      partner: data,
+    const newPartner = await createPartner({
+      name: data.name,
+      email: data.email,
+      country: data.country,
+      image: data.image,
+      description: data.description,
+    });
+
+    const enrolledPartner = await enrollPartnerInProgram({
+      workspace: {
+        id: workspace.id,
+        plan: workspace.plan,
+        webhookEnabled: workspace.webhookEnabled,
+      },
+      program: {
+        id: programId,
+        domain: program.domain,
+        url: program.url,
+        defaultFolderId: program.defaultFolderId,
+      },
+      partner: {
+        id: newPartner.id,
+        tenantId: data.tenantId,
+        username: data.username,
+        linkProps: data.linkProps,
+      },
       userId: session.user.id,
     });
 
-    const partner = await enrollPartner({
-      program,
-      tenantId: data.tenantId,
-      workspace,
-      link: partnerLink,
-      partner: data,
-    });
-
-    return NextResponse.json(partner, {
+    return NextResponse.json(enrolledPartner, {
       status: 201,
     });
   },
