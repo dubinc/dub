@@ -37,7 +37,14 @@ SQL >
         l.tenant_id,
         l.partner_id,
     FROM dub_sale_events_mv e
-    INNER JOIN dub_links_metadata_latest l FINAL ON e.link_id = l.link_id
+    INNER JOIN (
+        SELECT * 
+        FROM dub_links_metadata_latest FINAL 
+       -- This filters to only link_id values present in the "insertion block" that the materialized view is currently processing
+        PREWHERE link_id IN (
+            SELECT link_id FROM dub_click_events_mv
+            )
+        ) AS l ON e.link_id = l.link_id
 
 TYPE materialized
 DATASOURCE dub_enriched_sale_events_mv
