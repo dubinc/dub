@@ -15,9 +15,9 @@ export function ProgramStatsFilter({
 }: {
   label: string;
   href: string;
-  count: number | undefined;
-  amount: number | undefined;
-  earnings: number | undefined;
+  count?: number;
+  amount?: number;
+  earnings?: number;
   icon: Icon;
   iconClassName?: string;
   error: boolean;
