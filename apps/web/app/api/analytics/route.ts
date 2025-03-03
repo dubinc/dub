@@ -11,7 +11,7 @@ import {
   analyticsPathParamsSchema,
   analyticsQuerySchema,
 } from "@/lib/zod/schemas/analytics";
-import { Link } from "@dub/prisma/client";
+import { Folder, Link } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/analytics – get analytics
@@ -64,8 +64,9 @@ export const GET = withWorkspace(
 
     const folderIdToVerify = link?.folderId || folderId;
 
+    let selectedFolder: Pick<Folder, "id" | "type"> | null = null;
     if (folderIdToVerify) {
-      await verifyFolderAccess({
+      selectedFolder = await verifyFolderAccess({
         workspace,
         userId: session.user.id,
         folderId: folderIdToVerify,
@@ -106,6 +107,7 @@ export const GET = withWorkspace(
       isDeprecatedClicksEndpoint,
       dataAvailableFrom: workspace.createdAt,
       folderIds,
+      isMegaFolder: selectedFolder?.type === "mega",
     });
 
     return NextResponse.json(response);
