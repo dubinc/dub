@@ -8,6 +8,7 @@ import { useEditRoleModal } from "@/ui/modals/edit-role-modal";
 import { useInviteCodeModal } from "@/ui/modals/invite-code-modal";
 import { useInviteTeammateModal } from "@/ui/modals/invite-teammate-modal";
 import { useRemoveTeammateModal } from "@/ui/modals/remove-teammate-modal";
+import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import {
   CheckCircleFill,
   Link as LinkIcon,
@@ -21,6 +22,7 @@ import {
   IconMenu,
   Popover,
   useCopyToClipboard,
+  UserCheck,
 } from "@dub/ui";
 import { capitalize, cn, timeAgo } from "@dub/utils";
 import { UserMinus } from "lucide-react";
@@ -108,16 +110,17 @@ export default function WorkspacePeopleClient() {
                 <UserCard key={user.id} user={user} currentTab={currentTab} />
               ))
             ) : (
-              <div className="flex flex-col items-center justify-center py-10">
-                <img
-                  src="https://assets.dub.co/misc/video-park.svg"
-                  alt="No invitations sent"
-                  width={300}
-                  height={300}
-                  className="pointer-events-none -my-8"
-                />
-                <p className="text-sm text-neutral-500">No invitations sent</p>
-              </div>
+              <AnimatedEmptyState
+                title="No invitations sent"
+                description="No teammates have been added to this workspace yet."
+                cardContent={() => (
+                  <>
+                    <UserCheck className="size-4 text-neutral-700" />
+                    <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+                  </>
+                )}
+                className="border-none"
+              />
             )
           ) : (
             Array.from({ length: 5 }).map((_, i) => <UserPlaceholder key={i} />)

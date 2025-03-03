@@ -676,6 +676,10 @@ export const getLinksQuerySchemaExtended = getLinksQuerySchemaBase.merge(
       .optional()
       .describe("Link IDs to filter by."),
     partnerId: z.string().optional().describe("Partner ID to filter by."),
+    searchMode: z
+      .enum(["fuzzy", "exact"])
+      .default("fuzzy")
+      .describe("Search mode to filter by."),
   }),
 );
 

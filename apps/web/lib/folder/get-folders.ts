@@ -6,12 +6,14 @@ export const getFolders = async ({
   userId,
   search,
   includeLinkCount = false,
+  excludeBulkFolders = false,
   pageSize = FOLDERS_MAX_PAGE_SIZE,
   page = 1,
 }: {
   workspaceId: string;
   userId: string;
   includeLinkCount?: boolean;
+  excludeBulkFolders?: boolean;
   search?: string;
   pageSize?: number;
   page?: number;
@@ -47,10 +49,16 @@ export const getFolders = async ({
           contains: search,
         },
       }),
+      ...(excludeBulkFolders && {
+        type: {
+          not: "mega",
+        },
+      }),
     },
     select: {
       id: true,
       name: true,
+      type: true,
       accessLevel: true,
       createdAt: true,
       updatedAt: true,

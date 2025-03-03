@@ -1,5 +1,6 @@
 "use client";
 
+import { useIsMegaFolder } from "@/lib/swr/use-is-mega-folder";
 import useLinks from "@/lib/swr/use-links";
 import useLinksCount from "@/lib/swr/use-links-count";
 import { ExpandedLinkProps, UserProps } from "@/lib/types";
@@ -32,7 +33,9 @@ export default function LinksContainer({
   const { viewMode, sortBy, showArchived } = useContext(LinksDisplayContext);
 
   const { links, isValidating } = useLinks({ sortBy, showArchived });
-  const { data: count } = useLinksCount<number>({ query: { showArchived } });
+  const { data: count } = useLinksCount<number>({
+    query: { showArchived },
+  });
 
   return (
     <MaxWidthWrapper className="grid gap-y-2">
@@ -69,6 +72,7 @@ function LinksList({
   compact: boolean;
 }) {
   const searchParams = useSearchParams();
+  const { isMegaFolder } = useIsMegaFolder();
 
   const [openMenuLinkId, setOpenMenuLinkId] = useState<string | null>(null);
 
@@ -135,7 +139,7 @@ function LinksList({
           <LinksToolbar
             loading={!!loading}
             links={links}
-            linksCount={count ?? links?.length ?? 0}
+            linksCount={isMegaFolder ? Infinity : count ?? links?.length ?? 0}
           />
         )}
       </LinkSelectionProvider>

@@ -1,5 +1,6 @@
 "use client";
 
+import { DUB_PARTNERS_ANALYTICS_INTERVAL } from "@/lib/analytics/constants";
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { IntervalOptions } from "@/lib/analytics/types";
 import { useSyncedLocalStorage } from "@/lib/hooks/use-synced-local-storage";
@@ -46,7 +47,7 @@ const ProgramOverviewContext = createContext<{
   interval: IntervalOptions;
   color?: string;
 }>({
-  interval: "30d",
+  interval: DUB_PARTNERS_ANALYTICS_INTERVAL,
 });
 
 export default function ProgramPageClient() {
@@ -64,7 +65,7 @@ export default function ProgramPageClient() {
   const {
     start,
     end,
-    interval = "30d",
+    interval = DUB_PARTNERS_ANALYTICS_INTERVAL,
   } = searchParamsObj as {
     start?: string;
     end?: string;
