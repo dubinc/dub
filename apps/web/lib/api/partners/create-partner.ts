@@ -28,7 +28,7 @@ export const createPartner = async ({
       id: createId({ prefix: "pn_" }),
       email,
       name,
-      country,
+      country: country ?? "US",
       image,
       description,
     },

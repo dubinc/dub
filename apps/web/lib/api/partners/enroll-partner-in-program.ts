@@ -2,8 +2,10 @@ import { DubApiError } from "@/lib/api/errors";
 import { createPartnerLink } from "@/lib/api/partners/create-partner-link";
 import { createId } from "@/lib/api/utils";
 import { CreatePartnerProps, ProgramProps, WorkspaceProps } from "@/lib/types";
+import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 
 // Enroll an existing partner in a program
 export const enrollPartnerInProgram = async ({
@@ -57,11 +59,23 @@ export const enrollPartnerInProgram = async ({
     },
   });
 
-  return EnrolledPartnerSchema.parse({
+  const enrolledPartner = EnrolledPartnerSchema.parse({
     ...programEnrollment,
     ...programEnrollment.partner,
     id: programEnrollment.partnerId,
     status: programEnrollment.status,
     links: [partnerLink],
   });
+
+  console.log("enrolledPartner", enrolledPartner);
+
+  waitUntil(
+    sendWorkspaceWebhook({
+      workspace,
+      trigger: "partner.created",
+      data: enrolledPartner,
+    }),
+  );
+
+  return enrolledPartner;
 };

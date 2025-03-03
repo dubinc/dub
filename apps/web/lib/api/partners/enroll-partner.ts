@@ -21,7 +21,6 @@ export const enrollPartner = async ({
   workspace,
   link,
   partner,
-  skipPartnerCheck = false,
 }: {
   program: Pick<ProgramProps, "id" | "defaultFolderId">;
   tenantId?: string;
@@ -34,9 +33,8 @@ export const enrollPartner = async ({
     description?: string | null;
   };
   link: ProgramPartnerLinkProps;
-  skipPartnerCheck?: boolean;
 }) => {
-  if (!skipPartnerCheck && partner.email) {
+  if (partner.email) {
     const programEnrollment = await prisma.programEnrollment.findFirst({
       where: {
         programId: program.id,
@@ -136,8 +134,6 @@ export const enrollPartner = async ({
         })
         .then((link) => recordLink(link)),
 
-      // TODO:
-      // We should send this for new partners only and not for existing partners
       sendWorkspaceWebhook({
         workspace,
         trigger: "partner.created",
