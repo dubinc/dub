@@ -3,12 +3,12 @@ import { updatePartnerSaleSchema } from "../../zod/schemas/partners";
 import { ProgramSaleSchema } from "../../zod/schemas/program-sales";
 import { openApiErrorResponses } from "../responses";
 
-export const updateSale: ZodOpenApiOperationObject = {
-  operationId: "updateSale",
+export const updatePartnerSale: ZodOpenApiOperationObject = {
+  operationId: "updatePartnerSale",
   "x-speakeasy-name-override": "updateSale",
-  summary: "Update an existing sale.",
+  summary: "Update a sale for a partner.",
   description:
-    "This is useful if you need to change the amount of a sale after it has been created.",
+    "Update an existing sale amount. This is useful for handling refunds (partial or full) or fraudulent sales.",
   requestBody: {
     content: {
       "application/json": {
