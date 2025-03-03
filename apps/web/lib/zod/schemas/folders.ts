@@ -4,7 +4,7 @@ import {
 } from "@/lib/folder/constants";
 import { FolderAccessLevel } from "@/lib/types";
 import z from "@/lib/zod";
-import { FolderUserRole } from "@dub/prisma/client";
+import { FolderType, FolderUserRole } from "@dub/prisma/client";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 
 const workspaceFolderAccess = z
@@ -25,6 +25,7 @@ export const folderUserRoleSchema = z
 export const FolderSchema = z.object({
   id: z.string().describe("The unique ID of the folder."),
   name: z.string().describe("The name of the folder."),
+  type: z.enum(Object.keys(FolderType) as [FolderType, ...FolderType[]]),
   accessLevel: workspaceFolderAccess,
   linkCount: z
     .number()

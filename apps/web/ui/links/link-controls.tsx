@@ -239,7 +239,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
             </div>
             <div className="border-t border-neutral-200" />
             <div className="grid gap-px p-2">
-              {flags?.linkFolders && foldersCount && (
+              {Boolean(flags?.linkFolders && foldersCount) && (
                 <Button
                   text="Move"
                   variant="outline"

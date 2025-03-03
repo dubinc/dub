@@ -20,6 +20,7 @@ export function LinkCard({ link }: { link: ResponseLink }) {
   const searchParams = useSearchParams();
   const { slug } = useWorkspace();
 
+  // TODO: only enable this when the link card is in view
   const { folder } = useFolder({ folderId: link.folderId });
 
   return (

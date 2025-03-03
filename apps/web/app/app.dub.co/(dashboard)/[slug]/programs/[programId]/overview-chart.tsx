@@ -1,3 +1,4 @@
+import { DUB_PARTNERS_ANALYTICS_INTERVAL } from "@/lib/analytics/constants";
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { IntervalOptions } from "@/lib/analytics/types";
 import useProgramRevenue from "@/lib/swr/use-program-analytics";
@@ -24,7 +25,7 @@ export function OverviewChart() {
   const {
     start,
     end,
-    interval = "30d",
+    interval = DUB_PARTNERS_ANALYTICS_INTERVAL,
   } = searchParamsObj as {
     start?: string;
     end?: string;

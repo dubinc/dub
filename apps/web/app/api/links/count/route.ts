@@ -1,5 +1,6 @@
 import { getFolderIdsToFilter } from "@/lib/analytics/get-folder-ids-to-filter";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
+import { DubApiError } from "@/lib/api/errors";
 import { getLinksCount } from "@/lib/api/links";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
@@ -18,12 +19,18 @@ export const GET = withWorkspace(
     }
 
     if (folderId) {
-      await verifyFolderAccess({
+      const selectedFolder = await verifyFolderAccess({
         workspace,
         userId: session.user.id,
         folderId,
         requiredPermission: "folders.read",
       });
+      if (selectedFolder.type === "mega") {
+        throw new DubApiError({
+          code: "bad_request",
+          message: "Cannot get links count for mega folders.",
+        });
+      }
     }
 
     /* we only need to get the folder ids if we are:
@@ -31,7 +38,7 @@ export const GET = withWorkspace(
       - there's a groupBy
       - filtering by search, domain, or tags
     */
-    const folderIds =
+    let folderIds =
       !folderId && (groupBy || search || domain || tagId || tagIds || tagNames)
         ? await getFolderIdsToFilter({
             workspace,
@@ -39,6 +46,12 @@ export const GET = withWorkspace(
           })
         : undefined;
 
+    if (Array.isArray(folderIds)) {
+      folderIds = folderIds?.filter((id) => id !== "");
+      if (folderIds.length === 0) {
+        folderIds = undefined;
+      }
+    }
     const count = await getLinksCount({
       searchParams: params,
       workspaceId: workspace.id,
