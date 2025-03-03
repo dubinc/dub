@@ -34,6 +34,7 @@ export const GET = withWorkspace(
                 include: {
                   programEnrollment: {
                     include: {
+                      program: true,
                       partner: true,
                       discount: true,
                     },

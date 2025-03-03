@@ -1,6 +1,6 @@
 import { embedToken } from "@/lib/embed/embed-token";
+import { determinePartnerDiscount } from "@/lib/partners/determine-partner-discount";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
-import { DiscountSchema } from "@/lib/zod/schemas/discount";
 import { prisma } from "@dub/prisma";
 import { notFound } from "next/navigation";
 
@@ -21,7 +21,6 @@ export const getEmbedData = async (token: string) => {
     include: {
       links: true,
       program: true,
-      discount: true,
     },
   });
 
@@ -29,11 +28,18 @@ export const getEmbedData = async (token: string) => {
     notFound();
   }
 
-  const reward = await determinePartnerReward({
-    programId,
-    partnerId,
-    event: "sale",
-  });
+  const [reward, discount] = await Promise.all([
+    determinePartnerReward({
+      programId,
+      partnerId,
+      event: "sale",
+    }),
+
+    determinePartnerDiscount({
+      programId,
+      partnerId,
+    }),
+  ]);
 
   const { program, links } = programEnrollment;
 
@@ -52,9 +58,7 @@ export const getEmbedData = async (token: string) => {
     program,
     links,
     reward,
-    discount: programEnrollment.discount
-      ? DiscountSchema.parse(programEnrollment.discount)
-      : null,
+    discount,
     payouts: payouts.map((payout) => ({
       status: payout.status,
       amount: payout._sum.amount ?? 0,

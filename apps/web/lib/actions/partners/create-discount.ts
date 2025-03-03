@@ -18,10 +18,9 @@ export const createDiscountAction = authActionClient
     });
 
     let isDefault = true;
-    let programEnrollments: { id: string }[] = [];
 
     if (partnerIds) {
-      programEnrollments = await prisma.programEnrollment.findMany({
+      const programEnrollments = await prisma.programEnrollment.findMany({
         where: {
           programId,
           partnerId: {
@@ -30,11 +29,20 @@ export const createDiscountAction = authActionClient
         },
         select: {
           id: true,
+          discountId: true,
         },
       });
 
       if (programEnrollments.length !== partnerIds.length) {
         throw new Error("Invalid partner IDs provided.");
+      }
+
+      const partnersWithDiscounts = programEnrollments.filter(
+        (pe) => pe.discountId,
+      );
+
+      if (partnersWithDiscounts.length > 0) {
+        throw new Error("Partners cannot belong to more than one discount.");
       }
 
       isDefault = false;
