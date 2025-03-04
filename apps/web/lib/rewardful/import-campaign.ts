@@ -38,11 +38,11 @@ export async function importCampaign({ programId }: { programId: string }) {
       reward_type === "amount" ? commission_amount_cents : commission_percent,
   };
 
+  let rewardId: string | null = null;
+
   const rewardFound = await prisma.reward.findFirst({
     where: newReward,
   });
-
-  let rewardId: string | null = null;
 
   if (!rewardFound) {
     const reward = await prisma.reward.create({
@@ -64,13 +64,15 @@ export async function importCampaign({ programId }: { programId: string }) {
     }
 
     rewardId = reward.id;
+  } else {
+    rewardId = rewardFound.id;
   }
 
   return await rewardfulImporter.queue({
     programId,
     // we will only need to assign rewardId to affiliates
     // if it's not the defaultRewardId of the program (there's already a defaultRewardId)
-    ...(defaultRewardId && rewardId && { rewardId }),
+    ...(defaultRewardId && { rewardId }),
     action: "import-affiliates",
   });
 }
