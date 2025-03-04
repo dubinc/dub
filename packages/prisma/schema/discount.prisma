@@ -17,10 +17,9 @@ model Discount {
   defaultForProgram  Program?            @relation("ProgramDefaultDiscount")
   program            Program             @relation("ProgramDiscounts", fields: [programId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-  // TO be removed
-  workspaceId String
-  duration    Int?
-  interval    CommissionInterval?
+  // Remove these fields after running the migration
+  duration Int?
+  interval CommissionInterval?
 
   @@index(programId)
 }

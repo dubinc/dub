@@ -23,11 +23,8 @@ export const updateDiscountAction = authActionClient
       discountId,
     });
 
-    const isDefault = program.defaultDiscountId === discountId;
-    let programEnrollments: { id: string }[] = [];
-
     if (partnerIds) {
-      programEnrollments = await prisma.programEnrollment.findMany({
+      const programEnrollments = await prisma.programEnrollment.findMany({
         where: {
           programId,
           partnerId: {
@@ -43,6 +40,8 @@ export const updateDiscountAction = authActionClient
         throw new Error("Invalid partner IDs provided.");
       }
     }
+
+    const isDefault = program.defaultDiscountId === discountId;
 
     if (isDefault && partnerIds) {
       throw new Error("Default discount cannot be updated with partners.");
