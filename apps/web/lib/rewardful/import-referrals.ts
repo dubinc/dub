@@ -1,7 +1,7 @@
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { Program, Project } from "@prisma/client";
-import { createId } from "../api/utils";
+import { createId } from "../api/create-id";
 import { recordClick } from "../tinybird/record-click";
 import { recordLeadWithTimestamp } from "../tinybird/record-lead";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";

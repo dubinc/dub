@@ -1,8 +1,8 @@
 import { prisma } from "@dub/prisma";
 import { Program } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
+import { createId } from "../api/create-id";
 import { bulkCreateLinks } from "../api/links";
-import { createId } from "../api/utils";
 import { RewardfulApi } from "./api";
 import { MAX_BATCHES, rewardfulImporter } from "./importer";
 import { RewardfulAffiliate } from "./types";

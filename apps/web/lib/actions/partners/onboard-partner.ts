@@ -1,6 +1,6 @@
 "use server";
 
-import { createId } from "@/lib/api/utils";
+import { createId } from "@/lib/api/create-id";
 import { completeProgramApplications } from "@/lib/partners/complete-program-applications";
 import { storage } from "@/lib/storage";
 import { createConnectedAccount } from "@/lib/stripe/create-connected-account";

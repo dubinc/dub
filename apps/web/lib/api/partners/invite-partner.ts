@@ -5,7 +5,7 @@ import { PartnerInvite } from "@dub/email/templates/partner-invite";
 import { prisma } from "@dub/prisma";
 import { Link } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
-import { createId } from "../utils";
+import { createId } from "../create-id";
 
 export const invitePartner = async ({
   email,

@@ -1,8 +1,8 @@
 "use server";
 
 import { getEvents } from "@/lib/analytics/get-events";
+import { createId } from "@/lib/api/create-id";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
-import { createId } from "@/lib/api/utils";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { SaleEvent } from "@/lib/types";
 import { prisma } from "@dub/prisma";

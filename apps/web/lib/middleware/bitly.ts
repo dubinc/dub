@@ -6,7 +6,8 @@ import {
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { ExpandedLink } from "../api/links";
-import { createId } from "../api/utils";
+
+import { createId } from "../api/create-id";
 import { EdgeLinkProps } from "../planetscale";
 import { conn } from "../planetscale/connection";
 import { recordLink } from "../tinybird/record-link";
