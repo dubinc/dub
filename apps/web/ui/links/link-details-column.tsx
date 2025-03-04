@@ -201,7 +201,7 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
 
   return isMobile ? (
     <Link
-      href={`/${slug}/analytics?domain=${domain}&key=${key}&interval=${plan === "free" ? "30d" : plan === "pro" ? "1y" : "all"}`}
+      href={`/${slug}/analytics?domain=${domain}&key=${key}`}
       className="flex items-center gap-1 rounded-md border border-neutral-200 bg-neutral-50 px-2 py-0.5 text-sm text-neutral-800"
     >
       <CursorRays className="h-4 w-4 text-neutral-600" />
