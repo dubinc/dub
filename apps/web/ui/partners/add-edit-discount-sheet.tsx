@@ -11,7 +11,7 @@ import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DiscountProps } from "@/lib/types";
 import { createDiscountSchema } from "@/lib/zod/schemas/discount";
-import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/rewards";
+import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import { SelectEligiblePartnersSheet } from "@/ui/partners/select-eligible-partners-sheet";
 import { X } from "@/ui/shared/icons";
 import {
@@ -319,60 +319,9 @@ function DiscountSheetContent({
                   transition={{ ease: "easeInOut", duration: 0.2 }}
                 >
                   <div className="p-1">
-                    <div className="mt-6 space-y-4">
-                      <div>
-                        <label
-                          htmlFor="couponId"
-                          className="text-sm font-medium text-neutral-800"
-                        >
-                          Stripe coupon ID
-                        </label>
-                        <div className="relative mt-2 rounded-md shadow-sm">
-                          <input
-                            className={cn(
-                              "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                              errors.couponId &&
-                                "border-red-600 pr-7 focus:border-red-500 focus:ring-red-600",
-                            )}
-                            {...register("couponId")}
-                          />
-                        </div>
-
-                        <p className="mt-1 text-xs text-neutral-500">
-                          Learn more about{" "}
-                          <a
-                            href="https://docs.stripe.com/billing/subscriptions/coupons"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="underline"
-                          >
-                            Stripe coupon codes here
-                          </a>
-                        </p>
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="couponTestId"
-                          className="text-sm font-medium text-neutral-800"
-                        >
-                          Stripe test coupon ID (optional)
-                        </label>
-                        <div className="relative mt-2 rounded-md shadow-sm">
-                          <input
-                            className={cn(
-                              "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                            )}
-                            {...register("couponTestId")}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
                     <div
                       className={cn(
-                        "mt-6 transition-opacity duration-200",
-                        isRecurring ? "h-auto" : "h-0 opacity-0",
+                        "space-y-6 transition-opacity duration-200",
                       )}
                       aria-hidden={!isRecurring}
                       {...{
@@ -437,7 +386,7 @@ function DiscountSheetContent({
                           inert: !isRecurring,
                         }}
                       >
-                        <div className="pt-6">
+                        <div>
                           <label
                             htmlFor="duration"
                             className="text-sm font-medium text-neutral-800"
@@ -464,7 +413,7 @@ function DiscountSheetContent({
                         </div>
                       </div>
 
-                      <div className="pt-6">
+                      <div>
                         <label
                           htmlFor="type"
                           className="text-sm font-medium text-neutral-800"
@@ -482,7 +431,7 @@ function DiscountSheetContent({
                         </div>
                       </div>
 
-                      <div className="pt-6">
+                      <div>
                         <label
                           htmlFor="amount"
                           className="text-sm font-medium text-neutral-800"
@@ -508,6 +457,54 @@ function DiscountSheetContent({
                           <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
                             %
                           </span>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label
+                          htmlFor="couponId"
+                          className="text-sm font-medium text-neutral-800"
+                        >
+                          Stripe coupon ID
+                        </label>
+                        <div className="relative mt-2 rounded-md shadow-sm">
+                          <input
+                            className={cn(
+                              "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                              errors.couponId &&
+                                "border-red-600 pr-7 focus:border-red-500 focus:ring-red-600",
+                            )}
+                            {...register("couponId")}
+                          />
+                        </div>
+
+                        <p className="mt-1 text-xs text-neutral-500">
+                          Learn more about{" "}
+                          <a
+                            href="https://docs.stripe.com/billing/subscriptions/coupons"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="underline"
+                          >
+                            Stripe coupon codes here
+                          </a>
+                        </p>
+                      </div>
+
+                      <div>
+                        <label
+                          htmlFor="couponTestId"
+                          className="text-sm font-medium text-neutral-800"
+                        >
+                          Stripe test coupon ID (optional)
+                        </label>
+                        <div className="relative mt-2 rounded-md shadow-sm">
+                          <input
+                            className={cn(
+                              "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                            )}
+                            {...register("couponTestId")}
+                          />
                         </div>
                       </div>
                     </div>
