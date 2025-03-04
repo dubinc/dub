@@ -22,6 +22,7 @@ export const ProgramSchema = z.object({
   type: z.nativeEnum(ProgramType),
   cookieLength: z.number(),
   defaultRewardId: z.string().nullable(),
+  defaultDiscountId: z.string().nullable(),
   rewards: z.array(RewardSchema).nullish(),
   holdingPeriodDays: z.number(),
 

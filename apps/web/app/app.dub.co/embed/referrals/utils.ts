@@ -1,6 +1,6 @@
 import { referralsEmbedToken } from "@/lib/embed/referrals/token-class";
+import { determinePartnerDiscount } from "@/lib/partners/determine-partner-discount";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
-import { DiscountSchema } from "@/lib/zod/schemas/discount";
 import { prisma } from "@dub/prisma";
 import { notFound } from "next/navigation";
 
@@ -21,7 +21,6 @@ export const getReferralsEmbedData = async (token: string) => {
     include: {
       links: true,
       program: true,
-      discount: true,
     },
   });
 
@@ -29,11 +28,16 @@ export const getReferralsEmbedData = async (token: string) => {
     notFound();
   }
 
-  const [reward, payouts] = await Promise.all([
+  const [reward, discount, payouts] = await Promise.all([
     determinePartnerReward({
       programId,
       partnerId,
       event: "sale",
+    }),
+
+    determinePartnerDiscount({
+      programId,
+      partnerId,
     }),
 
     prisma.payout.groupBy({
@@ -54,9 +58,7 @@ export const getReferralsEmbedData = async (token: string) => {
     program,
     links,
     reward,
-    discount: programEnrollment.discount
-      ? DiscountSchema.parse(programEnrollment.discount)
-      : null,
+    discount,
     payouts: payouts.map((payout) => ({
       status: payout.status,
       amount: payout._sum.amount ?? 0,

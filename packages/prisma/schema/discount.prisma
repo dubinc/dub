@@ -1,21 +1,25 @@
 model Discount {
-  id String     @id @default(cuid())
+  id String @id @default(cuid())
 
-  amount        Int             @default(0)
-  type          CommissionType  @default(percentage)
-  duration      Int?
-  interval      CommissionInterval?
-  couponId      String?
-  couponTestId  String?
+  amount      Int            @default(0)
+  type        CommissionType @default(percentage)
+  maxDuration Int? // in months (0 -> not recurring, null -> lifetime)
 
-  workspaceId   String
-  programId     String
+  couponId     String?
+  couponTestId String?
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  programId String
 
-  program    Program            @relation(fields: [programId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   programEnrollments ProgramEnrollment[]
+  defaultForProgram  Program?            @relation("ProgramDefaultDiscount")
+  program            Program             @relation("ProgramDiscounts", fields: [programId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-  @@index([programId])
+  // Remove these fields after running the migration
+  duration Int?
+  interval CommissionInterval?
+
+  @@index(programId)
 }

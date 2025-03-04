@@ -1,6 +1,5 @@
-import { RewardProps } from "@/lib/types";
+import { DiscountProps, ProgramProps, RewardProps } from "@/lib/types";
 import { ProgramSchema } from "@/lib/zod/schemas/programs";
-import { RewardSchema } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
 import { DubApiError } from "../errors";
 import { getRewardOrThrow } from "../partners/get-reward-or-throw";
@@ -14,30 +13,30 @@ export const getProgramOrThrow = async (
     programId: string;
   },
   {
-    includeDiscounts = false,
+    includeDefaultDiscount = false,
     includeDefaultReward = false,
   }: {
-    includeDiscounts?: boolean;
+    includeDefaultDiscount?: boolean;
     includeDefaultReward?: boolean;
   } = {},
 ) => {
-  const program = await prisma.program.findUnique({
+  const program = (await prisma.program.findUnique({
     where: {
       id: programId,
       workspaceId,
     },
-    ...(includeDiscounts
+
+    ...(includeDefaultDiscount
       ? {
           include: {
-            discounts: {
-              orderBy: {
-                createdAt: "asc",
-              },
-            },
+            defaultDiscount: true,
           },
         }
       : {}),
-  });
+  })) as (ProgramProps & { defaultDiscount: DiscountProps | null }) | null;
+
+  // TODO:
+  // Add a new relation (defaultReward) to fetch the default reward
 
   if (!program) {
     throw new DubApiError({
@@ -53,12 +52,15 @@ export const getProgramOrThrow = async (
       rewardId: program.defaultRewardId,
       programId,
     });
-
-    defaultReward = RewardSchema.parse(defaultReward);
   }
 
   return ProgramSchema.parse({
     ...program,
-    ...(defaultReward ? { rewards: [defaultReward] } : {}),
+    ...(includeDefaultReward && defaultReward
+      ? { rewards: [defaultReward] }
+      : {}),
+    ...(includeDefaultDiscount && program.defaultDiscount
+      ? { discounts: [program.defaultDiscount] }
+      : {}),
   });
 };

@@ -10,7 +10,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
       programId: params.programId,
     },
     {
-      includeDiscounts: true,
+      includeDefaultDiscount: true,
       includeDefaultReward: true,
     },
   );

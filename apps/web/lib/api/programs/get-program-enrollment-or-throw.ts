@@ -12,7 +12,6 @@ export async function getProgramEnrollmentOrThrow({
   const include: Prisma.ProgramEnrollmentInclude = {
     program: true,
     links: true,
-    discount: true,
   };
 
   const programEnrollment = programId.startsWith("prog_")

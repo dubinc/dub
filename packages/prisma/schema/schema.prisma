@@ -22,11 +22,11 @@ model User {
   invalidLoginAttempts Int       @default(0)
   lockedAt             DateTime?
 
-  createdAt        DateTime @default(now())
-  subscribed       Boolean  @default(true) // email subscription
-  source           String? // where the user came from
-  defaultWorkspace String? // slug of the user's default workspace
-  defaultPartnerId String? // the user's default partner ID
+  createdAt             DateTime               @default(now())
+  subscribed            Boolean                @default(true) // email subscription
+  source                String? // where the user came from
+  defaultWorkspace      String? // slug of the user's default workspace
+  defaultPartnerId      String? // the user's default partner ID
   // relational data
   accounts              Account[]
   sessions              Session[]

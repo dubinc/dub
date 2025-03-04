@@ -16,8 +16,8 @@ model Customer {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  project  Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  link     Link?      @relation(fields: [linkId], references: [id])
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  link        Link?        @relation(fields: [linkId], references: [id])
   commissions Commission[]
 
   @@unique([projectId, externalId])
