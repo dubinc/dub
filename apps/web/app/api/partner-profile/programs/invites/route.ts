@@ -15,7 +15,7 @@ export const GET = withPartnerProfile(async ({ session }) => {
     },
   });
 
-  // no need to consider the partner-specific rewards here, as the invite is still pending there is no programEnrollment
+  // no need to consider the partner-specific rewards/discounts here, as the invite is still pending there is no programEnrollment
   const [programWideRewards, programWideDiscounts] = await Promise.all([
     prisma.reward.findMany({
       where: {

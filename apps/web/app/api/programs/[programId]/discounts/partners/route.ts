@@ -13,15 +13,17 @@ export const GET = withWorkspace(
     const { discountId, page, pageSize } =
       discountPartnersQuerySchema.parse(searchParams);
 
-    await getProgramOrThrow({
-      workspaceId: workspace.id,
-      programId,
-    });
+    await Promise.all([
+      getProgramOrThrow({
+        workspaceId: workspace.id,
+        programId,
+      }),
 
-    await getDiscountOrThrow({
-      programId,
-      discountId,
-    });
+      getDiscountOrThrow({
+        programId,
+        discountId,
+      }),
+    ]);
 
     const partners = await prisma.programEnrollment.findMany({
       where: {
