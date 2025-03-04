@@ -15,10 +15,15 @@ export default function useSalesCount(
   const { getQueryString } = useRouterStuff();
 
   const { data: salesCount, error } = useSWR<SalesCount>(
-    `/api/programs/${programId}/sales/count${getQueryString({
-      workspaceId,
-      ...opts,
-    })}`,
+    `/api/programs/${programId}/sales/count${getQueryString(
+      {
+        workspaceId,
+        ...opts,
+      },
+      {
+        exclude: ["view"],
+      },
+    )}`,
     fetcher,
   );
 
