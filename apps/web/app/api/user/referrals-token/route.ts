@@ -23,7 +23,7 @@ export const GET = withSession(async ({ session }) => {
     },
   };
 
-  const { publicToken } = await fetch(`${API_DOMAIN}/tokens/embed`, {
+  const { publicToken } = await fetch(`${API_DOMAIN}/tokens/embed/referrals`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

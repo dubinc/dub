@@ -7,9 +7,10 @@ import { ZodOpenApiOperationObject } from "zod-openapi";
 
 export const createReferralsEmbedToken: ZodOpenApiOperationObject = {
   operationId: "createReferralsEmbedToken",
-  "x-speakeasy-name-override": "create",
-  summary: "Create a new embed token",
-  description: "Create a new embed token for the referral link.",
+  "x-speakeasy-name-override": "referrals",
+  summary: "Create a new referrals embed token",
+  description:
+    "Create a new referrals embed token for the given partner/tenant.",
   requestBody: {
     content: {
       "application/json": {

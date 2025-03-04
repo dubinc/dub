@@ -12,7 +12,7 @@ import { prisma } from "@dub/prisma";
 import { ProgramEnrollment } from "@prisma/client";
 import { NextResponse } from "next/server";
 
-// POST /api/tokens/embed - create a new embed token for the given partner/tenant
+// POST /api/tokens/embed/referrals - create a new embed token for the given partner/tenant
 export const POST = withWorkspace(
   async ({ workspace, req, session }) => {
     const {
