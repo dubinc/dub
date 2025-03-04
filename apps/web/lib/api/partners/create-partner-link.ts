@@ -26,7 +26,7 @@ export const createPartnerLink = async ({
   program: Pick<ProgramProps, "defaultFolderId" | "domain" | "url" | "id">;
   partner: Pick<
     CreatePartnerProps,
-    "tenantId" | "linkProps" | "name" | "email" | "username"
+    "name" | "email" | "username" | "tenantId" | "linkProps"
   >;
   userId: string;
   partnerId?: string;
