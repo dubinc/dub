@@ -11,7 +11,7 @@ import {
 import { TAB_ITEM_ANIMATION_SETTINGS } from "@dub/utils";
 import { motion } from "framer-motion";
 
-export function EmbedFAQ({
+export function ReferralsEmbedFAQ({
   program,
   reward,
 }: {

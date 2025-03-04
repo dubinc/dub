@@ -27,8 +27,6 @@ model User {
   source           String? // where the user came from
   defaultWorkspace String? // slug of the user's default workspace
   defaultPartnerId String? // the user's default partner ID
-  dubPartnerId     String? // this user's dub partner ID
-
   // relational data
   accounts              Account[]
   sessions              Session[]

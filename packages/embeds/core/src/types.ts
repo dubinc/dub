@@ -18,6 +18,9 @@ export type DubEmbedOptions = {
 
   // The styles for the embed container
   containerStyles?: Partial<CSSStyleDeclaration>;
+
+  // The data type for the embed
+  data?: "referrals" | "analytics";
 };
 
 export interface IframeMessage {

@@ -1,11 +1,11 @@
-import { embedToken } from "@/lib/embed/embed-token";
+import { referralsEmbedToken } from "@/lib/embed/referrals/token-class";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { DiscountSchema } from "@/lib/zod/schemas/discount";
 import { prisma } from "@dub/prisma";
 import { notFound } from "next/navigation";
 
-export const getEmbedData = async (token: string) => {
-  const { programId, partnerId } = (await embedToken.get(token)) ?? {};
+export const getReferralsEmbedData = async (token: string) => {
+  const { programId, partnerId } = (await referralsEmbedToken.get(token)) ?? {};
 
   if (!programId || !partnerId) {
     notFound();
@@ -29,24 +29,26 @@ export const getEmbedData = async (token: string) => {
     notFound();
   }
 
-  const reward = await determinePartnerReward({
-    programId,
-    partnerId,
-    event: "sale",
-  });
+  const [reward, payouts] = await Promise.all([
+    determinePartnerReward({
+      programId,
+      partnerId,
+      event: "sale",
+    }),
+
+    prisma.payout.groupBy({
+      by: ["status"],
+      _sum: {
+        amount: true,
+      },
+      where: {
+        programId,
+        partnerId,
+      },
+    }),
+  ]);
 
   const { program, links } = programEnrollment;
-
-  const payouts = await prisma.payout.groupBy({
-    by: ["status"],
-    _sum: {
-      amount: true,
-    },
-    where: {
-      programId: program.id,
-      partnerId: programEnrollment?.partnerId,
-    },
-  });
 
   return {
     program,
