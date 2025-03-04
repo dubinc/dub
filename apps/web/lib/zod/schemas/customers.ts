@@ -72,8 +72,8 @@ export const CustomerSchema = z.object({
   partner: z
     .object({
       id: z.string(),
-      name: z.string(),
-      email: z.string(),
+      name: z.string().nullish(),
+      email: z.string().nullish(),
       image: z.string().nullish(),
     })
     .nullish(),
