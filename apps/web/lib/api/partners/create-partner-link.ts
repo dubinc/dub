@@ -8,6 +8,7 @@ import {
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
 import { nanoid } from "@dub/utils";
+import slugify from "@sindresorhus/slugify";
 import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
 import { createLink } from "../links/create-link";
@@ -23,7 +24,10 @@ export const createPartnerLink = async ({
 }: {
   workspace: Pick<WorkspaceProps, "id" | "plan" | "webhookEnabled">;
   program: Pick<ProgramProps, "defaultFolderId" | "domain" | "url" | "id">;
-  partner: Pick<CreatePartnerProps, "tenantId" | "linkProps" | "username">;
+  partner: Pick<
+    CreatePartnerProps,
+    "tenantId" | "linkProps" | "name" | "email" | "username"
+  >;
   userId: string;
   partnerId?: string;
 }) => {
@@ -35,12 +39,21 @@ export const createPartnerLink = async ({
     });
   }
 
-  const { username } = partner;
+  const { name, email, username } = partner;
 
   let link: ProcessedLinkProps;
   let error: string | null;
   let code: ErrorCodes | null;
-  let currentKey = username ?? nanoid();
+
+  // generate a key for the link
+  let currentKey = "";
+  if (username) {
+    currentKey = username;
+  } else if (name) {
+    currentKey = slugify(name);
+  } else {
+    currentKey = slugify(email.split("@")[0]);
+  }
 
   while (true) {
     const result = await processLink({
@@ -63,7 +76,7 @@ export const createPartnerLink = async ({
       result.code === "conflict" &&
       result.error.startsWith("Duplicate key")
     ) {
-      currentKey = username + nanoid(4).toLowerCase();
+      currentKey = `${username}-${nanoid(4).toLowerCase()}`;
       continue;
     }
 
