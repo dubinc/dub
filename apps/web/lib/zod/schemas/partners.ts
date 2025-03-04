@@ -186,6 +186,7 @@ export const onboardPartnerSchema = createPartnerSchema
   .omit({
     programId: true,
     username: true,
+    email: true,
     linkProps: true,
   })
   .merge(
