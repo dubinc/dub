@@ -71,26 +71,44 @@ export const GET = withWorkspace(
         : {}),
     })) as CustomerResponse[];
 
-    const firstPurchaseMap = new Map();
+    const discounts: Map<string, Discount | null> = new Map();
 
-    const firstPurchases = await prisma.commission.findMany({
-      where: {
-        customerId: {
-          in: customers.map((customer) => customer.id),
+    if (includeExpandedFields) {
+      const firstPurchases = await prisma.commission.findMany({
+        where: {
+          customerId: {
+            in: customers.map((customer) => customer.id),
+          },
+          type: "sale",
         },
-        type: "sale",
-      },
-      orderBy: {
-        createdAt: "asc",
-      },
-      distinct: ["customerId"],
-    });
+        select: {
+          customerId: true,
+          createdAt: true,
+        },
+        orderBy: {
+          createdAt: "asc",
+        },
+        distinct: ["customerId"],
+      });
 
-    firstPurchases.forEach((purchase) => {
-      if (!firstPurchaseMap.has(purchase.customerId)) {
-        firstPurchaseMap.set(purchase.customerId, purchase);
-      }
-    });
+      const firstPurchaseMap = new Map();
+
+      firstPurchases.forEach((purchase) => {
+        if (!firstPurchaseMap.has(purchase.customerId)) {
+          firstPurchaseMap.set(purchase.customerId, purchase);
+        }
+      });
+
+      customers.forEach((customer) => {
+        discounts.set(
+          customer.id,
+          determineCustomerDiscount({
+            customerLink: customer.link,
+            firstPurchase: firstPurchaseMap.get(customer.id),
+          }),
+        );
+      });
+    }
 
     // TODO:
     // Test customers with no first purchase
@@ -98,10 +116,7 @@ export const GET = withWorkspace(
     const processedCustomers = customers.map((customer) => {
       return {
         ...customer,
-        discount: determineCustomerDiscount(
-          customer,
-          firstPurchaseMap.get(customer.id),
-        ),
+        discount: discounts.get(customer.id),
       };
     });
 

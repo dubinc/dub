@@ -2,24 +2,27 @@ import { Commission, Discount } from "@prisma/client";
 import { differenceInMonths } from "date-fns";
 
 type CustomerWithLink = {
-  link: {
-    programEnrollment: {
-      program: {
-        defaultDiscount: Discount;
+  link?: {
+    programEnrollment?: {
+      discount?: Discount | null;
+      program?: {
+        defaultDiscount?: Discount;
       };
-      discount: Discount | null;
-    };
-  };
+    } | null;
+  } | null;
 };
 
-export const determineCustomerDiscount = (
-  customer: CustomerWithLink,
-  firstPurchase: Pick<Commission, "createdAt"> | null,
-) => {
+export const determineCustomerDiscount = ({
+  customerLink,
+  firstPurchase,
+}: {
+  customerLink: CustomerWithLink["link"];
+  firstPurchase: Pick<Commission, "createdAt"> | null;
+}) => {
   // Use the partner discount or fallback to the program discount
   const discount =
-    customer.link?.programEnrollment?.discount ||
-    customer.link?.programEnrollment?.program.defaultDiscount ||
+    customerLink?.programEnrollment?.discount ||
+    customerLink?.programEnrollment?.program?.defaultDiscount ||
     null;
 
   if (!discount) {
