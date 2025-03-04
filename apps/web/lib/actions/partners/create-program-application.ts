@@ -1,6 +1,7 @@
 "use server";
 
-import { createId, getIP } from "@/lib/api/utils";
+import { createId } from "@/lib/api/create-id";
+import { getIP } from "@/lib/api/utils";
 import { getSession } from "@/lib/auth";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
