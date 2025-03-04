@@ -1,6 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { CommissionType, EventType } from "@dub/prisma/client";
-import { createId } from "../api/utils";
+import { createId } from "../api/create-id";
 import { RewardfulApi } from "./api";
 import { rewardfulImporter } from "./importer";
 
