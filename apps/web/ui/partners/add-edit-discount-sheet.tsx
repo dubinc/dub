@@ -321,7 +321,7 @@ function DiscountSheetContent({
                   <div className="p-1">
                     <div
                       className={cn(
-                        "space-y-6 transition-opacity duration-200",
+                        "space-y-4 transition-opacity duration-200",
                       )}
                       aria-hidden={!isRecurring}
                       {...{
@@ -376,42 +376,35 @@ function DiscountSheetContent({
                         )}
                       </div>
 
-                      <div
-                        className={cn(
-                          "transition-opacity duration-200",
-                          isRecurring ? "h-auto" : "h-0 opacity-0",
-                        )}
-                        aria-hidden={!isRecurring}
-                        {...{
-                          inert: !isRecurring,
-                        }}
-                      >
-                        <div>
-                          <label
-                            htmlFor="duration"
-                            className="text-sm font-medium text-neutral-800"
-                          >
-                            Duration
-                          </label>
-                          <div className="relative mt-2 rounded-md shadow-sm">
-                            <select
-                              className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                              {...register("maxDuration", {
-                                valueAsNumber: true,
-                              })}
+                      {isRecurring && (
+                        <div className="space-y-4">
+                          <div>
+                            <label
+                              htmlFor="duration"
+                              className="text-sm font-medium text-neutral-800"
                             >
-                              {RECURRING_MAX_DURATIONS.filter(
-                                (v) => v !== 0,
-                              ).map((v) => (
-                                <option value={v} key={v}>
-                                  {v} {pluralize("month", Number(v))}
-                                </option>
-                              ))}
-                              <option value={Infinity}>Lifetime</option>
-                            </select>
+                              Duration
+                            </label>
+                            <div className="relative mt-2 rounded-md shadow-sm">
+                              <select
+                                className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                                {...register("maxDuration", {
+                                  valueAsNumber: true,
+                                })}
+                              >
+                                {RECURRING_MAX_DURATIONS.filter(
+                                  (v) => v !== 0,
+                                ).map((v) => (
+                                  <option value={v} key={v}>
+                                    {v} {pluralize("month", Number(v))}
+                                  </option>
+                                ))}
+                                <option value={Infinity}>Lifetime</option>
+                              </select>
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      )}
 
                       <div>
                         <label
