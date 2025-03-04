@@ -64,12 +64,9 @@ export function ProgramRewardDescription({
                 for their lifetime
               </strong>
             ) : discount.maxDuration && discount.maxDuration > 1 ? (
-              <>
-                and again{" "}
-                <strong className={cn("font-semibold", periodClassName)}>
-                  every month for {discount.maxDuration} months
-                </strong>
-              </>
+              <strong className={cn("font-semibold", periodClassName)}>
+                for {discount.maxDuration} months
+              </strong>
             ) : (
               " for their first purchase"
             )}

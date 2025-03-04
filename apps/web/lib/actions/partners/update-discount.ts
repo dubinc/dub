@@ -43,7 +43,7 @@ export const updateDiscountAction = authActionClient
 
     const isDefault = program.defaultDiscountId === discountId;
 
-    if (isDefault && partnerIds) {
+    if (isDefault && partnerIds && partnerIds.length > 0) {
       throw new Error("Default discount cannot be updated with partners.");
     }
 
@@ -57,7 +57,7 @@ export const updateDiscountAction = authActionClient
       },
     });
 
-    if (partnerIds) {
+    if (partnerIds && partnerIds.length > 0) {
       await prisma.programEnrollment.updateMany({
         where: {
           programId,
