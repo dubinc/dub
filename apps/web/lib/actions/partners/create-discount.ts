@@ -10,7 +10,13 @@ export const createDiscountAction = authActionClient
   .schema(createDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { programId, partnerIds, amount, type, maxDuration } = parsedInput;
+    const {
+      workspaceId,
+      programId,
+      partnerIds,
+      discountSource,
+      ...discountData
+    } = parsedInput;
 
     const program = await getProgramOrThrow({
       workspaceId: workspace.id,
@@ -56,9 +62,7 @@ export const createDiscountAction = authActionClient
       data: {
         id: createId({ prefix: "dis_" }),
         programId,
-        type,
-        amount,
-        maxDuration,
+        ...discountData,
       },
     });
 

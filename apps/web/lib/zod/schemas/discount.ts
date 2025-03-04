@@ -5,7 +5,7 @@ import { RECURRING_MAX_DURATIONS } from "./rewards";
 
 export const DiscountSchema = z.object({
   id: z.string(),
-  amount: z.number(),
+  amount: z.number().nullable(),
   type: z.nativeEnum(CommissionType),
   maxDuration: z.number().nullable(),
   couponId: z.string().nullable(),
@@ -13,7 +13,14 @@ export const DiscountSchema = z.object({
   partnersCount: z.number().nullish(),
 });
 
-export const createDiscountSchema = z.object({
+const baseDiscountSchema = z.object({
+  workspaceId: z.string(),
+  programId: z.string(),
+  partnerIds: z.array(z.string()).nullish(),
+});
+
+const manualDiscountSchema = baseDiscountSchema.extend({
+  discountSource: z.literal("manual"),
   amount: z.number().min(0),
   type: z.nativeEnum(CommissionType).default("flat"),
   maxDuration: z.coerce
@@ -22,16 +29,23 @@ export const createDiscountSchema = z.object({
       message: `Max duration must be ${RECURRING_MAX_DURATIONS.join(", ")}`,
     })
     .nullish(),
-  partnerIds: z.array(z.string()).nullish(),
-  workspaceId: z.string(),
-  programId: z.string(),
 });
 
-export const updateDiscountSchema = createDiscountSchema.merge(
-  z.object({
-    discountId: z.string(),
-  }),
-);
+const stripeDiscountSchema = baseDiscountSchema.extend({
+  discountSource: z.literal("stripe"),
+  couponId: z.string(),
+  couponTestId: z.string().nullish(),
+});
+
+export const createDiscountSchema = z.discriminatedUnion("discountSource", [
+  manualDiscountSchema,
+  stripeDiscountSchema,
+]);
+
+export const updateDiscountSchema = z.discriminatedUnion("discountSource", [
+  manualDiscountSchema.extend({ discountId: z.string() }),
+  stripeDiscountSchema.extend({ discountId: z.string() }),
+]);
 
 export const discountPartnersQuerySchema = z
   .object({
