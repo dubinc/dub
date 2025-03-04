@@ -17,7 +17,7 @@ export const determineCustomerDiscount = ({
   firstPurchase,
 }: {
   customerLink: CustomerWithLink["link"];
-  firstPurchase: Pick<Commission, "createdAt"> | null;
+  firstPurchase?: Pick<Commission, "createdAt"> | null;
 }) => {
   // Use the partner discount or fallback to the program discount
   const discount =

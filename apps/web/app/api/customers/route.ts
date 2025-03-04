@@ -91,13 +91,9 @@ export const GET = withWorkspace(
         distinct: ["customerId"],
       });
 
-      const firstPurchaseMap = new Map();
-
-      firstPurchases.forEach((purchase) => {
-        if (!firstPurchaseMap.has(purchase.customerId)) {
-          firstPurchaseMap.set(purchase.customerId, purchase);
-        }
-      });
+      const firstPurchaseMap = new Map(
+        firstPurchases.map((purchase) => [purchase.customerId, purchase]),
+      );
 
       customers.forEach((customer) => {
         discounts.set(
