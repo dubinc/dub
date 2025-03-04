@@ -8,7 +8,7 @@ import { usePathname } from "next/navigation";
 export function ReferButton() {
   const pathname = usePathname();
 
-  if (pathname === "/account/settings/referrals" && !SHOW_EMBEEDED_REFERRALS) {
+  if (pathname === "/account/settings/referrals" || !SHOW_EMBEEDED_REFERRALS) {
     return null;
   }
 
