@@ -170,7 +170,6 @@ export interface UserProps {
   source: string | null;
   defaultWorkspace?: string;
   defaultPartnerId?: string;
-  dubPartnerId?: string;
   isMachine: boolean;
   hasPassword: boolean;
   provider: string | null;

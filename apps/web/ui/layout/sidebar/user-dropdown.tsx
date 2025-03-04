@@ -37,15 +37,13 @@ export default function UserDropdown() {
             href="/account/settings"
             onClick={() => setOpenPopover(false)}
           />
-          {session?.user?.["dubPartnerId"] && (
-            <UserOption
-              as={Link}
-              label="Refer and earn"
-              icon={Gift}
-              href="/account/settings/referrals"
-              onClick={() => setOpenPopover(false)}
-            />
-          )}
+          <UserOption
+            as={Link}
+            label="Refer and earn"
+            icon={Gift}
+            href="/account/settings/referrals"
+            onClick={() => setOpenPopover(false)}
+          />
           <UserOption
             as="button"
             type="button"

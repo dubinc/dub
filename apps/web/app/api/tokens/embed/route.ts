@@ -36,8 +36,9 @@ export const POST = withWorkspace(
       });
     }
 
-    // check if the partner exists based on the email and create or enroll them
-    else if (partnerProps) {
+    // if there is no programEnrollment associated with the partnerId or tenantId, and partnerProps are provided
+    // check if the partner exists based on the email – if not, create them, if yes, enroll them
+    if (!programEnrollment && partnerProps) {
       const program = await prisma.program.findUnique({
         where: {
           id: programId,

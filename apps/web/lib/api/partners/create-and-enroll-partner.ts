@@ -97,7 +97,7 @@ export const createAndEnrollPartner = async ({
       name: partner.name,
       email: partner.email,
       image: partner.image,
-      country: partner.country ?? "US",
+      country: partner.country,
       description: partner.description,
     },
     include: {

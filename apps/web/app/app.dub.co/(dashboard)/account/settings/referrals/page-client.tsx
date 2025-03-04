@@ -6,23 +6,14 @@ import { DubEmbed } from "@dub/embed-react";
 import { CursorRays, Hyperlink, InvoiceDollar, UserCheck } from "@dub/ui/icons";
 import { fetcher } from "@dub/utils";
 import { useSession } from "next-auth/react";
-import { useEffect } from "react";
 import useSWRImmutable from "swr/immutable";
 
 export function ReferralsPageClient() {
-  const { data: session, status, update } = useSession();
-  const dubPartnerId = session?.user?.["dubPartnerId"];
-
-  useEffect(() => {
-    if (session && !dubPartnerId) {
-      console.log("no dubPartnerId found, updating session...");
-      update();
-    }
-  }, [session, dubPartnerId]);
+  const { data: session, status } = useSession();
 
   const { data: { publicToken } = {}, isLoading } = useSWRImmutable<{
     publicToken: string;
-  }>(dubPartnerId && "/api/user/embed-tokens", fetcher, {
+  }>(session && "/api/user/embed-tokens", fetcher, {
     keepPreviousData: true,
   });
 
@@ -30,7 +21,7 @@ export function ReferralsPageClient() {
     return <LayoutLoader />;
   }
 
-  if (!dubPartnerId || !publicToken) {
+  if (!publicToken) {
     return (
       <AnimatedEmptyState
         title="Refer a friend"
