@@ -1,4 +1,5 @@
 import { APP_DOMAIN } from "@dub/utils";
+import { EdgeLinkProps } from "../planetscale";
 
 // Create a new Bitly-hosted link to Dub on-demand (e.g. buff.ly)
 export const importBitlyLink = async ({
@@ -18,7 +19,7 @@ export const importBitlyLink = async ({
       return null;
     }
 
-    return await result.json();
+    return (await result.json()) as EdgeLinkProps;
   } catch (e) {
     console.error("[Bitly] Error crawling Bitly link", e);
     return null;

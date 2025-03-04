@@ -1,6 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { ExpandedLink } from "@/lib/api/links";
-import { conn, EdgeLinkProps } from "@/lib/planetscale";
+import { conn } from "@/lib/planetscale";
 import { recordLink } from "@/lib/tinybird/record-link";
 import { redis } from "@/lib/upstash";
 import { getUrlFromStringIfValid, linkConstructorSimple } from "@dub/utils";
@@ -89,7 +89,7 @@ export const POST = async (req: Request) => {
       } as unknown as ExpandedLink),
     );
 
-    return NextResponse.json(newLink) as unknown as EdgeLinkProps;
+    return NextResponse.json(newLink);
   } catch (error) {
     console.error("[Bitly] Error creating link", error);
     return NextResponse.json({ error: "Not found" }, { status: 404 });
