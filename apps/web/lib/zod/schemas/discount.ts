@@ -4,7 +4,7 @@ import { getPaginationQuerySchema, maxDurationSchema } from "./misc";
 
 export const DiscountSchema = z.object({
   id: z.string(),
-  amount: z.number().nullable(),
+  amount: z.number(),
   type: z.nativeEnum(CommissionType),
   maxDuration: z.number().nullable(),
   couponId: z.string().nullable(),
