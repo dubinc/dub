@@ -13,8 +13,8 @@ import {
 } from "@dub/utils";
 import { linkConstructorSimple } from "@dub/utils/src/functions/link-constructor";
 import { waitUntil } from "@vercel/functions";
+import { createId } from "../create-id";
 import { combineTagIds } from "../tags/combine-tag-ids";
-import { createId } from "../utils";
 import { linkCache } from "./cache";
 import { includeTags } from "./include-tags";
 import { updateLinksUsage } from "./update-links-usage";

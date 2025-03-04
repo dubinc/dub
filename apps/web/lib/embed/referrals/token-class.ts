@@ -1,5 +1,6 @@
 import { redis } from "@/lib/upstash";
-import { createId } from "../../api/utils";
+
+import { createId } from "@/lib/api/create-id";
 import {
   EMBED_PUBLIC_TOKEN_EXPIRY,
   EMBED_PUBLIC_TOKEN_LENGTH,

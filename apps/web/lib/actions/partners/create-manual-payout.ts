@@ -1,8 +1,8 @@
 "use server";
 
 import { getAnalytics } from "@/lib/analytics/get-analytics";
+import { createId } from "@/lib/api/create-id";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
-import { createId } from "@/lib/api/utils";
 import { createManualPayoutSchema } from "@/lib/zod/schemas/payouts";
 import { prisma } from "@dub/prisma";
 import { authActionClient } from "../safe-action";
