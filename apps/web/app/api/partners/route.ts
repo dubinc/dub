@@ -171,6 +171,8 @@ export const POST = withWorkspace(
       workspace,
       program,
       partner: {
+        name,
+        email,
         tenantId,
         username,
         linkProps,
