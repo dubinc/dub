@@ -10,7 +10,6 @@ import { useParams } from "next/navigation";
 export function SaleStats() {
   const { slug, programId } = useParams();
   const { queryParams } = useRouterStuff();
-
   const { salesCount, error } = useSalesCount();
 
   return (
