@@ -13,7 +13,7 @@ export function ReferralsPageClient() {
 
   const { data: { publicToken } = {}, isLoading } = useSWRImmutable<{
     publicToken: string;
-  }>(session && "/api/user/embed-tokens", fetcher, {
+  }>(session && "/api/user/referrals-token", fetcher, {
     keepPreviousData: true,
   });
 
