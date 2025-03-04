@@ -5,8 +5,8 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { embedToken } from "@/lib/embed/embed-token";
 import {
-  createEmbedTokenSchema,
-  EmbedTokenSchema,
+  createReferralsEmbedTokenSchema,
+  ReferralsEmbedTokenSchema,
 } from "@/lib/zod/schemas/token";
 import { prisma } from "@dub/prisma";
 import { ProgramEnrollment } from "@prisma/client";
@@ -20,7 +20,7 @@ export const POST = withWorkspace(
       partnerId,
       tenantId,
       partner: partnerProps,
-    } = createEmbedTokenSchema.parse(await parseRequestBody(req));
+    } = createReferralsEmbedTokenSchema.parse(await parseRequestBody(req));
 
     let programEnrollment: Pick<ProgramEnrollment, "partnerId"> | null = null;
 
@@ -118,7 +118,7 @@ export const POST = withWorkspace(
       partnerId: programEnrollment.partnerId,
     });
 
-    return NextResponse.json(EmbedTokenSchema.parse(response), {
+    return NextResponse.json(ReferralsEmbedTokenSchema.parse(response), {
       status: 201,
     });
   },

@@ -1,9 +1,9 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
-import { withEmbedToken } from "@/lib/embed/auth";
+import { withReferralsEmbedToken } from "@/lib/embed/auth";
 import { NextResponse } from "next/server";
 
-// GET /api/embed/analytics – get timeseries analytics for a partner
-export const GET = withEmbedToken(async ({ programId, partnerId }) => {
+// GET /api/embed/referrals/analytics – get timeseries analytics for a partner
+export const GET = withReferralsEmbedToken(async ({ programId, partnerId }) => {
   const analytics = await getAnalytics({
     event: "composite",
     groupBy: "timeseries",

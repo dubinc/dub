@@ -1,5 +1,5 @@
 import { withSession } from "@/lib/auth";
-import { createEmbedTokenSchema } from "@/lib/zod/schemas/token";
+import { createReferralsEmbedTokenSchema } from "@/lib/zod/schemas/token";
 import { API_DOMAIN } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -10,14 +10,14 @@ export const GET = withSession(async ({ session }) => {
   //   partnerId: dubPartnerId,
   // });
 
-  const partnerProps: z.infer<typeof createEmbedTokenSchema> = {
+  const partnerProps: z.infer<typeof createReferralsEmbedTokenSchema> = {
     programId: "prog_d8pl69xXCv4AoHNT281pHQdo",
     tenantId: session.user.id,
     partner: {
       name: session.user.name,
       email: session.user.email,
       image: session.user.image || null,
-      // here we don't have to worry about duplicates since createEmbedToken takes care of this for us
+      // here we don't have to worry about duplicates since createReferralsEmbedToken takes care of this for us
       username: session.user.email.split("@")[0],
       tenantId: session.user.id,
     },

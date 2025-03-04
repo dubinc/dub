@@ -42,7 +42,7 @@ export const tokenSchema = z.object({
   }),
 });
 
-export const createEmbedTokenSchema = z
+export const createReferralsEmbedTokenSchema = z
   .object({
     programId: z.string(),
     partnerId: z.string().optional(),
@@ -58,7 +58,7 @@ export const createEmbedTokenSchema = z
     }
   });
 
-export const EmbedTokenSchema = z.object({
+export const ReferralsEmbedTokenSchema = z.object({
   publicToken: z.string(),
   expires: z.date(),
 });

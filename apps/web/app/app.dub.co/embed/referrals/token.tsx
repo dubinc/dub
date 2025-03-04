@@ -4,7 +4,7 @@ import { fetcher } from "@dub/utils";
 import { useEffect } from "react";
 import useSWR from "swr";
 
-export const ReferralsEmbedToken = () => {
+export const ReferralsReferralsEmbedToken = () => {
   const { error } = useSWR<{ token: number }>(
     "/api/embed/referrals/token",
     fetcher,

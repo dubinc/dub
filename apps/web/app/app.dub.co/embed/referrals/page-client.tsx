@@ -22,7 +22,7 @@ import { ReferralsEmbedFAQ } from "./faq";
 import { ReferralsEmbedLeaderboard } from "./leaderboard";
 import { ReferralsEmbedPayouts } from "./payouts";
 import { ReferralsEmbedQuickstart } from "./quickstart";
-import { ReferralsEmbedToken } from "./token";
+import { ReferralsReferralsEmbedToken } from "./token";
 
 const tabs = ["Quickstart", "Earnings", "Leaderboard", "FAQ"];
 
@@ -153,7 +153,7 @@ export function ReferralsEmbedPageClient({
             </AnimatePresence>
           </div>
         </div>
-        <ReferralsEmbedToken />
+        <ReferralsReferralsEmbedToken />
       </div>
     </div>
   );

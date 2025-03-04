@@ -8,7 +8,7 @@ import { cookies } from "next/headers";
 import { EMBED_PUBLIC_TOKEN_COOKIE_NAME } from "./constants";
 import { embedToken } from "./embed-token";
 
-interface WithEmbedTokenHandler {
+interface WithReferralsEmbedTokenHandler {
   ({
     req,
     params,
@@ -30,7 +30,9 @@ interface WithEmbedTokenHandler {
   }): Promise<Response>;
 }
 
-export const withEmbedToken = (handler: WithEmbedTokenHandler) => {
+export const withReferralsEmbedToken = (
+  handler: WithReferralsEmbedTokenHandler,
+) => {
   return withAxiom(
     async (
       req: AxiomRequest,
