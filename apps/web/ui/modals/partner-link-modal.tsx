@@ -174,6 +174,7 @@ function PartnerLinkModalContent({
   const shortLinkDomain = programEnrollment?.program?.domain ?? "dub.sh";
 
   const [lockKey, setLockKey] = useState(Boolean(link));
+  const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<PartnerLinkFormData>({
     defaultValues: link
@@ -192,7 +193,7 @@ function PartnerLinkModalContent({
     register,
     watch,
     handleSubmit,
-    formState: { isDirty, isSubmitting, isSubmitSuccessful },
+    formState: { isDirty },
   } = form;
 
   const { isMobile } = useMediaQuery();
@@ -201,8 +202,8 @@ function PartnerLinkModalContent({
   const [key, _url] = watch("key", "url");
 
   const saveDisabled = useMemo(
-    () => Boolean(isSubmitting || isSubmitSuccessful || (link && !isDirty)),
-    [isSubmitting, isSubmitSuccessful, link, isDirty],
+    () => Boolean(isLoading || (link && !isDirty)),
+    [isLoading, link, isDirty],
   );
 
   const shortLink = useMemo(
@@ -218,44 +219,50 @@ function PartnerLinkModalContent({
     <form
       ref={formRef}
       onSubmit={handleSubmit(async (data) => {
-        const response = await fetch(
-          `/api/partner-profile/programs/${programEnrollment?.program?.id}/links${
-            link ? `/${link.id}` : ""
-          }`,
-          {
-            method: link ? "PATCH" : "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              ...data,
-              url: linkConstructor({
-                domain: destinationDomain,
-                key: data.url,
+        setIsLoading(true);
+        try {
+          const response = await fetch(
+            `/api/partner-profile/programs/${programEnrollment?.program?.id}/links${
+              link ? `/${link.id}` : ""
+            }`,
+            {
+              method: link ? "PATCH" : "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                ...data,
+                url: linkConstructor({
+                  domain: destinationDomain,
+                  key: data.url,
+                }),
               }),
-            }),
-          },
-        );
+            },
+          );
 
-        const result = await response.json();
+          const result = await response.json();
 
-        if (!response.ok) {
-          const { error } = result;
-          toast.error(error.message);
-        }
-
-        await mutateSuffix(`/links`);
-
-        if (!link) {
-          try {
-            await copyToClipboard(result.shortLink);
-            toast.success("Copied short link to clipboard!");
-          } catch (err) {
-            toast.success("Successfully created link!");
+          if (!response.ok) {
+            const { error } = result;
+            toast.error(error.message);
+            return;
           }
-        } else toast.success("Successfully updated short link!");
 
-        setShowPartnerLinkModal(false);
+          await mutateSuffix(`/links`);
+
+          if (!link) {
+            try {
+              await copyToClipboard(result.shortLink);
+              toast.success("Copied short link to clipboard!");
+            } catch (err) {
+              toast.success("Successfully created link!");
+            }
+          } else toast.success("Successfully updated short link!");
+
+          setShowPartnerLinkModal(false);
+        } finally {
+          setIsLoading(false);
+        }
       })}
     >
       <div className="flex flex-col items-start justify-between gap-6 px-6 py-4">
@@ -422,7 +429,7 @@ function PartnerLinkModalContent({
         <Button
           type="submit"
           disabled={saveDisabled}
-          loading={isSubmitting || isSubmitSuccessful}
+          loading={isLoading}
           text={
             <span className="flex items-center gap-2">
               {link ? "Save changes" : "Create link"}
