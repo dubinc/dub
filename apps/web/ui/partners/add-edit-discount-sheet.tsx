@@ -49,19 +49,6 @@ interface DiscountSheetProps {
 
 type FormData = z.infer<typeof createDiscountSchema>;
 
-const discountSources = [
-  {
-    label: "Manual creation",
-    description: "Create a new discount",
-    type: "manual",
-  },
-  {
-    label: "Import coupon code",
-    description: "Use a Stripe coupon code",
-    type: "stripe",
-  },
-] as const;
-
 const discountTypes = [
   {
     label: "One-off",
@@ -99,29 +86,25 @@ function DiscountSheetContent({
     setValue,
     formState: { errors },
   } = useForm<FormData>({
-    defaultValues: discount?.couponId
-      ? {
-          discountSource: "stripe",
-          couponId: discount.couponId,
-          couponTestId: discount.couponTestId,
-        }
-      : {
-          discountSource: "manual",
-          amount: discount?.amount
-            ? discount.type === "flat"
-              ? discount.amount / 100
-              : discount.amount
-            : 0,
-          type: discount?.type || "flat",
-          maxDuration:
-            discount?.maxDuration === null
-              ? Infinity
-              : discount?.maxDuration || 0,
-        },
+    defaultValues: {
+      ...(discount && {
+        amount: discount?.amount
+          ? discount.type === "flat"
+            ? discount.amount / 100
+            : discount.amount
+          : 0,
+        type: discount?.type || "flat",
+        maxDuration:
+          discount?.maxDuration === null
+            ? Infinity
+            : discount?.maxDuration || 0,
+        couponId: discount.couponId || "",
+        couponTestId: discount.couponTestId || "",
+      }),
+    },
   });
 
   const [partnerIds = []] = watch(["partnerIds"]);
-  const discountSource = watch("discountSource");
   const partnersCount = discount?.partnersCount || 0;
 
   const { data: discountPartners, loading: isLoadingDiscountPartners } =
@@ -154,8 +137,6 @@ function DiscountSheetContent({
       );
     }
   }, [discountPartners, setValue]);
-
-  const selectedPartners = displayPartners;
 
   const { executeAsync: createDiscount, isPending: isCreating } = useAction(
     createDiscountAction,
@@ -209,28 +190,14 @@ function DiscountSheetContent({
       return;
     }
 
-    const commonPayload = {
+    const payload = {
+      ...data,
       workspaceId,
       programId: program.id,
-      partnerIds: data.partnerIds,
+      amount: data.type === "flat" ? data.amount * 100 : data.amount || 0,
+      maxDuration:
+        Number(data.maxDuration) === Infinity ? null : data.maxDuration,
     };
-
-    const payload =
-      data.discountSource === "manual"
-        ? {
-            ...commonPayload,
-            discountSource: "manual" as const,
-            type: data.type,
-            amount: data.type === "flat" ? data.amount * 100 : data.amount || 0,
-            maxDuration:
-              Number(data.maxDuration) === Infinity ? null : data.maxDuration,
-          }
-        : {
-            ...commonPayload,
-            discountSource: "stripe" as const,
-            couponId: data.couponId,
-            couponTestId: data.couponTestId,
-          };
 
     if (!discount) {
       await createDiscount(payload);
@@ -259,7 +226,7 @@ function DiscountSheetContent({
   };
 
   const selectedPartnersTable = useTable({
-    data: selectedPartners,
+    data: displayPartners,
     columns: [
       {
         header: "Partner",
@@ -312,15 +279,13 @@ function DiscountSheetContent({
     resourceName: (p) => `eligible partner${p ? "s" : ""}`,
     pagination: discount ? pagination : undefined,
     onPaginationChange: discount ? setPagination : undefined,
-    rowCount: discount ? partnersCount || 0 : selectedPartners.length,
+    rowCount: discount ? partnersCount || 0 : displayPartners.length,
   });
 
   const buttonDisabled =
     isCreating ||
     isUpdating ||
-    (!isDefault && (!partnerIds || partnerIds.length === 0)) ||
-    (discountSource === "stripe" && !watch("couponId")) ||
-    (discountSource === "manual" && !watch("amount"));
+    (!isDefault && (!partnerIds || partnerIds.length === 0));
 
   const canDeleteDiscount =
     discount && program?.defaultDiscountId !== discount.id;
@@ -354,111 +319,64 @@ function DiscountSheetContent({
                   transition={{ ease: "easeInOut", duration: 0.2 }}
                 >
                   <div className="p-1">
-                    <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-                      {discountSources.map(({ label, description, type }) => {
-                        const isSelected = discountSource === type;
-
-                        return (
-                          <label
-                            key={label}
+                    <div className="mt-6 space-y-4">
+                      <div>
+                        <label
+                          htmlFor="couponId"
+                          className="text-sm font-medium text-neutral-800"
+                        >
+                          Stripe coupon ID
+                        </label>
+                        <div className="relative mt-2 rounded-md shadow-sm">
+                          <input
                             className={cn(
-                              "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
-                              "transition-all duration-150",
-                              isSelected &&
-                                "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
+                              "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                              errors.couponId &&
+                                "border-red-600 pr-7 focus:border-red-500 focus:ring-red-600",
                             )}
-                          >
-                            <input
-                              type="radio"
-                              value={label}
-                              className="hidden"
-                              checked={isSelected}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setValue("discountSource", type);
-                                }
-                              }}
-                            />
-                            <div className="flex grow flex-col text-sm">
-                              <span className="font-medium">{label}</span>
-                              <span>{description}</span>
-                            </div>
-                            <CircleCheckFill
-                              className={cn(
-                                "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
-                                isSelected && "scale-100 opacity-100",
-                              )}
-                            />
-                          </label>
-                        );
-                      })}
-                    </div>
-
-                    {discountSource === "stripe" && (
-                      <div className="mt-6 space-y-4">
-                        <div>
-                          <label
-                            htmlFor="couponId"
-                            className="text-sm font-medium text-neutral-800"
-                          >
-                            Stripe coupon ID
-                          </label>
-                          <div className="relative mt-2 rounded-md shadow-sm">
-                            <input
-                              className={cn(
-                                "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                                discountSource === "stripe" &&
-                                  (errors as any).couponId &&
-                                  "border-red-600 pr-7 focus:border-red-500 focus:ring-red-600",
-                              )}
-                              {...register("couponId", {
-                                required: discountSource === "stripe",
-                              })}
-                            />
-                          </div>
-
-                          <p className="mt-1 text-xs text-neutral-500">
-                            Learn more about{" "}
-                            <a
-                              href="https://docs.stripe.com/billing/subscriptions/coupons"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="underline"
-                            >
-                              Stripe coupon codes here
-                            </a>
-                          </p>
+                            {...register("couponId")}
+                          />
                         </div>
 
-                        <div>
-                          <label
-                            htmlFor="couponTestId"
-                            className="text-sm font-medium text-neutral-800"
+                        <p className="mt-1 text-xs text-neutral-500">
+                          Learn more about{" "}
+                          <a
+                            href="https://docs.stripe.com/billing/subscriptions/coupons"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="underline"
                           >
-                            Stripe test coupon ID (optional)
-                          </label>
-                          <div className="relative mt-2 rounded-md shadow-sm">
-                            <input
-                              className={cn(
-                                "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                              )}
-                              {...register("couponTestId")}
-                            />
-                          </div>
+                            Stripe coupon codes here
+                          </a>
+                        </p>
+                      </div>
+
+                      <div>
+                        <label
+                          htmlFor="couponTestId"
+                          className="text-sm font-medium text-neutral-800"
+                        >
+                          Stripe test coupon ID (optional)
+                        </label>
+                        <div className="relative mt-2 rounded-md shadow-sm">
+                          <input
+                            className={cn(
+                              "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                            )}
+                            {...register("couponTestId")}
+                          />
                         </div>
                       </div>
-                    )}
+                    </div>
 
                     <div
                       className={cn(
                         "mt-6 transition-opacity duration-200",
-                        discountSource === "manual"
-                          ? "h-auto"
-                          : "h-0 opacity-0",
+                        isRecurring ? "h-auto" : "h-0 opacity-0",
                       )}
-                      aria-hidden={discountSource !== "manual"}
+                      aria-hidden={!isRecurring}
                       {...{
-                        inert: discountSource !== "manual",
+                        inert: !isRecurring,
                       }}
                     >
                       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
@@ -575,12 +493,10 @@ function DiscountSheetContent({
                           <input
                             className={cn(
                               "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                              discountSource === "manual" &&
-                                (errors as any).amount &&
+                              errors.amount &&
                                 "border-red-600 pr-7 focus:border-red-500 focus:ring-red-600",
                             )}
                             {...register("amount", {
-                              required: discountSource === "manual",
                               valueAsNumber: true,
                               min: 0,
                               max: 100,

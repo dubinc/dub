@@ -11,11 +11,13 @@ export const createDiscountAction = authActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
     const {
-      workspaceId,
       programId,
       partnerIds,
-      discountSource,
-      ...discountData
+      amount,
+      type,
+      maxDuration,
+      couponId,
+      couponTestId,
     } = parsedInput;
 
     const program = await getProgramOrThrow({
@@ -62,11 +64,15 @@ export const createDiscountAction = authActionClient
       data: {
         id: createId({ prefix: "dis_" }),
         programId,
-        ...discountData,
+        amount,
+        type,
+        maxDuration,
+        couponId,
+        couponTestId,
       },
     });
 
-    if (partnerIds) {
+    if (partnerIds && partnerIds.length > 0) {
       await prisma.programEnrollment.updateMany({
         where: {
           programId,
