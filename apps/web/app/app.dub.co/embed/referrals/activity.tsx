@@ -4,7 +4,7 @@ import { fetcher } from "@dub/utils/src/functions";
 import { AnalyticsTimeseries } from "dub/models/components";
 import useSWR from "swr";
 
-export function EmbedActivity({
+export function ReferralsEmbedActivity({
   clicks,
   leads,
   sales,

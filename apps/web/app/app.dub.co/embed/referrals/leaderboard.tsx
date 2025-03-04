@@ -11,7 +11,7 @@ import { cn } from "@dub/utils/src/functions";
 import { motion } from "framer-motion";
 import useSWR from "swr";
 
-export function EmbedLeaderboard() {
+export function ReferralsEmbedLeaderboard() {
   const { data: partners, isLoading } = useSWR<
     z.infer<typeof LeaderboardPartnerSchema>[]
   >("/api/embed/referrals/leaderboard", fetcher, {

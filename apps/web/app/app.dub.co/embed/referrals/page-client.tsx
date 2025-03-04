@@ -16,13 +16,13 @@ import {
 import { cn, getPrettyUrl } from "@dub/utils";
 import { AnimatePresence } from "framer-motion";
 import { CSSProperties, useState } from "react";
-import { LinkToken } from "../token";
-import { EmbedActivity } from "./activity";
-import { EmbedEarnings } from "./earnings";
-import { EmbedFAQ } from "./faq";
-import { EmbedLeaderboard } from "./leaderboard";
-import { EmbedPayouts } from "./payouts";
-import { EmbedQuickstart } from "./quickstart";
+import { ReferralsEmbedActivity } from "./activity";
+import { ReferralsEmbedEarnings } from "./earnings";
+import { ReferralsEmbedFAQ } from "./faq";
+import { ReferralsEmbedLeaderboard } from "./leaderboard";
+import { ReferralsEmbedPayouts } from "./payouts";
+import { ReferralsEmbedQuickstart } from "./quickstart";
+import { ReferralsEmbedToken } from "./token";
 
 const tabs = ["Quickstart", "Earnings", "Leaderboard", "FAQ"];
 
@@ -118,12 +118,12 @@ export function ReferralsEmbedPageClient({
           </div>
         </div>
         <div className="mt-4 grid gap-2 sm:h-32 sm:grid-cols-3">
-          <EmbedActivity
+          <ReferralsEmbedActivity
             clicks={stats.clicks}
             leads={stats.leads}
             sales={stats.sales}
           />
-          <EmbedPayouts payouts={payouts} />
+          <ReferralsEmbedPayouts payouts={payouts} />
         </div>
         <div className="mt-4">
           <ToggleGroup
@@ -142,18 +142,18 @@ export function ReferralsEmbedPageClient({
           <div className="my-4">
             <AnimatePresence mode="wait">
               {selectedTab === "Quickstart" ? (
-                <EmbedQuickstart program={program} link={links[0]} />
+                <ReferralsEmbedQuickstart program={program} link={links[0]} />
               ) : selectedTab === "Earnings" ? (
-                <EmbedEarnings salesCount={stats.sales} />
+                <ReferralsEmbedEarnings salesCount={stats.sales} />
               ) : selectedTab === "Leaderboard" ? (
-                <EmbedLeaderboard />
+                <ReferralsEmbedLeaderboard />
               ) : selectedTab === "FAQ" ? (
-                <EmbedFAQ program={program} reward={reward} />
+                <ReferralsEmbedFAQ program={program} reward={reward} />
               ) : null}
             </AnimatePresence>
           </div>
         </div>
-        <LinkToken />
+        <ReferralsEmbedToken />
       </div>
     </div>
   );

@@ -17,6 +17,8 @@ export const GET = withSession(async ({ session }) => {
       name: session.user.name,
       email: session.user.email,
       image: session.user.image || null,
+      // here we don't have to worry about duplicates since createEmbedToken takes care of this for us
+      username: session.user.email.split("@")[0],
       tenantId: session.user.id,
     },
   };

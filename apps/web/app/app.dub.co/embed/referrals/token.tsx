@@ -4,12 +4,16 @@ import { fetcher } from "@dub/utils";
 import { useEffect } from "react";
 import useSWR from "swr";
 
-export const LinkToken = () => {
-  const { error } = useSWR<{ token: number }>("/api/embed/token", fetcher, {
-    revalidateOnFocus: true,
-    dedupingInterval: 30000,
-    keepPreviousData: true,
-  });
+export const ReferralsEmbedToken = () => {
+  const { error } = useSWR<{ token: number }>(
+    "/api/embed/referrals/token",
+    fetcher,
+    {
+      revalidateOnFocus: true,
+      dedupingInterval: 30000,
+      keepPreviousData: true,
+    },
+  );
 
   // Inform the parent if there's an error (Eg: token is expired)
   useEffect(() => {

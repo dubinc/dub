@@ -2,7 +2,7 @@ import { PayoutStatus } from "@dub/prisma/client";
 import { InfoTooltip } from "@dub/ui";
 import { currencyFormatter } from "@dub/utils";
 
-export function EmbedPayouts({
+export function ReferralsEmbedPayouts({
   payouts,
 }: {
   payouts: { status: PayoutStatus; amount: number }[];
