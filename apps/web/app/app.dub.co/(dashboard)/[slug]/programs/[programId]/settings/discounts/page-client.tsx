@@ -7,7 +7,7 @@ import { useDiscountSheet } from "@/ui/partners/add-edit-discount-sheet";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { EventType } from "@dub/prisma/client";
 import { Badge, Button, MoneyBill } from "@dub/ui";
-import { Cookie } from "lucide-react";
+import { BadgePercent, Cookie } from "lucide-react";
 
 export function ProgramSettingsDiscountsPageClient() {
   return (
@@ -155,7 +155,7 @@ const Discount = ({
         onClick={() => setIsOpen(true)}
       >
         <div className="flex size-10 items-center justify-center rounded-full border border-neutral-200 bg-white">
-          <Cookie className="size-4 text-neutral-600" />
+          <BadgePercent className="size-4 text-neutral-600" />
         </div>
         <div className="flex flex-1 items-center justify-between">
           <div className="flex items-center gap-2">
