@@ -478,6 +478,7 @@ function DiscountSheetContent({
                             {...register("couponId", {
                               required: true,
                             })}
+                            placeholder="WELCOME"
                           />
                         </div>
 
@@ -507,6 +508,7 @@ function DiscountSheetContent({
                               "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                             )}
                             {...register("couponTestId")}
+                            placeholder="WELCOME-TEST"
                           />
                         </div>
                       </div>
