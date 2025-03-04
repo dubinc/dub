@@ -4,7 +4,7 @@ import { fetcher } from "@dub/utils/src/functions";
 import { AnalyticsTimeseries } from "dub/models/components";
 import useSWR from "swr";
 
-export function EmbedActivity({
+export function ReferralsEmbedActivity({
   clicks,
   leads,
   sales,
@@ -14,7 +14,7 @@ export function EmbedActivity({
   sales: number;
 }) {
   const { data: analytics } = useSWR<AnalyticsTimeseries[]>(
-    `/api/embed/analytics`,
+    "/api/embed/referrals/analytics",
     fetcher,
     {
       keepPreviousData: true,

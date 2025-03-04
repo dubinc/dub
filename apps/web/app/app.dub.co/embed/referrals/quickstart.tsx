@@ -15,7 +15,7 @@ import { motion } from "framer-motion";
 
 const BUTTON_CLASSNAME = "h-9 rounded-lg bg-neutral-900 hover:bg-neutral-800";
 
-export function EmbedQuickstart({
+export function ReferralsEmbedQuickstart({
   program,
   link,
 }: {

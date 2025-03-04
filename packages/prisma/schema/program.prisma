@@ -41,6 +41,8 @@ model Program {
   defaultRewardId   String?     @unique // default reward for the program
   defaultDiscountId String?     @unique // default discount for the program
   landerData        Json?       @db.Json
+  termsUrl          String?     @db.LongText
+  ageVerification   Int?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

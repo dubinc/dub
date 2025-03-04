@@ -1,17 +1,26 @@
 import { PayoutStatus } from "@dub/prisma/client";
-import { InfoTooltip } from "@dub/ui";
+import { Button, InfoTooltip } from "@dub/ui";
 import { currencyFormatter } from "@dub/utils";
 
-export function EmbedPayouts({
+export function ReferralsEmbedPayouts({
   payouts,
 }: {
   payouts: { status: PayoutStatus; amount: number }[];
 }) {
   return (
     <div className="flex flex-col justify-between gap-4 rounded-lg border border-neutral-200 bg-white p-4">
-      <div className="flex items-center gap-1">
-        <p className="text-sm text-neutral-500">Payouts</p>
-        <InfoTooltip content="Payouts are processed at the start of each month. Your earnings are automatically transferred to your bank account." />
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1">
+          <p className="text-sm text-neutral-500">Payouts</p>
+          <InfoTooltip content="Payouts are processed at the start of each month. Your earnings are automatically transferred to your bank account." />
+        </div>
+        <a href="https://partners.dub.co/register" target="_blank">
+          <Button
+            text="Settings"
+            variant="secondary"
+            className="h-7 p-2 text-sm"
+          />
+        </a>
       </div>
       <div className="grid gap-1">
         {[
