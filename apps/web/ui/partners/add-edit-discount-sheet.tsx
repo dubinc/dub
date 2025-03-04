@@ -9,7 +9,7 @@ import useDiscountPartners from "@/lib/swr/use-discount-partners";
 import usePartners from "@/lib/swr/use-partners";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { DiscountProps, EnrolledPartnerProps } from "@/lib/types";
+import { DiscountProps } from "@/lib/types";
 import { createDiscountSchema } from "@/lib/zod/schemas/discount";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/rewards";
 import { SelectEligiblePartnersSheet } from "@/ui/partners/select-eligible-partners-sheet";
@@ -46,8 +46,6 @@ interface DiscountSheetProps {
   discount?: DiscountProps;
   isDefault?: boolean;
 }
-
-type DiscountSource = "manual" | "stripe";
 
 type FormData = z.infer<typeof createDiscountSchema>;
 
@@ -94,10 +92,6 @@ function DiscountSheetContent({
     discount ? discount.maxDuration !== 0 : false,
   );
 
-  const [discountSource, setDiscountSource] = useState<DiscountSource>(
-    discount?.couponId ? "stripe" : "manual",
-  );
-
   const {
     register,
     handleSubmit,
@@ -105,23 +99,29 @@ function DiscountSheetContent({
     setValue,
     formState: { errors },
   } = useForm<FormData>({
-    defaultValues: {
-      ...(discount && {
-        amount: discount.amount
-          ? discount.type === "flat"
-            ? discount.amount / 100
-            : discount.amount
-          : 0,
-        type: discount.type,
-        maxDuration:
-          discount.maxDuration === null ? Infinity : discount.maxDuration,
-        couponId: discount.couponId,
-        couponTestId: discount.couponTestId,
-      }),
-    },
+    defaultValues: discount?.couponId
+      ? {
+          discountSource: "stripe",
+          couponId: discount.couponId,
+          couponTestId: discount.couponTestId,
+        }
+      : {
+          discountSource: "manual",
+          amount: discount?.amount
+            ? discount.type === "flat"
+              ? discount.amount / 100
+              : discount.amount
+            : 0,
+          type: discount?.type || "flat",
+          maxDuration:
+            discount?.maxDuration === null
+              ? Infinity
+              : discount?.maxDuration || 0,
+        },
   });
 
   const [partnerIds = []] = watch(["partnerIds"]);
+  const discountSource = watch("discountSource");
   const partnersCount = discount?.partnersCount || 0;
 
   const { data: discountPartners, loading: isLoadingDiscountPartners } =
@@ -155,21 +155,7 @@ function DiscountSheetContent({
     }
   }, [discountPartners, setValue]);
 
-  const [selectedPartners, setSelectedPartners] =
-    useState<EnrolledPartnerProps[]>(displayPartners);
-
-  useEffect(() => {
-    setSelectedPartners(displayPartners);
-  }, [displayPartners]);
-
-  useEffect(() => {
-    if (allPartners && partnerIds) {
-      const newSelectedPartners = allPartners.filter((p) =>
-        partnerIds.includes(p.id),
-      );
-      setSelectedPartners(newSelectedPartners);
-    }
-  }, [allPartners, partnerIds]);
+  const selectedPartners = displayPartners;
 
   const { executeAsync: createDiscount, isPending: isCreating } = useAction(
     createDiscountAction,
@@ -248,7 +234,7 @@ function DiscountSheetContent({
 
     if (!discount) {
       await createDiscount(payload);
-    } else if (discount?.id) {
+    } else {
       await updateDiscount({
         ...payload,
         discountId: discount.id,
@@ -312,9 +298,6 @@ function DiscountSheetContent({
                   (id) => id !== row.original.id,
                 );
                 setValue("partnerIds", newPartnerIds);
-                setSelectedPartners((prev) =>
-                  prev.filter((p) => p.id !== row.original.id),
-                );
               }}
             />
           </div>
@@ -392,7 +375,7 @@ function DiscountSheetContent({
                               checked={isSelected}
                               onChange={(e) => {
                                 if (e.target.checked) {
-                                  setDiscountSource(type);
+                                  setValue("discountSource", type);
                                 }
                               }}
                             />
@@ -431,11 +414,10 @@ function DiscountSheetContent({
                               {...register("couponId", {
                                 required: discountSource === "stripe",
                               })}
-                              placeholder="Enter Stripe coupon ID"
                             />
                           </div>
 
-                          <p className="text-xs text-neutral-500">
+                          <p className="mt-1 text-xs text-neutral-500">
                             Learn more about{" "}
                             <a
                               href="https://docs.stripe.com/billing/subscriptions/coupons"
@@ -461,7 +443,6 @@ function DiscountSheetContent({
                                 "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                               )}
                               {...register("couponTestId")}
-                              placeholder="Enter test coupon ID"
                             />
                           </div>
                         </div>
