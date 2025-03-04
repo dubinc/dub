@@ -56,7 +56,7 @@ export function ProgramStatsFilter({
                 )}
 
                 {earnings !== undefined && (
-                  <span className="text-xs text-neutral-500">
+                  <span className="text-xs font-medium text-neutral-500">
                     {currencyFormatter(earnings / 100)}
                   </span>
                 )}
@@ -64,7 +64,10 @@ export function ProgramStatsFilter({
             )}
           </div>
         ) : (
-          <div className="h-14 w-full animate-pulse rounded-md bg-neutral-200" />
+          <div className="flex flex-col gap-2">
+            <div className="h-5 w-16 animate-pulse rounded-md bg-neutral-200" />
+            <div className="h-3 w-24 animate-pulse rounded-md bg-neutral-200" />
+          </div>
         )}
       </div>
     </Link>
