@@ -28,8 +28,8 @@ export function SaleToggle() {
           set: { view: option },
         });
       }}
-      className="w-fit shrink-0 items-center gap-1 border-neutral-100 bg-neutral-100"
-      //  optionClassName="size-8 p-0 flex items-center justify-center"
+      className="flex w-fit shrink-0 items-center gap-0.5 rounded-lg border-neutral-100 bg-neutral-100 p-0.5"
+      optionClassName="h-9 flex items-center justify-center rounded-lg"
       indicatorClassName="border border-neutral-200 bg-white"
     />
   );
