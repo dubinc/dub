@@ -9,7 +9,28 @@ import {
   getCustomersQuerySchema,
 } from "@/lib/zod/schemas/customers";
 import { prisma } from "@dub/prisma";
+import {
+  Customer,
+  Discount,
+  Link,
+  Partner,
+  Program,
+  ProgramEnrollment,
+} from "@prisma/client";
+import { differenceInMonths } from "date-fns";
 import { NextResponse } from "next/server";
+
+interface CustomerResponse extends Customer {
+  link: Link & {
+    programEnrollment: ProgramEnrollment & {
+      program: Program & {
+        defaultDiscount: Discount;
+      };
+      partner: Partner;
+      discount: Discount | null;
+    };
+  };
+}
 
 // GET /api/customers – Get all customers
 export const GET = withWorkspace(
@@ -17,7 +38,7 @@ export const GET = withWorkspace(
     const { email, externalId, includeExpandedFields } =
       getCustomersQuerySchema.parse(searchParams);
 
-    const customers = await prisma.customer.findMany({
+    const customers = (await prisma.customer.findMany({
       where: {
         projectId: workspace.id,
         ...(email ? { email } : {}),
@@ -34,7 +55,11 @@ export const GET = withWorkspace(
                 include: {
                   programEnrollment: {
                     include: {
-                      program: true,
+                      program: {
+                        include: {
+                          defaultDiscount: true,
+                        },
+                      },
                       partner: true,
                       discount: true,
                     },
@@ -44,11 +69,61 @@ export const GET = withWorkspace(
             },
           }
         : {}),
-    });
+    })) as CustomerResponse[];
+
+    // TODO
+    // Move this to another methods
+    const determineCustomerDiscount = async (customer: CustomerResponse) => {
+      const discount =
+        customer.link?.programEnrollment?.discount ||
+        customer.link?.programEnrollment?.program.defaultDiscount ||
+        null;
+
+      if (!discount) {
+        return null;
+      }
+
+      // Lifetime discount
+      if (discount.maxDuration === null) {
+        return discount;
+      }
+
+      const firstPurchase = await prisma.commission.findFirst({
+        where: {
+          customerId: customer.id,
+          type: "sale",
+        },
+        orderBy: {
+          createdAt: "asc",
+        },
+      });
+
+      // No purchase yet so we can apply the discount
+      if (!firstPurchase) {
+        return discount;
+      }
+
+      const monthsDifference = differenceInMonths(
+        new Date(),
+        firstPurchase.createdAt,
+      );
+
+      return monthsDifference < discount.maxDuration ? discount : null;
+    };
+
+    const processedCustomers = await Promise.all(
+      customers.map(async (customer) => {
+        return {
+          ...customer,
+          discount: await determineCustomerDiscount(customer),
+        };
+      }),
+    );
 
     return NextResponse.json(
-      CustomerSchema.array().parse(customers.map(transformCustomer)),
+      CustomerSchema.array().parse(processedCustomers.map(transformCustomer)),
     );
+    P;
   },
   {
     requiredPlan: [
