@@ -40,7 +40,7 @@ export function ProgramStatsFilter({
 
       <div>
         {count !== undefined || error ? (
-          <div className="flex flex-col bg-red-50">
+          <div className="flex flex-col">
             {error ? (
               "-"
             ) : (
