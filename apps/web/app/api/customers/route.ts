@@ -106,9 +106,6 @@ export const GET = withWorkspace(
       });
     }
 
-    // TODO:
-    // Test customers with no first purchase
-
     const processedCustomers = customers.map((customer) => {
       return {
         ...customer,
