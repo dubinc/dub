@@ -21,10 +21,16 @@ export function SaleStats() {
         label="All"
         href={`/${slug}/programs/${programId}/sales`}
         count={salesCount?.all.count}
-        amount={view === "sales" ? salesCount?.all.amount : undefined}
-        earnings={view === "commissions" ? salesCount?.all.earnings : undefined}
+        amount={
+          view === "sales"
+            ? salesCount?.all.amount
+            : view === "commissions"
+              ? salesCount?.all.earnings
+              : undefined
+        }
         icon={Users}
         iconClassName="text-neutral-600 bg-neutral-100"
+        variant="loose"
         error={!!error}
       />
       <ProgramStatsFilter
@@ -36,12 +42,16 @@ export function SaleStats() {
           }) as string
         }
         count={salesCount?.pending.count}
-        amount={view === "sales" ? salesCount?.pending.amount : undefined}
-        earnings={
-          view === "commissions" ? salesCount?.pending.earnings : undefined
+        amount={
+          view === "sales"
+            ? salesCount?.pending.amount
+            : view === "commissions"
+              ? salesCount?.pending.earnings
+              : undefined
         }
         icon={SaleStatusBadges.pending.icon}
         iconClassName={SaleStatusBadges.pending.className}
+        variant="loose"
         error={!!error}
       />
       <ProgramStatsFilter
@@ -53,12 +63,16 @@ export function SaleStats() {
           }) as string
         }
         count={salesCount?.processed.count}
-        amount={view === "sales" ? salesCount?.processed.amount : undefined}
-        earnings={
-          view === "commissions" ? salesCount?.processed.earnings : undefined
+        amount={
+          view === "sales"
+            ? salesCount?.processed.amount
+            : view === "commissions"
+              ? salesCount?.processed.earnings
+              : undefined
         }
         icon={SaleStatusBadges.processed.icon}
         iconClassName={SaleStatusBadges.processed.className}
+        variant="loose"
         error={!!error}
       />
       <ProgramStatsFilter
@@ -70,12 +84,16 @@ export function SaleStats() {
           }) as string
         }
         count={salesCount?.paid.count}
-        amount={view === "sales" ? salesCount?.paid.amount : undefined}
-        earnings={
-          view === "commissions" ? salesCount?.paid.earnings : undefined
+        amount={
+          view === "sales"
+            ? salesCount?.paid.amount
+            : view === "commissions"
+              ? salesCount?.paid.earnings
+              : undefined
         }
         icon={SaleStatusBadges.paid.icon}
         iconClassName={SaleStatusBadges.paid.className}
+        variant="loose"
         error={!!error}
       />
     </div>

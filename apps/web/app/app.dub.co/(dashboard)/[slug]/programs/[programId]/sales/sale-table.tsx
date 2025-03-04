@@ -60,9 +60,14 @@ const SaleTableBusinessInner = memo(
 
     const { salesCount } = useSalesCount();
     const { data: sales, error } = useSWR<SaleResponse[]>(
-      `/api/programs/${programId}/sales${getQueryString({
-        workspaceId,
-      })}`,
+      `/api/programs/${programId}/sales${getQueryString(
+        {
+          workspaceId,
+        },
+        {
+          exclude: ["view"],
+        },
+      )}`,
       fetcher,
     );
 
