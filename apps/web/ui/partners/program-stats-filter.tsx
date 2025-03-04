@@ -58,27 +58,25 @@ export function ProgramStatsFilter({
             <div className="text-xs text-neutral-500">{label}</div>
           </div>
 
-          <div>
+          <div className="flex flex-col gap-0.5">
             {count !== undefined || error ? (
-              <div className="flex flex-col">
-                {error ? (
-                  "-"
-                ) : (
-                  <>
-                    <span className="text-base font-semibold leading-tight text-neutral-600">
-                      {nFormatter(count, { full: true })}
-                    </span>
-                    <span className="text-xs font-medium text-neutral-500">
-                      {amount !== undefined && currencyFormatter(amount / 100)}
-                    </span>
-                  </>
-                )}
-              </div>
+              error ? (
+                "-"
+              ) : (
+                <>
+                  <span className="text-base font-semibold leading-tight text-neutral-600">
+                    {nFormatter(count, { full: true })}
+                  </span>
+                  <span className="text-xs font-medium text-neutral-500">
+                    {amount !== undefined && currencyFormatter(amount / 100)}
+                  </span>
+                </>
+              )
             ) : (
-              <div className="flex flex-col gap-1">
+              <>
                 <div className="h-5 w-16 animate-pulse rounded-md bg-neutral-200" />
-                <div className="h-3 w-24 animate-pulse rounded-md bg-neutral-200" />
-              </div>
+                <div className="mt-1 h-3 w-24 animate-pulse rounded-md bg-neutral-200" />
+              </>
             )}
           </div>
         </div>
