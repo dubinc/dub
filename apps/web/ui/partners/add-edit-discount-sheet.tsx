@@ -47,7 +47,22 @@ interface DiscountSheetProps {
   isDefault?: boolean;
 }
 
+type DiscountSource = "manual" | "stripe";
+
 type FormData = z.infer<typeof createDiscountSchema>;
+
+const discountSources = [
+  {
+    label: "Manual creation",
+    description: "Create a new discount",
+    type: "manual",
+  },
+  {
+    label: "Import coupon code",
+    description: "Use a Stripe coupon code",
+    type: "stripe",
+  },
+] as const;
 
 const discountTypes = [
   {
@@ -79,6 +94,10 @@ function DiscountSheetContent({
     discount ? discount.maxDuration !== 0 : false,
   );
 
+  const [discountSource, setDiscountSource] = useState<DiscountSource>(
+    discount?.couponId ? "stripe" : "manual",
+  );
+
   const {
     register,
     handleSubmit,
@@ -87,19 +106,23 @@ function DiscountSheetContent({
     formState: { errors },
   } = useForm<FormData>({
     defaultValues: {
-      partnerIds: null,
-      maxDuration: 0,
       ...(discount && {
-        amount:
-          discount.type === "flat" ? discount.amount / 100 : discount.amount,
+        amount: discount.amount
+          ? discount.type === "flat"
+            ? discount.amount / 100
+            : discount.amount
+          : 0,
         type: discount.type,
         maxDuration:
           discount.maxDuration === null ? Infinity : discount.maxDuration,
+        couponId: discount.couponId,
+        couponTestId: discount.couponTestId,
       }),
     },
   });
 
   const [partnerIds = []] = watch(["partnerIds"]);
+  const partnersCount = discount?.partnersCount || 0;
 
   const { data: discountPartners, loading: isLoadingDiscountPartners } =
     useDiscountPartners({
@@ -123,8 +146,6 @@ function DiscountSheetContent({
     return allPartners.filter((p) => partnerIds && partnerIds.includes(p.id));
   }, [discount, discountPartners, allPartners, partnerIds]);
 
-  const partnersCount = discount?.partnersCount || 0;
-
   useEffect(() => {
     if (discountPartners) {
       setValue(
@@ -133,6 +154,22 @@ function DiscountSheetContent({
       );
     }
   }, [discountPartners, setValue]);
+
+  const [selectedPartners, setSelectedPartners] =
+    useState<EnrolledPartnerProps[]>(displayPartners);
+
+  useEffect(() => {
+    setSelectedPartners(displayPartners);
+  }, [displayPartners]);
+
+  useEffect(() => {
+    if (allPartners && partnerIds) {
+      const newSelectedPartners = allPartners.filter((p) =>
+        partnerIds.includes(p.id),
+      );
+      setSelectedPartners(newSelectedPartners);
+    }
+  }, [allPartners, partnerIds]);
 
   const { executeAsync: createDiscount, isPending: isCreating } = useAction(
     createDiscountAction,
@@ -186,18 +223,32 @@ function DiscountSheetContent({
       return;
     }
 
-    const payload = {
-      ...data,
+    const commonPayload = {
       workspaceId,
       programId: program.id,
-      amount: data.type === "flat" ? data.amount * 100 : data.amount,
-      maxDuration:
-        Number(data.maxDuration) === Infinity ? null : data.maxDuration,
+      partnerIds: data.partnerIds,
     };
+
+    const payload =
+      data.discountSource === "manual"
+        ? {
+            ...commonPayload,
+            discountSource: "manual" as const,
+            type: data.type,
+            amount: data.type === "flat" ? data.amount * 100 : data.amount || 0,
+            maxDuration:
+              Number(data.maxDuration) === Infinity ? null : data.maxDuration,
+          }
+        : {
+            ...commonPayload,
+            discountSource: "stripe" as const,
+            couponId: data.couponId,
+            couponTestId: data.couponTestId,
+          };
 
     if (!discount) {
       await createDiscount(payload);
-    } else {
+    } else if (discount?.id) {
       await updateDiscount({
         ...payload,
         discountId: discount.id,
@@ -220,22 +271,6 @@ function DiscountSheetContent({
       discountId: discount.id,
     });
   };
-
-  const [selectedPartners, setSelectedPartners] =
-    useState<EnrolledPartnerProps[]>(displayPartners);
-
-  useEffect(() => {
-    setSelectedPartners(displayPartners);
-  }, [displayPartners]);
-
-  useEffect(() => {
-    if (allPartners && partnerIds) {
-      const newSelectedPartners = allPartners.filter((p) =>
-        partnerIds.includes(p.id),
-      );
-      setSelectedPartners(newSelectedPartners);
-    }
-  }, [allPartners, partnerIds]);
 
   const selectedPartnersTable = useTable({
     data: selectedPartners,
@@ -300,7 +335,9 @@ function DiscountSheetContent({
   const buttonDisabled =
     isCreating ||
     isUpdating ||
-    (!isDefault && (!partnerIds || partnerIds.length === 0));
+    (!isDefault && (!partnerIds || partnerIds.length === 0)) ||
+    (discountSource === "stripe" && !watch("couponId")) ||
+    (discountSource === "manual" && !watch("amount"));
 
   const canDeleteDiscount =
     discount && program?.defaultDiscountId !== discount.id;
@@ -335,139 +372,250 @@ function DiscountSheetContent({
                 >
                   <div className="p-1">
                     <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-                      {discountTypes.map(
-                        ({ label, description, recurring }) => {
-                          const isSelected = isRecurring === recurring;
+                      {discountSources.map(({ label, description, type }) => {
+                        const isSelected = discountSource === type;
 
-                          return (
-                            <label
-                              key={label}
+                        return (
+                          <label
+                            key={label}
+                            className={cn(
+                              "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
+                              "transition-all duration-150",
+                              isSelected &&
+                                "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
+                            )}
+                          >
+                            <input
+                              type="radio"
+                              value={label}
+                              className="hidden"
+                              checked={isSelected}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setDiscountSource(type);
+                                }
+                              }}
+                            />
+                            <div className="flex grow flex-col text-sm">
+                              <span className="font-medium">{label}</span>
+                              <span>{description}</span>
+                            </div>
+                            <CircleCheckFill
                               className={cn(
-                                "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
-                                "transition-all duration-150",
-                                isSelected &&
-                                  "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
+                                "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
+                                isSelected && "scale-100 opacity-100",
                               )}
-                            >
-                              <input
-                                type="radio"
-                                value={label}
-                                className="hidden"
-                                checked={isSelected}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    setIsRecurring(recurring);
-                                    setValue(
-                                      "maxDuration",
-                                      recurring
-                                        ? discount?.maxDuration || 3
-                                        : 0,
-                                    );
-                                  }
-                                }}
-                              />
-                              <div className="flex grow flex-col text-sm">
-                                <span className="font-medium">{label}</span>
-                                <span>{description}</span>
-                              </div>
-                              <CircleCheckFill
-                                className={cn(
-                                  "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
-                                  isSelected && "scale-100 opacity-100",
-                                )}
-                              />
-                            </label>
-                          );
-                        },
-                      )}
+                            />
+                          </label>
+                        );
+                      })}
                     </div>
+
+                    {discountSource === "stripe" && (
+                      <div className="mt-6 space-y-4">
+                        <div>
+                          <label
+                            htmlFor="couponId"
+                            className="text-sm font-medium text-neutral-800"
+                          >
+                            Stripe coupon ID
+                          </label>
+                          <div className="relative mt-2 rounded-md shadow-sm">
+                            <input
+                              className={cn(
+                                "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                                discountSource === "stripe" &&
+                                  (errors as any).couponId &&
+                                  "border-red-600 pr-7 focus:border-red-500 focus:ring-red-600",
+                              )}
+                              {...register("couponId", {
+                                required: discountSource === "stripe",
+                              })}
+                              placeholder="Enter Stripe coupon ID"
+                            />
+                          </div>
+
+                          <p className="text-xs text-neutral-500">
+                            Learn more about{" "}
+                            <a
+                              href="https://docs.stripe.com/billing/subscriptions/coupons"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="underline"
+                            >
+                              Stripe coupon codes here
+                            </a>
+                          </p>
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="couponTestId"
+                            className="text-sm font-medium text-neutral-800"
+                          >
+                            Stripe test coupon ID (optional)
+                          </label>
+                          <div className="relative mt-2 rounded-md shadow-sm">
+                            <input
+                              className={cn(
+                                "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                              )}
+                              {...register("couponTestId")}
+                              placeholder="Enter test coupon ID"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                     <div
                       className={cn(
-                        "transition-opacity duration-200",
-                        isRecurring ? "h-auto" : "h-0 opacity-0",
+                        "mt-6 transition-opacity duration-200",
+                        discountSource === "manual"
+                          ? "h-auto"
+                          : "h-0 opacity-0",
                       )}
-                      aria-hidden={!isRecurring}
+                      aria-hidden={discountSource !== "manual"}
                       {...{
-                        inert: !isRecurring,
+                        inert: discountSource !== "manual",
                       }}
                     >
+                      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                        {discountTypes.map(
+                          ({ label, description, recurring }) => {
+                            const isSelected = isRecurring === recurring;
+
+                            return (
+                              <label
+                                key={label}
+                                className={cn(
+                                  "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
+                                  "transition-all duration-150",
+                                  isSelected &&
+                                    "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
+                                )}
+                              >
+                                <input
+                                  type="radio"
+                                  value={label}
+                                  className="hidden"
+                                  checked={isSelected}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setIsRecurring(recurring);
+                                      setValue(
+                                        "maxDuration",
+                                        recurring
+                                          ? discount?.maxDuration || 3
+                                          : 0,
+                                      );
+                                    }
+                                  }}
+                                />
+                                <div className="flex grow flex-col text-sm">
+                                  <span className="font-medium">{label}</span>
+                                  <span>{description}</span>
+                                </div>
+                                <CircleCheckFill
+                                  className={cn(
+                                    "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
+                                    isSelected && "scale-100 opacity-100",
+                                  )}
+                                />
+                              </label>
+                            );
+                          },
+                        )}
+                      </div>
+
+                      <div
+                        className={cn(
+                          "transition-opacity duration-200",
+                          isRecurring ? "h-auto" : "h-0 opacity-0",
+                        )}
+                        aria-hidden={!isRecurring}
+                        {...{
+                          inert: !isRecurring,
+                        }}
+                      >
+                        <div className="pt-6">
+                          <label
+                            htmlFor="duration"
+                            className="text-sm font-medium text-neutral-800"
+                          >
+                            Duration
+                          </label>
+                          <div className="relative mt-2 rounded-md shadow-sm">
+                            <select
+                              className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                              {...register("maxDuration", {
+                                valueAsNumber: true,
+                              })}
+                            >
+                              {RECURRING_MAX_DURATIONS.filter(
+                                (v) => v !== 0,
+                              ).map((v) => (
+                                <option value={v} key={v}>
+                                  {v} {pluralize("month", Number(v))}
+                                </option>
+                              ))}
+                              <option value={Infinity}>Lifetime</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+
                       <div className="pt-6">
                         <label
-                          htmlFor="duration"
+                          htmlFor="type"
                           className="text-sm font-medium text-neutral-800"
                         >
-                          Duration
+                          Discount model
                         </label>
                         <div className="relative mt-2 rounded-md shadow-sm">
                           <select
                             className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                            {...register("maxDuration", {
-                              valueAsNumber: true,
-                            })}
+                            {...register("type")}
                           >
-                            {RECURRING_MAX_DURATIONS.filter((v) => v !== 0).map(
-                              (v) => (
-                                <option value={v} key={v}>
-                                  {v} {pluralize("month", Number(v))}
-                                </option>
-                              ),
-                            )}
-                            <option value={Infinity}>Lifetime</option>
+                            <option value="percentage">Percentage</option>
+                            <option value="flat">Flat</option>
                           </select>
+                        </div>
+                      </div>
+
+                      <div className="pt-6">
+                        <label
+                          htmlFor="amount"
+                          className="text-sm font-medium text-neutral-800"
+                        >
+                          Amount
+                        </label>
+                        <div className="relative mt-2 rounded-md shadow-sm">
+                          <input
+                            className={cn(
+                              "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                              discountSource === "manual" &&
+                                (errors as any).amount &&
+                                "border-red-600 pr-7 focus:border-red-500 focus:ring-red-600",
+                            )}
+                            {...register("amount", {
+                              required: discountSource === "manual",
+                              valueAsNumber: true,
+                              min: 0,
+                              max: 100,
+                              onChange: handleMoneyInputChange,
+                            })}
+                            onKeyDown={handleMoneyKeyDown}
+                            placeholder={"0"}
+                          />
+                          <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
+                            %
+                          </span>
                         </div>
                       </div>
                     </div>
                   </div>
                 </AnimatedSizeContainer>
-              </div>
-            </div>
-
-            <div>
-              <label
-                htmlFor="type"
-                className="text-sm font-medium text-neutral-800"
-              >
-                Discount model
-              </label>
-              <div className="relative mt-2 rounded-md shadow-sm">
-                <select
-                  className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                  {...register("type")}
-                >
-                  <option value="percentage">Percentage</option>
-                  <option value="flat">Flat</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label
-                htmlFor="amount"
-                className="text-sm font-medium text-neutral-800"
-              >
-                Amount
-              </label>
-              <div className="relative mt-2 rounded-md shadow-sm">
-                <input
-                  className={cn(
-                    "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                    errors.amount &&
-                      "border-red-600 pr-7 focus:border-red-500 focus:ring-red-600",
-                  )}
-                  {...register("amount", {
-                    required: true,
-                    valueAsNumber: true,
-                    min: 0,
-                    max: 100,
-                    onChange: handleMoneyInputChange,
-                  })}
-                  onKeyDown={handleMoneyKeyDown}
-                  placeholder={"0"}
-                />
-                <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
-                  %
-                </span>
               </div>
             </div>
 
@@ -562,7 +710,7 @@ function DiscountSheetContent({
       <SelectEligiblePartnersSheet
         isOpen={isAddPartnersOpen}
         setIsOpen={setIsAddPartnersOpen}
-        selectedPartnerIds={watch("partnerIds") || []}
+        selectedPartnerIds={partnerIds || []}
         onSelect={(ids) => {
           const existingIds = partnerIds || [];
           const newIds = ids.filter((id) => !existingIds.includes(id));
