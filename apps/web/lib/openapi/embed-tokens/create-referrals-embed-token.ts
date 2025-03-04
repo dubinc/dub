@@ -1,19 +1,20 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import {
-  createEmbedTokenSchema,
-  EmbedTokenSchema,
+  createReferralsEmbedTokenSchema,
+  ReferralsEmbedTokenSchema,
 } from "@/lib/zod/schemas/token";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 
-export const createEmbedToken: ZodOpenApiOperationObject = {
-  operationId: "createEmbedToken",
-  "x-speakeasy-name-override": "create",
-  summary: "Create a new embed token",
-  description: "Create a new embed token for the referral link.",
+export const createReferralsEmbedToken: ZodOpenApiOperationObject = {
+  operationId: "createReferralsEmbedToken",
+  "x-speakeasy-name-override": "referrals",
+  summary: "Create a new referrals embed token",
+  description:
+    "Create a new referrals embed token for the given partner/tenant.",
   requestBody: {
     content: {
       "application/json": {
-        schema: createEmbedTokenSchema,
+        schema: createReferralsEmbedTokenSchema,
       },
     },
   },
@@ -22,7 +23,7 @@ export const createEmbedToken: ZodOpenApiOperationObject = {
       description: "The created public embed token.",
       content: {
         "application/json": {
-          schema: EmbedTokenSchema,
+          schema: ReferralsEmbedTokenSchema,
         },
       },
     },

@@ -1,5 +1,6 @@
 "use client";
 
+import { SHOW_EMBEEDED_REFERRALS } from "@/lib/embed/constants";
 import { Avatar, Gift, Icon, Popover, User } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { LogOut } from "lucide-react";
@@ -37,7 +38,7 @@ export default function UserDropdown() {
             href="/account/settings"
             onClick={() => setOpenPopover(false)}
           />
-          {session?.user?.["dubPartnerId"] && (
+          {SHOW_EMBEEDED_REFERRALS && (
             <UserOption
               as={Link}
               label="Refer and earn"

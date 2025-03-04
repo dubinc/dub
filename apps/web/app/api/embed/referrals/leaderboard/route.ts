@@ -1,11 +1,11 @@
-import { withEmbedToken } from "@/lib/embed/auth";
+import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { LeaderboardPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import z from "node_modules/zod/lib";
 
-// GET /api/embed/leaderboard – get leaderboard for a program
-export const GET = withEmbedToken(async ({ programId }) => {
+// GET /api/embed/referrals/leaderboard – get leaderboard for a program
+export const GET = withReferralsEmbedToken(async ({ programId }) => {
   const partners = await prisma.$queryRaw`
     SELECT 
       p.id,

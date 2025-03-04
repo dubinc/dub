@@ -7,14 +7,17 @@ type Options = Omit<DubEmbedOptions, "token">;
 
 type DubEmbedProps = {
   token: DubEmbedOptions["token"];
+  data: DubEmbedOptions["data"];
   options?: Options;
 } & HTMLProps<HTMLDivElement>;
 
-export const DubEmbed = memo(({ token, options, ...rest }: DubEmbedProps) => (
-  <DubInline options={{ ...options, token }} {...rest} />
-));
+export const DubEmbed = memo(
+  ({ token, data, options, ...rest }: DubEmbedProps) => (
+    <DubEmbedInner options={{ ...options, token, data }} {...rest} />
+  ),
+);
 
-function DubInline({
+function DubEmbedInner({
   options,
   ...rest
 }: { options: DubEmbedOptions } & HTMLProps<HTMLDivElement>) {

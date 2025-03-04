@@ -11,10 +11,10 @@ import { cn } from "@dub/utils/src/functions";
 import { motion } from "framer-motion";
 import useSWR from "swr";
 
-export function EmbedLeaderboard() {
+export function ReferralsEmbedLeaderboard() {
   const { data: partners, isLoading } = useSWR<
     z.infer<typeof LeaderboardPartnerSchema>[]
-  >("/api/embed/leaderboard", fetcher, {
+  >("/api/embed/referrals/leaderboard", fetcher, {
     keepPreviousData: true,
   });
 
@@ -53,7 +53,7 @@ export function EmbedLeaderboard() {
         id: "sales",
         header: "Sales",
         cell: ({ row }) => {
-          return currencyFormatter(row.original.saleAmount / 100 ?? 0, {
+          return currencyFormatter(row.original.saleAmount / 100, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           });

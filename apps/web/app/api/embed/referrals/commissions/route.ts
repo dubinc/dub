@@ -1,12 +1,12 @@
-import { withEmbedToken } from "@/lib/embed/auth";
+import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { SALES_PAGE_SIZE } from "@/lib/partners/constants";
 import z from "@/lib/zod";
 import { PartnerEarningsSchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
-// GET /api/embed/commissions – get commissions for a partner from an embed token
-export const GET = withEmbedToken(
+// GET /api/embed/referrals/commissions – get commissions for a partner from an embed token
+export const GET = withReferralsEmbedToken(
   async ({ programId, partnerId, searchParams }) => {
     const { page } = z
       .object({ page: z.coerce.number().optional().default(1) })
