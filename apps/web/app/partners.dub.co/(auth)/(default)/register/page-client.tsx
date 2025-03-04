@@ -12,7 +12,7 @@ import Link from "next/link";
 export default function RegisterPageClient() {
   return (
     <RegisterProvider>
-      <div className="mx-auto my-10 w-full max-w-[400px] md:mt-20 lg:mt-20">
+      <div className="mx-auto my-10 w-full max-w-[480px] md:mt-20 lg:mt-20">
         <RegisterFlow />
       </div>
     </RegisterProvider>

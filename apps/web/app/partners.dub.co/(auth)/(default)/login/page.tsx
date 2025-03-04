@@ -5,7 +5,7 @@ import Link from "next/link";
 
 export default function LoginPage() {
   return (
-    <div className="mx-auto my-10 w-full max-w-[400px] md:mt-16 lg:mt-20">
+    <div className="mx-auto my-10 w-full max-w-[480px] md:mt-16 lg:mt-20">
       <div className="rounded-lg border border-neutral-200 bg-white p-8 pb-10">
         <h1 className="text-lg font-medium text-neutral-800">
           Sign in to your Dub Partner account

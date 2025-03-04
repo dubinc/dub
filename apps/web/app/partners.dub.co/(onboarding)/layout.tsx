@@ -7,8 +7,12 @@ export default function PartnerOnboardingLayout({
 }) {
   return (
     <div className="flex min-h-screen flex-col">
-      <div className="fixed inset-0 [mask-image:radial-gradient(60%_60%_at_50%_0%,black,transparent)]">
-        <Grid cellSize={80} className="text-neutral-200" />
+      <div className="fixed left-1/2 top-0 h-full w-[1280px] -translate-x-1/2 [mask-image:radial-gradient(50%_70%_at_50%_0%,black_70%,transparent)]">
+        <Grid
+          cellSize={80}
+          patternOffset={[-79.25, -59]}
+          className="text-neutral-200"
+        />
         {/* <div className="absolute inset-0 -translate-y-1/2 -scale-x-100 bg-[conic-gradient(from_-32deg,#f00_0deg,#EAB308_99deg,#5CFF80_162deg,#00FFF9_216deg,#3A8BFD_288deg,#855AFC_360deg)] opacity-25 blur-[200px]" /> */}
       </div>
       <div className="relative z-10 mt-10 flex w-full flex-col items-center justify-center px-3 text-center md:px-8">
