@@ -1,11 +1,9 @@
-import { DubApiError, ErrorCodes } from "@/lib/api/errors";
-import { createLink, processLink } from "@/lib/api/links";
-import { enrollPartner } from "@/lib/api/partners/enroll-partner";
+import { DubApiError } from "@/lib/api/errors";
+import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
+import { createPartnerLink } from "@/lib/api/partners/create-partner-link";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import { linkEventSchema } from "@/lib/zod/schemas/links";
 import {
   createPartnerSchema,
   EnrolledPartnerSchema,
@@ -13,7 +11,6 @@ import {
 } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@prisma/client";
-import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -158,9 +155,9 @@ export const POST = withWorkspace(
       name,
       email,
       username,
-      image,
-      country,
-      description,
+      image = null,
+      country = null,
+      description = null,
       tenantId,
       linkProps,
     } = createPartnerSchema.parse(await parseRequestBody(req));
@@ -170,49 +167,21 @@ export const POST = withWorkspace(
       programId,
     });
 
-    if (!program.domain || !program.url) {
-      throw new DubApiError({
-        code: "bad_request",
-        message:
-          "You need to set a domain and url for this program before creating a partner.",
-      });
-    }
-
-    const { link, error, code } = await processLink({
-      payload: {
-        ...linkProps,
-        domain: program.domain,
-        key: username,
-        url: program.url,
-        programId,
-        tenantId,
-        folderId: program.defaultFolderId,
-        trackConversion: true,
-      },
+    const partnerLink = await createPartnerLink({
       workspace,
+      program,
+      partner: {
+        name,
+        email,
+        username,
+        tenantId,
+        linkProps,
+      },
       userId: session.user.id,
     });
 
-    if (error != null) {
-      throw new DubApiError({
-        code: code as ErrorCodes,
-        message: error,
-      });
-    }
-
-    const partnerLink = await createLink(link);
-
-    waitUntil(
-      sendWorkspaceWebhook({
-        trigger: "link.created",
-        workspace,
-        data: linkEventSchema.parse(partnerLink),
-      }),
-    );
-
-    const partner = await enrollPartner({
+    const enrolledPartner = await createAndEnrollPartner({
       program,
-      tenantId,
       link: partnerLink,
       workspace,
       partner: {
@@ -222,9 +191,10 @@ export const POST = withWorkspace(
         country,
         description,
       },
+      tenantId,
     });
 
-    return NextResponse.json(partner, {
+    return NextResponse.json(enrolledPartner, {
       status: 201,
     });
   },

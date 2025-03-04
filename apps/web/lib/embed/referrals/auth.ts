@@ -5,10 +5,10 @@ import { Link, Program } from "@dub/prisma/client";
 import { getSearchParams } from "@dub/utils";
 import { AxiomRequest, withAxiom } from "next-axiom";
 import { cookies } from "next/headers";
-import { EMBED_PUBLIC_TOKEN_COOKIE_NAME } from "./constants";
-import { embedToken } from "./embed-token";
+import { REFERRALS_EMBED_PUBLIC_TOKEN_COOKIE_NAME } from "../constants";
+import { referralsEmbedToken } from "./token-class";
 
-interface WithEmbedTokenHandler {
+interface WithReferralsEmbedTokenHandler {
   ({
     req,
     params,
@@ -30,7 +30,9 @@ interface WithEmbedTokenHandler {
   }): Promise<Response>;
 }
 
-export const withEmbedToken = (handler: WithEmbedTokenHandler) => {
+export const withReferralsEmbedToken = (
+  handler: WithReferralsEmbedTokenHandler,
+) => {
   return withAxiom(
     async (
       req: AxiomRequest,
@@ -44,7 +46,7 @@ export const withEmbedToken = (handler: WithEmbedTokenHandler) => {
 
         const cookieStore = cookies();
         const tokenFromCookie = cookieStore.get(
-          EMBED_PUBLIC_TOKEN_COOKIE_NAME,
+          REFERRALS_EMBED_PUBLIC_TOKEN_COOKIE_NAME,
         )?.value;
 
         if (!tokenFromCookie) {
@@ -55,7 +57,7 @@ export const withEmbedToken = (handler: WithEmbedTokenHandler) => {
         }
 
         const { programId, partnerId } =
-          (await embedToken.get(tokenFromCookie)) ?? {};
+          (await referralsEmbedToken.get(tokenFromCookie)) ?? {};
 
         if (!programId || !partnerId) {
           throw new DubApiError({

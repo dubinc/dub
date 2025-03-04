@@ -36,7 +36,6 @@ export const GET = withSession(async ({ session }) => {
         source: true,
         defaultWorkspace: true,
         defaultPartnerId: true,
-        dubPartnerId: true,
         passwordHash: true,
         createdAt: true,
       },
