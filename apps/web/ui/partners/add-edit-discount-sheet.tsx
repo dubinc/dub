@@ -6,7 +6,6 @@ import { updateDiscountAction } from "@/lib/actions/partners/update-discount";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useDiscountPartners from "@/lib/swr/use-discount-partners";
-import useDiscounts from "@/lib/swr/use-discounts";
 import usePartners from "@/lib/swr/use-partners";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -72,7 +71,6 @@ function DiscountSheetContent({
 }: DiscountSheetProps) {
   const formRef = useRef<HTMLFormElement>(null);
 
-  const { discounts } = useDiscounts();
   const { data: allPartners } = usePartners();
   const { id: workspaceId } = useWorkspace();
   const { program, mutate: mutateProgram } = useProgram();
