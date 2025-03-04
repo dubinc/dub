@@ -10,7 +10,7 @@ export const updateDiscountAction = authActionClient
   .schema(updateDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { programId, discountId, partnerIds, amount, maxDuration } =
+    const { programId, discountId, partnerIds, amount, type, maxDuration } =
       parsedInput;
 
     const program = await getProgramOrThrow({
@@ -52,6 +52,7 @@ export const updateDiscountAction = authActionClient
         id: discountId,
       },
       data: {
+        type,
         amount,
         maxDuration,
       },

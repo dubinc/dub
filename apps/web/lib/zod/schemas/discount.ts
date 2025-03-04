@@ -15,6 +15,7 @@ export const DiscountSchema = z.object({
 
 export const createDiscountSchema = z.object({
   amount: z.number().min(0),
+  type: z.nativeEnum(CommissionType).default("flat"),
   maxDuration: z.coerce
     .number()
     .refine((val) => RECURRING_MAX_DURATIONS.includes(val), {

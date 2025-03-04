@@ -10,10 +10,8 @@ import usePartners from "@/lib/swr/use-partners";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DiscountProps, EnrolledPartnerProps } from "@/lib/types";
-import {
-  createRewardSchema,
-  RECURRING_MAX_DURATIONS,
-} from "@/lib/zod/schemas/rewards";
+import { createDiscountSchema } from "@/lib/zod/schemas/discount";
+import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/rewards";
 import { SelectEligiblePartnersSheet } from "@/ui/partners/select-eligible-partners-sheet";
 import { X } from "@/ui/shared/icons";
 import {
@@ -49,7 +47,7 @@ interface DiscountSheetProps {
   isDefault?: boolean;
 }
 
-type FormData = z.infer<typeof createRewardSchema>;
+type FormData = z.infer<typeof createDiscountSchema>;
 
 const discountTypes = [
   {
@@ -89,13 +87,15 @@ function DiscountSheetContent({
     formState: { errors },
   } = useForm<FormData>({
     defaultValues: {
-      maxDuration: discount
-        ? discount.maxDuration === null
-          ? Infinity
-          : discount.maxDuration
-        : 0,
-      amount: discount?.amount,
       partnerIds: null,
+      maxDuration: 0,
+      ...(discount && {
+        amount:
+          discount.type === "flat" ? discount.amount / 100 : discount.amount,
+        type: discount.type,
+        maxDuration:
+          discount.maxDuration === null ? Infinity : discount.maxDuration,
+      }),
     },
   });
 
@@ -188,10 +188,11 @@ function DiscountSheetContent({
 
     const payload = {
       ...data,
-      maxDuration:
-        Number(data.maxDuration) === Infinity ? null : data.maxDuration,
       workspaceId,
       programId: program.id,
+      amount: data.type === "flat" ? data.amount * 100 : data.amount,
+      maxDuration:
+        Number(data.maxDuration) === Infinity ? null : data.maxDuration,
     };
 
     if (!discount) {
@@ -419,6 +420,24 @@ function DiscountSheetContent({
                     </div>
                   </div>
                 </AnimatedSizeContainer>
+              </div>
+            </div>
+
+            <div>
+              <label
+                htmlFor="type"
+                className="text-sm font-medium text-neutral-800"
+              >
+                Discount model
+              </label>
+              <div className="relative mt-2 rounded-md shadow-sm">
+                <select
+                  className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                  {...register("type")}
+                >
+                  <option value="percentage">Percentage</option>
+                  <option value="flat">Flat</option>
+                </select>
               </div>
             </div>
 
