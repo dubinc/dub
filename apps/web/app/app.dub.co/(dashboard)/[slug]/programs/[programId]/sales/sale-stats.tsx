@@ -5,12 +5,15 @@ import { ProgramStatsFilter } from "@/ui/partners/program-stats-filter";
 import { SaleStatusBadges } from "@/ui/partners/sale-status-badges";
 import { useRouterStuff } from "@dub/ui";
 import { Users } from "@dub/ui/icons";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 
 export function SaleStats() {
   const { slug, programId } = useParams();
   const { queryParams } = useRouterStuff();
+  const searchParams = useSearchParams();
   const { salesCount, error } = useSalesCount();
+
+  const view = searchParams.get("view") || "sales";
 
   return (
     <div className="xs:grid-cols-4 xs:divide-x xs:divide-y-0 grid divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200">
@@ -18,8 +21,8 @@ export function SaleStats() {
         label="All"
         href={`/${slug}/programs/${programId}/sales`}
         count={salesCount?.all.count}
-        amount={salesCount?.all.amount}
-        earnings={salesCount?.all.earnings}
+        amount={view === "sales" ? salesCount?.all.amount : undefined}
+        earnings={view === "commissions" ? salesCount?.all.earnings : undefined}
         icon={Users}
         iconClassName="text-neutral-600 bg-neutral-100"
         error={!!error}
@@ -33,8 +36,10 @@ export function SaleStats() {
           }) as string
         }
         count={salesCount?.pending.count}
-        amount={salesCount?.pending.amount}
-        earnings={salesCount?.pending.earnings}
+        amount={view === "sales" ? salesCount?.pending.amount : undefined}
+        earnings={
+          view === "commissions" ? salesCount?.pending.earnings : undefined
+        }
         icon={SaleStatusBadges.pending.icon}
         iconClassName={SaleStatusBadges.pending.className}
         error={!!error}
@@ -48,8 +53,10 @@ export function SaleStats() {
           }) as string
         }
         count={salesCount?.processed.count}
-        amount={salesCount?.processed.amount}
-        earnings={salesCount?.processed.earnings}
+        amount={view === "sales" ? salesCount?.processed.amount : undefined}
+        earnings={
+          view === "commissions" ? salesCount?.processed.earnings : undefined
+        }
         icon={SaleStatusBadges.processed.icon}
         iconClassName={SaleStatusBadges.processed.className}
         error={!!error}
@@ -63,8 +70,10 @@ export function SaleStats() {
           }) as string
         }
         count={salesCount?.paid.count}
-        amount={salesCount?.paid.amount}
-        earnings={salesCount?.paid.earnings}
+        amount={view === "sales" ? salesCount?.paid.amount : undefined}
+        earnings={
+          view === "commissions" ? salesCount?.paid.earnings : undefined
+        }
         icon={SaleStatusBadges.paid.icon}
         iconClassName={SaleStatusBadges.paid.className}
         error={!!error}
