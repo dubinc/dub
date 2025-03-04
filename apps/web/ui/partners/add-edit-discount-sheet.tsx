@@ -450,6 +450,7 @@ function DiscountSheetContent({
                               min: 0,
                               max: 100,
                               onChange: handleMoneyInputChange,
+                              required: true,
                             })}
                             onKeyDown={handleMoneyKeyDown}
                             placeholder={"0"}
@@ -474,7 +475,9 @@ function DiscountSheetContent({
                               errors.couponId &&
                                 "border-red-600 pr-7 focus:border-red-500 focus:ring-red-600",
                             )}
-                            {...register("couponId")}
+                            {...register("couponId", {
+                              required: true,
+                            })}
                           />
                         </div>
 
