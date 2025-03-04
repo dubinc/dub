@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { EMBED_PUBLIC_TOKEN_COOKIE_NAME } from "../embed/constants";
+import { REFERRALS_EMBED_PUBLIC_TOKEN_COOKIE_NAME } from "../embed/constants";
 import { referralsEmbedToken } from "../embed/referrals/token-class";
 import { parse } from "./utils";
 
@@ -18,7 +18,7 @@ export default async function EmbedMiddleware(req: NextRequest) {
     if (tokenData) {
       return NextResponse.rewrite(new URL(`/app.dub.co${fullPath}`, req.url), {
         headers: {
-          "Set-Cookie": `${EMBED_PUBLIC_TOKEN_COOKIE_NAME}=${token}; HttpOnly; Secure; SameSite=None; Path=/`,
+          "Set-Cookie": `${REFERRALS_EMBED_PUBLIC_TOKEN_COOKIE_NAME}=${token}; HttpOnly; Secure; SameSite=None; Path=/`,
         },
       });
     }

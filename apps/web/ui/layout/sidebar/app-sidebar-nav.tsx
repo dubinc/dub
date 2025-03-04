@@ -1,5 +1,6 @@
 "use client";
 
+import { SHOW_EMBEEDED_REFERRALS } from "@/lib/embed/constants";
 import usePrograms from "@/lib/swr/use-programs";
 import { useRouterStuff } from "@dub/ui";
 import {
@@ -216,11 +217,15 @@ const NAV_AREAS: SidebarNavAreas<{
             icon: ShieldCheck,
             href: "/account/settings/security",
           },
-          {
-            name: "Referrals",
-            icon: Gift,
-            href: "/account/settings/referrals",
-          },
+          ...(SHOW_EMBEEDED_REFERRALS
+            ? [
+                {
+                  name: "Referrals",
+                  icon: Gift,
+                  href: "/account/settings/referrals",
+                },
+              ]
+            : []),
         ],
       },
     ],
