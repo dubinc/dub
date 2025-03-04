@@ -1,3 +1,4 @@
+import { determineCustomerDiscount } from "@/lib/api/customers/determine-customer-discount";
 import { transformCustomer } from "@/lib/api/customers/transform-customer";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -17,7 +18,6 @@ import {
   Program,
   ProgramEnrollment,
 } from "@prisma/client";
-import { differenceInMonths } from "date-fns";
 import { NextResponse } from "next/server";
 
 interface CustomerResponse extends Customer {
@@ -71,59 +71,43 @@ export const GET = withWorkspace(
         : {}),
     })) as CustomerResponse[];
 
-    // TODO
-    // Move this to another methods
-    const determineCustomerDiscount = async (customer: CustomerResponse) => {
-      const discount =
-        customer.link?.programEnrollment?.discount ||
-        customer.link?.programEnrollment?.program.defaultDiscount ||
-        null;
+    const firstPurchaseMap = new Map();
 
-      if (!discount) {
-        return null;
-      }
-
-      // Lifetime discount
-      if (discount.maxDuration === null) {
-        return discount;
-      }
-
-      const firstPurchase = await prisma.commission.findFirst({
-        where: {
-          customerId: customer.id,
-          type: "sale",
+    const firstPurchases = await prisma.commission.findMany({
+      where: {
+        customerId: {
+          in: customers.map((customer) => customer.id),
         },
-        orderBy: {
-          createdAt: "asc",
-        },
-      });
+        type: "sale",
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+      distinct: ["customerId"],
+    });
 
-      // No purchase yet so we can apply the discount
-      if (!firstPurchase) {
-        return discount;
+    firstPurchases.forEach((purchase) => {
+      if (!firstPurchaseMap.has(purchase.customerId)) {
+        firstPurchaseMap.set(purchase.customerId, purchase);
       }
+    });
 
-      const monthsDifference = differenceInMonths(
-        new Date(),
-        firstPurchase.createdAt,
-      );
+    // TODO:
+    // Test customers with no first purchase
 
-      return monthsDifference < discount.maxDuration ? discount : null;
-    };
-
-    const processedCustomers = await Promise.all(
-      customers.map(async (customer) => {
-        return {
-          ...customer,
-          discount: await determineCustomerDiscount(customer),
-        };
-      }),
-    );
+    const processedCustomers = customers.map((customer) => {
+      return {
+        ...customer,
+        discount: determineCustomerDiscount(
+          customer,
+          firstPurchaseMap.get(customer.id),
+        ),
+      };
+    });
 
     return NextResponse.json(
       CustomerSchema.array().parse(processedCustomers.map(transformCustomer)),
     );
-    P;
   },
   {
     requiredPlan: [
