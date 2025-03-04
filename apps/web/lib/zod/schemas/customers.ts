@@ -2,6 +2,7 @@ import z from "@/lib/zod";
 import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
+import { PartnerSchema } from "./partners";
 
 export const getCustomersQuerySchema = z.object({
   email: z
@@ -47,7 +48,6 @@ export const createCustomerBodySchema = z.object({
 
 export const updateCustomerBodySchema = createCustomerBodySchema.partial();
 
-// customer object schema
 export const CustomerSchema = z.object({
   id: z
     .string()
@@ -62,22 +62,23 @@ export const CustomerSchema = z.object({
   avatar: z.string().nullish().describe("Avatar URL of the customer."),
   country: z.string().nullish().describe("Country of the customer."),
   createdAt: z.date().describe("The date the customer was created."),
+});
+
+export const CustomerEnrichedSchema = CustomerSchema.extend({
   link: LinkSchema.pick({
     id: true,
     domain: true,
     key: true,
     shortLink: true,
     programId: true,
-  }).nullish(),
-  partner: z
-    .object({
-      id: z.string(),
-      name: z.string().nullish(),
-      email: z.string().nullish(),
-      image: z.string().nullish(),
-    })
-    .nullish(),
-  discount: DiscountSchema.nullish(),
+  }),
+  partner: PartnerSchema.pick({
+    id: true,
+    name: true,
+    email: true,
+    image: true,
+  }),
+  discount: DiscountSchema.nullable(),
 });
 
 export const CUSTOMERS_MAX_PAGE_SIZE = 100;

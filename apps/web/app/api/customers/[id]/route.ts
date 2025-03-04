@@ -4,6 +4,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import {
+  CustomerEnrichedSchema,
   CustomerSchema,
   getCustomersQuerySchema,
   updateCustomerBodySchema,
@@ -26,7 +27,9 @@ export const GET = withWorkspace(
       { includeExpandedFields },
     );
 
-    return NextResponse.json(CustomerSchema.parse(transformCustomer(customer)));
+    return NextResponse.json(
+      CustomerEnrichedSchema.parse(transformCustomer(customer)),
+    );
   },
   {
     requiredPlan: [
