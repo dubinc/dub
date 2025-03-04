@@ -1,4 +1,4 @@
-import { withReferralsEmbedToken } from "@/lib/embed/auth";
+import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { LeaderboardPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";

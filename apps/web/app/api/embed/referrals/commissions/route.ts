@@ -1,4 +1,4 @@
-import { withReferralsEmbedToken } from "@/lib/embed/auth";
+import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { SALES_PAGE_SIZE } from "@/lib/partners/constants";
 import z from "@/lib/zod";
 import { PartnerEarningsSchema } from "@/lib/zod/schemas/partner-profile";

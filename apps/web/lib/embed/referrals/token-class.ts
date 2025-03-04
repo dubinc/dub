@@ -1,10 +1,10 @@
 import { redis } from "@/lib/upstash";
-import { createId } from "../api/utils";
+import { createId } from "../../api/utils";
 import {
   EMBED_PUBLIC_TOKEN_EXPIRY,
   EMBED_PUBLIC_TOKEN_LENGTH,
   EMBED_PUBLIC_TOKEN_PREFIX,
-} from "./constants";
+} from "../constants";
 
 interface ReferralsEmbedTokenProps {
   programId: string;
@@ -34,4 +34,4 @@ class ReferralsEmbedToken {
   }
 }
 
-export const embedToken = new ReferralsEmbedToken();
+export const referralsEmbedToken = new ReferralsEmbedToken();

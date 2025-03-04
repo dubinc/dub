@@ -3,7 +3,7 @@ import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-par
 import { createPartnerLink } from "@/lib/api/partners/create-partner-link";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { embedToken } from "@/lib/embed/embed-token";
+import { referralsEmbedToken } from "@/lib/embed/referrals/token-class";
 import {
   createReferralsEmbedTokenSchema,
   ReferralsEmbedTokenSchema,
@@ -113,7 +113,7 @@ export const POST = withWorkspace(
       });
     }
 
-    const response = await embedToken.create({
+    const response = await referralsEmbedToken.create({
       programId,
       partnerId: programEnrollment.partnerId,
     });

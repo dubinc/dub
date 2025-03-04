@@ -5,8 +5,8 @@ import { Link, Program } from "@dub/prisma/client";
 import { getSearchParams } from "@dub/utils";
 import { AxiomRequest, withAxiom } from "next-axiom";
 import { cookies } from "next/headers";
-import { EMBED_PUBLIC_TOKEN_COOKIE_NAME } from "./constants";
-import { embedToken } from "./embed-token";
+import { EMBED_PUBLIC_TOKEN_COOKIE_NAME } from "../constants";
+import { referralsEmbedToken } from "./token-class";
 
 interface WithReferralsEmbedTokenHandler {
   ({
@@ -57,7 +57,7 @@ export const withReferralsEmbedToken = (
         }
 
         const { programId, partnerId } =
-          (await embedToken.get(tokenFromCookie)) ?? {};
+          (await referralsEmbedToken.get(tokenFromCookie)) ?? {};
 
         if (!programId || !partnerId) {
           throw new DubApiError({

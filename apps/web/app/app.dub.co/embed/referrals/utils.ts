@@ -1,11 +1,11 @@
-import { embedToken } from "@/lib/embed/embed-token";
+import { referralsEmbedToken } from "@/lib/embed/referrals/token-class";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { DiscountSchema } from "@/lib/zod/schemas/discount";
 import { prisma } from "@dub/prisma";
 import { notFound } from "next/navigation";
 
 export const getReferralsEmbedData = async (token: string) => {
-  const { programId, partnerId } = (await embedToken.get(token)) ?? {};
+  const { programId, partnerId } = (await referralsEmbedToken.get(token)) ?? {};
 
   if (!programId || !partnerId) {
     notFound();
