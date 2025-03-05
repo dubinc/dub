@@ -8,12 +8,13 @@ type Options = Omit<DubEmbedOptions, "token">;
 type DubEmbedProps = {
   token: DubEmbedOptions["token"];
   data: DubEmbedOptions["data"];
+  theme?: DubEmbedOptions["theme"];
   options?: Options;
 } & HTMLProps<HTMLDivElement>;
 
 export const DubEmbed = memo(
-  ({ token, data, options, ...rest }: DubEmbedProps) => (
-    <DubEmbedInner options={{ ...options, token, data }} {...rest} />
+  ({ token, data, theme, options, ...rest }: DubEmbedProps) => (
+    <DubEmbedInner options={{ ...options, token, data, theme }} {...rest} />
   ),
 );
 
