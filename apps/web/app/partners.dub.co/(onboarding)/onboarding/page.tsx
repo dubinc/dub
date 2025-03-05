@@ -1,5 +1,6 @@
 import { getSession } from "@/lib/auth";
 import { prisma } from "@dub/prisma";
+import { subDays } from "date-fns";
 import { Suspense } from "react";
 import { OnboardingForm } from "./onboarding-form";
 
@@ -36,5 +37,28 @@ async function OnboardingFormRSC() {
       image: true,
     },
   });
-  return <OnboardingForm partner={partner} />;
+
+  // Find recent applications for the user's email
+  const applications = await prisma.programApplication.findMany({
+    where: {
+      email: user.email,
+      createdAt: {
+        gte: subDays(new Date(), 3),
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    take: 2,
+  });
+
+  return (
+    <OnboardingForm
+      partner={{
+        ...partner,
+        ...(applications.length && { name: applications[0].name }),
+      }}
+      lockName={applications.length === 1}
+    />
+  );
 }

@@ -24,8 +24,12 @@ import { z } from "zod";
 
 export function OnboardingForm({
   partner,
+  lockName,
 }: {
-  partner?: Pick<Partner, "name" | "description" | "country" | "image"> | null;
+  partner?: Partial<
+    Pick<Partner, "name" | "description" | "country" | "image">
+  > | null;
+  lockName?: boolean;
 }) {
   const router = useRouter();
   const { data: session } = useSession();
@@ -85,12 +89,13 @@ export function OnboardingForm({
         <input
           type="text"
           className={cn(
-            "mt-2 block w-full rounded-md focus:outline-none sm:text-sm",
+            "mt-2 block w-full rounded-md read-only:bg-neutral-100 read-only:text-neutral-500 focus:outline-none sm:text-sm",
             errors.name
               ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
               : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
           )}
-          autoFocus={!isMobile}
+          readOnly={!errors.name && lockName}
+          autoFocus={!isMobile && !errors.name && !lockName}
           {...register("name", {
             required: true,
           })}
