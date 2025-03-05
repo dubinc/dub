@@ -31,10 +31,10 @@ import { LoadingSpinner, SortOrder } from "../icons";
 
 const tableCellClassName = (columnId: string, clickable?: boolean) =>
   cn([
-    "py-2.5 text-left text-sm leading-6 whitespace-nowrap border-neutral-200 px-4 relative",
+    "py-2.5 text-left text-sm leading-6 whitespace-nowrap border-border-subtle px-4 relative",
     "border-l border-b",
-    columnId === "menu" && "bg-white border-l-transparent py-0 px-1",
-    clickable && "group-hover/row:bg-neutral-50 transition-colors duration-75",
+    columnId === "menu" && "bg-bg-default border-l-transparent py-0 px-1",
+    clickable && "group-hover/row:bg-bg-muted transition-colors duration-75",
   ]);
 
 const resizingClassName = cn([
@@ -225,7 +225,7 @@ const ResizableTableRow = memo(
             key={cell.id}
             className={cn(
               tableCellClassName(cell.column.id, !!onRowClick),
-              "group text-neutral-600",
+              "text-content-default group",
               getCommonPinningClassNames(
                 cell.column,
                 row.index === table.getRowModel().rows.length - 1,
@@ -294,7 +294,7 @@ export function Table<T>({
   return (
     <div
       className={cn(
-        "relative rounded-xl border border-neutral-200 bg-white",
+        "border-border-subtle bg-bg-default relative rounded-xl border",
         containerClassName,
       )}
     >
@@ -342,7 +342,7 @@ export function Table<T>({
                         colSpan={header.colSpan}
                         className={cn(
                           tableCellClassName(header.id),
-                          "select-none font-medium",
+                          "text-content-emphasis select-none font-medium",
                           getCommonPinningClassNames(
                             header.column,
                             !table.getRowModel().rows.length,
@@ -450,7 +450,7 @@ export function Table<T>({
                         key={cell.id}
                         className={cn(
                           tableCellClassName(cell.column.id, !!onRowClick),
-                          "group text-neutral-600",
+                          "text-content-default group",
                           getCommonPinningClassNames(
                             cell.column,
                             row.index === table.getRowModel().rows.length - 1,
@@ -485,14 +485,14 @@ export function Table<T>({
           {children}
         </div>
       ) : (
-        <div className="flex h-96 w-full items-center justify-center text-sm text-neutral-500">
+        <div className="text-content-subtle flex h-96 w-full items-center justify-center text-sm">
           {error ||
             emptyState ||
             `No ${resourceName?.(true) || "items"} found.`}
         </div>
       )}
       {pagination && !error && !!data?.length && !!rowCount && (
-        <div className="sticky bottom-0 mx-auto -mt-px flex w-full max-w-full items-center justify-between rounded-b-[inherit] border-t border-neutral-200 bg-white px-4 py-3.5 text-sm leading-6 text-neutral-600">
+        <div className="border-border-subtle bg-bg-default text-content-default sticky bottom-0 mx-auto -mt-px flex w-full max-w-full items-center justify-between rounded-b-[inherit] border-t px-4 py-3.5 text-sm leading-6">
           <div>
             <span className="hidden sm:inline-block">Viewing</span>{" "}
             <span className="font-medium">
@@ -536,7 +536,7 @@ export function Table<T>({
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="absolute inset-0 flex h-[50vh] items-center justify-center rounded-xl bg-white/50"
+            className="bg-bg-default/50 absolute inset-0 flex h-[50vh] items-center justify-center rounded-xl"
           >
             <LoadingSpinner />
           </motion.div>

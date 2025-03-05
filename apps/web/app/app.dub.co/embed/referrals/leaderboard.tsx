@@ -66,8 +66,8 @@ export function ReferralsEmbedLeaderboard() {
         description="No partners have been added to this program yet."
         cardContent={() => (
           <>
-            <Users className="size-4 text-neutral-700" />
-            <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+            <Users className="text-content-default size-4" />
+            <div className="bg-bg-emphasis h-2.5 w-24 min-w-0 rounded-sm" />
           </>
         )}
         className="border-none md:min-h-fit"
@@ -80,7 +80,7 @@ export function ReferralsEmbedLeaderboard() {
 
   return (
     <motion.div
-      className="relative rounded-md border border-neutral-200"
+      className="border-border-subtle relative rounded-md border"
       {...TAB_ITEM_ANIMATION_SETTINGS}
     >
       <Table
@@ -88,7 +88,7 @@ export function ReferralsEmbedLeaderboard() {
         table={table}
         containerClassName="border-none max-h-[26rem] overflow-auto"
       />
-      <div className="pointer-events-none absolute -bottom-px left-0 h-16 w-full rounded-b-lg bg-gradient-to-t from-white sm:bottom-0" />
+      <div className="from-bg-default pointer-events-none absolute -bottom-px left-0 h-16 w-full rounded-b-lg bg-gradient-to-t sm:bottom-0" />
     </motion.div>
   );
 }
