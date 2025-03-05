@@ -10,15 +10,12 @@ export const createManualPayoutSchema = z.object({
   workspaceId: z.string(),
   programId: z.string(),
   partnerId: z.string({ required_error: "Please select a partner" }),
-  start: parseDateSchema.optional(),
-  end: parseDateSchema.optional(),
   amount: z
     .preprocess((val) => {
       const parsed = parseFloat(val as string);
       return isNaN(parsed) ? 0 : parsed;
     }, z.number())
     .optional(),
-  type: z.enum(["custom", "clicks", "leads"]),
   description: z
     .string()
     .max(190, "Description must be less than 190 characters")
@@ -31,7 +28,9 @@ export const payoutsQuerySchema = z
     partnerId: z.string().optional(),
     programId: z.string().optional(),
     invoiceId: z.string().optional(),
-    sortBy: z.enum(["periodStart", "amount", "paidAt"]).default("periodStart"),
+    sortBy: z
+      .enum(["createdAt", "periodStart", "amount", "paidAt"])
+      .default("createdAt"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
     type: z.nativeEnum(PayoutType).optional(),
     interval: z.enum(intervals).default("all"),

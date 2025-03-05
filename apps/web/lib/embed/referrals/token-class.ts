@@ -1,8 +1,8 @@
 import { redis } from "@/lib/upstash";
-import { createId } from "../../api/utils";
+
+import { createId } from "@/lib/api/create-id";
 import {
   EMBED_PUBLIC_TOKEN_EXPIRY,
-  EMBED_PUBLIC_TOKEN_LENGTH,
   EMBED_PUBLIC_TOKEN_PREFIX,
 } from "../constants";
 
@@ -15,7 +15,6 @@ class ReferralsEmbedToken {
   async create(props: ReferralsEmbedTokenProps) {
     const publicToken = createId({
       prefix: EMBED_PUBLIC_TOKEN_PREFIX,
-      length: EMBED_PUBLIC_TOKEN_LENGTH,
     });
 
     await redis.set(publicToken, JSON.stringify(props), {

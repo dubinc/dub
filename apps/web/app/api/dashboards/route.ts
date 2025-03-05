@@ -1,5 +1,5 @@
+import { createId } from "@/lib/api/create-id";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
-import { createId } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { dashboardSchema } from "@/lib/zod/schemas/dashboard";

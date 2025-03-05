@@ -88,7 +88,7 @@ export function useSaleFilters() {
                 )}
               />
             ),
-            right: nFormatter(salesCount?.[value] || 0, { full: true }),
+            right: nFormatter(salesCount?.[value]?.count || 0, { full: true }),
           };
         }),
       },
@@ -175,7 +175,7 @@ function usePartnerFilterOptions(search: string) {
           ...(selectedPartners
             ?.filter((st) => !partners?.some((t) => t.id === st.id))
             ?.map((st) => ({ ...st, hideDuringSearch: true })) ?? []),
-        ] as (EnrolledPartnerProps & { hideDuringSearch?: boolean })[]) ?? null;
+        ] as (EnrolledPartnerProps & { hideDuringSearch?: boolean })[]);
   }, [partnersLoading, partners, selectedPartners, searchParamsObj.partnerId]);
 
   return { partners: result, partnersAsync };
@@ -216,7 +216,7 @@ function useCustomerFilterOptions(search: string) {
           ...(selectedCustomers
             ?.filter((st) => !customers?.some((t) => t.id === st.id))
             ?.map((st) => ({ ...st, hideDuringSearch: true })) ?? []),
-        ] as (CustomerProps & { hideDuringSearch?: boolean })[]) ?? null;
+        ] as (CustomerProps & { hideDuringSearch?: boolean })[]);
   }, [
     customersLoading,
     customers,
