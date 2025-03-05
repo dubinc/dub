@@ -19,7 +19,7 @@ async function main() {
         programId: "prog_xxx",
         status: "processed",
         earnings: {
-          notIn: [0, 5000],
+          not: 5000,
         },
         partner: {
           email: {
@@ -71,10 +71,12 @@ async function main() {
             payload,
           });
 
-          await prisma.commission.update({
-            where: { id: commission.id },
-            data: payload,
-          });
+          if (payload.earnings === 5000) {
+            await prisma.commission.update({
+              where: { id: commission.id },
+              data: payload,
+            });
+          }
 
           if (
             commission.status === "processed" &&
