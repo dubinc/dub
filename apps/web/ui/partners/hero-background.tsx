@@ -4,7 +4,7 @@ import { BlurImage } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { CSSProperties, useId } from "react";
 
-const BG_INVERTED = "var(--bg-inverted, #171717)";
+const BG_INVERTED = "rgb(var(--bg-inverted))";
 
 export function HeroBackground({
   logo,
@@ -302,8 +302,9 @@ export function HeroBackground({
             <path
               d={`M 20 0 L 0 0 0 20`}
               fill="transparent"
+              className="text-border-emphasis"
               stroke="currentColor"
-              strokeOpacity={0.2}
+              strokeOpacity={0.12}
               strokeWidth={1}
             />
           </pattern>

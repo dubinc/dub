@@ -206,32 +206,42 @@ const config: Config = {
 
         // Light/dark mode colors
 
-        "bg-emphasis": "var(--bg-emphasis, #e5e5e5)",
-        "bg-default": "var(--bg-default, #ffffff)",
-        "bg-subtle": "var(--bg-subtle, #f5f5f5)",
-        "bg-muted": "var(--bg-muted, #fafafa)",
-        "bg-inverted": "var(--bg-inverted, #171717)",
+        "bg-emphasis": "rgb(var(--bg-emphasis, 229 229 229) / <alpha-value>)",
+        "bg-default": "rgb(var(--bg-default, 255 255 255) / <alpha-value>)",
+        "bg-subtle": "rgb(var(--bg-subtle, 245 245 245) / <alpha-value>)",
+        "bg-muted": "rgb(var(--bg-muted, 250 250 250) / <alpha-value>)",
+        "bg-inverted": "rgb(var(--bg-inverted, 23 23 23) / <alpha-value>)",
 
-        "bg-info": "var(--bg-info, #dbeafe)",
-        "bg-success": "var(--bg-success, #dcfce7)",
-        "bg-attention": "var(--bg-attention, #ffedd4)",
-        "bg-error": "var(--bg-error, #ffe2e2)",
+        "bg-info": "rgb(var(--bg-info, 191 219 254) / <alpha-value>)",
+        "bg-success": "rgb(var(--bg-success, 220 252 231) / <alpha-value>)",
+        "bg-attention": "rgb(var(--bg-attention, 255 237 213) / <alpha-value>)",
+        "bg-error": "rgb(var(--bg-error, 254 226 226) / <alpha-value>)",
 
-        "border-emphasis": "var(--border-emphasis, #a1a1a1)",
-        "border-default": "var(--border-default, #d4d4d4)",
-        "border-subtle": "var(--border-subtle, #e5e5e5)",
-        "border-muted": "var(--border-muted, #f5f5f5)",
+        "border-emphasis":
+          "rgb(var(--border-emphasis, 163 163 163) / <alpha-value>)",
+        "border-default":
+          "rgb(var(--border-default, 212 212 212) / <alpha-value>)",
+        "border-subtle":
+          "rgb(var(--border-subtle, 229 229 229) / <alpha-value>)",
+        "border-muted": "rgb(var(--border-muted, 245 245 245) / <alpha-value>)",
 
-        "content-inverted": "var(--content-inverted, #ffffff)",
-        "content-muted": "var(--content-muted, #a1a1a1)",
-        "content-subtle": "var(--content-subtle, #737373)",
-        "content-default": "var(--content-default, #404040)",
-        "content-emphasis": "var(--content-emphasis, #171717)",
+        "content-inverted":
+          "rgb(var(--content-inverted, 255 255 255) / <alpha-value>)",
+        "content-muted":
+          "rgb(var(--content-muted, 163 163 163) / <alpha-value>)",
+        "content-subtle":
+          "rgb(var(--content-subtle, 115 115 115) / <alpha-value>)",
+        "content-default":
+          "rgb(var(--content-default, 64 64 64) / <alpha-value>)",
+        "content-emphasis":
+          "rgb(var(--content-emphasis, 23 23 23) / <alpha-value>)",
 
-        "content-info": "var(--content-info, #1447e6)",
-        "content-success": "var(--content-success, #008236)",
-        "content-attention": "var(--content-attention, #ca3500)",
-        "content-error": "var(--content-error, #c10007)",
+        "content-info": "rgb(var(--content-info, 29 78 216) / <alpha-value>)",
+        "content-success":
+          "rgb(var(--content-success, 21 128 61) / <alpha-value>)",
+        "content-attention":
+          "rgb(var(--content-attention, 194 65 12) / <alpha-value>)",
+        "content-error": "rgb(var(--content-error, 185 28 28) / <alpha-value>)",
       },
       dropShadow: {
         "card-hover": ["0 8px 12px #222A350d", "0 32px 80px #2f30370f"],

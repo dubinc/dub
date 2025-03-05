@@ -137,10 +137,10 @@ export function ReferralsEmbedQuickstart({
   );
 }
 
-const BG_MUTED = "var(--bg-muted, #FAFAFA)";
-const BG_DEFAULT = "var(--bg-default, white)";
-const BORDER_SUBTLE = "var(--bg-emphasis, #E5E5E5)";
-const CONTENT_SUBTLE = "var(--content-subtle, #737373)";
+const BG_MUTED = "rgb(var(--bg-muted))";
+const BG_DEFAULT = "rgb(var(--bg-default))";
+const BORDER_SUBTLE = "rgb(var(--border-subtle))";
+const CONTENT_SUBTLE = "rgb(var(--content-subtle))";
 
 const ShareLink = () => {
   return (
