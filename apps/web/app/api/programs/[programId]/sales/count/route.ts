@@ -17,7 +17,7 @@ export const GET = withWorkspace(
     });
 
     const parsed = getProgramSalesCountQuerySchema.parse(searchParams);
-    const { status, partnerId, payoutId } = parsed;
+    const { status, partnerId, payoutId, customerId } = parsed;
 
     const { startDate, endDate } = getStartEndDates(parsed);
 
@@ -29,6 +29,7 @@ export const GET = withWorkspace(
         status,
         partnerId,
         payoutId,
+        customerId,
         createdAt: {
           gte: startDate.toISOString(),
           lte: endDate.toISOString(),
