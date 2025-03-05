@@ -26,7 +26,12 @@ const generateKeyFromEmail = (email: string) => {
 export function Form() {
   const router = useRouter();
   const [keyErrors, setKeyErrors] = useState<{ [key: number]: string }>({});
-  const { id: workspaceId, slug: workspaceSlug, mutate } = useWorkspace();
+  const {
+    id: workspaceId,
+    slug: workspaceSlug,
+    mutate,
+    loading,
+  } = useWorkspace();
 
   const {
     register,
@@ -280,7 +285,7 @@ export function Form() {
           text="Continue"
           className="w-full"
           loading={isSubmitting || isPending}
-          disabled={isSubmitting || isPending}
+          disabled={isSubmitting || isPending || loading}
         />
       </form>
     </div>

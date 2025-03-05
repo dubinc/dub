@@ -15,15 +15,17 @@ import { useSidebar } from "./sidebar-context";
 
 export function Header() {
   const router = useRouter();
-  const { getValues } = useFormContext();
-  const { programs, loading: programsLoading } = usePrograms();
-  const { partnersEnabled, loading: workspaceLoading } = useWorkspace();
-  const { isOpen, setIsOpen } = useSidebar();
   const { isMobile } = useMediaQuery();
+  const { getValues } = useFormContext();
+  const { isOpen, setIsOpen } = useSidebar();
+
+  const { programs, loading: programsLoading } = usePrograms();
 
   const {
     id: workspaceId,
     slug: workspaceSlug,
+    partnersEnabled,
+    loading: workspaceLoading,
     mutate: mutateWorkspace,
   } = useWorkspace();
 

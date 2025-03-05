@@ -10,15 +10,24 @@ export function FormWrapper({ children }: { children: React.ReactNode }) {
 
   const methods = useForm<ProgramData>({
     defaultValues: {
-      ...programOnboarding,
-      linkType: programOnboarding?.linkType ?? "short",
-      programType: programOnboarding?.programType ?? "new",
-      type: programOnboarding?.type ?? "flat",
-      amount: programOnboarding?.amount ?? null,
-      partners: programOnboarding?.partners?.length
-        ? programOnboarding.partners
-        : [{ email: "", key: "" }],
+      linkType: "short",
+      programType: "new",
+      type: "flat",
+      amount: null,
+      partners: [{ email: "", key: "" }],
     },
+    values: programOnboarding
+      ? {
+          ...programOnboarding,
+          linkType: programOnboarding.linkType ?? "short",
+          programType: programOnboarding.programType ?? "new",
+          type: programOnboarding.type ?? "flat",
+          amount: programOnboarding.amount ?? null,
+          partners: programOnboarding.partners?.length
+            ? programOnboarding.partners
+            : [{ email: "", key: "" }],
+        }
+      : undefined,
   });
 
   return <FormProvider {...methods}>{children}</FormProvider>;

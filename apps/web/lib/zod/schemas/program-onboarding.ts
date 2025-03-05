@@ -1,18 +1,14 @@
 import { CommissionType } from "@prisma/client";
 import { z } from "zod";
 import { RECURRING_MAX_DURATIONS } from "./rewards";
+import { parseUrlSchema } from "./utils";
 
 // Getting started
 export const programInfoSchema = z.object({
   name: z.string().max(100),
-  logo: z.string().nullish(),
-  domain: z.string().nullish(),
-  url: z
-    .string()
-    .url("Enter a valid URL")
-    .max(255)
-    .transform((str) => (str === "" ? null : str))
-    .nullish(),
+  logo: z.string(),
+  domain: z.string(),
+  url: parseUrlSchema.nullable(),
   linkType: z.enum(["short", "query", "dynamic"]).default("short"),
 });
 
