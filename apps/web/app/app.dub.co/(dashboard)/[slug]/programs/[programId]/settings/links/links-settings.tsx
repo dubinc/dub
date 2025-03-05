@@ -99,9 +99,9 @@ function LinksSettingsForm({ program }: { program: ProgramProps }) {
       className="rounded-lg border border-neutral-200 bg-white"
       onSubmit={handleSubmit(async (data) => {
         await executeAsync({
+          ...data,
           workspaceId: workspaceId!,
           programId: program.id,
-          ...data,
         });
 
         // Reset isDirty state
