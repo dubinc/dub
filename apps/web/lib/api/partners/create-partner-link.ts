@@ -76,7 +76,7 @@ export const createPartnerLink = async ({
       result.code === "conflict" &&
       result.error.startsWith("Duplicate key")
     ) {
-      currentKey = `${username}-${nanoid(4).toLowerCase()}`;
+      currentKey = `${currentKey}-${nanoid(4).toLowerCase()}`;
       continue;
     }
 

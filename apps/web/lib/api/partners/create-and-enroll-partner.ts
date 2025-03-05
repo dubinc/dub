@@ -1,6 +1,6 @@
 "use server";
 
-import { createId } from "@/lib/api/utils";
+import { createId } from "@/lib/api/create-id";
 import { recordLink } from "@/lib/tinybird";
 import {
   CreatePartnerProps,

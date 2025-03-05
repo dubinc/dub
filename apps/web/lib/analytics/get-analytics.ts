@@ -7,7 +7,10 @@ import { conn } from "../planetscale";
 import z from "../zod";
 import { analyticsFilterTB } from "../zod/schemas/analytics";
 import { analyticsResponse } from "../zod/schemas/analytics-response";
-import { SINGULAR_ANALYTICS_ENDPOINTS } from "./constants";
+import {
+  DIMENSIONAL_ANALYTICS_FILTERS,
+  SINGULAR_ANALYTICS_ENDPOINTS,
+} from "./constants";
 import { AnalyticsFilters } from "./types";
 import { getStartEndDates } from "./utils/get-start-end-dates";
 
@@ -35,8 +38,16 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
   // get all-time clicks count if:
   // 1. linkId is defined
   // 2. type is count
-  // 3. interval is all_unfiltered
-  if (linkId && groupBy === "count" && interval === "all_unfiltered") {
+  // 3. interval is all
+  // 4. no other dimensional filters are applied
+  if (
+    linkId &&
+    groupBy === "count" &&
+    interval === "all" &&
+    DIMENSIONAL_ANALYTICS_FILTERS.every(
+      (filter) => !params[filter as keyof AnalyticsFilters],
+    )
+  ) {
     const columns =
       event === "composite"
         ? `clicks, leads, sales, saleAmount`

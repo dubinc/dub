@@ -1,5 +1,5 @@
+import { createId } from "@/lib/api/create-id";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
-import { createId } from "@/lib/api/utils";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { prisma } from "@dub/prisma";
 import { EventType } from "@dub/prisma/client";

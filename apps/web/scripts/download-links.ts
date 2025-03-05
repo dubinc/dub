@@ -1,41 +1,37 @@
 import { prisma } from "@dub/prisma";
-import { linkConstructor } from "@dub/utils";
 import "dotenv-flow/config";
 import * as fs from "fs";
 import * as Papa from "papaparse";
 
-const projectId = "xxx";
-
 async function main() {
   const links = await prisma.link.findMany({
     where: {
-      projectId,
+      projectId: "xxx",
+      archived: false,
+      folderId: null,
+      domain: "xxx",
+      clicks: {
+        gt: 0,
+      },
+      key: {
+        not: "_root",
+      },
     },
     select: {
-      domain: true,
+      id: true,
+      shortLink: true,
       key: true,
-      url: true,
+      externalId: true,
       clicks: true,
       createdAt: true,
     },
     orderBy: {
-      createdAt: "asc",
+      clicks: "desc",
     },
   });
+  console.log(links.length);
 
-  const processedLinks = links.map(
-    ({ key, domain, url, clicks, createdAt }) => ({
-      link: linkConstructor({
-        domain,
-        key,
-      }),
-      url,
-      clicks,
-      createdAt: createdAt.toISOString(),
-    }),
-  );
-
-  fs.writeFileSync("xxx.csv", Papa.unparse(processedLinks));
+  fs.writeFileSync("xxx.csv", Papa.unparse(links));
 }
 
 main();
