@@ -1,7 +1,7 @@
 "use server";
 
+import { createId } from "@/lib/api/create-id";
 import { createLink, processLink } from "@/lib/api/links";
-import { createId } from "@/lib/api/utils";
 import { validateAllowedHostnames } from "@/lib/api/validate-allowed-hostnames";
 import { rewardfulImporter } from "@/lib/rewardful/importer";
 import { storage } from "@/lib/storage";
