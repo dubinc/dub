@@ -105,16 +105,20 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
           return formatRewardDescription({ reward });
         },
         options:
-          rewards?.map((reward) => {
-            const Icon = REWARD_EVENTS[reward.event].icon;
+          rewards
+            ?.filter(
+              (reward) => reward.partnersCount && reward.partnersCount > 0,
+            )
+            .map((reward) => {
+              const Icon = REWARD_EVENTS[reward.event].icon;
 
-            return {
-              value: reward.id,
-              label: formatRewardDescription({ reward }),
-              icon: <Icon className="size-4 bg-transparent" />,
-              // right: reward.event,
-            };
-          }) ?? [],
+              return {
+                value: reward.id,
+                label: formatRewardDescription({ reward }),
+                icon: <Icon className="size-4 bg-transparent" />,
+                // right: reward.event,
+              };
+            }) ?? [],
       },
     ],
     [countriesCount, statusCount, rewards],

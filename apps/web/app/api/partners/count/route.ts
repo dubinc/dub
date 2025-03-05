@@ -1,4 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
+import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { partnersCountQuerySchema } from "@/lib/zod/schemas/partners";
@@ -24,8 +25,15 @@ export const GET = withWorkspace(
       programId,
     });
 
-    const { groupBy, status, country, search, ids } =
+    const { groupBy, status, country, rewardId, search, ids } =
       partnersCountQuerySchema.parse(searchParams);
+
+    if (rewardId) {
+      await getRewardOrThrow({
+        programId,
+        rewardId,
+      });
+    }
 
     const commonWhere: Prisma.PartnerWhereInput = {
       ...(search && {
@@ -44,6 +52,13 @@ export const GET = withWorkspace(
           programs: {
             some: {
               programId,
+              ...(rewardId && {
+                rewards: {
+                  some: {
+                    rewardId,
+                  },
+                },
+              }),
             },
             every: {
               status: status || { not: "rejected" },
@@ -68,6 +83,13 @@ export const GET = withWorkspace(
         by: ["status"],
         where: {
           programId,
+          ...(rewardId && {
+            rewards: {
+              some: {
+                rewardId,
+              },
+            },
+          }),
           partner: {
             ...(country && {
               country,
@@ -96,6 +118,13 @@ export const GET = withWorkspace(
       where: {
         programId,
         status: status || { not: "rejected" },
+        ...(rewardId && {
+          rewards: {
+            some: {
+              rewardId,
+            },
+          },
+        }),
         partner: {
           ...(country && {
             country,

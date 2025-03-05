@@ -15,6 +15,7 @@ export const partnersQuerySchema = z
   .object({
     status: z.nativeEnum(ProgramEnrollmentStatus).optional(),
     country: z.string().optional(),
+    rewardId: z.string().optional(),
     search: z.string().optional(),
     sortBy: z
       .enum(["createdAt", "clicks", "leads", "sales", "saleAmount", "earnings"])
@@ -40,7 +41,7 @@ export const partnersCountQuerySchema = partnersQuerySchema
     pageSize: true,
   })
   .extend({
-    groupBy: z.enum(["status", "country"]).optional(),
+    groupBy: z.enum(["status", "country", "rewardId"]).optional(),
   });
 
 export const partnerInvitesQuerySchema = getPaginationQuerySchema({
