@@ -15,7 +15,10 @@ export default function useSalesCount(opts?: Record<string, any>) {
       {
         workspaceId,
       },
-      opts,
+      {
+        ...opts,
+        exclude: ["view", ...(opts?.exclude || [])],
+      },
     )}`,
     fetcher,
   );

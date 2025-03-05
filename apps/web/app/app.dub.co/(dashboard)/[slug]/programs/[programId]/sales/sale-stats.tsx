@@ -12,7 +12,7 @@ export function SaleStats() {
   const { queryParams } = useRouterStuff();
   const searchParams = useSearchParams();
   const { salesCount, error } = useSalesCount({
-    include: [],
+    exclude: ["status"],
   });
 
   const view = searchParams.get("view") || "sales";
