@@ -75,6 +75,7 @@ export const updateProgramAction = authActionClient
           brandColor,
           logo: logoUrl ?? undefined,
           wordmark: wordmarkUrl ?? undefined,
+          defaultFolderId,
         },
       });
 

@@ -114,6 +114,9 @@ importers:
       '@team-plain/typescript-sdk':
         specifier: ^4.5.0
         version: 4.5.0
+      '@types/base-x':
+        specifier: ^3.0.10
+        version: 3.0.10
       '@types/bcryptjs':
         specifier: ^2.4.6
         version: 2.4.6
@@ -168,6 +171,9 @@ importers:
       aws4fetch:
         specifier: ^1.0.19
         version: 1.0.19
+      base-x:
+        specifier: ^5.0.0
+        version: 5.0.0
       bcryptjs:
         specifier: ^2.4.3
         version: 2.4.3
@@ -4937,6 +4943,10 @@ packages:
   '@types/babel__traverse@7.20.5':
     resolution: {integrity: sha512-WXCyOcRtH37HAUkpXhUduaxdm82b4GSlyTqajXviN4EfiuPgNYR109xMCKvpl6zPIpua0DGlMEDCq+g8EdoheQ==}
 
+  '@types/base-x@3.0.10':
+    resolution: {integrity: sha512-GnQ9XiAYP2th21vYFUs/+a/2pkQMDJBE7BdvjrRrDfKjSemH1umTxDtpPFOElwq0+ftqR1j9QmJF4X68Mgy+1Q==}
+    deprecated: This is a stub types definition. base-x provides its own type definitions, so you do not need this installed.
+
   '@types/bcryptjs@2.4.6':
     resolution: {integrity: sha512-9xlo6R2qDs5uixm0bcIqCeMCE6HiQsIyel9KQySStiyqNl2tnj2mP3DX1Nf56MD6KMenNNlBBsy3LJ7gUEQPXQ==}
 
@@ -5769,6 +5779,9 @@ packages:
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
+
+  base-x@5.0.0:
+    resolution: {integrity: sha512-sMW3VGSX1QWVFA6l8U62MLKz29rRfpTlYdCqLdpLo1/Yd4zZwSbnUaDfciIAowAqvq7YFnWq9hrhdg1KYgc1lQ==}
 
   base64-js@0.0.8:
     resolution: {integrity: sha512-3XSA2cR/h/73EzlXXdU6YNycmYI7+kicTxks4eJg2g39biHR84slg2+des+p7iHYhbRg/udIS4TD53WabcOUkw==}
@@ -16704,6 +16717,10 @@ snapshots:
     dependencies:
       '@babel/types': 7.26.0
 
+  '@types/base-x@3.0.10':
+    dependencies:
+      base-x: 5.0.0
+
   '@types/bcryptjs@2.4.6': {}
 
   '@types/configstore@6.0.2': {}
@@ -17783,6 +17800,8 @@ snapshots:
   balanced-match@0.4.2: {}
 
   balanced-match@1.0.2: {}
+
+  base-x@5.0.0: {}
 
   base64-js@0.0.8: {}
 

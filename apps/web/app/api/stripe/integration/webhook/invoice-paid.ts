@@ -1,7 +1,7 @@
+import { createId } from "@/lib/api/create-id";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
-import { createId } from "@/lib/api/utils";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
@@ -139,17 +139,19 @@ export async function invoicePaid(event: Stripe.Event) {
           },
         });
 
-        if (reward.maxDuration === 0 && firstCommission) {
-          eligibleForCommission = false;
-        } else if (firstCommission) {
-          // Calculate months difference between first commission and now
-          const monthsDifference = differenceInMonths(
-            new Date(),
-            firstCommission.createdAt,
-          );
-
-          if (monthsDifference >= reward.maxDuration) {
+        if (firstCommission) {
+          if (reward.maxDuration === 0) {
             eligibleForCommission = false;
+          } else {
+            // Calculate months difference between first commission and now
+            const monthsDifference = differenceInMonths(
+              new Date(),
+              firstCommission.createdAt,
+            );
+
+            if (monthsDifference >= reward.maxDuration) {
+              eligibleForCommission = false;
+            }
           }
         }
       }

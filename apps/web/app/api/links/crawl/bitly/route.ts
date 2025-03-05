@@ -1,4 +1,10 @@
+import { createId } from "@/lib/api/create-id";
+import { ExpandedLink } from "@/lib/api/links";
+import { conn } from "@/lib/planetscale";
+import { recordLink } from "@/lib/tinybird/record-link";
 import { redis } from "@/lib/upstash";
+import { getUrlFromStringIfValid, linkConstructorSimple } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -6,11 +12,10 @@ import { z } from "zod";
 export const POST = async (req: Request) => {
   const body = await req.json();
 
-  const { domain, key, workspaceId } = z
+  const { domain, key } = z
     .object({
       domain: z.string(),
       key: z.string(),
-      workspaceId: z.string(),
     })
     .parse(body);
 
@@ -21,11 +26,74 @@ export const POST = async (req: Request) => {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
+  const workspaceId = "cm05wnnpo000711ztj05wwdbu";
+  const userId = "cm05wnd49000411ztg2xbup0i";
+  const folderId = "fold_LIZsdjTgFVbQVGYSUmYAi5vT";
+
   const link = await crawlBitlyLink({ domain, key, workspaceId });
 
-  return link
-    ? NextResponse.json(link)
-    : NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!link) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  const sanitizedUrl = getUrlFromStringIfValid(link.long_url);
+
+  if (!sanitizedUrl) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  const newLink = {
+    id: createId({ prefix: "link_" }),
+    projectId: workspaceId,
+    userId,
+    domain,
+    key,
+    url: sanitizedUrl,
+    shortLink: linkConstructorSimple({
+      domain,
+      key,
+    }),
+    archived: false,
+    folderId,
+    createdAt: new Date(link.created_at),
+    updatedAt: new Date(link.created_at),
+  };
+
+  console.log("[Bitly] Creating link", newLink);
+
+  try {
+    await conn.execute(
+      "INSERT INTO Link (id, projectId, userId, domain, `key`, url, shortLink, archived, folderId, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      [
+        newLink.id,
+        newLink.projectId,
+        newLink.userId,
+        newLink.domain,
+        newLink.key,
+        newLink.url,
+        newLink.shortLink,
+        newLink.archived,
+        newLink.folderId,
+        newLink.createdAt,
+        newLink.updatedAt,
+      ],
+    );
+
+    waitUntil(
+      recordLink({
+        ...newLink,
+        tenantId: null,
+        programId: null,
+        partnerId: null,
+        tags: [],
+      } as unknown as ExpandedLink),
+    );
+
+    return NextResponse.json(newLink);
+  } catch (error) {
+    console.error("[Bitly] Error creating link", error);
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
 };
 
 async function crawlBitlyLink({
