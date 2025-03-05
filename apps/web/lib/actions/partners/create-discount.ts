@@ -1,7 +1,7 @@
 "use server";
 
+import { createId } from "@/lib/api/create-id";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
-import { createId } from "@/lib/api/utils";
 import { createDiscountSchema } from "@/lib/zod/schemas/discount";
 import { prisma } from "@dub/prisma";
 import { authActionClient } from "../safe-action";
@@ -62,7 +62,7 @@ export const createDiscountAction = authActionClient
 
     const discount = await prisma.discount.create({
       data: {
-        id: createId({ prefix: "dis_" }),
+        id: createId({ prefix: "disc_" }),
         programId,
         amount,
         type,

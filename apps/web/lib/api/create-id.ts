@@ -21,6 +21,7 @@ const prefixes = [
   "dub_embed_",
   "inv_",
   "rw_",
+  "disc_",
   "fold_",
 ] as const;
 
