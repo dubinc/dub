@@ -63,11 +63,7 @@ export function OnboardingForm({
 
   const { executeAsync, isPending } = useAction(onboardPartnerAction, {
     onSuccess: () => {
-      if (watch("country") === "US") {
-        router.push("/onboarding/verify");
-      } else {
-        router.push("/programs");
-      }
+      router.push("/onboarding/online-presence");
     },
     onError: ({ error, input }) => {
       toast.error(error.serverError);

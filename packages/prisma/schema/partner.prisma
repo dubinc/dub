@@ -30,6 +30,7 @@ model Partner {
   invites      PartnerInvite[]
   payouts      Payout[]
   commissions  Commission[]
+  // webPresence  PartnerWebPresence?
 }
 
 model PartnerUser {
@@ -59,3 +60,29 @@ model PartnerInvite {
   @@unique([email, partnerId])
   @@index([partnerId])
 }
+
+// model PartnerWebPresence {
+//   id              String   @id @default(cuid())
+//   partnerId       String   @unique
+  
+//   website            String?
+//   websiteTxtRecord   String?
+//   websiteVerified    Boolean  @default(false)
+  
+//   instagram         String?
+//   instagramVerified Boolean @default(false)
+  
+//   tiktok          String?
+//   tiktokVerified  Boolean  @default(false)
+  
+//   youtube         String?
+//   youtubeVerified Boolean  @default(false)
+  
+//   twitter         String?
+//   twitterVerified Boolean  @default(false)
+  
+//   createdAt       DateTime @default(now())
+//   updatedAt       DateTime @updatedAt
+  
+//   partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+// }
