@@ -15,7 +15,7 @@ import {
 } from "@dub/ui";
 import { cn, getPrettyUrl } from "@dub/utils";
 import { AnimatePresence } from "framer-motion";
-import { CSSProperties, useState } from "react";
+import { useState } from "react";
 import { ReferralsEmbedActivity } from "./activity";
 import { ReferralsEmbedEarnings } from "./earnings";
 import { ReferralsEmbedFAQ } from "./faq";
@@ -52,15 +52,13 @@ export function ReferralsEmbedPageClient({
   const [selectedTab, setSelectedTab] = useState(tabs[0]);
 
   return (
-    <div
-      className="bg-bg-default darkZ flex min-h-screen flex-col"
-      style={
-        { "--accent-color": program.brandColor || "#a8a8a8" } as CSSProperties
-      }
-    >
-      <div className="p-5">
+    <div className="bg-bg-default flex min-h-screen flex-col">
+      <div className="relative z-0 p-5">
         <div className="border-border-default relative flex flex-col overflow-hidden rounded-lg border p-4 md:p-6">
-          <HeroBackground logo={program.logo} color={program.brandColor} />
+          <HeroBackground
+            logo={program.logo}
+            color={program.brandColor || "737373"}
+          />
           <span className="text-content-subtle flex items-center gap-2 text-sm">
             <MoneyBill className="size-4" />
             Refer and earn
@@ -108,7 +106,7 @@ export function ReferralsEmbedPageClient({
             <a
               href="https://dub.partners"
               target="_blank"
-              className="hover:text-content-default text-content-subtle bg-bg-default flex w-fit items-center gap-1.5 rounded-md border border-black/10 px-2 py-1 transition-colors duration-75"
+              className="hover:text-content-default text-content-subtle bg-bg-default border-border-subtle flex w-fit items-center gap-1.5 rounded-md border px-2 py-1 transition-colors duration-75"
             >
               <p className="whitespace-nowrap text-xs font-medium leading-none">
                 Powered by

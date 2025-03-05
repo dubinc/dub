@@ -3,7 +3,7 @@ import { Button, Copy, MoneyBill, Wordmark } from "@dub/ui";
 
 export default function EmbedInlineLoading() {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="bg-bg-default flex min-h-screen flex-col">
       <div className="p-5">
         <div className="border-border-default relative flex flex-col overflow-hidden rounded-lg border p-4 md:p-6">
           <HeroBackground color="#737373" />
@@ -15,7 +15,7 @@ export default function EmbedInlineLoading() {
             <div className="bg-bg-muted h-6 w-60 rounded-md" />
             <div className="bg-bg-muted h-6 w-40 rounded-md" />
           </div>
-          <span className="mb-1.5 mt-6 block text-sm text-neutral-800">
+          <span className="text-content-default mb-1.5 mt-6 block text-sm">
             Referral link
           </span>
           <div className="xs:flex-row relative flex flex-col items-center gap-2">
