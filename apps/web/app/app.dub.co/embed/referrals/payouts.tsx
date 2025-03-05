@@ -8,10 +8,10 @@ export function ReferralsEmbedPayouts({
   payouts: { status: PayoutStatus; amount: number }[];
 }) {
   return (
-    <div className="flex flex-col justify-between gap-4 rounded-lg border border-neutral-200 bg-white p-4">
+    <div className="border-border-subtle bg-bg-default flex flex-col justify-between gap-4 rounded-lg border p-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1">
-          <p className="text-sm text-neutral-500">Payouts</p>
+          <p className="text-content-subtle text-sm">Payouts</p>
           <InfoTooltip content="Payouts are processed at the start of each month. Your earnings are automatically transferred to your bank account." />
         </div>
         <a href="https://partners.dub.co/register" target="_blank">
@@ -38,8 +38,8 @@ export function ReferralsEmbedPayouts({
           },
         ].map(({ label, value }) => (
           <div key={label} className="flex justify-between text-sm">
-            <span className="font-medium text-neutral-500">{label}</span>
-            <span className="font-semibold text-neutral-700">
+            <span className="text-content-subtle font-medium">{label}</span>
+            <span className="text-content-default font-semibold">
               {currencyFormatter(value / 100, {
                 style: "currency",
                 currency: "USD",
