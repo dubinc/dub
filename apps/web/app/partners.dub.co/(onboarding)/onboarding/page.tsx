@@ -1,6 +1,6 @@
 import { getSession } from "@/lib/auth";
 import { prisma } from "@dub/prisma";
-import { subDays } from "date-fns";
+import { cookies } from "next/headers";
 import { Suspense } from "react";
 import { OnboardingForm } from "./onboarding-form";
 
@@ -38,19 +38,25 @@ async function OnboardingFormRSC() {
     },
   });
 
-  // Find recent applications for the user's email
-  const applications = await prisma.programApplication.findMany({
-    where: {
-      email: user.email,
-      createdAt: {
-        gte: subDays(new Date(), 3),
-      },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-    take: 2,
-  });
+  const cookieStore = cookies();
+  const programApplicationIds = cookieStore
+    .get("programApplicationIds")
+    ?.value?.split(",");
+
+  const applications = programApplicationIds?.length
+    ? await prisma.programApplication.findMany({
+        where: {
+          id: {
+            in: programApplicationIds.filter(Boolean),
+          },
+          enrollment: null,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: 2,
+      })
+    : [];
 
   return (
     <OnboardingForm
