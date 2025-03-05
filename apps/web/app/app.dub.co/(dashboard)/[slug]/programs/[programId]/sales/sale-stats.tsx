@@ -11,7 +11,9 @@ export function SaleStats() {
   const { slug, programId } = useParams();
   const { queryParams } = useRouterStuff();
   const searchParams = useSearchParams();
-  const { salesCount, error } = useSalesCount();
+  const { salesCount, error } = useSalesCount({
+    exclude: ["status"],
+  });
 
   const view = searchParams.get("view") || "sales";
 

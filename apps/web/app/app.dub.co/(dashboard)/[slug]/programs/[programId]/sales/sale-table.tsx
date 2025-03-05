@@ -23,7 +23,6 @@ import {
   currencyFormatter,
   DICEBEAR_AVATAR_URL,
   fetcher,
-  formatDate,
   formatDateTime,
 } from "@dub/utils";
 import { useParams } from "next/navigation";
@@ -81,8 +80,9 @@ const SaleTableBusinessInner = memo(
           header: "Date",
           cell: ({ row }) => (
             <p title={formatDateTime(row.original.createdAt)}>
-              {formatDate(row.original.createdAt, {
+              {formatDateTime(row.original.createdAt, {
                 month: "short",
+                year: undefined,
               })}
             </p>
           ),
