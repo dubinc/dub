@@ -214,7 +214,10 @@ const SaleTableBusinessInner = memo(
                 onSearchChange={setSearch}
                 onSelectedFilterChange={setSelectedFilter}
               />
-              <SimpleDateRangePicker className="w-full sm:min-w-[200px] md:w-fit" />
+              <SimpleDateRangePicker
+                className="w-full sm:min-w-[200px] md:w-fit"
+                defaultInterval="all"
+              />
             </div>
             <AnimatedSizeContainer height>
               <div>
