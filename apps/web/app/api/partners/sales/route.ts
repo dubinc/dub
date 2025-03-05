@@ -12,9 +12,8 @@ import { NextResponse } from "next/server";
 // PATCH /api/partners/sales - update a sale
 export const PATCH = withWorkspace(
   async ({ req, workspace }) => {
-    const { programId, invoiceId, amount } = updatePartnerSaleSchema.parse(
-      await parseRequestBody(req),
-    );
+    const { programId, invoiceId, amount, modifyAmount } =
+      updatePartnerSaleSchema.parse(await parseRequestBody(req));
 
     const program = await getProgramOrThrow({
       workspaceId: workspace.id,
@@ -47,7 +46,10 @@ export const PATCH = withWorkspace(
       });
     }
 
-    const { partner } = sale;
+    const { partner, amount: originalAmount } = sale;
+    const finalAmount = modifyAmount
+      ? originalAmount + modifyAmount
+      : amount ?? originalAmount;
 
     const reward = await determinePartnerReward({
       event: "sale",
@@ -63,10 +65,10 @@ export const PATCH = withWorkspace(
     }
 
     // Recalculate the earnings based on the new amount
-    const earnings = calculateSaleEarnings({
+    const finalEarnings = calculateSaleEarnings({
       reward,
       sale: {
-        amount,
+        amount: finalAmount,
         quantity: sale.quantity,
       },
     });
@@ -76,27 +78,45 @@ export const PATCH = withWorkspace(
         id: sale.id,
       },
       data: {
-        amount,
-        earnings,
+        amount: finalAmount,
+        earnings: finalEarnings,
       },
     });
 
-    // If the sale has already been paid, we need to update the payout
-    if (sale.status === "processed" && sale.payoutId) {
-      const earningsDifference = earnings - sale.earnings;
+    const amountDifference = finalAmount - sale.amount;
+    const earningsDifference = finalEarnings - sale.earnings;
 
-      await prisma.payout.update({
-        where: {
-          id: sale.payoutId,
-        },
-        data: {
-          amount: {
-            ...(earningsDifference < 0
-              ? { decrement: Math.abs(earningsDifference) }
-              : { increment: earningsDifference }),
+    if (amountDifference !== 0) {
+      await Promise.all([
+        // update link sales
+        prisma.link.update({
+          where: {
+            id: sale.linkId,
           },
-        },
-      });
+          data: {
+            saleAmount: {
+              ...(amountDifference < 0
+                ? { decrement: Math.abs(amountDifference) }
+                : { increment: amountDifference }),
+            },
+          },
+        }),
+        // If the sale has already been paid, we need to update the payout
+        sale.status === "processed" &&
+          sale.payoutId &&
+          prisma.payout.update({
+            where: {
+              id: sale.payoutId,
+            },
+            data: {
+              amount: {
+                ...(earningsDifference < 0
+                  ? { decrement: Math.abs(earningsDifference) }
+                  : { increment: earningsDifference }),
+              },
+            },
+          }),
+      ]);
     }
 
     return NextResponse.json(ProgramSaleSchema.parse(updatedSale));
