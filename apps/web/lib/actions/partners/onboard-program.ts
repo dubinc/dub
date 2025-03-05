@@ -16,6 +16,7 @@ import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { Program, Project, Reward, User } from "@prisma/client";
 import slugify from "@sindresorhus/slugify";
+import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
 
@@ -34,7 +35,7 @@ export const onboardProgramAction = authActionClient
       throw new Error("You are not allowed to create a new program.");
     }
 
-    await handleOnboardingProgress({
+    await saveOnboardingProgress({
       data,
       workspace,
     });
@@ -47,7 +48,7 @@ export const onboardProgramAction = authActionClient
     }
   });
 
-const handleOnboardingProgress = async ({
+const saveOnboardingProgress = async ({
   workspace,
   data,
 }: {
@@ -187,27 +188,24 @@ const createProgram = async ({
     if (hostname) {
       validHostnames = validateAllowedHostnames([hostname]);
     }
-
-    console.log({ validHostnames });
   }
 
-  // TODO:
-  // waitUntil is not working here
-
-  await prisma.project.update({
-    where: {
-      id: workspace.id,
-    },
-    data: {
-      ...(validHostnames && {
-        allowedHostnames: validHostnames,
-      }),
-      store: {
-        ...store,
-        programOnboarding: undefined,
+  waitUntil(
+    prisma.project.update({
+      where: {
+        id: workspace.id,
       },
-    },
-  });
+      data: {
+        ...(validHostnames && {
+          allowedHostnames: validHostnames,
+        }),
+        store: {
+          ...store,
+          programOnboarding: undefined,
+        },
+      },
+    }),
+  );
 
   return program;
 };
