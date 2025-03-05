@@ -17,9 +17,9 @@ import { nanoid } from "@dub/utils";
 import { Program, Project, Reward, User } from "@prisma/client";
 import slugify from "@sindresorhus/slugify";
 import { waitUntil } from "@vercel/functions";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
-
 export const onboardProgramAction = authActionClient
   .schema(onboardProgramSchema)
   .action(async ({ ctx, parsedInput: data }) => {
@@ -35,17 +35,19 @@ export const onboardProgramAction = authActionClient
       throw new Error("You are not allowed to create a new program.");
     }
 
+    if (data.step === "create-program") {
+      const program = await createProgram({
+        workspace,
+        user,
+      });
+
+      redirect(`/${workspace.slug}/programs/${program.id}?onboarded-program`);
+    }
+
     await saveOnboardingProgress({
       data,
       workspace,
     });
-
-    if (data.step === "create-program") {
-      return await createProgram({
-        workspace,
-        user,
-      });
-    }
   });
 
 // Save the onboarding progress
@@ -53,7 +55,7 @@ const saveOnboardingProgress = async ({
   workspace,
   data,
 }: {
-  workspace: Pick<Project, "id" | "store">;
+  workspace: Pick<Project, "id" | "store" | "slug">;
   data: z.infer<typeof onboardProgramSchema>;
 }) => {
   const store =
@@ -84,6 +86,10 @@ const saveOnboardingProgress = async ({
       },
     },
   });
+
+  if (data.step == "save-and-exit") {
+    redirect(`/${workspace.slug}`);
+  }
 };
 
 // Create a new program from the onboarding data

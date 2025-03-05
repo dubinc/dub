@@ -111,8 +111,8 @@ export function Form() {
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
-      mutate();
       router.push(`/${workspaceSlug}/programs/new/connect`);
+      mutate();
     },
     onError: ({ error }) => {
       toast.error(error.serverError);

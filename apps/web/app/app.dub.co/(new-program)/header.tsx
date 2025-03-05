@@ -27,7 +27,6 @@ export function Header() {
     slug: workspaceSlug,
     partnersEnabled,
     loading: workspaceLoading,
-    mutate: mutateWorkspace,
   } = useWorkspace();
 
   useEffect(() => {
@@ -35,10 +34,6 @@ export function Header() {
   }, [isOpen, isMobile]);
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
-    onSuccess: async () => {
-      mutateWorkspace();
-      router.push(`/${workspaceSlug}`);
-    },
     onError: ({ error }) => {
       console.log(error);
       toast.error(error.serverError);

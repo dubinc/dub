@@ -9,25 +9,18 @@ import { Button } from "@dub/ui";
 import { Pencil } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { LINK_TYPES } from "../form";
 
 export function PageClient() {
-  const router = useRouter();
   const { getValues } = useFormContext<ProgramData>();
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
   const data = getValues();
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
-    onSuccess: ({ data }) => {
-      if (data?.id) {
-        router.push(`/${workspaceSlug}/programs/${data.id}?onboarded-program`);
-      }
-    },
     onError: ({ error }) => {
       toast.error(error.serverError);
     },
