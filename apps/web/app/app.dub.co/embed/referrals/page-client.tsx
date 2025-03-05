@@ -55,10 +55,7 @@ export function ReferralsEmbedPageClient({
     <div className="bg-bg-default flex min-h-screen flex-col">
       <div className="relative z-0 p-5">
         <div className="border-border-default relative flex flex-col overflow-hidden rounded-lg border p-4 md:p-6">
-          <HeroBackground
-            logo={program.logo}
-            color={program.brandColor || "#737373"}
-          />
+          <HeroBackground logo={program.logo} color={program.brandColor} />
           <span className="text-content-subtle flex items-center gap-2 text-sm">
             <MoneyBill className="size-4" />
             Refer and earn
