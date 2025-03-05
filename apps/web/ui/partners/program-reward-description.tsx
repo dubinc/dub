@@ -73,20 +73,21 @@ export function formatRewardDescription({
 }: {
   reward: RewardProps;
 }): string {
+  const rewardAmount = constructRewardAmount(reward);
   const parts: string[] = [];
 
-  if (reward.amount > 0) {
-    let rewardText = `Earn ${constructRewardAmount(reward)} for each ${reward.event}`;
+  parts.push(`${rewardAmount} per ${reward.event}`);
 
+  if (reward.event === "sale") {
     if (reward.maxDuration === null) {
-      rewardText += ` for the customer's lifetime.`;
-    } else if (reward.maxDuration && reward.maxDuration > 1) {
-      rewardText += `, and again every month for ${reward.maxDuration} months.`;
-    } else {
-      rewardText += `.`;
+      parts.push("for lifetime");
+    } else if (reward.maxDuration === 0) {
+      parts.push("for the first purchase");
+    } else if (reward.maxDuration && reward.maxDuration > 0) {
+      parts.push(
+        `for ${reward.maxDuration} ${pluralize("month", reward.maxDuration)}`,
+      );
     }
-
-    parts.push(rewardText);
   }
 
   return parts.join(" ");
