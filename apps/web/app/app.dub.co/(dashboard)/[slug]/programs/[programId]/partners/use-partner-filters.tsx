@@ -32,6 +32,15 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
     groupBy: "status",
   });
 
+  const { partnersCount: rewardsCount } = usePartnersCount<
+    {
+      rewardId: string;
+      _count: number;
+    }[]
+  >({
+    groupBy: "rewardId",
+  });
+
   const filters = useMemo(
     () => [
       {
@@ -111,17 +120,20 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
             )
             .map((reward) => {
               const Icon = REWARD_EVENTS[reward.event].icon;
+              const count = rewardsCount?.find(
+                (r) => r.rewardId === reward.id
+              )?._count || 0;
 
               return {
                 value: reward.id,
                 label: formatRewardDescription({ reward }),
                 icon: <Icon className="size-4 bg-transparent" />,
-                // right: reward.event,
+                right: nFormatter(count, { full: true }),
               };
             }) ?? [],
       },
     ],
-    [countriesCount, statusCount, rewards],
+    [countriesCount, statusCount, rewardsCount, rewards],
   );
 
   const activeFilters = useMemo(() => {

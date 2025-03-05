@@ -113,6 +113,28 @@ export const GET = withWorkspace(
       return NextResponse.json(partners);
     }
 
+    // Get partner count by reward
+    if (groupBy === "rewardId") {
+      const partners = await prisma.partnerReward.groupBy({
+        by: ["rewardId"],
+        where: {
+          programEnrollment: {
+            programId,
+            status: status || { not: "rejected" },
+            partner: {
+              ...(country && {
+                country,
+              }),
+              ...commonWhere,
+            },
+          },
+        },
+        _count: true,
+      });
+
+      return NextResponse.json(partners);
+    }
+
     // Get absolute count of partners
     const count = await prisma.programEnrollment.count({
       where: {
