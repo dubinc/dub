@@ -19,7 +19,7 @@ export const GET = withWorkspace(
       });
     }
 
-    await getProgramOrThrow({
+    const program = await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
     });
@@ -107,37 +107,40 @@ export const GET = withWorkspace(
 
     // Get partner count by reward
     if (groupBy === "rewardId") {
-      const [customRewardsPartners, allRewards, defaultRewardsPartners] =
-        await Promise.all([
-          prisma.partnerReward.groupBy({
-            by: ["rewardId"],
-            where: {
-              programEnrollment: {
-                programId,
-                status: status || { not: "rejected" },
-                partner: {
-                  ...(country && {
-                    country,
-                  }),
-                  ...commonWhere,
-                },
-              },
-            },
-            _count: true,
-          }),
-          prisma.reward.findMany({
-            where: {
+      const [customRewardsPartners, allRewards] = await Promise.all([
+        prisma.partnerReward.groupBy({
+          by: ["rewardId"],
+          where: {
+            programEnrollment: {
               programId,
-            },
-          }),
-          prisma.programEnrollment.count({
-            where: {
-              rewards: {
-                none: {},
+              status: status || { not: "rejected" },
+              partner: {
+                ...(country && {
+                  country,
+                }),
+                ...commonWhere,
               },
             },
-          }),
-        ]);
+          },
+          _count: true,
+        }),
+        prisma.reward.findMany({
+          where: {
+            programId,
+            // TODO: remove this once we can filter by that too
+            id: {
+              not: program.defaultRewardId ?? undefined,
+            },
+          },
+        }),
+        // prisma.programEnrollment.count({
+        //   where: {
+        //     rewards: {
+        //       none: {},
+        //     },
+        //   },
+        // }),
+      ]);
 
       const partnersWithReward = allRewards
         .map((reward) => {
@@ -147,10 +150,10 @@ export const GET = withWorkspace(
 
           return {
             ...reward,
-            partnersCount: partnerCount ?? defaultRewardsPartners,
+            partnersCount: partnerCount,
           };
         })
-        .sort((a, b) => b.partnersCount - a.partnersCount);
+        .sort((a, b) => (b.partnersCount ?? 0) - (a.partnersCount ?? 0));
 
       return NextResponse.json(partnersWithReward);
     }

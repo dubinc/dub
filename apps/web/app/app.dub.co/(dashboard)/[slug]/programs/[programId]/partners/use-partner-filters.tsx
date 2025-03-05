@@ -67,14 +67,6 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
         key: "rewardId",
         icon: Gift,
         label: "Reward",
-        getOptionIcon: (reward: RewardProps) => {
-          const Icon = REWARD_EVENTS[reward.event].icon;
-
-          return <Icon className="size-4 bg-transparent" />;
-        },
-        getOptionLabel: (reward: RewardProps) => {
-          return reward.name || formatRewardDescription({ reward });
-        },
         options:
           rewardsCount?.map((reward) => {
             const Icon = REWARD_EVENTS[reward.event].icon;

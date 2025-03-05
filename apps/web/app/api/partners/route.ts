@@ -1,7 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
 import { createPartnerLink } from "@/lib/api/partners/create-partner-link";
-import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -55,15 +54,6 @@ export const GET = withWorkspace(
       sortOrder,
     } = partnersQuerySchema.parse(searchParams);
 
-    if (rewardId) {
-      await getRewardOrThrow({
-        programId,
-        rewardId,
-      });
-    }
-
-    console.time("query");
-
     const partners = (await prisma.$queryRaw`
       SELECT 
         p.*, 
@@ -116,21 +106,18 @@ export const GET = withWorkspace(
           AND partnerId IS NOT NULL
         GROUP BY partnerId
       ) metrics ON metrics.partnerId = pe.partnerId
-      LEFT JOIN PartnerReward pr ON pr.programEnrollmentId = pe.id
       WHERE 
         pe.programId = ${program.id}
         ${status ? Prisma.sql`AND pe.status = ${status}` : Prisma.sql`AND pe.status != 'rejected'`}
         ${tenantId ? Prisma.sql`AND pe.tenantId = ${tenantId}` : Prisma.sql``}
         ${country ? Prisma.sql`AND p.country = ${country}` : Prisma.sql``}
-        ${rewardId ? Prisma.sql`AND pr.rewardId = ${rewardId}` : Prisma.sql``}
+        ${rewardId ? Prisma.sql`AND EXISTS (SELECT 1 FROM PartnerReward pr WHERE pr.programEnrollmentId = pe.id AND pr.rewardId = ${rewardId})` : Prisma.sql``}
         ${search ? Prisma.sql`AND (LOWER(p.name) LIKE LOWER(${`%${search}%`}) OR LOWER(p.email) LIKE LOWER(${`%${search}%`}))` : Prisma.sql``}
         ${ids && ids.length > 0 ? Prisma.sql`AND pe.partnerId IN (${Prisma.join(ids)})` : Prisma.sql``}
       GROUP BY 
         p.id, pe.id, metrics.totalClicks, metrics.totalLeads, metrics.totalSales, metrics.totalSaleAmount
       ORDER BY ${Prisma.raw(sortColumnsMap[sortBy])} ${Prisma.raw(sortOrder)}
       LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`) satisfies Array<any>;
-
-    console.timeEnd("query");
 
     const response = partners.map((partner) => {
       return {
