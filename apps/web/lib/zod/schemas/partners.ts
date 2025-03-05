@@ -137,10 +137,10 @@ export const createPartnerSchema = z.object({
     ),
   username: z
     .string()
-    .min(1)
     .max(100)
+    .nullish()
     .describe(
-      "A unique username for the partner in your system. This will be used to create a short link for the partner using your program's default domain.",
+      "A unique username for the partner in your system (max 100 characters). This will be used to create a short link for the partner using your program's default domain. If not provided, Dub will try to generate a username from the partner's name or email.",
     ),
   image: z
     .string()
@@ -171,6 +171,7 @@ export const createPartnerSchema = z.object({
       geo: true,
       projectId: true,
       programId: true,
+      partnerId: true,
       webhookIds: true,
       trackConversion: true,
     })
@@ -285,3 +286,12 @@ export const partnerAnalyticsResponseSchema = {
     title: "PartnerAnalyticsTopLinks",
   }),
 } as const;
+
+export const updatePartnerSaleSchema = z.object({
+  programId: z.string(),
+  invoiceId: z.string(),
+  amount: z
+    .number({ required_error: "Amount is required." })
+    .min(0)
+    .describe("The new amount for the sale."),
+});

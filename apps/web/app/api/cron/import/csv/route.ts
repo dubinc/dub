@@ -1,7 +1,7 @@
+import { createId } from "@/lib/api/create-id";
 import { addDomainToVercel } from "@/lib/api/domains";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkCreateLinks, createLink, processLink } from "@/lib/api/links";
-import { createId } from "@/lib/api/utils";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { storage } from "@/lib/storage";
 import { ProcessedLinkProps, WorkspaceProps } from "@/lib/types";
@@ -50,7 +50,7 @@ export async function POST(req: Request) {
     await verifyQstashSignature({ req, rawBody });
 
     const body = JSON.parse(rawBody);
-    const { workspaceId, userId, id, url } = body;
+    const { workspaceId, userId, id, folderId, url } = body;
     const mapping = linkMappingSchema.parse(body.mapping);
 
     if (!id || !url) throw new Error("Missing ID or URL for the import file");
@@ -295,6 +295,7 @@ export async function POST(req: Request) {
                       ...link,
                       tagNames: tags || undefined,
                     }),
+                    folderId,
                     createdAt: createdAt?.toISOString(),
                   },
                   workspace,

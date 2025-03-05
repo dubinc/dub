@@ -181,7 +181,11 @@ export function OnboardingForm({
           rules={{ required: true }}
           render={({ field }) => (
             // Disable the combobox if the partner already has a country
-            <CountryCombobox {...field} disabled={!!partner?.country} />
+            <CountryCombobox
+              {...field}
+              disabled={!!partner?.country}
+              error={errors.country ? true : false}
+            />
           )}
         />
         <p className="mt-1.5 text-xs text-neutral-500">
@@ -221,10 +225,12 @@ function CountryCombobox({
   value,
   onChange,
   disabled,
+  error,
 }: {
   value: string;
   onChange: (value: string) => void;
   disabled?: boolean;
+  error?: boolean;
 }) {
   const options = useMemo(
     () =>
@@ -270,6 +276,7 @@ function CountryCombobox({
           "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
           !value && "text-neutral-400",
           disabled && "cursor-not-allowed",
+          error && "border-red-500 ring-red-500 ring-1",
         ),
         disabled,
       }}

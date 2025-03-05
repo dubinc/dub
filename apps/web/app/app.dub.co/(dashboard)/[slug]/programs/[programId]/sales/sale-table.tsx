@@ -23,7 +23,6 @@ import {
   currencyFormatter,
   DICEBEAR_AVATAR_URL,
   fetcher,
-  formatDate,
   formatDateTime,
 } from "@dub/utils";
 import { useParams } from "next/navigation";
@@ -60,9 +59,14 @@ const SaleTableBusinessInner = memo(
 
     const { salesCount } = useSalesCount();
     const { data: sales, error } = useSWR<SaleResponse[]>(
-      `/api/programs/${programId}/sales${getQueryString({
-        workspaceId,
-      })}`,
+      `/api/programs/${programId}/sales${getQueryString(
+        {
+          workspaceId,
+        },
+        {
+          exclude: ["view"],
+        },
+      )}`,
       fetcher,
     );
 
@@ -76,8 +80,9 @@ const SaleTableBusinessInner = memo(
           header: "Date",
           cell: ({ row }) => (
             <p title={formatDateTime(row.original.createdAt)}>
-              {formatDate(row.original.createdAt, {
+              {formatDateTime(row.original.createdAt, {
                 month: "short",
+                year: undefined,
               })}
             </p>
           ),
@@ -125,6 +130,15 @@ const SaleTableBusinessInner = memo(
           header: "Amount",
           accessorFn: (d) =>
             currencyFormatter(d.amount / 100, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }),
+        },
+        {
+          id: "commission",
+          header: "Commission",
+          accessorFn: (d) =>
+            currencyFormatter(d.earnings / 100, {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             }),
@@ -181,7 +195,7 @@ const SaleTableBusinessInner = memo(
       thClassName: "border-l-0",
       tdClassName: "border-l-0",
       resourceName: (p) => `sale${p ? "s" : ""}`,
-      rowCount: salesCount?.[status || "all"] ?? 0,
+      rowCount: salesCount?.[status || "all"].count ?? 0,
       loading,
       error: error ? "Failed to load sales" : undefined,
     });
@@ -200,7 +214,10 @@ const SaleTableBusinessInner = memo(
                 onSearchChange={setSearch}
                 onSelectedFilterChange={setSelectedFilter}
               />
-              <SimpleDateRangePicker className="w-full sm:min-w-[200px] md:w-fit" />
+              <SimpleDateRangePicker
+                className="w-full sm:min-w-[200px] md:w-fit"
+                defaultInterval="all"
+              />
             </div>
             <AnimatedSizeContainer height>
               <div>

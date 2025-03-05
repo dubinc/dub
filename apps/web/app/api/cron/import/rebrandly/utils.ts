@@ -1,5 +1,5 @@
+import { createId } from "@/lib/api/create-id";
 import { bulkCreateLinks } from "@/lib/api/links";
-import { createId } from "@/lib/api/utils";
 import { qstash } from "@/lib/cron";
 import { redis } from "@/lib/upstash";
 import { randomBadgeColor } from "@/ui/links/tag-badge";
@@ -66,6 +66,7 @@ export const importLinksFromRebrandly = async ({
   userId,
   domainId,
   domain,
+  folderId,
   tagsToId,
   rebrandlyApiKey,
   lastLinkId = null,
@@ -75,6 +76,7 @@ export const importLinksFromRebrandly = async ({
   userId: string;
   domainId: number;
   domain: string;
+  folderId?: string;
   tagsToId?: Record<string, string>;
   rebrandlyApiKey: string;
   lastLinkId?: string | null;
@@ -197,6 +199,7 @@ export const importLinksFromRebrandly = async ({
               key,
             }),
             title,
+            folderId,
             createdAt,
             updatedAt,
             tagIds,
@@ -244,6 +247,7 @@ export const importLinksFromRebrandly = async ({
         userId,
         domainId,
         domain,
+        folderId,
         importTags: tagsToId ? true : false,
         lastLinkId: newLastLinkId,
         count,

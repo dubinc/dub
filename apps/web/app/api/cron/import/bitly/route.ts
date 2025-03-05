@@ -1,12 +1,12 @@
+import { createId } from "@/lib/api/create-id";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { createId } from "@/lib/api/utils";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { redis } from "@/lib/upstash";
 import { randomBadgeColor } from "@/ui/links/tag-badge";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
-import { importLinksFromBitly } from "./utils";
+import { checkIfRateLimited, importLinksFromBitly } from "./utils";
 
 export const dynamic = "force-dynamic";
 
@@ -16,10 +16,20 @@ export async function POST(req: Request) {
     await verifyQstashSignature({ req, rawBody });
 
     const body = JSON.parse(rawBody);
-    const { workspaceId, bitlyGroup, importTags } = body;
+    const { workspaceId, bitlyGroup, importTags, rateLimited = false } = body;
 
     try {
       const bitlyApiKey = await redis.get(`import:bitly:${workspaceId}`);
+
+      if (rateLimited) {
+        const isRateLimited = await checkIfRateLimited(bitlyApiKey, body);
+
+        if (isRateLimited) {
+          return NextResponse.json({
+            response: "rate_limited",
+          });
+        }
+      }
 
       let tagsToId: Record<string, string> | null = null;
       if (importTags === true) {

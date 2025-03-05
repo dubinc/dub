@@ -17,6 +17,7 @@ export const getFolderOrThrow = async ({
     select: {
       id: true,
       name: true,
+      type: true,
       accessLevel: true,
       createdAt: true,
       updatedAt: true,
@@ -44,6 +45,7 @@ export const getFolderOrThrow = async ({
   return {
     id: folder.id,
     name: folder.name,
+    type: folder.type,
     accessLevel: folder.accessLevel,
     createdAt: folder.createdAt,
     updatedAt: folder.updatedAt,

@@ -1,5 +1,6 @@
+import { createId } from "@/lib/api/create-id";
 import { DubApiError, exceededLimitError } from "@/lib/api/errors";
-import { createId, parseRequestBody } from "@/lib/api/utils";
+import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getFolders } from "@/lib/folder/get-folders";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
@@ -15,13 +16,16 @@ import { NextResponse } from "next/server";
 // GET /api/folders - get all folders for a workspace
 export const GET = withWorkspace(
   async ({ workspace, headers, session, searchParams }) => {
-    const { search } = listFoldersQuerySchema.parse(searchParams);
+    const { search, includeLinkCount, pageSize, page } =
+      listFoldersQuerySchema.parse(searchParams);
 
     const folders = await getFolders({
       workspaceId: workspace.id,
       userId: session.user.id,
-      includeLinkCount: true,
       search,
+      pageSize,
+      page,
+      includeLinkCount,
     });
 
     return NextResponse.json(FolderSchema.array().parse(folders), {

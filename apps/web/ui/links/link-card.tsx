@@ -1,4 +1,4 @@
-import useFolders from "@/lib/swr/use-folders";
+import useFolder from "@/lib/swr/use-folder";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CardList, ExpandingArrow, useMediaQuery } from "@dub/ui";
 import Link from "next/link";
@@ -19,9 +19,9 @@ export function LinkCard({ link }: { link: ResponseLink }) {
   });
   const searchParams = useSearchParams();
   const { slug } = useWorkspace();
-  const { folders } = useFolders();
 
-  const folder = folders?.find((folder) => folder.id === link.folderId);
+  // TODO: only enable this when the link card is in view
+  const { folder } = useFolder({ folderId: link.folderId });
 
   return (
     <>
