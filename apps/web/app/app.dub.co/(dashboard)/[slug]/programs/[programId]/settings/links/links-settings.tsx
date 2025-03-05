@@ -2,6 +2,7 @@
 
 import { updateProgramAction } from "@/lib/actions/partners/update-program";
 import useDomains from "@/lib/swr/use-domains";
+import useFolders from "@/lib/swr/use-folders";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramProps } from "@/lib/types";
@@ -14,7 +15,10 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 import { SettingsRow } from "../settings-row";
 
-type FormData = Pick<ProgramProps, "domain" | "url" | "cookieLength">;
+type FormData = Pick<
+  ProgramProps,
+  "domain" | "url" | "cookieLength" | "defaultFolderId"
+>;
 
 export function LinksSettings() {
   const { program } = useProgram();
@@ -34,6 +38,7 @@ export function LinksSettings() {
 
 function LinksSettingsForm({ program }: { program: ProgramProps }) {
   const { id: workspaceId } = useWorkspace();
+  const { folders, loading: loadingFolders } = useFolders();
 
   const shortDomain = program.domain || "refer.dub.co";
   const websiteDomain = program.url
@@ -67,6 +72,7 @@ function LinksSettingsForm({ program }: { program: ProgramProps }) {
       domain: program.domain,
       url: program.url,
       cookieLength: program.cookieLength,
+      defaultFolderId: program.defaultFolderId,
     },
   });
 
@@ -244,6 +250,42 @@ function LinksSettingsForm({ program }: { program: ProgramProps }) {
               </a>{" "}
               to add Dub Conversions to your website.
             </p>
+          </div>
+        </SettingsRow>
+
+        <SettingsRow heading="Folder for partner links">
+          <div className="flex flex-col gap-6">
+            <div>
+              <label
+                htmlFor="defaultFolderId"
+                className="text-sm font-medium text-neutral-800"
+              >
+                Default Folder
+              </label>
+              <div className="relative mt-2 rounded-md shadow-sm">
+                <select
+                  className={cn(
+                    "block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                    loadingFolders && "opacity-50",
+                  )}
+                  {...register("defaultFolderId", {
+                    required: true,
+                  })}
+                  disabled={loadingFolders}
+                >
+                  <option value="">Select a folder</option>
+                  {folders?.map((folder) => (
+                    <option
+                      key={folder.id}
+                      value={folder.id}
+                      selected={folder.id === program.defaultFolderId}
+                    >
+                      {folder.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
           </div>
         </SettingsRow>
       </div>
