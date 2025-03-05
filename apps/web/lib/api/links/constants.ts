@@ -1,10 +1,5 @@
 // List of domains that support case sensitive short links
-export const CASE_SENSITIVE_DOMAINS = [
-  "buff.ly",
-  "example.net",
-  "example.com",
-  "dub.sh",
-];
+export const CASE_SENSITIVE_DOMAINS = ["buff.ly"];
 
 // TODO:
 // Need a better hash function (+ move to a new file)
