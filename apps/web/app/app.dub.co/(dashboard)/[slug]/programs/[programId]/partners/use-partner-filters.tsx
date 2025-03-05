@@ -120,9 +120,9 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
             )
             .map((reward) => {
               const Icon = REWARD_EVENTS[reward.event].icon;
-              const count = rewardsCount?.find(
-                (r) => r.rewardId === reward.id
-              )?._count || 0;
+              const count =
+                rewardsCount?.find((r) => r.rewardId === reward.id)?._count ||
+                0;
 
               return {
                 value: reward.id,
