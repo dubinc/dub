@@ -139,16 +139,18 @@ export const GET = withWorkspace(
           }),
         ]);
 
-      const partnersWithReward = allRewards.map((reward) => {
-        const partnerCount = customRewardsPartners.find(
-          (p) => p.rewardId === reward.id,
-        )?._count;
+      const partnersWithReward = allRewards
+        .map((reward) => {
+          const partnerCount = customRewardsPartners.find(
+            (p) => p.rewardId === reward.id,
+          )?._count;
 
-        return {
-          ...reward,
-          partnersCount: partnerCount ?? defaultRewardsPartners,
-        };
-      });
+          return {
+            ...reward,
+            partnersCount: partnerCount ?? defaultRewardsPartners,
+          };
+        })
+        .sort((a, b) => b.partnersCount - a.partnersCount);
 
       return NextResponse.json(partnersWithReward);
     }
