@@ -1,7 +1,7 @@
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useRewards from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { REWARD_EVENTS } from "@/lib/zod/schemas/rewards";
+import { REWARD_EVENTS } from "@/ui/partners/constants";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { formatRewardDescription } from "@/ui/partners/program-reward-description";
 import { useRouterStuff } from "@dub/ui";

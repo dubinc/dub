@@ -3,8 +3,8 @@
 import useProgram from "@/lib/swr/use-program";
 import useRewards from "@/lib/swr/use-rewards";
 import type { RewardProps } from "@/lib/types";
-import { REWARD_EVENTS } from "@/lib/zod/schemas/rewards";
 import { useRewardSheet } from "@/ui/partners/add-edit-reward-sheet";
+import { REWARD_EVENTS } from "@/ui/partners/constants";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { EventType } from "@dub/prisma/client";
 import {
