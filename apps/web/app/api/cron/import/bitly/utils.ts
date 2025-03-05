@@ -8,7 +8,9 @@ import {
   APP_DOMAIN_WITH_NGROK,
   getUrlFromStringIfValid,
   linkConstructorSimple,
+  log,
 } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 
 interface RateLimitResponse {
   platform_limits: {
@@ -172,6 +174,7 @@ export const importLinksFromBitly = async ({
     },
     select: {
       shortLink: true,
+      url: true,
     },
   });
 
@@ -185,6 +188,33 @@ export const importLinksFromBitly = async ({
   );
   // bulk create links
   await bulkCreateLinks({ links: linksToCreate });
+
+  if (alreadyCreatedLinks.length) {
+    waitUntil(
+      (async () => {
+        try {
+          // check if any of the links that were already created have a different url
+          // than the link that was imported
+          const caseDuplicates = importedLinks.filter((link) => {
+            const duplicate = alreadyCreatedLinks.find(
+              (l) => l.shortLink === link.shortLink,
+            );
+            return duplicate && duplicate.url !== link.url;
+          });
+
+          if (caseDuplicates.length) {
+            await log({
+              message: `Found potential case duplicates: ${caseDuplicates
+                .map((c) => `${c.shortLink} - ${c.url}`)
+                .join(", ")}`,
+              type: "alerts",
+              mention: true,
+            });
+          }
+        } catch (_) {}
+      })(),
+    );
+  }
 
   count += importedLinks.length;
 
