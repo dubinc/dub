@@ -60,9 +60,23 @@ export const programInvitePartnersSchema = z.object({
     ),
 });
 
+export const onboardingStepSchema = z.enum([
+  "get-started",
+  "configure-reward",
+  "invite-partners",
+  "connect",
+  "create-program",
+]);
+
 export const programDataSchema = programInfoSchema
   .merge(programRewardSchema)
-  .merge(programInvitePartnersSchema);
+  .merge(programInvitePartnersSchema)
+  .merge(
+    z.object({
+      lastCompletedStep: onboardingStepSchema, // The last step that was completed
+      currentStep: onboardingStepSchema, // The current step when saving and exiting
+    }),
+  );
 
 export const onboardProgramSchema = z.discriminatedUnion("step", [
   programInfoSchema.merge(
@@ -87,6 +101,11 @@ export const onboardProgramSchema = z.discriminatedUnion("step", [
   ),
 
   z.object({
+    step: z.literal("connect"),
+    workspaceId: z.string(),
+  }),
+
+  z.object({
     step: z.literal("create-program"),
     workspaceId: z.string(),
   }),
@@ -99,4 +118,35 @@ export const onboardProgramSchema = z.discriminatedUnion("step", [
   ),
 ]);
 
-export type ProgramData = z.infer<typeof programDataSchema>;
+export const PROGRAM_ONBOARDING_STEPS = [
+  {
+    stepNumber: 1,
+    label: "Getting started",
+    href: "/programs/new",
+    step: "get-started",
+  },
+  {
+    stepNumber: 2,
+    label: "Configure reward",
+    href: "/programs/new/rewards",
+    step: "configure-reward",
+  },
+  {
+    stepNumber: 3,
+    label: "Invite partners",
+    href: "/programs/new/partners",
+    step: "invite-partners",
+  },
+  {
+    stepNumber: 4,
+    label: "Connect Dub",
+    href: "/programs/new/connect",
+    step: "connect",
+  },
+  {
+    stepNumber: 5,
+    label: "Overview",
+    href: "/programs/new/overview",
+    step: "create-program",
+  },
+] as const;

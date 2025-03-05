@@ -3,22 +3,23 @@
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
 import usePrograms from "@/lib/swr/use-programs";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { PROGRAM_ONBOARDING_STEPS } from "@/lib/zod/schemas/program-onboarding";
 import { Button, Wordmark, useMediaQuery } from "@dub/ui";
 import { Menu } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { useSidebar } from "./sidebar-context";
 
 export function Header() {
+  const pathname = usePathname();
   const router = useRouter();
   const { isMobile } = useMediaQuery();
   const { getValues } = useFormContext();
   const { isOpen, setIsOpen } = useSidebar();
-
   const { programs, loading: programsLoading } = usePrograms();
 
   const {
@@ -35,7 +36,7 @@ export function Header() {
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: async () => {
-      await mutateWorkspace();
+      mutateWorkspace();
       router.push(`/${workspaceSlug}`);
     },
     onError: ({ error }) => {
@@ -88,10 +89,16 @@ export function Header() {
       }),
     };
 
+    const currentPath = pathname.replace(`/${workspaceSlug}`, "");
+    const currentStep = PROGRAM_ONBOARDING_STEPS.find(
+      (s) => s.href === currentPath,
+    )?.step;
+
     await executeAsync({
       ...data,
       workspaceId,
       step: "save-and-exit",
+      currentStep,
     });
   };
 

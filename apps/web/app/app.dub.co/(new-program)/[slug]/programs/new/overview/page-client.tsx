@@ -2,7 +2,7 @@
 
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ProgramData } from "@/lib/zod/schemas/program-onboarding";
+import { ProgramData } from "@/lib/types";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { CommissionType, EventType } from "@dub/prisma/client";
 import { Button } from "@dub/ui";

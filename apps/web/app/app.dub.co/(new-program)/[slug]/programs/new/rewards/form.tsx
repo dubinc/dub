@@ -6,7 +6,7 @@ import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { RewardfulCampaign } from "@/lib/rewardful/types";
 import { useRewardfulCampaigns } from "@/lib/swr/use-rewardful-campaigns";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ProgramData } from "@/lib/zod/schemas/program-onboarding";
+import { ProgramData } from "@/lib/types";
 import {
   COMMISSION_TYPES,
   RECURRING_MAX_DURATIONS,

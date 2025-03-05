@@ -1,17 +1,20 @@
 import usePrograms from "@/lib/swr/use-programs";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { ProgramData } from "@/lib/types";
+import { PROGRAM_ONBOARDING_STEPS } from "@/lib/zod/schemas/program-onboarding";
 import { buttonVariants, ConnectedDots4 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 
 export function CreateProgramCard() {
-  const { programs, loading: programsLoading } = usePrograms();
   const {
-    partnersEnabled,
     slug,
-    loading: workspaceLoading,
     store,
+    partnersEnabled,
+    loading: workspaceLoading,
   } = useWorkspace();
+
+  const { programs, loading: programsLoading } = usePrograms();
 
   if (
     !partnersEnabled ||
@@ -21,6 +24,14 @@ export function CreateProgramCard() {
   ) {
     return null;
   }
+
+  const programData = store?.programOnboarding as ProgramData;
+  const currentStep =
+    programData?.currentStep || programData?.lastCompletedStep || "get-started";
+
+  const path = PROGRAM_ONBOARDING_STEPS.find(
+    (s) => s.step === currentStep,
+  )?.href;
 
   return (
     <div className="relative mt-6 flex flex-col gap-3 overflow-hidden rounded-lg border bg-white p-3 pt-4">
@@ -36,7 +47,7 @@ export function CreateProgramCard() {
       </div>
 
       <Link
-        href={`/${slug}/programs/new`}
+        href={`/${slug}${path}`}
         className={cn(
           buttonVariants({ variant: "primary" }),
           "flex h-8 items-center justify-center rounded-md border px-3 text-sm",

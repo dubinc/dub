@@ -3,7 +3,7 @@
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
 import useDomains from "@/lib/swr/use-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ProgramData } from "@/lib/zod/schemas/program-onboarding";
+import { ProgramData } from "@/lib/types";
 import {
   Badge,
   Button,

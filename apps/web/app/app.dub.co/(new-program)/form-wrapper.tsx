@@ -1,7 +1,7 @@
 "use client";
 
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
-import { ProgramData } from "@/lib/zod/schemas/program-onboarding";
+import { ProgramData } from "@/lib/types";
 import { FormProvider, useForm } from "react-hook-form";
 
 export function FormWrapper({ children }: { children: React.ReactNode }) {

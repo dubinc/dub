@@ -2,7 +2,7 @@
 
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ProgramData } from "@/lib/zod/schemas/program-onboarding";
+import { ProgramData } from "@/lib/types";
 import { AlertCircleFill } from "@/ui/shared/icons";
 import { Button, Input } from "@dub/ui";
 import { cn } from "@dub/utils";

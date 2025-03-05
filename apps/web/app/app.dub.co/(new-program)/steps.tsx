@@ -1,5 +1,6 @@
 "use client";
 
+import { PROGRAM_ONBOARDING_STEPS } from "@/lib/zod/schemas/program-onboarding";
 import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Check, Lock, X } from "lucide-react";
@@ -18,36 +19,10 @@ export function Steps() {
     document.body.style.overflow = isOpen && isMobile ? "hidden" : "auto";
   }, [isOpen, isMobile]);
 
-  const steps = [
-    {
-      step: 1,
-      label: "Getting started",
-      href: `/${slug}/programs/new`,
-    },
-    {
-      step: 2,
-      label: "Configure reward",
-      href: `/${slug}/programs/new/rewards`,
-    },
-    {
-      step: 3,
-      label: "Invite partners",
-      href: `/${slug}/programs/new/partners`,
-    },
-    {
-      step: 4,
-      label: "Connect Dub",
-      href: `/${slug}/programs/new/connect`,
-    },
-    {
-      step: 5,
-      label: "Overview",
-      href: `/${slug}/programs/new/overview`,
-      isLocked: true,
-    },
-  ];
-
-  const currentStep = steps.find((s) => s.href === pathname)?.step || 1;
+  const currentPath = pathname.replace(`/${slug}`, "");
+  const currentStepNumber =
+    PROGRAM_ONBOARDING_STEPS.find((s) => s.href === currentPath)?.stepNumber ||
+    1;
 
   return (
     <>
@@ -82,49 +57,52 @@ export function Steps() {
               </button>
             </div>
             <nav className="space-y-1">
-              {steps.map(({ step, label, href, isLocked }) => {
-                const current = pathname === href;
-                const completed = pathname !== href && step < currentStep;
+              {PROGRAM_ONBOARDING_STEPS.map(
+                ({ step, label, href, stepNumber }) => {
+                  const current = currentPath === href;
+                  const completed =
+                    currentPath !== href && stepNumber < currentStepNumber;
 
-                return (
-                  <Link
-                    key={step}
-                    href={href}
-                    className={cn(
-                      "flex items-center gap-2 rounded-md px-3 py-2 hover:bg-neutral-100",
-                      current && "bg-blue-50",
-                    )}
-                  >
-                    <div
+                  return (
+                    <Link
+                      key={step}
+                      href={`/${slug}${href}`}
                       className={cn(
-                        "flex h-5 w-5 items-center justify-center rounded-full text-xs",
-                        completed && "bg-black text-white",
-                        current && "bg-blue-500 text-white",
-                        !current &&
-                          !completed &&
-                          "border border-neutral-200 text-neutral-500",
+                        "flex items-center gap-2 rounded-md px-3 py-2 hover:bg-neutral-100",
+                        current && "bg-blue-50",
                       )}
                     >
-                      {isLocked ? (
-                        <Lock className="size-3" />
-                      ) : completed ? (
-                        <Check className="size-3" />
-                      ) : (
-                        step
-                      )}
-                    </div>
-                    <span
-                      className={cn(
-                        "text-sm font-medium",
-                        current && "text-blue-500",
-                        !current && !completed && "text-neutral-600",
-                      )}
-                    >
-                      {label}
-                    </span>
-                  </Link>
-                );
-              })}
+                      <div
+                        className={cn(
+                          "flex h-5 w-5 items-center justify-center rounded-full text-xs",
+                          completed && "bg-black text-white",
+                          current && "bg-blue-500 text-white",
+                          !current &&
+                            !completed &&
+                            "border border-neutral-200 text-neutral-500",
+                        )}
+                      >
+                        {stepNumber === 5 ? (
+                          <Lock className="size-3" />
+                        ) : completed ? (
+                          <Check className="size-3" />
+                        ) : (
+                          stepNumber
+                        )}
+                      </div>
+                      <span
+                        className={cn(
+                          "text-sm font-medium",
+                          current && "text-blue-500",
+                          !current && !completed && "text-neutral-600",
+                        )}
+                      >
+                        {label}
+                      </span>
+                    </Link>
+                  );
+                },
+              )}
             </nav>
           </div>
         </div>

@@ -62,6 +62,11 @@ const saveOnboardingProgress = async ({
   const programId =
     store?.programOnboarding?.programId ?? createId({ prefix: "prog_" });
 
+  const lastCompletedStep =
+    data.step !== "save-and-exit"
+      ? data.step
+      : store.programOnboarding?.lastCompletedStep;
+
   await prisma.project.update({
     where: {
       id: workspace.id,
@@ -73,6 +78,8 @@ const saveOnboardingProgress = async ({
           ...store.programOnboarding,
           ...data,
           programId,
+          lastCompletedStep,
+          step: undefined,
         },
       },
     },
