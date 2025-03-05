@@ -1,8 +1,9 @@
+import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
-import { createId, parseRequestBody } from "@/lib/api/utils";
+import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
@@ -198,17 +199,19 @@ export const POST = withWorkspace(
                 },
               });
 
-              if (reward.maxDuration === 0 && firstCommission) {
-                eligibleForCommission = false;
-              } else if (firstCommission) {
-                // Calculate months difference between first commission and now
-                const monthsDifference = differenceInMonths(
-                  new Date(),
-                  firstCommission.createdAt,
-                );
-
-                if (monthsDifference >= reward.maxDuration) {
+              if (firstCommission) {
+                if (reward.maxDuration === 0) {
                   eligibleForCommission = false;
+                } else {
+                  // Calculate months difference between first commission and now
+                  const monthsDifference = differenceInMonths(
+                    new Date(),
+                    firstCommission.createdAt,
+                  );
+
+                  if (monthsDifference >= reward.maxDuration) {
+                    eligibleForCommission = false;
+                  }
                 }
               }
             }
