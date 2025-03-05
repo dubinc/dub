@@ -1,4 +1,6 @@
 import { CommissionType, EventType } from "@dub/prisma/client";
+import { CursorRays, MoneyBill } from "@dub/ui/icons";
+import { UserPlus } from "lucide-react";
 import { z } from "zod";
 import { getPaginationQuerySchema } from "./misc";
 
@@ -56,3 +58,27 @@ export const rewardPartnersQuerySchema = z
       pageSize: 25,
     }),
   );
+
+export const REWARD_EVENTS = {
+  click: {
+    icon: CursorRays,
+    text: "Click reward",
+    event: "click",
+    shortcut: "C",
+    eventName: "click",
+  },
+  lead: {
+    icon: UserPlus,
+    text: "Lead reward",
+    event: "lead",
+    shortcut: "L",
+    eventName: "signup",
+  },
+  sale: {
+    icon: MoneyBill,
+    text: "Sale reward",
+    event: "sale",
+    shortcut: "S",
+    eventName: "sale",
+  },
+} as const;

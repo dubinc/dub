@@ -1,14 +1,18 @@
 import usePartnersCount from "@/lib/swr/use-partners-count";
+import useRewards from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { REWARD_EVENTS } from "@/lib/zod/schemas/rewards";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
+import { formatRewardDescription } from "@/ui/partners/program-reward-description";
 import { useRouterStuff } from "@dub/ui";
-import { CircleDotted, FlagWavy } from "@dub/ui/icons";
+import { CircleDotted, FlagWavy, Gift } from "@dub/ui/icons";
 import { cn, COUNTRIES, nFormatter } from "@dub/utils";
 import { useMemo } from "react";
 
 export function usePartnerFilters(extraSearchParams: Record<string, string>) {
   const { searchParamsObj, queryParams } = useRouterStuff();
   const { id: workspaceId } = useWorkspace();
+  const { rewards } = useRewards();
 
   const { partnersCount: countriesCount } = usePartnersCount<
     {
@@ -76,8 +80,31 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
           },
         ),
       },
+      {
+        key: "reward",
+        icon: Gift,
+        label: "Reward",
+        // getOptionIcon: (reward: RewardProps) => {
+        //   const Icon = REWARD_EVENTS[reward.event].icon;
+
+        //   return <Icon className="size-4 bg-transparent" />;
+        // },
+        // getOptionLabel: (reward: RewardProps) =>
+        //   formatRewardDescription({ reward }),
+        options:
+          rewards?.map((reward) => {
+            const Icon = REWARD_EVENTS[reward.event].icon;
+
+            return {
+              value: reward.id,
+              label: formatRewardDescription({ reward }),
+              icon: <Icon className="size-4 bg-transparent" />,
+              // right: reward.event,
+            };
+          }) ?? [],
+      },
     ],
-    [countriesCount, statusCount],
+    [countriesCount, statusCount, rewards],
   );
 
   const activeFilters = useMemo(() => {
