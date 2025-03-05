@@ -1,4 +1,5 @@
 import { Customer } from "@/lib/types";
+import { CustomerEnrichedSchema } from "@/lib/zod/schemas/customers";
 import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 
@@ -53,5 +54,20 @@ describe.sequential("/customers/**", async () => {
       ...expectedCustomer,
       ...toUpdate,
     });
+  });
+
+  test("GET /customers by externalId with includeExpandedFields", async () => {
+    const { status, data: customers } = await http.get<Customer[]>({
+      path: `/customers?externalId=${expectedCustomer.externalId}&includeExpandedFields=true`,
+    });
+
+    expect(status).toEqual(200);
+    expect(customers.length).toBeGreaterThanOrEqual(1);
+    expect(
+      CustomerEnrichedSchema.parse({
+        ...customers[0],
+        createdAt: new Date(customers[0].createdAt),
+      }),
+    ).toBeTruthy();
   });
 });
