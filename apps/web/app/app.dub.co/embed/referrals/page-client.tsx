@@ -53,7 +53,7 @@ export function ReferralsEmbedPageClient({
 
   return (
     <div
-      className="flex min-h-screen flex-col"
+      className="dark flex min-h-screen flex-col bg-black"
       style={
         { "--accent-color": program.brandColor || "#a8a8a8" } as CSSProperties
       }
@@ -61,14 +61,14 @@ export function ReferralsEmbedPageClient({
       <div className="p-5">
         <div className="border-border-default relative flex flex-col overflow-hidden rounded-lg border p-4 md:p-6">
           <HeroBackground logo={program.logo} color={program.brandColor} />
-          <span className="flex items-center gap-2 text-sm text-neutral-500">
+          <span className="text-content-subtle flex items-center gap-2 text-sm">
             <MoneyBill className="size-4" />
             Refer and earn
           </span>
-          <div className="relative mt-16 text-lg text-neutral-900 sm:max-w-[50%]">
+          <div className="text-content-emphasis relative mt-16 text-lg sm:max-w-[50%]">
             <ProgramRewardDescription reward={reward} discount={discount} />
           </div>
-          <span className="mb-1.5 mt-6 block text-sm text-neutral-800">
+          <span className="text-content-default mb-1.5 mt-6 block text-sm">
             Referral link
           </span>
           <div className="xs:flex-row relative flex flex-col items-center gap-2">
@@ -76,7 +76,7 @@ export function ReferralsEmbedPageClient({
               type="text"
               readOnly
               value={getPrettyUrl(links[0].shortLink)}
-              className="xs:w-auto h-10 w-full rounded-md border border-neutral-300 px-3 text-sm focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 lg:min-w-64 xl:min-w-72"
+              className="xs:w-auto border-border-default text-content-default focus:border-border-emphasis bg-bg-default h-10 w-full rounded-md border px-3 text-sm focus:outline-none focus:ring-neutral-500 lg:min-w-64 xl:min-w-72"
             />
             <Button
               icon={
@@ -108,12 +108,12 @@ export function ReferralsEmbedPageClient({
             <a
               href="https://dub.partners"
               target="_blank"
-              className="flex w-fit items-center gap-1.5 rounded-md border border-black/10 bg-white px-2 py-1 text-neutral-500 transition-colors duration-75 hover:text-neutral-700"
+              className="hover:text-content-default text-content-subtle bg-bg-default flex w-fit items-center gap-1.5 rounded-md border border-black/10 px-2 py-1 transition-colors duration-75"
             >
               <p className="whitespace-nowrap text-xs font-medium leading-none">
                 Powered by
               </p>
-              <Wordmark className="h-3.5 text-neutral-900" />
+              <Wordmark className="text-content-emphasis h-3.5" />
             </a>
           </div>
         </div>
@@ -135,9 +135,9 @@ export function ReferralsEmbedPageClient({
             selectAction={(option) => {
               setSelectedTab(option);
             }}
-            className="w-full rounded-lg bg-neutral-50"
+            className="bg-bg-muted w-full rounded-lg"
             optionClassName="w-full flex justify-center py-1.5"
-            indicatorClassName="bg-white"
+            indicatorClassName="bg-bg-default"
           />
           <div className="my-4">
             <AnimatePresence mode="wait">

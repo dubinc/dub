@@ -5,21 +5,21 @@ export default function EmbedInlineLoading() {
   return (
     <div className="flex min-h-screen flex-col">
       <div className="p-5">
-        <div className="relative flex flex-col overflow-hidden rounded-lg border border-neutral-300 p-4 md:p-6">
+        <div className="border-border-default relative flex flex-col overflow-hidden rounded-lg border p-4 md:p-6">
           <HeroBackground color="#737373" />
-          <span className="flex items-center gap-2 text-sm text-neutral-500">
+          <span className="text-content-subtle flex items-center gap-2 text-sm">
             <MoneyBill className="size-4" />
             Refer and earn
           </span>
           <div className="relative mt-16 flex flex-col gap-2">
-            <div className="h-6 w-60 rounded-md bg-neutral-50" />
-            <div className="h-6 w-40 rounded-md bg-neutral-50" />
+            <div className="bg-bg-muted h-6 w-60 rounded-md" />
+            <div className="bg-bg-muted h-6 w-40 rounded-md" />
           </div>
           <span className="mb-1.5 mt-6 block text-sm text-neutral-800">
             Referral link
           </span>
           <div className="xs:flex-row relative flex flex-col items-center gap-2">
-            <div className="xs:w-60 h-10 w-full rounded-md border border-neutral-300 bg-neutral-50" />
+            <div className="xs:w-60 border-border-default bg-bg-muted h-10 w-full rounded-md border" />
             <Button
               icon={<Copy className="size-4" />}
               text="Copy link"
@@ -30,19 +30,19 @@ export default function EmbedInlineLoading() {
           <a
             href="https://dub.partners"
             target="_blank"
-            className="mt-4 flex items-center justify-center gap-1.5 text-neutral-500 transition-colors duration-75 hover:text-neutral-700 md:absolute md:bottom-3 md:right-3 md:mt-0 md:translate-x-0"
+            className="hover:text-content-default text-content-subtle mt-4 flex items-center justify-center gap-1.5 transition-colors duration-75 md:absolute md:bottom-3 md:right-3 md:mt-0 md:translate-x-0"
           >
             <p className="text-xs font-medium">Powered by</p>
-            <Wordmark className="h-3.5 text-neutral-900" />
+            <Wordmark className="text-content-emphasis h-3.5" />
           </a>
         </div>
         <div className="mt-4 grid gap-2 sm:h-32 sm:grid-cols-3">
-          <div className="h-full w-full rounded-lg border border-neutral-200 bg-neutral-50 sm:col-span-2" />
-          <div className="h-full w-full rounded-lg border border-neutral-200 bg-neutral-50" />
+          <div className="border-border-subtle bg-bg-muted h-full w-full rounded-lg border sm:col-span-2" />
+          <div className="border-border-subtle bg-bg-muted h-full w-full rounded-lg border" />
         </div>
         <div className="mt-4">
-          <div className="h-10 w-full rounded-lg border border-neutral-200 bg-neutral-50" />
-          <div className="my-4 h-80 w-full rounded-lg border border-neutral-100 p-2" />
+          <div className="border-border-subtle bg-bg-muted h-10 w-full rounded-lg border" />
+          <div className="border-border-muted my-4 h-80 w-full rounded-lg border p-2" />
         </div>
       </div>
     </div>

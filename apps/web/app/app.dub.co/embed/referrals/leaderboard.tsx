@@ -33,7 +33,7 @@ export function ReferralsEmbedLeaderboard() {
                 <Crown
                   className={cn("size-4", {
                     "text-amber-400": row.index === 0,
-                    "text-neutral-400": row.index === 1,
+                    "text-content-muted": row.index === 1,
                     "text-yellow-900": row.index === 2,
                   })}
                 />
@@ -66,8 +66,8 @@ export function ReferralsEmbedLeaderboard() {
         description="No partners have been added to this program yet."
         cardContent={() => (
           <>
-            <Users className="size-4 text-neutral-700" />
-            <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+            <Users className="text-content-default size-4" />
+            <div className="bg-bg-emphasis h-2.5 w-24 min-w-0 rounded-sm" />
           </>
         )}
         className="border-none md:min-h-fit"
@@ -80,7 +80,7 @@ export function ReferralsEmbedLeaderboard() {
 
   return (
     <motion.div
-      className="relative rounded-md border border-neutral-200"
+      className="border-border-subtle relative rounded-md border"
       {...TAB_ITEM_ANIMATION_SETTINGS}
     >
       <Table

@@ -13,7 +13,7 @@ import {
 import { cn, DUB_LOGO, TAB_ITEM_ANIMATION_SETTINGS } from "@dub/utils";
 import { motion } from "framer-motion";
 
-const BUTTON_CLASSNAME = "h-9 rounded-lg bg-neutral-900 hover:bg-neutral-800";
+const BUTTON_CLASSNAME = "h-9 rounded-lg bg-bg-inverted hover:bg-neutral-800";
 
 export function ReferralsEmbedQuickstart({
   program,
@@ -90,7 +90,7 @@ export function ReferralsEmbedQuickstart({
 
   return (
     <motion.div
-      className="rounded-lg border border-neutral-100 bg-white p-2"
+      className="border-border-muted bg-bg-default rounded-lg border p-2"
       {...TAB_ITEM_ANIMATION_SETTINGS}
     >
       {isMobile ? (
@@ -99,11 +99,13 @@ export function ReferralsEmbedQuickstart({
             {items.map((item) => (
               <CarouselItem
                 key={item.title}
-                className="flex flex-col items-center justify-between gap-4 rounded-lg bg-neutral-50 p-8 text-center"
+                className="bg-bg-muted flex flex-col items-center justify-between gap-4 rounded-lg p-8 text-center"
               >
                 {item.illustration}
-                <h3 className="text-lg font-medium">{item.title}</h3>
-                <p className="text-pretty text-sm text-neutral-500">
+                <h3 className="text-content-emphasis text-lg font-medium">
+                  {item.title}
+                </h3>
+                <p className="text-content-subtle text-pretty text-sm">
                   {item.description}
                 </p>
                 {item.cta}
@@ -117,11 +119,13 @@ export function ReferralsEmbedQuickstart({
           {items.map((item) => (
             <div
               key={item.title}
-              className="flex flex-col items-center justify-between gap-4 rounded-lg bg-neutral-50 p-8 text-center"
+              className="bg-bg-muted flex flex-col items-center justify-between gap-4 rounded-lg p-8 text-center"
             >
               {item.illustration}
-              <h3 className="text-lg font-medium">{item.title}</h3>
-              <p className="text-pretty text-sm text-neutral-500">
+              <h3 className="text-content-emphasis text-lg font-medium">
+                {item.title}
+              </h3>
+              <p className="text-content-subtle text-pretty text-sm">
                 {item.description}
               </p>
               {item.cta}
