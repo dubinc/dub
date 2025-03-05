@@ -1,5 +1,6 @@
 import z from "@/lib/zod";
 import { ExpandedLink } from "../api/links";
+import { CASE_SENSITIVE_DOMAINS, decodeKey } from "../api/links/constants";
 import { tb } from "./client";
 
 export const dubLinksMetadataSchema = z.object({
@@ -51,6 +52,10 @@ export const recordLinkTB = tb.buildIngestEndpoint({
 });
 
 export const transformLinkTB = (link: ExpandedLink) => {
+  if (CASE_SENSITIVE_DOMAINS.includes(link.domain)) {
+    link.key = decodeKey(link.key);
+  }
+
   return {
     link_id: link.id,
     domain: link.domain,
