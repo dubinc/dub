@@ -3,7 +3,6 @@ import { EnrolledPartnerProps } from "@/lib/types";
 import { buttonVariants } from "@dub/ui";
 import {
   cn,
-  COUNTRIES,
   currencyFormatter,
   DICEBEAR_AVATAR_URL,
   fetcher,
@@ -78,7 +77,7 @@ export function TopPartners() {
                     <div className="flex flex-col">
                       <span className="text-neutral-800">{partner.name}</span>
                       <span className="text-neutral-500">
-                        {COUNTRIES[partner.country ?? ""] ?? "-"}
+                        {partner.email ?? "-"}
                       </span>
                     </div>
                   </div>
