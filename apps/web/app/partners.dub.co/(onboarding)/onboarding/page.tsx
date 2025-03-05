@@ -54,7 +54,7 @@ async function OnboardingFormRSC() {
         orderBy: {
           createdAt: "desc",
         },
-        take: 2,
+        take: 10,
       })
     : [];
 
@@ -64,7 +64,11 @@ async function OnboardingFormRSC() {
         ...partner,
         ...(applications.length && { name: applications[0].name }),
       }}
-      lockName={applications.length === 1}
+      lockName={
+        applications.length === 1 ||
+        (applications.length > 0 &&
+          applications.every((app) => app.name === applications[0].name))
+      }
     />
   );
 }

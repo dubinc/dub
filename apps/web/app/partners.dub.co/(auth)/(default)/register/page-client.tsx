@@ -15,11 +15,15 @@ type PartialProgram = Pick<Program, "name" | "logo">;
 
 export default function RegisterPageClient({
   program,
+  email,
+  lockEmail,
 }: {
   program?: PartialProgram;
+  email?: string;
+  lockEmail?: boolean;
 }) {
   return (
-    <RegisterProvider>
+    <RegisterProvider email={email} lockEmail={lockEmail}>
       <div className="mx-auto my-10 w-full max-w-[480px] md:mt-20 lg:mt-20">
         <RegisterFlow program={program} />
       </div>
