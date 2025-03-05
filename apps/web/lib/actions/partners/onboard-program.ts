@@ -48,6 +48,7 @@ export const onboardProgramAction = authActionClient
     }
   });
 
+// Save the onboarding progress
 const saveOnboardingProgress = async ({
   workspace,
   data,
@@ -78,6 +79,7 @@ const saveOnboardingProgress = async ({
   });
 };
 
+// Create a new program from the onboarding data
 const createProgram = async ({
   workspace,
   user,
@@ -210,6 +212,7 @@ const createProgram = async ({
   return program;
 };
 
+// Invite a partner to the program
 async function invitePartner({
   workspace,
   program,
