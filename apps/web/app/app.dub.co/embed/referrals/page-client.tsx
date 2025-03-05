@@ -59,7 +59,7 @@ export function ReferralsEmbedPageClient({
       }
     >
       <div className="p-5">
-        <div className="relative flex flex-col overflow-hidden rounded-lg border border-neutral-300 p-4 md:p-6">
+        <div className="border-border-default relative flex flex-col overflow-hidden rounded-lg border p-4 md:p-6">
           <HeroBackground logo={program.logo} color={program.brandColor} />
           <span className="flex items-center gap-2 text-sm text-neutral-500">
             <MoneyBill className="size-4" />

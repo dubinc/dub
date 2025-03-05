@@ -203,6 +203,35 @@ const config: Config = {
           800: "#846358",
           900: "#43302b",
         },
+
+        // Light/dark mode colors
+
+        "bg-emphasis": "var(--bg-emphasis)",
+        "bg-default": "var(--bg-default)",
+        "bg-subtle": "var(--bg-subtle)",
+        "bg-muted": "var(--bg-muted)",
+        "bg-inverted": "var(--bg-inverted)",
+
+        "bg-info": "var(--bg-info)",
+        "bg-success": "var(--bg-success)",
+        "bg-attention": "var(--bg-attention)",
+        "bg-error": "var(--bg-error)",
+
+        "border-emphasis": "var(--border-emphasis)",
+        "border-default": "var(--border-default)",
+        "border-muted": "var(--border-muted)",
+        "border-subtle": "var(--border-subtle)",
+
+        "content-inverted": "var(--content-inverted)",
+        "content-muted": "var(--content-muted)",
+        "content-subtle": "var(--content-subtle)",
+        "content-default": "var(--content-default)",
+        "content-emphasis": "var(--content-emphasis)",
+
+        "content-info": "var(--content-info)",
+        "content-success": "var(--content-success)",
+        "content-attention": "var(--content-attention)",
+        "content-error": "var(--content-error)",
       },
       dropShadow: {
         "card-hover": ["0 8px 12px #222A350d", "0 32px 80px #2f30370f"],

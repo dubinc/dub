@@ -1,0 +1,58 @@
+:root,
+.light {
+  --bg-default: theme("colors.white");
+  --bg-muted: theme("colors.neutral.50");
+  --bg-subtle: theme("colors.neutral.100");
+  --bg-emphasis: theme("colors.neutral.200");
+  --bg-muted-inverted: theme("colors.neutral.900");
+
+  --bg-info: theme("colors.blue.200");
+  --bg-success: theme("colors.green.100");
+  --bg-attention: theme("colors.orange.100");
+  --bg-error: theme("colors.red.100");
+
+  --border-emphasis: theme("colors.neutral.400");
+  --border-default: theme("colors.neutral.300");
+  --border-muted: theme("colors.neutral.100");
+  --border-subtle: theme("colors.neutral.200");
+
+  --content-inverted: theme("colors.white");
+  --content-muted: theme("colors.neutral.400");
+  --content-subtle: theme("colors.neutral.500");
+  --content-default: theme("colors.neutral.700");
+  --content-emphasis: theme("colors.neutral.900");
+
+  --content-info: theme("colors.blue.700");
+  --content-success: theme("colors.green.700");
+  --content-attention: theme("colors.orange.700");
+  --content-error: theme("colors.red.700");
+}
+
+.dark {
+  --bg-default: theme("colors.black");
+  --bg-muted: theme("colors.neutral.900");
+  --bg-subtle: theme("colors.neutral.800");
+  --bg-emphasis: theme("colors.neutral.700");
+  --bg-muted-inverted: theme("colors.neutral.50");
+
+  --bg-info: theme("colors.blue.700");
+  --bg-success: theme("colors.green.700");
+  --bg-attention: theme("colors.orange.700");
+  --bg-error: theme("colors.red.700");
+
+  --border-muted: theme("colors.neutral.800");
+  --border-subtle: theme("colors.neutral.700");
+  --border-default: theme("colors.neutral.600");
+  --border-emphasis: theme("colors.neutral.500");
+
+  --content-inverted: theme("colors.black");
+  --content-muted: theme("colors.neutral.600");
+  --content-subtle: theme("colors.neutral.400");
+  --content-default: theme("colors.neutral.300");
+  --content-emphasis: theme("colors.neutral.50");
+
+  --content-info: theme("colors.blue.200");
+  --content-success: theme("colors.green.100");
+  --content-attention: theme("colors.orange.100");
+  --content-error: theme("colors.red.100");
+}
