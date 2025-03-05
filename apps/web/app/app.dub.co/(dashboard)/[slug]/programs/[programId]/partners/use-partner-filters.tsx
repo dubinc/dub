@@ -81,16 +81,29 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
         ),
       },
       {
-        key: "reward",
+        key: "rewardId",
         icon: Gift,
         label: "Reward",
-        // getOptionIcon: (reward: RewardProps) => {
-        //   const Icon = REWARD_EVENTS[reward.event].icon;
+        getOptionIcon: (rewardId: string) => {
+          const reward = rewards?.find((reward) => reward.id === rewardId);
 
-        //   return <Icon className="size-4 bg-transparent" />;
-        // },
-        // getOptionLabel: (reward: RewardProps) =>
-        //   formatRewardDescription({ reward }),
+          if (!reward) {
+            return null;
+          }
+
+          const Icon = REWARD_EVENTS[reward.event].icon;
+
+          return <Icon className="size-4 bg-transparent" />;
+        },
+        getOptionLabel: (rewardId: string) => {
+          const reward = rewards?.find((reward) => reward.id === rewardId);
+
+          if (!reward) {
+            return null;
+          }
+
+          return formatRewardDescription({ reward });
+        },
         options:
           rewards?.map((reward) => {
             const Icon = REWARD_EVENTS[reward.event].icon;
@@ -108,10 +121,12 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
   );
 
   const activeFilters = useMemo(() => {
-    const { status, country } = searchParamsObj;
+    const { status, country, rewardId } = searchParamsObj;
+
     return [
       ...(status ? [{ key: "status", value: status }] : []),
       ...(country ? [{ key: "country", value: country }] : []),
+      ...(rewardId ? [{ key: "rewardId", value: rewardId }] : []),
     ];
   }, [searchParamsObj]);
 
@@ -130,7 +145,7 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
 
   const onRemoveAll = () =>
     queryParams({
-      del: ["status", "country", "search"],
+      del: ["status", "country", "rewardId", "search"],
     });
 
   const searchQuery = useMemo(
