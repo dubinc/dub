@@ -64,6 +64,7 @@ export const CustomerSchema = z.object({
   createdAt: z.date().describe("The date the customer was created."),
 });
 
+// An extended schema that includes the customer's link, partner, and discount.
 export const CustomerEnrichedSchema = CustomerSchema.extend({
   link: LinkSchema.pick({
     id: true,

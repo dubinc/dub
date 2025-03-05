@@ -46,8 +46,12 @@ export const GET = withWorkspace(
         : {}),
     });
 
+    const responseSchema = includeExpandedFields
+      ? CustomerEnrichedSchema
+      : CustomerSchema;
+
     return NextResponse.json(
-      CustomerEnrichedSchema.array().parse(customers.map(transformCustomer)),
+      responseSchema.array().parse(customers.map(transformCustomer)),
     );
   },
   {

@@ -27,9 +27,11 @@ export const GET = withWorkspace(
       { includeExpandedFields },
     );
 
-    return NextResponse.json(
-      CustomerEnrichedSchema.parse(transformCustomer(customer)),
-    );
+    const responseSchema = includeExpandedFields
+      ? CustomerEnrichedSchema
+      : CustomerSchema;
+
+    return NextResponse.json(responseSchema.parse(transformCustomer(customer)));
   },
   {
     requiredPlan: [
@@ -82,8 +84,12 @@ export const PATCH = withWorkspace(
           : {}),
       });
 
+      const responseSchema = includeExpandedFields
+        ? CustomerEnrichedSchema
+        : CustomerSchema;
+
       return NextResponse.json(
-        CustomerSchema.parse(transformCustomer(updatedCustomer)),
+        responseSchema.parse(transformCustomer(updatedCustomer)),
       );
     } catch (error) {
       if (error.code === "P2002") {

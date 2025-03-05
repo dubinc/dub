@@ -22,11 +22,12 @@ export interface CustomerWithLink extends Customer {
 
 export const transformCustomer = (customer: CustomerWithLink) => {
   const programEnrollment = customer.link?.programEnrollment;
+
   return {
     ...customer,
     name: customer.name || customer.email || generateRandomName(),
     link: customer.link || undefined,
-    partner: programEnrollment?.partner || undefined,
-    discount: programEnrollment?.discount || undefined,
+    partner: programEnrollment?.partner || null,
+    discount: programEnrollment?.discount || null,
   };
 };
