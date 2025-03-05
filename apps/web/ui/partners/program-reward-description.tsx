@@ -71,15 +71,12 @@ export function ProgramRewardDescription({
 export function formatRewardDescription({
   reward,
 }: {
-  reward?: RewardProps | null;
+  reward: RewardProps;
 }): string {
   const parts: string[] = [];
 
-  if (reward && reward.amount > 0) {
-    let rewardText = `Earn ${constructRewardAmount({
-      amount: reward.amount,
-      type: reward.type,
-    })} for each ${reward.event}`;
+  if (reward.amount > 0) {
+    let rewardText = `Earn ${constructRewardAmount(reward)} for each ${reward.event}`;
 
     if (reward.maxDuration === null) {
       rewardText += ` for the customer's lifetime.`;
