@@ -53,7 +53,7 @@ export function ReferralsEmbedPageClient({
 
   return (
     <div
-      className="dark flex min-h-screen flex-col bg-black"
+      className="bg-bg-default darkZ flex min-h-screen flex-col"
       style={
         { "--accent-color": program.brandColor || "#a8a8a8" } as CSSProperties
       }

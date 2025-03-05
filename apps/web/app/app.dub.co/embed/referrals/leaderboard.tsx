@@ -33,7 +33,7 @@ export function ReferralsEmbedLeaderboard() {
                 <Crown
                   className={cn("size-4", {
                     "text-amber-400": row.index === 0,
-                    "text-content-muted": row.index === 1,
+                    "text-neutral-400": row.index === 1,
                     "text-yellow-900": row.index === 2,
                   })}
                 />
@@ -88,7 +88,7 @@ export function ReferralsEmbedLeaderboard() {
         table={table}
         containerClassName="border-none max-h-[26rem] overflow-auto"
       />
-      <div className="pointer-events-none absolute -bottom-px left-0 h-16 w-full rounded-b-lg bg-gradient-to-t from-white sm:bottom-0" />
+      <div className="from-bg-default pointer-events-none absolute -bottom-px left-0 h-16 w-full rounded-b-lg bg-gradient-to-t sm:bottom-0" />
     </motion.div>
   );
 }
