@@ -1,6 +1,6 @@
 import usePartnersCount from "@/lib/swr/use-partners-count";
-import useRewards from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { RewardProps } from "@/lib/types";
 import { REWARD_EVENTS } from "@/ui/partners/constants";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { formatRewardDescription } from "@/ui/partners/program-reward-description";
@@ -12,31 +12,32 @@ import { useMemo } from "react";
 export function usePartnerFilters(extraSearchParams: Record<string, string>) {
   const { searchParamsObj, queryParams } = useRouterStuff();
   const { id: workspaceId } = useWorkspace();
-  const { rewards } = useRewards();
 
   const { partnersCount: countriesCount } = usePartnersCount<
-    {
-      country: string;
-      _count: number;
-    }[]
+    | {
+        country: string;
+        _count: number;
+      }[]
+    | undefined
   >({
     groupBy: "country",
   });
 
   const { partnersCount: statusCount } = usePartnersCount<
-    {
-      status: string;
-      _count: number;
-    }[]
+    | {
+        status: string;
+        _count: number;
+      }[]
+    | undefined
   >({
     groupBy: "status",
   });
 
   const { partnersCount: rewardsCount } = usePartnersCount<
-    {
-      rewardId: string;
-      _count: number;
-    }[]
+    | (RewardProps & {
+        partnersCount: number;
+      })[]
+    | undefined
   >({
     groupBy: "rewardId",
   });
@@ -61,6 +62,29 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
             label: COUNTRIES[country],
             right: nFormatter(_count, { full: true }),
           })) ?? [],
+      },
+      {
+        key: "rewardId",
+        icon: Gift,
+        label: "Reward",
+        getOptionIcon: (reward: RewardProps) => {
+          const Icon = REWARD_EVENTS[reward.event].icon;
+
+          return <Icon className="size-4 bg-transparent" />;
+        },
+        getOptionLabel: (reward: RewardProps) => {
+          return reward.name || formatRewardDescription({ reward });
+        },
+        options:
+          rewardsCount?.map((reward) => {
+            const Icon = REWARD_EVENTS[reward.event].icon;
+            return {
+              value: reward.id,
+              label: reward.name || formatRewardDescription({ reward }),
+              icon: <Icon className="size-4 bg-transparent" />,
+              right: nFormatter(reward.partnersCount, { full: true }),
+            };
+          }) ?? [],
       },
       {
         key: "status",
@@ -89,51 +113,8 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
           },
         ),
       },
-      {
-        key: "rewardId",
-        icon: Gift,
-        label: "Reward",
-        getOptionIcon: (rewardId: string) => {
-          const reward = rewards?.find((reward) => reward.id === rewardId);
-
-          if (!reward) {
-            return null;
-          }
-
-          const Icon = REWARD_EVENTS[reward.event].icon;
-
-          return <Icon className="size-4 bg-transparent" />;
-        },
-        getOptionLabel: (rewardId: string) => {
-          const reward = rewards?.find((reward) => reward.id === rewardId);
-
-          if (!reward) {
-            return null;
-          }
-
-          return formatRewardDescription({ reward });
-        },
-        options:
-          rewards
-            ?.filter(
-              (reward) => reward.partnersCount && reward.partnersCount > 0,
-            )
-            .map((reward) => {
-              const Icon = REWARD_EVENTS[reward.event].icon;
-              const count =
-                rewardsCount?.find((r) => r.rewardId === reward.id)?._count ||
-                0;
-
-              return {
-                value: reward.id,
-                label: formatRewardDescription({ reward }),
-                icon: <Icon className="size-4 bg-transparent" />,
-                right: nFormatter(count, { full: true }),
-              };
-            }) ?? [],
-      },
     ],
-    [countriesCount, statusCount, rewardsCount, rewards],
+    [countriesCount, statusCount, rewardsCount],
   );
 
   const activeFilters = useMemo(() => {

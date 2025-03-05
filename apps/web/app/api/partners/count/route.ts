@@ -1,5 +1,4 @@
 import { DubApiError } from "@/lib/api/errors";
-import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { partnersCountQuerySchema } from "@/lib/zod/schemas/partners";
@@ -27,13 +26,6 @@ export const GET = withWorkspace(
 
     const { groupBy, status, country, rewardId, search, ids } =
       partnersCountQuerySchema.parse(searchParams);
-
-    if (rewardId) {
-      await getRewardOrThrow({
-        programId,
-        rewardId,
-      });
-    }
 
     const commonWhere: Prisma.PartnerWhereInput = {
       ...(search && {
@@ -115,24 +107,50 @@ export const GET = withWorkspace(
 
     // Get partner count by reward
     if (groupBy === "rewardId") {
-      const partners = await prisma.partnerReward.groupBy({
-        by: ["rewardId"],
-        where: {
-          programEnrollment: {
-            programId,
-            status: status || { not: "rejected" },
-            partner: {
-              ...(country && {
-                country,
-              }),
-              ...commonWhere,
+      const [customRewardsPartners, allRewards, defaultRewardsPartners] =
+        await Promise.all([
+          prisma.partnerReward.groupBy({
+            by: ["rewardId"],
+            where: {
+              programEnrollment: {
+                programId,
+                status: status || { not: "rejected" },
+                partner: {
+                  ...(country && {
+                    country,
+                  }),
+                  ...commonWhere,
+                },
+              },
             },
-          },
-        },
-        _count: true,
+            _count: true,
+          }),
+          prisma.reward.findMany({
+            where: {
+              programId,
+            },
+          }),
+          prisma.programEnrollment.count({
+            where: {
+              rewards: {
+                none: {},
+              },
+            },
+          }),
+        ]);
+
+      const partnersWithReward = allRewards.map((reward) => {
+        const partnerCount = customRewardsPartners.find(
+          (p) => p.rewardId === reward.id,
+        )?._count;
+
+        return {
+          ...reward,
+          partnersCount: partnerCount ?? defaultRewardsPartners,
+        };
       });
 
-      return NextResponse.json(partners);
+      return NextResponse.json(partnersWithReward);
     }
 
     // Get absolute count of partners

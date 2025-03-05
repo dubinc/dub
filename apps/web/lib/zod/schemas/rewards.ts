@@ -7,6 +7,7 @@ export const RECURRING_MAX_DURATIONS = [0, 3, 6, 12, 18, 24];
 export const RewardSchema = z.object({
   id: z.string(),
   event: z.nativeEnum(EventType),
+  name: z.string().nullish(),
   type: z.nativeEnum(CommissionType),
   amount: z.number(),
   maxDuration: z.number().nullish(),

@@ -19,7 +19,7 @@ export const partnersQuerySchema = z
     search: z.string().optional(),
     sortBy: z
       .enum(["createdAt", "clicks", "leads", "sales", "saleAmount", "earnings"])
-      .default("createdAt"),
+      .default("saleAmount"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
     tenantId: z
       .string()
