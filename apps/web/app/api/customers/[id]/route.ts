@@ -4,6 +4,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import {
+  CustomerEnrichedSchema,
   CustomerSchema,
   getCustomersQuerySchema,
   updateCustomerBodySchema,
@@ -26,7 +27,11 @@ export const GET = withWorkspace(
       { includeExpandedFields },
     );
 
-    return NextResponse.json(CustomerSchema.parse(transformCustomer(customer)));
+    const responseSchema = includeExpandedFields
+      ? CustomerEnrichedSchema
+      : CustomerSchema;
+
+    return NextResponse.json(responseSchema.parse(transformCustomer(customer)));
   },
   {
     requiredPlan: [
@@ -79,8 +84,12 @@ export const PATCH = withWorkspace(
           : {}),
       });
 
+      const responseSchema = includeExpandedFields
+        ? CustomerEnrichedSchema
+        : CustomerSchema;
+
       return NextResponse.json(
-        CustomerSchema.parse(transformCustomer(updatedCustomer)),
+        responseSchema.parse(transformCustomer(updatedCustomer)),
       );
     } catch (error) {
       if (error.code === "P2002") {
