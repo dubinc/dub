@@ -4,7 +4,7 @@ import "dotenv-flow/config";
 import * as fs from "fs";
 import * as Papa from "papaparse";
 
-const partnersToUpdate: string[] = [];
+const flatRatePartners: string[] = [];
 
 // update commissions for a program
 async function main() {
@@ -12,7 +12,7 @@ async function main() {
     header: true,
     skipEmptyLines: true,
     step: (result: { data: { Email: string } }) => {
-      partnersToUpdate.push(result.data.Email);
+      flatRatePartners.push(result.data.Email);
     },
     complete: async () => {
       const where: Prisma.CommissionWhereInput = {
@@ -23,7 +23,7 @@ async function main() {
         },
         partner: {
           email: {
-            in: partnersToUpdate,
+            in: flatRatePartners,
           },
         },
       };

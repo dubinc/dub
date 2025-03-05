@@ -229,6 +229,7 @@ async function createCommission({
         linkId: customerFound.linkId,
         customerId: customerFound.id,
         amount: sale.sale_amount_cents,
+        earnings: commission.amount,
         currency: sale.currency.toLowerCase(),
         quantity: 1,
         status: toDubStatus[commission.state],
