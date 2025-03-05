@@ -68,11 +68,11 @@ export function Form() {
     if (!value || !domain || !workspaceId) return;
 
     try {
-      const res = await fetch(
+      const response = await fetch(
         `/api/links/exists?domain=${domain}&key=${value}&workspaceId=${workspaceId}`,
       );
 
-      const { error } = await res.json();
+      const { error } = await response.json();
 
       if (error) {
         setKeyErrors((prev) => ({
