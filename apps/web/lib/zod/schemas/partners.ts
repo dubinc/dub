@@ -288,11 +288,26 @@ export const partnerAnalyticsResponseSchema = {
   }),
 } as const;
 
-export const updatePartnerSaleSchema = z.object({
-  programId: z.string(),
-  invoiceId: z.string(),
-  amount: z
-    .number({ required_error: "Amount is required." })
-    .min(0)
-    .describe("The new amount for the sale."),
-});
+export const updatePartnerSaleSchema = z
+  .object({
+    programId: z.string(),
+    invoiceId: z.string(),
+    amount: z
+      .number()
+      .min(0)
+      .describe("The new absolute amount for the sale.")
+      .optional(),
+    modifyAmount: z
+      .number()
+      .describe(
+        "Modify the current sale amount: use positive values to increase the amount, negative values to decrease it.",
+      )
+      .optional(),
+  })
+  .refine(
+    (data) => data.amount !== undefined || data.modifyAmount !== undefined,
+    {
+      message: "Either amount or modifyAmount must be provided.",
+      path: ["amount"],
+    },
+  );
