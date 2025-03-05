@@ -197,16 +197,22 @@ export const importLinksFromBitly = async ({
           // than the link that was imported
           const caseDuplicates = importedLinks.filter((link) => {
             const duplicate = alreadyCreatedLinks.find(
-              (l) => l.shortLink === link.shortLink,
+              (l) => l.shortLink.toLowerCase() === link.shortLink.toLowerCase(),
             );
             return duplicate && duplicate.url !== link.url;
           });
 
           if (caseDuplicates.length) {
             await log({
-              message: `Found potential case duplicates: ${caseDuplicates
-                .map((c) => `${c.shortLink} - ${c.url}`)
-                .join(", ")}`,
+              message: `Found potential case duplicates:\n${caseDuplicates
+                .map((c) => {
+                  const existing = alreadyCreatedLinks.find(
+                    (l) =>
+                      l.shortLink.toLowerCase() === c.shortLink.toLowerCase(),
+                  );
+                  return `\nImported: ${c.shortLink} → ${c.url}\nExisting: ${existing?.shortLink} → ${existing?.url}`;
+                })
+                .join("\n")}`,
               type: "alerts",
               mention: true,
             });
