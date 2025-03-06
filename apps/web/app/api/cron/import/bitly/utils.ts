@@ -179,8 +179,6 @@ export const importLinksFromBitly = async ({
               key: encodeKey(link.key),
             });
           }
-
-          return link.shortLink;
         }),
       },
     },
