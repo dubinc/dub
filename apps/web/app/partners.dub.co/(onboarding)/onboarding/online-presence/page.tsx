@@ -32,27 +32,58 @@ export default function OnlinePresencePage() {
 async function OnlinePresenceFormRSC() {
   const { user } = await getSession();
 
-  const partner = await prisma.partner.findFirst({
-    where: {
-      users: {
-        some: {
-          userId: user.id,
+  const [partner, application] = await Promise.all([
+    prisma.partner.findFirst({
+      where: {
+        users: {
+          some: {
+            userId: user.id,
+          },
         },
       },
-    },
-    select: {
-      country: true,
-      website: true,
-      instagram: true,
-      tiktok: true,
-      youtube: true,
-      twitter: true,
-    },
-  });
+      select: {
+        country: true,
+        website: true,
+        instagram: true,
+        tiktok: true,
+        youtube: true,
+        twitter: true,
+      },
+    }),
+    prisma.programApplication.findFirst({
+      where: {
+        enrollment: {
+          partner: {
+            users: {
+              some: {
+                userId: user.id,
+              },
+            },
+          },
+        },
+      },
+      select: {
+        website: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    }),
+  ]);
 
   if (!partner) {
     throw new Error("Partner not found");
   }
 
-  return <OnlinePresenceForm country={partner.country} partner={partner} />;
+  return (
+    <OnlinePresenceForm
+      country={partner.country}
+      partner={{
+        ...partner,
+        ...(application?.website && !partner.website
+          ? { website: application?.website }
+          : {}),
+      }}
+    />
+  );
 }

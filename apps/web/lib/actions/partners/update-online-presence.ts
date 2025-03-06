@@ -5,7 +5,7 @@ import { z } from "zod";
 import { authUserActionClient } from "../safe-action";
 
 const updateOnlinePresenceSchema = z.object({
-  website: z.string().url().optional(),
+  website: z.string().url().optional().or(z.literal("")),
   instagram: z.string().optional(),
   tiktok: z.string().optional(),
   youtube: z.string().optional(),
