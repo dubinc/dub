@@ -5,6 +5,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import {
+  CustomerEnrichedSchema,
   CustomerSchema,
   getCustomersQuerySchema,
   updateCustomerBodySchema,
@@ -52,8 +53,12 @@ export const GET = withWorkspace(
       });
     }
 
+    const responseSchema = includeExpandedFields
+      ? CustomerEnrichedSchema
+      : CustomerSchema;
+
     return NextResponse.json(
-      CustomerSchema.parse(
+      responseSchema.parse(
         transformCustomer({
           ...customer,
           ...(includeExpandedFields ? { discount } : {}),
@@ -128,8 +133,12 @@ export const PATCH = withWorkspace(
         });
       }
 
+      const responseSchema = includeExpandedFields
+        ? CustomerEnrichedSchema
+        : CustomerSchema;
+
       return NextResponse.json(
-        CustomerSchema.parse(
+        responseSchema.parse(
           transformCustomer({
             ...customer,
             ...updatedCustomer,

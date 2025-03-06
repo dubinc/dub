@@ -21,6 +21,9 @@ export type DubEmbedOptions = {
 
   // The data type for the embed
   data?: "referrals" | "analytics";
+
+  // The theme for the embed (light by default)
+  theme?: "light" | "dark" | "system";
 };
 
 export interface IframeMessage {

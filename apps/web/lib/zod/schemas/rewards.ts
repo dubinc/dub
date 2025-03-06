@@ -5,6 +5,7 @@ import { getPaginationQuerySchema, maxDurationSchema } from "./misc";
 export const RewardSchema = z.object({
   id: z.string(),
   event: z.nativeEnum(EventType),
+  name: z.string().nullish(),
   type: z.nativeEnum(CommissionType),
   amount: z.number(),
   maxDuration: z.number().nullish(),

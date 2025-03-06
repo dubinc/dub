@@ -81,8 +81,8 @@ export function ReferralsEmbedEarnings({ salesCount }: { salesCount: number }) {
     rowCount: salesCount,
     emptyState: (
       <div className="flex w-full flex-col items-center justify-center gap-2">
-        <Gift className="size-6 text-neutral-400" />
-        <p className="max-w-sm text-balance text-center text-xs text-neutral-400">
+        <Gift className="text-content-muted size-6" />
+        <p className="text-content-muted max-w-sm text-balance text-center text-xs">
           No earnings yet. When you refer a friend and they make a purchase,
           they'll show up here.
         </p>
@@ -98,7 +98,7 @@ export function ReferralsEmbedEarnings({ salesCount }: { salesCount: number }) {
       <Table
         {...tableProps}
         table={table}
-        containerClassName="rounded-md border border-neutral-200"
+        containerClassName="rounded-md border border-border-subtle"
         scrollWrapperClassName="min-h-[22rem]"
       />
     </motion.div>

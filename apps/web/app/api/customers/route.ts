@@ -6,6 +6,7 @@ import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
 import {
   createCustomerBodySchema,
+  CustomerEnrichedSchema,
   CustomerSchema,
   getCustomersQuerySchema,
 } from "@/lib/zod/schemas/customers";
@@ -113,8 +114,12 @@ export const GET = withWorkspace(
       };
     });
 
+    const responseSchema = includeExpandedFields
+      ? CustomerEnrichedSchema
+      : CustomerSchema;
+
     return NextResponse.json(
-      CustomerSchema.array().parse(processedCustomers.map(transformCustomer)),
+      responseSchema.array().parse(processedCustomers.map(transformCustomer)),
     );
   },
   {

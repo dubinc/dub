@@ -13,7 +13,7 @@ import {
 import { cn, DUB_LOGO, TAB_ITEM_ANIMATION_SETTINGS } from "@dub/utils";
 import { motion } from "framer-motion";
 
-const BUTTON_CLASSNAME = "h-9 rounded-lg bg-neutral-900 hover:bg-neutral-800";
+const BUTTON_CLASSNAME = "h-9 rounded-lg bg-bg-inverted hover:bg-neutral-800";
 
 export function ReferralsEmbedQuickstart({
   program,
@@ -90,7 +90,7 @@ export function ReferralsEmbedQuickstart({
 
   return (
     <motion.div
-      className="rounded-lg border border-neutral-100 bg-white p-2"
+      className="border-border-muted bg-bg-default rounded-lg border p-2"
       {...TAB_ITEM_ANIMATION_SETTINGS}
     >
       {isMobile ? (
@@ -99,11 +99,13 @@ export function ReferralsEmbedQuickstart({
             {items.map((item) => (
               <CarouselItem
                 key={item.title}
-                className="flex flex-col items-center justify-between gap-4 rounded-lg bg-neutral-50 p-8 text-center"
+                className="bg-bg-muted flex flex-col items-center justify-between gap-4 rounded-lg p-8 text-center"
               >
                 {item.illustration}
-                <h3 className="text-lg font-medium">{item.title}</h3>
-                <p className="text-pretty text-sm text-neutral-500">
+                <h3 className="text-content-emphasis text-lg font-medium">
+                  {item.title}
+                </h3>
+                <p className="text-content-subtle text-pretty text-sm">
                   {item.description}
                 </p>
                 {item.cta}
@@ -117,11 +119,13 @@ export function ReferralsEmbedQuickstart({
           {items.map((item) => (
             <div
               key={item.title}
-              className="flex flex-col items-center justify-between gap-4 rounded-lg bg-neutral-50 p-8 text-center"
+              className="bg-bg-muted flex flex-col items-center justify-between gap-4 rounded-lg p-8 text-center"
             >
               {item.illustration}
-              <h3 className="text-lg font-medium">{item.title}</h3>
-              <p className="text-pretty text-sm text-neutral-500">
+              <h3 className="text-content-emphasis text-lg font-medium">
+                {item.title}
+              </h3>
+              <p className="text-content-subtle text-pretty text-sm">
                 {item.description}
               </p>
               {item.cta}
@@ -133,6 +137,11 @@ export function ReferralsEmbedQuickstart({
   );
 }
 
+const BG_MUTED = "rgb(var(--bg-muted))";
+const BG_DEFAULT = "rgb(var(--bg-default))";
+const BORDER_SUBTLE = "rgb(var(--border-subtle))";
+const CONTENT_SUBTLE = "rgb(var(--content-subtle))";
+
 const ShareLink = () => {
   return (
     <svg
@@ -143,105 +152,175 @@ const ShareLink = () => {
       xmlns="http://www.w3.org/2000/svg"
       className="h-auto w-full"
     >
-      <rect x="33" y="12" width="32" height="32" rx="6" fill="#FAFAFA" />
-      <rect x="33" y="12" width="32" height="32" rx="6" stroke="#E6E6E6" />
-      <rect x="65" y="12" width="32" height="32" rx="6" fill="white" />
-      <rect x="65" y="12" width="32" height="32" rx="6" stroke="#E6E6E6" />
+      <rect x="33" y="12" width="32" height="32" rx="6" fill={BG_MUTED} />
+      <rect
+        x="33"
+        y="12"
+        width="32"
+        height="32"
+        rx="6"
+        stroke={BORDER_SUBTLE}
+      />
+      <rect x="65" y="12" width="32" height="32" rx="6" fill={BG_DEFAULT} />
+      <rect
+        x="65"
+        y="12"
+        width="32"
+        height="32"
+        rx="6"
+        stroke={BORDER_SUBTLE}
+      />
       <path
         fillRule="evenodd"
         clipRule="evenodd"
         d="M76.0223 34.4001H85.9779C86.7634 34.4001 87.4001 33.7634 87.4001 32.9779V23.0223C87.4001 22.2368 86.7634 21.6001 85.9779 21.6001H76.0223C75.2368 21.6001 74.6001 22.2368 74.6001 23.0223V32.9779C74.6001 33.7634 75.2368 34.4001 76.0223 34.4001Z"
-        fill="#404040"
+        fill={CONTENT_SUBTLE}
       />
       <path
         fillRule="evenodd"
         clipRule="evenodd"
         d="M85.6229 32.6229H83.7234V29.3877C83.7234 28.5007 83.3864 28.005 82.6843 28.005C81.9205 28.005 81.5216 28.5209 81.5216 29.3877V32.6229H79.691V26.4599H81.5216V27.2901C81.5216 27.2901 82.072 26.2716 83.3797 26.2716C84.687 26.2716 85.6229 27.0699 85.6229 28.7209V32.6229ZM77.5072 25.6529C76.8837 25.6529 76.3784 25.1437 76.3784 24.5157C76.3784 23.8876 76.8837 23.3784 77.5072 23.3784C78.1307 23.3784 78.6357 23.8876 78.6357 24.5157C78.6357 25.1437 78.1307 25.6529 77.5072 25.6529ZM76.562 32.6229H78.4708V26.4599H76.562V32.6229Z"
-        fill="white"
+        fill={BG_DEFAULT}
       />
-      <rect x="97" y="12" width="32" height="32" rx="6" fill="#FAFAFA" />
-      <rect x="97" y="12" width="32" height="32" rx="6" stroke="#E6E6E6" />
-      <rect x="129" y="12" width="32" height="32" rx="6" fill="white" />
-      <rect x="129" y="12" width="32" height="32" rx="6" stroke="#E6E6E6" />
+      <rect x="97" y="12" width="32" height="32" rx="6" fill={BG_MUTED} />
+      <rect
+        x="97"
+        y="12"
+        width="32"
+        height="32"
+        rx="6"
+        stroke={BORDER_SUBTLE}
+      />
+      <rect x="129" y="12" width="32" height="32" rx="6" fill={BG_DEFAULT} />
+      <rect
+        x="129"
+        y="12"
+        width="32"
+        height="32"
+        rx="6"
+        stroke={BORDER_SUBTLE}
+      />
       <g clipPath="url(#clip0_4494_38695)">
         <path
           d="M147.966 24.2374C146.993 22.6321 145.234 21.5557 143.219 21.5557C140.153 21.5557 137.667 24.0419 137.667 27.1094C137.667 28.1192 137.94 29.0641 138.412 29.8801C138.741 30.4979 138.372 31.9574 137.667 32.6623C138.624 32.7139 139.886 32.2819 140.449 31.9166C140.823 32.1326 141.418 32.4197 142.195 32.5663C142.294 32.585 142.401 32.5814 142.502 32.5948"
-          stroke="#737373"
+          stroke={CONTENT_SUBTLE}
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
         <path
           d="M148.333 26.4409C150.542 26.4409 152.333 28.232 152.333 30.4409C152.333 31.1689 152.136 31.8489 151.797 32.4374C151.559 32.8818 151.826 33.9334 152.333 34.4418C151.644 34.4791 150.735 34.1671 150.329 33.9049C150.06 34.0605 149.631 34.2667 149.071 34.3734C148.832 34.4187 148.585 34.4427 148.333 34.4427C146.123 34.4427 144.333 32.6516 144.333 30.4427C144.333 28.2329 146.124 26.4427 148.333 26.4427L148.333 26.4409Z"
-          stroke="#737373"
+          stroke={CONTENT_SUBTLE}
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
       </g>
-      <rect x="33" y="44" width="32" height="32" rx="6" fill="white" />
-      <rect x="33" y="44" width="32" height="32" rx="6" stroke="#E6E6E6" />
+      <rect x="33" y="44" width="32" height="32" rx="6" fill={BG_DEFAULT} />
+      <rect
+        x="33"
+        y="44"
+        width="32"
+        height="32"
+        rx="6"
+        stroke={BORDER_SUBTLE}
+      />
       <g clipPath="url(#clip1_4494_38695)">
         <path
           d="M42.5557 57.1108L48.5708 60.4291C48.8383 60.5766 49.1619 60.5766 49.4294 60.4291L55.4446 57.1108"
-          stroke="#737373"
+          stroke={CONTENT_SUBTLE}
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
         <path
           d="M54.1113 62L56.3336 64.2222L54.1113 66.4444"
-          stroke="#737373"
+          stroke={CONTENT_SUBTLE}
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
         <path
           d="M55.4446 60.2344V56.6664C55.4446 55.6851 54.649 54.8887 53.6668 54.8887H44.3334C43.3512 54.8887 42.5557 55.6851 42.5557 56.6664V63.3331C42.5557 64.3144 43.3512 65.1109 44.3334 65.1109H49.8543"
-          stroke="#737373"
+          stroke={CONTENT_SUBTLE}
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
         <path
           d="M56.3336 64.2222H51.8892"
-          stroke="#737373"
+          stroke={CONTENT_SUBTLE}
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
       </g>
-      <rect x="65" y="44" width="32" height="32" rx="6" fill="#FAFAFA" />
-      <rect x="65" y="44" width="32" height="32" rx="6" stroke="#E6E6E6" />
-      <rect x="97" y="44" width="32" height="32" rx="6" fill="white" />
-      <rect x="97" y="44" width="32" height="32" rx="6" stroke="#E6E6E6" />
+      <rect x="65" y="44" width="32" height="32" rx="6" fill={BG_MUTED} />
+      <rect
+        x="65"
+        y="44"
+        width="32"
+        height="32"
+        rx="6"
+        stroke={BORDER_SUBTLE}
+      />
+      <rect x="97" y="44" width="32" height="32" rx="6" fill={BG_DEFAULT} />
+      <rect
+        x="97"
+        y="44"
+        width="32"
+        height="32"
+        rx="6"
+        stroke={BORDER_SUBTLE}
+      />
       <path
         d="M114.212 59.0206L118.974 53.6001H117.846L113.709 58.3057L110.408 53.6001H106.599L111.592 60.7165L106.599 66.4H107.727L112.093 61.4297L115.58 66.4H119.388M108.134 54.4331H109.867L117.845 65.6079H116.111"
-        fill="#171717"
+        fill={CONTENT_SUBTLE}
       />
-      <rect x="129" y="44" width="32" height="32" rx="6" fill="#FAFAFA" />
-      <rect x="129" y="44" width="32" height="32" rx="6" stroke="#E6E6E6" />
-      <rect x="33" y="76" width="32" height="32" rx="6" fill="#FAFAFA" />
-      <rect x="33" y="76" width="32" height="32" rx="6" stroke="#E6E6E6" />
-      <rect x="65" y="76" width="32" height="32" rx="6" fill="white" />
-      <rect x="65" y="76" width="32" height="32" rx="6" stroke="#E6E6E6" />
+      <rect x="129" y="44" width="32" height="32" rx="6" fill={BG_MUTED} />
+      <rect
+        x="129"
+        y="44"
+        width="32"
+        height="32"
+        rx="6"
+        stroke={BORDER_SUBTLE}
+      />
+      <rect x="33" y="76" width="32" height="32" rx="6" fill={BG_MUTED} />
+      <rect
+        x="33"
+        y="76"
+        width="32"
+        height="32"
+        rx="6"
+        stroke={BORDER_SUBTLE}
+      />
+      <rect x="65" y="76" width="32" height="32" rx="6" fill={BG_DEFAULT} />
+      <rect
+        x="65"
+        y="76"
+        width="32"
+        height="32"
+        rx="6"
+        stroke={BORDER_SUBTLE}
+      />
       <path
         d="M76.3335 94.1841V96.5876C76.3335 96.9521 76.5557 97.2792 76.8944 97.4134L78.6233 98.1005C78.9788 98.2419 79.3842 98.1396 79.6313 97.8481L81.1122 96.089"
-        stroke="#737373"
+        stroke={CONTENT_SUBTLE}
         strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
         d="M85.0001 97.5554C86.3501 97.5554 87.4446 95.0681 87.4446 91.9999C87.4446 88.9316 86.3501 86.4443 85.0001 86.4443C83.6501 86.4443 82.5557 88.9316 82.5557 91.9999C82.5557 95.0681 83.6501 97.5554 85.0001 97.5554Z"
-        stroke="#737373"
+        stroke={CONTENT_SUBTLE}
         strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
         d="M84.5148 97.4445L75.3201 93.7796C75.0926 93.6916 74.9139 93.5165 74.8188 93.2916C74.6872 92.9805 74.5557 92.5387 74.5557 92C74.5557 91.7591 74.5823 91.2738 74.8126 90.7236C74.9086 90.4951 75.0908 90.3094 75.3219 90.2205C78.5557 88.968 81.281 87.8071 84.5148 86.5547"
-        stroke="#737373"
+        stroke={CONTENT_SUBTLE}
         strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -250,27 +329,41 @@ const ShareLink = () => {
         d="M85.8891 91.9998C85.8891 91.2638 85.2917 90.6665 84.5557 90.6665C84.5086 90.6665 84.4642 90.6754 84.4179 90.6807C84.3664 91.0825 84.3335 91.5207 84.3335 91.9998C84.3335 92.4789 84.3664 92.9172 84.4179 93.3189C84.4642 93.3234 84.5086 93.3332 84.5557 93.3332C85.2917 93.3332 85.8891 92.7358 85.8891 91.9998Z"
         fill="#737373"
       />
-      <rect x="97" y="76" width="32" height="32" rx="6" fill="#FAFAFA" />
-      <rect x="97" y="76" width="32" height="32" rx="6" stroke="#E6E6E6" />
-      <rect x="129" y="76" width="32" height="32" rx="6" fill="white" />
-      <rect x="129" y="76" width="32" height="32" rx="6" stroke="#E6E6E6" />
+      <rect x="97" y="76" width="32" height="32" rx="6" fill={BG_MUTED} />
+      <rect
+        x="97"
+        y="76"
+        width="32"
+        height="32"
+        rx="6"
+        stroke={BORDER_SUBTLE}
+      />
+      <rect x="129" y="76" width="32" height="32" rx="6" fill={BG_DEFAULT} />
+      <rect
+        x="129"
+        y="76"
+        width="32"
+        height="32"
+        rx="6"
+        stroke={BORDER_SUBTLE}
+      />
       <path
         d="M143 86.4443H140.333C139.842 86.4443 139.444 86.8423 139.444 87.3332V89.9999C139.444 90.4908 139.842 90.8888 140.333 90.8888H143C143.491 90.8888 143.889 90.4908 143.889 89.9999V87.3332C143.889 86.8423 143.491 86.4443 143 86.4443Z"
-        stroke="#737373"
+        stroke={CONTENT_SUBTLE}
         strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
         d="M149.666 86.4443H147C146.509 86.4443 146.111 86.8423 146.111 87.3332V89.9999C146.111 90.4908 146.509 90.8888 147 90.8888H149.666C150.157 90.8888 150.555 90.4908 150.555 89.9999V87.3332C150.555 86.8423 150.157 86.4443 149.666 86.4443Z"
-        stroke="#737373"
+        stroke={CONTENT_SUBTLE}
         strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
         d="M143 93.1108H140.333C139.842 93.1108 139.444 93.5088 139.444 93.9997V96.6664C139.444 97.1573 139.842 97.5553 140.333 97.5553H143C143.491 97.5553 143.889 97.1573 143.889 96.6664V93.9997C143.889 93.5088 143.491 93.1108 143 93.1108Z"
-        stroke="#737373"
+        stroke={CONTENT_SUBTLE}
         strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -278,54 +371,54 @@ const ShareLink = () => {
       <path
         d="M141.5 88.8333V88.5H141.833V88.8333H141.5Z"
         fill="#737373"
-        stroke="#737373"
+        stroke={CONTENT_SUBTLE}
       />
       <path
         d="M148.167 88.8333V88.5H148.5V88.8333H148.167Z"
         fill="#737373"
-        stroke="#737373"
+        stroke={CONTENT_SUBTLE}
       />
       <path
         d="M141.5 95.4998V95.1665H141.833V95.4998H141.5Z"
         fill="#737373"
-        stroke="#737373"
+        stroke={CONTENT_SUBTLE}
       />
       <path
         d="M150.389 97.722V97.3887H150.722V97.722H150.389Z"
         fill="#737373"
-        stroke="#737373"
+        stroke={CONTENT_SUBTLE}
       />
       <path
         d="M149.056 96.389V96.0557H149.389V96.389H149.056Z"
         fill="#737373"
-        stroke="#737373"
+        stroke={CONTENT_SUBTLE}
       />
       <path
         d="M150.389 95.0555V94.7222H150.722V95.0555H150.389Z"
         fill="#737373"
-        stroke="#737373"
+        stroke={CONTENT_SUBTLE}
       />
       <path
         d="M147.278 97.722V97.3887H148.056V97.722H147.278Z"
         fill="#737373"
-        stroke="#737373"
+        stroke={CONTENT_SUBTLE}
       />
       <path
         d="M145.944 96.3888V94.7222H146.278V96.3888H145.944Z"
         fill="#737373"
-        stroke="#737373"
+        stroke={CONTENT_SUBTLE}
       />
       <path
         d="M147.278 93.722V93.3887H149.389V93.722H147.278Z"
         fill="#737373"
-        stroke="#737373"
+        stroke={CONTENT_SUBTLE}
       />
       <defs>
         <clipPath id="clip0_4494_38695">
           <rect
             width="16"
             height="16"
-            fill="white"
+            fill={BG_DEFAULT}
             transform="translate(137 20)"
           />
         </clipPath>
@@ -333,7 +426,7 @@ const ShareLink = () => {
           <rect
             width="16"
             height="16"
-            fill="white"
+            fill={BG_DEFAULT}
             transform="translate(41 52)"
           />
         </clipPath>
@@ -352,10 +445,23 @@ const SuccessKit = ({ logo }: { logo: string }) => {
       xmlns="http://www.w3.org/2000/svg"
       className="h-auto w-full"
     >
-      <rect width="194" height="121" fill="#FAFAFA" />
-      <circle cx="119" cy="23" r="15.5" fill="#FAFAFA" stroke="#E6E6E6" />
-      <rect x="78" y="41" width="38" height="38" rx="19" fill="white" />
-      <rect x="78" y="41" width="38" height="38" rx="19" stroke="#E6E6E6" />
+      <rect width="194" height="121" fill={BG_MUTED} />
+      <circle
+        cx="119"
+        cy="23"
+        r="15.5"
+        fill={BG_MUTED}
+        stroke={BORDER_SUBTLE}
+      />
+      <rect x="78" y="41" width="38" height="38" rx="19" fill={BG_DEFAULT} />
+      <rect
+        x="78"
+        y="41"
+        width="38"
+        height="38"
+        rx="19"
+        stroke={BORDER_SUBTLE}
+      />
       <rect
         x="82"
         y="45"
@@ -364,97 +470,118 @@ const SuccessKit = ({ logo }: { logo: string }) => {
         rx="15"
         fill="url(#pattern0_4494_38753)"
       />
-      <rect x="125.5" y="44.5" width="31" height="31" rx="15.5" fill="white" />
       <rect
         x="125.5"
         y="44.5"
         width="31"
         height="31"
         rx="15.5"
-        stroke="#E6E6E6"
+        fill={BG_DEFAULT}
+      />
+      <rect
+        x="125.5"
+        y="44.5"
+        width="31"
+        height="31"
+        rx="15.5"
+        stroke={BORDER_SUBTLE}
       />
       <g clipPath="url(#clip0_4494_38753)">
         <path
           d="M136.148 55.2096L134.589 59.2813C134.452 59.6406 134.756 60.0136 135.135 59.9514L139.471 59.2416C139.85 59.1794 140.019 58.7289 139.774 58.4322L136.998 55.0704C136.755 54.776 136.285 54.8529 136.148 55.2096Z"
-          stroke="#737373"
+          stroke={CONTENT_SUBTLE}
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
         <path
           d="M145 58.4446C146.35 58.4446 147.445 57.3501 147.445 56.0001C147.445 54.6501 146.35 53.5557 145 53.5557C143.65 53.5557 142.556 54.6501 142.556 56.0001C142.556 57.3501 143.65 58.4446 145 58.4446Z"
-          stroke="#737373"
+          stroke={CONTENT_SUBTLE}
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
         <path
           d="M145.667 63.1263C144.534 63.9455 143.698 65.1099 143.284 66.4448C142.465 65.3123 141.3 64.4761 139.965 64.0617C141.098 63.2425 141.934 62.078 142.348 60.7432C143.168 61.8756 144.332 62.7118 145.667 63.1263Z"
-          stroke="#737373"
+          stroke={CONTENT_SUBTLE}
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
       </g>
-      <rect x="60.5" y="7.5" width="31" height="31" rx="15.5" fill="white" />
       <rect
         x="60.5"
         y="7.5"
         width="31"
         height="31"
         rx="15.5"
-        stroke="#E6E6E6"
+        fill={BG_DEFAULT}
+      />
+      <rect
+        x="60.5"
+        y="7.5"
+        width="31"
+        height="31"
+        rx="15.5"
+        stroke={BORDER_SUBTLE}
       />
       <g clipPath="url(#clip1_4494_38753)">
         <path
           d="M73.1108 21H74.8886"
-          stroke="#737373"
+          stroke={CONTENT_SUBTLE}
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
         <path
           d="M73.1108 23.667H77.1108"
-          stroke="#737373"
+          stroke={CONTENT_SUBTLE}
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
         <path
           d="M81.4757 20.5558H78.4446C77.9539 20.5558 77.5557 20.1576 77.5557 19.6669V16.6465"
-          stroke="#737373"
+          stroke={CONTENT_SUBTLE}
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
         <path
           d="M81.5554 25.0001V20.9237C81.5554 20.6881 81.4621 20.4614 81.295 20.2952L77.8159 16.8161C77.6488 16.649 77.423 16.5557 77.1874 16.5557H72.2221C71.2399 16.5557 70.4443 17.3521 70.4443 18.3334V27.6668C70.4443 28.6481 71.2399 29.4446 72.2221 29.4446H76.7101"
-          stroke="#737373"
+          stroke={CONTENT_SUBTLE}
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
         <path
           d="M78.8833 29.0002L80.3135 30.3335L83.3331 26.3335"
-          stroke="#737373"
+          stroke={CONTENT_SUBTLE}
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
       </g>
-      <rect x="60.5" y="82.5" width="31" height="31" rx="15.5" fill="white" />
       <rect
         x="60.5"
         y="82.5"
         width="31"
         height="31"
         rx="15.5"
-        stroke="#E6E6E6"
+        fill={BG_DEFAULT}
+      />
+      <rect
+        x="60.5"
+        y="82.5"
+        width="31"
+        height="31"
+        rx="15.5"
+        stroke={BORDER_SUBTLE}
       />
       <g clipPath="url(#clip2_4494_38753)">
         <path
           d="M75.3809 104.415C72.023 104.095 69.4166 101.198 69.5614 97.7244C69.701 94.377 72.5393 91.6129 75.8892 91.5566C79.4992 91.4959 82.4445 94.4041 82.4445 98.0001C82.4445 99.3501 81.3501 100.445 80.0001 100.445H77.3663C76.4475 100.445 75.8616 101.425 76.2972 102.234L76.5083 102.626C76.7391 103.055 76.6915 103.58 76.3873 103.961C76.1441 104.265 75.7684 104.452 75.3809 104.415Z"
-          stroke="#737373"
+          stroke={CONTENT_SUBTLE}
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -476,8 +603,14 @@ const SuccessKit = ({ logo }: { logo: string }) => {
           fill="#737373"
         />
       </g>
-      <circle cx="119" cy="98" r="15.5" fill="#FAFAFA" stroke="#E6E6E6" />
-      <circle cx="54" cy="60" r="15.5" fill="#FAFAFA" stroke="#E6E6E6" />
+      <circle
+        cx="119"
+        cy="98"
+        r="15.5"
+        fill={BG_MUTED}
+        stroke={BORDER_SUBTLE}
+      />
+      <circle cx="54" cy="60" r="15.5" fill={BG_MUTED} stroke={BORDER_SUBTLE} />
       <defs>
         <pattern
           id="pattern0_4494_38753"
@@ -491,7 +624,7 @@ const SuccessKit = ({ logo }: { logo: string }) => {
           <rect
             width="16"
             height="16"
-            fill="white"
+            fill={BG_DEFAULT}
             transform="translate(133 52)"
           />
         </clipPath>
@@ -499,7 +632,7 @@ const SuccessKit = ({ logo }: { logo: string }) => {
           <rect
             width="16"
             height="16"
-            fill="white"
+            fill={BG_DEFAULT}
             transform="translate(68 15)"
           />
         </clipPath>
@@ -507,7 +640,7 @@ const SuccessKit = ({ logo }: { logo: string }) => {
           <rect
             width="16"
             height="16"
-            fill="white"
+            fill={BG_DEFAULT}
             transform="translate(68 90)"
           />
         </clipPath>
@@ -532,23 +665,30 @@ const ConnectPayouts = ({ logo }: { logo: string }) => {
       xmlns="http://www.w3.org/2000/svg"
       className="h-auto w-full"
     >
-      <rect width="194" height="121" fill="#FAFAFA" />
+      <rect width="194" height="121" fill={BG_MUTED} />
       <rect
         x="33.5"
         y="1.5"
         width="127"
         height="84"
         rx="10.5"
-        stroke="#E6E6E6"
+        stroke={BORDER_SUBTLE}
       />
-      <rect x="40.5" y="8.5" width="113" height="70" rx="5.5" fill="white" />
       <rect
         x="40.5"
         y="8.5"
         width="113"
         height="70"
         rx="5.5"
-        stroke="#E6E6E6"
+        fill={BG_DEFAULT}
+      />
+      <rect
+        x="40.5"
+        y="8.5"
+        width="113"
+        height="70"
+        rx="5.5"
+        stroke={BORDER_SUBTLE}
       />
       <rect
         x="48"
@@ -602,31 +742,31 @@ const ConnectPayouts = ({ logo }: { logo: string }) => {
         width="21"
         height="21"
         rx="5.5"
-        fill="white"
-        stroke="#E6E6E6"
+        fill={BG_DEFAULT}
+        stroke={BORDER_SUBTLE}
       />
       <path
         d="M96.9999 103.222C97.859 103.222 98.5554 102.526 98.5554 101.667C98.5554 100.808 97.859 100.111 96.9999 100.111C96.1408 100.111 95.4443 100.808 95.4443 101.667C95.4443 102.526 96.1408 103.222 96.9999 103.222Z"
-        stroke="#737373"
+        stroke={CONTENT_SUBTLE}
         strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
         d="M100.333 96.5557H93.6664C92.6846 96.5557 91.8887 97.3516 91.8887 98.3334V107.667C91.8887 108.649 92.6846 109.445 93.6664 109.445H100.333C101.315 109.445 102.111 108.649 102.111 107.667V98.3334C102.111 97.3516 101.315 96.5557 100.333 96.5557Z"
-        stroke="#737373"
+        stroke={CONTENT_SUBTLE}
         strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
         d="M95.2222 105.889H98.7777"
-        stroke="#737373"
+        stroke={CONTENT_SUBTLE}
         strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <path d="M97 86L97 92" stroke="#E6E6E6" />
+      <path d="M97 86L97 92" stroke={BORDER_SUBTLE} />
       <defs>
         <pattern
           id="pattern0_4494_38789"
@@ -640,7 +780,7 @@ const ConnectPayouts = ({ logo }: { logo: string }) => {
           <rect
             width="7.61905"
             height="7.61905"
-            fill="white"
+            fill={BG_DEFAULT}
             transform="translate(48 63.3809)"
           />
         </clipPath>
