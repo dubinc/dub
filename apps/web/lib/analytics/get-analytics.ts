@@ -3,7 +3,7 @@ import { tb } from "@/lib/tinybird";
 import { UTM_TAGS_PLURAL_LIST } from "@/lib/zod/schemas/utm";
 import { prismaEdge } from "@dub/prisma/edge";
 import { linkConstructor, punyEncode } from "@dub/utils";
-import { decodeKeyIfCaseSensitive } from "../api/case-sensitive-short-links";
+import { decodeKeyIfCaseSensitive } from "../api/links/case-sensitivity";
 import { conn } from "../planetscale";
 import z from "../zod";
 import { analyticsFilterTB } from "../zod/schemas/analytics";

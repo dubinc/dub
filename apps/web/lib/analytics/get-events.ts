@@ -1,8 +1,8 @@
 import { tb } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { Link } from "@dub/prisma/client";
-import { decodeLinkIfCaseSensitive } from "../api/case-sensitive-short-links";
 import { transformLink } from "../api/links";
+import { decodeLinkIfCaseSensitive } from "../api/links/case-sensitivity";
 import { generateRandomName } from "../names";
 import z from "../zod";
 import { eventsFilterTB } from "../zod/schemas/analytics";

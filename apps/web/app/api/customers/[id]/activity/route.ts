@@ -1,7 +1,7 @@
 import { getEvents } from "@/lib/analytics/get-events";
-import { decodeLinkIfCaseSensitive } from "@/lib/api/case-sensitive-short-links";
 import { getCustomerOrThrow } from "@/lib/api/customers/get-customer-or-throw";
 import { transformCustomer } from "@/lib/api/customers/transform-customer";
+import { decodeLinkIfCaseSensitive } from "@/lib/api/links/case-sensitivity";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { CustomerActivity, LeadEvent, SaleEvent } from "@/lib/types";

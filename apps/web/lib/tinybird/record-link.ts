@@ -1,6 +1,6 @@
 import z from "@/lib/zod";
-import { decodeKeyIfCaseSensitive } from "../api/case-sensitive-short-links";
 import { ExpandedLink } from "../api/links";
+import { decodeKeyIfCaseSensitive } from "../api/links/case-sensitivity";
 import { tb } from "./client";
 
 // Domains that are not recorded in Tinybird

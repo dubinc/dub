@@ -13,10 +13,10 @@ import {
 } from "@dub/utils";
 import { linkConstructorSimple } from "@dub/utils/src/functions/link-constructor";
 import { waitUntil } from "@vercel/functions";
-import { encodeKeyIfCaseSensitive } from "../case-sensitive-short-links";
 import { createId } from "../create-id";
 import { combineTagIds } from "../tags/combine-tag-ids";
 import { linkCache } from "./cache";
+import { encodeKeyIfCaseSensitive } from "./case-sensitivity";
 import { includeTags } from "./include-tags";
 import { updateLinksUsage } from "./update-links-usage";
 import { transformLink } from "./utils";

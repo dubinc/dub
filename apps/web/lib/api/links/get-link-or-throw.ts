@@ -1,10 +1,10 @@
 import { prisma } from "@dub/prisma";
 import { Link } from "@dub/prisma/client";
+import { DubApiError } from "../errors";
 import {
   decodeLinkIfCaseSensitive,
   encodeKeyIfCaseSensitive,
-} from "../case-sensitive-short-links";
-import { DubApiError } from "../errors";
+} from "./case-sensitivity";
 
 interface GetLinkParams {
   workspaceId: string;

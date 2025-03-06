@@ -11,7 +11,7 @@ import {
   isDubDomain,
   isReservedKeyGlobal,
 } from "@dub/utils";
-import { encodeKeyIfCaseSensitive } from "../../case-sensitive-short-links";
+import { encodeKeyIfCaseSensitive } from "../case-sensitivity";
 
 export async function keyChecks({
   domain,

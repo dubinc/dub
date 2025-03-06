@@ -1,10 +1,10 @@
+import { bulkCreateLinks } from "@/lib/api/links";
+import { linkCache } from "@/lib/api/links/cache";
 import {
   decodeLinkIfCaseSensitive,
   encodeKey,
   isCaseSensitiveDomain,
-} from "@/lib/api/case-sensitive-short-links";
-import { bulkCreateLinks } from "@/lib/api/links";
-import { linkCache } from "@/lib/api/links/cache";
+} from "@/lib/api/links/case-sensitivity";
 import { qstash } from "@/lib/cron";
 import { redis } from "@/lib/upstash";
 import { sendEmail } from "@dub/email";

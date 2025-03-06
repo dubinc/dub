@@ -1,5 +1,5 @@
 import { Dashboard, Link, Tag } from "@dub/prisma/client";
-import { decodeLinkIfCaseSensitive } from "../../case-sensitive-short-links";
+import { decodeLinkIfCaseSensitive } from "../case-sensitivity";
 
 // used in API (e.g. transformLink)
 // TODO: standardize this with ExpandedLinkProps

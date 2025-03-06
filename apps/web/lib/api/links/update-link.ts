@@ -12,10 +12,10 @@ import {
   truncate,
 } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { encodeKeyIfCaseSensitive } from "../case-sensitive-short-links";
 import { createId } from "../create-id";
 import { combineTagIds } from "../tags/combine-tag-ids";
 import { linkCache } from "./cache";
+import { encodeKeyIfCaseSensitive } from "./case-sensitivity";
 import { includeTags } from "./include-tags";
 import { transformLink } from "./utils";
 

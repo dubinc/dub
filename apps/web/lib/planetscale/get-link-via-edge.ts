@@ -3,7 +3,7 @@ import {
   decodeKeyIfCaseSensitive,
   encodeKey,
   isCaseSensitiveDomain,
-} from "../api/case-sensitive-short-links";
+} from "../api/links/case-sensitivity";
 import { conn } from "./connection";
 import { EdgeLinkProps } from "./types";
 

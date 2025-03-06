@@ -23,8 +23,8 @@ import {
   NextResponse,
   userAgent,
 } from "next/server";
-import { isCaseSensitiveDomain } from "../api/case-sensitive-short-links";
 import { linkCache } from "../api/links/cache";
+import { isCaseSensitiveDomain } from "../api/links/case-sensitivity";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
 import { hasEmptySearchParams } from "./utils/has-empty-search-params";

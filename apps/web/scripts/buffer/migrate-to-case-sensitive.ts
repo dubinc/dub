@@ -1,8 +1,8 @@
 import { prisma } from "@dub/prisma";
 import { linkConstructorSimple } from "@dub/utils";
 import "dotenv-flow/config";
-import { encodeKeyIfCaseSensitive } from "../../lib/api/case-sensitive-short-links";
 import { linkCache } from "../../lib/api/links/cache";
+import { encodeKeyIfCaseSensitive } from "../../lib/api/links/case-sensitivity";
 
 const domain = "dub-internal-test.com";
 

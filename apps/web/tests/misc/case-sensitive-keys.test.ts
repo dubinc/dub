@@ -1,4 +1,4 @@
-import { decodeKey, encodeKey } from "@/lib/api/case-sensitive-short-links";
+import { decodeKey, encodeKey } from "@/lib/api/links/case-sensitivity";
 import { describe, expect, it } from "vitest";
 
 const keys = [

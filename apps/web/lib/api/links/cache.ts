@@ -1,9 +1,6 @@
 import { LinkProps, RedisLinkProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
-import {
-  decodeKey,
-  isCaseSensitiveDomain,
-} from "../case-sensitive-short-links";
+import { decodeKey, isCaseSensitiveDomain } from "./case-sensitivity";
 import { ExpandedLink } from "./utils/transform-link";
 
 /*
