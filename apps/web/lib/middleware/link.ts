@@ -85,11 +85,8 @@ export default async function LinkMiddleware(
     if (!linkData) {
       // special case for buff.ly
       if (domain === "buff.ly") {
-        return NextResponse.rewrite(
-          new URL(
-            `/api/links/crawl/bitly?domain=${domain}&key=${key}`,
-            req.url,
-          ),
+        return NextResponse.redirect(
+          new URL(`/api/links/crawl/bitly/${domain}/${key}`, req.url),
         );
       }
 

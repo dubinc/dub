@@ -1,22 +1,22 @@
 import { redis } from "@/lib/upstash";
+import z from "@/lib/zod";
 import { DUB_HEADERS, getUrlFromStringIfValid } from "@dub/utils";
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 
 // GET /api/links/crawl/bitly – crawl a bitly link and redirect to the destination if exists
-export const GET = async (req: NextRequest) => {
+export const GET = async (_req: NextRequest, { params }) => {
   const { domain, key } = z
     .object({
       domain: z.string(),
       key: z.string(),
     })
-    .parse(req.nextUrl.searchParams);
+    .parse(params);
 
   // bitly doesn't support the following characters: ` ~ , . < > ; ‘ : “ / \ [ ] ^ { } ( ) = + ! * @ & $ £ ? % # |
   // @see: https://support.bitly.com/hc/en-us/articles/360030780892-What-characters-are-supported-when-customizing-links
   const invalidBitlyKeyRegex = /[`~,.<>;':"/\\[\]^{}()=+!*@&$£?%#|]/;
 
-  if (domain === "buff.ly" && !invalidBitlyKeyRegex.test(key)) {
+  if (key && !invalidBitlyKeyRegex.test(key)) {
     const link = await crawlBitlyLink({ domain, key });
     if (link) {
       const sanitizedUrl = getUrlFromStringIfValid(link.long_url);
