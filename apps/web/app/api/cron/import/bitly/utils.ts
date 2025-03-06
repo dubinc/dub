@@ -2,8 +2,7 @@ import { bulkCreateLinks } from "@/lib/api/links";
 import { linkCache } from "@/lib/api/links/cache";
 import {
   decodeLinkIfCaseSensitive,
-  encodeKey,
-  isCaseSensitiveDomain,
+  encodeKeyIfCaseSensitive,
 } from "@/lib/api/links/case-sensitivity";
 import { qstash } from "@/lib/cron";
 import { redis } from "@/lib/upstash";
@@ -174,14 +173,12 @@ export const importLinksFromBitly = async ({
   let alreadyCreatedLinks = await prisma.link.findMany({
     where: {
       shortLink: {
-        in: importedLinks.map((link) => {
-          if (isCaseSensitiveDomain(link.domain)) {
-            return linkConstructorSimple({
-              domain: link.domain,
-              key: encodeKey(link.key),
-            });
-          }
-        }),
+        in: importedLinks.map((link) =>
+          linkConstructorSimple({
+            domain: link.domain,
+            key: encodeKeyIfCaseSensitive(link),
+          }),
+        ),
       },
     },
     select: {
