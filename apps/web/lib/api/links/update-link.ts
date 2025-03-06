@@ -12,6 +12,7 @@ import {
   truncate,
 } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { encodeKeyIfCaseSensitive } from "../case-sensitive-short-links";
 import { createId } from "../create-id";
 import { combineTagIds } from "../tags/combine-tag-ids";
 import { linkCache } from "./cache";
@@ -61,6 +62,11 @@ export async function updateLink({
   const combinedTagIds = combineTagIds({ tagId, tagIds });
 
   const imageUrlNonce = nanoid(7);
+
+  key = encodeKeyIfCaseSensitive({
+    domain: updatedLink.domain,
+    key: updatedLink.key,
+  });
 
   const response = await prisma.link.update({
     where: {

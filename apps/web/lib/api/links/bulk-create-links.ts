@@ -28,13 +28,20 @@ export async function bulkCreateLinks({
 
   // Create a map of shortLinks to their original indices at the start
   const shortLinkToIndexMap = new Map(
-    links.map((link, index) => [
-      linkConstructorSimple({
+    links.map((link, index) => {
+      const key = encodeKeyIfCaseSensitive({
         domain: link.domain,
         key: link.key,
-      }),
-      index,
-    ]),
+      });
+
+      return [
+        linkConstructorSimple({
+          domain: link.domain,
+          key,
+        }),
+        index,
+      ];
+    }),
   );
 
   // Create all links first using createMany

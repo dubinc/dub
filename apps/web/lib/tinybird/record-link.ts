@@ -77,13 +77,15 @@ export const transformLinkTB = (link: ExpandedLink) => {
 
 export const recordLink = async (payload: ExpandedLink | ExpandedLink[]) => {
   if (Array.isArray(payload)) {
-    payload = payload.filter((link) => !DOMAINS_TO_SKIP.includes(link.domain));
+    const tbPayload = payload.filter(
+      (link) => !DOMAINS_TO_SKIP.includes(link.domain),
+    );
 
-    if (!payload.length) {
+    if (!tbPayload.length) {
       return;
     }
 
-    return await recordLinkTB(payload.map(transformLinkTB));
+    return await recordLinkTB(tbPayload.map(transformLinkTB));
   } else {
     if (DOMAINS_TO_SKIP.includes(payload.domain)) {
       return;
