@@ -40,7 +40,7 @@ export async function getLinksForWorkspace({
   }
 
   // TODO:
-  // - Add case sensitive link search support
+  // Make sure the search work for case sensitive short links
 
   const links = await prisma.link.findMany({
     where: {
