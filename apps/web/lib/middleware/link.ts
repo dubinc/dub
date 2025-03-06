@@ -83,11 +83,21 @@ export default async function LinkMiddleware(
     });
 
     if (!linkData) {
-      // special case for buff.ly
+      // TODO: remove this once everything is migrated over and are case-sensitive
+      // don't forget to remove ignoreCaseSensitivity too, it won't be needed anymore
       if (domain === "buff.ly") {
-        return NextResponse.redirect(
-          new URL(`/api/links/crawl/bitly/${domain}/${key}`, req.url),
-        );
+        // double check if the regular version exists
+        linkData = await getLinkViaEdge({
+          domain,
+          key,
+          ignoreCaseSensitivity: true,
+        });
+
+        if (!linkData) {
+          return NextResponse.redirect(
+            new URL(`/api/links/crawl/bitly/${domain}/${key}`, req.url),
+          );
+        }
       }
 
       if (!linkData) {
