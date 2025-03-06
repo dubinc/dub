@@ -87,13 +87,16 @@ class DubEmbed {
 const createIframe = (
   iframeUrl: string,
   token: string,
-  options: Pick<DubEmbedOptions, "theme">,
+  options: Pick<DubEmbedOptions, "theme" | "themeOptions">,
 ): HTMLIFrameElement => {
   const iframe = document.createElement("iframe");
 
   const params = new URLSearchParams({
     token,
     ...(options.theme ? { theme: options.theme } : {}),
+    ...(options.themeOptions
+      ? { themeOptions: JSON.stringify(options.themeOptions) }
+      : {}),
   });
 
   iframe.src = `${iframeUrl}?${params.toString()}`;
