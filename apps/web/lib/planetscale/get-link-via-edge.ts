@@ -1,7 +1,7 @@
 import { punyEncode } from "@dub/utils";
 import {
-  decodeLinkIfCaseSensitive,
   decodeKeyIfCaseSensitive,
+  decodeLinkIfCaseSensitive,
 } from "../api/case-sensitive-short-links";
 import { conn } from "./connection";
 import { EdgeLinkProps } from "./types";
