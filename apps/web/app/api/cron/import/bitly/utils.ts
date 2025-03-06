@@ -203,7 +203,7 @@ export const importLinksFromBitly = async ({
   );
 
   // bulk create links
-  await bulkCreateLinks({ links: linksToCreate });
+  await bulkCreateLinks({ links: linksToCreate, skipRedisCache: true });
 
   // only for buff.ly: check if previously created links (without case sensitivity) exists, if so, delete them + expire their cache
   if (domains.includes("buff.ly")) {
