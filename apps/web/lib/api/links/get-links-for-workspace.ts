@@ -1,6 +1,7 @@
 import z from "@/lib/zod";
 import { getLinksQuerySchemaExtended } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
+import { encodeKeyIfCaseSensitive } from "../case-sensitive-short-links";
 import { combineTagIds } from "../tags/combine-tag-ids";
 import { transformLink } from "./utils";
 
@@ -39,8 +40,24 @@ export async function getLinksForWorkspace({
     sortBy = sort;
   }
 
-  // TODO:
-  // Make sure the search work for case sensitive short links
+  if (searchMode === "exact" && search) {
+    try {
+      const url = new URL(search);
+      const domain = url.hostname;
+      const key = url.pathname.slice(1);
+
+      if (key) {
+        const encodedKey = encodeKeyIfCaseSensitive({
+          domain,
+          key,
+        });
+
+        search = search.replace(key, encodedKey);
+      }
+    } catch (e) {
+      //
+    }
+  }
 
   const links = await prisma.link.findMany({
     where: {
