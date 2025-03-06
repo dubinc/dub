@@ -48,9 +48,7 @@ export default async function LinkMiddleware(
   // links on Dub are case insensitive by default
   let key = punyEncode(originalKey);
 
-  const caseSensitive = isCaseSensitiveDomain(domain);
-
-  if (!caseSensitive) {
+  if (!isCaseSensitiveDomain(domain)) {
     key = key.toLowerCase();
   }
 

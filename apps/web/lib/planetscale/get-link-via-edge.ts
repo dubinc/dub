@@ -1,10 +1,16 @@
 import { punyEncode } from "@dub/utils";
-import { decodeKeyIfCaseSensitive } from "../api/case-sensitive-short-links";
+import {
+  decodeIfCaseSensitive,
+  decodeKeyIfCaseSensitive,
+} from "../api/case-sensitive-short-links";
 import { conn } from "./connection";
 import { EdgeLinkProps } from "./types";
 
 export const getLinkViaEdge = async (domain: string, key: string) => {
-  key = decodeKeyIfCaseSensitive({ domain, key });
+  key = decodeKeyIfCaseSensitive({
+    domain,
+    key,
+  });
 
   const { rows } =
     (await conn.execute(
@@ -12,7 +18,10 @@ export const getLinkViaEdge = async (domain: string, key: string) => {
       [domain, punyEncode(decodeURIComponent(key))], // we need to make sure that the key is always URI-decoded + punycode-encoded (cause that's how we store it in MySQL)
     )) || {};
 
-  return rows && Array.isArray(rows) && rows.length > 0
-    ? (rows[0] as EdgeLinkProps)
-    : null;
+  const link =
+    rows && Array.isArray(rows) && rows.length > 0
+      ? (rows[0] as EdgeLinkProps)
+      : null;
+
+  return link ? decodeIfCaseSensitive(link) : null;
 };
