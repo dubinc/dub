@@ -222,5 +222,5 @@ export async function bulkCreateLinks({
     return aIndex - bIndex;
   });
 
-  return createdLinksData.map(transformLink);
+  return createdLinksData.map((link) => transformLink(link));
 }
