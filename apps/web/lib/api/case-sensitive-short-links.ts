@@ -46,10 +46,6 @@ export const encodeKeyIfCaseSensitive = ({
   return isCaseSensitiveDomain(domain) ? encodeKey(key) : key;
 };
 
-// TODO:
-// Combine all these methods with optional params
-
-// Decode key if it's case sensitive
 export const decodeKeyIfCaseSensitive = ({
   domain,
   key,
@@ -59,23 +55,7 @@ export const decodeKeyIfCaseSensitive = ({
   return caseSensitive ? decodeKey(key) : key;
 };
 
-// Decode shortLink if it's case sensitive
-export const decodeShortLinkIfCaseSensitive = (shortLink: string) => {
-  const url = new URL(shortLink);
-  const pathParts = url.pathname.split("/").filter(Boolean);
-
-  const domain = url.hostname;
-  const key = pathParts[pathParts.length - 1];
-
-  if (isCaseSensitiveDomain(domain)) {
-    return shortLink.replace(key, decodeKey(key));
-  }
-
-  return shortLink;
-};
-
-// Decode key + shortLink if it's case sensitive
-export const decodeIfCaseSensitive = (link: any) => {
+export const decodeLinkIfCaseSensitive = (link: any) => {
   if (isCaseSensitiveDomain(link.domain)) {
     const originalKey = decodeKey(link.key);
 

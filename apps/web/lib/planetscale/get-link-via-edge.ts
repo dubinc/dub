@@ -1,6 +1,6 @@
 import { punyEncode } from "@dub/utils";
 import {
-  decodeIfCaseSensitive,
+  decodeLinkIfCaseSensitive,
   decodeKeyIfCaseSensitive,
 } from "../api/case-sensitive-short-links";
 import { conn } from "./connection";
@@ -23,5 +23,5 @@ export const getLinkViaEdge = async (domain: string, key: string) => {
       ? (rows[0] as EdgeLinkProps)
       : null;
 
-  return link ? decodeIfCaseSensitive(link) : null;
+  return link ? decodeLinkIfCaseSensitive(link) : null;
 };

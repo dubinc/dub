@@ -1,7 +1,7 @@
 import { prisma } from "@dub/prisma";
 import { Link } from "@dub/prisma/client";
 import {
-  decodeIfCaseSensitive,
+  decodeLinkIfCaseSensitive,
   encodeKeyIfCaseSensitive,
 } from "../case-sensitive-short-links";
 import { DubApiError } from "../errors";
@@ -79,5 +79,5 @@ export const getLinkOrThrow = async (params: GetLinkParams) => {
     });
   }
 
-  return decodeIfCaseSensitive(link);
+  return decodeLinkIfCaseSensitive(link);
 };
