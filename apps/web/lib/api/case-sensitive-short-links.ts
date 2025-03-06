@@ -57,7 +57,10 @@ export const decodeLinkIfCaseSensitive = (link: any) => {
   if (isCaseSensitiveDomain(link.domain)) {
     const originalKey = decodeKey(link.key);
 
-    link.shortLink = link.shortLink.replace(link.key, originalKey);
+    if (link.shortLink) {
+      link.shortLink = link.shortLink.replace(link.key, originalKey);
+    }
+
     link.key = originalKey;
   }
 

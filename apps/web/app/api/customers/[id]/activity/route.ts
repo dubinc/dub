@@ -1,4 +1,5 @@
 import { getEvents } from "@/lib/analytics/get-events";
+import { decodeLinkIfCaseSensitive } from "@/lib/api/case-sensitive-short-links";
 import { getCustomerOrThrow } from "@/lib/api/customers/get-customer-or-throw";
 import { transformCustomer } from "@/lib/api/customers/transform-customer";
 import { withWorkspace } from "@/lib/auth";
@@ -32,7 +33,7 @@ export const GET = withWorkspace(async ({ workspace, params, session }) => {
     );
   }
 
-  const [leadEvents, saleEvents, link] = await Promise.all([
+  let [leadEvents, saleEvents, link] = await Promise.all([
     getEvents({
       customerId: customer.id,
       event: "leads",
@@ -103,6 +104,8 @@ export const GET = withWorkspace(async ({ workspace, params, session }) => {
   const activity: CustomerActivity[] = [...leadActivity, ...saleActivity].sort(
     (a, b) => b.timestamp.getTime() - a.timestamp.getTime(),
   );
+
+  link = decodeLinkIfCaseSensitive(link);
 
   // Add click event to activities
   activity.push({

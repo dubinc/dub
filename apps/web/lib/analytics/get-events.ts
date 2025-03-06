@@ -1,7 +1,7 @@
 import { tb } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { Link } from "@dub/prisma/client";
-import { decodeKeyIfCaseSensitive } from "../api/case-sensitive-short-links";
+import { decodeLinkIfCaseSensitive } from "../api/case-sensitive-short-links";
 import { transformLink } from "../api/links";
 import { generateRandomName } from "../names";
 import z from "../zod";
@@ -107,15 +107,12 @@ export const getEvents = async (params: EventsFilters) => {
 
   const events = response.data
     .map((evt) => {
-      const link = linksMap[evt.link_id];
+      let link = linksMap[evt.link_id];
       if (!link) {
         return null;
       }
 
-      link.key = decodeKeyIfCaseSensitive({
-        domain: link.domain,
-        key: link.key,
-      });
+      link = decodeLinkIfCaseSensitive(link);
 
       const eventData = {
         ...evt,
