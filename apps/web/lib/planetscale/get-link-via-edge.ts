@@ -6,11 +6,21 @@ import {
 import { conn } from "./connection";
 import { EdgeLinkProps } from "./types";
 
-export const getLinkViaEdge = async (domain: string, key: string) => {
-  const decodedKey = decodeKeyIfCaseSensitive({
-    domain,
-    key,
-  });
+export const getLinkViaEdge = async ({
+  domain,
+  key,
+  caseSensitive = true,
+}: {
+  domain: string;
+  key: string;
+  caseSensitive?: boolean;
+}) => {
+  const decodedKey = caseSensitive
+    ? decodeKeyIfCaseSensitive({
+        domain,
+        key,
+      })
+    : key;
 
   const { rows } =
     (await conn.execute(
@@ -23,5 +33,5 @@ export const getLinkViaEdge = async (domain: string, key: string) => {
       ? (rows[0] as EdgeLinkProps)
       : null;
 
-  return link ? decodeLinkIfCaseSensitive(link) : null;
+  return link ? (caseSensitive ? decodeLinkIfCaseSensitive(link) : link) : null;
 };

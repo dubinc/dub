@@ -78,15 +78,19 @@ export default async function LinkMiddleware(
   let link = await linkCache.get({ domain, key });
 
   if (!link) {
-    let linkData = await getLinkViaEdge(domain, key);
+    let linkData = await getLinkViaEdge({ domain, key });
 
     if (!linkData) {
-      // TODO
-      // if the link doesn’t exist in redis (which is case sensitive), we need to read both the old version + new hashed version from MySQL.
-      // If the hashed version exists, we should use that one since we know that it’s 100% accurate.
-
       if (domain === "buff.ly" || domain === "dev.buff.ly") {
-        linkData = await importBitlyLink({ domain, key: originalKey });
+        linkData = await getLinkViaEdge({
+          domain,
+          key: originalKey,
+          caseSensitive: false,
+        });
+
+        if (!linkData) {
+          linkData = await importBitlyLink({ domain, key: originalKey });
+        }
       }
 
       if (!linkData) {
@@ -163,7 +167,7 @@ export default async function LinkMiddleware(
     // - no `pw` param is provided
     // - the `pw` param is incorrect
     // this will also ensure that no clicks are tracked unless the password is correct
-    if (!pw || (await getLinkViaEdge(domain, key))?.password !== pw) {
+    if (!pw || (await getLinkViaEdge({ domain, key })).password !== pw) {
       return NextResponse.rewrite(new URL(`/password/${linkId}`, req.url), {
         headers: {
           ...DUB_HEADERS,
