@@ -1,7 +1,6 @@
 import z from "@/lib/zod";
 import { getLinksQuerySchemaExtended } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
-import { decodeIfCaseSensitive } from "../case-sensitive-short-links";
 import { combineTagIds } from "../tags/combine-tag-ids";
 import { transformLink } from "./utils";
 
@@ -139,5 +138,5 @@ export async function getLinksForWorkspace({
     skip: (page - 1) * pageSize,
   });
 
-  return links.map((link) => transformLink(decodeIfCaseSensitive(link)));
+  return links.map((link) => transformLink(link));
 }

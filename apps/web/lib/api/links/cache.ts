@@ -22,19 +22,18 @@ class LinkCache {
     const pipeline = redis.pipeline();
 
     const redisLinks = await Promise.all(
-      links.map(async (link) => ({
+      links.map((link) => ({
         ...formatRedisLink(link),
-        key: link.key.toLowerCase(),
-        domain: link.domain.toLowerCase(),
+        cacheKey: this._createKey({ domain: link.domain, key: link.key }),
       })),
     );
 
-    redisLinks.map(({ domain, key, ...redisLink }) => {
+    redisLinks.map(({ cacheKey, ...redisLink }) => {
       const hasWebhooks =
         redisLink.webhookIds && redisLink.webhookIds.length > 0;
 
       pipeline.set(
-        this._createKey({ domain, key }),
+        cacheKey,
         redisLink,
         hasWebhooks ? undefined : { ex: CACHE_EXPIRATION },
       );
@@ -116,8 +115,8 @@ class LinkCache {
 
   _createKey({ domain, key }: Pick<LinkProps, "domain" | "key">) {
     const caseSensitive = isCaseSensitiveDomain(domain);
-    const newKey = caseSensitive ? decodeKey(key) : key;
-    const cacheKey = `linkcache:${domain}:${newKey}`;
+    const originalKey = caseSensitive ? decodeKey(key) : key;
+    const cacheKey = `linkcache:${domain}:${originalKey}`;
 
     return caseSensitive ? cacheKey : cacheKey.toLowerCase();
   }

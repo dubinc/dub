@@ -132,7 +132,7 @@ export const getEvents = async (params: EventsFilters) => {
           refererUrl: evt.referer_url_processed ?? "",
         }),
         // transformLink -> add shortLink, qrCode, workspaceId, etc.
-        link: transformLink(link),
+        link: transformLink(link, { skipDecodeKey: true }),
         ...(evt.event === "lead" || evt.event === "sale"
           ? {
               eventId: evt.event_id,
