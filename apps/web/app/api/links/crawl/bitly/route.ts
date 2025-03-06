@@ -1,3 +1,4 @@
+import { encodeKeyIfCaseSensitive } from "@/lib/api/case-sensitive-short-links";
 import { createId } from "@/lib/api/create-id";
 import { ExpandedLink } from "@/lib/api/links";
 import { conn } from "@/lib/planetscale";
@@ -8,11 +9,15 @@ import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+const workspaceId = "cm05wnnpo000711ztj05wwdbu";
+const userId = "cm05wnd49000411ztg2xbup0i";
+const folderId = "fold_LIZsdjTgFVbQVGYSUmYAi5vT";
+
 // POST /api/links/crawl/bitly – crawl a bitly link
 export const POST = async (req: Request) => {
   const body = await req.json();
 
-  const { domain, key } = z
+  let { domain, key } = z
     .object({
       domain: z.string(),
       key: z.string(),
@@ -30,10 +35,6 @@ export const POST = async (req: Request) => {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const workspaceId = "cm05wnnpo000711ztj05wwdbu";
-  const userId = "cm05wnd49000411ztg2xbup0i";
-  const folderId = "fold_LIZsdjTgFVbQVGYSUmYAi5vT";
-
   const link = await crawlBitlyLink({ domain, key, workspaceId });
 
   if (!link) {
@@ -45,6 +46,11 @@ export const POST = async (req: Request) => {
   if (!sanitizedUrl) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
+
+  key = encodeKeyIfCaseSensitive({
+    domain,
+    key,
+  });
 
   const newLink = {
     id: createId({ prefix: "link_" }),
