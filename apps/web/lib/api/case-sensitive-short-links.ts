@@ -50,9 +50,7 @@ export const decodeKeyIfCaseSensitive = ({
   domain,
   key,
 }: Pick<LinkProps, "domain" | "key">) => {
-  const caseSensitive = CASE_SENSITIVE_DOMAINS.includes(domain);
-
-  return caseSensitive ? decodeKey(key) : key;
+  return isCaseSensitiveDomain(domain) ? decodeKey(key) : key;
 };
 
 export const decodeLinkIfCaseSensitive = (link: any) => {
