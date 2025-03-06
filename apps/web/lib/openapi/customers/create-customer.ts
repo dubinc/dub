@@ -2,7 +2,7 @@ import { openApiErrorResponses } from "@/lib/openapi/responses";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 import {
   createCustomerBodySchema,
-  CustomerSchema,
+  CustomerEnrichedSchema,
 } from "../../zod/schemas/customers";
 
 export const createCustomer: ZodOpenApiOperationObject = {
@@ -24,7 +24,7 @@ export const createCustomer: ZodOpenApiOperationObject = {
       description: "The customer was created.",
       content: {
         "application/json": {
-          schema: CustomerSchema,
+          schema: CustomerEnrichedSchema,
         },
       },
     },
