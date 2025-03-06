@@ -31,9 +31,7 @@ async function ReferralsEmbedRSC({
   const embedData = await getReferralsEmbedData(token);
 
   return (
-    <div>
-      <ReferralsEmbedPageClient {...embedData} themeOptions={themeOptions} />
-    </div>
+    <ReferralsEmbedPageClient {...embedData} themeOptions={themeOptions} />
   );
 }
 
