@@ -1,7 +1,7 @@
 "use client";
 
 import { updateOnlinePresenceAction } from "@/lib/actions/partners/update-online-presence";
-import { Button, Globe } from "@dub/ui";
+import { Button, Globe, Instagram, TikTok, Twitter, YouTube } from "@dub/ui";
 import { cn } from "@dub/utils/src/functions";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
@@ -127,7 +127,7 @@ export function OnlinePresenceForm({
             className="absolute right-1.5 top-1/2 h-7 w-fit -translate-y-1/2 px-2.5"
             variant="secondary"
             text="Verify"
-            icon={<Globe className="size-4" />}
+            icon={<Instagram className="size-3.5" />}
             onClick={() => alert("WIP")}
           />
         </div>
@@ -156,7 +156,7 @@ export function OnlinePresenceForm({
             className="absolute right-1.5 top-1/2 h-7 w-fit -translate-y-1/2 px-2.5"
             variant="secondary"
             text="Verify"
-            icon={<Globe className="size-4" />}
+            icon={<TikTok className="size-3.5" />}
             onClick={() => alert("WIP")}
           />
         </div>
@@ -185,16 +185,14 @@ export function OnlinePresenceForm({
             className="absolute right-1.5 top-1/2 h-7 w-fit -translate-y-1/2 px-2.5"
             variant="secondary"
             text="Verify"
-            icon={<Globe className="size-4" />}
+            icon={<YouTube className="size-3.5" />}
             onClick={() => alert("WIP")}
           />
         </div>
       </label>
 
       <label>
-        <span className="text-sm font-medium text-neutral-800">
-          X (Twitter)
-        </span>
+        <span className="text-sm font-medium text-neutral-800">X/Twitter</span>
         <div className="relative">
           <div className="mt-2 flex rounded-md">
             <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
@@ -216,7 +214,7 @@ export function OnlinePresenceForm({
             className="absolute right-1.5 top-1/2 h-7 w-fit -translate-y-1/2 px-2.5"
             variant="secondary"
             text="Verify"
-            icon={<Globe className="size-4" />}
+            icon={<Twitter className="size-3.5" />}
             onClick={() => alert("WIP")}
           />
         </div>
