@@ -27,7 +27,14 @@ export default async function OnboardingOnlinePresence() {
           Your online presence
         </h1>
 
-        <OnlinePresenceForm country={partner.country} />
+        <p className="mt-2 text-sm text-neutral-600">
+          These improve your reputation score and rank you higher. Verification
+          is optional and can be done later.
+        </p>
+
+        <div className="mt-8">
+          <OnlinePresenceForm country={partner.country} />
+        </div>
       </div>
     </div>
   );
