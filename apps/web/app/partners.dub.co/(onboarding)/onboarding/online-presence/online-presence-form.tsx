@@ -1,10 +1,13 @@
 "use client";
 
+import { updateOnlinePresenceAction } from "@/lib/actions/partners/update-online-presence";
 import { Button } from "@dub/ui";
 import { cn } from "@dub/utils/src/functions";
+import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { useRef } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 
 const onlinePresenceSchema = z.object({
@@ -22,18 +25,34 @@ export function OnlinePresenceForm({ country }: { country: string | null }) {
 
   const {
     register,
+    setError,
     handleSubmit,
     formState: { errors, isSubmitting, isSubmitSuccessful },
   } = useForm<OnlinePresenceFormData>();
+
+  const { executeAsync } = useAction(updateOnlinePresenceAction, {
+    onSuccess: () => {
+      router.push(country === "US" ? "/onboarding/verify" : "/programs");
+    },
+    onError: ({ error }) => {
+      if (error.serverError) {
+        toast.error(error.serverError);
+      } else {
+        toast.error("Failed to update online presence.");
+      }
+
+      setError("root.serverError", {
+        message: error.serverError,
+      });
+    },
+  });
 
   const formRef = useRef<HTMLFormElement>(null);
 
   return (
     <form
       ref={formRef}
-      onSubmit={handleSubmit(() =>
-        router.push(country === "US" ? "/onboarding/verify" : "/programs"),
-      )}
+      onSubmit={handleSubmit((data) => executeAsync(data))}
       className="flex w-full flex-col gap-4 text-left"
     >
       <label>
