@@ -32,27 +32,27 @@ export const updateOnlinePresenceAction = authUserActionClient
     }
 
     const updateData = {
-      ...(parsedInput.website && {
+      ...(parsedInput.website !== undefined && {
         website: parsedInput.website,
         websiteVerifiedAt:
           parsedInput.website !== partner.website ? null : undefined,
       }),
-      ...(parsedInput.instagram && {
+      ...(parsedInput.instagram !== undefined && {
         instagram: parsedInput.instagram,
         instagramVerifiedAt:
           parsedInput.instagram !== partner.instagram ? null : undefined,
       }),
-      ...(parsedInput.tiktok && {
+      ...(parsedInput.tiktok !== undefined && {
         tiktok: parsedInput.tiktok,
         tiktokVerifiedAt:
           parsedInput.tiktok !== partner.tiktok ? null : undefined,
       }),
-      ...(parsedInput.youtube && {
+      ...(parsedInput.youtube !== undefined && {
         youtube: parsedInput.youtube,
         youtubeVerifiedAt:
           parsedInput.youtube !== partner.youtube ? null : undefined,
       }),
-      ...(parsedInput.twitter && {
+      ...(parsedInput.twitter !== undefined && {
         twitter: parsedInput.twitter,
         twitterVerifiedAt:
           parsedInput.twitter !== partner.twitter ? null : undefined,

@@ -20,7 +20,21 @@ const onlinePresenceSchema = z.object({
 
 type OnlinePresenceFormData = z.infer<typeof onlinePresenceSchema>;
 
-export function OnlinePresenceForm({ country }: { country: string | null }) {
+interface OnlinePresenceFormProps {
+  country: string | null;
+  partner?: {
+    website: string | null;
+    instagram: string | null;
+    tiktok: string | null;
+    youtube: string | null;
+    twitter: string | null;
+  } | null;
+}
+
+export function OnlinePresenceForm({
+  country,
+  partner,
+}: OnlinePresenceFormProps) {
   const router = useRouter();
 
   const {
@@ -28,7 +42,15 @@ export function OnlinePresenceForm({ country }: { country: string | null }) {
     setError,
     handleSubmit,
     formState: { errors, isSubmitting, isSubmitSuccessful },
-  } = useForm<OnlinePresenceFormData>();
+  } = useForm<OnlinePresenceFormData>({
+    defaultValues: {
+      website: partner?.website || undefined,
+      instagram: partner?.instagram || undefined,
+      tiktok: partner?.tiktok || undefined,
+      youtube: partner?.youtube || undefined,
+      twitter: partner?.twitter || undefined,
+    },
+  });
 
   const { executeAsync } = useAction(updateOnlinePresenceAction, {
     onSuccess: () => {
