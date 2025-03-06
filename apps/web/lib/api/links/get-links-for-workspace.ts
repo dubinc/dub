@@ -40,6 +40,9 @@ export async function getLinksForWorkspace({
     sortBy = sort;
   }
 
+  // TODO:
+  // - Add case sensitive link search support
+
   const links = await prisma.link.findMany({
     where: {
       projectId: workspaceId,
