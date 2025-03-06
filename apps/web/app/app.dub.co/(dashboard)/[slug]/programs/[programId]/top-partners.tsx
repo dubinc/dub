@@ -16,7 +16,7 @@ export function TopPartners() {
   const { id: workspaceId } = useWorkspace();
 
   const { data: partners, error } = useSWR<EnrolledPartnerProps[]>(
-    `/api/partners?workspaceId=${workspaceId}&programId=${programId}&sortBy=saleAmount&sortOrder=desc`,
+    `/api/partners?workspaceId=${workspaceId}&programId=${programId}`,
     fetcher,
   );
 
@@ -30,7 +30,7 @@ export function TopPartners() {
         </h2>
 
         <Link
-          href={`/${slug}/programs/${programId}/partners?sortBy=saleAmount&sortOrder=desc`}
+          href={`/${slug}/programs/${programId}/partners`}
           className={cn(
             buttonVariants({ variant: "secondary" }),
             "flex h-7 items-center rounded-lg border px-2 text-sm",
