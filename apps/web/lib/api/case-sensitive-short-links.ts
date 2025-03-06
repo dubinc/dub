@@ -1,11 +1,6 @@
 import { LinkProps } from "../types";
 
-export const CASE_SENSITIVE_DOMAINS = [
-  "buff.ly",
-  "dub.sh",
-  "example.net",
-  "acme.pub",
-];
+export const CASE_SENSITIVE_DOMAINS = ["buff.ly"];
 
 const SECRET_KEY = "your-secret-key-here";
 
