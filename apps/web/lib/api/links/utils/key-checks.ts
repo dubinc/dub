@@ -11,6 +11,7 @@ import {
   isDubDomain,
   isReservedKeyGlobal,
 } from "@dub/utils";
+import { encodeKeyIfCaseSensitive } from "../../case-sensitive-short-links";
 
 export async function keyChecks({
   domain,
@@ -35,6 +36,11 @@ export async function keyChecks({
       code: "forbidden",
     };
   }
+
+  key = encodeKeyIfCaseSensitive({
+    domain,
+    key,
+  });
 
   const link = await checkIfKeyExists(domain, key);
   if (link) {

@@ -1,7 +1,7 @@
 import { Link } from "@prisma/client";
 import { LinkProps } from "../types";
 
-export const CASE_SENSITIVE_DOMAINS = ["buff.ly", "dub.sh"];
+export const CASE_SENSITIVE_DOMAINS = ["buff.ly", "dub.sh", "example.net"];
 
 const SECRET_KEY = "your-secret-key-here";
 
@@ -72,13 +72,11 @@ export const decodeShortLinkIfCaseSensitive = (shortLink: string) => {
 
 // Decode key + shortLink if it's case sensitive
 export const decodeIfCaseSensitive = (link: Link) => {
-  const caseSensitive = CASE_SENSITIVE_DOMAINS.includes(link.domain);
-
-  if (caseSensitive) {
+  if (isCaseSensitiveDomain(link.domain)) {
     const originalKey = decodeKey(link.key);
 
-    link.key = originalKey;
     link.shortLink = link.shortLink.replace(link.key, originalKey);
+    link.key = originalKey;
   }
 
   return link;

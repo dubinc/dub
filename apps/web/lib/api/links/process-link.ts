@@ -19,6 +19,7 @@ import {
   parseDateTime,
   pluralize,
 } from "@dub/utils";
+import { encodeKeyIfCaseSensitive } from "../case-sensitive-short-links";
 import { combineTagIds } from "../tags/combine-tag-ids";
 import { keyChecks, processKey } from "./utils";
 
@@ -535,6 +536,11 @@ export async function processLink<T extends Record<string, any>>({
   delete payload["prefix"];
   UTMTags.forEach((tag) => {
     delete payload[tag];
+  });
+
+  key = encodeKeyIfCaseSensitive({
+    domain,
+    key,
   });
 
   return {

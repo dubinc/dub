@@ -1,8 +1,4 @@
 import { Dashboard, Link, Tag } from "@dub/prisma/client";
-import {
-  decodeKey,
-  isCaseSensitiveDomain,
-} from "../../case-sensitive-short-links";
 
 // used in API (e.g. transformLink)
 // TODO: standardize this with ExpandedLinkProps
@@ -16,13 +12,6 @@ export type ExpandedLink = Link & {
 export const transformLink = (link: ExpandedLink) => {
   const tags = (link.tags || []).map(({ tag }) => tag);
   const webhookIds = link.webhooks?.map(({ webhookId }) => webhookId) ?? [];
-
-  if (isCaseSensitiveDomain(link.domain)) {
-    const originalKey = decodeKey(link.key);
-
-    link.shortLink = link.shortLink.replace(link.key, originalKey);
-    link.key = originalKey;
-  }
 
   // remove webhooks array, dashboard from link
   const { webhooks, dashboard, ...rest } = link;
