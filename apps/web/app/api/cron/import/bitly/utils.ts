@@ -1,3 +1,7 @@
+import {
+  decodeLinkIfCaseSensitive,
+  encodeKey,
+} from "@/lib/api/case-sensitive-short-links";
 import { bulkCreateLinks } from "@/lib/api/links";
 import { qstash } from "@/lib/cron";
 import { redis } from "@/lib/upstash";
@@ -165,6 +169,31 @@ export const importLinksFromBitly = async ({
     },
   );
 
+  let alreadyCreatedLinksHashed = await prisma.link.findMany({
+    where: {
+      shortLink: {
+        in: importedLinks.map((link) => {
+          if (link.domain === "buff.ly") {
+            return linkConstructorSimple({
+              domain: link.domain,
+              key: encodeKey(link.key),
+            });
+          }
+
+          return link.shortLink;
+        }),
+      },
+    },
+    select: {
+      shortLink: true,
+      url: true,
+    },
+  });
+
+  alreadyCreatedLinksHashed = alreadyCreatedLinksHashed.map(
+    decodeLinkIfCaseSensitive,
+  );
+
   // check if links are already in the database
   const alreadyCreatedLinks = await prisma.link.findMany({
     where: {
@@ -180,14 +209,31 @@ export const importLinksFromBitly = async ({
 
   // filter out links that are already in the database
   const linksToCreate = importedLinks.filter(
-    (link) => !alreadyCreatedLinks.some((l) => l.shortLink === link.shortLink),
+    (link) =>
+      !alreadyCreatedLinksHashed.some((l) => l.shortLink === link.shortLink),
   );
 
   console.log(
     `Found ${alreadyCreatedLinks.length} links that have already been imported, skipping them and creating ${linksToCreate.length} new links...`,
   );
+
   // bulk create links
   await bulkCreateLinks({ links: linksToCreate });
+
+  const linksToDelete = alreadyCreatedLinks.filter((link) =>
+    linksToCreate.some(
+      (l) => l.shortLink === link.shortLink && l.domain === "buff.ly",
+    ),
+  );
+
+  // delete links that exist as unhashed versions (only for buff.ly domain)
+  await prisma.link.deleteMany({
+    where: {
+      shortLink: {
+        in: linksToDelete.map((link) => link.shortLink),
+      },
+    },
+  });
 
   if (alreadyCreatedLinks.length) {
     waitUntil(
