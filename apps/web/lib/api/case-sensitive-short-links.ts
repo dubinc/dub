@@ -35,10 +35,12 @@ export const decodeKey = (hash: string): string => {
     .join("");
 };
 
+// check if the domain is case sensitive
 export const isCaseSensitiveDomain = (domain: string) => {
   return CASE_SENSITIVE_DOMAINS.includes(domain);
 };
 
+// encode the key if the domain is case sensitive
 export const encodeKeyIfCaseSensitive = ({
   domain,
   key,
@@ -46,6 +48,7 @@ export const encodeKeyIfCaseSensitive = ({
   return isCaseSensitiveDomain(domain) ? encodeKey(key) : key;
 };
 
+// decode the key if the domain is case sensitive
 export const decodeKeyIfCaseSensitive = ({
   domain,
   key,
@@ -53,6 +56,7 @@ export const decodeKeyIfCaseSensitive = ({
   return isCaseSensitiveDomain(domain) ? decodeKey(key) : key;
 };
 
+// decode the link if the domain is case sensitive
 export const decodeLinkIfCaseSensitive = (link: any) => {
   if (isCaseSensitiveDomain(link.domain)) {
     const originalKey = decodeKey(link.key);
