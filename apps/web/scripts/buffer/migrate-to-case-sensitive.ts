@@ -4,7 +4,7 @@ import "dotenv-flow/config";
 import { encodeKeyIfCaseSensitive } from "../../lib/api/case-sensitive-short-links";
 import { linkCache } from "../../lib/api/links/cache";
 
-const domain = "getacme.link";
+const domain = "dub-internal-test.com";
 
 async function main() {
   const links = await prisma.link.findMany({
@@ -13,8 +13,6 @@ async function main() {
       // TODO:
       // Fetch the links created using the Dub API
     },
-    take: 0,
-    skip: 0,
   });
 
   if (!links.length) {

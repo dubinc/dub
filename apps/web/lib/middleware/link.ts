@@ -27,7 +27,6 @@ import { isCaseSensitiveDomain } from "../api/case-sensitive-short-links";
 import { linkCache } from "../api/links/cache";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
-import { importBitlyLink } from "./bitly";
 import { hasEmptySearchParams } from "./utils/has-empty-search-params";
 
 export default async function LinkMiddleware(
@@ -75,22 +74,22 @@ export default async function LinkMiddleware(
     });
   }
 
-  let link = await linkCache.get({ domain, key });
+  let cachedLink = await linkCache.get({ domain, key });
 
-  if (!link) {
-    let linkData = await getLinkViaEdge({ domain, key });
+  if (!cachedLink) {
+    let linkData = await getLinkViaEdge({
+      domain,
+      key,
+    });
 
     if (!linkData) {
-      if (domain === "buff.ly" || domain === "dev.buff.ly") {
-        linkData = await getLinkViaEdge({
-          domain,
-          key: originalKey,
-          caseSensitive: false,
-        });
-
-        if (!linkData) {
-          linkData = await importBitlyLink({ domain, key: originalKey });
-        }
+      if (domain === "buff.ly") {
+        return NextResponse.rewrite(
+          new URL(
+            `/api/links/crawl/bitly?domain=${domain}&key=${key}`,
+            req.url,
+          ),
+        );
       }
 
       if (!linkData) {
@@ -118,7 +117,7 @@ export default async function LinkMiddleware(
     }
 
     // format link to fit the RedisLinkProps interface
-    link = formatRedisLink(linkData as any);
+    cachedLink = formatRedisLink(linkData as any);
 
     ev.waitUntil(linkCache.set(linkData as any));
   }
@@ -138,7 +137,7 @@ export default async function LinkMiddleware(
     doIndex,
     webhookIds,
     projectId: workspaceId,
-  } = link;
+  } = cachedLink;
 
   // by default, we only index default dub domain links (e.g. dub.sh)
   // everything else is not indexed by default, unless the user has explicitly set it to be indexed
@@ -183,7 +182,7 @@ export default async function LinkMiddleware(
   }
 
   // if the link is banned
-  if (link.projectId === LEGAL_WORKSPACE_ID) {
+  if (workspaceId === LEGAL_WORKSPACE_ID) {
     return NextResponse.rewrite(new URL("/banned", req.url), {
       headers: {
         ...DUB_HEADERS,
