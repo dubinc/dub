@@ -10,7 +10,7 @@ import { SaleStatusBadges } from "@/ui/partners/sale-status-badges";
 import { CircleDotted, useRouterStuff } from "@dub/ui";
 import { User, Users } from "@dub/ui/icons";
 import { cn, DICEBEAR_AVATAR_URL, nFormatter } from "@dub/utils";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
 export function useSaleFilters() {
@@ -105,27 +105,44 @@ export function useSaleFilters() {
       ...(customerId ? [{ key: "customerId", value: customerId }] : []),
       ...(payoutId ? [{ key: "payoutId", value: payoutId }] : []),
     ];
-  }, [searchParamsObj]);
+  }, [
+    searchParamsObj.status,
+    searchParamsObj.partnerId,
+    searchParamsObj.customerId,
+    searchParamsObj.payoutId,
+  ]);
 
-  const onSelect = (key: string, value: any) =>
-    queryParams({
-      set: {
-        [key]: value,
-      },
-      del: "page",
-    });
+  const onSelect = useCallback(
+    (key: string, value: any) =>
+      queryParams({
+        set: {
+          [key]: value,
+        },
+        del: "page",
+      }),
+    [queryParams],
+  );
 
-  const onRemove = (key: string) =>
-    queryParams({
-      del: [key, "page"],
-    });
+  const onRemove = useCallback(
+    (key: string) =>
+      queryParams({
+        del: [key, "page"],
+      }),
+    [queryParams],
+  );
 
-  const onRemoveAll = () =>
-    queryParams({
-      del: ["status", "partnerId", "customerId", "payoutId"],
-    });
+  const onRemoveAll = useCallback(
+    () =>
+      queryParams({
+        del: ["status", "partnerId", "customerId", "payoutId"],
+      }),
+    [queryParams],
+  );
 
-  const isFiltered = activeFilters.length > 0 || searchParamsObj.search;
+  const isFiltered = useMemo(
+    () => activeFilters.length > 0 || searchParamsObj.search,
+    [activeFilters, searchParamsObj.search],
+  );
 
   return {
     filters,
