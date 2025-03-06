@@ -3,7 +3,6 @@ import { tb } from "@/lib/tinybird";
 import { UTM_TAGS_PLURAL_LIST } from "@/lib/zod/schemas/utm";
 import { prismaEdge } from "@dub/prisma/edge";
 import { linkConstructor, punyEncode } from "@dub/utils";
-import { CASE_SENSITIVE_DOMAINS, decodeKey } from "../api/links/constants";
 import { conn } from "../planetscale";
 import z from "../zod";
 import { analyticsFilterTB } from "../zod/schemas/analytics";
@@ -151,10 +150,6 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         const link = links.find((l) => l.id === topLink.link);
         if (!link) {
           return null;
-        }
-
-        if (CASE_SENSITIVE_DOMAINS.includes(link.domain)) {
-          link.key = decodeKey(link.key);
         }
 
         return analyticsResponse[groupBy].parse({

@@ -13,10 +13,10 @@ import {
 } from "@dub/utils";
 import { linkConstructorSimple } from "@dub/utils/src/functions/link-constructor";
 import { waitUntil } from "@vercel/functions";
+import { encodeKeyIfCaseSensitive } from "../case-sensitive-short-links";
 import { createId } from "../create-id";
 import { combineTagIds } from "../tags/combine-tag-ids";
 import { linkCache } from "./cache";
-import { CASE_SENSITIVE_DOMAINS, hashKey } from "./constants";
 import { includeTags } from "./include-tags";
 import { updateLinksUsage } from "./update-links-usage";
 import { transformLink } from "./utils";
@@ -41,9 +41,10 @@ export async function createLink(link: ProcessedLinkProps) {
 
   const { tagId, tagIds, tagNames, webhookIds, ...rest } = link;
 
-  if (CASE_SENSITIVE_DOMAINS.includes(link.domain)) {
-    key = hashKey(key);
-  }
+  key = encodeKeyIfCaseSensitive({
+    domain: link.domain,
+    key,
+  });
 
   const response = await prisma.link.create({
     data: {

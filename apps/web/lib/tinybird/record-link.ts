@@ -1,7 +1,10 @@
 import z from "@/lib/zod";
+import { decodeKeyIfCaseSensitive } from "../api/case-sensitive-short-links";
 import { ExpandedLink } from "../api/links";
-import { CASE_SENSITIVE_DOMAINS, decodeKey } from "../api/links/constants";
 import { tb } from "./client";
+
+// Domains that are not recorded in Tinybird
+export const DOMAINS_TO_SKIP = ["buff.ly"];
 
 export const dubLinksMetadataSchema = z.object({
   link_id: z.string(),
@@ -52,14 +55,15 @@ export const recordLinkTB = tb.buildIngestEndpoint({
 });
 
 export const transformLinkTB = (link: ExpandedLink) => {
-  if (CASE_SENSITIVE_DOMAINS.includes(link.domain)) {
-    link.key = decodeKey(link.key);
-  }
+  const key = decodeKeyIfCaseSensitive({
+    domain: link.domain,
+    key: link.key,
+  });
 
   return {
     link_id: link.id,
     domain: link.domain,
-    key: link.key,
+    key,
     url: link.url,
     tag_ids: link.tags?.map(({ tag }) => tag.id),
     folder_id: link.folderId ?? "",
@@ -73,8 +77,18 @@ export const transformLinkTB = (link: ExpandedLink) => {
 
 export const recordLink = async (payload: ExpandedLink | ExpandedLink[]) => {
   if (Array.isArray(payload)) {
+    payload = payload.filter((link) => !DOMAINS_TO_SKIP.includes(link.domain));
+
+    if (!payload.length) {
+      return;
+    }
+
     return await recordLinkTB(payload.map(transformLinkTB));
   } else {
+    if (DOMAINS_TO_SKIP.includes(payload.domain)) {
+      return;
+    }
+
     return await recordLinkTB(transformLinkTB(payload));
   }
 };

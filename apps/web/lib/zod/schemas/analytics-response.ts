@@ -1,4 +1,5 @@
 import { TRIGGER_TYPES } from "@/lib/analytics/constants";
+import { decodeShortLinkIfCaseSensitive } from "@/lib/api/case-sensitive-short-links";
 import z from "@/lib/zod";
 import { CONTINENT_CODES, COUNTRY_CODES } from "@dub/utils";
 
@@ -296,7 +297,10 @@ export const analyticsResponse = {
       id: z.string().describe("The unique ID of the short link"),
       domain: z.string().describe("The domain of the short link"),
       key: z.string().describe("The key of the short link"),
-      shortLink: z.string().describe("The short link URL"),
+      shortLink: z
+        .string()
+        .describe("The short link URL")
+        .refine((shortLink) => decodeShortLinkIfCaseSensitive(shortLink)),
       url: z.string().describe("The destination URL of the short link"),
       comments: z.string().nullish().describe("The comments of the short link"),
       createdAt: z

@@ -23,8 +23,8 @@ import {
   NextResponse,
   userAgent,
 } from "next/server";
+import { isCaseSensitiveDomain } from "../api/case-sensitive-short-links";
 import { linkCache } from "../api/links/cache";
-import { CASE_SENSITIVE_DOMAINS } from "../api/links/constants";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
 import { importBitlyLink } from "./bitly";
@@ -48,7 +48,9 @@ export default async function LinkMiddleware(
   // links on Dub are case insensitive by default
   let key = punyEncode(originalKey);
 
-  if (!CASE_SENSITIVE_DOMAINS.includes(domain)) {
+  const caseSensitive = isCaseSensitiveDomain(domain);
+
+  if (!caseSensitive) {
     key = key.toLowerCase();
   }
 
@@ -76,9 +78,6 @@ export default async function LinkMiddleware(
   }
 
   let link = await linkCache.get({ domain, key });
-
-  console.log("LinkMiddleware", { domain, key });
-  console.log("LinkMiddleware", link);
 
   if (!link) {
     let linkData = await getLinkViaEdge(domain, key);

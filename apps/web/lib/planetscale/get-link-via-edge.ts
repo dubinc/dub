@@ -1,8 +1,11 @@
 import { punyEncode } from "@dub/utils";
+import { decodeKeyIfCaseSensitive } from "../api/case-sensitive-short-links";
 import { conn } from "./connection";
 import { EdgeLinkProps } from "./types";
 
 export const getLinkViaEdge = async (domain: string, key: string) => {
+  key = decodeKeyIfCaseSensitive({ domain, key });
+
   const { rows } =
     (await conn.execute(
       "SELECT * FROM Link WHERE domain = ? AND `key` = ?",

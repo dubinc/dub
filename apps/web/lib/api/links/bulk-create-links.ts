@@ -2,6 +2,7 @@ import { ProcessedLinkProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { getParamsFromURL, linkConstructorSimple, truncate } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { encodeKeyIfCaseSensitive } from "../case-sensitive-short-links";
 import { createId } from "../create-id";
 import { combineTagIds } from "../tags/combine-tag-ids";
 import { includeTags } from "./include-tags";
@@ -41,6 +42,11 @@ export async function bulkCreateLinks({
     data: links.map(({ tagId, tagIds, tagNames, webhookIds, ...link }) => {
       const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
         getParamsFromURL(link.url);
+
+      link.key = encodeKeyIfCaseSensitive({
+        domain: link.domain,
+        key: link.key,
+      });
 
       return {
         ...link,
