@@ -1,5 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { Link } from "@dub/prisma/client";
+import { encodeKeyIfCaseSensitive } from "../case-sensitive-short-links";
 import { DubApiError } from "../errors";
 
 interface GetLinkParams {
@@ -39,6 +40,11 @@ export const getLinkOrThrow = async (params: GetLinkParams) => {
 
   // Get link by domain and key
   else if (domain && key) {
+    key = encodeKeyIfCaseSensitive({
+      domain,
+      key,
+    });
+
     link = await prisma.link.findUnique({
       where: {
         domain_key: {
