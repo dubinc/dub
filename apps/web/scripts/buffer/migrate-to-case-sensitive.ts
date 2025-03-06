@@ -1,17 +1,15 @@
-import { encodeKeyIfCaseSensitive } from "@/lib/api/case-sensitive-short-links";
 import { prisma } from "@dub/prisma";
 import { linkConstructorSimple } from "@dub/utils";
 import "dotenv-flow/config";
+import { encodeKeyIfCaseSensitive } from "../../lib/api/case-sensitive-short-links";
+import { linkCache } from "../../lib/api/links/cache";
 
-const flatRatePartners: string[] = [];
-
-const domain = "buff.ly";
+const domain = "getacme.link";
 
 async function main() {
   const links = await prisma.link.findMany({
     where: {
       domain,
-      
       // TODO:
       // Fetch the links created using the Dub API
     },
@@ -47,6 +45,9 @@ async function main() {
 
     console.log(`Updated link ${link.id} to ${newShortLink}`);
   }
+
+  // expire the Redis cache for the links so it fetches the latest version from the database
+  await linkCache.expireMany(links);
 }
 
 main();

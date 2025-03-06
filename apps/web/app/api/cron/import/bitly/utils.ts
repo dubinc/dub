@@ -4,6 +4,7 @@ import {
   isCaseSensitiveDomain,
 } from "@/lib/api/case-sensitive-short-links";
 import { bulkCreateLinks } from "@/lib/api/links";
+import { linkCache } from "@/lib/api/links/cache";
 import { qstash } from "@/lib/cron";
 import { redis } from "@/lib/upstash";
 import { sendEmail } from "@dub/email";
@@ -204,31 +205,38 @@ export const importLinksFromBitly = async ({
   // bulk create links
   await bulkCreateLinks({ links: linksToCreate });
 
-  // only for buff.ly: check if previously created links (without case sensitivity) exists, if so, delete them
-  const previouslyCreatedLinks = await prisma.link.findMany({
-    where: {
-      shortLink: {
-        in: importedLinks.map((link) => link.shortLink),
-      },
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  console.log(
-    `Found ${previouslyCreatedLinks.length} buff.ly links that were imported without case sensitivity, deleting them...`,
-  );
-
-  // delete links that exist as unhashed versions (only for buff.ly domain)
-  if (previouslyCreatedLinks.length) {
-    await prisma.link.deleteMany({
+  // only for buff.ly: check if previously created links (without case sensitivity) exists, if so, delete them + expire their cache
+  if (domains.includes("buff.ly")) {
+    const previouslyCreatedLinks = await prisma.link.findMany({
       where: {
-        id: {
-          in: previouslyCreatedLinks.map((link) => link.id),
+        shortLink: {
+          in: importedLinks.map((link) => link.shortLink),
         },
       },
+      select: {
+        id: true,
+        domain: true,
+        key: true,
+      },
     });
+
+    console.log(
+      `Found ${previouslyCreatedLinks.length} buff.ly links that were imported without case sensitivity, deleting them...`,
+    );
+
+    // delete links that exist as unhashed versions (only for buff.ly domain)
+    if (previouslyCreatedLinks.length) {
+      await Promise.allSettled([
+        prisma.link.deleteMany({
+          where: {
+            id: {
+              in: previouslyCreatedLinks.map((link) => link.id),
+            },
+          },
+        }),
+        linkCache.expireMany(previouslyCreatedLinks),
+      ]);
+    }
   }
 
   count += importedLinks.length;

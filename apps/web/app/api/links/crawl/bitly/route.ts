@@ -1,11 +1,8 @@
 import { encodeKeyIfCaseSensitive } from "@/lib/api/case-sensitive-short-links";
 import { createId } from "@/lib/api/create-id";
-import { ExpandedLink } from "@/lib/api/links";
 import { conn } from "@/lib/planetscale";
-import { recordLink } from "@/lib/tinybird/record-link";
 import { redis } from "@/lib/upstash";
 import { getUrlFromStringIfValid, linkConstructorSimple } from "@dub/utils";
-import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -87,16 +84,6 @@ export const POST = async (req: Request) => {
         newLink.createdAt,
         newLink.updatedAt,
       ],
-    );
-
-    waitUntil(
-      recordLink({
-        ...newLink,
-        tenantId: null,
-        programId: null,
-        partnerId: null,
-        tags: [],
-      } as unknown as ExpandedLink),
     );
 
     return NextResponse.json(newLink);
