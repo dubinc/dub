@@ -29,10 +29,5 @@ describe("createId", () => {
 
     const sortedIds = [...ids].sort();
     expect(ids).toEqual(sortedIds);
-
-    console.log("Generated IDs in order:", {
-      ids,
-      sortedIds,
-    });
   });
 });

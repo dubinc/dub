@@ -45,14 +45,7 @@ export const GET = withWorkspace(
           lte: endDate.toISOString(),
         },
       },
-      select: {
-        id: true,
-        amount: true,
-        earnings: true,
-        currency: true,
-        status: true,
-        createdAt: true,
-        updatedAt: true,
+      include: {
         customer: true,
         partner: true,
       },

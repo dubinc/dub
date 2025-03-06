@@ -34,7 +34,7 @@ function DubEmbedInner({
       }) || {};
 
     return () => destroy?.();
-  }, [id, options]);
+  }, [id, JSON.stringify(options)]);
 
   return <div {...rest} ref={rootRef} />;
 }

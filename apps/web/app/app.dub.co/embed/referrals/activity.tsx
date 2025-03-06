@@ -23,7 +23,7 @@ export function ReferralsEmbedActivity({
   );
 
   return (
-    <div className="grid h-full grid-cols-3 divide-x divide-neutral-200 rounded-lg border border-neutral-200 bg-white sm:col-span-2">
+    <div className="border-border-subtle bg-bg-default divide-border-subtle grid h-full grid-cols-3 divide-x rounded-lg border sm:col-span-2">
       {[
         {
           label: "Clicks",
@@ -43,11 +43,11 @@ export function ReferralsEmbedActivity({
       ].map(({ label, value, description }) => (
         <div key={label} className="relative flex flex-col justify-between p-4">
           <div>
-            <span className="flex items-center gap-1 text-sm text-neutral-500">
+            <span className="text-content-subtle flex items-center gap-1 text-sm">
               {label}
               <InfoTooltip content={description} />
             </span>
-            <span className="text-base font-medium leading-none text-neutral-700">
+            <span className="text-content-default text-base font-medium leading-none">
               {nFormatter(value, { full: true })}
             </span>
           </div>

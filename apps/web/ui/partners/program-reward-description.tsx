@@ -67,3 +67,28 @@ export function ProgramRewardDescription({
     </>
   );
 }
+
+export function formatRewardDescription({
+  reward,
+}: {
+  reward: RewardProps;
+}): string {
+  const rewardAmount = constructRewardAmount(reward);
+  const parts: string[] = [];
+
+  parts.push(`${rewardAmount} per ${reward.event}`);
+
+  if (reward.event === "sale") {
+    if (reward.maxDuration === null) {
+      parts.push("for lifetime");
+    } else if (reward.maxDuration === 0) {
+      parts.push("for the first purchase");
+    } else if (reward.maxDuration && reward.maxDuration > 0) {
+      parts.push(
+        `for ${reward.maxDuration} ${pluralize("month", reward.maxDuration)}`,
+      );
+    }
+  }
+
+  return parts.join(" ");
+}

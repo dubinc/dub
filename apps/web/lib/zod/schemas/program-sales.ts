@@ -12,6 +12,7 @@ export const ProgramSaleSchema = z.object({
   earnings: z.number(),
   currency: z.string(),
   status: z.nativeEnum(CommissionStatus),
+  invoiceId: z.string().nullish(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });

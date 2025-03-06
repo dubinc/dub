@@ -14,6 +14,15 @@ import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+const sortColumnsMap = {
+  createdAt: "pe.createdAt",
+  clicks: "totalClicks",
+  leads: "totalLeads",
+  sales: "totalSales",
+  saleAmount: "totalSaleAmount",
+  earnings: "totalSaleAmount",
+};
+
 // GET /api/partners - get all partners for a program
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
@@ -35,6 +44,7 @@ export const GET = withWorkspace(
     const {
       status,
       country,
+      rewardId,
       search,
       tenantId,
       ids,
@@ -43,17 +53,6 @@ export const GET = withWorkspace(
       sortBy,
       sortOrder,
     } = partnersQuerySchema.parse(searchParams);
-
-    const sortColumnsMap = {
-      createdAt: "pe.createdAt",
-      clicks: "totalClicks",
-      leads: "totalLeads",
-      sales: "totalSales",
-      saleAmount: "totalSaleAmount",
-      earnings: "totalSaleAmount",
-    };
-
-    console.time("query");
 
     const partners = (await prisma.$queryRaw`
       SELECT 
@@ -112,14 +111,13 @@ export const GET = withWorkspace(
         ${status ? Prisma.sql`AND pe.status = ${status}` : Prisma.sql`AND pe.status != 'rejected'`}
         ${tenantId ? Prisma.sql`AND pe.tenantId = ${tenantId}` : Prisma.sql``}
         ${country ? Prisma.sql`AND p.country = ${country}` : Prisma.sql``}
+        ${rewardId ? Prisma.sql`AND EXISTS (SELECT 1 FROM PartnerReward pr WHERE pr.programEnrollmentId = pe.id AND pr.rewardId = ${rewardId})` : Prisma.sql``}
         ${search ? Prisma.sql`AND (LOWER(p.name) LIKE LOWER(${`%${search}%`}) OR LOWER(p.email) LIKE LOWER(${`%${search}%`}))` : Prisma.sql``}
         ${ids && ids.length > 0 ? Prisma.sql`AND pe.partnerId IN (${Prisma.join(ids)})` : Prisma.sql``}
       GROUP BY 
         p.id, pe.id, metrics.totalClicks, metrics.totalLeads, metrics.totalSales, metrics.totalSaleAmount
       ORDER BY ${Prisma.raw(sortColumnsMap[sortBy])} ${Prisma.raw(sortOrder)}
       LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`) satisfies Array<any>;
-
-    console.timeEnd("query");
 
     const response = partners.map((partner) => {
       return {
