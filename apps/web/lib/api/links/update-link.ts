@@ -77,7 +77,7 @@ export async function updateLink({
       key,
       shortLink: linkConstructorSimple({
         domain: updatedLink.domain,
-        key: updatedLink.key,
+        key,
       }),
       title: truncate(title, 120),
       description: truncate(description, 240),
