@@ -20,13 +20,15 @@ export default async function OnboardingOnlinePresence() {
   if (!partner) redirect("/programs");
 
   return (
-    <div className="relative mx-auto my-10 flex w-full max-w-[416px] flex-col items-center md:mt-14">
+    <div className="relative mx-auto my-10 w-full max-w-[416px] md:mt-14">
       <div className="absolute inset-0 bg-white/60 [mask-composite:intersect] [mask-image:linear-gradient(90deg,transparent,black_10%,black_90%,transparent),linear-gradient(transparent,black_10%,black_90%,transparent)]" />
-      <h1 className="animate-slide-up-fade text-lg font-medium [--offset:8px] [animation-delay:250ms] [animation-duration:1s] [animation-fill-mode:both]">
-        Your online presence
-      </h1>
+      <div className="relative">
+        <h1 className="animate-slide-up-fade text-lg font-medium [--offset:8px] [animation-delay:250ms] [animation-duration:1s] [animation-fill-mode:both]">
+          Your online presence
+        </h1>
 
-      <OnlinePresenceForm country={partner.country} />
+        <OnlinePresenceForm country={partner.country} />
+      </div>
     </div>
   );
 }
