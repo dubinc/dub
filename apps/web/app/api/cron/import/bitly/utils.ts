@@ -1,6 +1,7 @@
 import {
   decodeLinkIfCaseSensitive,
   encodeKey,
+  isCaseSensitiveDomain,
 } from "@/lib/api/case-sensitive-short-links";
 import { bulkCreateLinks } from "@/lib/api/links";
 import { qstash } from "@/lib/cron";
@@ -12,9 +13,7 @@ import {
   APP_DOMAIN_WITH_NGROK,
   getUrlFromStringIfValid,
   linkConstructorSimple,
-  log,
 } from "@dub/utils";
-import { waitUntil } from "@vercel/functions";
 
 interface RateLimitResponse {
   platform_limits: {
@@ -169,11 +168,13 @@ export const importLinksFromBitly = async ({
     },
   );
 
-  let alreadyCreatedLinksHashed = await prisma.link.findMany({
+  // check if links are already in the database
+  // for case sensitive
+  let alreadyCreatedLinks = await prisma.link.findMany({
     where: {
       shortLink: {
         in: importedLinks.map((link) => {
-          if (link.domain === "buff.ly") {
+          if (isCaseSensitiveDomain(link.domain)) {
             return linkConstructorSimple({
               domain: link.domain,
               key: encodeKey(link.key),
@@ -183,32 +184,17 @@ export const importLinksFromBitly = async ({
       },
     },
     select: {
+      id: true,
       shortLink: true,
       url: true,
     },
   });
 
-  alreadyCreatedLinksHashed = alreadyCreatedLinksHashed.map(
-    decodeLinkIfCaseSensitive,
-  );
-
-  // check if links are already in the database
-  const alreadyCreatedLinks = await prisma.link.findMany({
-    where: {
-      shortLink: {
-        in: importedLinks.map((link) => link.shortLink),
-      },
-    },
-    select: {
-      shortLink: true,
-      url: true,
-    },
-  });
+  alreadyCreatedLinks = alreadyCreatedLinks.map(decodeLinkIfCaseSensitive);
 
   // filter out links that are already in the database
   const linksToCreate = importedLinks.filter(
-    (link) =>
-      !alreadyCreatedLinksHashed.some((l) => l.shortLink === link.shortLink),
+    (link) => !alreadyCreatedLinks.some((l) => l.shortLink === link.shortLink),
   );
 
   console.log(
@@ -218,52 +204,31 @@ export const importLinksFromBitly = async ({
   // bulk create links
   await bulkCreateLinks({ links: linksToCreate });
 
-  const linksToDelete = alreadyCreatedLinks.filter((link) =>
-    linksToCreate.some(
-      (l) => l.shortLink === link.shortLink && l.domain === "buff.ly",
-    ),
-  );
-
-  // delete links that exist as unhashed versions (only for buff.ly domain)
-  await prisma.link.deleteMany({
+  // only for buff.ly: check if previously created links (without case sensitivity) exists, if so, delete them
+  const previouslyCreatedLinks = await prisma.link.findMany({
     where: {
       shortLink: {
-        in: linksToDelete.map((link) => link.shortLink),
+        in: importedLinks.map((link) => link.shortLink),
       },
+    },
+    select: {
+      id: true,
     },
   });
 
-  if (alreadyCreatedLinks.length) {
-    waitUntil(
-      (async () => {
-        try {
-          // check if any of the links that were already created have a different url
-          // than the link that was imported
-          const caseDuplicates = importedLinks.filter((link) => {
-            const duplicate = alreadyCreatedLinks.find(
-              (l) => l.shortLink.toLowerCase() === link.shortLink.toLowerCase(),
-            );
-            return duplicate && duplicate.url !== link.url;
-          });
+  console.log(
+    `Found ${previouslyCreatedLinks.length} buff.ly links that were imported without case sensitivity, deleting them...`,
+  );
 
-          if (caseDuplicates.length) {
-            await log({
-              message: `Found potential case duplicates:\n${caseDuplicates
-                .map((c) => {
-                  const existing = alreadyCreatedLinks.find(
-                    (l) =>
-                      l.shortLink.toLowerCase() === c.shortLink.toLowerCase(),
-                  );
-                  return `\nImported: ${c.shortLink} → ${c.url}\nExisting: ${existing?.shortLink} → ${existing?.url}`;
-                })
-                .join("\n")}`,
-              type: "alerts",
-              mention: true,
-            });
-          }
-        } catch (_) {}
-      })(),
-    );
+  // delete links that exist as unhashed versions (only for buff.ly domain)
+  if (previouslyCreatedLinks.length) {
+    await prisma.link.deleteMany({
+      where: {
+        id: {
+          in: previouslyCreatedLinks.map((link) => link.id),
+        },
+      },
+    });
   }
 
   count += importedLinks.length;
