@@ -19,6 +19,10 @@ export const POST = async (req: Request) => {
     })
     .parse(body);
 
+  if (domain !== "buff.ly") {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
   // bitly doesn't support the following characters: ` ~ , . < > ; ‘ : “ / \ [ ] ^ { } ( ) = + ! * @ & $ £ ? % # |
   // @see: https://support.bitly.com/hc/en-us/articles/360030780892-What-characters-are-supported-when-customizing-links
   const invalidBitlyKeyRegex = /[`~,.<>;':"/\\[\]^{}()=+!*@&$£?%#|]/;
