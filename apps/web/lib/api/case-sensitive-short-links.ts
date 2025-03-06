@@ -3,7 +3,7 @@ import { LinkProps } from "../types";
 export const CASE_SENSITIVE_DOMAINS = ["buff.ly", "getacme.link"];
 
 // This is not actually a secret key, it's just a string that we XOR with the key to make it case sensitive
-const SECRET_KEY = "your-secret-key-here";
+const SECRET_KEY = "58ff90c0dc372ded858cbf8fb2306066";
 
 export const encodeKey = (text: string): string => {
   const xored = text
