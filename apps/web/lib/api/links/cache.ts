@@ -1,6 +1,9 @@
 import { LinkProps, RedisLinkProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
-import { CASE_SENSITIVE_DOMAINS, decodeKey } from "./constants";
+import {
+  decodeKeyIfCaseSensitive,
+  isCaseSensitiveDomain,
+} from "../case-sensitive-short-links";
 import { ExpandedLink } from "./utils/transform-link";
 
 /*
@@ -44,25 +47,20 @@ class LinkCache {
     const redisLink = formatRedisLink(link);
     const hasWebhooks = redisLink.webhookIds && redisLink.webhookIds.length > 0;
 
-    const caseSensitive = CASE_SENSITIVE_DOMAINS.includes(link.domain);
-
-    if (caseSensitive) {
-      link.key = decodeKey(link.key);
-    }
+    link.key = decodeKeyIfCaseSensitive({
+      domain: link.domain,
+      key: link.key,
+    });
 
     return await redis.set(
-      this._createKey({ domain: link.domain, key: link.key, caseSensitive }),
+      this._createKey({ domain: link.domain, key: link.key }),
       redisLink,
       hasWebhooks ? undefined : { ex: CACHE_EXPIRATION },
     );
   }
 
   async get({ domain, key }: Pick<LinkProps, "domain" | "key">) {
-    const caseSensitive = CASE_SENSITIVE_DOMAINS.includes(domain);
-
-    return await redis.get<RedisLinkProps>(
-      this._createKey({ domain, key, caseSensitive }),
-    );
+    return await redis.get<RedisLinkProps>(this._createKey({ domain, key }));
   }
 
   async delete({ domain, key }: Pick<LinkProps, "domain" | "key">) {
@@ -121,14 +119,10 @@ class LinkCache {
     return await pipeline.exec();
   }
 
-  _createKey({
-    domain,
-    key,
-    caseSensitive = false,
-  }: Pick<LinkProps, "domain" | "key"> & { caseSensitive?: boolean }) {
+  _createKey({ domain, key }: Pick<LinkProps, "domain" | "key">) {
     const cacheKey = `linkcache:${domain}:${key}`;
 
-    return caseSensitive ? cacheKey : cacheKey.toLowerCase();
+    return isCaseSensitiveDomain(domain) ? cacheKey : cacheKey.toLowerCase();
   }
 }
 
