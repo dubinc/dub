@@ -5,6 +5,7 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
+import { useCallback } from "react";
 
 export function useRouterStuff() {
   const pathname = usePathname();
@@ -39,45 +40,48 @@ export function useRouterStuff() {
     return queryString.length > 0 ? `?${queryString}` : "";
   };
 
-  const queryParams = ({
-    set,
-    del,
-    replace,
-    scroll = true,
-    getNewPath,
-    arrayDelimiter = ",",
-  }: {
-    set?: Record<string, string | string[]>;
-    del?: string | string[];
-    replace?: boolean;
-    scroll?: boolean;
-    getNewPath?: boolean;
-    arrayDelimiter?: string;
-  }) => {
-    const newParams = new URLSearchParams(searchParams);
-    if (set) {
-      Object.entries(set).forEach(([k, v]) =>
-        newParams.set(k, Array.isArray(v) ? v.join(arrayDelimiter) : v),
-      );
-    }
-    if (del) {
-      if (Array.isArray(del)) {
-        del.forEach((k) => newParams.delete(k));
-      } else {
-        newParams.delete(del);
+  const queryParams = useCallback(
+    ({
+      set,
+      del,
+      replace,
+      scroll = true,
+      getNewPath,
+      arrayDelimiter = ",",
+    }: {
+      set?: Record<string, string | string[]>;
+      del?: string | string[];
+      replace?: boolean;
+      scroll?: boolean;
+      getNewPath?: boolean;
+      arrayDelimiter?: string;
+    }) => {
+      const newParams = new URLSearchParams(searchParams);
+      if (set) {
+        Object.entries(set).forEach(([k, v]) =>
+          newParams.set(k, Array.isArray(v) ? v.join(arrayDelimiter) : v),
+        );
       }
-    }
-    const queryString = newParams.toString();
-    const newPath = `${pathname}${
-      queryString.length > 0 ? `?${queryString}` : ""
-    }`;
-    if (getNewPath) return newPath;
-    if (replace) {
-      router.replace(newPath, { scroll: false });
-    } else {
-      router.push(newPath, { scroll });
-    }
-  };
+      if (del) {
+        if (Array.isArray(del)) {
+          del.forEach((k) => newParams.delete(k));
+        } else {
+          newParams.delete(del);
+        }
+      }
+      const queryString = newParams.toString();
+      const newPath = `${pathname}${
+        queryString.length > 0 ? `?${queryString}` : ""
+      }`;
+      if (getNewPath) return newPath;
+      if (replace) {
+        router.replace(newPath, { scroll: false });
+      } else {
+        router.push(newPath, { scroll });
+      }
+    },
+    [searchParams, pathname, router],
+  );
 
   return {
     pathname: pathname as string,

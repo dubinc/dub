@@ -22,6 +22,7 @@ import { ReferralsEmbedFAQ } from "./faq";
 import { ReferralsEmbedLeaderboard } from "./leaderboard";
 import { ReferralsEmbedPayouts } from "./payouts";
 import { ReferralsEmbedQuickstart } from "./quickstart";
+import { ThemeOptions } from "./theme-options";
 import { ReferralsReferralsEmbedToken } from "./token";
 
 const tabs = ["Quickstart", "Earnings", "Leaderboard", "FAQ"];
@@ -33,6 +34,7 @@ export function ReferralsEmbedPageClient({
   discount,
   payouts,
   stats,
+  themeOptions,
 }: {
   program: Program;
   links: Link[];
@@ -47,12 +49,20 @@ export function ReferralsEmbedPageClient({
     leads: number;
     sales: number;
   };
+  themeOptions: ThemeOptions;
 }) {
   const [copied, copyToClipboard] = useCopyToClipboard();
   const [selectedTab, setSelectedTab] = useState(tabs[0]);
 
   return (
-    <div className="bg-bg-default flex min-h-screen flex-col">
+    <div
+      style={
+        themeOptions.backgroundColor
+          ? { backgroundColor: themeOptions.backgroundColor }
+          : undefined
+      }
+      className="bg-bg-default flex min-h-screen flex-col"
+    >
       <div className="relative z-0 p-5">
         <div className="border-border-default relative flex flex-col overflow-hidden rounded-lg border p-4 md:p-6">
           <HeroBackground logo={program.logo} color={program.brandColor} />
