@@ -83,6 +83,7 @@ export default async function LinkMiddleware(
     });
 
     if (!linkData) {
+      // special case for buff.ly
       if (domain === "buff.ly") {
         return NextResponse.rewrite(
           new URL(
@@ -118,7 +119,7 @@ export default async function LinkMiddleware(
 
     // format link to fit the RedisLinkProps interface
     cachedLink = formatRedisLink(linkData as any);
-
+    // cache in Redis
     ev.waitUntil(linkCache.set(linkData as any));
   }
 
@@ -166,7 +167,7 @@ export default async function LinkMiddleware(
     // - no `pw` param is provided
     // - the `pw` param is incorrect
     // this will also ensure that no clicks are tracked unless the password is correct
-    if (!pw || (await getLinkViaEdge({ domain, key })).password !== pw) {
+    if (!pw || (await getLinkViaEdge({ domain, key }))?.password !== pw) {
       return NextResponse.rewrite(new URL(`/password/${linkId}`, req.url), {
         headers: {
           ...DUB_HEADERS,

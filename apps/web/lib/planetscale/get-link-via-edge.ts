@@ -1,6 +1,6 @@
 import { punyEncode } from "@dub/utils";
 import {
-  decodeLinkIfCaseSensitive,
+  decodeKeyIfCaseSensitive,
   encodeKey,
   isCaseSensitiveDomain,
 } from "../api/case-sensitive-short-links";
@@ -14,7 +14,8 @@ export const getLinkViaEdge = async ({
   domain: string;
   key: string;
 }) => {
-  const keyToQuery = isCaseSensitiveDomain(domain)
+  const isCaseSensitive = isCaseSensitiveDomain(domain);
+  const keyToQuery = isCaseSensitive
     ? // for case sensitive domains, we need to encode the key
       encodeKey(key)
     : // for non-case sensitive domains, we need to make sure that the key is always URI-decoded + punycode-encoded
@@ -32,5 +33,7 @@ export const getLinkViaEdge = async ({
       ? (rows[0] as EdgeLinkProps)
       : null;
 
-  return link ? decodeLinkIfCaseSensitive(link) : null;
+  return link
+    ? { ...link, key: decodeKeyIfCaseSensitive({ domain, key }) }
+    : null;
 };
