@@ -25,11 +25,6 @@ import { Readable } from "stream";
 import { z } from "zod";
 import { sendCsvImportEmails } from "./utils";
 
-// TODO
-// Send email after import is complete
-// Make sure we handle all edge cases
-// Add error handling
-
 export const dynamic = "force-dynamic";
 
 const payloadSchema = z.object({
@@ -39,15 +34,6 @@ const payloadSchema = z.object({
   folderId: z.string().nullable(),
   url: z.string(),
   mapping: linkMappingSchema,
-});
-
-const importDataSchema = z.object({
-  cursor: z.coerce.number().default(0),
-  domains: z.array(z.string()).default([]),
-  failedLinks: z.array(z.string()).default([]),
-  failedCount: z.coerce.number().default(0),
-  filesize: z.coerce.number().default(0),
-  tagsCache: z.array(z.string()).default([]),
 });
 
 interface MapperResult {
@@ -64,7 +50,13 @@ interface MapperResult {
   };
 }
 
-const MAX_ROWS_PER_EXECUTION = 25;
+interface ErrorLink {
+  domain: string;
+  key: string;
+  error: string;
+}
+
+const MAX_ROWS_PER_EXECUTION = 25; // Number of rows to process per execution
 
 export async function POST(req: Request) {
   try {
@@ -84,15 +76,9 @@ export async function POST(req: Request) {
     }
 
     const redisKey = `import:csv:${workspaceId}:${id}`;
-    const importData = (await redis.hgetall(redisKey)) || {};
-    let { cursor } = importDataSchema.parse(importData);
-
-    if (cursor === 0) {
-      await redis.del(redisKey);
-    }
+    const cursor = parseInt((await redis.get(`${redisKey}:cursor`)) || "0");
 
     const response = await storage.fetch(url);
-
     if (!response || !response.body) {
       throw new Error("CSV import file not found.");
     }
@@ -130,9 +116,7 @@ export async function POST(req: Request) {
 
           currentRow++;
 
-          await redis.hset(redisKey, {
-            cursor: currentRow,
-          });
+          await redis.set(`${redisKey}:cursor`, currentRow);
 
           parser.resume();
         },
@@ -145,7 +129,6 @@ export async function POST(req: Request) {
     });
 
     console.log({
-      rowsProcessed: currentRow - cursor,
       isComplete,
     });
 
@@ -156,13 +139,40 @@ export async function POST(req: Request) {
         body: payload,
       });
     } else {
-      await redis.del(redisKey);
+      const errorLinks = await redis.lrange<ErrorLink>(
+        `${redisKey}:failed`,
+        0,
+        -1,
+      );
+
+      const createdCount = parseInt(
+        (await redis.get(`${redisKey}:created`)) || "0",
+      );
+
+      const domains = await redis.smembers(`${redisKey}:domains`);
 
       await sendCsvImportEmails({
         workspaceId,
-        count: 100, // should be total rows processed
-        domains: [], // should be domains imported
-        errorLinks: [], // should be error links
+        count: createdCount,
+        domains,
+        errorLinks,
+      });
+
+      const results = await Promise.allSettled([
+        redis.del(`${redisKey}:cursor`),
+        redis.del(`${redisKey}:created`),
+        redis.del(`${redisKey}:failed`),
+        redis.del(`${redisKey}:domains`),
+        storage.delete(url),
+      ]);
+
+      results.forEach((result, idx) => {
+        if (result.status === "rejected") {
+          console.error(
+            `Error clearing CSV import data (${idx})`,
+            result.reason,
+          );
+        }
       });
     }
 
@@ -398,6 +408,10 @@ const processMappedLinks = async ({
     ]);
   }
 
+  if (selectedDomains.length > 0) {
+    await redis.sadd(`${redisKey}:domains`, ...selectedDomains);
+  }
+
   //// Process the links ////
   const linksToCreate = successfulMappings.map((result) => result.data);
 
@@ -447,9 +461,11 @@ const processMappedLinks = async ({
     await bulkCreateLinks({
       links: validLinks as ProcessedLinkProps[],
     });
+
+    await redis.incrby(`${redisKey}:created`, validLinks.length);
   }
 
   if (errorLinks.length > 0) {
-    //
+    await redis.rpush(`${redisKey}:failed`, ...errorLinks);
   }
 };
