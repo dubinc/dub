@@ -63,6 +63,7 @@ export const POST = withWorkspace(
           .slice(index + 1)
           .some((l) => l.domain === link.domain && l.key === link.key),
     );
+
     if (duplicates.length > 0) {
       throw new DubApiError({
         code: "bad_request",
@@ -120,17 +121,21 @@ export const POST = withWorkspace(
           name: true,
         },
       });
+
       const workspaceTagIds = workspaceTags.map(({ id }) => id);
       const workspaceTagNames = workspaceTags.map(({ name }) => name);
+
       validLinks.forEach((link, index) => {
         const combinedTagIds =
           combineTagIds({
             tagId: link.tagId,
             tagIds: link.tagIds,
           }) ?? [];
+
         const invalidTagIds = combinedTagIds.filter(
           (id) => !workspaceTagIds.includes(id),
         );
+
         if (invalidTagIds.length > 0) {
           // remove link from validLinks and add error to errorLinks
           validLinks = validLinks.filter((_, i) => i !== index);
@@ -144,6 +149,7 @@ export const POST = withWorkspace(
         const invalidTagNames = link.tagNames?.filter(
           (name) => !workspaceTagNames.includes(name),
         );
+
         if (invalidTagNames?.length) {
           validLinks = validLinks.filter((_, i) => i !== index);
           errorLinks.push({
