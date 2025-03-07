@@ -1,8 +1,7 @@
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
-import { sendPartnerSaleNotification } from "@/lib/api/partners/partner-sale-notification";
-import { sendProgramOwnerSaleNotification } from "@/lib/api/partners/program-owner-sale-notification";
+import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -226,7 +225,7 @@ export const POST = withWorkspace(
                 },
               });
 
-              await prisma.commission.create({
+              const commission = await prisma.commission.create({
                 data: {
                   id: createId({ prefix: "cm_" }),
                   programId: link.programId,
@@ -242,35 +241,12 @@ export const POST = withWorkspace(
                 },
               });
 
-              const program = await prisma.program.findUniqueOrThrow({
-                where: {
-                  id: link.programId!,
-                },
-                select: {
-                  id: true,
-                  name: true,
-                  logo: true,
-                  holdingPeriodDays: true,
-                },
-              });
-
-              const emailData = {
-                program,
-                partner: {
-                  id: link.partnerId!,
-                  referralLink: link.shortLink,
-                },
-                sale: {
-                  amount: saleData.amount,
-                  earnings,
-                },
-              };
-
-              await sendPartnerSaleNotification(emailData);
-              await sendProgramOwnerSaleNotification({
-                ...emailData,
-                workspace,
-              });
+              waitUntil(
+                notifyPartnerSale({
+                  link,
+                  commission,
+                }),
+              );
             }
           }
         }
