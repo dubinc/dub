@@ -19,7 +19,7 @@ model Partner {
   country           String?
   status            PartnerStatus @default(default)
   stripeConnectId   String?       @unique
-  payoutsEnabled    Boolean       @default(false)
+  payoutsEnabledAt  DateTime?
   showOnLeaderboard Boolean       @default(true)
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
@@ -46,6 +46,9 @@ model Partner {
   
   twitter           String?
   twitterVerifiedAt DateTime?
+
+  // TODO: Remove after fully payoutsEnabledAt is implemented + backfilled
+  payoutsEnabled Boolean @default(false) /// @deprecated Use payoutsEnabledAt instead
 }
 
 model PartnerUser {

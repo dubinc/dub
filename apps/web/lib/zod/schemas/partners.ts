@@ -56,7 +56,7 @@ export const PartnerSchema = z.object({
   country: z.string().nullable(),
   status: z.nativeEnum(PartnerStatus),
   stripeConnectId: z.string().nullable(),
-  payoutsEnabled: z.boolean(),
+  payoutsEnabledAt: z.date().nullable(),
 
   website: z.string().nullable(),
   websiteTxtRecord: z.string().nullable(),
@@ -82,7 +82,7 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
   image: true,
   description: true,
   country: true,
-  payoutsEnabled: true,
+  payoutsEnabledAt: true,
   createdAt: true,
 })
   .merge(
