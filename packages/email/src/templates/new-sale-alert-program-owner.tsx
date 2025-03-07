@@ -28,13 +28,11 @@ export function NewSaleAlertProgramOwner({
   },
   partner = {
     id: "pn_OfewI1Faaf5pV8QH3mha8L7S",
-    name: "Steven",
     referralLink: "https://refer.dub.co/steven",
   },
   sale = {
     amount: 1330,
     earnings: 399,
-    commissionRate: 30,
   },
 }: {
   email: string;
@@ -50,13 +48,11 @@ export function NewSaleAlertProgramOwner({
   };
   partner: {
     id: string;
-    name: string;
     referralLink: string;
   };
   sale: {
     amount: number;
     earnings: number;
-    commissionRate: number;
   };
 }) {
   const linkToProgram = `https://app.dub.co/${workspace.slug}/programs/${program.id}/sales?partnerId=${partner.id}`;
@@ -113,7 +109,7 @@ export function NewSaleAlertProgramOwner({
 
             <Text className="text-sm leading-6 text-neutral-600">
               You received a payment from a customer referred by{" "}
-              <strong>{partner.name || partner.referralLink}</strong>.
+              <strong>{partner.referralLink}</strong>.
             </Text>
 
             <Section className="my-4">

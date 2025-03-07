@@ -311,6 +311,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
               id: true,
               name: true,
               logo: true,
+              holdingPeriodDays: true,
             },
           });
 
@@ -327,7 +328,10 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
           };
 
           await sendPartnerSaleNotification(emailData);
-          await sendProgramOwnerSaleNotification(emailData);
+          await sendProgramOwnerSaleNotification({
+            ...emailData,
+            workspace,
+          });
         })(),
       );
     }

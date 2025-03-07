@@ -250,6 +250,7 @@ export const POST = withWorkspace(
                   id: true,
                   name: true,
                   logo: true,
+                  holdingPeriodDays: true,
                 },
               });
 
@@ -266,7 +267,10 @@ export const POST = withWorkspace(
               };
 
               await sendPartnerSaleNotification(emailData);
-              await sendProgramOwnerSaleNotification(emailData);
+              await sendProgramOwnerSaleNotification({
+                ...emailData,
+                workspace,
+              });
             }
           }
         }

@@ -166,6 +166,7 @@ export async function createShopifySale({
               id: true,
               name: true,
               logo: true,
+              holdingPeriodDays: true,
             },
           });
 
@@ -182,7 +183,10 @@ export async function createShopifySale({
           };
 
           await sendPartnerSaleNotification(emailData);
-          await sendProgramOwnerSaleNotification(emailData);
+          await sendProgramOwnerSaleNotification({
+            ...emailData,
+            workspace,
+          });
         })(),
       );
     }

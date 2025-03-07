@@ -4,27 +4,34 @@ import { NewSaleAlertProgramOwner } from "@dub/email/templates/new-sale-alert-pr
 import { prismaEdge } from "@dub/prisma/edge";
 
 export async function sendProgramOwnerSaleNotification({
-  partner,
+  workspace,
   program,
+  partner,
   sale,
 }: {
-  partner: {
+  workspace: {
     id: string;
-    referralLink: string;
+    name: string;
+    slug: string;
   };
   program: {
     id: string;
     name: string;
     logo: string | null;
+    holdingPeriodDays: number;
+  };
+  partner: {
+    id: string;
+    referralLink: string;
   };
   sale: {
     amount: number;
     earnings: number;
   };
 }) {
-  const partnerUsers = await prismaEdge.partnerUser.findMany({
+  const workspaceUsers = await prismaEdge.projectUsers.findMany({
     where: {
-      partnerId: partner.id,
+      projectId: workspace.id,
     },
     include: {
       user: {
@@ -36,7 +43,7 @@ export async function sendProgramOwnerSaleNotification({
   });
 
   return await Promise.all(
-    partnerUsers.map(({ user }) =>
+    workspaceUsers.map(({ user }) =>
       limiter.schedule(() =>
         sendEmailViaResend({
           subject: "You just made a sale via Dub Partners!",
@@ -44,6 +51,7 @@ export async function sendProgramOwnerSaleNotification({
           email: user.email!,
           react: NewSaleAlertProgramOwner({
             email: user.email!,
+            workspace,
             program,
             partner,
             sale,
