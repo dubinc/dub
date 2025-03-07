@@ -4,15 +4,17 @@ import "dotenv-flow/config";
 import { linkCache } from "../../lib/api/links/cache";
 import { encodeKeyIfCaseSensitive } from "../../lib/api/links/case-sensitivity";
 
-const domain = "dub-internal-test.com";
+const domain = "buff.ly";
+const oldFolderId = "fold_LIZsdjTgFVbQVGYSUmYAi5vT";
+const newFolderId = "fold_1JNQBVZV8P0NA0YGB11W2HHSQ";
 
 async function main() {
   const links = await prisma.link.findMany({
     where: {
+      folderId: oldFolderId,
       domain,
-      // TODO:
-      // Fetch the links created using the Dub API
     },
+    take: 500,
   });
 
   if (!links.length) {
@@ -38,6 +40,7 @@ async function main() {
       data: {
         key: newKey,
         shortLink: newShortLink,
+        folderId: newFolderId,
       },
     });
 
