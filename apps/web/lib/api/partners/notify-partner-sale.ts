@@ -36,23 +36,6 @@ export async function notifyPartnerSale({
     },
   });
 
-  const data = {
-    program: {
-      id: program.id,
-      name: program.name,
-      logo: program.logo,
-      holdingPeriodDays: program.holdingPeriodDays,
-    },
-    partner: {
-      id: link.partnerId,
-      referralLink: link.shortLink,
-    },
-    sale: {
-      amount: commission.amount,
-      earnings: commission.earnings,
-    },
-  };
-
   const workspace = program.workspace;
 
   let [partnerUsers, workspaceUsers] = await Promise.all([
@@ -63,6 +46,13 @@ export async function notifyPartnerSale({
       include: {
         user: {
           select: {
+            email: true,
+          },
+        },
+        partner: {
+          select: {
+            id: true,
+            name: true,
             email: true,
           },
         },
@@ -82,6 +72,35 @@ export async function notifyPartnerSale({
       },
     }),
   ]);
+
+  const partner = partnerUsers.find(
+    ({ partner }) => partner.id === link.partnerId,
+  );
+
+  if (!partner) {
+    return;
+  }
+
+  const { partner: partnerProfile } = partner;
+
+  const data = {
+    program: {
+      id: program.id,
+      name: program.name,
+      logo: program.logo,
+      holdingPeriodDays: program.holdingPeriodDays,
+    },
+    partner: {
+      id: link.partnerId,
+      referralLink: link.shortLink,
+      name: partnerProfile.name,
+      email: partnerProfile.email,
+    },
+    sale: {
+      amount: commission.amount,
+      earnings: commission.earnings,
+    },
+  };
 
   await Promise.all([
     ...partnerUsers.map(({ user }) =>

@@ -30,7 +30,8 @@ export function NewSaleAlertProgramOwner({
   },
   partner = {
     id: "pn_OfewI1Faaf5pV8QH3mha8L7S",
-    referralLink: "https://refer.dub.co/steven",
+    name: "Steven",
+    email: "steven@dub.co",
   },
   sale = {
     amount: 1330,
@@ -50,7 +51,8 @@ export function NewSaleAlertProgramOwner({
   };
   partner: {
     id: string;
-    referralLink: string;
+    name: string | null;
+    email: string | null;
   };
   sale: {
     amount: number;
@@ -111,7 +113,7 @@ export function NewSaleAlertProgramOwner({
 
             <Text className="text-sm leading-6 text-neutral-600">
               You received a payment from a customer referred by{" "}
-              <strong>{partner.referralLink}</strong>.
+              <strong>{partner.name || partner.email}</strong>.
             </Text>
 
             <Section className="my-8 w-full">
