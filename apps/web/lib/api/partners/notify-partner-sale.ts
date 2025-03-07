@@ -66,6 +66,7 @@ export async function notifyPartnerSale({
       include: {
         user: {
           select: {
+            name: true,
             email: true,
           },
         },
@@ -120,12 +121,15 @@ export async function notifyPartnerSale({
     ...workspaceUsers.map(({ user }) =>
       limiter.schedule(() =>
         sendEmailViaResend({
-          subject: "You just made a sale via Dub Partners!",
+          subject: `New commission for ${partnerProfile.name}`,
           from: "Dub Partners <system@dub.co>",
           email: user.email!,
           react: NewSaleAlertProgramOwner({
-            email: user.email!,
             ...data,
+            user: {
+              name: user.name,
+              email: user.email!,
+            },
             workspace,
           }),
         }),

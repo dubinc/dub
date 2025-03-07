@@ -1,4 +1,4 @@
-import { currencyFormatter, DUB_WORDMARK } from "@dub/utils";
+import { capitalize, currencyFormatter, DUB_WORDMARK } from "@dub/utils";
 import {
   Body,
   Column,
@@ -17,7 +17,10 @@ import {
 import { Footer } from "../components/footer";
 
 export function NewSaleAlertProgramOwner({
-  email = "panic@thedis.co",
+  user = {
+    name: "Brendan Urie",
+    email: "panic@thedis.co",
+  },
   workspace = {
     name: "Acme",
     slug: "acme",
@@ -38,7 +41,10 @@ export function NewSaleAlertProgramOwner({
     earnings: 399,
   },
 }: {
-  email: string;
+  user: {
+    name?: string | null;
+    email: string;
+  };
   workspace: {
     name: string;
     slug: string;
@@ -92,6 +98,10 @@ export function NewSaleAlertProgramOwner({
     });
   }
 
+  const finalName = user.name
+    ? user.name.split(" ")[0]
+    : capitalize(user.email.split("@")[0]);
+
   return (
     <Html>
       <Head />
@@ -108,7 +118,7 @@ export function NewSaleAlertProgramOwner({
             </Section>
 
             <Heading className="mx-0 my-6 p-0 text-lg font-medium text-black">
-              Hi {email.split("@")[0]},
+              Hi {finalName},
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
@@ -168,7 +178,7 @@ export function NewSaleAlertProgramOwner({
 
             {formattedDueDate && (
               <Text className="text-sm leading-6 text-neutral-600">
-                Payment for this commission is not due until{" "}
+                Payment for this commission will be due on{" "}
                 <strong>{formattedDueDate}</strong>, based on your campaign
                 settings.
               </Text>
@@ -184,7 +194,7 @@ export function NewSaleAlertProgramOwner({
 
             <Text className="text-sm leading-6 text-neutral-600">Thanks!</Text>
 
-            <Footer email={email} />
+            <Footer email={user.email} />
           </Container>
         </Body>
       </Tailwind>
