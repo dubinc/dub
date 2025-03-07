@@ -12,10 +12,6 @@ import { z } from "zod";
 
 export const dynamic = "force-dynamic";
 
-// TODO:
-// folderId can be optional
-// proper type to mapping
-
 const payloadSchema = z.object({
   id: z.string(),
   workspaceId: z.string(),
@@ -26,7 +22,7 @@ const payloadSchema = z.object({
 });
 
 const importDataSchema = z.object({
-  cursor: z.number().default(0),
+  cursor: z.coerce.number().default(0),
   domains: z.array(z.string()).default([]),
   domainsList: z.array(z.string()).default([]),
   failedLinks: z.array(z.string()).default([]),
@@ -35,9 +31,7 @@ const importDataSchema = z.object({
   tagsCache: z.array(z.string()).default([]),
 });
 
-const MAX_ROWS_PER_EXECUTION = 5;
-
-type MapperResult = {
+interface MapperResult {
   success: boolean;
   error?: string;
   data?: {
@@ -49,7 +43,9 @@ type MapperResult = {
     tags?: string[];
     createdAt?: Date;
   };
-};
+}
+
+const MAX_ROWS_PER_EXECUTION = 5;
 
 export async function POST(req: Request) {
   try {
@@ -71,7 +67,7 @@ export async function POST(req: Request) {
     }
 
     const redisKey = `import:csv:${workspaceId}:${id}`;
-    const importData = (await redis.get(redisKey)) || {};
+    const importData = (await redis.hgetall(redisKey)) || {};
 
     const {
       cursor,
@@ -94,7 +90,14 @@ export async function POST(req: Request) {
     });
 
     if (cursor === 0) {
-      await redis.del(redisKey);
+      await redis.hset(redisKey, {
+        cursor: 0,
+        failedCount: 0,
+        failedLinks: JSON.stringify([]),
+        domains: JSON.stringify([]),
+        domainsList: JSON.stringify([]),
+        tagsCache: JSON.stringify([]),
+      });
     }
 
     const response = await storage.fetch(url);
@@ -108,6 +111,9 @@ export async function POST(req: Request) {
         id: workspaceId,
       },
     });
+
+    let processedRows = 0;
+    let shouldContinue = true;
 
     await new Promise((resolve, reject) => {
       Papa.parse(Readable.fromWeb(response.body as any), {
@@ -124,6 +130,11 @@ export async function POST(req: Request) {
           },
           parser,
         ) => {
+          if (!shouldContinue) {
+            parser.abort();
+            return;
+          }
+
           parser.pause();
 
           const { data } = chunk;
@@ -134,7 +145,14 @@ export async function POST(req: Request) {
             return;
           }
 
-          const mappedLinks = data.map((row) => mapCsvRowToLink(row, mapping));
+          // calculate how many rows we can process in this chunk
+          const remainingQuota = MAX_ROWS_PER_EXECUTION - processedRows;
+          const rowsToProcess = Math.min(data.length, remainingQuota);
+          const currentChunkData = data.slice(0, rowsToProcess);
+
+          const mappedLinks = currentChunkData.map((row) =>
+            mapCsvRowToLink(row, mapping),
+          );
 
           const successfulLinks = mappedLinks.filter(
             (
@@ -151,24 +169,57 @@ export async function POST(req: Request) {
           );
 
           if (failedLinks.length > 0) {
+            const existingFailedLinks = JSON.parse(
+              (await redis.hget(redisKey, "failedLinks")) || "[]",
+            );
+
             await redis.hset(redisKey, {
-              failedCount: failedCount + failedLinks.length,
-              failedLinks: [
-                ...failedLinks,
+              failedCount:
+                parseInt((await redis.hget(redisKey, "failedCount")) || "0") +
+                failedLinks.length,
+              failedLinks: JSON.stringify([
+                ...existingFailedLinks,
                 ...failedLinks.map((f) => JSON.stringify(f)),
-              ],
+              ]),
             });
           }
 
-          // console.log("Successful links:", successfulLinks.length);
-          // console.log("Failed links:", failedLinks.length);
+          processedRows += currentChunkData.length;
+          const newCursor = cursor + currentChunkData.length;
+
+          console.log("newCursor", {
+            newCursor,
+            processedRows,
+            remainingQuota,
+            rowsToProcess,
+            currentChunkData,
+            mappedLinks,
+            successfulLinks,
+          });
+
+          await redis.hset(redisKey, {
+            cursor: newCursor,
+          });
+
+          if (processedRows >= MAX_ROWS_PER_EXECUTION) {
+            shouldContinue = false;
+            parser.abort();
+            return;
+          }
 
           parser.resume();
         },
       });
     });
 
-    return NextResponse.json("OK");
+    const finalCursor = parseInt((await redis.hget(redisKey, "cursor")) || "0");
+
+    return NextResponse.json({
+      success: true,
+      processedRows,
+      cursor: finalCursor,
+      hasMore: shouldContinue,
+    });
   } catch (error) {
     await log({
       message: `Error importing CSV links: ${error.message}`,
@@ -179,7 +230,7 @@ export async function POST(req: Request) {
   }
 }
 
-// Map CSV rows to link objects
+// Map CSV row to link object
 const mapCsvRowToLink = (
   row: Record<string, string>,
   mapping: z.infer<typeof linkMappingSchema>,
