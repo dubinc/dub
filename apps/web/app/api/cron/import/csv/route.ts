@@ -15,6 +15,7 @@ import {
   APP_DOMAIN_WITH_NGROK,
   DEFAULT_LINK_PROPS,
   DUB_DOMAINS_ARRAY,
+  linkConstructorSimple,
   log,
   normalizeString,
   parseDateTime,
@@ -150,6 +151,12 @@ export async function POST(req: Request) {
       );
 
       const domains = await redis.smembers(`${redisKey}:domains`);
+
+      console.log({
+        domains,
+        createdCount,
+        errorLinks,
+      });
 
       await sendCsvImportEmails({
         workspaceId,
@@ -308,21 +315,9 @@ const processMappedLinks = async ({
       !result.success && !!result.error,
   );
 
-  if (failedMappings.length > 0) {
-    const existingFailedLinks = JSON.parse(
-      (await redis.hget(redisKey, "failedLinks")) || "[]",
-    );
-
-    await redis.hset(redisKey, {
-      failedCount:
-        parseInt((await redis.hget(redisKey, "failedCount")) || "0") +
-        failedMappings.length,
-      failedLinks: JSON.stringify([
-        ...existingFailedLinks,
-        ...failedMappings.map((f) => JSON.stringify(f)),
-      ]),
-    });
-  }
+  console.log({
+    failedMappings,
+  });
 
   const successfulMappings = mappedLinks.filter(
     (
@@ -413,7 +408,28 @@ const processMappedLinks = async ({
   }
 
   //// Process the links ////
-  const linksToCreate = successfulMappings.map((result) => result.data);
+  let linksToCreate = successfulMappings.map((result) => result.data);
+
+  const existingLinks = await prisma.link.findMany({
+    where: {
+      projectId: workspaceId,
+      shortLink: {
+        in: linksToCreate.map((link) => linkConstructorSimple(link)),
+      },
+    },
+    select: {
+      shortLink: true,
+    },
+  });
+
+  console.log({
+    existingLinks,
+  });
+
+  linksToCreate = linksToCreate.filter(
+    (link) =>
+      !existingLinks.some((l) => l.shortLink === linkConstructorSimple(link)),
+  );
 
   const workspace = await prisma.project.findUniqueOrThrow({
     where: {
