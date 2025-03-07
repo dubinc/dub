@@ -54,9 +54,7 @@ export async function getLinksForWorkspace({
 
         search = search.replace(key, encodedKey);
       }
-    } catch (e) {
-      //
-    }
+    } catch (e) {}
   }
 
   const links = await prisma.link.findMany({
