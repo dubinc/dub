@@ -303,6 +303,13 @@ export const updatePartnerSaleSchema = z
         "Modify the current sale amount: use positive values to increase the amount, negative values to decrease it.",
       )
       .optional(),
+    currency: z
+      .string()
+      .default("usd")
+      .transform((val) => val.toLowerCase())
+      .describe(
+        "The currency of the sale amount to update. Accepts ISO 4217 currency codes.",
+      ),
   })
   .refine(
     (data) => data.amount !== undefined || data.modifyAmount !== undefined,
