@@ -1,4 +1,5 @@
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import { linkConstructorSimple } from "@dub/utils";
 import "dotenv-flow/config";
 import { linkCache } from "../../lib/api/links/cache";
@@ -10,15 +11,17 @@ const oldFolderId = "fold_LIZsdjTgFVbQVGYSUmYAi5vT";
 const newFolderId = "fold_1JNQBVZV8P0NA0YGB11W2HHSQ";
 
 async function main() {
-  const links = await prisma.link.findMany({
-    where: {
-      userId,
-      domain,
-      folderId: oldFolderId,
-      createdAt: {
-        lte: new Date("2025-03-07T16:33:32.084Z"),
-      },
+  const where: Prisma.LinkWhereInput = {
+    userId,
+    domain,
+    folderId: oldFolderId,
+    createdAt: {
+      lte: new Date("2025-03-07T16:33:32.084Z"),
     },
+  };
+
+  const links = await prisma.link.findMany({
+    where,
     select: {
       id: true,
       domain: true,
@@ -35,6 +38,14 @@ async function main() {
     console.log("No more links to migrate.");
     return;
   }
+
+  const remainingLinks = await prisma.link.count({
+    where,
+  });
+
+  console.log(
+    `Remaining links to migrate after this batch: ${remainingLinks - 100}`,
+  );
 
   await Promise.allSettled(
     links.map(async (link) => {
