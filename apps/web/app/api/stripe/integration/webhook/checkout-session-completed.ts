@@ -284,7 +284,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         },
       });
 
-      await prisma.commission.create({
+      const commission = await prisma.commission.create({
         data: {
           id: createId({ prefix: "cm_" }),
           linkId: link.id,
@@ -301,30 +301,10 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       });
 
       waitUntil(
-        (async () => {
-          const program = await prisma.program.findUniqueOrThrow({
-            where: {
-              id: link.programId!,
-            },
-            select: {
-              id: true,
-              name: true,
-              logo: true,
-            },
-          });
-
-          await notifyPartnerSale({
-            program,
-            partner: {
-              id: link.partnerId!,
-              referralLink: link.shortLink,
-            },
-            sale: {
-              amount: saleData.amount,
-              earnings,
-            },
-          });
-        })(),
+        notifyPartnerSale({
+          link,
+          commission,
+        }),
       );
     }
   }

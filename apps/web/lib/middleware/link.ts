@@ -94,7 +94,7 @@ export default async function LinkMiddleware(
         });
 
         if (!linkData) {
-          return NextResponse.redirect(
+          return NextResponse.rewrite(
             new URL(`/api/links/crawl/bitly/${domain}/${key}`, req.url),
           );
         }
