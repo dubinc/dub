@@ -4,6 +4,7 @@ import { getParamsFromURL, linkConstructorSimple, truncate } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { createId } from "../create-id";
 import { combineTagIds } from "../tags/combine-tag-ids";
+import { encodeKeyIfCaseSensitive } from "./case-sensitivity";
 import { includeTags } from "./include-tags";
 import { propagateBulkLinkChanges } from "./propagate-bulk-link-changes";
 import { updateLinksUsage } from "./update-links-usage";
@@ -27,13 +28,20 @@ export async function bulkCreateLinks({
 
   // Create a map of shortLinks to their original indices at the start
   const shortLinkToIndexMap = new Map(
-    links.map((link, index) => [
-      linkConstructorSimple({
+    links.map((link, index) => {
+      const key = encodeKeyIfCaseSensitive({
         domain: link.domain,
         key: link.key,
-      }),
-      index,
-    ]),
+      });
+
+      return [
+        linkConstructorSimple({
+          domain: link.domain,
+          key,
+        }),
+        index,
+      ];
+    }),
   );
 
   // Create all links first using createMany
@@ -41,6 +49,11 @@ export async function bulkCreateLinks({
     data: links.map(({ tagId, tagIds, tagNames, webhookIds, ...link }) => {
       const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
         getParamsFromURL(link.url);
+
+      link.key = encodeKeyIfCaseSensitive({
+        domain: link.domain,
+        key: link.key,
+      });
 
       return {
         ...link,
@@ -216,5 +229,5 @@ export async function bulkCreateLinks({
     return aIndex - bIndex;
   });
 
-  return createdLinksData.map(transformLink);
+  return createdLinksData.map((link) => transformLink(link));
 }

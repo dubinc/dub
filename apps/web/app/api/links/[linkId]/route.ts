@@ -49,12 +49,15 @@ export const GET = withWorkspace(
       },
     });
 
-    const response = transformLink({
-      ...link,
-      tags: tags.map((tag) => {
-        return { tag };
-      }),
-    });
+    const response = transformLink(
+      {
+        ...link,
+        tags: tags.map((tag) => {
+          return { tag };
+        }),
+      },
+      { skipDecodeKey: true },
+    );
 
     return NextResponse.json(response, { headers });
   },

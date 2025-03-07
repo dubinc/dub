@@ -1,4 +1,5 @@
 import { Dashboard, Link, Tag } from "@dub/prisma/client";
+import { decodeLinkIfCaseSensitive } from "../case-sensitivity";
 
 // used in API (e.g. transformLink)
 // TODO: standardize this with ExpandedLinkProps
@@ -9,9 +10,16 @@ export type ExpandedLink = Link & {
 };
 
 // Transform link with additional properties
-export const transformLink = (link: ExpandedLink) => {
+export const transformLink = (
+  link: ExpandedLink,
+  { skipDecodeKey = false }: { skipDecodeKey?: boolean } = {},
+) => {
   const tags = (link.tags || []).map(({ tag }) => tag);
   const webhookIds = link.webhooks?.map(({ webhookId }) => webhookId) ?? [];
+
+  if (!skipDecodeKey) {
+    link = decodeLinkIfCaseSensitive(link);
+  }
 
   // remove webhooks array, dashboard from link
   const { webhooks, dashboard, ...rest } = link;
