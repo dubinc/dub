@@ -24,11 +24,12 @@ import { z } from "zod";
 
 export function OnboardingForm({
   partner,
+  lockName,
 }: {
-  partner?: Pick<
-    Partner,
-    "name" | "email" | "description" | "country" | "image"
+  partner?: Partial<
+    Pick<Partner, "name" | "description" | "country" | "image">
   > | null;
+  lockName?: boolean;
 }) {
   const router = useRouter();
   const { data: session } = useSession();
@@ -45,30 +46,24 @@ export function OnboardingForm({
   } = useForm<z.infer<typeof onboardPartnerSchema>>({
     defaultValues: {
       name: partner?.name ?? undefined,
-      email: partner?.email ?? undefined,
       description: partner?.description ?? undefined,
       country: partner?.country ?? undefined,
       image: partner?.image ?? undefined,
     },
   });
 
-  const { name, email, image } = watch();
+  const { name, image } = watch();
 
   useEffect(() => {
     if (session?.user) {
       !name && setValue("name", session.user.name ?? "");
-      !email && setValue("email", session.user.email ?? "");
       !image && setValue("image", session.user.image ?? "");
     }
-  }, [session?.user, name, email, image]);
+  }, [session?.user, name, image]);
 
   const { executeAsync, isPending } = useAction(onboardPartnerAction, {
     onSuccess: () => {
-      if (watch("country") === "US") {
-        router.push("/onboarding/verify");
-      } else {
-        router.push("/programs");
-      }
+      router.push("/onboarding/online-presence");
     },
     onError: ({ error, input }) => {
       toast.error(error.serverError);
@@ -86,19 +81,17 @@ export function OnboardingForm({
       className="flex w-full flex-col gap-4 text-left"
     >
       <label>
-        <span className="text-sm font-medium text-neutral-800">
-          Full Name
-          <span className="font-normal text-neutral-500"> (required)</span>
-        </span>
+        <span className="text-sm font-medium text-neutral-800">Full Name</span>
         <input
           type="text"
           className={cn(
-            "mt-2 block w-full rounded-md focus:outline-none sm:text-sm",
+            "mt-2 block w-full rounded-md read-only:bg-neutral-100 read-only:text-neutral-500 focus:outline-none sm:text-sm",
             errors.name
               ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
               : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
           )}
-          autoFocus={!isMobile}
+          readOnly={!errors.name && lockName}
+          autoFocus={!isMobile && !errors.name && !lockName}
           {...register("name", {
             required: true,
           })}
@@ -107,28 +100,7 @@ export function OnboardingForm({
 
       <label>
         <span className="text-sm font-medium text-neutral-800">
-          Email
-          <span className="font-normal text-neutral-500"> (required)</span>
-        </span>
-        <input
-          type="text"
-          disabled
-          className={cn(
-            "mt-2 block w-full rounded-md focus:outline-none disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-500 sm:text-sm",
-            errors.email
-              ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-              : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
-          )}
-          {...register("email", {
-            required: true,
-          })}
-        />
-      </label>
-
-      <label>
-        <span className="text-sm font-medium text-neutral-800">
-          Display Image
-          <span className="font-normal text-neutral-500"> (required)</span>
+          Profile Image
         </span>
         <div className="flex items-center gap-5">
           <Controller
@@ -139,10 +111,10 @@ export function OnboardingForm({
               <FileUpload
                 accept="images"
                 className={cn(
-                  "mt-2 size-20 rounded-md border border-neutral-300",
+                  "mt-2 size-20 rounded-full border border-neutral-300",
                   errors.image && "border-0 ring-2 ring-red-500",
                 )}
-                iconClassName="w-5 h-5"
+                iconClassName="size-5"
                 previewClassName="size-10 rounded-full"
                 variant="plain"
                 imageSrc={field.value}
@@ -171,10 +143,7 @@ export function OnboardingForm({
       </label>
 
       <label>
-        <span className="text-sm font-medium text-neutral-800">
-          Country
-          <span className="font-normal text-neutral-500"> (required)</span>
-        </span>
+        <span className="text-sm font-medium text-neutral-800">Country</span>
         <Controller
           control={control}
           name="country"
@@ -196,6 +165,7 @@ export function OnboardingForm({
       <label>
         <span className="text-sm font-medium text-neutral-800">
           Description
+          <span className="font-normal text-neutral-500"> (optional)</span>
         </span>
         <ReactTextareaAutosize
           className={cn(

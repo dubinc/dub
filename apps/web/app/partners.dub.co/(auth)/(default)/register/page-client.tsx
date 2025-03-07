@@ -7,21 +7,34 @@ import {
 import { SignUpForm } from "@/ui/auth/register/signup-form";
 import { VerifyEmailForm } from "@/ui/auth/register/verify-email-form";
 import { truncate } from "@dub/utils";
+import { Program } from "@prisma/client";
 import Link from "next/link";
+import { PartnerBanner } from "../partner-banner";
 
-export default function RegisterPageClient() {
+type PartialProgram = Pick<Program, "name" | "logo">;
+
+export default function RegisterPageClient({
+  program,
+  email,
+  lockEmail,
+}: {
+  program?: PartialProgram;
+  email?: string;
+  lockEmail?: boolean;
+}) {
   return (
-    <RegisterProvider>
-      <div className="mx-auto my-10 w-full max-w-md md:mt-16 lg:mt-20">
-        <RegisterFlow />
+    <RegisterProvider email={email} lockEmail={lockEmail}>
+      <div className="mx-auto my-10 w-full max-w-[480px] md:mt-20 lg:mt-20">
+        <RegisterFlow program={program} />
       </div>
     </RegisterProvider>
   );
 }
 
-function SignUp() {
+function SignUp({ program }: { program?: PartialProgram }) {
   return (
     <>
+      {program && <PartnerBanner program={program} />}
       <div className="rounded-lg border border-neutral-200 bg-white p-8 pb-10">
         <h1 className="text-lg font-medium text-neutral-800">
           Create a Dub Partner account
@@ -75,9 +88,9 @@ function Verify() {
   );
 }
 
-const RegisterFlow = () => {
+const RegisterFlow = ({ program }: { program?: PartialProgram }) => {
   const { step } = useRegisterContext();
 
-  if (step === "signup") return <SignUp />;
+  if (step === "signup") return <SignUp program={program} />;
   if (step === "verify") return <Verify />;
 };
