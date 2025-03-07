@@ -1,7 +1,7 @@
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
-import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
+import { sendPartnerSaleNotification } from "@/lib/api/partners/partner-sale-notification";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -252,7 +252,7 @@ export const POST = withWorkspace(
                 },
               });
 
-              await notifyPartnerSale({
+              await sendPartnerSaleNotification({
                 program,
                 partner: {
                   id: link.partnerId!,

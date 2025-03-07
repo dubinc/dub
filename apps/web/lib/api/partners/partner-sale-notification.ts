@@ -3,7 +3,7 @@ import { sendEmailViaResend } from "@dub/email/resend";
 import { NewSaleCreated } from "@dub/email/templates/new-sale-created";
 import { prismaEdge } from "@dub/prisma/edge";
 
-export async function notifyPartnerSale({
+export async function sendPartnerSaleNotification({
   partner,
   program,
   sale,

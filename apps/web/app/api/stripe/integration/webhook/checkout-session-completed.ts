@@ -1,6 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { includeTags } from "@/lib/api/links/include-tags";
-import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
+import { sendPartnerSaleNotification } from "@/lib/api/partners/partner-sale-notification";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import {
@@ -313,7 +313,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
             },
           });
 
-          await notifyPartnerSale({
+          await sendPartnerSaleNotification({
             program,
             partner: {
               id: link.partnerId!,
