@@ -23,6 +23,12 @@ import { NextResponse } from "next/server";
 import Papa from "papaparse";
 import { Readable } from "stream";
 import { z } from "zod";
+import { sendCsvImportEmails } from "./utils";
+
+// TODO
+// Send email after import is complete
+// Make sure we handle all edge cases
+// Add error handling
 
 export const dynamic = "force-dynamic";
 
@@ -58,7 +64,7 @@ interface MapperResult {
   };
 }
 
-const MAX_ROWS_PER_EXECUTION = 5;
+const MAX_ROWS_PER_EXECUTION = 25;
 
 export async function POST(req: Request) {
   try {
@@ -71,7 +77,7 @@ export async function POST(req: Request) {
 
     const body = JSON.parse(rawBody);
     const payload = payloadSchema.parse(body);
-    const { id, url, mapping, workspaceId, userId, folderId } = payload;
+    const { id, url, mapping, workspaceId } = payload;
 
     if (!id || !url) {
       throw new Error("Missing ID or URL for the import file.");
@@ -91,16 +97,10 @@ export async function POST(req: Request) {
       throw new Error("CSV import file not found.");
     }
 
-    const workspace = await prisma.project.findUniqueOrThrow({
-      where: {
-        id: workspaceId,
-      },
-    });
-
-    let mappedLinks: MapperResult[] = [];
-    let rowsProcessed = 0;
-    let currentRow = 0;
-    let isComplete = false;
+    let mappedLinks: MapperResult[] = []; // Stores processed rows
+    let rowsProcessed = 0; // Counts how many rows we process
+    let currentRow = 0; // Helps in skipping already processed rows
+    let isComplete = false; // We've reached the end of the file
 
     await new Promise((resolve, reject) => {
       Papa.parse(Readable.fromWeb(response.body as any), {
@@ -146,8 +146,10 @@ export async function POST(req: Request) {
       payload,
     });
 
-    console.log("rowsProcessed", rowsProcessed);
-    console.log("isComplete", isComplete);
+    console.log({
+      rowsProcessed,
+      isComplete,
+    });
 
     // If we processed the maximum rows and haven't reached the end, trigger next batch
     if (rowsProcessed >= MAX_ROWS_PER_EXECUTION && !isComplete) {
@@ -155,9 +157,18 @@ export async function POST(req: Request) {
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/csv`,
         body: payload,
       });
+    } else {
+      await redis.del(redisKey);
+
+      await sendCsvImportEmails({
+        workspaceId,
+        count: 100, // should be total rows processed
+        domains: [], // should be domains imported
+        errorLinks: [], // should be error links
+      });
     }
 
-    return NextResponse.json({ status: "completed", isComplete });
+    return NextResponse.json("OK");
   } catch (error) {
     await log({
       message: `Error importing CSV links: ${error.message}`,
