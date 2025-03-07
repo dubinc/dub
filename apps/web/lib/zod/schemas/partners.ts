@@ -57,6 +57,19 @@ export const PartnerSchema = z.object({
   status: z.nativeEnum(PartnerStatus),
   stripeConnectId: z.string().nullable(),
   payoutsEnabled: z.boolean(),
+
+  website: z.string().nullable(),
+  websiteTxtRecord: z.string().nullable(),
+  websiteVerifiedAt: z.date().nullable(),
+  instagram: z.string().nullable(),
+  instagramVerifiedAt: z.date().nullable(),
+  tiktok: z.string().nullable(),
+  tiktokVerifiedAt: z.date().nullable(),
+  youtube: z.string().nullable(),
+  youtubeVerifiedAt: z.date().nullable(),
+  twitter: z.string().nullable(),
+  twitterVerifiedAt: z.date().nullable(),
+
   createdAt: z.date(),
   updatedAt: z.date(),
 });

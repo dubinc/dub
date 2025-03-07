@@ -1,4 +1,8 @@
-import { Button, Modal } from "@dub/ui";
+import { verifyDomainAction } from "@/lib/actions/partners/verify-domain";
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import { Button, CopyButton, Modal } from "@dub/ui";
+import { X } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
   SetStateAction,
@@ -6,6 +10,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import { toast } from "sonner";
 
 interface DomainVerificationModalProps {
   showDomainVerificationModal: boolean;
@@ -30,10 +35,25 @@ function DomainVerificationModalInner({
   domain,
   txtRecord,
 }: DomainVerificationModalProps) {
+  const { partner, mutate: mutatePartner } = usePartnerProfile();
+
+  const { executeAsync, status } = useAction(verifyDomainAction, {
+    onError: ({ error }) => {
+      console.warn("Failed to verify domain", error.serverError);
+    },
+  });
+
   return (
     <>
-      <div className="space-y-2 border-b border-neutral-200 p-4 sm:p-6">
+      <div className="flex items-center justify-between border-b border-neutral-200 p-4 sm:px-6">
         <h3 className="text-lg font-medium leading-none">Verify your domain</h3>
+        <button
+          type="button"
+          onClick={() => setShowDomainVerificationModal(false)}
+          className="group rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none active:bg-neutral-200"
+        >
+          <X className="h-5 w-5" />
+        </button>
       </div>
 
       <div className="bg-neutral-50 p-4 sm:p-6">
@@ -42,27 +62,46 @@ function DomainVerificationModalInner({
           DNS provider:
         </p>
 
-        <div className="mt-4 flex flex-col gap-2 rounded-lg border border-neutral-200 bg-white p-3">
-          <div className="flex items-center justify-between space-x-3 border-b border-neutral-200 pb-2">
-            <div className="text-sm text-neutral-500">Type</div>
-            <div className="font-mono text-sm">TXT</div>
+        <div className="mt-4 flex flex-col gap-2 rounded-lg border border-neutral-200 p-4 text-sm text-neutral-600">
+          <div className="flex justify-between gap-12">
+            <div className="font-medium text-neutral-800">Type</div>
+            <div className="font-mono">TXT</div>
           </div>
-          <div className="flex items-center justify-between space-x-3 border-b border-neutral-200 pb-2">
-            <div className="text-sm text-neutral-500">Name</div>
-            <div className="font-mono text-sm">@</div>
+          <div className="flex justify-between gap-12">
+            <div className="font-medium text-neutral-800">Name</div>
+            <div className="font-mono">@</div>
           </div>
-          <div className="flex items-center justify-between space-x-3">
-            <div className="text-sm text-neutral-500">Value</div>
-            <div className="font-mono text-sm">{txtRecord}</div>
+          <div className="flex justify-between gap-12">
+            <div className="font-medium text-neutral-800">Value</div>
+            <div className="flex min-w-0 items-center gap-2" title={txtRecord}>
+              <span className="min-w-0 truncate font-mono">{txtRecord}</span>
+              <CopyButton value={txtRecord} className="-m-1.5" />
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-2 border-t border-neutral-200 bg-neutral-50 px-4 py-5 sm:px-6">
+      <div className="flex justify-end gap-2 border-t border-neutral-200 px-4 py-4 sm:px-6">
         <Button
-          onClick={() => setShowDomainVerificationModal(false)}
-          text="Close"
+          text="Verify"
           className="h-8 w-fit px-3"
+          loading={status === "executing" || status === "hasSucceeded"}
+          onClick={async () => {
+            const result = await executeAsync({ domain });
+
+            if (!result?.data?.success || !result.data.websiteVerifiedAt) {
+              toast.error("Failed to verify domain. Please try again later.");
+              return;
+            }
+
+            toast.success("Domain verified successfully!");
+            if (partner)
+              mutatePartner({
+                ...partner,
+                websiteVerifiedAt: new Date(result.data.websiteVerifiedAt),
+              });
+            setShowDomainVerificationModal(false);
+          }}
         />
       </div>
     </>

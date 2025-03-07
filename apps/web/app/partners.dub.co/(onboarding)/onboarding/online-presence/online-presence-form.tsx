@@ -1,14 +1,24 @@
 "use client";
 
 import { updateOnlinePresenceAction } from "@/lib/actions/partners/update-online-presence";
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { DomainVerificationModal } from "@/ui/modals/domain-verification-modal";
-import { Button, Globe, Instagram, TikTok, Twitter, YouTube } from "@dub/ui";
+import {
+  Button,
+  CircleCheckFill,
+  Globe,
+  Instagram,
+  TikTok,
+  Twitter,
+  YouTube,
+} from "@dub/ui";
 import { cn } from "@dub/utils/src/functions";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { mutate } from "swr";
 import { z } from "zod";
 
 const onlinePresenceSchema = z.object({
@@ -38,6 +48,8 @@ export function OnlinePresenceForm({
 }: OnlinePresenceFormProps) {
   const router = useRouter();
 
+  const { partner: partnerProfile } = usePartnerProfile();
+
   const {
     register,
     setError,
@@ -64,6 +76,7 @@ export function OnlinePresenceForm({
         setError("root.serverError", {
           message: "Failed to update online presence",
         });
+      else mutate("/api/partner-profile");
     },
     onError: ({ error }) => {
       if (error.serverError) {
@@ -84,6 +97,10 @@ export function OnlinePresenceForm({
   } | null>(null);
 
   const [isSavingWebsite, setIsSavingWebsite] = useState(false);
+
+  const isWebsiteVerified =
+    website === partnerProfile?.website &&
+    Boolean(partnerProfile?.websiteVerifiedAt);
 
   return (
     <>
@@ -117,19 +134,32 @@ export function OnlinePresenceForm({
               {...register("website")}
             />
             <Button
-              className="absolute right-1.5 top-1/2 h-7 w-fit -translate-y-1/2 px-2.5"
+              className={cn(
+                "absolute right-1.5 top-1/2 h-7 w-fit -translate-y-1/2 px-2.5",
+                isWebsiteVerified &&
+                  "border-green-100 bg-green-100 text-green-700",
+              )}
               variant="secondary"
-              text="Verify"
-              icon={<Globe className="size-4" />}
-              loading={isSavingWebsite}
-              disabled={!website || getFieldState("website").invalid}
+              text={isWebsiteVerified ? "Verified" : "Verify"}
+              icon={
+                isWebsiteVerified ? (
+                  <CircleCheckFill className="size-4 text-green-700" />
+                ) : (
+                  <Globe className="size-4" />
+                )
+              }
+              loading={isSavingWebsite || !partnerProfile}
+              disabled={
+                !website ||
+                getFieldState("website").invalid ||
+                isWebsiteVerified
+              }
               onClick={async () => {
                 setIsSavingWebsite(true);
                 try {
                   const result = await updateOnlinePresenceAction({
                     website: getValues("website"),
                   });
-                  console.log(result);
 
                   try {
                     if (
@@ -149,6 +179,8 @@ export function OnlinePresenceForm({
                     toast.error("Failed to start website verification");
                     console.error("Failed to start website verification", e);
                   }
+
+                  mutate("/api/partner-profile");
                 } finally {
                   setIsSavingWebsite(false);
                 }

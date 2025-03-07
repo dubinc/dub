@@ -3,7 +3,7 @@
 import { prisma } from "@dub/prisma";
 import { v4 as uuid } from "uuid";
 import { z } from "zod";
-import { authUserActionClient } from "../safe-action";
+import { authPartnerActionClient } from "../safe-action";
 
 const updateOnlinePresenceSchema = z.object({
   website: z.string().url().optional().or(z.literal("")),
@@ -19,24 +19,10 @@ const updateOnlinePresenceResponseSchema = updateOnlinePresenceSchema.merge(
   }),
 );
 
-export const updateOnlinePresenceAction = authUserActionClient
+export const updateOnlinePresenceAction = authPartnerActionClient
   .schema(updateOnlinePresenceSchema)
   .action(async ({ ctx, parsedInput }) => {
-    const { user } = ctx;
-
-    const partner = await prisma.partner.findFirst({
-      where: {
-        users: {
-          some: {
-            userId: user.id,
-          },
-        },
-      },
-    });
-
-    if (!partner) {
-      throw new Error("Partner not found");
-    }
+    const { partner } = ctx;
 
     let domainChanged = false;
 
