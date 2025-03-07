@@ -72,14 +72,14 @@ export const CustomerEnrichedSchema = CustomerSchema.extend({
     key: true,
     shortLink: true,
     programId: true,
-  }),
+  }).nullish(),
   partner: PartnerSchema.pick({
     id: true,
     name: true,
     email: true,
     image: true,
-  }),
-  discount: DiscountSchema.nullable(),
+  }).nullish(),
+  discount: DiscountSchema.nullish(),
 });
 
 export const CUSTOMERS_MAX_PAGE_SIZE = 100;

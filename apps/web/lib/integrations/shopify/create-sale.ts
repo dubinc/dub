@@ -138,7 +138,7 @@ export async function createShopifySale({
         },
       });
 
-      await prisma.commission.create({
+      const commission = await prisma.commission.create({
         data: {
           id: createId({ prefix: "cm_" }),
           programId: link.programId,
@@ -156,30 +156,10 @@ export async function createShopifySale({
       });
 
       waitUntil(
-        (async () => {
-          const program = await prisma.program.findUniqueOrThrow({
-            where: {
-              id: link.programId!,
-            },
-            select: {
-              id: true,
-              name: true,
-              logo: true,
-            },
-          });
-
-          await notifyPartnerSale({
-            program,
-            partner: {
-              id: link.partnerId!,
-              referralLink: link.shortLink,
-            },
-            sale: {
-              amount: saleData.amount,
-              earnings,
-            },
-          });
-        })(),
+        notifyPartnerSale({
+          link,
+          commission,
+        }),
       );
     }
   }

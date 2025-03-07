@@ -24,6 +24,12 @@ export type DubEmbedOptions = {
 
   // The theme for the embed (light by default)
   theme?: "light" | "dark" | "system";
+
+  // Additional theme options
+  themeOptions?: {
+    // The background color for the embed
+    backgroundColor?: string;
+  };
 };
 
 export interface IframeMessage {

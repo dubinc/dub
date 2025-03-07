@@ -4,6 +4,7 @@ import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth/workspace";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
+import { redis } from "@/lib/upstash";
 import { updatePartnerSaleSchema } from "@/lib/zod/schemas/partners";
 import { ProgramSaleSchema } from "@/lib/zod/schemas/program-sales";
 import { prisma } from "@dub/prisma";
@@ -12,7 +13,7 @@ import { NextResponse } from "next/server";
 // PATCH /api/partners/sales - update a sale
 export const PATCH = withWorkspace(
   async ({ req, workspace }) => {
-    const { programId, invoiceId, amount, modifyAmount } =
+    let { programId, invoiceId, amount, modifyAmount, currency } =
       updatePartnerSaleSchema.parse(await parseRequestBody(req));
 
     const program = await getProgramOrThrow({
@@ -47,6 +48,22 @@ export const PATCH = withWorkspace(
     }
 
     const { partner, amount: originalAmount } = sale;
+
+    // if currency is not USD, convert it to USD  based on the current FX rate
+    // TODO: allow custom "defaultCurrency" on workspace table in the future
+    if (currency !== "usd") {
+      const fxRates = await redis.hget("fxRates:usd", currency.toUpperCase()); // e.g. for MYR it'll be around 4.4
+      if (fxRates) {
+        currency = "usd";
+        // convert amount to USD (in cents) based on the current FX rate
+        // round it to 0 decimal places
+        amount = Math.round(originalAmount / Number(fxRates));
+        modifyAmount = modifyAmount
+          ? Math.round(modifyAmount / Number(fxRates))
+          : undefined;
+      }
+    }
+
     const finalAmount = modifyAmount
       ? originalAmount + modifyAmount
       : amount ?? originalAmount;
