@@ -119,10 +119,11 @@ export function OnlinePresenceForm({
         <div
           className={cn(
             "flex w-full flex-col gap-4 text-left",
-            variant === "settings" && "p-5",
+            variant === "settings" && "gap-0 divide-y divide-neutral-200 p-5",
           )}
         >
           <FormRow
+            variant={variant}
             label="Website"
             input={
               <input
@@ -195,6 +196,7 @@ export function OnlinePresenceForm({
           />
 
           <FormRow
+            variant={variant}
             label="Instagram"
             input={
               <div className="flex rounded-md">
@@ -226,6 +228,7 @@ export function OnlinePresenceForm({
           />
 
           <FormRow
+            variant={variant}
             label="TikTok"
             input={
               <div className="flex rounded-md">
@@ -257,6 +260,7 @@ export function OnlinePresenceForm({
           />
 
           <FormRow
+            variant={variant}
             label="YouTube"
             input={
               <div className="flex rounded-md">
@@ -288,6 +292,7 @@ export function OnlinePresenceForm({
           />
 
           <FormRow
+            variant={variant}
             label="X/Twitter"
             input={
               <div className="flex rounded-md">
@@ -342,21 +347,35 @@ export function OnlinePresenceForm({
 }
 
 function FormRow({
+  variant,
   label,
   input,
   button,
 }: {
+  variant: "onboarding" | "settings";
   label: string;
   input: ReactNode;
   button: ReactNode;
 }) {
   return (
-    <label>
-      <span className="text-sm font-medium text-neutral-800">{label}</span>
-      <div className="relative mt-2">
-        {input}
-        {button}
-      </div>
-    </label>
+    <div className={cn(variant === "settings" && "py-5")}>
+      <label
+        className={cn(
+          "flex flex-col gap-2",
+          variant === "settings" && "flex-row items-center justify-between",
+        )}
+      >
+        <span className="text-sm font-medium text-neutral-800">{label}</span>
+        <div
+          className={cn(
+            "relative",
+            variant === "settings" && "max-w-[55%] grow",
+          )}
+        >
+          {input}
+          {button}
+        </div>
+      </label>
+    </div>
   );
 }

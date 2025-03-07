@@ -1,8 +1,8 @@
 "use client";
 
+import { OnlinePresenceForm } from "@/ui/partners/online-presence-form";
 import { useRouter } from "next/navigation";
 import { ComponentProps } from "react";
-import { OnlinePresenceForm } from "./online-presence-form";
 
 export function OnlinePresencePageClient({
   country,

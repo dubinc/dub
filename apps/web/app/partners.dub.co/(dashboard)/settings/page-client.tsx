@@ -3,6 +3,7 @@
 import { updatePartnerProfileAction } from "@/lib/actions/partners/update-partner-profile";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerProps } from "@/lib/types";
+import { OnlinePresenceForm } from "@/ui/partners/online-presence-form";
 import {
   Button,
   buttonVariants,
@@ -12,7 +13,6 @@ import {
   useEnterSubmit,
 } from "@dub/ui";
 import { cn, DICEBEAR_AVATAR_URL } from "@dub/utils";
-import { OnlinePresenceForm } from "app/partners.dub.co/(onboarding)/onboarding/online-presence/online-presence-form";
 import { useAction } from "next-safe-action/hooks";
 import { PropsWithChildren, useRef } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -53,7 +53,13 @@ export function ProfileSettingsPageClient() {
           </p>
         </div>
         {partner ? (
-          <OnlinePresenceForm partner={partner} variant="settings" />
+          <OnlinePresenceForm
+            partner={partner}
+            variant="settings"
+            onSubmitSuccessful={() => {
+              toast.success("Online presence updated successfully.");
+            }}
+          />
         ) : (
           <div className="flex h-32 w-full items-center justify-center">
             {error ? (
