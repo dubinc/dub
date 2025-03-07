@@ -113,7 +113,12 @@ export function NewSaleAlertProgramOwner({
 
             <Text className="text-sm leading-6 text-neutral-600">
               You received a payment from a customer referred by{" "}
-              <strong>{partner.name || partner.email}</strong>.
+              <strong>
+                {partner.name
+                  ? `${partner.name} (${partner.email})`
+                  : partner.email}
+              </strong>
+              .
             </Text>
 
             <Section className="my-8 w-full">
@@ -121,7 +126,7 @@ export function NewSaleAlertProgramOwner({
                 <Row>
                   <Column>
                     <Text className="m-0 text-sm leading-6 text-neutral-600">
-                      Amount
+                      Sale amount
                     </Text>
                   </Column>
                   <Column align="right">
@@ -134,7 +139,7 @@ export function NewSaleAlertProgramOwner({
                 <Row>
                   <Column>
                     <Text className="m-0 text-sm leading-6 text-neutral-600">
-                      Commission
+                      Partner commission
                     </Text>
                   </Column>
                   <Column align="right">
@@ -149,7 +154,7 @@ export function NewSaleAlertProgramOwner({
                 <Row>
                   <Column>
                     <Text className="m-0 text-sm font-medium leading-6 text-black">
-                      Profit
+                      Your profit
                     </Text>
                   </Column>
                   <Column align="right">
