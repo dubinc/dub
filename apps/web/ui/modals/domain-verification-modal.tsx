@@ -87,7 +87,7 @@ function DomainVerificationModalInner({
           className="h-8 w-fit px-3"
           loading={status === "executing" || status === "hasSucceeded"}
           onClick={async () => {
-            const result = await executeAsync({ domain });
+            const result = await executeAsync();
 
             if (!result?.data?.success || !result.data.websiteVerifiedAt) {
               toast.error("Failed to verify domain. Please try again later.");
