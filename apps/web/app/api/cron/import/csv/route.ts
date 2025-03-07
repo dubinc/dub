@@ -98,8 +98,7 @@ export async function POST(req: Request) {
     }
 
     let mappedLinks: MapperResult[] = []; // Stores processed rows
-    let rowsProcessed = 0; // Counts how many rows we process
-    let currentRow = 0; // Helps in skipping already processed rows
+    let currentRow = 0; // Tracks both current position and processed count
     let isComplete = false; // We've reached the end of the file
 
     await new Promise((resolve, reject) => {
@@ -122,23 +121,22 @@ export async function POST(req: Request) {
             return;
           }
 
-          if (rowsProcessed >= MAX_ROWS_PER_EXECUTION) {
+          if (currentRow - cursor >= MAX_ROWS_PER_EXECUTION) {
             parser.abort();
             return;
           }
 
           mappedLinks.push(mapCsvRowToLink(results.data, mapping));
 
-          rowsProcessed++;
           currentRow++;
+
+          await redis.hset(redisKey, {
+            cursor: currentRow,
+          });
 
           parser.resume();
         },
       });
-    });
-
-    await redis.hset(redisKey, {
-      cursor: currentRow,
     });
 
     await processMappedLinks({
@@ -147,12 +145,12 @@ export async function POST(req: Request) {
     });
 
     console.log({
-      rowsProcessed,
+      rowsProcessed: currentRow - cursor,
       isComplete,
     });
 
     // If we processed the maximum rows and haven't reached the end, trigger next batch
-    if (rowsProcessed >= MAX_ROWS_PER_EXECUTION && !isComplete) {
+    if (currentRow - cursor >= MAX_ROWS_PER_EXECUTION && !isComplete) {
       await qstash.publishJSON({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/csv`,
         body: payload,
