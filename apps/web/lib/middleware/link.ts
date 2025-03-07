@@ -26,7 +26,6 @@ import {
 import { linkCache } from "../api/links/cache";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
-import { importBitlyLink } from "./bitly";
 import { hasEmptySearchParams } from "./utils/has-empty-search-params";
 
 export default async function LinkMiddleware(
@@ -75,8 +74,10 @@ export default async function LinkMiddleware(
     let linkData = await getLinkViaEdge(domain, key);
 
     if (!linkData) {
-      if (domain === "buff.ly" || domain === "dev.buff.ly") {
-        linkData = await importBitlyLink({ domain, key: originalKey });
+      if (domain === "buff.ly") {
+        return NextResponse.redirect(
+          new URL(`/api/links/crawl/bitly/${domain}/${key}`, req.url),
+        );
       }
 
       if (!linkData) {
