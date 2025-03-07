@@ -1,6 +1,6 @@
-import { WorkspaceWithUsers } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { DUB_WORKSPACE_ID, isDubDomain } from "@dub/utils";
+import { Project } from "@prisma/client";
 import { DubApiError } from "../errors";
 
 export const getDomainOrThrow = async ({
@@ -8,7 +8,7 @@ export const getDomainOrThrow = async ({
   domain,
   dubDomainChecks,
 }: {
-  workspace: WorkspaceWithUsers;
+  workspace: Pick<Project, "id">;
   domain: string;
   dubDomainChecks?: boolean; // if we also need to make sure the user can actually make changes to dub default domains
 }) => {

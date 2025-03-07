@@ -50,6 +50,7 @@ import {
   PayoutResponseSchema,
   PayoutSchema,
 } from "./zod/schemas/payouts";
+import { programDataSchema } from "./zod/schemas/program-onboarding";
 import {
   ProgramSaleResponseSchema,
   ProgramSaleSchema,
@@ -450,3 +451,5 @@ export type FolderSummary = Pick<
 export type RewardProps = z.infer<typeof RewardSchema>;
 
 export type CreatePartnerProps = z.infer<typeof createPartnerSchema>;
+
+export type ProgramData = z.infer<typeof programDataSchema>;
