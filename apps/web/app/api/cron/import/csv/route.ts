@@ -57,7 +57,7 @@ interface ErrorLink {
   error: string;
 }
 
-const MAX_ROWS_PER_EXECUTION = 25; // Number of rows to process per execution
+const MAX_ROWS_PER_EXECUTION = 50; // Number of rows to process per execution
 
 export async function POST(req: Request) {
   try {
@@ -103,6 +103,7 @@ export async function POST(req: Request) {
 
           // Skip rows until we reach our cursor position
           if (currentRow < cursor) {
+            console.log(`Skipping row ${currentRow} of ${results.data.length}`);
             currentRow++;
             parser.resume();
             return;
@@ -127,10 +128,6 @@ export async function POST(req: Request) {
     await processMappedLinks({
       mappedLinks,
       payload,
-    });
-
-    console.log({
-      isComplete,
     });
 
     // If we processed the maximum rows and haven't reached the end, trigger next batch
@@ -310,15 +307,6 @@ const processMappedLinks = async ({
     return;
   }
 
-  const failedMappings = mappedLinks.filter(
-    (result): result is { success: false; error: string } =>
-      !result.success && !!result.error,
-  );
-
-  console.log({
-    failedMappings,
-  });
-
   const successfulMappings = mappedLinks.filter(
     (
       result,
@@ -327,10 +315,12 @@ const processMappedLinks = async ({
   );
 
   //// Process the tags ////
-  const selectedTags = successfulMappings
-    .map((result) => result.data.tags)
+  let selectedTags = successfulMappings
+    .map((result) => result.data.tags || [])
     .flat()
     .filter((tag): tag is string => Boolean(tag));
+
+  selectedTags = [...new Set(selectedTags)];
 
   const tags = await prisma.tag.findMany({
     where: {
@@ -347,6 +337,8 @@ const processMappedLinks = async ({
   );
 
   if (tagsNotInWorkspace.length > 0) {
+    console.log(`Creating ${tagsNotInWorkspace.length} new tags.`);
+
     await prisma.tag.createMany({
       data: tagsNotInWorkspace.map((name) => ({
         id: createId({ prefix: "tag_" }),
@@ -376,6 +368,8 @@ const processMappedLinks = async ({
   );
 
   if (domainsNotInWorkspace.length > 0) {
+    console.log(`Creating ${domainsNotInWorkspace.length} new domains.`);
+
     await Promise.allSettled([
       prisma.domain.createMany({
         data: domainsNotInWorkspace.map((slug) => ({
@@ -422,9 +416,7 @@ const processMappedLinks = async ({
     },
   });
 
-  console.log({
-    existingLinks,
-  });
+  console.log(`Skipping ${existingLinks.length} existing links.`);
 
   linksToCreate = linksToCreate.filter(
     (link) =>
@@ -447,7 +439,7 @@ const processMappedLinks = async ({
         payload: {
           ...createLinkBodySchema.parse({
             ...link,
-            tagNames: tags || undefined,
+            tagNames: tags || [],
             folderId,
           }),
         },
@@ -474,6 +466,8 @@ const processMappedLinks = async ({
     }));
 
   if (validLinks.length > 0) {
+    console.log(`Creating ${validLinks.length} new links.`);
+
     await bulkCreateLinks({
       links: validLinks as ProcessedLinkProps[],
     });
@@ -482,6 +476,8 @@ const processMappedLinks = async ({
   }
 
   if (errorLinks.length > 0) {
+    console.log(`${errorLinks.length} failed to create.`);
+
     await redis.rpush(`${redisKey}:failed`, ...errorLinks);
   }
 };
