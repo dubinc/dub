@@ -578,10 +578,6 @@ export async function POST(req: Request) {
               count,
               domains: [],
               errorLinks: [],
-              aborted: true,
-              reason: noProgress
-                ? "No progress between iterations"
-                : "Maximum retries exceeded",
             });
           } catch (emailError) {
             console.error("Error sending abort notification email", emailError);
