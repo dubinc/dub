@@ -59,8 +59,6 @@ export async function POST(req: Request) {
     const { id, url, mapping, workspaceId, userId, folderId } =
       payloadSchema.parse(body);
 
-    console.log({ body });
-
     if (!id || !url) {
       throw new Error("Missing ID or URL for the import file.");
     }
@@ -68,7 +66,7 @@ export async function POST(req: Request) {
     const redisKey = `import:csv:${workspaceId}:${id}`;
     const importData = (await redis.hgetall(redisKey)) || {};
 
-    const { cursor, domains, failedLinks, failedCount, filesize, tagsCache } =
+    let { cursor, domains, failedLinks, failedCount, filesize, tagsCache } =
       importDataSchema.parse(importData);
 
     if (cursor === 0) {
@@ -87,8 +85,7 @@ export async function POST(req: Request) {
       },
     });
 
-    let processedRows = 0;
-    let shouldContinue = true;
+    let mappedLinks: MapperResult[] = [];
 
     await new Promise((resolve, reject) => {
       Papa.parse(Readable.fromWeb(response.body as any), {
@@ -105,11 +102,6 @@ export async function POST(req: Request) {
           },
           parser,
         ) => {
-          if (!shouldContinue) {
-            parser.abort();
-            return;
-          }
-
           parser.pause();
 
           const { data } = chunk;
@@ -120,14 +112,7 @@ export async function POST(req: Request) {
             return;
           }
 
-          // calculate how many rows we can process in this chunk
-          const remainingQuota = MAX_ROWS_PER_EXECUTION - processedRows;
-          const rowsToProcess = Math.min(data.length, remainingQuota);
-          const currentChunkData = data.slice(0, rowsToProcess);
-
-          const mappedLinks = currentChunkData.map((row) =>
-            mapCsvRowToLink(row, mapping),
-          );
+          mappedLinks = data.map((row) => mapCsvRowToLink(row, mapping));
 
           const successfulLinks = mappedLinks.filter(
             (
@@ -143,58 +128,39 @@ export async function POST(req: Request) {
               !result.success && !!result.error,
           );
 
-          if (failedLinks.length > 0) {
-            const existingFailedLinks = JSON.parse(
-              (await redis.hget(redisKey, "failedLinks")) || "[]",
-            );
+          console.log(
+            "successfulLinks",
+            successfulLinks.map((l) => l.data.key),
+          );
 
-            await redis.hset(redisKey, {
-              failedCount:
-                parseInt((await redis.hget(redisKey, "failedCount")) || "0") +
-                failedLinks.length,
-              failedLinks: JSON.stringify([
-                ...existingFailedLinks,
-                ...failedLinks.map((f) => JSON.stringify(f)),
-              ]),
-            });
-          }
-
-          processedRows += currentChunkData.length;
-          const newCursor = cursor + currentChunkData.length;
-
-          console.log("newCursor", {
-            newCursor,
-            processedRows,
-            remainingQuota,
-            rowsToProcess,
-            currentChunkData,
-            mappedLinks,
-            successfulLinks,
-          });
+          cursor += data.length;
 
           await redis.hset(redisKey, {
-            cursor: newCursor,
+            cursor,
           });
-
-          if (processedRows >= MAX_ROWS_PER_EXECUTION) {
-            shouldContinue = false;
-            parser.abort();
-            return;
-          }
 
           parser.resume();
         },
       });
     });
 
-    const finalCursor = parseInt((await redis.hget(redisKey, "cursor")) || "0");
+    if (failedLinks.length > 0) {
+      const existingFailedLinks = JSON.parse(
+        (await redis.hget(redisKey, "failedLinks")) || "[]",
+      );
 
-    return NextResponse.json({
-      success: true,
-      processedRows,
-      cursor: finalCursor,
-      hasMore: shouldContinue,
-    });
+      await redis.hset(redisKey, {
+        failedCount:
+          parseInt((await redis.hget(redisKey, "failedCount")) || "0") +
+          failedLinks.length,
+        failedLinks: JSON.stringify([
+          ...existingFailedLinks,
+          ...failedLinks.map((f) => JSON.stringify(f)),
+        ]),
+      });
+    }
+
+    return NextResponse.json("OK");
   } catch (error) {
     await log({
       message: `Error importing CSV links: ${error.message}`,
