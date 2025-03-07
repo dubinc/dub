@@ -2,6 +2,7 @@ import { getSession } from "@/lib/auth";
 import { prisma } from "@dub/prisma";
 import { Suspense } from "react";
 import { OnlinePresenceForm } from "./online-presence-form";
+import { OnlinePresencePageClient } from "./page-client";
 
 export default function OnlinePresencePage() {
   return (
@@ -18,9 +19,7 @@ export default function OnlinePresencePage() {
         </p>
 
         <div className="mt-8">
-          <Suspense
-            fallback={<OnlinePresenceForm country={null} partner={null} />}
-          >
+          <Suspense fallback={<OnlinePresenceForm partner={null} />}>
             <OnlinePresenceFormRSC />
           </Suspense>
         </div>
@@ -76,7 +75,7 @@ async function OnlinePresenceFormRSC() {
   }
 
   return (
-    <OnlinePresenceForm
+    <OnlinePresencePageClient
       country={partner.country}
       partner={{
         ...partner,
