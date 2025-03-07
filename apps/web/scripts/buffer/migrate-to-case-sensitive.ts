@@ -23,6 +23,7 @@ async function main() {
       id: true,
       domain: true,
       key: true,
+      shortLink: true,
     },
     take: 100,
     orderBy: {
@@ -59,7 +60,7 @@ async function main() {
       });
 
       console.log(
-        `Updated link ${link.id} to ${newShortLink} and new folder ${newFolderId}`,
+        `Updated link ${link.id} from ${link.shortLink} to ${newShortLink} and new folder ${newFolderId}`,
       );
     }),
   );
