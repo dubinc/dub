@@ -24,10 +24,9 @@ const payloadSchema = z.object({
 const importDataSchema = z.object({
   cursor: z.coerce.number().default(0),
   domains: z.array(z.string()).default([]),
-  domainsList: z.array(z.string()).default([]),
   failedLinks: z.array(z.string()).default([]),
-  failedCount: z.number().default(0),
-  filesize: z.number().default(0),
+  failedCount: z.coerce.number().default(0),
+  filesize: z.coerce.number().default(0),
   tagsCache: z.array(z.string()).default([]),
 });
 
@@ -69,35 +68,11 @@ export async function POST(req: Request) {
     const redisKey = `import:csv:${workspaceId}:${id}`;
     const importData = (await redis.hgetall(redisKey)) || {};
 
-    const {
-      cursor,
-      domains,
-      domainsList,
-      failedLinks,
-      failedCount,
-      filesize,
-      tagsCache,
-    } = importDataSchema.parse(importData);
-
-    console.log("importData", {
-      cursor,
-      domains,
-      domainsList,
-      failedLinks,
-      failedCount,
-      filesize,
-      tagsCache,
-    });
+    const { cursor, domains, failedLinks, failedCount, filesize, tagsCache } =
+      importDataSchema.parse(importData);
 
     if (cursor === 0) {
-      await redis.hset(redisKey, {
-        cursor: 0,
-        failedCount: 0,
-        failedLinks: JSON.stringify([]),
-        domains: JSON.stringify([]),
-        domainsList: JSON.stringify([]),
-        tagsCache: JSON.stringify([]),
-      });
+      await redis.del(redisKey);
     }
 
     const response = await storage.fetch(url);
