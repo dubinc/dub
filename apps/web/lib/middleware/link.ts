@@ -24,9 +24,9 @@ import {
   userAgent,
 } from "next/server";
 import { linkCache } from "../api/links/cache";
+import { isCaseSensitiveDomain } from "../api/links/case-sensitivity";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
-import { importBitlyLink } from "./bitly";
 import { hasEmptySearchParams } from "./utils/has-empty-search-params";
 
 export default async function LinkMiddleware(
@@ -38,13 +38,18 @@ export default async function LinkMiddleware(
   if (!domain) {
     return NextResponse.next();
   }
+
   if (domain === "dev.buff.ly") {
     domain = "buff.ly";
   }
 
   // encode the key to ascii
   // links on Dub are case insensitive by default
-  let key = punyEncode(originalKey.toLowerCase());
+  let key = punyEncode(originalKey);
+
+  if (!isCaseSensitiveDomain(domain)) {
+    key = key.toLowerCase();
+  }
 
   const inspectMode = key.endsWith("+");
   // if inspect mode is enabled, remove the trailing `+` from the key
@@ -69,14 +74,30 @@ export default async function LinkMiddleware(
     });
   }
 
-  let link = await linkCache.get({ domain, key });
+  let cachedLink = await linkCache.get({ domain, key });
 
-  if (!link) {
-    let linkData = await getLinkViaEdge(domain, key);
+  if (!cachedLink) {
+    let linkData = await getLinkViaEdge({
+      domain,
+      key,
+    });
 
     if (!linkData) {
-      if (domain === "buff.ly" || domain === "dev.buff.ly") {
-        linkData = await importBitlyLink({ domain, key: originalKey });
+      // TODO: remove this once everything is migrated over and are case-sensitive
+      // don't forget to remove ignoreCaseSensitivity too, it won't be needed anymore
+      if (domain === "buff.ly") {
+        // double check if the regular version exists
+        linkData = await getLinkViaEdge({
+          domain,
+          key,
+          ignoreCaseSensitivity: true,
+        });
+
+        if (!linkData) {
+          return NextResponse.redirect(
+            new URL(`/api/links/crawl/bitly/${domain}/${key}`, req.url),
+          );
+        }
       }
 
       if (!linkData) {
@@ -104,8 +125,8 @@ export default async function LinkMiddleware(
     }
 
     // format link to fit the RedisLinkProps interface
-    link = formatRedisLink(linkData as any);
-
+    cachedLink = formatRedisLink(linkData as any);
+    // cache in Redis
     ev.waitUntil(linkCache.set(linkData as any));
   }
 
@@ -124,7 +145,7 @@ export default async function LinkMiddleware(
     doIndex,
     webhookIds,
     projectId: workspaceId,
-  } = link;
+  } = cachedLink;
 
   // by default, we only index default dub domain links (e.g. dub.sh)
   // everything else is not indexed by default, unless the user has explicitly set it to be indexed
@@ -153,7 +174,7 @@ export default async function LinkMiddleware(
     // - no `pw` param is provided
     // - the `pw` param is incorrect
     // this will also ensure that no clicks are tracked unless the password is correct
-    if (!pw || (await getLinkViaEdge(domain, key))?.password !== pw) {
+    if (!pw || (await getLinkViaEdge({ domain, key }))?.password !== pw) {
       return NextResponse.rewrite(new URL(`/password/${linkId}`, req.url), {
         headers: {
           ...DUB_HEADERS,
@@ -169,7 +190,7 @@ export default async function LinkMiddleware(
   }
 
   // if the link is banned
-  if (link.projectId === LEGAL_WORKSPACE_ID) {
+  if (workspaceId === LEGAL_WORKSPACE_ID) {
     return NextResponse.rewrite(new URL("/banned", req.url), {
       headers: {
         ...DUB_HEADERS,

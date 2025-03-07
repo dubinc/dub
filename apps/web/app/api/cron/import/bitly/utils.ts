@@ -1,4 +1,8 @@
 import { bulkCreateLinks } from "@/lib/api/links";
+import {
+  decodeLinkIfCaseSensitive,
+  encodeKeyIfCaseSensitive,
+} from "@/lib/api/links/case-sensitivity";
 import { qstash } from "@/lib/cron";
 import { redis } from "@/lib/upstash";
 import { sendEmail } from "@dub/email";
@@ -8,9 +12,7 @@ import {
   APP_DOMAIN_WITH_NGROK,
   getUrlFromStringIfValid,
   linkConstructorSimple,
-  log,
 } from "@dub/utils";
-import { waitUntil } from "@vercel/functions";
 
 interface RateLimitResponse {
   platform_limits: {
@@ -166,17 +168,26 @@ export const importLinksFromBitly = async ({
   );
 
   // check if links are already in the database
-  const alreadyCreatedLinks = await prisma.link.findMany({
+  // for case sensitive
+  let alreadyCreatedLinks = await prisma.link.findMany({
     where: {
       shortLink: {
-        in: importedLinks.map((link) => link.shortLink),
+        in: importedLinks.map((link) =>
+          linkConstructorSimple({
+            domain: link.domain,
+            key: encodeKeyIfCaseSensitive(link),
+          }),
+        ),
       },
     },
     select: {
+      id: true,
       shortLink: true,
       url: true,
     },
   });
+
+  alreadyCreatedLinks = alreadyCreatedLinks.map(decodeLinkIfCaseSensitive);
 
   // filter out links that are already in the database
   const linksToCreate = importedLinks.filter(
@@ -186,41 +197,9 @@ export const importLinksFromBitly = async ({
   console.log(
     `Found ${alreadyCreatedLinks.length} links that have already been imported, skipping them and creating ${linksToCreate.length} new links...`,
   );
+
   // bulk create links
-  await bulkCreateLinks({ links: linksToCreate });
-
-  if (alreadyCreatedLinks.length) {
-    waitUntil(
-      (async () => {
-        try {
-          // check if any of the links that were already created have a different url
-          // than the link that was imported
-          const caseDuplicates = importedLinks.filter((link) => {
-            const duplicate = alreadyCreatedLinks.find(
-              (l) => l.shortLink.toLowerCase() === link.shortLink.toLowerCase(),
-            );
-            return duplicate && duplicate.url !== link.url;
-          });
-
-          if (caseDuplicates.length) {
-            await log({
-              message: `Found potential case duplicates:\n${caseDuplicates
-                .map((c) => {
-                  const existing = alreadyCreatedLinks.find(
-                    (l) =>
-                      l.shortLink.toLowerCase() === c.shortLink.toLowerCase(),
-                  );
-                  return `\nImported: ${c.shortLink} → ${c.url}\nExisting: ${existing?.shortLink} → ${existing?.url}`;
-                })
-                .join("\n")}`,
-              type: "alerts",
-              mention: true,
-            });
-          }
-        } catch (_) {}
-      })(),
-    );
-  }
+  await bulkCreateLinks({ links: linksToCreate, skipRedisCache: true });
 
   count += importedLinks.length;
 
@@ -231,8 +210,8 @@ export const importLinksFromBitly = async ({
     nextSearchAfter,
   });
 
-  // wait 500 ms before making another request
-  await new Promise((resolve) => setTimeout(resolve, 500));
+  // wait 250 ms before making another request
+  await new Promise((resolve) => setTimeout(resolve, 250));
 
   if (nextSearchAfter === "") {
     const workspace = await prisma.project.findUnique({
