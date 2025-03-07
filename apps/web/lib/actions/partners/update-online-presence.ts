@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@dub/prisma";
+import { v4 as uuid } from "uuid";
 import { z } from "zod";
 import { authUserActionClient } from "../safe-action";
 
@@ -11,6 +12,12 @@ const updateOnlinePresenceSchema = z.object({
   youtube: z.string().optional(),
   twitter: z.string().optional(),
 });
+
+const updateOnlinePresenceResponseSchema = updateOnlinePresenceSchema.merge(
+  z.object({
+    websiteTxtRecord: z.string().nullable(),
+  }),
+);
 
 export const updateOnlinePresenceAction = authUserActionClient
   .schema(updateOnlinePresenceSchema)
@@ -31,11 +38,32 @@ export const updateOnlinePresenceAction = authUserActionClient
       throw new Error("Partner not found");
     }
 
+    let domainChanged = false;
+
+    try {
+      let oldDomain = partner.website
+        ? new URL(partner.website).hostname
+        : null;
+      let newDomain = parsedInput.website
+        ? new URL(parsedInput.website).hostname
+        : null;
+      domainChanged = oldDomain !== newDomain;
+    } catch (e) {
+      console.error(
+        "Failed to get domain from partner website",
+        { old: partner.website, new: parsedInput.website },
+        e,
+      );
+      domainChanged = true;
+    }
+
     const updateData = {
       ...(parsedInput.website !== undefined && {
         website: parsedInput.website,
-        websiteVerifiedAt:
-          parsedInput.website !== partner.website ? null : undefined,
+        ...(domainChanged && {
+          websiteVerifiedAt: null,
+          websiteTxtRecord: `dub-domain-verification=${uuid()}`,
+        }),
       }),
       ...(parsedInput.instagram !== undefined && {
         instagram: parsedInput.instagram,
@@ -59,10 +87,15 @@ export const updateOnlinePresenceAction = authUserActionClient
       }),
     };
 
-    await prisma.partner.update({
+    const updatedPartner = await prisma.partner.update({
       where: {
         id: partner.id,
       },
       data: updateData,
     });
+
+    return {
+      success: true,
+      ...updateOnlinePresenceResponseSchema.parse(updatedPartner),
+    };
   });

@@ -12,7 +12,7 @@ export default function OnlinePresencePage() {
           Your online presence
         </h1>
 
-        <p className="mt-2 text-sm text-neutral-600">
+        <p className="animate-slide-up-fade mt-2 text-sm text-neutral-600 [animation-delay:500ms] [animation-duration:1s] [animation-fill-mode:both]">
           These improve your reputation score and rank you higher. Verification
           is optional and can be done later.
         </p>
