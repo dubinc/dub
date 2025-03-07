@@ -1,6 +1,7 @@
 import { currencyFormatter, DUB_WORDMARK } from "@dub/utils";
 import {
   Body,
+  Column,
   Container,
   Head,
   Heading,
@@ -8,6 +9,7 @@ import {
   Img,
   Link,
   Preview,
+  Row,
   Section,
   Tailwind,
   Text,
@@ -112,24 +114,48 @@ export function NewSaleAlertProgramOwner({
               <strong>{partner.referralLink}</strong>.
             </Text>
 
-            <Section className="my-4">
-              <div>
-                <Text className="my-2 flex justify-between text-sm leading-6 text-neutral-600">
-                  <strong>Amount</strong>
-                  <span>{saleAmountInDollars} USD</span>
-                </Text>
+            <Section className="my-8 w-full">
+              <div className="rounded-lg border border-neutral-200">
+                <Row>
+                  <Column>
+                    <Text className="m-0 text-sm leading-6 text-neutral-600">
+                      Amount
+                    </Text>
+                  </Column>
+                  <Column align="right">
+                    <Text className="m-0 text-sm font-medium leading-6 text-neutral-600">
+                      {saleAmountInDollars} USD
+                    </Text>
+                  </Column>
+                </Row>
 
-                <Text className="my-2 flex justify-between text-sm leading-6 text-neutral-600">
-                  <strong>Commission</strong>
-                  <span>-{earningsInDollars} USD</span>
-                </Text>
+                <Row>
+                  <Column>
+                    <Text className="m-0 text-sm leading-6 text-neutral-600">
+                      Commission
+                    </Text>
+                  </Column>
+                  <Column align="right">
+                    <Text className="m-0 text-sm font-medium leading-6 text-neutral-600">
+                      -{earningsInDollars} USD
+                    </Text>
+                  </Column>
+                </Row>
 
-                <div className="h-px w-full bg-neutral-200" />
+                <div className="my-4 h-px w-full bg-neutral-200" />
 
-                <Text className="my-2 flex justify-between text-sm leading-6 text-neutral-600">
-                  <strong>Profit</strong>
-                  <strong>{profitInDollars} USD</strong>
-                </Text>
+                <Row>
+                  <Column>
+                    <Text className="m-0 text-sm font-medium leading-6 text-black">
+                      Profit
+                    </Text>
+                  </Column>
+                  <Column align="right">
+                    <Text className="m-0 text-sm font-medium leading-6 text-black">
+                      {profitInDollars} USD
+                    </Text>
+                  </Column>
+                </Row>
               </div>
             </Section>
 
