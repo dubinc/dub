@@ -1,6 +1,5 @@
 "use server";
 
-import { DubApiError } from "@/lib/api/errors";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { prisma } from "@dub/prisma";
@@ -29,25 +28,28 @@ export const deleteDiscountAction = authActionClient
       discountId,
     });
 
-    if (program.defaultDiscountId === discountId) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "This is a default discount and cannot be deleted.",
+    await prisma.$transaction(async (tx) => {
+      // if this is the default discount, set the program default discount to null
+      if (program.defaultDiscountId === discountId) {
+        await tx.program.update({
+          where: { id: programId },
+          data: { defaultDiscountId: null },
+        });
+      }
+      // update all program enrollments to have no discount
+      await tx.programEnrollment.updateMany({
+        where: {
+          discountId,
+        },
+        data: {
+          discountId: null,
+        },
       });
-    }
-
-    await prisma.discount.delete({
-      where: {
-        id: discountId,
-      },
-    });
-
-    await prisma.programEnrollment.updateMany({
-      where: {
-        discountId,
-      },
-      data: {
-        discountId: null,
-      },
+      // delete the discount
+      await tx.discount.delete({
+        where: {
+          id: discountId,
+        },
+      });
     });
   });

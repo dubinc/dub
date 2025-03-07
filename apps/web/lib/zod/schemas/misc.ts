@@ -48,4 +48,4 @@ export const maxDurationSchema = z.coerce
   .refine((val) => RECURRING_MAX_DURATIONS.includes(val), {
     message: `Max duration must be ${RECURRING_MAX_DURATIONS.join(", ")}`,
   })
-  .nullable();
+  .nullish();
