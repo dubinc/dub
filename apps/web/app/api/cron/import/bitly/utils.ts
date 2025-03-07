@@ -1,5 +1,4 @@
 import { bulkCreateLinks } from "@/lib/api/links";
-import { linkCache } from "@/lib/api/links/cache";
 import {
   decodeLinkIfCaseSensitive,
   encodeKeyIfCaseSensitive,
@@ -202,40 +201,6 @@ export const importLinksFromBitly = async ({
   // bulk create links
   await bulkCreateLinks({ links: linksToCreate, skipRedisCache: true });
 
-  // only for buff.ly: check if previously created links (without case sensitivity) exists, if so, delete them + expire their cache
-  if (domains.includes("buff.ly")) {
-    const previouslyCreatedLinks = await prisma.link.findMany({
-      where: {
-        shortLink: {
-          in: importedLinks.map((link) => link.shortLink),
-        },
-      },
-      select: {
-        id: true,
-        domain: true,
-        key: true,
-      },
-    });
-
-    console.log(
-      `Found ${previouslyCreatedLinks.length} buff.ly links that were imported without case sensitivity, deleting them...`,
-    );
-
-    // delete links that exist as unhashed versions (only for buff.ly domain)
-    if (previouslyCreatedLinks.length) {
-      await Promise.allSettled([
-        prisma.link.deleteMany({
-          where: {
-            id: {
-              in: previouslyCreatedLinks.map((link) => link.id),
-            },
-          },
-        }),
-        linkCache.expireMany(previouslyCreatedLinks),
-      ]);
-    }
-  }
-
   count += importedLinks.length;
 
   console.log({
@@ -245,8 +210,8 @@ export const importLinksFromBitly = async ({
     nextSearchAfter,
   });
 
-  // wait 500 ms before making another request
-  await new Promise((resolve) => setTimeout(resolve, 500));
+  // wait 250 ms before making another request
+  await new Promise((resolve) => setTimeout(resolve, 250));
 
   if (nextSearchAfter === "") {
     const workspace = await prisma.project.findUnique({

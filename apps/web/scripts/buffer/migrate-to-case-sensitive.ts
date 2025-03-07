@@ -16,7 +16,7 @@ async function main() {
       domain,
       folderId: oldFolderId,
       createdAt: {
-        lte: new Date("2025-03-07"), // TODO: update this to the timestamp when the PR is merged
+        lte: new Date("2025-03-07T16:33:32.084Z"),
       },
     },
     select: {
@@ -24,7 +24,10 @@ async function main() {
       domain: true,
       key: true,
     },
-    take: 500,
+    take: 100,
+    orderBy: {
+      createdAt: "desc",
+    },
   });
 
   if (!links.length) {
@@ -32,30 +35,34 @@ async function main() {
     return;
   }
 
-  for (const link of links) {
-    const newKey = encodeKeyIfCaseSensitive({
-      domain,
-      key: link.key,
-    });
+  await Promise.allSettled(
+    links.map(async (link) => {
+      const newKey = encodeKeyIfCaseSensitive({
+        domain,
+        key: link.key,
+      });
 
-    const newShortLink = linkConstructorSimple({
-      domain,
-      key: newKey,
-    });
-
-    await prisma.link.update({
-      where: {
-        id: link.id,
-      },
-      data: {
+      const newShortLink = linkConstructorSimple({
+        domain,
         key: newKey,
-        shortLink: newShortLink,
-        folderId: newFolderId,
-      },
-    });
+      });
 
-    console.log(`Updated link ${link.id} to ${newShortLink}`);
-  }
+      await prisma.link.update({
+        where: {
+          id: link.id,
+        },
+        data: {
+          key: newKey,
+          shortLink: newShortLink,
+          folderId: newFolderId,
+        },
+      });
+
+      console.log(
+        `Updated link ${link.id} to ${newShortLink} and new folder ${newFolderId}`,
+      );
+    }),
+  );
 
   // expire the Redis cache for the links so it fetches the latest version from the database
   await linkCache.expireMany(links);
