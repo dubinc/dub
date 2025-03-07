@@ -132,16 +132,15 @@ export async function POST(req: Request) {
 
     const response = await storage.fetch(url);
 
-    const [tags, domains] = await Promise.all([
-      prisma.tag.findMany({
-        where: { projectId: workspace.id },
-        select: { name: true },
-      }),
-      prisma.domain.findMany({
-        where: { projectId: workspace.id },
-        select: { slug: true },
-      }),
-    ]);
+    const tags = await prisma.tag.findMany({
+      where: { projectId: workspace.id },
+      select: { name: true },
+    });
+
+    const domains = await prisma.domain.findMany({
+      where: { projectId: workspace.id },
+      select: { slug: true },
+    });
 
     const addedTags: string[] = [];
     const addedDomains: string[] = [];
