@@ -5,17 +5,17 @@ import { linkCache } from "../../lib/api/links/cache";
 import { encodeKeyIfCaseSensitive } from "../../lib/api/links/case-sensitivity";
 
 const domain = "buff.ly";
-const oldFolderId = "fold_LIZsdjTgFVbQVGYSUmYAi5vT";
+const userId = "user_EzRuKzR9sG3WmHapVV6aEec7";
 const newFolderId = "fold_1JNQBVZV8P0NA0YGB11W2HHSQ";
 
 async function main() {
   const links = await prisma.link.findMany({
     where: {
-      folderId: oldFolderId,
+      userId,
+      domain,
       createdAt: {
         lte: new Date("2025-03-07"), // TODO: update this to the timestamp when the PR is merged
       },
-      domain,
     },
     take: 500,
   });
