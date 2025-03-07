@@ -66,6 +66,27 @@ export async function POST(req: Request) {
 
     if (!id || !url) throw new Error("Missing ID or URL for the import file");
 
+    // Get the current cursor position
+    let cursor = parseInt(
+      (await redis.get(`import:csv:${workspaceId}:${id}:cursor`)) ?? "0",
+    );
+
+    // Clean up Redis keys if this is the first execution to avoid type conflicts
+    if (cursor === 0) {
+      // First execution - clean up any existing keys
+      await Promise.allSettled([
+        redis.del(`import:csv:${workspaceId}:${id}:domains_list`),
+        redis.del(`import:csv:${workspaceId}:${id}:domains_cache`),
+        redis.del(`import:csv:${workspaceId}:${id}:failed`),
+        redis.del(`import:csv:${workspaceId}:${id}:count`),
+        redis.del(`import:csv:${workspaceId}:${id}:filesize`),
+        redis.del(`import:csv:${workspaceId}:${id}:tags_cache`),
+      ]);
+
+      // Reset cursor in case it was deleted above
+      cursor = 0;
+    }
+
     // Define the mapper function
     const mapper = (row: Record<string, string>): MapperResult => {
       const getValueByNormalizedKey = (targetKey: string): string => {
@@ -132,11 +153,6 @@ export async function POST(req: Request) {
       }
     };
 
-    // Get the current cursor position
-    let cursor = parseInt(
-      (await redis.get(`import:csv:${workspaceId}:${id}:cursor`)) ?? "0",
-    );
-
     // Get the total count of processed links
     let count = parseInt(
       (await redis.get(`import:csv:${workspaceId}:${id}:count`)) ?? "0",
@@ -194,23 +210,23 @@ export async function POST(req: Request) {
       tags = fetchedTags as TagItem[];
       domains = fetchedDomains as DomainItem[];
 
-      // Cache these results for future executions
+      // Cache these results for future executions - use different keys for the cache
       await redis.set(
-        `import:csv:${workspaceId}:${id}:tags`,
+        `import:csv:${workspaceId}:${id}:tags_cache`,
         JSON.stringify(tags),
       );
       await redis.set(
-        `import:csv:${workspaceId}:${id}:domains`,
+        `import:csv:${workspaceId}:${id}:domains_cache`,
         JSON.stringify(domains),
       );
     } else {
       // Fetch cached data from previous runs
       try {
         const cachedTagsStr = await redis.get(
-          `import:csv:${workspaceId}:${id}:tags`,
+          `import:csv:${workspaceId}:${id}:tags_cache`,
         );
         const cachedDomainsStr = await redis.get(
-          `import:csv:${workspaceId}:${id}:domains`,
+          `import:csv:${workspaceId}:${id}:domains_cache`,
         );
 
         if (cachedTagsStr) {
@@ -235,6 +251,16 @@ export async function POST(req: Request) {
 
         tags = fetchedTags as TagItem[];
         domains = fetchedDomains as DomainItem[];
+
+        // Update the cache
+        await redis.set(
+          `import:csv:${workspaceId}:${id}:tags_cache`,
+          JSON.stringify(tags),
+        );
+        await redis.set(
+          `import:csv:${workspaceId}:${id}:domains_cache`,
+          JSON.stringify(domains),
+        );
       }
     }
 
@@ -448,8 +474,9 @@ export async function POST(req: Request) {
               }
 
               if (selectedDomains.length > 0) {
-                await redis.sadd(
-                  `import:csv:${workspaceId}:${id}:domains`,
+                // Use a different key for the list of affected domains
+                await redis.rpush(
+                  `import:csv:${workspaceId}:${id}:domains_list`,
                   ...selectedDomains,
                 );
               }
@@ -555,9 +582,15 @@ export async function POST(req: Request) {
 
     let affectedDomains: string[] = [];
     try {
-      affectedDomains = (await redis.smembers(
-        `import:csv:${workspaceId}:${id}:domains`,
+      // Use the list key for affected domains
+      affectedDomains = (await redis.lrange(
+        `import:csv:${workspaceId}:${id}:domains_list`,
+        0,
+        -1,
       )) as string[];
+
+      // Remove duplicates (since lists can have duplicates)
+      affectedDomains = [...new Set(affectedDomains)];
     } catch (error) {
       console.error("Error getting affected domains", error);
     }
@@ -586,8 +619,9 @@ export async function POST(req: Request) {
         redis.del(`import:csv:${workspaceId}:${id}:count`),
         redis.del(`import:csv:${workspaceId}:${id}:failed`),
         redis.del(`import:csv:${workspaceId}:${id}:filesize`),
-        redis.del(`import:csv:${workspaceId}:${id}:tags`),
-        redis.del(`import:csv:${workspaceId}:${id}:domains`),
+        redis.del(`import:csv:${workspaceId}:${id}:tags_cache`),
+        redis.del(`import:csv:${workspaceId}:${id}:domains_cache`),
+        redis.del(`import:csv:${workspaceId}:${id}:domains_list`),
       ]);
 
       clearResults.forEach((result, idx) => {
