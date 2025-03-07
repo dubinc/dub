@@ -12,6 +12,9 @@ async function main() {
   const links = await prisma.link.findMany({
     where: {
       folderId: oldFolderId,
+      createdAt: {
+        lte: new Date("2025-03-07"), // TODO: update this to the timestamp when the PR is merged
+      },
       domain,
     },
     take: 500,
