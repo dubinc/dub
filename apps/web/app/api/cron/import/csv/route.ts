@@ -60,6 +60,8 @@ interface ErrorLink {
 const MAX_ROWS_PER_EXECUTION = 500;
 
 export async function POST(req: Request) {
+  console.time("import:csv");
+
   try {
     const rawBody = await req.text();
 
@@ -178,6 +180,8 @@ export async function POST(req: Request) {
         }
       });
     }
+
+    console.timeEnd("import:csv");
 
     return NextResponse.json("OK");
   } catch (error) {
@@ -438,7 +442,7 @@ const processMappedLinks = async ({
         payload: {
           ...createLinkBodySchema.parse({
             ...link,
-            tagNames: tags || [],
+            tagNames: tags || undefined,
             folderId,
           }),
         },
