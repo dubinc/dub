@@ -1,10 +1,22 @@
+import { createId } from "@/lib/api/create-id";
+import { addDomainToVercel } from "@/lib/api/domains";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { bulkCreateLinks, createLink, processLink } from "@/lib/api/links";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { storage } from "@/lib/storage";
+import { ProcessedLinkProps, WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { linkMappingSchema } from "@/lib/zod/schemas/import-csv";
+import { createLinkBodySchema } from "@/lib/zod/schemas/links";
+import { randomBadgeColor } from "@/ui/links/tag-badge";
 import { prisma } from "@dub/prisma";
-import { log, normalizeString, parseDateTime } from "@dub/utils";
+import {
+  DEFAULT_LINK_PROPS,
+  DUB_DOMAINS_ARRAY,
+  log,
+  normalizeString,
+  parseDateTime,
+} from "@dub/utils";
 import { NextResponse } from "next/server";
 import Papa from "papaparse";
 import { Readable } from "stream";
@@ -56,8 +68,8 @@ export async function POST(req: Request) {
     });
 
     const body = JSON.parse(rawBody);
-    const { id, url, mapping, workspaceId, userId, folderId } =
-      payloadSchema.parse(body);
+    const payload = payloadSchema.parse(body);
+    const { id, url, mapping, workspaceId, userId, folderId } = payload;
 
     if (!id || !url) {
       throw new Error("Missing ID or URL for the import file.");
@@ -86,79 +98,49 @@ export async function POST(req: Request) {
     });
 
     let mappedLinks: MapperResult[] = [];
+    let rowsProcessed = 0;
+    let currentRow = 0;
 
     await new Promise((resolve, reject) => {
       Papa.parse(Readable.fromWeb(response.body as any), {
         header: true,
         skipEmptyLines: true,
-        skipFirstNLines: cursor,
         worker: false,
         complete: resolve,
         error: reject,
-        chunk: async (
-          chunk: {
-            data?: Record<string, string>[];
-            errors: { message: string }[];
-          },
-          parser,
-        ) => {
+        step: async (results: { data: Record<string, string> }, parser) => {
           parser.pause();
 
-          const { data } = chunk;
-
-          if (!data?.length) {
-            console.warn("No data in CSV import chunk", chunk.errors);
+          // Skip rows until we reach our cursor position
+          if (currentRow < cursor) {
+            currentRow++;
             parser.resume();
             return;
           }
 
-          mappedLinks = data.map((row) => mapCsvRowToLink(row, mapping));
+          if (rowsProcessed >= MAX_ROWS_PER_EXECUTION) {
+            parser.abort();
+            return;
+          }
 
-          const successfulLinks = mappedLinks.filter(
-            (
-              result,
-            ): result is {
-              success: true;
-              data: NonNullable<MapperResult["data"]>;
-            } => result.success && !!result.data,
-          );
+          mappedLinks.push(mapCsvRowToLink(results.data, mapping));
 
-          const failedLinks = mappedLinks.filter(
-            (result): result is { success: false; error: string } =>
-              !result.success && !!result.error,
-          );
-
-          console.log(
-            "successfulLinks",
-            successfulLinks.map((l) => l.data.key),
-          );
-
-          cursor += data.length;
-
-          await redis.hset(redisKey, {
-            cursor,
-          });
+          rowsProcessed++;
+          currentRow++;
 
           parser.resume();
         },
       });
     });
 
-    if (failedLinks.length > 0) {
-      const existingFailedLinks = JSON.parse(
-        (await redis.hget(redisKey, "failedLinks")) || "[]",
-      );
+    await redis.hset(redisKey, {
+      cursor: currentRow,
+    });
 
-      await redis.hset(redisKey, {
-        failedCount:
-          parseInt((await redis.hget(redisKey, "failedCount")) || "0") +
-          failedLinks.length,
-        failedLinks: JSON.stringify([
-          ...existingFailedLinks,
-          ...failedLinks.map((f) => JSON.stringify(f)),
-        ]),
-      });
-    }
+    await processMappedLinks({
+      mappedLinks,
+      payload,
+    });
 
     return NextResponse.json("OK");
   } catch (error) {
@@ -171,7 +153,6 @@ export async function POST(req: Request) {
   }
 }
 
-// Map CSV row to link object
 const mapCsvRowToLink = (
   row: Record<string, string>,
   mapping: z.infer<typeof linkMappingSchema>,
@@ -270,5 +251,181 @@ const mapCsvRowToLink = (
       success: false,
       error: error instanceof Error ? error.message : "Unknown error occurred",
     };
+  }
+};
+
+const processMappedLinks = async ({
+  mappedLinks,
+  payload,
+}: {
+  mappedLinks: MapperResult[];
+  payload: z.infer<typeof payloadSchema>;
+}) => {
+  const { id, workspaceId, userId, folderId } = payload;
+  const redisKey = `import:csv:${workspaceId}:${id}`;
+
+  if (mappedLinks.length === 0) {
+    console.log("No links to process.");
+    return;
+  }
+
+  const failedMappings = mappedLinks.filter(
+    (result): result is { success: false; error: string } =>
+      !result.success && !!result.error,
+  );
+
+  if (failedMappings.length > 0) {
+    const existingFailedLinks = JSON.parse(
+      (await redis.hget(redisKey, "failedLinks")) || "[]",
+    );
+
+    await redis.hset(redisKey, {
+      failedCount:
+        parseInt((await redis.hget(redisKey, "failedCount")) || "0") +
+        failedMappings.length,
+      failedLinks: JSON.stringify([
+        ...existingFailedLinks,
+        ...failedMappings.map((f) => JSON.stringify(f)),
+      ]),
+    });
+  }
+
+  const successfulMappings = mappedLinks.filter(
+    (
+      result,
+    ): result is { success: true; data: NonNullable<MapperResult["data"]> } =>
+      result.success && !!result.data,
+  );
+
+  //// Process the tags ////
+  const selectedTags = successfulMappings
+    .map((result) => result.data.tags)
+    .flat()
+    .filter((tag): tag is string => Boolean(tag));
+
+  const tags = await prisma.tag.findMany({
+    where: {
+      projectId: workspaceId,
+    },
+    select: {
+      id: true,
+      name: true,
+    },
+  });
+
+  const tagsNotInWorkspace = selectedTags.filter(
+    (tag) => !tags.some((t) => t.name.toLowerCase() === tag.toLowerCase()),
+  );
+
+  if (tagsNotInWorkspace.length > 0) {
+    await prisma.tag.createMany({
+      data: tagsNotInWorkspace.map((name) => ({
+        id: createId({ prefix: "tag_" }),
+        projectId: workspaceId,
+        name,
+        color: randomBadgeColor(),
+      })),
+      skipDuplicates: true,
+    });
+  }
+
+  //// Process the domains ////
+  const selectedDomains = successfulMappings
+    .map((result) => result.data.domain)
+    .filter((domain): domain is string => Boolean(domain));
+
+  const domains = await prisma.domain.findMany({
+    where: {
+      projectId: workspaceId,
+    },
+  });
+
+  const domainsNotInWorkspace = selectedDomains.filter(
+    (domain) =>
+      !domains.some((d) => d.slug === domain) &&
+      !DUB_DOMAINS_ARRAY.includes(domain),
+  );
+
+  if (domainsNotInWorkspace.length > 0) {
+    await Promise.allSettled([
+      prisma.domain.createMany({
+        data: domainsNotInWorkspace.map((slug) => ({
+          id: createId({ prefix: "dom_" }),
+          projectId: workspaceId,
+          slug,
+          primary: false,
+        })),
+        skipDuplicates: true,
+      }),
+
+      domainsNotInWorkspace.map((domain) => addDomainToVercel(domain)),
+
+      domainsNotInWorkspace.map((domain) =>
+        createLink({
+          ...DEFAULT_LINK_PROPS,
+          projectId: workspaceId,
+          userId,
+          domain,
+          key: "_root",
+          url: "",
+          tags: undefined,
+        }),
+      ),
+    ]);
+  }
+
+  //// Process the links ////
+  const linksToCreate = successfulMappings.map((result) => result.data);
+
+  const workspace = await prisma.project.findUniqueOrThrow({
+    where: {
+      id: workspaceId,
+    },
+    select: {
+      id: true,
+      plan: true,
+    },
+  });
+
+  const processedLinks = await Promise.all(
+    linksToCreate.map(({ tags, ...link }) =>
+      processLink({
+        payload: {
+          ...createLinkBodySchema.parse({
+            ...link,
+            tagNames: tags || undefined,
+            folderId,
+          }),
+        },
+        workspace: {
+          id: workspaceId,
+          plan: workspace.plan as WorkspaceProps["plan"],
+        },
+        userId,
+        bulk: true,
+      }),
+    ),
+  );
+
+  const validLinks = processedLinks
+    .filter(({ error }) => error == null)
+    .map(({ link }) => link);
+
+  const errorLinks = processedLinks
+    .filter(({ error }) => error != null)
+    .map(({ link: { domain, key }, error }) => ({
+      domain,
+      key,
+      error,
+    }));
+
+  if (validLinks.length > 0) {
+    await bulkCreateLinks({
+      links: validLinks as ProcessedLinkProps[],
+    });
+  }
+
+  if (errorLinks.length > 0) {
+    //
   }
 };
