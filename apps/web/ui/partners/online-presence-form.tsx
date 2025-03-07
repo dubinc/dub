@@ -7,6 +7,7 @@ import {
   Button,
   CircleCheckFill,
   Globe,
+  Icon,
   Instagram,
   TikTok,
   Twitter,
@@ -15,7 +16,7 @@ import {
 import { cn } from "@dub/utils/src/functions";
 import { useAction } from "next-safe-action/hooks";
 import { ReactNode, useState } from "react";
-import { useForm } from "react-hook-form";
+import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
@@ -49,15 +50,7 @@ export function OnlinePresenceForm({
 }: OnlinePresenceFormProps) {
   const { partner: partnerProfile } = usePartnerProfile();
 
-  const {
-    register,
-    setError,
-    watch,
-    getValues,
-    handleSubmit,
-    getFieldState,
-    formState: { errors, isSubmitting, isSubmitSuccessful },
-  } = useForm<OnlinePresenceFormData>({
+  const form = useForm<OnlinePresenceFormData>({
     defaultValues: {
       website: partner?.website || undefined,
       instagram: partner?.instagram || undefined,
@@ -66,6 +59,16 @@ export function OnlinePresenceForm({
       twitter: partner?.twitter || undefined,
     },
   });
+
+  const {
+    register,
+    setError,
+    watch,
+    getValues,
+    handleSubmit,
+    getFieldState,
+    formState: { errors, isSubmitting, isSubmitSuccessful },
+  } = form;
 
   const website = watch("website");
 
@@ -109,65 +112,48 @@ export function OnlinePresenceForm({
         domain={domainVerificationData?.domain || ""}
         txtRecord={domainVerificationData?.txtRecord || ""}
       />
-      <form
-        onSubmit={handleSubmit(async (data) => {
-          const result = await executeAsync(data);
+      <FormProvider {...form}>
+        <form
+          onSubmit={handleSubmit(async (data) => {
+            const result = await executeAsync(data);
 
-          if (result?.data?.success) onSubmitSuccessful?.();
-        })}
-      >
-        <div
-          className={cn(
-            "flex w-full flex-col gap-4 text-left",
-            variant === "settings" && "gap-0 divide-y divide-neutral-200 p-5",
-          )}
+            if (result?.data?.success) onSubmitSuccessful?.();
+          })}
         >
-          <FormRow
-            variant={variant}
-            label="Website"
-            input={
-              <input
-                type="url"
-                className={cn(
-                  "block w-full rounded-md focus:outline-none sm:text-sm",
-                  errors.website
-                    ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                    : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
-                )}
-                placeholder="https://example.com"
-                {...register("website")}
-              />
-            }
-            button={
-              <Button
-                className={cn(
-                  "absolute right-1.5 top-1/2 h-7 w-fit -translate-y-1/2 px-2.5",
-                  isWebsiteVerified &&
-                    "border-green-100 bg-green-100 text-green-700",
-                )}
-                variant="secondary"
-                text={isWebsiteVerified ? "Verified" : "Verify"}
-                icon={
-                  isWebsiteVerified ? (
-                    <CircleCheckFill className="size-4 text-green-700" />
-                  ) : (
-                    <Globe className="size-4" />
-                  )
-                }
-                loading={isSavingWebsite || !partnerProfile}
-                disabled={
-                  !website ||
-                  getFieldState("website").invalid ||
-                  isWebsiteVerified
-                }
-                onClick={async () => {
-                  setIsSavingWebsite(true);
-                  try {
-                    const result = await updateOnlinePresenceAction({
-                      website: getValues("website"),
-                    });
-
+          <div
+            className={cn(
+              "flex w-full flex-col gap-4 text-left",
+              variant === "settings" && "gap-0 divide-y divide-neutral-200 p-5",
+            )}
+          >
+            <FormRow
+              variant={variant}
+              label="Website"
+              input={
+                <input
+                  type="url"
+                  className={cn(
+                    "block w-full rounded-md focus:outline-none sm:text-sm",
+                    errors.website
+                      ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                      : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+                  )}
+                  placeholder="https://example.com"
+                  {...register("website")}
+                />
+              }
+              button={
+                <VerifyButton
+                  property="website"
+                  icon={Globe}
+                  loading={!partnerProfile}
+                  isVerified={isWebsiteVerified}
+                  onClick={async () => {
                     try {
+                      const result = await updateOnlinePresenceAction({
+                        website: getValues("website"),
+                      });
+
                       if (
                         !result?.data?.website ||
                         !result?.data?.websiteTxtRecord
@@ -181,168 +167,267 @@ export function OnlinePresenceForm({
                         domain: new URL(result.data.website).hostname,
                         txtRecord: result.data.websiteTxtRecord,
                       });
+
+                      mutate("/api/partner-profile");
                     } catch (e) {
                       toast.error("Failed to start website verification");
                       console.error("Failed to start website verification", e);
                     }
-
-                    mutate("/api/partner-profile");
-                  } finally {
-                    setIsSavingWebsite(false);
-                  }
-                }}
-              />
-            }
-          />
-
-          <FormRow
-            variant={variant}
-            label="Instagram"
-            input={
-              <div className="flex rounded-md">
-                <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
-                  instagram.com/
-                </span>
-                <input
-                  type="text"
-                  className={cn(
-                    "block w-full rounded-none rounded-r-md focus:outline-none sm:text-sm",
-                    errors.instagram
-                      ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                      : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
-                  )}
-                  placeholder="handle"
-                  {...register("instagram")}
+                  }}
                 />
-              </div>
-            }
-            button={
-              <Button
-                className="absolute right-1.5 top-1/2 h-7 w-fit -translate-y-1/2 px-2.5"
-                variant="secondary"
-                text="Verify"
-                icon={<Instagram className="size-3.5" />}
-                onClick={() => alert("WIP")}
-              />
-            }
-          />
+              }
+            />
 
-          <FormRow
-            variant={variant}
-            label="TikTok"
-            input={
-              <div className="flex rounded-md">
-                <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
-                  tiktok.com/@
-                </span>
-                <input
-                  type="text"
-                  className={cn(
-                    "block w-full rounded-none rounded-r-md focus:outline-none sm:text-sm",
-                    errors.tiktok
-                      ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                      : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
-                  )}
-                  placeholder="handle"
-                  {...register("tiktok")}
+            <FormRow
+              variant={variant}
+              label="Instagram"
+              input={
+                <div className="flex rounded-md">
+                  <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
+                    instagram.com/
+                  </span>
+                  <input
+                    type="text"
+                    className={cn(
+                      "block w-full rounded-none rounded-r-md focus:outline-none sm:text-sm",
+                      errors.instagram
+                        ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                        : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+                    )}
+                    placeholder="handle"
+                    {...register("instagram")}
+                  />
+                </div>
+              }
+              button={
+                <VerifyButton
+                  property="instagram"
+                  icon={Instagram}
+                  loading={!partnerProfile}
+                  isVerified={Boolean(partnerProfile?.instagramVerifiedAt)}
+                  onClick={async () => {
+                    try {
+                      const result = await updateOnlinePresenceAction({
+                        instagram: getValues("instagram"),
+                      });
+
+                      // TODO
+                      alert("WIP");
+
+                      mutate("/api/partner-profile");
+                    } catch (e) {
+                      toast.error("Failed to start verification");
+                      console.error("Failed to start verification", e);
+                    }
+                  }}
                 />
-              </div>
-            }
-            button={
-              <Button
-                className="absolute right-1.5 top-1/2 h-7 w-fit -translate-y-1/2 px-2.5"
-                variant="secondary"
-                text="Verify"
-                icon={<TikTok className="size-3.5" />}
-                onClick={() => alert("WIP")}
-              />
-            }
-          />
+              }
+            />
 
-          <FormRow
-            variant={variant}
-            label="YouTube"
-            input={
-              <div className="flex rounded-md">
-                <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
-                  youtube.com/@
-                </span>
-                <input
-                  type="text"
-                  className={cn(
-                    "block w-full rounded-none rounded-r-md focus:outline-none sm:text-sm",
-                    errors.youtube
-                      ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                      : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
-                  )}
-                  placeholder="handle"
-                  {...register("youtube")}
+            <FormRow
+              variant={variant}
+              label="TikTok"
+              input={
+                <div className="flex rounded-md">
+                  <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
+                    tiktok.com/@
+                  </span>
+                  <input
+                    type="text"
+                    className={cn(
+                      "block w-full rounded-none rounded-r-md focus:outline-none sm:text-sm",
+                      errors.tiktok
+                        ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                        : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+                    )}
+                    placeholder="handle"
+                    {...register("tiktok")}
+                  />
+                </div>
+              }
+              button={
+                <VerifyButton
+                  property="tiktok"
+                  icon={TikTok}
+                  loading={!partnerProfile}
+                  isVerified={Boolean(partnerProfile?.tiktokVerifiedAt)}
+                  onClick={async () => {
+                    try {
+                      const result = await updateOnlinePresenceAction({
+                        tiktok: getValues("tiktok"),
+                      });
+
+                      // TODO
+                      alert("WIP");
+
+                      mutate("/api/partner-profile");
+                    } catch (e) {
+                      toast.error("Failed to start verification");
+                      console.error("Failed to start verification", e);
+                    }
+                  }}
                 />
-              </div>
-            }
-            button={
-              <Button
-                className="absolute right-1.5 top-1/2 h-7 w-fit -translate-y-1/2 px-2.5"
-                variant="secondary"
-                text="Verify"
-                icon={<YouTube className="size-3.5" />}
-                onClick={() => alert("WIP")}
-              />
-            }
-          />
+              }
+            />
 
-          <FormRow
-            variant={variant}
-            label="X/Twitter"
-            input={
-              <div className="flex rounded-md">
-                <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
-                  x.com/
-                </span>
-                <input
-                  type="text"
-                  className={cn(
-                    "block w-full rounded-none rounded-r-md focus:outline-none sm:text-sm",
-                    errors.twitter
-                      ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                      : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
-                  )}
-                  placeholder="handle"
-                  {...register("twitter")}
+            <FormRow
+              variant={variant}
+              label="YouTube"
+              input={
+                <div className="flex rounded-md">
+                  <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
+                    youtube.com/@
+                  </span>
+                  <input
+                    type="text"
+                    className={cn(
+                      "block w-full rounded-none rounded-r-md focus:outline-none sm:text-sm",
+                      errors.youtube
+                        ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                        : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+                    )}
+                    placeholder="handle"
+                    {...register("youtube")}
+                  />
+                </div>
+              }
+              button={
+                <VerifyButton
+                  property="youtube"
+                  icon={YouTube}
+                  loading={!partnerProfile}
+                  isVerified={Boolean(partnerProfile?.youtubeVerifiedAt)}
+                  onClick={async () => {
+                    try {
+                      const result = await updateOnlinePresenceAction({
+                        youtube: getValues("youtube"),
+                      });
+
+                      // TODO
+                      alert("WIP");
+
+                      mutate("/api/partner-profile");
+                    } catch (e) {
+                      toast.error("Failed to start verification");
+                      console.error("Failed to start verification", e);
+                    }
+                  }}
                 />
-              </div>
-            }
-            button={
-              <Button
-                className="absolute right-1.5 top-1/2 h-7 w-fit -translate-y-1/2 px-2.5"
-                variant="secondary"
-                text="Verify"
-                icon={<Twitter className="size-3.5" />}
-                onClick={() => alert("WIP")}
-              />
-            }
-          />
-        </div>
+              }
+            />
 
-        {variant === "onboarding" ? (
-          <Button
-            type="submit"
-            text="Continue"
-            className="mt-6"
-            loading={isSubmitting || isSubmitSuccessful}
-          />
-        ) : (
-          <div className="flex justify-end rounded-b-lg border-t border-neutral-200 bg-neutral-100 px-5 py-3.5">
-            <Button
-              type="submit"
-              text="Save changes"
-              className="h-8 w-fit px-2.5"
-              loading={isSubmitting}
+            <FormRow
+              variant={variant}
+              label="X/Twitter"
+              input={
+                <div className="flex rounded-md">
+                  <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
+                    x.com/
+                  </span>
+                  <input
+                    type="text"
+                    className={cn(
+                      "block w-full rounded-none rounded-r-md focus:outline-none sm:text-sm",
+                      errors.twitter
+                        ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                        : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+                    )}
+                    placeholder="handle"
+                    {...register("twitter")}
+                  />
+                </div>
+              }
+              button={
+                <VerifyButton
+                  property="twitter"
+                  icon={Twitter}
+                  loading={!partnerProfile}
+                  isVerified={Boolean(partnerProfile?.twitterVerifiedAt)}
+                  onClick={async () => {
+                    try {
+                      const result = await updateOnlinePresenceAction({
+                        twitter: getValues("twitter"),
+                      });
+
+                      // TODO
+                      alert("WIP");
+
+                      mutate("/api/partner-profile");
+                    } catch (e) {
+                      toast.error("Failed to start verification");
+                      console.error("Failed to start verification", e);
+                    }
+                  }}
+                />
+              }
             />
           </div>
-        )}
-      </form>
+
+          {variant === "onboarding" ? (
+            <Button
+              type="submit"
+              text="Continue"
+              className="mt-6"
+              loading={isSubmitting || isSubmitSuccessful}
+            />
+          ) : (
+            <div className="flex justify-end rounded-b-lg border-t border-neutral-200 bg-neutral-100 px-5 py-3.5">
+              <Button
+                type="submit"
+                text="Save changes"
+                className="h-8 w-fit px-2.5"
+                loading={isSubmitting}
+              />
+            </div>
+          )}
+        </form>
+      </FormProvider>
     </>
+  );
+}
+
+function VerifyButton({
+  property,
+  icon: Icon,
+  loading,
+  isVerified,
+  onClick,
+}: {
+  property: keyof OnlinePresenceFormData;
+  icon: Icon;
+  loading: boolean;
+  isVerified: boolean;
+  onClick: () => Promise<void>;
+}) {
+  const { watch, getFieldState } = useFormContext<OnlinePresenceFormData>();
+
+  const value = watch(property);
+
+  const [isSaving, setIsSaving] = useState(false);
+
+  return (
+    <Button
+      className={cn(
+        "absolute right-1.5 top-1/2 h-7 w-fit -translate-y-1/2 px-2.5",
+        isVerified && "border-green-100 bg-green-100 text-green-700",
+      )}
+      variant="secondary"
+      text={isVerified ? "Verified" : "Verify"}
+      icon={
+        isVerified ? (
+          <CircleCheckFill className="size-4 text-green-700" />
+        ) : (
+          <Icon className="size-3.5" />
+        )
+      }
+      loading={isSaving || loading}
+      disabled={!value || getFieldState(property).invalid || isVerified}
+      onClick={async () => {
+        setIsSaving(true);
+        await onClick();
+        setIsSaving(false);
+      }}
+    />
   );
 }
 
