@@ -526,7 +526,81 @@ export async function POST(req: Request) {
     // If file is not complete, schedule the next batch
     if (!isFileComplete) {
       try {
-        // Use qstash.publishJSON similar to how it's used in rebrandly importer
+        // Get the retry count from Redis or initialize as 0
+        const retryCount = parseInt(
+          (await redis.get(`import:csv:${workspaceId}:${id}:retry_count`)) ??
+            "0",
+        );
+
+        // Get the previous cursor to check if we're making progress
+        const previousCursor = parseInt(
+          (await redis.get(
+            `import:csv:${workspaceId}:${id}:previous_cursor`,
+          )) ?? "0",
+        );
+
+        // Store current cursor for next comparison
+        await redis.set(
+          `import:csv:${workspaceId}:${id}:previous_cursor`,
+          cursor,
+        );
+
+        // Check for potential infinite loop conditions
+        const MAX_RETRIES = 50; // Set reasonable max based on your file sizes
+        const noProgress =
+          cursor === previousCursor && processedRowsInThisExecution === 0;
+
+        if (retryCount >= MAX_RETRIES || noProgress) {
+          // Abort the import process
+          await log({
+            message: `CSV import aborted after ${retryCount} attempts - possible infinite loop detected. WorkspaceId: ${workspaceId}, ImportId: ${id}`,
+            type: "cron",
+          });
+
+          // Clean up Redis keys
+          await Promise.allSettled([
+            storage.delete(url),
+            redis.del(`import:csv:${workspaceId}:${id}:cursor`),
+            redis.del(`import:csv:${workspaceId}:${id}:count`),
+            redis.del(`import:csv:${workspaceId}:${id}:failed`),
+            redis.del(`import:csv:${workspaceId}:${id}:filesize`),
+            redis.del(`import:csv:${workspaceId}:${id}:tags_cache`),
+            redis.del(`import:csv:${workspaceId}:${id}:domains_cache`),
+            redis.del(`import:csv:${workspaceId}:${id}:domains_list`),
+            redis.del(`import:csv:${workspaceId}:${id}:retry_count`),
+            redis.del(`import:csv:${workspaceId}:${id}:previous_cursor`),
+          ]);
+
+          // Send notification email about the aborted import
+          try {
+            await sendCsvImportEmails({
+              workspaceId,
+              count,
+              domains: [],
+              errorLinks: [],
+              aborted: true,
+              reason: noProgress
+                ? "No progress between iterations"
+                : "Maximum retries exceeded",
+            });
+          } catch (emailError) {
+            console.error("Error sending abort notification email", emailError);
+          }
+
+          return NextResponse.json({
+            response: "error",
+            message: "Import aborted due to possible infinite loop",
+            processed: count,
+          });
+        }
+
+        // Increment retry count
+        await redis.set(
+          `import:csv:${workspaceId}:${id}:retry_count`,
+          retryCount + 1,
+        );
+
+        // Schedule next batch
         await qstash.publishJSON({
           url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/csv`,
           body: {
