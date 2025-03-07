@@ -11,7 +11,6 @@ import {
   isDubDomain,
   isReservedKeyGlobal,
 } from "@dub/utils";
-import { encodeKeyIfCaseSensitive } from "../case-sensitivity";
 
 export async function keyChecks({
   domain,
@@ -37,12 +36,7 @@ export async function keyChecks({
     };
   }
 
-  key = encodeKeyIfCaseSensitive({
-    domain,
-    key,
-  });
-
-  const link = await checkIfKeyExists(domain, key);
+  const link = await checkIfKeyExists({ domain, key });
   if (link) {
     return {
       error: "Duplicate key: This short link already exists.",
