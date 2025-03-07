@@ -2,6 +2,7 @@ import { createId } from "@/lib/api/create-id";
 import { addDomainToVercel } from "@/lib/api/domains";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkCreateLinks, createLink, processLink } from "@/lib/api/links";
+import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { storage } from "@/lib/storage";
 import { ProcessedLinkProps, WorkspaceProps } from "@/lib/types";
@@ -11,6 +12,7 @@ import { createLinkBodySchema } from "@/lib/zod/schemas/links";
 import { randomBadgeColor } from "@/ui/links/tag-badge";
 import { prisma } from "@dub/prisma";
 import {
+  APP_DOMAIN_WITH_NGROK,
   DEFAULT_LINK_PROPS,
   DUB_DOMAINS_ARRAY,
   getPrettyUrl,
@@ -434,7 +436,7 @@ export async function POST(req: Request) {
               if (errorLinksInBatch.length > 0) {
                 await redis.rpush(
                   `import:csv:${workspaceId}:${id}:failed`,
-                  ...errorLinksInBatch.map((item) => JSON.stringify(item)),
+                  ...errorLinksInBatch,
                 );
               }
 
@@ -447,7 +449,7 @@ export async function POST(req: Request) {
 
               if (selectedDomains.length > 0) {
                 await redis.sadd(
-                  `import:csv:${workspaceId}:${id}:domains_affected`,
+                  `import:csv:${workspaceId}:${id}:domains`,
                   ...selectedDomains,
                 );
               }
@@ -497,31 +499,18 @@ export async function POST(req: Request) {
     // If file is not complete, schedule the next batch
     if (!isFileComplete) {
       try {
-        // Use QStash to schedule the next execution
-        const qstashRes = await fetch(
-          `https://qstash.upstash.io/v2/publish/https://${process.env.NEXT_PUBLIC_APP_DOMAIN}/api/cron/import/csv`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${process.env.QSTASH_TOKEN}`,
-            },
-            body: JSON.stringify({
-              workspaceId,
-              userId,
-              id,
-              folderId,
-              url,
-              mapping,
-            }),
+        // Use qstash.publishJSON similar to how it's used in rebrandly importer
+        await qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/csv`,
+          body: {
+            workspaceId,
+            userId,
+            id,
+            folderId,
+            url,
+            mapping,
           },
-        );
-
-        if (!qstashRes.ok) {
-          throw new Error(
-            `Failed to schedule next batch: ${await qstashRes.text()}`,
-          );
-        }
+        });
 
         return NextResponse.json({
           response: "in_progress",
@@ -535,7 +524,6 @@ export async function POST(req: Request) {
           type: "cron",
         });
         // Even if scheduling fails, return a success response with in_progress status
-        // The UI can handle retrying if needed
         return NextResponse.json({
           response: "in_progress",
           processed: count,
@@ -568,7 +556,7 @@ export async function POST(req: Request) {
     let affectedDomains: string[] = [];
     try {
       affectedDomains = (await redis.smembers(
-        `import:csv:${workspaceId}:${id}:domains_affected`,
+        `import:csv:${workspaceId}:${id}:domains`,
       )) as string[];
     } catch (error) {
       console.error("Error getting affected domains", error);
@@ -597,7 +585,6 @@ export async function POST(req: Request) {
         redis.del(`import:csv:${workspaceId}:${id}:cursor`),
         redis.del(`import:csv:${workspaceId}:${id}:count`),
         redis.del(`import:csv:${workspaceId}:${id}:failed`),
-        redis.del(`import:csv:${workspaceId}:${id}:domains_affected`),
         redis.del(`import:csv:${workspaceId}:${id}:filesize`),
         redis.del(`import:csv:${workspaceId}:${id}:tags`),
         redis.del(`import:csv:${workspaceId}:${id}:domains`),
