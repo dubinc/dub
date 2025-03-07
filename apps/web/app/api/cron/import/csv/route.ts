@@ -57,7 +57,7 @@ interface ErrorLink {
   error: string;
 }
 
-const MAX_ROWS_PER_EXECUTION = 50; // Number of rows to process per execution
+const MAX_ROWS_PER_EXECUTION = 500;
 
 export async function POST(req: Request) {
   try {
@@ -103,7 +103,6 @@ export async function POST(req: Request) {
 
           // Skip rows until we reach our cursor position
           if (currentRow < cursor) {
-            console.log(`Skipping row ${currentRow} of ${results.data.length}`);
             currentRow++;
             parser.resume();
             return;
