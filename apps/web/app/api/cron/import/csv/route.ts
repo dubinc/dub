@@ -2,6 +2,7 @@ import { createId } from "@/lib/api/create-id";
 import { addDomainToVercel } from "@/lib/api/domains";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkCreateLinks, createLink, processLink } from "@/lib/api/links";
+import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { storage } from "@/lib/storage";
 import { ProcessedLinkProps, WorkspaceProps } from "@/lib/types";
@@ -11,6 +12,7 @@ import { createLinkBodySchema } from "@/lib/zod/schemas/links";
 import { randomBadgeColor } from "@/ui/links/tag-badge";
 import { prisma } from "@dub/prisma";
 import {
+  APP_DOMAIN_WITH_NGROK,
   DEFAULT_LINK_PROPS,
   DUB_DOMAINS_ARRAY,
   log,
@@ -77,9 +79,7 @@ export async function POST(req: Request) {
 
     const redisKey = `import:csv:${workspaceId}:${id}`;
     const importData = (await redis.hgetall(redisKey)) || {};
-
-    let { cursor, domains, failedLinks, failedCount, filesize, tagsCache } =
-      importDataSchema.parse(importData);
+    let { cursor } = importDataSchema.parse(importData);
 
     if (cursor === 0) {
       await redis.del(redisKey);
@@ -100,13 +100,17 @@ export async function POST(req: Request) {
     let mappedLinks: MapperResult[] = [];
     let rowsProcessed = 0;
     let currentRow = 0;
+    let isComplete = false;
 
     await new Promise((resolve, reject) => {
       Papa.parse(Readable.fromWeb(response.body as any), {
         header: true,
         skipEmptyLines: true,
         worker: false,
-        complete: resolve,
+        complete: (results) => {
+          isComplete = currentRow >= results.data.length;
+          resolve(results);
+        },
         error: reject,
         step: async (results: { data: Record<string, string> }, parser) => {
           parser.pause();
@@ -142,7 +146,18 @@ export async function POST(req: Request) {
       payload,
     });
 
-    return NextResponse.json("OK");
+    console.log("rowsProcessed", rowsProcessed);
+    console.log("isComplete", isComplete);
+
+    // If we processed the maximum rows and haven't reached the end, trigger next batch
+    if (rowsProcessed >= MAX_ROWS_PER_EXECUTION && !isComplete) {
+      await qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/csv`,
+        body: payload,
+      });
+    }
+
+    return NextResponse.json({ status: "completed", isComplete });
   } catch (error) {
     await log({
       message: `Error importing CSV links: ${error.message}`,
