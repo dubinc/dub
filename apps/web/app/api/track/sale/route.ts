@@ -2,6 +2,7 @@ import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { sendPartnerSaleNotification } from "@/lib/api/partners/partner-sale-notification";
+import { sendProgramOwnerSaleNotification } from "@/lib/api/partners/program-owner-sale-notification";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -252,7 +253,7 @@ export const POST = withWorkspace(
                 },
               });
 
-              await sendPartnerSaleNotification({
+              const emailData = {
                 program,
                 partner: {
                   id: link.partnerId!,
@@ -262,7 +263,10 @@ export const POST = withWorkspace(
                   amount: saleData.amount,
                   earnings,
                 },
-              });
+              };
+
+              await sendPartnerSaleNotification(emailData);
+              await sendProgramOwnerSaleNotification(emailData);
             }
           }
         }

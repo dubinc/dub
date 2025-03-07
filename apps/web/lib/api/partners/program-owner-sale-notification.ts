@@ -1,9 +1,9 @@
 import { limiter } from "@/lib/cron/limiter";
 import { sendEmailViaResend } from "@dub/email/resend";
-import { NewSaleAlertPartner } from "@dub/email/templates/new-sale-alert-partner";
+import { NewSaleAlertProgramOwner } from "@dub/email/templates/new-sale-alert-program-owner";
 import { prismaEdge } from "@dub/prisma/edge";
 
-export async function sendPartnerSaleNotification({
+export async function sendProgramOwnerSaleNotification({
   partner,
   program,
   sale,
@@ -42,7 +42,7 @@ export async function sendPartnerSaleNotification({
           subject: "You just made a sale via Dub Partners!",
           from: "Dub Partners <system@dub.co>",
           email: user.email!,
-          react: NewSaleAlertPartner({
+          react: NewSaleAlertProgramOwner({
             email: user.email!,
             program,
             partner,

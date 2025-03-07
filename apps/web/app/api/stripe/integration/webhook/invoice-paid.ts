@@ -1,6 +1,7 @@
 import { createId } from "@/lib/api/create-id";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { sendPartnerSaleNotification } from "@/lib/api/partners/partner-sale-notification";
+import { sendProgramOwnerSaleNotification } from "@/lib/api/partners/program-owner-sale-notification";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
@@ -194,7 +195,7 @@ export async function invoicePaid(event: Stripe.Event) {
               },
             });
 
-            await sendPartnerSaleNotification({
+            const emailData = {
               program,
               partner: {
                 id: link.partnerId!,
@@ -204,7 +205,10 @@ export async function invoicePaid(event: Stripe.Event) {
                 amount: saleData.amount,
                 earnings,
               },
-            });
+            };
+
+            await sendPartnerSaleNotification(emailData);
+            await sendProgramOwnerSaleNotification(emailData);
           })(),
         );
       }
