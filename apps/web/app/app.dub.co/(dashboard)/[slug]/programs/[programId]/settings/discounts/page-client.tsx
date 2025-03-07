@@ -5,9 +5,8 @@ import useProgram from "@/lib/swr/use-program";
 import type { DiscountProps } from "@/lib/types";
 import { useDiscountSheet } from "@/ui/partners/add-edit-discount-sheet";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
-import { EventType } from "@dub/prisma/client";
-import { Badge, Button, MoneyBill } from "@dub/ui";
-import { BadgePercent, Cookie } from "lucide-react";
+import { Badge, Button } from "@dub/ui";
+import { BadgePercent } from "lucide-react";
 
 export function ProgramSettingsDiscountsPageClient() {
   return (
@@ -55,7 +54,7 @@ const DefaultDiscount = () => {
             <div className="flex items-center justify-between gap-4 rounded-lg bg-neutral-50 p-4">
               <div className="flex items-center gap-4">
                 <div className="flex size-10 items-center justify-center rounded-full border border-neutral-300">
-                  <MoneyBill className="size-5" />
+                  <BadgePercent className="size-5" />
                 </div>
                 <p className="text-sm text-neutral-600">
                   No default referral discount created
@@ -64,7 +63,7 @@ const DefaultDiscount = () => {
               <Button
                 text="Create default discount"
                 variant="primary"
-                className="h-9 w-fit"
+                className="h-8 w-fit px-3"
                 onClick={() => setIsOpen(true)}
               />
             </div>
@@ -104,7 +103,7 @@ const AdditionalDiscounts = () => {
           <Button
             text="Create discount"
             variant="primary"
-            className="h-9 w-fit"
+            className="h-8 w-fit px-3"
             onClick={() => setIsOpen(true)}
           />
         </div>
@@ -125,10 +124,19 @@ const AdditionalDiscounts = () => {
             ))}
           </div>
         ) : (
-          <EmptyState
-            title="Additional Discounts"
-            description="No additional discounts have been added yet"
-          />
+          <div className="flex flex-col items-center justify-center gap-4 rounded-lg bg-neutral-50 py-12">
+            <div className="flex items-center justify-center">
+              <BadgePercent className="size-6 text-neutral-800" />
+            </div>
+            <div className="flex flex-col items-center gap-1 px-4 text-center">
+              <p className="text-base font-medium text-neutral-900">
+                Additional Discounts
+              </p>
+              <p className="text-sm text-neutral-600">
+                No additional discounts have been added yet
+              </p>
+            </div>
+          </div>
         )}
       </div>
       {DiscountSheet}
@@ -185,51 +193,6 @@ const DiscountSkeleton = () => {
           <div className="h-4 w-32 rounded bg-neutral-100" />
         </div>
         <div className="h-6 w-24 rounded-full bg-neutral-100" />
-      </div>
-    </div>
-  );
-};
-
-const EmptyState = ({
-  title,
-  description,
-  event,
-  onClick,
-}: {
-  title: string;
-  description: string;
-  event?: EventType;
-  onClick?: () => void;
-}) => {
-  if (event === "sale") {
-    return (
-      <div className="flex items-center justify-between gap-4 rounded-lg bg-neutral-50 p-4">
-        <div className="flex items-center gap-4">
-          <div className="flex size-10 items-center justify-center rounded-full border border-neutral-300">
-            <MoneyBill className="size-5" />
-          </div>
-          <p className="text-sm text-neutral-600">
-            No default referral discount created
-          </p>
-        </div>
-        <Button
-          text="Create default discount"
-          variant="primary"
-          className="h-[32px] w-fit"
-          onClick={onClick}
-        />
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col items-center justify-center gap-4 rounded-lg bg-neutral-50 py-12">
-      <div className="flex items-center justify-center">
-        <Cookie className="size-6 text-neutral-800" />
-      </div>
-      <div className="flex flex-col items-center gap-1 px-4 text-center">
-        <p className="text-base font-medium text-neutral-900">{title}</p>
-        <p className="text-sm text-neutral-600">{description}</p>
       </div>
     </div>
   );
