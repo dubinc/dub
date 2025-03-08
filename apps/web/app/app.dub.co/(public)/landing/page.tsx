@@ -1,5 +1,6 @@
 "use client";
 
+import { FAQSection } from "@/ui/landing/faq-section/faq-section.tsx";
 import { useMediaQuery } from "@dub/ui";
 import { useEffect, useState } from "react";
 import { QRTabs } from "./components/qr-tabs/qr-tabs.tsx";
@@ -13,8 +14,13 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <main className="bg-primary-lighter relative mx-auto h-screen w-full px-3 py-6 md:py-[42px]">
-      {isClient && <QRTabs isMobile={isMobile} />}
+    <main className="relative mx-auto min-h-screen w-full px-3 py-6 md:py-[42px]">
+      {isClient && (
+        <>
+          <QRTabs isMobile={isMobile} />
+          <FAQSection isMobile={isMobile} />
+        </>
+      )}
     </main>
   );
 }

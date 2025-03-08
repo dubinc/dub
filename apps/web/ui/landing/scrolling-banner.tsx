@@ -38,7 +38,7 @@ export const ScrollingBanner = React.forwardRef<
         {...props}
         ref={ref}
         className={cn(
-          "relative flex py-14",
+          "relative flex",
           {
             "w-full": !isVertical,
             "overflow-y-hidden": isVertical,
