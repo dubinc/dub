@@ -1,5 +1,3 @@
-"use client";
-
 import QrWebsiteImg from "@/ui/landing/assets/png/get-qr-website.png";
 import Image from "next/image";
 import { FC } from "react";

@@ -1,10 +1,9 @@
-"use client";
-
 import { Button, Input } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Icon } from "@iconify/react";
 import * as Tabs from "@radix-ui/react-tabs";
 import { FC, useState } from "react";
+import { LogoScrollingBanner } from "./components/logo-scrolling-banner.tsx";
 import { QrTabsImage } from "./components/qr-tabs-image.tsx";
 import { QRTabsPopover } from "./components/qr-tabs-popover.tsx";
 import { QrTabsTitle } from "./components/qr-tabs-title.tsx";
@@ -24,12 +23,12 @@ export const QRTabs: FC<IQRTabsProps> = ({ isMobile }) => {
   };
 
   return (
-    <section className="mx-auto flex max-w-5xl flex-col items-center justify-center gap-4 md:gap-[42px]">
+    <section className="mx-auto flex max-w-[992px] flex-col items-center justify-center gap-4 md:gap-[42px]">
       <QrTabsTitle />
       <Tabs.Root
         value={activeTab}
         onValueChange={setActiveTab}
-        className="mx-auto flex w-full max-w-screen-lg flex-col items-center justify-center gap-[18px] rounded-lg bg-white p-4 md:rounded-none md:bg-transparent"
+        className="mx-auto flex w-full flex-col items-center justify-center gap-[18px] rounded-lg bg-white p-4 md:rounded-none md:bg-transparent"
       >
         {isMobile && <QrTabsImage width={320} />}
 
@@ -159,6 +158,8 @@ export const QRTabs: FC<IQRTabsProps> = ({ isMobile }) => {
           );
         })}
       </Tabs.Root>
+
+      {!isMobile && <LogoScrollingBanner />}
     </section>
   );
 };
