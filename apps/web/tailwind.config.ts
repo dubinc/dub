@@ -15,6 +15,34 @@ const config: Pick<Config, "presets"> = {
       theme: {
         extend: {
           ...sharedConfig?.theme?.extend,
+          colors: {
+            primary: {
+              DEFAULT: "#006666",
+              light: "#DBF2F2",
+              lighter: "#F8FCFC",
+              dark: "#004D4D",
+            },
+            secondary: {
+              DEFAULT: "#0066CC",
+              light: "#E6F0FF",
+              dark: "#0052A3",
+              text: "#1E293B",
+            },
+            neutral: {
+              DEFAULT: "#212121",
+              light: "#424242",
+              lighter: "#6E7275",
+              muted: "#799290",
+            },
+            border: {
+              DEFAULT: "#D9E7FF",
+              light: "#F0F2F5",
+            },
+          },
+          backgroundImage: {
+            "qr-gradient":
+              "linear-gradient(90deg, #115740 44.41%, #25BD8B 83.62%)",
+          },
           animation: {
             ...sharedConfig?.theme?.extend?.animation,
             // Infinite scroll animation
