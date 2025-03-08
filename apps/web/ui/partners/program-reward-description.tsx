@@ -56,11 +56,21 @@ export function ProgramRewardDescription({
               type: discount.type,
             })}
           </strong>{" "}
-          off for{" "}
+          off{" "}
           <strong className={cn("font-semibold", periodClassName)}>
-            {discount.duration
-              ? `${discount.duration} ${pluralize(discount.interval || "cycle", discount.duration)}.`
-              : "their first purchase."}
+            {discount.maxDuration === null ? (
+              <strong className={cn("font-semibold", periodClassName)}>
+                {" "}
+                for their lifetime
+              </strong>
+            ) : discount.maxDuration && discount.maxDuration > 1 ? (
+              <strong className={cn("font-semibold", periodClassName)}>
+                for {discount.maxDuration} months
+              </strong>
+            ) : (
+              " for their first purchase"
+            )}
+            .
           </strong>
         </>
       ) : null}
