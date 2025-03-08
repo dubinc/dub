@@ -1,3 +1,4 @@
+import { determineCustomerDiscount } from "@/lib/api/customers/determine-customer-discount";
 import { getCustomerOrThrow } from "@/lib/api/customers/get-customer-or-throw";
 import { transformCustomer } from "@/lib/api/customers/transform-customer";
 import { DubApiError } from "@/lib/api/errors";
@@ -10,6 +11,7 @@ import {
   updateCustomerBodySchema,
 } from "@/lib/zod/schemas/customers";
 import { prisma } from "@dub/prisma";
+import { Discount } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/customers/:id – Get a customer by ID
@@ -24,14 +26,45 @@ export const GET = withWorkspace(
         id,
         workspaceId: workspace.id,
       },
-      { includeExpandedFields },
+      {
+        includeExpandedFields,
+      },
     );
+
+    let discount: Discount | null = null;
+
+    if (includeExpandedFields) {
+      const firstPurchase = await prisma.commission.findFirst({
+        where: {
+          customerId: customer.id,
+          type: "sale",
+        },
+        orderBy: {
+          createdAt: "asc",
+        },
+        select: {
+          createdAt: true,
+        },
+      });
+
+      discount = determineCustomerDiscount({
+        customerLink: customer.link,
+        firstPurchase,
+      });
+    }
 
     const responseSchema = includeExpandedFields
       ? CustomerEnrichedSchema
       : CustomerSchema;
 
-    return NextResponse.json(responseSchema.parse(transformCustomer(customer)));
+    return NextResponse.json(
+      responseSchema.parse(
+        transformCustomer({
+          ...customer,
+          ...(includeExpandedFields ? { discount } : {}),
+        }),
+      ),
+    );
   },
   {
     requiredPlan: [
@@ -55,41 +88,63 @@ export const PATCH = withWorkspace(
       await parseRequestBody(req),
     );
 
-    const customer = await getCustomerOrThrow({
-      id,
-      workspaceId: workspace.id,
-    });
+    const customer = await getCustomerOrThrow(
+      {
+        id,
+        workspaceId: workspace.id,
+      },
+      {
+        includeExpandedFields,
+      },
+    );
 
     try {
       const updatedCustomer = await prisma.customer.update({
         where: {
           id: customer.id,
         },
-        data: { name, email, avatar, externalId },
-        ...(includeExpandedFields
-          ? {
-              include: {
-                link: {
-                  include: {
-                    programEnrollment: {
-                      include: {
-                        partner: true,
-                        discount: true,
-                      },
-                    },
-                  },
-                },
-              },
-            }
-          : {}),
+        data: {
+          name,
+          email,
+          avatar,
+          externalId,
+        },
       });
+
+      let discount: Discount | null = null;
+
+      if (includeExpandedFields) {
+        const firstPurchase = await prisma.commission.findFirst({
+          where: {
+            customerId: customer.id,
+            type: "sale",
+          },
+          orderBy: {
+            createdAt: "asc",
+          },
+          select: {
+            createdAt: true,
+          },
+        });
+
+        discount = determineCustomerDiscount({
+          customerLink: customer.link,
+          firstPurchase,
+        });
+      }
 
       const responseSchema = includeExpandedFields
         ? CustomerEnrichedSchema
         : CustomerSchema;
 
       return NextResponse.json(
-        responseSchema.parse(transformCustomer(updatedCustomer)),
+        responseSchema.parse(
+          transformCustomer({
+            ...customer,
+            ...updatedCustomer,
+            ...(includeExpandedFields ? { discount } : {}),
+          }),
+        ),
       );
     } catch (error) {
       if (error.code === "P2002") {

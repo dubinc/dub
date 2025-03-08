@@ -24,8 +24,8 @@ model Commission {
   eventId    String? @unique // only for leads and sales
 
   type     EventType
-  amount   Int  // only for sales (amount of the sale event)
-  quantity Int  // only for clicks/leads (quantity of the event)
+  amount   Int // only for sales (amount of the sale event)
+  quantity Int // only for clicks/leads (quantity of the event)
   earnings Int              @default(0) // amount earned by the partner
   currency String           @default("usd")
   status   CommissionStatus @default(pending)

@@ -38,7 +38,8 @@ model Program {
   type              ProgramType @default(affiliate)
   cookieLength      Int         @default(90)
   holdingPeriodDays Int         @default(0) // number of days to wait before earnings are added to a payout
-  defaultRewardId   String? // default reward for the program
+  defaultRewardId   String?     @unique // default reward for the program
+  defaultDiscountId String?     @unique // default discount for the program
   landerData        Json?       @db.Json
   termsUrl          String?     @db.LongText
   ageVerification   Int?
@@ -46,18 +47,19 @@ model Program {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  workspace     Project              @relation(fields: [workspaceId], references: [id])
-  primaryDomain Domain?              @relation(fields: [domain], references: [slug], onUpdate: Cascade)
-  partners      ProgramEnrollment[]
-  payouts       Payout[]
-  invoices      Invoice[]
-  resources     ProgramResource[]
-  applications  ProgramApplication[]
-  invites       ProgramInvite[]
-  links         Link[]
-  commissions   Commission[]
-  rewards       Reward[]
-  discounts     Discount[]
+  workspace       Project              @relation(fields: [workspaceId], references: [id])
+  primaryDomain   Domain?              @relation(fields: [domain], references: [slug], onUpdate: Cascade)
+  partners        ProgramEnrollment[]
+  payouts         Payout[]
+  invoices        Invoice[]
+  resources       ProgramResource[]
+  applications    ProgramApplication[]
+  invites         ProgramInvite[]
+  links           Link[]
+  commissions     Commission[]
+  rewards         Reward[]
+  discounts       Discount[]           @relation("ProgramDiscounts")
+  defaultDiscount Discount?            @relation("ProgramDefaultDiscount", fields: [defaultDiscountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([workspaceId])
   @@index([domain])

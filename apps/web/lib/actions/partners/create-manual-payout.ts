@@ -1,7 +1,7 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
-import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
+import { DubApiError } from "@/lib/api/errors";
 import { createManualPayoutSchema } from "@/lib/zod/schemas/payouts";
 import { prisma } from "@dub/prisma";
 import { PayoutType } from "@prisma/client";
@@ -15,33 +15,27 @@ export const createManualPayoutAction = authActionClient
     const { workspace } = ctx;
     const { programId, partnerId, amount, description } = parsedInput;
 
-    const [_program, programEnrollment] = await Promise.all([
-      getProgramOrThrow({
-        workspaceId: workspace.id,
-        programId,
-      }),
-
-      prisma.programEnrollment.findUniqueOrThrow({
-        where: {
-          partnerId_programId: {
-            partnerId,
-            programId,
+    const programEnrollment = await prisma.programEnrollment.findUniqueOrThrow({
+      where: {
+        partnerId_programId: {
+          partnerId,
+          programId,
+        },
+      },
+      select: {
+        program: {
+          select: {
+            workspaceId: true,
           },
         },
-        select: {
-          programId: true,
-          partnerId: true,
-          _count: {
-            select: {
-              links: true,
-            },
-          },
-        },
-      }),
-    ]);
+      },
+    });
 
-    if (!programEnrollment._count.links) {
-      throw new Error("No short link found for this partner in this program.");
+    if (programEnrollment.program.workspaceId !== workspace.id) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Program not found",
+      });
     }
 
     const amountInCents = amount || 0;
