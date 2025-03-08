@@ -173,30 +173,32 @@ export const confirmPayoutsAction = authActionClient
         // Send emails to all the partners involved in the payouts if the payout method is ACH
         // ACH takes 4 business days to process
         if (newInvoice && paymentMethod.type === "us_bank_account") {
-          for (const payout of payouts) {
-            const { program, partner } = payout;
-            const partnerUsers = partner.users.map(({ user }) => user);
+          await Promise.all(
+            payouts.map((payout) => {
+              const { program, partner } = payout;
+              const partnerUsers = partner.users.map(({ user }) => user);
 
-            partnerUsers.map((user) =>
-              limiter.schedule(() =>
-                sendEmail({
-                  subject: "You've got money coming your way!",
-                  email: user.email!,
-                  from: "Dub Partners <system@dub.co>",
-                  react: PartnerPayoutConfirmed({
+              partnerUsers.map((user) =>
+                limiter.schedule(() =>
+                  sendEmail({
+                    subject: "You've got money coming your way!",
                     email: user.email!,
-                    program,
-                    payout: {
-                      id: payout.id,
-                      amount: payout.amount,
-                      startDate: payout.periodStart!,
-                      endDate: payout.periodEnd!,
-                    },
+                    from: "Dub Partners <system@dub.co>",
+                    react: PartnerPayoutConfirmed({
+                      email: user.email!,
+                      program,
+                      payout: {
+                        id: payout.id,
+                        amount: payout.amount,
+                        startDate: payout.periodStart!,
+                        endDate: payout.periodEnd!,
+                      },
+                    }),
                   }),
-                }),
-              ),
-            );
-          }
+                ),
+              );
+            }),
+          );
         }
       })(),
     );
