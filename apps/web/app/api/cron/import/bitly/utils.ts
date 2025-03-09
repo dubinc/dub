@@ -5,7 +5,7 @@ import { LinksImported } from "@dub/email/templates/links-imported";
 import { prisma } from "@dub/prisma";
 import { getUrlFromStringIfValid, linkConstructorSimple } from "@dub/utils";
 import { fetchBitlyLinks } from "./fetch-utils";
-import { queueBitlyImport } from "./rate-limit";
+import { queueBitlyImport } from "./queue-import";
 
 // Note: rate limit for /groups/{group_guid}/bitlinks is 1500 per hour or 150 per minute
 export const importLinksFromBitly = async ({
