@@ -48,8 +48,6 @@ export async function POST(req: Request) {
     });
   }
 
-  console.table(links);
-
   await prisma.link.deleteMany({
     where: {
       id: {

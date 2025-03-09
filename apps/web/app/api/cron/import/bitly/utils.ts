@@ -187,7 +187,7 @@ export const importLinksFromBitly = async ({
   });
 
   console.log(`Invalid links: ${invalidLinks.length}`);
-  console.table(invalidLinks);
+  console.log(JSON.stringify(invalidLinks, null, 2));
 
   if (nextSearchAfter === "") {
     const workspace = await prisma.project.findUnique({
