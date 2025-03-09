@@ -5,6 +5,17 @@ export function sanitizeBitlyJson(body: string): string {
     '"long_url":"$1","archived"',
   );
 
+  // Handle problematic characters in URLs themselves
+  body = body.replace(/"long_url":"(.*?)"/g, (_match, url) => {
+    // Escape backslashes and quotes that might be in the URL
+    const safeUrl = url
+      .replace(/\\/g, "\\\\")
+      .replace(/"/g, '\\"')
+      // Additional problematic characters to escape
+      .replace(/[\u0000-\u001F\u007F-\u009F]/g, "");
+    return `"long_url":"${safeUrl}"`;
+  });
+
   // Then handle control characters
   return body.replace(/[\u0000-\u001F\u007F-\u009F]/g, (char) => {
     // Convert to proper JSON escape sequence if it's a common one
