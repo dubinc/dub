@@ -2,7 +2,7 @@
  * Utilities for fetching links from Bitly API
  */
 
-import { sanitizeJson } from "./sanitize-json";
+import { sanitizeBitlyJson } from "./sanitize-json";
 
 interface FetchBitlyLinksResult {
   links: any[];
@@ -91,7 +91,7 @@ const fetchBitlyLinksStandard = async ({
   let data;
   try {
     // Sanitize the JSON and then parse it
-    data = JSON.parse(sanitizeJson(responseText));
+    data = JSON.parse(sanitizeBitlyJson(responseText));
   } catch (error) {
     console.error("JSON parsing error:", error);
     console.error(`Failed to parse response: ${responseText}`);
@@ -179,7 +179,7 @@ const fetchBitlyLinksBatch = async ({
     let data;
     try {
       // Sanitize the JSON and then parse it
-      data = JSON.parse(sanitizeJson(responseText));
+      data = JSON.parse(sanitizeBitlyJson(responseText));
     } catch (error) {
       console.error("JSON parsing error:", error);
       console.error(`Failed to parse response: ${responseText}`);
