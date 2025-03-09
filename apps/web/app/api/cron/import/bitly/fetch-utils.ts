@@ -88,13 +88,14 @@ const fetchBitlyLinksStandard = async ({
 
   // Get response as text first
   const responseText = await response.text();
+  const sanitizedResponseText = sanitizeBitlyJson(responseText);
   let data;
   try {
     // Sanitize the JSON and then parse it
-    data = JSON.parse(sanitizeBitlyJson(responseText));
+    data = JSON.parse(sanitizedResponseText);
   } catch (error) {
     console.error("JSON parsing error:", error);
-    console.error(`Failed to parse response: ${responseText}`);
+    console.error(`Failed to parse response: ${sanitizedResponseText}`);
     throw new Error("Failed to parse JSON response from Bitly API");
   }
 
@@ -176,13 +177,14 @@ const fetchBitlyLinksBatch = async ({
 
     // Get response as text first
     const responseText = await response.text();
+    const sanitizedResponseText = sanitizeBitlyJson(responseText);
     let data;
     try {
       // Sanitize the JSON and then parse it
-      data = JSON.parse(sanitizeBitlyJson(responseText));
+      data = JSON.parse(sanitizedResponseText);
     } catch (error) {
       console.error("JSON parsing error:", error);
-      console.error(`Failed to parse response: ${responseText}`);
+      console.error(`Failed to parse response: ${sanitizedResponseText}`);
 
       if (i === 0) {
         throw new Error("Failed to parse JSON response from Bitly API");
