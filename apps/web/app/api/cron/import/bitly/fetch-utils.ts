@@ -84,7 +84,15 @@ const fetchBitlyLinksStandard = async ({
     };
   }
 
-  const data = await response.json();
+  let data;
+  try {
+    data = await response.json();
+  } catch (error) {
+    console.error("JSON parsing error:", error);
+    const text = await response.clone().text();
+    console.error(`Failed to parse response: ${text}`);
+    throw new Error("Failed to parse JSON response from Bitly API");
+  }
 
   if (!data.links || !data.pagination) {
     console.log("Unexpected response format:", data);
@@ -162,7 +170,19 @@ const fetchBitlyLinksBatch = async ({
       }
     }
 
-    const data = await response.json();
+    let data;
+    try {
+      data = await response.json();
+    } catch (error) {
+      console.error("JSON parsing error:", error);
+      const text = await response.clone().text();
+      console.error(`Failed to parse response: ${text}`);
+
+      if (i === 0) {
+        throw new Error("Failed to parse JSON response from Bitly API");
+      }
+      break; // Process what we have so far
+    }
 
     // If the response is not as expected, break the loop
     if (!data.links || !data.pagination) {
