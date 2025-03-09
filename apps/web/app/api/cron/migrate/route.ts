@@ -1,7 +1,9 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -62,11 +64,18 @@ export async function POST(req: Request) {
     `Final deleted link: ${finalDeletedLink.key} (${new Date(finalDeletedLink.createdAt).toISOString()})`,
   );
 
-  // await qstash.publishJSON({
-  //   url: `${APP_DOMAIN_WITH_NGROK}/api/cron/migrate`,
-  //   method: "POST",
-  //   body: {},
-  // });
+  if (finalDeletedLink.createdAt <= new Date("2024-10-03T05:07:20.000Z")) {
+    console.log("Reached previously imported links point, pausing for now...");
+    return NextResponse.json({
+      status: `Reached previously imported links point, pausing for now...`,
+    });
+  }
+
+  await qstash.publishJSON({
+    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/migrate`,
+    method: "POST",
+    body: {},
+  });
 
   return NextResponse.json({
     status: `Deleted ${links.length} links. Final deleted link: ${finalDeletedLink.key} (${new Date(finalDeletedLink.createdAt).toISOString()})`,
