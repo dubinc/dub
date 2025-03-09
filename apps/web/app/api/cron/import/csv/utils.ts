@@ -18,6 +18,10 @@ export async function sendCsvImportEmails({
     error: string;
   }[];
 }) {
+  domains = Array.isArray(domains) && domains.length > 0 ? domains : [];
+  errorLinks =
+    Array.isArray(errorLinks) && errorLinks.length > 0 ? errorLinks : [];
+
   const workspace = await prisma.project.findUnique({
     where: {
       id: workspaceId,
