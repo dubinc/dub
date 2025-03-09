@@ -57,8 +57,9 @@ export async function POST(req: Request) {
   });
 
   console.log(`Deleted ${links.length} links`);
+  const finalDeletedLink = links[links.length - 1];
   console.log(
-    `Final deleted link timestamp: ${new Date(links[links.length - 1].createdAt).toISOString()}`,
+    `Final deleted link: ${finalDeletedLink.key} (${new Date(finalDeletedLink.createdAt).toISOString()})`,
   );
 
   // await qstash.publishJSON({
@@ -68,6 +69,6 @@ export async function POST(req: Request) {
   // });
 
   return NextResponse.json({
-    status: `Deleted ${links.length} links. Final deleted link timestamp: ${new Date(links[links.length - 1].createdAt).toISOString()}`,
+    status: `Deleted ${links.length} links. Final deleted link: ${finalDeletedLink.key} (${new Date(finalDeletedLink.createdAt).toISOString()})`,
   });
 }
