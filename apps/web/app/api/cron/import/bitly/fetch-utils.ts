@@ -136,7 +136,7 @@ const fetchBitlyLinksBatch = async ({
   let allLinks: any[] = [];
   let currentSearchAfter = searchAfter;
   let nextSearchAfter = null;
-  const maxRequests = 5; // Number of consecutive requests to make
+  const maxRequests = 10; // Number of consecutive requests to make
 
   // Make multiple requests to fetch up to 1000 links
   for (let i = 0; i < maxRequests; i++) {
