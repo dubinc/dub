@@ -2,6 +2,8 @@
  * Utilities for fetching links from Bitly API
  */
 
+import { sanitizeJson } from "./sanitize-json";
+
 interface FetchBitlyLinksResult {
   links: any[];
   nextSearchAfter: string | null;
@@ -84,13 +86,15 @@ const fetchBitlyLinksStandard = async ({
     };
   }
 
+  // Get response as text first
+  const responseText = await response.text();
   let data;
   try {
-    data = await response.json();
+    // Sanitize the JSON and then parse it
+    data = JSON.parse(sanitizeJson(responseText));
   } catch (error) {
     console.error("JSON parsing error:", error);
-    const text = await response.clone().text();
-    console.error(`Failed to parse response: ${text}`);
+    console.error(`Failed to parse response: ${responseText}`);
     throw new Error("Failed to parse JSON response from Bitly API");
   }
 
@@ -170,13 +174,15 @@ const fetchBitlyLinksBatch = async ({
       }
     }
 
+    // Get response as text first
+    const responseText = await response.text();
     let data;
     try {
-      data = await response.json();
+      // Sanitize the JSON and then parse it
+      data = JSON.parse(sanitizeJson(responseText));
     } catch (error) {
       console.error("JSON parsing error:", error);
-      const text = await response.clone().text();
-      console.error(`Failed to parse response: ${text}`);
+      console.error(`Failed to parse response: ${responseText}`);
 
       if (i === 0) {
         throw new Error("Failed to parse JSON response from Bitly API");
