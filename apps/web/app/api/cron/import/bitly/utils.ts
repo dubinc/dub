@@ -250,15 +250,16 @@ export const importLinksFromBitly = async ({
     ]);
     return count;
   } else {
-    return await queueBitlyImport({
-      workspaceId,
-      userId,
-      bitlyGroup,
-      domains,
-      folderId,
-      tagsToId,
-      searchAfter: nextSearchAfter,
-      count,
-    });
+    return count;
+    // return await queueBitlyImport({
+    //   workspaceId,
+    //   userId,
+    //   bitlyGroup,
+    //   domains,
+    //   folderId,
+    //   tagsToId,
+    //   searchAfter: nextSearchAfter,
+    //   count,
+    // });
   }
 };
