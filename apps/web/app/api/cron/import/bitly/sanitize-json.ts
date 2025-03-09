@@ -1,4 +1,12 @@
 export function sanitizeBitlyJson(body: string): string {
+  try {
+    // if body is already valid JSON, return it
+    JSON.parse(body);
+    return body;
+  } catch (err) {
+    console.error("Error parsing JSON, starting sanitization...");
+  }
+
   // First, remove "title" field which can sometimes contain invalid values that break the JSON parsing
   body = body.replace(
     /"long_url":"([^"]+)".+?"archived"/g,

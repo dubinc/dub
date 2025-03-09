@@ -64,7 +64,7 @@ export async function POST(req: Request) {
     `Final deleted link: ${finalDeletedLink.key} (${new Date(finalDeletedLink.createdAt).toISOString()})`,
   );
 
-  if (finalDeletedLink.createdAt <= new Date("2024-09-20T03:40:10.000Z")) {
+  if (finalDeletedLink.createdAt <= new Date("2024-05-18T11:54:08.000Z")) {
     console.log("Reached previously imported links point, pausing for now...");
     return NextResponse.json({
       status: `Reached previously imported links point, pausing for now...`,
