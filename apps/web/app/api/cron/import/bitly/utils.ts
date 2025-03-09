@@ -1,8 +1,4 @@
 import { bulkCreateLinks } from "@/lib/api/links";
-import {
-  decodeLinkIfCaseSensitive,
-  encodeKeyIfCaseSensitive,
-} from "@/lib/api/links/case-sensitivity";
 import { qstash } from "@/lib/cron";
 import { redis } from "@/lib/upstash";
 import { sendEmail } from "@dub/email";
@@ -84,6 +80,8 @@ export const importLinksFromBitly = async ({
   const { links, pagination } = data;
   const nextSearchAfter = pagination.search_after;
 
+  const invalidLinks: any[] = [];
+
   // convert links to format that can be imported into database
   const importedLinks = links.flatMap(
     ({ id, long_url: url, archived, created_at, custom_bitlinks, tags }) => {
@@ -93,12 +91,20 @@ export const importLinksFromBitly = async ({
       const [domain, key] = id.split("/");
       // if domain is not in workspace domains, skip (could be a bit.ly link or old short domain)
       if (!domains.includes(domain)) {
+        invalidLinks.push({
+          id,
+          url,
+        });
         return [];
       }
 
       const sanitizedUrl = getUrlFromStringIfValid(url);
       // skip if url is not valid
       if (!sanitizedUrl) {
+        invalidLinks.push({
+          id,
+          url,
+        });
         return [];
       }
 
@@ -167,51 +173,21 @@ export const importLinksFromBitly = async ({
     },
   );
 
-  // check if links are already in the database
-  // for case sensitive
-  let alreadyCreatedLinks = await prisma.link.findMany({
-    where: {
-      shortLink: {
-        in: importedLinks.map((link) =>
-          linkConstructorSimple({
-            domain: link.domain,
-            key: encodeKeyIfCaseSensitive(link),
-          }),
-        ),
-      },
-    },
-    select: {
-      id: true,
-      shortLink: true,
-      url: true,
-    },
-  });
-
-  alreadyCreatedLinks = alreadyCreatedLinks.map(decodeLinkIfCaseSensitive);
-
-  // filter out links that are already in the database
-  const linksToCreate = importedLinks.filter(
-    (link) => !alreadyCreatedLinks.some((l) => l.shortLink === link.shortLink),
-  );
-
-  console.log(
-    `Found ${alreadyCreatedLinks.length} links that have already been imported, skipping them and creating ${linksToCreate.length} new links...`,
-  );
+  console.log(`Creating ${importedLinks.length} new links...`);
 
   // bulk create links
-  await bulkCreateLinks({ links: linksToCreate, skipRedisCache: true });
+  await bulkCreateLinks({ links: importedLinks, skipRedisCache: true });
 
   count += importedLinks.length;
 
   console.log({
     importedLinksLength: importedLinks.length,
     count,
-    createdBefore,
     nextSearchAfter,
   });
 
-  // wait 250 ms before making another request
-  await new Promise((resolve) => setTimeout(resolve, 250));
+  console.log(`Invalid links: ${invalidLinks.length}`);
+  console.table(invalidLinks);
 
   if (nextSearchAfter === "") {
     const workspace = await prisma.project.findUnique({
