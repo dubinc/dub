@@ -196,8 +196,8 @@ importers:
         specifier: ^3.6.0
         version: 3.6.0
       dub:
-        specifier: ^0.58.0
-        version: 0.58.0(zod@3.22.4)
+        specifier: ^0.59.1
+        version: 0.59.1(zod@3.22.4)
       fast-xml-parser:
         specifier: ^5.0.6
         version: 5.0.6
@@ -6622,8 +6622,8 @@ packages:
     peerDependencies:
       zod: '>= 3'
 
-  dub@0.58.0:
-    resolution: {integrity: sha512-zw/gK6Y1/3asHivqtXANkAGlMcKY2hmpW14vOElqpO6wO9js4FFcNWifAZzPVaq8JMhnshs29UjJP1aHornxaw==}
+  dub@0.59.1:
+    resolution: {integrity: sha512-J6JwHEB/gtuJT6augpN4j/3cHrc1YIWAkihDvGgjuFv58JC0j7QlNjzD/jUhfmuh3bX2ALKgfy1eM17dRR6JmA==}
     hasBin: true
     peerDependencies:
       '@modelcontextprotocol/sdk': ^1.5.0
@@ -18598,7 +18598,7 @@ snapshots:
     dependencies:
       zod: 3.23.8
 
-  dub@0.58.0(zod@3.22.4):
+  dub@0.59.1(zod@3.22.4):
     dependencies:
       zod: 3.22.4
 
