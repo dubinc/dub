@@ -16,7 +16,7 @@ import {
 import { cn } from "@dub/utils/src/functions";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
-import { ReactNode, useState } from "react";
+import { ReactNode, useCallback, useState } from "react";
 import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -49,8 +49,6 @@ export function OnlinePresenceForm({
   partner,
   onSubmitSuccessful,
 }: OnlinePresenceFormProps) {
-  const router = useRouter();
-
   const { partner: partnerProfile } = usePartnerProfile();
 
   const form = useForm<OnlinePresenceFormData>({
@@ -66,14 +64,10 @@ export function OnlinePresenceForm({
   const {
     register,
     setError,
-    watch,
     getValues,
     handleSubmit,
-    getFieldState,
     formState: { errors, isSubmitting, isSubmitSuccessful },
   } = form;
-
-  const [website, youtube] = watch(["website", "youtube"]);
 
   const { executeAsync } = useAction(updateOnlinePresenceAction, {
     onSuccess: (result) => {
@@ -101,13 +95,7 @@ export function OnlinePresenceForm({
     txtRecord: string;
   } | null>(null);
 
-  const isWebsiteVerified =
-    website === partnerProfile?.website &&
-    Boolean(partnerProfile?.websiteVerifiedAt);
-
-  const isYoutubeVerified =
-    youtube === partnerProfile?.youtube &&
-    Boolean(partnerProfile?.youtubeVerifiedAt);
+  const startVerification = useOAuthVerification(variant);
 
   return (
     <>
@@ -150,9 +138,8 @@ export function OnlinePresenceForm({
               button={
                 <VerifyButton
                   property="website"
+                  verifiedAtField="websiteVerifiedAt"
                   icon={Globe}
-                  loading={!partnerProfile}
-                  isVerified={isWebsiteVerified}
                   onClick={async () => {
                     try {
                       const result = await updateOnlinePresenceAction({
@@ -178,6 +165,8 @@ export function OnlinePresenceForm({
                       toast.error("Failed to start website verification");
                       console.error("Failed to start website verification", e);
                     }
+
+                    return false;
                   }}
                 />
               }
@@ -207,24 +196,11 @@ export function OnlinePresenceForm({
               button={
                 <VerifyButton
                   property="instagram"
+                  verifiedAtField="instagramVerifiedAt"
                   icon={Instagram}
-                  loading={!partnerProfile}
-                  isVerified={Boolean(partnerProfile?.instagramVerifiedAt)}
-                  onClick={async () => {
-                    try {
-                      const result = await updateOnlinePresenceAction({
-                        instagram: getValues("instagram"),
-                      });
-
-                      // TODO
-                      alert("WIP");
-
-                      mutate("/api/partner-profile");
-                    } catch (e) {
-                      toast.error("Failed to start verification");
-                      console.error("Failed to start verification", e);
-                    }
-                  }}
+                  onClick={() =>
+                    startVerification("instagram", getValues("instagram"))
+                  }
                 />
               }
             />
@@ -253,24 +229,11 @@ export function OnlinePresenceForm({
               button={
                 <VerifyButton
                   property="tiktok"
+                  verifiedAtField="tiktokVerifiedAt"
                   icon={TikTok}
-                  loading={!partnerProfile}
-                  isVerified={Boolean(partnerProfile?.tiktokVerifiedAt)}
-                  onClick={async () => {
-                    try {
-                      const result = await updateOnlinePresenceAction({
-                        tiktok: getValues("tiktok"),
-                      });
-
-                      // TODO
-                      alert("WIP");
-
-                      mutate("/api/partner-profile");
-                    } catch (e) {
-                      toast.error("Failed to start verification");
-                      console.error("Failed to start verification", e);
-                    }
-                  }}
+                  onClick={() =>
+                    startVerification("tiktok", getValues("tiktok"))
+                  }
                 />
               }
             />
@@ -299,29 +262,11 @@ export function OnlinePresenceForm({
               button={
                 <VerifyButton
                   property="youtube"
+                  verifiedAtField="youtubeVerifiedAt"
                   icon={YouTube}
-                  loading={!partnerProfile}
-                  isVerified={isYoutubeVerified}
-                  onClick={async () => {
-                    try {
-                      const result = await updateOnlinePresenceAction({
-                        youtube: getValues("youtube"),
-                        source: variant,
-                      });
-
-                      if (
-                        result?.data?.success &&
-                        result?.data?.verificationUrls?.youtube
-                      ) {
-                        router.push(result.data.verificationUrls.youtube);
-                      }
-
-                      mutate("/api/partner-profile");
-                    } catch (e) {
-                      toast.error("Failed to start verification");
-                      console.error("Failed to start verification", e);
-                    }
-                  }}
+                  onClick={() =>
+                    startVerification("youtube", getValues("youtube"))
+                  }
                 />
               }
             />
@@ -350,24 +295,11 @@ export function OnlinePresenceForm({
               button={
                 <VerifyButton
                   property="twitter"
+                  verifiedAtField="twitterVerifiedAt"
                   icon={Twitter}
-                  loading={!partnerProfile}
-                  isVerified={Boolean(partnerProfile?.twitterVerifiedAt)}
-                  onClick={async () => {
-                    try {
-                      const result = await updateOnlinePresenceAction({
-                        twitter: getValues("twitter"),
-                      });
-
-                      // TODO
-                      alert("WIP");
-
-                      mutate("/api/partner-profile");
-                    } catch (e) {
-                      toast.error("Failed to start verification");
-                      console.error("Failed to start verification", e);
-                    }
-                  }}
+                  onClick={() =>
+                    startVerification("twitter", getValues("twitter"))
+                  }
                 />
               }
             />
@@ -396,22 +328,61 @@ export function OnlinePresenceForm({
   );
 }
 
+function useOAuthVerification(source: "onboarding" | "settings") {
+  const router = useRouter();
+
+  return useCallback(
+    async (provider: string, value?: string) => {
+      if (!value) return false;
+
+      try {
+        const result = await updateOnlinePresenceAction({
+          [provider]: value,
+          source,
+        });
+
+        if (
+          result?.data?.success &&
+          result?.data?.verificationUrls?.[provider]
+        ) {
+          router.push(result.data.verificationUrls[provider]);
+        }
+
+        return true;
+      } catch (e) {
+        toast.error("Failed to start verification");
+        console.error("Failed to start verification", e);
+      }
+
+      return false;
+    },
+    [source, router],
+  );
+}
+
 function VerifyButton({
   property,
+  verifiedAtField,
   icon: Icon,
-  loading,
-  isVerified,
   onClick,
 }: {
   property: keyof OnlinePresenceFormData;
+  verifiedAtField: string;
   icon: Icon;
-  loading: boolean;
-  isVerified: boolean;
-  onClick: () => Promise<void>;
+  onClick: () => Promise<boolean>;
 }) {
+  const { partner: partnerProfile } = usePartnerProfile();
+
   const { watch, getFieldState } = useFormContext<OnlinePresenceFormData>();
 
   const value = watch(property);
+  const isValid = !!value && !getFieldState(property).invalid;
+
+  const loading = !partnerProfile && isValid;
+
+  const isVerified =
+    value === partnerProfile?.[property] &&
+    Boolean(partnerProfile?.[verifiedAtField]);
 
   const [isSaving, setIsSaving] = useState(false);
 
@@ -434,8 +405,9 @@ function VerifyButton({
       disabled={!value || getFieldState(property).invalid || isVerified}
       onClick={async () => {
         setIsSaving(true);
-        await onClick();
-        setIsSaving(false);
+        const redirecting = await onClick();
+
+        if (!redirecting) setIsSaving(false);
       }}
     />
   );

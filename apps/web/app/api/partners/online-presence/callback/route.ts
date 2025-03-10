@@ -1,5 +1,7 @@
+import { ONLINE_PRESENCE_PROVIDERS } from "@/lib/actions/partners/online-presence-providers";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, PARTNERS_DOMAIN } from "@dub/utils";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {
@@ -7,66 +9,111 @@ export async function GET(req: Request) {
   // get code and workspace id from query params
   const code = searchParams.get("code") as string;
   const state = searchParams.get("state") as string;
-  if (!code || !state) {
-    //return NextResponse.redirect(APP_DOMAIN);
-    return NextResponse.json({ message: "error" });
+
+  if (!state) {
+    console.warn("No state found in OAuth callback");
+    return NextResponse.redirect(PARTNERS_DOMAIN);
+  }
+
+  let redirectUrl = getRedirectUrl("onboarding");
+
+  let stateObject: any = {};
+
+  try {
+    stateObject = JSON.parse(Buffer.from(state, "base64").toString("ascii"));
+  } catch (e) {
+    console.warn("Failed to parse state in OAuth callback");
+    return NextResponse.redirect(PARTNERS_DOMAIN);
+  }
+
+  const { provider, partnerId, source } = stateObject;
+
+  redirectUrl = getRedirectUrl(source);
+
+  if (!code) {
+    console.warn("No code found in OAuth callback");
+    return NextResponse.redirect(redirectUrl);
   }
 
   try {
-    const stateJSON = JSON.parse(state);
-    let { partnerId, source } = stateJSON;
+    if (!provider || !ONLINE_PRESENCE_PROVIDERS?.[provider]) {
+      console.error("No provider found in OAuth callback state");
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    if (!partnerId) {
+      console.error("No partnerId found in OAuth callback state");
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    const { tokenUrl, clientId, clientSecret, verify, verifiedColumn, pkce } =
+      ONLINE_PRESENCE_PROVIDERS[provider];
+
+    // Get code verifier from cookie if this is X/Twitter
+    const codeVerifier = pkce
+      ? cookies().get("online_presence_code_verifier")?.value
+      : null;
+
+    // Local development redirect since the verifier cookie won't be present on ngrok
+    if (pkce && !codeVerifier && process.env.NODE_ENV === "development") {
+      return NextResponse.redirect(
+        `http://partners.localhost:8888/api/partners/online-presence/callback?${searchParams.toString()}`,
+      );
+    }
 
     // Get access token
-    const result = await fetch("https://oauth2.googleapis.com/token", {
+    const result = await fetch(tokenUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
+        Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`,
       },
-      body: `client_id=${process.env.NEXT_PUBLIC_YOUTUBE_CLIENT_ID}&client_secret=${process.env.YOUTUBE_CLIENT_SECRET}&code=${code}&redirect_uri=${APP_DOMAIN_WITH_NGROK}/api/partners/online-presence/callback&grant_type=authorization_code`,
+      body: new URLSearchParams({
+        client_id: clientId!,
+        client_secret: clientSecret!,
+        code,
+        redirect_uri: `${APP_DOMAIN_WITH_NGROK}/api/partners/online-presence/callback`,
+        grant_type: "authorization_code",
+        ...(codeVerifier && { code_verifier: codeVerifier }),
+      }).toString(),
     }).then((r) => r.json());
 
     if (!result || !result.access_token) {
-      return NextResponse.redirect(PARTNERS_DOMAIN);
+      console.warn("No access token found in OAuth callback");
+      return NextResponse.redirect(redirectUrl);
     }
 
-    // Fetch channel info
-    const channelResponse = await fetch(
-      `https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true&access_token=${result.access_token}`,
-    ).then((r) => r.json());
-
-    const handle = channelResponse?.items?.[0]?.snippet?.customUrl;
-
-    const partner = await prisma.partner.findUnique({
+    const partner = await prisma.partner.findUniqueOrThrow({
       where: {
         id: partnerId,
       },
-      select: {
-        youtube: true,
-      },
     });
 
-    if (
-      partner &&
-      handle &&
-      `@${partner?.youtube?.toLowerCase()}` === handle.toLowerCase()
-    ) {
+    const isVerified = await verify({
+      partner,
+      accessToken: result.access_token,
+    });
+
+    if (isVerified) {
       await prisma.partner.update({
         where: {
           id: partnerId,
         },
         data: {
-          youtube: partner.youtube,
-          youtubeVerifiedAt: new Date(),
+          [provider]: partner[provider],
+          [verifiedColumn]: new Date(),
         },
       });
     }
 
-    return NextResponse.redirect(
-      source === "onboarding"
-        ? `${PARTNERS_DOMAIN}/onboarding/online-presence`
-        : `${PARTNERS_DOMAIN}/settings#online-presence`,
-    );
+    return NextResponse.redirect(redirectUrl);
   } catch (error) {
+    console.error("Error in online presence OAuth callback", error);
     return NextResponse.redirect(PARTNERS_DOMAIN);
   }
 }
+
+const getRedirectUrl = (source: string) =>
+  source === "onboarding"
+    ? `${PARTNERS_DOMAIN}/onboarding/online-presence`
+    : `${PARTNERS_DOMAIN}/settings#online-presence`;

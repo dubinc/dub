@@ -1,10 +1,16 @@
 "use server";
 
+import {
+  generateCodeChallengeHash,
+  generateCodeVerifier,
+} from "@/lib/api/oauth/utils";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { cookies } from "next/headers";
 import { v4 as uuid } from "uuid";
 import { z } from "zod";
 import { authPartnerActionClient } from "../safe-action";
+import { ONLINE_PRESENCE_PROVIDERS } from "./online-presence-providers";
 
 const updateOnlinePresenceSchema = z.object({
   website: z.string().url().optional().or(z.literal("")),
@@ -21,15 +27,6 @@ const updateOnlinePresenceResponseSchema = updateOnlinePresenceSchema.merge(
     verificationUrls: z.record(z.string().url()),
   }),
 );
-
-const OAUTH = {
-  youtube: {
-    url: "https://accounts.google.com/o/oauth2/v2/auth",
-    clientId: process.env.NEXT_PUBLIC_YOUTUBE_CLIENT_ID,
-    scopes: ["https://www.googleapis.com/auth/youtube.readonly"],
-    verifiedColumn: "youtubeVerifiedAt",
-  },
-};
 
 export const updateOnlinePresenceAction = authPartnerActionClient
   .schema(updateOnlinePresenceSchema)
@@ -97,28 +94,52 @@ export const updateOnlinePresenceAction = authPartnerActionClient
       ...updateOnlinePresenceResponseSchema.parse({
         ...updatedPartner,
         verificationUrls: Object.fromEntries(
-          Object.entries(OAUTH)
-            .filter(
-              ([key, data]) =>
-                updatedPartner[key] && !updatedPartner[data.verifiedColumn],
-            )
-            .map(([key, data]) => {
-              if (!data.url || !data.clientId) return [key, null];
+          await Promise.all(
+            Object.entries(ONLINE_PRESENCE_PROVIDERS)
+              .filter(
+                ([key, data]) =>
+                  updatedPartner[key] && !updatedPartner[data.verifiedColumn],
+              )
+              .map(async ([key, data]) => {
+                if (!data.clientId) return [key, null];
 
-              return [
-                key,
-                `${data.url}?${new URLSearchParams({
+                const params: Record<string, string> = {
                   client_id: data.clientId,
                   redirect_uri: `${APP_DOMAIN_WITH_NGROK}/api/partners/online-presence/callback`,
                   scope: data.scopes.join(" "),
                   response_type: "code",
-                  state: JSON.stringify({
-                    partnerId: partner.id,
-                    source: parsedInput.source,
-                  }),
-                }).toString()}`,
-              ];
-            }),
+                  state: Buffer.from(
+                    JSON.stringify({
+                      provider: key,
+                      partnerId: partner.id,
+                      source: parsedInput.source,
+                    }),
+                  ).toString("base64"),
+                };
+
+                if (data.pkce) {
+                  const codeVerifier = generateCodeVerifier();
+                  const codeChallenge =
+                    await generateCodeChallengeHash(codeVerifier);
+
+                  // Store code verifier in cookie
+                  cookies().set("online_presence_code_verifier", codeVerifier, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === "production",
+                    sameSite: "lax",
+                    maxAge: 60 * 5, // 5 minutes
+                  });
+
+                  params.code_challenge = codeChallenge;
+                  params.code_challenge_method = "S256";
+                }
+
+                return [
+                  key,
+                  `${data.authUrl}?${new URLSearchParams(params).toString()}`,
+                ];
+              }),
+          ),
         ),
       }),
     };
