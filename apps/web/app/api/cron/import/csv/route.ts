@@ -320,7 +320,7 @@ const processMappedLinks = async ({
 
   console.log(successfulMappings);
 
-  //// Process the tags ////
+  // Process the tags
   let selectedTags = successfulMappings
     .map((result) => result.data.tags || [])
     .flat()
@@ -356,7 +356,7 @@ const processMappedLinks = async ({
     });
   }
 
-  //// Process the domains ////
+  // Process the domains
   const selectedDomains = successfulMappings
     .map((result) => result.data.domain)
     .filter((domain): domain is string => Boolean(domain));
@@ -407,7 +407,7 @@ const processMappedLinks = async ({
     await redis.sadd(`${redisKey}:domains`, ...selectedDomains);
   }
 
-  //// Process the links ////
+  // Process the links
   let linksToCreate = successfulMappings.map((result) => result.data);
 
   const existingLinks = await prisma.link.findMany({
