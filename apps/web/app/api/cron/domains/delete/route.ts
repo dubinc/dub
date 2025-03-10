@@ -54,7 +54,8 @@ export async function POST(req: Request) {
       // Remove the link from Redis
       linkCache.deleteMany(links),
 
-      // Record link in the Tinybird
+      // Record link in Tinybird
+      // TODO: Maybe we can just delete these links instead?
       recordLink(links),
 
       // Remove image from R2 storage if it exists
