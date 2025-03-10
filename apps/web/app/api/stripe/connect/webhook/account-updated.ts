@@ -6,13 +6,33 @@ export async function accountUpdated(event: Stripe.Event) {
 
   const { country, payouts_enabled } = account;
 
+  const partner = await prisma.partner.findUnique({
+    select: {
+      payoutsEnabledAt: true,
+    },
+    where: {
+      stripeConnectId: account.id,
+    },
+  });
+
+  if (!partner) {
+    console.error(
+      `Partner not found by stripeConnectId ${account.id} in accountUpdated`,
+    );
+    return;
+  }
+
   await prisma.partner.update({
     where: {
       stripeConnectId: account.id,
     },
     data: {
       country,
-      payoutsEnabled: payouts_enabled,
+      payoutsEnabledAt: payouts_enabled
+        ? partner.payoutsEnabledAt
+          ? undefined // Don't update if already set
+          : new Date()
+        : null,
     },
   });
 }

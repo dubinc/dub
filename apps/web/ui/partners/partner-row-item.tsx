@@ -8,7 +8,7 @@ export function PartnerRowItem({
   partner,
   showPayoutsEnabled = true,
 }: {
-  partner: Pick<PartnerProps, "name" | "image" | "payoutsEnabled">;
+  partner: Pick<PartnerProps, "name" | "image" | "payoutsEnabledAt">;
   showPayoutsEnabled?: boolean;
 }) {
   return (
@@ -18,15 +18,15 @@ export function PartnerRowItem({
           content={
             <div className="grid max-w-xs gap-2 p-4">
               <div className="flex items-center gap-2 text-sm font-medium">
-                Payouts {partner.payoutsEnabled ? "enabled" : "disabled"}
+                Payouts {partner.payoutsEnabledAt ? "enabled" : "disabled"}
                 <div
                   className={cn(
                     "flex size-5 items-center justify-center rounded-md border border-green-300 bg-green-200 text-green-800",
-                    !partner.payoutsEnabled &&
+                    !partner.payoutsEnabledAt &&
                       "border-red-300 bg-red-200 text-red-800",
                   )}
                 >
-                  {partner.payoutsEnabled ? (
+                  {partner.payoutsEnabledAt ? (
                     <GreekTemple className="size-3" />
                   ) : (
                     <CircleMinus className="size-3" />
@@ -34,7 +34,7 @@ export function PartnerRowItem({
                 </div>
               </div>
               <div className="text-pretty text-sm text-neutral-500">
-                {partner.payoutsEnabled
+                {partner.payoutsEnabledAt
                   ? "This partner has payouts enabled, which means they will be able to receive payouts from this program"
                   : "This partner does not have payouts enabled, which means they will not be able to receive any payouts from this program"}
               </div>
@@ -50,7 +50,7 @@ export function PartnerRowItem({
             <div
               className={cn(
                 "absolute -bottom-0.5 -right-0.5 size-2 rounded-full bg-green-500",
-                !partner.payoutsEnabled && "bg-red-500",
+                !partner.payoutsEnabledAt && "bg-red-500",
               )}
             />
           </div>

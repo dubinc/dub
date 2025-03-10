@@ -3,6 +3,7 @@
 import { updatePartnerProfileAction } from "@/lib/actions/partners/update-partner-profile";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerProps } from "@/lib/types";
+import { OnlinePresenceForm } from "@/ui/partners/online-presence-form";
 import {
   Button,
   buttonVariants,
@@ -22,7 +23,7 @@ export function ProfileSettingsPageClient() {
   const { partner, error } = usePartnerProfile();
 
   return (
-    <MaxWidthWrapper>
+    <MaxWidthWrapper className="mb-20 flex flex-col gap-8">
       <div className="max-w-screen-md rounded-lg border border-neutral-200 bg-white">
         <div className="border-b border-neutral-200 p-6">
           <h2 className="text-xl font-medium text-neutral-800">About you</h2>
@@ -34,6 +35,39 @@ export function ProfileSettingsPageClient() {
             {error ? (
               <span className="text-sm text-neutral-500">
                 Failed to load profile data
+              </span>
+            ) : (
+              <LoadingSpinner />
+            )}
+          </div>
+        )}
+      </div>
+
+      <div
+        className="max-w-screen-md rounded-lg border border-neutral-200 bg-white"
+        id="online-presence"
+      >
+        <div className="border-b border-neutral-200 p-6">
+          <h2 className="text-xl font-medium text-neutral-800">
+            Online presence
+          </h2>
+          <p className="text-sm text-neutral-700">
+            These improve your reputation score and rank you higher.{" "}
+          </p>
+        </div>
+        {partner ? (
+          <OnlinePresenceForm
+            partner={partner}
+            variant="settings"
+            onSubmitSuccessful={() => {
+              toast.success("Online presence updated successfully.");
+            }}
+          />
+        ) : (
+          <div className="flex h-32 w-full items-center justify-center">
+            {error ? (
+              <span className="text-sm text-neutral-500">
+                Failed to load online presence data
               </span>
             ) : (
               <LoadingSpinner />

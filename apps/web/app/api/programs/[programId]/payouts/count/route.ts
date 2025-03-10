@@ -45,7 +45,9 @@ export const GET = withWorkspace(
           gte: MIN_PAYOUT_AMOUNT,
         },
         partner: {
-          payoutsEnabled: true,
+          payoutsEnabledAt: {
+            not: null,
+          },
         },
       }),
     };

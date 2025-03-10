@@ -62,7 +62,9 @@ export const confirmPayoutsAction = authActionClient
           stripeConnectId: {
             not: null,
           },
-          payoutsEnabled: true,
+          payoutsEnabledAt: {
+            not: null,
+          },
         },
         amount: {
           gte: MIN_PAYOUT_AMOUNT,

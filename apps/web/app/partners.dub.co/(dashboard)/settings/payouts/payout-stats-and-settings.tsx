@@ -31,10 +31,10 @@ export function PayoutStatsAndSettings() {
           </div>
           <StripeConnectButton
             text={
-              partner?.payoutsEnabled ? "Payout settings" : "Connect payouts"
+              partner?.payoutsEnabledAt ? "Payout settings" : "Connect payouts"
             }
             className="h-8 w-fit px-3"
-            variant={partner?.payoutsEnabled ? "secondary" : "primary"}
+            variant={partner?.payoutsEnabledAt ? "secondary" : "primary"}
             disabledTooltip={
               partner?.country &&
               !CONNECT_SUPPORTED_COUNTRIES.includes(partner.country) &&

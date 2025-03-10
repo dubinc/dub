@@ -6,10 +6,9 @@ export const createConnectedAccount = async ({
   name,
   email,
   country,
-}: Pick<
-  z.infer<typeof onboardPartnerSchema>,
-  "name" | "email" | "country"
->) => {
+}: Pick<z.infer<typeof onboardPartnerSchema>, "name" | "country"> & {
+  email: string;
+}) => {
   const [firstName, lastName] = name.split(" ");
 
   try {
