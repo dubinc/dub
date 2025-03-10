@@ -2,6 +2,7 @@ import { cn } from "@dub/utils";
 import { cva, VariantProps } from "class-variance-authority";
 import { LayoutGroup, motion } from "framer-motion";
 import { Dispatch, SetStateAction, useId } from "react";
+import { ArrowUpRight } from "./icons";
 
 const tabSelectButtonVariants = cva("p-4 transition-colors duration-75", {
   variants: {
@@ -36,7 +37,7 @@ export function TabSelect<T extends string>({
   onSelect,
   className,
 }: VariantProps<typeof tabSelectButtonVariants> & {
-  options: { id: T; label: string }[];
+  options: { id: T; label: string; href?: string }[];
   selected: string | null;
   onSelect?: Dispatch<SetStateAction<T>> | ((id: T) => void);
   className?: string;
@@ -46,30 +47,43 @@ export function TabSelect<T extends string>({
   return (
     <div className={cn("flex text-sm", className)}>
       <LayoutGroup id={layoutGroupId}>
-        {options.map(({ id, label }) => (
-          <div key={id} className="relative">
-            <button
-              type="button"
-              onClick={() => onSelect?.(id)}
-              className={tabSelectButtonVariants({ variant })}
-              data-selected={id === selected}
-              aria-selected={id === selected}
+        {options.map(({ id, label, href }) => {
+          const isSelected = id === selected;
+          const As = href ? "a" : "div";
+          return (
+            <As
+              key={id}
+              className="relative"
+              href={href ?? "#"}
+              target={href ? "_blank" : undefined}
             >
-              {label}
-            </button>
-            {id === selected && (
-              <motion.div
-                layoutId="indicator"
-                transition={{
-                  duration: 0.1,
-                }}
-                className={tabSelectIndicatorVariants({ variant })}
+              <button
+                type="button"
+                {...(!href && { onClick: () => onSelect?.(id) })}
+                className={cn(
+                  tabSelectButtonVariants({ variant }),
+                  href && "group flex items-center gap-1.5",
+                )}
+                data-selected={isSelected}
+                aria-selected={isSelected}
               >
-                <div className="h-0.5 rounded-t-full bg-current" />
-              </motion.div>
-            )}
-          </div>
-        ))}
+                {label}
+                {href && <ArrowUpRight className="size-2.5" />}
+              </button>
+              {isSelected && (
+                <motion.div
+                  layoutId="indicator"
+                  transition={{
+                    duration: 0.1,
+                  }}
+                  className={tabSelectIndicatorVariants({ variant })}
+                >
+                  <div className="h-0.5 rounded-t-full bg-current" />
+                </motion.div>
+              )}
+            </As>
+          );
+        })}
       </LayoutGroup>
     </div>
   );
