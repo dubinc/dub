@@ -6,8 +6,9 @@ type OnlinePresenceProvider = {
   tokenUrl: string;
   clientId: string | null;
   clientSecret: string | null;
+  clientIdParam?: string;
   pkce?: boolean;
-  scopes: string[];
+  scopes: string;
   verify: (props: {
     partner: Partner;
     accessToken: string;
@@ -22,7 +23,7 @@ export const ONLINE_PRESENCE_PROVIDERS: Record<string, OnlinePresenceProvider> =
       tokenUrl: "https://oauth2.googleapis.com/token",
       clientId: process.env.NEXT_PUBLIC_YOUTUBE_CLIENT_ID ?? null,
       clientSecret: process.env.YOUTUBE_CLIENT_SECRET ?? null,
-      scopes: ["https://www.googleapis.com/auth/youtube.readonly"],
+      scopes: "https://www.googleapis.com/auth/youtube.readonly",
       verify: async ({ partner, accessToken }) => {
         if (!partner.youtube) return false;
 
@@ -46,7 +47,7 @@ export const ONLINE_PRESENCE_PROVIDERS: Record<string, OnlinePresenceProvider> =
       clientId: process.env.NEXT_PUBLIC_X_CLIENT_ID ?? null,
       clientSecret: process.env.X_CLIENT_SECRET ?? null,
       pkce: true,
-      scopes: ["users.read", "tweet.read"],
+      scopes: "users.read tweet.read",
       verify: async ({ partner, accessToken }) => {
         if (!partner.twitter) return false;
 
@@ -60,9 +61,37 @@ export const ONLINE_PRESENCE_PROVIDERS: Record<string, OnlinePresenceProvider> =
         const username = userResponse?.data?.username;
 
         return (
-          !!username &&
-          partner.twitter.toLowerCase() ===
-            userResponse.data.username.toLowerCase()
+          !!username && partner.twitter.toLowerCase() === username.toLowerCase()
+        );
+      },
+    },
+    tiktok: {
+      verifiedColumn: "tiktokVerifiedAt",
+      authUrl: "https://www.tiktok.com/v2/auth/authorize",
+      tokenUrl: "https://open.tiktokapis.com/v2/oauth/token/",
+      clientId: process.env.NEXT_PUBLIC_TIKTOK_CLIENT_ID ?? null,
+      clientSecret: process.env.TIKTOK_CLIENT_SECRET ?? null,
+      clientIdParam: "client_key",
+      scopes: "user.info.basic,user.info.profile",
+      verify: async ({ partner, accessToken }) => {
+        if (!partner.tiktok) return false;
+
+        // Fetch user info
+        const userResponse = await fetch(
+          "https://open.tiktokapis.com/v2/user/info/?fields=username",
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          },
+        ).then((r) => r.json());
+
+        const username = userResponse?.data?.user?.username;
+
+        console.log({ userResponse, user: userResponse?.data?.user, username });
+
+        return (
+          !!username && partner.tiktok.toLowerCase() === username.toLowerCase()
         );
       },
     },

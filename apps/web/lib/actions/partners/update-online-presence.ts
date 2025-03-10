@@ -104,9 +104,9 @@ export const updateOnlinePresenceAction = authPartnerActionClient
                 if (!data.clientId) return [key, null];
 
                 const params: Record<string, string> = {
-                  client_id: data.clientId,
+                  [data.clientIdParam ?? "client_id"]: data.clientId,
                   redirect_uri: `${APP_DOMAIN_WITH_NGROK}/api/partners/online-presence/callback`,
-                  scope: data.scopes.join(" "),
+                  scope: data.scopes,
                   response_type: "code",
                   state: Buffer.from(
                     JSON.stringify({

@@ -46,8 +46,15 @@ export async function GET(req: Request) {
       return NextResponse.redirect(redirectUrl);
     }
 
-    const { tokenUrl, clientId, clientSecret, verify, verifiedColumn, pkce } =
-      ONLINE_PRESENCE_PROVIDERS[provider];
+    const {
+      tokenUrl,
+      clientId,
+      clientSecret,
+      verify,
+      verifiedColumn,
+      pkce,
+      clientIdParam,
+    } = ONLINE_PRESENCE_PROVIDERS[provider];
 
     // Get code verifier from cookie if this is X/Twitter
     const codeVerifier = pkce
@@ -69,14 +76,22 @@ export async function GET(req: Request) {
         Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`,
       },
       body: new URLSearchParams({
-        client_id: clientId!,
+        [clientIdParam ?? "client_id"]: clientId!,
         client_secret: clientSecret!,
         code,
         redirect_uri: `${APP_DOMAIN_WITH_NGROK}/api/partners/online-presence/callback`,
         grant_type: "authorization_code",
         ...(codeVerifier && { code_verifier: codeVerifier }),
       }).toString(),
-    }).then((r) => r.json());
+    }).then(async (r) => {
+      const text = await r.text();
+      try {
+        return JSON.parse(text);
+      } catch (e) {
+        console.error("Failed to parse access token response", text);
+        throw e;
+      }
+    });
 
     if (!result || !result.access_token) {
       console.warn("No access token found in OAuth callback");
