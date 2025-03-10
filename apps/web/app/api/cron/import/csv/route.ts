@@ -15,7 +15,6 @@ import {
   APP_DOMAIN_WITH_NGROK,
   DEFAULT_LINK_PROPS,
   DUB_DOMAINS_ARRAY,
-  getPrettyUrl,
   linkConstructorSimple,
   log,
   normalizeString,
@@ -24,677 +23,156 @@ import {
 import { NextResponse } from "next/server";
 import Papa from "papaparse";
 import { Readable } from "stream";
+import { z } from "zod";
 import { sendCsvImportEmails } from "./utils";
 
 export const dynamic = "force-dynamic";
 
-// Type for mapper return value
-type MapperResult =
-  | {
-      success: true;
-      data: {
-        domain: string;
-        key: string;
-        createdAt?: Date;
-        tags?: string[];
-        [key: string]: any;
-      };
-    }
-  | {
-      success?: false;
-      error: string;
-      link: { domain: string; key: string };
-    };
+const payloadSchema = z.object({
+  id: z.string(),
+  workspaceId: z.string(),
+  userId: z.string(),
+  folderId: z.string().nullable(),
+  url: z.string(),
+  mapping: linkMappingSchema,
+});
 
-// Define interface for tag and domain objects
-interface TagItem {
-  name: string;
+interface MapperResult {
+  success: boolean;
+  error?: string;
+  data?: {
+    domain: string;
+    key: string;
+    url: string;
+    title?: string;
+    description?: string;
+    tags?: string[];
+    createdAt?: Date;
+  };
 }
 
-interface DomainItem {
-  slug: string;
+interface ErrorLink {
+  domain: string;
+  key: string;
+  error: string;
 }
 
+const MAX_ROWS_PER_EXECUTION = 50;
+
+// POST /api/cron/import/csv
 export async function POST(req: Request) {
+  console.time("import:csv");
+
   try {
     const rawBody = await req.text();
-    await verifyQstashSignature({ req, rawBody });
+
+    await verifyQstashSignature({
+      req,
+      rawBody,
+    });
 
     const body = JSON.parse(rawBody);
-    const { workspaceId, userId, id, folderId, url } = body;
-    const mapping = linkMappingSchema.parse(body.mapping);
+    const payload = payloadSchema.parse(body);
+    const { id, url, mapping, workspaceId } = payload;
 
-    if (!id || !url) throw new Error("Missing ID or URL for the import file");
-
-    // Get the current cursor position
-    let cursor = parseInt(
-      (await redis.get(`import:csv:${workspaceId}:${id}:cursor`)) ?? "0",
-    );
-
-    // Clean up Redis keys if this is the first execution to avoid type conflicts
-    if (cursor === 0) {
-      // First execution - clean up any existing keys
-      await Promise.allSettled([
-        redis.del(`import:csv:${workspaceId}:${id}:domains_list`),
-        redis.del(`import:csv:${workspaceId}:${id}:domains_cache`),
-        redis.del(`import:csv:${workspaceId}:${id}:failed`),
-        redis.del(`import:csv:${workspaceId}:${id}:count`),
-        redis.del(`import:csv:${workspaceId}:${id}:filesize`),
-        redis.del(`import:csv:${workspaceId}:${id}:tags_cache`),
-      ]);
-
-      // Reset cursor in case it was deleted above
-      cursor = 0;
+    if (!id || !url) {
+      throw new Error("Missing ID or URL for the import file.");
     }
 
-    // Define the mapper function
-    const mapper = (row: Record<string, string>): MapperResult => {
-      const getValueByNormalizedKey = (targetKey: string): string => {
-        const key = Object.keys(row).find(
-          (k) => normalizeString(k) === normalizeString(targetKey),
-        );
-        return key ? row[key].trim() : "";
-      };
+    const redisKey = `import:csv:${workspaceId}:${id}`;
+    const cursor = parseInt((await redis.get(`${redisKey}:cursor`)) || "0");
 
-      // Validate required fields
-      const linkValue = getValueByNormalizedKey(mapping.link);
-      if (!linkValue) {
-        return {
-          error: "Missing link value",
-          link: { domain: "unknown", key: "unknown" },
-        };
-      }
-
-      const linkUrl = getPrettyUrl(linkValue);
-      if (!linkUrl) {
-        return {
-          error: "Invalid link format",
-          link: { domain: "unknown", key: "unknown" },
-        };
-      }
-
-      const domain = linkUrl.split("/")[0];
-      const key = linkUrl.split("/").slice(1).join("/") || "_root";
-
-      try {
-        return {
-          success: true,
-          data: {
-            ...Object.fromEntries(
-              Object.entries(mapping).map(([key, value]) => [
-                key,
-                getValueByNormalizedKey(value),
-              ]),
-            ),
-            domain,
-            key,
-            shortLink: linkConstructorSimple({
-              domain,
-              key,
-            }),
-            createdAt: mapping.createdAt
-              ? parseDateTime(getValueByNormalizedKey(mapping.createdAt)) ||
-                undefined
-              : undefined,
-            tags: mapping.tags
-              ? getValueByNormalizedKey(mapping.tags)
-                  .split(",")
-                  .map((tag) => tag.trim())
-                  .filter(Boolean)
-                  .map((tag) => normalizeString(tag))
-              : undefined,
-          },
-        };
-      } catch (error) {
-        return {
-          error: error.message || "Error processing row",
-          link: { domain, key },
-        };
-      }
-    };
-
-    // Get the total count of processed links
-    let count = parseInt(
-      (await redis.get(`import:csv:${workspaceId}:${id}:count`)) ?? "0",
-    );
-
-    // Define a reasonable batch size for a single function execution
-    const MAX_ROWS_PER_EXECUTION = 1000;
-
-    // Get workspace info - needed for both processing and potential completion
-    const workspace = (await prisma.project.findUniqueOrThrow({
-      where: { id: workspaceId },
-    })) as WorkspaceProps;
-
-    let tags: TagItem[] = [];
-    let domains: DomainItem[] = [];
-
-    // Check if this is the first execution (cursor = 0)
-    if (cursor === 0) {
-      // First execution - fetch metadata to check total size
-      // Note: storage.fetch might not support the second options parameter in some implementations
-      // If that's the case, we can skip the content-length check
-      let contentLength = 0;
-      try {
-        const headResponse = await fetch(url, { method: "HEAD" });
-        contentLength = parseInt(
-          headResponse.headers.get("content-length") || "0",
-        );
-
-        // Store file size for future reference if available
-        if (contentLength > 0) {
-          await redis.set(
-            `import:csv:${workspaceId}:${id}:filesize`,
-            contentLength,
-          );
-        }
-      } catch (error) {
-        console.warn(
-          "Error fetching content length, continuing anyway:",
-          error,
-        );
-      }
-
-      // Initial fetch of workspace data
-      const [fetchedTags, fetchedDomains] = await Promise.all([
-        prisma.tag.findMany({
-          where: { projectId: workspace.id },
-          select: { name: true },
-        }),
-        prisma.domain.findMany({
-          where: { projectId: workspace.id },
-          select: { slug: true },
-        }),
-      ]);
-
-      tags = fetchedTags as TagItem[];
-      domains = fetchedDomains as DomainItem[];
-
-      // Cache these results for future executions - use different keys for the cache
-      await redis.set(
-        `import:csv:${workspaceId}:${id}:tags_cache`,
-        JSON.stringify(tags),
-      );
-      await redis.set(
-        `import:csv:${workspaceId}:${id}:domains_cache`,
-        JSON.stringify(domains),
-      );
-    } else {
-      // Fetch cached data from previous runs
-      try {
-        const cachedTagsStr = await redis.get(
-          `import:csv:${workspaceId}:${id}:tags_cache`,
-        );
-        const cachedDomainsStr = await redis.get(
-          `import:csv:${workspaceId}:${id}:domains_cache`,
-        );
-
-        if (cachedTagsStr) {
-          tags = JSON.parse(cachedTagsStr as string) as TagItem[];
-        }
-        if (cachedDomainsStr) {
-          domains = JSON.parse(cachedDomainsStr as string) as DomainItem[];
-        }
-      } catch (error) {
-        console.warn("Error parsing cached data, fetching fresh data:", error);
-        // If there's an error with cached data, fetch fresh data
-        const [fetchedTags, fetchedDomains] = await Promise.all([
-          prisma.tag.findMany({
-            where: { projectId: workspace.id },
-            select: { name: true },
-          }),
-          prisma.domain.findMany({
-            where: { projectId: workspace.id },
-            select: { slug: true },
-          }),
-        ]);
-
-        tags = fetchedTags as TagItem[];
-        domains = fetchedDomains as DomainItem[];
-
-        // Update the cache
-        await redis.set(
-          `import:csv:${workspaceId}:${id}:tags_cache`,
-          JSON.stringify(tags),
-        );
-        await redis.set(
-          `import:csv:${workspaceId}:${id}:domains_cache`,
-          JSON.stringify(domains),
-        );
-      }
-    }
-
-    // Fetch the file content for parsing
     const response = await storage.fetch(url);
+    if (!response || !response.body) {
+      throw new Error("CSV import file not found.");
+    }
 
-    const addedTags: string[] = [];
-    const addedDomains: string[] = [];
-    let processedRowsInThisExecution = 0;
-    let isFileComplete = false;
+    let mappedLinks: MapperResult[] = []; // Stores processed rows
+    let currentRow = 0; // Tracks both current position and processed count
+    let isComplete = false; // We've reached the end of the file
 
     await new Promise((resolve, reject) => {
       Papa.parse(Readable.fromWeb(response.body as any), {
         header: true,
         skipEmptyLines: true,
-        skipFirstNLines: cursor,
         worker: false,
-        chunk: async (
-          chunk: {
-            data?: Record<string, string>[];
-            errors: { message: string }[];
-          },
-          parser,
-        ) => {
-          parser.pause(); // Pause parsing until we finish processing this chunk
+        complete: (results) => {
+          isComplete = currentRow >= results.data.length;
+          resolve(results);
+        },
+        error: reject,
+        step: async (results: { data: Record<string, string> }, parser) => {
+          parser.pause();
 
-          const { data } = chunk;
-          if (!data?.length) {
-            console.warn("No data in CSV import chunk", chunk.errors);
+          // Skip rows until we reach our cursor position
+          if (currentRow < cursor) {
+            currentRow++;
             parser.resume();
             return;
           }
 
-          // Process in smaller batches to avoid connection pool timeout
-          const BATCH_SIZE = 100;
-
-          for (let i = 0; i < data.length; i += BATCH_SIZE) {
-            const batchData = data.slice(i, i + BATCH_SIZE);
-
-            try {
-              // Map the rows to our format
-              const mappedBatch = batchData.map((row) => mapper(row));
-
-              // Find links that already exist in the workspace
-              const alreadyCreatedLinks = await prisma.link.findMany({
-                where: {
-                  shortLink: {
-                    in: mappedBatch.map((result): string => {
-                      if ("success" in result && result.success) {
-                        return result.data.shortLink;
-                      } else {
-                        return linkConstructorSimple({
-                          domain: result.link.domain,
-                          key: result.link.key,
-                        });
-                      }
-                    }),
-                  },
-                },
-                select: {
-                  shortLink: true,
-                },
-              });
-
-              // Filter out links that already exist
-              const linksToCreate = mappedBatch
-                .filter(
-                  (
-                    result,
-                  ): result is Extract<MapperResult, { success: true }> =>
-                    "success" in result &&
-                    result.success === true &&
-                    !alreadyCreatedLinks.some(
-                      (l) => l.shortLink === result.data.shortLink,
-                    ) &&
-                    result.data.key !== "_root",
-                )
-                .map((result) => result.data);
-
-              // Extract tags that need to be created
-              const selectedTags = [
-                ...new Set(
-                  linksToCreate
-                    .map(({ tags }) => tags || [])
-                    .flat()
-                    .filter((tag): tag is string => Boolean(tag)),
-                ),
-              ];
-
-              // Find tags that need to be added to the workspace
-              const tagsNotInWorkspace = selectedTags.filter(
-                (tag) =>
-                  !tags.some(
-                    (t) => t.name.toLowerCase() === tag.toLowerCase(),
-                  ) &&
-                  !addedTags.some((t) => t.toLowerCase() === tag.toLowerCase()),
-              );
-
-              // Add missing tags to the workspace
-              if (tagsNotInWorkspace.length > 0) {
-                await prisma.tag.createMany({
-                  data: tagsNotInWorkspace.map((tag) => ({
-                    id: createId({ prefix: "tag_" }),
-                    name: tag,
-                    color: randomBadgeColor(),
-                    projectId: workspace.id,
-                  })),
-                  skipDuplicates: true,
-                });
-              }
-
-              addedTags.push(...tagsNotInWorkspace);
-
-              // Extract domains that need to be created
-              const selectedDomains = [
-                ...new Set(linksToCreate.map(({ domain }) => domain)),
-              ];
-
-              // Find domains that need to be added to the workspace
-              const domainsNotInWorkspace = selectedDomains.filter(
-                (domain) =>
-                  !domains.some((d) => d.slug === domain) &&
-                  !DUB_DOMAINS_ARRAY.includes(domain) &&
-                  !addedDomains.includes(domain),
-              );
-
-              // Add missing domains to the workspace
-              if (domainsNotInWorkspace.length > 0) {
-                await Promise.allSettled([
-                  // create domains in DB
-                  prisma.domain.createMany({
-                    data: domainsNotInWorkspace.map((domain) => ({
-                      id: createId({ prefix: "dom_" }),
-                      slug: domain,
-                      projectId: workspace.id,
-                      primary: false,
-                    })),
-                    skipDuplicates: true,
-                  }),
-                  // create domains in Vercel
-                  ...domainsNotInWorkspace.map((domain) =>
-                    addDomainToVercel(domain),
-                  ),
-                  // create links for domains
-                  ...domainsNotInWorkspace.map((domain) =>
-                    createLink({
-                      ...DEFAULT_LINK_PROPS,
-                      domain,
-                      key: "_root",
-                      url: "",
-                      tags: undefined,
-                      userId,
-                      projectId: workspace.id,
-                    }),
-                  ),
-                ]);
-              }
-
-              addedDomains.push(...domainsNotInWorkspace);
-
-              // Process links
-              type ProcessedLink = {
-                error: string | null;
-                link: ProcessedLinkProps;
-              };
-
-              const processedLinks = await Promise.all(
-                linksToCreate.map(
-                  ({ createdAt, tags, ...link }) =>
-                    processLink({
-                      payload: {
-                        ...createLinkBodySchema.parse({
-                          ...link,
-                          tagNames: tags || undefined,
-                        }),
-                        folderId,
-                        createdAt: createdAt?.toISOString(),
-                      },
-                      workspace,
-                      userId,
-                      bulk: true,
-                    }) as Promise<ProcessedLink>,
-                ),
-              );
-
-              let validLinksInBatch = processedLinks
-                .filter(({ error }) => error == null)
-                .map(({ link }) => link) as ProcessedLinkProps[];
-
-              let errorLinksInBatch = processedLinks
-                .filter(({ error }) => error != null)
-                .map(({ link: { domain, key }, error }) => ({
-                  domain,
-                  key,
-                  error,
-                }));
-
-              // Keep track of error links
-              if (errorLinksInBatch.length > 0) {
-                await redis.rpush(
-                  `import:csv:${workspaceId}:${id}:failed`,
-                  ...errorLinksInBatch,
-                );
-              }
-
-              // Create all links
-              if (validLinksInBatch.length > 0) {
-                await bulkCreateLinks({
-                  links: validLinksInBatch,
-                });
-              }
-
-              if (selectedDomains.length > 0) {
-                // Use a different key for the list of affected domains
-                await redis.rpush(
-                  `import:csv:${workspaceId}:${id}:domains_list`,
-                  ...selectedDomains,
-                );
-              }
-
-              // Update counter for this batch
-              count += validLinksInBatch.length;
-
-              // Add a small delay between batches
-              await new Promise((r) => setTimeout(r, 100));
-            } catch (error) {
-              console.error("Error processing batch", error);
-              // Log error but continue with next batch
-              await log({
-                message: `Error in CSV import batch: ${error.message}`,
-                type: "cron",
-              });
-            }
-          }
-
-          processedRowsInThisExecution += data.length;
-
-          // Update total count in Redis periodically
-          await redis.set(`import:csv:${workspaceId}:${id}:count`, count);
-
-          // Update cursor for next execution
-          cursor += data.length;
-          await redis.set(`import:csv:${workspaceId}:${id}:cursor`, cursor);
-
-          // If we've processed enough rows in this execution, stop
-          if (processedRowsInThisExecution >= MAX_ROWS_PER_EXECUTION) {
-            parser.abort(); // Stop parsing
-            isFileComplete = false;
-            resolve(null);
+          if (currentRow - cursor >= MAX_ROWS_PER_EXECUTION) {
+            parser.abort();
             return;
           }
 
+          mappedLinks.push(mapCsvRowToLink(results.data, mapping));
+
+          currentRow++;
+
+          await redis.set(`${redisKey}:cursor`, currentRow);
+
           parser.resume();
         },
-        complete: () => {
-          isFileComplete = true;
-          resolve(null);
-        },
-        error: reject,
       });
     });
 
-    // If file is not complete, schedule the next batch
-    if (!isFileComplete) {
-      try {
-        // Get the retry count from Redis or initialize as 0
-        const retryCount = parseInt(
-          (await redis.get(`import:csv:${workspaceId}:${id}:retry_count`)) ??
-            "0",
-        );
+    await processMappedLinks({
+      mappedLinks,
+      payload,
+    });
 
-        // Get the previous cursor to check if we're making progress
-        const previousCursor = parseInt(
-          (await redis.get(
-            `import:csv:${workspaceId}:${id}:previous_cursor`,
-          )) ?? "0",
-        );
-
-        // Store current cursor for next comparison
-        await redis.set(
-          `import:csv:${workspaceId}:${id}:previous_cursor`,
-          cursor,
-        );
-
-        // Check for potential infinite loop conditions
-        const MAX_RETRIES = 50; // Set reasonable max based on your file sizes
-        const noProgress =
-          cursor === previousCursor && processedRowsInThisExecution === 0;
-
-        if (retryCount >= MAX_RETRIES || noProgress) {
-          // Abort the import process
-          await log({
-            message: `CSV import aborted after ${retryCount} attempts - possible infinite loop detected. WorkspaceId: ${workspaceId}, ImportId: ${id}`,
-            type: "cron",
-          });
-
-          // Clean up Redis keys
-          await Promise.allSettled([
-            storage.delete(url),
-            redis.del(`import:csv:${workspaceId}:${id}:cursor`),
-            redis.del(`import:csv:${workspaceId}:${id}:count`),
-            redis.del(`import:csv:${workspaceId}:${id}:failed`),
-            redis.del(`import:csv:${workspaceId}:${id}:filesize`),
-            redis.del(`import:csv:${workspaceId}:${id}:tags_cache`),
-            redis.del(`import:csv:${workspaceId}:${id}:domains_cache`),
-            redis.del(`import:csv:${workspaceId}:${id}:domains_list`),
-            redis.del(`import:csv:${workspaceId}:${id}:retry_count`),
-            redis.del(`import:csv:${workspaceId}:${id}:previous_cursor`),
-          ]);
-
-          // Send notification email about the aborted import
-          try {
-            await sendCsvImportEmails({
-              workspaceId,
-              count,
-              domains: [],
-              errorLinks: [],
-            });
-          } catch (emailError) {
-            console.error("Error sending abort notification email", emailError);
-          }
-
-          return NextResponse.json({
-            response: "error",
-            message: "Import aborted due to possible infinite loop",
-            processed: count,
-          });
-        }
-
-        // Increment retry count
-        await redis.set(
-          `import:csv:${workspaceId}:${id}:retry_count`,
-          retryCount + 1,
-        );
-
-        // Schedule next batch
-        await qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/csv`,
-          body: {
-            workspaceId,
-            userId,
-            id,
-            folderId,
-            url,
-            mapping,
-          },
-        });
-
-        return NextResponse.json({
-          response: "in_progress",
-          processed: count,
-          cursor,
-        });
-      } catch (error) {
-        console.error("Error scheduling next batch", error);
-        await log({
-          message: `Error scheduling next CSV import batch: ${error.message}`,
-          type: "cron",
-        });
-        // Even if scheduling fails, return a success response with in_progress status
-        return NextResponse.json({
-          response: "in_progress",
-          processed: count,
-          cursor,
-          error: "Failed to schedule next batch. Please try again.",
-        });
-      }
-    }
-
-    // File is complete, send completion email and cleanup
-    let errorLinks: any[] = [];
-    try {
-      const errorLinksRaw = await redis.lrange(
-        `import:csv:${workspaceId}:${id}:failed`,
+    // If we processed the maximum rows and haven't reached the end, trigger next batch
+    if (currentRow - cursor >= MAX_ROWS_PER_EXECUTION && !isComplete) {
+      // await qstash.publishJSON({
+      //   url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/csv`,
+      //   body: payload,
+      // });
+    } else {
+      const errorLinks = await redis.lrange<ErrorLink>(
+        `${redisKey}:failed`,
         0,
         -1,
       );
 
-      errorLinks = (errorLinksRaw || []).map((item) => {
-        try {
-          return JSON.parse(item as string);
-        } catch (e) {
-          return item;
-        }
+      const createdCount = parseInt(
+        (await redis.get(`${redisKey}:created`)) || "0",
+      );
+
+      const domains = await redis.smembers(`${redisKey}:domains`);
+
+      console.log({
+        domains,
+        createdCount,
+        errorLinks,
       });
-    } catch (error) {
-      console.error("Error getting error links", error);
-    }
 
-    let affectedDomains: string[] = [];
-    try {
-      // Use the list key for affected domains
-      affectedDomains = (await redis.lrange(
-        `import:csv:${workspaceId}:${id}:domains_list`,
-        0,
-        -1,
-      )) as string[];
-
-      // Remove duplicates (since lists can have duplicates)
-      affectedDomains = [...new Set(affectedDomains)];
-    } catch (error) {
-      console.error("Error getting affected domains", error);
-    }
-
-    // Send email notification about the import
-    try {
       await sendCsvImportEmails({
         workspaceId,
-        count,
-        domains: Array.isArray(affectedDomains) ? affectedDomains : [],
-        errorLinks: Array.isArray(errorLinks) ? errorLinks : [],
+        count: createdCount,
+        domains,
+        errorLinks,
       });
-    } catch (error) {
-      console.error("Error sending CSV import emails", error);
-      await log({
-        message: `Error sending CSV import completion email: ${error.message}`,
-        type: "cron",
-      });
-    }
 
-    // Clear out storage file and redis keys
-    try {
-      const clearResults = await Promise.allSettled([
+      const results = await Promise.allSettled([
+        redis.del(`${redisKey}:cursor`),
+        redis.del(`${redisKey}:created`),
+        redis.del(`${redisKey}:failed`),
+        redis.del(`${redisKey}:domains`),
         storage.delete(url),
-        redis.del(`import:csv:${workspaceId}:${id}:cursor`),
-        redis.del(`import:csv:${workspaceId}:${id}:count`),
-        redis.del(`import:csv:${workspaceId}:${id}:failed`),
-        redis.del(`import:csv:${workspaceId}:${id}:filesize`),
-        redis.del(`import:csv:${workspaceId}:${id}:tags_cache`),
-        redis.del(`import:csv:${workspaceId}:${id}:domains_cache`),
-        redis.del(`import:csv:${workspaceId}:${id}:domains_list`),
       ]);
 
-      clearResults.forEach((result, idx) => {
+      results.forEach((result, idx) => {
         if (result.status === "rejected") {
           console.error(
             `Error clearing CSV import data (${idx})`,
@@ -702,14 +180,11 @@ export async function POST(req: Request) {
           );
         }
       });
-    } catch (error) {
-      console.error("Error clearing Redis keys", error);
     }
 
-    return NextResponse.json({
-      response: "success",
-      processed: count,
-    });
+    console.timeEnd("import:csv");
+
+    return NextResponse.json("OK");
   } catch (error) {
     await log({
       message: `Error importing CSV links: ${error.message}`,
@@ -719,3 +194,296 @@ export async function POST(req: Request) {
     return handleAndReturnErrorResponse(error);
   }
 }
+
+const mapCsvRowToLink = (
+  row: Record<string, string>,
+  mapping: z.infer<typeof linkMappingSchema>,
+): MapperResult => {
+  try {
+    // Helper function to get value from CSV row using case-insensitive matching
+    const getValueByKey = (targetKey: string) => {
+      const key = Object.keys(row).find(
+        (k) => normalizeString(k) === normalizeString(targetKey),
+      );
+
+      return key ? row[key].trim() : "";
+    };
+
+    const linkValue = getValueByKey(mapping.link);
+    const urlValue = getValueByKey(mapping.url);
+
+    if (!linkValue) {
+      return {
+        success: false,
+        error: "Missing required field: link",
+      };
+    }
+
+    if (!urlValue) {
+      return {
+        success: false,
+        error: "Missing required field: url",
+      };
+    }
+
+    const [domain, ...keyParts] = linkValue.split("/");
+    const key = keyParts.join("/") || "_root";
+
+    try {
+      new URL(urlValue);
+    } catch {
+      return {
+        success: false,
+        error: `Invalid URL format: ${urlValue}`,
+      };
+    }
+
+    const link: MapperResult["data"] = {
+      domain,
+      key,
+      url: urlValue,
+    };
+
+    if (mapping.title) {
+      const title = getValueByKey(mapping.title);
+
+      if (title) {
+        link.title = title;
+      }
+    }
+
+    if (mapping.description) {
+      const description = getValueByKey(mapping.description);
+
+      if (description) {
+        link.description = description;
+      }
+    }
+
+    if (mapping.createdAt) {
+      const createdAt = getValueByKey(mapping.createdAt);
+
+      if (createdAt) {
+        const date = parseDateTime(createdAt);
+
+        if (date) {
+          link.createdAt = date;
+        }
+      }
+    }
+
+    if (mapping.tags) {
+      const tags = getValueByKey(mapping.tags);
+
+      if (tags) {
+        link.tags = tags
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter(Boolean)
+          .map((tag) => normalizeString(tag));
+      }
+    }
+
+    return {
+      success: true,
+      data: link,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error occurred",
+    };
+  }
+};
+
+const processMappedLinks = async ({
+  mappedLinks,
+  payload,
+}: {
+  mappedLinks: MapperResult[];
+  payload: z.infer<typeof payloadSchema>;
+}) => {
+  const { id, workspaceId, userId, folderId } = payload;
+  const redisKey = `import:csv:${workspaceId}:${id}`;
+
+  if (mappedLinks.length === 0) {
+    console.log("No links to process.");
+    return;
+  }
+
+  const successfulMappings = mappedLinks.filter(
+    (
+      result,
+    ): result is { success: true; data: NonNullable<MapperResult["data"]> } =>
+      result.success && !!result.data,
+  );
+
+  // Process the tags
+  let selectedTags = successfulMappings
+    .map((result) => result.data.tags || [])
+    .flat()
+    .filter((tag): tag is string => Boolean(tag));
+
+  selectedTags = [...new Set(selectedTags)];
+
+  const tags = await prisma.tag.findMany({
+    where: {
+      projectId: workspaceId,
+    },
+    select: {
+      id: true,
+      name: true,
+    },
+  });
+
+  const tagsNotInWorkspace = selectedTags.filter(
+    (tag) => !tags.some((t) => t.name.toLowerCase() === tag.toLowerCase()),
+  );
+
+  if (tagsNotInWorkspace.length > 0) {
+    console.log(`Creating ${tagsNotInWorkspace.length} new tags.`);
+
+    await prisma.tag.createMany({
+      data: tagsNotInWorkspace.map((name) => ({
+        id: createId({ prefix: "tag_" }),
+        projectId: workspaceId,
+        name,
+        color: randomBadgeColor(),
+      })),
+      skipDuplicates: true,
+    });
+  }
+
+  // Process the domains
+  let selectedDomains = successfulMappings
+    .map((result) => result.data.domain)
+    .filter((domain): domain is string => Boolean(domain));
+
+  selectedDomains = [...new Set(selectedDomains)];
+
+  const domains = await prisma.domain.findMany({
+    where: {
+      projectId: workspaceId,
+    },
+  });
+
+  const domainsNotInWorkspace = selectedDomains.filter(
+    (domain) =>
+      !domains.some((d) => d.slug === domain) &&
+      !DUB_DOMAINS_ARRAY.includes(domain),
+  );
+
+  if (domainsNotInWorkspace.length > 0) {
+    console.log(`Creating ${domainsNotInWorkspace.length} new domains.`);
+
+    await Promise.allSettled([
+      prisma.domain.createMany({
+        data: domainsNotInWorkspace.map((slug) => ({
+          id: createId({ prefix: "dom_" }),
+          projectId: workspaceId,
+          slug,
+          primary: false,
+        })),
+        skipDuplicates: true,
+      }),
+
+      domainsNotInWorkspace.map((domain) => addDomainToVercel(domain)),
+
+      domainsNotInWorkspace.map((domain) =>
+        createLink({
+          ...DEFAULT_LINK_PROPS,
+          projectId: workspaceId,
+          userId,
+          domain,
+          key: "_root",
+          url: "",
+          tags: undefined,
+        }),
+      ),
+    ]);
+  }
+
+  if (selectedDomains.length > 0) {
+    await redis.sadd(`${redisKey}:domains`, ...selectedDomains);
+  }
+
+  // Process the links
+  let linksToCreate = successfulMappings.map((result) => result.data);
+
+  const existingLinks = await prisma.link.findMany({
+    where: {
+      projectId: workspaceId,
+      shortLink: {
+        in: linksToCreate.map((link) => linkConstructorSimple(link)),
+      },
+    },
+    select: {
+      shortLink: true,
+    },
+  });
+
+  console.log(`Skipping ${existingLinks.length} existing links.`);
+
+  linksToCreate = linksToCreate.filter(
+    (link) =>
+      !existingLinks.some((l) => l.shortLink === linkConstructorSimple(link)),
+  );
+
+  const workspace = await prisma.project.findUniqueOrThrow({
+    where: {
+      id: workspaceId,
+    },
+    select: {
+      id: true,
+      plan: true,
+    },
+  });
+
+  const processedLinks = await Promise.all(
+    linksToCreate.map(({ tags, ...link }) =>
+      processLink({
+        payload: {
+          ...createLinkBodySchema.parse({
+            ...link,
+            tagNames: tags || undefined,
+            folderId,
+          }),
+        },
+        workspace: {
+          id: workspaceId,
+          plan: workspace.plan as WorkspaceProps["plan"],
+        },
+        userId,
+        bulk: true,
+      }),
+    ),
+  );
+
+  const validLinks = processedLinks
+    .filter(({ error }) => error == null)
+    .map(({ link }) => link);
+
+  const errorLinks = processedLinks
+    .filter(({ error }) => error != null)
+    .map(({ link: { domain, key }, error }) => ({
+      domain,
+      key,
+      error,
+    }));
+
+  if (validLinks.length > 0) {
+    console.log(`Creating ${validLinks.length} new links.`);
+
+    await bulkCreateLinks({
+      links: validLinks as ProcessedLinkProps[],
+    });
+
+    await redis.incrby(`${redisKey}:created`, validLinks.length);
+  }
+
+  if (errorLinks.length > 0) {
+    console.log(`${errorLinks.length} failed to create.`);
+
+    await redis.rpush(`${redisKey}:failed`, ...errorLinks);
+  }
+};
