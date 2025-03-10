@@ -1,15 +1,17 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { createDiscountSchema } from "@/lib/zod/schemas/discount";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
 export const createDiscountAction = authActionClient
   .schema(createDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     const {
       programId,
       partnerIds,
@@ -96,4 +98,16 @@ export const createDiscountAction = authActionClient
         },
       });
     }
+
+    waitUntil(
+      recordAuditLog({
+        action: "discount.create",
+        workspace_id: workspace.id,
+        program_id: programId,
+        actor_id: user.id,
+        actor_name: user.name,
+        targets: [{ id: discount.id, type: "discount" }],
+        description: "A new discount was created.",
+      }),
+    );
   });

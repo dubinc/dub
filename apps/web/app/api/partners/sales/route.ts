@@ -1,3 +1,4 @@
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
@@ -8,11 +9,12 @@ import { redis } from "@/lib/upstash";
 import { updatePartnerSaleSchema } from "@/lib/zod/schemas/partners";
 import { ProgramSaleSchema } from "@/lib/zod/schemas/program-sales";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // PATCH /api/partners/sales - update a sale
 export const PATCH = withWorkspace(
-  async ({ req, workspace }) => {
+  async ({ req, workspace, session }) => {
     let { programId, invoiceId, amount, modifyAmount, currency } =
       updatePartnerSaleSchema.parse(await parseRequestBody(req));
 
@@ -135,6 +137,18 @@ export const PATCH = withWorkspace(
           }),
       ]);
     }
+
+    waitUntil(
+      recordAuditLog({
+        action: "commission.update",
+        workspace_id: workspace.id,
+        program_id: programId,
+        actor_id: session.user.id,
+        actor_name: session.user.name,
+        targets: [{ id: sale.id, type: "commission" }],
+        description: "Updated sale amount.",
+      }),
+    );
 
     return NextResponse.json(ProgramSaleSchema.parse(updatedSale));
   },

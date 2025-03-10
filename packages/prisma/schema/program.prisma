@@ -74,6 +74,7 @@ model ProgramEnrollment {
   discountId       String? // custom discount for this partner
   applicationId    String?                 @unique
   status           ProgramEnrollmentStatus @default(pending)
+  addedByUserId    String?
   createdAt        DateTime                @default(now())
   updatedAt        DateTime                @updatedAt
 

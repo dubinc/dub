@@ -1,18 +1,18 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { createManualPayoutSchema } from "@/lib/zod/schemas/payouts";
 import { prisma } from "@dub/prisma";
 import { PayoutType } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
-const schema = createManualPayoutSchema;
-
 export const createManualPayoutAction = authActionClient
-  .schema(schema)
+  .schema(createManualPayoutSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     const { programId, partnerId, amount, description } = parsedInput;
 
     const programEnrollment = await prisma.programEnrollment.findUniqueOrThrow({
@@ -54,6 +54,18 @@ export const createManualPayoutAction = authActionClient
     if (!payout) {
       throw new Error("Failed to create payout. Please try again.");
     }
+
+    waitUntil(
+      recordAuditLog({
+        action: "payout.create_manual",
+        workspace_id: workspace.id,
+        program_id: programId,
+        actor_id: user.id,
+        actor_name: user.name,
+        targets: [{ id: payout.id, type: "payout" }],
+        description: "A new manual payout was created.",
+      }),
+    );
 
     return payout;
   });
