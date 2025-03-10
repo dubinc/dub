@@ -8,7 +8,7 @@ import { withWorkspace } from "@/lib/auth";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
-import { sendWorkspaceWebhookOnEdge } from "@/lib/webhook/publish-edge";
+import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
@@ -259,7 +259,7 @@ export const POST = withWorkspace(
           customer,
         });
 
-        await sendWorkspaceWebhookOnEdge({
+        await sendWorkspaceWebhook({
           trigger: "sale.created",
           data: sale,
           workspace,
