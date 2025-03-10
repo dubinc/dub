@@ -2,6 +2,7 @@ import { createId } from "@/lib/api/create-id";
 import { addDomainToVercel } from "@/lib/api/domains";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkCreateLinks, createLink, processLink } from "@/lib/api/links";
+import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { storage } from "@/lib/storage";
 import { ProcessedLinkProps, WorkspaceProps } from "@/lib/types";
@@ -11,6 +12,7 @@ import { createLinkBodySchema } from "@/lib/zod/schemas/links";
 import { randomBadgeColor } from "@/ui/links/tag-badge";
 import { prisma } from "@dub/prisma";
 import {
+  APP_DOMAIN_WITH_NGROK,
   DEFAULT_LINK_PROPS,
   DUB_DOMAINS_ARRAY,
   linkConstructorSimple,
@@ -132,10 +134,10 @@ export async function POST(req: Request) {
 
     // If we processed the maximum rows and haven't reached the end, trigger next batch
     if (currentRow - cursor >= MAX_ROWS_PER_EXECUTION && !isComplete) {
-      // await qstash.publishJSON({
-      //   url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/csv`,
-      //   body: payload,
-      // });
+      await qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/csv`,
+        body: payload,
+      });
     } else {
       const errorLinks = await redis.lrange<ErrorLink>(
         `${redisKey}:failed`,
