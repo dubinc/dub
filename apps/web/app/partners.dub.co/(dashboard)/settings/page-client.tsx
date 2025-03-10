@@ -43,7 +43,10 @@ export function ProfileSettingsPageClient() {
         )}
       </div>
 
-      <div className="max-w-screen-md rounded-lg border border-neutral-200 bg-white">
+      <div
+        className="max-w-screen-md rounded-lg border border-neutral-200 bg-white"
+        id="online-presence"
+      >
         <div className="border-b border-neutral-200 p-6">
           <h2 className="text-xl font-medium text-neutral-800">
             Online presence

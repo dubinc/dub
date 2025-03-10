@@ -15,6 +15,7 @@ import {
 } from "@dub/ui";
 import { cn } from "@dub/utils/src/functions";
 import { useAction } from "next-safe-action/hooks";
+import { useRouter } from "next/navigation";
 import { ReactNode, useState } from "react";
 import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
@@ -48,6 +49,8 @@ export function OnlinePresenceForm({
   partner,
   onSubmitSuccessful,
 }: OnlinePresenceFormProps) {
+  const router = useRouter();
+
   const { partner: partnerProfile } = usePartnerProfile();
 
   const form = useForm<OnlinePresenceFormData>({
@@ -70,7 +73,7 @@ export function OnlinePresenceForm({
     formState: { errors, isSubmitting, isSubmitSuccessful },
   } = form;
 
-  const website = watch("website");
+  const [website, youtube] = watch(["website", "youtube"]);
 
   const { executeAsync } = useAction(updateOnlinePresenceAction, {
     onSuccess: (result) => {
@@ -98,11 +101,13 @@ export function OnlinePresenceForm({
     txtRecord: string;
   } | null>(null);
 
-  const [isSavingWebsite, setIsSavingWebsite] = useState(false);
-
   const isWebsiteVerified =
     website === partnerProfile?.website &&
     Boolean(partnerProfile?.websiteVerifiedAt);
+
+  const isYoutubeVerified =
+    youtube === partnerProfile?.youtube &&
+    Boolean(partnerProfile?.youtubeVerifiedAt);
 
   return (
     <>
@@ -296,15 +301,20 @@ export function OnlinePresenceForm({
                   property="youtube"
                   icon={YouTube}
                   loading={!partnerProfile}
-                  isVerified={Boolean(partnerProfile?.youtubeVerifiedAt)}
+                  isVerified={isYoutubeVerified}
                   onClick={async () => {
                     try {
                       const result = await updateOnlinePresenceAction({
                         youtube: getValues("youtube"),
+                        source: variant,
                       });
 
-                      // TODO
-                      alert("WIP");
+                      if (
+                        result?.data?.success &&
+                        result?.data?.verificationUrls?.youtube
+                      ) {
+                        router.push(result.data.verificationUrls.youtube);
+                      }
 
                       mutate("/api/partner-profile");
                     } catch (e) {
