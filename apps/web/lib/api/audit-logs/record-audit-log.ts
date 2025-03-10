@@ -18,19 +18,20 @@ export const recordAuditLog = async (
   },
 ) => {
   const headersList = headers();
-
   const ip = auditLog.req ? ipAddress(auditLog.req) : getIP();
   const ua = headersList.get("user-agent");
 
   const auditLogTB = {
     ...auditLog,
     id: nanoid(),
-    timestamp: new Date().toISOString(),
     ...(ip && { ip }),
     ...(ua && { user_agent: ua }),
+    timestamp: new Date().toISOString(),
   };
 
-  console.log("Recording audit log:", auditLogTB);
+  if(process.env.NODE_ENV === "development") {
+    console.log("Recording audit log", auditLogTB);
+  }
 
   await recordAuditLogTB(auditLogTB).catch((error) => {
     console.error("Failed to record audit log:", error);

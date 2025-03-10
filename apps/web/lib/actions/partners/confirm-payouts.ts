@@ -163,6 +163,7 @@ export const confirmPayoutsAction = authActionClient
         data: {
           invoiceId: invoice.id,
           status: "processing",
+          paidByUserId: user.id,
         },
       });
 
