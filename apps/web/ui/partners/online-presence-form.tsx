@@ -189,6 +189,7 @@ export function OnlinePresenceForm({
                         : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
                     )}
                     placeholder="handle"
+                    onPaste={onPasteSocial}
                     {...register("instagram")}
                   />
                 </div>
@@ -222,6 +223,7 @@ export function OnlinePresenceForm({
                         : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
                     )}
                     placeholder="handle"
+                    onPaste={onPasteSocial}
                     {...register("tiktok")}
                   />
                 </div>
@@ -255,6 +257,7 @@ export function OnlinePresenceForm({
                         : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
                     )}
                     placeholder="handle"
+                    onPaste={onPasteSocial}
                     {...register("youtube")}
                   />
                 </div>
@@ -288,6 +291,7 @@ export function OnlinePresenceForm({
                         : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
                     )}
                     placeholder="handle"
+                    onPaste={onPasteSocial}
                     {...register("twitter")}
                   />
                 </div>
@@ -345,7 +349,7 @@ function useOAuthVerification(source: "onboarding" | "settings") {
           result?.data?.success &&
           result?.data?.verificationUrls?.[provider]
         ) {
-          router.push(result.data.verificationUrls[provider]);
+          window.location.href = result.data.verificationUrls[provider];
         }
 
         return true;
@@ -446,3 +450,11 @@ function FormRow({
     </div>
   );
 }
+
+const onPasteSocial = (e: React.ClipboardEvent<HTMLInputElement>) => {
+  e.preventDefault();
+
+  // Extract the final portion of any URL
+  const text = e.clipboardData.getData("text/plain");
+  e.currentTarget.value = (text.split("/").at(-1) ?? text).replace(/^@/, "");
+};
