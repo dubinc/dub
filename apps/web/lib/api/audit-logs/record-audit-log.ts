@@ -1,11 +1,9 @@
-// TODO:
-// Should track operations on both API endpoints and server actions.
-// Obscure data such as API keys, passwords, etc.
-// Catch the error and report it
-
 import { tb } from "@/lib/tinybird";
 import { nanoid } from "@dub/utils";
+import { ipAddress } from "@vercel/functions";
+import { headers } from "next/headers";
 import { z } from "zod";
+import { getIP } from "../utils";
 import { auditLogSchemaTB } from "./schemas";
 
 export const recordAuditLogTB = tb.buildIngestEndpoint({
@@ -19,15 +17,17 @@ export const recordAuditLog = async (
     req?: Request;
   },
 ) => {
-  const ip = "";
-  const user_agent = "";
+  const headersList = headers();
+
+  const ip = auditLog.req ? ipAddress(auditLog.req) : getIP();
+  const ua = headersList.get("user-agent");
 
   const auditLogTB = {
     ...auditLog,
     id: nanoid(),
-    ip,
-    user_agent,
     timestamp: new Date().toISOString(),
+    ...(ip && { ip }),
+    ...(ua && { user_agent: ua }),
   };
 
   console.log("Recording audit log:", auditLogTB);
