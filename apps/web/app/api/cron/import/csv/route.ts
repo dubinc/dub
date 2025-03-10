@@ -57,8 +57,9 @@ interface ErrorLink {
   error: string;
 }
 
-const MAX_ROWS_PER_EXECUTION = 500;
+const MAX_ROWS_PER_EXECUTION = 100;
 
+// POST /api/cron/import/csv
 export async function POST(req: Request) {
   console.time("import:csv");
 
@@ -316,6 +317,8 @@ const processMappedLinks = async ({
     ): result is { success: true; data: NonNullable<MapperResult["data"]> } =>
       result.success && !!result.data,
   );
+
+  console.log(successfulMappings);
 
   //// Process the tags ////
   let selectedTags = successfulMappings
