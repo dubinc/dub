@@ -1,5 +1,6 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getFolderOrThrow } from "@/lib/folder/get-folder-or-throw";
 import { isStored, storage } from "@/lib/storage";
 import { prisma } from "@dub/prisma";
@@ -21,7 +22,7 @@ const schema = createProgramSchema.partial().extend({
 export const updateProgramAction = authActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     const {
       programId,
       defaultFolderId,
@@ -77,6 +78,16 @@ export const updateProgramAction = authActionClient
           wordmark: wordmarkUrl ?? undefined,
           defaultFolderId,
         },
+      });
+
+      await recordAuditLog({
+        action: "program.update",
+        workspace_id: workspace.id,
+        program_id: programId,
+        actor_id: user.id,
+        actor_name: user.name,
+        targets: [{ id: programId, type: "program" }],
+        description: `Updated program ${program.name}`,
       });
 
       // Delete old logo/wordmark if they were updated
