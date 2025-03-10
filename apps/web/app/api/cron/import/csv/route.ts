@@ -134,10 +134,10 @@ export async function POST(req: Request) {
 
     // If we processed the maximum rows and haven't reached the end, trigger next batch
     if (currentRow - cursor >= MAX_ROWS_PER_EXECUTION && !isComplete) {
-      await qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/csv`,
-        body: payload,
-      });
+      // await qstash.publishJSON({
+      //   url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/csv`,
+      //   body: payload,
+      // });
     } else {
       const errorLinks = await redis.lrange<ErrorLink>(
         `${redisKey}:failed`,
