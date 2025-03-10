@@ -57,8 +57,4 @@ export const resendProgramInviteAction = authActionClient
         data: { createdAt: new Date() },
       }),
     ]);
-
-    return {
-      success: true,
-    };
   });

@@ -1,20 +1,25 @@
 import { recordLink } from "@/lib/tinybird";
-import { ProgramProps } from "@/lib/types";
+import { ProgramProps, UserProps, WorkspaceProps } from "@/lib/types";
 import { sendEmail } from "@dub/email";
 import { PartnerInvite } from "@dub/email/templates/partner-invite";
 import { prisma } from "@dub/prisma";
 import { Link } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { recordAuditLog } from "../audit-logs/record-audit-log";
 import { createId } from "../create-id";
 
 export const invitePartner = async ({
   email,
   program,
   link,
+  workspace,
+  user,
 }: {
   email: string;
   program: ProgramProps;
   link: Link;
+  workspace: Pick<WorkspaceProps, "id">;
+  user: Pick<UserProps, "id" | "name">;
 }) => {
   const [programEnrollment, programInvite] = await Promise.all([
     prisma.programEnrollment.findFirst({
@@ -79,6 +84,16 @@ export const invitePartner = async ({
           },
         })
         .then((link) => recordLink(link)),
+
+      recordAuditLog({
+        action: "partner.invite",
+        workspace_id: workspace.id,
+        program_id: program.id,
+        actor_id: user.id,
+        actor_name: user.name,
+        targets: [{ id: programInvited.id, type: "partner_invite" }],
+        description: `Invited partner ${email} to the program.`,
+      }),
     ]),
   );
 

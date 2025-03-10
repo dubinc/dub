@@ -1,16 +1,18 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { createRewardSchema } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
 import { EventType } from "@dub/prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
 export const createRewardAction = authActionClient
   .schema(createRewardSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     const { programId, partnerIds, event, amount, type, maxDuration } =
       parsedInput;
 
@@ -114,4 +116,16 @@ export const createRewardAction = authActionClient
         },
       });
     }
+
+    waitUntil(
+      recordAuditLog({
+        action: "reward.create",
+        workspace_id: workspace.id,
+        program_id: programId,
+        actor_id: user.id,
+        actor_name: user.name,
+        targets: [{ id: reward.id, type: "reward" }],
+        description: "A new reward was created.",
+      }),
+    );
   });

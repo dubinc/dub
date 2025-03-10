@@ -19,7 +19,7 @@ const invitePartnerSchema = z.object({
 export const addPartnerAction = authActionClient
   .schema(invitePartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     const { programId, action, name, email, linkId } = parsedInput;
 
     const [program, link] = await Promise.all([
@@ -47,6 +47,8 @@ export const addPartnerAction = authActionClient
         email,
         program,
         link,
+        workspace,
+        user,
       });
     }
 
@@ -60,6 +62,7 @@ export const addPartnerAction = authActionClient
         program,
         link,
         workspace,
+        user,
         partner: {
           name,
           email: email ?? "",

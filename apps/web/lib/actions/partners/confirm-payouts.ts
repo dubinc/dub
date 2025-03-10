@@ -1,5 +1,6 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { limiter } from "@/lib/cron/limiter";
@@ -25,7 +26,7 @@ const allowedPaymentMethods = ["us_bank_account", "card", "link"];
 export const confirmPayoutsAction = authActionClient
   .schema(confirmPayoutsSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     const { programId, paymentMethodId, payoutIds } = parsedInput;
 
     await getProgramOrThrow({
@@ -200,6 +201,16 @@ export const confirmPayoutsAction = authActionClient
             }),
           );
         }
+
+        await recordAuditLog({
+          action: "payout.confirm",
+          workspace_id: workspace.id,
+          program_id: programId,
+          actor_id: user.id,
+          actor_name: user.name,
+          targets: [{ id: newInvoice.id, type: "invoice" }],
+          description: `Confirmed payouts for invoice ${newInvoice.id}.`,
+        });
       })(),
     );
   });

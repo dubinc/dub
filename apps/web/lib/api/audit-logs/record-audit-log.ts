@@ -5,7 +5,6 @@
 
 import { tb } from "@/lib/tinybird";
 import { nanoid } from "@dub/utils";
-import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { auditLogSchemaTB } from "./schemas";
 
@@ -33,9 +32,7 @@ export const recordAuditLog = async (
 
   console.log("Recording audit log:", auditLogTB);
 
-  waitUntil(
-    recordAuditLogTB(auditLogTB).catch((error) => {
-      console.error("Failed to record audit log:", error);
-    }),
-  );
+  await recordAuditLogTB(auditLogTB).catch((error) => {
+    console.error("Failed to record audit log:", error);
+  });
 };

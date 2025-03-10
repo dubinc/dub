@@ -6,6 +6,7 @@ import {
   CreatePartnerProps,
   ProgramPartnerLinkProps,
   ProgramProps,
+  UserProps,
   WorkspaceProps,
 } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -13,12 +14,14 @@ import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { recordAuditLog } from "../audit-logs/record-audit-log";
 import { DubApiError } from "../errors";
 import { includeTags } from "../links/include-tags";
 
 export const createAndEnrollPartner = async ({
   program,
   workspace,
+  user,
   link,
   partner,
   tenantId,
@@ -26,6 +29,7 @@ export const createAndEnrollPartner = async ({
 }: {
   program: Pick<ProgramProps, "id" | "defaultFolderId">;
   workspace: Pick<WorkspaceProps, "id" | "webhookEnabled">;
+  user: Pick<UserProps, "id" | "name">;
   link: ProgramPartnerLinkProps;
   partner: Pick<
     CreatePartnerProps,
@@ -82,6 +86,7 @@ export const createAndEnrollPartner = async ({
           },
         },
         status: "approved",
+        addedByUserId: user.id,
       },
     },
   };
@@ -138,6 +143,16 @@ export const createAndEnrollPartner = async ({
         workspace,
         trigger: "partner.created",
         data: enrolledPartner,
+      }),
+
+      recordAuditLog({
+        action: "partner.enroll",
+        workspace_id: workspace.id,
+        program_id: program.id,
+        actor_id: user.id,
+        actor_name: user.name,
+        targets: [{ id: upsertedPartner.id, type: "partner" }],
+        description: `Enrolled partner ${partner.email} in the program.`,
       }),
     ]),
   );

@@ -190,6 +190,7 @@ export const POST = withWorkspace(
         description,
       },
       tenantId,
+      user: session.user,
     });
 
     return NextResponse.json(enrolledPartner, {

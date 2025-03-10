@@ -5,14 +5,35 @@ const actions = z.enum([
   "program.create",
   "program.update",
   "partner.enroll",
+  "partner.invite",
+  "partner.approve",
+  "partner.reject",
   "partner_link.create",
   "partner_link.update",
   "partner_link.delete",
+  "payout.confirm",
+  "payout.create_manual",
+  "discount.create",
+  "discount.update",
+  "discount.delete",
+  "reward.create",
+  "reward.update",
+  "reward.delete",
+  "commission.update",
+]);
+
+const targetTypes = z.enum([
+  "program",
+  "partner",
+  "partner_invite",
+  "invoice",
+  "discount",
+  "reward",
+  "payout",
+  "commission",
 ]);
 
 const actorTypes = z.enum(["user", "system"]);
-
-const targetTypes = z.enum(["program", "partner"]);
 
 const target = z.object({
   id: z.string(),

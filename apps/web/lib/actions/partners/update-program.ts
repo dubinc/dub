@@ -80,16 +80,6 @@ export const updateProgramAction = authActionClient
         },
       });
 
-      await recordAuditLog({
-        action: "program.update",
-        workspace_id: workspace.id,
-        program_id: programId,
-        actor_id: user.id,
-        actor_name: user.name,
-        targets: [{ id: programId, type: "program" }],
-        description: `Updated program ${program.name}`,
-      });
-
       // Delete old logo/wordmark if they were updated
       waitUntil(
         Promise.all([
@@ -99,6 +89,15 @@ export const updateProgramAction = authActionClient
           ...(wordmarkUrl && program.wordmark
             ? [storage.delete(program.wordmark.replace(`${R2_URL}/`, ""))]
             : []),
+          recordAuditLog({
+            action: "program.update",
+            workspace_id: workspace.id,
+            program_id: programId,
+            actor_id: user.id,
+            actor_name: user.name,
+            targets: [{ id: programId, type: "program" }],
+            description: `Updated program info.`,
+          }),
         ]),
       );
 
