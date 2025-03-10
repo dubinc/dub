@@ -27,6 +27,14 @@ export const E2E_WEBHOOK_ID = "wh_MHR7sZXXtZ7keBaNYZ30rQ0v";
 export const E2E_WRITE_ACCESS_FOLDER_ID = "fold_stp7lRJOs7RLKlaVcTVPS74P"; // Folder with write access
 export const E2E_READ_ONLY_FOLDER_ID = "fold_0lo6YZoVBvAyFg62SKTgDXTT"; // Folder with read-only access
 export const E2E_NO_ACCESS_FOLDER_ID = "fold_zRbQG7RSPEWZS71MxJNCIF2m"; // Folder with no access
-
 export const E2E_READ_ONLY_FOLDER_LINK_ID = "link_SbITAiOfL7toD2NpI7IoP0m6"; // A link in read-only folder
 export const E2E_NO_ACCESS_FOLDER_LINK_ID = "link_SeHtHzjuiOOAPCDLAvTNEKXm"; // A link in no access folder
+
+export const E2E_DISCOUNT = {
+  id: "disc_1JNSF8QPX3N964DB7JSCFR4K6",
+  amount: 20,
+  type: "percentage",
+  maxDuration: 3,
+  couponId: "XZuejd0Q",
+  couponTestId: "2NMXz81x",
+};
