@@ -197,22 +197,25 @@ export const importLinksFromBitly = async ({
             },
           },
         },
-        links: {
-          select: {
-            domain: true,
-            key: true,
-            createdAt: true,
-          },
-          where: {
-            domain: {
-              in: domains,
+        // only include links if less than 10,000 links have been imported
+        ...(count < 10_000 && {
+          links: {
+            select: {
+              domain: true,
+              key: true,
+              createdAt: true,
+            },
+            where: {
+              domain: {
+                in: domains,
+              },
+            },
+            take: 5,
+            orderBy: {
+              createdAt: "desc",
             },
           },
-          take: 5,
-          orderBy: {
-            createdAt: "desc",
-          },
-        },
+        }),
       },
     });
     const ownerEmail = workspace?.users[0].user.email ?? "";

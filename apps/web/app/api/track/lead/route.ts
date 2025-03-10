@@ -7,7 +7,7 @@ import { generateRandomName } from "@/lib/names";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { getClickEvent, recordLead, recordLeadSync } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
-import { sendWorkspaceWebhookOnEdge } from "@/lib/webhook/publish-edge";
+import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
 import {
   trackLeadRequestSchema,
@@ -220,7 +220,7 @@ export const POST = withWorkspace(
           }
         }
 
-        await sendWorkspaceWebhookOnEdge({
+        await sendWorkspaceWebhook({
           trigger: "lead.created",
           data: transformLeadEventData({
             ...clickData,
