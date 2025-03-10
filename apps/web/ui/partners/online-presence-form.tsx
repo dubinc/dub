@@ -8,7 +8,6 @@ import {
   CircleCheckFill,
   Globe,
   Icon,
-  Instagram,
   TikTok,
   Twitter,
   YouTube,
@@ -49,8 +48,6 @@ export function OnlinePresenceForm({
   partner,
   onSubmitSuccessful,
 }: OnlinePresenceFormProps) {
-  const { partner: partnerProfile } = usePartnerProfile();
-
   const form = useForm<OnlinePresenceFormData>({
     defaultValues: {
       website: partner?.website || undefined,
@@ -172,7 +169,8 @@ export function OnlinePresenceForm({
               }
             />
 
-            <FormRow
+            {/* TODO: Add Instagram verification */}
+            {/* <FormRow
               variant={variant}
               label="Instagram"
               input={
@@ -204,7 +202,7 @@ export function OnlinePresenceForm({
                   }
                 />
               }
-            />
+            /> */}
 
             <FormRow
               variant={variant}

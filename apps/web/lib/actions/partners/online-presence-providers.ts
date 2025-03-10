@@ -21,7 +21,7 @@ export const ONLINE_PRESENCE_PROVIDERS: Record<string, OnlinePresenceProvider> =
       verifiedColumn: "youtubeVerifiedAt",
       authUrl: "https://accounts.google.com/o/oauth2/v2/auth",
       tokenUrl: "https://oauth2.googleapis.com/token",
-      clientId: process.env.NEXT_PUBLIC_YOUTUBE_CLIENT_ID ?? null,
+      clientId: process.env.YOUTUBE_CLIENT_ID ?? null,
       clientSecret: process.env.YOUTUBE_CLIENT_SECRET ?? null,
       scopes: "https://www.googleapis.com/auth/youtube.readonly",
       verify: async ({ partner, accessToken }) => {
@@ -44,8 +44,8 @@ export const ONLINE_PRESENCE_PROVIDERS: Record<string, OnlinePresenceProvider> =
       verifiedColumn: "twitterVerifiedAt",
       authUrl: "https://x.com/i/oauth2/authorize",
       tokenUrl: "https://api.x.com/2/oauth2/token",
-      clientId: process.env.NEXT_PUBLIC_X_CLIENT_ID ?? null,
-      clientSecret: process.env.X_CLIENT_SECRET ?? null,
+      clientId: process.env.TWITTER_CLIENT_ID ?? null,
+      clientSecret: process.env.TWITTER_CLIENT_SECRET ?? null,
       pkce: true,
       scopes: "users.read tweet.read",
       verify: async ({ partner, accessToken }) => {
@@ -69,7 +69,7 @@ export const ONLINE_PRESENCE_PROVIDERS: Record<string, OnlinePresenceProvider> =
       verifiedColumn: "tiktokVerifiedAt",
       authUrl: "https://www.tiktok.com/v2/auth/authorize",
       tokenUrl: "https://open.tiktokapis.com/v2/oauth/token/",
-      clientId: process.env.NEXT_PUBLIC_TIKTOK_CLIENT_ID ?? null,
+      clientId: process.env.TIKTOK_CLIENT_ID ?? null,
       clientSecret: process.env.TIKTOK_CLIENT_SECRET ?? null,
       clientIdParam: "client_key",
       scopes: "user.info.basic,user.info.profile",
