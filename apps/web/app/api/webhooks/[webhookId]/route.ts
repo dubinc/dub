@@ -149,8 +149,6 @@ export const PATCH = withWorkspace(
             })),
           },
         }),
-        disabledAt: null,
-        consecutiveFailures: 0,
       },
       select: {
         id: true,
@@ -170,10 +168,6 @@ export const PATCH = withWorkspace(
 
     waitUntil(
       (async () => {
-        toggleWebhooksForWorkspace({
-          workspaceId: workspace.id,
-        });
-
         // If the webhook is being changed from link level to workspace level, delete the cache
         if (
           isLinkLevelWebhook(existingWebhook) &&
