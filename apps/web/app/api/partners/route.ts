@@ -182,6 +182,7 @@ export const POST = withWorkspace(
       program,
       link: partnerLink,
       workspace,
+      user: session.user,
       partner: {
         name,
         email,
@@ -190,7 +191,6 @@ export const POST = withWorkspace(
         description,
       },
       tenantId,
-      user: session.user,
     });
 
     return NextResponse.json(enrolledPartner, {
