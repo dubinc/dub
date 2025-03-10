@@ -12,7 +12,11 @@ export const STORE_KEYS = {
 
 export function useWorkspaceStore<T>(
   key: string,
-): [T | undefined, (value: T) => Promise<void>, { loading: boolean }] {
+): [
+  T | undefined,
+  (value: T) => Promise<void>,
+  { loading: boolean; mutateWorkspace: () => void },
+] {
   const { id: workspaceId, slug, store, loading } = useWorkspace();
 
   const { executeAsync } = useAction(updateWorkspaceStore);
@@ -25,8 +29,11 @@ export function useWorkspaceStore<T>(
   const setItem = async (value: T) => {
     setItemState(value);
     await executeAsync({ key, value, workspaceId: workspaceId! });
+  };
+
+  const mutateWorkspace = () => {
     mutate(`/api/workspaces/${slug}`);
   };
 
-  return [item, setItem, { loading }];
+  return [item, setItem, { loading, mutateWorkspace }];
 }
