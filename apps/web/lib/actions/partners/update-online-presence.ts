@@ -14,7 +14,7 @@ import { ONLINE_PRESENCE_PROVIDERS } from "./online-presence-providers";
 
 const updateOnlinePresenceSchema = z.object({
   website: z.string().url().optional().or(z.literal("")),
-  instagram: z.string().optional(),
+  // instagram: z.string().optional(),
   tiktok: z.string().optional(),
   youtube: z.string().optional(),
   twitter: z.string().optional(),
@@ -60,11 +60,11 @@ export const updateOnlinePresenceAction = authPartnerActionClient
           websiteTxtRecord: `dub-domain-verification=${uuid()}`,
         }),
       }),
-      ...(parsedInput.instagram !== undefined && {
-        instagram: parsedInput.instagram,
-        instagramVerifiedAt:
-          parsedInput.instagram !== partner.instagram ? null : undefined,
-      }),
+      // ...(parsedInput.instagram !== undefined && {
+      //   instagram: parsedInput.instagram,
+      //   instagramVerifiedAt:
+      //     parsedInput.instagram !== partner.instagram ? null : undefined,
+      // }),
       ...(parsedInput.tiktok !== undefined && {
         tiktok: parsedInput.tiktok,
         tiktokVerifiedAt:

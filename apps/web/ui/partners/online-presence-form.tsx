@@ -23,7 +23,7 @@ import { z } from "zod";
 
 const onlinePresenceSchema = z.object({
   website: z.string().url().optional(),
-  instagram: z.string().optional(),
+  // instagram: z.string().optional(),
   tiktok: z.string().optional(),
   youtube: z.string().optional(),
   twitter: z.string().optional(),
@@ -35,7 +35,7 @@ interface OnlinePresenceFormProps {
   variant?: "onboarding" | "settings";
   partner?: {
     website: string | null;
-    instagram: string | null;
+    // instagram: string | null;
     tiktok: string | null;
     youtube: string | null;
     twitter: string | null;
@@ -51,7 +51,7 @@ export function OnlinePresenceForm({
   const form = useForm<OnlinePresenceFormData>({
     defaultValues: {
       website: partner?.website || undefined,
-      instagram: partner?.instagram || undefined,
+      // instagram: partner?.instagram || undefined,
       tiktok: partner?.tiktok || undefined,
       youtube: partner?.youtube || undefined,
       twitter: partner?.twitter || undefined,
