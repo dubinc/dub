@@ -8,6 +8,7 @@ import {
   CircleCheckFill,
   Globe,
   Icon,
+  Instagram,
   TikTok,
   Twitter,
   YouTube,
@@ -23,7 +24,7 @@ import { z } from "zod";
 
 const onlinePresenceSchema = z.object({
   website: z.string().url().optional(),
-  // instagram: z.string().optional(),
+  instagram: z.string().optional(),
   tiktok: z.string().optional(),
   youtube: z.string().optional(),
   twitter: z.string().optional(),
@@ -35,7 +36,7 @@ interface OnlinePresenceFormProps {
   variant?: "onboarding" | "settings";
   partner?: {
     website: string | null;
-    // instagram: string | null;
+    instagram: string | null;
     tiktok: string | null;
     youtube: string | null;
     twitter: string | null;
@@ -51,7 +52,7 @@ export function OnlinePresenceForm({
   const form = useForm<OnlinePresenceFormData>({
     defaultValues: {
       website: partner?.website || undefined,
-      // instagram: partner?.instagram || undefined,
+      instagram: partner?.instagram || undefined,
       tiktok: partner?.tiktok || undefined,
       youtube: partner?.youtube || undefined,
       twitter: partner?.twitter || undefined,
@@ -169,75 +170,6 @@ export function OnlinePresenceForm({
               }
             />
 
-            {/* TODO: Add Instagram verification */}
-            {/* <FormRow
-              variant={variant}
-              label="Instagram"
-              input={
-                <div className="flex rounded-md">
-                  <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
-                    instagram.com/
-                  </span>
-                  <input
-                    type="text"
-                    className={cn(
-                      "block w-full rounded-none rounded-r-md focus:outline-none sm:text-sm",
-                      errors.instagram
-                        ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                        : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
-                    )}
-                    placeholder="handle"
-                    onPaste={onPasteSocial}
-                    {...register("instagram")}
-                  />
-                </div>
-              }
-              button={
-                <VerifyButton
-                  property="instagram"
-                  verifiedAtField="instagramVerifiedAt"
-                  icon={Instagram}
-                  onClick={() =>
-                    startVerification("instagram", getValues("instagram"))
-                  }
-                />
-              }
-            /> */}
-
-            <FormRow
-              variant={variant}
-              label="TikTok"
-              input={
-                <div className="flex rounded-md">
-                  <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
-                    tiktok.com/@
-                  </span>
-                  <input
-                    type="text"
-                    className={cn(
-                      "block w-full rounded-none rounded-r-md focus:outline-none sm:text-sm",
-                      errors.tiktok
-                        ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                        : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
-                    )}
-                    placeholder="handle"
-                    onPaste={onPasteSocial}
-                    {...register("tiktok")}
-                  />
-                </div>
-              }
-              button={
-                <VerifyButton
-                  property="tiktok"
-                  verifiedAtField="tiktokVerifiedAt"
-                  icon={TikTok}
-                  onClick={() =>
-                    startVerification("tiktok", getValues("tiktok"))
-                  }
-                />
-              }
-            />
-
             <FormRow
               variant={variant}
               label="YouTube"
@@ -305,6 +237,76 @@ export function OnlinePresenceForm({
                 />
               }
             />
+
+            <FormRow
+              variant={variant}
+              label="Instagram"
+              input={
+                <div className="flex rounded-md">
+                  <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
+                    instagram.com/
+                  </span>
+                  <input
+                    type="text"
+                    className={cn(
+                      "block w-full rounded-none rounded-r-md focus:outline-none sm:text-sm",
+                      errors.instagram
+                        ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                        : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+                    )}
+                    placeholder="handle"
+                    onPaste={onPasteSocial}
+                    {...register("instagram")}
+                  />
+                </div>
+              }
+              button={
+                <VerifyButton
+                  property="instagram"
+                  verifiedAtField="instagramVerifiedAt"
+                  icon={Instagram}
+                  onClick={() =>
+                    startVerification("instagram", getValues("instagram"))
+                  }
+                  disabledTooltip="Instagram verification is coming soon."
+                />
+              }
+            />
+
+            <FormRow
+              variant={variant}
+              label="TikTok"
+              input={
+                <div className="flex rounded-md">
+                  <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
+                    tiktok.com/@
+                  </span>
+                  <input
+                    type="text"
+                    className={cn(
+                      "block w-full rounded-none rounded-r-md focus:outline-none sm:text-sm",
+                      errors.tiktok
+                        ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                        : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+                    )}
+                    placeholder="handle"
+                    onPaste={onPasteSocial}
+                    {...register("tiktok")}
+                  />
+                </div>
+              }
+              button={
+                <VerifyButton
+                  property="tiktok"
+                  verifiedAtField="tiktokVerifiedAt"
+                  icon={TikTok}
+                  onClick={() =>
+                    startVerification("tiktok", getValues("tiktok"))
+                  }
+                  disabledTooltip="TikTok verification is coming soon."
+                />
+              }
+            />
           </div>
 
           {variant === "onboarding" ? (
@@ -367,11 +369,13 @@ function VerifyButton({
   verifiedAtField,
   icon: Icon,
   onClick,
+  disabledTooltip,
 }: {
   property: keyof OnlinePresenceFormData;
   verifiedAtField: string;
   icon: Icon;
   onClick: () => Promise<boolean>;
+  disabledTooltip?: string;
 }) {
   const { partner: partnerProfile } = usePartnerProfile();
 
@@ -411,6 +415,9 @@ function VerifyButton({
 
         if (!redirecting) setIsSaving(false);
       }}
+      {...(disabledTooltip && {
+        disabledTooltip,
+      })}
     />
   );
 }
