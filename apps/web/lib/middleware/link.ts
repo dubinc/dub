@@ -60,8 +60,13 @@ export default async function LinkMiddleware(
   // if key is empty string, set to _root (root domain link)
   if (key === "") {
     key = "_root";
+  } else if (key.startsWith("_")) {
+    // e.g. https://d.to/_axbhe/try
+    const [prefix, ...rest] = key.split("/");
+    key = rest.join("/");
+    const dRefId = prefix.slice(1);
+    console.log({ key, dRefId });
   }
-
   // we don't support .php links (too much bot traffic)
   // hence we redirect to the root domain and add `dub-no-track` header to avoid tracking bot traffic
   if (isUnsupportedKey(key)) {
