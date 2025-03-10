@@ -1,19 +1,15 @@
 import { CustomerEnriched } from "@/lib/types";
-import {
-  E2E_CUSTOMER_EXTERNAL_ID,
-  E2E_CUSTOMER_ID,
-  E2E_DISCOUNT,
-} from "tests/utils/resource";
+import { E2E_CUSTOMER_WITH_DISCOUNT, E2E_DISCOUNT } from "tests/utils/resource";
 import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 
 describe("Discounts", () => {
-  test("/customers?externalId=", async () => {
+  test("/customers?email=", async () => {
     const h = new IntegrationHarness();
     const { http } = await h.init();
 
     const { status, data: customers } = await http.get<CustomerEnriched[]>({
-      path: `/customers?externalId=${E2E_CUSTOMER_EXTERNAL_ID}&includeExpandedFields=true`,
+      path: `/customers?email=${E2E_CUSTOMER_WITH_DISCOUNT.email}&includeExpandedFields=true`,
     });
 
     expect(status).toEqual(200);
@@ -29,7 +25,7 @@ describe("Discounts", () => {
     const { http } = await h.init();
 
     const { status, data: customer } = await http.get<CustomerEnriched>({
-      path: `/customers/${E2E_CUSTOMER_ID}?includeExpandedFields=true`,
+      path: `/customers/${E2E_CUSTOMER_WITH_DISCOUNT.id}?includeExpandedFields=true`,
     });
 
     expect(status).toEqual(200);

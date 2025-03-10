@@ -30,6 +30,12 @@ export const E2E_NO_ACCESS_FOLDER_ID = "fold_zRbQG7RSPEWZS71MxJNCIF2m"; // Folde
 export const E2E_READ_ONLY_FOLDER_LINK_ID = "link_SbITAiOfL7toD2NpI7IoP0m6"; // A link in read-only folder
 export const E2E_NO_ACCESS_FOLDER_LINK_ID = "link_SeHtHzjuiOOAPCDLAvTNEKXm"; // A link in no access folder
 
+// Discounts specific
+export const E2E_CUSTOMER_WITH_DISCOUNT = {
+  id: "cm25onzuv0001s1bbxchrc0ae",
+  email: "rural.red.goldfish@example.com",
+};
+
 export const E2E_DISCOUNT = {
   id: "disc_1JNSF8QPX3N964DB7JSCFR4K6",
   amount: 20,
