@@ -1,6 +1,6 @@
 import { CommissionType } from "@prisma/client";
 import { z } from "zod";
-import { RECURRING_MAX_DURATIONS } from "./rewards";
+import { RECURRING_MAX_DURATIONS } from "./misc";
 import { parseUrlSchema } from "./utils";
 
 // Getting started

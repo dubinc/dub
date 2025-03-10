@@ -7,10 +7,8 @@ import { RewardfulCampaign } from "@/lib/rewardful/types";
 import { useRewardfulCampaigns } from "@/lib/swr/use-rewardful-campaigns";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramData } from "@/lib/types";
-import {
-  COMMISSION_TYPES,
-  RECURRING_MAX_DURATIONS,
-} from "@/lib/zod/schemas/rewards";
+import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
+import { COMMISSION_TYPES } from "@/lib/zod/schemas/rewards";
 import { Button, CircleCheckFill, Input, InputSelect } from "@dub/ui";
 import { capitalize, cn } from "@dub/utils";
 import { ChevronDown } from "lucide-react";
