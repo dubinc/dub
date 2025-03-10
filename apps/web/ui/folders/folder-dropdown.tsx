@@ -88,10 +88,13 @@ export const FolderDropdown = ({
 
   // Update selected folder when folderId changes and selectedFolderData is available
   useEffect(() => {
-    if (folderId === selectedFolderData?.id)
+    if (folderId === selectedFolderData?.id) {
       setSelectedFolder(selectedFolderData);
-    else if (!folderId || folderId === "unsorted")
+      onFolderSelect?.(selectedFolderData);
+    } else if (!folderId || folderId === "unsorted") {
       setSelectedFolder(unsortedLinks);
+      onFolderSelect?.(unsortedLinks);
+    }
   }, [folderId, selectedFolderData]);
 
   const { canAddFolder } = getPlanCapabilities(plan);

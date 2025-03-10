@@ -34,7 +34,7 @@ export function ClicksSummary({
       clicks: 2187,
     },
     {
-      link: "getacme.link",
+      link: "acme.com",
       clicks: 1552,
     },
     {

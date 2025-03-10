@@ -225,7 +225,7 @@ export const POST = withWorkspace(
                 },
               });
 
-              await prisma.commission.create({
+              const commission = await prisma.commission.create({
                 data: {
                   id: createId({ prefix: "cm_" }),
                   programId: link.programId,
@@ -241,28 +241,12 @@ export const POST = withWorkspace(
                 },
               });
 
-              const program = await prisma.program.findUniqueOrThrow({
-                where: {
-                  id: link.programId!,
-                },
-                select: {
-                  id: true,
-                  name: true,
-                  logo: true,
-                },
-              });
-
-              await notifyPartnerSale({
-                program,
-                partner: {
-                  id: link.partnerId!,
-                  referralLink: link.shortLink,
-                },
-                sale: {
-                  amount: saleData.amount,
-                  earnings,
-                },
-              });
+              waitUntil(
+                notifyPartnerSale({
+                  link,
+                  commission,
+                }),
+              );
             }
           }
         }

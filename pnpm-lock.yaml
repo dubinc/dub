@@ -196,8 +196,8 @@ importers:
         specifier: ^3.6.0
         version: 3.6.0
       dub:
-        specifier: ^0.58.0
-        version: 0.58.0(zod@3.22.4)
+        specifier: ^0.59.1
+        version: 0.59.1(zod@3.22.4)
       fast-xml-parser:
         specifier: ^5.0.6
         version: 5.0.6
@@ -250,8 +250,8 @@ importers:
         specifier: ^4.24.4
         version: 4.24.4(next@14.3.0-canary.42(@babel/core@7.24.5)(@opentelemetry/api@1.8.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(nodemailer@6.9.3)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       next-axiom:
-        specifier: ^1.6.0
-        version: 1.6.0(next@14.3.0-canary.42(@babel/core@7.24.5)(@opentelemetry/api@1.8.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react@18.2.0)
+        specifier: ^1.9.1
+        version: 1.9.1(next@14.3.0-canary.42(@babel/core@7.24.5)(@opentelemetry/api@1.8.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react@18.2.0)
       next-plausible:
         specifier: ^3.12.0
         version: 3.12.0(next@14.3.0-canary.42(@babel/core@7.24.5)(@opentelemetry/api@1.8.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -6622,8 +6622,8 @@ packages:
     peerDependencies:
       zod: '>= 3'
 
-  dub@0.58.0:
-    resolution: {integrity: sha512-zw/gK6Y1/3asHivqtXANkAGlMcKY2hmpW14vOElqpO6wO9js4FFcNWifAZzPVaq8JMhnshs29UjJP1aHornxaw==}
+  dub@0.59.1:
+    resolution: {integrity: sha512-J6JwHEB/gtuJT6augpN4j/3cHrc1YIWAkihDvGgjuFv58JC0j7QlNjzD/jUhfmuh3bX2ALKgfy1eM17dRR6JmA==}
     hasBin: true
     peerDependencies:
       '@modelcontextprotocol/sdk': ^1.5.0
@@ -8870,8 +8870,8 @@ packages:
       nodemailer:
         optional: true
 
-  next-axiom@1.6.0:
-    resolution: {integrity: sha512-kdquFyc8jE+2ZYwdwG9fkctLpvVOBZXjSNj6WR3tNmmH6oCZo8ktKiZoJBi8gjCKPBGu5Lce1GexZ55Pkeb62Q==}
+  next-axiom@1.9.1:
+    resolution: {integrity: sha512-aSvfZHtGlcaSAGf+5IFTEgDIvqFaHkCUoFu9sNCy5bc8NxEl1v6cYhPZ54X0W9OQ9FyPRiHeD4DjxM/3p3yVRw==}
     engines: {node: '>=18'}
     peerDependencies:
       next: '>=14.0'
@@ -18598,7 +18598,7 @@ snapshots:
     dependencies:
       zod: 3.23.8
 
-  dub@0.58.0(zod@3.22.4):
+  dub@0.59.1(zod@3.22.4):
     dependencies:
       zod: 3.22.4
 
@@ -21707,7 +21707,7 @@ snapshots:
     optionalDependencies:
       nodemailer: 6.9.3
 
-  next-axiom@1.6.0(next@14.3.0-canary.42(@babel/core@7.24.5)(@opentelemetry/api@1.8.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react@18.2.0):
+  next-axiom@1.9.1(next@14.3.0-canary.42(@babel/core@7.24.5)(@opentelemetry/api@1.8.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react@18.2.0):
     dependencies:
       next: 14.3.0-canary.42(@babel/core@7.24.5)(@opentelemetry/api@1.8.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       react: 18.2.0

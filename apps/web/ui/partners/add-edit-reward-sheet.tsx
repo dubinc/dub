@@ -11,10 +11,8 @@ import useRewardPartners from "@/lib/swr/use-reward-partners";
 import useRewards from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps, RewardProps } from "@/lib/types";
-import {
-  createRewardSchema,
-  RECURRING_MAX_DURATIONS,
-} from "@/lib/zod/schemas/rewards";
+import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
+import { createRewardSchema } from "@/lib/zod/schemas/rewards";
 import { SelectEligiblePartnersSheet } from "@/ui/partners/select-eligible-partners-sheet";
 import { X } from "@/ui/shared/icons";
 import { EventType } from "@dub/prisma/client";

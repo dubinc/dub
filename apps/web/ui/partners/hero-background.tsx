@@ -4,6 +4,8 @@ import { BlurImage } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { CSSProperties, useId } from "react";
 
+const BG_INVERTED = "rgb(var(--bg-inverted))";
+
 export function HeroBackground({
   logo,
   color,
@@ -15,7 +17,7 @@ export function HeroBackground({
 
   return (
     <div
-      className="absolute inset-0 isolate -z-[1] overflow-hidden bg-neutral-50 [container-type:size]"
+      className="bg-bg-muted absolute inset-0 isolate -z-[1] overflow-hidden [container-type:size]"
       style={
         {
           color: color || "#737373",
@@ -61,11 +63,12 @@ export function HeroBackground({
           <g filter={`url(#${id}-d)`}>
             <path
               fill={`url(#${id}-e)`}
+              className="dark:opacity-30"
               d="M478 65c0-8.837 7.163-16 16-16h128c8.837 0 16 7.163 16 16v128c0 8.837-7.163 16-16 16H494c-8.837 0-16-7.163-16-16z"
             />
           </g>
           <path
-            stroke="#000"
+            stroke={BG_INVERTED}
             strokeOpacity="0.06"
             strokeWidth="0.75"
             d="M478 65c0-8.837 7.163-16 16-16h128c8.837 0 16 7.163 16 16v128c0 8.837-7.163 16-16 16H494c-8.837 0-16-7.163-16-16z"
@@ -96,7 +99,7 @@ export function HeroBackground({
                 height="40"
                 x="418"
                 y="29"
-                stroke="#000"
+                stroke={BG_INVERTED}
                 strokeOpacity="0.06"
                 strokeWidth="0.75"
                 rx="8"
@@ -126,7 +129,7 @@ export function HeroBackground({
                 height="40"
                 x="658"
                 y="189"
-                stroke="#000"
+                stroke={BG_INVERTED}
                 strokeOpacity="0.06"
                 strokeWidth="0.75"
                 rx="8"
@@ -224,8 +227,8 @@ export function HeroBackground({
             <feBlend in2="shape" result="effect1_innerShadow_21_5513" />
           </filter>
           <linearGradient id={`${id}-c`} gradientUnits="userSpaceOnUse">
-            <stop offset="0" stopColor="#000" stopOpacity="0" />
-            <stop offset="1" stopColor="#000" stopOpacity="1" />
+            <stop offset="0" stopColor={BG_INVERTED} stopOpacity="0" />
+            <stop offset="1" stopColor={BG_INVERTED} stopOpacity="1" />
           </linearGradient>
           <linearGradient
             id={`${id}-e`}
@@ -246,8 +249,15 @@ export function HeroBackground({
             y2="29"
             gradientUnits="userSpaceOnUse"
           >
-            <stop stopColor="#fff" stopOpacity="0.23" />
-            <stop offset="1" stopColor="#fff" stopOpacity="0.3" />
+            <stop
+              stopColor="#fff"
+              className="[stop-opacity:0.23] dark:[stop-opacity:0.1]"
+            />
+            <stop
+              offset="1"
+              stopColor="#fff"
+              className="[stop-opacity:0.3] dark:[stop-opacity:0.17]"
+            />
           </linearGradient>
           <linearGradient
             id={`${id}-l`}
@@ -257,15 +267,22 @@ export function HeroBackground({
             y2="189"
             gradientUnits="userSpaceOnUse"
           >
-            <stop stopColor="#fff" stopOpacity="0.23" />
-            <stop offset="1" stopColor="#fff" stopOpacity="0.3" />
+            <stop
+              stopColor="#fff"
+              className="[stop-opacity:0.23] dark:[stop-opacity:0.1]"
+            />
+            <stop
+              offset="1"
+              stopColor="#fff"
+              className="[stop-opacity:0.3] dark:[stop-opacity:0.17]"
+            />
           </linearGradient>
           <radialGradient
             id={`${id}-g`}
             cx="0"
             cy="0"
             r="1"
-            gradientTransform="rotate(90 214 343.5)scale(159.5)"
+            gradientTransform="rotate(90 214 343.5) scale(159.5)"
             gradientUnits="userSpaceOnUse"
           >
             <stop offset="0.73" stopColor="#fff" />
@@ -285,8 +302,9 @@ export function HeroBackground({
             <path
               d={`M 20 0 L 0 0 0 20`}
               fill="transparent"
+              className="text-border-emphasis"
               stroke="currentColor"
-              strokeOpacity={0.2}
+              strokeOpacity={0.12}
               strokeWidth={1}
             />
           </pattern>
@@ -297,7 +315,7 @@ export function HeroBackground({
         {color ? (
           <div className="absolute inset-0 bg-current" />
         ) : (
-          <RainbowGradient />
+          <RainbowGradient className="dark:opacity-50" />
         )}
       </div>
 

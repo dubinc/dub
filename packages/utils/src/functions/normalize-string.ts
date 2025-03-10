@@ -21,11 +21,11 @@ export const normalizeString = (key: string) => {
 
   // Optional: Add logging in development
   if (process.env.NODE_ENV === "development" && original !== normalized) {
-    console.log(`Normalized key: "${original}" -> "${normalized}"`);
-    console.log(
-      "Original char codes:",
-      Array.from(original).map((c) => c.charCodeAt(0)),
-    );
+    // console.log(`Normalized key: "${original}" -> "${normalized}"`);
+    // console.log(
+    //   "Original char codes:",
+    //   Array.from(original).map((c) => c.charCodeAt(0)),
+    // );
   }
 
   return normalized;

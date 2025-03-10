@@ -52,7 +52,7 @@ class DubEmbed {
       return null;
     }
 
-    const iframe = createIframe(iframeUrl, token);
+    const iframe = createIframe(iframeUrl, token, this.options);
     container.appendChild(iframe);
 
     // Listen the message from the iframe
@@ -84,10 +84,22 @@ class DubEmbed {
   }
 }
 
-const createIframe = (iframeUrl: string, token: string): HTMLIFrameElement => {
+const createIframe = (
+  iframeUrl: string,
+  token: string,
+  options: Pick<DubEmbedOptions, "theme" | "themeOptions">,
+): HTMLIFrameElement => {
   const iframe = document.createElement("iframe");
 
-  iframe.src = `${iframeUrl}?token=${token}`;
+  const params = new URLSearchParams({
+    token,
+    ...(options.theme ? { theme: options.theme } : {}),
+    ...(options.themeOptions
+      ? { themeOptions: JSON.stringify(options.themeOptions) }
+      : {}),
+  });
+
+  iframe.src = `${iframeUrl}?${params.toString()}`;
   iframe.style.width = "100%";
   iframe.style.height = "100%";
   iframe.style.border = "none";

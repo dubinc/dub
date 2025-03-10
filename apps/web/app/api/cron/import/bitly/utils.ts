@@ -1,27 +1,11 @@
 import { bulkCreateLinks } from "@/lib/api/links";
-import { qstash } from "@/lib/cron";
 import { redis } from "@/lib/upstash";
 import { sendEmail } from "@dub/email";
 import { LinksImported } from "@dub/email/templates/links-imported";
 import { prisma } from "@dub/prisma";
-import {
-  APP_DOMAIN_WITH_NGROK,
-  getUrlFromStringIfValid,
-  linkConstructorSimple,
-  log,
-} from "@dub/utils";
-import { waitUntil } from "@vercel/functions";
-
-interface RateLimitResponse {
-  platform_limits: {
-    endpoint: string;
-    methods: {
-      name: string;
-      limit: number;
-      count: number;
-    }[];
-  }[];
-}
+import { getUrlFromStringIfValid, linkConstructorSimple } from "@dub/utils";
+import { fetchBitlyLinks } from "./fetch-utils";
+import { queueBitlyImport } from "./queue-import";
 
 // Note: rate limit for /groups/{group_guid}/bitlinks is 1500 per hour or 150 per minute
 export const importLinksFromBitly = async ({
@@ -47,23 +31,17 @@ export const importLinksFromBitly = async ({
   createdBefore?: string | null;
   count?: number;
 }) => {
-  const response = await fetch(
-    `https://api-ssl.bitly.com/v4/groups/${bitlyGroup}/bitlinks?${new URLSearchParams(
-      {
-        size: "100",
-        ...(searchAfter && { search_after: searchAfter }),
-        ...(createdBefore && { created_before: createdBefore }),
-      },
-    )}`,
-    {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${bitlyApiKey}`,
-      },
-    },
-  );
+  // Fetch links from Bitly (either standard or batch method based on bitlyGroup)
+  const { links, nextSearchAfter, rateLimited, batchStats } =
+    await fetchBitlyLinks({
+      bitlyGroup,
+      bitlyApiKey,
+      searchAfter,
+      createdBefore,
+    });
 
-  if (!response.ok && response.status === 429) {
+  // If rate limited, queue for later
+  if (rateLimited) {
     return await queueBitlyImport({
       workspaceId,
       userId,
@@ -77,10 +55,13 @@ export const importLinksFromBitly = async ({
     });
   }
 
-  const data = await response.json();
+  // If no links were returned, exit early
+  if (!links || links.length === 0) {
+    console.log("No links returned from Bitly");
+    return count;
+  }
 
-  const { links, pagination } = data;
-  const nextSearchAfter = pagination.search_after;
+  const invalidLinks: any[] = [];
 
   // convert links to format that can be imported into database
   const importedLinks = links.flatMap(
@@ -91,12 +72,20 @@ export const importLinksFromBitly = async ({
       const [domain, key] = id.split("/");
       // if domain is not in workspace domains, skip (could be a bit.ly link or old short domain)
       if (!domains.includes(domain)) {
+        invalidLinks.push({
+          id,
+          url,
+        });
         return [];
       }
 
       const sanitizedUrl = getUrlFromStringIfValid(url);
       // skip if url is not valid
       if (!sanitizedUrl) {
+        invalidLinks.push({
+          id,
+          url,
+        });
         return [];
       }
 
@@ -165,74 +154,28 @@ export const importLinksFromBitly = async ({
     },
   );
 
-  // check if links are already in the database
-  const alreadyCreatedLinks = await prisma.link.findMany({
-    where: {
-      shortLink: {
-        in: importedLinks.map((link) => link.shortLink),
-      },
-    },
-    select: {
-      shortLink: true,
-      url: true,
-    },
-  });
+  console.log(`Creating ${importedLinks.length} new links...`);
 
-  // filter out links that are already in the database
-  const linksToCreate = importedLinks.filter(
-    (link) => !alreadyCreatedLinks.some((l) => l.shortLink === link.shortLink),
-  );
-
-  console.log(
-    `Found ${alreadyCreatedLinks.length} links that have already been imported, skipping them and creating ${linksToCreate.length} new links...`,
-  );
   // bulk create links
-  await bulkCreateLinks({ links: linksToCreate });
-
-  if (alreadyCreatedLinks.length) {
-    waitUntil(
-      (async () => {
-        try {
-          // check if any of the links that were already created have a different url
-          // than the link that was imported
-          const caseDuplicates = importedLinks.filter((link) => {
-            const duplicate = alreadyCreatedLinks.find(
-              (l) => l.shortLink.toLowerCase() === link.shortLink.toLowerCase(),
-            );
-            return duplicate && duplicate.url !== link.url;
-          });
-
-          if (caseDuplicates.length) {
-            await log({
-              message: `Found potential case duplicates:\n${caseDuplicates
-                .map((c) => {
-                  const existing = alreadyCreatedLinks.find(
-                    (l) =>
-                      l.shortLink.toLowerCase() === c.shortLink.toLowerCase(),
-                  );
-                  return `\nImported: ${c.shortLink} → ${c.url}\nExisting: ${existing?.shortLink} → ${existing?.url}`;
-                })
-                .join("\n")}`,
-              type: "alerts",
-              mention: true,
-            });
-          }
-        } catch (_) {}
-      })(),
-    );
-  }
+  await bulkCreateLinks({ links: importedLinks, skipRedisCache: true });
 
   count += importedLinks.length;
 
+  // Log batch stats if available
   console.log({
     importedLinksLength: importedLinks.length,
     count,
-    createdBefore,
     nextSearchAfter,
+    ...(batchStats && { batchStats }),
   });
 
-  // wait 500 ms before making another request
-  await new Promise((resolve) => setTimeout(resolve, 500));
+  console.log(`Invalid links: ${invalidLinks.length}`);
+  console.log(JSON.stringify(invalidLinks, null, 2));
+
+  const finalImportedLink = importedLinks[importedLinks.length - 1];
+  console.log(
+    `Successfully imported ${importedLinks.length} new links! Final imported link: ${finalImportedLink?.shortLink} (${finalImportedLink ? new Date(finalImportedLink.createdAt).toISOString() : "none"})`,
+  );
 
   if (nextSearchAfter === "") {
     const workspace = await prisma.project.findUnique({
@@ -318,68 +261,4 @@ export const importLinksFromBitly = async ({
       count,
     });
   }
-};
-
-// Queue a Bitly import
-export const queueBitlyImport = async (payload: {
-  workspaceId: string;
-  userId: string;
-  bitlyGroup: string;
-  domains: string[];
-  folderId?: string;
-  tagsToId?: Record<string, string>;
-  searchAfter?: string | null;
-  count?: number;
-  rateLimited?: boolean;
-  delay?: number;
-}) => {
-  const { tagsToId, delay, ...rest } = payload;
-
-  return await qstash.publishJSON({
-    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/bitly`,
-    body: {
-      ...rest,
-      importTags: tagsToId ? true : false,
-    },
-    ...(delay && { delay }),
-  });
-};
-
-// Handle rate limited requests
-export const checkIfRateLimited = async (bitlyApiKey: unknown, body: any) => {
-  const path = "/groups/{group_guid}/bitlinks";
-
-  const response = await fetch(
-    `https://api-ssl.bitly.com/v4/user/platform_limits?path=${path}`,
-    {
-      headers: {
-        Authorization: `Bearer ${bitlyApiKey}`,
-        "Content-Type": "application/json",
-      },
-    },
-  );
-
-  const data = (await response.json()) as RateLimitResponse;
-
-  const endpoint = data.platform_limits[0].methods.find(
-    (method) => method.name === "GET",
-  )!;
-
-  const limit = endpoint.limit;
-  const currentUsage = endpoint.count;
-
-  console.log("checkIfRateLimited", endpoint);
-  console.log("originalBody", body);
-
-  const isRateLimited = currentUsage >= limit;
-
-  if (isRateLimited) {
-    await queueBitlyImport({
-      ...body,
-      rateLimited: true,
-      delay: 2 * 60, // try again after 2 minutes
-    });
-  }
-
-  return isRateLimited;
 };

@@ -54,6 +54,8 @@ function PartnerDetailsSheetContent({
   partner,
   setIsOpen,
 }: PartnerDetailsSheetProps) {
+  const { slug } = useWorkspace();
+  const { program } = useProgram();
   const [tab, setTab] = useState<Tab>("links");
 
   const { createPayoutSheet, setIsOpen: setCreatePayoutSheetOpen } =
@@ -190,17 +192,23 @@ function PartnerDetailsSheetContent({
           </div> */}
 
           {partner.status === "approved" && (
-            <TabSelect
-              options={[
-                { id: "links", label: "Links" },
-                { id: "payouts", label: "Payouts" },
-              ]}
-              selected={tab}
-              onSelect={(id: Tab) => {
-                setTab(id);
-              }}
-              className="-mb-6 mt-2"
-            />
+            <div className="-mb-6 mt-2 flex items-center gap-2">
+              <TabSelect
+                options={[
+                  { id: "links", label: "Links" },
+                  { id: "payouts", label: "Payouts" },
+                  {
+                    id: "sales",
+                    label: "Sales",
+                    href: `/${slug}/programs/${program!.id}/sales?partnerId=${partner.id}`,
+                  },
+                ]}
+                selected={tab}
+                onSelect={(id: Tab) => {
+                  setTab(id);
+                }}
+              />
+            </div>
           )}
         </div>
 
@@ -564,19 +572,18 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
   return (payouts && payouts.length > 0) || loading ? (
     <>
       <Table {...table} />
-      {payouts && payouts.length === SHEET_MAX_ITEMS && (
-        <div className="mt-2 flex justify-end">
-          <Link
-            href={`/${slug}/programs/${program!.id}/payouts?partnerId=${partner.id}`}
-            className={cn(
-              buttonVariants({ variant: "secondary" }),
-              "flex h-7 items-center rounded-lg border px-2 text-sm",
-            )}
-          >
-            View all
-          </Link>
-        </div>
-      )}
+      <div className="mt-2 flex justify-end">
+        <Link
+          href={`/${slug}/programs/${program!.id}/payouts?partnerId=${partner.id}`}
+          target="_blank"
+          className={cn(
+            buttonVariants({ variant: "secondary" }),
+            "flex h-7 items-center rounded-lg border px-2 text-sm",
+          )}
+        >
+          View all
+        </Link>
+      </div>
     </>
   ) : (
     <AnimatedEmptyState

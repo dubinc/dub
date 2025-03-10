@@ -15,10 +15,11 @@ export const partnersQuerySchema = z
   .object({
     status: z.nativeEnum(ProgramEnrollmentStatus).optional(),
     country: z.string().optional(),
+    rewardId: z.string().optional(),
     search: z.string().optional(),
     sortBy: z
       .enum(["createdAt", "clicks", "leads", "sales", "saleAmount", "earnings"])
-      .default("createdAt"),
+      .default("saleAmount"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
     tenantId: z
       .string()
@@ -40,7 +41,7 @@ export const partnersCountQuerySchema = partnersQuerySchema
     pageSize: true,
   })
   .extend({
-    groupBy: z.enum(["status", "country"]).optional(),
+    groupBy: z.enum(["status", "country", "rewardId"]).optional(),
   });
 
 export const partnerInvitesQuerySchema = getPaginationQuerySchema({
@@ -301,11 +302,33 @@ export const partnerAnalyticsResponseSchema = {
   }),
 } as const;
 
-export const updatePartnerSaleSchema = z.object({
-  programId: z.string(),
-  invoiceId: z.string(),
-  amount: z
-    .number({ required_error: "Amount is required." })
-    .min(0)
-    .describe("The new amount for the sale."),
-});
+export const updatePartnerSaleSchema = z
+  .object({
+    programId: z.string(),
+    invoiceId: z.string(),
+    amount: z
+      .number()
+      .min(0)
+      .describe("The new absolute amount for the sale.")
+      .optional(),
+    modifyAmount: z
+      .number()
+      .describe(
+        "Modify the current sale amount: use positive values to increase the amount, negative values to decrease it.",
+      )
+      .optional(),
+    currency: z
+      .string()
+      .default("usd")
+      .transform((val) => val.toLowerCase())
+      .describe(
+        "The currency of the sale amount to update. Accepts ISO 4217 currency codes.",
+      ),
+  })
+  .refine(
+    (data) => data.amount !== undefined || data.modifyAmount !== undefined,
+    {
+      message: "Either amount or modifyAmount must be provided.",
+      path: ["amount"],
+    },
+  );

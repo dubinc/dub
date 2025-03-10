@@ -155,7 +155,7 @@ function UsageInner() {
                 setHovered(false);
               }}
             />
-          ) : warning || plan === "free" ? (
+          ) : (warning || plan === "free") && plan !== "enterprise" ? (
             <Link
               href={`/${slug}/upgrade`}
               className={cn(

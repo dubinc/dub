@@ -30,10 +30,10 @@ model Payout {
   updatedAt        DateTime     @updatedAt
   paidAt           DateTime?
 
-  program Program  @relation(fields: [programId], references: [id])
-  partner Partner  @relation(fields: [partnerId], references: [id])
-  invoice Invoice? @relation(fields: [invoiceId], references: [id])
-  commissions  Commission[]
+  program     Program      @relation(fields: [programId], references: [id])
+  partner     Partner      @relation(fields: [partnerId], references: [id])
+  invoice     Invoice?     @relation(fields: [invoiceId], references: [id])
+  commissions Commission[]
 
   @@index([programId])
   @@index([partnerId])

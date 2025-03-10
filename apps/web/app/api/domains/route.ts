@@ -35,7 +35,9 @@ export const GET = withWorkspace(
         ...(includeLink && {
           links: {
             where: {
-              key: "_root",
+              key: {
+                in: ["_root", "akoJCU0="],
+              },
             },
             include: {
               tags: {
