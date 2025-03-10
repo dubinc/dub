@@ -34,18 +34,14 @@ async function main() {
     },
   });
 
+  console.log(`Found ${links.length} links to migrate...`);
+
   if (!links.length) {
     console.log("No more links to migrate.");
     return;
   }
 
-  const remainingLinks = await prisma.link.count({
-    where,
-  });
-
-  console.log(
-    `Remaining links to migrate after this batch: ${remainingLinks - 100}`,
-  );
+  const linksToDelete: string[] = [];
 
   await Promise.allSettled(
     links.map(async (link) => {
@@ -59,22 +55,41 @@ async function main() {
         key: newKey,
       });
 
-      await prisma.link.update({
-        where: {
-          id: link.id,
-        },
-        data: {
-          key: newKey,
-          shortLink: newShortLink,
-          folderId: newFolderId,
-        },
-      });
+      try {
+        await prisma.link.update({
+          where: {
+            id: link.id,
+          },
+          data: {
+            key: newKey,
+            shortLink: newShortLink,
+            folderId: newFolderId,
+          },
+        });
 
-      console.log(
-        `Updated link ${link.id} from ${link.shortLink} to ${newShortLink} and new folder ${newFolderId}`,
-      );
+        console.log(
+          `Updated link ${link.id} from ${link.shortLink} to ${newShortLink} and new folder ${newFolderId}`,
+        );
+      } catch (error) {
+        // if the link already exists, delete it
+        if (error.code === "P2002") {
+          console.log(
+            `Link ${link.id} (${link.domain}/${link.key}) already exists, deleting...`,
+          );
+          linksToDelete.push(link.id);
+        }
+      }
     }),
   );
+
+  if (linksToDelete.length) {
+    console.log(`Deleting ${linksToDelete.length} links...`);
+    await prisma.link.deleteMany({
+      where: {
+        id: { in: linksToDelete },
+      },
+    });
+  }
 
   // expire the Redis cache for the links so it fetches the latest version from the database
   await linkCache.expireMany(links);

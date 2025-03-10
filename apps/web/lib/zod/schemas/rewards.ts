@@ -1,8 +1,6 @@
 import { CommissionType, EventType } from "@dub/prisma/client";
 import { z } from "zod";
-import { getPaginationQuerySchema } from "./misc";
-
-export const RECURRING_MAX_DURATIONS = [0, 3, 6, 12, 18, 24];
+import { getPaginationQuerySchema, maxDurationSchema } from "./misc";
 
 export const COMMISSION_TYPES = [
   {
@@ -31,12 +29,7 @@ export const createOrUpdateRewardSchema = z.object({
   event: z.nativeEnum(EventType),
   type: z.nativeEnum(CommissionType).default("flat"),
   amount: z.number().min(0),
-  maxDuration: z.coerce
-    .number()
-    .refine((val) => RECURRING_MAX_DURATIONS.includes(val), {
-      message: `Max duration must be ${RECURRING_MAX_DURATIONS.join(", ")}`,
-    })
-    .nullish(),
+  maxDuration: maxDurationSchema,
   partnerIds: z.array(z.string()).nullish(),
   workspaceId: z.string(),
   programId: z.string(),

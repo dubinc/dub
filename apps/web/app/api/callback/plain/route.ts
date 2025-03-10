@@ -79,7 +79,6 @@ export async function POST(req: NextRequest) {
       include: {
         _count: {
           select: {
-            links: true,
             domains: true,
             tags: true,
             users: true,
@@ -116,12 +115,14 @@ export async function POST(req: NextRequest) {
     plan,
     usage,
     usageLimit,
+    totalClicks,
     linksUsage,
     linksLimit,
+    totalLinks,
     domainsLimit,
     tagsLimit,
     usersLimit,
-    _count: { links, domains, tags, users },
+    _count: { domains, tags, users },
   } = topWorkspace;
 
   if (plainCustomer.data) {
@@ -225,7 +226,17 @@ export async function POST(req: NextRequest) {
             },
           },
           plainUsageSection({
-            usage: links,
+            usage: totalClicks,
+            label: "Total Clicks",
+            color: "GREEN",
+          }),
+          {
+            componentSpacer: {
+              spacerSize: "M",
+            },
+          },
+          plainUsageSection({
+            usage: totalLinks,
             label: "Total Links",
             color: "YELLOW",
           }),

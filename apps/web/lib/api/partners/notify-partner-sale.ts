@@ -1,5 +1,5 @@
 import { limiter } from "@/lib/cron/limiter";
-import { sendEmailViaResend } from "@dub/email/resend";
+import { sendEmail } from "@dub/email";
 import NewSaleAlertPartner from "@dub/email/templates/new-sale-alert-partner";
 import NewSaleAlertProgramOwner from "@dub/email/templates/new-sale-alert-program-owner";
 import { prisma } from "@dub/prisma";
@@ -62,6 +62,7 @@ export async function notifyPartnerSale({
     prisma.projectUsers.findMany({
       where: {
         projectId: workspace.id,
+        role: "owner",
       },
       include: {
         user: {
@@ -106,7 +107,7 @@ export async function notifyPartnerSale({
   await Promise.all([
     ...partnerUsers.map(({ user }) =>
       limiter.schedule(() =>
-        sendEmailViaResend({
+        sendEmail({
           subject: "You just made a sale via Dub Partners!",
           from: "Dub Partners <system@dub.co>",
           email: user.email!,
@@ -120,7 +121,7 @@ export async function notifyPartnerSale({
 
     ...workspaceUsers.map(({ user }) =>
       limiter.schedule(() =>
-        sendEmailViaResend({
+        sendEmail({
           subject: `New commission for ${partnerProfile.name}`,
           from: "Dub Partners <system@dub.co>",
           email: user.email!,
