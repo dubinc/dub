@@ -18,7 +18,7 @@ export default function OnlinePresencePage() {
           is optional and can be done later.
         </p>
 
-        <div className="mt-8">
+        <div className="animate-slide-up-fade mt-8 grid gap-4 [animation-delay:750ms] [animation-duration:1s] [animation-fill-mode:both]">
           <Suspense fallback={<OnlinePresenceForm partner={null} />}>
             <OnlinePresenceFormRSC />
           </Suspense>
