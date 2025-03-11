@@ -190,66 +190,72 @@ export function SelectEligiblePartnersSheet({
             />
           </Sheet.Close>
         </div>
-        <div className="flex flex-col gap-4 p-6">
-          <div className="relative">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-              <Search className="size-4 text-neutral-400" />
+        <div className="flex min-h-0 flex-1 flex-col">
+          <div className="mr-4 mt-4 px-6">
+            <div className="relative">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                <Search className="size-4 text-neutral-400" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search partners"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="block w-full rounded-lg border-neutral-300 pl-10 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+              />
             </div>
-            <input
-              type="text"
-              placeholder="Search partners"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="block w-full rounded-lg border-neutral-300 pl-10 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-            />
           </div>
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <LoadingSpinner className="size-4" />
-            </div>
-          ) : partners?.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-4 rounded-lg bg-neutral-50 py-12">
-              <div className="flex items-center justify-center">
-                <Users className="size-6 text-neutral-800" />
+          <div className="flex-1 overflow-auto px-6">
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <LoadingSpinner className="size-4" />
               </div>
-              <div className="flex flex-col items-center gap-1 px-4 text-center">
-                <p className="text-base font-medium text-neutral-900">
-                  No partners found
-                </p>
-                <p className="text-sm text-neutral-600">
-                  {search
-                    ? "Try a different search term"
-                    : "No eligible partners available"}
-                </p>
+            ) : partners?.length === 0 ? (
+              <div className="flex flex-col items-center justify-center gap-4 rounded-lg bg-neutral-50 py-12">
+                <div className="flex items-center justify-center">
+                  <Users className="size-6 text-neutral-800" />
+                </div>
+                <div className="flex flex-col items-center gap-1 px-4 text-center">
+                  <p className="text-base font-medium text-neutral-900">
+                    No partners found
+                  </p>
+                  <p className="text-sm text-neutral-600">
+                    {search
+                      ? "Try a different search term"
+                      : "No eligible partners available"}
+                  </p>
+                </div>
               </div>
+            ) : (
+              <div className="py-6">
+                <Table {...table} />
+              </div>
+            )}
+          </div>
+          <div className="border-t border-neutral-200 bg-white p-5">
+            <div className="flex items-center justify-end gap-2">
+              <Button
+                variant="secondary"
+                onClick={() => setIsOpen(false)}
+                text="Cancel"
+                className="w-fit"
+              />
+              <Button
+                variant="primary"
+                text="Add"
+                className="w-fit"
+                onClick={() => {
+                  onSelect(selectedPartners);
+                  setIsOpen(false);
+                }}
+                disabled={selectedPartners.length === 0}
+                disabledTooltip={
+                  selectedPartners.length === 0
+                    ? "At least one partner must be selected."
+                    : undefined
+                }
+              />
             </div>
-          ) : (
-            <Table {...table} />
-          )}
-        </div>
-        <div className="flex grow flex-col justify-end">
-          <div className="flex items-center justify-end gap-2 border-t border-neutral-200 p-5">
-            <Button
-              variant="secondary"
-              onClick={() => setIsOpen(false)}
-              text="Cancel"
-              className="w-fit"
-            />
-            <Button
-              variant="primary"
-              text="Add"
-              className="w-fit"
-              onClick={() => {
-                onSelect(selectedPartners);
-                setIsOpen(false);
-              }}
-              disabled={selectedPartners.length === 0}
-              disabledTooltip={
-                selectedPartners.length === 0
-                  ? "At least one partner must be selected."
-                  : undefined
-              }
-            />
           </div>
         </div>
       </div>
