@@ -4,7 +4,10 @@ import { ProgramResourcesPageClient } from "./page-client";
 
 export default function ProgramResources() {
   return (
-    <PageContent title="Resources">
+    <PageContent
+      title="Resources"
+      description="Shared brand logos, colors, and additional documents for your partners"
+    >
       <MaxWidthWrapper>
         <ProgramResourcesPageClient />
       </MaxWidthWrapper>
