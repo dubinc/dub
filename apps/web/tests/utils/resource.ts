@@ -32,8 +32,9 @@ export const E2E_NO_ACCESS_FOLDER_LINK_ID = "link_SeHtHzjuiOOAPCDLAvTNEKXm"; // 
 
 // Discounts specific
 export const E2E_CUSTOMER_WITH_DISCOUNT = {
-  id: "cm25onzuv0001s1bbxchrc0ae",
-  email: "rural.red.goldfish@example.com",
+  id: "cus_pNGuZQJrAKjzttQTZMI4a46y",
+  externalId: "cus_PowZhxHqUvN8MSdszEElqsUx",
+  email: "rural.yellow.takin@example.com",
 };
 
 export const E2E_DISCOUNT = {
