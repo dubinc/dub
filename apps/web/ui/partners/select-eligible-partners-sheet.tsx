@@ -63,7 +63,7 @@ export function SelectEligiblePartnersSheet({
     } else {
       setSelectedPartners(existingPartners);
     }
-  }, [isOpen, setPagination]);
+  }, [isOpen, setPagination, existingPartners]);
 
   useEffect(() => {
     setPagination((prev) => ({ ...prev, pageIndex: 1 }));
@@ -82,14 +82,19 @@ export function SelectEligiblePartnersSheet({
             onChange={table.getToggleAllRowsSelectedHandler()}
           />
         ),
-        cell: ({ row }) => (
-          <input
-            type="checkbox"
-            className="h-4 w-4 cursor-pointer rounded-full border-neutral-300 text-black focus:outline-none focus:ring-0"
-            checked={row.getIsSelected()}
-            onChange={row.getToggleSelectedHandler()}
-          />
-        ),
+        cell: ({ row }) => {
+          const isSelected = selectedPartners.some(
+            (p) => p.id === row.original.id,
+          );
+          return (
+            <input
+              type="checkbox"
+              className="h-4 w-4 cursor-pointer rounded-full border-neutral-300 text-black focus:outline-none focus:ring-0"
+              checked={isSelected}
+              onChange={row.getToggleSelectedHandler()}
+            />
+          );
+        },
         minSize: 5,
         size: 5,
       },
@@ -117,7 +122,17 @@ export function SelectEligiblePartnersSheet({
     rowCount: partnersCount || 0,
     getRowId: (originalRow) => originalRow.id,
     onRowSelectionChange: (rows) => {
-      setSelectedPartners(rows.map((row) => row.original));
+      // Merge newly selected rows with existing selections that aren't in the current view
+      const currentPageIds = partners?.map((p) => p.id) || [];
+      const selectedPartnersNotInCurrentPage = selectedPartners.filter(
+        (partner) => !currentPageIds.includes(partner.id),
+      );
+
+      const newlySelectedPartners = rows.map((row) => row.original);
+      setSelectedPartners([
+        ...selectedPartnersNotInCurrentPage,
+        ...newlySelectedPartners,
+      ]);
     },
   });
 
