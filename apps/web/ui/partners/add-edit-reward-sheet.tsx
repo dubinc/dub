@@ -5,7 +5,6 @@ import { deleteRewardAction } from "@/lib/actions/partners/delete-reward";
 import { updateRewardAction } from "@/lib/actions/partners/update-reward";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
-import usePartners from "@/lib/swr/use-partners";
 import useProgram from "@/lib/swr/use-program";
 import useRewardPartners from "@/lib/swr/use-reward-partners";
 import useRewards from "@/lib/swr/use-rewards";
@@ -20,29 +19,18 @@ import {
   AnimatedSizeContainer,
   Button,
   CircleCheckFill,
-  LoadingSpinner,
   Sheet,
-  Table,
   Tooltip,
   usePagination,
-  Users,
-  useTable,
 } from "@dub/ui";
 import { cn, pluralize } from "@dub/utils";
-import { DICEBEAR_AVATAR_URL } from "@dub/utils/src/constants";
 import { useAction } from "next-safe-action/hooks";
-import {
-  Dispatch,
-  SetStateAction,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
+import { PartnersTable } from "./reward-discount-partners-table";
 
 interface RewardSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
@@ -82,10 +70,8 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
   const formRef = useRef<HTMLFormElement>(null);
 
   const { rewards } = useRewards();
-  const { data: allPartners } = usePartners();
   const { id: workspaceId } = useWorkspace();
   const { program, mutate: mutateProgram } = useProgram();
-  const { pagination, setPagination } = usePagination(25);
   const [isAddPartnersOpen, setIsAddPartnersOpen] = useState(false);
 
   const [selectedPartnerType, setSelectedPartnerType] =
@@ -115,34 +101,12 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
     },
   });
 
-  const { data: rewardPartners, loading: isLoadingRewardPartners } =
-    useRewardPartners({
-      query: {
-        rewardId: reward?.id,
-        pageSize: pagination.pageSize,
-        page: pagination.pageIndex || 1,
-      },
-      enabled: Boolean(reward && program),
-    });
-
   const [partnerIds = [], amount, type] = watch([
     "partnerIds",
     "amount",
     "type",
     "maxDuration",
   ]);
-
-  const displayPartners = useMemo(() => {
-    if (reward && rewardPartners) {
-      return rewardPartners;
-    }
-
-    if (!allPartners) {
-      return [];
-    }
-
-    return allPartners.filter((p) => partnerIds && partnerIds.includes(p.id));
-  }, [reward, rewardPartners, allPartners, partnerIds]);
 
   const hasProgramWideClickReward = rewards?.some(
     (reward) => reward.event === "click" && reward.partnersCount === 0,
@@ -155,17 +119,6 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
   const hasProgramWideSaleReward = rewards?.some(
     (reward) => reward.event === "sale" && reward.partnersCount === 0,
   );
-
-  const partnersCount = reward?.partnersCount || 0;
-
-  useEffect(() => {
-    if (rewardPartners) {
-      setValue(
-        "partnerIds",
-        rewardPartners.map((p) => p.id),
-      );
-    }
-  }, [rewardPartners, setValue]);
 
   useEffect(() => {
     if (reward) {
@@ -274,82 +227,35 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
     });
   };
 
+  // Manage reward partners
+  const { pagination, setPagination } = usePagination(25);
   const [selectedPartners, setSelectedPartners] =
-    useState<EnrolledPartnerProps[]>(displayPartners);
+    useState<EnrolledPartnerProps[]>();
+
+  const { data: rewardPartners, loading: rewardPartnersLoading } =
+    useRewardPartners({
+      query: {
+        rewardId: reward?.id,
+        pageSize: pagination.pageSize,
+        page: pagination.pageIndex || 1,
+      },
+      enabled: Boolean(reward && program),
+    });
 
   useEffect(() => {
-    setSelectedPartners(displayPartners);
-  }, [displayPartners]);
-
-  useEffect(() => {
-    if (allPartners && partnerIds) {
-      const newSelectedPartners = allPartners.filter((p) =>
-        partnerIds.includes(p.id),
-      );
-      setSelectedPartners(newSelectedPartners);
+    if (rewardPartners) {
+      setSelectedPartners(rewardPartners);
     }
-  }, [allPartners, partnerIds]);
+  }, [rewardPartners]);
 
-  const selectedPartnersTable = useTable({
-    data: displayPartners,
-    columns: [
-      {
-        header: "Partner",
-        cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <img
-              src={
-                row.original.image ||
-                `${DICEBEAR_AVATAR_URL}${row.original.name}`
-              }
-              alt={row.original.name}
-              className="size-6 rounded-full"
-            />
-            <span className="text-sm text-neutral-700">
-              {row.original.name}
-            </span>
-          </div>
-        ),
-      },
-      {
-        header: "Email",
-        cell: ({ row }) => (
-          <div className="text-sm text-neutral-600">{row.original.email}</div>
-        ),
-      },
-      {
-        id: "actions",
-        cell: ({ row }) => (
-          <div className="flex justify-end">
-            <Button
-              variant="secondary"
-              icon={<X className="size-4" />}
-              className="h-8 w-8 rounded-md border-0 bg-neutral-50 p-0"
-              onClick={() => {
-                const newPartnerIds = (partnerIds || []).filter(
-                  (id) => id !== row.original.id,
-                );
-                setValue("partnerIds", newPartnerIds);
-                setSelectedPartners((prev) =>
-                  prev.filter((p) => p.id !== row.original.id),
-                );
-              }}
-            />
-          </div>
-        ),
-        size: 50,
-      },
-    ],
-    loading: isLoadingRewardPartners,
-    thClassName: () => cn("border-l-0"),
-    tdClassName: () => cn("border-l-0"),
-    className: "[&_tr:last-child>td]:border-b-transparent",
-    scrollWrapperClassName: "min-h-[40px]",
-    resourceName: (p) => `eligible partner${p ? "s" : ""}`,
-    pagination: reward ? pagination : undefined,
-    onPaginationChange: reward ? setPagination : undefined,
-    rowCount: reward ? partnersCount || 0 : selectedPartners.length,
-  });
+  useEffect(() => {
+    if (selectedPartners) {
+      setValue(
+        "partnerIds",
+        selectedPartners.map((partner) => partner.id),
+      );
+    }
+  }, [selectedPartners, setValue]);
 
   const hasDefaultReward = !!program?.defaultRewardId;
 
@@ -679,16 +585,11 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                 </div>
                 <div className="mt-4">
                   <PartnersTable
-                    partners={displayPartners}
-                    loading={isLoadingRewardPartners}
-                    partnerIds={partnerIds}
-                    setValue={setValue}
+                    selectedPartners={selectedPartners || []}
                     setSelectedPartners={setSelectedPartners}
-                    pagination={reward ? pagination : undefined}
-                    setPagination={reward ? setPagination : undefined}
-                    partnersCount={
-                      reward ? partnersCount : selectedPartners.length
-                    }
+                    loading={rewardPartnersLoading}
+                    pagination={pagination}
+                    setPagination={setPagination}
                   />
                 </div>
               </div>
@@ -748,13 +649,8 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
       <SelectEligiblePartnersSheet
         isOpen={isAddPartnersOpen}
         setIsOpen={setIsAddPartnersOpen}
-        selectedPartnerIds={watch("partnerIds") || []}
-        onSelect={(ids) => {
-          const existingIds = partnerIds || [];
-          const newIds = ids.filter((id) => !existingIds.includes(id));
-          const combinedIds = [...existingIds, ...newIds];
-          setValue("partnerIds", combinedIds);
-        }}
+        existingPartners={selectedPartners || []}
+        onSelect={setSelectedPartners}
       />
     </>
   );
@@ -786,115 +682,4 @@ export function useRewardSheet(
     ),
     setIsOpen,
   };
-}
-
-interface PartnersTableProps {
-  partners: EnrolledPartnerProps[];
-  loading: boolean;
-  partnerIds: string[] | null;
-  setValue: any; // TODO: Type this properly with UseFormSetValue
-  setSelectedPartners: Dispatch<SetStateAction<EnrolledPartnerProps[]>>;
-  pagination?: any; // TODO: Type this properly
-  setPagination?: any; // TODO: Type this properly
-  partnersCount: number;
-}
-
-function PartnersTable({
-  partners,
-  loading,
-  partnerIds,
-  setValue,
-  setSelectedPartners,
-  pagination,
-  setPagination,
-  partnersCount,
-}: PartnersTableProps) {
-  const table = useTable({
-    data: partners,
-    columns: [
-      {
-        header: "Partner",
-        cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <img
-              src={
-                row.original.image ||
-                `${DICEBEAR_AVATAR_URL}${row.original.name}`
-              }
-              alt={row.original.name}
-              className="size-6 rounded-full"
-            />
-            <span className="text-sm text-neutral-700">
-              {row.original.name}
-            </span>
-          </div>
-        ),
-      },
-      {
-        header: "Email",
-        cell: ({ row }) => (
-          <div className="text-sm text-neutral-600">{row.original.email}</div>
-        ),
-      },
-      {
-        id: "actions",
-        cell: ({ row }) => (
-          <div className="flex justify-end">
-            <Button
-              variant="secondary"
-              icon={<X className="size-4" />}
-              className="h-8 w-8 rounded-md border-0 bg-neutral-50 p-0"
-              onClick={() => {
-                const newPartnerIds = (partnerIds || []).filter(
-                  (id) => id !== row.original.id,
-                );
-                setValue("partnerIds", newPartnerIds);
-                setSelectedPartners((prev) =>
-                  prev.filter((p) => p.id !== row.original.id),
-                );
-              }}
-            />
-          </div>
-        ),
-        size: 50,
-      },
-    ],
-    loading,
-    thClassName: () => cn("border-l-0"),
-    tdClassName: () => cn("border-l-0"),
-    className: "[&_tr:last-child>td]:border-b-transparent",
-    scrollWrapperClassName: "min-h-[40px]",
-    resourceName: (p) => `eligible partner${p ? "s" : ""}`,
-    pagination,
-    onPaginationChange: setPagination,
-    rowCount: partnersCount,
-  });
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center rounded-lg border border-neutral-200 bg-white py-8">
-        <LoadingSpinner className="size-4" />
-      </div>
-    );
-  }
-
-  if (partners.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-neutral-200 bg-neutral-50 py-10">
-        <div className="flex items-center justify-center">
-          <Users className="size-5 text-neutral-500" />
-        </div>
-        <div className="flex flex-col items-center gap-1 px-4 text-center">
-          <p className="text-sm font-medium text-neutral-600">
-            Eligible partners
-          </p>
-          <p className="text-sm text-neutral-500">
-            No eligible partners added yet
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  return <Table {...table} />;
 }
