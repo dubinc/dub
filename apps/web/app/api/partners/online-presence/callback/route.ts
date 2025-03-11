@@ -1,6 +1,6 @@
 import { ONLINE_PRESENCE_PROVIDERS } from "@/lib/actions/partners/online-presence-providers";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK, PARTNERS_DOMAIN } from "@dub/utils";
+import { PARTNERS_DOMAIN, PARTNERS_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -79,7 +79,7 @@ export async function GET(req: Request) {
         [clientIdParam ?? "client_id"]: clientId!,
         client_secret: clientSecret!,
         code,
-        redirect_uri: `${APP_DOMAIN_WITH_NGROK}/api/partners/online-presence/callback`,
+        redirect_uri: `${PARTNERS_DOMAIN_WITH_NGROK}/api/partners/online-presence/callback`,
         grant_type: "authorization_code",
         ...(codeVerifier && { code_verifier: codeVerifier }),
       }).toString(),
