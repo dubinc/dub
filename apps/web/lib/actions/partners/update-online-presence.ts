@@ -5,7 +5,7 @@ import {
   generateCodeVerifier,
 } from "@/lib/api/oauth/utils";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { PARTNERS_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { cookies } from "next/headers";
 import { v4 as uuid } from "uuid";
 import { z } from "zod";
@@ -13,12 +13,12 @@ import { authPartnerActionClient } from "../safe-action";
 import { ONLINE_PRESENCE_PROVIDERS } from "./online-presence-providers";
 
 const updateOnlinePresenceSchema = z.object({
-  website: z.string().url().optional().or(z.literal("")),
-  instagram: z.string().optional(),
-  tiktok: z.string().optional(),
-  youtube: z.string().optional(),
-  twitter: z.string().optional(),
-  source: z.enum(["onboarding", "settings"]).optional().default("onboarding"),
+  website: z.string().url().nullish().or(z.literal("")),
+  instagram: z.string().nullish(),
+  tiktok: z.string().nullish(),
+  youtube: z.string().nullish(),
+  twitter: z.string().nullish(),
+  source: z.enum(["onboarding", "settings"]).default("onboarding"),
 });
 
 const updateOnlinePresenceResponseSchema = updateOnlinePresenceSchema.merge(
@@ -105,7 +105,7 @@ export const updateOnlinePresenceAction = authPartnerActionClient
 
                 const params: Record<string, string> = {
                   [data.clientIdParam ?? "client_id"]: data.clientId,
-                  redirect_uri: `${APP_DOMAIN_WITH_NGROK}/api/partners/online-presence/callback`,
+                  redirect_uri: `${PARTNERS_DOMAIN_WITH_NGROK}/api/partners/online-presence/callback`,
                   scope: data.scopes,
                   response_type: "code",
                   state: Buffer.from(
