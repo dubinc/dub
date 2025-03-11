@@ -6,16 +6,18 @@ import {
   parse,
 } from "@/lib/middleware/utils";
 import { recordClick } from "@/lib/tinybird";
-import { formatRedisLink } from "@/lib/upstash";
+import { formatRedisLink, redis } from "@/lib/upstash";
 import {
   DUB_HEADERS,
   LEGAL_WORKSPACE_ID,
   LOCALHOST_GEO_DATA,
+  LOCALHOST_IP,
   isDubDomain,
   isUnsupportedKey,
   nanoid,
   punyEncode,
 } from "@dub/utils";
+import { ipAddress } from "@vercel/functions";
 import { cookies } from "next/headers";
 import {
   NextFetchEvent,
@@ -222,7 +224,16 @@ export default async function LinkMiddleware(
   const cookieStore = cookies();
   let clickId = cookieStore.get("dub_id")?.value;
   if (!clickId) {
-    clickId = nanoid(16);
+    // if trackConversion is enabled, check if clickId is cached in Redis
+    if (trackConversion) {
+      const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
+      const cacheKey = `recordClick:${domain}:${key}:${ip}`;
+      clickId = (await redis.get<string>(cacheKey)) || undefined;
+    }
+    // if there's still no clickId, generate a new one
+    if (!clickId) {
+      clickId = nanoid(16);
+    }
   }
 
   // for root domain links, if there's no destination URL, rewrite to placeholder page
