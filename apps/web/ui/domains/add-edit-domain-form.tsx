@@ -20,10 +20,12 @@ import {
 import { cn } from "@dub/utils";
 import { motion } from "framer-motion";
 import {
+  Apple,
   Binoculars,
   Crown,
   Milestone,
   QrCode,
+  Smartphone,
   TextCursorInput,
 } from "lucide-react";
 import posthog from "posthog-js";
@@ -79,16 +81,17 @@ const STATUS_CONFIG: Record<
 export function AddEditDomainForm({
   props,
   onSuccess,
-  showAdvancedOptions = true,
+  enableDomainConfig = true,
   className,
 }: {
   props?: DomainProps;
   onSuccess?: (data: DomainProps) => void;
-  showAdvancedOptions?: boolean;
+  enableDomainConfig?: boolean;
   className?: string;
 }) {
   const { id: workspaceId, plan } = useWorkspace();
   const [lockDomain, setLockDomain] = useState(true);
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
   const [domainStatus, setDomainStatus] = useState<DomainStatus>(
     props ? "available" : "idle",
   );
@@ -292,13 +295,14 @@ export function AddEditDomainForm({
         )}
       </div>
 
-      {showAdvancedOptions && (
+      {enableDomainConfig && (
         <>
           <div className="h-0.5 w-full bg-neutral-200" />
           <div className="flex flex-col gap-y-6">
-            {ADVANCED_OPTIONS.map(
+            {DOMAIN_OPTIONS.map(
               ({ id, title, description, icon: Icon, proFeature }) => {
                 const [showOption, setShowOption] = useState(!!watch(id));
+
                 return (
                   <div key={id}>
                     <label className="flex items-center justify-between gap-4">
@@ -391,6 +395,121 @@ export function AddEditDomainForm({
               },
             )}
           </div>
+
+          <div className="flex flex-col">
+            <div>
+              <button
+                type="button"
+                className="flex w-full items-center justify-between"
+                onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+              >
+                <p className="text-sm text-neutral-600">
+                  {showAdvancedOptions ? "Hide" : "Show"} advanced settings
+                </p>
+                <motion.div
+                  animate={{ rotate: showAdvancedOptions ? 180 : 0 }}
+                  className="text-neutral-600"
+                >
+                  <svg
+                    className="h-4 w-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M6 15L12 9L18 15"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </motion.div>
+              </button>
+            </div>
+
+            <AnimatedSizeContainer height className="mt-4 flex flex-col space-y-4">
+              {showAdvancedOptions &&
+                ADVANCED_OPTIONS.map(
+                  ({ id, title, description, icon: Icon, proFeature }) => (
+                    <div key={id} className="flex flex-col space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="hidden rounded-lg border border-neutral-200 bg-white p-2 sm:block">
+                            <Icon className="size-5 text-neutral-500" />
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h2 className="text-sm font-medium text-neutral-900">
+                                {title}
+                              </h2>
+                              {proFeature && plan === "free" && (
+                                <Badge className="flex items-center space-x-1 bg-white">
+                                  <Crown size={12} />
+                                  <p className="uppercase">Pro</p>
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-sm text-neutral-500">
+                              {description}
+                            </p>
+                          </div>
+                        </div>
+
+                        <Switch
+                          checked={!!watch(id)}
+                          fn={(checked) => {
+                            if (checked) {
+                              const defaultConfig =
+                                id === "appleAppSiteAssociation"
+                                  ? {
+                                      applinks: {
+                                        apps: [],
+                                        details: [
+                                          {
+                                            appID: "ZFQFH27SSZ.yuca.scanner",
+                                            paths: ["NOT /_/*", "/*"],
+                                          },
+                                        ],
+                                      },
+                                    }
+                                  : {
+                                      target: {
+                                        namespace: "android_app",
+                                        package_name: "io.yuka.android",
+                                        sha256_cert_fingerprints: [
+                                          "A7:E3:C4:A6:12:68:01:86:93:7B:02:E7:B8:95:74:D5:FD:62:79:8B:8C:B6:68:97:39:92:FA:89:F6:19:8F:CB",
+                                        ],
+                                      },
+                                      relation: [
+                                        "delegate_permission/common.handle_all_urls",
+                                      ],
+                                    };
+                              setValue(
+                                id,
+                                JSON.stringify(defaultConfig, null, 2),
+                                { shouldDirty: true },
+                              );
+                            } else {
+                              setValue(id, "", { shouldDirty: true });
+                            }
+                          }}
+                          disabled={isSubmitting}
+                        />
+                      </div>
+
+                      {!!watch(id) && (
+                        <div className="rounded-md border border-neutral-200 bg-white p-3">
+                          <pre className="whitespace-pre-wrap font-mono text-xs text-neutral-700">
+                            {watch(id)}
+                          </pre>
+                        </div>
+                      )}
+                    </div>
+                  ),
+                )}
+            </AnimatedSizeContainer>
+          </div>
         </>
       )}
 
@@ -403,7 +522,7 @@ export function AddEditDomainForm({
   );
 }
 
-const ADVANCED_OPTIONS: {
+const DOMAIN_OPTIONS: {
   id: keyof FormData;
   title: string;
   description: string;
@@ -438,3 +557,20 @@ const ADVANCED_OPTIONS: {
     icon: TextCursorInput,
   },
 ];
+
+const ADVANCED_OPTIONS = [
+  {
+    id: "appleAppSiteAssociation",
+    title: "Apple App Site Association",
+    description: "Provide a config file for iOS deep linking",
+    icon: Apple,
+    proFeature: true,
+  },
+  {
+    id: "assetLinks",
+    title: "Asset Link",
+    description: "Provide a config file for Android deep linking",
+    icon: Smartphone,
+    proFeature: true,
+  },
+] as const;
