@@ -62,7 +62,9 @@ export async function notifyPartnerSale({
     prisma.projectUsers.findMany({
       where: {
         projectId: workspace.id,
-        role: "owner",
+        notificationPreference: {
+          newReferralSale: true,
+        },
       },
       include: {
         user: {
