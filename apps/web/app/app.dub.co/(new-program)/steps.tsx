@@ -73,7 +73,7 @@ export function Steps() {
                     step === lastCompletedStep ||
                     (lastCompletedStepObj?.stepNumber ?? 0) >= stepNumber;
 
-                  const isDisabled = !completed && step !== lastCompletedStep;
+                  const isDisabled = !completed && !current;
 
                   return isDisabled ? (
                     <div

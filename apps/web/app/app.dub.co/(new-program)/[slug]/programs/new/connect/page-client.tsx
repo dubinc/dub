@@ -1,12 +1,14 @@
 "use client";
 
+import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Shopify } from "@/ui/layout/sidebar/conversions/icons/shopify";
 import { Stripe } from "@/ui/layout/sidebar/conversions/icons/stripe";
 import { Button } from "@dub/ui";
+import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { toast } from "sonner";
 
 const GUIDES = [
   {
@@ -23,13 +25,25 @@ const GUIDES = [
 
 export function PageClient() {
   const router = useRouter();
-  const [isPending, setIsPending] = useState(false);
-  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+  const { id: workspaceId, slug: workspaceSlug, mutate } = useWorkspace();
+
+  const { executeAsync, isPending } = useAction(onboardProgramAction, {
+    onSuccess: () => {
+      router.push(`/${workspaceSlug}/programs/new/overview`);
+      mutate();
+    },
+    onError: ({ error }) => {
+      toast.error(error.serverError);
+    },
+  });
 
   const onClick = async () => {
     if (!workspaceId) return;
-    setIsPending(true);
-    router.push(`/${workspaceSlug}/programs/new/overview`);
+
+    await executeAsync({
+      workspaceId,
+      step: "connect",
+    });
   };
 
   return (
