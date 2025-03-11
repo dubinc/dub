@@ -123,7 +123,6 @@ export const GET = withWorkspace(
       return {
         ...partner,
         createdAt: new Date(partner.enrollmentCreatedAt),
-        payoutsEnabledAt: new Date(partner.payoutsEnabledAt),
         clicks: Number(partner.totalClicks),
         leads: Number(partner.totalLeads),
         sales: Number(partner.totalSales),
