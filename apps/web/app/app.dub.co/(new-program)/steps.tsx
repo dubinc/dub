@@ -28,14 +28,9 @@ export function Steps() {
   const lastCompletedStep =
     programOnboarding?.lastCompletedStep ?? "get-started";
 
-  const currentStepNumber =
-    PROGRAM_ONBOARDING_STEPS.find((s) => s.href === currentPath)?.stepNumber ||
-    1;
-
-  const lastCompletedStepNumber = lastCompletedStep
-    ? PROGRAM_ONBOARDING_STEPS.find((s) => s.step === lastCompletedStep)
-        ?.stepNumber || 0
-    : 0;
+  const lastCompletedStepObj = PROGRAM_ONBOARDING_STEPS.find(
+    (s) => s.step === lastCompletedStep,
+  );
 
   return (
     <>
@@ -75,9 +70,10 @@ export function Steps() {
                   const current = currentPath === href;
 
                   const completed =
-                    currentPath !== href && stepNumber < currentStepNumber;
+                    step === lastCompletedStep ||
+                    (lastCompletedStepObj?.stepNumber ?? 0) >= stepNumber;
 
-                  const isDisabled = stepNumber > lastCompletedStepNumber + 1;
+                  const isDisabled = !completed && step !== lastCompletedStep;
 
                   return isDisabled ? (
                     <div
