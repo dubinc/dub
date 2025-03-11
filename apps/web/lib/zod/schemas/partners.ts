@@ -70,6 +70,8 @@ export const PartnerSchema = z.object({
   youtubeVerifiedAt: z.date().nullable(),
   twitter: z.string().nullable(),
   twitterVerifiedAt: z.date().nullable(),
+  linkedin: z.string().nullable(),
+  linkedinVerifiedAt: z.date().nullable(),
 
   createdAt: z.date(),
   updatedAt: z.date(),

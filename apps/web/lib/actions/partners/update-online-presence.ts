@@ -15,10 +15,11 @@ import { ONLINE_PRESENCE_PROVIDERS } from "./online-presence-providers";
 
 const updateOnlinePresenceSchema = z.object({
   website: parseUrlSchemaAllowEmpty().nullish(),
-  instagram: z.string().nullish(),
-  tiktok: z.string().nullish(),
   youtube: z.string().nullish(),
   twitter: z.string().nullish(),
+  instagram: z.string().nullish(),
+  tiktok: z.string().nullish(),
+  linkedin: z.string().nullish(),
   source: z.enum(["onboarding", "settings"]).default("onboarding"),
 });
 
@@ -61,6 +62,16 @@ export const updateOnlinePresenceAction = authPartnerActionClient
           websiteTxtRecord: `dub-domain-verification=${uuid()}`,
         }),
       }),
+      ...(parsedInput.youtube !== undefined && {
+        youtube: parsedInput.youtube,
+        youtubeVerifiedAt:
+          parsedInput.youtube !== partner.youtube ? null : undefined,
+      }),
+      ...(parsedInput.twitter !== undefined && {
+        twitter: parsedInput.twitter,
+        twitterVerifiedAt:
+          parsedInput.twitter !== partner.twitter ? null : undefined,
+      }),
       ...(parsedInput.instagram !== undefined && {
         instagram: parsedInput.instagram,
         instagramVerifiedAt:
@@ -71,15 +82,10 @@ export const updateOnlinePresenceAction = authPartnerActionClient
         tiktokVerifiedAt:
           parsedInput.tiktok !== partner.tiktok ? null : undefined,
       }),
-      ...(parsedInput.youtube !== undefined && {
-        youtube: parsedInput.youtube,
-        youtubeVerifiedAt:
-          parsedInput.youtube !== partner.youtube ? null : undefined,
-      }),
-      ...(parsedInput.twitter !== undefined && {
-        twitter: parsedInput.twitter,
-        twitterVerifiedAt:
-          parsedInput.twitter !== partner.twitter ? null : undefined,
+      ...(parsedInput.linkedin !== undefined && {
+        linkedin: parsedInput.linkedin,
+        linkedinVerifiedAt:
+          parsedInput.linkedin !== partner.linkedin ? null : undefined,
       }),
     };
 
