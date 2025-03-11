@@ -9,9 +9,11 @@ const BG_INVERTED = "rgb(var(--bg-inverted))";
 export function HeroBackground({
   logo,
   color,
+  embed = false,
 }: {
   logo?: string | null;
   color?: string | null;
+  embed?: boolean;
 }) {
   const id = useId();
 
@@ -40,7 +42,10 @@ export function HeroBackground({
         height="258"
         fill="none"
         viewBox="0 0 718 258"
-        className="pointer-events-none absolute right-0 top-0 hidden h-full w-auto md:block"
+        className={cn(
+          "pointer-events-none absolute right-0 top-0 hidden h-full w-auto",
+          embed ? "md:block" : "lg:block",
+        )}
       >
         <mask
           id={`${id}-grid-mask`}
@@ -324,7 +329,10 @@ export function HeroBackground({
           "absolute right-4 top-4 block size-6 min-[300px]:size-8",
 
           // Position based on cqh to adjust for container height
-          "md:right-[62cqh] md:top-1/2 md:size-[32cqh] md:-translate-y-1/2 md:translate-x-1/2",
+          "",
+          embed
+            ? "md:right-[62cqh] md:top-1/2 md:size-[32cqh] md:-translate-y-1/2 md:translate-x-1/2"
+            : "lg:right-[62cqh] lg:top-1/2 lg:size-[32cqh] lg:-translate-y-1/2 lg:translate-x-1/2",
 
           "drop-shadow-[0_0_15px_rgb(from_var(--brand-dark,#000)_r_g_b/0.4)]",
         )}

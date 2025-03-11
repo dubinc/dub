@@ -14,12 +14,24 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
 
   const { partnerId, programId } = programEnrollment;
 
-  const [reward, discount] = await Promise.all([
-    determinePartnerReward({
-      event: "sale",
-      partnerId,
-      programId,
-    }),
+  const [rewards, discount] = await Promise.all([
+    Promise.all([
+      determinePartnerReward({
+        event: "click",
+        partnerId,
+        programId,
+      }),
+      determinePartnerReward({
+        event: "lead",
+        partnerId,
+        programId,
+      }),
+      determinePartnerReward({
+        event: "sale",
+        partnerId,
+        programId,
+      }),
+    ]),
 
     determinePartnerDiscount({
       partnerId,
@@ -30,7 +42,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
   return NextResponse.json(
     ProgramEnrollmentSchema.parse({
       ...programEnrollment,
-      reward,
+      rewards: rewards.filter((reward) => reward !== null),
       discount,
     }),
   );

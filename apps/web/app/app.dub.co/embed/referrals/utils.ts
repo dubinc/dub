@@ -28,12 +28,24 @@ export const getReferralsEmbedData = async (token: string) => {
     notFound();
   }
 
-  const [reward, discount, payouts] = await Promise.all([
-    determinePartnerReward({
-      programId,
-      partnerId,
-      event: "sale",
-    }),
+  const [rewards, discount, payouts] = await Promise.all([
+    Promise.all([
+      determinePartnerReward({
+        programId,
+        partnerId,
+        event: "click",
+      }),
+      determinePartnerReward({
+        programId,
+        partnerId,
+        event: "lead",
+      }),
+      determinePartnerReward({
+        programId,
+        partnerId,
+        event: "sale",
+      }),
+    ]),
 
     determinePartnerDiscount({
       programId,
@@ -57,7 +69,7 @@ export const getReferralsEmbedData = async (token: string) => {
   return {
     program,
     links,
-    reward,
+    rewards: rewards.filter((reward) => reward !== null),
     discount,
     payouts: payouts.map((payout) => ({
       status: payout.status,
