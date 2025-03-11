@@ -29,7 +29,7 @@ import {
   TextCursorInput,
 } from "lucide-react";
 import posthog from "posthog-js";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
@@ -95,6 +95,9 @@ export function AddEditDomainForm({
   const [domainStatus, setDomainStatus] = useState<DomainStatus>(
     props ? "available" : "idle",
   );
+  const [showOptionStates, setShowOptionStates] = useState<
+    Record<string, boolean>
+  >({});
 
   const {
     register,
@@ -114,6 +117,30 @@ export function AddEditDomainForm({
       assetLinks: props?.assetLinks,
     },
   });
+
+  useEffect(() => {
+    if (props?.appleAppSiteAssociation || props?.assetLinks) {
+      setShowAdvancedOptions(true);
+      setShowOptionStates((prev) => ({
+        ...prev,
+        appleAppSiteAssociation: !!props?.appleAppSiteAssociation?.trim(),
+        assetLinks: !!props?.assetLinks?.trim(),
+      }));
+    }
+  }, [props]);
+
+  useEffect(() => {
+    setShowOptionStates((prev) => ({
+      ...prev,
+      appleAppSiteAssociation: false,
+      assetLinks: false,
+      logo: false,
+      expiredUrl: false,
+      notFoundUrl: false,
+      placeholder: false,
+      ...prev,
+    }));
+  }, []);
 
   const domain = watch("slug");
 
@@ -303,7 +330,7 @@ export function AddEditDomainForm({
           <div className="flex flex-col gap-y-6">
             {DOMAIN_OPTIONS.map(
               ({ id, title, description, icon: Icon, proFeature }) => {
-                const [showOption, setShowOption] = useState(!!watch(id));
+                const showOption = showOptionStates[id] || !!watch(id);
 
                 return (
                   <div key={id}>
@@ -332,7 +359,10 @@ export function AddEditDomainForm({
                       <Switch
                         checked={showOption}
                         fn={(checked) => {
-                          setShowOption(checked);
+                          setShowOptionStates((prev) => ({
+                            ...prev,
+                            [id]: checked,
+                          }));
                           if (!checked) {
                             setValue(id, "", {
                               shouldDirty: true,
@@ -434,56 +464,62 @@ export function AddEditDomainForm({
               <div className="flex flex-col space-y-4">
                 {showAdvancedOptions &&
                   ADVANCED_OPTIONS.map(
-                    ({ id, title, description, icon: Icon, proFeature }) => (
-                      <div key={id} className="flex flex-col space-y-3">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="hidden rounded-lg border border-neutral-200 bg-white p-2 sm:block">
-                              <Icon className="size-5 text-neutral-500" />
-                            </div>
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <h2 className="text-sm font-medium text-neutral-900">
-                                  {title}
-                                </h2>
-                                {proFeature && plan === "free" && (
-                                  <Badge className="flex items-center space-x-1 bg-white">
-                                    <Crown size={12} />
-                                    <p className="uppercase">Pro</p>
-                                  </Badge>
-                                )}
+                    ({ id, title, description, icon: Icon, proFeature }) => {
+                      return (
+                        <div key={id} className="flex flex-col space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="hidden rounded-lg border border-neutral-200 bg-white p-2 sm:block">
+                                <Icon className="size-5 text-neutral-500" />
                               </div>
-                              <p className="text-sm text-neutral-500">
-                                {description}
-                              </p>
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <h2 className="text-sm font-medium text-neutral-900">
+                                    {title}
+                                  </h2>
+                                  {proFeature && plan === "free" && (
+                                    <Badge className="flex items-center space-x-1 bg-white">
+                                      <Crown size={12} />
+                                      <p className="uppercase">Pro</p>
+                                    </Badge>
+                                  )}
+                                </div>
+                                <p className="text-sm text-neutral-500">
+                                  {description}
+                                </p>
+                              </div>
                             </div>
-                          </div>
 
-                          <Switch
-                            checked={!!watch(id)}
-                            fn={(checked) => {
-                              if (checked) {
-                                setValue(id, " ", { shouldDirty: true });
-                              } else {
-                                setValue(id, null, { shouldDirty: true });
-                              }
-                            }}
-                            disabled={isSubmitting}
-                          />
-                        </div>
-
-                        {!!watch(id) && (
-                          <div className="rounded-md border border-neutral-200 bg-white">
-                            <textarea
-                              {...register(id)}
-                              className="w-full resize-none rounded-md border-0 bg-transparent px-3 py-2 font-mono text-xs text-neutral-700 focus:outline-none focus:ring-0"
-                              rows={3}
-                              spellCheck={false}
+                            <Switch
+                              checked={showOptionStates[id]}
+                              fn={(checked: boolean) => {
+                                setShowOptionStates((prev) => ({
+                                  ...prev,
+                                  [id]: checked,
+                                }));
+                                if (!checked) {
+                                  setValue(id, "", {
+                                    shouldDirty: true,
+                                  });
+                                }
+                              }}
+                              disabled={isSubmitting}
                             />
                           </div>
-                        )}
-                      </div>
-                    ),
+
+                          {showOptionStates[id] && (
+                            <div className="rounded-md border border-neutral-200 bg-white">
+                              <textarea
+                                {...register(id)}
+                                className="w-full resize-none rounded-md border-0 bg-transparent px-3 py-2 font-mono text-xs text-neutral-700 focus:outline-none focus:ring-0"
+                                rows={3}
+                                spellCheck={false}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    },
                   )}
               </div>
             </AnimatedSizeContainer>

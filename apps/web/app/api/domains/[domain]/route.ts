@@ -121,10 +121,10 @@ export const PATCH = withWorkspace(
         expiredUrl,
         notFoundUrl,
         logo: deleteLogo ? null : logoUploaded?.url || oldLogo,
-        ...(assetLinks && { assetLinks: JSON.parse(assetLinks) }),
-        ...(appleAppSiteAssociation && {
-          appleAppSiteAssociation: JSON.parse(appleAppSiteAssociation),
-        }),
+        assetLinks: assetLinks ? JSON.parse(assetLinks) : null,
+        appleAppSiteAssociation: appleAppSiteAssociation
+          ? JSON.parse(appleAppSiteAssociation)
+          : null,
       },
       include: {
         registeredDomain: true,
