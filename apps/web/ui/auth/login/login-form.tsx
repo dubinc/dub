@@ -68,10 +68,10 @@ export const LoginFormContext = createContext<{
 
 export default function LoginForm({
   methods = [...authMethods],
-  redirectTo,
+  next,
 }: {
   methods?: AuthMethod[];
-  redirectTo?: string;
+  next?: string;
 }) {
   const searchParams = useSearchParams();
   const [showPasswordField, setShowPasswordField] = useState(false);
@@ -112,7 +112,7 @@ export default function LoginForm({
     {
       method: "google",
       component: GoogleButton,
-      props: { redirectTo },
+      props: { next },
     },
     {
       method: "github",
@@ -121,7 +121,7 @@ export default function LoginForm({
     {
       method: "email",
       component: EmailSignIn,
-      props: { redirectTo },
+      props: { next },
     },
     {
       method: "saml",

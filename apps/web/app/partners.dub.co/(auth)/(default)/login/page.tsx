@@ -1,7 +1,6 @@
 import { getProgram } from "@/lib/fetchers/get-program";
 import LoginForm from "@/ui/auth/login/login-form";
 import { ClientOnly } from "@dub/ui";
-import { PARTNERS_DOMAIN } from "@dub/utils";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PartnerBanner } from "../partner-banner";
@@ -27,7 +26,7 @@ export default async function LoginPage({
           <ClientOnly>
             <LoginForm
               methods={["email", "password", "google"]}
-              redirectTo={`${PARTNERS_DOMAIN}${programSlug ? `/programs/${programSlug}` : ""}`}
+              next={`/${programSlug ? `/programs/${programSlug}` : ""}`}
             />
           </ClientOnly>
         </div>
