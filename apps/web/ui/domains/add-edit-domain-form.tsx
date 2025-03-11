@@ -428,86 +428,62 @@ export function AddEditDomainForm({
               </button>
             </div>
 
-            <AnimatedSizeContainer height className="mt-4 flex flex-col space-y-4">
-              {showAdvancedOptions &&
-                ADVANCED_OPTIONS.map(
-                  ({ id, title, description, icon: Icon, proFeature }) => (
-                    <div key={id} className="flex flex-col space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="hidden rounded-lg border border-neutral-200 bg-white p-2 sm:block">
-                            <Icon className="size-5 text-neutral-500" />
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <h2 className="text-sm font-medium text-neutral-900">
-                                {title}
-                              </h2>
-                              {proFeature && plan === "free" && (
-                                <Badge className="flex items-center space-x-1 bg-white">
-                                  <Crown size={12} />
-                                  <p className="uppercase">Pro</p>
-                                </Badge>
-                              )}
+            <AnimatedSizeContainer height className="mt-6">
+              <div className="flex flex-col space-y-4">
+                {showAdvancedOptions &&
+                  ADVANCED_OPTIONS.map(
+                    ({ id, title, description, icon: Icon, proFeature }) => (
+                      <div key={id} className="flex flex-col space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="hidden rounded-lg border border-neutral-200 bg-white p-2 sm:block">
+                              <Icon className="size-5 text-neutral-500" />
                             </div>
-                            <p className="text-sm text-neutral-500">
-                              {description}
-                            </p>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h2 className="text-sm font-medium text-neutral-900">
+                                  {title}
+                                </h2>
+                                {proFeature && plan === "free" && (
+                                  <Badge className="flex items-center space-x-1 bg-white">
+                                    <Crown size={12} />
+                                    <p className="uppercase">Pro</p>
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-sm text-neutral-500">
+                                {description}
+                              </p>
+                            </div>
                           </div>
+
+                          <Switch
+                            checked={!!watch(id)}
+                            fn={(checked) => {
+                              if (checked) {
+                                setValue(id, " ", { shouldDirty: true });
+                              } else {
+                                setValue(id, null, { shouldDirty: true });
+                              }
+                            }}
+                            disabled={isSubmitting}
+                          />
                         </div>
 
-                        <Switch
-                          checked={!!watch(id)}
-                          fn={(checked) => {
-                            if (checked) {
-                              const defaultConfig =
-                                id === "appleAppSiteAssociation"
-                                  ? {
-                                      applinks: {
-                                        apps: [],
-                                        details: [
-                                          {
-                                            appID: "ZFQFH27SSZ.yuca.scanner",
-                                            paths: ["NOT /_/*", "/*"],
-                                          },
-                                        ],
-                                      },
-                                    }
-                                  : {
-                                      target: {
-                                        namespace: "android_app",
-                                        package_name: "io.yuka.android",
-                                        sha256_cert_fingerprints: [
-                                          "A7:E3:C4:A6:12:68:01:86:93:7B:02:E7:B8:95:74:D5:FD:62:79:8B:8C:B6:68:97:39:92:FA:89:F6:19:8F:CB",
-                                        ],
-                                      },
-                                      relation: [
-                                        "delegate_permission/common.handle_all_urls",
-                                      ],
-                                    };
-                              setValue(
-                                id,
-                                JSON.stringify(defaultConfig, null, 2),
-                                { shouldDirty: true },
-                              );
-                            } else {
-                              setValue(id, "", { shouldDirty: true });
-                            }
-                          }}
-                          disabled={isSubmitting}
-                        />
+                        {!!watch(id) && (
+                          <div className="rounded-md border border-neutral-200 bg-white">
+                            <textarea
+                              {...register(id)}
+                              className="w-full resize-none rounded-md border-0 bg-transparent px-3 py-2 font-mono text-xs text-neutral-700 focus:outline-none focus:ring-0"
+                              rows={3}
+                              spellCheck={false}
+                            />
+                          </div>
+                        )}
                       </div>
-
-                      {!!watch(id) && (
-                        <div className="rounded-md border border-neutral-200 bg-white p-3">
-                          <pre className="whitespace-pre-wrap font-mono text-xs text-neutral-700">
-                            {watch(id)}
-                          </pre>
-                        </div>
-                      )}
-                    </div>
-                  ),
-                )}
+                    ),
+                  )}
+              </div>
             </AnimatedSizeContainer>
           </div>
         </>

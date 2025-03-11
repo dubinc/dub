@@ -41,6 +41,21 @@ export const DomainSchema = z.object({
       "The URL to redirect to when a link under this domain doesn't exist.",
     )
     .openapi({ example: "https://acme.com/not-found" }),
+  assetLinks: z
+    .any()
+    .nullable()
+    .transform((v) => (v ? JSON.stringify(v) : null))
+    .describe(
+      "assetLinks.json configuration file (for deep link support on Android).",
+    ),
+  appleAppSiteAssociation: z
+    .any()
+    .nullable()
+    .transform((v) => (v ? JSON.stringify(v) : null))
+    .describe(
+      "apple-app-site-association configuration file (for deep link support on iOS).",
+    ),
+
   logo: z.string().nullable().describe("The logo of the domain."),
   createdAt: z.date().describe("The date the domain was created."),
   updatedAt: z.date().describe("The date the domain was last updated."),
@@ -85,6 +100,19 @@ export const getDomainsCountQuerySchema = getDomainsQuerySchema.omit({
 export const getDefaultDomainsQuerySchema = getDomainsQuerySchema.pick({
   search: true,
 });
+
+const validateJSON = (v: any) => {
+  if (!v) {
+    return true;
+  }
+
+  try {
+    JSON.parse(v);
+    return true;
+  } catch (error) {
+    return false;
+  }
+};
 
 export const createDomainBodySchema = z.object({
   slug: z
@@ -132,12 +160,16 @@ export const createDomainBodySchema = z.object({
   assetLinks: z
     .string()
     .nullish()
+    .default(null)
+    .refine((v) => validateJSON(v))
     .describe(
       "assetLinks.json configuration file (for deep link support on Android).",
     ),
   appleAppSiteAssociation: z
     .string()
     .nullish()
+    .default(null)
+    .refine((v) => validateJSON(v))
     .describe(
       "apple-app-site-association configuration file (for deep link support on iOS).",
     ),
