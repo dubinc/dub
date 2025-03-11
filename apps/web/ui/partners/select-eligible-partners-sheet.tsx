@@ -32,9 +32,8 @@ export function SelectEligiblePartnersSheet({
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
   const { pagination, setPagination } = usePagination(25);
-  const [selectedPartners, setSelectedPartners] = useState<
-    EnrolledPartnerProps[]
-  >([]);
+  const [selectedPartners, setSelectedPartners] =
+    useState<EnrolledPartnerProps[]>(existingPartners);
 
   const {
     data: partners,
@@ -58,6 +57,8 @@ export function SelectEligiblePartnersSheet({
       setPagination((prev) => ({ ...prev, pageIndex: 1 }));
       setSearch("");
       setSelectedPartners([]);
+    } else {
+      setSelectedPartners(existingPartners);
     }
   }, [isOpen, setPagination]);
 
@@ -118,22 +119,21 @@ export function SelectEligiblePartnersSheet({
   });
 
   useEffect(() => {
-    if (partners && existingPartners.length > 0) {
-      const selectedRows = partners.filter((p) =>
-        existingPartners.some((ep) => ep.id === p.id),
+    if (partners) {
+      const currentSelection = table.table.getState().rowSelection;
+      const newSelection = selectedPartners.reduce(
+        (acc, partner) => {
+          acc[partner.id] = true;
+          return acc;
+        },
+        {} as Record<string, boolean>,
       );
 
-      setSelectedPartners(selectedRows);
-
-      const rowsToSelect = table.table
-        .getRowModel()
-        .rows.filter((row) =>
-          existingPartners.some((ep) => ep.id === row.original.id),
-        );
-
-      rowsToSelect.forEach((row) => row.toggleSelected(true));
+      if (JSON.stringify(currentSelection) !== JSON.stringify(newSelection)) {
+        table.table.setRowSelection(newSelection);
+      }
     }
-  }, [partners, existingPartners, table.table]);
+  }, [partners, selectedPartners, table.table]);
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
