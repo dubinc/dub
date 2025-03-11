@@ -232,10 +232,9 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
   };
 
   // Manage reward partners
+  const { pagination, setPagination } = usePagination(25);
   const [selectedPartners, setSelectedPartners] =
     useState<EnrolledPartnerProps[]>();
-
-  const { pagination, setPagination } = usePagination(25);
 
   const { data: rewardPartners, loading: rewardPartnersLoading } =
     useRewardPartners({
@@ -252,8 +251,6 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
       setSelectedPartners(rewardPartners);
     }
   }, [rewardPartners]);
-
-  ///
 
   const hasDefaultReward = !!program?.defaultRewardId;
 
@@ -735,11 +732,6 @@ function PartnersTable({
               icon={<X className="size-4" />}
               className="h-8 w-8 rounded-md border-0 bg-neutral-50 p-0"
               onClick={() => {
-                // const newPartnerIds = (partnerIds || []).filter(
-                //   (id) => id !== row.original.id,
-                // );
-
-                // // setValue("partnerIds", newPartnerIds);
                 setSelectedPartners((prev) =>
                   prev.filter((p) => p.id !== row.original.id),
                 );

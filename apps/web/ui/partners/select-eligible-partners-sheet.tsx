@@ -35,9 +35,6 @@ export function SelectEligiblePartnersSheet({
   const [selectedPartners, setSelectedPartners] =
     useState<EnrolledPartnerProps[]>(existingPartners);
 
-  console.log("selectedPartners", selectedPartners);
-  console.log("existingPartners", existingPartners);
-
   const {
     data: partners,
     error: partnersError,
@@ -46,6 +43,7 @@ export function SelectEligiblePartnersSheet({
     query: {
       search: debouncedSearch,
       page: pagination.pageIndex || 1,
+      pageSize: pagination.pageSize || 25,
     },
   });
 
@@ -60,10 +58,14 @@ export function SelectEligiblePartnersSheet({
       setPagination((prev) => ({ ...prev, pageIndex: 1 }));
       setSearch("");
       setSelectedPartners([]);
-    } else {
+    }
+  }, [isOpen, setPagination]);
+
+  useEffect(() => {
+    if (isOpen) {
       setSelectedPartners(existingPartners);
     }
-  }, [isOpen, setPagination, existingPartners]);
+  }, [isOpen, existingPartners]);
 
   useEffect(() => {
     setPagination((prev) => ({ ...prev, pageIndex: 1 }));
@@ -86,12 +88,21 @@ export function SelectEligiblePartnersSheet({
           const isSelected = selectedPartners.some(
             (p) => p.id === row.original.id,
           );
+
           return (
             <input
               type="checkbox"
               className="h-4 w-4 cursor-pointer rounded-full border-neutral-300 text-black focus:outline-none focus:ring-0"
               checked={isSelected}
-              onChange={row.getToggleSelectedHandler()}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  setSelectedPartners((prev) => [...prev, row.original]);
+                } else {
+                  setSelectedPartners((prev) =>
+                    prev.filter((p) => p.id !== row.original.id),
+                  );
+                }
+              }}
             />
           );
         },
@@ -122,36 +133,47 @@ export function SelectEligiblePartnersSheet({
     rowCount: partnersCount || 0,
     getRowId: (originalRow) => originalRow.id,
     onRowSelectionChange: (rows) => {
-      // Merge newly selected rows with existing selections that aren't in the current view
-      const currentPageIds = partners?.map((p) => p.id) || [];
-      const selectedPartnersNotInCurrentPage = selectedPartners.filter(
-        (partner) => !currentPageIds.includes(partner.id),
-      );
+      // We're now handling selection directly in the checkbox onChange
+      // This is only needed for the "select all" functionality
+      if (partners) {
+        const currentPageIds = partners.map((p) => p.id);
 
-      const newlySelectedPartners = rows.map((row) => row.original);
-      setSelectedPartners([
-        ...selectedPartnersNotInCurrentPage,
-        ...newlySelectedPartners,
-      ]);
+        if (rows.length === 0) {
+          // Deselect all on current page
+          setSelectedPartners((prev) =>
+            prev.filter((p) => !currentPageIds.includes(p.id)),
+          );
+        } else {
+          // Select all on current page
+          const currentPagePartners = partners.filter((p) =>
+            rows.some((row) => row.original.id === p.id),
+          );
+          setSelectedPartners((prev) => {
+            const prevFiltered = prev.filter(
+              (p) => !currentPageIds.includes(p.id),
+            );
+            return [...prevFiltered, ...currentPagePartners];
+          });
+        }
+      }
     },
   });
 
   useEffect(() => {
     if (partners) {
-      const currentSelection = table.table.getState().rowSelection;
-      const newSelection = selectedPartners.reduce(
-        (acc, partner) => {
-          acc[partner.id] = true;
-          return acc;
-        },
-        {} as Record<string, boolean>,
+      table.table.setRowSelection(
+        selectedPartners
+          .filter((p) => partners.some((partner) => partner.id === p.id))
+          .reduce(
+            (acc, partner) => {
+              acc[partner.id] = true;
+              return acc;
+            },
+            {} as Record<string, boolean>,
+          ),
       );
-
-      if (JSON.stringify(currentSelection) !== JSON.stringify(newSelection)) {
-        table.table.setRowSelection(newSelection);
-      }
     }
-  }, [partners, selectedPartners, table.table]);
+  }, [partners]);
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
