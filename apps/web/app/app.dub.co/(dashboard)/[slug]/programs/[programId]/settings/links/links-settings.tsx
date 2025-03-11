@@ -51,11 +51,11 @@ function LinksSettingsForm({ program }: { program: ProgramProps }) {
       example: `${shortDomain}/steven`,
       comingSoon: false,
     },
-    {
-      label: "Query parameter",
-      example: `${websiteDomain}?via=steven`,
-      comingSoon: true,
-    },
+    // {
+    //   label: "Query parameter",
+    //   example: `${websiteDomain}?via=steven`,
+    //   comingSoon: true,
+    // },
     {
       label: "Dynamic path",
       example: `${websiteDomain}/refer/steven`,

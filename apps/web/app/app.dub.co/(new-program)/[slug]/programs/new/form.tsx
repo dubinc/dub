@@ -26,12 +26,12 @@ export const LINK_TYPES = [
     example: "refer.dub.co/steven",
     comingSoon: false,
   },
-  {
-    id: "query",
-    label: "Query parameter",
-    example: "dub.co/?via=steven",
-    comingSoon: false,
-  },
+  // {
+  //   id: "query",
+  //   label: "Query parameter",
+  //   example: "dub.co/?via=steven",
+  //   comingSoon: false,
+  // },
   {
     id: "dynamic",
     label: "Dynamic path",
