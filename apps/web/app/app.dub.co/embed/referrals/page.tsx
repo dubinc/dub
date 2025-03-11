@@ -48,14 +48,10 @@ function EmbedInlineLoading({ themeOptions }: { themeOptions: ThemeOptions }) {
       <div className="p-5">
         <div className="border-border-default relative flex flex-col overflow-hidden rounded-lg border p-4 md:p-6">
           <HeroBackground color="#737373" />
-          <div className="relative flex flex-col gap-2">
-            <div className="bg-bg-muted h-6 w-60 rounded-md" />
-            <div className="bg-bg-muted h-6 w-40 rounded-md" />
-          </div>
-          <span className="text-content-default mb-1.5 mt-6 block text-sm">
+          <span className="text-base font-semibold text-neutral-800">
             Referral link
           </span>
-          <div className="xs:flex-row relative flex flex-col items-center gap-2">
+          <div className="xs:flex-row relative mt-3 flex flex-col items-center gap-2">
             <div className="xs:w-60 border-border-default bg-bg-muted h-10 w-full rounded-md border" />
             <Button
               icon={<Copy className="size-4" />}
@@ -63,6 +59,13 @@ function EmbedInlineLoading({ themeOptions }: { themeOptions: ThemeOptions }) {
               className="xs:w-fit"
               disabled
             />
+          </div>
+          <span className="mt-12 text-base font-semibold text-neutral-800">
+            Rewards
+          </span>
+          <div className="relative mt-2 flex flex-col gap-2">
+            <div className="bg-bg-muted h-6 w-60 rounded-md" />
+            <div className="bg-bg-muted h-6 w-40 rounded-md" />
           </div>
           <a
             href="https://dub.partners"
