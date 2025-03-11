@@ -9,6 +9,7 @@ export const parseRequestBody = async (req: Request) => {
   try {
     return await req.json();
   } catch (e) {
+    console.error(e);
     throw new DubApiError({
       code: "bad_request",
       message:
