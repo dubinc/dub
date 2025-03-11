@@ -6,5 +6,5 @@ import { Reward } from "@prisma/client";
 export function getTopProgramRewards(rewards: Reward[]) {
   return ["click", "lead", "sale"]
     .map((event) => rewards.find((reward) => reward.event === event))
-    .filter((reward) => reward !== undefined && reward !== null);
+    .filter((reward) => reward !== undefined) as Reward[];
 }

@@ -1,6 +1,7 @@
 import { referralsEmbedToken } from "@/lib/embed/referrals/token-class";
 import { determinePartnerDiscount } from "@/lib/partners/determine-partner-discount";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
+import { RewardProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { notFound } from "next/navigation";
 
@@ -69,7 +70,7 @@ export const getReferralsEmbedData = async (token: string) => {
   return {
     program,
     links,
-    rewards: rewards.filter((reward) => reward !== null),
+    rewards: rewards.filter((reward) => reward !== null) as RewardProps[],
     discount,
     payouts: payouts.map((payout) => ({
       status: payout.status,
