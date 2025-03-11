@@ -3,15 +3,17 @@
 import { Button } from "@dub/ui";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 
 export function CTAButtons() {
-  const router = useRouter();
-  const { data: session, status } = useSession();
+  const { programSlug } = useParams();
+  const { status } = useSession();
+
+  const slugPrefix = programSlug ? `/${programSlug}` : "";
 
   return (
     <>
-      <Link href={status === "authenticated" ? "/" : "/register"}>
+      <Link href={status === "authenticated" ? "/" : `${slugPrefix}/register`}>
         <Button
           type="button"
           text={
@@ -23,7 +25,7 @@ export function CTAButtons() {
         />
       </Link>
       {status === "unauthenticated" && (
-        <Link href="/login">
+        <Link href={`${slugPrefix}/login`}>
           <Button
             type="button"
             variant="secondary"

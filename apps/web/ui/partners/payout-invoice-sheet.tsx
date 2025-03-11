@@ -105,13 +105,14 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
   });
 
   //  Filter out payouts that:
-  //  - Belong to a partner that doesn't have `payoutsEnabled`
+  //  - Belong to a partner that doesn't have `payoutsEnabledAt`
   //  - Payout amount is less than $10
   const pendingPayouts = useMemo(
     () =>
       payouts?.filter(
         (payout) =>
-          payout.partner.payoutsEnabled && payout.amount >= MIN_PAYOUT_AMOUNT,
+          Boolean(payout.partner.payoutsEnabledAt) &&
+          payout.amount >= MIN_PAYOUT_AMOUNT,
       ),
     [payouts],
   );
