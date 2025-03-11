@@ -177,13 +177,13 @@ export function OnlinePresenceForm({
               label="YouTube"
               input={
                 <div className="flex rounded-md">
-                  <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
-                    youtube.com/@
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
+                    @
                   </span>
                   <input
                     type="text"
                     className={cn(
-                      "block w-full rounded-none rounded-r-md focus:outline-none sm:text-sm",
+                      "block w-full rounded-md pl-7 focus:outline-none sm:text-sm",
                       errors.youtube
                         ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                         : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
@@ -280,14 +280,14 @@ export function OnlinePresenceForm({
               label="TikTok"
               input={
                 <div className="flex rounded-md">
-                  <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
-                    tiktok.com/@
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
+                    @
                   </span>
                   <input
                     type="text"
                     className={cn(
-                      "block w-full rounded-none rounded-r-md focus:outline-none sm:text-sm",
-                      errors.tiktok
+                      "block w-full rounded-md pl-7 focus:outline-none sm:text-sm",
+                      errors.youtube
                         ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                         : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
                     )}
