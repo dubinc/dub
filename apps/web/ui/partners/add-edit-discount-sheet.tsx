@@ -17,33 +17,22 @@ import {
   AnimatedSizeContainer,
   Button,
   CircleCheckFill,
-  LoadingSpinner,
   Sheet,
-  Table,
   usePagination,
-  Users,
-  useTable,
 } from "@dub/ui";
-import { cn, DICEBEAR_AVATAR_URL, pluralize } from "@dub/utils";
+import { cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
+import { PartnersTable } from "./reward-discount-partners-table";
 
 interface DiscountSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   discount?: DiscountProps;
   isDefault?: boolean;
-}
-
-interface PartnersTableProps {
-  selectedPartners: EnrolledPartnerProps[];
-  setSelectedPartners: Dispatch<SetStateAction<EnrolledPartnerProps[]>>;
-  loading: boolean;
-  pagination?: any; // TODO: Type this properly
-  setPagination?: any; // TODO: Type this properly
 }
 
 type FormData = z.infer<typeof createDiscountSchema>;
@@ -557,99 +546,4 @@ export function useDiscountSheet(
     ),
     setIsOpen,
   };
-}
-
-function PartnersTable({
-  selectedPartners,
-  setSelectedPartners,
-  loading,
-  pagination,
-  setPagination,
-}: PartnersTableProps) {
-  const partnersCount = selectedPartners?.length || 0;
-
-  const table = useTable({
-    data: selectedPartners,
-    columns: [
-      {
-        header: "Partner",
-        cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <img
-              src={
-                row.original.image ||
-                `${DICEBEAR_AVATAR_URL}${row.original.name}`
-              }
-              alt={row.original.name}
-              className="size-6 rounded-full"
-            />
-            <span className="text-sm text-neutral-700">
-              {row.original.name}
-            </span>
-          </div>
-        ),
-      },
-      {
-        header: "Email",
-        cell: ({ row }) => (
-          <div className="text-sm text-neutral-600">{row.original.email}</div>
-        ),
-      },
-      {
-        id: "actions",
-        cell: ({ row }) => (
-          <div className="flex justify-end">
-            <Button
-              variant="secondary"
-              icon={<X className="size-4" />}
-              className="h-8 w-8 rounded-md border-0 bg-neutral-50 p-0"
-              onClick={() => {
-                setSelectedPartners((prev) =>
-                  prev.filter((p) => p.id !== row.original.id),
-                );
-              }}
-            />
-          </div>
-        ),
-        size: 50,
-      },
-    ],
-    loading,
-    thClassName: () => cn("border-l-0"),
-    tdClassName: () => cn("border-l-0"),
-    className: "[&_tr:last-child>td]:border-b-transparent",
-    scrollWrapperClassName: "min-h-[40px]",
-    resourceName: (p) => `eligible partner${p ? "s" : ""}`,
-    pagination,
-    onPaginationChange: setPagination,
-    rowCount: partnersCount,
-  });
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center rounded-lg border border-neutral-200 bg-white py-8">
-        <LoadingSpinner className="size-4" />
-      </div>
-    );
-  }
-
-  if (partnersCount === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-neutral-200 bg-neutral-50 py-10">
-        <div className="flex items-center justify-center">
-          <Users className="size-5 text-neutral-500" />
-        </div>
-        <div className="flex flex-col items-center gap-1 px-4 text-center">
-          <p className="text-sm font-medium text-neutral-600">
-            Eligible partners
-          </p>
-          <p className="text-sm text-neutral-500">
-            No eligible partners added yet
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  return <Table {...table} />;
 }
