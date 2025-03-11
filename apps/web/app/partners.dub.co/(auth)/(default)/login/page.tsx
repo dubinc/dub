@@ -27,8 +27,7 @@ export default async function LoginPage({
           <ClientOnly>
             <LoginForm
               methods={["email", "password", "google"]}
-              // TODO: This is a temp fix, we should either redirect to "/" or "?next="
-              redirectTo={PARTNERS_DOMAIN}
+              redirectTo={`${PARTNERS_DOMAIN}${programSlug ? `/programs/${programSlug}` : ""}`}
             />
           </ClientOnly>
         </div>

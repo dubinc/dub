@@ -22,13 +22,9 @@ export default async function PartnersMiddleware(req: NextRequest) {
   );
 
   if (!user && isAuthenticatedPath) {
-    const customAuthProgramSlug = ["framer"].find((p) =>
-      path.startsWith(`/programs/${p}`),
-    );
-    if (customAuthProgramSlug) {
-      return NextResponse.redirect(
-        new URL(`/${customAuthProgramSlug}/login`, req.url),
-      );
+    if (path.startsWith(`/programs/`)) {
+      const programSlug = path.split("/")[2];
+      return NextResponse.redirect(new URL(`/${programSlug}/login`, req.url));
     }
 
     return NextResponse.redirect(
