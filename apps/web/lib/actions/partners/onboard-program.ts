@@ -2,7 +2,6 @@
 
 import { createId } from "@/lib/api/create-id";
 import { createLink, processLink } from "@/lib/api/links";
-import { validateAllowedHostnames } from "@/lib/api/validate-allowed-hostnames";
 import { rewardfulImporter } from "@/lib/rewardful/importer";
 import { storage } from "@/lib/storage";
 import { PlanProps } from "@/lib/types";
@@ -20,6 +19,7 @@ import { waitUntil } from "@vercel/functions";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
+
 export const onboardProgramAction = authActionClient
   .schema(onboardProgramSchema)
   .action(async ({ ctx, parsedInput: data }) => {
@@ -111,7 +111,6 @@ const createProgram = async ({
     maxDuration,
     partners,
     rewardful,
-    linkType,
     logo,
   } = programDataSchema.parse(store?.programOnboarding);
 
@@ -195,25 +194,12 @@ const createProgram = async ({
     );
   }
 
-  let validHostnames: string[] | undefined;
-
-  if (linkType === "query" && url) {
-    const hostname = new URL(url).hostname;
-
-    if (hostname) {
-      validHostnames = validateAllowedHostnames([hostname]);
-    }
-  }
-
   waitUntil(
     prisma.project.update({
       where: {
         id: workspace.id,
       },
       data: {
-        ...(validHostnames && {
-          allowedHostnames: validHostnames,
-        }),
         store: {
           ...store,
           programOnboarding: undefined,
