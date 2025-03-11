@@ -91,9 +91,9 @@ export function PageClient() {
       href: `/${workspaceSlug}/programs/new/rewards`,
     },
     {
-      title: "Referral link structure",
-      content: LINK_TYPES.find((linkType) => linkType.value === data.linkType)
-        ?.preview,
+      title: "Referral link type",
+      content: LINK_TYPES.find((linkType) => linkType.id === data.linkType)
+        ?.example,
       href: `/${workspaceSlug}/programs/new`,
     },
     {

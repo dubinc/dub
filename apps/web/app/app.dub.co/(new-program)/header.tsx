@@ -124,7 +124,7 @@ export function Header() {
         <Button
           text="Save and exit"
           variant="secondary"
-          className="h-7 w-auto"
+          className="h-8 w-auto"
           loading={isPending}
           onClick={saveAndExit}
         />

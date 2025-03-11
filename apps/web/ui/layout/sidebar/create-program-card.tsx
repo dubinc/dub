@@ -35,6 +35,16 @@ export function CreateProgramCard() {
 
   return (
     <div className="relative mt-6 flex flex-col gap-3 overflow-hidden rounded-lg border bg-white p-3 pt-4">
+      <div className="pointer-events-none absolute inset-0 opacity-20">
+        <div
+          className="h-full w-full"
+          style={{
+            background:
+              "conic-gradient(from 0deg at 50% 50%, #F35066 116.99999570846558deg, #9071F9 180deg, #5182FC 240.00000715255737deg, #F35066 360deg)",
+            filter: "blur(60px)",
+          }}
+        />
+      </div>
       <div className="relative flex items-center gap-2">
         <ConnectedDots4 className="size-4" />
       </div>

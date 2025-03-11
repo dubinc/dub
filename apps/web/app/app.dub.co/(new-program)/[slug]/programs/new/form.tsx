@@ -21,23 +21,22 @@ import { toast } from "sonner";
 
 export const LINK_TYPES = [
   {
-    value: "short",
+    id: "short",
     label: "Short link",
-    preview: "refer.dub.co/steven",
-    disabled: false,
+    example: "refer.dub.co/steven",
+    comingSoon: false,
   },
   {
-    value: "query",
+    id: "query",
     label: "Query parameter",
-    preview: "dub.co/?via=steven",
-    disabled: false,
+    example: "dub.co/?via=steven",
+    comingSoon: false,
   },
   {
-    value: "dynamic",
+    id: "dynamic",
     label: "Dynamic path",
-    preview: "dub.co/refer/steven",
-    disabled: true,
-    badge: "Coming soon",
+    example: "dub.co/refer/steven",
+    comingSoon: true,
   },
 ];
 
@@ -127,7 +126,7 @@ export function Form() {
       <div className="space-y-6">
         <div className="space-y-1">
           <h2 className="text-base font-medium text-neutral-900">
-            Referral Link
+            Referral link
           </h2>
           <p className="text-sm font-normal text-neutral-600">
             Set the default referral link domain and destination URL
@@ -169,9 +168,7 @@ export function Form() {
 
       <div className="space-y-6">
         <div className="space-y-1">
-          <h2 className="text-base font-medium text-neutral-900">
-            Link structure
-          </h2>
+          <h2 className="text-base font-medium text-neutral-900">Link type</h2>
           <p className="text-sm font-normal text-neutral-600">
             Set how the link shows up in the partner portal
           </p>
@@ -179,25 +176,25 @@ export function Form() {
 
         <div className="flex flex-col gap-3">
           {LINK_TYPES.map((type) => {
-            const isSelected = watch("linkType") === type.value;
+            const isSelected = watch("linkType") === type.id;
 
             return (
               <label
-                key={type.value}
+                key={type.id}
                 className={cn(
                   "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
                   "transition-all duration-150",
                   isSelected &&
                     "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
-                  type.disabled && "cursor-not-allowed hover:bg-white",
+                  type.comingSoon && "cursor-not-allowed hover:bg-white",
                 )}
               >
                 <input
                   type="radio"
                   {...register("linkType")}
-                  value={type.value}
+                  value={type.id}
                   className="hidden"
-                  disabled={type.disabled}
+                  disabled={type.comingSoon}
                 />
 
                 <div className="flex grow flex-col text-sm">
@@ -205,18 +202,18 @@ export function Form() {
                     <span className="text-sm font-semibold text-neutral-900">
                       {type.label}
                     </span>
-                    {type.badge && (
+                    {type.comingSoon && (
                       <Badge variant="blueGradient" size="sm">
-                        {type.badge}
+                        Coming soon
                       </Badge>
                     )}
                   </div>
                   <span className="text-sm font-normal text-neutral-900">
-                    {type.preview}
+                    {type.example}
                   </span>
                 </div>
 
-                {!type.disabled && (
+                {!type.comingSoon && (
                   <CircleCheckFill
                     className={cn(
                       "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
