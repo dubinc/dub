@@ -11,7 +11,8 @@ const defaultDateRange = {
   to: new Date(),
 } as const;
 
-export const AuditLog = () => {
+export const ExportAuditLog = () => {
+  const [loading, setLoading] = useState(false);
   const { plan, id: workspaceId } = useWorkspace();
   const [dateRange, setDateRange] = useState(defaultDateRange);
 
@@ -20,6 +21,7 @@ export const AuditLog = () => {
       return;
     }
 
+    setLoading(true);
     const lid = toast.loading("Exporting audit logs...");
 
     try {
@@ -54,6 +56,7 @@ export const AuditLog = () => {
     } catch (error) {
       toast.error(error);
     } finally {
+      setLoading(false);
       toast.dismiss(lid);
     }
   };
@@ -86,6 +89,7 @@ export const AuditLog = () => {
               text="Export CSV"
               className="w-fit"
               disabled={plan !== "enterprise"}
+              loading={loading}
               {...(plan !== "enterprise" && {
                 disabledTooltip: (
                   <TooltipContent
