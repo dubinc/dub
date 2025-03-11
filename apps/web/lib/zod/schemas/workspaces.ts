@@ -142,5 +142,5 @@ export const updateWorkspaceSchema = createWorkspaceSchema.partial().extend({
 export const notificationTypes = z.enum([
   "linkUsageSummary",
   "domainConfigurationUpdates",
-  "newReferralSale",
+  "newPartnerSale",
 ]);

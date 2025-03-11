@@ -63,7 +63,7 @@ export async function notifyPartnerSale({
       where: {
         projectId: workspace.id,
         notificationPreference: {
-          newReferralSale: true,
+          newPartnerSale: true,
         },
       },
       include: {
