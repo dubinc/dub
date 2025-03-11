@@ -222,20 +222,20 @@ function DiscountSheetContent({
         onSubmit={handleSubmit(onSubmit)}
         className="flex h-full flex-col"
       >
-        <div>
-          <div className="flex items-start justify-between border-b border-neutral-200 p-6">
-            <Sheet.Title className="text-xl font-semibold">
-              {discount ? "Edit" : "Create"} {isDefault ? "default" : ""}{" "}
-              discount
-            </Sheet.Title>
-            <Sheet.Close asChild>
-              <Button
-                variant="outline"
-                icon={<X className="size-5" />}
-                className="h-auto w-fit p-1"
-              />
-            </Sheet.Close>
-          </div>
+        <div className="flex items-start justify-between border-b border-neutral-200 p-6">
+          <Sheet.Title className="text-xl font-semibold">
+            {discount ? "Edit" : "Create"} {isDefault ? "default" : ""} discount
+          </Sheet.Title>
+          <Sheet.Close asChild>
+            <Button
+              variant="outline"
+              icon={<X className="size-5" />}
+              className="h-auto w-fit p-1"
+            />
+          </Sheet.Close>
+        </div>
+
+        <div className="flex-1 overflow-y-auto">
           <div className="flex flex-col gap-4 p-6">
             <div>
               <div className="-m-1">
@@ -468,44 +468,42 @@ function DiscountSheetContent({
           </div>
         </div>
 
-        <div className="flex grow flex-col justify-end">
-          <div className="flex items-center justify-between border-t border-neutral-200 p-5">
-            <div>
-              {discount && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  text="Remove discount"
-                  onClick={onDelete}
-                  loading={isDeleting}
-                />
-              )}
-            </div>
-
-            <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between border-t border-neutral-200 p-5">
+          <div>
+            {discount && (
               <Button
                 type="button"
-                variant="secondary"
-                onClick={() => setIsOpen(false)}
-                text="Cancel"
-                className="w-fit"
-                disabled={isCreating || isUpdating || isDeleting}
+                variant="outline"
+                text="Remove discount"
+                onClick={onDelete}
+                loading={isDeleting}
               />
+            )}
+          </div>
 
-              <Button
-                type="submit"
-                variant="primary"
-                text={discount ? "Update discount" : "Create discount"}
-                className="w-fit"
-                loading={isCreating || isUpdating}
-                disabled={buttonDisabled || isDeleting}
-                disabledTooltip={
-                  !isDefault && (!partnerIds || partnerIds.length === 0)
-                    ? "Please select at least one partner"
-                    : undefined
-                }
-              />
-            </div>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setIsOpen(false)}
+              text="Cancel"
+              className="w-fit"
+              disabled={isCreating || isUpdating || isDeleting}
+            />
+
+            <Button
+              type="submit"
+              variant="primary"
+              text={discount ? "Update discount" : "Create discount"}
+              className="w-fit"
+              loading={isCreating || isUpdating}
+              disabled={buttonDisabled || isDeleting}
+              disabledTooltip={
+                !isDefault && (!partnerIds || partnerIds.length === 0)
+                  ? "Please select at least one partner"
+                  : undefined
+              }
+            />
           </div>
         </div>
       </form>

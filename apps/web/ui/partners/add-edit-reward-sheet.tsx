@@ -284,21 +284,22 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
         onSubmit={handleSubmit(onSubmit)}
         className="flex h-full flex-col"
       >
-        <div>
-          <div className="flex items-start justify-between border-b border-neutral-200 p-6">
-            <Sheet.Title className="text-xl font-semibold">
-              {reward ? "Edit" : "Create"}{" "}
-              {!program?.defaultRewardId && event === "sale" ? "default" : ""}{" "}
-              {event} reward
-            </Sheet.Title>
-            <Sheet.Close asChild>
-              <Button
-                variant="outline"
-                icon={<X className="size-5" />}
-                className="h-auto w-fit p-1"
-              />
-            </Sheet.Close>
-          </div>
+        <div className="flex items-start justify-between border-b border-neutral-200 p-6">
+          <Sheet.Title className="text-xl font-semibold">
+            {reward ? "Edit" : "Create"}{" "}
+            {!program?.defaultRewardId && event === "sale" ? "default" : ""}{" "}
+            {event} reward
+          </Sheet.Title>
+          <Sheet.Close asChild>
+            <Button
+              variant="outline"
+              icon={<X className="size-5" />}
+              className="h-auto w-fit p-1"
+            />
+          </Sheet.Close>
+        </div>
+
+        <div className="flex-1 overflow-y-auto">
           <div className="flex flex-col gap-4 p-6">
             {event !== "sale" && (
               <div>
@@ -597,51 +598,49 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
           </div>
         </div>
 
-        <div className="flex grow flex-col justify-end">
-          <div className="flex items-center justify-between border-t border-neutral-200 p-5">
-            <div>
-              {reward && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  text="Remove reward"
-                  onClick={onDelete}
-                  loading={isDeleting}
-                  disabled={!canDeleteReward}
-                  disabledTooltip={
-                    program?.defaultRewardId === reward.id
-                      ? "This is a default reward and cannot be deleted."
-                      : undefined
-                  }
-                />
-              )}
-            </div>
-
-            <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between border-t border-neutral-200 p-5">
+          <div>
+            {reward && (
               <Button
                 type="button"
-                variant="secondary"
-                onClick={() => setIsOpen(false)}
-                text="Cancel"
-                className="w-fit"
-                disabled={isCreating || isUpdating || isDeleting}
-              />
-
-              <Button
-                type="submit"
-                variant="primary"
-                text={reward ? "Update reward" : "Create reward"}
-                className="w-fit"
-                loading={isCreating || isUpdating}
-                disabled={buttonDisabled || isDeleting}
+                variant="outline"
+                text="Remove reward"
+                onClick={onDelete}
+                loading={isDeleting}
+                disabled={!canDeleteReward}
                 disabledTooltip={
-                  selectedPartnerType === "specific" &&
-                  (!partnerIds || partnerIds.length === 0)
-                    ? "Please select at least one partner"
+                  program?.defaultRewardId === reward.id
+                    ? "This is a default reward and cannot be deleted."
                     : undefined
                 }
               />
-            </div>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setIsOpen(false)}
+              text="Cancel"
+              className="w-fit"
+              disabled={isCreating || isUpdating || isDeleting}
+            />
+
+            <Button
+              type="submit"
+              variant="primary"
+              text={reward ? "Update reward" : "Create reward"}
+              className="w-fit"
+              loading={isCreating || isUpdating}
+              disabled={buttonDisabled || isDeleting}
+              disabledTooltip={
+                selectedPartnerType === "specific" &&
+                (!partnerIds || partnerIds.length === 0)
+                  ? "Please select at least one partner"
+                  : undefined
+              }
+            />
           </div>
         </div>
       </form>
