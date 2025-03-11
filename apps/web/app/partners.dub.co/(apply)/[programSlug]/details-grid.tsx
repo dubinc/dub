@@ -32,7 +32,7 @@ export function DetailsGrid({
                 : `${reward.maxDuration} months`,
         },
       ].map(({ icon: Icon, title, value }) => (
-        <div className="rounded-xl bg-neutral-100 p-4">
+        <div key={title} className="rounded-xl bg-neutral-100 p-4">
           <Icon className="size-5 text-neutral-500" />
           <div className="mt-6">
             <p className="font-mono text-xl text-neutral-900">{value}</p>

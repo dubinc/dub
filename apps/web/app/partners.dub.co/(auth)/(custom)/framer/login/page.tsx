@@ -1,22 +1,13 @@
 import { FramerButton } from "@/ui/auth/login/framer-button";
 import { APP_DOMAIN, constructMetadata } from "@dub/utils";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 export const metadata = constructMetadata({
   title: `Sign in to Framer Partners`,
   canonicalUrl: `${APP_DOMAIN}/login`,
 });
 
-export default function CustomPartnerLoginPage({
-  params: { programSlug },
-}: {
-  params: { programSlug: string };
-}) {
-  if (programSlug !== "framer") {
-    redirect("/login");
-  }
-
+export default function CustomPartnerLoginPage() {
   return (
     <div className="mx-auto my-10 flex w-full max-w-sm flex-col gap-8">
       <div className="animate-slide-up-fade relative flex w-auto flex-col items-center [--offset:10px] [animation-duration:1.3s] [animation-fill-mode:both]">
