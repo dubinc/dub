@@ -76,6 +76,7 @@ export const ExportAuditLog = () => {
             <DateRangePicker
               className="w-full sm:min-w-[200px] md:w-fit"
               value={dateRange}
+              disabled={plan !== "enterprise" || loading}
               onChange={(range) => {
                 if (range && range.from && range.to) {
                   setDateRange({ from: range.from, to: range.to });
@@ -88,7 +89,7 @@ export const ExportAuditLog = () => {
             <Button
               text="Export CSV"
               className="w-fit"
-              disabled={plan !== "enterprise"}
+              disabled={plan !== "enterprise" || loading}
               loading={loading}
               {...(plan !== "enterprise" && {
                 disabledTooltip: (
