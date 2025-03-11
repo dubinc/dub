@@ -4,12 +4,14 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
+import z from "@/lib/zod";
 import {
   createCustomerBodySchema,
   CustomerEnrichedSchema,
   CustomerSchema,
   getCustomersQuerySchema,
 } from "@/lib/zod/schemas/customers";
+import { DiscountSchemaWithDeprecatedFields } from "@/lib/zod/schemas/discount";
 import { prisma } from "@dub/prisma";
 import {
   Customer,
@@ -115,7 +117,11 @@ export const GET = withWorkspace(
     });
 
     const responseSchema = includeExpandedFields
-      ? CustomerEnrichedSchema
+      ? CustomerEnrichedSchema.merge(
+          z.object({
+            discount: DiscountSchemaWithDeprecatedFields,
+          }),
+        )
       : CustomerSchema;
 
     return NextResponse.json(
