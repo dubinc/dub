@@ -47,8 +47,8 @@ model Partner {
   twitter           String?
   twitterVerifiedAt DateTime?
 
-  // TODO: Remove after fully payoutsEnabledAt is implemented + backfilled
-  payoutsEnabled Boolean @default(false) /// @deprecated Use payoutsEnabledAt instead
+  linkedin          String?
+  linkedinVerifiedAt DateTime?
 }
 
 model PartnerUser {
