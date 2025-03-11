@@ -390,7 +390,7 @@ export const withWorkspace = (
       }
     },
     {
-      logRequestDetails: ["body", "nextUrl"],
+      logRequestDetails: ["nextUrl"],
     },
   );
 };
