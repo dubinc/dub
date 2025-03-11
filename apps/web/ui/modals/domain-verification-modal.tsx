@@ -90,7 +90,7 @@ function DomainVerificationModalInner({
             const result = await executeAsync();
 
             if (!result?.data?.success || !result.data.websiteVerifiedAt) {
-              toast.error("Failed to verify domain. Please try again later.");
+              toast.error(`Failed to verify domain: ${result?.serverError}`);
               return;
             }
 

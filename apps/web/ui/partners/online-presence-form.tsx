@@ -2,6 +2,7 @@
 
 import { updateOnlinePresenceAction } from "@/lib/actions/partners/update-online-presence";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
 import { DomainVerificationModal } from "@/ui/modals/domain-verification-modal";
 import {
   Button,
@@ -13,6 +14,7 @@ import {
   Twitter,
   YouTube,
 } from "@dub/ui";
+import { getPrettyUrl } from "@dub/utils";
 import { cn } from "@dub/utils/src/functions";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
@@ -23,7 +25,7 @@ import { mutate } from "swr";
 import { z } from "zod";
 
 const onlinePresenceSchema = z.object({
-  website: z.string().url().optional(),
+  website: parseUrlSchemaAllowEmpty().optional(),
   instagram: z.string().optional(),
   tiktok: z.string().optional(),
   youtube: z.string().optional(),
@@ -51,7 +53,7 @@ export function OnlinePresenceForm({
 }: OnlinePresenceFormProps) {
   const form = useForm<OnlinePresenceFormData>({
     defaultValues: {
-      website: partner?.website || undefined,
+      website: partner?.website ? getPrettyUrl(partner.website) : undefined,
       instagram: partner?.instagram || undefined,
       tiktok: partner?.tiktok || undefined,
       youtube: partner?.youtube || undefined,
@@ -122,14 +124,14 @@ export function OnlinePresenceForm({
               label="Website"
               input={
                 <input
-                  type="url"
+                  type="text"
                   className={cn(
                     "block w-full rounded-md focus:outline-none sm:text-sm",
                     errors.website
                       ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                       : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
                   )}
-                  placeholder="https://example.com"
+                  placeholder="example.com"
                   {...register("website")}
                 />
               }
@@ -386,9 +388,12 @@ function VerifyButton({
 
   const loading = !partnerProfile && isValid;
 
-  const isVerified =
-    value === partnerProfile?.[property] &&
-    Boolean(partnerProfile?.[verifiedAtField]);
+  const noChange =
+    property === "website"
+      ? getPrettyUrl(partnerProfile?.[property] ?? "") === getPrettyUrl(value)
+      : partnerProfile?.[property] === value;
+
+  const isVerified = noChange && Boolean(partnerProfile?.[verifiedAtField]);
 
   const [isSaving, setIsSaving] = useState(false);
 

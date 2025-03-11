@@ -4,6 +4,7 @@ import {
   generateCodeChallengeHash,
   generateCodeVerifier,
 } from "@/lib/api/oauth/utils";
+import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
 import { prisma } from "@dub/prisma";
 import { PARTNERS_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { cookies } from "next/headers";
@@ -13,7 +14,7 @@ import { authPartnerActionClient } from "../safe-action";
 import { ONLINE_PRESENCE_PROVIDERS } from "./online-presence-providers";
 
 const updateOnlinePresenceSchema = z.object({
-  website: z.string().url().nullish().or(z.literal("")),
+  website: parseUrlSchemaAllowEmpty().nullish(),
   instagram: z.string().nullish(),
   tiktok: z.string().nullish(),
   youtube: z.string().nullish(),
