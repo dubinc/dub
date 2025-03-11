@@ -113,8 +113,10 @@ export function AddEditDomainForm({
       expiredUrl: props?.expiredUrl,
       notFoundUrl: props?.notFoundUrl,
       placeholder: props?.placeholder,
-      appleAppSiteAssociation: props?.appleAppSiteAssociation,
-      assetLinks: props?.assetLinks,
+      appleAppSiteAssociation: props?.appleAppSiteAssociation
+        ? JSON.parse(props?.appleAppSiteAssociation)
+        : null,
+      assetLinks: props?.assetLinks ? JSON.parse(props?.assetLinks) : null,
     },
   });
 
@@ -192,6 +194,14 @@ export function AddEditDomainForm({
         body: JSON.stringify({
           ...formData,
           ...(formData.logo === props?.logo && { logo: undefined }),
+          ...(formData.assetLinks && {
+            assetLinks: JSON.stringify(formData.assetLinks),
+          }),
+          ...(formData.appleAppSiteAssociation && {
+            appleAppSiteAssociation: JSON.stringify(
+              formData.appleAppSiteAssociation,
+            ),
+          }),
         }),
       });
 

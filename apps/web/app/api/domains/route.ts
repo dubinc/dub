@@ -60,7 +60,15 @@ export const GET = withWorkspace(
     });
 
     const response = domains.map((domain) => ({
-      ...DomainSchema.parse(domain),
+      ...DomainSchema.parse({
+        ...domain,
+        assetLinks: domain.assetLinks
+          ? JSON.stringify(domain.assetLinks)
+          : null,
+        appleAppSiteAssociation: domain.appleAppSiteAssociation
+          ? JSON.stringify(domain.appleAppSiteAssociation)
+          : null,
+      }),
       ...(includeLink &&
         domain.links.length > 0 && {
           link: transformLink({

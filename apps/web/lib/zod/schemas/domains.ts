@@ -42,16 +42,14 @@ export const DomainSchema = z.object({
     )
     .openapi({ example: "https://acme.com/not-found" }),
   assetLinks: z
-    .any()
+    .string()
     .nullable()
-    .transform((v) => (v ? JSON.stringify(v) : null))
     .describe(
       "assetLinks.json configuration file (for deep link support on Android).",
     ),
   appleAppSiteAssociation: z
-    .any()
+    .string()
     .nullable()
-    .transform((v) => (v ? JSON.stringify(v) : null))
     .describe(
       "apple-app-site-association configuration file (for deep link support on iOS).",
     ),
@@ -160,7 +158,6 @@ export const createDomainBodySchema = z.object({
   assetLinks: z
     .string()
     .nullish()
-    .default(null)
     .refine((v) => validateJSON(v))
     .describe(
       "assetLinks.json configuration file (for deep link support on Android).",
@@ -168,7 +165,6 @@ export const createDomainBodySchema = z.object({
   appleAppSiteAssociation: z
     .string()
     .nullish()
-    .default(null)
     .refine((v) => validateJSON(v))
     .describe(
       "apple-app-site-association configuration file (for deep link support on iOS).",
