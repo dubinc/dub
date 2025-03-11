@@ -200,6 +200,8 @@ export interface DomainProps {
   link?: LinkProps;
   registeredDomain?: RegisteredDomainProps;
   logo?: string;
+  appleAppSiteAssociation?: string;
+  assetLinks?: string;
 }
 
 export interface RegisteredDomainProps {

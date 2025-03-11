@@ -110,6 +110,8 @@ export function AddEditDomainForm({
       expiredUrl: props?.expiredUrl,
       notFoundUrl: props?.notFoundUrl,
       placeholder: props?.placeholder,
+      appleAppSiteAssociation: props?.appleAppSiteAssociation,
+      assetLinks: props?.assetLinks,
     },
   });
 
