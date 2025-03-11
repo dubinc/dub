@@ -390,9 +390,12 @@ function useOAuthVerification(source: "onboarding" | "settings") {
           result?.data?.verificationUrls?.[provider]
         ) {
           window.location.href = result.data.verificationUrls[provider];
+          return true;
         }
 
-        return true;
+        toast.error("Failed to start verification");
+        console.error("Failed to start verification", { result });
+        return false;
       } catch (e) {
         toast.error("Failed to start verification");
         console.error("Failed to start verification", e);

@@ -8,6 +8,7 @@ type OnlinePresenceProvider = {
   clientSecret: string | null;
   clientIdParam?: string;
   pkce?: boolean;
+  tokenParamsInUrl?: boolean;
   scopes: string;
   verify: (props: {
     partner: Partner;
@@ -88,11 +89,36 @@ export const ONLINE_PRESENCE_PROVIDERS: Record<string, OnlinePresenceProvider> =
 
         const username = userResponse?.data?.user?.username;
 
-        console.log({ userResponse, user: userResponse?.data?.user, username });
-
         return (
           !!username && partner.tiktok.toLowerCase() === username.toLowerCase()
         );
+      },
+    },
+    linkedin: {
+      verifiedColumn: "linkedinVerifiedAt",
+      authUrl: "https://www.linkedin.com/oauth/v2/authorization",
+      tokenUrl: "https://www.linkedin.com/oauth/v2/accessToken",
+      clientId: process.env.LINKEDIN_CLIENT_ID ?? null,
+      clientSecret: process.env.LINKEDIN_CLIENT_SECRET ?? null,
+      scopes: "openid r_basicprofile",
+      tokenParamsInUrl: true,
+      verify: async ({ partner, accessToken }) => {
+        if (!partner.linkedin) return false;
+
+        // Fetch user info
+        try {
+          const userResponse = await fetch("https://api.linkedin.com/v2/me", {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }).then((r) => r.json());
+
+          // TODO: Use vanityName from response
+        } catch (e) {
+          console.error(e);
+        }
+
+        return false;
       },
     },
   };

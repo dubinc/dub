@@ -53,6 +53,7 @@ export async function GET(req: Request) {
       verify,
       verifiedColumn,
       pkce,
+      tokenParamsInUrl,
       clientIdParam,
     } = ONLINE_PRESENCE_PROVIDERS[provider];
 
@@ -68,22 +69,27 @@ export async function GET(req: Request) {
       );
     }
 
+    const params = new URLSearchParams({
+      [clientIdParam ?? "client_id"]: clientId!,
+      client_secret: clientSecret!,
+      code,
+      redirect_uri: `${PARTNERS_DOMAIN_WITH_NGROK}/api/partners/online-presence/callback`,
+      grant_type: "authorization_code",
+      ...(codeVerifier && { code_verifier: codeVerifier }),
+    }).toString();
+
     // Get access token
-    const result = await fetch(tokenUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`,
+    const result = await fetch(
+      tokenParamsInUrl ? `${tokenUrl}?${params}` : tokenUrl,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`,
+        },
+        body: tokenParamsInUrl ? undefined : params,
       },
-      body: new URLSearchParams({
-        [clientIdParam ?? "client_id"]: clientId!,
-        client_secret: clientSecret!,
-        code,
-        redirect_uri: `${PARTNERS_DOMAIN_WITH_NGROK}/api/partners/online-presence/callback`,
-        grant_type: "authorization_code",
-        ...(codeVerifier && { code_verifier: codeVerifier }),
-      }).toString(),
-    }).then(async (r) => {
+    ).then(async (r) => {
       const text = await r.text();
       try {
         return JSON.parse(text);
