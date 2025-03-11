@@ -138,3 +138,9 @@ export const createWorkspaceSchema = z.object({
 export const updateWorkspaceSchema = createWorkspaceSchema.partial().extend({
   allowedHostnames: z.array(z.string()).optional(),
 });
+
+export const notificationTypes = z.enum([
+  "linkUsageSummary",
+  "domainConfigurationUpdates",
+  "newReferralSale",
+]);
