@@ -36,19 +36,27 @@ export function PartnersTable({
                 `${DICEBEAR_AVATAR_URL}${row.original.name}`
               }
               alt={row.original.name}
-              className="size-6 rounded-full"
+              className="size-6 shrink-0 rounded-full"
             />
-            <span className="text-sm text-neutral-700">
+            <span className="truncate text-sm text-neutral-700">
               {row.original.name}
             </span>
           </div>
         ),
+        size: 150,
+        minSize: 150,
+        maxSize: 150,
       },
       {
         header: "Email",
         cell: ({ row }) => (
-          <div className="text-sm text-neutral-600">{row.original.email}</div>
+          <div className="truncate text-sm text-neutral-600">
+            {row.original.email}
+          </div>
         ),
+        size: 210,
+        minSize: 210,
+        maxSize: 210,
       },
       {
         id: "actions",
@@ -67,6 +75,8 @@ export function PartnersTable({
           </div>
         ),
         size: 50,
+        minSize: 50,
+        maxSize: 50,
       },
     ],
     loading,
