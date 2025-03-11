@@ -6,10 +6,9 @@ import { updateDiscountAction } from "@/lib/actions/partners/update-discount";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useDiscountPartners from "@/lib/swr/use-discount-partners";
-import usePartners from "@/lib/swr/use-partners";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { DiscountProps } from "@/lib/types";
+import { DiscountProps, EnrolledPartnerProps } from "@/lib/types";
 import { createDiscountSchema } from "@/lib/zod/schemas/discount";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import { SelectEligiblePartnersSheet } from "@/ui/partners/select-eligible-partners-sheet";
@@ -25,17 +24,9 @@ import {
   Users,
   useTable,
 } from "@dub/ui";
-import { cn, pluralize } from "@dub/utils";
-import { DICEBEAR_AVATAR_URL } from "@dub/utils/src/constants";
+import { cn, DICEBEAR_AVATAR_URL, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import {
-  Dispatch,
-  SetStateAction,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -45,6 +36,14 @@ interface DiscountSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   discount?: DiscountProps;
   isDefault?: boolean;
+}
+
+interface PartnersTableProps {
+  selectedPartners: EnrolledPartnerProps[];
+  setSelectedPartners: Dispatch<SetStateAction<EnrolledPartnerProps[]>>;
+  loading: boolean;
+  pagination?: any; // TODO: Type this properly
+  setPagination?: any; // TODO: Type this properly
 }
 
 type FormData = z.infer<typeof createDiscountSchema>;
@@ -69,10 +68,8 @@ function DiscountSheetContent({
 }: DiscountSheetProps) {
   const formRef = useRef<HTMLFormElement>(null);
 
-  const { data: allPartners } = usePartners();
   const { id: workspaceId } = useWorkspace();
   const { program, mutate: mutateProgram } = useProgram();
-  const { pagination, setPagination } = usePagination(25);
   const [isAddPartnersOpen, setIsAddPartnersOpen] = useState(false);
 
   const [isRecurring, setIsRecurring] = useState(
@@ -104,10 +101,12 @@ function DiscountSheetContent({
     },
   });
 
-  const [type, partnerIds = []] = watch(["type", "partnerIds"]);
-  const partnersCount = discount?.partnersCount || 0;
+  // Manage discount partners
+  const { pagination, setPagination } = usePagination(25);
+  const [selectedPartners, setSelectedPartners] =
+    useState<EnrolledPartnerProps[]>();
 
-  const { data: discountPartners, loading: isLoadingDiscountPartners } =
+  const { data: discountPartners, loading: discountPartnersLoading } =
     useDiscountPartners({
       query: {
         discountId: discount?.id,
@@ -117,26 +116,22 @@ function DiscountSheetContent({
       enabled: Boolean(discount && program),
     });
 
-  const displayPartners = useMemo(() => {
-    if (discount && discountPartners) {
-      return discountPartners;
-    }
-
-    if (!allPartners) {
-      return [];
-    }
-
-    return allPartners.filter((p) => partnerIds && partnerIds.includes(p.id));
-  }, [discount, discountPartners, allPartners, partnerIds]);
-
   useEffect(() => {
     if (discountPartners) {
+      setSelectedPartners(discountPartners);
+    }
+  }, [discountPartners]);
+
+  useEffect(() => {
+    if (selectedPartners) {
       setValue(
         "partnerIds",
-        discountPartners.map((p) => p.id),
+        selectedPartners.map((partner) => partner.id),
       );
     }
-  }, [discountPartners, setValue]);
+  }, [selectedPartners, setValue]);
+
+  const [type, partnerIds = []] = watch(["type", "partnerIds"]);
 
   const { executeAsync: createDiscount, isPending: isCreating } = useAction(
     createDiscountAction,
@@ -225,63 +220,6 @@ function DiscountSheetContent({
       discountId: discount.id,
     });
   };
-
-  const selectedPartnersTable = useTable({
-    data: displayPartners,
-    columns: [
-      {
-        header: "Partner",
-        cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <img
-              src={
-                row.original.image ||
-                `${DICEBEAR_AVATAR_URL}${row.original.name}`
-              }
-              alt={row.original.name}
-              className="size-6 rounded-full"
-            />
-            <span className="text-sm text-neutral-700">
-              {row.original.name}
-            </span>
-          </div>
-        ),
-      },
-      {
-        header: "Email",
-        cell: ({ row }) => (
-          <div className="text-sm text-neutral-600">{row.original.email}</div>
-        ),
-      },
-      {
-        id: "actions",
-        cell: ({ row }) => (
-          <div className="flex justify-end">
-            <Button
-              variant="secondary"
-              icon={<X className="size-4" />}
-              className="h-8 w-8 rounded-md border-0 bg-neutral-50 p-0"
-              onClick={() => {
-                const newPartnerIds = (partnerIds || []).filter(
-                  (id) => id !== row.original.id,
-                );
-                setValue("partnerIds", newPartnerIds);
-              }}
-            />
-          </div>
-        ),
-        size: 50,
-      },
-    ],
-    thClassName: () => cn("border-l-0"),
-    tdClassName: () => cn("border-l-0"),
-    className: "[&_tr:last-child>td]:border-b-transparent",
-    scrollWrapperClassName: "min-h-[40px]",
-    resourceName: (p) => `eligible partner${p ? "s" : ""}`,
-    pagination: discount ? pagination : undefined,
-    onPaginationChange: discount ? setPagination : undefined,
-    rowCount: discount ? partnersCount || 0 : displayPartners.length,
-  });
 
   const buttonDisabled =
     isCreating ||
@@ -528,27 +466,13 @@ function DiscountSheetContent({
                   />
                 </div>
                 <div className="mt-4">
-                  {isLoadingDiscountPartners ? (
-                    <div className="flex items-center justify-center py-8">
-                      <LoadingSpinner className="size-4" />
-                    </div>
-                  ) : displayPartners.length > 0 ? (
-                    <Table {...selectedPartnersTable} />
-                  ) : (
-                    <div className="flex flex-col items-center justify-center gap-4 rounded-lg bg-neutral-50 py-12">
-                      <div className="flex items-center justify-center">
-                        <Users className="size-6 text-neutral-800" />
-                      </div>
-                      <div className="flex flex-col items-center gap-1 px-4 text-center">
-                        <p className="text-base font-medium text-neutral-900">
-                          Eligible partners
-                        </p>
-                        <p className="text-sm text-neutral-600">
-                          No eligible partners added yet
-                        </p>
-                      </div>
-                    </div>
-                  )}
+                  <PartnersTable
+                    selectedPartners={selectedPartners || []}
+                    setSelectedPartners={setSelectedPartners}
+                    loading={discountPartnersLoading}
+                    pagination={pagination}
+                    setPagination={setPagination}
+                  />
                 </div>
               </div>
             )}
@@ -600,13 +524,8 @@ function DiscountSheetContent({
       <SelectEligiblePartnersSheet
         isOpen={isAddPartnersOpen}
         setIsOpen={setIsAddPartnersOpen}
-        selectedPartnerIds={partnerIds || []}
-        onSelect={(ids) => {
-          const existingIds = partnerIds || [];
-          const newIds = ids.filter((id) => !existingIds.includes(id));
-          const combinedIds = [...existingIds, ...newIds];
-          setValue("partnerIds", combinedIds);
-        }}
+        existingPartners={selectedPartners || []}
+        onSelect={setSelectedPartners}
       />
     </>
   );
@@ -638,4 +557,99 @@ export function useDiscountSheet(
     ),
     setIsOpen,
   };
+}
+
+function PartnersTable({
+  selectedPartners,
+  setSelectedPartners,
+  loading,
+  pagination,
+  setPagination,
+}: PartnersTableProps) {
+  const partnersCount = selectedPartners?.length || 0;
+
+  const table = useTable({
+    data: selectedPartners,
+    columns: [
+      {
+        header: "Partner",
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            <img
+              src={
+                row.original.image ||
+                `${DICEBEAR_AVATAR_URL}${row.original.name}`
+              }
+              alt={row.original.name}
+              className="size-6 rounded-full"
+            />
+            <span className="text-sm text-neutral-700">
+              {row.original.name}
+            </span>
+          </div>
+        ),
+      },
+      {
+        header: "Email",
+        cell: ({ row }) => (
+          <div className="text-sm text-neutral-600">{row.original.email}</div>
+        ),
+      },
+      {
+        id: "actions",
+        cell: ({ row }) => (
+          <div className="flex justify-end">
+            <Button
+              variant="secondary"
+              icon={<X className="size-4" />}
+              className="h-8 w-8 rounded-md border-0 bg-neutral-50 p-0"
+              onClick={() => {
+                setSelectedPartners((prev) =>
+                  prev.filter((p) => p.id !== row.original.id),
+                );
+              }}
+            />
+          </div>
+        ),
+        size: 50,
+      },
+    ],
+    loading,
+    thClassName: () => cn("border-l-0"),
+    tdClassName: () => cn("border-l-0"),
+    className: "[&_tr:last-child>td]:border-b-transparent",
+    scrollWrapperClassName: "min-h-[40px]",
+    resourceName: (p) => `eligible partner${p ? "s" : ""}`,
+    pagination,
+    onPaginationChange: setPagination,
+    rowCount: partnersCount,
+  });
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center rounded-lg border border-neutral-200 bg-white py-8">
+        <LoadingSpinner className="size-4" />
+      </div>
+    );
+  }
+
+  if (partnersCount === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-neutral-200 bg-neutral-50 py-10">
+        <div className="flex items-center justify-center">
+          <Users className="size-5 text-neutral-500" />
+        </div>
+        <div className="flex flex-col items-center gap-1 px-4 text-center">
+          <p className="text-sm font-medium text-neutral-600">
+            Eligible partners
+          </p>
+          <p className="text-sm text-neutral-500">
+            No eligible partners added yet
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return <Table {...table} />;
 }
