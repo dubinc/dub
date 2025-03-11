@@ -19,15 +19,15 @@ import { useDebounce } from "use-debounce";
 interface SheetProps {
   isOpen: boolean;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
-  onSelect: (partnerIds: string[]) => void;
-  selectedPartnerIds: string[];
+  onSelect: (partners: EnrolledPartnerProps[]) => void;
+  existingPartners: EnrolledPartnerProps[];
 }
 
 export function SelectEligiblePartnersSheet({
   isOpen,
   setIsOpen,
   onSelect,
-  selectedPartnerIds,
+  existingPartners,
 }: SheetProps) {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
@@ -118,17 +118,22 @@ export function SelectEligiblePartnersSheet({
   });
 
   useEffect(() => {
-    if (partners && selectedPartnerIds.length > 0) {
+    if (partners && existingPartners.length > 0) {
       const selectedRows = partners.filter((p) =>
-        selectedPartnerIds.includes(p.id),
+        existingPartners.some((ep) => ep.id === p.id),
       );
+
       setSelectedPartners(selectedRows);
+
       const rowsToSelect = table.table
         .getRowModel()
-        .rows.filter((row) => selectedPartnerIds.includes(row.original.id));
+        .rows.filter((row) =>
+          existingPartners.some((ep) => ep.id === row.original.id),
+        );
+
       rowsToSelect.forEach((row) => row.toggleSelected(true));
     }
-  }, [partners, selectedPartnerIds, table.table]);
+  }, [partners, existingPartners, table.table]);
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -195,7 +200,7 @@ export function SelectEligiblePartnersSheet({
               text="Add"
               className="w-fit"
               onClick={() => {
-                onSelect(selectedPartners.map((p) => p.id));
+                onSelect(selectedPartners);
                 setIsOpen(false);
               }}
               disabled={selectedPartners.length === 0}

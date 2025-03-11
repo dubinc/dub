@@ -5,12 +5,11 @@ import { deleteRewardAction } from "@/lib/actions/partners/delete-reward";
 import { updateRewardAction } from "@/lib/actions/partners/update-reward";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
-import usePartners from "@/lib/swr/use-partners";
 import useProgram from "@/lib/swr/use-program";
 import useRewardPartners from "@/lib/swr/use-reward-partners";
 import useRewards from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { EnrolledPartnerProps, ProgramProps, RewardProps } from "@/lib/types";
+import { EnrolledPartnerProps, RewardProps } from "@/lib/types";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import { createRewardSchema } from "@/lib/zod/schemas/rewards";
 import { SelectEligiblePartnersSheet } from "@/ui/partners/select-eligible-partners-sheet";
@@ -41,19 +40,6 @@ interface RewardSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   event: EventType;
   reward?: RewardProps;
-}
-
-interface PartnersTableProps {
-  selectedPartners: EnrolledPartnerProps[];
-  setSelectedPartners: Dispatch<SetStateAction<EnrolledPartnerProps[]>>;
-  reward?: RewardProps;
-  program?: ProgramProps;
-
-  // partnerIds: string[] | null;
-  // setValue: any; // TODO: Type this properly with UseFormSetValue
-  // pagination?: any; // TODO: Type this properly
-  // setPagination?: any; // TODO: Type this properly
-  // partnersCount: number;
 }
 
 type FormData = z.infer<typeof createRewardSchema>;
@@ -98,9 +84,6 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
   const [isRecurring, setIsRecurring] = useState(
     reward ? reward.maxDuration !== 0 : false,
   );
-
-  const [selectedPartners, setSelectedPartners] =
-    useState<EnrolledPartnerProps[]>();
 
   const {
     register,
@@ -247,6 +230,30 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
       rewardId: reward.id,
     });
   };
+
+  // Manage reward partners
+  const [selectedPartners, setSelectedPartners] =
+    useState<EnrolledPartnerProps[]>();
+
+  const { pagination, setPagination } = usePagination(25);
+
+  const { data: rewardPartners, loading: rewardPartnersLoading } =
+    useRewardPartners({
+      query: {
+        rewardId: reward?.id,
+        pageSize: pagination.pageSize,
+        page: pagination.pageIndex || 1,
+      },
+      enabled: Boolean(reward && program),
+    });
+
+  useEffect(() => {
+    if (rewardPartners) {
+      setSelectedPartners(rewardPartners);
+    }
+  }, [rewardPartners]);
+
+  ///
 
   const hasDefaultReward = !!program?.defaultRewardId;
 
@@ -578,8 +585,9 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                   <PartnersTable
                     selectedPartners={selectedPartners || []}
                     setSelectedPartners={setSelectedPartners}
-                    reward={reward}
-                    program={program}
+                    loading={rewardPartnersLoading}
+                    pagination={pagination}
+                    setPagination={setPagination}
                   />
                 </div>
               </div>
@@ -639,13 +647,8 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
       <SelectEligiblePartnersSheet
         isOpen={isAddPartnersOpen}
         setIsOpen={setIsAddPartnersOpen}
-        selectedPartnerIds={watch("partnerIds") || []}
-        onSelect={(ids) => {
-          const existingIds = partnerIds || [];
-          const newIds = ids.filter((id) => !existingIds.includes(id));
-          const combinedIds = [...existingIds, ...newIds];
-          setValue("partnerIds", combinedIds);
-        }}
+        existingPartners={selectedPartners || []}
+        onSelect={setSelectedPartners}
       />
     </>
   );
@@ -679,31 +682,22 @@ export function useRewardSheet(
   };
 }
 
+interface PartnersTableProps {
+  selectedPartners: EnrolledPartnerProps[];
+  setSelectedPartners: Dispatch<SetStateAction<EnrolledPartnerProps[]>>;
+  loading: boolean;
+  pagination?: any; // TODO: Type this properly
+  setPagination?: any; // TODO: Type this properly
+}
+
 function PartnersTable({
   selectedPartners,
   setSelectedPartners,
-  reward,
-  program,
+  loading,
+  pagination,
+  setPagination,
 }: PartnersTableProps) {
-  const { data: partners } = usePartners();
-  const { pagination, setPagination } = usePagination(25);
-
-  const { data: rewardPartners, loading } = useRewardPartners({
-    query: {
-      rewardId: reward?.id,
-      pageSize: pagination.pageSize,
-      page: pagination.pageIndex || 1,
-    },
-    enabled: Boolean(reward && program),
-  });
-
-  useEffect(() => {
-    if (rewardPartners) {
-      setSelectedPartners(rewardPartners);
-    }
-  }, [rewardPartners]);
-
-  const partnersCount = rewardPartners?.length || 0;
+  const partnersCount = selectedPartners?.length || 0;
 
   const table = useTable({
     data: selectedPartners,
@@ -775,7 +769,7 @@ function PartnersTable({
     );
   }
 
-  if (rewardPartners?.length === 0) {
+  if (partnersCount === 0) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-neutral-200 bg-neutral-50 py-10">
         <div className="flex items-center justify-center">
