@@ -39,7 +39,7 @@ export default function NotificationsSettingsPageClient() {
               icon: DollarSign,
               title: "New referral sales",
               description:
-                "Alert when a new sale is made on your referral program.",
+                "Alert when a new sale is made in your partner program.",
             },
           ]
         : []),
