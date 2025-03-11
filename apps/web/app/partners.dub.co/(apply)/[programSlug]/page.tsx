@@ -1,12 +1,11 @@
 import { getProgram } from "@/lib/fetchers/get-program";
-import { getReward } from "@/lib/fetchers/get-reward";
 import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { BLOCK_COMPONENTS } from "@/ui/partners/lander-blocks";
+import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import { cn } from "@dub/utils";
 import { notFound } from "next/navigation";
 import { CSSProperties } from "react";
 import { ApplyButton } from "./apply-button";
-import { DetailsGrid } from "./details-grid";
 import { Header } from "./header";
 
 export default async function ApplyPage({
@@ -14,13 +13,15 @@ export default async function ApplyPage({
 }: {
   params: { programSlug: string };
 }) {
-  const program = await getProgram({ slug: programSlug });
+  const program = await getProgram({
+    slug: programSlug,
+    include: ["rewards", "defaultDiscount"],
+  });
 
   if (!program || !program.landerData || !program.defaultRewardId) {
     notFound();
   }
 
-  const reward = await getReward({ id: program.defaultRewardId });
   const landerData = programLanderSchema.parse(program.landerData);
 
   return (
@@ -79,10 +80,16 @@ export default async function ApplyPage({
         </div>
 
         {/* Program details grid */}
-        <DetailsGrid
-          reward={reward}
-          className="animate-slide-up-fade mt-10 [animation-delay:300ms] [animation-duration:1s] [animation-fill-mode:both]"
-        />
+        <div className="mt-10">
+          <h2 className="mb-2 text-base font-semibold text-neutral-800">
+            Rewards
+          </h2>
+          <ProgramRewardList
+            rewards={program.rewards}
+            discount={program.defaultDiscount}
+            className="bg-neutral-100"
+          />
+        </div>
 
         {/* Buttons */}
         <div className="animate-scale-in-fade mt-10 flex flex-col gap-2 [animation-delay:400ms] [animation-fill-mode:both]">
