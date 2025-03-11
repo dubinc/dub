@@ -35,6 +35,9 @@ export function SelectEligiblePartnersSheet({
   const [selectedPartners, setSelectedPartners] =
     useState<EnrolledPartnerProps[]>(existingPartners);
 
+  console.log("selectedPartners", selectedPartners);
+  console.log("existingPartners", existingPartners);
+
   const {
     data: partners,
     error: partnersError,
@@ -103,7 +106,7 @@ export function SelectEligiblePartnersSheet({
     tdClassName: (id) => cn(id === "total" && "text-right", "border-l-0"),
     className: "[&_tr:last-child>td]:border-b-transparent",
     scrollWrapperClassName: "min-h-[40px]",
-    resourceName: (p) => `eligible partner${p ? "s" : ""}`,
+    resourceName: (p) => `partner${p ? "s" : ""}`,
     loading,
     error:
       partnersError || partnersCountError
