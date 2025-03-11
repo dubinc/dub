@@ -106,7 +106,7 @@ export function Header() {
         >
           <Menu className="h-5 w-5 text-neutral-600" />
         </button>
-        <Link href="/" className="flex items-center">
+        <Link href={`/${workspaceSlug}`} className="flex items-center">
           <Wordmark className="h-7" />
         </Link>
         <h1 className="hidden text-base font-semibold text-neutral-700 md:block">
@@ -115,8 +115,8 @@ export function Header() {
       </div>
       <div className="flex items-center gap-2">
         <Link
-          href="/"
-          className="group flex h-7 w-auto items-center justify-center gap-2 whitespace-nowrap rounded-md border border-transparent px-4 text-sm text-neutral-600 transition-all hover:bg-neutral-100"
+          href={`/${workspaceSlug}`}
+          className="group flex h-8 w-auto items-center justify-center gap-2 whitespace-nowrap rounded-md border border-transparent px-4 text-sm text-neutral-600 transition-all hover:bg-neutral-100"
         >
           Cancel
         </Link>
