@@ -61,12 +61,20 @@ export const PATCH = withWorkspace(
     } = updateDomainBodySchema.parse(await parseRequestBody(req));
 
     if (workspace.plan === "free") {
-      if (logo || expiredUrl || notFoundUrl) {
+      if (
+        logo ||
+        expiredUrl ||
+        notFoundUrl ||
+        assetLinks ||
+        appleAppSiteAssociation
+      ) {
         const proFeaturesString = combineWords(
           [
             logo && "custom QR code logos",
             expiredUrl && "default expiration URLs",
             notFoundUrl && "not found URLs",
+            assetLinks && "asset links",
+            appleAppSiteAssociation && "Apple App Site Association",
           ].filter(Boolean) as string[],
         );
 
