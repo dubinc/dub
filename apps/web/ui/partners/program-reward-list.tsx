@@ -19,7 +19,7 @@ export function ProgramRewardList({
   return (
     <ul
       className={cn(
-        "flex flex-col gap-4 rounded-md border border-neutral-200 bg-white p-4",
+        "flex flex-col gap-4 rounded-md border border-neutral-200 bg-white p-4 text-neutral-600",
         className,
       )}
     >
@@ -61,8 +61,8 @@ export function ProgramRewardList({
 
 const Item = ({ icon: Icon, children }: PropsWithChildren<{ icon: Icon }>) => {
   return (
-    <li className="flex items-center gap-2 text-sm text-neutral-600">
-      <Icon className="size-4" />
+    <li className="flex items-start gap-2 text-sm leading-tight">
+      <Icon className="size-4 shrink-0 translate-y-px" />
       <div>{children}</div>
     </li>
   );

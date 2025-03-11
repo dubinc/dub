@@ -12,6 +12,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     {
       includeDefaultDiscount: true,
       includeDefaultReward: true,
+      includeRewards: true,
     },
   );
 

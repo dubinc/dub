@@ -1,5 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { cache } from "react";
+import { getTopProgramRewards } from "../partners/get-top-program-rewards";
 
 export const getProgram = cache(
   async ({
@@ -29,13 +30,8 @@ export const getProgram = cache(
       },
     });
 
-    if (program && include?.includes("rewards")) {
-      program.rewards = ["click", "lead", "sale"]
-        .map((event) =>
-          program?.rewards.find((reward) => reward.event === event),
-        )
-        .filter((reward) => reward !== undefined && reward !== null);
-    }
+    if (program && include?.includes("rewards"))
+      program.rewards = getTopProgramRewards(program.rewards);
 
     return program;
   },
