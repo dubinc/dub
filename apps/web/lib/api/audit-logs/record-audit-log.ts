@@ -4,16 +4,16 @@ import { ipAddress } from "@vercel/functions";
 import { headers } from "next/headers";
 import { z } from "zod";
 import { getIP } from "../utils";
-import { auditLogSchemaTB } from "./schemas";
+import { createAuditLogSchema } from "./schemas";
 
 export const recordAuditLogTB = tb.buildIngestEndpoint({
   datasource: "dub_audit_logs",
-  event: auditLogSchemaTB,
+  event: createAuditLogSchema,
   wait: true,
 });
 
 export const recordAuditLog = async (
-  auditLog: z.input<typeof auditLogSchemaTB> & {
+  auditLog: z.input<typeof createAuditLogSchema> & {
     req?: Request;
   },
 ) => {
@@ -29,7 +29,7 @@ export const recordAuditLog = async (
     timestamp: new Date().toISOString(),
   };
 
-  if(process.env.NODE_ENV === "development") {
+  if (process.env.NODE_ENV === "development") {
     console.log("Recording audit log", auditLogTB);
   }
 

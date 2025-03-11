@@ -1,0 +1,49 @@
+import { tb } from "@/lib/tinybird";
+import { z } from "zod";
+import { auditLogExportQuerySchema, AuditLogSchema } from "./schemas";
+
+export const auditLogFilterSchemaTB = z.object({
+  workspaceId: z.string(),
+  programId: z.string().optional(),
+  start: z.string(),
+  end: z.string(),
+});
+
+export const auditLogResponseSchemaTB = AuditLogSchema.pick({
+  id: true,
+  action: true,
+  actor_type: true,
+  actor_id: true,
+  actor_name: true,
+  description: true,
+  ip: true,
+  user_agent: true,
+  timestamp: true,
+});
+
+type AuditLogFilters = z.infer<typeof auditLogExportQuerySchema> & {
+  workspaceId: string;
+  programId?: string;
+};
+
+export const getAuditLogs = async ({
+  workspaceId,
+  programId,
+  start,
+  end,
+}: AuditLogFilters) => {
+  const pipe = tb.buildPipe({
+    pipe: "audit_logs",
+    parameters: auditLogFilterSchemaTB,
+    data: auditLogResponseSchemaTB,
+  });
+
+  const events = await pipe({
+    workspaceId,
+    programId,
+    start: start.toISOString().replace("T", " ").replace("Z", ""),
+    end: end.toISOString().replace("T", " ").replace("Z", ""),
+  });
+
+  return events.data;
+};

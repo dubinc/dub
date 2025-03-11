@@ -1,4 +1,5 @@
-import { nanoid } from "@dub/utils";
+import { parseDateSchema } from "@/lib/zod/schemas/utils";
+import { DUB_FOUNDING_DATE, formatDate, nanoid } from "@dub/utils";
 import { z } from "zod";
 
 const actions = z.enum([
@@ -40,7 +41,7 @@ const target = z.object({
   type: targetTypes,
 });
 
-export const AuditLog = z.object({
+export const AuditLogSchema = z.object({
   id: z.string(),
   workspace_id: z.string(),
   program_id: z.string(),
@@ -55,7 +56,8 @@ export const AuditLog = z.object({
   timestamp: z.string(),
 });
 
-export const auditLogSchemaTB = z.object({
+
+export const createAuditLogSchema = z.object({
   id: z.string().optional().default(nanoid(16)),
   workspace_id: z.string(),
   program_id: z.string(),
@@ -72,3 +74,13 @@ export const auditLogSchemaTB = z.object({
   user_agent: z.string().optional().default(""),
   timestamp: z.string().optional().default(new Date().toISOString()),
 });
+
+export const auditLogExportQuerySchema = z.object({
+  start: parseDateSchema.refine((value: Date) => value >= DUB_FOUNDING_DATE, {
+    message: `The start date cannot be earlier than ${formatDate(
+      DUB_FOUNDING_DATE,
+    )}.`,
+  }),
+  end: parseDateSchema,
+});
+
