@@ -151,7 +151,7 @@ const PayoutTableInner = memo(
             <AmountRowItem
               amount={row.original.amount}
               status={row.original.status}
-              payoutsEnabled={row.original.partner.payoutsEnabled}
+              payoutsEnabled={Boolean(row.original.partner.payoutsEnabledAt)}
             />
           ),
         },

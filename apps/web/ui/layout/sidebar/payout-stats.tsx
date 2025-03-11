@@ -33,7 +33,7 @@ export function PayoutStats() {
           <div className="grid gap-1 text-sm">
             <p className="text-neutral-500">Upcoming payouts</p>
             <div className="flex items-center gap-2">
-              {partner && !partner.payoutsEnabled && (
+              {partner && !partner.payoutsEnabledAt && (
                 <Tooltip
                   content="You need to set up your Stripe payouts account to be able to receive payouts from the programs you are enrolled in."
                   side="right"
@@ -77,7 +77,7 @@ export function PayoutStats() {
             )}
           </div>
         </div>
-        {partner && !partner.payoutsEnabled && (
+        {partner && !partner.payoutsEnabledAt && (
           <StripeConnectButton
             className="mt-4 h-9 w-full"
             text="Connect payouts"
