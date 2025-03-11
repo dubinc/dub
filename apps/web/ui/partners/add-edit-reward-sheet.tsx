@@ -42,6 +42,14 @@ interface RewardSheetProps {
   reward?: RewardProps;
 }
 
+interface PartnersTableProps {
+  selectedPartners: EnrolledPartnerProps[];
+  setSelectedPartners: Dispatch<SetStateAction<EnrolledPartnerProps[]>>;
+  loading: boolean;
+  pagination?: any; // TODO: Type this properly
+  setPagination?: any; // TODO: Type this properly
+}
+
 type FormData = z.infer<typeof createRewardSchema>;
 
 const partnerTypes = [
@@ -251,6 +259,15 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
       setSelectedPartners(rewardPartners);
     }
   }, [rewardPartners]);
+
+  useEffect(() => {
+    if (selectedPartners) {
+      setValue(
+        "partnerIds",
+        selectedPartners.map((partner) => partner.id),
+      );
+    }
+  }, [selectedPartners, setValue]);
 
   const hasDefaultReward = !!program?.defaultRewardId;
 
@@ -677,14 +694,6 @@ export function useRewardSheet(
     ),
     setIsOpen,
   };
-}
-
-interface PartnersTableProps {
-  selectedPartners: EnrolledPartnerProps[];
-  setSelectedPartners: Dispatch<SetStateAction<EnrolledPartnerProps[]>>;
-  loading: boolean;
-  pagination?: any; // TODO: Type this properly
-  setPagination?: any; // TODO: Type this properly
 }
 
 function PartnersTable({
