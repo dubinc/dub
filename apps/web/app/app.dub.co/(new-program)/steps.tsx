@@ -1,5 +1,7 @@
 "use client";
 
+import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
+import { ProgramData } from "@/lib/types";
 import { PROGRAM_ONBOARDING_STEPS } from "@/lib/zod/schemas/program-onboarding";
 import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -14,15 +16,26 @@ export function Steps() {
   const { isMobile } = useMediaQuery();
   const { isOpen, setIsOpen } = useSidebar();
   const { slug } = useParams<{ slug: string }>();
+  const [programOnboarding] =
+    useWorkspaceStore<ProgramData>("programOnboarding");
 
   useEffect(() => {
     document.body.style.overflow = isOpen && isMobile ? "hidden" : "auto";
   }, [isOpen, isMobile]);
 
   const currentPath = pathname.replace(`/${slug}`, "");
+
+  const lastCompletedStep =
+    programOnboarding?.lastCompletedStep ?? "get-started";
+
   const currentStepNumber =
     PROGRAM_ONBOARDING_STEPS.find((s) => s.href === currentPath)?.stepNumber ||
     1;
+
+  const lastCompletedStepNumber = lastCompletedStep
+    ? PROGRAM_ONBOARDING_STEPS.find((s) => s.step === lastCompletedStep)
+        ?.stepNumber || 0
+    : 0;
 
   return (
     <>
@@ -60,10 +73,37 @@ export function Steps() {
               {PROGRAM_ONBOARDING_STEPS.map(
                 ({ step, label, href, stepNumber }) => {
                   const current = currentPath === href;
+
                   const completed =
                     currentPath !== href && stepNumber < currentStepNumber;
 
-                  return (
+                  const isDisabled = stepNumber > lastCompletedStepNumber + 1;
+
+                  return isDisabled ? (
+                    <div
+                      key={step}
+                      className={cn(
+                        "flex items-center gap-2 rounded-md px-3 py-2",
+                        "cursor-not-allowed opacity-60",
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          "flex h-5 w-5 items-center justify-center rounded-full text-xs",
+                          "bg-neutral-200 text-neutral-500",
+                        )}
+                      >
+                        {stepNumber === 5 ? (
+                          <Lock className="size-3" />
+                        ) : (
+                          stepNumber
+                        )}
+                      </div>
+                      <span className="text-sm font-medium text-neutral-400">
+                        {label}
+                      </span>
+                    </div>
+                  ) : (
                     <Link
                       key={step}
                       href={`/${slug}${href}`}
