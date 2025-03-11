@@ -112,6 +112,7 @@ export default function LoginForm({
     {
       method: "google",
       component: GoogleButton,
+      props: { redirectTo },
     },
     {
       method: "github",
