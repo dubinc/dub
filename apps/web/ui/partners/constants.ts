@@ -1,5 +1,4 @@
-import { CursorRays, MoneyBill } from "@dub/ui/icons";
-import { UserPlus } from "lucide-react";
+import { CursorRays, InvoiceDollar, UserPlus } from "@dub/ui/icons";
 
 export const REWARD_EVENTS = {
   click: {
@@ -17,7 +16,7 @@ export const REWARD_EVENTS = {
     eventName: "signup",
   },
   sale: {
-    icon: MoneyBill,
+    icon: InvoiceDollar,
     text: "Sale reward",
     event: "sale",
     shortcut: "S",

@@ -66,7 +66,7 @@ export const ProgramEnrollmentSchema = z.object({
   program: ProgramSchema,
   status: z.nativeEnum(ProgramEnrollmentStatus),
   links: z.array(ProgramPartnerLinkSchema).nullable(),
-  reward: RewardSchema.nullish(),
+  rewards: z.array(RewardSchema).nullish(),
   discount: DiscountSchema.nullish(),
   createdAt: z.date(),
 });
