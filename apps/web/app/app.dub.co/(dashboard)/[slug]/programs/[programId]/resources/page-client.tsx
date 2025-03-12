@@ -3,6 +3,7 @@
 import { deleteProgramResourceAction } from "@/lib/actions/partners/program-resources/delete-program-resource";
 import useProgramResources from "@/lib/swr/use-program-resources";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { PROGRAM_RESOURCE_TYPES } from "@/lib/zod/schemas/program-resources";
 import { ThreeDots } from "@/ui/shared/icons";
 import {
   AnimatedSizeContainer,
@@ -19,8 +20,37 @@ import { toast } from "sonner";
 import { useAddLogoModal } from "./add-logo-modal";
 
 export function ProgramResourcesPageClient() {
+  const { programId } = useParams();
+  const { id: workspaceId } = useWorkspace();
+
   const { resources, mutate } = useProgramResources();
   const { setShowAddLogoModal, AddLogoModal } = useAddLogoModal();
+
+  const { executeAsync } = useAction(deleteProgramResourceAction, {
+    onSuccess: ({ input }) => {
+      toast.success(`${capitalize(input.resourceType)} deleted successfully`);
+      mutate();
+    },
+    onError: ({ input, error }) => {
+      toast.error(
+        error.serverError || `Failed to delete ${input.resourceType}`,
+      );
+    },
+  });
+
+  const handleDelete = async (
+    resourceType: (typeof PROGRAM_RESOURCE_TYPES)[number],
+    resourceId: string,
+  ) => {
+    const result = await executeAsync({
+      workspaceId: workspaceId as string,
+      programId: programId as string,
+      resourceType,
+      resourceId,
+    });
+
+    return !!result?.data?.success;
+  };
 
   return (
     <>
@@ -48,7 +78,7 @@ export function ProgramResourcesPageClient() {
               }
               title={logo.name || "Logo"}
               description={formatFileSize(logo.size, 0)}
-              onDelete={() => mutate()}
+              onDelete={() => handleDelete("logo", logo.id)}
             />
           ))}
         </Section>
@@ -125,33 +155,10 @@ function ResourceCard({
   title: string;
   description: string;
   icon: ReactNode;
-  onDelete?: () => void;
+  onDelete?: () => Promise<boolean>;
 }) {
-  const { programId } = useParams();
-  const { id: workspaceId } = useWorkspace();
   const [openPopover, setOpenPopover] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-
-  const { executeAsync } = useAction(deleteProgramResourceAction, {
-    onSuccess: () => {
-      toast.success(`${capitalize(resourceType)} deleted successfully`);
-      onDelete?.();
-    },
-    onError: ({ error }) => {
-      toast.error(error.serverError || `Failed to delete ${resourceType}`);
-      setIsDeleting(false);
-    },
-  });
-
-  const handleDelete = async () => {
-    setIsDeleting(true);
-    await executeAsync({
-      workspaceId: workspaceId as string,
-      programId: programId as string,
-      resourceType,
-      resourceId,
-    });
-  };
 
   return (
     <div className="flex w-full items-center justify-between gap-4 rounded-lg border border-neutral-200 p-4">
@@ -165,51 +172,57 @@ function ResourceCard({
         </div>
       </div>
       <div className="relative">
-        <Popover
-          content={
-            <div className="w-full sm:w-48">
-              <div className="grid gap-px p-2">
-                <Button
-                  text={`Delete ${resourceType}`}
-                  variant="danger-outline"
-                  onClick={() => {
-                    setOpenPopover(false);
+        {onDelete && (
+          <Popover
+            content={
+              <div className="w-full sm:w-48">
+                <div className="grid gap-px p-2">
+                  <Button
+                    text={`Delete ${resourceType}`}
+                    variant="danger-outline"
+                    onClick={async () => {
+                      setOpenPopover(false);
 
-                    if (
-                      !confirm("Are you sure you want to delete this resource?")
-                    )
-                      return;
+                      if (
+                        !confirm(
+                          "Are you sure you want to delete this resource?",
+                        )
+                      )
+                        return;
 
-                    handleDelete();
-                  }}
-                  icon={<Trash className="size-4" />}
-                  className="h-9 justify-start px-2 font-medium"
-                />
+                      setIsDeleting(true);
+                      const success = await onDelete();
+                      if (success) setIsDeleting(false);
+                    }}
+                    icon={<Trash className="size-4" />}
+                    className="h-9 justify-start px-2 font-medium"
+                  />
+                </div>
               </div>
-            </div>
-          }
-          align="end"
-          openPopover={openPopover}
-          setOpenPopover={setOpenPopover}
-        >
-          <Button
-            variant="secondary"
-            className={cn(
-              "h-8 px-1.5 text-neutral-500 outline-none transition-all duration-200",
-              "border-transparent data-[state=open]:border-neutral-500 sm:group-hover/card:data-[state=closed]:border-neutral-200",
-            )}
-            icon={
-              isDeleting ? (
-                <LoadingSpinner className="size-4 shrink-0" />
-              ) : (
-                <ThreeDots className="size-4 shrink-0" />
-              )
             }
-            onClick={() => {
-              setOpenPopover(!openPopover);
-            }}
-          />
-        </Popover>
+            align="end"
+            openPopover={openPopover}
+            setOpenPopover={setOpenPopover}
+          >
+            <Button
+              variant="secondary"
+              className={cn(
+                "h-8 px-1.5 text-neutral-500 outline-none transition-all duration-200",
+                "border-transparent data-[state=open]:border-neutral-500 sm:group-hover/card:data-[state=closed]:border-neutral-200",
+              )}
+              icon={
+                isDeleting ? (
+                  <LoadingSpinner className="size-4 shrink-0" />
+                ) : (
+                  <ThreeDots className="size-4 shrink-0" />
+                )
+              }
+              onClick={() => {
+                setOpenPopover(!openPopover);
+              }}
+            />
+          </Popover>
+        )}
       </div>
     </div>
   );
