@@ -9,6 +9,7 @@ import { getClickEvent, recordLead, recordLeadSync } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
+import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import {
   trackLeadRequestSchema,
   trackLeadResponseSchema,
@@ -18,6 +19,9 @@ import { nanoid } from "@dub/utils";
 import { Customer } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
+import { z } from "zod";
+
+type ClickData = z.infer<typeof clickEventSchemaTB>;
 
 // POST /api/track/lead – Track a lead conversion event
 export const POST = withWorkspace(
@@ -69,16 +73,33 @@ export const POST = withWorkspace(
     }
 
     // Find click event
+    let clickData: ClickData | null = null;
     const clickEvent = await getClickEvent({ clickId });
 
-    if (!clickEvent || clickEvent.data.length === 0) {
+    if (clickEvent && clickEvent.data && clickEvent.data.length > 0) {
+      clickData = clickEvent.data[0];
+    }
+
+    if (!clickData) {
+      clickData = await redis.get<ClickData>(`click:${clickId}`);
+
+      if (clickData) {
+        clickData = {
+          ...clickData,
+          timestamp: clickData.timestamp.replace("T", " ").replace("Z", ""),
+          qr: clickData.qr ? 1 : 0,
+          bot: clickData.bot ? 1 : 0,
+        };
+      }
+    }
+
+    if (!clickData) {
       throw new DubApiError({
         code: "not_found",
         message: `Click event not found for clickId: ${clickId}`,
       });
     }
 
-    const clickData = clickEvent.data[0];
     const finalCustomerName =
       customerName || customerEmail || generateRandomName();
     const leadEventId = nanoid(16);
