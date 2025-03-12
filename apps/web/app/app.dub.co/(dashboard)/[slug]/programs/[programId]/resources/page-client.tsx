@@ -151,7 +151,7 @@ function Section({
   const { isLoading, isValidating } = useProgramResources();
 
   return (
-    <div className="grid grid-cols-1 rounded-lg border border-neutral-200 p-6 sm:grid-cols-2">
+    <div className="grid grid-cols-1 gap-4 rounded-lg border border-neutral-200 p-4 sm:grid-cols-2 sm:p-6">
       <div>
         <h2 className="text-lg font-semibold text-neutral-900">{title}</h2>
         <p className="text-sm text-neutral-600">{description}</p>
