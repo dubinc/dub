@@ -3,7 +3,7 @@
 import { deleteProgramResourceAction } from "@/lib/actions/partners/program-resources/delete-program-resource";
 import useProgramResources from "@/lib/swr/use-program-resources";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { PROGRAM_RESOURCE_TYPES } from "@/lib/zod/schemas/program-resources";
+import { ProgramResourceType } from "@/lib/zod/schemas/program-resources";
 import { ThreeDots } from "@/ui/shared/icons";
 import {
   AnimatedSizeContainer,
@@ -39,7 +39,7 @@ export function ProgramResourcesPageClient() {
   });
 
   const handleDelete = async (
-    resourceType: (typeof PROGRAM_RESOURCE_TYPES)[number],
+    resourceType: ProgramResourceType,
     resourceId: string,
   ) => {
     const result = await executeAsync({
@@ -65,7 +65,6 @@ export function ProgramResourcesPageClient() {
           {resources?.logos?.map((logo) => (
             <ResourceCard
               key={logo.id}
-              resourceId={logo.id}
               resourceType="logo"
               icon={
                 <div className="relative size-8 overflow-hidden">
@@ -119,7 +118,7 @@ function Section({
       </div>
       <div className="-m-1">
         <AnimatedSizeContainer
-          height
+          height={!isLoading}
           transition={{ duration: 0.2, ease: "easeInOut" }}
         >
           <div
@@ -128,7 +127,7 @@ function Section({
               isValidating && "opacity-50",
             )}
           >
-            {children}
+            {isLoading ? <ResourceCardSkeleton /> : children}
             <Button
               type="button"
               text={`Add ${resource}`}
@@ -142,16 +141,26 @@ function Section({
   );
 }
 
+function ResourceCardSkeleton() {
+  return (
+    <div className="flex w-full items-center gap-4 rounded-lg border border-neutral-200 p-4">
+      <div className="flex size-10 shrink-0 animate-pulse items-center justify-center rounded-md bg-neutral-200" />
+      <div className="flex min-w-0 animate-pulse flex-col gap-1">
+        <div className="h-4 w-32 max-w-full rounded-md bg-neutral-200" />
+        <div className="h-4 w-16 max-w-full rounded-md bg-neutral-200" />
+      </div>
+    </div>
+  );
+}
+
 function ResourceCard({
-  resourceId,
   resourceType,
   title,
   description,
   icon,
   onDelete,
 }: {
-  resourceId: string;
-  resourceType: "logo" | "color" | "file";
+  resourceType: ProgramResourceType;
   title: string;
   description: string;
   icon: ReactNode;
@@ -161,14 +170,18 @@ function ResourceCard({
   const [isDeleting, setIsDeleting] = useState(false);
 
   return (
-    <div className="flex w-full items-center justify-between gap-4 rounded-lg border border-neutral-200 p-4">
-      <div className="flex items-center gap-4">
-        <div className="flex size-10 items-center justify-center rounded-md border border-neutral-200">
+    <div className="flex w-full items-center justify-between gap-4 rounded-lg border border-neutral-200 p-4 shadow-sm">
+      <div className="flex min-w-0 items-center gap-4">
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-md border border-neutral-200">
           {icon}
         </div>
-        <div className="flex flex-col">
-          <span className="text-sm font-medium text-neutral-800">{title}</span>
-          <span className="text-xs text-neutral-500">{description}</span>
+        <div className="flex min-w-0 flex-col">
+          <span className="truncate text-sm font-medium text-neutral-800">
+            {title}
+          </span>
+          <span className="truncate text-xs text-neutral-500">
+            {description}
+          </span>
         </div>
       </div>
       <div className="relative">
