@@ -1,6 +1,9 @@
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { partnersExportDefaultColumns } from "@/lib/zod/schemas/partners";
+import {
+  exportPartnerColumns,
+  exportPartnersColumnsDefault,
+} from "@/lib/zod/schemas/partners";
 import {
   Button,
   Checkbox,
@@ -22,31 +25,9 @@ import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 interface FormData {
-  dateRange: {
-    from?: Date;
-    to?: Date;
-    interval?: string;
-  };
   columns: string[];
   useFilters: boolean;
 }
-
-const columns = [
-  { id: "id", label: "ID" },
-  { id: "name", label: "Name" },
-  { id: "email", label: "Email" },
-  { id: "country", label: "Country" },
-  { id: "status", label: "Status" },
-  { id: "createdAt", label: "Created at" },
-  { id: "payoutsEnabledAt", label: "Payouts enabled" },
-  { id: "bio", label: "Bio" },
-  { id: "website", label: "Website" },
-  { id: "youtube", label: "YouTube" },
-  { id: "twitter", label: "Twitter" },
-  { id: "linkedin", label: "LinkedIn" },
-  { id: "instagram", label: "Instagram" },
-  { id: "tiktok", label: "TikTok" },
-];
 
 function ExportPartnersModal({
   showExportPartnersModal,
@@ -63,10 +44,10 @@ function ExportPartnersModal({
   const {
     control,
     handleSubmit,
-    formState: { isLoading },
+    formState: { isSubmitting },
   } = useForm<FormData>({
     defaultValues: {
-      columns: partnersExportDefaultColumns,
+      columns: exportPartnersColumnsDefault,
       useFilters: true,
     },
   });
@@ -137,7 +118,7 @@ function ExportPartnersModal({
 
       <form
         onSubmit={onSubmit}
-        className="flex flex-col gap-6 bg-neutral-50 px-4 py-8 text-left sm:rounded-b-2xl sm:px-16"
+        className="flex flex-col gap-6 bg-neutral-50 px-4 py-8 text-left sm:rounded-b-2xl sm:px-12"
       >
         <div>
           <p className="block text-sm font-medium text-neutral-700">Columns</p>
@@ -146,7 +127,7 @@ function ExportPartnersModal({
             control={control}
             render={({ field }) => (
               <div className="xs:grid-cols-2 mt-2 grid grid-cols-1 gap-x-4 gap-y-2">
-                {columns.map(({ id, label }) => (
+                {exportPartnerColumns.map(({ id, label }) => (
                   <div key={id} className="group flex gap-2">
                     <Checkbox
                       value={id}
@@ -188,7 +169,7 @@ function ExportPartnersModal({
             </div>
           )}
         />
-        <Button loading={isLoading} text="Export partners" />
+        <Button loading={isSubmitting} text="Export partners" />
       </form>
     </Modal>
   );
