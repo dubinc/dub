@@ -16,6 +16,7 @@ export const GetQRFeaturesCardsSection: FC = () => {
       <div className="gap flex flex-col items-stretch justify-center gap-4 md:flex-row">
         {GET_QR_FEATURES.map((card, idx) => (
           <FeaturesCard
+            key={idx}
             title={card.title}
             content={card.content}
             img={<Icon icon={card.icon} />}

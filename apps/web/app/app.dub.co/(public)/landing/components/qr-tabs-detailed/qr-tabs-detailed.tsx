@@ -77,7 +77,7 @@ export const QrTabsDetailed: FC<IQRTabsProps> = ({ isMobile }) => {
             </ScrollArea.Scrollbar>
           </ScrollArea.Root>
 
-          {QR_TYPES.map((type, idx) => {
+          {QR_TYPES.map((type) => {
             return (
               <Tabs.Content
                 key={type.id}
