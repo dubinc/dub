@@ -33,6 +33,26 @@ export const partnersQuerySchema = z
   })
   .merge(getPaginationQuerySchema({ pageSize: PARTNERS_MAX_PAGE_SIZE }));
 
+export const partnersExportDefaultColumns = [
+  "id",
+  "name",
+  "email",
+  "country",
+  "status",
+  "createdAt",
+]
+
+export const partnersExportQuerySchema = partnersQuerySchema
+  .omit({ page: true, pageSize: true })
+  .merge(
+    z.object({
+      columns: z
+        .string()
+        .default(partnersExportDefaultColumns.join(","))
+        .transform((v) => v.split(",")),
+    }),
+  );
+
 export const partnersCountQuerySchema = partnersQuerySchema
   .omit({
     sortBy: true,
