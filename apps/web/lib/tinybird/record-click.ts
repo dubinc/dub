@@ -138,11 +138,9 @@ export async function recordClick({
     referer_url: referer || "(direct)",
   };
 
-  console.log({ trackConversion });
-
   const hasWebhooks = webhookIds && webhookIds.length > 0;
 
-  const [, , , , workspaceRows] = await Promise.all([
+  const [, , , , workspaceRows] = await Promise.allSettled([
     fetch(
       `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_click_events&wait=true`,
       {
@@ -159,11 +157,11 @@ export async function recordClick({
       ex: 60 * 60,
     }),
 
-    // cache the click data for 15 mins
+    // cache the click data for 5 mins
     // we're doing this because ingested click events are not available immediately in Tinybird
     trackConversion &&
       redis.set(`click:${clickId}`, clickData, {
-        ex: 60 * 15,
+        ex: 60 * 5,
       }),
 
     // increment the click count for the link (based on their ID)
@@ -190,8 +188,13 @@ export async function recordClick({
   ]);
 
   const workspace =
-    workspaceRows && workspaceRows.rows.length > 0
-      ? (workspaceRows.rows[0] as Pick<WorkspaceProps, "usage" | "usageLimit">)
+    workspaceRows.status === "fulfilled" &&
+    workspaceRows.value &&
+    workspaceRows.value.rows.length > 0
+      ? (workspaceRows.value.rows[0] as Pick<
+          WorkspaceProps,
+          "usage" | "usageLimit"
+        >)
       : null;
 
   const hasExceededUsageLimit =
