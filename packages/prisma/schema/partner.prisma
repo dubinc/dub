@@ -35,20 +35,20 @@ model Partner {
   websiteTxtRecord   String?
   websiteVerifiedAt  DateTime?
   
-  instagram           String?
-  instagramVerifiedAt DateTime?
-  
-  tiktok           String?
-  tiktokVerifiedAt DateTime?
-  
   youtube           String?
   youtubeVerifiedAt DateTime?
   
   twitter           String?
   twitterVerifiedAt DateTime?
-
-  // TODO: Remove after fully payoutsEnabledAt is implemented + backfilled
-  payoutsEnabled Boolean @default(false) /// @deprecated Use payoutsEnabledAt instead
+  
+  linkedin          String?
+  linkedinVerifiedAt DateTime?
+  
+  instagram           String?
+  instagramVerifiedAt DateTime?
+  
+  tiktok           String?
+  tiktokVerifiedAt DateTime?
 }
 
 model PartnerUser {

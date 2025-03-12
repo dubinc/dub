@@ -11,6 +11,27 @@ import { parseUrlSchema } from "./utils";
 export const PARTNERS_MAX_PAGE_SIZE = 100;
 export const PAYOUTS_MAX_PAGE_SIZE = 100;
 
+export const exportPartnerColumns = [
+  { id: "id", label: "ID", default: true },
+  { id: "name", label: "Name", default: true },
+  { id: "email", label: "Email", default: true },
+  { id: "country", label: "Country", default: true },
+  { id: "status", label: "Status", default: true },
+  { id: "payoutsEnabledAt", label: "Payouts enabled at", default: false },
+  { id: "createdAt", label: "Created at", default: true },
+  { id: "bio", label: "Bio", default: false },
+  { id: "website", label: "Website", default: false },
+  { id: "youtube", label: "YouTube", default: false },
+  { id: "twitter", label: "Twitter", default: false },
+  { id: "linkedin", label: "LinkedIn", default: false },
+  { id: "instagram", label: "Instagram", default: false },
+  { id: "tiktok", label: "TikTok", default: false },
+];
+
+export const exportPartnersColumnsDefault = exportPartnerColumns
+  .filter((column) => column.default)
+  .map((column) => column.id);
+
 export const partnersQuerySchema = z
   .object({
     status: z.nativeEnum(ProgramEnrollmentStatus).optional(),
@@ -32,6 +53,17 @@ export const partnersQuerySchema = z
       .describe("IDs of partners to filter by."),
   })
   .merge(getPaginationQuerySchema({ pageSize: PARTNERS_MAX_PAGE_SIZE }));
+
+export const partnersExportQuerySchema = partnersQuerySchema
+  .omit({ page: true, pageSize: true })
+  .merge(
+    z.object({
+      columns: z
+        .string()
+        .default(exportPartnersColumnsDefault.join(","))
+        .transform((v) => v.split(",")),
+    }),
+  );
 
 export const partnersCountQuerySchema = partnersQuerySchema
   .omit({
@@ -62,14 +94,16 @@ export const PartnerSchema = z.object({
   website: z.string().nullable(),
   websiteTxtRecord: z.string().nullable(),
   websiteVerifiedAt: z.date().nullable(),
-  instagram: z.string().nullable(),
-  instagramVerifiedAt: z.date().nullable(),
-  tiktok: z.string().nullable(),
-  tiktokVerifiedAt: z.date().nullable(),
   youtube: z.string().nullable(),
   youtubeVerifiedAt: z.date().nullable(),
   twitter: z.string().nullable(),
   twitterVerifiedAt: z.date().nullable(),
+  linkedin: z.string().nullable(),
+  linkedinVerifiedAt: z.date().nullable(),
+  instagram: z.string().nullable(),
+  instagramVerifiedAt: z.date().nullable(),
+  tiktok: z.string().nullable(),
+  tiktokVerifiedAt: z.date().nullable(),
 
   createdAt: z.date(),
   updatedAt: z.date(),
