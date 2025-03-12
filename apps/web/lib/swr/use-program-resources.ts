@@ -14,6 +14,7 @@ export default function useProgramResources() {
   const {
     data: resources,
     error,
+    isValidating,
     mutate,
   } = useSWR<ProgramResourcesProps>(
     programId && workspaceId
@@ -22,6 +23,8 @@ export default function useProgramResources() {
     fetcher,
     {
       dedupingInterval: 60000,
+      revalidateOnFocus: false,
+      keepPreviousData: true,
     },
   );
 
@@ -29,6 +32,7 @@ export default function useProgramResources() {
     resources,
     error,
     mutate,
-    loading: programId && !resources && !error,
+    isValidating,
+    isLoading: programId && !resources && !error,
   };
 }

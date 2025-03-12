@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+export const PROGRAM_RESOURCE_TYPES = ["logo", "file", "color"] as const;
+
 export const programResourceFileSchema = z.object({
   id: z.string(),
   name: z.string(),
