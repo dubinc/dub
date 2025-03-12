@@ -26,6 +26,7 @@ export default function LandingPage() {
           {!isMobile && <RatingInfoSection />}
           <QrTabsDetailed isMobile={isMobile} />
           <GetQRFeaturesCardsSection />
+          {/*<ReviewsSection />*/}
           <FAQSection isMobile={isMobile} />
         </>
       )}
