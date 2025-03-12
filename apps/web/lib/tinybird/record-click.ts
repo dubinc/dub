@@ -17,6 +17,7 @@ import {
 } from "../middleware/utils";
 import { conn } from "../planetscale";
 import { WorkspaceProps } from "../types";
+import { redis } from "../upstash";
 import { webhookCache } from "../webhook/cache";
 import { sendWebhooks } from "../webhook/qstash";
 import { transformClickEventData } from "../webhook/transform";
