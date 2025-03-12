@@ -1,5 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { addDomainToVercel, validateDomain } from "@/lib/api/domains";
+import { transformDomain } from "@/lib/api/domains/transform-domain";
 import { DubApiError, exceededLimitError } from "@/lib/api/errors";
 import { createLink, transformLink } from "@/lib/api/links";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -7,7 +8,6 @@ import { withWorkspace } from "@/lib/auth";
 import { storage } from "@/lib/storage";
 import {
   createDomainBodySchema,
-  DomainSchema,
   getDomainsQuerySchemaExtended,
 } from "@/lib/zod/schemas/domains";
 import { prisma } from "@dub/prisma";
@@ -60,15 +60,7 @@ export const GET = withWorkspace(
     });
 
     const response = domains.map((domain) => ({
-      ...DomainSchema.parse({
-        ...domain,
-        assetLinks: domain.assetLinks
-          ? JSON.stringify(domain.assetLinks)
-          : null,
-        appleAppSiteAssociation: domain.appleAppSiteAssociation
-          ? JSON.stringify(domain.appleAppSiteAssociation)
-          : null,
-      }),
+      ...transformDomain(domain),
       ...(includeLink &&
         domain.links.length > 0 && {
           link: transformLink({
@@ -195,7 +187,7 @@ export const POST = withWorkspace(
     ]);
 
     return NextResponse.json(
-      DomainSchema.parse({
+      transformDomain({
         ...domainRecord,
         registeredDomain: null,
       }),

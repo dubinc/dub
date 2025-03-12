@@ -36,6 +36,18 @@ import { useDebouncedCallback } from "use-debounce";
 import { z } from "zod";
 import { QRCode } from "../shared/qr-code";
 
+const sanitizeJson = (string: string | null) => {
+  if (!string) {
+    return null;
+  }
+
+  try {
+    return JSON.stringify(JSON.parse(string));
+  } catch (e) {
+    return string;
+  }
+};
+
 type FormData = z.infer<typeof createDomainBodySchema>;
 
 type DomainStatus = "checking" | "conflict" | "has site" | "available" | "idle";
@@ -113,10 +125,8 @@ export function AddEditDomainForm({
       expiredUrl: props?.expiredUrl,
       notFoundUrl: props?.notFoundUrl,
       placeholder: props?.placeholder,
-      appleAppSiteAssociation: props?.appleAppSiteAssociation
-        ? JSON.parse(props?.appleAppSiteAssociation)
-        : null,
-      assetLinks: props?.assetLinks ? JSON.parse(props?.assetLinks) : null,
+      appleAppSiteAssociation: props?.appleAppSiteAssociation,
+      assetLinks: props?.assetLinks,
     },
   });
 
@@ -195,10 +205,10 @@ export function AddEditDomainForm({
           ...formData,
           ...(formData.logo === props?.logo && { logo: undefined }),
           ...(formData.assetLinks && {
-            assetLinks: JSON.stringify(formData.assetLinks),
+            assetLinks: sanitizeJson(formData.assetLinks),
           }),
           ...(formData.appleAppSiteAssociation && {
-            appleAppSiteAssociation: JSON.stringify(
+            appleAppSiteAssociation: sanitizeJson(
               formData.appleAppSiteAssociation,
             ),
           }),
