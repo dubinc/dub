@@ -17,6 +17,7 @@ import { useAction } from "next-safe-action/hooks";
 import { useParams } from "next/navigation";
 import { PropsWithChildren, ReactNode, useState } from "react";
 import { toast } from "sonner";
+import { useAddColorModal } from "./add-color-modal";
 import { useAddLogoModal } from "./add-logo-modal";
 
 export function ProgramResourcesPageClient() {
@@ -25,6 +26,7 @@ export function ProgramResourcesPageClient() {
 
   const { resources, mutate } = useProgramResources();
   const { setShowAddLogoModal, AddLogoModal } = useAddLogoModal();
+  const { setShowAddColorModal, AddColorModal } = useAddColorModal();
 
   const { executeAsync } = useAction(deleteProgramResourceAction, {
     onSuccess: ({ input }) => {
@@ -55,6 +57,7 @@ export function ProgramResourcesPageClient() {
   return (
     <>
       <AddLogoModal />
+      <AddColorModal />
       <div className="flex flex-col gap-10">
         <Section
           resource="logo"
@@ -85,7 +88,24 @@ export function ProgramResourcesPageClient() {
           resource="color"
           title="Colors"
           description="Provide affiliates with official colors"
-        ></Section>
+          onAdd={() => setShowAddColorModal(true)}
+        >
+          {resources?.colors?.map((color) => (
+            <ResourceCard
+              key={color.id}
+              resourceType="color"
+              icon={
+                <div
+                  className="size-full"
+                  style={{ backgroundColor: color.color }}
+                />
+              }
+              title={color.name || "Color"}
+              description={color.color.toUpperCase()}
+              onDelete={() => handleDelete("color", color.id)}
+            />
+          ))}
+        </Section>
         <Section
           resource="file"
           title="Additional files"
@@ -172,7 +192,7 @@ function ResourceCard({
   return (
     <div className="flex w-full items-center justify-between gap-4 rounded-lg border border-neutral-200 p-4 shadow-sm">
       <div className="flex min-w-0 items-center gap-4">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-md border border-neutral-200">
+        <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-md border border-neutral-200">
           {icon}
         </div>
         <div className="flex min-w-0 flex-col">
