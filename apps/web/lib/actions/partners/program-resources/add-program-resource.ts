@@ -7,6 +7,7 @@ import {
 } from "@/lib/zod/schemas/program-resources";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
+import slugify from "@sindresorhus/slugify";
 import { z } from "zod";
 import { authActionClient } from "../../safe-action";
 
@@ -21,6 +22,7 @@ const baseResourceSchema = z.object({
 const fileResourceSchema = baseResourceSchema.extend({
   resourceType: z.enum(["logo", "file"]),
   file: z.string(), // Base64 encoded file
+  extension: z.string().nullish(),
 });
 
 // Schema for color resources
@@ -64,10 +66,10 @@ export const addProgramResourceAction = authActionClient
     const updatedResources = { ...currentResources };
 
     if (resourceType === "logo" || resourceType === "file") {
-      const { file } = parsedInput;
+      const { file, extension } = parsedInput;
 
       // Upload the file to storage
-      const fileKey = `programs/${program.id}/${resourceType}s/${nanoid(7)}`;
+      const fileKey = `programs/${program.id}/${resourceType}s/${slugify(name || resourceType)}-${nanoid(4)}${extension ? `.${extension}` : ""}`;
       const uploadResult = await storage.upload(fileKey, file);
 
       if (!uploadResult || !uploadResult.url) {

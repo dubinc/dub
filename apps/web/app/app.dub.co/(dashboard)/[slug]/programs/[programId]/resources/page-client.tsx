@@ -8,6 +8,7 @@ import { ThreeDots } from "@/ui/shared/icons";
 import {
   AnimatedSizeContainer,
   Button,
+  Download,
   FileContent,
   LoadingSpinner,
   Popover,
@@ -84,6 +85,7 @@ export function ProgramResourcesPageClient() {
               }
               title={logo.name || "Logo"}
               description={formatFileSize(logo.size, 0)}
+              downloadUrl={logo.url}
               onDelete={() => handleDelete("logo", logo.id)}
             />
           ))}
@@ -127,6 +129,7 @@ export function ProgramResourcesPageClient() {
               }
               title={file.name || "File"}
               description={formatFileSize(file.size, 0)}
+              downloadUrl={file.url}
               onDelete={() => handleDelete("file", file.id)}
             />
           ))}
@@ -199,12 +202,14 @@ function ResourceCard({
   description,
   icon,
   onDelete,
+  downloadUrl,
 }: {
   resourceType: ProgramResourceType;
   title: string;
   description: string;
   icon: ReactNode;
   onDelete?: () => Promise<boolean>;
+  downloadUrl?: string;
 }) {
   const [openPopover, setOpenPopover] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -225,11 +230,22 @@ function ResourceCard({
         </div>
       </div>
       <div className="relative">
-        {onDelete && (
+        {(onDelete || downloadUrl) && (
           <Popover
             content={
-              <div className="w-full sm:w-48">
-                <div className="grid gap-px p-2">
+              <div className="grid w-full grid-cols-1 gap-px p-2 sm:w-48">
+                {downloadUrl && (
+                  <Button
+                    text="Download"
+                    variant="outline"
+                    onClick={async () => {
+                      window.open(downloadUrl, "_blank");
+                    }}
+                    icon={<Download className="size-4" />}
+                    className="h-9 justify-start px-2 font-medium"
+                  />
+                )}
+                {onDelete && (
                   <Button
                     text={`Delete ${resourceType}`}
                     variant="danger-outline"
@@ -250,7 +266,7 @@ function ResourceCard({
                     icon={<Trash className="size-4" />}
                     className="h-9 justify-start px-2 font-medium"
                   />
-                </div>
+                )}
               </div>
             }
             align="end"

@@ -27,6 +27,7 @@ type AddLogoModalProps = {
 const logoFormSchema = z.object({
   name: z.string(),
   file: z.string().min(1, "Logo file is required"),
+  extension: z.string().nullish(),
 });
 
 type LogoFormData = z.infer<typeof logoFormSchema>;
@@ -94,6 +95,7 @@ function AddLogoModalInner({ setShowAddLogoModal }: AddLogoModalProps) {
             name: data.name,
             resourceType: "logo",
             file: data.file,
+            extension: data.extension,
           });
         })}
       >
@@ -124,6 +126,7 @@ function AddLogoModalInner({ setShowAddLogoModal }: AddLogoModalProps) {
                     readFile
                     onChange={({ file, src }) => {
                       field.onChange(src);
+                      setValue("extension", file.name.split(".").pop());
 
                       // Set the logo name to the file name without extension if no name is provided
                       const currentName = getValues("name");

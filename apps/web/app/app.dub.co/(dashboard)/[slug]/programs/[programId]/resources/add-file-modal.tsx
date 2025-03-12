@@ -27,6 +27,7 @@ type AddFileModalProps = {
 const fileFormSchema = z.object({
   name: z.string().min(1, "Name is required"),
   file: z.string().min(1, "File is required"),
+  extension: z.string().nullish(),
 });
 
 type FileFormData = z.infer<typeof fileFormSchema>;
@@ -96,6 +97,7 @@ function AddFileModalInner({ setShowAddFileModal }: AddFileModalProps) {
             name: data.name,
             resourceType: "file",
             file: data.file,
+            extension: data.extension,
           });
         })}
       >
@@ -125,6 +127,7 @@ function AddFileModalInner({ setShowAddFileModal }: AddFileModalProps) {
                     onChange={({ file, src }) => {
                       setFileName(file.name);
                       field.onChange(src);
+                      setValue("extension", file.name.split(".").pop());
 
                       // Set the file name to the file name without extension if no name is provided
                       const currentName = getValues("name");
