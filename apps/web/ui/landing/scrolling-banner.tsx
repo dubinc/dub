@@ -80,7 +80,7 @@ export const ScrollingBanner = React.forwardRef<
           type="always"
           scrollHideDelay={0}
         >
-          <ScrollArea.Viewport className="h-full w-full">
+          <ScrollArea.Viewport className="h-full w-full !overflow-hidden">
             <div
               className={cn("flex w-max items-stretch gap-[--gap]", {
                 "flex-col": isVertical,

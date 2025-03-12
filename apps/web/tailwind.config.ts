@@ -19,6 +19,7 @@ const config: Pick<Config, "presets"> = {
               DEFAULT: "#006666",
               light: "#DBF2F2",
               lighter: "#F8FCFC",
+              extraLight: "#F2F7F7",
               dark: "#004D4D",
             },
             secondary: {
@@ -26,6 +27,7 @@ const config: Pick<Config, "presets"> = {
               light: "#E6F0FF",
               dark: "#0052A3",
               text: "#1E293B",
+              textMuted: "#2C3345",
             },
             neutral: {
               DEFAULT: "#212121",

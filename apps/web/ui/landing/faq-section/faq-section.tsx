@@ -16,7 +16,7 @@ interface IFaqSectionProps {
 
 export const FAQSection: FC<IFaqSectionProps> = ({ isMobile }) => {
   return (
-    <section className="mx-auto flex max-w-[1172px] flex-col justify-between gap-2 pt-3 lg:flex-row lg:gap-6 lg:pt-8">
+    <section className="mx-auto flex max-w-[1172px] flex-col justify-between gap-2 px-3 pt-3 lg:flex-row lg:gap-6 lg:pt-8">
       <h2 className="text-neutral-dark mb-4 text-center text-xl font-bold md:text-[28px] lg:max-w-64 lg:text-left">
         {isMobile ? "FAQ" : "Frequently Asked Questions"}
       </h2>

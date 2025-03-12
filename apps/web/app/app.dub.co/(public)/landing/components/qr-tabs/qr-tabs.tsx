@@ -3,11 +3,16 @@ import { cn } from "@dub/utils";
 import { Icon } from "@iconify/react";
 import * as Tabs from "@radix-ui/react-tabs";
 import { FC, useState } from "react";
+import {
+  ADDITIONAL_QR_TYPES,
+  DEFAULT_QR_TYPES,
+  QR_TYPES,
+} from "../../constants/get-qr-config.ts";
+import { Rating } from "../rating-info/components/rating.tsx";
 import { LogoScrollingBanner } from "./components/logo-scrolling-banner.tsx";
 import { QrTabsImage } from "./components/qr-tabs-image.tsx";
 import { QRTabsPopover } from "./components/qr-tabs-popover.tsx";
 import { QrTabsTitle } from "./components/qr-tabs-title.tsx";
-import { ADDITIONAL_QR_TYPES, DEFAULT_QR_TYPES, QR_TYPES } from "./config.ts";
 
 interface IQRTabsProps {
   isMobile: boolean;
@@ -23,8 +28,8 @@ export const QRTabs: FC<IQRTabsProps> = ({ isMobile }) => {
   };
 
   return (
-    <section className="bg-primary-lighter w-full">
-      <div className="mx-auto mb-6 flex max-w-[992px] flex-col items-center justify-center gap-4 md:mb-[42px] md:gap-[42px]">
+    <section className="bg-primary-lighter w-full px-3 pb-6 md:pb-[42px]">
+      <div className="mx-auto flex max-w-[992px] flex-col items-center justify-center gap-4 md:gap-[42px]">
         <QrTabsTitle />
         <Tabs.Root
           value={activeTab}
@@ -59,6 +64,7 @@ export const QRTabs: FC<IQRTabsProps> = ({ isMobile }) => {
                     icon={type.icon}
                     className={cn(
                       "h-5 w-5 flex-none",
+                      "[&>g]:stroke-neutral-lighter [&>path]:stroke-neutral-lighter",
                       activeTab === type.id &&
                         "[&>g]:stroke-primary [&>path]:stroke-primary",
                     )}
@@ -159,6 +165,8 @@ export const QRTabs: FC<IQRTabsProps> = ({ isMobile }) => {
             );
           })}
         </Tabs.Root>
+
+        {isMobile && <Rating />}
 
         {!isMobile && <LogoScrollingBanner />}
       </div>
