@@ -452,7 +452,7 @@ export function AddEditDomainForm({
             <div>
               <button
                 type="button"
-                className="flex w-full items-center justify-between"
+                className="flex w-full items-center gap-2"
                 onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
               >
                 <p className="text-sm text-neutral-600">
@@ -469,7 +469,7 @@ export function AddEditDomainForm({
                     xmlns="http://www.w3.org/2000/svg"
                   >
                     <path
-                      d="M6 15L12 9L18 15"
+                      d="M6 9L12 15L18 9"
                       stroke="currentColor"
                       strokeWidth="2"
                       strokeLinecap="round"
