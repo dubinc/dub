@@ -1,10 +1,7 @@
 "use client";
 
 import { Button } from "@dub/ui";
-import { FileZip2, Palette2, Post } from "@dub/ui/icons";
 import { PropsWithChildren } from "react";
-
-const emptyStateIcons = [Post, Palette2, FileZip2];
 
 export function ProgramResourcesPageClient() {
   return (
