@@ -34,7 +34,7 @@ export async function getPartners(filters: PartnerFilters) {
     programId,
   } = filters;
 
-  await getProgramOrThrow({
+  const program = await getProgramOrThrow({
     workspaceId,
     programId,
   });
@@ -78,7 +78,7 @@ export async function getPartners(filters: PartnerFilters) {
       Partner p ON p.id = pe.partnerId 
     LEFT JOIN Link l ON l.programId = pe.programId 
       AND l.partnerId = pe.partnerId
-      AND l.programId = ${programId}
+      AND l.programId = ${program.id}
     LEFT JOIN (
       SELECT 
         partnerId,
@@ -87,12 +87,12 @@ export async function getPartners(filters: PartnerFilters) {
         SUM(sales) as totalSales,
         SUM(saleAmount) as totalSaleAmount
       FROM Link
-      WHERE programId = ${programId}
+      WHERE programId = ${program.id}
         AND partnerId IS NOT NULL
       GROUP BY partnerId
     ) metrics ON metrics.partnerId = pe.partnerId
     WHERE 
-      pe.programId = ${programId}
+      pe.programId = ${program.id}
       ${status ? Prisma.sql`AND pe.status = ${status}` : Prisma.sql`AND pe.status != 'rejected'`}
       ${tenantId ? Prisma.sql`AND pe.tenantId = ${tenantId}` : Prisma.sql``}
       ${country ? Prisma.sql`AND p.country = ${country}` : Prisma.sql``}
