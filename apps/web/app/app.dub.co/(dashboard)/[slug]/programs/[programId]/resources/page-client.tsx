@@ -4,37 +4,51 @@ import useProgramResources from "@/lib/swr/use-program-resources";
 import { Button } from "@dub/ui";
 import { formatFileSize } from "@dub/utils";
 import { PropsWithChildren, ReactNode } from "react";
+import { useAddLogoModal } from "./add-logo-modal";
 
 export function ProgramResourcesPageClient() {
   const { resources, loading } = useProgramResources();
+  const { setShowAddLogoModal, AddLogoModal } = useAddLogoModal();
 
   return (
-    <div className="flex flex-col gap-10">
-      <Section
-        resource="logo"
-        title="Brand logos"
-        description="SVG, JPG, or PNG, max size of 10 MB"
-      >
-        {resources?.logos?.map((logo) => (
-          <ResourceCard
-            key={logo.id}
-            icon={<div />}
-            title={logo.name}
-            description={formatFileSize(logo.size)}
-          />
-        ))}
-      </Section>
-      <Section
-        resource="color"
-        title="Colors"
-        description="Provide affiliates with official colors"
-      ></Section>
-      <Section
-        resource="file"
-        title="Additional files"
-        description="Any document file format, max size 10 MB"
-      ></Section>
-    </div>
+    <>
+      <AddLogoModal />
+      <div className="flex flex-col gap-10">
+        <Section
+          resource="logo"
+          title="Brand logos"
+          description="SVG, JPG, or PNG, max size of 10 MB"
+          onAdd={() => setShowAddLogoModal(true)}
+        >
+          {resources?.logos?.map((logo) => (
+            <ResourceCard
+              key={logo.id}
+              icon={
+                <div className="relative size-8 overflow-hidden">
+                  <img
+                    src={logo.url}
+                    alt="thumbnail"
+                    className="size-full object-contain"
+                  />
+                </div>
+              }
+              title={logo.name || "Logo"}
+              description={formatFileSize(logo.size, 0)}
+            />
+          ))}
+        </Section>
+        <Section
+          resource="color"
+          title="Colors"
+          description="Provide affiliates with official colors"
+        ></Section>
+        <Section
+          resource="file"
+          title="Additional files"
+          description="Any document file format, max size 10 MB"
+        ></Section>
+      </div>
+    </>
   );
 }
 
@@ -43,10 +57,12 @@ function Section({
   title,
   description,
   children,
+  onAdd,
 }: PropsWithChildren<{
   resource: string;
   title: string;
   description: string;
+  onAdd?: () => void;
 }>) {
   return (
     <div className="grid grid-cols-1 rounded-lg border border-neutral-200 p-6 sm:grid-cols-2">
@@ -59,7 +75,7 @@ function Section({
         <Button
           type="button"
           text={`Add ${resource}`}
-          onClick={() => alert("WIP")}
+          onClick={onAdd || (() => alert("WIP"))}
           className="h-8 w-fit px-3"
         />
       </div>
@@ -77,9 +93,9 @@ function ResourceCard({
   icon: ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded border border-neutral-200">
+    <div className="flex w-full items-center justify-between gap-4 rounded-lg border border-neutral-200 p-4">
       <div className="flex items-center gap-4">
-        <div className="flex size-10 rounded-md border border-neutral-200">
+        <div className="flex size-10 items-center justify-center rounded-md border border-neutral-200">
           {icon}
         </div>
         <div className="flex flex-col">
