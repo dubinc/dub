@@ -11,6 +11,36 @@ import { parseUrlSchema } from "./utils";
 export const PARTNERS_MAX_PAGE_SIZE = 100;
 export const PAYOUTS_MAX_PAGE_SIZE = 100;
 
+export const exportPartnerColumns = [
+  { id: "id", label: "ID", default: true },
+  { id: "name", label: "Name", default: true },
+  { id: "email", label: "Email", default: true },
+  { id: "country", label: "Country", default: true },
+  { id: "status", label: "Status", default: true },
+  {
+    id: "payoutsEnabledAt",
+    label: "Payouts enabled at",
+    default: false,
+  },
+  { id: "createdAt", label: "Enrolled at", default: true },
+  { id: "createdAt", label: "Enrolled at", default: true },
+  { id: "bio", label: "Bio", default: false },
+  { id: "clicks", label: "Clicks", default: false },
+  { id: "leads", label: "Leads", default: false },
+  { id: "sales", label: "Sales", default: false },
+  { id: "saleAmount", label: "Sale amount", default: false },
+  { id: "website", label: "Website", default: false },
+  { id: "youtube", label: "YouTube", default: false },
+  { id: "twitter", label: "Twitter", default: false },
+  { id: "linkedin", label: "LinkedIn", default: false },
+  { id: "instagram", label: "Instagram", default: false },
+  { id: "tiktok", label: "TikTok", default: false },
+];
+
+export const exportPartnersColumnsDefault = exportPartnerColumns
+  .filter((column) => column.default)
+  .map((column) => column.id);
+
 export const partnersQuerySchema = z
   .object({
     status: z.nativeEnum(ProgramEnrollmentStatus).optional(),
@@ -32,6 +62,17 @@ export const partnersQuerySchema = z
       .describe("IDs of partners to filter by."),
   })
   .merge(getPaginationQuerySchema({ pageSize: PARTNERS_MAX_PAGE_SIZE }));
+
+export const partnersExportQuerySchema = partnersQuerySchema
+  .omit({ page: true, pageSize: true })
+  .merge(
+    z.object({
+      columns: z
+        .string()
+        .default(exportPartnersColumnsDefault.join(","))
+        .transform((v) => v.split(",")),
+    }),
+  );
 
 export const partnersCountQuerySchema = partnersQuerySchema
   .omit({

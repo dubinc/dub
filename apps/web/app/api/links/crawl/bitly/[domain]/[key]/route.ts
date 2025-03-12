@@ -1,7 +1,19 @@
+import { createId } from "@/lib/api/create-id";
+import { encodeKeyIfCaseSensitive } from "@/lib/api/links/case-sensitivity";
+import { conn } from "@/lib/planetscale";
 import { redis } from "@/lib/upstash";
 import z from "@/lib/zod";
-import { DUB_HEADERS, getUrlFromStringIfValid } from "@dub/utils";
+import {
+  DUB_HEADERS,
+  getUrlFromStringIfValid,
+  linkConstructorSimple,
+} from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { NextRequest, NextResponse } from "next/server";
+
+const workspaceId = "cm05wnnpo000711ztj05wwdbu";
+const userId = "cm05wnd49000411ztg2xbup0i";
+const folderId = "fold_1JNQBVZV8P0NA0YGB11W2HHSQ";
 
 // GET /api/links/crawl/bitly – crawl a bitly link and redirect to the destination if exists
 export const GET = async (_req: NextRequest, { params }) => {
@@ -17,11 +29,60 @@ export const GET = async (_req: NextRequest, { params }) => {
   const invalidBitlyKeyRegex = /[`~,.<>;':"/\\[\]^{}()=+!*@&$£?%#|]/;
 
   if (key && !invalidBitlyKeyRegex.test(key)) {
-    const link = await crawlBitlyLink({ domain, key });
+    const link = await fetchBitlyLink({ domain, key });
     if (link) {
       const sanitizedUrl = getUrlFromStringIfValid(link.long_url);
 
       if (sanitizedUrl) {
+        const processedKey = encodeKeyIfCaseSensitive({
+          domain,
+          key,
+        });
+
+        const newLink = {
+          id: createId({ prefix: "link_" }),
+          projectId: workspaceId,
+          userId,
+          domain,
+          key: processedKey,
+          url: sanitizedUrl,
+          shortLink: linkConstructorSimple({
+            domain,
+            key: processedKey,
+          }),
+          archived: false,
+          folderId,
+          createdAt: new Date(link.created_at),
+          updatedAt: new Date(link.created_at),
+        };
+
+        console.log(
+          `[Bitly] Creating link ${newLink.shortLink} -> ${newLink.url}`,
+        );
+
+        waitUntil(
+          (async () => {
+            try {
+              await conn.execute(
+                "INSERT INTO Link (id, projectId, userId, domain, `key`, url, shortLink, archived, folderId, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                [
+                  newLink.id,
+                  newLink.projectId,
+                  newLink.userId,
+                  newLink.domain,
+                  newLink.key,
+                  newLink.url,
+                  newLink.shortLink,
+                  newLink.archived,
+                  newLink.folderId,
+                  newLink.createdAt,
+                  newLink.updatedAt,
+                ],
+              );
+            } catch (_e) {}
+          })(),
+        );
+
         return NextResponse.redirect(sanitizedUrl, {
           headers: DUB_HEADERS,
           status: 302,
@@ -35,49 +96,6 @@ export const GET = async (_req: NextRequest, { params }) => {
     status: 302,
   });
 };
-
-async function crawlBitlyLink({
-  domain,
-  key,
-}: {
-  domain: string;
-  key: string;
-}) {
-  const response = await fetch(`https://bit.ly/${key}`, {
-    method: "HEAD",
-    redirect: "manual",
-    headers: {
-      Host: domain,
-      "User-Agent":
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    },
-  });
-
-  // If the link is not found, fallback to the API
-  if (!response.ok && response.status !== 301 && response.status !== 302) {
-    console.error(
-      `[Bitly] Link ${domain}/${key} not found. Falling back to API...`,
-    );
-    return await fetchBitlyLink({ domain, key });
-  }
-
-  const destinationUrl = response.headers.get("location");
-  if (!destinationUrl) {
-    console.error(`[Bitly] No redirect URL found for ${domain}/${key}`);
-    return null;
-  }
-
-  console.log(`[Bitly] Found link ${domain}/${key} -> ${destinationUrl}`);
-
-  return {
-    id: `${domain}/${key}`,
-    long_url: destinationUrl,
-    created_at: new Date().toISOString(),
-  };
-}
-
-// buffer's workspace ID
-const workspaceId = "cm05wnnpo000711ztj05wwdbu";
 
 async function fetchBitlyLink({
   domain,
@@ -109,5 +127,8 @@ async function fetchBitlyLink({
     return null;
   }
 
-  return await response.json();
+  const data = await response.json();
+  console.log(`[Bitly] Found link ${domain}/${key} -> ${data.long_url}`);
+
+  return data;
 }
