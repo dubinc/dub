@@ -73,6 +73,7 @@ export * from "./envelope-arrow-right";
 export * from "./eye";
 export * from "./eye-slash";
 export * from "./feather-fill";
+export * from "./file-content";
 export * from "./file-zip2";
 export * from "./filter-bars";
 export * from "./filter2";

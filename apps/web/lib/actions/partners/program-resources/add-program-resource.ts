@@ -78,6 +78,9 @@ export const addProgramResourceAction = authActionClient
       const base64Data = file.replace(/^data:.+;base64,/, "");
       const fileSize = Math.ceil((base64Data.length * 3) / 4);
 
+      if (fileSize / 1024 / 1024 > 10)
+        throw new Error("File size is too large");
+
       const newResource = programResourceFileSchema.parse({
         id: nanoid(10),
         name,

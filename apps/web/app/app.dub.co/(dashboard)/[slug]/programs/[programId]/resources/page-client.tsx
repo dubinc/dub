@@ -8,6 +8,7 @@ import { ThreeDots } from "@/ui/shared/icons";
 import {
   AnimatedSizeContainer,
   Button,
+  FileContent,
   LoadingSpinner,
   Popover,
   Trash,
@@ -18,6 +19,7 @@ import { useParams } from "next/navigation";
 import { PropsWithChildren, ReactNode, useState } from "react";
 import { toast } from "sonner";
 import { useAddColorModal } from "./add-color-modal";
+import { useAddFileModal } from "./add-file-modal";
 import { useAddLogoModal } from "./add-logo-modal";
 
 export function ProgramResourcesPageClient() {
@@ -27,6 +29,7 @@ export function ProgramResourcesPageClient() {
   const { resources, mutate } = useProgramResources();
   const { setShowAddLogoModal, AddLogoModal } = useAddLogoModal();
   const { setShowAddColorModal, AddColorModal } = useAddColorModal();
+  const { setShowAddFileModal, AddFileModal } = useAddFileModal();
 
   const { executeAsync } = useAction(deleteProgramResourceAction, {
     onSuccess: ({ input }) => {
@@ -58,6 +61,7 @@ export function ProgramResourcesPageClient() {
     <>
       <AddLogoModal />
       <AddColorModal />
+      <AddFileModal />
       <div className="flex flex-col gap-10">
         <Section
           resource="logo"
@@ -110,7 +114,23 @@ export function ProgramResourcesPageClient() {
           resource="file"
           title="Additional files"
           description="Any document file format, max size 10 MB"
-        ></Section>
+          onAdd={() => setShowAddFileModal(true)}
+        >
+          {resources?.files?.map((file) => (
+            <ResourceCard
+              key={file.id}
+              resourceType="file"
+              icon={
+                <div className="flex size-full items-center justify-center bg-neutral-50">
+                  <FileContent className="size-4 text-neutral-800" />
+                </div>
+              }
+              title={file.name || "File"}
+              description={formatFileSize(file.size, 0)}
+              onDelete={() => handleDelete("file", file.id)}
+            />
+          ))}
+        </Section>
       </div>
     </>
   );

@@ -8,7 +8,7 @@ export default function ProgramResources() {
       title="Resources"
       description="Shared brand logos, colors, and additional documents for your partners"
     >
-      <MaxWidthWrapper>
+      <MaxWidthWrapper className="mb-10">
         <ProgramResourcesPageClient />
       </MaxWidthWrapper>
     </PageContent>
