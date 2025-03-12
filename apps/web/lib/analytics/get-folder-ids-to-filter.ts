@@ -23,6 +23,7 @@ export const getFolderIdsToFilter = async ({
       workspaceId: workspace.id,
       userId,
       excludeBulkFolders: true,
+      pageSize: 1000, // TODO: might need to handle this if folks have > 1000 folders in the future
     });
 
     folderIds = folders.map((folder) => folder.id).concat("");
