@@ -36,6 +36,7 @@ export async function recordClick({
   skipRatelimit,
   timestamp,
   referrer,
+  trackConversion,
 }: {
   req: Request;
   clickId: string;
@@ -48,6 +49,7 @@ export async function recordClick({
   skipRatelimit?: boolean;
   timestamp?: string;
   referrer?: string;
+  trackConversion?: boolean;
 }) {
   const searchParams = new URL(req.url).searchParams;
 
@@ -136,6 +138,8 @@ export async function recordClick({
     referer_url: referer || "(direct)",
   };
 
+  console.log({ trackConversion });
+
   const hasWebhooks = webhookIds && webhookIds.length > 0;
 
   const [, , , , workspaceRows] = await Promise.all([
@@ -154,6 +158,13 @@ export async function recordClick({
     redis.set(cacheKey, clickId, {
       ex: 60 * 60,
     }),
+
+    // cache the click data for 15 mins
+    // we're doing this because ingested click events are not available immediately in Tinybird
+    trackConversion &&
+      redis.set(`click:${clickId}`, clickData, {
+        ex: 60 * 15,
+      }),
 
     // increment the click count for the link (based on their ID)
     // we have to use planetscale connection directly (not prismaEdge) because of connection pooling
