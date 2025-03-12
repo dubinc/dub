@@ -51,7 +51,7 @@ const DefaultDiscount = () => {
           <Discount discount={defaultDiscount} isDefault={true} />
         ) : (
           <>
-            <div className="flex items-center justify-between gap-4 rounded-lg bg-neutral-50 p-4">
+            <div className="flex items-center justify-between gap-4 rounded-lg border border-neutral-50 bg-neutral-50 p-4">
               <div className="flex items-center gap-4">
                 <div className="flex size-10 items-center justify-center rounded-full border border-neutral-300">
                   <BadgePercent className="size-5" />
@@ -186,13 +186,16 @@ const Discount = ({
 const DiscountSkeleton = () => {
   return (
     <div className="flex animate-pulse items-center gap-4 rounded-lg border border-neutral-200 p-4">
-      <div className="flex size-10 items-center justify-center rounded-full border border-neutral-200 bg-neutral-50" />
+      <div className="flex size-10 items-center justify-center rounded-full border border-neutral-200 bg-neutral-50">
+        <div className="size-4 rounded-full bg-neutral-100" />
+      </div>
       <div className="flex flex-1 items-center justify-between">
-        <div className="space-y-3">
-          <div className="h-4 w-64 rounded bg-neutral-100" />
-          <div className="h-4 w-32 rounded bg-neutral-100" />
+        <div className="flex items-center gap-2">
+          <div className="text-sm">
+            <div className="h-4 w-48 rounded bg-neutral-100" />
+          </div>
         </div>
-        <div className="h-6 w-24 rounded-full bg-neutral-100" />
+        <div className="h-5 w-28 rounded-full bg-neutral-100" />
       </div>
     </div>
   );

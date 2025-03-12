@@ -43,10 +43,11 @@ async function OnlinePresenceFormRSC() {
       select: {
         country: true,
         website: true,
-        instagram: true,
-        tiktok: true,
         youtube: true,
         twitter: true,
+        linkedin: true,
+        instagram: true,
+        tiktok: true,
       },
     }),
     prisma.programApplication.findFirst({
