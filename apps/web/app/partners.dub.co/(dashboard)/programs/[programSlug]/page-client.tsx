@@ -8,7 +8,7 @@ import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-timeseries";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { HeroBackground } from "@/ui/partners/hero-background";
-import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
+import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   Button,
@@ -24,7 +24,7 @@ import {
   TimeSeriesChart,
   XAxis,
 } from "@dub/ui/charts";
-import { Check, Copy, LoadingSpinner, MoneyBill } from "@dub/ui/icons";
+import { Check, Copy, LoadingSpinner } from "@dub/ui/icons";
 import { cn, currencyFormatter, getPrettyUrl, nFormatter } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import { LinearGradient } from "@visx/gradient";
@@ -98,30 +98,16 @@ export default function ProgramPageClient() {
                   color={program.brandColor}
                 />
               )}
-              <span className="mt-2 flex items-center gap-2 text-sm text-neutral-500">
-                <MoneyBill className="size-4" />
-                Refer and earn
-              </span>
-              <div className="relative mt-24 text-lg text-neutral-900 sm:max-w-[50%]">
-                {program ? (
-                  <ProgramRewardDescription
-                    reward={programEnrollment?.reward}
-                    discount={programEnrollment?.discount}
-                  />
-                ) : (
-                  <div className="h-7 w-5/6 animate-pulse rounded-md bg-neutral-200" />
-                )}
-              </div>
-              <span className="mb-1.5 mt-6 block text-sm text-neutral-800">
+              <span className="text-base font-semibold text-neutral-800">
                 Referral link
               </span>
-              <div className="xs:flex-row relative flex flex-col items-center gap-2">
+              <div className="xs:flex-row xs:items-center relative mt-3 flex flex-col gap-2 md:max-w-[50%]">
                 {masterLink ? (
                   <input
                     type="text"
                     readOnly
                     value={getPrettyUrl(masterLink.shortLink)}
-                    className="xs:w-auto h-10 w-full rounded-md border border-neutral-300 px-3 text-sm focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 lg:min-w-64 xl:min-w-72"
+                    className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default h-10 min-w-0 shrink grow rounded-md border px-3 text-sm focus:outline-none focus:ring-neutral-500"
                   />
                 ) : (
                   <div className="h-10 w-16 animate-pulse rounded-md bg-neutral-200 lg:w-72" />
@@ -156,6 +142,19 @@ export default function ProgramPageClient() {
                     }
                   }}
                 />
+              </div>
+              <span className="mt-12 text-base font-semibold text-neutral-800">
+                Rewards
+              </span>
+              <div className="relative mt-2 text-lg text-neutral-900 md:max-w-[50%]">
+                {program && programEnrollment?.rewards ? (
+                  <ProgramRewardList
+                    rewards={programEnrollment?.rewards}
+                    discount={programEnrollment?.discount}
+                  />
+                ) : (
+                  <div className="h-7 w-5/6 animate-pulse rounded-md bg-neutral-200" />
+                )}
               </div>
             </div>
           </motion.div>

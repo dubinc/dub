@@ -3,7 +3,7 @@ import "dotenv-flow/config";
 import * as fs from "fs";
 import * as Papa from "papaparse";
 
-// update commissions for a program
+// export partners for a program
 async function main() {
   const partners = await prisma.programEnrollment
     .findMany({
@@ -22,7 +22,9 @@ async function main() {
     })
     .then((partners) => partners.map(({ partner }) => partner));
 
-  fs.writeFileSync("tella_partners.csv", Papa.unparse(partners));
+  console.log(`Exporting ${partners.length} partners`);
+
+  fs.writeFileSync("partners.csv", Papa.unparse(partners));
 }
 
 main();

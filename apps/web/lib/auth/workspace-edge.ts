@@ -412,7 +412,7 @@ export const withWorkspaceEdge = (
       }
     },
     {
-      logRequestDetails: ["body", "nextUrl"],
+      logRequestDetails: ["nextUrl"],
     },
   );
 };

@@ -6,10 +6,9 @@ import { updateDiscountAction } from "@/lib/actions/partners/update-discount";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useDiscountPartners from "@/lib/swr/use-discount-partners";
-import usePartners from "@/lib/swr/use-partners";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { DiscountProps } from "@/lib/types";
+import { DiscountProps, EnrolledPartnerProps } from "@/lib/types";
 import { createDiscountSchema } from "@/lib/zod/schemas/discount";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import { SelectEligiblePartnersSheet } from "@/ui/partners/select-eligible-partners-sheet";
@@ -18,28 +17,17 @@ import {
   AnimatedSizeContainer,
   Button,
   CircleCheckFill,
-  LoadingSpinner,
   Sheet,
-  Table,
   usePagination,
-  Users,
-  useTable,
 } from "@dub/ui";
 import { cn, pluralize } from "@dub/utils";
-import { DICEBEAR_AVATAR_URL } from "@dub/utils/src/constants";
 import { useAction } from "next-safe-action/hooks";
-import {
-  Dispatch,
-  SetStateAction,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
+import { PartnersTable } from "./reward-discount-partners-table";
 
 interface DiscountSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
@@ -69,10 +57,8 @@ function DiscountSheetContent({
 }: DiscountSheetProps) {
   const formRef = useRef<HTMLFormElement>(null);
 
-  const { data: allPartners } = usePartners();
   const { id: workspaceId } = useWorkspace();
   const { program, mutate: mutateProgram } = useProgram();
-  const { pagination, setPagination } = usePagination(25);
   const [isAddPartnersOpen, setIsAddPartnersOpen] = useState(false);
 
   const [isRecurring, setIsRecurring] = useState(
@@ -104,10 +90,12 @@ function DiscountSheetContent({
     },
   });
 
-  const [type, partnerIds = []] = watch(["type", "partnerIds"]);
-  const partnersCount = discount?.partnersCount || 0;
+  // Manage discount partners
+  const { pagination, setPagination } = usePagination(25);
+  const [selectedPartners, setSelectedPartners] =
+    useState<EnrolledPartnerProps[]>();
 
-  const { data: discountPartners, loading: isLoadingDiscountPartners } =
+  const { data: discountPartners, loading: discountPartnersLoading } =
     useDiscountPartners({
       query: {
         discountId: discount?.id,
@@ -117,26 +105,22 @@ function DiscountSheetContent({
       enabled: Boolean(discount && program),
     });
 
-  const displayPartners = useMemo(() => {
-    if (discount && discountPartners) {
-      return discountPartners;
-    }
-
-    if (!allPartners) {
-      return [];
-    }
-
-    return allPartners.filter((p) => partnerIds && partnerIds.includes(p.id));
-  }, [discount, discountPartners, allPartners, partnerIds]);
-
   useEffect(() => {
     if (discountPartners) {
+      setSelectedPartners(discountPartners);
+    }
+  }, [discountPartners]);
+
+  useEffect(() => {
+    if (selectedPartners) {
       setValue(
         "partnerIds",
-        discountPartners.map((p) => p.id),
+        selectedPartners.map((partner) => partner.id),
       );
     }
-  }, [discountPartners, setValue]);
+  }, [selectedPartners, setValue]);
+
+  const [type, partnerIds = []] = watch(["type", "partnerIds"]);
 
   const { executeAsync: createDiscount, isPending: isCreating } = useAction(
     createDiscountAction,
@@ -226,63 +210,6 @@ function DiscountSheetContent({
     });
   };
 
-  const selectedPartnersTable = useTable({
-    data: displayPartners,
-    columns: [
-      {
-        header: "Partner",
-        cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <img
-              src={
-                row.original.image ||
-                `${DICEBEAR_AVATAR_URL}${row.original.name}`
-              }
-              alt={row.original.name}
-              className="size-6 rounded-full"
-            />
-            <span className="text-sm text-neutral-700">
-              {row.original.name}
-            </span>
-          </div>
-        ),
-      },
-      {
-        header: "Email",
-        cell: ({ row }) => (
-          <div className="text-sm text-neutral-600">{row.original.email}</div>
-        ),
-      },
-      {
-        id: "actions",
-        cell: ({ row }) => (
-          <div className="flex justify-end">
-            <Button
-              variant="secondary"
-              icon={<X className="size-4" />}
-              className="h-8 w-8 rounded-md border-0 bg-neutral-50 p-0"
-              onClick={() => {
-                const newPartnerIds = (partnerIds || []).filter(
-                  (id) => id !== row.original.id,
-                );
-                setValue("partnerIds", newPartnerIds);
-              }}
-            />
-          </div>
-        ),
-        size: 50,
-      },
-    ],
-    thClassName: () => cn("border-l-0"),
-    tdClassName: () => cn("border-l-0"),
-    className: "[&_tr:last-child>td]:border-b-transparent",
-    scrollWrapperClassName: "min-h-[40px]",
-    resourceName: (p) => `eligible partner${p ? "s" : ""}`,
-    pagination: discount ? pagination : undefined,
-    onPaginationChange: discount ? setPagination : undefined,
-    rowCount: discount ? partnersCount || 0 : displayPartners.length,
-  });
-
   const buttonDisabled =
     isCreating ||
     isUpdating ||
@@ -295,20 +222,20 @@ function DiscountSheetContent({
         onSubmit={handleSubmit(onSubmit)}
         className="flex h-full flex-col"
       >
-        <div>
-          <div className="flex items-start justify-between border-b border-neutral-200 p-6">
-            <Sheet.Title className="text-xl font-semibold">
-              {discount ? "Edit" : "Create"} {isDefault ? "default" : ""}{" "}
-              discount
-            </Sheet.Title>
-            <Sheet.Close asChild>
-              <Button
-                variant="outline"
-                icon={<X className="size-5" />}
-                className="h-auto w-fit p-1"
-              />
-            </Sheet.Close>
-          </div>
+        <div className="flex items-start justify-between border-b border-neutral-200 p-6">
+          <Sheet.Title className="text-xl font-semibold">
+            {discount ? "Edit" : "Create"} {isDefault ? "default" : ""} discount
+          </Sheet.Title>
+          <Sheet.Close asChild>
+            <Button
+              variant="outline"
+              icon={<X className="size-5" />}
+              className="h-auto w-fit p-1"
+            />
+          </Sheet.Close>
+        </div>
+
+        <div className="flex-1 overflow-y-auto">
           <div className="flex flex-col gap-4 p-6">
             <div>
               <div className="-m-1">
@@ -528,71 +455,55 @@ function DiscountSheetContent({
                   />
                 </div>
                 <div className="mt-4">
-                  {isLoadingDiscountPartners ? (
-                    <div className="flex items-center justify-center py-8">
-                      <LoadingSpinner className="size-4" />
-                    </div>
-                  ) : displayPartners.length > 0 ? (
-                    <Table {...selectedPartnersTable} />
-                  ) : (
-                    <div className="flex flex-col items-center justify-center gap-4 rounded-lg bg-neutral-50 py-12">
-                      <div className="flex items-center justify-center">
-                        <Users className="size-6 text-neutral-800" />
-                      </div>
-                      <div className="flex flex-col items-center gap-1 px-4 text-center">
-                        <p className="text-base font-medium text-neutral-900">
-                          Eligible partners
-                        </p>
-                        <p className="text-sm text-neutral-600">
-                          No eligible partners added yet
-                        </p>
-                      </div>
-                    </div>
-                  )}
+                  <PartnersTable
+                    selectedPartners={selectedPartners || []}
+                    setSelectedPartners={setSelectedPartners}
+                    loading={discountPartnersLoading}
+                    pagination={pagination}
+                    setPagination={setPagination}
+                  />
                 </div>
               </div>
             )}
           </div>
         </div>
 
-        <div className="flex grow flex-col justify-end">
-          <div className="flex items-center justify-between border-t border-neutral-200 p-5">
-            <div>
-              {discount && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  text="Remove discount"
-                  onClick={onDelete}
-                  loading={isDeleting}
-                />
-              )}
-            </div>
-
-            <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between border-t border-neutral-200 p-5">
+          <div>
+            {discount && (
               <Button
                 type="button"
-                variant="secondary"
-                onClick={() => setIsOpen(false)}
-                text="Cancel"
-                className="w-fit"
-                disabled={isCreating || isUpdating || isDeleting}
+                variant="outline"
+                text="Remove discount"
+                onClick={onDelete}
+                loading={isDeleting}
               />
+            )}
+          </div>
 
-              <Button
-                type="submit"
-                variant="primary"
-                text={discount ? "Update discount" : "Create discount"}
-                className="w-fit"
-                loading={isCreating || isUpdating}
-                disabled={buttonDisabled || isDeleting}
-                disabledTooltip={
-                  !isDefault && (!partnerIds || partnerIds.length === 0)
-                    ? "Please select at least one partner"
-                    : undefined
-                }
-              />
-            </div>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setIsOpen(false)}
+              text="Cancel"
+              className="w-fit"
+              disabled={isCreating || isUpdating || isDeleting}
+            />
+
+            <Button
+              type="submit"
+              variant="primary"
+              text={discount ? "Update discount" : "Create discount"}
+              className="w-fit"
+              loading={isCreating || isUpdating}
+              disabled={buttonDisabled || isDeleting}
+              disabledTooltip={
+                !isDefault && (!partnerIds || partnerIds.length === 0)
+                  ? "Please select at least one partner"
+                  : undefined
+              }
+            />
           </div>
         </div>
       </form>
@@ -600,13 +511,8 @@ function DiscountSheetContent({
       <SelectEligiblePartnersSheet
         isOpen={isAddPartnersOpen}
         setIsOpen={setIsAddPartnersOpen}
-        selectedPartnerIds={partnerIds || []}
-        onSelect={(ids) => {
-          const existingIds = partnerIds || [];
-          const newIds = ids.filter((id) => !existingIds.includes(id));
-          const combinedIds = [...existingIds, ...newIds];
-          setValue("partnerIds", combinedIds);
-        }}
+        existingPartners={selectedPartners || []}
+        onSelect={setSelectedPartners}
       />
     </>
   );
