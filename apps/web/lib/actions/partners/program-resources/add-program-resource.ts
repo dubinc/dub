@@ -53,26 +53,21 @@ export const addProgramResourceAction = authActionClient
       },
     });
 
-    if (!program) {
-      throw new Error("Program not found");
-    }
+    if (!program) throw new Error("Program not found");
 
-    // Get current resources or initialize empty structure
     const currentResources = (program.resources as any) || {
       logos: [],
       colors: [],
       files: [],
     };
 
-    // Create a copy of the current resources to update
     const updatedResources = { ...currentResources };
 
-    // Handle different resource types
     if (resourceType === "logo" || resourceType === "file") {
       const { file } = parsedInput;
 
       // Upload the file to storage
-      const fileKey = `programs/${programId}/${resourceType}s/${nanoid(7)}`;
+      const fileKey = `programs/${program.id}/${resourceType}s/${nanoid(7)}`;
       const uploadResult = await storage.upload(fileKey, file);
 
       if (!uploadResult || !uploadResult.url) {
@@ -83,7 +78,6 @@ export const addProgramResourceAction = authActionClient
       const base64Data = file.replace(/^data:.+;base64,/, "");
       const fileSize = Math.ceil((base64Data.length * 3) / 4);
 
-      // Create the new resource object using the schema
       const newResource = programResourceFileSchema.parse({
         id: nanoid(10),
         name,
@@ -97,52 +91,34 @@ export const addProgramResourceAction = authActionClient
         ...(updatedResources[resourceKey] || []),
         newResource,
       ];
-
-      // Update the program with the new resources
-      await prisma.program.update({
-        where: {
-          id: programId,
-        },
-        data: {
-          resources: updatedResources,
-        },
-      });
-
-      return {
-        success: true,
-        resource: newResource,
-      };
     } else if (resourceType === "color") {
       const { color } = parsedInput;
 
-      // Create the new color resource using the schema
       const newResource = programResourceColorSchema.parse({
         id: nanoid(10),
         name,
         color,
       });
 
-      // Update the colors array in the resources object
       updatedResources.colors = [
         ...(updatedResources.colors || []),
         newResource,
       ];
-
-      // Update the program with the new resources
-      await prisma.program.update({
-        where: {
-          id: programId,
-        },
-        data: {
-          resources: updatedResources,
-        },
-      });
-
-      return {
-        success: true,
-        resource: newResource,
-      };
+    } else {
+      throw new Error("Invalid resource type");
     }
 
-    throw new Error("Invalid resource type");
+    // Update the program with the new resources
+    await prisma.program.update({
+      where: {
+        id: program.id,
+      },
+      data: {
+        resources: updatedResources,
+      },
+    });
+
+    return {
+      success: true,
+    };
   });
