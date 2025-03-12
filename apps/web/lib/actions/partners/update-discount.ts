@@ -69,16 +69,32 @@ export const updateDiscountAction = authActionClient
     });
 
     if (partnerIds && partnerIds.length > 0) {
-      await prisma.programEnrollment.updateMany({
-        where: {
-          programId,
-          partnerId: {
-            in: partnerIds,
+      await prisma.$transaction([
+        // assign discountId to partners in partnerIds
+        prisma.programEnrollment.updateMany({
+          where: {
+            programId,
+            partnerId: {
+              in: partnerIds,
+            },
           },
-        },
-        data: {
-          discountId,
-        },
-      });
+          data: {
+            discountId,
+          },
+        }),
+        // remove discountId from partners not in partnerIds
+        prisma.programEnrollment.updateMany({
+          where: {
+            programId,
+            partnerId: {
+              notIn: partnerIds,
+            },
+            discountId,
+          },
+          data: {
+            discountId: null,
+          },
+        }),
+      ]);
     }
   });

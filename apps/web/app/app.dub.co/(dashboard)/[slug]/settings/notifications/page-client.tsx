@@ -2,38 +2,50 @@
 
 import { updateNotificationPreference } from "@/lib/actions/update-notification-preference";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { notificationTypes } from "@/lib/zod/schemas/workspaces";
 import { Switch, useOptimisticUpdate } from "@dub/ui";
 import { Globe, Hyperlink } from "@dub/ui/icons";
+import { DollarSign } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
+import { useMemo } from "react";
+import { z } from "zod";
 
-type PreferenceType = "linkUsageSummary" | "domainConfigurationUpdates";
-
+type PreferenceType = z.infer<typeof notificationTypes>;
 type Preferences = Record<PreferenceType, boolean>;
 
-const notifications: {
-  type: PreferenceType;
-  icon: React.ElementType;
-  title: string;
-  description: string;
-}[] = [
-  {
-    type: "domainConfigurationUpdates",
-    icon: Globe,
-    title: "Domain configuration updates",
-    description: "Updates to your custom domain configuration.",
-  },
-  {
-    type: "linkUsageSummary",
-    icon: Hyperlink,
-    title: "Monthly links usage summary",
-    description:
-      "Monthly summary email of your top 5 links by usage & total links created.",
-  },
-];
-
 export default function NotificationsSettingsPageClient() {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, partnersEnabled } = useWorkspace();
   const { executeAsync } = useAction(updateNotificationPreference);
+
+  const notifications = useMemo(
+    () => [
+      {
+        type: "domainConfigurationUpdates",
+        icon: Globe,
+        title: "Domain configuration updates",
+        description: "Updates to your custom domain configuration.",
+      },
+      {
+        type: "linkUsageSummary",
+        icon: Hyperlink,
+        title: "Monthly links usage summary",
+        description:
+          "Monthly summary email of your top 5 links by usage & total links created.",
+      },
+      ...(partnersEnabled
+        ? [
+            {
+              type: "newPartnerSale",
+              icon: DollarSign,
+              title: "New referral sales",
+              description:
+                "Alert when a new sale is made in your partner program.",
+            },
+          ]
+        : []),
+    ],
+    [partnersEnabled],
+  );
 
   const {
     data: preferences,

@@ -81,7 +81,7 @@ export const POST = withAxiom(
     }
   },
   {
-    logRequestDetails: ["body", "nextUrl"],
+    logRequestDetails: ["nextUrl"],
   },
 );
 

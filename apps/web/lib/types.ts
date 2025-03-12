@@ -27,6 +27,7 @@ import { clickEventResponseSchema } from "./zod/schemas/clicks";
 import {
   customerActivityResponseSchema,
   customerActivitySchema,
+  CustomerEnrichedSchema,
   CustomerSchema,
 } from "./zod/schemas/customers";
 import { dashboardSchema } from "./zod/schemas/dashboard";
@@ -353,6 +354,8 @@ export type TrackLeadResponse = z.infer<typeof trackLeadResponseSchema>;
 export type TrackSaleResponse = z.infer<typeof trackSaleResponseSchema>;
 
 export type Customer = z.infer<typeof CustomerSchema>;
+
+export type CustomerEnriched = z.infer<typeof CustomerEnrichedSchema>;
 
 export type UsageResponse = z.infer<typeof usageResponse>;
 
