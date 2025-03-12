@@ -1,6 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { cache } from "react";
-import { getTopProgramRewards } from "../partners/get-top-program-rewards";
+import { reorderTopProgramRewards } from "../partners/reorder-top-program-rewards";
 
 export const getProgram = cache(
   async ({
@@ -31,7 +31,7 @@ export const getProgram = cache(
     });
 
     if (program && include?.includes("rewards"))
-      program.rewards = getTopProgramRewards(program.rewards);
+      program.rewards = reorderTopProgramRewards(program.rewards);
 
     return program;
   },

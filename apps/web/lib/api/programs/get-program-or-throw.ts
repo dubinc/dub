@@ -1,4 +1,4 @@
-import { getTopProgramRewards } from "@/lib/partners/get-top-program-rewards";
+import { reorderTopProgramRewards } from "@/lib/partners/reorder-top-program-rewards";
 import { DiscountProps, ProgramProps } from "@/lib/types";
 import { ProgramSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
@@ -57,7 +57,7 @@ export const getProgramOrThrow = async (
   return ProgramSchema.parse({
     ...program,
     ...(includeRewards && program.rewards?.length
-      ? { rewards: getTopProgramRewards(program.rewards as any) }
+      ? { rewards: reorderTopProgramRewards(program.rewards as any) }
       : {}),
     ...(includeDefaultDiscount && program.defaultDiscount
       ? { discounts: [program.defaultDiscount] }
