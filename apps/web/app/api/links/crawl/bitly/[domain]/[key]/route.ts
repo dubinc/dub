@@ -60,24 +60,31 @@ export const GET = async (_req: NextRequest, { params }) => {
           `[Bitly] Creating link ${newLink.shortLink} -> ${newLink.url}`,
         );
 
-        waitUntil(
-          conn.execute(
-            "INSERT INTO Link (id, projectId, userId, domain, `key`, url, shortLink, archived, folderId, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            [
-              newLink.id,
-              newLink.projectId,
-              newLink.userId,
-              newLink.domain,
-              newLink.key,
-              newLink.url,
-              newLink.shortLink,
-              newLink.archived,
-              newLink.folderId,
-              newLink.createdAt,
-              newLink.updatedAt,
-            ],
-          ),
-        );
+        try {
+          waitUntil(
+            conn.execute(
+              "INSERT INTO Link (id, projectId, userId, domain, `key`, url, shortLink, archived, folderId, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+              [
+                newLink.id,
+                newLink.projectId,
+                newLink.userId,
+                newLink.domain,
+                newLink.key,
+                newLink.url,
+                newLink.shortLink,
+                newLink.archived,
+                newLink.folderId,
+                newLink.createdAt,
+                newLink.updatedAt,
+              ],
+            ),
+          );
+        } catch (error) {
+          console.error(
+            `[Bitly] Error creating link ${newLink.shortLink} -> ${newLink.url}`,
+            error,
+          );
+        }
 
         return NextResponse.redirect(sanitizedUrl, {
           headers: DUB_HEADERS,
