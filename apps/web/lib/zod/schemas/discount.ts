@@ -12,6 +12,14 @@ export const DiscountSchema = z.object({
   partnersCount: z.number().nullish(),
 });
 
+export const DiscountSchemaWithDeprecatedFields = DiscountSchema.extend({
+  duration: z
+    .number()
+    .nullish()
+    .describe("Deprecated: Use `maxDuration` instead"),
+  interval: z.string().nullish().describe("Deprecated: Defaults to `month`"),
+}).nullish();
+
 export const createDiscountSchema = z.object({
   workspaceId: z.string(),
   programId: z.string(),

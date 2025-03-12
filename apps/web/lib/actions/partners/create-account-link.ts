@@ -45,7 +45,7 @@ export const createAccountLinkAction = authPartnerActionClient.action(
       });
     }
 
-    const { url } = partner.payoutsEnabled
+    const { url } = partner.payoutsEnabledAt
       ? await stripe.accounts.createLoginLink(partner.stripeConnectId)
       : await stripe.accountLinks.create({
           account: partner.stripeConnectId,

@@ -6,7 +6,8 @@ import { randomBadgeColor } from "@/ui/links/tag-badge";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
-import { checkIfRateLimited, importLinksFromBitly } from "./utils";
+import { checkIfRateLimited } from "./rate-limit";
+import { importLinksFromBitly } from "./utils";
 
 export const dynamic = "force-dynamic";
 

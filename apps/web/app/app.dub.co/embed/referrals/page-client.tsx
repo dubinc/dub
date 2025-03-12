@@ -2,13 +2,12 @@
 
 import { DiscountProps, RewardProps } from "@/lib/types";
 import { HeroBackground } from "@/ui/partners/hero-background";
-import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
+import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import { Link, PayoutStatus, Program } from "@dub/prisma/client";
 import {
   Button,
   Check,
   Copy,
-  MoneyBill,
   ToggleGroup,
   useCopyToClipboard,
   Wordmark,
@@ -30,7 +29,7 @@ const tabs = ["Quickstart", "Earnings", "Leaderboard", "FAQ"];
 export function ReferralsEmbedPageClient({
   program,
   links,
-  reward,
+  rewards,
   discount,
   payouts,
   stats,
@@ -38,7 +37,7 @@ export function ReferralsEmbedPageClient({
 }: {
   program: Program;
   links: Link[];
-  reward: RewardProps | null;
+  rewards: RewardProps[];
   discount?: DiscountProps | null;
   payouts: {
     status: PayoutStatus;
@@ -65,23 +64,20 @@ export function ReferralsEmbedPageClient({
     >
       <div className="relative z-0 p-5">
         <div className="border-border-default relative flex flex-col overflow-hidden rounded-lg border p-4 md:p-6">
-          <HeroBackground logo={program.logo} color={program.brandColor} />
-          <span className="text-content-subtle flex items-center gap-2 text-sm">
-            <MoneyBill className="size-4" />
-            Refer and earn
-          </span>
-          <div className="text-content-emphasis relative mt-16 text-lg sm:max-w-[50%]">
-            <ProgramRewardDescription reward={reward} discount={discount} />
-          </div>
-          <span className="text-content-default mb-1.5 mt-6 block text-sm">
+          <HeroBackground
+            logo={program.logo}
+            color={program.brandColor}
+            embed
+          />
+          <span className="text-base font-semibold text-neutral-800">
             Referral link
           </span>
-          <div className="xs:flex-row relative flex flex-col items-center gap-2">
+          <div className="xs:flex-row xs:items-center relative mt-3 flex flex-col gap-2 sm:max-w-[50%]">
             <input
               type="text"
               readOnly
               value={getPrettyUrl(links[0].shortLink)}
-              className="xs:w-auto border-border-default text-content-default focus:border-border-emphasis bg-bg-default h-10 w-full rounded-md border px-3 text-sm focus:outline-none focus:ring-neutral-500 lg:min-w-64 xl:min-w-72"
+              className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default h-10 min-w-0 shrink grow rounded-md border px-3 text-sm focus:outline-none focus:ring-neutral-500"
             />
             <Button
               icon={
@@ -108,6 +104,12 @@ export function ReferralsEmbedPageClient({
               className="xs:w-fit"
               onClick={() => copyToClipboard(links[0].shortLink)}
             />
+          </div>
+          <span className="mt-12 text-base font-semibold text-neutral-800">
+            Rewards
+          </span>
+          <div className="text-content-emphasis relative mt-2 text-lg sm:max-w-[50%]">
+            <ProgramRewardList rewards={rewards} discount={discount} />
           </div>
           <div className="mt-4 flex justify-center md:absolute md:bottom-3 md:right-3 md:mt-0">
             <a
@@ -153,7 +155,7 @@ export function ReferralsEmbedPageClient({
               ) : selectedTab === "Leaderboard" ? (
                 <ReferralsEmbedLeaderboard />
               ) : selectedTab === "FAQ" ? (
-                <ReferralsEmbedFAQ program={program} reward={reward} />
+                <ReferralsEmbedFAQ program={program} reward={rewards[0]} />
               ) : null}
             </AnimatePresence>
           </div>

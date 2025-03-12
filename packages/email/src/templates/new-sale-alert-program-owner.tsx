@@ -65,7 +65,8 @@ export function NewSaleAlertProgramOwner({
     earnings: number;
   };
 }) {
-  const linkToProgram = `https://app.dub.co/${workspace.slug}/programs/${program.id}/sales?partnerId=${partner.id}`;
+  const salesLink = `https://app.dub.co/${workspace.slug}/programs/${program.id}/sales?partnerId=${partner.id}`;
+  const notificationPreferencesLink = `https://app.dub.co/${workspace.slug}/settings/notifications`;
 
   const saleAmountInDollars = currencyFormatter(sale.amount / 100, {
     minimumFractionDigits: 2,
@@ -186,13 +187,22 @@ export function NewSaleAlertProgramOwner({
 
             <Text className="text-sm leading-6 text-neutral-600">
               You can view sales and commissions in the{" "}
-              <Link href={linkToProgram} className="text-blue-600 underline">
+              <Link href={salesLink} className="text-blue-600 underline">
                 program dashboard
               </Link>
               .
             </Text>
 
             <Text className="text-sm leading-6 text-neutral-600">Thanks!</Text>
+
+            <Text className="text-sm leading-6 text-neutral-600">
+              <Link
+                href={notificationPreferencesLink}
+                className="text-neutral-500 underline"
+              >
+                Change your notification preferences
+              </Link>
+            </Text>
 
             <Footer email={user.email} />
           </Container>

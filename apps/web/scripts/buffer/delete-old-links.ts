@@ -4,41 +4,33 @@ import "dotenv-flow/config";
 
 async function main() {
   const where: Prisma.LinkWhereInput = {
-    projectId: "xxx",
+    projectId: "cm05wnnpo000711ztj05wwdbu",
     archived: false,
-    folderId: "xxx",
-    AND: [
-      {
-        createdAt: {
-          lte: new Date("2025-02-15T15:27:00.000Z"),
-        },
-      },
-      {
-        createdAt: {
-          gte: new Date("2025-01-29T14:27:00.000Z"),
-        },
-      },
-    ],
+    folderId: "fold_LIZsdjTgFVbQVGYSUmYAi5vT",
+    createdAt: {
+      lte: new Date("2025-02-27T00:00:00.000Z"),
+    },
   };
 
   const links = await prisma.link.findMany({
     where,
     select: {
       id: true,
-      shortLink: true,
+      key: true,
+      createdAt: true,
     },
     take: 1000,
     orderBy: {
-      createdAt: "asc",
+      createdAt: "desc",
     },
   });
 
   if (!links.length) {
-    console.log("No more links to migrate.");
+    console.log("No more links to delete.");
     return;
   }
 
-  console.table(links);
+  // console.table(links);
 
   await prisma.link.deleteMany({
     where: {
@@ -49,6 +41,10 @@ async function main() {
   });
 
   console.log(`Deleted ${links.length} links`);
+  const finalDeletedLink = links[links.length - 1];
+  console.log(
+    `Final deleted link: ${finalDeletedLink.key} (${new Date(finalDeletedLink.createdAt).toISOString()})`,
+  );
 }
 
 main();

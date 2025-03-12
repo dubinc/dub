@@ -11,8 +11,16 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(
   async ({ headers, searchParams, workspace, session }) => {
     const params = getLinksCountQuerySchema.parse(searchParams);
-    const { groupBy, domain, folderId, search, tagId, tagIds, tagNames } =
-      params;
+    const {
+      groupBy,
+      domain,
+      folderId,
+      search,
+      tagId,
+      tagIds,
+      tagNames,
+      tenantId,
+    } = params;
 
     if (domain) {
       await getDomainOrThrow({ domain, workspace: workspace });
@@ -36,10 +44,11 @@ export const GET = withWorkspace(
     /* we only need to get the folder ids if we are:
       - not filtering by folder
       - there's a groupBy
-      - filtering by search, domain, or tags
+      - filtering by search, domain, tags, or tenantId
     */
     let folderIds =
-      !folderId && (groupBy || search || domain || tagId || tagIds || tagNames)
+      !folderId &&
+      (groupBy || search || domain || tagId || tagIds || tagNames || tenantId)
         ? await getFolderIdsToFilter({
             workspace,
             userId: session.user.id,

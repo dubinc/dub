@@ -1,6 +1,11 @@
 "use client";
 
-import React, { createContext, useContext, useState } from "react";
+import React, {
+  createContext,
+  PropsWithChildren,
+  useContext,
+  useState,
+} from "react";
 
 interface RegisterContextType {
   email: string;
@@ -9,22 +14,31 @@ interface RegisterContextType {
   setEmail: (email: string) => void;
   setPassword: (password: string) => void;
   setStep: (step: "signup" | "verify") => void;
+  lockEmail?: boolean;
 }
 
 const RegisterContext = createContext<RegisterContextType | undefined>(
   undefined,
 );
 
-export const RegisterProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
-  const [email, setEmail] = useState("");
+export const RegisterProvider: React.FC<
+  PropsWithChildren<{ email?: string; lockEmail?: boolean }>
+> = ({ email: emailProp, lockEmail, children }) => {
+  const [email, setEmail] = useState(emailProp ?? "");
   const [password, setPassword] = useState("");
   const [step, setStep] = useState<"signup" | "verify">("signup");
 
   return (
     <RegisterContext.Provider
-      value={{ email, password, step, setEmail, setPassword, setStep }}
+      value={{
+        email,
+        password,
+        step,
+        setEmail,
+        setPassword,
+        setStep,
+        lockEmail,
+      }}
     >
       {children}
     </RegisterContext.Provider>

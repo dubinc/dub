@@ -57,7 +57,22 @@ export const PartnerSchema = z.object({
   country: z.string().nullable(),
   status: z.nativeEnum(PartnerStatus),
   stripeConnectId: z.string().nullable(),
-  payoutsEnabled: z.boolean(),
+  payoutsEnabledAt: z.date().nullable(),
+
+  website: z.string().nullable(),
+  websiteTxtRecord: z.string().nullable(),
+  websiteVerifiedAt: z.date().nullable(),
+  youtube: z.string().nullable(),
+  youtubeVerifiedAt: z.date().nullable(),
+  twitter: z.string().nullable(),
+  twitterVerifiedAt: z.date().nullable(),
+  linkedin: z.string().nullable(),
+  linkedinVerifiedAt: z.date().nullable(),
+  instagram: z.string().nullable(),
+  instagramVerifiedAt: z.date().nullable(),
+  tiktok: z.string().nullable(),
+  tiktokVerifiedAt: z.date().nullable(),
+
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -70,7 +85,7 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
   image: true,
   description: true,
   country: true,
-  payoutsEnabled: true,
+  payoutsEnabledAt: true,
   createdAt: true,
 })
   .merge(
@@ -187,6 +202,7 @@ export const onboardPartnerSchema = createPartnerSchema
   .omit({
     programId: true,
     username: true,
+    email: true,
     linkProps: true,
   })
   .merge(

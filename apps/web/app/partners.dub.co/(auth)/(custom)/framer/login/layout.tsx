@@ -1,17 +1,10 @@
 import { Grid, Wordmark } from "@dub/ui";
-import { redirect } from "next/navigation";
 
 export default function CustomPartnerAuthLayout({
-  params: { programSlug },
   children,
 }: {
-  params: { programSlug: string };
   children: React.ReactNode;
 }) {
-  if (programSlug !== "framer") {
-    redirect("/login");
-  }
-
   return (
     <div className="flex min-h-screen flex-col">
       <div className="fixed inset-0 [mask-image:radial-gradient(60%_60%_at_50%_0%,black,transparent)]">

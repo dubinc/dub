@@ -11,15 +11,6 @@ export async function markDomainAsDeleted({
   domain: string;
   workspaceId: string;
 }) {
-  await prisma.link.updateMany({
-    where: {
-      domain,
-    },
-    data: {
-      projectId: null,
-    },
-  });
-
   const response = await Promise.allSettled([
     removeDomainFromVercel(domain),
 
