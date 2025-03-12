@@ -15,10 +15,11 @@ import { ONLINE_PRESENCE_PROVIDERS } from "./online-presence-providers";
 
 const updateOnlinePresenceSchema = z.object({
   website: parseUrlSchemaAllowEmpty().nullish(),
-  instagram: z.string().nullish(),
-  tiktok: z.string().nullish(),
   youtube: z.string().nullish(),
   twitter: z.string().nullish(),
+  linkedin: z.string().nullish(),
+  instagram: z.string().nullish(),
+  tiktok: z.string().nullish(),
   source: z.enum(["onboarding", "settings"]).default("onboarding"),
 });
 
@@ -61,16 +62,6 @@ export const updateOnlinePresenceAction = authPartnerActionClient
           websiteTxtRecord: `dub-domain-verification=${uuid()}`,
         }),
       }),
-      ...(parsedInput.instagram !== undefined && {
-        instagram: parsedInput.instagram,
-        instagramVerifiedAt:
-          parsedInput.instagram !== partner.instagram ? null : undefined,
-      }),
-      ...(parsedInput.tiktok !== undefined && {
-        tiktok: parsedInput.tiktok,
-        tiktokVerifiedAt:
-          parsedInput.tiktok !== partner.tiktok ? null : undefined,
-      }),
       ...(parsedInput.youtube !== undefined && {
         youtube: parsedInput.youtube,
         youtubeVerifiedAt:
@@ -80,6 +71,21 @@ export const updateOnlinePresenceAction = authPartnerActionClient
         twitter: parsedInput.twitter,
         twitterVerifiedAt:
           parsedInput.twitter !== partner.twitter ? null : undefined,
+      }),
+      ...(parsedInput.linkedin !== undefined && {
+        linkedin: parsedInput.linkedin,
+        linkedinVerifiedAt:
+          parsedInput.linkedin !== partner.linkedin ? null : undefined,
+      }),
+      ...(parsedInput.instagram !== undefined && {
+        instagram: parsedInput.instagram,
+        instagramVerifiedAt:
+          parsedInput.instagram !== partner.instagram ? null : undefined,
+      }),
+      ...(parsedInput.tiktok !== undefined && {
+        tiktok: parsedInput.tiktok,
+        tiktokVerifiedAt:
+          parsedInput.tiktok !== partner.tiktok ? null : undefined,
       }),
     };
 
