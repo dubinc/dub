@@ -7,7 +7,7 @@ import { E2E_LINK } from "../utils/resource";
 
 const { domain, url } = E2E_LINK;
 
-describe.sequential("GET /links/{linkId}", async () => {
+describe.concurrent("GET /links/{linkId}", async () => {
   const h = new IntegrationHarness();
   const { workspace, http, user } = await h.init();
   const workspaceId = workspace.id;
