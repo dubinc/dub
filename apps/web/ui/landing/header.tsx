@@ -19,7 +19,7 @@ export const Header = () => {
 
           <Link
             href="/register"
-            className="bg-secondary hover:bg-secondary/90 flex h-10 items-center justify-center rounded-md px-4 text-white"
+            className="bg-secondary hover:bg-secondary/90 hidden h-10 items-center justify-center rounded-md px-4 text-white md:flex"
           >
             Registration
           </Link>
