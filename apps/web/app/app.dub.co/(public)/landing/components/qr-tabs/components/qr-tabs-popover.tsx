@@ -30,7 +30,7 @@ export const QRTabsPopover: FC<IQRTabsPopoverProps> = ({
       content={
         <ScrollArea.Root
           type={isMobile ? "always" : undefined}
-          className="w-full p-3 md:p-0"
+          className="w-full px-3 md:p-0"
         >
           <ScrollArea.Viewport className="overflow-y-scroll">
             <div className="flex max-h-[274px] w-[95%] flex-col gap-0.5 text-sm md:w-80 md:max-w-[200px] md:p-3">
