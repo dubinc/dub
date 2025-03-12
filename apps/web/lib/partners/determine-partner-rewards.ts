@@ -61,8 +61,6 @@ export const determinePartnerRewards = async ({
 
   const partnerRewards = [...partnerSpecificRewards, programWideReward];
 
-  console.log("partnerRewards", partnerRewards);
-
   if (partnerRewards.length === 0) {
     return null;
   }
