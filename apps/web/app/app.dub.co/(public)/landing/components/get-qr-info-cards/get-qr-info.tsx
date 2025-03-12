@@ -15,7 +15,7 @@ const GET_QR_CARDS_IMGS = [
 export const GetQRInfoCardsSection: FC = () => {
   return (
     <section className="mx-auto flex max-w-[1172px] flex-col items-center justify-between gap-4 px-3 py-6 lg:gap-8 lg:py-[42px]">
-      <h2 className="text-neutral max-w-[351px] text-center text-xl font-bold leading-[120%] md:max-w-none md:text-3xl">
+      <h2 className="text-neutral max-w-[250px] text-center text-xl font-bold leading-[120%] md:max-w-none md:text-3xl">
         Create your{" "}
         <span className="bg-qr-gradient inline-block bg-clip-text text-transparent">
           QR Code
@@ -29,7 +29,7 @@ export const GetQRInfoCardsSection: FC = () => {
             content={card.content}
             img={
               <Image
-                className="max-h-[140px] max-w-[327px] md:max-w-[342px]"
+                className="w-full md:max-h-[140px] md:max-w-[342px]"
                 height={140}
                 width={342}
                 src={GET_QR_CARDS_IMGS[idx]}

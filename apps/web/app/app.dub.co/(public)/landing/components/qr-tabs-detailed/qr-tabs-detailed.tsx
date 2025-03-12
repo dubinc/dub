@@ -1,10 +1,10 @@
 import QrCodeIcon from "@/ui/landing/assets/svg/qr-code.svg";
-import { Button } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Icon } from "@iconify/react";
 import * as ScrollArea from "@radix-ui/react-scroll-area";
 import * as Tabs from "@radix-ui/react-tabs";
 import Image from "next/image";
+import Link from "next/link";
 import { FC, useState } from "react";
 import { QR_TYPES } from "../../constants/get-qr-config.ts";
 import { QrTabsDetailedImage } from "./components/qr-tabs-detailed-image.tsx";
@@ -77,7 +77,7 @@ export const QrTabsDetailed: FC<IQRTabsProps> = ({ isMobile }) => {
             </ScrollArea.Scrollbar>
           </ScrollArea.Root>
 
-          {QR_TYPES.map((type) => {
+          {QR_TYPES.map((type, idx) => {
             return (
               <Tabs.Content
                 key={type.id}
@@ -90,6 +90,7 @@ export const QrTabsDetailed: FC<IQRTabsProps> = ({ isMobile }) => {
                     <QrTabsDetailedImage
                       imgSrc={type.img}
                       {...(!isMobile && { width: 270, height: 420 })}
+                      className={idx === 1 ? "top-[61.5%] md:top-[57%]" : ""}
                     />
                   </div>
                   <div className="flex max-w-[520px] flex-col items-start justify-start gap-3 md:gap-[18px]">
@@ -101,13 +102,14 @@ export const QrTabsDetailed: FC<IQRTabsProps> = ({ isMobile }) => {
                         {type.content}
                       </p>
                     </div>
-                    <Button
+                    <Link
+                      href="/register"
                       type="button"
-                      variant="blue"
-                      text={"Create QR code"}
-                      className="bg-secondary hover:bg-secondary/90 flex h-11 w-full max-w-none basis-1/4 flex-row-reverse gap-2 rounded-md px-6 py-3 text-sm font-medium text-white transition-colors md:max-w-[201px]"
-                      icon={<Image width={20} src={QrCodeIcon} alt="QR Code" />}
-                    />
+                      className="bg-secondary hover:bg-secondary/90 flex h-11 w-full max-w-none basis-1/4 flex-row items-center justify-center gap-2 rounded-md px-6 py-3 text-sm font-medium text-white transition-colors md:max-w-[201px]"
+                    >
+                      Create QR code
+                      <Image width={20} src={QrCodeIcon} alt="QR Code" />
+                    </Link>
                   </div>
                 </div>
               </Tabs.Content>

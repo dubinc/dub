@@ -2,9 +2,8 @@ import { Button, Popover } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Icon } from "@iconify/react";
 import * as ScrollArea from "@radix-ui/react-scroll-area";
-import { ChevronDown } from "lucide-react"; // @TODO: Replace with iconify
 import { FC } from "react";
-import { QRType } from "../config.ts";
+import { QRType } from "../../../constants/get-qr-config.ts";
 
 interface IQRTabsPopoverProps {
   qrTypes: QRType[];
@@ -45,7 +44,14 @@ export const QRTabsPopover: FC<IQRTabsPopoverProps> = ({
                       "bg-primary-light text-neutral",
                   )}
                 >
-                  <Icon icon={option.icon} className="h-5 w-5" />
+                  <Icon
+                    icon={option.icon}
+                    className={cn(
+                      "h-5 w-5",
+                      selectedQrType?.id === option.id &&
+                        "[&>g]:stroke-primary [&>path]:stroke-primary",
+                    )}
+                  />
                   {option.label}
                 </button>
               ))}
@@ -88,7 +94,8 @@ export const QRTabsPopover: FC<IQRTabsPopoverProps> = ({
                 {selectedQrType.label}
               </div>
             )}
-            <ChevronDown
+            <Icon
+              icon={"line-md:chevron-down"}
               className={cn("text-neutral h-5 w-5 transition-transform", {
                 "rotate-180": openPopover,
               })}

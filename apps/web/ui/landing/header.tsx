@@ -1,5 +1,4 @@
 import { Logo } from "@/ui/shared/logo";
-import { Button } from "@dub/ui";
 import Link from "next/link";
 
 export const Header = () => {
@@ -11,25 +10,19 @@ export const Header = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <Link href="/login">
-            <span className="text-neutral hover:text-neutral/80 text-base font-medium md:hidden">
-              Log In
-            </span>
-            <Button
-              variant="ghost"
-              text="Log In"
-              className="text-neutral hover:text-neutral/80 hidden h-10 px-4 md:inline-flex"
-            />
+          <Link
+            href="/login"
+            className="text-neutral hover:text-neutral/80 flex h-10 items-center justify-center px-4 text-base font-medium"
+          >
+            Log In
           </Link>
-          <div className="hidden md:block">
-            <Link href="/register">
-              <Button
-                variant="blue"
-                text="Registration"
-                className="bg-secondary hover:bg-secondary/90 h-10 px-4 text-white"
-              />
-            </Link>
-          </div>
+
+          <Link
+            href="/register"
+            className="bg-secondary hover:bg-secondary/90 flex h-10 items-center justify-center rounded-md px-4 text-white"
+          >
+            Registration
+          </Link>
         </div>
       </nav>
     </header>

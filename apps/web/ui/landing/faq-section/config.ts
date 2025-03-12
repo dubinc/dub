@@ -2,26 +2,26 @@ export const FAQ_ITEMS = [
   {
     title: "What is a QR code generator?",
     content:
-      "A QR code generator is a tool that lets you create scannable QR codes for websites, PDFs, images, videos, Wi-Fi, payments, contact details, and more—all in just a few clicks.",
+      "A QR Code generator lets you create various QR codes easily. Use GetQR for websites, PDFs, menus, WiFi, events, contact sharing, and more.",
   },
   {
-    title: "What kind of information can be stored in a QR code?",
+    title: "Are QR codes free?",
     content:
-      "You can store a wide range of information in a QR code, including URLs, text, phone numbers, email addresses, Wi-Fi credentials, and more.",
+      "GetQR offers a 7-day free trial. After that, a Premium plan gives you unlimited QR codes, edits, scans, analytics, and downloads.",
   },
   {
-    title: "Can I track how many people scan my QR code?",
+    title: "Can the generated QR codes be used for commercial purposes?",
     content:
-      "Yes, you can track how many people scan your QR code, as well as where and when they scanned it. This can help you measure the effectiveness of your marketing campaigns and make data-driven decisions.",
+      "Yes! Businesses use QR codes for marketing, services, and customer engagement.",
   },
   {
-    title: "Can I edit my QR code after generating it?",
+    title: "What if I'm not satisfied with the product?",
     content:
-      "Yes, you can edit your QR code after generating it. This includes changing the content, design, and size of the QR code, as well as tracking and analyzing its performance.",
+      "If you're unsatisfied or have issues, you may be eligible for a refund. Check our Refund Policy for details.",
   },
   {
-    title: "Can I scan a QR code without an app?",
+    title: "How can I cancel my Premium Plan subscription?",
     content:
-      "Yes, you can edit your QR code after generating it. This includes changing the content, design, and size of the QR code, as well as tracking and analyzing its performance.",
+      "You can cancel in your profile settings or via our Help Center. Access continues until the billing period ends.",
   },
 ];

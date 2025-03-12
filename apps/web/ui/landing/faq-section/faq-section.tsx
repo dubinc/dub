@@ -7,7 +7,7 @@ import {
   AccordionTrigger,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { ChevronDownIcon } from "lucide-react";
+import { Icon } from "@iconify/react";
 import { FC } from "react";
 
 interface IFaqSectionProps {
@@ -27,7 +27,8 @@ export const FAQSection: FC<IFaqSectionProps> = ({ isMobile }) => {
               <h3 className="text-secondary-text text-left text-sm font-semibold md:text-lg">
                 {item.title}
               </h3>
-              <ChevronDownIcon
+              <Icon
+                icon={"line-md:chevron-down"}
                 className={cn(
                   "h-5 w-5 transition-transform duration-200 md:h-6 md:w-6",
                   "group-data-[state=open]:rotate-180 md:group-data-[state=open]:rotate-0",

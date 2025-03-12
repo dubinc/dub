@@ -4,7 +4,7 @@ import { Rating } from "./components/rating.tsx";
 
 export const RatingInfoSection: FC = () => {
   return (
-    <section className="bg-primary-lighter mx-auto flex w-full max-w-[1172px] flex-row items-center justify-center gap-[42px] py-[42px]">
+    <section className="bg-primary-lighter mx-auto flex w-full max-w-[1172px] flex-row items-center justify-between gap-[42px] py-[42px]">
       <Rating alignItems={"start"} />
       <Link
         href={"/register"}

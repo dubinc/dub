@@ -1,7 +1,8 @@
-import { Button, Input } from "@dub/ui";
+import { Input } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Icon } from "@iconify/react";
 import * as Tabs from "@radix-ui/react-tabs";
+import Link from "next/link";
 import { FC, useState } from "react";
 import {
   ADDITIONAL_QR_TYPES,
@@ -120,7 +121,7 @@ export const QRTabs: FC<IQRTabsProps> = ({ isMobile }) => {
                     >
                       <div
                         className={cn(
-                          "flex basis-3/4 flex-col gap-2",
+                          "flex basis-3/5 flex-col gap-2",
                           isMobile && "w-full",
                         )}
                       >
@@ -130,23 +131,21 @@ export const QRTabs: FC<IQRTabsProps> = ({ isMobile }) => {
                               Enter your {type.label.toLowerCase()}
                             </p>
                             <Input
-                              className="h-11 min-w-[330px]"
+                              className="border-secondary h-11 min-w-[330px]"
                               type="text"
                               placeholder="https://www.getqr.com/"
                             />
                           </>
                         )}
                       </div>
-                      <Button
-                        type="button"
-                        variant="blue"
-                        text={
-                          !firstTab && isMobile
-                            ? "Register Now"
-                            : "Create QR code"
-                        }
-                        className="bg-secondary hover:bg-secondary/90 h-11 basis-1/4 rounded-md px-6 py-3 text-sm font-medium text-white transition-colors"
-                      />
+                      <Link
+                        href="/register"
+                        className="bg-secondary hover:bg-secondary/90 h-11 basis-2/5 rounded-md px-6 py-3 text-sm font-medium text-white transition-colors"
+                      >
+                        {!firstTab && isMobile
+                          ? "Register Now"
+                          : "Create QR code"}
+                      </Link>
                       {isMobile && (
                         <p
                           className={cn(

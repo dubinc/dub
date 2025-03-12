@@ -80,7 +80,7 @@ export const ADDITIONAL_QR_TYPES: QRType[] = [
   {
     id: "app-link",
     label: "App Link",
-    icon: "hugeicons:link-01",
+    icon: "meteor-icons:link",
     img: QrAppLinkFull,
     content:
       "Make app downloads effortless! Use a QR code to instantly direct users to your app’s download page—no searching required. Perfect for boosting installs and engagement.",
@@ -88,7 +88,7 @@ export const ADDITIONAL_QR_TYPES: QRType[] = [
   {
     id: "feedback",
     label: "Feedback Request",
-    icon: "hugeicons:feedback",
+    icon: "hugeicons:bubble-chat-favourite",
     img: QrFeedbackFull,
     content:
       "Get valuable feedback in seconds! Use a QR code to collect customer insights instantly—helping you improve your business and enhance the customer experience.",
