@@ -51,7 +51,7 @@ export const QRTabs: FC<IQRTabsProps> = ({ isMobile }) => {
             />
           ) : (
             <Tabs.List className="flex w-full items-center gap-0.5 overflow-x-auto rounded-lg bg-white p-3">
-              {DEFAULT_QR_TYPES.map((type) => (
+              {DEFAULT_QR_TYPES.map((type, idx) => (
                 <Tabs.Trigger
                   key={type.id}
                   value={type.id}
@@ -65,9 +65,13 @@ export const QRTabs: FC<IQRTabsProps> = ({ isMobile }) => {
                     icon={type.icon}
                     className={cn(
                       "h-5 w-5 flex-none",
-                      "[&>g]:stroke-neutral-lighter [&>path]:stroke-neutral-lighter",
+                      idx === 4
+                        ? "[&>path]:fill-neutral-lighter"
+                        : "[&>g]:stroke-neutral-lighter [&>path]:stroke-neutral-lighter",
                       activeTab === type.id &&
-                        "[&>g]:stroke-primary [&>path]:stroke-primary",
+                        (idx === 4
+                          ? "[&>path]:fill-primary"
+                          : "[&>g]:stroke-primary [&>path]:stroke-primary"),
                     )}
                   />
                   <span className="truncate text-sm font-normal">
@@ -119,28 +123,29 @@ export const QRTabs: FC<IQRTabsProps> = ({ isMobile }) => {
                         isMobile && "w-full",
                       )}
                     >
-                      <div
-                        className={cn(
-                          "flex basis-3/5 flex-col gap-2",
-                          isMobile && "w-full",
-                        )}
-                      >
-                        {firstTab && (
-                          <>
-                            <p className="text-secondary-text text-sm font-medium">
-                              Enter your {type.label.toLowerCase()}
-                            </p>
-                            <Input
-                              className="border-secondary h-11 min-w-[330px]"
-                              type="text"
-                              placeholder="https://www.getqr.com/"
-                            />
-                          </>
-                        )}
-                      </div>
+                      {firstTab && (
+                        <div
+                          className={cn(
+                            "flex basis-3/5 flex-col gap-2",
+                            isMobile && "w-full",
+                          )}
+                        >
+                          <p className="text-secondary-text text-sm font-medium">
+                            Enter your {type.label.toLowerCase()}
+                          </p>
+                          <Input
+                            className="border-secondary h-11 min-w-[330px]"
+                            type="text"
+                            placeholder="https://www.getqr.com/"
+                          />
+                        </div>
+                      )}
                       <Link
                         href="/register"
-                        className="bg-secondary hover:bg-secondary/90 h-11 basis-2/5 rounded-md px-6 py-3 text-sm font-medium text-white transition-colors"
+                        className={cn(
+                          "bg-secondary hover:bg-secondary/90 flex h-11 w-full items-center justify-center rounded-md px-6 py-3 text-sm font-medium text-white transition-colors",
+                          firstTab && "basis-2/5",
+                        )}
                       >
                         {!firstTab && isMobile
                           ? "Register Now"
