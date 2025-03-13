@@ -178,29 +178,27 @@ export function Form() {
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="grid gap-2">
-        <div className="grid grid-cols-2 gap-2">
-          <label className="block text-sm font-medium text-neutral-800">
-            Email
-          </label>
-
-          <label className="block text-sm font-medium text-neutral-800">
-            Referral link
-          </label>
-        </div>
-
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-4">
           {fields.map((field, index) => (
             <div
               key={field.id}
-              className="grid grid-cols-1 gap-3 sm:grid-cols-2"
+              className="grid grid-cols-1 gap-3 rounded-lg border border-neutral-200 p-3 sm:grid-cols-2 sm:border-0 sm:p-0"
             >
-              <Input
-                {...register(`partners.${index}.email`)}
-                type="email"
-                placeholder="panic@thedis.co"
-              />
+              <label>
+                <span className="mb-1.5 block text-sm font-medium text-neutral-800">
+                  Email
+                </span>
+                <Input
+                  {...register(`partners.${index}.email`)}
+                  type="email"
+                  placeholder="panic@thedis.co"
+                />
+              </label>
 
-              <div>
+              <label>
+                <span className="mb-1.5 block text-sm font-medium text-neutral-800">
+                  Referral link
+                </span>
                 <div className="flex items-center gap-1">
                   <div className="relative w-full">
                     <div
@@ -252,10 +250,12 @@ export function Form() {
                     </div>
                   )}
                 </div>
-                <p className="py-1 text-xs text-red-700">
-                  {keyErrors[index] && keyErrors[index]}
-                </p>
-              </div>
+                {keyErrors[index] && (
+                  <p className="py-1 text-xs text-red-700">
+                    {keyErrors[index]}
+                  </p>
+                )}
+              </label>
             </div>
           ))}
 
