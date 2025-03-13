@@ -2,7 +2,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 export const useCopyToClipboard = (
   timeout: number = 3000,
-): [boolean, (value: string | ClipboardItem) => Promise<void>] => {
+): [
+  boolean,
+  (
+    value: string | ClipboardItem,
+    options?: { onSuccess?: () => void },
+  ) => Promise<void>,
+] => {
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [copied, setCopied] = useState(false);
 
