@@ -387,7 +387,7 @@ const ImportProgramForm = ({ register, watch, setValue }: FormProps) => {
           />
         </div>
         <Link
-          href="#"
+          href="https://dub.co/help/article/migrating-from-rewardful#what-data-is-migrated"
           className="mt-2 text-xs font-normal leading-[1.1] text-neutral-600 underline decoration-solid decoration-auto underline-offset-auto"
           target="_blank"
           rel="noopener noreferrer"
