@@ -1,31 +1,35 @@
 "use client";
 
 import { DiscountProps, RewardProps } from "@/lib/types";
+import { programResourcesSchema } from "@/lib/zod/schemas/program-resources";
 import { HeroBackground } from "@/ui/partners/hero-background";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
+import { ThreeDots } from "@/ui/shared/icons";
 import { Link, PayoutStatus, Program } from "@dub/prisma/client";
 import {
   Button,
   Check,
   Copy,
+  Directions,
   MoneyBill,
-  ToggleGroup,
+  Popover,
+  TabSelect,
   useCopyToClipboard,
+  useLocalStorage,
   Wordmark,
 } from "@dub/ui";
 import { cn, getPrettyUrl } from "@dub/utils";
 import { AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ReferralsEmbedActivity } from "./activity";
 import { ReferralsEmbedEarnings } from "./earnings";
 import { ReferralsEmbedFAQ } from "./faq";
 import { ReferralsEmbedLeaderboard } from "./leaderboard";
 import { ReferralsEmbedPayouts } from "./payouts";
 import { ReferralsEmbedQuickstart } from "./quickstart";
+import { ReferralsEmbedResources } from "./resources";
 import { ThemeOptions } from "./theme-options";
 import { ReferralsReferralsEmbedToken } from "./token";
-
-const tabs = ["Quickstart", "Earnings", "Leaderboard", "FAQ"];
 
 export function ReferralsEmbedPageClient({
   program,
@@ -51,8 +55,38 @@ export function ReferralsEmbedPageClient({
   };
   themeOptions: ThemeOptions;
 }) {
+  const resources = programResourcesSchema.parse(
+    program.resources ?? { logos: [], colors: [], files: [] },
+  );
+
+  const hasResources =
+    resources &&
+    ["logos", "colors", "files"].some(
+      (resource) => resources?.[resource]?.length,
+    );
+
+  const [showQuickstart, setShowQuickstart] = useLocalStorage(
+    "referral-embed-show-quickstart",
+    true,
+  );
+
+  const tabs = useMemo(
+    () => [
+      ...(showQuickstart ? ["Quickstart"] : []),
+      "Earnings",
+      "Leaderboard",
+      "FAQ",
+      ...(hasResources ? ["Resources"] : []),
+    ],
+    [showQuickstart, hasResources],
+  );
+
   const [copied, copyToClipboard] = useCopyToClipboard();
   const [selectedTab, setSelectedTab] = useState(tabs[0]);
+
+  useEffect(() => {
+    if (!tabs.includes(selectedTab)) setSelectedTab(tabs[0]);
+  }, [tabs, selectedTab]);
 
   return (
     <div
@@ -131,29 +165,48 @@ export function ReferralsEmbedPageClient({
           <ReferralsEmbedPayouts payouts={payouts} />
         </div>
         <div className="mt-4">
-          <ToggleGroup
-            options={tabs.map((tab) => ({
-              label: tab,
-              value: tab,
-            }))}
-            selected={selectedTab}
-            selectAction={(option) => {
-              setSelectedTab(option);
-            }}
-            className="bg-bg-muted w-full rounded-lg"
-            optionClassName="w-full flex justify-center py-1.5"
-            indicatorClassName="bg-bg-default"
-          />
+          <div className="flex items-center border-b border-neutral-200">
+            <TabSelect
+              options={tabs.map((tab) => ({
+                id: tab,
+                label: tab,
+              }))}
+              selected={selectedTab}
+              onSelect={(option) => {
+                console.log("onSelect", option);
+                setSelectedTab(option);
+              }}
+              className="scrollbar-hide min-w-0 grow overflow-x-auto"
+            />
+
+            <div className="shrink">
+              <Menu
+                showQuickstart={showQuickstart}
+                setShowQuickstart={(show) => {
+                  setShowQuickstart(show);
+                  if (show) setSelectedTab("Quickstart");
+                }}
+              />
+            </div>
+          </div>
           <div className="my-4">
             <AnimatePresence mode="wait">
               {selectedTab === "Quickstart" ? (
-                <ReferralsEmbedQuickstart program={program} link={links[0]} />
+                <ReferralsEmbedQuickstart
+                  program={program}
+                  link={links[0]}
+                  onViewResources={
+                    hasResources ? () => setSelectedTab("Resources") : undefined
+                  }
+                />
               ) : selectedTab === "Earnings" ? (
                 <ReferralsEmbedEarnings salesCount={stats.sales} />
               ) : selectedTab === "Leaderboard" ? (
                 <ReferralsEmbedLeaderboard />
               ) : selectedTab === "FAQ" ? (
                 <ReferralsEmbedFAQ program={program} reward={reward} />
+              ) : selectedTab === "Resources" ? (
+                <ReferralsEmbedResources resources={resources} />
               ) : null}
             </AnimatePresence>
           </div>
@@ -161,5 +214,49 @@ export function ReferralsEmbedPageClient({
         <ReferralsReferralsEmbedToken />
       </div>
     </div>
+  );
+}
+
+function Menu({
+  showQuickstart,
+  setShowQuickstart,
+}: {
+  showQuickstart: boolean;
+  setShowQuickstart: (value: boolean) => void;
+}) {
+  const [openPopover, setOpenPopover] = useState(false);
+
+  return (
+    <Popover
+      content={
+        <div className="grid w-full grid-cols-1 gap-px p-2 sm:w-48">
+          <Button
+            text={`${showQuickstart ? "Hide" : "Show"} starting guide`}
+            variant="outline"
+            onClick={() => {
+              setOpenPopover(false);
+              setShowQuickstart(!showQuickstart);
+            }}
+            icon={<Directions className="size-4" />}
+            className="h-9 justify-start px-2 font-medium"
+          />
+        </div>
+      }
+      align="end"
+      openPopover={openPopover}
+      setOpenPopover={setOpenPopover}
+    >
+      <Button
+        variant="secondary"
+        className={cn(
+          "h-8 px-1.5 text-neutral-500 outline-none transition-all duration-200",
+          "border-transparent data-[state=open]:border-neutral-500 sm:group-hover/card:data-[state=closed]:border-neutral-200",
+        )}
+        icon={<ThreeDots className="size-4 shrink-0" />}
+        onClick={() => {
+          setOpenPopover(!openPopover);
+        }}
+      />
+    </Popover>
   );
 }
