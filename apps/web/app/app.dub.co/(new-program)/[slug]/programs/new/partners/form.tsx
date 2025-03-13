@@ -26,6 +26,7 @@ const generateKeyFromEmail = (email: string) => {
 export function Form() {
   const router = useRouter();
   const [keyErrors, setKeyErrors] = useState<{ [key: number]: string }>({});
+  const [hasSubmitted, setHasSubmitted] = useState(false);
   const {
     id: workspaceId,
     slug: workspaceSlug,
@@ -138,12 +139,15 @@ export function Form() {
       }
     }
 
+    setHasSubmitted(true);
     await executeAsync({
       ...data,
       workspaceId,
       step: "invite-partners",
     });
   };
+
+  const buttonDisabled = isSubmitting || isPending || loading || hasSubmitted;
 
   return (
     <div className="space-y-6">
@@ -279,9 +283,10 @@ export function Form() {
 
         <Button
           text="Continue"
-          className="w-full"
-          loading={isSubmitting || isPending}
-          disabled={isSubmitting || isPending || loading}
+          className="mt-6 w-full"
+          loading={isSubmitting || isPending || hasSubmitted}
+          disabled={buttonDisabled}
+          type="submit"
         />
       </form>
     </div>

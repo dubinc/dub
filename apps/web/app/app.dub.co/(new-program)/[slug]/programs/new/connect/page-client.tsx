@@ -8,6 +8,7 @@ import { Button } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { toast } from "sonner";
 
 const GUIDES = [
@@ -26,6 +27,7 @@ const GUIDES = [
 export function PageClient() {
   const router = useRouter();
   const { id: workspaceId, slug: workspaceSlug, mutate } = useWorkspace();
+  const [hasSubmitted, setHasSubmitted] = useState(false);
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
@@ -40,6 +42,7 @@ export function PageClient() {
   const onClick = async () => {
     if (!workspaceId) return;
 
+    setHasSubmitted(true);
     await executeAsync({
       workspaceId,
       step: "connect",
@@ -82,7 +85,7 @@ export function PageClient() {
       <Button
         text="Continue"
         className="w-full"
-        loading={isPending}
+        loading={isPending || hasSubmitted}
         type="button"
         onClick={onClick}
       />

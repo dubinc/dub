@@ -15,7 +15,10 @@ import { toast } from "sonner";
 import { LINK_TYPES } from "../form";
 
 export function PageClient() {
-  const { getValues } = useFormContext<ProgramData>();
+  const {
+    getValues,
+    formState: { isSubmitting, isSubmitSuccessful },
+  } = useFormContext<ProgramData>();
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
   const data = getValues();
@@ -131,7 +134,7 @@ export function PageClient() {
       <Button
         text="Create program"
         className="mt-6 w-full"
-        loading={isPending}
+        loading={isPending || isSubmitting || isSubmitSuccessful}
         type="button"
         onClick={onClick}
         disabled={!isValid}

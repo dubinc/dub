@@ -54,6 +54,7 @@ const IMPORT_SOURCES = [
 export function Form() {
   const router = useRouter();
   const { id: workspaceId, slug: workspaceSlug, mutate } = useWorkspace();
+  const [hasSubmitted, setHasSubmitted] = useState(false);
 
   const {
     register,
@@ -96,6 +97,7 @@ export function Form() {
       }),
     };
 
+    setHasSubmitted(true);
     await executeAsync({
       ...programData,
       workspaceId,
@@ -106,6 +108,7 @@ export function Form() {
   const buttonDisabled =
     isSubmitting ||
     isPending ||
+    hasSubmitted ||
     (programType === "new" && !amount) ||
     (programType === "import" && (!rewardful || !rewardful.id));
 
@@ -174,8 +177,9 @@ export function Form() {
         <Button
           text="Continue"
           className="w-full"
-          loading={isSubmitting || isPending}
+          loading={isSubmitting || isPending || hasSubmitted}
           disabled={buttonDisabled}
+          type="submit"
         />
       )}
     </form>

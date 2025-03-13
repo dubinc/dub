@@ -16,6 +16,7 @@ import { cn } from "@dub/utils";
 import { Plus } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -54,6 +55,8 @@ export function Form() {
     formState: { isSubmitting },
   } = useFormContext<ProgramData>();
 
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
       router.push(`/${workspaceSlug}/programs/new/rewards`);
@@ -61,12 +64,14 @@ export function Form() {
     },
     onError: ({ error }) => {
       toast.error(error.serverError);
+      setHasSubmitted(false);
     },
   });
 
   const onSubmit = async (data: ProgramData) => {
     if (!workspaceId) return;
 
+    setHasSubmitted(true);
     await executeAsync({
       ...data,
       workspaceId,
@@ -230,7 +235,7 @@ export function Form() {
       <Button
         text="Continue"
         className="w-full"
-        loading={isSubmitting || isPending}
+        loading={isSubmitting || isPending || hasSubmitted}
         disabled={buttonDisabled}
         type="submit"
       />
