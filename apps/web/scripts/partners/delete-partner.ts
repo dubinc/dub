@@ -1,11 +1,12 @@
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
-import { bulkDeleteLinks } from "../lib/api/links/bulk-delete-links";
+import { bulkDeleteLinks } from "../../lib/api/links/bulk-delete-links";
+import { stripeConnectClient } from "./stripe";
 
 async function main() {
   const partner = await prisma.partner.findUniqueOrThrow({
     where: {
-      id: "pn_d43H73P1HU58aDq7Ty30qFyW",
+      id: "pn_xxx",
     },
     include: {
       programs: {
@@ -31,15 +32,6 @@ async function main() {
   });
   console.log("Deleted customers", deleteCustomers);
 
-  const deleteLinks = await prisma.link.deleteMany({
-    where: {
-      id: {
-        in: links.map((link) => link.id),
-      },
-    },
-  });
-  console.log("Deleted links", deleteLinks);
-
   const deleteSales = await prisma.commission.deleteMany({
     where: {
       partnerId: partner.id,
@@ -54,12 +46,26 @@ async function main() {
   });
   console.log("Deleted payouts", deletePayouts);
 
+  const deleteLinks = await prisma.link.deleteMany({
+    where: {
+      id: {
+        in: links.map((link) => link.id),
+      },
+    },
+  });
+  console.log("Deleted links", deleteLinks);
+
   const deletePartner = await prisma.partner.delete({
     where: {
       id: partner.id,
     },
   });
   console.log("Deleted partner", deletePartner);
+
+  if (partner.stripeConnectId) {
+    const res = await stripeConnectClient.accounts.del(partner.stripeConnectId);
+    console.log("Deleted Stripe account", partner.stripeConnectId, res);
+  }
 }
 
 main();
