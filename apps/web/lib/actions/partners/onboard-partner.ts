@@ -37,6 +37,7 @@ export const onboardPartnerAction = authUserActionClient
             email: user.email,
             country,
             businessType,
+            companyName,
           })
         : null;
 

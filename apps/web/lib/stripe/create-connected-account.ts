@@ -7,9 +7,10 @@ export const createConnectedAccount = async ({
   email,
   country,
   businessType,
+  companyName,
 }: Pick<
   z.infer<typeof onboardPartnerSchema>,
-  "name" | "country" | "businessType"
+  "name" | "country" | "businessType" | "companyName"
 > & {
   email: string;
 }) => {
@@ -21,11 +22,19 @@ export const createConnectedAccount = async ({
       business_type: businessType,
       email,
       country,
-      individual: {
-        first_name: firstName,
-        last_name: lastName,
-        email,
-      },
+      ...(businessType === "individual"
+        ? {
+            individual: {
+              first_name: firstName,
+              last_name: lastName,
+              email,
+            },
+          }
+        : {
+            business_profile: {
+              name: companyName!,
+            },
+          }),
       capabilities: {
         transfers: {
           requested: true,
