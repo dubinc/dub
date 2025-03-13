@@ -198,7 +198,7 @@ export function OnboardingForm({
       <LayoutGroup>
         <div>
           <span className="text-sm font-medium text-neutral-800">
-            Account type
+            Profile Type
           </span>
           <div className="mt-2">
             <ToggleGroup
