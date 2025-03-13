@@ -50,17 +50,14 @@ describe("POST /track/lead", async () => {
         clickId: E2E_CLICK_ID,
         eventName: "Signup",
         externalId: customer1.externalId,
+        customerName: customer1.name,
+        customerEmail: customer1.email,
+        customerAvatar: customer1.avatar,
       },
     });
 
-    expect(response.status).toEqual(409);
-    expect(response.data).toStrictEqual({
-      error: {
-        code: "conflict",
-        doc_url: "https://dub.co/docs/api-reference/errors#conflict",
-        message: `Customer with externalId ${customer1.externalId} and event name Signup has already been recorded.`,
-      },
-    });
+    // should return the same response since it's idempotent
+    expectValidLeadResponse(response, customer1);
   });
 
   test("track a lead with eventQuantity", async () => {
