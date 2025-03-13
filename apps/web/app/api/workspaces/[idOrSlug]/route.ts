@@ -104,7 +104,7 @@ export const PATCH = withWorkspace(
         data: {
           ...(name && { name }),
           ...(slug && { slug }),
-          ...(defaultFolderId && { defaultFolderId }),
+          defaultFolderId,
           ...(logoUploaded && { logo: logoUploaded.url }),
           ...(conversionEnabled !== undefined && { conversionEnabled }),
           ...(validHostnames !== undefined && {

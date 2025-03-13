@@ -1,3 +1,4 @@
+import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderSummary } from "@/lib/types";
@@ -29,8 +30,14 @@ export const FolderActions = ({
   onDelete?: () => void;
 }) => {
   const router = useRouter();
-  const { slug: workspaceSlug } = useWorkspace();
   const [openPopover, setOpenPopover] = useState(false);
+  const { slug: workspaceSlug, defaultFolderId, role } = useWorkspace();
+
+  const permissionsError = clientAccessCheck({
+    action: "workspaces.write",
+    role,
+  }).error;
+
   const canUpdateFolder = useCheckFolderPermission(folder.id, "folders.write");
 
   const { RenameFolderModal, setShowRenameFolderModal } =
@@ -41,9 +48,10 @@ export const FolderActions = ({
     onDelete,
   );
 
-  const { DefaultFolderModal, setShowDefaultFolderModal } = useDefaultFolderModal({
-    folder,
-  });
+  const { DefaultFolderModal, setShowDefaultFolderModal } =
+    useDefaultFolderModal({
+      folder,
+    });
 
   const { folderPermissionsPanel, setShowFolderPermissionsPanel } =
     useFolderPermissionsPanel(folder);
@@ -71,7 +79,7 @@ export const FolderActions = ({
           copyFolderId();
           break;
         case "d":
-          if (canUpdateFolder) {
+          if (!permissionsError) {
             setShowDefaultFolderModal(true);
           }
           break;
@@ -92,6 +100,10 @@ export const FolderActions = ({
     },
   );
 
+  const unsortedLinks = folder.id === "unsorted";
+  const isDefault = defaultFolderId && folder.id === defaultFolderId;
+  const canMakeDefault = !isDefault;
+
   return (
     <>
       <RenameFolderModal />
@@ -101,61 +113,69 @@ export const FolderActions = ({
       <Popover
         content={
           <div className="grid w-full divide-y divide-neutral-200 sm:w-52">
+            {!unsortedLinks && (
+              <div className="grid gap-px p-2">
+                <Button
+                  text="Analytics"
+                  variant="outline"
+                  onClick={() => {
+                    setOpenPopover(false);
+                    router.push(
+                      `/${workspaceSlug}/analytics?folderId=${folder.id}`,
+                    );
+                  }}
+                  icon={<Chart className="h-4 w-4" />}
+                  shortcut="A"
+                  className="h-9 px-2 font-medium"
+                />
+                <Button
+                  text="Members"
+                  variant="outline"
+                  onClick={() => {
+                    setOpenPopover(false);
+                    setShowFolderPermissionsPanel(true);
+                  }}
+                  icon={<Users className="h-4 w-4" />}
+                  shortcut="M"
+                  className="h-9 px-2 font-medium"
+                />
+              </div>
+            )}
+
             <div className="grid gap-px p-2">
-              <Button
-                text="Analytics"
-                variant="outline"
-                onClick={() => {
-                  setOpenPopover(false);
-                  router.push(
-                    `/${workspaceSlug}/analytics?folderId=${folder.id}`,
-                  );
-                }}
-                icon={<Chart className="h-4 w-4" />}
-                shortcut="A"
-                className="h-9 px-2 font-medium"
-              />
-              <Button
-                text="Members"
-                variant="outline"
-                onClick={() => {
-                  setOpenPopover(false);
-                  setShowFolderPermissionsPanel(true);
-                }}
-                icon={<Users className="h-4 w-4" />}
-                shortcut="M"
-                className="h-9 px-2 font-medium"
-              />
-            </div>
-            <div className="grid gap-px p-2">
-              <Button
-                text="Copy Folder ID"
-                variant="outline"
-                onClick={() => copyFolderId()}
-                icon={
-                  copiedFolderId ? (
-                    <CircleCheck className="h-4 w-4" />
-                  ) : (
-                    <Copy className="h-4 w-4" />
-                  )
-                }
-                shortcut="I"
-                className="h-9 px-2 font-medium"
-              />
+              {!unsortedLinks && (
+                <Button
+                  text="Copy Folder ID"
+                  variant="outline"
+                  onClick={() => copyFolderId()}
+                  icon={
+                    copiedFolderId ? (
+                      <CircleCheck className="h-4 w-4" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )
+                  }
+                  shortcut="I"
+                  className="h-9 px-2 font-medium"
+                />
+              )}
+
+              {canMakeDefault && (
+                <Button
+                  text="Set as Default"
+                  variant="outline"
+                  onClick={() => {
+                    setOpenPopover(false);
+                    setShowDefaultFolderModal(true);
+                  }}
+                  icon={<CircleCheck className="h-4 w-4" />}
+                  shortcut="D"
+                  className="h-9 px-2 font-medium"
+                />
+              )}
 
               {canUpdateFolder && (
                 <>
-                  <Button
-                    text="Set as Default"
-                    variant="outline"
-                    onClick={() => {
-                      setOpenPopover(false);
-                      setShowDefaultFolderModal(true);
-                    }}
-                    icon={<CircleCheck className="h-4 w-4" />}
-                    shortcut="D"
-                    className="h-9 px-2 font-medium"
-                  />
                   <Button
                     text="Rename"
                     variant="outline"
@@ -167,6 +187,7 @@ export const FolderActions = ({
                     shortcut="R"
                     className="h-9 px-2 font-medium"
                   />
+
                   <Button
                     text="Delete"
                     variant="danger-outline"

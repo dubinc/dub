@@ -141,7 +141,7 @@ export const createWorkspaceSchema = z.object({
 
 export const updateWorkspaceSchema = createWorkspaceSchema.partial().extend({
   allowedHostnames: z.array(z.string()).optional(),
-  defaultFolderId: z.string().optional(),
+  defaultFolderId: z.string().nullable().optional(),
 });
 
 export const notificationTypes = z.enum([

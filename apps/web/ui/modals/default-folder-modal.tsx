@@ -1,7 +1,7 @@
 import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderSummary } from "@/lib/types";
-import { Button, Folder, Modal } from "@dub/ui";
+import { Button, Modal } from "@dub/ui";
 import {
   Dispatch,
   SetStateAction,
@@ -11,6 +11,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import { FolderIcon } from "../folders/folder-icon";
 
 function DefaultFolderModal({
   showDefaultFolderModal,
@@ -21,8 +22,8 @@ function DefaultFolderModal({
   setShowDefaultFolderModal: Dispatch<SetStateAction<boolean>>;
   folder: FolderSummary;
 }) {
-  const { id: workspaceId, role } = useWorkspace();
   const [loading, setLoading] = useState(false);
+  const { id: workspaceId, role, defaultFolderId } = useWorkspace();
 
   const permissionsError = clientAccessCheck({
     action: "workspaces.write",
@@ -37,7 +38,7 @@ function DefaultFolderModal({
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        defaultFolderId: folder.id,
+        defaultFolderId: folder.id === "unsorted" ? null : folder.id,
       }),
     });
     if (response.ok) {
@@ -53,15 +54,18 @@ function DefaultFolderModal({
     }
   };
 
+  const canMakeDefault = folder.accessLevel != null || folder.id === "unsorted";
+  const isDefault =
+    (defaultFolderId && folder.id === defaultFolderId) ||
+    (folder.id === "unsorted" && !defaultFolderId);
+
   return (
     <Modal
       showModal={showDefaultFolderModal}
       setShowModal={setShowDefaultFolderModal}
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-4 pt-8 text-center sm:px-16">
-        <div className="rounded-full border border-neutral-200 p-3">
-          <Folder className="h-5 w-5 text-neutral-500" />
-        </div>
+        <FolderIcon folder={folder} />
         <h3 className="text-lg font-medium">
           Set {folder.name} as default folder
         </h3>
@@ -84,8 +88,16 @@ function DefaultFolderModal({
           }
           autoFocus
           loading={loading}
-          text="Set as default folder"
-          disabledTooltip={permissionsError || undefined}
+          text={
+            isDefault ? "This is the default folder" : "Set as default folder"
+          }
+          disabled={isDefault}
+          disabledTooltip={
+            permissionsError ||
+            (!canMakeDefault &&
+              "Only folder with workspace access can be set as default.") ||
+            undefined
+          }
         />
       </div>
     </Modal>

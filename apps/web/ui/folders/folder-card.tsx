@@ -17,7 +17,11 @@ import { FolderIcon } from "./folder-icon";
 import { RequestFolderEditAccessButton } from "./request-edit-button";
 
 export const FolderCard = ({ folder }: { folder: Folder }) => {
-  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+  const {
+    id: workspaceId,
+    slug: workspaceSlug,
+    defaultFolderId,
+  } = useWorkspace();
 
   const { isLoading: isPermissionsLoading } = useFolderPermissions();
   const canCreateLinks = useCheckFolderPermission(
@@ -26,6 +30,9 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
   );
 
   const unsortedLinks = folder.id === "unsorted";
+  const isDefault = defaultFolderId && folder.id === defaultFolderId;
+
+  // TODO: Add "Default" badge to the folder card
 
   return (
     <div
@@ -40,10 +47,8 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
       />
       <div className="flex items-center justify-between">
         <FolderIcon folder={folder} />
-
-        {!unsortedLinks && (
-          <div className="relative flex items-center justify-end gap-1">
-            {!isPermissionsLoading && !canCreateLinks && (
+        <div className="relative flex items-center justify-end gap-1">
+            {!unsortedLinks &&  !isPermissionsLoading && !canCreateLinks && (
               <RequestFolderEditAccessButton
                 folderId={folder.id}
                 workspaceId={workspaceId!}
@@ -51,7 +56,6 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
             )}
             <FolderActions folder={folder} />
           </div>
-        )}
       </div>
 
       <div>
