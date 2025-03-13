@@ -60,7 +60,7 @@ export function Form() {
     handleSubmit,
     watch,
     setValue,
-    formState: { isSubmitting },
+    formState: { isSubmitting, isSubmitSuccessful },
   } = useFormContext<ProgramData>();
 
   const [programType, rewardful, amount] = watch([
@@ -174,7 +174,7 @@ export function Form() {
         <Button
           text="Continue"
           className="w-full"
-          loading={isSubmitting || isPending}
+          loading={isSubmitting || isPending || isSubmitSuccessful}
           disabled={buttonDisabled}
         />
       )}

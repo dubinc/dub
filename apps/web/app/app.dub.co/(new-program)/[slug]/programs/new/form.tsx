@@ -51,7 +51,7 @@ export function Form() {
     handleSubmit,
     watch,
     control,
-    formState: { isSubmitting },
+    formState: { isSubmitting, isSubmitSuccessful },
   } = useFormContext<ProgramData>();
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
@@ -230,7 +230,7 @@ export function Form() {
       <Button
         text="Continue"
         className="w-full"
-        loading={isSubmitting || isPending}
+        loading={isSubmitting || isPending || isSubmitSuccessful}
         disabled={buttonDisabled}
         type="submit"
       />

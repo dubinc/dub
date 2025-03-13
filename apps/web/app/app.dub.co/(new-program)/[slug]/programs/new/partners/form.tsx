@@ -39,7 +39,7 @@ export function Form() {
     handleSubmit,
     setValue,
     watch,
-    formState: { isSubmitting },
+    formState: { isSubmitting, isSubmitSuccessful },
   } = useFormContext<ProgramData>();
 
   const { fields, append, remove } = useFieldArray({
@@ -280,7 +280,7 @@ export function Form() {
         <Button
           text="Continue"
           className="w-full"
-          loading={isSubmitting || isPending}
+          loading={isSubmitting || isPending || isSubmitSuccessful}
           disabled={isSubmitting || isPending || loading}
         />
       </form>
