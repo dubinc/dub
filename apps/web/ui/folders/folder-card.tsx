@@ -30,9 +30,8 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
   );
 
   const unsortedLinks = folder.id === "unsorted";
-  const isDefault = defaultFolderId && folder.id === defaultFolderId;
-
-  // TODO: Add "Default" badge to the folder card
+  const folderId = unsortedLinks ? null : folder.id;
+  const isDefault = folderId === defaultFolderId;
 
   return (
     <div
@@ -48,14 +47,14 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
       <div className="flex items-center justify-between">
         <FolderIcon folder={folder} />
         <div className="relative flex items-center justify-end gap-1">
-            {!unsortedLinks &&  !isPermissionsLoading && !canCreateLinks && (
-              <RequestFolderEditAccessButton
-                folderId={folder.id}
-                workspaceId={workspaceId!}
-              />
-            )}
-            <FolderActions folder={folder} />
-          </div>
+          {!unsortedLinks && !isPermissionsLoading && !canCreateLinks && (
+            <RequestFolderEditAccessButton
+              folderId={folder.id}
+              workspaceId={workspaceId!}
+            />
+          )}
+          <FolderActions folder={folder} />
+        </div>
       </div>
 
       <div>
@@ -65,6 +64,12 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
           {folder.id === "unsorted" && (
             <div className="rounded bg-neutral-100 p-1">
               <div className="text-xs font-normal text-black">Unsorted</div>
+            </div>
+          )}
+
+          {isDefault && (
+            <div className="rounded bg-blue-100 p-1">
+              <div className="text-xs font-normal text-blue-700">Default</div>
             </div>
           )}
         </span>

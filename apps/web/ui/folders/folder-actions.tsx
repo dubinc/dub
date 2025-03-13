@@ -23,7 +23,6 @@ import { Chart, Delete, ThreeDots } from "../shared/icons";
 import { useFolderPermissionsPanel } from "./folder-permissions-panel";
 
 // TODO:
-// If no actions button exists, then hide the popover
 // Re-render when default folder changes
 
 export const FolderActions = ({
