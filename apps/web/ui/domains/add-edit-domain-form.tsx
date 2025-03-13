@@ -48,6 +48,14 @@ const sanitizeJson = (string: string | null) => {
   }
 };
 
+const formatJson = (string: string) => {
+  try {
+    return JSON.stringify(JSON.parse(string), null, 2);
+  } catch (e) {
+    return string;
+  }
+};
+
 type FormData = z.infer<typeof createDomainBodySchema>;
 
 type DomainStatus = "checking" | "conflict" | "has site" | "available" | "idle";
@@ -125,8 +133,10 @@ export function AddEditDomainForm({
       expiredUrl: props?.expiredUrl,
       notFoundUrl: props?.notFoundUrl,
       placeholder: props?.placeholder,
-      appleAppSiteAssociation: props?.appleAppSiteAssociation,
-      assetLinks: props?.assetLinks,
+      appleAppSiteAssociation: props?.appleAppSiteAssociation
+        ? formatJson(props.appleAppSiteAssociation)
+        : undefined,
+      assetLinks: props?.assetLinks ? formatJson(props.assetLinks) : undefined,
     },
   });
 
@@ -532,8 +542,35 @@ export function AddEditDomainForm({
                               <textarea
                                 {...register(id)}
                                 className="w-full resize-none rounded-md border-0 bg-transparent px-3 py-2 font-mono text-xs text-neutral-700 focus:outline-none focus:ring-0"
-                                rows={3}
+                                rows={4}
                                 spellCheck={false}
+                                onPaste={(e) => {
+                                  if (
+                                    [
+                                      "appleAppSiteAssociation",
+                                      "assetLinks",
+                                    ].includes(id)
+                                  ) {
+                                    e.preventDefault();
+                                    const pastedText =
+                                      e.clipboardData.getData("text");
+
+                                    try {
+                                      const formattedJson = JSON.stringify(
+                                        JSON.parse(pastedText),
+                                        null,
+                                        2,
+                                      );
+                                      setValue(id, formattedJson, {
+                                        shouldDirty: true,
+                                      });
+                                    } catch (err) {
+                                      setValue(id, pastedText, {
+                                        shouldDirty: true,
+                                      });
+                                    }
+                                  }
+                                }}
                               />
                             </div>
                           )}
