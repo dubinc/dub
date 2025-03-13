@@ -61,8 +61,6 @@ interface ErrorLink {
 // POST /api/cron/import/csv
 export async function POST(req: Request) {
   try {
-    console.time("import:csv");
-
     const rawBody = await req.text();
 
     await verifyQstashSignature({
@@ -70,14 +68,15 @@ export async function POST(req: Request) {
       rawBody,
     });
 
-    const body = JSON.parse(rawBody);
-    const payload = payloadSchema.parse(body);
+    const payload = payloadSchema.parse(JSON.parse(rawBody));
     const { action } = payload;
 
+    console.time("import:csv");
+
     if (action === "queue-links") {
-      await prepareRows(payload);
+      await prepareRows(payload); // add rows to Redis
     } else if (action === "process-links") {
-      await processRows(payload);
+      await processRows(payload); // process rows in Redis
     }
 
     console.timeEnd("import:csv");
@@ -107,7 +106,7 @@ const prepareRows = async (payload: z.infer<typeof payloadSchema>) => {
   }
 
   const BATCH_SIZE = 1000; // Push 1000 rows to Redis at a time
-  const redisKey = `import:csv:${workspaceId}:${id}`;
+  const redisKey = `import:csv:${workspaceId}:${id}:rows`;
   let rows: Record<string, string>[] = [];
 
   await new Promise((resolve, reject) => {
@@ -124,7 +123,7 @@ const prepareRows = async (payload: z.infer<typeof payloadSchema>) => {
         rows.push(results.data);
 
         if (rows.length >= BATCH_SIZE) {
-          await redis.lpush(`${redisKey}:rows`, ...rows);
+          await redis.lpush(redisKey, ...rows);
           rows = [];
         }
 
@@ -135,11 +134,7 @@ const prepareRows = async (payload: z.infer<typeof payloadSchema>) => {
 
   // Add any remaining rows to Redis
   if (rows.length > 0) {
-    await redis.lpush(`${redisKey}:rows`, ...rows);
-  }
-
-  if ((await redis.llen(`import:csv:${workspaceId}:${id}:rows`)) === 0) {
-    throw new Error("No rows to add to Redis.");
+    await redis.lpush(redisKey, ...rows);
   }
 
   await qstash.publishJSON({
@@ -155,17 +150,14 @@ const prepareRows = async (payload: z.infer<typeof payloadSchema>) => {
 const processRows = async (payload: z.infer<typeof payloadSchema>) => {
   const { id, workspaceId, mapping } = payload;
   const redisKey = `import:csv:${workspaceId}:${id}`;
-  const BATCH_SIZE = 500; // Process 500 links at a time
+  const BATCH_SIZE = 25; // Process 500 links at a time
 
-  const cursor = parseInt((await redis.get(`${redisKey}:cursor`)) || "0");
-
-  const rows = await redis.lrange<Record<string, string>>(
+  const rows = await redis.lpop<Record<string, string>[]>(
     `${redisKey}:rows`,
-    cursor,
-    cursor + BATCH_SIZE - 1,
+    BATCH_SIZE,
   );
 
-  if (rows.length > 0) {
+  if (rows && rows.length > 0) {
     const mappedLinks: MapperResult[] = rows.map((row) =>
       mapCsvRowToLink(row, mapping),
     );
@@ -175,19 +167,16 @@ const processRows = async (payload: z.infer<typeof payloadSchema>) => {
       payload,
     });
 
-    const newCursor = cursor + rows.length;
-    await redis.set(`${redisKey}:cursor`, newCursor);
+    await redis.incrby(`${redisKey}:processed`, rows.length);
 
     if (rows.length === BATCH_SIZE) {
-      await qstash.publishJSON({
+      return await qstash.publishJSON({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/csv`,
         body: {
           ...payload,
           action: "process-links",
         },
       });
-
-      return;
     }
   }
 
@@ -213,6 +202,7 @@ const processRows = async (payload: z.infer<typeof payloadSchema>) => {
     redis.del(`${redisKey}:failed`),
     redis.del(`${redisKey}:domains`),
     redis.del(`${redisKey}:rows`),
+    redis.del(`${redisKey}:processed`),
     storage.delete(payload.url),
   ]);
 };
