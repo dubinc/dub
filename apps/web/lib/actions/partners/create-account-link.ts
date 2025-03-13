@@ -36,6 +36,7 @@ export const createAccountLinkAction = authPartnerActionClient.action(
         email: partner.email,
         country: partner.country,
         businessType: partner.businessType,
+        companyName: partner.companyName,
       });
 
       partner.stripeConnectId = connectedAccount.id;
