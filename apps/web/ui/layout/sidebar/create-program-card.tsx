@@ -34,37 +34,46 @@ export function CreateProgramCard() {
   )?.href;
 
   return (
-    <div className="relative mt-6 flex flex-col gap-3 overflow-hidden rounded-lg border bg-white p-3 pt-4">
-      <div className="pointer-events-none absolute inset-0 opacity-20">
-        <div
-          className="h-full w-full"
-          style={{
-            background:
-              "conic-gradient(from 0deg at 50% 50%, #F35066 116.99999570846558deg, #9071F9 180deg, #5182FC 240.00000715255737deg, #F35066 360deg)",
-            filter: "blur(60px)",
-          }}
-        />
-      </div>
-      <div className="relative flex items-center gap-2">
-        <ConnectedDots4 className="size-4" />
-      </div>
-
-      <div className="relative flex flex-col gap-1">
-        <h1 className="text-sm font-semibold text-neutral-900">Dub Partners</h1>
-        <p className="text-sm text-neutral-800">
-          Grow your revenue on autopilot with Dub Partners
-        </p>
-      </div>
-
-      <Link
-        href={`/${slug}${path}`}
+    <div className="relative mt-6 overflow-hidden rounded-[8px] bg-white p-px shadow-sm">
+      <div className="absolute inset-0 rounded-[inherit] border border-black/10" />
+      <div
         className={cn(
-          buttonVariants({ variant: "primary" }),
-          "flex h-8 items-center justify-center rounded-md border px-3 text-sm",
+          "pointer-events-none absolute inset-0 opacity-50 blur-[50px]",
         )}
       >
-        {store?.programOnboarding ? "Finish creating" : "Create program"}
-      </Link>
+        <div
+          className={cn(
+            "absolute inset-x-0 top-1/3 h-full",
+            "bg-[conic-gradient(#F35066_117deg,#9071F9_180deg,#5182FC_240deg,#F35066_360deg)]",
+            "[mask-image:radial-gradient(black_80%,transparent_50%)]",
+          )}
+        />
+      </div>
+
+      <div className="relative flex flex-col gap-3 rounded-[7px] bg-white/70 p-3">
+        <div className="flex items-center gap-2">
+          <ConnectedDots4 className="size-4 text-neutral-900" />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <h1 className="text-sm font-semibold text-neutral-900">
+            Dub Partners
+          </h1>
+          <p className="text-sm text-neutral-600">
+            Grow your revenue on autopilot with Dub Partners
+          </p>
+        </div>
+
+        <Link
+          href={`/${slug}${path}`}
+          className={cn(
+            buttonVariants({ variant: "primary" }),
+            "flex h-8 items-center justify-center rounded-md border px-3 text-sm",
+          )}
+        >
+          {store?.programOnboarding ? "Finish creating" : "Create program"}
+        </Link>
+      </div>
     </div>
   );
 }
