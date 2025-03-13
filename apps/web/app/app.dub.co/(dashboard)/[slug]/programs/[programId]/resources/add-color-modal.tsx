@@ -48,7 +48,10 @@ const DEFAULT_COLORS = ["#dc2626", "#84cc16", "#14b8a6", "#0ea5e9", "#d946ef"];
 function AddColorModalInner({ setShowAddColorModal }: AddColorModalProps) {
   const { programId } = useParams();
   const { id: workspaceId } = useWorkspace();
-  const { mutate } = useProgramResources();
+  const { mutate } = useProgramResources({
+    workspaceId: workspaceId!,
+    programId: programId as string,
+  });
   const [hexInputValue, setHexInputValue] = useState("#000000");
 
   const {

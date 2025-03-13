@@ -1,38 +1,37 @@
 import { fetcher } from "@dub/utils";
-import { useParams } from "next/navigation";
 import useSWR from "swr";
 import { z } from "zod";
 import { programResourcesSchema } from "../zod/schemas/program-resources";
-import useWorkspace from "./use-workspace";
 
 export type ProgramResourcesProps = z.infer<typeof programResourcesSchema>;
 
-export default function useProgramResources() {
-  const { id: workspaceId } = useWorkspace();
-  const { programId } = useParams();
+export default function useProgramResources(
+  props: { workspaceId: string; programId: string } | { programId: string },
+) {
+  const endpoint =
+    props.programId &&
+    ("workspaceId" in props
+      ? props.workspaceId
+        ? `/api/programs/${props.programId}/resources?workspaceId=${props.workspaceId}`
+        : null
+      : `/api/partner-profile/programs/${props.programId}/resources`);
 
   const {
     data: resources,
     error,
     isValidating,
     mutate,
-  } = useSWR<ProgramResourcesProps>(
-    programId && workspaceId
-      ? `/api/programs/${programId}/resources?workspaceId=${workspaceId}`
-      : null,
-    fetcher,
-    {
-      dedupingInterval: 60000,
-      revalidateOnFocus: false,
-      keepPreviousData: true,
-    },
-  );
+  } = useSWR<ProgramResourcesProps>(endpoint, fetcher, {
+    dedupingInterval: 60000,
+    revalidateOnFocus: false,
+    keepPreviousData: true,
+  });
 
   return {
     resources,
     error,
     mutate,
     isValidating,
-    isLoading: programId && !resources && !error,
+    isLoading: Boolean(props.programId && !resources && !error),
   };
 }

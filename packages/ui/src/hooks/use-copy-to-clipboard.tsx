@@ -14,7 +14,10 @@ export const useCopyToClipboard = (
   };
 
   const copyToClipboard = useCallback(
-    async (value: string | ClipboardItem) => {
+    async (
+      value: string | ClipboardItem,
+      { onSuccess }: { onSuccess?: () => void } = {},
+    ) => {
       clearTimer();
       try {
         if (typeof value === "string") {
@@ -23,6 +26,7 @@ export const useCopyToClipboard = (
           await navigator.clipboard.write([value]);
         }
         setCopied(true);
+        onSuccess?.();
 
         // Ensure timeout is a non-negative finite number
         if (Number.isFinite(timeout) && timeout >= 0) {

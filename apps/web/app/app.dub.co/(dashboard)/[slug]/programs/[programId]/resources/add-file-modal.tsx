@@ -46,7 +46,10 @@ function AddFileModal(props: AddFileModalProps) {
 function AddFileModalInner({ setShowAddFileModal }: AddFileModalProps) {
   const { programId } = useParams();
   const { id: workspaceId } = useWorkspace();
-  const { mutate } = useProgramResources();
+  const { mutate } = useProgramResources({
+    workspaceId: workspaceId!,
+    programId: programId as string,
+  });
 
   const {
     register,

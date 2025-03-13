@@ -40,7 +40,7 @@ export const deleteProgramResourceAction = authActionClient
     if (!program.resources) throw new Error("Program resources not found");
 
     // Create a copy of the current resources to update
-    const updatedResources = { ...program.resources };
+    const updatedResources = { ...(program.resources as any) };
 
     // Find the resource to delete
     const resourceKey = `${resourceType}s`;

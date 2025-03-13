@@ -46,7 +46,10 @@ function AddLogoModal(props: AddLogoModalProps) {
 function AddLogoModalInner({ setShowAddLogoModal }: AddLogoModalProps) {
   const { programId } = useParams();
   const { id: workspaceId } = useWorkspace();
-  const { mutate } = useProgramResources();
+  const { mutate } = useProgramResources({
+    workspaceId: workspaceId!,
+    programId: programId as string,
+  });
 
   const {
     register,
