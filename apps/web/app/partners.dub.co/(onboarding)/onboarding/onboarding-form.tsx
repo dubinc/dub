@@ -8,11 +8,13 @@ import {
   buttonVariants,
   Combobox,
   FileUpload,
+  ToggleGroup,
   useEnterSubmit,
   useMediaQuery,
 } from "@dub/ui";
 import { COUNTRIES } from "@dub/utils";
 import { cn } from "@dub/utils/src/functions";
+import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
@@ -22,12 +24,22 @@ import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { z } from "zod";
 
+type FormData = z.infer<typeof onboardPartnerSchema>;
+
 export function OnboardingForm({
   partner,
   lockName,
 }: {
   partner?: Partial<
-    Pick<Partner, "name" | "description" | "country" | "image">
+    Pick<
+      Partner,
+      | "name"
+      | "description"
+      | "country"
+      | "image"
+      | "profileType"
+      | "companyName"
+    >
   > | null;
   lockName?: boolean;
 }) {
@@ -43,16 +55,18 @@ export function OnboardingForm({
     setValue,
     watch,
     formState: { errors, isSubmitting, isSubmitSuccessful },
-  } = useForm<z.infer<typeof onboardPartnerSchema>>({
+  } = useForm<FormData>({
     defaultValues: {
       name: partner?.name ?? undefined,
       description: partner?.description ?? undefined,
       country: partner?.country ?? undefined,
       image: partner?.image ?? undefined,
+      profileType: partner?.profileType ?? "individual",
+      companyName: partner?.companyName ?? undefined,
     },
   });
 
-  const { name, image } = watch();
+  const { name, image, profileType } = watch();
 
   useEffect(() => {
     if (session?.user) {
@@ -77,7 +91,7 @@ export function OnboardingForm({
   return (
     <form
       ref={formRef}
-      onSubmit={handleSubmit(executeAsync)}
+      onSubmit={handleSubmit(async (data) => await executeAsync(data))}
       className="flex w-full flex-col gap-4 text-left"
     >
       <label>
@@ -181,12 +195,91 @@ export function OnboardingForm({
         />
       </label>
 
-      <Button
-        type="submit"
-        text="Continue"
-        className="mt-2"
-        loading={isPending || isSubmitting || isSubmitSuccessful}
-      />
+      <LayoutGroup>
+        <div>
+          <span className="text-sm font-medium text-neutral-800">
+            Profile Type
+          </span>
+          <div className="mt-2">
+            <ToggleGroup
+              options={[
+                {
+                  value: "individual",
+                  label: "Individual",
+                },
+                {
+                  value: "company",
+                  label: "Company",
+                },
+              ]}
+              selected={profileType}
+              selectAction={(option: "individual" | "company") => {
+                if (!partner?.profileType) {
+                  setValue("profileType", option);
+                }
+              }}
+              className={cn(
+                "flex w-full items-center gap-0.5 rounded-lg border-neutral-300 bg-neutral-100 p-0.5",
+                partner?.profileType && "cursor-not-allowed opacity-70",
+              )}
+              optionClassName={cn(
+                "h-9 flex items-center justify-center rounded-lg flex-1",
+                partner?.profileType && "pointer-events-none",
+              )}
+              indicatorClassName="bg-white"
+            />
+          </div>
+        </div>
+
+        <AnimatePresence mode="popLayout">
+          {profileType === "company" && (
+            <motion.div
+              layout
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{
+                type: "spring",
+                stiffness: 300,
+                damping: 30,
+                opacity: { duration: 0.2 },
+                layout: { duration: 0.3, type: "spring" },
+              }}
+            >
+              <label>
+                <span className="text-sm font-medium text-neutral-800">
+                  Legal company name
+                </span>
+                <input
+                  type="text"
+                  className={cn(
+                    "mt-2 block w-full rounded-md read-only:bg-neutral-100 read-only:text-neutral-500 focus:outline-none sm:text-sm",
+                    errors.companyName
+                      ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                      : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+                  )}
+                  readOnly={!!partner?.companyName || !!errors.companyName}
+                  {...register("companyName", {
+                    required: profileType === "company",
+                  })}
+                />
+                <p className="mt-1.5 text-xs text-neutral-500">
+                  This cannot be changed once set.
+                </p>
+              </label>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <motion.div layout>
+          <Button
+            type="submit"
+            text="Continue"
+            className="mt-2"
+            loading={isPending || isSubmitting || isSubmitSuccessful}
+          />
+        </motion.div>
+      </LayoutGroup>
     </form>
   );
 }

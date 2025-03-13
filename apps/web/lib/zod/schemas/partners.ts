@@ -1,4 +1,8 @@
-import { PartnerStatus, ProgramEnrollmentStatus } from "@dub/prisma/client";
+import {
+  PartnerProfileType,
+  PartnerStatus,
+  ProgramEnrollmentStatus,
+} from "@dub/prisma/client";
 import { COUNTRY_CODES } from "@dub/utils";
 import { z } from "zod";
 import { analyticsQuerySchema } from "./analytics";
@@ -92,6 +96,8 @@ export const partnerInvitesQuerySchema = getPaginationQuerySchema({
 export const PartnerSchema = z.object({
   id: z.string(),
   name: z.string(),
+  companyName: z.string().nullable(),
+  profileType: z.nativeEnum(PartnerProfileType),
   email: z.string().nullable(),
   image: z.string().nullable(),
   description: z.string().nullish(),
@@ -250,8 +256,27 @@ export const onboardPartnerSchema = createPartnerSchema
     z.object({
       image: z.string(),
       country: z.enum(COUNTRY_CODES),
+      profileType: z.enum(["individual", "company"]).default("individual"),
+      companyName: z.string().nullish(),
     }),
-  );
+  )
+  .refine(
+    (data) => {
+      if (data.profileType === "company") {
+        return !!data.companyName;
+      }
+
+      return true;
+    },
+    {
+      message: "Legal company name is required.",
+      path: ["companyName"],
+    },
+  )
+  .transform((data) => ({
+    ...data,
+    companyName: data.profileType === "individual" ? null : data.companyName,
+  }));
 
 export const createPartnerLinkSchema = z
   .object({
