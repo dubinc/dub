@@ -14,12 +14,12 @@ const GUIDES = [
   {
     name: "Connecting to Stripe",
     icon: Stripe,
-    href: "https://d.to/stripe",
+    href: "https://dub.co/docs/conversions/sales/stripe",
   },
   {
     name: "Connecting to Shopify",
     icon: Shopify,
-    href: "https://d.to/shopify",
+    href: "https://dub.co/docs/conversions/sales/shopify",
   },
 ] as const;
 
@@ -50,8 +50,8 @@ export function PageClient() {
     <div className="space-y-10">
       <div className="space-y-6">
         <p className="text-sm text-neutral-600">
-          Ensuring your program is connect is simple, select the best guide that
-          suits your connection setup or something else.
+          Depending on your payment processor, select from the following guides
+          to learn how to connect Dub and start tracking conversions.
         </p>
 
         <div className="flex flex-col gap-4">

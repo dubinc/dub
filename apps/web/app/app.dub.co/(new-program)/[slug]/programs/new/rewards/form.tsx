@@ -265,7 +265,11 @@ const NewProgramForm = ({ register, watch, setValue }: FormProps) => {
             >
               {RECURRING_MAX_DURATIONS.filter((v) => v !== 0).map(
                 (duration) => (
-                  <option key={duration} value={duration}>
+                  <option
+                    key={duration}
+                    value={duration}
+                    selected={duration === 12}
+                  >
                     {duration} {duration === 1 ? "month" : "months"}
                   </option>
                 ),
