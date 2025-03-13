@@ -150,7 +150,7 @@ const prepareRows = async (payload: z.infer<typeof payloadSchema>) => {
 const processRows = async (payload: z.infer<typeof payloadSchema>) => {
   const { id, workspaceId, mapping } = payload;
   const redisKey = `import:csv:${workspaceId}:${id}`;
-  const BATCH_SIZE = 25; // Process 500 links at a time
+  const BATCH_SIZE = 500; // Process 500 links at a time
 
   const rows = await redis.lpop<Record<string, string>[]>(
     `${redisKey}:rows`,
