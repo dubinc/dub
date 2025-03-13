@@ -39,6 +39,7 @@ function DefaultFolderModal({
       await Promise.all([
         mutate("/api/workspaces"),
         mutate(`/api/workspaces/${workspaceId}`),
+        mutate(`/api/folders?workspaceId=${workspaceId}`),
       ]);
       setLoading(false);
       setShowDefaultFolderModal(false);

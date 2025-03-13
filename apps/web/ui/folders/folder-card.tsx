@@ -15,6 +15,7 @@ import { useRef } from "react";
 import { FolderActions } from "./folder-actions";
 import { FolderIcon } from "./folder-icon";
 import { RequestFolderEditAccessButton } from "./request-edit-button";
+import { isDefaultFolder } from "./utils";
 
 export const FolderCard = ({ folder }: { folder: Folder }) => {
   const {
@@ -30,8 +31,7 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
   );
 
   const unsortedLinks = folder.id === "unsorted";
-  const folderId = unsortedLinks ? null : folder.id;
-  const isDefault = folderId === defaultFolderId;
+  const isDefault = isDefaultFolder({ folder, defaultFolderId });
 
   return (
     <div

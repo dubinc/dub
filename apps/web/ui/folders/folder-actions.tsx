@@ -21,9 +21,7 @@ import { useDeleteFolderModal } from "../modals/delete-folder-modal";
 import { useRenameFolderModal } from "../modals/rename-folder-modal";
 import { Chart, Delete, ThreeDots } from "../shared/icons";
 import { useFolderPermissionsPanel } from "./folder-permissions-panel";
-
-// TODO:
-// Re-render when default folder changes
+import { isDefaultFolder } from "./utils";
 
 export const FolderActions = ({
   folder,
@@ -103,16 +101,15 @@ export const FolderActions = ({
     },
   );
 
-  const folderId = folder.id === "unsorted" ? null : folder.id;
-  const unsortedLinks = folderId === null;
-  const isDefault = folderId === defaultFolderId;
-  const hidePopover = isDefault && folderId === null;
-  const canMakeDefault =
-    !isDefault && !permissionsError && folder.accessLevel != null;
+  const unsortedLinks = folder.id === "unsorted";
+  const isDefault = isDefaultFolder({ folder, defaultFolderId });
 
-  if (hidePopover) {
+  if (isDefault && unsortedLinks) {
     return null;
   }
+
+  const canMakeDefault =
+    !isDefault && !permissionsError && folder.accessLevel != null;
 
   return (
     <>
