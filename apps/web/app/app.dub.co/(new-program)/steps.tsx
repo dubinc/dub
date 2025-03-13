@@ -25,6 +25,10 @@ export function Steps() {
 
   const currentPath = pathname.replace(`/${slug}`, "");
 
+  const currentStep = PROGRAM_ONBOARDING_STEPS.find(
+    (s) => s.href === currentPath,
+  );
+
   const lastCompletedStep =
     programOnboarding?.lastCompletedStep ?? "get-started";
 
@@ -71,7 +75,8 @@ export function Steps() {
 
                   const completed =
                     step === lastCompletedStep ||
-                    (lastCompletedStepObj?.stepNumber ?? 0) >= stepNumber;
+                    (lastCompletedStepObj?.stepNumber ?? 0) >= stepNumber ||
+                    (currentStep?.stepNumber ?? 0) >= stepNumber;
 
                   const isDisabled = !completed && !current;
 
