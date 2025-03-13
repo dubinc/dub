@@ -12,7 +12,7 @@ import {
   MaxWidthWrapper,
   useEnterSubmit,
 } from "@dub/ui";
-import { cn, DICEBEAR_AVATAR_URL } from "@dub/utils";
+import { capitalize, cn, DICEBEAR_AVATAR_URL } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { PropsWithChildren, useRef } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -26,8 +26,16 @@ export function ProfileSettingsPageClient() {
     <MaxWidthWrapper className="mb-20 flex flex-col gap-8">
       <div className="max-w-screen-md rounded-lg border border-neutral-200 bg-white">
         <div className="border-b border-neutral-200 p-6">
-          <h2 className="text-xl font-medium text-neutral-800">About you</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-xl font-medium text-neutral-800">About you</h2>
+            {partner && (
+              <div className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-800">
+                {capitalize(partner.businessType)}
+              </div>
+            )}
+          </div>
         </div>
+
         {partner ? (
           <ProfileForm partner={partner} />
         ) : (

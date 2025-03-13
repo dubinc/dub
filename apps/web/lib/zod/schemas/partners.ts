@@ -1,4 +1,8 @@
-import { PartnerStatus, ProgramEnrollmentStatus } from "@dub/prisma/client";
+import {
+  PartnerBusinessType,
+  PartnerStatus,
+  ProgramEnrollmentStatus,
+} from "@dub/prisma/client";
 import { COUNTRY_CODES } from "@dub/utils";
 import { z } from "zod";
 import { analyticsQuerySchema } from "./analytics";
@@ -92,6 +96,8 @@ export const partnerInvitesQuerySchema = getPaginationQuerySchema({
 export const PartnerSchema = z.object({
   id: z.string(),
   name: z.string(),
+  companyName: z.string().nullable(),
+  businessType: z.nativeEnum(PartnerBusinessType),
   email: z.string().nullable(),
   image: z.string().nullable(),
   description: z.string().nullish(),
