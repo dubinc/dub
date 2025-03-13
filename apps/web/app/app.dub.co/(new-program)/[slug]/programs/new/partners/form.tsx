@@ -203,7 +203,7 @@ export function Form() {
                   <div className="relative w-full">
                     <div
                       className={cn(
-                        "relative flex items-stretch overflow-hidden rounded-md border border-neutral-200 bg-white focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500",
+                        "relative flex items-stretch overflow-hidden rounded-md border border-neutral-300 bg-white focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500",
                         keyErrors[index] &&
                           "border-red-500 focus-within:border-red-500 focus-within:ring-red-500",
                       )}
