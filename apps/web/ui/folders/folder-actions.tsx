@@ -106,9 +106,14 @@ export const FolderActions = ({
 
   const folderId = folder.id === "unsorted" ? null : folder.id;
   const unsortedLinks = folderId === null;
-  const isDefault = Boolean(defaultFolderId) && defaultFolderId === folderId;
+  const isDefault = folderId === defaultFolderId;
+  const hidePopover = isDefault && folderId === null;
   const canMakeDefault =
     !isDefault && !permissionsError && folder.accessLevel != null;
+
+  if (hidePopover) {
+    return null;
+  }
 
   return (
     <>
