@@ -15,21 +15,21 @@ enum PartnerBusinessType {
 }
 
 model Partner {
-  id                String               @id @default(cuid())
+  id                String              @id @default(cuid())
   name              String
   companyName       String?
-  businessType      PartnerBusinessType? @default(individual)
-  email             String?              @unique
+  businessType      PartnerBusinessType @default(individual)
+  email             String?             @unique
   image             String?
-  bio               String?              @db.LongText
-  description       String?              @db.LongText
+  bio               String?             @db.LongText
+  description       String?             @db.LongText
   country           String?
-  status            PartnerStatus        @default(default)
-  stripeConnectId   String?              @unique
+  status            PartnerStatus       @default(default)
+  stripeConnectId   String?             @unique
   payoutsEnabledAt  DateTime?
-  showOnLeaderboard Boolean              @default(true)
-  createdAt         DateTime             @default(now())
-  updatedAt         DateTime             @updatedAt
+  showOnLeaderboard Boolean             @default(true)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
 
   programs     ProgramEnrollment[]
   applications ProgramApplication[]
