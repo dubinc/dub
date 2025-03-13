@@ -12,7 +12,7 @@ import {
   MaxWidthWrapper,
   useEnterSubmit,
 } from "@dub/ui";
-import { capitalize, cn, DICEBEAR_AVATAR_URL } from "@dub/utils";
+import { cn, COUNTRIES, DICEBEAR_AVATAR_URL } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { PropsWithChildren, useRef } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -28,11 +28,6 @@ export function ProfileSettingsPageClient() {
         <div className="border-b border-neutral-200 p-6">
           <div className="flex items-center gap-2">
             <h2 className="text-xl font-medium text-neutral-800">About you</h2>
-            {partner && (
-              <div className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-800">
-                {capitalize(partner.businessType)}
-              </div>
-            )}
           </div>
         </div>
 
@@ -201,6 +196,24 @@ function ProfileForm({ partner }: { partner: PartnerProps }) {
           <FormRow>
             <label className="contents">
               <span className="text-sm font-medium text-neutral-800">
+                Country
+              </span>
+              <div>
+                <input
+                  type="text"
+                  className="mt-2 block w-full rounded-md border-neutral-300 text-neutral-900 read-only:bg-neutral-100 read-only:text-neutral-500 sm:text-sm"
+                  readOnly
+                  defaultValue={
+                    partner.country ? COUNTRIES[partner.country] : ""
+                  }
+                />
+              </div>
+            </label>
+          </FormRow>
+
+          <FormRow>
+            <label className="contents">
+              <span className="text-sm font-medium text-neutral-800">
                 Description
               </span>
               <div>
@@ -220,6 +233,24 @@ function ProfileForm({ partner }: { partner: PartnerProps }) {
               </div>
             </label>
           </FormRow>
+
+          {partner.businessType === "company" && (
+            <FormRow>
+              <label className="contents">
+                <span className="text-sm font-medium text-neutral-800">
+                  Legal company name
+                </span>
+                <div>
+                  <input
+                    type="text"
+                    className="mt-2 block w-full rounded-md border-neutral-300 text-neutral-900 read-only:bg-neutral-100 read-only:text-neutral-500 sm:text-sm"
+                    readOnly
+                    defaultValue={partner.companyName ?? ""}
+                  />
+                </div>
+              </label>
+            </FormRow>
+          )}
         </div>
       </div>
       <div className="flex justify-end rounded-b-lg border-t border-neutral-200 bg-neutral-100 px-5 py-3.5">
