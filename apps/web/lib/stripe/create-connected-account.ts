@@ -22,17 +22,17 @@ export const createConnectedAccount = async ({
       business_type: businessType,
       email,
       country,
-      ...(businessType === "individual"
+      ...(businessType === "company"
         ? {
+            business_profile: {
+              name: companyName!,
+            },
+          }
+        : {
             individual: {
               first_name: firstName,
               last_name: lastName,
               email,
-            },
-          }
-        : {
-            business_profile: {
-              name: companyName!,
             },
           }),
       capabilities: {
