@@ -4,6 +4,7 @@ import { validateAllowedHostnames } from "@/lib/api/validate-allowed-hostnames";
 import { deleteWorkspace } from "@/lib/api/workspaces";
 import { withWorkspace } from "@/lib/auth";
 import { getFeatureFlags } from "@/lib/edge-config";
+import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { storage } from "@/lib/storage";
 import {
   updateWorkspaceSchema,
@@ -58,9 +59,15 @@ export const GET = withWorkspace(
 
 // PATCH /api/workspaces/[idOrSlug] – update a specific workspace by id or slug
 export const PATCH = withWorkspace(
-  async ({ req, workspace }) => {
-    const { name, slug, logo, conversionEnabled, allowedHostnames } =
-      await updateWorkspaceSchema.parseAsync(await parseRequestBody(req));
+  async ({ req, workspace, session }) => {
+    const {
+      name,
+      slug,
+      logo,
+      conversionEnabled,
+      allowedHostnames,
+      defaultFolderId,
+    } = await updateWorkspaceSchema.parseAsync(await parseRequestBody(req));
 
     if (["free", "pro"].includes(workspace.plan) && conversionEnabled) {
       throw new DubApiError({
@@ -80,6 +87,15 @@ export const PATCH = withWorkspace(
         )
       : null;
 
+    if (defaultFolderId) {
+      await verifyFolderAccess({
+        workspace,
+        userId: session.user.id,
+        folderId: defaultFolderId,
+        requiredPermission: "folders.write",
+      });
+    }
+
     try {
       const response = await prisma.project.update({
         where: {
@@ -88,6 +104,7 @@ export const PATCH = withWorkspace(
         data: {
           ...(name && { name }),
           ...(slug && { slug }),
+          ...(defaultFolderId && { defaultFolderId }),
           ...(logoUploaded && { logo: logoUploaded.url }),
           ...(conversionEnabled !== undefined && { conversionEnabled }),
           ...(validHostnames !== undefined && {

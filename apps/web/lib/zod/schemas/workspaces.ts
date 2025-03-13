@@ -115,6 +115,10 @@ export const WorkspaceSchema = z
       .nullable()
       .describe("Specifies hostnames permitted for client-side click tracking.")
       .openapi({ example: ["dub.sh"] }),
+    defaultFolderId: z
+      .string()
+      .nullable()
+      .describe("The ID of the default folder for the workspace."),
   })
   .openapi({
     title: "Workspace",
@@ -137,6 +141,7 @@ export const createWorkspaceSchema = z.object({
 
 export const updateWorkspaceSchema = createWorkspaceSchema.partial().extend({
   allowedHostnames: z.array(z.string()).optional(),
+  defaultFolderId: z.string().optional(),
 });
 
 export const notificationTypes = z.enum([

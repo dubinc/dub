@@ -45,6 +45,7 @@ export const GET = withSession(async ({ session }) => {
       createdAt: "asc",
     },
   });
+
   return NextResponse.json(
     workspaces.map((project) =>
       WorkspaceSchema.parse({

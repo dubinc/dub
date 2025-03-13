@@ -15,6 +15,7 @@ import { cn } from "@dub/utils";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useDefaultFolderModal } from "../modals/default-folder-modal";
 import { useDeleteFolderModal } from "../modals/delete-folder-modal";
 import { useRenameFolderModal } from "../modals/rename-folder-modal";
 import { Chart, Delete, ThreeDots } from "../shared/icons";
@@ -40,6 +41,10 @@ export const FolderActions = ({
     onDelete,
   );
 
+  const { DefaultFolderModal, setShowDefaultFolderModal } = useDefaultFolderModal({
+    folder,
+  });
+
   const { folderPermissionsPanel, setShowFolderPermissionsPanel } =
     useFolderPermissionsPanel(folder);
 
@@ -52,7 +57,7 @@ export const FolderActions = ({
   };
 
   useKeyboardShortcut(
-    ["r", "m", "i", "x", "a"],
+    ["r", "m", "i", "x", "a", "d"],
     (e) => {
       setOpenPopover(false);
       switch (e.key) {
@@ -64,6 +69,11 @@ export const FolderActions = ({
           break;
         case "i":
           copyFolderId();
+          break;
+        case "d":
+          if (canUpdateFolder) {
+            setShowDefaultFolderModal(true);
+          }
           break;
         case "r":
           if (canUpdateFolder) {
@@ -86,6 +96,7 @@ export const FolderActions = ({
     <>
       <RenameFolderModal />
       <DeleteFolderModal />
+      <DefaultFolderModal />
       {folderPermissionsPanel}
       <Popover
         content={
@@ -134,6 +145,17 @@ export const FolderActions = ({
 
               {canUpdateFolder && (
                 <>
+                  <Button
+                    text="Set as Default"
+                    variant="outline"
+                    onClick={() => {
+                      setOpenPopover(false);
+                      setShowDefaultFolderModal(true);
+                    }}
+                    icon={<CircleCheck className="h-4 w-4" />}
+                    shortcut="D"
+                    className="h-9 px-2 font-medium"
+                  />
                   <Button
                     text="Rename"
                     variant="outline"

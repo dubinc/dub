@@ -1,9 +1,10 @@
 model Project {
-  id         String  @id @default(cuid())
-  name       String
-  slug       String  @unique
-  logo       String?
-  inviteCode String? @unique
+  id              String  @id @default(cuid())
+  name            String
+  slug            String  @unique
+  logo            String?
+  inviteCode      String? @unique
+  defaultFolderId String?
 
   plan              String    @default("free")
   stripeId          String?   @unique // Stripe subscription ID
@@ -118,7 +119,7 @@ model NotificationPreference {
   projectUserId              String  @unique
   linkUsageSummary           Boolean @default(true)
   domainConfigurationUpdates Boolean @default(true)
-  newPartnerSale            Boolean @default(true)
+  newPartnerSale             Boolean @default(true)
 
   projectUser ProjectUsers @relation(fields: [projectUserId], references: [id], onDelete: Cascade)
 }
