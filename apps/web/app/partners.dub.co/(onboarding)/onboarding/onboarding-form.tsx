@@ -80,7 +80,6 @@ export function OnboardingForm({
       router.push("/onboarding/online-presence");
     },
     onError: ({ error, input }) => {
-      console.log(error);
       toast.error(error.serverError);
       reset(input);
     },
