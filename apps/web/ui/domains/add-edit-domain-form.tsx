@@ -6,7 +6,9 @@ import { createDomainBodySchema } from "@/lib/zod/schemas/domains";
 import { AlertCircleFill, CheckCircleFill, Lock } from "@/ui/shared/icons";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import {
+  AndroidLogo,
   AnimatedSizeContainer,
+  AppleLogo,
   Badge,
   Button,
   FileUpload,
@@ -20,12 +22,11 @@ import {
 import { cn } from "@dub/utils";
 import { motion } from "framer-motion";
 import {
-  Apple,
   Binoculars,
+  ChevronDown,
   Crown,
   Milestone,
   QrCode,
-  Smartphone,
   TextCursorInput,
 } from "lucide-react";
 import posthog from "posthog-js";
@@ -459,126 +460,109 @@ export function AddEditDomainForm({
           </div>
 
           <div className="flex flex-col">
-            <div>
-              <button
-                type="button"
-                className="flex w-full items-center gap-2"
-                onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+            <button
+              type="button"
+              className="flex w-full items-center gap-2"
+              onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+            >
+              <p className="text-sm text-neutral-600">
+                {showAdvancedOptions ? "Hide" : "Show"} advanced settings
+              </p>
+              <motion.div
+                animate={{ rotate: showAdvancedOptions ? 180 : 0 }}
+                className="text-neutral-600"
               >
-                <p className="text-sm text-neutral-600">
-                  {showAdvancedOptions ? "Hide" : "Show"} advanced settings
-                </p>
-                <motion.div
-                  animate={{ rotate: showAdvancedOptions ? 180 : 0 }}
-                  className="text-neutral-600"
-                >
-                  <svg
-                    className="h-4 w-4"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M6 9L12 15L18 9"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </motion.div>
-              </button>
-            </div>
+                <ChevronDown className="size-4" />
+              </motion.div>
+            </button>
 
-            <AnimatedSizeContainer height className="mt-6">
-              <div className="flex flex-col space-y-4">
-                {showAdvancedOptions &&
-                  ADVANCED_OPTIONS.map(
-                    ({ id, title, description, icon: Icon, proFeature }) => {
-                      return (
-                        <div key={id} className="flex flex-col space-y-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <div className="hidden rounded-lg border border-neutral-200 bg-white p-2 sm:block">
-                                <Icon className="size-5 text-neutral-500" />
-                              </div>
-                              <div>
-                                <div className="flex items-center gap-2">
-                                  <h2 className="text-sm font-medium text-neutral-900">
-                                    {title}
-                                  </h2>
-                                  {proFeature && plan === "free" && (
-                                    <Badge className="flex items-center space-x-1 bg-white">
-                                      <Crown size={12} />
-                                      <p className="uppercase">Pro</p>
-                                    </Badge>
-                                  )}
-                                </div>
-                                <p className="text-sm text-neutral-500">
-                                  {description}
-                                </p>
-                              </div>
+            <AnimatedSizeContainer height className="flex flex-col">
+              {showAdvancedOptions &&
+                ADVANCED_OPTIONS.map(
+                  ({ id, title, description, icon: Icon, proFeature }) => {
+                    return (
+                      <div key={id} className="mt-4 flex flex-col space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="hidden rounded-lg border border-neutral-200 bg-white p-2 sm:block">
+                              <Icon className="size-5 text-neutral-500" />
                             </div>
-
-                            <Switch
-                              checked={showOptionStates[id]}
-                              fn={(checked: boolean) => {
-                                setShowOptionStates((prev) => ({
-                                  ...prev,
-                                  [id]: checked,
-                                }));
-                                if (!checked) {
-                                  setValue(id, "", {
-                                    shouldDirty: true,
-                                  });
-                                }
-                              }}
-                              disabled={isSubmitting}
-                            />
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h2 className="text-sm font-medium text-neutral-900">
+                                  {title}
+                                </h2>
+                                {proFeature && plan === "free" && (
+                                  <Badge className="flex items-center space-x-1 bg-white">
+                                    <Crown size={12} />
+                                    <p className="uppercase">Pro</p>
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-sm text-neutral-500">
+                                {description}
+                              </p>
+                            </div>
                           </div>
 
-                          {showOptionStates[id] && (
-                            <div className="rounded-md border border-neutral-200 bg-white">
-                              <textarea
-                                {...register(id)}
-                                className="w-full resize-none rounded-md border-0 bg-transparent px-3 py-2 font-mono text-xs text-neutral-700 focus:outline-none focus:ring-0"
-                                rows={4}
-                                spellCheck={false}
-                                onPaste={(e) => {
-                                  if (
-                                    [
-                                      "appleAppSiteAssociation",
-                                      "assetLinks",
-                                    ].includes(id)
-                                  ) {
-                                    e.preventDefault();
-                                    const pastedText =
-                                      e.clipboardData.getData("text");
-
-                                    try {
-                                      const formattedJson = JSON.stringify(
-                                        JSON.parse(pastedText),
-                                        null,
-                                        2,
-                                      );
-                                      setValue(id, formattedJson, {
-                                        shouldDirty: true,
-                                      });
-                                    } catch (err) {
-                                      setValue(id, pastedText, {
-                                        shouldDirty: true,
-                                      });
-                                    }
-                                  }
-                                }}
-                              />
-                            </div>
-                          )}
+                          <Switch
+                            checked={showOptionStates[id]}
+                            fn={(checked: boolean) => {
+                              setShowOptionStates((prev) => ({
+                                ...prev,
+                                [id]: checked,
+                              }));
+                              if (!checked) {
+                                setValue(id, "", {
+                                  shouldDirty: true,
+                                });
+                              }
+                            }}
+                            disabled={isSubmitting}
+                          />
                         </div>
-                      );
-                    },
-                  )}
-              </div>
+
+                        {showOptionStates[id] && (
+                          <div className="rounded-md border border-neutral-200 bg-white">
+                            <textarea
+                              {...register(id)}
+                              className="w-full resize-none rounded-md border-0 bg-transparent px-3 py-2 font-mono text-xs text-neutral-700 focus:outline-none focus:ring-0"
+                              rows={4}
+                              spellCheck={false}
+                              onPaste={(e) => {
+                                if (
+                                  [
+                                    "appleAppSiteAssociation",
+                                    "assetLinks",
+                                  ].includes(id)
+                                ) {
+                                  e.preventDefault();
+                                  const pastedText =
+                                    e.clipboardData.getData("text");
+
+                                  try {
+                                    const formattedJson = JSON.stringify(
+                                      JSON.parse(pastedText),
+                                      null,
+                                      2,
+                                    );
+                                    setValue(id, formattedJson, {
+                                      shouldDirty: true,
+                                    });
+                                  } catch (err) {
+                                    setValue(id, pastedText, {
+                                      shouldDirty: true,
+                                    });
+                                  }
+                                }
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  },
+                )}
             </AnimatedSizeContainer>
           </div>
         </>
@@ -634,14 +618,14 @@ const ADVANCED_OPTIONS = [
     id: "appleAppSiteAssociation",
     title: "Apple App Site Association",
     description: "Provide a config file for iOS deep linking",
-    icon: Apple,
+    icon: AppleLogo,
     proFeature: true,
   },
   {
     id: "assetLinks",
     title: "Asset Link",
     description: "Provide a config file for Android deep linking",
-    icon: Smartphone,
+    icon: AndroidLogo,
     proFeature: true,
   },
 ] as const;
