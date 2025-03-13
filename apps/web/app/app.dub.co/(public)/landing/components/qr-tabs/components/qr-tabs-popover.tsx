@@ -24,6 +24,10 @@ export const QRTabsPopover: FC<IQRTabsPopoverProps> = ({
   showButtonContent = false,
   selectedQrType = qrTypes[0],
 }) => {
+  const selectedQrTypeIndex = qrTypes.findIndex(
+    (qrType) => qrType.id === selectedQrType?.id,
+  );
+
   return (
     <Popover
       align="end"
@@ -34,7 +38,7 @@ export const QRTabsPopover: FC<IQRTabsPopoverProps> = ({
         >
           <ScrollArea.Viewport className="overflow-y-scroll">
             <div className="flex max-h-[274px] w-[95%] flex-col gap-0.5 text-sm md:w-80 md:max-w-[200px] md:p-3">
-              {qrTypes.map((option) => (
+              {qrTypes.map((option, idx) => (
                 <button
                   key={option.id}
                   onClick={() => handlePopoverItemClick(option.id)}
@@ -48,8 +52,13 @@ export const QRTabsPopover: FC<IQRTabsPopoverProps> = ({
                     icon={option.icon}
                     className={cn(
                       "h-5 w-5",
+                      idx === 4
+                        ? "[&>path]:fill-neutral-lighter"
+                        : "[&>g]:stroke-neutral-lighter [&>path]:stroke-neutral-lighter",
                       selectedQrType?.id === option.id &&
-                        "[&>g]:stroke-primary [&>path]:stroke-primary",
+                        (idx === 4
+                          ? "[&>path]:fill-primary"
+                          : "[&>g]:stroke-primary [&>path]:stroke-primary"),
                     )}
                   />
                   {option.label}
@@ -87,8 +96,9 @@ export const QRTabsPopover: FC<IQRTabsPopoverProps> = ({
                   icon={selectedQrType.icon}
                   className={cn(
                     "h-4 w-4",
-                    selectedQrType &&
-                      "[&>g]:stroke-primary [&>path]:stroke-primary",
+                    selectedQrType && selectedQrTypeIndex === 4
+                      ? "[&>path]:fill-primary"
+                      : "[&>g]:stroke-primary [&>path]:stroke-primary",
                   )}
                 />
                 {selectedQrType.label}
