@@ -88,12 +88,19 @@ export const PATCH = withWorkspace(
       : null;
 
     if (defaultFolderId) {
-      await verifyFolderAccess({
+      const folder = await verifyFolderAccess({
         workspace,
         userId: session.user.id,
         folderId: defaultFolderId,
-        requiredPermission: "folders.write",
+        requiredPermission: "folders.read",
       });
+
+      if (folder.accessLevel === null) {
+        throw new DubApiError({
+          code: "forbidden",
+          message: "Only folder with workspace access can be set as default.",
+        });
+      }
     }
 
     try {

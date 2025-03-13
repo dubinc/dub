@@ -22,6 +22,10 @@ import { useRenameFolderModal } from "../modals/rename-folder-modal";
 import { Chart, Delete, ThreeDots } from "../shared/icons";
 import { useFolderPermissionsPanel } from "./folder-permissions-panel";
 
+// TODO:
+// If no actions button exists, then hide the popover
+// Re-render when default folder changes
+
 export const FolderActions = ({
   folder,
   onDelete,
@@ -100,9 +104,11 @@ export const FolderActions = ({
     },
   );
 
-  const unsortedLinks = folder.id === "unsorted";
-  const isDefault = defaultFolderId && folder.id === defaultFolderId;
-  const canMakeDefault = !isDefault;
+  const folderId = folder.id === "unsorted" ? null : folder.id;
+  const unsortedLinks = folderId === null;
+  const isDefault = Boolean(defaultFolderId) && defaultFolderId === folderId;
+  const canMakeDefault =
+    !isDefault && !permissionsError && folder.accessLevel != null;
 
   return (
     <>

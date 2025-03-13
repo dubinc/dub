@@ -1,4 +1,3 @@
-import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderSummary } from "@/lib/types";
 import { Button, Modal } from "@dub/ui";
@@ -22,13 +21,8 @@ function DefaultFolderModal({
   setShowDefaultFolderModal: Dispatch<SetStateAction<boolean>>;
   folder: FolderSummary;
 }) {
+  const { id: workspaceId } = useWorkspace();
   const [loading, setLoading] = useState(false);
-  const { id: workspaceId, role, defaultFolderId } = useWorkspace();
-
-  const permissionsError = clientAccessCheck({
-    action: "workspaces.write",
-    role,
-  }).error;
 
   const setDefault = async () => {
     setLoading(true);
@@ -53,11 +47,6 @@ function DefaultFolderModal({
       toast.error(error.message);
     }
   };
-
-  const canMakeDefault = folder.accessLevel != null || folder.id === "unsorted";
-  const isDefault =
-    (defaultFolderId && folder.id === defaultFolderId) ||
-    (folder.id === "unsorted" && !defaultFolderId);
 
   return (
     <Modal
@@ -88,16 +77,7 @@ function DefaultFolderModal({
           }
           autoFocus
           loading={loading}
-          text={
-            isDefault ? "This is the default folder" : "Set as default folder"
-          }
-          disabled={isDefault}
-          disabledTooltip={
-            permissionsError ||
-            (!canMakeDefault &&
-              "Only folder with workspace access can be set as default.") ||
-            undefined
-          }
+          text="Set as default folder"
         />
       </div>
     </Modal>
