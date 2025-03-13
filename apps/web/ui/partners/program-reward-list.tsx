@@ -19,7 +19,7 @@ export function ProgramRewardList({
   return (
     <ul
       className={cn(
-        "flex flex-col gap-4 rounded-md border border-neutral-200 bg-white p-4 text-neutral-600",
+        "text-content-default border-border-subtle bg-bg-default flex flex-col gap-4 rounded-md border p-4",
         className,
       )}
     >

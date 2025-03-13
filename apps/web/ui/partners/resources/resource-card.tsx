@@ -18,11 +18,11 @@ import { toast } from "sonner";
 
 export function ResourceCardSkeleton() {
   return (
-    <div className="flex w-full items-center gap-4 rounded-lg border border-neutral-200 p-4">
-      <div className="flex size-10 shrink-0 animate-pulse items-center justify-center rounded-md bg-neutral-200" />
+    <div className="border-border-subtle flex w-full items-center gap-4 rounded-lg border p-4">
+      <div className="bg-bg-emphasis flex size-10 shrink-0 animate-pulse items-center justify-center rounded-md" />
       <div className="flex min-w-0 animate-pulse flex-col gap-1">
-        <div className="h-4 w-32 max-w-full rounded-md bg-neutral-200" />
-        <div className="h-4 w-16 max-w-full rounded-md bg-neutral-200" />
+        <div className="bg-bg-emphasis h-4 w-32 max-w-full rounded-md" />
+        <div className="bg-bg-emphasis h-4 w-16 max-w-full rounded-md" />
       </div>
     </div>
   );
@@ -53,16 +53,16 @@ export function ResourceCard({
   const handleDownload = () => window.open(downloadUrl, "_blank");
 
   return (
-    <div className="flex w-full items-center justify-between gap-4 rounded-lg border border-neutral-200 p-4 shadow-sm">
+    <div className="border-border-subtle flex w-full items-center justify-between gap-4 rounded-lg border p-4 shadow-sm">
       <div className="flex min-w-0 items-center gap-4">
-        <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-md border border-neutral-200">
+        <div className="border-border-subtle flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-md border">
           {icon}
         </div>
         <div className="flex min-w-0 flex-col">
-          <span className="truncate text-sm font-medium text-neutral-800">
+          <span className="text-content-emphasis truncate text-sm font-medium">
             {title}
           </span>
-          <span className="truncate text-xs text-neutral-500">
+          <span className="text-content-subtle truncate text-xs">
             {description}
           </span>
         </div>
@@ -129,8 +129,8 @@ export function ResourceCard({
             <Button
               variant="secondary"
               className={cn(
-                "h-8 px-1.5 text-neutral-500 outline-none transition-all duration-200",
-                "border-transparent data-[state=open]:border-neutral-500 sm:group-hover/card:data-[state=closed]:border-neutral-200",
+                "text-content-subtle h-8 px-1.5 outline-none transition-all duration-200",
+                "data-[state=open]:border-border-emphasis sm:group-hover/card:data-[state=closed]:border-border-subtle border-transparent",
               )}
               icon={
                 isDeleting ? (

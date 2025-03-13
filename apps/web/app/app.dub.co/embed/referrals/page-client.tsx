@@ -103,7 +103,7 @@ export function ReferralsEmbedPageClient({
             color={program.brandColor}
             embed
           />
-          <span className="text-base font-semibold text-neutral-800">
+          <span className="text-content-emphasis text-base font-semibold">
             Referral link
           </span>
           <div className="xs:flex-row xs:items-center relative mt-3 flex flex-col gap-2 sm:max-w-[50%]">
@@ -139,7 +139,7 @@ export function ReferralsEmbedPageClient({
               onClick={() => copyToClipboard(links[0].shortLink)}
             />
           </div>
-          <span className="mt-12 text-base font-semibold text-neutral-800">
+          <span className="text-content-emphasis mt-12 text-base font-semibold">
             Rewards
           </span>
           <div className="text-content-emphasis relative mt-2 text-lg sm:max-w-[50%]">
@@ -167,7 +167,7 @@ export function ReferralsEmbedPageClient({
           <ReferralsEmbedPayouts payouts={payouts} />
         </div>
         <div className="mt-4">
-          <div className="flex items-center border-b border-neutral-200">
+          <div className="border-border-subtle flex items-center border-b">
             <TabSelect
               options={tabs.map((tab) => ({
                 id: tab,
@@ -251,8 +251,8 @@ function Menu({
       <Button
         variant="secondary"
         className={cn(
-          "h-8 px-1.5 text-neutral-500 outline-none transition-all duration-200",
-          "border-transparent data-[state=open]:border-neutral-500 sm:group-hover/card:data-[state=closed]:border-neutral-200",
+          "text-content-subtle h-8 px-1.5 outline-none transition-all duration-200",
+          "data-[state=open]:border-border-emphasis sm:group-hover/card:data-[state=closed]:border-border-subtle border-transparent",
         )}
         icon={<ThreeDots className="size-4 shrink-0" />}
         onClick={() => {
