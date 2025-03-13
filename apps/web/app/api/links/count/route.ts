@@ -11,7 +11,7 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(
   async ({ headers, searchParams, workspace, session }) => {
     const params = getLinksCountQuerySchema.parse(searchParams);
-    const {
+    let {
       groupBy,
       domain,
       folderId,
@@ -33,12 +33,15 @@ export const GET = withWorkspace(
         folderId,
         requiredPermission: "folders.read",
       });
+
       if (selectedFolder.type === "mega") {
         throw new DubApiError({
           code: "bad_request",
           message: "Cannot get links count for mega folders.",
         });
       }
+    } else {
+      folderId = workspace.defaultFolderId ?? undefined;
     }
 
     /* we only need to get the folder ids if we are:
@@ -61,8 +64,12 @@ export const GET = withWorkspace(
         folderIds = undefined;
       }
     }
+
     const count = await getLinksCount({
-      searchParams: params,
+      searchParams: {
+        ...params,
+        folderId,
+      },
       workspaceId: workspace.id,
       folderIds,
     });
