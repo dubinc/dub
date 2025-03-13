@@ -6,10 +6,12 @@ export const createConnectedAccount = async ({
   name,
   email,
   country,
-  businessType = "individual",
-}: Pick<z.infer<typeof onboardPartnerSchema>, "name" | "country"> & {
+  businessType,
+}: Pick<
+  z.infer<typeof onboardPartnerSchema>,
+  "name" | "country" | "businessType"
+> & {
   email: string;
-  businessType?: "individual" | "company";
 }) => {
   const [firstName, lastName] = name.split(" ");
 
