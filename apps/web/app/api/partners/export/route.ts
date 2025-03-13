@@ -17,8 +17,7 @@ export const GET = withWorkspace(
   async ({ searchParams, workspace }) => {
     const { programId } = searchParams;
 
-    const { columns, ...filters } =
-      partnersExportQuerySchema.parse(searchParams);
+    let { columns, ...filters } = partnersExportQuerySchema.parse(searchParams);
 
     const partners = await getPartners({
       ...filters,
@@ -28,9 +27,28 @@ export const GET = withWorkspace(
       programId,
     });
 
+    const columnOrderMap = exportPartnerColumns.reduce((acc, column, index) => {
+      acc[column.id] = index + 1;
+      return acc;
+    }, {});
+
+    columns = columns.sort(
+      (a, b) => (columnOrderMap[a] || 999) - (columnOrderMap[b] || 999),
+    );
+
     const schemaFields = {};
     columns.forEach((column) => {
-      schemaFields[columnIdToLabel[column]] = z.string().optional().default("");
+      if (["clicks", "leads", "sales", "saleAmount"].includes(column)) {
+        schemaFields[columnIdToLabel[column]] = z.coerce
+          .number()
+          .optional()
+          .default(0);
+      } else {
+        schemaFields[columnIdToLabel[column]] = z
+          .string()
+          .optional()
+          .default("");
+      }
     });
 
     const formattedPartners = partners.map((partner) => {

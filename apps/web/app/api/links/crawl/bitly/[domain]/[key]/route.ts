@@ -61,22 +61,26 @@ export const GET = async (_req: NextRequest, { params }) => {
         );
 
         waitUntil(
-          conn.execute(
-            "INSERT INTO Link (id, projectId, userId, domain, `key`, url, shortLink, archived, folderId, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            [
-              newLink.id,
-              newLink.projectId,
-              newLink.userId,
-              newLink.domain,
-              newLink.key,
-              newLink.url,
-              newLink.shortLink,
-              newLink.archived,
-              newLink.folderId,
-              newLink.createdAt,
-              newLink.updatedAt,
-            ],
-          ),
+          (async () => {
+            try {
+              await conn.execute(
+                "INSERT INTO Link (id, projectId, userId, domain, `key`, url, shortLink, archived, folderId, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                [
+                  newLink.id,
+                  newLink.projectId,
+                  newLink.userId,
+                  newLink.domain,
+                  newLink.key,
+                  newLink.url,
+                  newLink.shortLink,
+                  newLink.archived,
+                  newLink.folderId,
+                  newLink.createdAt,
+                  newLink.updatedAt,
+                ],
+              );
+            } catch (_e) {}
+          })(),
         );
 
         return NextResponse.redirect(sanitizedUrl, {

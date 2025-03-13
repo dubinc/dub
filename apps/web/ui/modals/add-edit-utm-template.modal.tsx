@@ -1,6 +1,12 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { UtmTemplateProps } from "@/lib/types";
-import { Button, Modal, useMediaQuery, UTMBuilder } from "@dub/ui";
+import {
+  Button,
+  Modal,
+  useKeyboardShortcut,
+  useMediaQuery,
+  UTMBuilder,
+} from "@dub/ui";
 import posthog from "posthog-js";
 import {
   Dispatch,
@@ -160,11 +166,14 @@ function AddUtmTemplateButton({
 }: {
   setShowAddEditUtmTemplateModal: Dispatch<SetStateAction<boolean>>;
 }) {
+  useKeyboardShortcut("c", () => setShowAddEditUtmTemplateModal(true));
+
   return (
     <div>
       <Button
         variant="primary"
         text="Create template"
+        shortcut="C"
         className="h-9 rounded-lg"
         onClick={() => setShowAddEditUtmTemplateModal(true)}
       />

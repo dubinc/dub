@@ -10,6 +10,7 @@ import {
   APP_DOMAIN_WITH_NGROK,
   capitalize,
   getAdjustedBillingCycleStart,
+  getPrettyUrl,
   log,
 } from "@dub/utils";
 
@@ -142,7 +143,10 @@ export const updateUsage = async () => {
         });
 
         const topFiveLinks = topFive.map((d) => ({
-          link: linksMetadata.find((l) => l.id === d.link)?.shortLink || d.link,
+          link:
+            getPrettyUrl(
+              linksMetadata.find((l) => l.id === d.link)?.shortLink,
+            ) || d.link,
           clicks: d.clicks,
         }));
 
