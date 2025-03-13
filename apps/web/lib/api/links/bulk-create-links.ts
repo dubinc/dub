@@ -114,7 +114,7 @@ export async function bulkCreateLinks({
 
         tagNameToIdMap = allTagIds.reduce(
           (acc, tag) => {
-            acc[tag.name.toLowerCase()] = tag.id;
+            acc[tag.name] = tag.id;
             return acc;
           },
           {} as Record<string, string>,
