@@ -19,7 +19,7 @@ export function PageClient() {
     getValues,
     formState: { isSubmitting, isSubmitSuccessful },
   } = useFormContext<ProgramData>();
-  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+  const { id: workspaceId, slug: workspaceSlug, mutate } = useWorkspace();
 
   const data = getValues();
 
@@ -37,6 +37,8 @@ export function PageClient() {
       workspaceId,
       step: "create-program",
     });
+
+    mutate();
   };
 
   const isValid = useMemo(() => {

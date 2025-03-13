@@ -52,6 +52,7 @@ export function Form() {
     handleSubmit,
     watch,
     control,
+    setValue,
     formState: { isSubmitting },
   } = useFormContext<ProgramData>();
 
@@ -77,6 +78,46 @@ export function Form() {
       workspaceId,
       step: "get-started",
     });
+  };
+
+  const [isUploading, setIsUploading] = useState(false);
+
+  // Handle logo upload
+  const handleUpload = async (file: File) => {
+    setIsUploading(true);
+
+    try {
+      const response = await fetch(
+        `/api/workspaces/${workspaceId}/programs/upload-logo`,
+        {
+          method: "POST",
+        },
+      );
+
+      if (!response.ok) throw new Error("Failed to get signed URL for upload.");
+
+      const { signedUrl, destinationUrl } = await response.json();
+
+      const uploadResponse = await fetch(signedUrl, {
+        method: "PUT",
+        body: file,
+        headers: {
+          "Content-Type": file.type,
+          "Content-Length": file.size.toString(),
+        },
+      });
+
+      if (!uploadResponse.ok) throw new Error("Failed to upload to signed URL");
+
+      setValue("logo", destinationUrl, { shouldDirty: true });
+      console.log(destinationUrl);
+      toast.success(`${file.name} uploaded!`);
+    } catch (e) {
+      toast.error("Failed to upload logo");
+      console.error(e);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const [name, url, domain, logo] = watch(["name", "url", "domain", "logo"]);
@@ -117,9 +158,10 @@ export function Form() {
                 iconClassName="size-4 text-neutral-800"
                 icon={Plus}
                 variant="plain"
+                loading={isUploading}
                 imageSrc={field.value}
                 readFile
-                onChange={({ src }) => field.onChange(src)}
+                onChange={({ file }) => handleUpload(file)}
                 content={null}
                 maxFileSizeMB={2}
               />

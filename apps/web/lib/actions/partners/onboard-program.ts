@@ -3,7 +3,6 @@
 import { createId } from "@/lib/api/create-id";
 import { createLink, processLink } from "@/lib/api/links";
 import { rewardfulImporter } from "@/lib/rewardful/importer";
-import { storage } from "@/lib/storage";
 import { PlanProps } from "@/lib/types";
 import {
   onboardProgramSchema,
@@ -12,7 +11,6 @@ import {
 import { sendEmail } from "@dub/email";
 import { PartnerInvite } from "@dub/email/templates/partner-invite";
 import { prisma } from "@dub/prisma";
-import { nanoid } from "@dub/utils";
 import { Program, Project, Reward, User } from "@prisma/client";
 import slugify from "@sindresorhus/slugify";
 import { waitUntil } from "@vercel/functions";
@@ -133,12 +131,6 @@ const createProgram = async ({
     },
   });
 
-  const logoUrl = logo
-    ? await storage
-        .upload(`programs/${program.id}/logo_${nanoid(7)}`, logo)
-        .then(({ url }) => url)
-    : null;
-
   let reward: Reward | null = null;
 
   // create a new reward
@@ -161,7 +153,7 @@ const createProgram = async ({
     },
     data: {
       ...(reward && { defaultRewardId: reward.id }),
-      ...(logoUrl && { logo: logoUrl }),
+      ...(logo && { logo }),
     },
   });
 
