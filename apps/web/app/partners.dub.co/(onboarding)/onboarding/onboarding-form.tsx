@@ -37,7 +37,7 @@ export function OnboardingForm({
       | "description"
       | "country"
       | "image"
-      | "businessType"
+      | "profileType"
       | "companyName"
     >
   > | null;
@@ -61,12 +61,12 @@ export function OnboardingForm({
       description: partner?.description ?? undefined,
       country: partner?.country ?? undefined,
       image: partner?.image ?? undefined,
-      businessType: partner?.businessType ?? "individual",
+      profileType: partner?.profileType ?? "individual",
       companyName: partner?.companyName ?? undefined,
     },
   });
 
-  const { name, image, businessType } = watch();
+  const { name, image, profileType } = watch();
 
   useEffect(() => {
     if (session?.user) {
@@ -212,19 +212,19 @@ export function OnboardingForm({
                   label: "Company",
                 },
               ]}
-              selected={businessType}
+              selected={profileType}
               selectAction={(option: "individual" | "company") => {
-                if (!partner?.businessType) {
-                  setValue("businessType", option);
+                if (!partner?.profileType) {
+                  setValue("profileType", option);
                 }
               }}
               className={cn(
                 "flex w-full items-center gap-0.5 rounded-lg border-neutral-300 bg-neutral-100 p-0.5",
-                partner?.businessType && "cursor-not-allowed opacity-70",
+                partner?.profileType && "cursor-not-allowed opacity-70",
               )}
               optionClassName={cn(
                 "h-9 flex items-center justify-center rounded-lg flex-1",
-                partner?.businessType && "pointer-events-none",
+                partner?.profileType && "pointer-events-none",
               )}
               indicatorClassName="bg-white"
             />
@@ -232,7 +232,7 @@ export function OnboardingForm({
         </div>
 
         <AnimatePresence mode="popLayout">
-          {businessType === "company" && (
+          {profileType === "company" && (
             <motion.div
               layout
               initial={{ opacity: 0, height: 0 }}
@@ -260,7 +260,7 @@ export function OnboardingForm({
                   )}
                   readOnly={!!partner?.companyName || !!errors.companyName}
                   {...register("companyName", {
-                    required: businessType === "company",
+                    required: profileType === "company",
                   })}
                 />
                 <p className="mt-1.5 text-xs text-neutral-500">

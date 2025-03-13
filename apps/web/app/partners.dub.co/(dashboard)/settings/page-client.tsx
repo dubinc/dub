@@ -234,7 +234,7 @@ function ProfileForm({ partner }: { partner: PartnerProps }) {
             </label>
           </FormRow>
 
-          {partner.businessType === "company" && (
+          {partner.profileType === "company" && (
             <FormRow>
               <label className="contents">
                 <span className="text-sm font-medium text-neutral-800">

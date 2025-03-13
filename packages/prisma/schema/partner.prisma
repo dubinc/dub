@@ -9,7 +9,7 @@ enum PartnerRole {
   member
 }
 
-enum PartnerBusinessType {
+enum PartnerProfileType {
   individual
   company
 }
@@ -18,7 +18,7 @@ model Partner {
   id                String              @id @default(cuid())
   name              String
   companyName       String?
-  businessType      PartnerBusinessType @default(individual)
+  profileType      PartnerProfileType @default(individual)
   email             String?             @unique
   image             String?
   bio               String?             @db.LongText

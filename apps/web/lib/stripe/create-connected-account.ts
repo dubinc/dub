@@ -6,11 +6,11 @@ export const createConnectedAccount = async ({
   name,
   email,
   country,
-  businessType,
+  profileType,
   companyName,
 }: Pick<
   z.infer<typeof onboardPartnerSchema>,
-  "name" | "country" | "businessType" | "companyName"
+  "name" | "country" | "profileType" | "companyName"
 > & {
   email: string;
 }) => {
@@ -19,10 +19,10 @@ export const createConnectedAccount = async ({
   try {
     return await stripe.accounts.create({
       type: "express",
-      business_type: businessType,
+      business_type: profileType,
       email,
       country,
-      ...(businessType === "company"
+      ...(profileType === "company"
         ? {
             business_profile: {
               name: companyName!,

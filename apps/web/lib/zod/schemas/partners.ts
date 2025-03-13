@@ -1,5 +1,5 @@
 import {
-  PartnerBusinessType,
+  PartnerProfileType,
   PartnerStatus,
   ProgramEnrollmentStatus,
 } from "@dub/prisma/client";
@@ -97,7 +97,7 @@ export const PartnerSchema = z.object({
   id: z.string(),
   name: z.string(),
   companyName: z.string().nullable(),
-  businessType: z.nativeEnum(PartnerBusinessType),
+  profileType: z.nativeEnum(PartnerProfileType),
   email: z.string().nullable(),
   image: z.string().nullable(),
   description: z.string().nullish(),
@@ -256,13 +256,13 @@ export const onboardPartnerSchema = createPartnerSchema
     z.object({
       image: z.string(),
       country: z.enum(COUNTRY_CODES),
-      businessType: z.enum(["individual", "company"]).default("individual"),
+      profileType: z.enum(["individual", "company"]).default("individual"),
       companyName: z.string().nullish(),
     }),
   )
   .refine(
     (data) => {
-      if (data.businessType === "company") {
+      if (data.profileType === "company") {
         return !!data.companyName;
       }
 
@@ -275,7 +275,7 @@ export const onboardPartnerSchema = createPartnerSchema
   )
   .transform((data) => ({
     ...data,
-    companyName: data.businessType === "individual" ? null : data.companyName,
+    companyName: data.profileType === "individual" ? null : data.companyName,
   }));
 
 export const createPartnerLinkSchema = z
