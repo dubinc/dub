@@ -58,6 +58,7 @@ model Program {
   links           Link[]
   commissions     Commission[]
   rewards         Reward[]
+  defaultReward   Reward?              @relation("ProgramDefaultReward", fields: [defaultRewardId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   discounts       Discount[]           @relation("ProgramDiscounts")
   defaultDiscount Discount?            @relation("ProgramDefaultDiscount", fields: [defaultDiscountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 

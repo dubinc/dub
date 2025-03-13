@@ -1,6 +1,7 @@
 import { referralsEmbedToken } from "@/lib/embed/referrals/token-class";
 import { determinePartnerDiscount } from "@/lib/partners/determine-partner-discount";
-import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
+import { determinePartnerRewards } from "@/lib/partners/determine-partner-rewards";
+import { RewardProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { notFound } from "next/navigation";
 
@@ -28,11 +29,10 @@ export const getReferralsEmbedData = async (token: string) => {
     notFound();
   }
 
-  const [reward, discount, payouts] = await Promise.all([
-    determinePartnerReward({
-      programId,
+  const [rewards, discount, payouts] = await Promise.all([
+    determinePartnerRewards({
       partnerId,
-      event: "sale",
+      programId,
     }),
 
     determinePartnerDiscount({
@@ -57,7 +57,7 @@ export const getReferralsEmbedData = async (token: string) => {
   return {
     program,
     links,
-    reward,
+    rewards: rewards as RewardProps[],
     discount,
     payouts: payouts.map((payout) => ({
       status: payout.status,

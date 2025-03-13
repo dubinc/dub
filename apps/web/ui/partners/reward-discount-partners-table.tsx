@@ -65,7 +65,7 @@ export function PartnersTable({
             <Button
               variant="secondary"
               icon={<X className="size-4" />}
-              className="h-8 w-8 rounded-md border-0 bg-neutral-50 p-0"
+              className="size-4 rounded-md border-0 bg-neutral-50 p-0 hover:bg-neutral-100"
               onClick={() => {
                 setSelectedPartners((prev) =>
                   prev.filter((p) => p.id !== row.original.id),

@@ -1,11 +1,10 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderSummary } from "@/lib/types";
-import { Button, Modal, TooltipContent } from "@dub/ui";
+import { Button, Modal, TooltipContent, useKeyboardShortcut } from "@dub/ui";
 import {
   Dispatch,
   SetStateAction,
   useCallback,
-  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -42,21 +41,9 @@ function AddFolderButton({
 }) {
   const { slug, plan } = useWorkspace();
 
-  const onKeyDown = useCallback((e: KeyboardEvent) => {
-    const existingModalBackdrop = document.getElementById("modal-backdrop");
-
-    if (e.key.toLowerCase() === "c" && !existingModalBackdrop) {
-      e.preventDefault();
-      setShowAddFolderModal(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, [onKeyDown]);
+  useKeyboardShortcut("c", () => setShowAddFolderModal(true), {
+    enabled: plan !== "free",
+  });
 
   return (
     <Button
