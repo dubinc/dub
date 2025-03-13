@@ -193,8 +193,6 @@ export function NewSaleAlertProgramOwner({
               .
             </Text>
 
-            <Text className="text-sm leading-6 text-neutral-600">Thanks!</Text>
-
             <Text className="text-sm leading-6 text-neutral-600">
               <Link
                 href={notificationPreferencesLink}

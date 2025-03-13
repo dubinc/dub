@@ -5,7 +5,7 @@ import NewSaleAlertProgramOwner from "@dub/email/templates/new-sale-alert-progra
 import { prisma } from "@dub/prisma";
 import { Commission, Link } from "@dub/prisma/client";
 
-// Send email to partners and program owners when a sale is made
+// Send email to partner and program owners when a sale is made
 export async function notifyPartnerSale({
   link,
   commission,
@@ -38,27 +38,16 @@ export async function notifyPartnerSale({
 
   const workspace = program.workspace;
 
-  let [partnerUsers, workspaceUsers] = await Promise.all([
-    prisma.partnerUser.findMany({
+  let [partner, workspaceUsers] = await Promise.all([
+    prisma.partner.findUnique({
       where: {
-        partnerId: link.partnerId,
+        id: link.partnerId,
       },
-      include: {
-        user: {
-          select: {
-            email: true,
-          },
-        },
-        partner: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
+      select: {
+        name: true,
+        email: true,
       },
     }),
-
     prisma.projectUsers.findMany({
       where: {
         projectId: workspace.id,
@@ -77,15 +66,9 @@ export async function notifyPartnerSale({
     }),
   ]);
 
-  const partner = partnerUsers.find(
-    ({ partner }) => partner.id === link.partnerId,
-  );
-
   if (!partner) {
     return;
   }
-
-  const { partner: partnerProfile } = partner;
 
   const data = {
     program: {
@@ -97,8 +80,8 @@ export async function notifyPartnerSale({
     partner: {
       id: link.partnerId,
       referralLink: link.shortLink,
-      name: partnerProfile.name,
-      email: partnerProfile.email,
+      name: partner.name,
+      email: partner.email,
     },
     sale: {
       amount: commission.amount,
@@ -107,24 +90,23 @@ export async function notifyPartnerSale({
   };
 
   await Promise.all([
-    ...partnerUsers.map(({ user }) =>
-      limiter.schedule(() =>
-        sendEmail({
-          subject: "You just made a sale via Dub Partners!",
-          from: "Dub Partners <system@dub.co>",
-          email: user.email!,
-          react: NewSaleAlertPartner({
-            email: user.email!,
-            ...data,
+    ...(partner.email
+      ? [
+          sendEmail({
+            subject: "You just made a sale via Dub Partners!",
+            from: "Dub Partners <system@dub.co>",
+            email: partner.email!,
+            react: NewSaleAlertPartner({
+              email: partner.email!,
+              ...data,
+            }),
           }),
-        }),
-      ),
-    ),
-
+        ]
+      : []),
     ...workspaceUsers.map(({ user }) =>
       limiter.schedule(() =>
         sendEmail({
-          subject: `New commission for ${partnerProfile.name}`,
+          subject: `New commission for ${partner.name}`,
           from: "Dub Partners <system@dub.co>",
           email: user.email!,
           react: NewSaleAlertProgramOwner({
