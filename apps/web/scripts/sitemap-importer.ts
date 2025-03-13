@@ -1,6 +1,7 @@
+import { createId } from "@/lib/api/create-id";
 import "dotenv-flow/config";
 import { XMLParser } from "fast-xml-parser";
-import { dub } from "../lib/dub";
+import { bulkCreateLinks } from "../lib/api/links";
 
 async function fetchSitemap(url: string) {
   const response = await fetch(url);
@@ -12,27 +13,37 @@ async function fetchSitemap(url: string) {
 
 async function main() {
   // Fetch and parse sitemap
-  const sitemapUrls = await fetchSitemap("https://dub.co/sitemap.xml");
+  const sitemapUrls = await fetchSitemap("https://domain.com/sitemap.xml");
 
   // Filter out homepage and invalid URLs
   const validUrls = sitemapUrls
-    .filter((url: string) => url !== "https://dub.co")
     .map((url: string) => {
       const urlObj = new URL(url);
+      let key = urlObj.pathname.slice(1);
+      if (key === "") {
+        key = "_root";
+      }
       return {
-        domain: "site.dub.co",
-        key: urlObj.pathname.slice(1),
+        id: createId({ prefix: "link_" }),
+        domain: "site.domain.com",
+        key,
         url,
         trackConversion: true,
-        folderId: "fold_fjA8lslBy2qFcosUrwWFxmfk",
+        projectId: "xxx",
+        userId: "xxx",
+        folderId: "xxx",
       };
     })
-    .slice(200, 300);
+    .slice(0, 1000);
 
+  console.table(validUrls);
   console.log(`Found ${validUrls.length} valid URLs to process`);
-  //   console.log(validUrls);
 
-  await dub.links.createMany(validUrls);
+  const res = await bulkCreateLinks({
+    links: validUrls,
+    skipRedisCache: true,
+  });
+  console.log(`Created ${res.length} links`);
 }
 
 main().catch(console.error);
