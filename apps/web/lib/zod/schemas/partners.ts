@@ -250,8 +250,27 @@ export const onboardPartnerSchema = createPartnerSchema
     z.object({
       image: z.string(),
       country: z.enum(COUNTRY_CODES),
+      businessType: z.enum(["individual", "company"]).default("individual"),
+      companyName: z.string().nullish(),
     }),
-  );
+  )
+  .refine(
+    (data) => {
+      if (data.businessType === "company") {
+        return !!data.companyName;
+      }
+
+      return true;
+    },
+    {
+      message: "Legal company name is required.",
+      path: ["companyName"],
+    },
+  )
+  .transform((data) => ({
+    ...data,
+    companyName: data.businessType === "individual" ? null : data.companyName,
+  }));
 
 export const createPartnerLinkSchema = z
   .object({

@@ -18,7 +18,8 @@ export const onboardPartnerAction = authUserActionClient
   .schema(onboardPartnerSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { user } = ctx;
-    const { name, image, country, description } = parsedInput;
+    const { name, image, country, description, businessType, companyName } =
+      parsedInput;
 
     const existingPartner = await prisma.partner.findUnique({
       where: {
@@ -46,10 +47,13 @@ export const onboardPartnerAction = authUserActionClient
       .upload(`partners/${partnerId}/image_${nanoid(7)}`, image)
       .then(({ url }) => url);
 
+    // country, businessType, and companyName cannot be changed once set
     const payload: Prisma.PartnerCreateInput = {
       name,
       email: user.email,
-      country: existingPartner?.country || country, // country cannot be changed once set
+      country: existingPartner?.country || country,
+      businessType: existingPartner?.businessType || businessType,
+      companyName: existingPartner?.companyName || companyName,
       ...(description && { description }),
       image: imageUrl,
       ...(connectedAccount && { stripeConnectId: connectedAccount.id }),
