@@ -20,14 +20,11 @@ export function PageClient() {
 
   const data = getValues();
 
-  const { executeAsync, isPending, hasSucceeded } = useAction(
-    onboardProgramAction,
-    {
-      onError: ({ error }) => {
-        toast.error(error.serverError);
-      },
+  const { executeAsync, isPending } = useAction(onboardProgramAction, {
+    onError: ({ error }) => {
+      toast.error(error.serverError);
     },
-  );
+  });
 
   const onClick = async () => {
     if (!workspaceId) return;
@@ -134,7 +131,7 @@ export function PageClient() {
       <Button
         text="Create program"
         className="mt-6 w-full"
-        loading={isPending || hasSucceeded}
+        loading={isPending}
         type="button"
         onClick={onClick}
         disabled={!isValid}

@@ -27,18 +27,15 @@ export function PageClient() {
   const router = useRouter();
   const { id: workspaceId, slug: workspaceSlug, mutate } = useWorkspace();
 
-  const { executeAsync, isPending, hasSucceeded } = useAction(
-    onboardProgramAction,
-    {
-      onSuccess: () => {
-        router.push(`/${workspaceSlug}/programs/new/overview`);
-        mutate();
-      },
-      onError: ({ error }) => {
-        toast.error(error.serverError);
-      },
+  const { executeAsync, isPending } = useAction(onboardProgramAction, {
+    onSuccess: () => {
+      router.push(`/${workspaceSlug}/programs/new/overview`);
+      mutate();
     },
-  );
+    onError: ({ error }) => {
+      toast.error(error.serverError);
+    },
+  });
 
   const onClick = async () => {
     if (!workspaceId) return;
@@ -85,7 +82,7 @@ export function PageClient() {
       <Button
         text="Continue"
         className="w-full"
-        loading={isPending || hasSucceeded}
+        loading={isPending}
         type="button"
         onClick={onClick}
       />
