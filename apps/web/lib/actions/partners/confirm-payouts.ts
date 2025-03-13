@@ -2,7 +2,6 @@
 
 import { createId } from "@/lib/api/create-id";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
-import { limiter } from "@/lib/cron/limiter";
 import { MIN_PAYOUT_AMOUNT, PAYOUT_FEES } from "@/lib/partners/constants";
 import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
@@ -77,15 +76,7 @@ export const confirmPayoutsAction = authActionClient
         periodEnd: true,
         partner: {
           select: {
-            users: {
-              select: {
-                user: {
-                  select: {
-                    email: true,
-                  },
-                },
-              },
-            },
+            email: true,
           },
         },
         program: {
@@ -176,30 +167,25 @@ export const confirmPayoutsAction = authActionClient
         // ACH takes 4 business days to process
         if (newInvoice && paymentMethod.type === "us_bank_account") {
           await Promise.all(
-            payouts.map((payout) => {
-              const { program, partner } = payout;
-              const partnerUsers = partner.users.map(({ user }) => user);
-
-              partnerUsers.map((user) =>
-                limiter.schedule(() =>
-                  sendEmail({
-                    subject: "You've got money coming your way!",
-                    email: user.email!,
-                    from: "Dub Partners <system@dub.co>",
-                    react: PartnerPayoutConfirmed({
-                      email: user.email!,
-                      program,
-                      payout: {
-                        id: payout.id,
-                        amount: payout.amount,
-                        startDate: payout.periodStart!,
-                        endDate: payout.periodEnd!,
-                      },
-                    }),
+            payouts
+              .filter((payout) => payout.partner.email)
+              .map((payout) =>
+                sendEmail({
+                  subject: "You've got money coming your way!",
+                  email: payout.partner.email!,
+                  from: "Dub Partners <system@dub.co>",
+                  react: PartnerPayoutConfirmed({
+                    email: payout.partner.email!,
+                    program: payout.program,
+                    payout: {
+                      id: payout.id,
+                      amount: payout.amount,
+                      startDate: payout.periodStart!,
+                      endDate: payout.periodEnd!,
+                    },
                   }),
-                ),
-              );
-            }),
+                }),
+              ),
           );
         }
       })(),
