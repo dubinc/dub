@@ -1,14 +1,6 @@
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
-import Stripe from "stripe";
-
-export const stripe = new Stripe(`${process.env.STRIPE_CONNECT_WRITE_KEY}`, {
-  apiVersion: "2022-11-15",
-  appInfo: {
-    name: "Dub.co",
-    version: "0.1.0",
-  },
-});
+import { stripeConnectClient } from "./stripe";
 
 const email = "xxx";
 
@@ -24,7 +16,7 @@ async function main() {
   });
 
   if (partner.stripeConnectId) {
-    const res = await stripe.accounts.del(partner.stripeConnectId);
+    const res = await stripeConnectClient.accounts.del(partner.stripeConnectId);
     console.log("res", res);
 
     if (res.deleted) {
