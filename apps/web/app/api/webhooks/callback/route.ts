@@ -39,7 +39,7 @@ export const POST = async (req: Request) => {
 
   const request = Buffer.from(sourceBody, "base64").toString("utf-8");
   const response = Buffer.from(body, "base64").toString("utf-8");
-  const isFailed = status >= 400;
+  const isFailed = status >= 400 || status === -1;
 
   // Unsubscribe Zapier webhook
   if (
@@ -62,7 +62,7 @@ export const POST = async (req: Request) => {
       url,
       event,
       event_id: eventId,
-      http_status: status,
+      http_status: status === -1 ? 503 : status,
       webhook_id: webhookId,
       request_body: request,
       response_body: response,

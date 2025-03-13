@@ -35,6 +35,8 @@ async function OnboardingFormRSC() {
       description: true,
       country: true,
       image: true,
+      profileType: true,
+      companyName: true,
     },
   });
 
