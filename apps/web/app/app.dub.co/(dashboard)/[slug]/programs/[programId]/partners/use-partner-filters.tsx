@@ -1,8 +1,11 @@
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { RewardProps } from "@/lib/types";
+import { REWARD_EVENTS } from "@/ui/partners/constants";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
+import { formatRewardDescription } from "@/ui/partners/program-reward-description";
 import { useRouterStuff } from "@dub/ui";
-import { CircleDotted, FlagWavy } from "@dub/ui/icons";
+import { CircleDotted, FlagWavy, Gift } from "@dub/ui/icons";
 import { cn, COUNTRIES, nFormatter } from "@dub/utils";
 import { useMemo } from "react";
 
@@ -11,21 +14,32 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
   const { id: workspaceId } = useWorkspace();
 
   const { partnersCount: countriesCount } = usePartnersCount<
-    {
-      country: string;
-      _count: number;
-    }[]
+    | {
+        country: string;
+        _count: number;
+      }[]
+    | undefined
   >({
     groupBy: "country",
   });
 
   const { partnersCount: statusCount } = usePartnersCount<
-    {
-      status: string;
-      _count: number;
-    }[]
+    | {
+        status: string;
+        _count: number;
+      }[]
+    | undefined
   >({
     groupBy: "status",
+  });
+
+  const { partnersCount: rewardsCount } = usePartnersCount<
+    | (RewardProps & {
+        partnersCount: number;
+      })[]
+    | undefined
+  >({
+    groupBy: "rewardId",
   });
 
   const filters = useMemo(
@@ -48,6 +62,21 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
             label: COUNTRIES[country],
             right: nFormatter(_count, { full: true }),
           })) ?? [],
+      },
+      {
+        key: "rewardId",
+        icon: Gift,
+        label: "Reward",
+        options:
+          rewardsCount?.map((reward) => {
+            const Icon = REWARD_EVENTS[reward.event].icon;
+            return {
+              value: reward.id,
+              label: reward.name || formatRewardDescription({ reward }),
+              icon: <Icon className="size-4 bg-transparent" />,
+              right: nFormatter(reward.partnersCount, { full: true }),
+            };
+          }) ?? [],
       },
       {
         key: "status",
@@ -77,14 +106,16 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
         ),
       },
     ],
-    [countriesCount, statusCount],
+    [countriesCount, statusCount, rewardsCount],
   );
 
   const activeFilters = useMemo(() => {
-    const { status, country } = searchParamsObj;
+    const { status, country, rewardId } = searchParamsObj;
+
     return [
       ...(status ? [{ key: "status", value: status }] : []),
       ...(country ? [{ key: "country", value: country }] : []),
+      ...(rewardId ? [{ key: "rewardId", value: rewardId }] : []),
     ];
   }, [searchParamsObj]);
 
@@ -103,7 +134,7 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
 
   const onRemoveAll = () =>
     queryParams({
-      del: ["status", "country", "search"],
+      del: ["status", "country", "rewardId", "search"],
     });
 
   const searchQuery = useMemo(

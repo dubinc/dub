@@ -17,6 +17,7 @@ import {
 import { PARTNERS_HOSTNAMES } from "@dub/utils/src/constants";
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
 import PartnersMiddleware from "./lib/middleware/partners";
+import { supportedWellKnownFiles } from "./lib/well-known";
 
 export const config = {
   matcher: [
@@ -25,9 +26,13 @@ export const config = {
      * 1. /api/ routes
      * 2. /_next/ (Next.js internals)
      * 3. /_proxy/ (proxies for third-party services)
-     * 4. Metadata files: favicon.ico, sitemap.xml, robots.txt, manifest.webmanifest, .well-known
+     * 4. Metadata files: favicon.ico, sitemap.xml, robots.txt, manifest.webmanifest
      */
+<<<<<<< HEAD
     "/((?!api/|_next/|_proxy/|favicon.ico|sitemap.xml|robots.txt|manifest.webmanifest|.well-known|exit).*)",
+=======
+    "/((?!api/|_next/|_proxy/|favicon.ico|sitemap.xml|robots.txt|manifest.webmanifest).*)",
+>>>>>>> main
   ],
 };
 
@@ -49,6 +54,16 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   // for public stats pages (e.g. d.to/stats/try)
   if (path.startsWith("/stats/")) {
     return NextResponse.rewrite(new URL(`/${domain}${path}`, req.url));
+  }
+
+  // for .well-known routes
+  if (path.startsWith("/.well-known/")) {
+    const file = path.split("/.well-known/").pop();
+    if (file && supportedWellKnownFiles.includes(file)) {
+      return NextResponse.rewrite(
+        new URL(`/wellknown/${domain}/${file}`, req.url),
+      );
+    }
   }
 
   // default redirects for dub.sh

@@ -18,7 +18,7 @@ export async function generateMetadata({
   const domain = params.domain;
   const key = decodeURIComponent(params.key); // key can potentially be encoded
 
-  const data = await getLinkViaEdge(domain, key);
+  const data = await getLinkViaEdge({ domain, key });
 
   if (!data?.proxy) {
     return;
@@ -44,7 +44,7 @@ export default async function ProxyPage({
   const domain = params.domain;
   const key = decodeURIComponent(params.key);
 
-  const data = await getLinkViaEdge(domain, key);
+  const data = await getLinkViaEdge({ domain, key });
 
   // if the link doesn't exist
   if (!data) {

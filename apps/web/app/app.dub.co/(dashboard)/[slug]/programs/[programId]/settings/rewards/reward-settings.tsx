@@ -4,6 +4,7 @@ import useProgram from "@/lib/swr/use-program";
 import useRewards from "@/lib/swr/use-rewards";
 import type { RewardProps } from "@/lib/types";
 import { useRewardSheet } from "@/ui/partners/add-edit-reward-sheet";
+import { REWARD_EVENTS } from "@/ui/partners/constants";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { EventType } from "@dub/prisma/client";
 import {
@@ -13,34 +14,9 @@ import {
   Popover,
   useKeyboardShortcut,
 } from "@dub/ui";
-import { CursorRays } from "@dub/ui/icons";
 import { pluralize } from "@dub/utils";
-import { Gift, UserPlus } from "lucide-react";
+import { Gift } from "lucide-react";
 import { useState } from "react";
-
-const events = {
-  click: {
-    icon: CursorRays,
-    text: "Click reward",
-    event: "click",
-    shortcut: "C",
-    eventName: "click",
-  },
-  lead: {
-    icon: UserPlus,
-    text: "Lead reward",
-    event: "lead",
-    shortcut: "L",
-    eventName: "signup",
-  },
-  sale: {
-    icon: MoneyBill,
-    text: "Sale reward",
-    event: "sale",
-    shortcut: "S",
-    eventName: "sale",
-  },
-} as const;
 
 export function RewardSettings() {
   return (
@@ -164,7 +140,7 @@ const Reward = ({ reward }: { reward: RewardProps }) => {
     reward,
   });
 
-  const Icon = events[reward.event].icon;
+  const Icon = REWARD_EVENTS[reward.event].icon;
 
   return (
     <>
@@ -208,11 +184,11 @@ const CreateRewardButton = () => {
   });
 
   useKeyboardShortcut(
-    Object.values(events).map((type) => type.shortcut.toLowerCase()),
+    Object.values(REWARD_EVENTS).map((type) => type.shortcut.toLowerCase()),
     (e) => {
       setOpenPopover(false);
 
-      const eventType = Object.values(events).find(
+      const eventType = Object.values(REWARD_EVENTS).find(
         (type) => type.shortcut.toLowerCase() === e.key,
       );
 
@@ -232,7 +208,7 @@ const CreateRewardButton = () => {
         content={
           <div className="w-full p-2 md:w-48">
             <div className="grid gap-px">
-              {Object.values(events).map((type) => (
+              {Object.values(REWARD_EVENTS).map((type) => (
                 <Button
                   key={type.event}
                   text={type.text}

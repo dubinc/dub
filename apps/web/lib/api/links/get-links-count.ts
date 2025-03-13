@@ -23,6 +23,7 @@ export async function getLinksCount({
     showArchived,
     withTags,
     folderId,
+    tenantId,
   } = searchParams;
 
   const combinedTagIds = combineTagIds({ tagId, tagIds });
@@ -31,23 +32,13 @@ export async function getLinksCount({
     projectId: workspaceId,
     archived: showArchived ? undefined : false,
     AND: [
-      ...(search
-        ? [
-            {
-              OR: [
-                { shortLink: { contains: search } },
-                { url: { contains: search } },
-              ],
-            },
-          ]
-        : []),
       ...(folderIds
         ? [
             {
               OR: [
                 {
                   folderId: {
-                    in: folderIds.filter((id) => id !== ""),
+                    in: folderIds,
                   },
                 },
                 {
@@ -61,6 +52,16 @@ export async function getLinksCount({
               folderId: folderId || null,
             },
           ]),
+      ...(search
+        ? [
+            {
+              OR: [
+                { shortLink: { contains: search } },
+                { url: { contains: search } },
+              ],
+            },
+          ]
+        : []),
     ],
     ...(domain &&
       groupBy !== "domain" && {
@@ -70,6 +71,7 @@ export async function getLinksCount({
       groupBy !== "userId" && {
         userId,
       }),
+    ...(tenantId && { tenantId }),
   };
 
   if (groupBy === "tagId") {

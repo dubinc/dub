@@ -1,4 +1,6 @@
-import { createId } from "@/lib/api/utils";
+// @ts-nocheck – since this contains old schema code
+
+import { createId } from "@/lib/api/create-id";
 import { prisma } from "@dub/prisma";
 import { EventType } from "@prisma/client";
 import "dotenv-flow/config";

@@ -149,8 +149,6 @@ export const PATCH = withWorkspace(
             })),
           },
         }),
-        disabledAt: null,
-        consecutiveFailures: 0,
       },
       select: {
         id: true,

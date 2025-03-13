@@ -13,6 +13,7 @@ import {
   getLinksQuerySchemaExtended,
   linkEventSchema,
 } from "@/lib/zod/schemas/links";
+import { Folder } from "@dub/prisma/client";
 import { LOCALHOST_IP } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -21,14 +22,16 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(
   async ({ headers, searchParams, workspace, session }) => {
     const params = getLinksQuerySchemaExtended.parse(searchParams);
-    const { domain, folderId, search, tagId, tagIds, tagNames } = params;
+    const { domain, folderId, search, tagId, tagIds, tagNames, tenantId } =
+      params;
 
     if (domain) {
       await getDomainOrThrow({ workspace, domain });
     }
 
+    let selectedFolder: Pick<Folder, "id" | "type"> | null = null;
     if (folderId) {
-      await verifyFolderAccess({
+      selectedFolder = await verifyFolderAccess({
         workspace,
         userId: session.user.id,
         folderId,
@@ -38,20 +41,28 @@ export const GET = withWorkspace(
 
     /* we only need to get the folder ids if we are:
       - not filtering by folder
-      - filtering by search, domain, or tags
+      - filtering by search, domain, tags, or tenantId
     */
-    const folderIds =
-      !folderId && (search || domain || tagId || tagIds || tagNames)
+    let folderIds =
+      !folderId && (search || domain || tagId || tagIds || tagNames || tenantId)
         ? await getFolderIdsToFilter({
             workspace,
             userId: session.user.id,
           })
         : undefined;
 
+    if (Array.isArray(folderIds)) {
+      folderIds = folderIds?.filter((id) => id !== "");
+      if (folderIds.length === 0) {
+        folderIds = undefined;
+      }
+    }
+
     const response = await getLinksForWorkspace({
       ...params,
       workspaceId: workspace.id,
       folderIds,
+      searchMode: selectedFolder?.type === "mega" ? "exact" : "fuzzy",
     });
 
     return NextResponse.json(response, {

@@ -15,10 +15,11 @@ export const partnersQuerySchema = z
   .object({
     status: z.nativeEnum(ProgramEnrollmentStatus).optional(),
     country: z.string().optional(),
+    rewardId: z.string().optional(),
     search: z.string().optional(),
     sortBy: z
       .enum(["createdAt", "clicks", "leads", "sales", "saleAmount", "earnings"])
-      .default("createdAt"),
+      .default("saleAmount"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
     tenantId: z
       .string()
@@ -40,7 +41,7 @@ export const partnersCountQuerySchema = partnersQuerySchema
     pageSize: true,
   })
   .extend({
-    groupBy: z.enum(["status", "country"]).optional(),
+    groupBy: z.enum(["status", "country", "rewardId"]).optional(),
   });
 
 export const partnerInvitesQuerySchema = getPaginationQuerySchema({
@@ -53,10 +54,25 @@ export const PartnerSchema = z.object({
   email: z.string().nullable(),
   image: z.string().nullable(),
   description: z.string().nullish(),
-  country: z.string(),
+  country: z.string().nullable(),
   status: z.nativeEnum(PartnerStatus),
   stripeConnectId: z.string().nullable(),
-  payoutsEnabled: z.boolean(),
+  payoutsEnabledAt: z.date().nullable(),
+
+  website: z.string().nullable(),
+  websiteTxtRecord: z.string().nullable(),
+  websiteVerifiedAt: z.date().nullable(),
+  youtube: z.string().nullable(),
+  youtubeVerifiedAt: z.date().nullable(),
+  twitter: z.string().nullable(),
+  twitterVerifiedAt: z.date().nullable(),
+  linkedin: z.string().nullable(),
+  linkedinVerifiedAt: z.date().nullable(),
+  instagram: z.string().nullable(),
+  instagramVerifiedAt: z.date().nullable(),
+  tiktok: z.string().nullable(),
+  tiktokVerifiedAt: z.date().nullable(),
+
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -69,7 +85,7 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
   image: true,
   description: true,
   country: true,
-  payoutsEnabled: true,
+  payoutsEnabledAt: true,
   createdAt: true,
 })
   .merge(
@@ -86,6 +102,9 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
     sales: z.number().default(0),
     saleAmount: z.number().default(0),
     earnings: z.number().default(0),
+  })
+  .extend({
+    applicationId: z.string().nullish(),
   });
 
 export const LeaderboardPartnerSchema = z.object({
@@ -134,10 +153,10 @@ export const createPartnerSchema = z.object({
     ),
   username: z
     .string()
-    .min(1)
     .max(100)
+    .nullish()
     .describe(
-      "A unique username for the partner in your system. This will be used to create a short link for the partner using your program's default domain.",
+      "A unique username for the partner in your system (max 100 characters). This will be used to create a short link for the partner using your program's default domain. If not provided, Dub will try to generate a username from the partner's name or email.",
     ),
   image: z
     .string()
@@ -168,6 +187,7 @@ export const createPartnerSchema = z.object({
       geo: true,
       projectId: true,
       programId: true,
+      partnerId: true,
       webhookIds: true,
       trackConversion: true,
     })
@@ -182,6 +202,7 @@ export const onboardPartnerSchema = createPartnerSchema
   .omit({
     programId: true,
     username: true,
+    email: true,
     linkProps: true,
   })
   .merge(
@@ -220,6 +241,7 @@ export const createPartnerLinkSchema = z
       .describe(
         "The short link slug. If not provided, a random 7-character slug will be generated.",
       ),
+    comments: z.string().nullish().describe("The comments for the short link."),
   })
   .merge(
     createPartnerSchema.pick({
@@ -281,3 +303,34 @@ export const partnerAnalyticsResponseSchema = {
     title: "PartnerAnalyticsTopLinks",
   }),
 } as const;
+
+export const updatePartnerSaleSchema = z
+  .object({
+    programId: z.string(),
+    invoiceId: z.string(),
+    amount: z
+      .number()
+      .min(0)
+      .describe("The new absolute amount for the sale.")
+      .optional(),
+    modifyAmount: z
+      .number()
+      .describe(
+        "Modify the current sale amount: use positive values to increase the amount, negative values to decrease it.",
+      )
+      .optional(),
+    currency: z
+      .string()
+      .default("usd")
+      .transform((val) => val.toLowerCase())
+      .describe(
+        "The currency of the sale amount to update. Accepts ISO 4217 currency codes.",
+      ),
+  })
+  .refine(
+    (data) => data.amount !== undefined || data.modifyAmount !== undefined,
+    {
+      message: "Either amount or modifyAmount must be provided.",
+      path: ["amount"],
+    },
+  );

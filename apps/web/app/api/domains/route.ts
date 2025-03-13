@@ -1,7 +1,8 @@
+import { createId } from "@/lib/api/create-id";
 import { addDomainToVercel, validateDomain } from "@/lib/api/domains";
 import { DubApiError, exceededLimitError } from "@/lib/api/errors";
 import { createLink, transformLink } from "@/lib/api/links";
-import { createId, parseRequestBody } from "@/lib/api/utils";
+import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { storage } from "@/lib/storage";
 import {
@@ -34,7 +35,9 @@ export const GET = withWorkspace(
         ...(includeLink && {
           links: {
             where: {
-              key: "_root",
+              key: {
+                in: ["_root", "akoJCU0="],
+              },
             },
             include: {
               tags: {
@@ -78,8 +81,15 @@ export const GET = withWorkspace(
 export const POST = withWorkspace(
   async ({ req, workspace, session }) => {
     const body = await parseRequestBody(req);
-    const { slug, logo, expiredUrl, notFoundUrl, placeholder } =
-      createDomainBodySchema.parse(body);
+    const {
+      slug,
+      logo,
+      expiredUrl,
+      notFoundUrl,
+      placeholder,
+      assetLinks,
+      appleAppSiteAssociation,
+    } = createDomainBodySchema.parse(body);
 
     const totalDomains = await prisma.domain.count({
       where: {
@@ -150,6 +160,10 @@ export const POST = withWorkspace(
           expiredUrl,
           notFoundUrl,
           ...(logoUploaded && { logo: logoUploaded.url }),
+          ...(assetLinks && { assetLinks: JSON.parse(assetLinks) }),
+          ...(appleAppSiteAssociation && {
+            appleAppSiteAssociation: JSON.parse(appleAppSiteAssociation),
+          }),
         },
       }),
 

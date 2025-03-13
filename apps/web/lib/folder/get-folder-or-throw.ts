@@ -17,6 +17,7 @@ export const getFolderOrThrow = async ({
     select: {
       id: true,
       name: true,
+      type: true,
       accessLevel: true,
       createdAt: true,
       updatedAt: true,
@@ -38,12 +39,16 @@ export const getFolderOrThrow = async ({
   }
 
   if (folder.projectId !== workspaceId) {
-    throw new Error("Folder does not belong to the workspace.");
+    throw new DubApiError({
+      code: "not_found",
+      message: "Folder does not belong to the workspace.",
+    });
   }
 
   return {
     id: folder.id,
     name: folder.name,
+    type: folder.type,
     accessLevel: folder.accessLevel,
     createdAt: folder.createdAt,
     updatedAt: folder.updatedAt,

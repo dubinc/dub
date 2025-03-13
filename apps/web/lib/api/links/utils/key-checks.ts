@@ -36,7 +36,7 @@ export async function keyChecks({
     };
   }
 
-  const link = await checkIfKeyExists(domain, key);
+  const link = await checkIfKeyExists({ domain, key });
   if (link) {
     return {
       error: "Duplicate key: This short link already exists.",

@@ -1,6 +1,9 @@
 import z from "@/lib/zod";
 import { metaTagsSchema } from "@/lib/zod/schemas/metatags";
-import { PartnerEarningsSchema } from "@/lib/zod/schemas/partner-profile";
+import {
+  PartnerEarningsSchema,
+  PartnerProfileLinkSchema,
+} from "@/lib/zod/schemas/partner-profile";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import {
   CommissionStatus,
@@ -24,6 +27,7 @@ import { clickEventResponseSchema } from "./zod/schemas/clicks";
 import {
   customerActivityResponseSchema,
   customerActivitySchema,
+  CustomerEnrichedSchema,
   CustomerSchema,
 } from "./zod/schemas/customers";
 import { dashboardSchema } from "./zod/schemas/dashboard";
@@ -37,7 +41,11 @@ import {
 } from "./zod/schemas/leads";
 import { createLinkBodySchema } from "./zod/schemas/links";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
-import { EnrolledPartnerSchema, PartnerSchema } from "./zod/schemas/partners";
+import {
+  createPartnerSchema,
+  EnrolledPartnerSchema,
+  PartnerSchema,
+} from "./zod/schemas/partners";
 import {
   PartnerPayoutResponseSchema,
   PayoutResponseSchema,
@@ -48,10 +56,10 @@ import {
   ProgramSaleSchema,
 } from "./zod/schemas/program-sales";
 import {
-  PartnerLinkSchema,
   PartnerProgramInviteSchema,
   ProgramEnrollmentSchema,
   ProgramInviteSchema,
+  ProgramPartnerLinkSchema,
   ProgramSchema,
 } from "./zod/schemas/programs";
 import { RewardSchema } from "./zod/schemas/rewards";
@@ -163,7 +171,6 @@ export interface UserProps {
   source: string | null;
   defaultWorkspace?: string;
   defaultPartnerId?: string;
-  dubPartnerId?: string;
   isMachine: boolean;
   hasPassword: boolean;
   provider: string | null;
@@ -347,13 +354,22 @@ export type TrackSaleResponse = z.infer<typeof trackSaleResponseSchema>;
 
 export type Customer = z.infer<typeof CustomerSchema>;
 
+export type CustomerEnriched = z.infer<typeof CustomerEnrichedSchema>;
+
 export type UsageResponse = z.infer<typeof usageResponse>;
 
 export type PartnersCount = Record<ProgramEnrollmentStatus | "all", number>;
 
 export type SaleProps = z.infer<typeof ProgramSaleSchema>;
 
-export type SalesCount = Record<CommissionStatus | "all", number>;
+export type SalesCount = Record<
+  CommissionStatus | "all",
+  {
+    count: number;
+    amount: number;
+    earnings: number;
+  }
+>;
 
 export type SaleResponse = z.infer<typeof ProgramSaleResponseSchema>;
 
@@ -363,7 +379,9 @@ export type CustomerProps = z.infer<typeof CustomerSchema>;
 
 export type PartnerProps = z.infer<typeof PartnerSchema>;
 
-export type PartnerLinkProps = z.infer<typeof PartnerLinkSchema>;
+export type ProgramPartnerLinkProps = z.infer<typeof ProgramPartnerLinkSchema>;
+
+export type PartnerProfileLinkProps = z.infer<typeof PartnerProfileLinkSchema>;
 
 export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema>;
 
@@ -433,3 +451,5 @@ export type FolderSummary = Pick<
 // Rewards
 
 export type RewardProps = z.infer<typeof RewardSchema>;
+
+export type CreatePartnerProps = z.infer<typeof createPartnerSchema>;

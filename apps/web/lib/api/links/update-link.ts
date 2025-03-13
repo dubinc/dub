@@ -12,9 +12,10 @@ import {
   truncate,
 } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { createId } from "../create-id";
 import { combineTagIds } from "../tags/combine-tag-ids";
-import { createId } from "../utils";
 import { linkCache } from "./cache";
+import { encodeKeyIfCaseSensitive } from "./case-sensitivity";
 import { includeTags } from "./include-tags";
 import { transformLink } from "./utils";
 
@@ -62,6 +63,11 @@ export async function updateLink({
 
   const imageUrlNonce = nanoid(7);
 
+  key = encodeKeyIfCaseSensitive({
+    domain: updatedLink.domain,
+    key: updatedLink.key,
+  });
+
   const response = await prisma.link.update({
     where: {
       id,
@@ -71,7 +77,7 @@ export async function updateLink({
       key,
       shortLink: linkConstructorSimple({
         domain: updatedLink.domain,
-        key: updatedLink.key,
+        key,
       }),
       title: truncate(title, 120),
       description: truncate(description, 240),

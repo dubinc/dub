@@ -24,15 +24,19 @@ import {
   COUNTRIES,
   currencyFormatter,
   DICEBEAR_AVATAR_URL,
+  fetcher,
   getPrettyUrl,
   nFormatter,
 } from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
+import { ProgramApplication } from "@prisma/client";
+import Linkify from "linkify-react";
 import { ChevronLeft } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { toast } from "sonner";
+import useSWRImmutable from "swr/immutable";
 import { AnimatedEmptyState } from "../shared/animated-empty-state";
 import { useCreatePayoutSheet } from "./create-payout-sheet";
 import { PartnerLinkSelector } from "./partner-link-selector";
@@ -50,6 +54,8 @@ function PartnerDetailsSheetContent({
   partner,
   setIsOpen,
 }: PartnerDetailsSheetProps) {
+  const { slug } = useWorkspace();
+  const { program } = useProgram();
   const [tab, setTab] = useState<Tab>("links");
 
   const { createPayoutSheet, setIsOpen: setCreatePayoutSheetOpen } =
@@ -186,17 +192,23 @@ function PartnerDetailsSheetContent({
           </div> */}
 
           {partner.status === "approved" && (
-            <TabSelect
-              options={[
-                { id: "links", label: "Links" },
-                { id: "payouts", label: "Payouts" },
-              ]}
-              selected={tab}
-              onSelect={(id: Tab) => {
-                setTab(id);
-              }}
-              className="-mb-6 mt-2"
-            />
+            <div className="-mb-6 mt-2 flex items-center gap-2">
+              <TabSelect
+                options={[
+                  { id: "links", label: "Links" },
+                  { id: "payouts", label: "Payouts" },
+                  {
+                    id: "sales",
+                    label: "Sales",
+                    href: `/${slug}/programs/${program!.id}/sales?partnerId=${partner.id}`,
+                  },
+                ]}
+                selected={tab}
+                onSelect={(id: Tab) => {
+                  setTab(id);
+                }}
+              />
+            </div>
           )}
         </div>
 
@@ -207,11 +219,7 @@ function PartnerDetailsSheetContent({
               {tab === "links" && <PartnerLinks partner={partner} />}
             </>
           ) : (
-            <div className="flex flex-col gap-6 text-sm text-neutral-500">
-              <h3 className="text-base font-semibold text-neutral-900">
-                About this partner
-              </h3>
-
+            <div className="grid gap-6 text-sm text-neutral-500">
               <div>
                 <h4 className="font-semibold text-neutral-900">Description</h4>
                 <p className="mt-1.5">
@@ -222,6 +230,9 @@ function PartnerDetailsSheetContent({
                   )}
                 </p>
               </div>
+              {partner.applicationId && (
+                <PartnerApplication applicationId={partner.applicationId} />
+              )}
             </div>
           )}
         </div>
@@ -250,6 +261,60 @@ function PartnerDetailsSheetContent({
         </>
       )}
     </>
+  );
+}
+
+function PartnerApplication({ applicationId }: { applicationId: string }) {
+  const { id: workspaceId } = useWorkspace();
+  const { program } = useProgram();
+
+  const { data: application } = useSWRImmutable<ProgramApplication>(
+    program &&
+      workspaceId &&
+      `/api/programs/${program.id}/applications/${applicationId}?workspaceId=${workspaceId}`,
+    fetcher,
+  );
+
+  const fields = [
+    {
+      title: "Website / Social Media channels",
+      value: application?.website,
+    },
+    {
+      title: `How do you plan to promote ${program?.name}?`,
+      value: application?.proposal,
+    },
+    {
+      title: "Any additional questions or comments?",
+      value: application?.comments,
+    },
+  ];
+
+  return (
+    <div className="grid gap-6">
+      {fields.map((field) => (
+        <div key={field.title}>
+          <h4 className="font-semibold text-neutral-900">{field.title}</h4>
+          <div className="mt-1.5">
+            {field.value || field.value === "" ? (
+              <Linkify
+                as="p"
+                options={{
+                  target: "_blank",
+                  rel: "noopener noreferrer nofollow",
+                  className:
+                    "underline underline-offset-4 text-neutral-400 hover:text-neutral-700",
+                }}
+              >
+                {field.value || "No response provided"}
+              </Linkify>
+            ) : (
+              <div className="h-5 w-28 min-w-0 animate-pulse rounded-md bg-neutral-200" />
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -302,6 +367,8 @@ function PartnerApproval({
         key: shortKey,
         url: program?.url,
         trackConversion: true,
+        programId: program?.id,
+        folderId: program?.defaultFolderId,
       }),
     });
 
@@ -505,19 +572,18 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
   return (payouts && payouts.length > 0) || loading ? (
     <>
       <Table {...table} />
-      {payouts && payouts.length === SHEET_MAX_ITEMS && (
-        <div className="mt-2 flex justify-end">
-          <Link
-            href={`/${slug}/programs/${program!.id}/payouts?partnerId=${partner.id}`}
-            className={cn(
-              buttonVariants({ variant: "secondary" }),
-              "flex h-7 items-center rounded-lg border px-2 text-sm",
-            )}
-          >
-            View all
-          </Link>
-        </div>
-      )}
+      <div className="mt-2 flex justify-end">
+        <Link
+          href={`/${slug}/programs/${program!.id}/payouts?partnerId=${partner.id}`}
+          target="_blank"
+          className={cn(
+            buttonVariants({ variant: "secondary" }),
+            "flex h-7 items-center rounded-lg border px-2 text-sm",
+          )}
+        >
+          View all
+        </Link>
+      </div>
     </>
   ) : (
     <AnimatedEmptyState

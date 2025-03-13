@@ -1,20 +1,27 @@
 import { Folder } from "@/lib/types";
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import useSWR from "swr";
+import useSWR, { SWRConfiguration } from "swr";
 import useWorkspace from "./use-workspace";
 
 export default function useFolders({
   includeParams = false,
+  includeLinkCount = false,
+  query,
+  options,
 }: {
   includeParams?: boolean;
+  includeLinkCount?: boolean;
+  query?: Record<string, any>;
+  options?: SWRConfiguration;
 } = {}) {
   const { id: workspaceId, plan, flags } = useWorkspace();
   const { getQueryString } = useRouterStuff();
 
-  const qs = includeParams
-    ? getQueryString({ workspaceId })
-    : `?workspaceId=${workspaceId}`;
+  const qs = getQueryString(
+    { workspaceId, ...query },
+    { include: includeParams ? undefined : [] },
+  );
 
   const {
     data: folders,
@@ -22,11 +29,12 @@ export default function useFolders({
     isLoading,
   } = useSWR<Folder[]>(
     workspaceId && flags?.linkFolders && plan !== "free"
-      ? `/api/folders${qs}`
+      ? `/api/folders${qs}${includeLinkCount ? "&includeLinkCount=true" : ""}`
       : null,
     fetcher,
     {
       dedupingInterval: 60000,
+      ...options,
     },
   );
 

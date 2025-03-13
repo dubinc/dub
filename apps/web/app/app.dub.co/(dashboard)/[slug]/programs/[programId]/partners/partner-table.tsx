@@ -44,7 +44,7 @@ export function PartnerTable() {
   const { id: workspaceId } = useWorkspace();
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
-  const sortBy = searchParams.get("sortBy") || "createdAt";
+  const sortBy = searchParams.get("sortBy") || "saleAmount";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const {
@@ -172,17 +172,6 @@ export function PartnerTable() {
               })
             : "-",
       },
-      {
-        id: "earnings",
-        header: "Earnings",
-        accessorFn: (d) =>
-          d.status !== "pending"
-            ? currencyFormatter(d.earnings / 100, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })
-            : "-",
-      },
       // Menu
       {
         id: "menu",
@@ -206,14 +195,7 @@ export function PartnerTable() {
     onPaginationChange: setPagination,
     columnVisibility,
     onColumnVisibilityChange: setColumnVisibility,
-    sortableColumns: [
-      "createdAt",
-      "clicks",
-      "leads",
-      "sales",
-      "saleAmount",
-      "earnings",
-    ],
+    sortableColumns: ["createdAt", "clicks", "leads", "sales", "saleAmount"],
     sortBy,
     sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>

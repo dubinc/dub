@@ -1,6 +1,7 @@
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
+import { determinePartnerDiscount } from "@/lib/partners/determine-partner-discount";
+import { determinePartnerRewards } from "@/lib/partners/determine-partner-rewards";
 import { ProgramEnrollmentSchema } from "@/lib/zod/schemas/programs";
 import { NextResponse } from "next/server";
 
@@ -11,16 +12,25 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     programId: params.programId,
   });
 
-  const reward = await determinePartnerReward({
-    event: "sale",
-    partnerId: programEnrollment.partnerId,
-    programId: programEnrollment.programId,
-  });
+  const { partnerId, programId } = programEnrollment;
+
+  const [rewards, discount] = await Promise.all([
+    determinePartnerRewards({
+      partnerId,
+      programId,
+    }),
+
+    determinePartnerDiscount({
+      partnerId,
+      programId,
+    }),
+  ]);
 
   return NextResponse.json(
     ProgramEnrollmentSchema.parse({
       ...programEnrollment,
-      reward,
+      rewards,
+      discount,
     }),
   );
 });

@@ -13,9 +13,10 @@ import {
 } from "@dub/utils";
 import { linkConstructorSimple } from "@dub/utils/src/functions/link-constructor";
 import { waitUntil } from "@vercel/functions";
+import { createId } from "../create-id";
 import { combineTagIds } from "../tags/combine-tag-ids";
-import { createId } from "../utils";
 import { linkCache } from "./cache";
+import { encodeKeyIfCaseSensitive } from "./case-sensitivity";
 import { includeTags } from "./include-tags";
 import { updateLinksUsage } from "./update-links-usage";
 import { transformLink } from "./utils";
@@ -40,12 +41,17 @@ export async function createLink(link: ProcessedLinkProps) {
 
   const { tagId, tagIds, tagNames, webhookIds, ...rest } = link;
 
+  key = encodeKeyIfCaseSensitive({
+    domain: link.domain,
+    key,
+  });
+
   const response = await prisma.link.create({
     data: {
       ...rest,
       id: createId({ prefix: "link_" }),
       key,
-      shortLink: linkConstructorSimple({ domain: link.domain, key: link.key }),
+      shortLink: linkConstructorSimple({ domain: link.domain, key }),
       title: truncate(title, 120),
       description: truncate(description, 240),
       // if it's an uploaded image, make this null first because we'll update it later

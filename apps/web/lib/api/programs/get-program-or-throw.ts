@@ -1,9 +1,8 @@
-import { RewardProps } from "@/lib/types";
+import { reorderTopProgramRewards } from "@/lib/partners/reorder-top-program-rewards";
+import { DiscountProps, ProgramProps } from "@/lib/types";
 import { ProgramSchema } from "@/lib/zod/schemas/programs";
-import { RewardSchema } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
 import { DubApiError } from "../errors";
-import { getRewardOrThrow } from "../partners/get-reward-or-throw";
 
 export const getProgramOrThrow = async (
   {
@@ -14,30 +13,39 @@ export const getProgramOrThrow = async (
     programId: string;
   },
   {
-    includeDiscounts = false,
+    includeDefaultDiscount = false,
     includeDefaultReward = false,
+    includeRewards = false,
   }: {
-    includeDiscounts?: boolean;
+    includeDefaultDiscount?: boolean;
     includeDefaultReward?: boolean;
+    includeRewards?: boolean;
   } = {},
 ) => {
-  const program = await prisma.program.findUnique({
+  const program = (await prisma.program.findUnique({
     where: {
       id: programId,
       workspaceId,
     },
-    ...(includeDiscounts
-      ? {
-          include: {
-            discounts: {
-              orderBy: {
-                createdAt: "asc",
-              },
+
+    include: {
+      ...(includeDefaultDiscount && {
+        defaultDiscount: true,
+      }),
+      ...(includeDefaultReward && {
+        defaultReward: true,
+      }),
+      ...(includeRewards && {
+        rewards: {
+          where: {
+            partners: {
+              none: {}, // program-wide rewards only
             },
           },
-        }
-      : {}),
-  });
+        },
+      }),
+    },
+  })) as (ProgramProps & { defaultDiscount: DiscountProps | null }) | null;
 
   if (!program) {
     throw new DubApiError({
@@ -46,19 +54,13 @@ export const getProgramOrThrow = async (
     });
   }
 
-  let defaultReward: RewardProps | null = null;
-
-  if (includeDefaultReward && program.defaultRewardId) {
-    defaultReward = await getRewardOrThrow({
-      rewardId: program.defaultRewardId,
-      programId,
-    });
-
-    defaultReward = RewardSchema.parse(defaultReward);
-  }
-
   return ProgramSchema.parse({
     ...program,
-    ...(defaultReward ? { rewards: [defaultReward] } : {}),
+    ...(includeRewards && program.rewards?.length
+      ? { rewards: reorderTopProgramRewards(program.rewards as any) }
+      : {}),
+    ...(includeDefaultDiscount && program.defaultDiscount
+      ? { discounts: [program.defaultDiscount] }
+      : {}),
   });
 };

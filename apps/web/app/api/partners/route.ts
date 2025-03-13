@@ -1,11 +1,9 @@
-import { DubApiError, ErrorCodes } from "@/lib/api/errors";
-import { createLink, processLink } from "@/lib/api/links";
-import { enrollPartner } from "@/lib/api/partners/enroll-partner";
+import { DubApiError } from "@/lib/api/errors";
+import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
+import { createPartnerLink } from "@/lib/api/partners/create-partner-link";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import { linkEventSchema } from "@/lib/zod/schemas/links";
 import {
   createPartnerSchema,
   EnrolledPartnerSchema,
@@ -13,9 +11,17 @@ import {
 } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@prisma/client";
-import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+
+const sortColumnsMap = {
+  createdAt: "pe.createdAt",
+  clicks: "totalClicks",
+  leads: "totalLeads",
+  sales: "totalSales",
+  saleAmount: "totalSaleAmount",
+  earnings: "totalSaleAmount",
+};
 
 // GET /api/partners - get all partners for a program
 export const GET = withWorkspace(
@@ -38,6 +44,7 @@ export const GET = withWorkspace(
     const {
       status,
       country,
+      rewardId,
       search,
       tenantId,
       ids,
@@ -47,15 +54,6 @@ export const GET = withWorkspace(
       sortOrder,
     } = partnersQuerySchema.parse(searchParams);
 
-    const sortColumnsMap = {
-      createdAt: "pe.createdAt",
-      clicks: "totalClicks",
-      leads: "totalLeads",
-      sales: "totalSales",
-      saleAmount: "totalSaleAmount",
-      earnings: "totalSaleAmount",
-    };
-
     const partners = (await prisma.$queryRaw`
       SELECT 
         p.*, 
@@ -64,49 +62,60 @@ export const GET = withWorkspace(
         pe.programId, 
         pe.partnerId, 
         pe.tenantId,
+        pe.applicationId,
         pe.createdAt as enrollmentCreatedAt,
-        COALESCE(SUM(DISTINCT l.clicks), 0) as totalClicks,
-        COALESCE(SUM(DISTINCT l.leads), 0) as totalLeads,
-        COALESCE(SUM(DISTINCT l.sales), 0) as totalSales,
-        COALESCE(SUM(c.amount), 0) as totalSaleAmount,
-        COALESCE(SUM(c.earnings), 0) as totalEarnings,
-        (
-          SELECT JSON_ARRAYAGG(
-            JSON_OBJECT(
-              'id', l2.id,
-              'domain', l2.domain,
-              'key', l2.key,
-              'shortLink', l2.shortLink,
-              'url', l2.url,
-              'clicks', CAST(l2.clicks AS SIGNED),
-              'leads', CAST(l2.leads AS SIGNED),
-              'sales', CAST(l2.sales AS SIGNED),
-              'saleAmount', CAST(l2.saleAmount AS SIGNED)
+        COALESCE(metrics.totalClicks, 0) as totalClicks,
+        COALESCE(metrics.totalLeads, 0) as totalLeads,
+        COALESCE(metrics.totalSales, 0) as totalSales,
+        COALESCE(metrics.totalSaleAmount, 0) as totalSaleAmount,
+        COALESCE(
+          JSON_ARRAYAGG(
+            IF(l.id IS NOT NULL,
+              JSON_OBJECT(
+                'id', l.id,
+                'domain', l.domain,
+                'key', l.\`key\`,
+                'shortLink', l.shortLink,
+                'url', l.url,
+                'clicks', CAST(l.clicks AS SIGNED),
+                'leads', CAST(l.leads AS SIGNED),
+                'sales', CAST(l.sales AS SIGNED),
+                'saleAmount', CAST(l.saleAmount AS SIGNED)
+              ),
+              NULL
             )
-          )
-          FROM (
-            SELECT DISTINCT l.id, l.domain, l.key, l.shortLink, l.url, l.clicks, l.leads, l.sales, l.saleAmount
-            FROM Link l
-            WHERE l.programId = pe.programId AND l.partnerId = pe.partnerId
-          ) l2
+          ),
+          JSON_ARRAY()
         ) as links
       FROM 
         ProgramEnrollment pe 
       INNER JOIN 
         Partner p ON p.id = pe.partnerId 
-      LEFT JOIN 
-        Link l ON l.programId = pe.programId AND l.partnerId = pe.partnerId
-      LEFT JOIN
-        Commission c ON c.linkId = l.id
+      LEFT JOIN Link l ON l.programId = pe.programId 
+        AND l.partnerId = pe.partnerId
+        AND l.programId = ${program.id}
+      LEFT JOIN (
+        SELECT 
+          partnerId,
+          SUM(clicks) as totalClicks,
+          SUM(leads) as totalLeads,
+          SUM(sales) as totalSales,
+          SUM(saleAmount) as totalSaleAmount
+        FROM Link
+        WHERE programId = ${program.id}
+          AND partnerId IS NOT NULL
+        GROUP BY partnerId
+      ) metrics ON metrics.partnerId = pe.partnerId
       WHERE 
         pe.programId = ${program.id}
         ${status ? Prisma.sql`AND pe.status = ${status}` : Prisma.sql`AND pe.status != 'rejected'`}
         ${tenantId ? Prisma.sql`AND pe.tenantId = ${tenantId}` : Prisma.sql``}
         ${country ? Prisma.sql`AND p.country = ${country}` : Prisma.sql``}
+        ${rewardId ? Prisma.sql`AND EXISTS (SELECT 1 FROM PartnerReward pr WHERE pr.programEnrollmentId = pe.id AND pr.rewardId = ${rewardId})` : Prisma.sql``}
         ${search ? Prisma.sql`AND (LOWER(p.name) LIKE LOWER(${`%${search}%`}) OR LOWER(p.email) LIKE LOWER(${`%${search}%`}))` : Prisma.sql``}
         ${ids && ids.length > 0 ? Prisma.sql`AND pe.partnerId IN (${Prisma.join(ids)})` : Prisma.sql``}
       GROUP BY 
-        p.id, pe.id
+        p.id, pe.id, metrics.totalClicks, metrics.totalLeads, metrics.totalSales, metrics.totalSaleAmount
       ORDER BY ${Prisma.raw(sortColumnsMap[sortBy])} ${Prisma.raw(sortOrder)}
       LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`) satisfies Array<any>;
 
@@ -114,12 +123,10 @@ export const GET = withWorkspace(
       return {
         ...partner,
         createdAt: new Date(partner.enrollmentCreatedAt),
-        payoutsEnabled: Boolean(partner.payoutsEnabled),
         clicks: Number(partner.totalClicks),
         leads: Number(partner.totalLeads),
         sales: Number(partner.totalSales),
         saleAmount: Number(partner.totalSaleAmount),
-        earnings: Number(partner.totalEarnings),
         links: partner.links.filter((link: any) => link !== null),
       };
     });
@@ -145,9 +152,9 @@ export const POST = withWorkspace(
       name,
       email,
       username,
-      image,
-      country,
-      description,
+      image = null,
+      country = null,
+      description = null,
       tenantId,
       linkProps,
     } = createPartnerSchema.parse(await parseRequestBody(req));
@@ -157,49 +164,21 @@ export const POST = withWorkspace(
       programId,
     });
 
-    if (!program.domain || !program.url) {
-      throw new DubApiError({
-        code: "bad_request",
-        message:
-          "You need to set a domain and url for this program before creating a partner.",
-      });
-    }
-
-    const { link, error, code } = await processLink({
-      payload: {
-        ...linkProps,
-        domain: program.domain,
-        key: username,
-        url: program.url,
-        programId,
-        tenantId,
-        folderId: program.defaultFolderId,
-        trackConversion: true,
-      },
+    const partnerLink = await createPartnerLink({
       workspace,
+      program,
+      partner: {
+        name,
+        email,
+        username,
+        tenantId,
+        linkProps,
+      },
       userId: session.user.id,
     });
 
-    if (error != null) {
-      throw new DubApiError({
-        code: code as ErrorCodes,
-        message: error,
-      });
-    }
-
-    const partnerLink = await createLink(link);
-
-    waitUntil(
-      sendWorkspaceWebhook({
-        trigger: "link.created",
-        workspace,
-        data: linkEventSchema.parse(partnerLink),
-      }),
-    );
-
-    const partner = await enrollPartner({
+    const enrolledPartner = await createAndEnrollPartner({
       program,
-      tenantId,
       link: partnerLink,
       workspace,
       partner: {
@@ -209,9 +188,10 @@ export const POST = withWorkspace(
         country,
         description,
       },
+      tenantId,
     });
 
-    return NextResponse.json(partner, {
+    return NextResponse.json(enrolledPartner, {
       status: 201,
     });
   },

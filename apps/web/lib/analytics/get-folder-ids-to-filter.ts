@@ -12,6 +12,7 @@ export const getFolderIdsToFilter = async ({
   if (workspace.foldersUsage === 0) {
     return undefined;
   }
+
   // If the request is not for a specific folder, find folders the user has access to + unsorted folder
   let folderIds: string[] | undefined = undefined;
 
@@ -21,6 +22,8 @@ export const getFolderIdsToFilter = async ({
     const folders = await getFolders({
       workspaceId: workspace.id,
       userId,
+      excludeBulkFolders: true,
+      pageSize: 1000, // TODO: might need to handle this if folks have > 1000 folders in the future
     });
 
     folderIds = folders.map((folder) => folder.id).concat("");

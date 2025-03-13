@@ -5,6 +5,7 @@ export {
   CommissionStatus,
   CommissionType,
   EventType,
+  FolderType,
   FolderUserRole,
   InvoiceStatus,
   PartnerRole,

@@ -3,6 +3,8 @@
 import {
   ANALYTICS_SALE_UNIT,
   ANALYTICS_VIEWS,
+  DUB_LINKS_ANALYTICS_INTERVAL,
+  DUB_PARTNERS_ANALYTICS_INTERVAL,
   EVENT_TYPES,
   VALID_ANALYTICS_FILTERS,
 } from "@/lib/analytics/constants";
@@ -140,7 +142,9 @@ export default function AnalyticsProvider({
     };
   }, [searchParams?.get("start"), searchParams?.get("end")]);
 
-  const defaultInterval = "30d";
+  const defaultInterval = partnerPage
+    ? DUB_PARTNERS_ANALYTICS_INTERVAL
+    : DUB_LINKS_ANALYTICS_INTERVAL;
 
   // Only set interval if start and end are not provided
   const interval =
@@ -244,11 +248,16 @@ export default function AnalyticsProvider({
         - it's filtered by a link, or
         - the workspace has more than 50 domains
         - is admin page
+        - is filtered by a folder or tag
       - Otherwise, hide root domain links
   */
   const root = searchParams.get("root")
     ? searchParams.get("root") === "true"
-    : (domain && key) || (domains && domains?.length > 50) || adminPage
+    : (domain && key) ||
+        (domains && domains?.length > 50) ||
+        adminPage ||
+        folderId ||
+        tagIds
       ? undefined
       : "false";
 

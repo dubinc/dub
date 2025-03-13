@@ -36,6 +36,8 @@ function ImportRebrandlyModal({
   const { id: workspaceId, slug } = useWorkspace();
   const searchParams = useSearchParams();
 
+  const folderId = searchParams.get("folderId");
+
   const {
     data: { domains, tagsCount } = {
       domains: null,
@@ -133,11 +135,14 @@ function ImportRebrandlyModal({
                   body: JSON.stringify({
                     selectedDomains,
                     importTags,
+                    ...(folderId && { folderId }),
                   }),
                 }).then(async (res) => {
                   if (res.ok) {
                     await mutate();
-                    router.push(`/${slug}`);
+                    router.push(
+                      `/${slug}${folderId ? `?folderId=${folderId}` : ""}`,
+                    );
                   } else {
                     setImporting(false);
                     throw new Error();

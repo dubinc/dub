@@ -27,7 +27,7 @@ export async function generateMetadata({
   const domain = params.domain;
   const key = decodeURIComponent(params.key).slice(0, -1);
 
-  const data = await getLinkViaEdge(domain, key);
+  const data = await getLinkViaEdge({ domain, key });
 
   if (!data) {
     return;
@@ -52,7 +52,7 @@ export default async function InspectPage({
   const domain = params.domain;
   const key = decodeURIComponent(params.key).slice(0, -1);
 
-  const data = await getLinkViaEdge(domain, key);
+  const data = await getLinkViaEdge({ domain, key });
 
   // if the link doesn't exist
   if (!data) {

@@ -12,7 +12,6 @@ export interface Session {
     isMachine: boolean;
     defaultWorkspace?: string;
     defaultPartnerId?: string;
-    dubPartnerId?: string;
   };
 }
 

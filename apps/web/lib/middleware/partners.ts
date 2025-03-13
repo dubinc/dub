@@ -1,6 +1,6 @@
 import { parse } from "@/lib/middleware/utils";
 import { NextRequest, NextResponse } from "next/server";
-import { getDefaultPartner } from "./utils/get-default-partner";
+import { getDefaultPartnerId } from "./utils/get-default-partner";
 import { getUserViaToken } from "./utils/get-user-via-token";
 
 const AUTHENTICATED_PATHS = [
@@ -22,13 +22,9 @@ export default async function PartnersMiddleware(req: NextRequest) {
   );
 
   if (!user && isAuthenticatedPath) {
-    const customAuthProgramSlug = ["framer"].find((p) =>
-      path.startsWith(`/programs/${p}`),
-    );
-    if (customAuthProgramSlug) {
-      return NextResponse.redirect(
-        new URL(`/${customAuthProgramSlug}/login`, req.url),
-      );
+    if (path.startsWith(`/programs/`)) {
+      const programSlug = path.split("/")[2];
+      return NextResponse.redirect(new URL(`/${programSlug}/login`, req.url));
     }
 
     return NextResponse.redirect(
@@ -38,9 +34,9 @@ export default async function PartnersMiddleware(req: NextRequest) {
       ),
     );
   } else if (user) {
-    const defaultPartner = await getDefaultPartner(user);
+    const defaultPartnerId = await getDefaultPartnerId(user);
 
-    if (!defaultPartner && !path.startsWith("/onboarding")) {
+    if (!defaultPartnerId && !path.startsWith("/onboarding")) {
       return NextResponse.redirect(new URL("/onboarding", req.url));
     } else if (path === "/" || path.startsWith("/pn_")) {
       return NextResponse.redirect(new URL("/programs", req.url));

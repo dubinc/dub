@@ -97,6 +97,7 @@ const App = () => {
   }, []);
 
   return <DubEmbed 
+    data="referrals"
     token={token}
   />`;
 

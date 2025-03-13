@@ -114,6 +114,9 @@ importers:
       '@team-plain/typescript-sdk':
         specifier: ^4.5.0
         version: 4.5.0
+      '@types/base-x':
+        specifier: ^3.0.10
+        version: 3.0.10
       '@types/bcryptjs':
         specifier: ^2.4.6
         version: 2.4.6
@@ -168,6 +171,9 @@ importers:
       aws4fetch:
         specifier: ^1.0.19
         version: 1.0.19
+      base-x:
+        specifier: ^5.0.0
+        version: 5.0.0
       bcryptjs:
         specifier: ^2.4.3
         version: 2.4.3
@@ -190,8 +196,11 @@ importers:
         specifier: ^3.6.0
         version: 3.6.0
       dub:
-        specifier: ^0.54.1
-        version: 0.54.1(zod@3.22.4)
+        specifier: ^0.59.1
+        version: 0.59.1(zod@3.22.4)
+      fast-xml-parser:
+        specifier: ^5.0.6
+        version: 5.0.6
       framer-motion:
         specifier: ^10.16.16
         version: 10.18.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -222,6 +231,9 @@ importers:
       jszip:
         specifier: ^3.10.1
         version: 3.10.1
+      linkify-react:
+        specifier: ^4.1.3
+        version: 4.1.3(linkifyjs@4.1.3)(react@18.2.0)
       lucide-react:
         specifier: ^0.462.0
         version: 0.462.0(react@18.2.0)
@@ -238,8 +250,8 @@ importers:
         specifier: ^4.24.4
         version: 4.24.4(next@14.3.0-canary.42(@babel/core@7.24.5)(@opentelemetry/api@1.8.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(nodemailer@6.9.3)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       next-axiom:
-        specifier: ^1.6.0
-        version: 1.6.0(next@14.3.0-canary.42(@babel/core@7.24.5)(@opentelemetry/api@1.8.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react@18.2.0)
+        specifier: ^1.9.1
+        version: 1.9.1(next@14.3.0-canary.42(@babel/core@7.24.5)(@opentelemetry/api@1.8.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react@18.2.0)
       next-plausible:
         specifier: ^3.12.0
         version: 3.12.0(next@14.3.0-canary.42(@babel/core@7.24.5)(@opentelemetry/api@1.8.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -4931,6 +4943,10 @@ packages:
   '@types/babel__traverse@7.20.5':
     resolution: {integrity: sha512-WXCyOcRtH37HAUkpXhUduaxdm82b4GSlyTqajXviN4EfiuPgNYR109xMCKvpl6zPIpua0DGlMEDCq+g8EdoheQ==}
 
+  '@types/base-x@3.0.10':
+    resolution: {integrity: sha512-GnQ9XiAYP2th21vYFUs/+a/2pkQMDJBE7BdvjrRrDfKjSemH1umTxDtpPFOElwq0+ftqR1j9QmJF4X68Mgy+1Q==}
+    deprecated: This is a stub types definition. base-x provides its own type definitions, so you do not need this installed.
+
   '@types/bcryptjs@2.4.6':
     resolution: {integrity: sha512-9xlo6R2qDs5uixm0bcIqCeMCE6HiQsIyel9KQySStiyqNl2tnj2mP3DX1Nf56MD6KMenNNlBBsy3LJ7gUEQPXQ==}
 
@@ -5763,6 +5779,9 @@ packages:
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
+
+  base-x@5.0.0:
+    resolution: {integrity: sha512-sMW3VGSX1QWVFA6l8U62MLKz29rRfpTlYdCqLdpLo1/Yd4zZwSbnUaDfciIAowAqvq7YFnWq9hrhdg1KYgc1lQ==}
 
   base64-js@0.0.8:
     resolution: {integrity: sha512-3XSA2cR/h/73EzlXXdU6YNycmYI7+kicTxks4eJg2g39biHR84slg2+des+p7iHYhbRg/udIS4TD53WabcOUkw==}
@@ -6603,10 +6622,15 @@ packages:
     peerDependencies:
       zod: '>= 3'
 
-  dub@0.54.1:
-    resolution: {integrity: sha512-bSGe6oCfDxHi0dGgs2XLOVtdJJhoVLndq78gXY/s/mx3T21T5EO2+OkKjE/w62/2xOyC27de4ATMJzAJ0OVNGg==}
+  dub@0.59.1:
+    resolution: {integrity: sha512-J6JwHEB/gtuJT6augpN4j/3cHrc1YIWAkihDvGgjuFv58JC0j7QlNjzD/jUhfmuh3bX2ALKgfy1eM17dRR6JmA==}
+    hasBin: true
     peerDependencies:
+      '@modelcontextprotocol/sdk': ^1.5.0
       zod: '>= 3'
+    peerDependenciesMeta:
+      '@modelcontextprotocol/sdk':
+        optional: true
 
   eastasianwidth@0.2.0:
     resolution: {integrity: sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==}
@@ -7071,6 +7095,10 @@ packages:
 
   fast-xml-parser@4.3.2:
     resolution: {integrity: sha512-rmrXUXwbJedoXkStenj1kkljNF7ugn5ZjR9FJcwmCfcCbtOMDghPajbc+Tck6vE6F5XsDmx+Pr2le9fw8+pXBg==}
+    hasBin: true
+
+  fast-xml-parser@5.0.6:
+    resolution: {integrity: sha512-5zIl0jWsewL5LdneswG6aJXx1YH1FXQ02UVIe/CZI3wXhI3SqP62bjcIYRNOgU43/MnN1t/MCpH6UoOtBrDNug==}
     hasBin: true
 
   fastq@1.15.0:
@@ -8842,8 +8870,8 @@ packages:
       nodemailer:
         optional: true
 
-  next-axiom@1.6.0:
-    resolution: {integrity: sha512-kdquFyc8jE+2ZYwdwG9fkctLpvVOBZXjSNj6WR3tNmmH6oCZo8ktKiZoJBi8gjCKPBGu5Lce1GexZ55Pkeb62Q==}
+  next-axiom@1.9.1:
+    resolution: {integrity: sha512-aSvfZHtGlcaSAGf+5IFTEgDIvqFaHkCUoFu9sNCy5bc8NxEl1v6cYhPZ54X0W9OQ9FyPRiHeD4DjxM/3p3yVRw==}
     engines: {node: '>=18'}
     peerDependencies:
       next: '>=14.0'
@@ -10421,6 +10449,9 @@ packages:
 
   strnum@1.0.5:
     resolution: {integrity: sha512-J8bbNyKKXl5qYcR36TIO8W3mVGVHrmmxsd5PAItGkmyzwJvybiw2IVq5nqd0i4LSNSkB/sx9VHllbfFdr9k1JA==}
+
+  strnum@2.0.4:
+    resolution: {integrity: sha512-qrXhLMohxtEPKMlajtNaOp5zvAQUo6L3fNcdiJKzWH98kGfklqGwmxhFjM7DzxsuoVM7rJeiYr+lEcu4Jlu9UQ==}
 
   style-to-object@1.0.6:
     resolution: {integrity: sha512-khxq+Qm3xEyZfKd/y9L3oIWQimxuc4STrQKtQn8aSDRHb8mFgpukgX1hdzfrMEW6JCjyJ8p89x+IUMVnCBI1PA==}
@@ -16686,6 +16717,10 @@ snapshots:
     dependencies:
       '@babel/types': 7.26.0
 
+  '@types/base-x@3.0.10':
+    dependencies:
+      base-x: 5.0.0
+
   '@types/bcryptjs@2.4.6': {}
 
   '@types/configstore@6.0.2': {}
@@ -17766,6 +17801,8 @@ snapshots:
 
   balanced-match@1.0.2: {}
 
+  base-x@5.0.0: {}
+
   base64-js@0.0.8: {}
 
   base64-js@1.5.1: {}
@@ -18561,7 +18598,7 @@ snapshots:
     dependencies:
       zod: 3.23.8
 
-  dub@0.54.1(zod@3.22.4):
+  dub@0.59.1(zod@3.22.4):
     dependencies:
       zod: 3.22.4
 
@@ -19220,6 +19257,10 @@ snapshots:
   fast-xml-parser@4.3.2:
     dependencies:
       strnum: 1.0.5
+
+  fast-xml-parser@5.0.6:
+    dependencies:
+      strnum: 2.0.4
 
   fastq@1.15.0:
     dependencies:
@@ -21666,7 +21707,7 @@ snapshots:
     optionalDependencies:
       nodemailer: 6.9.3
 
-  next-axiom@1.6.0(next@14.3.0-canary.42(@babel/core@7.24.5)(@opentelemetry/api@1.8.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react@18.2.0):
+  next-axiom@1.9.1(next@14.3.0-canary.42(@babel/core@7.24.5)(@opentelemetry/api@1.8.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react@18.2.0):
     dependencies:
       next: 14.3.0-canary.42(@babel/core@7.24.5)(@opentelemetry/api@1.8.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       react: 18.2.0
@@ -23600,6 +23641,8 @@ snapshots:
       qs: 6.11.2
 
   strnum@1.0.5: {}
+
+  strnum@2.0.4: {}
 
   style-to-object@1.0.6:
     dependencies:

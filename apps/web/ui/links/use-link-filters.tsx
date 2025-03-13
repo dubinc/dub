@@ -5,7 +5,7 @@ import useUsers from "@/lib/swr/use-users";
 import { TagProps } from "@/lib/types";
 import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
 import { Avatar, BlurImage, Globe, Tag, User, useRouterStuff } from "@dub/ui";
-import { GOOGLE_FAVICON_URL, nFormatter } from "@dub/utils";
+import { GOOGLE_FAVICON_URL } from "@dub/utils";
 import { useContext, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 import { LinksDisplayContext } from "./links-display-provider";
@@ -66,7 +66,7 @@ export function useLinkFilters() {
         options: domains.map(({ slug, count }) => ({
           value: slug,
           label: slug,
-          right: nFormatter(count, { full: true }),
+          right: count,
         })),
       },
       {
@@ -186,7 +186,7 @@ function useTagFilterOptions(search: string) {
       tagId: string;
       _count: number;
     }[]
-  >({ groupBy: "tagId", showArchived });
+  >({ query: { groupBy: "tagId", showArchived } });
 
   const tagsResult = useMemo(() => {
     return loadingTags ||
@@ -228,8 +228,10 @@ function useDomainFilterOptions() {
       _count: number;
     }[]
   >({
-    groupBy: "domain",
-    showArchived,
+    query: {
+      groupBy: "domain",
+      showArchived,
+    },
   });
 
   return useMemo(() => {
@@ -254,8 +256,10 @@ function useUserFilterOptions() {
       _count: number;
     }[]
   >({
-    groupBy: "userId",
-    showArchived,
+    query: {
+      groupBy: "userId",
+      showArchived,
+    },
   });
 
   return useMemo(
