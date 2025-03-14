@@ -155,10 +155,6 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                   autoComplete="off"
                 />
               </div>
-              <p className="mt-1 text-xs text-neutral-500">
-                Partner will be able to claim their profile by signing up to Dub
-                Partners with this email
-              </p>
             </div>
 
             <div>

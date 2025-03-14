@@ -39,6 +39,7 @@ export function OnboardingForm({
       | "image"
       | "profileType"
       | "companyName"
+      | "stripeConnectId"
     >
   > | null;
   lockName?: boolean;
@@ -163,10 +164,10 @@ export function OnboardingForm({
           name="country"
           rules={{ required: true }}
           render={({ field }) => (
-            // Disable the combobox if the partner already has a country
+            // Disable the combobox if the partner already has a stripeConnectId
             <CountryCombobox
               {...field}
-              disabled={!!partner?.country}
+              disabled={!!partner?.stripeConnectId}
               error={errors.country ? true : false}
             />
           )}
@@ -214,17 +215,17 @@ export function OnboardingForm({
               ]}
               selected={profileType}
               selectAction={(option: "individual" | "company") => {
-                if (!partner?.profileType) {
+                if (!partner?.stripeConnectId) {
                   setValue("profileType", option);
                 }
               }}
               className={cn(
                 "flex w-full items-center gap-0.5 rounded-lg border-neutral-300 bg-neutral-100 p-0.5",
-                partner?.profileType && "cursor-not-allowed opacity-70",
+                partner?.stripeConnectId && "cursor-not-allowed opacity-70",
               )}
               optionClassName={cn(
                 "h-9 flex items-center justify-center rounded-lg flex-1",
-                partner?.profileType && "pointer-events-none",
+                partner?.stripeConnectId && "pointer-events-none",
               )}
               indicatorClassName="bg-white"
             />
