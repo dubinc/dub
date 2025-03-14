@@ -1,4 +1,5 @@
-export * from "./apple";
+export * from "./android-logo";
+export * from "./apple-logo";
 export * from "./arrow-bold-up";
 export * from "./arrow-right";
 export * from "./arrow-trend-up";

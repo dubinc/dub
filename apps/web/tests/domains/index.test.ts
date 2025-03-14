@@ -25,6 +25,8 @@ const expectedDomain = {
   updatedAt: expect.any(String),
   registeredDomain: null,
   logo: null,
+  appleAppSiteAssociation: null,
+  assetLinks: null,
 };
 
 describe.sequential("/domains/**", async () => {

@@ -6,14 +6,12 @@ import {
 } from "@/lib/api/domains";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { queueDomainUpdate } from "@/lib/api/domains/queue";
+import { transformDomain } from "@/lib/api/domains/transform-domain";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { storage } from "@/lib/storage";
-import {
-  DomainSchema,
-  updateDomainBodySchema,
-} from "@/lib/zod/schemas/domains";
+import { updateDomainBodySchema } from "@/lib/zod/schemas/domains";
 import { prisma } from "@dub/prisma";
 import { combineWords, nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -28,7 +26,7 @@ export const GET = withWorkspace(
       dubDomainChecks: true,
     });
 
-    return NextResponse.json(DomainSchema.parse(domainRecord));
+    return NextResponse.json(transformDomain(domainRecord));
   },
   {
     requiredPermissions: ["domains.read"],
@@ -61,12 +59,20 @@ export const PATCH = withWorkspace(
     } = updateDomainBodySchema.parse(await parseRequestBody(req));
 
     if (workspace.plan === "free") {
-      if (logo || expiredUrl || notFoundUrl) {
+      if (
+        logo ||
+        expiredUrl ||
+        notFoundUrl ||
+        assetLinks ||
+        appleAppSiteAssociation
+      ) {
         const proFeaturesString = combineWords(
           [
             logo && "custom QR code logos",
             expiredUrl && "default expiration URLs",
             notFoundUrl && "not found URLs",
+            assetLinks && "asset links",
+            appleAppSiteAssociation && "Apple App Site Association",
           ].filter(Boolean) as string[],
         );
 
@@ -121,10 +127,10 @@ export const PATCH = withWorkspace(
         expiredUrl,
         notFoundUrl,
         logo: deleteLogo ? null : logoUploaded?.url || oldLogo,
-        ...(assetLinks && { assetLinks: JSON.parse(assetLinks) }),
-        ...(appleAppSiteAssociation && {
-          appleAppSiteAssociation: JSON.parse(appleAppSiteAssociation),
-        }),
+        assetLinks: assetLinks ? JSON.parse(assetLinks) : null,
+        appleAppSiteAssociation: appleAppSiteAssociation
+          ? JSON.parse(appleAppSiteAssociation)
+          : null,
       },
       include: {
         registeredDomain: true,
@@ -155,7 +161,7 @@ export const PATCH = withWorkspace(
       })(),
     );
 
-    return NextResponse.json(DomainSchema.parse(domainRecord));
+    return NextResponse.json(transformDomain(domainRecord));
   },
   {
     requiredPermissions: ["domains.write"],
