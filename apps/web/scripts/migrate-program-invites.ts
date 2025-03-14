@@ -30,8 +30,15 @@ async function main() {
       },
     });
 
-    await prisma.programEnrollment.create({
-      data: {
+    await prisma.programEnrollment.upsert({
+      where: {
+        partnerId_programId: {
+          partnerId: partner.id,
+          programId: programInvite.programId,
+        },
+      },
+      update: {},
+      create: {
         id: createId({ prefix: "pge_" }),
         programId: programInvite.programId,
         partnerId: partner.id,
