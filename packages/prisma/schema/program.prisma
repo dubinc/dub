@@ -19,11 +19,6 @@ enum CommissionInterval {
   year
 }
 
-enum ProgramResourceType {
-  logo
-  files
-}
-
 model Program {
   id                String      @id @default(cuid())
   workspaceId       String
@@ -41,6 +36,7 @@ model Program {
   defaultRewardId   String?     @unique // default reward for the program
   defaultDiscountId String?     @unique // default discount for the program
   landerData        Json?       @db.Json
+  resources         Json?       @db.Json
   termsUrl          String?     @db.LongText
   ageVerification   Int?
 
@@ -52,7 +48,6 @@ model Program {
   partners        ProgramEnrollment[]
   payouts         Payout[]
   invoices        Invoice[]
-  resources       ProgramResource[]
   applications    ProgramApplication[]
   invites         ProgramInvite[]
   links           Link[]
@@ -109,22 +104,6 @@ model ProgramApplication {
 
   @@index([programId])
   @@index([partnerId])
-}
-
-// TODO: Haven't finalized the resource table yet.
-model ProgramResource {
-  id        String              @id @default(cuid())
-  programId String
-  type      ProgramResourceType
-  name      String
-  url       String
-  size      Int?
-  createdAt DateTime            @default(now())
-  updatedAt DateTime            @updatedAt
-
-  program Program @relation(fields: [programId], references: [id])
-
-  @@index([programId])
 }
 
 model ProgramInvite {

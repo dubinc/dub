@@ -6,7 +6,9 @@ import { createDomainBodySchema } from "@/lib/zod/schemas/domains";
 import { AlertCircleFill, CheckCircleFill, Lock } from "@/ui/shared/icons";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import {
+  AndroidLogo,
   AnimatedSizeContainer,
+  AppleLogo,
   Badge,
   Button,
   FileUpload,
@@ -21,18 +23,39 @@ import { cn } from "@dub/utils";
 import { motion } from "framer-motion";
 import {
   Binoculars,
+  ChevronDown,
   Crown,
   Milestone,
   QrCode,
   TextCursorInput,
 } from "lucide-react";
 import posthog from "posthog-js";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
 import { z } from "zod";
 import { QRCode } from "../shared/qr-code";
+
+const sanitizeJson = (string: string | null) => {
+  if (!string) {
+    return null;
+  }
+
+  try {
+    return JSON.stringify(JSON.parse(string));
+  } catch (e) {
+    return string;
+  }
+};
+
+const formatJson = (string: string) => {
+  try {
+    return JSON.stringify(JSON.parse(string), null, 2);
+  } catch (e) {
+    return string;
+  }
+};
 
 type FormData = z.infer<typeof createDomainBodySchema>;
 
@@ -79,19 +102,23 @@ const STATUS_CONFIG: Record<
 export function AddEditDomainForm({
   props,
   onSuccess,
-  showAdvancedOptions = true,
+  enableDomainConfig = true,
   className,
 }: {
   props?: DomainProps;
   onSuccess?: (data: DomainProps) => void;
-  showAdvancedOptions?: boolean;
+  enableDomainConfig?: boolean;
   className?: string;
 }) {
   const { id: workspaceId, plan } = useWorkspace();
   const [lockDomain, setLockDomain] = useState(true);
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
   const [domainStatus, setDomainStatus] = useState<DomainStatus>(
     props ? "available" : "idle",
   );
+  const [showOptionStates, setShowOptionStates] = useState<
+    Record<string, boolean>
+  >({});
 
   const {
     register,
@@ -107,8 +134,36 @@ export function AddEditDomainForm({
       expiredUrl: props?.expiredUrl,
       notFoundUrl: props?.notFoundUrl,
       placeholder: props?.placeholder,
+      appleAppSiteAssociation: props?.appleAppSiteAssociation
+        ? formatJson(props.appleAppSiteAssociation)
+        : undefined,
+      assetLinks: props?.assetLinks ? formatJson(props.assetLinks) : undefined,
     },
   });
+
+  useEffect(() => {
+    if (props?.appleAppSiteAssociation || props?.assetLinks) {
+      setShowAdvancedOptions(true);
+      setShowOptionStates((prev) => ({
+        ...prev,
+        appleAppSiteAssociation: !!props?.appleAppSiteAssociation?.trim(),
+        assetLinks: !!props?.assetLinks?.trim(),
+      }));
+    }
+  }, [props]);
+
+  useEffect(() => {
+    setShowOptionStates((prev) => ({
+      ...prev,
+      appleAppSiteAssociation: false,
+      assetLinks: false,
+      logo: false,
+      expiredUrl: false,
+      notFoundUrl: false,
+      placeholder: false,
+      ...prev,
+    }));
+  }, []);
 
   const domain = watch("slug");
 
@@ -160,6 +215,14 @@ export function AddEditDomainForm({
         body: JSON.stringify({
           ...formData,
           ...(formData.logo === props?.logo && { logo: undefined }),
+          ...(formData.assetLinks && {
+            assetLinks: sanitizeJson(formData.assetLinks),
+          }),
+          ...(formData.appleAppSiteAssociation && {
+            appleAppSiteAssociation: sanitizeJson(
+              formData.appleAppSiteAssociation,
+            ),
+          }),
         }),
       });
 
@@ -292,13 +355,14 @@ export function AddEditDomainForm({
         )}
       </div>
 
-      {showAdvancedOptions && (
+      {enableDomainConfig && (
         <>
           <div className="h-0.5 w-full bg-neutral-200" />
           <div className="flex flex-col gap-y-6">
-            {ADVANCED_OPTIONS.map(
+            {DOMAIN_OPTIONS.map(
               ({ id, title, description, icon: Icon, proFeature }) => {
-                const [showOption, setShowOption] = useState(!!watch(id));
+                const showOption = showOptionStates[id] || !!watch(id);
+
                 return (
                   <div key={id}>
                     <label className="flex items-center justify-between gap-4">
@@ -326,7 +390,10 @@ export function AddEditDomainForm({
                       <Switch
                         checked={showOption}
                         fn={(checked) => {
-                          setShowOption(checked);
+                          setShowOptionStates((prev) => ({
+                            ...prev,
+                            [id]: checked,
+                          }));
                           if (!checked) {
                             setValue(id, "", {
                               shouldDirty: true,
@@ -391,6 +458,113 @@ export function AddEditDomainForm({
               },
             )}
           </div>
+
+          <div className="flex flex-col">
+            <button
+              type="button"
+              className="flex w-full items-center gap-2"
+              onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+            >
+              <p className="text-sm text-neutral-600">
+                {showAdvancedOptions ? "Hide" : "Show"} advanced settings
+              </p>
+              <motion.div
+                animate={{ rotate: showAdvancedOptions ? 180 : 0 }}
+                className="text-neutral-600"
+              >
+                <ChevronDown className="size-4" />
+              </motion.div>
+            </button>
+
+            <AnimatedSizeContainer height className="flex flex-col">
+              {showAdvancedOptions &&
+                ADVANCED_OPTIONS.map(
+                  ({ id, title, description, icon: Icon, proFeature }) => {
+                    return (
+                      <div key={id} className="mt-4 flex flex-col space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="hidden rounded-lg border border-neutral-200 bg-white p-2 sm:block">
+                              <Icon className="size-5 text-neutral-500" />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h2 className="text-sm font-medium text-neutral-900">
+                                  {title}
+                                </h2>
+                                {proFeature && plan === "free" && (
+                                  <Badge className="flex items-center space-x-1 bg-white">
+                                    <Crown size={12} />
+                                    <p className="uppercase">Pro</p>
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-sm text-neutral-500">
+                                {description}
+                              </p>
+                            </div>
+                          </div>
+
+                          <Switch
+                            checked={showOptionStates[id]}
+                            fn={(checked: boolean) => {
+                              setShowOptionStates((prev) => ({
+                                ...prev,
+                                [id]: checked,
+                              }));
+                              if (!checked) {
+                                setValue(id, "", {
+                                  shouldDirty: true,
+                                });
+                              }
+                            }}
+                            disabled={isSubmitting}
+                          />
+                        </div>
+
+                        {showOptionStates[id] && (
+                          <div className="rounded-md border border-neutral-200 bg-white">
+                            <textarea
+                              {...register(id)}
+                              className="w-full resize-none rounded-md border-0 bg-transparent px-3 py-2 font-mono text-xs text-neutral-700 focus:outline-none focus:ring-0"
+                              rows={4}
+                              spellCheck={false}
+                              onPaste={(e) => {
+                                if (
+                                  [
+                                    "appleAppSiteAssociation",
+                                    "assetLinks",
+                                  ].includes(id)
+                                ) {
+                                  e.preventDefault();
+                                  const pastedText =
+                                    e.clipboardData.getData("text");
+
+                                  try {
+                                    const formattedJson = JSON.stringify(
+                                      JSON.parse(pastedText),
+                                      null,
+                                      2,
+                                    );
+                                    setValue(id, formattedJson, {
+                                      shouldDirty: true,
+                                    });
+                                  } catch (err) {
+                                    setValue(id, pastedText, {
+                                      shouldDirty: true,
+                                    });
+                                  }
+                                }
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  },
+                )}
+            </AnimatedSizeContainer>
+          </div>
         </>
       )}
 
@@ -403,7 +577,7 @@ export function AddEditDomainForm({
   );
 }
 
-const ADVANCED_OPTIONS: {
+const DOMAIN_OPTIONS: {
   id: keyof FormData;
   title: string;
   description: string;
@@ -438,3 +612,20 @@ const ADVANCED_OPTIONS: {
     icon: TextCursorInput,
   },
 ];
+
+const ADVANCED_OPTIONS = [
+  {
+    id: "appleAppSiteAssociation",
+    title: "Apple App Site Association",
+    description: "Provide a config file for iOS deep linking",
+    icon: AppleLogo,
+    proFeature: true,
+  },
+  {
+    id: "assetLinks",
+    title: "Asset Link",
+    description: "Provide a config file for Android deep linking",
+    icon: AndroidLogo,
+    proFeature: true,
+  },
+] as const;

@@ -12,10 +12,12 @@ async function main() {
     },
     data: {
       country: "US",
+      profileType: "company",
     },
   });
 
   if (partner.stripeConnectId) {
+    console.log("deleting stripe connect account");
     const res = await stripeConnectClient.accounts.del(partner.stripeConnectId);
     console.log("res", res);
 
@@ -26,6 +28,7 @@ async function main() {
         },
         data: {
           stripeConnectId: null,
+          payoutsEnabledAt: null,
         },
       });
     }
