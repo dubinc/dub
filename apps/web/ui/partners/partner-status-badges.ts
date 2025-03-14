@@ -1,11 +1,16 @@
-import { CircleCheck, CircleHalfDottedClock, CircleXmark } from "@dub/ui/icons";
+import {
+  CircleCheck,
+  CircleHalfDottedClock,
+  CircleXmark,
+  EnvelopeArrowRight,
+} from "@dub/ui/icons";
 
 export const PartnerStatusBadges = {
   invited: {
     label: "Invited",
     variant: "pending",
     className: "text-orange-600 bg-orange-100",
-    icon: CircleHalfDottedClock,
+    icon: EnvelopeArrowRight,
   },
   approved: {
     label: "Approved",
