@@ -19,11 +19,6 @@ enum CommissionInterval {
   year
 }
 
-enum ProgramResourceType {
-  logo
-  files
-}
-
 model Program {
   id                String      @id @default(cuid())
   workspaceId       String
