@@ -364,6 +364,7 @@ export async function processLink<T extends Record<string, any>>({
           code: "not_found",
         };
       }
+
       const tags = await prisma.tag.findMany({
         select: {
           name: true,
