@@ -10,14 +10,13 @@ const markPayoutPaidSchema = z.object({
   workspaceId: z.string(),
   programId: z.string(),
   payoutId: z.string(),
-  paidAt: z.string().datetime().nullish(),
 });
 
 export const markPayoutPaidAction = authActionClient
   .schema(markPayoutPaidSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { programId, payoutId, paidAt } = parsedInput;
+    const { programId, payoutId } = parsedInput;
 
     await getProgramOrThrow({
       workspaceId: workspace.id,
@@ -35,7 +34,7 @@ export const markPayoutPaidAction = authActionClient
       },
       data: {
         status: "completed",
-        paidAt: paidAt ? new Date(paidAt) : new Date(),
+        paidAt: new Date(),
       },
     });
   });
