@@ -1,5 +1,5 @@
-import { connect } from "@planetscale/database";
+import { createConnection } from "mysql2/promise";
 
-export const conn = connect({
-  url: process.env.PLANETSCALE_DATABASE_URL || process.env.DATABASE_URL,
+export const conn = createConnection({
+  uri: process.env.DATABASE_URL,
 });

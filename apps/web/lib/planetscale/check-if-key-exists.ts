@@ -23,11 +23,13 @@ export const checkIfKeyExists = async ({
         // (cause that's how we store it in MySQL)
         punyEncode(decodeURIComponent(key));
 
-  const { rows } =
-    (await conn.execute(
-      "SELECT 1 FROM Link WHERE domain = ? AND `key` = ? LIMIT 1",
-      [domain, keyToQuery],
-    )) || {};
+  const [rows] =
+    (await (
+      await conn
+    ).execute("SELECT 1 FROM Link WHERE domain = ? AND `key` = ? LIMIT 1", [
+      domain,
+      keyToQuery,
+    ])) || {};
 
   return rows && Array.isArray(rows) && rows.length > 0;
 };

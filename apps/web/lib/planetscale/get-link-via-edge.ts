@@ -25,8 +25,10 @@ export const getLinkViaEdge = async ({
         // (cause that's how we store it in MySQL)
         punyEncode(decodeURIComponent(key));
 
-  const { rows } =
-    (await conn.execute("SELECT * FROM Link WHERE domain = ? AND `key` = ?", [
+  const [rows] =
+    (await (
+      await conn
+    ).execute("SELECT * FROM Link WHERE domain = ? AND `key` = ?", [
       domain,
       keyToQuery,
     ])) || {};
