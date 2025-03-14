@@ -18,83 +18,78 @@ const CORS_HEADERS = {
 };
 
 // POST /api/track/visit – Track a visit event from the client-side
-export const POST = withAxiom(
-  async (req: AxiomRequest) => {
-    try {
-      const { domain, url, referrer } = await parseRequestBody(req);
+export const POST = withAxiom(async (req: AxiomRequest) => {
+  try {
+    const { domain, url, referrer } = await parseRequestBody(req);
 
-      if (!domain || !url) {
-        throw new DubApiError({
-          code: "bad_request",
-          message: "Missing domain or url",
-        });
-      }
+    if (!domain || !url) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Missing domain or url",
+      });
+    }
 
-      const urlObj = new URL(url);
+    const urlObj = new URL(url);
 
-      let key = urlObj.pathname.slice(1);
-      if (key === "") {
-        key = "_root";
-      }
+    let key = urlObj.pathname.slice(1);
+    if (key === "") {
+      key = "_root";
+    }
 
-      const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
-      const cacheKey = `recordClick:${domain}:${key}:${ip}`;
+    const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
+    const cacheKey = `recordClick:${domain}:${key}:${ip}`;
 
-      let clickId = await redis.get<string>(cacheKey);
+    let clickId = await redis.get<string>(cacheKey);
 
-      // only generate + record a new click ID if it's not already cached in Redis
-      if (!clickId) {
-        clickId = nanoid(16);
+    // only generate + record a new click ID if it's not already cached in Redis
+    if (!clickId) {
+      clickId = nanoid(16);
 
-        let link = await getLinkWithAllowedHostnames(domain, key);
+      let link = await getLinkWithAllowedHostnames(domain, key);
 
-        if (!link) {
-          return NextResponse.json(
-            {
-              clickId: null,
-            },
-            {
-              headers: CORS_HEADERS,
-            },
-          );
-        }
-
-        const allowedHostnames = link.allowedHostnames;
-        verifyAnalyticsAllowedHostnames({ allowedHostnames, req });
-
-        const finalUrl = isValidUrl(url) ? url : link.url;
-
-        waitUntil(
-          recordClick({
-            req,
-            clickId,
-            linkId: link.id,
-            domain,
-            key,
-            url: finalUrl,
-            workspaceId: link.projectId,
-            skipRatelimit: true,
-            ...(referrer && { referrer }),
-          }),
+      if (!link) {
+        return NextResponse.json(
+          {
+            clickId: null,
+          },
+          {
+            headers: CORS_HEADERS,
+          },
         );
       }
 
-      return NextResponse.json(
-        {
+      const allowedHostnames = link.allowedHostnames;
+      verifyAnalyticsAllowedHostnames({ allowedHostnames, req });
+
+      const finalUrl = isValidUrl(url) ? url : link.url;
+
+      waitUntil(
+        recordClick({
+          req,
           clickId,
-        },
-        {
-          headers: CORS_HEADERS,
-        },
+          linkId: link.id,
+          domain,
+          key,
+          url: finalUrl,
+          workspaceId: link.projectId,
+          skipRatelimit: true,
+          ...(referrer && { referrer }),
+        }),
       );
-    } catch (error) {
-      return handleAndReturnErrorResponse(error, CORS_HEADERS);
     }
-  },
-  {
-    logRequestDetails: ["nextUrl"],
-  },
-);
+
+    return NextResponse.json(
+      {
+        clickId,
+      },
+      {
+        headers: CORS_HEADERS,
+      },
+    );
+  } catch (error) {
+    return handleAndReturnErrorResponse(error, CORS_HEADERS);
+  }
+});
 
 export const OPTIONS = () => {
   return new Response(null, {
