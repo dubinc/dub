@@ -12,6 +12,8 @@ export function ProgramInviteCard({
 }: {
   programEnrollment: ProgramEnrollmentProps;
 }) {
+  const { program } = programEnrollment;
+
   const { executeAsync, isPending } = useAction(acceptProgramInviteAction, {
     onSuccess: async () => {
       await mutatePrefix("/api/partner-profile/programs");
@@ -21,8 +23,6 @@ export function ProgramInviteCard({
       toast.error(error.serverError);
     },
   });
-
-  const { program } = programEnrollment;
 
   return (
     <div className="hover:drop-shadow-card-hover relative flex flex-col items-center justify-center gap-2 rounded-md border border-neutral-300 bg-neutral-50 p-4 transition-[filter]">

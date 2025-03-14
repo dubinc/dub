@@ -1,9 +1,15 @@
+import { getEvents } from "@/lib/analytics/get-events";
 import { createId } from "@/lib/api/create-id";
+import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
+import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
+import { SaleEvent } from "@/lib/types";
 import { prisma } from "@dub/prisma";
+import { EventType } from "@prisma/client";
 import "dotenv-flow/config";
 
 async function main() {
   const programInvites = await prisma.programInvite.findMany({
+    where: {},
     include: {
       link: true,
     },
@@ -53,5 +59,91 @@ async function main() {
     });
   }
 }
+
+const recordSalesAsCommissions = async ({
+  link,
+  programId,
+  partnerId,
+}: {
+  link;
+  programId: string;
+  partnerId: string;
+}) => {
+  if (link.sales === 0) {
+    console.log(`Link ${link.id} has no sales, skipping backfill`);
+    return;
+  }
+
+  const reward = await determinePartnerReward({
+    programId,
+    partnerId,
+    event: "sale",
+  });
+
+  if (!reward) {
+    return;
+  }
+
+  const { program, partner } = await prisma.programEnrollment.findUniqueOrThrow(
+    {
+      where: {
+        partnerId_programId: {
+          partnerId,
+          programId,
+        },
+      },
+      include: {
+        program: {
+          include: {
+            workspace: true,
+          },
+        },
+        partner: true,
+      },
+    },
+  );
+
+  const { workspace } = program;
+
+  const saleEvents = await getEvents({
+    workspaceId: workspace.id,
+    linkId: link.id,
+    event: "sales",
+    interval: "all",
+    page: 1,
+    limit: 5000,
+    sortOrder: "desc",
+    sortBy: "timestamp",
+  });
+
+  const data = saleEvents.map((e: SaleEvent) => ({
+    id: createId({ prefix: "cm_" }),
+    programId: program.id,
+    partnerId: partner.id,
+    linkId: link.id,
+    invoiceId: e.invoice_id || null,
+    customerId: e.customer.id,
+    eventId: e.eventId,
+    amount: e.sale.amount,
+    type: EventType.sale,
+    quantity: 1,
+    currency: "usd",
+    createdAt: new Date(e.timestamp),
+    earnings: calculateSaleEarnings({
+      reward,
+      sale: {
+        quantity: 1,
+        amount: e.sale.amount,
+      },
+    }),
+  }));
+
+  if (data.length > 0) {
+    await prisma.commission.createMany({
+      data,
+      skipDuplicates: true,
+    });
+  }
+};
 
 main();

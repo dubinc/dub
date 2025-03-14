@@ -8,7 +8,9 @@ import { MaxWidthWrapper } from "@dub/ui";
 import { CircleDollar, GridIcon } from "@dub/ui/icons";
 
 export function PartnersDashboardPageClient() {
-  const { programEnrollments, isLoading } = useProgramEnrollments();
+  const { programEnrollments, isLoading } = useProgramEnrollments({
+    includeRewardsDiscounts: true,
+  });
 
   const invitedProgramEnrollments = programEnrollments?.filter(
     (programEnrollment) => programEnrollment.status === "invited",

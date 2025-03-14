@@ -57,15 +57,6 @@ export const invitePartnerAction = authActionClient
       }
     }
 
-    const partner = await prisma.partner.findUnique({
-      where: {
-        email,
-      },
-      select: {
-        id: true,
-      },
-    });
-
     await createAndEnrollPartner({
       program,
       link,
@@ -75,7 +66,7 @@ export const invitePartnerAction = authActionClient
         email,
       },
       skipEnrollmentCheck: true,
-      status: partner ? "invited" : "approved",
+      status: "invited",
     });
 
     waitUntil(
