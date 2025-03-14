@@ -135,10 +135,12 @@ export function PartnerTable() {
                 <img
                   alt=""
                   src={`https://flag.vercel.app/m/${country}.svg`}
-                  className="h-3 w-4"
+                  className="h-3 w-4 shrink-0"
                 />
               )}
-              {(country ? COUNTRIES[country] : null) ?? "-"}
+              <span className="min-w-0 truncate">
+                {(country ? COUNTRIES[country] : null) ?? "-"}
+              </span>
             </div>
           );
         },

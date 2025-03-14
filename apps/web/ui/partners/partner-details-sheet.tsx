@@ -6,11 +6,13 @@ import usePayouts from "@/lib/swr/use-payouts";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
-import { X } from "@/ui/shared/icons";
+import { ThreeDots, X } from "@/ui/shared/icons";
 import {
   Button,
   buttonVariants,
   CopyButton,
+  MenuItem,
+  Popover,
   Sheet,
   StatusBadge,
   Table,
@@ -18,7 +20,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { GreekTemple } from "@dub/ui/icons";
+import { GreekTemple, User } from "@dub/ui/icons";
 import {
   cn,
   COUNTRIES,
@@ -70,13 +72,16 @@ function PartnerDetailsSheetContent({
           <Sheet.Title className="text-xl font-semibold">
             Partner details
           </Sheet.Title>
-          <Sheet.Close asChild>
-            <Button
-              variant="outline"
-              icon={<X className="size-5" />}
-              className="h-auto w-fit p-1"
-            />
-          </Sheet.Close>
+          <div className="flex items-center gap-2">
+            <Menu partner={partner} />
+            <Sheet.Close asChild>
+              <Button
+                variant="outline"
+                icon={<X className="size-5" />}
+                className="h-auto w-fit p-1"
+              />
+            </Sheet.Close>
+          </div>
         </div>
         <div className="border-y border-neutral-200 bg-neutral-50 p-6">
           {/* Basic info */}
@@ -662,6 +667,37 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
 
   return <Table {...table} />;
 };
+
+function Menu({ partner }: { partner: EnrolledPartnerProps }) {
+  const [openPopover, setOpenPopover] = useState(false);
+
+  return (
+    <Popover
+      content={
+        <div className="grid w-full gap-px p-1.5 sm:w-48">
+          <MenuItem icon={User}>View profile</MenuItem>
+        </div>
+      }
+      align="end"
+      openPopover={openPopover}
+      setOpenPopover={setOpenPopover}
+    >
+      <Button
+        variant="secondary"
+        className={cn(
+          "h-[1.875rem] w-fit px-1.5 outline-none transition-all duration-200",
+          "border-transparent data-[state=open]:border-neutral-500 sm:group-hover/card:data-[state=closed]:border-neutral-200",
+        )}
+        icon={
+          <ThreeDots className="size-[1.125rem] shrink-0 text-neutral-600" />
+        }
+        onClick={() => {
+          setOpenPopover(!openPopover);
+        }}
+      />
+    </Popover>
+  );
+}
 
 export function PartnerDetailsSheet({
   isOpen,
