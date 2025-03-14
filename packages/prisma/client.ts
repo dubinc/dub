@@ -14,7 +14,6 @@ export {
   PayoutType,
   Prisma,
   ProgramEnrollmentStatus,
-  ProgramResourceType,
   ProgramType,
   Role,
   WebhookReceiver,
