@@ -36,13 +36,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
     setValue,
     clearErrors,
     formState: { errors },
-  } = useForm<InvitePartnerFormData>({
-    defaultValues: {
-      name: "Kiran+1",
-      email: "kiran+1@dub.co",
-      linkId: "",
-    },
-  });
+  } = useForm<InvitePartnerFormData>();
 
   const selectedLinkId = watch("linkId");
 
