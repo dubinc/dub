@@ -1,5 +1,6 @@
 "use server";
 
+import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { prisma } from "@dub/prisma";
 import z from "../../zod";
 import { authActionClient } from "../safe-action";
@@ -27,6 +28,7 @@ export const deleteProgramInviteAction = authActionClient
         include: {
           program: true,
           partner: true,
+          links: true,
         },
       });
 
@@ -38,18 +40,20 @@ export const deleteProgramInviteAction = authActionClient
       throw new Error("Invite not found.");
     }
 
-    await prisma.$transaction([
+    // only delete links that have don't have sales / leads
+    const linksToDelete = programEnrollment.links.filter(
+      (link) => link.leads === 0 && link.sales === 0,
+    );
+
+    await Promise.allSettled([
       prisma.programEnrollment.delete({
         where: {
           id: programEnrollment.id,
         },
       }),
-
       prisma.link.deleteMany({
-        where: {
-          partnerId: partner.id,
-          programId,
-        },
+        where: { id: { in: linksToDelete.map((link) => link.id) } },
       }),
+      bulkDeleteLinks(linksToDelete),
     ]);
   });
