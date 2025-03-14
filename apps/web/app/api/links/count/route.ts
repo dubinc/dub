@@ -11,7 +11,7 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(
   async ({ headers, searchParams, workspace, session }) => {
     const params = getLinksCountQuerySchema.parse(searchParams);
-    let {
+    const {
       groupBy,
       domain,
       folderId,
@@ -40,8 +40,6 @@ export const GET = withWorkspace(
           message: "Cannot get links count for mega folders.",
         });
       }
-    } else {
-      folderId = workspace.defaultFolderId ?? undefined;
     }
 
     /* we only need to get the folder ids if we are:
