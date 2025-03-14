@@ -73,6 +73,7 @@ model Link {
   dashboard         Dashboard?
   partnerId         String?
   programEnrollment ProgramEnrollment? @relation(fields: [programId, partnerId], references: [programId, partnerId])
+  programInvite     ProgramInvite?
 
   program     Program?     @relation(fields: [programId], references: [id])
   customers   Customer[]
