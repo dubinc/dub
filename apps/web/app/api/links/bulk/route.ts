@@ -123,7 +123,9 @@ export const POST = withWorkspace(
       });
 
       const workspaceTagIds = workspaceTags.map(({ id }) => id);
-      const workspaceTagNames = workspaceTags.map(({ name }) => name);
+      const workspaceTagNames = workspaceTags.map(({ name }) =>
+        name.toLowerCase(),
+      );
 
       validLinks.forEach((link, index) => {
         const combinedTagIds =
@@ -147,7 +149,7 @@ export const POST = withWorkspace(
         }
 
         const invalidTagNames = link.tagNames?.filter(
-          (name) => !workspaceTagNames.includes(name),
+          (name) => !workspaceTagNames.includes(name.toLowerCase()),
         );
 
         if (invalidTagNames?.length) {
