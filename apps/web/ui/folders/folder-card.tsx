@@ -62,13 +62,13 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
           <span className="truncate">{folder.name}</span>
 
           {folder.id === "unsorted" && (
-            <div className="rounded bg-neutral-100 p-1">
+            <div className="rounded bg-neutral-100 px-1 py-0.5">
               <div className="text-xs font-normal text-black">Unsorted</div>
             </div>
           )}
 
           {isDefault && (
-            <div className="rounded bg-blue-100 p-1">
+            <div className="rounded bg-blue-100 px-1 py-0.5">
               <div className="text-xs font-normal text-blue-700">Default</div>
             </div>
           )}
