@@ -13,6 +13,7 @@ import {
   Users,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { Bookmark } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -37,6 +38,7 @@ export const FolderActions = ({
   const permissionsError = clientAccessCheck({
     action: "workspaces.write",
     role,
+    customPermissionDescription: "set a default folder",
   }).error;
 
   const canUpdateFolder = useCheckFolderPermission(folder.id, "folders.write");
@@ -65,22 +67,33 @@ export const FolderActions = ({
     });
   };
 
+  const unsortedLinks = folder.id === "unsorted";
+  const isDefault = isDefaultFolder({ folder, defaultFolderId });
+  const canMakeDefault =
+    !isDefault && !permissionsError && folder.accessLevel != null;
+
   useKeyboardShortcut(
     ["r", "m", "i", "x", "a", "d"],
     (e) => {
       setOpenPopover(false);
       switch (e.key) {
         case "a":
-          router.push(`/${workspaceSlug}/analytics?folderId=${folder.id}`);
+          if (!unsortedLinks) {
+            router.push(`/${workspaceSlug}/analytics?folderId=${folder.id}`);
+          }
           break;
         case "m":
-          setShowFolderPermissionsPanel(true);
+          if (!unsortedLinks) {
+            setShowFolderPermissionsPanel(true);
+          }
           break;
         case "i":
-          copyFolderId();
+          if (!unsortedLinks) {
+            copyFolderId();
+          }
           break;
         case "d":
-          if (!permissionsError) {
+          if (canMakeDefault) {
             setShowDefaultFolderModal(true);
           }
           break;
@@ -100,16 +113,6 @@ export const FolderActions = ({
       enabled: openPopover,
     },
   );
-
-  const unsortedLinks = folder.id === "unsorted";
-  const isDefault = isDefaultFolder({ folder, defaultFolderId });
-
-  if (isDefault && unsortedLinks) {
-    return null;
-  }
-
-  const canMakeDefault =
-    !isDefault && !permissionsError && folder.accessLevel != null;
 
   return (
     <>
@@ -135,6 +138,7 @@ export const FolderActions = ({
                   shortcut="A"
                   className="h-9 px-2 font-medium"
                 />
+
                 <Button
                   text="Members"
                   variant="outline"
@@ -167,21 +171,29 @@ export const FolderActions = ({
                 />
               )}
 
-              {canMakeDefault && (
-                <Button
-                  text="Set as Default"
-                  variant="outline"
-                  onClick={() => {
-                    setOpenPopover(false);
-                    setShowDefaultFolderModal(true);
-                  }}
-                  icon={<CircleCheck className="h-4 w-4" />}
-                  shortcut="D"
-                  className="h-9 px-2 font-medium"
-                />
-              )}
+              <Button
+                text="Set as Default"
+                variant="outline"
+                onClick={() => {
+                  setOpenPopover(false);
+                  setShowDefaultFolderModal(true);
+                }}
+                icon={<Bookmark className="h-4 w-4" />}
+                shortcut="D"
+                className="h-9 px-2 font-medium"
+                disabled={!canMakeDefault}
+                disabledTooltip={
+                  permissionsError
+                    ? permissionsError
+                    : isDefault
+                      ? "This is the workspace's default folder."
+                      : folder.accessLevel === null
+                        ? "Only folders with workspace access can be set as default."
+                        : undefined
+                }
+              />
 
-              {canUpdateFolder && (
+              {!unsortedLinks && (
                 <>
                   <Button
                     text="Rename"
@@ -193,6 +205,12 @@ export const FolderActions = ({
                     icon={<PenWriting className="h-4 w-4" />}
                     shortcut="R"
                     className="h-9 px-2 font-medium"
+                    disabled={!canUpdateFolder}
+                    disabledTooltip={
+                      !canUpdateFolder
+                        ? "Only folder owners can rename a folder."
+                        : undefined
+                    }
                   />
 
                   <Button
@@ -205,6 +223,12 @@ export const FolderActions = ({
                     icon={<Delete className="h-4 w-4" />}
                     shortcut="X"
                     className="h-9 px-2 font-medium"
+                    disabled={!canUpdateFolder}
+                    disabledTooltip={
+                      !canUpdateFolder
+                        ? "Only folder owners can delete a folder."
+                        : undefined
+                    }
                   />
                 </>
               )}
