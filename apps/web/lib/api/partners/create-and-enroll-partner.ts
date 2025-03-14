@@ -11,7 +11,7 @@ import {
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { Prisma, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
 import { includeTags } from "../links/include-tags";
@@ -22,6 +22,7 @@ export const createAndEnrollPartner = async ({
   link,
   partner,
   tenantId,
+  status = "approved",
   skipEnrollmentCheck = false,
 }: {
   program: Pick<ProgramProps, "id" | "defaultFolderId">;
@@ -32,6 +33,7 @@ export const createAndEnrollPartner = async ({
     "email" | "name" | "image" | "country" | "description"
   >;
   tenantId?: string;
+  status?: ProgramEnrollmentStatus;
   skipEnrollmentCheck?: boolean;
 }) => {
   if (!skipEnrollmentCheck && partner.email) {
@@ -81,7 +83,7 @@ export const createAndEnrollPartner = async ({
             id: link.id,
           },
         },
-        status: "approved",
+        status,
       },
     },
   };

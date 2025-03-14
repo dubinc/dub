@@ -510,7 +510,7 @@ function PartnerRejectButton({
     <Button
       type="button"
       variant="secondary"
-      text={isPending ? "" : "Decline"}
+      text={isPending ? "" : "Reject"}
       loading={isPending}
       onClick={async () => {
         await executeAsync({
