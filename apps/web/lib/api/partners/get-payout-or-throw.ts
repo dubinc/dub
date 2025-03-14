@@ -12,15 +12,21 @@ export async function getPayoutOrThrow({
   const payout = await prisma.payout.findUnique({
     where: {
       id: payoutId,
-      programId,
     },
   });
 
-  if (!payout)
+  if (!payout) {
     throw new DubApiError({
       code: "not_found",
       message: "Payout not found.",
     });
+  }
 
+  if (payout.programId !== programId) {
+    throw new DubApiError({
+      code: "not_found",
+      message: "Payout does not belong to the program.",
+    });
+  }
   return PayoutSchema.parse(payout);
 }
