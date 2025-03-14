@@ -9,9 +9,11 @@ enum CommissionType {
 }
 
 enum ProgramEnrollmentStatus {
-  approved
-  pending
-  rejected
+  invited // partner who already has an account
+  approved // partner who doesn't have an account
+  rejected // program rejected the partner
+  declined // partner declined the invite
+  pending // pending applications that need approval
 }
 
 enum CommissionInterval {
@@ -49,7 +51,6 @@ model Program {
   payouts         Payout[]
   invoices        Invoice[]
   applications    ProgramApplication[]
-  invites         ProgramInvite[]
   links           Link[]
   commissions     Commission[]
   rewards         Reward[]
@@ -104,18 +105,4 @@ model ProgramApplication {
 
   @@index([programId])
   @@index([partnerId])
-}
-
-model ProgramInvite {
-  id        String   @id @default(cuid())
-  programId String
-  email     String
-  linkId    String   @unique
-  createdAt DateTime @default(now())
-
-  program Program @relation(fields: [programId], references: [id])
-  link    Link?   @relation(fields: [linkId], references: [id])
-
-  @@unique([email, programId])
-  @@index([programId])
 }

@@ -1,4 +1,4 @@
-import { addPartnerAction } from "@/lib/actions/partners/add-partner";
+import { invitePartnerAction } from "@/lib/actions/partners/invite-partner";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -60,7 +60,7 @@ function AddPartnerSheetContent({ setIsOpen }: AddPartnerSheetProps) {
 
   const selectedLinkId = watch("linkId");
 
-  const { executeAsync, isPending } = useAction(addPartnerAction, {
+  const { executeAsync, isPending } = useAction(invitePartnerAction, {
     onSuccess: async () => {
       toast.success(
         `Successfully ${

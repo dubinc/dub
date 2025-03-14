@@ -1,6 +1,6 @@
 import { PageContent } from "@/ui/layout/page-content";
 import { MaxWidthWrapper } from "@dub/ui";
-import { AddPartnerButton } from "../add-partner-button";
+import { InvitePartnerButton } from "../invite-partner-button";
 import { ProgramPartnersInvitesPageClient } from "./page-client";
 
 export default function ProgramPartners({
@@ -12,7 +12,7 @@ export default function ProgramPartners({
     <PageContent
       title="Invited partners"
       titleBackButtonLink={`/${slug}/programs/${programId}/partners`}
-      titleControls={<AddPartnerButton />}
+      titleControls={<InvitePartnerButton />}
     >
       <MaxWidthWrapper>
         <ProgramPartnersInvitesPageClient />

@@ -400,3 +400,11 @@ export const updatePartnerSaleSchema = z
       path: ["amount"],
     },
   );
+
+export const invitePartnerSchema = z.object({
+  workspaceId: z.string(),
+  programId: z.string(),
+  name: z.string().trim().min(1).max(100),
+  email: z.string().trim().email().min(1).max(100),
+  linkId: z.string(),
+});
