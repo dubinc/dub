@@ -4,6 +4,7 @@ import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutResponse } from "@/lib/types";
 import { AmountRowItem } from "@/ui/partners/amount-row-item";
+import { useMarkAsPaidModal } from "@/ui/partners/mark-as-paid-modal";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PayoutDetailsSheet } from "@/ui/partners/payout-details-sheet";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
@@ -262,54 +263,59 @@ function RowMenuButton({ row }: { row: Row<PayoutResponse> }) {
   const { slug, programId } = useParams();
   const [isOpen, setIsOpen] = useState(false);
 
+  const { setShowMarkAsPaidModal, MarkAsPaidModal } = useMarkAsPaidModal({
+    payout: row.original,
+  });
+
   const isSales = row.original.type === "sales";
   const isPayable = ["pending", "failed"].includes(row.original.status);
 
   if (!isSales && !isPayable) return null;
 
   return (
-    <Popover
-      openPopover={isOpen}
-      setOpenPopover={setIsOpen}
-      content={
-        <Command tabIndex={0} loop className="focus:outline-none">
-          <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm sm:w-auto sm:min-w-[140px]">
-            {isSales && (
-              <MenuItem
-                icon={MoneyBills2}
-                label="View sales"
-                onSelect={() => {
-                  router.push(
-                    `/${slug}/programs/${programId}/sales?payoutId=${row.original.id}&interval=all`,
-                  );
-                  setIsOpen(false);
-                }}
-              />
-            )}
-            {isPayable && (
-              <MenuItem
-                icon={CircleCheck}
-                label="Mark as paid"
-                onSelect={() => {
-                  router.push(
-                    `/${slug}/programs/${programId}/sales?payoutId=${row.original.id}&interval=all`,
-                  );
-                  setIsOpen(false);
-                }}
-              />
-            )}
-          </Command.List>
-        </Command>
-      }
-      align="end"
-    >
-      <Button
-        type="button"
-        className="h-8 whitespace-nowrap px-2"
-        variant="outline"
-        icon={<Dots className="h-4 w-4 shrink-0" />}
-      />
-    </Popover>
+    <>
+      <MarkAsPaidModal />
+      <Popover
+        openPopover={isOpen}
+        setOpenPopover={setIsOpen}
+        content={
+          <Command tabIndex={0} loop className="focus:outline-none">
+            <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm sm:w-auto sm:min-w-[140px]">
+              {isSales && (
+                <MenuItem
+                  icon={MoneyBills2}
+                  label="View sales"
+                  onSelect={() => {
+                    router.push(
+                      `/${slug}/programs/${programId}/sales?payoutId=${row.original.id}&interval=all`,
+                    );
+                    setIsOpen(false);
+                  }}
+                />
+              )}
+              {isPayable && (
+                <MenuItem
+                  icon={CircleCheck}
+                  label="Mark as paid"
+                  onSelect={() => {
+                    setShowMarkAsPaidModal(true);
+                    setIsOpen(false);
+                  }}
+                />
+              )}
+            </Command.List>
+          </Command>
+        }
+        align="end"
+      >
+        <Button
+          type="button"
+          className="h-8 whitespace-nowrap px-2"
+          variant="outline"
+          icon={<Dots className="h-4 w-4 shrink-0" />}
+        />
+      </Popover>
+    </>
   );
 }
 
