@@ -1,5 +1,6 @@
 "use server";
 
+import { createId } from "@/lib/api/create-id";
 import { storage } from "@/lib/storage";
 import {
   programResourceColorSchema,
@@ -84,7 +85,7 @@ export const addProgramResourceAction = authActionClient
         throw new Error("File size is too large");
 
       const newResource = programResourceFileSchema.parse({
-        id: nanoid(10),
+        id: createId({ prefix: "pgr_" }),
         name,
         size: fileSize,
         url: uploadResult.url,
@@ -100,7 +101,7 @@ export const addProgramResourceAction = authActionClient
       const { color } = parsedInput;
 
       const newResource = programResourceColorSchema.parse({
-        id: nanoid(10),
+        id: createId({ prefix: "pgr_" }),
         name,
         color,
       });

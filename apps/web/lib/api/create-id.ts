@@ -19,6 +19,7 @@ const prefixes = [
   "pga_",
   "pgi_",
   "pge_",
+  "pgr_",
   "inv_",
   "cm_",
   "rw_",
