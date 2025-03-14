@@ -18,15 +18,16 @@ export const markPayoutPaidAction = authActionClient
     const { workspace } = ctx;
     const { programId, payoutId } = parsedInput;
 
-    await getProgramOrThrow({
-      workspaceId: workspace.id,
-      programId,
-    });
-
-    const payout = await getPayoutOrThrow({
-      payoutId,
-      programId,
-    });
+    const [_program, payout] = await Promise.all([
+      getProgramOrThrow({
+        workspaceId: workspace.id,
+        programId,
+      }),
+      getPayoutOrThrow({
+        payoutId,
+        programId,
+      }),
+    ]);
 
     await prisma.payout.update({
       where: {
