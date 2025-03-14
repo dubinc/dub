@@ -9,20 +9,27 @@ enum PartnerRole {
   member
 }
 
+enum PartnerProfileType {
+  individual
+  company
+}
+
 model Partner {
-  id                String        @id @default(cuid())
+  id                String             @id @default(cuid())
   name              String
-  email             String?       @unique
+  companyName       String?
+  profileType       PartnerProfileType @default(individual)
+  email             String?            @unique
   image             String?
-  bio               String?       @db.LongText
-  description       String?       @db.LongText
+  bio               String?            @db.LongText
+  description       String?            @db.LongText
   country           String?
-  status            PartnerStatus @default(default)
-  stripeConnectId   String?       @unique
+  status            PartnerStatus      @default(default)
+  stripeConnectId   String?            @unique
   payoutsEnabledAt  DateTime?
-  showOnLeaderboard Boolean       @default(true)
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
+  showOnLeaderboard Boolean            @default(true)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
 
   programs     ProgramEnrollment[]
   applications ProgramApplication[]
@@ -30,23 +37,23 @@ model Partner {
   invites      PartnerInvite[]
   payouts      Payout[]
   commissions  Commission[]
-  
-  website            String?
-  websiteTxtRecord   String?
-  websiteVerifiedAt  DateTime?
-  
+
+  website           String?
+  websiteTxtRecord  String?
+  websiteVerifiedAt DateTime?
+
   youtube           String?
   youtubeVerifiedAt DateTime?
-  
+
   twitter           String?
   twitterVerifiedAt DateTime?
-  
-  linkedin          String?
+
+  linkedin           String?
   linkedinVerifiedAt DateTime?
-  
+
   instagram           String?
   instagramVerifiedAt DateTime?
-  
+
   tiktok           String?
   tiktokVerifiedAt DateTime?
 }

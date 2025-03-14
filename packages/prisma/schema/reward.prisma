@@ -11,9 +11,9 @@ model Reward {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  defaultForProgram  Program?        @relation("ProgramDefaultReward")
-  program            Program         @relation(fields: [programId], references: [id], onDelete: Cascade)
-  partners           PartnerReward[]
+  defaultForProgram Program?        @relation("ProgramDefaultReward")
+  program           Program         @relation(fields: [programId], references: [id], onDelete: Cascade)
+  partners          PartnerReward[]
 
   @@index(programId)
   @@index(event) // used in /api/cron/aggregate-clicks
