@@ -25,7 +25,9 @@ export function SelectFile() {
     countCsvRows(file)
       .then((rowCount) => {
         if (rowCount > MAX_ROWS_LIMIT) {
-          setError("CSV file exceeds the maximum limit of 50,000 rows.");
+          setError(
+            "CSV file exceeds the maximum limit of 50,000 rows. Please split the file into multiple files and upload them separately.",
+          );
           setFileColumns(null);
           setFirstRows(null);
           return;
