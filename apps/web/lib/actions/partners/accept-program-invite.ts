@@ -12,56 +12,43 @@ import { z } from "zod";
 import { authPartnerActionClient } from "../safe-action";
 
 const acceptProgramInviteSchema = z.object({
-  programInviteId: z.string(),
+  partnerId: z.string(),
+  programId: z.string(),
 });
 
 export const acceptProgramInviteAction = authPartnerActionClient
   .schema(acceptProgramInviteSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { partner } = ctx;
-    const { programInviteId } = parsedInput;
+    const { programId } = parsedInput;
 
-    const programInvite = await prisma.programInvite.findUniqueOrThrow({
-      where: { id: programInviteId },
+    const programEnrollment = await prisma.programEnrollment.update({
+      where: {
+        partnerId_programId: {
+          partnerId: partner.id,
+          programId,
+        },
+        status: "invited",
+      },
+      data: {
+        status: "approved",
+      },
+      include: {
+        links: true,
+      },
     });
 
-    // enroll partner in program and delete the invite
-    const [programEnrollment, _] = await Promise.all([
-      prisma.programEnrollment.create({
-        data: {
-          id: createId({ prefix: "pge_" }),
-          programId: programInvite.programId,
+    if (programEnrollment) {
+      const partnerLink = programEnrollment.links[0];
+
+      waitUntil(
+        recordSalesAsCommissions({
+          link: partnerLink,
+          programId: programEnrollment.programId,
           partnerId: partner.id,
-          status: "approved",
-          links: {
-            connect: {
-              id: programInvite.linkId,
-            },
-          },
-        },
-        include: {
-          links: true,
-        },
-      }),
-      prisma.programInvite.delete({
-        where: { id: programInvite.id },
-      }),
-    ]);
-
-    const partnerLink = programEnrollment.links[0];
-
-    // TODO: send partner.created webhook
-    waitUntil(
-      recordSalesAsCommissions({
-        link: partnerLink,
-        programId: programEnrollment.programId,
-        partnerId: partner.id,
-      }),
-    );
-
-    return {
-      id: programEnrollment.id,
-    };
+        }),
+      );
+    }
   });
 
 const recordSalesAsCommissions = async ({
