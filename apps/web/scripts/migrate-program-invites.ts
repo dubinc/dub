@@ -1,3 +1,4 @@
+import { createId } from "@/lib/api/create-id";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
@@ -23,6 +24,7 @@ async function main() {
       },
       update: {},
       create: {
+        id: createId({ prefix: "pn_" }),
         name: programInvite.email.split("@")[0],
         email: programInvite.email,
       },
@@ -30,6 +32,7 @@ async function main() {
 
     await prisma.programEnrollment.create({
       data: {
+        id: createId({ prefix: "pge_" }),
         programId: programInvite.programId,
         partnerId: partner.id,
         status: "invited",
