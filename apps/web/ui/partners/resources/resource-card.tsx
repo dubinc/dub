@@ -4,6 +4,7 @@ import { ProgramResourceType } from "@/lib/zod/schemas/program-resources";
 import { ThreeDots } from "@/ui/shared/icons";
 import {
   Button,
+  buttonVariants,
   Check,
   Copy,
   Download,
@@ -75,18 +76,19 @@ export function ResourceCard({
                     href={downloadUrl}
                     {...(resourceType === "logo"
                       ? {
-                          download: downloadUrl,
+                          download: true,
                         }
                       : {
                           target: "_blank",
                         })}
+                    className={cn(
+                      buttonVariants({ variant: "outline" }),
+                      "flex h-9 items-center justify-start gap-2 rounded-md px-2 text-sm font-medium",
+                    )}
+                    onClick={() => setOpenPopover(false)}
                   >
-                    <Button
-                      text="Download"
-                      variant="outline"
-                      icon={<Download className="size-4" />}
-                      className="h-9 justify-start px-2 font-medium"
-                    />
+                    <Download className="size-4" />
+                    Download
                   </a>
                 )}
                 {copyText && (
@@ -156,17 +158,19 @@ export function ResourceCard({
                 href={downloadUrl}
                 {...(resourceType === "logo"
                   ? {
-                      download: downloadUrl,
+                      download: true,
                     }
                   : {
                       target: "_blank",
                     })}
+                className={cn(
+                  buttonVariants({ variant: "secondary" }),
+                  "flex h-8 items-center justify-start gap-2 rounded-md border px-2 text-sm",
+                )}
+                onClick={() => setOpenPopover(false)}
               >
-                <Button
-                  icon={<Download className="size-4" />}
-                  text="Download"
-                  variant="secondary"
-                />
+                <Download className="size-4" />
+                Download
               </a>
             )}
             {copyText && (

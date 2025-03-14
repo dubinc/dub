@@ -71,7 +71,17 @@ export const addProgramResourceAction = authActionClient
 
       // Upload the file to storage
       const fileKey = `programs/${program.id}/${resourceType}s/${slugify(name || resourceType)}-${nanoid(4)}${extension ? `.${extension}` : ""}`;
-      const uploadResult = await storage.upload(fileKey, file);
+      const uploadResult = await storage.upload(
+        fileKey,
+        file,
+        resourceType === "logo"
+          ? {
+              headers: {
+                "Content-Disposition": "attachment",
+              },
+            }
+          : undefined,
+      );
 
       if (!uploadResult || !uploadResult.url) {
         throw new Error(`Failed to upload ${resourceType}`);
