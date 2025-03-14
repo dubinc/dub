@@ -50,8 +50,6 @@ export function ResourceCard({
 
   const [copied, copyToClipboard] = useCopyToClipboard();
 
-  const handleDownload = () => window.open(downloadUrl, "_blank");
-
   return (
     <div className="border-border-subtle flex w-full items-center justify-between gap-4 rounded-lg border p-4 shadow-sm">
       <div className="flex min-w-0 items-center gap-4">
@@ -73,16 +71,23 @@ export function ResourceCard({
             content={
               <div className="grid w-full grid-cols-1 gap-px p-2 sm:w-48">
                 {downloadUrl && (
-                  <Button
-                    text="Download"
-                    variant="outline"
-                    onClick={() => {
-                      handleDownload();
-                      setOpenPopover(false);
-                    }}
-                    icon={<Download className="size-4" />}
-                    className="h-9 justify-start px-2 font-medium"
-                  />
+                  <a
+                    href={downloadUrl}
+                    {...(resourceType === "logo"
+                      ? {
+                          download: downloadUrl,
+                        }
+                      : {
+                          target: "_blank",
+                        })}
+                  >
+                    <Button
+                      text="Download"
+                      variant="outline"
+                      icon={<Download className="size-4" />}
+                      className="h-9 justify-start px-2 font-medium"
+                    />
+                  </a>
                 )}
                 {copyText && (
                   <Button
@@ -147,13 +152,22 @@ export function ResourceCard({
         ) : (
           <>
             {downloadUrl && (
-              <Button
-                icon={<Download className="size-4" />}
-                text="Download"
-                variant="secondary"
-                className="h-8 px-3"
-                onClick={handleDownload}
-              />
+              <a
+                href={downloadUrl}
+                {...(resourceType === "logo"
+                  ? {
+                      download: downloadUrl,
+                    }
+                  : {
+                      target: "_blank",
+                    })}
+              >
+                <Button
+                  icon={<Download className="size-4" />}
+                  text="Download"
+                  variant="secondary"
+                />
+              </a>
             )}
             {copyText && (
               <Button
