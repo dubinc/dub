@@ -10,20 +10,16 @@ import { recordLink } from "../lib/tinybird";
 
 async function main() {
   const programInvites = await prisma.programInvite.findMany({
-    where: {
-      programId: "prog_CYCu7IMAapjkRpTnr8F1azjN",
-    },
     include: {
       link: true,
     },
+    take: 10,
   });
 
   if (!programInvites.length) {
     console.log("No program invites found");
     return;
   }
-
-  console.log(programInvites);
 
   for (const programInvite of programInvites) {
     const partner = await prisma.partner.upsert({
@@ -37,6 +33,8 @@ async function main() {
         email: programInvite.email,
       },
     });
+
+    console.log(`Upserted partner ${partner.id}`);
 
     const programEnrollment = await prisma.programEnrollment.upsert({
       where: {
@@ -54,7 +52,7 @@ async function main() {
       },
     });
 
-    console.log("programEnrollment", programEnrollment);
+    console.log(`Upserted program enrollment ${programEnrollment.id}`);
 
     const { link } = programInvite;
     if (link) {
@@ -70,9 +68,10 @@ async function main() {
         })
         .then((link) => recordLink(link));
 
-      console.log("linkRes", linkRes);
+      console.log(`Updated link ${link.id}`);
 
       if (link.sales > 0) {
+        console.log(`Link ${link.id} has sales, recording as commissions`);
         await recordSalesAsCommissions({
           link,
           programId: programInvite.programId,
@@ -86,6 +85,7 @@ async function main() {
         id: programInvite.id,
       },
     });
+    console.log(`Deleted program invite ${programInvite.id}`);
   }
 }
 
