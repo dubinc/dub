@@ -86,6 +86,7 @@ export const POST = withWorkspace(
           program,
           link: partnerLink,
           workspace,
+          user: session.user,
           partner: {
             name: partnerProps.name,
             email: partnerProps.email,
