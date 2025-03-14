@@ -22,7 +22,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Dots, MoneyBill2, MoneyBills2 } from "@dub/ui/icons";
+import { CircleCheck, Dots, MoneyBill2, MoneyBills2 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { formatDate, formatPeriod } from "@dub/utils/src/functions/datetime";
 import { fetcher } from "@dub/utils/src/functions/fetcher";
@@ -162,8 +162,7 @@ const PayoutTableInner = memo(
           minSize: 43,
           size: 43,
           maxSize: 43,
-          cell: ({ row }) =>
-            row.original.type === "sales" ? <RowMenuButton row={row} /> : "",
+          cell: ({ row }) => <RowMenuButton row={row} />,
         },
       ],
       pagination,
@@ -263,23 +262,42 @@ function RowMenuButton({ row }: { row: Row<PayoutResponse> }) {
   const { slug, programId } = useParams();
   const [isOpen, setIsOpen] = useState(false);
 
+  const isSales = row.original.type === "sales";
+  const isPayable = ["pending", "failed"].includes(row.original.status);
+
+  if (!isSales && !isPayable) return null;
+
   return (
     <Popover
       openPopover={isOpen}
       setOpenPopover={setIsOpen}
       content={
         <Command tabIndex={0} loop className="focus:outline-none">
-          <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm sm:w-auto sm:min-w-[130px]">
-            <MenuItem
-              icon={MoneyBills2}
-              label="View sales"
-              onSelect={() => {
-                router.push(
-                  `/${slug}/programs/${programId}/sales?payoutId=${row.original.id}&interval=all`,
-                );
-                setIsOpen(false);
-              }}
-            />
+          <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm sm:w-auto sm:min-w-[140px]">
+            {isSales && (
+              <MenuItem
+                icon={MoneyBills2}
+                label="View sales"
+                onSelect={() => {
+                  router.push(
+                    `/${slug}/programs/${programId}/sales?payoutId=${row.original.id}&interval=all`,
+                  );
+                  setIsOpen(false);
+                }}
+              />
+            )}
+            {isPayable && (
+              <MenuItem
+                icon={CircleCheck}
+                label="Mark as paid"
+                onSelect={() => {
+                  router.push(
+                    `/${slug}/programs/${programId}/sales?payoutId=${row.original.id}&interval=all`,
+                  );
+                  setIsOpen(false);
+                }}
+              />
+            )}
           </Command.List>
         </Command>
       }
