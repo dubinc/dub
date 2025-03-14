@@ -1,4 +1,3 @@
-import { getEvents } from "@/lib/analytics/get-events";
 import { createId } from "@/lib/api/create-id";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
@@ -6,14 +5,17 @@ import { SaleEvent } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { EventType } from "@prisma/client";
 import "dotenv-flow/config";
+import { getEvents } from "../lib/analytics/get-events";
+import { recordLink } from "../lib/tinybird";
 
 async function main() {
   const programInvites = await prisma.programInvite.findMany({
-    where: {},
+    where: {
+      programId: "prog_CYCu7IMAapjkRpTnr8F1azjN",
+    },
     include: {
       link: true,
     },
-    take: 1,
   });
 
   if (!programInvites.length) {
@@ -36,7 +38,7 @@ async function main() {
       },
     });
 
-    await prisma.programEnrollment.upsert({
+    const programEnrollment = await prisma.programEnrollment.upsert({
       where: {
         partnerId_programId: {
           partnerId: partner.id,
@@ -51,6 +53,33 @@ async function main() {
         status: "invited",
       },
     });
+
+    console.log("programEnrollment", programEnrollment);
+
+    const { link } = programInvite;
+    if (link) {
+      const linkRes = await prisma.link
+        .update({
+          where: {
+            id: link.id,
+          },
+          data: {
+            programId: programInvite.programId,
+            partnerId: partner.id,
+          },
+        })
+        .then((link) => recordLink(link));
+
+      console.log("linkRes", linkRes);
+
+      if (link.sales > 0) {
+        await recordSalesAsCommissions({
+          link,
+          programId: programInvite.programId,
+          partnerId: partner.id,
+        });
+      }
+    }
 
     await prisma.programInvite.delete({
       where: {

@@ -358,6 +358,13 @@ function RowMenuButton({
                     if (row.original.status !== "invited") {
                       return;
                     }
+                    if (
+                      !window.confirm(
+                        "Are you sure you want to delete this invite? This action cannot be undone.",
+                      )
+                    ) {
+                      return;
+                    }
 
                     await deleteInvite({
                       workspaceId,
