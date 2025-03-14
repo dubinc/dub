@@ -1,6 +1,7 @@
 import { convertToCSV } from "@/lib/analytics/utils";
 import { getAuditLogs } from "@/lib/api/audit-logs/get-audit-logs";
 import { auditLogExportQuerySchema } from "@/lib/api/audit-logs/schemas";
+import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@dub/prisma";
@@ -12,7 +13,14 @@ export const POST = withWorkspace(
       await parseRequestBody(req),
     );
 
-    const program = await prisma.program.findFirst({
+    if (!start || !end) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Must provide start and end dates.",
+      });
+    }
+
+    const program = await prisma.program.findFirstOrThrow({
       where: {
         workspaceId: workspace.id,
       },
@@ -29,12 +37,11 @@ export const POST = withWorkspace(
     });
 
     const csvData = convertToCSV(auditLogs);
-    const fileName = `${workspace.name}_audit_logs.csv`;
 
     return new Response(csvData, {
       headers: {
         "Content-Type": "application/csv",
-        "Content-Disposition": `attachment; filename=${fileName}`,
+        "Content-Disposition": `attachment;`,
       },
     });
   },
