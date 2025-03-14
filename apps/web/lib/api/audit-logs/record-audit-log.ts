@@ -30,7 +30,7 @@ export const recordAuditLog = async (
   };
 
   if (process.env.NODE_ENV === "development") {
-    console.log("Recording audit log", auditLogTB);
+    console.log("Audit log:", auditLogTB);
   }
 
   await recordAuditLogTB(auditLogTB).catch((error) => {
