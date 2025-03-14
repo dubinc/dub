@@ -1,5 +1,4 @@
 const { PrismaPlugin } = require("@prisma/nextjs-monorepo-workaround-plugin");
-const { withAxiom } = require("next-axiom");
 
 const REDIRECT_SEGMENTS = [
   "pricing",
@@ -11,7 +10,7 @@ const REDIRECT_SEGMENTS = [
 ];
 
 /** @type {import('next').NextConfig} */
-module.exports = withAxiom({
+module.exports = {
   reactStrictMode: false,
   transpilePackages: ["shiki", "@dub/prisma", "@dub/email"],
   webpack: (config, { webpack, isServer }) => {
@@ -244,4 +243,4 @@ module.exports = withAxiom({
       },
     ];
   },
-});
+};
