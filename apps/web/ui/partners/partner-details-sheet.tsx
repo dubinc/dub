@@ -43,6 +43,7 @@ import { AnimatedEmptyState } from "../shared/animated-empty-state";
 import { useCreatePayoutSheet } from "./create-payout-sheet";
 import { OnlinePresenceSummary } from "./online-presence-summary";
 import { PartnerLinkSelector } from "./partner-link-selector";
+import { usePartnerProfileSheet } from "./partner-profile-sheet";
 import { PartnerStatusBadges } from "./partner-status-badges";
 import { PayoutStatusBadges } from "./payout-status-badges";
 
@@ -225,7 +226,7 @@ function PartnerDetailsSheetContent({
               {tab === "links" && <PartnerLinks partner={partner} />}
             </>
           ) : (
-            <div className="grid gap-8 text-sm text-neutral-500">
+            <div className="grid grid-cols-1 gap-8 text-sm text-neutral-500">
               <div>
                 <h4 className="font-semibold text-neutral-900">
                   Online presence
@@ -302,7 +303,7 @@ function PartnerApplication({ applicationId }: { applicationId: string }) {
   ];
 
   return (
-    <div className="grid gap-6">
+    <div className="grid grid-cols-1 gap-6">
       {fields.map((field) => (
         <div key={field.title}>
           <h4 className="font-semibold text-neutral-900">{field.title}</h4>
@@ -677,31 +678,42 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
 function Menu({ partner }: { partner: EnrolledPartnerProps }) {
   const [openPopover, setOpenPopover] = useState(false);
 
+  const { partnerProfileSheet, setIsOpen: setPartnerProfileSheetOpen } =
+    usePartnerProfileSheet({ nested: true, partner });
+
   return (
-    <Popover
-      content={
-        <div className="grid w-full gap-px p-1.5 sm:w-48">
-          <MenuItem icon={User}>View profile</MenuItem>
-        </div>
-      }
-      align="end"
-      openPopover={openPopover}
-      setOpenPopover={setOpenPopover}
-    >
-      <Button
-        variant="secondary"
-        className={cn(
-          "h-[1.875rem] w-fit px-1.5 outline-none transition-all duration-200",
-          "border-transparent data-[state=open]:border-neutral-500 sm:group-hover/card:data-[state=closed]:border-neutral-200",
-        )}
-        icon={
-          <ThreeDots className="size-[1.125rem] shrink-0 text-neutral-600" />
+    <>
+      {partnerProfileSheet}
+      <Popover
+        content={
+          <div className="grid w-full gap-px p-1.5 sm:w-48">
+            <MenuItem
+              icon={User}
+              onClick={() => setPartnerProfileSheetOpen(true)}
+            >
+              View profile
+            </MenuItem>
+          </div>
         }
-        onClick={() => {
-          setOpenPopover(!openPopover);
-        }}
-      />
-    </Popover>
+        align="end"
+        openPopover={openPopover}
+        setOpenPopover={setOpenPopover}
+      >
+        <Button
+          variant="secondary"
+          className={cn(
+            "h-[1.875rem] w-fit px-1.5 outline-none transition-all duration-200",
+            "border-transparent data-[state=open]:border-neutral-500 sm:group-hover/card:data-[state=closed]:border-neutral-200",
+          )}
+          icon={
+            <ThreeDots className="size-[1.125rem] shrink-0 text-neutral-600" />
+          }
+          onClick={() => {
+            setOpenPopover(!openPopover);
+          }}
+        />
+      </Popover>
+    </>
   );
 }
 
