@@ -8,6 +8,7 @@ export * from "./arrow-turn-right2";
 export * from "./arrow-up-right";
 export * from "./arrows-opposite-direction-y";
 export * from "./badge-check";
+export * from "./badge-check2-fill";
 export * from "./blog";
 export * from "./bolt";
 export * from "./bolt-fill";

@@ -41,6 +41,7 @@ import { toast } from "sonner";
 import useSWRImmutable from "swr/immutable";
 import { AnimatedEmptyState } from "../shared/animated-empty-state";
 import { useCreatePayoutSheet } from "./create-payout-sheet";
+import { OnlinePresenceSummary } from "./online-presence-summary";
 import { PartnerLinkSelector } from "./partner-link-selector";
 import { PartnerStatusBadges } from "./partner-status-badges";
 import { PayoutStatusBadges } from "./payout-status-badges";
@@ -73,7 +74,7 @@ function PartnerDetailsSheetContent({
             Partner details
           </Sheet.Title>
           <div className="flex items-center gap-2">
-            <Menu partner={partner} />
+            {partner.status === "approved" && <Menu partner={partner} />}
             <Sheet.Close asChild>
               <Button
                 variant="outline"
@@ -224,10 +225,16 @@ function PartnerDetailsSheetContent({
               {tab === "links" && <PartnerLinks partner={partner} />}
             </>
           ) : (
-            <div className="grid gap-6 text-sm text-neutral-500">
+            <div className="grid gap-8 text-sm text-neutral-500">
+              <div>
+                <h4 className="font-semibold text-neutral-900">
+                  Online presence
+                </h4>
+                <OnlinePresenceSummary partner={partner} className="mt-2" />
+              </div>
               <div>
                 <h4 className="font-semibold text-neutral-900">Description</h4>
-                <p className="mt-1.5">
+                <p className="mt-2">
                   {partner.description || (
                     <span className="italic text-neutral-400">
                       No description provided
@@ -236,7 +243,10 @@ function PartnerDetailsSheetContent({
                 </p>
               </div>
               {partner.applicationId && (
-                <PartnerApplication applicationId={partner.applicationId} />
+                <>
+                  <hr className="border-neutral-200" />
+                  <PartnerApplication applicationId={partner.applicationId} />
+                </>
               )}
             </div>
           )}
@@ -281,10 +291,6 @@ function PartnerApplication({ applicationId }: { applicationId: string }) {
   );
 
   const fields = [
-    {
-      title: "Website / Social Media channels",
-      value: application?.website,
-    },
     {
       title: `How do you plan to promote ${program?.name}?`,
       value: application?.proposal,
