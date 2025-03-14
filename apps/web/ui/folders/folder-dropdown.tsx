@@ -37,7 +37,7 @@ export const FolderDropdown = ({
   selectedFolderId,
 }: FolderDropdownProps) => {
   const router = useRouter();
-  const { slug, plan } = useWorkspace();
+  const { slug, plan, defaultFolderId } = useWorkspace();
   const searchParams = useSearchParams();
 
   const [search, setSearch] = useState("");
@@ -65,7 +65,8 @@ export const FolderDropdown = ({
     unsortedLinks,
   );
 
-  const folderId = selectedFolderId || searchParams.get("folderId");
+  const folderId =
+    selectedFolderId || searchParams.get("folderId") || defaultFolderId;
 
   const { folder: selectedFolderData } = useFolder({
     folderId,
@@ -88,7 +89,7 @@ export const FolderDropdown = ({
 
   // Update selected folder when folderId changes and selectedFolderData is available
   useEffect(() => {
-    if (folderId === selectedFolderData?.id) {
+    if (selectedFolderData && folderId === selectedFolderData.id) {
       setSelectedFolder(selectedFolderData);
       onFolderSelect?.(selectedFolderData);
     } else if (!folderId || folderId === "unsorted") {
