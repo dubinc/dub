@@ -64,6 +64,7 @@ export const POST = withAxiom(
             workspaceId: link.projectId,
             skipRatelimit: true,
             ...(referrer && { referrer }),
+            trackConversion: link.trackConversion,
           }),
         );
       }
@@ -81,7 +82,7 @@ export const POST = withAxiom(
     }
   },
   {
-    logRequestDetails: ["body", "nextUrl"],
+    logRequestDetails: ["nextUrl"],
   },
 );
 

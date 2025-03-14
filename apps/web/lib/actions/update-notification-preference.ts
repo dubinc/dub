@@ -2,11 +2,12 @@
 
 import { prisma } from "@dub/prisma";
 import z from "../zod";
+import { notificationTypes } from "../zod/schemas/workspaces";
 import { authActionClient } from "./safe-action";
 
 const schema = z.object({
   workspaceId: z.string(),
-  type: z.enum(["linkUsageSummary", "domainConfigurationUpdates"]),
+  type: notificationTypes,
   value: z.boolean(),
 });
 

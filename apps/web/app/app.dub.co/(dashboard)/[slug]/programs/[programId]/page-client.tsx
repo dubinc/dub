@@ -1,7 +1,7 @@
 "use client";
 
 import useProgram from "@/lib/swr/use-program";
-import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
+import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import { buttonVariants, Grid, useRouterStuff } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
@@ -45,16 +45,18 @@ export default function ProgramOverviewPageClient() {
             <div className="relative flex grow flex-col justify-end">
               <div className="relative p-5 pt-10">
                 <div className="absolute inset-0 bg-neutral-800 [mask-image:linear-gradient(to_bottom,transparent,black_30%)]" />
-                <p className="relative text-xl text-white">
-                  {program.rewards?.[0] && (
-                    <ProgramRewardDescription
-                      reward={program.rewards?.[0]}
+                {program.rewards?.[0] && (
+                  <div className="relative">
+                    <h4 className="text-sm font-semibold text-neutral-200">
+                      Rewards
+                    </h4>
+                    <ProgramRewardList
+                      rewards={program.rewards}
                       discount={program.discounts?.[0]}
-                      amountClassName="text-blue-400 font-medium"
-                      periodClassName="text-white font-medium"
+                      className="mt-2 border-neutral-600 bg-neutral-700 text-neutral-300 [&_li>svg]:text-neutral-50"
                     />
-                  )}
-                </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>

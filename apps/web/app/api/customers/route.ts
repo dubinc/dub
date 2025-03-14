@@ -63,7 +63,14 @@ export const GET = withWorkspace(
                           defaultDiscount: true,
                         },
                       },
-                      partner: true,
+                      partner: {
+                        select: {
+                          id: true,
+                          name: true,
+                          email: true,
+                          image: true,
+                        },
+                      },
                       discount: true,
                     },
                   },

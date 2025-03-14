@@ -10,6 +10,7 @@ import {
   Globe,
   Icon,
   Instagram,
+  LinkedIn,
   TikTok,
   Twitter,
   YouTube,
@@ -26,10 +27,11 @@ import { z } from "zod";
 
 const onlinePresenceSchema = z.object({
   website: parseUrlSchemaAllowEmpty().optional(),
-  instagram: z.string().optional(),
-  tiktok: z.string().optional(),
   youtube: z.string().optional(),
   twitter: z.string().optional(),
+  linkedin: z.string().optional(),
+  instagram: z.string().optional(),
+  tiktok: z.string().optional(),
 });
 
 type OnlinePresenceFormData = z.infer<typeof onlinePresenceSchema>;
@@ -38,10 +40,11 @@ interface OnlinePresenceFormProps {
   variant?: "onboarding" | "settings";
   partner?: {
     website: string | null;
-    instagram: string | null;
-    tiktok: string | null;
     youtube: string | null;
     twitter: string | null;
+    linkedin: string | null;
+    instagram: string | null;
+    tiktok: string | null;
   } | null;
   onSubmitSuccessful?: () => void;
 }
@@ -54,10 +57,11 @@ export function OnlinePresenceForm({
   const form = useForm<OnlinePresenceFormData>({
     defaultValues: {
       website: partner?.website ? getPrettyUrl(partner.website) : undefined,
-      instagram: partner?.instagram || undefined,
-      tiktok: partner?.tiktok || undefined,
       youtube: partner?.youtube || undefined,
       twitter: partner?.twitter || undefined,
+      linkedin: partner?.linkedin || undefined,
+      instagram: partner?.instagram || undefined,
+      tiktok: partner?.tiktok || undefined,
     },
   });
 
@@ -178,12 +182,15 @@ export function OnlinePresenceForm({
               input={
                 <div className="flex rounded-md">
                   <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
-                    youtube.com/@
+                    youtube.com
+                  </span>
+                  <span className="absolute inset-y-0 left-[6.7rem] flex items-center pl-3 text-sm text-neutral-400">
+                    @
                   </span>
                   <input
                     type="text"
                     className={cn(
-                      "block w-full rounded-none rounded-r-md focus:outline-none sm:text-sm",
+                      "block w-full rounded-none rounded-r-md pl-7 focus:outline-none sm:text-sm",
                       errors.youtube
                         ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                         : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
@@ -212,7 +219,7 @@ export function OnlinePresenceForm({
               input={
                 <div className="flex rounded-md">
                   <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
-                    x.com/
+                    x.com
                   </span>
                   <input
                     type="text"
@@ -242,11 +249,46 @@ export function OnlinePresenceForm({
 
             <FormRow
               variant={variant}
+              label="LinkedIn"
+              input={
+                <div className="flex rounded-md">
+                  <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
+                    linkedin.com/in
+                  </span>
+                  <input
+                    type="text"
+                    className={cn(
+                      "block w-full rounded-none rounded-r-md focus:outline-none sm:text-sm",
+                      errors.linkedin
+                        ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                        : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+                    )}
+                    placeholder="handle"
+                    onPaste={onPasteSocial}
+                    {...register("linkedin")}
+                  />
+                </div>
+              }
+              button={
+                <VerifyButton
+                  property="linkedin"
+                  verifiedAtField="linkedinVerifiedAt"
+                  icon={LinkedIn}
+                  onClick={() =>
+                    startVerification("linkedin", getValues("linkedin"))
+                  }
+                  disabledTooltip="LinkedIn verification is coming soon."
+                />
+              }
+            />
+
+            <FormRow
+              variant={variant}
               label="Instagram"
               input={
                 <div className="flex rounded-md">
                   <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
-                    instagram.com/
+                    instagram.com
                   </span>
                   <input
                     type="text"
@@ -281,12 +323,15 @@ export function OnlinePresenceForm({
               input={
                 <div className="flex rounded-md">
                   <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
-                    tiktok.com/@
+                    tiktok.com
+                  </span>
+                  <span className="absolute inset-y-0 left-[5.7rem] flex items-center pl-3 text-sm text-neutral-400">
+                    @
                   </span>
                   <input
                     type="text"
                     className={cn(
-                      "block w-full rounded-none rounded-r-md focus:outline-none sm:text-sm",
+                      "block w-full rounded-none rounded-r-md pl-7 focus:outline-none sm:text-sm",
                       errors.tiktok
                         ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                         : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",

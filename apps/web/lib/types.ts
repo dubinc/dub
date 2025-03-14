@@ -27,6 +27,7 @@ import { clickEventResponseSchema } from "./zod/schemas/clicks";
 import {
   customerActivityResponseSchema,
   customerActivitySchema,
+  CustomerEnrichedSchema,
   CustomerSchema,
 } from "./zod/schemas/customers";
 import { dashboardSchema } from "./zod/schemas/dashboard";
@@ -200,6 +201,8 @@ export interface DomainProps {
   link?: LinkProps;
   registeredDomain?: RegisteredDomainProps;
   logo?: string;
+  appleAppSiteAssociation?: string;
+  assetLinks?: string;
 }
 
 export interface RegisteredDomainProps {
@@ -352,6 +355,8 @@ export type TrackLeadResponse = z.infer<typeof trackLeadResponseSchema>;
 export type TrackSaleResponse = z.infer<typeof trackSaleResponseSchema>;
 
 export type Customer = z.infer<typeof CustomerSchema>;
+
+export type CustomerEnriched = z.infer<typeof CustomerEnrichedSchema>;
 
 export type UsageResponse = z.infer<typeof usageResponse>;
 

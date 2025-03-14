@@ -1,8 +1,7 @@
 import { getProgram } from "@/lib/fetchers/get-program";
-import { getReward } from "@/lib/fetchers/get-reward";
+import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import { notFound } from "next/navigation";
 import { CSSProperties } from "react";
-import { DetailsGrid } from "../details-grid";
 import { Header } from "../header";
 import { ProgramApplicationForm } from "./form";
 
@@ -11,13 +10,14 @@ export default async function ApplicationPage({
 }: {
   params: { programSlug: string };
 }) {
-  const program = await getProgram({ slug: programSlug });
+  const program = await getProgram({
+    slug: programSlug,
+    include: ["rewards", "defaultDiscount"],
+  });
 
   if (!program || !program.defaultRewardId) {
     notFound();
   }
-
-  const reward = await getReward({ id: program.defaultRewardId });
 
   return (
     <div
@@ -49,8 +49,16 @@ export default async function ApplicationPage({
           </p>
         </div>
 
-        {/* Program details grid */}
-        <DetailsGrid reward={reward} className="mt-10" />
+        <div className="mt-10">
+          <h2 className="mb-2 text-base font-semibold text-neutral-800">
+            Rewards
+          </h2>
+          <ProgramRewardList
+            rewards={program.rewards}
+            discount={program.defaultDiscount}
+            className="bg-neutral-100"
+          />
+        </div>
 
         {/* Application form */}
         <div className="mt-10">

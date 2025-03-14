@@ -102,6 +102,7 @@ export async function bulkCreateLinks({
         const allTagNames = [
           ...new Set(links.flatMap((link) => link.tagNames).filter(Boolean)),
         ] as string[];
+
         const allTagIds = await prisma.tag.findMany({
           where: {
             projectId: links[0].projectId!,
@@ -113,7 +114,7 @@ export async function bulkCreateLinks({
 
         tagNameToIdMap = allTagIds.reduce(
           (acc, tag) => {
-            acc[tag.name] = tag.id;
+            acc[tag.name.toLowerCase()] = tag.id;
             return acc;
           },
           {} as Record<string, string>,
@@ -142,7 +143,7 @@ export async function bulkCreateLinks({
           tagNames.filter(Boolean).forEach((tagName, tagIdx) => {
             linkTagsToCreate.push({
               linkId: link.id,
-              tagId: tagNameToIdMap[tagName],
+              tagId: tagNameToIdMap[tagName.toLowerCase()],
               createdAt: new Date(new Date().getTime() + tagIdx * 100),
             });
           });

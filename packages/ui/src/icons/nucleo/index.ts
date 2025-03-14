@@ -1,4 +1,5 @@
-export * from "./apple";
+export * from "./android-logo";
+export * from "./apple-logo";
 export * from "./arrow-bold-up";
 export * from "./arrow-right";
 export * from "./arrow-trend-up";
@@ -172,6 +173,7 @@ export * from "./ui-card";
 export * from "./user";
 export * from "./user-check";
 export * from "./user-crown";
+export * from "./user-plus";
 export * from "./users";
 export * from "./users-settings";
 export * from "./users2";

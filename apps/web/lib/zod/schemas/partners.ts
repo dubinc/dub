@@ -1,4 +1,8 @@
-import { PartnerStatus, ProgramEnrollmentStatus } from "@dub/prisma/client";
+import {
+  PartnerProfileType,
+  PartnerStatus,
+  ProgramEnrollmentStatus,
+} from "@dub/prisma/client";
 import { COUNTRY_CODES } from "@dub/utils";
 import { z } from "zod";
 import { analyticsQuerySchema } from "./analytics";
@@ -10,6 +14,36 @@ import { parseUrlSchema } from "./utils";
 
 export const PARTNERS_MAX_PAGE_SIZE = 100;
 export const PAYOUTS_MAX_PAGE_SIZE = 100;
+
+export const exportPartnerColumns = [
+  { id: "id", label: "ID", default: true },
+  { id: "name", label: "Name", default: true },
+  { id: "email", label: "Email", default: true },
+  { id: "country", label: "Country", default: true },
+  { id: "status", label: "Status", default: true },
+  {
+    id: "payoutsEnabledAt",
+    label: "Payouts enabled at",
+    default: false,
+  },
+  { id: "createdAt", label: "Enrolled at", default: true },
+  { id: "createdAt", label: "Enrolled at", default: true },
+  { id: "bio", label: "Bio", default: false },
+  { id: "clicks", label: "Clicks", default: false },
+  { id: "leads", label: "Leads", default: false },
+  { id: "sales", label: "Sales", default: false },
+  { id: "saleAmount", label: "Sale amount", default: false },
+  { id: "website", label: "Website", default: false },
+  { id: "youtube", label: "YouTube", default: false },
+  { id: "twitter", label: "Twitter", default: false },
+  { id: "linkedin", label: "LinkedIn", default: false },
+  { id: "instagram", label: "Instagram", default: false },
+  { id: "tiktok", label: "TikTok", default: false },
+];
+
+export const exportPartnersColumnsDefault = exportPartnerColumns
+  .filter((column) => column.default)
+  .map((column) => column.id);
 
 export const partnersQuerySchema = z
   .object({
@@ -33,6 +67,17 @@ export const partnersQuerySchema = z
   })
   .merge(getPaginationQuerySchema({ pageSize: PARTNERS_MAX_PAGE_SIZE }));
 
+export const partnersExportQuerySchema = partnersQuerySchema
+  .omit({ page: true, pageSize: true })
+  .merge(
+    z.object({
+      columns: z
+        .string()
+        .default(exportPartnersColumnsDefault.join(","))
+        .transform((v) => v.split(",")),
+    }),
+  );
+
 export const partnersCountQuerySchema = partnersQuerySchema
   .omit({
     sortBy: true,
@@ -51,6 +96,8 @@ export const partnerInvitesQuerySchema = getPaginationQuerySchema({
 export const PartnerSchema = z.object({
   id: z.string(),
   name: z.string(),
+  companyName: z.string().nullable(),
+  profileType: z.nativeEnum(PartnerProfileType),
   email: z.string().nullable(),
   image: z.string().nullable(),
   description: z.string().nullish(),
@@ -62,14 +109,16 @@ export const PartnerSchema = z.object({
   website: z.string().nullable(),
   websiteTxtRecord: z.string().nullable(),
   websiteVerifiedAt: z.date().nullable(),
-  instagram: z.string().nullable(),
-  instagramVerifiedAt: z.date().nullable(),
-  tiktok: z.string().nullable(),
-  tiktokVerifiedAt: z.date().nullable(),
   youtube: z.string().nullable(),
   youtubeVerifiedAt: z.date().nullable(),
   twitter: z.string().nullable(),
   twitterVerifiedAt: z.date().nullable(),
+  linkedin: z.string().nullable(),
+  linkedinVerifiedAt: z.date().nullable(),
+  instagram: z.string().nullable(),
+  instagramVerifiedAt: z.date().nullable(),
+  tiktok: z.string().nullable(),
+  tiktokVerifiedAt: z.date().nullable(),
 
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -207,8 +256,27 @@ export const onboardPartnerSchema = createPartnerSchema
     z.object({
       image: z.string(),
       country: z.enum(COUNTRY_CODES),
+      profileType: z.enum(["individual", "company"]).default("individual"),
+      companyName: z.string().nullish(),
     }),
-  );
+  )
+  .refine(
+    (data) => {
+      if (data.profileType === "company") {
+        return !!data.companyName;
+      }
+
+      return true;
+    },
+    {
+      message: "Legal company name is required.",
+      path: ["companyName"],
+    },
+  )
+  .transform((data) => ({
+    ...data,
+    companyName: data.profileType === "individual" ? null : data.companyName,
+  }));
 
 export const createPartnerLinkSchema = z
   .object({
