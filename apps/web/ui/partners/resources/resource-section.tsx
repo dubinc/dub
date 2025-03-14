@@ -1,9 +1,8 @@
 "use client";
 
-import { AnimatedSizeContainer, Button } from "@dub/ui";
+import { AnimatedSizeContainer, Button, LoadingSpinner } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { PropsWithChildren } from "react";
-import { ResourceCardSkeleton } from "./resource-card";
 
 export function ResourceSection({
   resource,
@@ -31,7 +30,7 @@ export function ResourceSection({
       </div>
       <div className="-m-1">
         <AnimatedSizeContainer
-          height={!isLoading}
+          height
           transition={{ duration: 0.2, ease: "easeInOut" }}
         >
           <div
@@ -40,15 +39,18 @@ export function ResourceSection({
               isValidating && "opacity-50",
             )}
           >
-            {isLoading ? <ResourceCardSkeleton /> : children}
-            {onAdd && (
-              <Button
-                type="button"
-                text={`Add ${resource}`}
-                onClick={onAdd}
-                className="h-8 w-fit px-3"
-              />
-            )}
+            {children}
+            <div className="flex items-center gap-4">
+              {isLoading && <LoadingSpinner />}
+              {onAdd && (
+                <Button
+                  type="button"
+                  text={`Add ${resource}`}
+                  onClick={onAdd}
+                  className="h-8 w-fit px-3"
+                />
+              )}
+            </div>
           </div>
         </AnimatedSizeContainer>
       </div>
