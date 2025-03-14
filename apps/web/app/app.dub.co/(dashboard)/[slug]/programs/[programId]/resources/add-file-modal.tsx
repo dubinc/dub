@@ -119,7 +119,7 @@ function AddFileModalInner({ setShowAddFileModal }: AddFileModalProps) {
                 rules={{ required: "File is required" }}
                 render={({ field }) => (
                   <FileUpload
-                    accept="documents"
+                    accept="programResourceFiles"
                     className={cn(
                       "aspect-[4.2] w-full rounded-md border border-neutral-300",
                       errors.file && "border-red-300 ring-1 ring-red-500",
@@ -146,7 +146,7 @@ function AddFileModalInner({ setShowAddFileModal }: AddFileModalProps) {
                     content={
                       field.value
                         ? truncate(fileName, 25)
-                        : "Any document file format, max size of 10MB"
+                        : "Any document or zip file, max size of 10MB"
                     }
                     maxFileSizeMB={10}
                   />

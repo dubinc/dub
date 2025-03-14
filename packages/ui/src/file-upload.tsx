@@ -4,7 +4,22 @@ import { DragEvent, ReactNode, useState } from "react";
 import { toast } from "sonner";
 import { CloudUpload, Icon, LoadingCircle } from "./icons";
 
-type AcceptedFileFormats = "any" | "images" | "csv" | "documents";
+type AcceptedFileFormats =
+  | "any"
+  | "images"
+  | "csv"
+  | "documents"
+  | "programResourceFiles";
+
+const documentTypes = [
+  "application/pdf", // .pdf
+  "text/plain", // .txt
+  "application/msword", // .doc
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
+  "application/vnd.ms-excel", // .xls
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
+  "text/csv", // .csv
+];
 
 const acceptFileTypes: Record<
   AcceptedFileFormats,
@@ -20,16 +35,14 @@ const acceptFileTypes: Record<
     errorMessage: "File type not supported (.csv only)",
   },
   documents: {
-    types: [
-      "application/pdf", // .pdf
-      "text/plain", // .txt
-      "application/msword", // .doc
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
-      "application/vnd.ms-excel", // .xls
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
-      "text/csv", // .csv
-    ],
+    types: documentTypes,
     errorMessage: "File type not supported (document files only)",
+  },
+
+  // TODO: allow custom `accept` prop so we don't need specific options here
+  programResourceFiles: {
+    types: [...documentTypes, "application/zip"],
+    errorMessage: "File type not supported (document or zip files only)",
   },
 };
 

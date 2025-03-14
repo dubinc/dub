@@ -115,7 +115,7 @@ export function ProgramResourcesPageClient() {
         <ResourceSection
           resource="file"
           title="Additional files"
-          description="Any document file format, max size 10 MB"
+          description="Any document or zip file, max size 10 MB"
           isLoading={isLoading}
           isValidating={isValidating}
           onAdd={() => setShowAddFileModal(true)}
