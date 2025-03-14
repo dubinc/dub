@@ -689,7 +689,10 @@ function Menu({ partner }: { partner: EnrolledPartnerProps }) {
           <div className="grid w-full gap-px p-1.5 sm:w-48">
             <MenuItem
               icon={User}
-              onClick={() => setPartnerProfileSheetOpen(true)}
+              onClick={() => {
+                setOpenPopover(false);
+                setPartnerProfileSheetOpen(true);
+              }}
             >
               View profile
             </MenuItem>
