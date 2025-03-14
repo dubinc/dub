@@ -1,9 +1,9 @@
 import { verifyAnalyticsAllowedHostnames } from "@/lib/analytics/verify-analytics-allowed-hostnames";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { clickCache } from "@/lib/api/links/click-cache";
 import { parseRequestBody } from "@/lib/api/utils";
 import { getLinkWithAllowedHostnames } from "@/lib/planetscale/get-link-with-allowed-hostnames";
 import { recordClick } from "@/lib/tinybird";
-import { redis } from "@/lib/upstash";
 import { isValidUrl, LOCALHOST_IP, nanoid } from "@dub/utils";
 import { ipAddress, waitUntil } from "@vercel/functions";
 import { AxiomRequest, withAxiom } from "next-axiom";
@@ -38,9 +38,8 @@ export const POST = withAxiom(
       }
 
       const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
-      const cacheKey = `recordClick:${domain}:${key}:${ip}`;
 
-      let clickId = await redis.get<string>(cacheKey);
+      let clickId = await clickCache.get({ domain, key, ip });
 
       // only generate + record a new click ID if it's not already cached in Redis
       if (!clickId) {
