@@ -13,7 +13,7 @@ export function PartnerRowItem({
 }) {
   return (
     <div className="flex items-center gap-2">
-      {showPayoutsEnabled && false ? (
+      {showPayoutsEnabled ? (
         <Tooltip
           content={
             <div className="grid max-w-xs gap-2 p-4">
