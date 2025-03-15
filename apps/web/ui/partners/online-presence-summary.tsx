@@ -1,4 +1,4 @@
-import { EnrolledPartnerProps } from "@/lib/types";
+import { PartnerProps } from "@/lib/types";
 import { Tooltip } from "@dub/ui";
 import { BadgeCheck2Fill } from "@dub/ui/icons";
 import { cn, getPrettyUrl } from "@dub/utils";
@@ -6,7 +6,7 @@ import { Fragment } from "react";
 
 const fields: {
   label: string;
-  data: (partner: EnrolledPartnerProps) => {
+  data: (partner: PartnerProps) => {
     value: string | null;
     verified: boolean;
     href: string | null;
@@ -66,7 +66,7 @@ export function OnlinePresenceSummary({
   partner,
   className,
 }: {
-  partner: EnrolledPartnerProps;
+  partner: PartnerProps;
   className?: string;
 }) {
   const fieldData = fields
