@@ -126,7 +126,7 @@ export const PartnerSchema = z.object({
   updatedAt: z.date(),
 });
 
-// Used by GET+POST /api/partners and partner.created webhook
+// Used externally by GET+POST /api/partners and partner.created webhook
 export const EnrolledPartnerSchema = PartnerSchema.pick({
   id: true,
   name: true,
@@ -156,6 +156,7 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
     applicationId: z.string().nullish(),
   });
 
+// Used internally in the Dub dashboard for partners table
 export const EnrolledPartnerSchemaWithExpandedFields =
   EnrolledPartnerSchema.merge(PartnerOnlinePresenceSchema);
 
