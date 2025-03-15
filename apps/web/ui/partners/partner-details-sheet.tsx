@@ -6,11 +6,13 @@ import usePayouts from "@/lib/swr/use-payouts";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
-import { X } from "@/ui/shared/icons";
+import { ThreeDots, X } from "@/ui/shared/icons";
 import {
   Button,
   buttonVariants,
   CopyButton,
+  MenuItem,
+  Popover,
   Sheet,
   StatusBadge,
   Table,
@@ -18,7 +20,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { GreekTemple } from "@dub/ui/icons";
+import { GreekTemple, User } from "@dub/ui/icons";
 import {
   cn,
   COUNTRIES,
@@ -39,7 +41,9 @@ import { toast } from "sonner";
 import useSWRImmutable from "swr/immutable";
 import { AnimatedEmptyState } from "../shared/animated-empty-state";
 import { useCreatePayoutSheet } from "./create-payout-sheet";
+import { OnlinePresenceSummary } from "./online-presence-summary";
 import { PartnerLinkSelector } from "./partner-link-selector";
+import { usePartnerProfileSheet } from "./partner-profile-sheet";
 import { PartnerStatusBadges } from "./partner-status-badges";
 import { PayoutStatusBadges } from "./payout-status-badges";
 
@@ -70,13 +74,16 @@ function PartnerDetailsSheetContent({
           <Sheet.Title className="text-xl font-semibold">
             Partner details
           </Sheet.Title>
-          <Sheet.Close asChild>
-            <Button
-              variant="outline"
-              icon={<X className="size-5" />}
-              className="h-auto w-fit p-1"
-            />
-          </Sheet.Close>
+          <div className="flex items-center gap-2">
+            {partner.status === "approved" && <Menu partner={partner} />}
+            <Sheet.Close asChild>
+              <Button
+                variant="outline"
+                icon={<X className="size-5" />}
+                className="h-auto w-fit p-1"
+              />
+            </Sheet.Close>
+          </div>
         </div>
         <div className="border-y border-neutral-200 bg-neutral-50 p-6">
           {/* Basic info */}
@@ -219,10 +226,16 @@ function PartnerDetailsSheetContent({
               {tab === "links" && <PartnerLinks partner={partner} />}
             </>
           ) : (
-            <div className="grid gap-6 text-sm text-neutral-500">
+            <div className="grid grid-cols-1 gap-8 text-sm text-neutral-500">
+              <div>
+                <h4 className="font-semibold text-neutral-900">
+                  Online presence
+                </h4>
+                <OnlinePresenceSummary partner={partner} className="mt-2" />
+              </div>
               <div>
                 <h4 className="font-semibold text-neutral-900">Description</h4>
-                <p className="mt-1.5">
+                <p className="mt-2">
                   {partner.description || (
                     <span className="italic text-neutral-400">
                       No description provided
@@ -231,7 +244,10 @@ function PartnerDetailsSheetContent({
                 </p>
               </div>
               {partner.applicationId && (
-                <PartnerApplication applicationId={partner.applicationId} />
+                <>
+                  <hr className="border-neutral-200" />
+                  <PartnerApplication applicationId={partner.applicationId} />
+                </>
               )}
             </div>
           )}
@@ -277,10 +293,6 @@ function PartnerApplication({ applicationId }: { applicationId: string }) {
 
   const fields = [
     {
-      title: "Website / Social Media channels",
-      value: application?.website,
-    },
-    {
       title: `How do you plan to promote ${program?.name}?`,
       value: application?.proposal,
     },
@@ -291,7 +303,7 @@ function PartnerApplication({ applicationId }: { applicationId: string }) {
   ];
 
   return (
-    <div className="grid gap-6">
+    <div className="grid grid-cols-1 gap-6">
       {fields.map((field) => (
         <div key={field.title}>
           <h4 className="font-semibold text-neutral-900">{field.title}</h4>
@@ -498,7 +510,7 @@ function PartnerRejectButton({
     <Button
       type="button"
       variant="secondary"
-      text={isPending ? "" : "Decline"}
+      text={isPending ? "" : "Reject"}
       loading={isPending}
       onClick={async () => {
         await executeAsync({
@@ -662,6 +674,51 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
 
   return <Table {...table} />;
 };
+
+function Menu({ partner }: { partner: EnrolledPartnerProps }) {
+  const [openPopover, setOpenPopover] = useState(false);
+
+  const { partnerProfileSheet, setIsOpen: setPartnerProfileSheetOpen } =
+    usePartnerProfileSheet({ nested: true, partner });
+
+  return (
+    <>
+      {partnerProfileSheet}
+      <Popover
+        content={
+          <div className="grid w-full gap-px p-1.5 sm:w-48">
+            <MenuItem
+              icon={User}
+              onClick={() => {
+                setOpenPopover(false);
+                setPartnerProfileSheetOpen(true);
+              }}
+            >
+              View profile
+            </MenuItem>
+          </div>
+        }
+        align="end"
+        openPopover={openPopover}
+        setOpenPopover={setOpenPopover}
+      >
+        <Button
+          variant="secondary"
+          className={cn(
+            "h-[1.875rem] w-fit px-1.5 outline-none transition-all duration-200",
+            "border-transparent data-[state=open]:border-neutral-500 sm:group-hover/card:data-[state=closed]:border-neutral-200",
+          )}
+          icon={
+            <ThreeDots className="size-[1.125rem] shrink-0 text-neutral-600" />
+          }
+          onClick={() => {
+            setOpenPopover(!openPopover);
+          }}
+        />
+      </Popover>
+    </>
+  );
+}
 
 export function PartnerDetailsSheet({
   isOpen,

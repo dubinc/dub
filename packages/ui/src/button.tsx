@@ -13,7 +13,7 @@ export const buttonVariants = cva("transition-all", {
         "border-border-subtle bg-white dark:bg-black text-content-emphasis hover:bg-bg-muted focus-visible:border-border-emphasis outline-none",
         "data-[state=open]:border-border-emphasis data-[state=open]:ring-4 data-[state=open]:ring-border-subtle",
       ),
-      outline: "border-transparent text-neutral-600 hover:bg-neutral-100",
+      outline: "border-transparent text-content-default hover:bg-bg-subtle",
       success:
         "border-blue-500 bg-blue-500 text-white hover:bg-blue-600 hover:ring-4 hover:ring-blue-100",
       danger:
