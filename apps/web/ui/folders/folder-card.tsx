@@ -15,9 +15,14 @@ import { useRef } from "react";
 import { FolderActions } from "./folder-actions";
 import { FolderIcon } from "./folder-icon";
 import { RequestFolderEditAccessButton } from "./request-edit-button";
+import { isDefaultFolder } from "./utils";
 
 export const FolderCard = ({ folder }: { folder: Folder }) => {
-  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+  const {
+    id: workspaceId,
+    slug: workspaceSlug,
+    defaultFolderId,
+  } = useWorkspace();
 
   const { isLoading: isPermissionsLoading } = useFolderPermissions();
   const canCreateLinks = useCheckFolderPermission(
@@ -26,6 +31,7 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
   );
 
   const unsortedLinks = folder.id === "unsorted";
+  const isDefault = isDefaultFolder({ folder, defaultFolderId });
 
   return (
     <div
@@ -40,18 +46,15 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
       />
       <div className="flex items-center justify-between">
         <FolderIcon folder={folder} />
-
-        {!unsortedLinks && (
-          <div className="relative flex items-center justify-end gap-1">
-            {!isPermissionsLoading && !canCreateLinks && (
-              <RequestFolderEditAccessButton
-                folderId={folder.id}
-                workspaceId={workspaceId!}
-              />
-            )}
-            <FolderActions folder={folder} />
-          </div>
-        )}
+        <div className="relative flex items-center justify-end gap-1">
+          {!unsortedLinks && !isPermissionsLoading && !canCreateLinks && (
+            <RequestFolderEditAccessButton
+              folderId={folder.id}
+              workspaceId={workspaceId!}
+            />
+          )}
+          <FolderActions folder={folder} />
+        </div>
       </div>
 
       <div>
@@ -59,8 +62,14 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
           <span className="truncate">{folder.name}</span>
 
           {folder.id === "unsorted" && (
-            <div className="rounded bg-neutral-100 p-1">
+            <div className="rounded bg-neutral-100 px-1 py-0.5">
               <div className="text-xs font-normal text-black">Unsorted</div>
+            </div>
+          )}
+
+          {isDefault && (
+            <div className="rounded bg-blue-100 px-1 py-0.5">
+              <div className="text-xs font-normal text-blue-700">Default</div>
             </div>
           )}
         </span>

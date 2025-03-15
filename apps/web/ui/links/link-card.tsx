@@ -18,7 +18,7 @@ export function LinkCard({ link }: { link: ResponseLink }) {
     props: link,
   });
   const searchParams = useSearchParams();
-  const { slug } = useWorkspace();
+  const { slug, defaultFolderId } = useWorkspace();
 
   // TODO: only enable this when the link card is in view
   const { folder } = useFolder({ folderId: link.folderId });
@@ -32,7 +32,9 @@ export function LinkCard({ link }: { link: ResponseLink }) {
         innerClassName="flex items-center gap-5 sm:gap-8 md:gap-12 text-sm"
         {...(variant === "loose" &&
           link.folderId &&
-          searchParams.get("folderId") !== link.folderId && {
+          ![defaultFolderId, searchParams.get("folderId")].includes(
+            link.folderId,
+          ) && {
             banner: (
               <Link
                 href={`/${slug}?folderId=${folder?.id}`}

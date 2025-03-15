@@ -1,3 +1,4 @@
+import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderSummary } from "@/lib/types";
@@ -12,13 +13,16 @@ import {
   Users,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { Bookmark } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useDefaultFolderModal } from "../modals/default-folder-modal";
 import { useDeleteFolderModal } from "../modals/delete-folder-modal";
 import { useRenameFolderModal } from "../modals/rename-folder-modal";
 import { Chart, Delete, ThreeDots } from "../shared/icons";
 import { useFolderPermissionsPanel } from "./folder-permissions-panel";
+import { isDefaultFolder } from "./utils";
 
 export const FolderActions = ({
   folder,
@@ -28,8 +32,15 @@ export const FolderActions = ({
   onDelete?: () => void;
 }) => {
   const router = useRouter();
-  const { slug: workspaceSlug } = useWorkspace();
   const [openPopover, setOpenPopover] = useState(false);
+  const { slug: workspaceSlug, defaultFolderId, role } = useWorkspace();
+
+  const permissionsError = clientAccessCheck({
+    action: "workspaces.write",
+    role,
+    customPermissionDescription: "set a default folder",
+  }).error;
+
   const canUpdateFolder = useCheckFolderPermission(folder.id, "folders.write");
 
   const { RenameFolderModal, setShowRenameFolderModal } =
@@ -39,6 +50,11 @@ export const FolderActions = ({
     folder,
     onDelete,
   );
+
+  const { DefaultFolderModal, setShowDefaultFolderModal } =
+    useDefaultFolderModal({
+      folder,
+    });
 
   const { folderPermissionsPanel, setShowFolderPermissionsPanel } =
     useFolderPermissionsPanel(folder);
@@ -51,19 +67,35 @@ export const FolderActions = ({
     });
   };
 
+  const unsortedLinks = folder.id === "unsorted";
+  const isDefault = isDefaultFolder({ folder, defaultFolderId });
+  const canMakeDefault =
+    !isDefault && !permissionsError && folder.accessLevel != null;
+
   useKeyboardShortcut(
-    ["r", "m", "i", "x", "a"],
+    ["r", "m", "i", "x", "a", "d"],
     (e) => {
       setOpenPopover(false);
       switch (e.key) {
         case "a":
-          router.push(`/${workspaceSlug}/analytics?folderId=${folder.id}`);
+          if (!unsortedLinks) {
+            router.push(`/${workspaceSlug}/analytics?folderId=${folder.id}`);
+          }
           break;
         case "m":
-          setShowFolderPermissionsPanel(true);
+          if (!unsortedLinks) {
+            setShowFolderPermissionsPanel(true);
+          }
           break;
         case "i":
-          copyFolderId();
+          if (!unsortedLinks) {
+            copyFolderId();
+          }
+          break;
+        case "d":
+          if (canMakeDefault) {
+            setShowDefaultFolderModal(true);
+          }
           break;
         case "r":
           if (canUpdateFolder) {
@@ -86,53 +118,82 @@ export const FolderActions = ({
     <>
       <RenameFolderModal />
       <DeleteFolderModal />
+      <DefaultFolderModal />
       {folderPermissionsPanel}
       <Popover
         content={
           <div className="grid w-full divide-y divide-neutral-200 sm:w-52">
+            {!unsortedLinks && (
+              <div className="grid gap-px p-2">
+                <Button
+                  text="Analytics"
+                  variant="outline"
+                  onClick={() => {
+                    setOpenPopover(false);
+                    router.push(
+                      `/${workspaceSlug}/analytics?folderId=${folder.id}`,
+                    );
+                  }}
+                  icon={<Chart className="h-4 w-4" />}
+                  shortcut="A"
+                  className="h-9 px-2 font-medium"
+                />
+
+                <Button
+                  text="Members"
+                  variant="outline"
+                  onClick={() => {
+                    setOpenPopover(false);
+                    setShowFolderPermissionsPanel(true);
+                  }}
+                  icon={<Users className="h-4 w-4" />}
+                  shortcut="M"
+                  className="h-9 px-2 font-medium"
+                />
+              </div>
+            )}
+
             <div className="grid gap-px p-2">
+              {!unsortedLinks && (
+                <Button
+                  text="Copy Folder ID"
+                  variant="outline"
+                  onClick={() => copyFolderId()}
+                  icon={
+                    copiedFolderId ? (
+                      <CircleCheck className="h-4 w-4" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )
+                  }
+                  shortcut="I"
+                  className="h-9 px-2 font-medium"
+                />
+              )}
+
               <Button
-                text="Analytics"
+                text="Set as Default"
                 variant="outline"
                 onClick={() => {
                   setOpenPopover(false);
-                  router.push(
-                    `/${workspaceSlug}/analytics?folderId=${folder.id}`,
-                  );
+                  setShowDefaultFolderModal(true);
                 }}
-                icon={<Chart className="h-4 w-4" />}
-                shortcut="A"
+                icon={<Bookmark className="h-4 w-4" />}
+                shortcut="D"
                 className="h-9 px-2 font-medium"
-              />
-              <Button
-                text="Members"
-                variant="outline"
-                onClick={() => {
-                  setOpenPopover(false);
-                  setShowFolderPermissionsPanel(true);
-                }}
-                icon={<Users className="h-4 w-4" />}
-                shortcut="M"
-                className="h-9 px-2 font-medium"
-              />
-            </div>
-            <div className="grid gap-px p-2">
-              <Button
-                text="Copy Folder ID"
-                variant="outline"
-                onClick={() => copyFolderId()}
-                icon={
-                  copiedFolderId ? (
-                    <CircleCheck className="h-4 w-4" />
-                  ) : (
-                    <Copy className="h-4 w-4" />
-                  )
+                disabled={!canMakeDefault}
+                disabledTooltip={
+                  permissionsError
+                    ? permissionsError
+                    : isDefault
+                      ? "This is the workspace's default folder."
+                      : folder.accessLevel === null
+                        ? "Only folders with workspace access can be set as default."
+                        : undefined
                 }
-                shortcut="I"
-                className="h-9 px-2 font-medium"
               />
 
-              {canUpdateFolder && (
+              {!unsortedLinks && (
                 <>
                   <Button
                     text="Rename"
@@ -144,7 +205,14 @@ export const FolderActions = ({
                     icon={<PenWriting className="h-4 w-4" />}
                     shortcut="R"
                     className="h-9 px-2 font-medium"
+                    disabled={!canUpdateFolder}
+                    disabledTooltip={
+                      !canUpdateFolder
+                        ? "Only folder owners can rename a folder."
+                        : undefined
+                    }
                   />
+
                   <Button
                     text="Delete"
                     variant="danger-outline"
@@ -155,6 +223,12 @@ export const FolderActions = ({
                     icon={<Delete className="h-4 w-4" />}
                     shortcut="X"
                     className="h-9 px-2 font-medium"
+                    disabled={!canUpdateFolder}
+                    disabledTooltip={
+                      !canUpdateFolder
+                        ? "Only folder owners can delete a folder."
+                        : undefined
+                    }
                   />
                 </>
               )}

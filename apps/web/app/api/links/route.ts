@@ -22,7 +22,7 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(
   async ({ headers, searchParams, workspace, session }) => {
     const params = getLinksQuerySchemaExtended.parse(searchParams);
-    const { domain, folderId, search, tagId, tagIds, tagNames, tenantId } =
+    let { domain, folderId, search, tagId, tagIds, tagNames, tenantId } =
       params;
 
     if (domain) {
@@ -37,6 +37,8 @@ export const GET = withWorkspace(
         folderId,
         requiredPermission: "folders.read",
       });
+    } else {
+      folderId = workspace.defaultFolderId ?? undefined;
     }
 
     /* we only need to get the folder ids if we are:
@@ -61,6 +63,7 @@ export const GET = withWorkspace(
     const response = await getLinksForWorkspace({
       ...params,
       workspaceId: workspace.id,
+      folderId,
       folderIds,
       searchMode: selectedFolder?.type === "mega" ? "exact" : "fuzzy",
     });
