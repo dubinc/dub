@@ -93,19 +93,7 @@ export const partnerInvitesQuerySchema = getPaginationQuerySchema({
   pageSize: 100,
 });
 
-export const PartnerSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  companyName: z.string().nullable(),
-  profileType: z.nativeEnum(PartnerProfileType),
-  email: z.string().nullable(),
-  image: z.string().nullable(),
-  description: z.string().nullish(),
-  country: z.string().nullable(),
-  status: z.nativeEnum(PartnerStatus),
-  stripeConnectId: z.string().nullable(),
-  payoutsEnabledAt: z.date().nullable(),
-
+export const PartnerOnlinePresenceSchema = z.object({
   website: z.string().nullable(),
   websiteTxtRecord: z.string().nullable(),
   websiteVerifiedAt: z.date().nullable(),
@@ -119,12 +107,28 @@ export const PartnerSchema = z.object({
   instagramVerifiedAt: z.date().nullable(),
   tiktok: z.string().nullable(),
   tiktokVerifiedAt: z.date().nullable(),
-
-  createdAt: z.date(),
-  updatedAt: z.date(),
 });
 
-// Used by GET+POST /api/partners and partner.created webhook
+export const PartnerSchema = z
+  .object({
+    id: z.string(),
+    name: z.string(),
+    companyName: z.string().nullable(),
+    profileType: z.nativeEnum(PartnerProfileType),
+    email: z.string().nullable(),
+    image: z.string().nullable(),
+    description: z.string().nullish(),
+    country: z.string().nullable(),
+    status: z.nativeEnum(PartnerStatus),
+    stripeConnectId: z.string().nullable(),
+    payoutsEnabledAt: z.date().nullable(),
+
+    createdAt: z.date(),
+    updatedAt: z.date(),
+  })
+  .merge(PartnerOnlinePresenceSchema);
+
+// Used externally by GET+POST /api/partners and partner.created webhook
 export const EnrolledPartnerSchema = PartnerSchema.pick({
   id: true,
   name: true,
@@ -153,6 +157,10 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
   .extend({
     applicationId: z.string().nullish(),
   });
+
+// Used internally in the Dub dashboard for partners table
+export const EnrolledPartnerSchemaWithExpandedFields =
+  EnrolledPartnerSchema.merge(PartnerOnlinePresenceSchema);
 
 export const LeaderboardPartnerSchema = z.object({
   id: z.string(),

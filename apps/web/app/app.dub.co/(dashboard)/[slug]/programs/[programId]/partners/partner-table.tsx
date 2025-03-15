@@ -69,6 +69,7 @@ export function PartnerTable() {
 
   const { partnersCount, error: countError } = usePartnersCount<number>();
 
+  // TODO: Combine with usePartners
   const {
     data: partners,
     error,
@@ -78,6 +79,7 @@ export function PartnerTable() {
       {
         workspaceId,
         programId,
+        includeExpandedFields: "true",
       },
       { exclude: ["partnerId"] },
     )}`,
@@ -146,10 +148,12 @@ export function PartnerTable() {
                 <img
                   alt=""
                   src={`https://flag.vercel.app/m/${country}.svg`}
-                  className="h-3 w-4"
+                  className="h-3 w-4 shrink-0"
                 />
               )}
-              {(country ? COUNTRIES[country] : null) ?? "-"}
+              <span className="min-w-0 truncate">
+                {(country ? COUNTRIES[country] : null) ?? "-"}
+              </span>
             </div>
           );
         },

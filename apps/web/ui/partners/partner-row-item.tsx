@@ -13,7 +13,7 @@ export function PartnerRowItem({
 }) {
   return (
     <div className="flex items-center gap-2">
-      {showPayoutsEnabled ? (
+      {showPayoutsEnabled && false ? (
         <Tooltip
           content={
             <div className="grid max-w-xs gap-2 p-4">
@@ -41,7 +41,7 @@ export function PartnerRowItem({
             </div>
           }
         >
-          <div className="relative">
+          <div className="relative shrink-0">
             <img
               src={partner.image || `${DICEBEAR_AVATAR_URL}${partner.name}`}
               alt={partner.name}
@@ -59,10 +59,12 @@ export function PartnerRowItem({
         <img
           src={partner.image || `${DICEBEAR_AVATAR_URL}${partner.name}`}
           alt={partner.name}
-          className="size-5 rounded-full"
+          className="size-5 shrink-0 rounded-full"
         />
       )}
-      <div>{partner.name}</div>
+      <div className="min-w-0 truncate" title={partner.name}>
+        {partner.name}
+      </div>
     </div>
   );
 }
