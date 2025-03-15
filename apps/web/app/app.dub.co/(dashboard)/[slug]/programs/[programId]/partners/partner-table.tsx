@@ -69,6 +69,7 @@ export function PartnerTable() {
 
   const { partnersCount, error: countError } = usePartnersCount<number>();
 
+  // TODO: Combine with usePartners
   const {
     data: partners,
     error,
@@ -78,6 +79,7 @@ export function PartnerTable() {
       {
         workspaceId,
         programId,
+        includeExpandedFields: "true",
       },
       { exclude: ["partnerId"] },
     )}`,
