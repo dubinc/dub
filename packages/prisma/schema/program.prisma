@@ -9,9 +9,11 @@ enum CommissionType {
 }
 
 enum ProgramEnrollmentStatus {
-  approved
-  pending
-  rejected
+  invited // partner who already has an account
+  approved // partner who doesn't have an account
+  rejected // program rejected the partner
+  declined // partner declined the invite
+  pending // pending applications that need approval
 }
 
 enum CommissionInterval {
@@ -48,8 +50,8 @@ model Program {
   partners        ProgramEnrollment[]
   payouts         Payout[]
   invoices        Invoice[]
-  applications    ProgramApplication[]
   invites         ProgramInvite[]
+  applications    ProgramApplication[]
   links           Link[]
   commissions     Commission[]
   rewards         Reward[]

@@ -4,7 +4,7 @@ import usePartnersCount from "@/lib/swr/use-partners-count";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { ProgramStatsFilter } from "@/ui/partners/program-stats-filter";
 import { useRouterStuff } from "@dub/ui";
-import { ChartLine, Users } from "@dub/ui/icons";
+import { Users } from "@dub/ui/icons";
 import { useParams } from "next/navigation";
 
 interface PartnerCount {
@@ -21,15 +21,14 @@ export function PartnerStats() {
     ignoreParams: true,
   });
 
-  const approved = partnersCount?.find(
-    (partner) => partner.status === "approved",
-  )?._count;
-
-  const pending = partnersCount?.find(
-    (partner) => partner.status === "pending",
-  )?._count;
-
-  const all = partnersCount?.reduce((acc, curr) => acc + curr._count, 0);
+  const { approved, pending, invited, all } = partnersCount?.reduce(
+    (acc, { status, _count }) => ({
+      ...acc,
+      [status]: _count,
+      all: (acc.all || 0) + _count,
+    }),
+    { approved: 0, pending: 0, invited: 0, all: 0 },
+  ) ?? { approved: 0, pending: 0, invited: 0, all: 0 };
 
   return (
     <div className="xs:grid-cols-4 xs:divide-x xs:divide-y-0 grid divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200">
@@ -41,22 +40,7 @@ export function PartnerStats() {
         iconClassName="text-neutral-600 bg-neutral-100"
         error={!!error}
       />
-      <ProgramStatsFilter
-        label="Top partners"
-        href={
-          queryParams({
-            set: {
-              sortBy: "saleAmount",
-              sortOrder: "desc",
-            },
-            getNewPath: true,
-          }) as string
-        }
-        count={approved}
-        icon={ChartLine}
-        iconClassName="text-blue-600 bg-blue-100"
-        error={!!error}
-      />
+
       <ProgramStatsFilter
         label="Approved"
         href={
@@ -70,6 +54,7 @@ export function PartnerStats() {
         iconClassName={PartnerStatusBadges.approved.className}
         error={!!error}
       />
+
       <ProgramStatsFilter
         label="Pending"
         href={
@@ -81,6 +66,20 @@ export function PartnerStats() {
         count={pending}
         icon={PartnerStatusBadges.pending.icon}
         iconClassName={PartnerStatusBadges.pending.className}
+        error={!!error}
+      />
+
+      <ProgramStatsFilter
+        label="Invited"
+        href={
+          queryParams({
+            set: { status: "invited" },
+            getNewPath: true,
+          }) as string
+        }
+        count={invited}
+        icon={PartnerStatusBadges.invited.icon}
+        iconClassName={PartnerStatusBadges.invited.className}
         error={!!error}
       />
     </div>
