@@ -1,6 +1,7 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { generateRandomName } from "@/lib/names";
 import { getPartnerEarningsCountQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
@@ -93,7 +94,7 @@ export const GET = withPartnerProfile(
             id: customerId,
             email: customer?.email
               ? customer.email.replace(/(?<=^.).+(?=.@)/, "********")
-              : null,
+              : customer?.name || generateRandomName(),
             _count,
           };
         }) as any[]; // TODO: find a better fix for types
