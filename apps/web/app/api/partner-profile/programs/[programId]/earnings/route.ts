@@ -1,6 +1,7 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { generateRandomName } from "@/lib/names";
 import z from "@/lib/zod";
 import {
   PartnerEarningsSchema,
@@ -75,6 +76,17 @@ export const GET = withPartnerProfile(
       orderBy: { [sortBy]: sortOrder },
     });
 
-    return NextResponse.json(z.array(PartnerEarningsSchema).parse(earnings));
+    const data = z.array(PartnerEarningsSchema).parse(
+      earnings.map((e) => ({
+        ...e,
+        customer: {
+          ...e.customer,
+          // fallback to a random name if the customer doesn't have an email
+          email: e.customer?.email ?? e.customer?.name ?? generateRandomName(),
+        },
+      })),
+    );
+
+    return NextResponse.json(data);
   },
 );
