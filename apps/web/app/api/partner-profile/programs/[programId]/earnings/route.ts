@@ -79,11 +79,14 @@ export const GET = withPartnerProfile(
     const data = z.array(PartnerEarningsSchema).parse(
       earnings.map((e) => ({
         ...e,
-        customer: {
-          ...e.customer,
-          // fallback to a random name if the customer doesn't have an email
-          email: e.customer?.email ?? e.customer?.name ?? generateRandomName(),
-        },
+        customer: e.customer
+          ? {
+              ...e.customer,
+              // fallback to a random name if the customer doesn't have an email
+              email:
+                e.customer.email ?? e.customer.name ?? generateRandomName(),
+            }
+          : null,
       })),
     );
 
