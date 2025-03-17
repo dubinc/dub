@@ -411,7 +411,7 @@ const ImportProgramForm = ({ register, watch, setValue }: FormProps) => {
         <Input
           type="password"
           placeholder="API token"
-          className="mt-2 max-w-full"
+          className="max-w-full"
           value={token || rewardful?.maskedToken || ""}
           onChange={(e) => setToken(e.target.value)}
         />
