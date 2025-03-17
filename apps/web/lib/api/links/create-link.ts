@@ -1,3 +1,4 @@
+import { getPartnerAndDiscount } from "@/lib/api/partners/get-partner-discount";
 import { qstash } from "@/lib/cron";
 import { isStored, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
@@ -14,7 +15,6 @@ import {
 import { linkConstructorSimple } from "@dub/utils/src/functions/link-constructor";
 import { waitUntil } from "@vercel/functions";
 import { createId } from "../create-id";
-import { getPartnerAndDiscount } from "../programs/getPartnerAndDiscount";
 import { combineTagIds } from "../tags/combine-tag-ids";
 import { linkCache } from "./cache";
 import { encodeKeyIfCaseSensitive } from "./case-sensitivity";

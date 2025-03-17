@@ -1,3 +1,4 @@
+import { getPartnerAndDiscount } from "@/lib/api/partners/get-partner-discount";
 import { isStored, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { LinkProps, ProcessedLinkProps } from "@/lib/types";
@@ -13,7 +14,6 @@ import {
 } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { createId } from "../create-id";
-import { getPartnerAndDiscount } from "../programs/getPartnerAndDiscount";
 import { combineTagIds } from "../tags/combine-tag-ids";
 import { linkCache } from "./cache";
 import { encodeKeyIfCaseSensitive } from "./case-sensitivity";
