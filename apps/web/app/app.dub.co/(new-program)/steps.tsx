@@ -11,7 +11,7 @@ import { useParams, usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { useSidebar } from "./sidebar-context";
 
-export function Steps() {
+export function ProgramOnboardingSteps() {
   const pathname = usePathname();
   const { isMobile } = useMediaQuery();
   const { isOpen, setIsOpen } = useSidebar();

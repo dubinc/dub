@@ -1,33 +1,25 @@
 "use client";
 
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
-import usePrograms from "@/lib/swr/use-programs";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PROGRAM_ONBOARDING_STEPS } from "@/lib/zod/schemas/program-onboarding";
 import { Button, Wordmark, useMediaQuery } from "@dub/ui";
 import { Menu } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { useSidebar } from "./sidebar-context";
 
-export function Header() {
+export function ProgramOnboardingHeader() {
   const pathname = usePathname();
-  const router = useRouter();
   const { isMobile } = useMediaQuery();
   const { getValues } = useFormContext();
   const { isOpen, setIsOpen } = useSidebar();
-  const { programs, loading: programsLoading } = usePrograms();
 
-  const {
-    id: workspaceId,
-    slug: workspaceSlug,
-    partnersEnabled,
-    loading: workspaceLoading,
-  } = useWorkspace();
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
   useEffect(() => {
     document.body.style.overflow = isOpen && isMobile ? "hidden" : "auto";
@@ -39,25 +31,6 @@ export function Header() {
       toast.error(error.serverError);
     },
   });
-
-  if (programsLoading || workspaceLoading) {
-    return (
-      <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-neutral-200 bg-white px-4">
-        <div className="flex items-center gap-5">
-          <div className="h-7 w-20 animate-pulse rounded-md bg-neutral-200" />
-          <div className="hidden h-5 w-40 animate-pulse rounded-md bg-neutral-200 md:block" />
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="h-7 w-16 animate-pulse rounded-md bg-neutral-200" />
-          <div className="h-7 w-24 animate-pulse rounded-md bg-neutral-200" />
-        </div>
-      </header>
-    );
-  }
-
-  if ((programs && programs.length > 0) || !partnersEnabled) {
-    router.push(`/${workspaceSlug}`);
-  }
 
   const saveAndExit = async () => {
     if (!workspaceId) return;
