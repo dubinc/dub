@@ -18,73 +18,68 @@ const CORS_HEADERS = {
 };
 
 // POST /api/track/click – Track a click event from the client-side
-export const POST = withAxiom(
-  async (req: AxiomRequest) => {
-    try {
-      const { domain, key, url, referrer } = await parseRequestBody(req);
+export const POST = withAxiom(async (req: AxiomRequest) => {
+  try {
+    const { domain, key, url, referrer } = await parseRequestBody(req);
 
-      if (!domain || !key) {
+    if (!domain || !key) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Missing domain or key",
+      });
+    }
+
+    const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
+
+    const cacheKey = `recordClick:${domain}:${key}:${ip}`;
+    let clickId = await redis.get<string>(cacheKey);
+
+    // only generate + record a new click ID if it's not already cached in Redis
+    if (!clickId) {
+      clickId = nanoid(16);
+
+      const link = await getLinkWithAllowedHostnames(domain, key);
+
+      if (!link) {
         throw new DubApiError({
-          code: "bad_request",
-          message: "Missing domain or key",
+          code: "not_found",
+          message: `Link not found for domain: ${domain} and key: ${key}.`,
         });
       }
 
-      const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
+      const allowedHostnames = link.allowedHostnames;
+      verifyAnalyticsAllowedHostnames({ allowedHostnames, req });
 
-      const cacheKey = `recordClick:${domain}:${key}:${ip}`;
-      let clickId = await redis.get<string>(cacheKey);
+      const finalUrl = isValidUrl(url) ? url : link.url;
 
-      // only generate + record a new click ID if it's not already cached in Redis
-      if (!clickId) {
-        clickId = nanoid(16);
-
-        const link = await getLinkWithAllowedHostnames(domain, key);
-
-        if (!link) {
-          throw new DubApiError({
-            code: "not_found",
-            message: `Link not found for domain: ${domain} and key: ${key}.`,
-          });
-        }
-
-        const allowedHostnames = link.allowedHostnames;
-        verifyAnalyticsAllowedHostnames({ allowedHostnames, req });
-
-        const finalUrl = isValidUrl(url) ? url : link.url;
-
-        waitUntil(
-          recordClick({
-            req,
-            clickId,
-            linkId: link.id,
-            domain,
-            key,
-            url: finalUrl,
-            workspaceId: link.projectId,
-            skipRatelimit: true,
-            ...(referrer && { referrer }),
-            trackConversion: link.trackConversion,
-          }),
-        );
-      }
-
-      return NextResponse.json(
-        {
+      waitUntil(
+        recordClick({
+          req,
           clickId,
-        },
-        {
-          headers: CORS_HEADERS,
-        },
+          linkId: link.id,
+          domain,
+          key,
+          url: finalUrl,
+          workspaceId: link.projectId,
+          skipRatelimit: true,
+          ...(referrer && { referrer }),
+          trackConversion: link.trackConversion,
+        }),
       );
-    } catch (error) {
-      return handleAndReturnErrorResponse(error, CORS_HEADERS);
     }
-  },
-  {
-    logRequestDetails: ["nextUrl"],
-  },
-);
+
+    return NextResponse.json(
+      {
+        clickId,
+      },
+      {
+        headers: CORS_HEADERS,
+      },
+    );
+  } catch (error) {
+    return handleAndReturnErrorResponse(error, CORS_HEADERS);
+  }
+});
 
 export const OPTIONS = () => {
   return new Response(null, {
