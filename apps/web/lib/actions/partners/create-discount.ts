@@ -1,6 +1,7 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { EventType } from "@/lib/api/audit-logs/schemas";
 import { createId } from "@/lib/api/create-id";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { createDiscountSchema } from "@/lib/zod/schemas/discount";
@@ -101,13 +102,22 @@ export const createDiscountAction = authActionClient
 
     waitUntil(
       recordAuditLog({
-        action: "discount.create",
-        workspace_id: workspace.id,
-        program_id: programId,
-        actor_id: user.id,
-        actor_name: user.name,
-        targets: [{ id: discount.id, type: "discount" }],
-        description: "A new discount was created.",
+        workspaceId: workspace.id,
+        programId: programId,
+        actor: {
+          type: "user",
+          id: user.id,
+          name: user.name,
+        },
+        event: {
+          type: EventType.DISCOUNT_CREATE,
+          metadata: {
+            id: discount.id,
+            amount: discount.amount,
+            type: discount.type,
+            maxDuration: discount.maxDuration,
+          },
+        },
       }),
     );
   });

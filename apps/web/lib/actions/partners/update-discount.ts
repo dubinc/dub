@@ -1,6 +1,7 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { EventType } from "@/lib/api/audit-logs/schemas";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { updateDiscountSchema } from "@/lib/zod/schemas/discount";
@@ -57,7 +58,7 @@ export const updateDiscountAction = authActionClient
       throw new Error("Default discount cannot be updated with partners.");
     }
 
-    await prisma.discount.update({
+    const discount = await prisma.discount.update({
       where: {
         id: discountId,
       },
@@ -102,13 +103,22 @@ export const updateDiscountAction = authActionClient
 
     waitUntil(
       recordAuditLog({
-        action: "discount.update",
-        workspace_id: workspace.id,
-        program_id: programId,
-        actor_id: user.id,
-        actor_name: user.name,
-        targets: [{ id: discountId, type: "discount" }],
-        description: "A discount was updated.",
+        workspaceId: workspace.id,
+        programId: programId,
+        actor: {
+          type: "user",
+          id: user.id,
+          name: user.name,
+        },
+        event: {
+          type: EventType.DISCOUNT_UPDATE,
+          metadata: {
+            id: discount.id,
+            amount: discount.amount,
+            type: discount.type,
+            maxDuration: discount.maxDuration,
+          },
+        },
       }),
     );
   });
