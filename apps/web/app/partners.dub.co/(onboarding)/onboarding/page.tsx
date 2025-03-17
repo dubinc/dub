@@ -1,6 +1,5 @@
 import { getSession } from "@/lib/auth";
 import { prisma } from "@dub/prisma";
-import { cookies } from "next/headers";
 import { Suspense } from "react";
 import { OnboardingForm } from "./onboarding-form";
 
@@ -29,48 +28,7 @@ async function OnboardingFormRSC() {
     where: {
       email: user.email,
     },
-    select: {
-      name: true,
-      email: true,
-      description: true,
-      country: true,
-      image: true,
-      profileType: true,
-      companyName: true,
-    },
   });
 
-  const cookieStore = cookies();
-  const programApplicationIds = cookieStore
-    .get("programApplicationIds")
-    ?.value?.split(",");
-
-  const applications = programApplicationIds?.length
-    ? await prisma.programApplication.findMany({
-        where: {
-          id: {
-            in: programApplicationIds.filter(Boolean),
-          },
-          enrollment: null,
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-        take: 10,
-      })
-    : [];
-
-  return (
-    <OnboardingForm
-      partner={{
-        ...partner,
-        ...(applications.length && { name: applications[0].name }),
-      }}
-      lockName={
-        applications.length === 1 ||
-        (applications.length > 0 &&
-          applications.every((app) => app.name === applications[0].name))
-      }
-    />
-  );
+  return <OnboardingForm partner={partner} />;
 }

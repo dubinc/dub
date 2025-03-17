@@ -247,15 +247,29 @@ function EarningsTableControls() {
 
   const { earningsCount: links } = usePartnerEarningsCount<
     { id: string; domain: string; key: string; url: string; _count: number }[]
-  >({ groupBy: "linkId", enabled: selectedFilter === "linkId" });
+  >({
+    groupBy: "linkId",
+    enabled:
+      selectedFilter === "linkId" || searchParamsObj.linkId ? true : false,
+  });
 
   const { earningsCount: customers } = usePartnerEarningsCount<
-    { id: string; name: string; email: string; _count: number }[]
-  >({ groupBy: "customerId", enabled: selectedFilter === "customerId" });
+    { id: string; email: string; _count: number }[]
+  >({
+    groupBy: "customerId",
+    enabled:
+      selectedFilter === "customerId" || searchParamsObj.customerId
+        ? true
+        : false,
+  });
 
   const { earningsCount: statuses } = usePartnerEarningsCount<
     { status: string; _count: number }[]
-  >({ groupBy: "status", enabled: selectedFilter === "status" });
+  >({
+    groupBy: "status",
+    enabled:
+      selectedFilter === "status" || searchParamsObj.status ? true : false,
+  });
 
   const filters = useMemo(
     () => [
