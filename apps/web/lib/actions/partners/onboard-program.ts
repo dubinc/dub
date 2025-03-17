@@ -1,8 +1,11 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
+import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { createLink, processLink } from "@/lib/api/links";
+import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
 import { rewardfulImporter } from "@/lib/rewardful/importer";
+import { storage } from "@/lib/storage";
 import { PlanProps } from "@/lib/types";
 import {
   onboardProgramSchema,
@@ -11,7 +14,8 @@ import {
 import { sendEmail } from "@dub/email";
 import { PartnerInvite } from "@dub/email/templates/partner-invite";
 import { prisma } from "@dub/prisma";
-import { Program, Project, Reward, User } from "@prisma/client";
+import { nanoid } from "@dub/utils";
+import { Program, Project, User } from "@prisma/client";
 import slugify from "@sindresorhus/slugify";
 import { waitUntil } from "@vercel/functions";
 import { redirect } from "next/navigation";
@@ -97,10 +101,13 @@ const createProgram = async ({
   workspace,
   user,
 }: {
-  workspace: Pick<Project, "id" | "store" | "plan">;
+  workspace: Pick<Project, "id" | "store" | "plan" | "webhookEnabled">;
   user: Pick<User, "id">;
 }) => {
   const store = workspace.store as Record<string, any>;
+  if (!store.programOnboarding) {
+    throw new Error("Program onboarding data not found");
+  }
 
   const {
     name,
@@ -112,14 +119,9 @@ const createProgram = async ({
     partners,
     rewardful,
     logo,
-  } = programDataSchema.parse(store?.programOnboarding);
+  } = programDataSchema.parse(store.programOnboarding);
 
-  await prisma.domain.findUniqueOrThrow({
-    where: {
-      slug: domain!,
-      projectId: workspace.id,
-    },
-  });
+  await getDomainOrThrow({ workspace, domain });
 
   // create a new program
   const program = await prisma.program.create({
@@ -130,34 +132,30 @@ const createProgram = async ({
       slug: slugify(name),
       domain,
       url,
+      ...(type &&
+        amount &&
+        maxDuration && {
+          rewards: {
+            create: {
+              id: createId({ prefix: "rw_" }),
+              type,
+              amount,
+              maxDuration,
+              event: "sale",
+            },
+          },
+        }),
+    },
+    include: {
+      rewards: true,
     },
   });
 
-  let reward: Reward | null = null;
-
-  // create a new reward
-  if (type && amount && maxDuration) {
-    reward = await prisma.reward.create({
-      data: {
-        id: createId({ prefix: "rw_" }),
-        programId: program.id,
-        type,
-        amount,
-        maxDuration,
-        event: "sale",
-      },
-    });
-  }
-
-  await prisma.program.update({
-    where: {
-      id: program.id,
-    },
-    data: {
-      ...(reward && { defaultRewardId: reward.id }),
-      ...(logo && { logo }),
-    },
-  });
+  const logoUrl = logo
+    ? await storage
+        .upload(`programs/${program.id}/logo_${nanoid(7)}`, logo)
+        .then(({ url }) => url)
+    : null;
 
   // import the rewardful campaign if it exists
   if (rewardful && rewardful.id) {
@@ -189,17 +187,28 @@ const createProgram = async ({
   }
 
   waitUntil(
-    prisma.project.update({
-      where: {
-        id: workspace.id,
-      },
-      data: {
-        store: {
-          ...store,
-          programOnboarding: undefined,
+    Promise.all([
+      prisma.project.update({
+        where: {
+          id: workspace.id,
         },
-      },
-    }),
+        data: {
+          store: {
+            ...store,
+            programOnboarding: undefined,
+          },
+        },
+      }),
+      prisma.program.update({
+        where: {
+          id: program.id,
+        },
+        data: {
+          ...(logoUrl && { logo: logoUrl }),
+          ...(program.rewards && { defaultRewardId: program.rewards[0].id }),
+        },
+      }),
+    ]),
   );
 
   return program;
@@ -207,13 +216,13 @@ const createProgram = async ({
 
 // Invite a partner to the program
 async function invitePartner({
-  workspace,
   program,
+  workspace,
   partner,
   userId,
 }: {
-  workspace: Pick<Project, "id" | "plan">;
-  program: Pick<Program, "id" | "name" | "logo" | "url" | "domain">;
+  program: Program;
+  workspace: Pick<Project, "id" | "plan" | "webhookEnabled">;
   partner: {
     email: string;
     key: string;
@@ -242,16 +251,19 @@ async function invitePartner({
 
   const link = await createLink(partnerLink);
 
-  await Promise.all([
-    prisma.programInvite.create({
-      data: {
-        id: createId({ prefix: "pgi_" }),
-        email: partner.email,
-        linkId: link.id,
-        programId: program.id,
-      },
-    }),
+  await createAndEnrollPartner({
+    program,
+    link,
+    workspace,
+    partner: {
+      name: partner.email.split("@")[0],
+      email: partner.email,
+    },
+    skipEnrollmentCheck: true,
+    status: "invited",
+  });
 
+  waitUntil(
     sendEmail({
       subject: `${program.name} invited you to join Dub Partners`,
       email: partner.email,
@@ -264,5 +276,5 @@ async function invitePartner({
         },
       }),
     }),
-  ]);
+  );
 }

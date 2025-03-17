@@ -14,6 +14,8 @@ import { useFieldArray, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { useDebounce } from "use-debounce";
 
+const MAX_PARTNERS = 5;
+
 const generateKeyFromEmail = (email: string) => {
   if (!email) return "";
 
@@ -266,17 +268,17 @@ export function Form() {
               icon={<Plus className="size-4" />}
               className="w-fit"
               onClick={() => {
-                if (fields.length < 10) {
+                if (fields.length < MAX_PARTNERS) {
                   append({ email: "", key: "" });
                 }
               }}
-              disabled={fields.length >= 10}
+              disabled={fields.length >= MAX_PARTNERS}
             />
           </div>
 
-          {fields.length >= 10 && (
+          {fields.length >= MAX_PARTNERS && (
             <p className="text-sm text-neutral-600">
-              You can add up to 10 partners at a time
+              You can add up to {MAX_PARTNERS} partners at a time
             </p>
           )}
         </div>
