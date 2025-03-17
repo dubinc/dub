@@ -3,16 +3,15 @@
 import { createId } from "@/lib/api/create-id";
 import { completeProgramApplications } from "@/lib/partners/complete-program-applications";
 import { storage } from "@/lib/storage";
-import { createConnectedAccount } from "@/lib/stripe/create-connected-account";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
-import { CONNECT_SUPPORTED_COUNTRIES, nanoid } from "@dub/utils";
+import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { authUserActionClient } from "../safe-action";
 
 // Onboard a new partner:
-// - If the Partner already exists and matches the user's email, update the Partner (ghost partner)
+// - If the Partner already exists and matches the user's email, update the Partner
 // - If the Partner doesn't exist, create it
 export const onboardPartnerAction = authUserActionClient
   .schema(onboardPartnerSchema)
@@ -27,20 +26,6 @@ export const onboardPartnerAction = authUserActionClient
       },
     });
 
-    // only create a connected account if the partner doesn't already have one
-    // and the country is supported
-    const connectedAccount =
-      !existingPartner?.stripeConnectId &&
-      CONNECT_SUPPORTED_COUNTRIES.includes(country)
-        ? await createConnectedAccount({
-            name,
-            email: user.email,
-            country,
-            profileType,
-            companyName,
-          })
-        : null;
-
     const partnerId = existingPartner
       ? existingPartner.id
       : createId({ prefix: "pn_" });
@@ -53,12 +38,16 @@ export const onboardPartnerAction = authUserActionClient
     const payload: Prisma.PartnerCreateInput = {
       name,
       email: user.email,
-      country: existingPartner?.country || country,
-      profileType: existingPartner?.profileType || profileType,
-      companyName: existingPartner?.companyName || companyName,
+      // you can only update these fields if the partner doesn't already have a stripeConnectId
+      ...(existingPartner?.stripeConnectId
+        ? {}
+        : {
+            country,
+            profileType,
+            companyName,
+          }),
       ...(description && { description }),
       image: imageUrl,
-      ...(connectedAccount && { stripeConnectId: connectedAccount.id }),
       users: {
         connectOrCreate: {
           where: {

@@ -3,7 +3,11 @@
 import { stripe } from "@/lib/stripe";
 import { createConnectedAccount } from "@/lib/stripe/create-connected-account";
 import { prisma } from "@dub/prisma";
-import { CONNECT_SUPPORTED_COUNTRIES, PARTNERS_DOMAIN } from "@dub/utils";
+import {
+  CONNECT_SUPPORTED_COUNTRIES,
+  COUNTRIES,
+  PARTNERS_DOMAIN,
+} from "@dub/utils";
 import { authPartnerActionClient } from "../safe-action";
 
 export const createAccountLinkAction = authPartnerActionClient.action(
@@ -27,7 +31,7 @@ export const createAccountLinkAction = authPartnerActionClient.action(
       // guard against unsupported countries
       if (!CONNECT_SUPPORTED_COUNTRIES.includes(partner.country)) {
         throw new Error(
-          "Your current country is not supported for Stripe Connect. Please contact support to update your country.",
+          `Your current country (${COUNTRIES[partner.country]}) is not supported for Stripe Connect. Please go to partners.dub.co/onboarding to update your country, or contact support.`,
         );
       }
       // create a new account

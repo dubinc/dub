@@ -47,7 +47,7 @@ function ImportRewardfulModal({
 
   const {
     executeAsync: setRewardfulToken,
-    isExecuting: isSettingRewardfulToken,
+    isPending: isSettingRewardfulToken,
   } = useAction(setRewardfulTokenAction, {
     onError: ({ error }) => {
       toast.error(error.serverError);
@@ -60,7 +60,7 @@ function ImportRewardfulModal({
 
   const {
     executeAsync: startRewardfulImport,
-    isExecuting: isStartingRewardfulImport,
+    isPending: isStartingRewardfulImport,
   } = useAction(startRewardfulImportAction, {
     onError: ({ error }) => {
       toast.error(error.serverError);
@@ -73,6 +73,9 @@ function ImportRewardfulModal({
     },
   });
 
+  // TODO
+  // Replace this with new hook
+
   const {
     data: campaigns,
     isLoading: isLoadingCampaigns,
@@ -82,7 +85,7 @@ function ImportRewardfulModal({
       program?.id &&
       workspaceId &&
       step === "campaigns" &&
-      `/api/programs/${program.id}/rewardful/campaigns?workspaceId=${workspaceId}`,
+      `/api/programs/rewardful/campaigns?workspaceId=${workspaceId}`,
     fetcher,
   );
 
@@ -104,7 +107,6 @@ function ImportRewardfulModal({
 
     await setRewardfulToken({
       workspaceId,
-      programId: program.id,
       token: apiToken,
     });
   };

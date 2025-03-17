@@ -341,9 +341,15 @@ export const withWorkspace = (
 
         // beta feature checks
         if (featureFlag) {
-          const flags = await getFeatureFlags({
+          let flags = await getFeatureFlags({
             workspaceId: workspace.id,
           });
+
+          // TODO: Remove this once Folders goes GA
+          flags = {
+            ...flags,
+            linkFolders: flags.linkFolders || workspace.partnersEnabled,
+          };
 
           if (!flags[featureFlag]) {
             throw new DubApiError({
@@ -388,9 +394,6 @@ export const withWorkspace = (
         req.log.error(error);
         return handleAndReturnErrorResponse(error, headers);
       }
-    },
-    {
-      logRequestDetails: ["nextUrl"],
     },
   );
 };
