@@ -28,17 +28,19 @@ function AddEditDomainModal({
       drawerRootProps={{ repositionInputs: false }}
       className="max-w-lg"
     >
-      <h3 className="border-b border-neutral-200 px-4 py-4 text-lg font-medium sm:px-6">
-        {props ? "Update" : "Add"} Domain
-      </h3>
-      <div className="bg-neutral-50">
-        <AddEditDomainForm
-          props={props}
-          onSuccess={() => {
-            setShowAddEditDomainModal(false);
-          }}
-          className="p-8"
-        />
+      <div className="flex max-h-[90vh] flex-col">
+        <h3 className="border-b border-neutral-200 px-4 py-4 text-lg font-medium sm:px-6">
+          {props ? "Update" : "Add"} Domain
+        </h3>
+        <div className="bg-neutral-50 flex-1 overflow-auto">
+          <AddEditDomainForm
+            props={props}
+            onSuccess={() => {
+              setShowAddEditDomainModal(false);
+            }}
+            className="p-8"
+          />
+        </div>
       </div>
     </Modal>
   );
