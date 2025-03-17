@@ -1,4 +1,5 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { EventType } from "@/lib/api/audit-logs/schemas";
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
@@ -140,13 +141,18 @@ export const PATCH = withWorkspace(
 
     waitUntil(
       recordAuditLog({
-        action: "commission.update",
-        workspace_id: workspace.id,
-        program_id: programId,
-        actor_id: session.user.id,
-        actor_name: session.user.name,
-        targets: [{ id: sale.id, type: "commission" }],
+        workspaceId: workspace.id,
+        programId: programId,
+        actorId: session.user.id,
+        actorName: session.user.name,
         description: "Updated sale amount.",
+        event: {
+          type: EventType.COMMISSION_UPDATE,
+          metadata: {
+            id: sale.id,
+            amount: finalAmount,
+          },
+        },
       }),
     );
 

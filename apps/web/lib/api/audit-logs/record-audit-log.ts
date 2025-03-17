@@ -4,28 +4,34 @@ import { ipAddress } from "@vercel/functions";
 import { headers } from "next/headers";
 import { z } from "zod";
 import { getIP } from "../utils";
-import { createAuditLogSchema } from "./schemas";
+import { auditLogSchema, createAuditLogSchema } from "./schemas";
 
 export const recordAuditLogTB = tb.buildIngestEndpoint({
   datasource: "dub_audit_logs",
-  event: createAuditLogSchema,
+  event: auditLogSchema,
   wait: true,
 });
 
 export const recordAuditLog = async (
-  auditLog: z.input<typeof createAuditLogSchema> & {
+  event: z.infer<typeof createAuditLogSchema> & {
     req?: Request;
   },
 ) => {
   const headersList = headers();
-  const ip = auditLog.req ? ipAddress(auditLog.req) : getIP();
+  const ip = event.req ? ipAddress(event.req) : getIP();
   const ua = headersList.get("user-agent");
 
-  const auditLogTB = {
-    ...auditLog,
+  const auditLogTB: z.infer<typeof auditLogSchema> = {
     id: nanoid(),
-    ...(ip && { ip }),
-    ...(ua && { user_agent: ua }),
+    workspace_id: event.workspaceId,
+    program_id: event.programId,
+    action: event.event.type,
+    actor_type: event.actorType || "user",
+    actor_id: event.actorId,
+    actor_name: event.actorName,
+    description: event.description || "",
+    ip: ip || "",
+    user_agent: ua || "",
     timestamp: new Date().toISOString(),
   };
 
