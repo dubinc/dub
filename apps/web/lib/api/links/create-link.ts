@@ -17,7 +17,7 @@ import { createId } from "../create-id";
 import { combineTagIds } from "../tags/combine-tag-ids";
 import { linkCache } from "./cache";
 import { encodeKeyIfCaseSensitive } from "./case-sensitivity";
-import { getPartnerAndDiscount } from "./include-partner";
+import { getPartnerAndDiscount } from "../programs/getPartnerAndDiscount";
 import { includeTags } from "./include-tags";
 import { updateLinksUsage } from "./update-links-usage";
 import { transformLink } from "./utils";

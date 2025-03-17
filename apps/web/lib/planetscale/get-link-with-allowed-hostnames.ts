@@ -11,10 +11,11 @@ export const getLinkWithAllowedHostnames = async (
     projectId: string;
     folderId: string | null;
     userId: string;
+    programId: string | null;
     allowedHostnames: string[];
     trackConversion: boolean;
   }>(
-    "SELECT Link.id, Link.url, projectId, folderId, userId, allowedHostnames, trackConversion FROM Link LEFT JOIN Project ON Link.projectId = Project.id WHERE domain = ? AND `key` = ?",
+    "SELECT Link.id, Link.url, projectId, folderId, userId, programId, allowedHostnames, trackConversion FROM Link LEFT JOIN Project ON Link.projectId = Project.id WHERE domain = ? AND `key` = ?",
     [domain, punyEncode(decodeURIComponent(key))],
   );
 

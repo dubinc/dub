@@ -1,4 +1,3 @@
-import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 
 const selectDiscount = {
@@ -34,23 +33,3 @@ export const includePartnerAndDiscount = {
     },
   },
 } satisfies Prisma.LinkInclude;
-
-// Get the partner and discount for a link
-export const getPartnerAndDiscount = async (linkId: string) => {
-  const { programEnrollment, program } = await prisma.link.findUniqueOrThrow({
-    where: {
-      id: linkId,
-    },
-    include: includePartnerAndDiscount,
-  });
-
-
-  const partner = programEnrollment?.partner || undefined;
-  const discount =
-    programEnrollment?.discount || program?.defaultDiscount || undefined;
-
-  return {
-    partner,
-    discount,
-  };
-};

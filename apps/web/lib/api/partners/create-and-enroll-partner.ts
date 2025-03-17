@@ -15,7 +15,7 @@ import { Prisma, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
 import { linkCache } from "../links/cache";
-import { includePartnerAndDiscount } from "../links/include-partner";
+import { includePartnerAndDiscount } from "./include-partner";
 import { includeTags } from "../links/include-tags";
 
 export const createAndEnrollPartner = async ({

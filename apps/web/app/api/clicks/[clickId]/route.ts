@@ -1,5 +1,7 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { ExpandedLink } from "@/lib/api/links";
 import { linkCache } from "@/lib/api/links/cache";
+import { includePartnerAndDiscount } from "@/lib/api/partners/include-partner";
 import { ratelimitOrThrow } from "@/lib/api/utils";
 import { getClickEvent } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
@@ -8,6 +10,7 @@ import {
   clickPartnerDiscountSchema,
 } from "@/lib/zod/schemas/clicks";
 import { prismaEdge } from "@dub/prisma/edge";
+import { waitUntil } from "@vercel/functions";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -62,33 +65,62 @@ export async function GET(
       });
     }
 
-    const link = await prismaEdge.link.findUnique({
+    // Find the partner and discount for the link
+    const link = await prismaEdge.link.findUniqueOrThrow({
       where: {
         id: linkId,
       },
       select: {
         domain: true,
         key: true,
+        programId: true,
       },
     });
 
-    if (!link) {
-      throw new DubApiError({
-        code: "not_found",
-        message: `Link not found for the click event ${clickId}.`,
-      });
-    }
+    let partner: ExpandedLink["partner"] | undefined;
+    let discount: ExpandedLink["discount"] | undefined;
 
-    const cachedLink = await linkCache.get({
-      domain: link.domain,
-      key: link.key,
-    });
+    // Do this only for program links
+    if (link.programId) {
+      const cachedLink = await linkCache.get({
+        domain: link.domain,
+        key: link.key,
+      });
+
+      if (cachedLink) {
+        partner = cachedLink?.partner;
+        discount = cachedLink?.discount;
+      }
+
+      if (!partner) {
+        const { programEnrollment, program, ...rest } =
+          await prismaEdge.link.findUniqueOrThrow({
+            where: {
+              id: linkId,
+            },
+            include: {
+              ...includePartnerAndDiscount,
+            },
+          });
+
+        partner = programEnrollment?.partner;
+        discount = programEnrollment?.discount || program?.defaultDiscount;
+
+        waitUntil(
+          linkCache.set({
+            ...rest,
+            partner,
+            discount,
+          }),
+        );
+      }
+    }
 
     return NextResponse.json(
       clickPartnerDiscountSchema.parse({
         clickId,
-        partner: cachedLink?.partner,
-        discount: cachedLink?.discount,
+        partner,
+        discount,
       }),
       {
         headers: CORS_HEADERS,

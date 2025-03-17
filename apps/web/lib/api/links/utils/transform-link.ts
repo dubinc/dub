@@ -12,7 +12,7 @@ export type ExpandedLink = Link & {
   discount?: Pick<
     DiscountProps,
     "id" | "maxDuration" | "amount" | "type" | "couponId" | "couponTestId"
-  >;
+  > | null;
 };
 
 // Transform link with additional properties
