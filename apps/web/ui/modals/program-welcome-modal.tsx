@@ -1,6 +1,6 @@
-import useProgram from "@/lib/swr/use-program";
 import { Button, Modal, useRouterStuff, useScrollProgress } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { STAGGER_CHILD_VARIANTS } from "@dub/utils";
+import { motion } from "framer-motion";
 import {
   Dispatch,
   SetStateAction,
@@ -9,7 +9,31 @@ import {
   useRef,
   useState,
 } from "react";
+import { CheckCircleFill } from "../shared/icons";
 import { ModalHero } from "../shared/modal-hero";
+
+const NEXT_STEPS = [
+  {
+    text: "Set up a bank account for payouts",
+    href: "https://dub.co/help/article/how-to-set-up-bank-account",
+  },
+  {
+    text: "Create custom rewards for your partners",
+    href: "https://dub.co/help/article/dual-sided-incentives",
+  },
+  {
+    text: "Create dual-sided incentives",
+    href: "https://dub.co/help/article/dual-sided-incentives",
+  },
+  {
+    text: "Invite more partners to your program",
+    href: "https://dub.co/help/article/inviting-partners",
+  },
+  {
+    text: "Set up a program application form",
+    href: "https://dub.co/help/article/inviting-partners#via-a-branded-application-form",
+  },
+];
 
 function ProgramWelcomeModal({
   showProgramWelcomeModal,
@@ -18,7 +42,6 @@ function ProgramWelcomeModal({
   showProgramWelcomeModal: boolean;
   setShowProgramWelcomeModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { program, loading } = useProgram();
   const { queryParams } = useRouterStuff();
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
@@ -40,22 +63,44 @@ function ProgramWelcomeModal({
             <div
               ref={scrollRef}
               onScroll={updateScrollProgress}
-              className="scrollbar-hide max-h-[calc(100vh-350px)] overflow-y-auto pb-6"
+              className="scrollbar-hide grid max-h-[calc(100vh-350px)] gap-4 overflow-y-auto pb-4"
             >
-              <h1 className={cn("text-lg font-medium text-neutral-950")}>
-                {loading ? (
-                  <div className="h-6 w-32 animate-pulse rounded-md bg-gray-200" />
-                ) : (
-                  `${program?.name} created!`
-                )}
+              <h1 className="text-lg font-medium text-neutral-950">
+                Welcome to your partner program
               </h1>
-              <p className="mt-2 text-sm text-neutral-600">
-                Congratulations on creating your first partner program with Dub!
-                <br />
-                <br />
-                Share your program application link with your customers and
-                fans, and track all their activity in you dashboard.
+              <p className="text-sm text-neutral-500">
+                You're now ready to start growing your revenue on autopilot with
+                your partners.
               </p>
+              <p className="text-sm text-neutral-500">
+                To get started, here are some next steps:
+              </p>
+              <motion.div
+                variants={{
+                  show: {
+                    transition: {
+                      staggerChildren: 0.08,
+                    },
+                  },
+                }}
+                initial="hidden"
+                animate="show"
+                className="flex flex-col gap-2"
+              >
+                {NEXT_STEPS.map((step, idx) => (
+                  <motion.a
+                    key={idx}
+                    variants={STAGGER_CHILD_VARIANTS}
+                    href={step.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-sm text-neutral-500 underline decoration-dotted"
+                  >
+                    <CheckCircleFill className="h-5 w-5 text-green-500" />
+                    <p>{step.text}</p>
+                  </motion.a>
+                ))}
+              </motion.div>
             </div>
 
             <div
@@ -67,7 +112,7 @@ function ProgramWelcomeModal({
           <Button
             type="button"
             variant="primary"
-            text="Check it out"
+            text="Get started"
             className="mt-2"
             onClick={() =>
               queryParams({
