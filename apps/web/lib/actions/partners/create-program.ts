@@ -3,13 +3,13 @@ import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { createLink, processLink } from "@/lib/api/links";
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
 import { rewardfulImporter } from "@/lib/rewardful/importer";
-import { storage } from "@/lib/storage";
+import { isStored, storage } from "@/lib/storage";
 import { PlanProps } from "@/lib/types";
 import { programDataSchema } from "@/lib/zod/schemas/program-onboarding";
 import { sendEmail } from "@dub/email";
 import { PartnerInvite } from "@dub/email/templates/partner-invite";
 import { prisma } from "@dub/prisma";
-import { nanoid } from "@dub/utils";
+import { nanoid, R2_URL } from "@dub/utils";
 import { Program, Project, User } from "@prisma/client";
 import slugify from "@sindresorhus/slugify";
 import { waitUntil } from "@vercel/functions";
@@ -36,7 +36,7 @@ export const createProgram = async ({
     maxDuration,
     partners,
     rewardful,
-    logo,
+    logo: uploadedLogo,
   } = programDataSchema.parse(store.programOnboarding);
 
   await getDomainOrThrow({ workspace, domain });
@@ -85,9 +85,9 @@ export const createProgram = async ({
     },
   });
 
-  const logoUrl = logo
+  const logoUrl = uploadedLogo
     ? await storage
-        .upload(`programs/${program.id}/logo_${nanoid(7)}`, logo)
+        .upload(`programs/${program.id}/logo_${nanoid(7)}`, uploadedLogo)
         .then(({ url }) => url)
     : null;
 
@@ -142,6 +142,9 @@ export const createProgram = async ({
           ...(program.rewards && { defaultRewardId: program.rewards[0].id }),
         },
       }),
+      uploadedLogo &&
+        isStored(uploadedLogo) &&
+        storage.delete(uploadedLogo.replace(`${R2_URL}/`, "")),
     ]),
   );
 
