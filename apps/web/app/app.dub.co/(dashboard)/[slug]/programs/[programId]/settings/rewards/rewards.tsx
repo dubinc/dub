@@ -18,7 +18,7 @@ import { pluralize } from "@dub/utils";
 import { Gift } from "lucide-react";
 import { useState } from "react";
 
-export function RewardSettings() {
+export function Rewards() {
   return (
     <div className="flex flex-col gap-6">
       <SaleReward />
