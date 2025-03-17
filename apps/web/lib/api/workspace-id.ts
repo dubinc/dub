@@ -13,7 +13,7 @@ export const getWorkspaceId = (workspaceId: string) => {
 export const createWorkspaceId = () => {
   const workspaceId = createId({ prefix: "ws_" });
 
-  if (workspaceId.startsWith("ws_c")) {
+  if (workspaceId.toLowerCase().startsWith("ws_c")) {
     return createWorkspaceId();
   }
 
