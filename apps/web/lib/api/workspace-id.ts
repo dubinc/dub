@@ -1,10 +1,10 @@
 import { createId } from "./create-id";
 
-export const transformWorkspaceId = (workspaceId: string) => {
+export const prefixWorkspaceId = (workspaceId: string) => {
   return workspaceId.startsWith("ws_") ? workspaceId : `ws_${workspaceId}`;
 };
 
-export const getWorkspaceId = (workspaceId: string) => {
+export const normalizeWorkspaceId = (workspaceId: string) => {
   return workspaceId.startsWith("ws_c")
     ? workspaceId.replace("ws_", "")
     : workspaceId;

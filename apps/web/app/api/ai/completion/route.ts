@@ -1,5 +1,5 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { getWorkspaceId } from "@/lib/api/workspace-id";
+import { normalizeWorkspaceId } from "@/lib/api/workspace-id";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
 import z from "@/lib/zod";
 import { anthropic } from "@ai-sdk/anthropic";
@@ -42,7 +42,7 @@ export const POST = withWorkspaceEdge(
         waitUntil(
           prismaEdge.project.update({
             where: {
-              id: getWorkspaceId(workspace.id),
+              id: normalizeWorkspaceId(workspace.id),
             },
             data: {
               aiUsage: {

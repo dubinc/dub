@@ -7,7 +7,7 @@ import {
   eventIntervals,
   intervals,
 } from "@/lib/analytics/constants";
-import { transformWorkspaceId } from "@/lib/api/workspace-id";
+import { prefixWorkspaceId } from "@/lib/api/workspace-id";
 import z from "@/lib/zod";
 import {
   CONTINENT_CODES,
@@ -224,7 +224,7 @@ export const analyticsFilterTB = z
     workspaceId: z
       .string()
       .optional()
-      .transform((v) => (v ? transformWorkspaceId(v) : undefined)),
+      .transform((v) => (v ? prefixWorkspaceId(v) : undefined)),
     customerId: z.string().optional(),
     root: z.boolean().optional(),
     qr: z.boolean().optional(),

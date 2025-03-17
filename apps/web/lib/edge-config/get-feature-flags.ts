@@ -1,5 +1,5 @@
 import { get } from "@vercel/edge-config";
-import { transformWorkspaceId } from "../api/workspace-id";
+import { prefixWorkspaceId } from "../api/workspace-id";
 import { BetaFeatures } from "../types";
 
 type BetaFeaturesRecord = Record<BetaFeatures, string[]>;
@@ -12,7 +12,7 @@ export const getFeatureFlags = async ({
   workspaceSlug?: string;
 }) => {
   if (workspaceId) {
-    workspaceId = transformWorkspaceId(workspaceId);
+    workspaceId = prefixWorkspaceId(workspaceId);
   }
 
   const workspaceFeatures: Record<BetaFeatures, boolean> = {

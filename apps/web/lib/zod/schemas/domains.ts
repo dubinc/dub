@@ -1,4 +1,4 @@
-import { getWorkspaceId } from "@/lib/api/workspace-id";
+import { normalizeWorkspaceId } from "@/lib/api/workspace-id";
 import z from "@/lib/zod";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { parseUrlSchemaAllowEmpty } from "./utils";
@@ -166,6 +166,6 @@ export const transferDomainBodySchema = z.object({
   newWorkspaceId: z
     .string({ required_error: "New workspace ID is required." })
     .min(1, "New workspace ID cannot be empty.")
-    .transform((v) => getWorkspaceId(v))
+    .transform((v) => normalizeWorkspaceId(v))
     .describe("The ID of the new workspace to transfer the domain to."),
 });

@@ -1,7 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import {
   createWorkspaceId,
-  transformWorkspaceId,
+  prefixWorkspaceId,
 } from "@/lib/api/workspace-id";
 import { withSession } from "@/lib/auth";
 import { checkIfUserExists } from "@/lib/planetscale";
@@ -54,7 +54,7 @@ export const GET = withSession(async ({ session }) => {
     workspaces.map((project) =>
       WorkspaceSchema.parse({
         ...project,
-        id: transformWorkspaceId(project.id),
+        id: prefixWorkspaceId(project.id),
       }),
     ),
   );
@@ -150,7 +150,7 @@ export const POST = withSession(async ({ req, session }) => {
     return NextResponse.json(
       WorkspaceSchema.parse({
         ...workspaceResponse,
-        id: transformWorkspaceId(workspaceResponse.id),
+        id: prefixWorkspaceId(workspaceResponse.id),
       }),
     );
   } catch (error) {

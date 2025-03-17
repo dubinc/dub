@@ -1,4 +1,4 @@
-import { transformWorkspaceId } from "@/lib/api/workspace-id";
+import { prefixWorkspaceId } from "@/lib/api/workspace-id";
 import { withWorkspace } from "@/lib/auth";
 import { tb } from "@/lib/tinybird";
 import z from "@/lib/zod";
@@ -17,7 +17,7 @@ export const GET = withWorkspace(async ({ searchParams, workspace }) => {
       workspaceId: z
         .string()
         .optional()
-        .transform((v) => (v ? transformWorkspaceId(v) : undefined)),
+        .transform((v) => (v ? prefixWorkspaceId(v) : undefined)),
       start: z.string(),
       end: z.string(),
     }),

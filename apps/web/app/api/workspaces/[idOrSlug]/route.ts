@@ -1,7 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { validateAllowedHostnames } from "@/lib/api/validate-allowed-hostnames";
-import { getWorkspaceId, transformWorkspaceId } from "@/lib/api/workspace-id";
+import { getWorkspaceId, prefixWorkspaceId } from "@/lib/api/workspace-id";
 import { deleteWorkspace } from "@/lib/api/workspaces";
 import { withWorkspace } from "@/lib/auth";
 import { getFeatureFlags } from "@/lib/edge-config";
@@ -45,7 +45,7 @@ export const GET = withWorkspace(
       {
         ...WorkspaceSchema.parse({
           ...workspace,
-          id: transformWorkspaceId(workspace.id),
+          id: prefixWorkspaceId(workspace.id),
           domains,
           // TODO: Remove this once Folders goes GA
           flags: {
@@ -129,7 +129,7 @@ export const PATCH = withWorkspace(
       return NextResponse.json(
         WorkspaceSchema.parse({
           ...response,
-          id: transformWorkspaceId(response.id),
+          id: prefixWorkspaceId(response.id),
           flags: await getFeatureFlags({
             workspaceId: response.id,
           }),

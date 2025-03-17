@@ -2,7 +2,7 @@ import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { DubApiError } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
-import { getWorkspaceId } from "@/lib/api/workspace-id";
+import { normalizeWorkspaceId } from "@/lib/api/workspace-id";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { recordLink } from "@/lib/tinybird";
@@ -15,7 +15,7 @@ const transferLinkBodySchema = z.object({
   newWorkspaceId: z
     .string()
     .min(1, "Missing new workspace ID.")
-    .transform((v) => getWorkspaceId(v)),
+    .transform((v) => normalizeWorkspaceId(v)),
 });
 
 // POST /api/links/[linkId]/transfer – transfer a link to another workspace
