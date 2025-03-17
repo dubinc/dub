@@ -203,7 +203,7 @@ const FolderUserRow = ({
     "folders.users.write",
   );
 
-  const { executeAsync, isExecuting } = useAction(updateUserRoleInFolder, {
+  const { executeAsync, isPending } = useAction(updateUserRoleInFolder, {
     onSuccess: () => {
       toast.success("Role updated!");
     },
@@ -213,7 +213,7 @@ const FolderUserRow = ({
   });
 
   const isCurrentUser = user.email === session?.user?.email;
-  const disableRoleUpdate = !canUpdateRole || isExecuting || isCurrentUser;
+  const disableRoleUpdate = !canUpdateRole || isPending || isCurrentUser;
 
   return (
     <div
