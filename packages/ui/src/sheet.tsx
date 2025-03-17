@@ -16,7 +16,10 @@ function SheetRoot({
   return (
     <RootComponent direction="right" handleOnly {...rest}>
       <Drawer.Portal>
-        <Drawer.Overlay className="fixed inset-0 bg-black/20" />
+        <Drawer.Overlay
+          className="fixed inset-0 bg-black/20"
+          data-sheet-overlay
+        />
         <Drawer.Content
           {...contentProps}
           onPointerDownOutside={(e) => {
