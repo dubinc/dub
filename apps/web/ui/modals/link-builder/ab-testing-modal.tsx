@@ -1,4 +1,8 @@
-import { LinkTestsSchema } from "@/lib/zod/schemas/links";
+import {
+  LinkTestsSchema,
+  MAX_TEST_COUNT,
+  MIN_TEST_PERCENTAGE,
+} from "@/lib/zod/schemas/links";
 import { useAvailableDomains } from "@/ui/links/use-available-domains";
 import { X } from "@/ui/shared/icons";
 import {
@@ -8,7 +12,6 @@ import {
   Modal,
   SimpleTooltipContent,
   Tooltip,
-  useKeyboardShortcut,
   useMediaQuery,
 } from "@dub/ui";
 import {
@@ -17,13 +20,14 @@ import {
   getDateTimeLocal,
   parseDateTime,
 } from "@dub/utils";
-import { BeakerIcon } from "lucide-react";
 import {
   Dispatch,
   SetStateAction,
   useCallback,
+  useEffect,
   useId,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { useForm, useFormContext } from "react-hook-form";
@@ -33,6 +37,20 @@ import { LinkFormData } from ".";
 
 const parseTests = (tests: LinkFormData["tests"]) =>
   Array.isArray(tests) ? LinkTestsSchema.parse(tests) : null;
+
+const fixPercentages = (tests: z.infer<typeof LinkTestsSchema>) => {
+  // Round percentages down to the nearest integer
+  let result = tests.map((test) => ({
+    ...test,
+    percentage: Math.floor(test.percentage),
+  }));
+
+  // Fix the last percentage to ensure the total is 100
+  result[result.length - 1].percentage =
+    100 - result.slice(0, -1).reduce((sum, test) => sum + test.percentage, 0);
+
+  return result;
+};
 
 function ABTestingModal({
   showABTestingModal,
@@ -59,6 +77,7 @@ function ABTestingModal({
     watch,
     register,
     setValue,
+    getValues,
     reset,
     formState: { isDirty },
     handleSubmit,
@@ -70,7 +89,7 @@ function ABTestingModal({
   >({
     values: {
       tests: parseTests(getValuesParent("tests")) ?? [
-        { url: getValuesParent("url") || "", percentage: 50 },
+        { url: getValuesParent("url") || "", percentage: 100 },
       ],
       testsCompleteAt: getValuesParent("testsCompleteAt") as Date | null,
     },
@@ -80,22 +99,93 @@ function ABTestingModal({
   const testsParent = watchParent("tests");
 
   const addTestUrl = () => {
-    if (tests && tests.length >= 4) {
-      toast.error("You can only add up to 4 test URLs");
-      return;
+    if (!tests.length || tests.length >= MAX_TEST_COUNT) return;
+
+    const allEqual = tests.every(
+      ({ percentage }) => Math.abs(percentage - tests[0].percentage) <= 1,
+    );
+
+    if (allEqual) {
+      // All percentages are equal so let's keep it that way
+      const each = Math.floor(100 / (tests.length + 1));
+      setValue(
+        "tests",
+        [
+          ...tests.map((t) => ({ ...t, percentage: each })),
+          { url: "", percentage: 100 - each * tests.length },
+        ],
+        { shouldDirty: true },
+      );
+    } else {
+      // Not all percentages are equal so let's split the latest one we can
+      const toSplitIndex = tests.findLastIndex(
+        ({ percentage }) => percentage >= MIN_TEST_PERCENTAGE * 2,
+      );
+      const toSplit = tests[toSplitIndex];
+      const toSplitPercentage = Math.floor(toSplit.percentage / 2);
+      const remainingPercentage = toSplit.percentage - toSplitPercentage;
+
+      setValue(
+        "tests",
+        [
+          ...tests.map((test, idx) => ({
+            ...test,
+            percentage:
+              idx === toSplitIndex ? toSplitPercentage : test.percentage,
+          })),
+          { url: "", percentage: remainingPercentage },
+        ],
+        {
+          shouldDirty: true,
+        },
+      );
     }
-
-    const newTest = { url: "", percentage: 0 };
-
-    setValue("tests", [...(tests || []), newTest], {
-      shouldDirty: true,
-    });
   };
 
   const removeTestUrl = (index: number) => {
-    setValue("tests", tests?.filter((_, i) => i !== index) ?? null, {
-      shouldDirty: true,
-    });
+    if (tests.length < 2) return;
+
+    const allEqual = tests.every(
+      ({ percentage }) => Math.abs(percentage - tests[0].percentage) <= 1,
+    );
+
+    if (allEqual) {
+      // All percentages are equal so let's keep it that way
+      const each = Math.floor(100 / (tests.length - 1));
+      const remainder = 100 - each * (tests.length - 2);
+
+      setValue(
+        "tests",
+        tests
+          ?.filter((_, i) => i !== index)
+          .map((test, idx, arr) => ({
+            ...test,
+            percentage: idx === arr.length - 1 ? remainder : each,
+          })) ?? null,
+        {
+          shouldDirty: true,
+        },
+      );
+    } else {
+      // Not all percentages are equal so let's give the last one the remainder
+      const remainder = tests[index].percentage;
+
+      setValue(
+        "tests",
+        tests
+          ?.filter((_, i) => i !== index)
+          .map((test, idx, arr) => ({
+            ...test,
+            percentage:
+              idx === arr.length - 1
+                ? test.percentage + remainder
+                : test.percentage,
+          })) ?? null,
+        {
+          shouldDirty: true,
+        },
+      );
+    }
   };
 
   return (
@@ -243,7 +333,7 @@ function ABTestingModal({
               variant="primary"
               className="mt-2 h-8"
               onClick={addTestUrl}
-              disabled={tests.length >= 4}
+              disabled={tests.length >= MAX_TEST_COUNT}
               text="Add URL"
             />
           </div>
@@ -255,36 +345,21 @@ function ABTestingModal({
             <label className="block text-sm font-medium text-neutral-700">
               Traffic split
             </label>
-            <InfoTooltip content="Adjust the percentage of traffic to each URL. The minimum is 10%" />
+            <InfoTooltip
+              content={`Adjust the percentage of traffic to each URL. The minimum is ${MIN_TEST_PERCENTAGE}%`}
+            />
           </div>
           <div className="mt-4">
-            <AnimatedSizeContainer
-              height
-              transition={{ ease: "easeInOut", duration: 0.2 }}
-              className="-m-1"
-            >
-              <div className="flex flex-col gap-2 p-1">
-                {tests.map((test, index) => (
-                  <div key={index} className="flex items-center space-x-2">
-                    <div className="flex-1 truncate text-sm text-neutral-700">
-                      {index + 1}
-                    </div>
-                    <div className="w-24">
-                      <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        placeholder="%"
-                        className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
-                        {...register(`tests.${index}.percentage`, {
-                          valueAsNumber: true,
-                        })}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </AnimatedSizeContainer>
+            <TrafficSplitSlider
+              tests={tests}
+              onChange={(percentages) => {
+                percentages.forEach((percentage, index) => {
+                  setValue(`tests.${index}.percentage`, percentage, {
+                    shouldDirty: true,
+                  });
+                });
+              }}
+            />
           </div>
         </div>
 
@@ -313,8 +388,8 @@ function ABTestingModal({
               type="text"
               placeholder='E.g. "in 2 weeks" or "next month"'
               defaultValue={
-                watch("testsCompleteAt")
-                  ? formatDateTime(watch("testsCompleteAt"))
+                getValues("testsCompleteAt")
+                  ? formatDateTime(getValues("testsCompleteAt") as Date)
                   : ""
               }
               onBlur={(e) => {
@@ -335,8 +410,8 @@ function ABTestingModal({
               id="testsCompleteAt"
               name="testsCompleteAt"
               value={
-                watch("testsCompleteAt")
-                  ? getDateTimeLocal(watch("testsCompleteAt"))
+                getValues("testsCompleteAt")
+                  ? getDateTimeLocal(getValues("testsCompleteAt") as Date)
                   : ""
               }
               onChange={(e) => {
@@ -351,6 +426,7 @@ function ABTestingModal({
         </div>
 
         <div className="mt-6 flex items-center justify-between">
+          <div></div>
           <div className="flex items-center gap-2">
             <Button
               type="button"
@@ -380,43 +456,6 @@ function ABTestingModal({
   );
 }
 
-export function getABTestingLabel({ tests }: { tests: unknown }) {
-  if (!Array.isArray(tests)) return "A/B Testing";
-  return tests.length > 0
-    ? `${tests.length} Test${tests.length > 1 ? "s" : ""}`
-    : "A/B Testing";
-}
-
-function ABTestingButton({
-  setShowABTestingModal,
-}: {
-  setShowABTestingModal: Dispatch<SetStateAction<boolean>>;
-}) {
-  const { watch } = useFormContext<LinkFormData>();
-  const tests = watch("tests");
-
-  useKeyboardShortcut("x", () => setShowABTestingModal(true), {
-    modal: true,
-  });
-
-  return (
-    <Button
-      variant="secondary"
-      text={getABTestingLabel({ tests })}
-      icon={
-        <BeakerIcon
-          className={cn(
-            "size-4",
-            Array.isArray(tests) && tests.length > 0 && "text-blue-500",
-          )}
-        />
-      }
-      className="h-9 w-fit px-2.5 font-medium text-neutral-700"
-      onClick={() => setShowABTestingModal(true)}
-    />
-  );
-}
-
 export function useABTestingModal() {
   const [showABTestingModal, setShowABTestingModal] = useState(false);
 
@@ -429,16 +468,120 @@ export function useABTestingModal() {
     );
   }, [showABTestingModal, setShowABTestingModal]);
 
-  const ABTestingButtonCallback = useCallback(() => {
-    return <ABTestingButton setShowABTestingModal={setShowABTestingModal} />;
-  }, [setShowABTestingModal]);
-
   return useMemo(
     () => ({
       setShowABTestingModal,
       ABTestingModal: ABTestingModalCallback,
-      ABTestingButton: ABTestingButtonCallback,
     }),
-    [setShowABTestingModal, ABTestingModalCallback, ABTestingButtonCallback],
+    [setShowABTestingModal, ABTestingModalCallback],
+  );
+}
+
+function TrafficSplitSlider({
+  tests,
+  onChange,
+}: {
+  tests: { url: string; percentage: number }[];
+  onChange: (percentages: number[]) => void;
+}) {
+  const [isDragging, setIsDragging] = useState<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseDown = (index: number) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDragging(index);
+  };
+
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      if (isDragging === null || !containerRef.current) return;
+
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const containerWidth = containerRect.width;
+      const mouseX = e.clientX - containerRect.x;
+      const mousePercentage = Math.round((mouseX / containerWidth) * 100);
+
+      // Get sum of percentages to the left and right of the two being affected
+      const leftPercentage = tests
+        .slice(0, Math.max(0, isDragging))
+        .reduce((sum, { percentage }) => sum + percentage, 0);
+      const rightPercentage = tests
+        .slice(isDragging + 2)
+        .reduce((sum, { percentage }) => sum + percentage, 0);
+
+      let newPercentages = tests.map(({ percentage }) => percentage);
+
+      newPercentages[isDragging] = mousePercentage - leftPercentage;
+      newPercentages[isDragging + 1] = 100 - rightPercentage - mousePercentage;
+
+      // Ensure minimum 10% for each test
+      if (newPercentages.every((p) => p >= MIN_TEST_PERCENTAGE)) {
+        onChange(newPercentages);
+      }
+    },
+    [isDragging, tests, onChange],
+  );
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(null);
+  }, []);
+
+  useEffect(() => {
+    if (isDragging !== null) {
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
+      return () => {
+        window.removeEventListener("mousemove", handleMouseMove);
+        window.removeEventListener("mouseup", handleMouseUp);
+      };
+    }
+  }, [isDragging, handleMouseMove, handleMouseUp]);
+
+  return (
+    <div
+      ref={containerRef}
+      className={cn(
+        "relative h-10",
+        isDragging !== null && "cursor-col-resize",
+      )}
+    >
+      <div className="absolute inset-0 flex h-full">
+        {tests.map((test, i) => (
+          <div
+            key={i}
+            className="@container pointer-events-none relative flex h-full"
+            style={{ width: `${test.percentage}%` }}
+          >
+            {i > 0 && <div className="w-1.5" />}
+            <div className="flex h-full grow items-center justify-center gap-2 rounded-md border border-neutral-300 text-xs">
+              <span className="text-xs font-semibold text-neutral-900">
+                {i + 1}
+              </span>
+              <span className="@[64px]:block hidden font-medium text-neutral-600">
+                {test.percentage}%
+              </span>
+            </div>
+            {i < tests.length - 1 && (
+              <>
+                <div className="w-1.5" />
+                <div
+                  className="group pointer-events-auto absolute -right-1.5 flex h-full w-3 cursor-col-resize items-center px-1"
+                  onMouseDown={handleMouseDown(i)}
+                >
+                  <div
+                    className={cn(
+                      "h-2/3 w-1 rounded-full bg-neutral-200",
+                      isDragging === i
+                        ? "bg-neutral-400"
+                        : "group-hover:bg-neutral-300",
+                    )}
+                  />
+                </div>
+              </>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }

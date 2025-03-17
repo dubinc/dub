@@ -32,6 +32,8 @@ export async function createLink(link: ProcessedLinkProps) {
     proxy,
     geo,
     publicStats,
+    tests,
+    testsCompleteAt,
   } = link;
 
   const combinedTagIds = combineTagIds(link);
@@ -63,6 +65,9 @@ export async function createLink(link: ProcessedLinkProps) {
       utm_content,
       expiresAt: expiresAt ? new Date(expiresAt) : null,
       geo: geo || Prisma.JsonNull,
+
+      testsCompleteAt: testsCompleteAt ? new Date(testsCompleteAt) : null,
+      tests: tests || Prisma.JsonNull,
 
       // Associate tags by tagNames
       ...(tagNames?.length &&

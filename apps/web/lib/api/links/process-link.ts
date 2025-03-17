@@ -4,6 +4,7 @@ import { getPangeaDomainIntel } from "@/lib/pangea";
 import { checkIfUserExists, getRandomKey } from "@/lib/planetscale";
 import { isStored } from "@/lib/storage";
 import { NewLinkProps, ProcessedLinkProps, WorkspaceProps } from "@/lib/types";
+import { LinkTestsSchema } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
 import {
   DUB_DOMAINS,
@@ -75,9 +76,13 @@ export async function processLink<T extends Record<string, any>>({
     partnerId,
     programId,
     webhookIds,
+    tests,
   } = payload;
 
   let expiresAt: string | Date | null | undefined = payload.expiresAt;
+  let testsCompleteAt: string | Date | null | undefined =
+    payload.testsCompleteAt;
+
   let defaultProgramFolderId: string | null = null;
   const tagIds = combineTagIds(payload);
 
@@ -530,6 +535,29 @@ export async function processLink<T extends Record<string, any>>({
     }
   }
 
+  // A/B testing checks
+  if (tests && testsCompleteAt) {
+    const datetime = parseDateTime(testsCompleteAt);
+    if (!datetime) {
+      return {
+        link: payload,
+        error: "Invalid test completion date.",
+        code: "unprocessable_entity",
+      };
+    }
+    testsCompleteAt = datetime;
+
+    const parsedTests = LinkTestsSchema.safeParse(tests);
+    if (!parsedTests.success) {
+      return {
+        link: payload,
+        error: "Invalid tests.",
+        code: "unprocessable_entity",
+      };
+    }
+    tests = parsedTests.data;
+  }
+
   // remove polyfill attributes from payload
   delete payload["shortLink"];
   delete payload["qrCode"];
@@ -547,6 +575,8 @@ export async function processLink<T extends Record<string, any>>({
       url,
       expiresAt,
       expiredUrl,
+      tests,
+      testsCompleteAt,
       // partnerId derived from payload or program enrollment
       partnerId: partnerId || null,
       // make sure projectId is set to the current workspace

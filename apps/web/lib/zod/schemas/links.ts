@@ -25,15 +25,21 @@ export const getDomainQuerySchema = z.object({
     .refine((v) => validDomainRegex.test(v), { message: "Invalid domain" }),
 });
 
+export const MIN_TEST_PERCENTAGE = 10;
+export const MAX_TEST_COUNT = 4;
+
 export const LinkTestsSchema = z
   .array(
     z.object({
       url: z.string(),
-      percentage: z.number().min(0).max(100),
+      percentage: z
+        .number()
+        .min(MIN_TEST_PERCENTAGE)
+        .max(100 - MIN_TEST_PERCENTAGE),
     }),
   )
-  .min(1)
-  .max(4)
+  .min(2)
+  .max(MAX_TEST_COUNT)
   .describe("An array of A/B test URLs and their percentages");
 
 const LinksQuerySchema = z.object({
@@ -720,6 +726,7 @@ export const linkEventSchema = LinkSchema.extend({
   updatedAt: z.coerce.date(),
   lastClicked: z.coerce.date(),
   expiresAt: z.coerce.date(),
+  testsCompleteAt: z.coerce.date(),
   // userId can be null
   userId: z.string().nullable(),
 });
