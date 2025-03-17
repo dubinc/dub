@@ -1,4 +1,4 @@
-// @ts-ignore – contains old prisma schemas
+// @ts-nocheck – contains old prisma schemas
 
 import { createId } from "@/lib/api/create-id";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
