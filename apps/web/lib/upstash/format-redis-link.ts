@@ -23,11 +23,6 @@ export function formatRedisLink(link: ExpandedLink): RedisLinkProps {
 
   const webhookIds = webhooks?.map(({ webhookId }) => webhookId) ?? [];
 
-  console.log("formatRedisLink", {
-    partner,
-    discount,
-  });
-
   return {
     id,
     ...(url && { url }), // on free plans you cannot set a root domain redirect, hence URL is undefined
