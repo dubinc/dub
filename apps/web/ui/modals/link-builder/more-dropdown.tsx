@@ -8,10 +8,11 @@ import {
 } from "@dub/ui";
 import { Dots } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
-import { Settings } from "lucide-react";
+import { BeakerIcon, Settings } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { LinkFormData } from ".";
+import { useABTestingModal } from "./ab-testing-modal";
 import { useAdvancedModal } from "./advanced-modal";
 import { MOBILE_MORE_ITEMS, TOGGLES } from "./constants";
 import { useExpirationModal } from "./expiration-modal";
@@ -46,6 +47,7 @@ export function MoreDropdown() {
   const { TargetingModal, setShowTargetingModal } = useTargetingModal();
   const { ExpirationModal, setShowExpirationModal } = useExpirationModal();
   const { AdvancedModal, setShowAdvancedModal } = useAdvancedModal();
+  const { ABTestingModal, setShowABTestingModal } = useABTestingModal();
 
   return (
     <>
@@ -53,6 +55,7 @@ export function MoreDropdown() {
       <TargetingModal />
       <ExpirationModal />
       <AdvancedModal />
+      <ABTestingModal />
       <Popover
         align="start"
         content={
@@ -76,6 +79,7 @@ export function MoreDropdown() {
                         password: setShowPasswordModal,
                         targeting: setShowTargetingModal,
                         expiresAt: setShowExpirationModal,
+                        tests: setShowABTestingModal,
                       })[option.key]?.(true);
                     } else
                       setValue(option.key as any, !enabled, {
@@ -136,6 +140,32 @@ export function MoreDropdown() {
                   </div>
                   <kbd className="hidden size-6 cursor-default items-center justify-center rounded-md border border-neutral-200 font-sans text-xs text-neutral-800 sm:flex">
                     A
+                  </kbd>
+                </div>
+              }
+            />
+
+            <Button
+              variant="outline"
+              className="h-9 justify-start px-2 text-sm text-neutral-700"
+              textWrapperClassName="grow"
+              onClick={() => {
+                setOpenPopover(false);
+                setShowABTestingModal(true);
+              }}
+              text={
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1">
+                    <BeakerIcon
+                      className={cn(
+                        "mr-1 size-4 text-neutral-950",
+                        data.tests && "text-blue-500",
+                      )}
+                    />
+                    A/B Testing
+                  </div>
+                  <kbd className="hidden size-6 cursor-default items-center justify-center rounded-md border border-neutral-200 font-sans text-xs text-neutral-800 sm:flex">
+                    X
                   </kbd>
                 </div>
               }

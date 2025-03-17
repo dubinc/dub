@@ -32,7 +32,8 @@ export const LinkTestsSchema = z
       percentage: z.number().min(0).max(100),
     }),
   )
-  .nullish()
+  .min(1)
+  .max(4)
   .describe("An array of A/B test URLs and their percentages");
 
 const LinksQuerySchema = z.object({
@@ -394,7 +395,7 @@ export const createLinkBodySchema = z.object({
     .describe(
       "An array of webhook IDs to trigger when the link is clicked. These webhooks will receive click event data.",
     ),
-  tests: LinkTestsSchema,
+  tests: LinkTestsSchema.nullish(),
   testsCompleteAt: z
     .string()
     .nullish()
@@ -615,7 +616,7 @@ export const LinkSchema = z
       .string()
       .nullable()
       .describe("The UTM content of the short link."),
-    tests: LinkTestsSchema,
+    tests: LinkTestsSchema.nullish(),
     testsCompleteAt: z
       .string()
       .nullish()
