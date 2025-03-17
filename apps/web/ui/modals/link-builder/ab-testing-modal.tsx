@@ -252,14 +252,14 @@ function ABTestingModal({
               content={
                 <div className="px-2 py-1 text-xs text-neutral-700">
                   Press{" "}
-                  <strong className="font-medium text-neutral-950">X</strong> to
+                  <strong className="font-medium text-neutral-950">B</strong> to
                   open this quickly
                 </div>
               }
               side="right"
             >
               <kbd className="flex size-6 cursor-default items-center justify-center rounded-md border border-neutral-200 font-sans text-xs text-neutral-950">
-                X
+                B
               </kbd>
             </Tooltip>
           </div>

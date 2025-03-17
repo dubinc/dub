@@ -8,13 +8,12 @@ import {
 } from "@dub/ui";
 import { Dots } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
-import { BeakerIcon, Settings } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { LinkFormData } from ".";
 import { useABTestingModal } from "./ab-testing-modal";
 import { useAdvancedModal } from "./advanced-modal";
-import { MOBILE_MORE_ITEMS, TOGGLES } from "./constants";
+import { MOBILE_MORE_ITEMS, MORE_ITEMS } from "./constants";
 import { useExpirationModal } from "./expiration-modal";
 import { usePasswordModal } from "./password-modal";
 import { useTargetingModal } from "./targeting-modal";
@@ -28,8 +27,22 @@ export function MoreDropdown() {
   const [openPopover, setOpenPopover] = useState(false);
 
   const options = useMemo(() => {
-    return [...(isMobile ? MOBILE_MORE_ITEMS : []), ...TOGGLES];
+    return [...(isMobile ? MOBILE_MORE_ITEMS : []), ...MORE_ITEMS];
   }, [data, isMobile]);
+
+  const { PasswordModal, setShowPasswordModal } = usePasswordModal();
+  const { TargetingModal, setShowTargetingModal } = useTargetingModal();
+  const { ExpirationModal, setShowExpirationModal } = useExpirationModal();
+  const { AdvancedModal, setShowAdvancedModal } = useAdvancedModal();
+  const { ABTestingModal, setShowABTestingModal } = useABTestingModal();
+
+  const modalCallbacks = {
+    password: setShowPasswordModal,
+    targeting: setShowTargetingModal,
+    expiresAt: setShowExpirationModal,
+    tests: setShowABTestingModal,
+    advanced: setShowAdvancedModal,
+  };
 
   useKeyboardShortcut(
     options.map(({ shortcutKey }) => shortcutKey),
@@ -38,16 +51,12 @@ export function MoreDropdown() {
       if (!option) return;
 
       setOpenPopover(false);
-      setValue(option.key as any, !data[option.key], { shouldDirty: true });
+      if (option.type === "modal") modalCallbacks[option.key]?.(true);
+      else
+        setValue(option.key as any, !data[option.key], { shouldDirty: true });
     },
-    { modal: true },
+    { modal: true, priority: 1 },
   );
-
-  const { PasswordModal, setShowPasswordModal } = usePasswordModal();
-  const { TargetingModal, setShowTargetingModal } = useTargetingModal();
-  const { ExpirationModal, setShowExpirationModal } = useExpirationModal();
-  const { AdvancedModal, setShowAdvancedModal } = useAdvancedModal();
-  const { ABTestingModal, setShowABTestingModal } = useABTestingModal();
 
   return (
     <>
@@ -75,12 +84,7 @@ export function MoreDropdown() {
                     setOpenPopover(false);
 
                     if (option.type === "modal") {
-                      ({
-                        password: setShowPasswordModal,
-                        targeting: setShowTargetingModal,
-                        expiresAt: setShowExpirationModal,
-                        tests: setShowABTestingModal,
-                      })[option.key]?.(true);
+                      modalCallbacks[option.key]?.(true);
                     } else
                       setValue(option.key as any, !enabled, {
                         shouldDirty: true,
@@ -91,24 +95,31 @@ export function MoreDropdown() {
                   text={
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-1">
-                        <option.icon className="mr-1 size-4 text-neutral-950" />
+                        <option.icon
+                          className={cn(
+                            "mr-1 size-4 text-neutral-950",
+                            enabled && "text-blue-500",
+                          )}
+                        />
                         {option.type === "modal"
-                          ? enabled
+                          ? enabled || ("add" in option && option.add === false)
                             ? ""
                             : "Add "
                           : enabled
                             ? "Remove "
                             : "Add "}
                         {option.label}
-                        <ProBadgeTooltip
-                          content={
-                            <SimpleTooltipContent
-                              title={option.description}
-                              cta="Learn more."
-                              href={option.learnMoreUrl}
-                            />
-                          }
-                        />
+                        {option.description && option.learnMoreUrl && (
+                          <ProBadgeTooltip
+                            content={
+                              <SimpleTooltipContent
+                                title={option.description}
+                                cta="Learn more."
+                                href={option.learnMoreUrl}
+                              />
+                            }
+                          />
+                        )}
                       </div>
                       <kbd className="hidden size-6 cursor-default items-center justify-center rounded-md border border-neutral-200 font-sans text-xs text-neutral-800 sm:flex">
                         {option.shortcutKey.toUpperCase()}
@@ -118,58 +129,6 @@ export function MoreDropdown() {
                 />
               );
             })}
-
-            <Button
-              variant="outline"
-              className="h-9 justify-start px-2 text-sm text-neutral-700"
-              textWrapperClassName="grow"
-              onClick={() => {
-                setOpenPopover(false);
-                setShowAdvancedModal(true);
-              }}
-              text={
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-1">
-                    <Settings
-                      className={cn(
-                        "mr-1 size-4 text-neutral-950",
-                        data.externalId && "text-blue-500",
-                      )}
-                    />
-                    Advanced Settings
-                  </div>
-                  <kbd className="hidden size-6 cursor-default items-center justify-center rounded-md border border-neutral-200 font-sans text-xs text-neutral-800 sm:flex">
-                    A
-                  </kbd>
-                </div>
-              }
-            />
-
-            <Button
-              variant="outline"
-              className="h-9 justify-start px-2 text-sm text-neutral-700"
-              textWrapperClassName="grow"
-              onClick={() => {
-                setOpenPopover(false);
-                setShowABTestingModal(true);
-              }}
-              text={
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-1">
-                    <BeakerIcon
-                      className={cn(
-                        "mr-1 size-4 text-neutral-950",
-                        data.tests && "text-blue-500",
-                      )}
-                    />
-                    A/B Testing
-                  </div>
-                  <kbd className="hidden size-6 cursor-default items-center justify-center rounded-md border border-neutral-200 font-sans text-xs text-neutral-800 sm:flex">
-                    X
-                  </kbd>
-                </div>
-              }
-            />
           </div>
         }
         openPopover={openPopover}

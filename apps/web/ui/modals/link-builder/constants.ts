@@ -2,17 +2,30 @@ import { ExpandedLinkProps } from "@/lib/types";
 import {
   CircleHalfDottedClock,
   Crosshairs3,
+  Flask,
+  Icon,
   Incognito,
   InputPassword,
   WindowSearch,
 } from "@dub/ui/icons";
+import { Settings } from "lucide-react";
 import { UseFormSetValue } from "react-hook-form";
 import { LinkFormData } from ".";
 import { getExpirationLabel } from "./expiration-modal";
 import { getPasswordLabel } from "./password-modal";
 import { getTargetingLabel } from "./targeting-modal";
 
-export const TOGGLES = [
+export const MORE_ITEMS: {
+  key: string;
+  icon: Icon;
+  label: string;
+  description?: string;
+  learnMoreUrl?: string;
+  shortcutKey: string;
+  type: string;
+  enabled?: (data: LinkFormData) => boolean;
+  add?: boolean;
+}[] = [
   {
     key: "rewrite",
     icon: Incognito,
@@ -32,6 +45,22 @@ export const TOGGLES = [
     learnMoreUrl: "https://dub.co/help/article/how-noindex-works",
     shortcutKey: "s",
     type: "boolean",
+  },
+  {
+    key: "tests",
+    icon: Flask,
+    label: "A/B Testing",
+    shortcutKey: "b",
+    type: "modal",
+  },
+  {
+    key: "advanced",
+    icon: Settings,
+    label: "Advanced Settings",
+    shortcutKey: "a",
+    type: "modal",
+    enabled: (data: LinkFormData) => Boolean(data.externalId || data.tenantId),
+    add: false,
   },
 ];
 

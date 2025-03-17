@@ -8,7 +8,9 @@ import { useFormContext } from "react-hook-form";
 import useSWR from "swr";
 import { useDebounce } from "use-debounce";
 import { LinkFormData } from ".";
-import { MOBILE_MORE_ITEMS, TOGGLES } from "./constants";
+import { MOBILE_MORE_ITEMS, MORE_ITEMS } from "./constants";
+
+const TOGGLES = MORE_ITEMS.filter(({ type }) => type === "boolean");
 
 export function OptionsList() {
   const { isMobile } = useMediaQuery();
