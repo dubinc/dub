@@ -1,8 +1,12 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { linkCache } from "@/lib/api/links/cache";
 import { ratelimitOrThrow } from "@/lib/api/utils";
 import { getClickEvent } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
-import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
+import {
+  clickEventSchemaTB,
+  clickPartnerDiscountSchema,
+} from "@/lib/zod/schemas/clicks";
 import { prismaEdge } from "@dub/prisma/edge";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
@@ -30,90 +34,62 @@ export async function GET(
 
     await ratelimitOrThrow(req, clickId);
 
-    // Find click event
-    let clickData: ClickData | null = null;
-    const clickEvent = await getClickEvent({ clickId });
+    // Find linkId for the click event
+    let linkId: string | null = null;
 
-    if (clickEvent && clickEvent.data && clickEvent.data.length > 0) {
-      clickData = clickEvent.data[0];
+    // Fetch click data from Redis
+    const clickData = await redis.get<ClickData>(`click:${clickId}`);
+
+    if (clickData) {
+      linkId = clickData.link_id;
     }
 
-    // TODO:
-    // We may not have to fetch from TB; because this always happens just after a click event is recorded.
-
+    // Fallback to Tinybird if click data is not found in Redis
     if (!clickData) {
-      clickData = await redis.get<ClickData>(`click:${clickId}`);
+      const clickEvent = await getClickEvent({
+        clickId,
+      });
 
-      if (clickData) {
-        clickData = {
-          ...clickData,
-          timestamp: clickData.timestamp.replace("T", " ").replace("Z", ""),
-          qr: clickData.qr ? 1 : 0,
-          bot: clickData.bot ? 1 : 0,
-        };
+      if (clickEvent && clickEvent.data && clickEvent.data.length > 0) {
+        linkId = clickEvent.data[0].link_id;
       }
     }
 
-    if (!clickData) {
+    if (!linkId) {
       throw new DubApiError({
         code: "not_found",
         message: `Click event not found for clickId: ${clickId}`,
       });
     }
 
-    const { link_id: linkId } = clickData;
-
-    const selectDiscount = {
-      amount: true,
-      maxDuration: true,
-      type: true,
-      couponId: true,
-      couponTestId: true,
-    };
-
     const link = await prismaEdge.link.findUnique({
       where: {
         id: linkId,
       },
       select: {
-        programEnrollment: {
-          select: {
-            partner: {
-              select: {
-                name: true,
-                image: true, //not sure we should return this
-              },
-            },
-            discount: {
-              select: selectDiscount,
-            },
-          },
-        },
-        program: {
-          select: {
-            defaultDiscount: {
-              select: selectDiscount,
-            },
-          },
-        },
+        domain: true,
+        key: true,
       },
     });
 
-    if (!link || !link.programEnrollment || !link.program) {
+    if (!link) {
       throw new DubApiError({
         code: "not_found",
-        message: `Link not found for linkId: ${linkId}`,
+        message: `Link not found for the click event ${clickId}.`,
       });
     }
 
-    const { programEnrollment, program } = link;
-    const discount = programEnrollment.discount || program.defaultDiscount;
+    const cachedLink = await linkCache.get({
+      domain: link.domain,
+      key: link.key,
+    });
 
     return NextResponse.json(
-      {
-        partner: programEnrollment.partner,
-        discount,
-      },
+      clickPartnerDiscountSchema.parse({
+        clickId,
+        partner: cachedLink?.partner,
+        discount: cachedLink?.discount,
+      }),
       {
         headers: CORS_HEADERS,
       },

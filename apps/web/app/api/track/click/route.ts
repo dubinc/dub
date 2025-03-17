@@ -1,9 +1,11 @@
 import { verifyAnalyticsAllowedHostnames } from "@/lib/analytics/verify-analytics-allowed-hostnames";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { linkCache } from "@/lib/api/links/cache";
 import { parseRequestBody } from "@/lib/api/utils";
 import { getLinkWithAllowedHostnames } from "@/lib/planetscale/get-link-with-allowed-hostnames";
 import { recordClick } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
+import { clickPartnerDiscountSchema } from "@/lib/zod/schemas/clicks";
 import { isValidUrl, LOCALHOST_IP, nanoid } from "@dub/utils";
 import { ipAddress, waitUntil } from "@vercel/functions";
 import { AxiomRequest, withAxiom } from "next-axiom";
@@ -68,10 +70,14 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
       );
     }
 
+    const cachedLink = await linkCache.get({ domain, key });
+
     return NextResponse.json(
-      {
+      clickPartnerDiscountSchema.parse({
         clickId,
-      },
+        partner: cachedLink?.partner,
+        discount: cachedLink?.discount,
+      }),
       {
         headers: CORS_HEADERS,
       },

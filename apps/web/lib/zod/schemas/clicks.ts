@@ -1,6 +1,8 @@
 import z from "@/lib/zod";
 import { commonDeprecatedEventFields } from "./deprecated";
+import { DiscountSchema } from "./discount";
 import { linkEventSchema } from "./links";
+import { PartnerSchema } from "./partners";
 
 export const clickEventSchemaTB = z.object({
   timestamp: z.string(),
@@ -78,3 +80,25 @@ export const clickEventResponseSchema = z
   })
   .merge(commonDeprecatedEventFields)
   .openapi({ ref: "ClickEvent" });
+
+// Schema for the response from the /clicks/:clickId & the /track/click endpoints
+export const clickPartnerDiscountSchema = z.object({
+  clickId: z.string(),
+  partner: PartnerSchema.pick({
+    id: true,
+    name: true,
+    image: true,
+  })
+    .nullish()
+    .default(null),
+  discount: DiscountSchema.pick({
+    id: true,
+    amount: true,
+    type: true,
+    maxDuration: true,
+    couponId: true,
+    couponTestId: true,
+  })
+    .nullish()
+    .default(null),
+});
