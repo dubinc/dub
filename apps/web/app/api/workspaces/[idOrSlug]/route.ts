@@ -46,6 +46,7 @@ export const GET = withWorkspace(
           ...workspace,
           id: `ws_${workspace.id}`,
           domains,
+          // TODO: Remove this once Folders goes GA
           flags: {
             ...flags,
             linkFolders: flags.linkFolders || workspace.partnersEnabled,
