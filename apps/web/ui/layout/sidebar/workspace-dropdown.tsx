@@ -295,8 +295,10 @@ function WorkspaceList({
 const getPlanColor = (plan: string) =>
   plan === "enterprise"
     ? "text-purple-700"
-    : plan.startsWith("business")
-      ? "text-blue-900"
-      : plan === "pro"
-        ? "text-cyan-900"
-        : "text-neutral-500";
+    : plan === "advanced"
+      ? "text-orange-900"
+      : plan.startsWith("business")
+        ? "text-blue-900"
+        : plan === "pro"
+          ? "text-cyan-900"
+          : "text-neutral-500";
