@@ -1,6 +1,8 @@
-import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
-import { transformWorkspaceId } from "@/lib/api/workspace-id";
+import {
+  createWorkspaceId,
+  transformWorkspaceId,
+} from "@/lib/api/workspace-id";
 import { withSession } from "@/lib/auth";
 import { checkIfUserExists } from "@/lib/planetscale";
 import {
@@ -94,7 +96,7 @@ export const POST = withSession(async ({ req, session }) => {
   try {
     const workspaceResponse = await prisma.project.create({
       data: {
-        id: createId({ prefix: "ws_" }),
+        id: createWorkspaceId(),
         name,
         slug,
         users: {
