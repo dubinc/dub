@@ -35,6 +35,7 @@ model Program {
   type              ProgramType @default(affiliate)
   cookieLength      Int         @default(90)
   holdingPeriodDays Int         @default(0) // number of days to wait before earnings are added to a payout
+  minPayoutAmount   Int         @default(10000) // Default minimum payout amount of $100
   defaultRewardId   String?     @unique // default reward for the program
   defaultDiscountId String?     @unique // default discount for the program
   landerData        Json?       @db.Json

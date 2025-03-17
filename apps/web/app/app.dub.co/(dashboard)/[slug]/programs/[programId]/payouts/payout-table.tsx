@@ -1,6 +1,7 @@
 "use client";
 
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutResponse } from "@/lib/types";
 import { AmountRowItem } from "@/ui/partners/amount-row-item";
@@ -56,7 +57,7 @@ const PayoutTableInner = memo(
     setSearch,
     setSelectedFilter,
   }: ReturnType<typeof usePayoutFilters>) => {
-    const { programId } = useParams();
+    const { program } = useProgram();
     const { id: workspaceId } = useWorkspace();
     const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
@@ -70,12 +71,14 @@ const PayoutTableInner = memo(
       error,
       isLoading,
     } = useSWR<PayoutResponse[]>(
-      `/api/programs/${programId}/payouts${getQueryString(
-        { workspaceId },
-        {
-          exclude: ["payoutId"],
-        },
-      )}`,
+      program?.id
+        ? `/api/programs/${program.id}/payouts${getQueryString(
+            { workspaceId },
+            {
+              exclude: ["payoutId"],
+            },
+          )}`
+        : undefined,
       fetcher,
       {
         keepPreviousData: true,
@@ -153,6 +156,7 @@ const PayoutTableInner = memo(
               amount={row.original.amount}
               status={row.original.status}
               payoutsEnabled={Boolean(row.original.partner.payoutsEnabledAt)}
+              minPayoutAmount={program?.minPayoutAmount!}
             />
           ),
         },
