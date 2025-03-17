@@ -1,4 +1,4 @@
-import { getWorkspaceId } from "@/lib/api/workspace-id";
+import { normalizeWorkspaceId } from "@/lib/api/workspace-id";
 import { redis } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN, APP_DOMAIN_WITH_NGROK } from "@dub/utils";
@@ -19,7 +19,7 @@ export async function GET(req: Request) {
     const stateJSON = JSON.parse(state);
     let { workspaceId, folderId } = stateJSON;
 
-    workspaceId = getWorkspaceId(workspaceId);
+    workspaceId = normalizeWorkspaceId(workspaceId);
 
     // get access token from bitly
     const response = await fetch(

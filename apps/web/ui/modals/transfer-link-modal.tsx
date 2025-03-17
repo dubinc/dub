@@ -116,7 +116,8 @@ function TransferLinkModalInner({
                   value: workspace.name,
                   image:
                     workspace.logo || `${DICEBEAR_AVATAR_URL}${workspace.name}`,
-                  disabled: normalizeWorkspaceId(workspace.id) === props.projectId,
+                  disabled:
+                    normalizeWorkspaceId(workspace.id) === props.projectId,
                   label:
                     normalizeWorkspaceId(workspace.id) === props.projectId
                       ? "Current"

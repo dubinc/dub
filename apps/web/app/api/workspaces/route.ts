@@ -1,8 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
-import {
-  createWorkspaceId,
-  prefixWorkspaceId,
-} from "@/lib/api/workspace-id";
+import { createWorkspaceId, prefixWorkspaceId } from "@/lib/api/workspace-id";
 import { withSession } from "@/lib/auth";
 import { checkIfUserExists } from "@/lib/planetscale";
 import {

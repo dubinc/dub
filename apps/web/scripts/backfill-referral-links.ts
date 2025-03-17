@@ -1,4 +1,7 @@
-import { normalizeWorkspaceId, prefixWorkspaceId } from "@/lib/api/workspace-id";
+import {
+  normalizeWorkspaceId,
+  prefixWorkspaceId,
+} from "@/lib/api/workspace-id";
 import { dub } from "@/lib/dub";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
