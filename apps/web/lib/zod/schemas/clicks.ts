@@ -88,9 +88,7 @@ export const clickPartnerDiscountSchema = z.object({
     id: true,
     name: true,
     image: true,
-  })
-    .nullish()
-    .default(null),
+  }).nullish(),
   discount: DiscountSchema.pick({
     id: true,
     amount: true,
@@ -98,7 +96,5 @@ export const clickPartnerDiscountSchema = z.object({
     maxDuration: true,
     couponId: true,
     couponTestId: true,
-  })
-    .nullish()
-    .default(null),
+  }).nullish(),
 });

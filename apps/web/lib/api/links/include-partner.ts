@@ -37,18 +37,17 @@ export const includePartnerAndDiscount = {
 
 // Get the partner and discount for a link
 export const getPartnerAndDiscount = async (linkId: string) => {
-  const link = await prisma.link.findUniqueOrThrow({
+  const { programEnrollment, program } = await prisma.link.findUniqueOrThrow({
     where: {
       id: linkId,
     },
     include: includePartnerAndDiscount,
   });
 
-  const { programEnrollment, program } = link;
 
-  const partner = programEnrollment?.partner ?? undefined;
+  const partner = programEnrollment?.partner || undefined;
   const discount =
-    programEnrollment?.discount ?? program?.defaultDiscount ?? undefined;
+    programEnrollment?.discount || program?.defaultDiscount || undefined;
 
   return {
     partner,

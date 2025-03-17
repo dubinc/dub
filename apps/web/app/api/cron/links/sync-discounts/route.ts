@@ -13,7 +13,7 @@ const schema = z.object({
   page: z.number().optional().default(1),
 });
 
-const PAGE_SIZE = 500;
+const PAGE_SIZE = 1;
 
 // POST /api/cron/links/sync-discounts - Sync the partner link discounts to Redis
 export async function POST(req: Request) {

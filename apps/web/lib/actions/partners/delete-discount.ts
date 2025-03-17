@@ -58,14 +58,14 @@ export const deleteDiscountAction = authActionClient
       return discountId;
     });
 
-    if (deletedDiscountId) {
-      waitUntil(
-        qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/sync-discounts`,
-          body: {
-            discountId,
-          },
-        }),
-      );
-    }
+    // if (deletedDiscountId) {
+    //   waitUntil(
+    //     qstash.publishJSON({
+    //       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/sync-discounts`,
+    //       body: {
+    //         discountId,
+    //       },
+    //     }),
+    //   );
+    // }
   });

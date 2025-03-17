@@ -120,9 +120,10 @@ export const createAndEnrollPartner = async ({
     links: [link],
   });
 
+
   waitUntil(
     (async () => {
-      const partnerLink = await prisma.link.update({
+      const {program: linkProgram, programEnrollment, ...partnerLink} = await prisma.link.update({
         where: {
           id: link.id,
         },
@@ -139,11 +140,16 @@ export const createAndEnrollPartner = async ({
         },
       });
 
+
       await Promise.all([
         recordLink(partnerLink),
 
-        linkCache.set(partnerLink),
-
+        linkCache.set({
+          ...partnerLink,
+          partner: programEnrollment?.partner,
+          discount: programEnrollment?.discount || linkProgram?.defaultDiscount || undefined,
+        }),
+        
         sendWorkspaceWebhook({
           workspace,
           trigger: "partner.created",

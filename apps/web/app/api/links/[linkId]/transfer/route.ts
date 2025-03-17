@@ -2,6 +2,7 @@ import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { DubApiError } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
+import { getPartnerAndDiscount } from "@/lib/api/links/include-partner";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { recordLink } from "@/lib/tinybird";
@@ -91,7 +92,10 @@ export const POST = withWorkspace(
 
     waitUntil(
       Promise.all([
-        linkCache.set(updatedLink),
+        linkCache.set({
+          ...updatedLink,
+          ...(updatedLink.partnerId && (await getPartnerAndDiscount(updatedLink.id))),
+        }),
 
         recordLink(updatedLink),
 
