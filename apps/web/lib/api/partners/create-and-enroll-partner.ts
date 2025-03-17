@@ -14,6 +14,8 @@ import { prisma } from "@dub/prisma";
 import { Prisma, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
+import { linkCache } from "../links/cache";
+import { includePartnerAndDiscount } from "../links/include-partner";
 import { includeTags } from "../links/include-tags";
 
 export const createAndEnrollPartner = async ({
@@ -119,29 +121,36 @@ export const createAndEnrollPartner = async ({
   });
 
   waitUntil(
-    Promise.all([
-      // update and record link
-      prisma.link
-        .update({
-          where: {
-            id: link.id,
-          },
-          data: {
-            programId: program.id,
-            partnerId: upsertedPartner.id,
-            folderId: program.defaultFolderId,
-            trackConversion: true,
-          },
-          include: includeTags,
-        })
-        .then((link) => recordLink(link)),
+    (async () => {
+      const partnerLink = await prisma.link.update({
+        where: {
+          id: link.id,
+        },
+        data: {
+          programId: program.id,
+          partnerId: upsertedPartner.id,
+          folderId: program.defaultFolderId,
+          trackConversion: true,
+        },
+        include: {
+          ...includeTags,
+          ...includePartnerAndDiscount,
+          webhooks: true,
+        },
+      });
 
-      sendWorkspaceWebhook({
-        workspace,
-        trigger: "partner.created",
-        data: enrolledPartner,
-      }),
-    ]),
+      await Promise.all([
+        recordLink(partnerLink),
+
+        linkCache.set(partnerLink),
+
+        sendWorkspaceWebhook({
+          workspace,
+          trigger: "partner.created",
+          data: enrolledPartner,
+        }),
+      ]);
+    })(),
   );
 
   return enrolledPartner;

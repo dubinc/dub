@@ -16,6 +16,7 @@ import { createId } from "../create-id";
 import { combineTagIds } from "../tags/combine-tag-ids";
 import { linkCache } from "./cache";
 import { encodeKeyIfCaseSensitive } from "./case-sensitivity";
+import { getPartnerAndDiscount } from "./include-partner";
 import { includeTags } from "./include-tags";
 import { transformLink } from "./utils";
 
@@ -155,7 +156,10 @@ export async function updateLink({
   waitUntil(
     Promise.allSettled([
       // record link in Redis
-      linkCache.set(response),
+      linkCache.set({
+        ...response,
+        ...(response.partnerId && (await getPartnerAndDiscount(response.id))),
+      }),
 
       // record link in Tinybird
       recordLink(response),

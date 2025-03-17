@@ -17,6 +17,7 @@ import { createId } from "../create-id";
 import { combineTagIds } from "../tags/combine-tag-ids";
 import { linkCache } from "./cache";
 import { encodeKeyIfCaseSensitive } from "./case-sensitivity";
+import { getPartnerAndDiscount } from "./include-partner";
 import { includeTags } from "./include-tags";
 import { updateLinksUsage } from "./update-links-usage";
 import { transformLink } from "./utils";
@@ -129,7 +130,10 @@ export async function createLink(link: ProcessedLinkProps) {
   waitUntil(
     Promise.allSettled([
       // cache link in Redis
-      linkCache.set(response),
+      linkCache.set({
+        ...response,
+        ...(response.partnerId && (await getPartnerAndDiscount(response.id))),
+      }),
       // record link in Tinybird
       recordLink(response),
       // Upload image to R2 and update the link with the uploaded image URL when
