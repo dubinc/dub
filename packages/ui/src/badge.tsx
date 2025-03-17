@@ -14,6 +14,7 @@ const badgeVariants = cva(
         black: "border-black bg-black text-white",
         gray: "border-neutral-200 bg-neutral-100 text-neutral-800",
         neutral: "border-neutral-400 text-neutral-500",
+        amber: "border-amber-800 bg-amber-800 text-white",
         blueGradient:
           "bg-gradient-to-r from-blue-100 via-blue-100/50 to-blue-100 border border-blue-200 text-blue-900",
         rainbow:

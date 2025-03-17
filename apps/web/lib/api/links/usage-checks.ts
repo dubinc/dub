@@ -31,3 +31,16 @@ export const throwIfLinksUsageExceeded = (workspace: WorkspaceWithUsers) => {
     });
   }
 };
+
+export const throwIfAIUsageExceeded = (workspace: WorkspaceWithUsers) => {
+  if (workspace.aiUsage >= workspace.aiLimit) {
+    throw new DubApiError({
+      code: "forbidden",
+      message: exceededLimitError({
+        plan: workspace.plan,
+        limit: workspace.aiLimit,
+        type: "AI",
+      }),
+    });
+  }
+};
