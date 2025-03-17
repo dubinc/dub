@@ -123,6 +123,21 @@ const createProgram = async ({
 
   await getDomainOrThrow({ workspace, domain });
 
+  const programFolder = await prisma.folder.create({
+    data: {
+      id: createId({ prefix: "fold_" }),
+      name: "Partner Links",
+      projectId: workspace.id,
+      accessLevel: "write",
+      users: {
+        create: {
+          userId: user.id,
+          role: "owner",
+        },
+      },
+    },
+  });
+
   // create a new program
   const program = await prisma.program.create({
     data: {
@@ -132,6 +147,7 @@ const createProgram = async ({
       slug: slugify(name),
       domain,
       url,
+      defaultFolderId: programFolder.id,
       ...(type &&
         amount &&
         maxDuration && {
