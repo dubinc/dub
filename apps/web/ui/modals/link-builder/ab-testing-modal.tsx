@@ -249,21 +249,13 @@ function ABTestingModal({
           </div>
         </div>
 
-        {/* Traffic Split */}
+        {/* Traffic split */}
         <div className="mt-6">
           <div className="flex items-center gap-2">
             <label className="block text-sm font-medium text-neutral-700">
-              Traffic Split
+              Traffic split
             </label>
-            <InfoTooltip
-              content={
-                <SimpleTooltipContent
-                  title="Specify what percentage of traffic should go to each URL. Total must equal 100%."
-                  cta="Learn more."
-                  href="https://dub.co/help/article/ab-testing"
-                />
-              }
-            />
+            <InfoTooltip content="Adjust the percentage of traffic to each URL. The minimum is 10%" />
           </div>
           <div className="mt-4">
             <AnimatedSizeContainer
