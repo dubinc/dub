@@ -2,7 +2,7 @@ import { Role } from "@dub/prisma/client";
 import { combineWords } from "@dub/utils";
 import { DubApiError } from "../errors";
 import { PermissionAction, ROLE_PERMISSIONS } from "../rbac/permissions";
-import { transformWorkspaceId } from "../transform-workspace-id";
+import { transformWorkspaceId } from "../workspace-id";
 
 // Check if the required scope is in the list of user scopes
 export const throwIfNoAccess = ({

@@ -1,4 +1,4 @@
-import { transformWorkspaceId } from "@/lib/api/transform-workspace-id";
+import { transformWorkspaceId } from "@/lib/api/workspace-id";
 import { hashToken, withAdmin } from "@/lib/auth";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN, PARTNERS_DOMAIN } from "@dub/utils";

@@ -1,7 +1,7 @@
 import z from "@/lib/zod";
 import { ExpandedLink } from "../api/links";
 import { decodeKeyIfCaseSensitive } from "../api/links/case-sensitivity";
-import { transformWorkspaceId } from "../api/transform-workspace-id";
+import { transformWorkspaceId } from "../api/workspace-id";
 import { tb } from "./client";
 
 // Domains that are not recorded in Tinybird

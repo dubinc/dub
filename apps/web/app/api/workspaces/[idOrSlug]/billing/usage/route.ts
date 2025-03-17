@@ -1,4 +1,4 @@
-import { transformWorkspaceId } from "@/lib/api/transform-workspace-id";
+import { transformWorkspaceId } from "@/lib/api/workspace-id";
 import { withWorkspace } from "@/lib/auth";
 import { tb } from "@/lib/tinybird";
 import z from "@/lib/zod";

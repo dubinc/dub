@@ -1,4 +1,4 @@
-import { transformWorkspaceId } from "@/lib/api/transform-workspace-id";
+import { transformWorkspaceId } from "@/lib/api/workspace-id";
 import { dub } from "@/lib/dub";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";

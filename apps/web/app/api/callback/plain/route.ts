@@ -1,4 +1,4 @@
-import { transformWorkspaceId } from "@/lib/api/transform-workspace-id";
+import { transformWorkspaceId } from "@/lib/api/workspace-id";
 import { plain } from "@/lib/plain";
 import { prisma } from "@dub/prisma";
 import { capitalize, formatDate } from "@dub/utils";

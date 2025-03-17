@@ -1,7 +1,7 @@
 import { prisma } from "@dub/prisma";
 import { Link } from "@dub/prisma/client";
 import { DubApiError } from "../errors";
-import { transformWorkspaceId } from "../transform-workspace-id";
+import { transformWorkspaceId } from "../workspace-id";
 import {
   decodeLinkIfCaseSensitive,
   encodeKeyIfCaseSensitive,

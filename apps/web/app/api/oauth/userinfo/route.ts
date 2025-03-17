@@ -1,5 +1,5 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { transformWorkspaceId } from "@/lib/api/transform-workspace-id";
+import { transformWorkspaceId } from "@/lib/api/workspace-id";
 import { getAuthTokenOrThrow, hashToken } from "@/lib/auth";
 import { prisma } from "@dub/prisma";
 import { NextRequest, NextResponse } from "next/server";

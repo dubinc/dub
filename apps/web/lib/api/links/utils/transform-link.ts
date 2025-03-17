@@ -1,5 +1,5 @@
 import { Dashboard, Link, Tag } from "@dub/prisma/client";
-import { transformWorkspaceId } from "../../transform-workspace-id";
+import { transformWorkspaceId } from "../../workspace-id";
 import { decodeLinkIfCaseSensitive } from "../case-sensitivity";
 
 // used in API (e.g. transformLink)
