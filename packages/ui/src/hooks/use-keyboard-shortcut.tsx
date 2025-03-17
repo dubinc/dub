@@ -42,7 +42,7 @@ export function KeyboardShortcutProvider({
 export function useKeyboardShortcut(
   key: KeyboardShortcutListener["key"],
   callback: (e: KeyboardEvent) => void,
-  options: { modal?: boolean } & Pick<
+  options: { modal?: boolean; sheet?: boolean } & Pick<
     KeyboardShortcutListener,
     "enabled" | "priority"
   > = {},
@@ -55,6 +55,9 @@ export function useKeyboardShortcut(
     (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
       const existingModalBackdrop = document.getElementById("modal-backdrop");
+      const existingSheetBackdrop = document.querySelector(
+        "[data-sheet-overlay]",
+      );
 
       // Ignore shortcuts if the user is holding a modifier key, typing in an input or textarea, or in a modal
       if (
@@ -62,7 +65,8 @@ export function useKeyboardShortcut(
         e.ctrlKey ||
         target.tagName === "INPUT" ||
         target.tagName === "TEXTAREA" ||
-        !!existingModalBackdrop !== !!options.modal
+        !!existingModalBackdrop !== !!options.modal ||
+        !!existingSheetBackdrop !== !!options.sheet
       )
         return;
 
@@ -90,7 +94,7 @@ export function useKeyboardShortcut(
       e.preventDefault();
       callback(e);
     },
-    [key, listeners, id, callback, options.modal],
+    [key, listeners, id, callback, options.modal, options.sheet],
   );
 
   useEffect(() => {
