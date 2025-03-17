@@ -172,6 +172,7 @@ export * from "./tag";
 export * from "./tags";
 export * from "./toggle2-fill";
 export * from "./trash";
+export * from "./triangle-warning";
 export * from "./tv";
 export * from "./ui-card";
 export * from "./user";

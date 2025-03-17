@@ -12,6 +12,7 @@ import {
   Modal,
   SimpleTooltipContent,
   Tooltip,
+  TriangleWarning,
 } from "@dub/ui";
 import {
   cn,
@@ -199,7 +200,7 @@ function ABTestingModal({
           handleSubmit((data) => {
             const currentTests = data.tests;
 
-            if (!currentTests?.length) {
+            if (!currentTests || currentTests.length <= 1) {
               setValueParent("tests", null, { shouldDirty: true });
               setValueParent("testsCompleteAt", null, {
                 shouldDirty: true,
@@ -424,7 +425,17 @@ function ABTestingModal({
           </div>
         </div>
 
-        <div className="mt-6 flex items-center justify-between">
+        {testsParent && (
+          <div className="mt-6 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-4">
+            <TriangleWarning className="mt-0.5 size-4 shrink-0 text-amber-500" />
+            <p className="text-sm font-medium text-amber-900">
+              Changing the original A/B test settings will impact your future
+              analytics and event tracking.
+            </p>
+          </div>
+        )}
+
+        <div className="mt-4 flex items-center justify-between">
           <div></div>
           <div className="flex items-center gap-2">
             <Button
@@ -441,7 +452,7 @@ function ABTestingModal({
               type="submit"
               variant="primary"
               text={
-                Array.isArray(testsParent) && testsParent.length > 0
+                Array.isArray(testsParent) && testsParent.length > 1
                   ? "Save changes"
                   : "Start testing"
               }
