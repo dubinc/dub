@@ -1,15 +1,7 @@
 import { ExpandedLink } from "../api/links/utils/transform-link";
-import { DiscountProps, PartnerProps, RedisLinkProps } from "../types";
+import { RedisLinkProps } from "../types";
 
-interface FormatRedisLinkProps extends ExpandedLink {
-  partner: Pick<PartnerProps, "id" | "name" | "image">;
-  discount: Pick<
-    DiscountProps,
-    "id" | "maxDuration" | "amount" | "type" | "couponId" | "couponTestId"
-  >;
-}
-
-export function formatRedisLink(link: FormatRedisLinkProps): RedisLinkProps {
+export function formatRedisLink(link: ExpandedLink): RedisLinkProps {
   const {
     id,
     url,
@@ -54,7 +46,22 @@ export function formatRedisLink(link: FormatRedisLinkProps): RedisLinkProps {
     ...(projectId && { projectId }), // projectId can be undefined for anonymous links
     ...(doIndex && { doIndex: true }),
     ...(webhookIds.length > 0 && { webhookIds }),
-    ...(partner && { partner }),
-    ...(discount && { discount }),
+    ...(partner && {
+      partner: {
+        id: partner.id,
+        name: partner.name,
+        image: partner.image,
+      },
+    }),
+    ...(discount && {
+      discount: {
+        id: discount.id,
+        amount: discount.amount,
+        type: discount.type,
+        maxDuration: discount.maxDuration,
+        couponId: discount.couponId,
+        couponTestId: discount.couponTestId,
+      },
+    }),
   };
 }

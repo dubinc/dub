@@ -2,7 +2,10 @@
 
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
+import { qstash } from "@/lib/cron";
 import { prisma } from "@dub/prisma";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
 
@@ -28,7 +31,7 @@ export const deleteDiscountAction = authActionClient
       discountId,
     });
 
-    await prisma.$transaction(async (tx) => {
+    const deletedDiscountId = await prisma.$transaction(async (tx) => {
       // if this is the default discount, set the program default discount to null
       if (program.defaultDiscountId === discountId) {
         await tx.program.update({
@@ -51,5 +54,18 @@ export const deleteDiscountAction = authActionClient
           id: discountId,
         },
       });
+
+      return discountId;
     });
+
+    if (deletedDiscountId) {
+      waitUntil(
+        qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/sync-discounts`,
+          body: {
+            discountId,
+          },
+        }),
+      );
+    }
   });
