@@ -50,7 +50,6 @@ model Program {
   partners        ProgramEnrollment[]
   payouts         Payout[]
   invoices        Invoice[]
-  invites         ProgramInvite[]
   applications    ProgramApplication[]
   links           Link[]
   commissions     Commission[]
@@ -106,18 +105,4 @@ model ProgramApplication {
 
   @@index([programId])
   @@index([partnerId])
-}
-
-model ProgramInvite {
-  id        String   @id @default(cuid())
-  programId String
-  email     String
-  linkId    String   @unique
-  createdAt DateTime @default(now())
-
-  program Program @relation(fields: [programId], references: [id])
-  link    Link?   @relation(fields: [linkId], references: [id])
-
-  @@unique([email, programId])
-  @@index([programId])
 }

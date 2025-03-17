@@ -1,29 +1,32 @@
-import { PageContent } from "@/ui/layout/page-content";
 import { prisma } from "@dub/prisma";
 import { notFound, redirect } from "next/navigation";
-import { ProgramsPageClient } from "./page-client";
 
 export default async function Programs({
   params,
 }: {
   params: { slug: string };
 }) {
-  const program = await prisma.program.findFirst({
+  const workspace = await prisma.project.findUnique({
     where: {
-      workspace: {
-        slug: params.slug,
-      },
+      slug: params.slug,
+    },
+    select: {
+      partnersEnabled: true,
+      programs: true,
     },
   });
-  if (!program) {
+
+  if (!workspace) {
     notFound();
   }
 
-  redirect(`/${params.slug}/programs/${program.id}`);
+  if (workspace.programs.length === 0) {
+    if (workspace.partnersEnabled) {
+      redirect(`/${params.slug}/programs/new`);
+    } else {
+      notFound();
+    }
+  }
 
-  return (
-    <PageContent>
-      <ProgramsPageClient />
-    </PageContent>
-  );
+  redirect(`/${params.slug}/programs/${workspace.programs[0].id}`);
 }
