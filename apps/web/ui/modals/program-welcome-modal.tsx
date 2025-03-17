@@ -19,7 +19,7 @@ const NEXT_STEPS = [
   },
   {
     text: "Create custom rewards for your partners",
-    href: "https://dub.co/help/article/dual-sided-incentives",
+    href: "https://dub.co/help/article/partner-rewards",
   },
   {
     text: "Create dual-sided incentives",
