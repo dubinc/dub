@@ -94,7 +94,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
 
   // Create a Tinybird pipe
   const pipe = tb.buildPipe({
-    pipe: `v2_${UTM_TAGS_PLURAL_LIST.includes(groupBy) ? "utms" : groupBy}`,
+    pipe: `v3_${UTM_TAGS_PLURAL_LIST.includes(groupBy) ? "utms" : groupBy}`,
     parameters: analyticsFilterTB,
     data:
       groupBy === "top_links" || UTM_TAGS_PLURAL_LIST.includes(groupBy)
@@ -102,6 +102,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         : analyticsResponse[groupBy],
   });
 
+  console.time(`pipe (${groupBy}, ${event})`);
   const response = await pipe({
     ...params,
     ...(UTM_TAGS_PLURAL_LIST.includes(groupBy)
@@ -118,6 +119,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     country,
     region,
   });
+  console.timeEnd(`pipe (${groupBy}, ${event})`);
 
   if (groupBy === "count") {
     // Return the count value for deprecated endpoints
