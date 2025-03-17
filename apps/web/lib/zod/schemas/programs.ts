@@ -25,6 +25,7 @@ export const ProgramSchema = z.object({
   defaultDiscountId: z.string().nullable(),
   rewards: z.array(RewardSchema).nullish(),
   holdingPeriodDays: z.number(),
+  minPayoutAmount: z.number(),
 
   // Discounts (for dual-sided incentives)
   discounts: z.array(DiscountSchema).nullish(),
@@ -45,6 +46,10 @@ export const createProgramSchema = z.object({
     .refine((val) => HOLDING_PERIOD_DAYS.includes(val), {
       message: `Holding period must be ${HOLDING_PERIOD_DAYS.join(", ")} days`,
     }),
+  minPayoutAmount: z.coerce
+    .number()
+    .nullish()
+    .transform((val) => (val ? val * 100 : undefined)),
 });
 
 export const ProgramPartnerLinkSchema = LinkSchema.pick({
