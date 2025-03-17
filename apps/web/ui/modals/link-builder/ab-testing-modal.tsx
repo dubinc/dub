@@ -12,7 +12,6 @@ import {
   Modal,
   SimpleTooltipContent,
   Tooltip,
-  useMediaQuery,
 } from "@dub/ui";
 import {
   cn,
@@ -59,7 +58,6 @@ function ABTestingModal({
   showABTestingModal: boolean;
   setShowABTestingModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { isMobile } = useMediaQuery();
   const id = useId();
 
   const {
