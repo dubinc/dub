@@ -42,8 +42,7 @@ export function RewardSettings() {
       mutate(`/api/programs/${program?.id}?workspaceId=${workspaceId}`);
     },
     onError({ error }) {
-      console.log(error);
-      toast.error("Failed to update reward settings.");
+      toast.error(error.serverError || "Failed to update reward settings.");
     },
   });
 

@@ -49,6 +49,9 @@ export const createProgramSchema = z.object({
   minPayoutAmount: z.coerce
     .number()
     .nullish()
+    .refine((val) => !val || val >= 100, {
+      message: "Minimum payout amount must be at least $100",
+    })
     .transform((val) => (val ? val * 100 : undefined)),
 });
 
