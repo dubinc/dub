@@ -1,4 +1,3 @@
-import { MIN_PAYOUT_AMOUNT } from "@/lib/partners/constants";
 import { PayoutStatus } from "@dub/prisma/client";
 import { Tooltip } from "@dub/ui";
 import { currencyFormatter } from "@dub/utils";
@@ -7,21 +6,24 @@ export function AmountRowItem({
   amount,
   status,
   payoutsEnabled,
+  minPayoutAmount,
 }: {
   amount: number;
   status: PayoutStatus;
   payoutsEnabled: boolean;
+  minPayoutAmount: number;
 }) {
   const display = currencyFormatter(amount / 100, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
+
   if (status === PayoutStatus.pending) {
-    if (amount < MIN_PAYOUT_AMOUNT) {
+    if (amount < minPayoutAmount) {
       return (
         <Tooltip
           content={`Minimum payout amount is ${currencyFormatter(
-            MIN_PAYOUT_AMOUNT / 100,
+            minPayoutAmount / 100,
           )}. This payout will be accrued and processed during the next payout period.`}
         >
           <span className="cursor-default truncate text-neutral-400 underline decoration-dotted underline-offset-2">

@@ -99,6 +99,7 @@ export function PayoutTable() {
             amount={row.original.amount}
             status={row.original.status}
             payoutsEnabled={Boolean(partner?.payoutsEnabledAt)}
+            minPayoutAmount={row.original.program.minPayoutAmount}
           />
         ),
       },

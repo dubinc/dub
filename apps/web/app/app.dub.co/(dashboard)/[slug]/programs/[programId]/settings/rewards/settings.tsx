@@ -1,20 +1,22 @@
 "use client";
 
 import { updateProgramAction } from "@/lib/actions/partners/update-program";
+import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramProps } from "@/lib/types";
 import { HOLDING_PERIOD_DAYS } from "@/lib/zod/schemas/programs";
 import { Button } from "@dub/ui";
+import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { SettingsRow } from "../settings-row";
 
-type FormData = Pick<ProgramProps, "holdingPeriodDays">;
+type FormData = Pick<ProgramProps, "holdingPeriodDays" | "minPayoutAmount">;
 
-export function HoldingPeriods() {
+export function RewardSettings() {
   const { id: workspaceId } = useWorkspace();
   const { program } = useProgram();
 
@@ -22,23 +24,25 @@ export function HoldingPeriods() {
     mode: "onBlur",
     defaultValues: {
       holdingPeriodDays: program?.holdingPeriodDays,
+      minPayoutAmount: program?.minPayoutAmount
+        ? program?.minPayoutAmount / 100
+        : undefined,
     },
   });
 
   const {
     register,
     handleSubmit,
-    formState: { isDirty, isValid, isSubmitting },
+    formState: { isDirty, isValid, isSubmitting, errors },
   } = form;
 
   const { executeAsync } = useAction(updateProgramAction, {
     async onSuccess() {
-      toast.success("Holding period updated successfully.");
+      toast.success("Reward settings updated successfully.");
       mutate(`/api/programs/${program?.id}?workspaceId=${workspaceId}`);
     },
     onError({ error }) {
-      console.log(error);
-      toast.error("Failed to update holding period.");
+      toast.error(error.serverError || "Failed to update reward settings.");
     },
   });
 
@@ -65,7 +69,7 @@ export function HoldingPeriods() {
             These are applied to all reward types
           </p>
         </div>
-        <div className="border-t border-neutral-200 px-6">
+        <div className="divide-y divide-neutral-200 border-t border-neutral-200 px-6">
           <SettingsRow
             heading="Holding period"
             description="Set the holding period before payouts are released"
@@ -82,6 +86,41 @@ export function HoldingPeriods() {
                     </option>
                   ))}
                 </select>
+              </div>
+            </div>
+          </SettingsRow>
+
+          <SettingsRow
+            heading="Minimum payout amount"
+            description="Set the minimum payout amount"
+          >
+            <div className="flex items-center justify-end">
+              <div className="w-full max-w-md">
+                <div className="relative mt-2 rounded-md shadow-sm">
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
+                    $
+                  </span>
+
+                  <input
+                    className={cn(
+                      "block w-full rounded-md border-neutral-300 pl-6 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                      errors.minPayoutAmount &&
+                        "border-red-600 pr-7 focus:border-red-500 focus:ring-red-600",
+                    )}
+                    {...register("minPayoutAmount", {
+                      required: true,
+                      valueAsNumber: true,
+                      min: 100,
+                      onChange: handleMoneyInputChange,
+                    })}
+                    onKeyDown={handleMoneyKeyDown}
+                    placeholder="100"
+                  />
+
+                  <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
+                    USD
+                  </span>
+                </div>
               </div>
             </div>
           </SettingsRow>
