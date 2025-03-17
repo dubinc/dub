@@ -13,10 +13,10 @@ import {
 } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { createId } from "../create-id";
+import { getPartnerAndDiscount } from "../programs/getPartnerAndDiscount";
 import { combineTagIds } from "../tags/combine-tag-ids";
 import { linkCache } from "./cache";
 import { encodeKeyIfCaseSensitive } from "./case-sensitivity";
-import { getPartnerAndDiscount } from "../programs/getPartnerAndDiscount";
 import { includeTags } from "./include-tags";
 import { transformLink } from "./utils";
 

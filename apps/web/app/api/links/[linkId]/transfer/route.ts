@@ -94,7 +94,8 @@ export const POST = withWorkspace(
       Promise.all([
         linkCache.set({
           ...updatedLink,
-          ...(updatedLink.partnerId && (await getPartnerAndDiscount(updatedLink.id))),
+          ...(updatedLink.partnerId &&
+            (await getPartnerAndDiscount(updatedLink.id))),
         }),
 
         recordLink(updatedLink),
