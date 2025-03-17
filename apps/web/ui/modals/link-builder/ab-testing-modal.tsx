@@ -288,13 +288,10 @@ function ABTestingModal({
               className="-m-1"
             >
               <div className="flex flex-col gap-2 p-1">
-                {tests.map((test, index) => (
-                  <div
-                    key={`${index}-${test.url}`}
-                    className="flex items-center gap-2"
-                  >
+                {tests.map((_, index) => (
+                  <div key={index} className="flex items-center gap-2">
                     <label className="relative block flex grow items-center overflow-hidden rounded-md border border-neutral-300 focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500">
-                      <span className="flex h-9 items-center justify-center border-r border-neutral-300 px-3 text-sm font-medium text-neutral-800">
+                      <span className="flex h-9 w-8 items-center justify-center border-r border-neutral-300 text-center text-sm font-medium text-neutral-800">
                         {index + 1}
                       </span>
                       <input
@@ -331,7 +328,11 @@ function ABTestingModal({
               variant="primary"
               className="mt-2 h-8"
               onClick={addTestUrl}
-              disabled={tests.length >= MAX_TEST_COUNT}
+              disabledTooltip={
+                tests.length >= MAX_TEST_COUNT
+                  ? `You may only add ${MAX_TEST_COUNT} URLs`
+                  : undefined
+              }
               text="Add URL"
             />
           </div>
