@@ -2,6 +2,7 @@
 
 import { addEditIntegration } from "@/lib/actions/add-edit-integration";
 import { clientAccessCheck } from "@/lib/api/tokens/permissions";
+import { getWorkspaceId } from "@/lib/api/workspace-id";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { NewOrExistingIntegration } from "@/lib/types";
 import { Button, FileUpload, InfoTooltip, LoadingSpinner } from "@dub/ui";
@@ -119,7 +120,7 @@ export default function AddEditIntegrationForm({
             screenshots: screenshots
               .map((s) => s.key)
               .filter(Boolean) as string[],
-            workspaceId: workspaceId!.replace("ws_", ""),
+            workspaceId: getWorkspaceId(workspaceId!),
           });
         }}
         className="flex flex-col space-y-5 pb-20 text-left"

@@ -1,4 +1,4 @@
-import { transformWorkspaceId } from "@/lib/api/workspace-id";
+import { getWorkspaceId, transformWorkspaceId } from "@/lib/api/workspace-id";
 import { dub } from "@/lib/dub";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
@@ -33,7 +33,7 @@ async function main() {
       domain: "refer.dub.co",
       key: workspace.slug,
       url: "https://dub.co",
-      externalId: `ws_${workspace.id}`, // attaching the workspace ID as the externalId for easy updates later on: https://d.to/externalId
+      externalId: getWorkspaceId(workspace.id), // attaching the workspace ID as the externalId for easy updates later on: https://d.to/externalId
       tagIds: ["cm000srqx0004o6ldehod07zc"], // tagging these links with the "Referral links" tag
       trackConversion: true, // enable conversion tracking for these links
     })),

@@ -130,7 +130,7 @@ export const withWorkspace = (
         }
 
         if (idOrSlug) {
-          if (idOrSlug.startsWith("ws_c")) {
+          if (idOrSlug.startsWith("ws_")) {
             workspaceId = getWorkspaceId(idOrSlug);
           } else {
             workspaceSlug = idOrSlug;

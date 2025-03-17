@@ -1,4 +1,5 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { getWorkspaceId } from "@/lib/api/workspace-id";
 import { withWorkspaceEdge } from "@/lib/auth/workspace-edge";
 import z from "@/lib/zod";
 import { anthropic } from "@ai-sdk/anthropic";
@@ -40,7 +41,9 @@ export const POST = withWorkspaceEdge(
       if (model === "claude-3-5-sonnet-latest") {
         waitUntil(
           prismaEdge.project.update({
-            where: { id: workspace.id.replace("ws_", "") },
+            where: {
+              id: getWorkspaceId(workspace.id),
+            },
             data: {
               aiUsage: {
                 increment: 1,
