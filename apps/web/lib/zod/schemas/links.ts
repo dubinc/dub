@@ -395,6 +395,10 @@ export const createLinkBodySchema = z.object({
       "An array of webhook IDs to trigger when the link is clicked. These webhooks will receive click event data.",
     ),
   tests: LinkTestsSchema,
+  testsCompleteAt: z
+    .string()
+    .nullish()
+    .describe("The date and time when the tests were or will be completed."),
 });
 
 export const updateLinkBodySchema = createLinkBodySchema.partial();
@@ -612,6 +616,10 @@ export const LinkSchema = z
       .nullable()
       .describe("The UTM content of the short link."),
     tests: LinkTestsSchema,
+    testsCompleteAt: z
+      .string()
+      .nullish()
+      .describe("The date and time when the tests were or will be completed."),
     userId: z
       .string()
       .nullable()
