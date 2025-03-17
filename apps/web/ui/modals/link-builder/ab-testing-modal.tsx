@@ -1,5 +1,8 @@
 import { LinkTestsSchema } from "@/lib/zod/schemas/links";
+import { useAvailableDomains } from "@/ui/links/use-available-domains";
+import { X } from "@/ui/shared/icons";
 import {
+  AnimatedSizeContainer,
   Button,
   InfoTooltip,
   Modal,
@@ -8,7 +11,12 @@ import {
   useKeyboardShortcut,
   useMediaQuery,
 } from "@dub/ui";
-import { cn } from "@dub/utils";
+import {
+  cn,
+  formatDateTime,
+  getDateTimeLocal,
+  parseDateTime,
+} from "@dub/utils";
 import { BeakerIcon } from "lucide-react";
 import {
   Dispatch,
@@ -41,6 +49,11 @@ function ABTestingModal({
     getValues: getValuesParent,
     setValue: setValueParent,
   } = useFormContext<LinkFormData>();
+
+  const domain = watchParent("domain");
+  const { domains } = useAvailableDomains({
+    currentDomain: domain,
+  });
 
   const {
     watch,
@@ -164,50 +177,185 @@ function ABTestingModal({
           </div>
         </div>
 
-        <div className="mt-6 space-y-4">
-          {tests.map((test, index) => (
-            <div key={index} className="flex items-center space-x-2">
-              <div className="flex-1">
-                <input
-                  type="url"
-                  placeholder="Enter test URL"
-                  className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
-                  {...register(`tests.${index}.url`)}
+        {/* Testing URLs */}
+        <div className="mt-6">
+          <div className="flex items-center gap-2">
+            <label className="block text-sm font-medium text-neutral-700">
+              Testing URLs
+            </label>
+            <InfoTooltip
+              content={
+                <SimpleTooltipContent
+                  title="Add up to 3 additional destination URLs to test for this short link."
+                  cta="Learn more"
+                  href="https://dub.co/help/article/ab-testing" // TODO: Add article
                 />
+              }
+            />
+          </div>
+          <div className="mt-2">
+            <AnimatedSizeContainer
+              height
+              transition={{ ease: "easeInOut", duration: 0.2 }}
+              className="-m-1"
+            >
+              <div className="flex flex-col gap-2 p-1">
+                {tests.map((test, index) => (
+                  <div
+                    key={`${index}-${test.url}`}
+                    className="flex items-center gap-2"
+                  >
+                    <label className="relative block flex grow items-center overflow-hidden rounded-md border border-neutral-300 focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500">
+                      <span className="flex h-9 items-center justify-center border-r border-neutral-300 px-3 text-sm font-medium text-neutral-800">
+                        {index + 1}
+                      </span>
+                      <input
+                        type="url"
+                        placeholder={
+                          domains?.find(({ slug }) => slug === domain)
+                            ?.placeholder ||
+                          "https://dub.co/help/article/what-is-dub"
+                        }
+                        className="block h-9 grow border-none px-2 text-neutral-900 placeholder-neutral-400 focus:ring-0 sm:text-sm"
+                        {...register(`tests.${index}.url`)}
+                      />
+                      {index > 0 && (
+                        <Button
+                          onClick={() => removeTestUrl(index)}
+                          variant="outline"
+                          className="mr-1 size-7 p-0"
+                          text={
+                            <>
+                              <span className="sr-only">Remove</span>
+                              <X className="size-4" />
+                            </>
+                          }
+                        />
+                      )}
+                    </label>
+                  </div>
+                ))}
               </div>
-              <div className="w-24">
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  placeholder="%"
-                  className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
-                  {...register(`tests.${index}.percentage`, {
-                    valueAsNumber: true,
-                  })}
-                />
-              </div>
-              {index > 0 && (
-                <Button
-                  onClick={() => removeTestUrl(index)}
-                  variant="ghost"
-                  className="px-3"
-                >
-                  <span className="sr-only">Remove</span>×
-                </Button>
-              )}
-            </div>
-          ))}
+            </AnimatedSizeContainer>
 
-          <Button
-            type="button"
-            variant="secondary"
-            className="mt-2 w-full justify-center"
-            onClick={addTestUrl}
-            disabled={tests.length >= 4}
-          >
-            Add Test URL
-          </Button>
+            <Button
+              type="button"
+              variant="primary"
+              className="mt-2 h-8"
+              onClick={addTestUrl}
+              disabled={tests.length >= 4}
+              text="Add URL"
+            />
+          </div>
+        </div>
+
+        {/* Traffic Split */}
+        <div className="mt-6">
+          <div className="flex items-center gap-2">
+            <label className="block text-sm font-medium text-neutral-700">
+              Traffic Split
+            </label>
+            <InfoTooltip
+              content={
+                <SimpleTooltipContent
+                  title="Specify what percentage of traffic should go to each URL. Total must equal 100%."
+                  cta="Learn more."
+                  href="https://dub.co/help/article/ab-testing"
+                />
+              }
+            />
+          </div>
+          <div className="mt-4">
+            <AnimatedSizeContainer
+              height
+              transition={{ ease: "easeInOut", duration: 0.2 }}
+              className="-m-1"
+            >
+              <div className="flex flex-col gap-2 p-1">
+                {tests.map((test, index) => (
+                  <div key={index} className="flex items-center space-x-2">
+                    <div className="flex-1 truncate text-sm text-neutral-700">
+                      {index + 1}
+                    </div>
+                    <div className="w-24">
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        placeholder="%"
+                        className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
+                        {...register(`tests.${index}.percentage`, {
+                          valueAsNumber: true,
+                        })}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </AnimatedSizeContainer>
+          </div>
+        </div>
+
+        {/* Completion Date */}
+        <div className="mt-6">
+          <div className="flex items-center gap-2">
+            <label
+              htmlFor={`${id}-testsCompleteAt`}
+              className="block text-sm font-medium text-neutral-700"
+            >
+              Completion Date
+            </label>
+            <InfoTooltip
+              content={
+                <SimpleTooltipContent
+                  title="Set when the A/B test should complete. After this date, all traffic will go to the best performing URL."
+                  cta="Learn more."
+                  href="https://dub.co/help/article/ab-testing"
+                />
+              }
+            />
+          </div>
+          <div className="mt-2 flex w-full items-center justify-between rounded-md border border-neutral-300 bg-white shadow-sm transition-all focus-within:border-neutral-800 focus-within:outline-none focus-within:ring-1 focus-within:ring-neutral-500">
+            <input
+              id={`${id}-testsCompleteAt`}
+              type="text"
+              placeholder='E.g. "in 2 weeks" or "next month"'
+              defaultValue={
+                watch("testsCompleteAt")
+                  ? formatDateTime(watch("testsCompleteAt"))
+                  : ""
+              }
+              onBlur={(e) => {
+                if (e.target.value.length > 0) {
+                  const parsedDateTime = parseDateTime(e.target.value);
+                  if (parsedDateTime) {
+                    setValue("testsCompleteAt", parsedDateTime, {
+                      shouldDirty: true,
+                    });
+                    e.target.value = formatDateTime(parsedDateTime);
+                  }
+                }
+              }}
+              className="flex-1 border-none bg-transparent text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-0 sm:text-sm"
+            />
+            <input
+              type="datetime-local"
+              id="testsCompleteAt"
+              name="testsCompleteAt"
+              value={
+                watch("testsCompleteAt")
+                  ? getDateTimeLocal(watch("testsCompleteAt"))
+                  : ""
+              }
+              onChange={(e) => {
+                const completeDate = new Date(e.target.value);
+                setValue("testsCompleteAt", completeDate, {
+                  shouldDirty: true,
+                });
+              }}
+              className="w-[40px] border-none bg-transparent text-neutral-500 focus:outline-none focus:ring-0 sm:text-sm"
+            />
+          </div>
         </div>
 
         <div className="mt-6 flex items-center justify-between">
@@ -228,7 +376,7 @@ function ABTestingModal({
               text={
                 Array.isArray(testsParent) && testsParent.length > 0
                   ? "Save changes"
-                  : "Add A/B testing"
+                  : "Start testing"
               }
               className="h-9 w-fit"
               disabled={!isDirty}
