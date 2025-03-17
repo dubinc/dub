@@ -1,4 +1,5 @@
 import { get } from "@vercel/edge-config";
+import { transformWorkspaceId } from "../api/transform-workspace-id";
 import { BetaFeatures } from "../types";
 
 type BetaFeaturesRecord = Record<BetaFeatures, string[]>;
@@ -11,9 +12,7 @@ export const getFeatureFlags = async ({
   workspaceSlug?: string;
 }) => {
   if (workspaceId) {
-    workspaceId = workspaceId.startsWith("ws_")
-      ? workspaceId
-      : `ws_${workspaceId}`;
+    workspaceId = transformWorkspaceId(workspaceId);
   }
 
   const workspaceFeatures: Record<BetaFeatures, boolean> = {

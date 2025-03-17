@@ -1,6 +1,7 @@
 import { prisma } from "@dub/prisma";
 import { Link } from "@dub/prisma/client";
 import { DubApiError } from "../errors";
+import { transformWorkspaceId } from "../transform-workspace-id";
 import {
   decodeLinkIfCaseSensitive,
   encodeKeyIfCaseSensitive,
@@ -75,7 +76,7 @@ export const getLinkOrThrow = async (params: GetLinkParams) => {
   if (link.projectId !== workspaceId) {
     throw new DubApiError({
       code: "unauthorized",
-      message: `Link does not belong to workspace ws_${workspaceId}.`,
+      message: `Link does not belong to workspace ${transformWorkspaceId(workspaceId)}.`,
     });
   }
 

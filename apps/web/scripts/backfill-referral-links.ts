@@ -1,3 +1,4 @@
+import { transformWorkspaceId } from "@/lib/api/transform-workspace-id";
 import { dub } from "@/lib/dub";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
@@ -20,7 +21,7 @@ async function main() {
     })
     .then((workspaces) =>
       workspaces.map((workspace) => ({
-        id: `ws_${workspace.id}`,
+        id: transformWorkspaceId(workspace.id),
         slug: workspace.slug,
       })),
     );

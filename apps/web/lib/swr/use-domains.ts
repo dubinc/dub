@@ -8,6 +8,7 @@ import {
 } from "@dub/utils";
 import { useMemo } from "react";
 import useSWR from "swr";
+import { transformWorkspaceId } from "../api/transform-workspace-id";
 import useDefaultDomains from "./use-default-domains";
 import useWorkspace from "./use-workspace";
 
@@ -62,14 +63,18 @@ export default function useDomains({
   const allDomains = useMemo(
     () => [
       ...allWorkspaceDomains,
-      ...(workspaceId === `ws_${DUB_WORKSPACE_ID}` ? [] : DUB_DOMAINS),
+      ...(workspaceId === transformWorkspaceId(DUB_WORKSPACE_ID)
+        ? []
+        : DUB_DOMAINS),
     ],
     [allWorkspaceDomains, workspaceId],
   );
   const allActiveDomains = useMemo(
     () => [
       ...(activeWorkspaceDomains || []),
-      ...(workspaceId === `ws_${DUB_WORKSPACE_ID}` ? [] : activeDefaultDomains),
+      ...(workspaceId === transformWorkspaceId(DUB_WORKSPACE_ID)
+        ? []
+        : activeDefaultDomains),
     ],
     [activeWorkspaceDomains, activeDefaultDomains, workspaceId],
   );
