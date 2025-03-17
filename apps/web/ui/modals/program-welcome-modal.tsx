@@ -51,6 +51,8 @@ function ProgramWelcomeModal({
               </h1>
               <p className="mt-2 text-sm text-neutral-600">
                 Congratulations on creating your first partner program with Dub!
+                <br />
+                <br />
                 Share your program application link with your customers and
                 fans, and track all their activity in you dashboard.
               </p>

@@ -12,7 +12,7 @@ export const programInfoSchema = z.object({
   linkType: z.enum(["short", "query", "dynamic"]).default("short"),
 });
 
-// Configure reward
+// Configure rewards
 export const programRewardSchema = z
   .object({
     programType: z.enum(["new", "import"]),
@@ -73,8 +73,8 @@ export const programDataSchema = programInfoSchema
   .merge(programInvitePartnersSchema)
   .merge(
     z.object({
-      lastCompletedStep: onboardingStepSchema, // The last step that was completed
-      currentStep: onboardingStepSchema, // The current step when saving and exiting
+      lastCompletedStep: onboardingStepSchema.nullish(), // The last step that was completed
+      currentStep: onboardingStepSchema.nullish(), // The current step when saving and exiting
     }),
   );
 
@@ -127,7 +127,7 @@ export const PROGRAM_ONBOARDING_STEPS = [
   },
   {
     stepNumber: 2,
-    label: "Configure reward",
+    label: "Configure rewards",
     href: "/programs/new/rewards",
     step: "configure-reward",
   },

@@ -39,7 +39,9 @@ export const onboardProgramAction = authActionClient
         user,
       });
 
-      redirect(`/${workspace.slug}/programs/${program.id}?onboarded-program`);
+      redirect(
+        `/${workspace.slug}/programs/${program.id}?onboarded-program=true`,
+      );
     }
 
     await saveOnboardingProgress({
