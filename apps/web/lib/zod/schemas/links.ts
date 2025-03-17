@@ -25,6 +25,16 @@ export const getDomainQuerySchema = z.object({
     .refine((v) => validDomainRegex.test(v), { message: "Invalid domain" }),
 });
 
+export const LinkTestsSchema = z
+  .array(
+    z.object({
+      url: z.string(),
+      percentage: z.number().min(0).max(100),
+    }),
+  )
+  .nullish()
+  .describe("An array of A/B test URLs and their percentages");
+
 const LinksQuerySchema = z.object({
   domain: z
     .string()
@@ -384,6 +394,7 @@ export const createLinkBodySchema = z.object({
     .describe(
       "An array of webhook IDs to trigger when the link is clicked. These webhooks will receive click event data.",
     ),
+  tests: LinkTestsSchema,
 });
 
 export const updateLinkBodySchema = createLinkBodySchema.partial();
@@ -600,6 +611,7 @@ export const LinkSchema = z
       .string()
       .nullable()
       .describe("The UTM content of the short link."),
+    tests: LinkTestsSchema,
     userId: z
       .string()
       .nullable()

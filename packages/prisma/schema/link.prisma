@@ -33,6 +33,10 @@ model Link {
   android String? @db.LongText // custom link for Android devices
   geo     Json?   @db.Json // custom link for specific countries
 
+  // A/B Testing
+  tests           Json?   @db.Json // A/B testing data
+  testsCompleteAt DateTime? // When tests were or will be completed
+
   // User who created the link
   user   User?   @relation(fields: [userId], references: [id])
   userId String?
