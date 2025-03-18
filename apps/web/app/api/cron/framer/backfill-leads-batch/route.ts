@@ -12,6 +12,7 @@ import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { linkConstructorSimple, nanoid } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 const schema = z.array(
@@ -23,9 +24,13 @@ const schema = z.array(
   }),
 );
 
-const FRAMER_WORKSPACE_ID = "clsvopiw0000ejy0grp821me0";
+// const FRAMER_WORKSPACE_ID = "clsvopiw0000ejy0grp821me0";
+// const CACHE_KEY = "framerMigratedLeadEventNames";
+// const DOMAIN = "framer.link";
+
+const FRAMER_WORKSPACE_ID = "cl7pj5kq4006835rbjlt2ofka";
 const CACHE_KEY = "framerMigratedLeadEventNames";
-const DOMAIN = "framer.link";
+const DOMAIN = "dub.sh";
 
 // POST /api/cron/framer/backfill-leads-batch
 export const POST = withWorkspace(async ({ req, workspace }) => {
@@ -75,16 +80,6 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
 
   const dataArray = payload.map((p) => {
     const link = linkMap.get(p.via)!;
-
-    // const dummyRequest = new Request(link.url, {
-    //   headers: new Headers({
-    //     "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
-    //     "x-forwarded-for": "127.0.0.1",
-    //     "x-vercel-ip-country": "US",
-    //     "x-vercel-ip-country-region": "CA",
-    //     "x-vercel-ip-continent": "NA",
-    //   }),
-    // });
 
     const clickData = {
       timestamp: new Date(p.creationDate).toISOString(),
@@ -210,29 +205,59 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
     // Record sales
     recordSaleWithTimestamp(dataArray.map((d) => d.saleEventData)),
 
-    // TODO: Update link stats
-    prisma.link.updateMany({
-      where: {
-        id: {
-          in: links.map((l) => l.id),
-        },
-      },
-      data: {
-        clicks: {
-          increment: 1,
-        },
-        leads: {
-          increment: 1,
-        },
-        sales: {
-          increment: 1,
-        },
-      },
-    }),
-
     // Cache the eventName
     redis.sadd(CACHE_KEY, ...dataArray.map((d) => d.leadEventData.event_name)),
   ]);
+
+  waitUntil(
+    (async () => {
+      // Update link stats
+      const linkCount = payload.reduce(
+        (acc, p) => {
+          acc[p.via] = (acc[p.via] || 0) + 1;
+          return acc;
+        },
+        {} as Record<string, number>,
+      );
+
+      // Group the links by the number of times they appear in the payload
+      const groupedLinks = Object.entries(linkCount).reduce(
+        (acc, [key, value]) => {
+          acc[value] = (acc[value] || []).concat(key);
+          return acc;
+        },
+        {} as Record<number, string[]>,
+      );
+
+      await Promise.all(
+        Object.entries(groupedLinks).map(([count, linkKeys]) =>
+          prisma.link.updateMany({
+            where: {
+              shortLink: {
+                in: linkKeys.map((key) =>
+                  linkConstructorSimple({
+                    domain: DOMAIN,
+                    key,
+                  }),
+                ),
+              },
+            },
+            data: {
+              clicks: {
+                increment: parseInt(count),
+              },
+              leads: {
+                increment: parseInt(count),
+              },
+              sales: {
+                increment: parseInt(count),
+              },
+            },
+          }),
+        ),
+      );
+    })(),
+  );
 
   return NextResponse.json({
     message: `Backfilled ${payload.length} leads and sales.`,
