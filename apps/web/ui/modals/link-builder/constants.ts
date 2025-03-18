@@ -50,18 +50,6 @@ export const MORE_ITEMS: MoreItem[] = [
     type: "boolean",
   },
   {
-    key: "expiresAt",
-    icon: CircleHalfDottedClock,
-    label: "Link Expiration",
-    badgeLabel: getExpirationLabel,
-    description:
-      "Set an expiration date for your links – after which it won't be accessible.",
-    learnMoreUrl: "https://dub.co/help/article/link-expiration",
-    shortcutKey: "e",
-    enabled: (data) => Boolean(data.expiresAt),
-    type: "modal",
-  },
-  {
     key: "webhookIds",
     icon: Webhook,
     label: "Webhooks",
@@ -82,6 +70,18 @@ export const MORE_ITEMS: MoreItem[] = [
 ];
 
 export const MOBILE_MORE_ITEMS: MoreItem[] = [
+  {
+    key: "expiresAt",
+    icon: CircleHalfDottedClock,
+    label: "Link Expiration",
+    badgeLabel: getExpirationLabel,
+    description:
+      "Set an expiration date for your links – after which it won't be accessible.",
+    learnMoreUrl: "https://dub.co/help/article/link-expiration",
+    shortcutKey: "e",
+    enabled: (data) => Boolean(data.expiresAt),
+    type: "modal",
+  },
   {
     key: "targeting",
     icon: Crosshairs3,

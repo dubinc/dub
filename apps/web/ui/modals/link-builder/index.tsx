@@ -58,6 +58,7 @@ import { useDebounce } from "use-debounce";
 import { useABTestingModal } from "./ab-testing-modal";
 import { ConversionTrackingToggle } from "./conversion-tracking-toggle";
 import { DraftControls, DraftControlsHandle } from "./draft-controls";
+import { useExpirationModal } from "./expiration-modal";
 import { LinkPreview } from "./link-preview";
 import { MoreDropdown } from "./more-dropdown";
 import { OptionsList } from "./options-list";
@@ -214,6 +215,7 @@ function LinkBuilderInner({
   const { TargetingModal, TargetingButton } = useTargetingModal();
   const { ABTestingModal, ABTestingButton } = useABTestingModal();
   const { PasswordModal, PasswordButton } = usePasswordModal();
+  const { ExpirationModal, ExpirationButton } = useExpirationModal();
   const [, copyToClipboard] = useCopyToClipboard();
 
   return (
@@ -222,6 +224,7 @@ function LinkBuilderInner({
       <TargetingModal />
       <ABTestingModal />
       <PasswordModal />
+      <ExpirationModal />
       <Modal
         showModal={showLinkBuilder}
         setShowModal={setShowLinkBuilder}
@@ -522,6 +525,7 @@ function LinkBuilderInner({
                   <TargetingButton />
                   <ABTestingButton />
                   <PasswordButton />
+                  <ExpirationButton />
                 </div>
                 <MoreDropdown />
               </div>
