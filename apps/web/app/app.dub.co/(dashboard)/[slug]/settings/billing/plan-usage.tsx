@@ -192,7 +192,7 @@ export default function PlanUsage() {
         <div className="flex flex-col items-center justify-between space-y-3 border-t border-neutral-200 px-6 py-4 text-center md:flex-row md:space-y-0 md:px-8 md:text-left">
           <p className="text-sm text-neutral-500">
             {isMaxPlan
-              ? "Need more clicks or links? Contact us for an Enterprise quote."
+              ? "Looking for higher limits / volume discounts? Contact us for an Enterprise quote."
               : `For higher limits, upgrade to the ${nextPlan.name} plan.`}
           </p>
           <Link
