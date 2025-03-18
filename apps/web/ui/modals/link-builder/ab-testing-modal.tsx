@@ -23,6 +23,7 @@ import {
   isValidUrl,
   parseDateTime,
 } from "@dub/utils";
+import { differenceInDays } from "date-fns";
 import {
   Dispatch,
   SetStateAction,
@@ -88,6 +89,7 @@ function ABTestingModal({
   });
 
   const tests = watch("tests") || [];
+  const testsCompleteAt = watch("testsCompleteAt");
   const testsParent = watchParent("tests");
 
   const addTestUrl = () => {
@@ -459,7 +461,16 @@ function ABTestingModal({
                   : "Start testing"
               }
               className="h-9 w-fit"
-              disabled={!isDirty || !isValid}
+              disabled={
+                !isDirty ||
+                !isValid ||
+                Boolean(
+                  testsCompleteAt &&
+                    // Restrict competion date from -1 days to 6 weeks
+                    (differenceInDays(testsCompleteAt, new Date()) > 6 * 7 ||
+                      differenceInDays(testsCompleteAt, new Date()) < -1),
+                )
+              }
             />
           </div>
         </div>
