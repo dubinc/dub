@@ -55,9 +55,9 @@ import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
+import { useABTestingModal } from "./ab-testing-modal";
 import { ConversionTrackingToggle } from "./conversion-tracking-toggle";
 import { DraftControls, DraftControlsHandle } from "./draft-controls";
-import { useExpirationModal } from "./expiration-modal";
 import { LinkPreview } from "./link-preview";
 import { MoreDropdown } from "./more-dropdown";
 import { OptionsList } from "./options-list";
@@ -212,18 +212,17 @@ function LinkBuilderInner({
   const draftControlsRef = useRef<DraftControlsHandle>(null);
 
   const { UTMModal, UTMButton } = useUTMModal();
-  const { ExpirationModal, ExpirationButton } = useExpirationModal();
   const { TargetingModal, TargetingButton } = useTargetingModal();
+  const { ABTestingModal, ABTestingButton } = useABTestingModal();
   const { PasswordModal, PasswordButton } = usePasswordModal();
-
   const [, copyToClipboard] = useCopyToClipboard();
 
   return (
     <>
-      <PasswordModal />
       <UTMModal />
       <TargetingModal />
-      <ExpirationModal />
+      <ABTestingModal />
+      <PasswordModal />
       <Modal
         showModal={showLinkBuilder}
         setShowModal={setShowLinkBuilder}
@@ -521,8 +520,8 @@ function LinkBuilderInner({
               <div className="flex min-w-0 items-center gap-2">
                 <UTMButton />
                 <div className="flex items-center gap-2 max-sm:hidden">
-                  <ExpirationButton />
                   <TargetingButton />
+                  <ABTestingButton />
                   <PasswordButton />
                 </div>
                 <WebhookSelect />

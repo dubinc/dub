@@ -8,16 +8,19 @@ import { X } from "@/ui/shared/icons";
 import {
   AnimatedSizeContainer,
   Button,
+  Flask,
   InfoTooltip,
   Modal,
   SimpleTooltipContent,
   Tooltip,
   TriangleWarning,
+  useKeyboardShortcut,
 } from "@dub/ui";
 import {
   cn,
   formatDateTime,
   getDateTimeLocal,
+  isValidUrl,
   parseDateTime,
 } from "@dub/utils";
 import {
@@ -78,7 +81,7 @@ function ABTestingModal({
     setValue,
     getValues,
     reset,
-    formState: { isDirty },
+    formState: { isDirty, isValid },
     handleSubmit,
   } = useForm<
     { tests: z.infer<typeof LinkTestsSchema> } & Pick<
@@ -86,6 +89,7 @@ function ABTestingModal({
       "testsCompleteAt"
     >
   >({
+    mode: "onChange",
     values: {
       tests: parseTests(getValuesParent("tests")) ?? [
         { url: getValuesParent("url") || "", percentage: 100 },
@@ -303,7 +307,17 @@ function ABTestingModal({
                           "https://dub.co/help/article/what-is-dub"
                         }
                         className="block h-9 grow border-none px-2 text-neutral-900 placeholder-neutral-400 focus:ring-0 sm:text-sm"
-                        {...register(`tests.${index}.url`)}
+                        {...register(`tests.${index}.url`, {
+                          validate: (value, { tests }) => {
+                            if (!value) return "URL is required";
+
+                            if (!isValidUrl(value)) return "Invalid URL";
+
+                            return (
+                              tests.length > 1 && tests.length <= MAX_TEST_COUNT
+                            );
+                          },
+                        })}
                       />
                       {index > 0 && (
                         <Button
@@ -457,12 +471,54 @@ function ABTestingModal({
                   : "Start testing"
               }
               className="h-9 w-fit"
-              disabled={!isDirty}
+              disabled={!isDirty || !isValid}
             />
           </div>
         </div>
       </form>
     </Modal>
+  );
+}
+
+export function getABTestingLabel({
+  tests,
+  testsCompleteAt,
+}: Pick<LinkFormData, "tests" | "testsCompleteAt">) {
+  const enabled = Boolean(tests && testsCompleteAt);
+
+  if (testsCompleteAt && new Date(testsCompleteAt) < new Date())
+    return "Test Complete";
+
+  return enabled && Array.isArray(tests) ? `${tests?.length} URLs` : "A/B Test";
+}
+
+function ABTestingButton({
+  setShowABTestingModal,
+}: {
+  setShowABTestingModal: Dispatch<SetStateAction<boolean>>;
+}) {
+  const { watch } = useFormContext<LinkFormData>();
+  const [tests, testsCompleteAt] = watch(["tests", "testsCompleteAt"]);
+
+  useKeyboardShortcut("b", () => setShowABTestingModal(true), {
+    modal: true,
+  });
+
+  const enabled = Boolean(tests && testsCompleteAt);
+
+  const label = useMemo(
+    () => getABTestingLabel({ tests, testsCompleteAt }),
+    [tests, testsCompleteAt],
+  );
+
+  return (
+    <Button
+      variant="secondary"
+      text={label}
+      icon={<Flask className={cn("size-4", enabled && "text-blue-500")} />}
+      className="h-9 w-fit px-2.5 font-medium text-neutral-700"
+      onClick={() => setShowABTestingModal(true)}
+    />
   );
 }
 
@@ -478,12 +534,17 @@ export function useABTestingModal() {
     );
   }, [showABTestingModal, setShowABTestingModal]);
 
+  const ABTestingButtonCallback = useCallback(() => {
+    return <ABTestingButton setShowABTestingModal={setShowABTestingModal} />;
+  }, [setShowABTestingModal]);
+
   return useMemo(
     () => ({
       setShowABTestingModal,
       ABTestingModal: ABTestingModalCallback,
+      ABTestingButton: ABTestingButtonCallback,
     }),
-    [setShowABTestingModal, ABTestingModalCallback],
+    [setShowABTestingModal, ABTestingModalCallback, ABTestingButtonCallback],
   );
 }
 

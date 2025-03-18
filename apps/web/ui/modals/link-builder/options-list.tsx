@@ -27,8 +27,11 @@ export function OptionsList() {
     () => [
       ...enabledToggles,
       ...(isMobile
-        ? MOBILE_MORE_ITEMS.filter(({ enabled }) => enabled(data)).map(
-            (item) => ({ ...item, label: item.badgeLabel(data) }),
+        ? MOBILE_MORE_ITEMS.filter(({ enabled }) => enabled?.(data)).map(
+            (item) => ({
+              ...item,
+              label: item.badgeLabel?.(data) || item.label,
+            }),
           )
         : []),
     ],

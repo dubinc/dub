@@ -5,16 +5,9 @@ import {
   Modal,
   SimpleTooltipContent,
   Tooltip,
-  useKeyboardShortcut,
   useMediaQuery,
 } from "@dub/ui";
-import { CircleHalfDottedClock } from "@dub/ui/icons";
-import {
-  cn,
-  formatDateTime,
-  getDateTimeLocal,
-  parseDateTime,
-} from "@dub/utils";
+import { formatDateTime, getDateTimeLocal, parseDateTime } from "@dub/utils";
 import {
   Dispatch,
   SetStateAction,
@@ -272,34 +265,7 @@ export function getExpirationLabel({
 }: Pick<LinkFormData, "expiresAt">) {
   return expiresAt
     ? formatDateTime(expiresAt, { year: undefined })
-    : "Expiration";
-}
-
-function ExpirationButton({
-  setShowExpirationModal,
-}: {
-  setShowExpirationModal: Dispatch<SetStateAction<boolean>>;
-}) {
-  const { watch } = useFormContext<LinkFormData>();
-  const expiresAt = watch("expiresAt");
-
-  useKeyboardShortcut("e", () => setShowExpirationModal(true), {
-    modal: true,
-  });
-
-  return (
-    <Button
-      variant="secondary"
-      text={getExpirationLabel({ expiresAt })}
-      icon={
-        <CircleHalfDottedClock
-          className={cn("size-4", expiresAt && "text-blue-500")}
-        />
-      }
-      className="h-9 w-fit px-2.5 font-medium text-neutral-700"
-      onClick={() => setShowExpirationModal(true)}
-    />
-  );
+    : "Add Link Expiration";
 }
 
 export function useExpirationModal() {
@@ -314,16 +280,11 @@ export function useExpirationModal() {
     );
   }, [showExpirationModal, setShowExpirationModal]);
 
-  const ExpirationButtonCallback = useCallback(() => {
-    return <ExpirationButton setShowExpirationModal={setShowExpirationModal} />;
-  }, [setShowExpirationModal]);
-
   return useMemo(
     () => ({
       setShowExpirationModal,
       ExpirationModal: ExpirationModalCallback,
-      ExpirationButton: ExpirationButtonCallback,
     }),
-    [setShowExpirationModal, ExpirationModalCallback, ExpirationButtonCallback],
+    [setShowExpirationModal, ExpirationModalCallback],
   );
 }

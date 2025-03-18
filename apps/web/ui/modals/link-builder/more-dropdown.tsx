@@ -33,8 +33,8 @@ export function MoreDropdown() {
   const { PasswordModal, setShowPasswordModal } = usePasswordModal();
   const { TargetingModal, setShowTargetingModal } = useTargetingModal();
   const { ExpirationModal, setShowExpirationModal } = useExpirationModal();
-  const { AdvancedModal, setShowAdvancedModal } = useAdvancedModal();
   const { ABTestingModal, setShowABTestingModal } = useABTestingModal();
+  const { AdvancedModal, setShowAdvancedModal } = useAdvancedModal();
 
   const modalCallbacks = {
     password: setShowPasswordModal,
@@ -101,14 +101,19 @@ export function MoreDropdown() {
                             enabled && "text-blue-500",
                           )}
                         />
-                        {option.type === "modal"
-                          ? enabled || ("add" in option && option.add === false)
-                            ? ""
-                            : "Add "
-                          : enabled
-                            ? "Remove "
-                            : "Add "}
-                        {option.label}
+                        {option.badgeLabel?.(data) ?? (
+                          <>
+                            {option.type === "modal"
+                              ? enabled ||
+                                ("add" in option && option.add === false)
+                                ? ""
+                                : "Add "
+                              : enabled
+                                ? "Remove "
+                                : "Add "}
+                            {option.label}
+                          </>
+                        )}
                         {option.description && option.learnMoreUrl && (
                           <ProBadgeTooltip
                             content={
