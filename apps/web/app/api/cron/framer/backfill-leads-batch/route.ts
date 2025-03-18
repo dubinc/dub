@@ -6,6 +6,7 @@ import {
   recordLeadWithTimestamp,
   recordSaleWithTimestamp,
 } from "@/lib/tinybird";
+import { redis } from "@/lib/upstash";
 import z from "@/lib/zod";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { prisma } from "@dub/prisma";
@@ -23,21 +24,28 @@ const schema = z.array(
 );
 
 const FRAMER_WORKSPACE_ID = "clsvopiw0000ejy0grp821me0";
+const CACHE_KEY = "framerMigratedLeadEventNames";
+const DOMAIN = "framer.link";
 
-// POST /api/cron/framer/backfill-leads
+// POST /api/cron/framer/backfill-leads-batch
 export const POST = withWorkspace(async ({ req, workspace }) => {
   if (workspace.id !== FRAMER_WORKSPACE_ID) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  const payload = schema.parse(await parseRequestBody(req));
+  let payload = schema.parse(await parseRequestBody(req));
+
+  // Filter out those eventName that are already recorded
+  const eventNames = payload.map((p) => p.eventName);
+  const existsResults = await redis.smismember(CACHE_KEY, eventNames);
+  payload = payload.filter((_, index) => !existsResults[index]);
 
   const links = await prisma.link.findMany({
     where: {
       shortLink: {
         in: payload.map((p) =>
           linkConstructorSimple({
-            domain: "framer.link",
+            domain: DOMAIN,
             key: p.via,
           }),
         ),
@@ -68,34 +76,49 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
   const dataArray = payload.map((p) => {
     const link = linkMap.get(p.via)!;
 
-    const dummyRequest = new Request(link.url, {
-      headers: new Headers({
-        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
-        "x-forwarded-for": "127.0.0.1",
-        "x-vercel-ip-country": "US",
-        "x-vercel-ip-country-region": "CA",
-        "x-vercel-ip-continent": "NA",
-      }),
-    });
+    // const dummyRequest = new Request(link.url, {
+    //   headers: new Headers({
+    //     "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+    //     "x-forwarded-for": "127.0.0.1",
+    //     "x-vercel-ip-country": "US",
+    //     "x-vercel-ip-country-region": "CA",
+    //     "x-vercel-ip-continent": "NA",
+    //   }),
+    // });
 
     const clickData = {
-      req: dummyRequest,
-      linkId: link.id,
-      clickId: nanoid(16),
-      url: link.url,
-      domain: link.domain,
-      key: link.key,
-      workspaceId: workspace.id,
-      skipRatelimit: true,
       timestamp: new Date(p.creationDate).toISOString(),
-    };
-
-    const clickEvent = clickEventSchemaTB.parse({
-      ...clickData,
+      identity_hash: nanoid(25), // TODO: Fix it
+      click_id: nanoid(16),
+      link_id: link.id,
+      alias_link_id: "",
+      url: link.url,
+      ip: "",
+      continent: "NA",
+      country: "Unknown",
+      region: "Unknown",
+      city: "Unknown",
+      latitude: "Unknown",
+      longitude: "Unknown",
+      vercel_region: "",
+      device: "Desktop",
+      device_vendor: "Unknown",
+      device_model: "Unknown",
+      browser: "Unknown",
+      browser_version: "Unknown",
+      engine: "Unknown",
+      engine_version: "Unknown",
+      os: "Unknown",
+      os_version: "Unknown",
+      cpu_architecture: "Unknown",
+      ua: "Unknown",
       bot: 0,
       qr: 0,
-    });
+      referer: "(direct)",
+      referer_url: "(direct)",
+    };
 
+    const clickEvent = clickEventSchemaTB.parse(clickData);
     const customerId = createId({ prefix: "cus_" });
 
     const customerData = {
@@ -156,7 +179,18 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
   });
 
   await Promise.all([
-    // TODO: Record clicks?
+    // Record clicks
+    fetch(
+      `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_click_events&wait=true`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
+          "Content-Type": "application/x-ndjson",
+        },
+        body: dataArray.map((d) => JSON.stringify(d.clickData)).join("\n"),
+      },
+    ),
 
     // Record customers
     prisma.customer.createMany({
@@ -177,6 +211,27 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
     recordSaleWithTimestamp(dataArray.map((d) => d.saleEventData)),
 
     // TODO: Update link stats
+    prisma.link.updateMany({
+      where: {
+        id: {
+          in: links.map((l) => l.id),
+        },
+      },
+      data: {
+        clicks: {
+          increment: 1,
+        },
+        leads: {
+          increment: 1,
+        },
+        sales: {
+          increment: 1,
+        },
+      },
+    }),
+
+    // Cache the eventName
+    redis.sadd(CACHE_KEY, ...dataArray.map((d) => d.leadEventData.event_name)),
   ]);
 
   return NextResponse.json({
