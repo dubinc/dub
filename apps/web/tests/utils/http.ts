@@ -38,12 +38,19 @@ export class HttpClient {
     const params = new URLSearchParams(req.query).toString();
     const url = `${this.baseUrl}${req.path}${params ? `?${params}` : ""}`;
 
+    const startTime = performance.now();
+
     const response = await fetch(url, {
       method,
       headers,
       keepalive: true,
       body: JSON.stringify(req.body),
     });
+
+    const endTime = performance.now();
+    const duration = endTime - startTime;
+
+    console.log(`${method} ${url} - ${duration.toFixed(2)}ms`);
 
     const { status } = response;
     const data = (await response.json()) as TResponse;
