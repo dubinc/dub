@@ -1,6 +1,5 @@
-import { isBlacklistedDomain, updateConfig } from "@/lib/edge-config";
+import { isBlacklistedDomain } from "@/lib/edge-config";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
-import { getPangeaDomainIntel } from "@/lib/pangea";
 import { checkIfUserExists, getRandomKey } from "@/lib/planetscale";
 import { isStored } from "@/lib/storage";
 import { NewLinkProps, ProcessedLinkProps, WorkspaceProps } from "@/lib/types";
@@ -15,7 +14,6 @@ import {
   getUrlFromString,
   isDubDomain,
   isValidUrl,
-  log,
   parseDateTime,
   pluralize,
 } from "@dub/utils";
@@ -580,36 +578,6 @@ async function maliciousLinkCheck(url: string) {
   } else if (domainBlacklisted === "whitelisted") {
     return false;
   }
-
-  // Check with Pangea for domain reputation
-  // if (process.env.PANGEA_API_KEY) {
-  //   try {
-  //     const response = await getPangeaDomainIntel(domain);
-
-  //     const verdict = response.result.data[apexDomain].verdict;
-  //     console.log("Pangea verdict for domain", apexDomain, verdict);
-
-  //     if (verdict === "benign") {
-  //       return false;
-  //     } else if (verdict === "malicious" || verdict === "suspicious") {
-  //       await Promise.all([
-  //         updateConfig({
-  //           key: "domains",
-  //           value: domain,
-  //         }),
-  //         log({
-  //           message: `Suspicious link detected via Pangea → ${url}`,
-  //           type: "links",
-  //           mention: true,
-  //         }),
-  //       ]);
-
-  //       return true;
-  //     }
-  //   } catch (e) {
-  //     console.error("Error checking domain with Pangea", e);
-  //   }
-  // }
 
   return false;
 }
