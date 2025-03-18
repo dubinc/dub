@@ -19,7 +19,7 @@ const NEXT_STEPS = [
   },
   {
     text: "Create custom rewards for your partners",
-    href: "https://dub.co/help/article/dual-sided-incentives",
+    href: "https://dub.co/help/article/partner-rewards",
   },
   {
     text: "Create dual-sided incentives",
@@ -85,7 +85,7 @@ function ProgramWelcomeModal({
                 }}
                 initial="hidden"
                 animate="show"
-                className="flex flex-col gap-2"
+                className="flex flex-col gap-2 pb-2"
               >
                 {NEXT_STEPS.map((step, idx) => (
                   <motion.a

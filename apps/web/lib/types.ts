@@ -132,7 +132,7 @@ export type PlanProps = (typeof plans)[number];
 
 export type RoleProps = (typeof roles)[number];
 
-export type BetaFeatures = "noDubLink" | "linkFolders" | "rewardfulImporter";
+export type BetaFeatures = "noDubLink" | "linkFolders";
 
 export interface WorkspaceProps extends Project {
   logo: string | null;
@@ -252,6 +252,7 @@ export const plans = [
   "business plus",
   "business extra",
   "business max",
+  "advanced",
   "enterprise",
 ] as const;
 

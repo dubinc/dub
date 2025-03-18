@@ -2,7 +2,7 @@
 
 import { createId } from "@/lib/api/create-id";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
-import { MIN_PAYOUT_AMOUNT, PAYOUT_FEES } from "@/lib/partners/constants";
+import { PAYOUT_FEES } from "@/lib/partners/constants";
 import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
 import { PartnerPayoutConfirmed } from "@dub/email/templates/partner-payout-confirmed";
@@ -27,7 +27,7 @@ export const confirmPayoutsAction = authActionClient
     const { workspace } = ctx;
     const { programId, paymentMethodId, payoutIds } = parsedInput;
 
-    await getProgramOrThrow({
+    const { minPayoutAmount } = await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
     });
@@ -66,7 +66,7 @@ export const confirmPayoutsAction = authActionClient
           },
         },
         amount: {
-          gte: MIN_PAYOUT_AMOUNT,
+          gte: minPayoutAmount,
         },
       },
       select: {

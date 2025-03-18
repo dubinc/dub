@@ -18,7 +18,7 @@ import { pluralize } from "@dub/utils";
 import { Gift } from "lucide-react";
 import { useState } from "react";
 
-export function RewardSettings() {
+export function Rewards() {
   return (
     <div className="flex flex-col gap-6">
       <SaleReward />
@@ -48,7 +48,7 @@ const SaleReward = () => {
               Sale Reward <Badge variant="gray">Default</Badge>
             </h2>
             <p className="mt-1 text-sm text-neutral-600">
-              The default rewarded offered to all partners
+              The default reward offered to all partners
             </p>
           </div>
         </div>
