@@ -172,9 +172,7 @@ export const FolderDropdown = ({
             setSelectedFolder(folder);
             onFolderSelect
               ? onFolderSelect(folder)
-              : router.push(
-                  `/${slug}${folder.id === "unsorted" ? "?folderId=unsorted" : `?folderId=${folder.id}`}`,
-                );
+              : router.push(`/${slug}?folderId=${folder.id}}`);
           }
         }}
         inputRight={
