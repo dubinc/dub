@@ -12,7 +12,6 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
-import { LINK_TYPES } from "../form";
 
 export function PageClient() {
   const {
@@ -42,23 +41,14 @@ export function PageClient() {
   };
 
   const isValid = useMemo(() => {
-    const {
-      name,
-      url,
-      domain,
-      logo,
-      programType,
-      rewardful,
-      type,
-      amount,
-      maxDuration,
-    } = data;
+    const { name, url, domain, logo, programType, rewardful, type, amount } =
+      data;
 
     if (!name || !url || !domain || !logo) {
       return false;
     }
 
-    if (programType === "new" && (!amount || !type || !maxDuration)) {
+    if (programType === "new" && (!amount || !type)) {
       return false;
     }
 
@@ -97,8 +87,7 @@ export function PageClient() {
     },
     {
       title: "Referral link type",
-      content: LINK_TYPES.find((linkType) => linkType.id === data.linkType)
-        ?.example,
+      content: `${data.domain}/steven`,
       href: `/${workspaceSlug}/programs/new`,
     },
     {
