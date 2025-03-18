@@ -92,7 +92,7 @@ export function RewardSettings() {
 
           <SettingsRow
             heading="Minimum payout amount"
-            description="Set the minimum payout amount"
+            description="Set the minimum payout amount (cannot be less than $100)"
           >
             <div className="flex items-center justify-end">
               <div className="w-full max-w-md">

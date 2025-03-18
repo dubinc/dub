@@ -116,9 +116,7 @@ function UsageInner() {
                 usage={salesUsage}
                 limit={salesLimit}
                 showNextPlan={hovered}
-                // nextPlanLimit={nextPlan?.limits.sales}
-                // TODO: Update this once we update the plan limits
-                nextPlanLimit={50000}
+                nextPlanLimit={nextPlan?.limits.sales}
                 warning={warnings[2]}
               />
             ) : null}
@@ -265,7 +263,10 @@ const UsageRow = forwardRef<HTMLDivElement, UsageRowProps>(
                     }}
                   >
                     <motion.span className="ml-1 whitespace-nowrap text-xs font-medium text-blue-600">
-                      {formatNumber(nextPlanLimit)}
+                      {label === "Sales" ? "$" : ""}
+                      {formatNumber(
+                        label === "Sales" ? nextPlanLimit / 100 : nextPlanLimit,
+                      )}
                     </motion.span>
                   </motion.div>
                 )}
