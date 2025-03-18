@@ -18,8 +18,9 @@ export default function useLinksCount<T = any>({
   ignoreParams?: boolean;
   enabled?: boolean;
 } = {}) {
-  const { id: workspaceId } = useWorkspace();
-  const { getQueryString } = useRouterStuff();
+  const { id: workspaceId, defaultFolderId } = useWorkspace();
+  const { getQueryString, searchParams } = useRouterStuff();
+  const { isMegaFolder } = useIsMegaFolder();
 
   const [admin, setAdmin] = useState(false);
   useEffect(() => {
@@ -27,14 +28,25 @@ export default function useLinksCount<T = any>({
       setAdmin(true);
     }
   }, []);
-  const { isMegaFolder } = useIsMegaFolder();
+
+  // Decide on the folderId to use
+  let folderId = searchParams.get("folderId");
+  if (!folderId && defaultFolderId) {
+    folderId = defaultFolderId;
+  } else if (folderId) {
+    folderId = folderId !== "unsorted" ? folderId : "";
+  } else {
+    folderId = "";
+  }
 
   const { data, error } = useSWR<any>(
     workspaceId && !isMegaFolder && enabled
       ? `/api/links/count${getQueryString(
           {
             workspaceId,
+
             ...query,
+            folderId,
           },
           ignoreParams
             ? { include: [] }

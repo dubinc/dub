@@ -110,6 +110,7 @@ export const FolderDropdown = ({
         ? [selectedFolderData]
         : []),
     ];
+
     return [
       ...allFolders.map((folder) => ({
         value: folder.id,
@@ -172,7 +173,7 @@ export const FolderDropdown = ({
             onFolderSelect
               ? onFolderSelect(folder)
               : router.push(
-                  `/${slug}${folder.id === "unsorted" ? "" : `?folderId=${folder.id}`}`,
+                  `/${slug}${folder.id === "unsorted" ? "?folderId=unsorted" : `?folderId=${folder.id}`}`,
                 );
           }
         }}

@@ -13,8 +13,8 @@ export default function useLinks(
   opts: z.infer<typeof partialQuerySchema> = {},
   swrOpts: SWRConfiguration = {},
 ) {
-  const { id: workspaceId } = useWorkspace();
-  const { getQueryString } = useRouterStuff();
+  const { id: workspaceId, defaultFolderId } = useWorkspace();
+  const { getQueryString, searchParams } = useRouterStuff();
 
   const [admin, setAdmin] = useState(false);
   useEffect(() => {
@@ -22,6 +22,16 @@ export default function useLinks(
       setAdmin(true);
     }
   }, []);
+
+  // Decide on the folderId to use
+  let folderId = searchParams.get("folderId");
+  if (!folderId && defaultFolderId) {
+    folderId = defaultFolderId;
+  } else if (folderId) {
+    folderId = folderId !== "unsorted" ? folderId : "";
+  } else {
+    folderId = "";
+  }
 
   const {
     data: links,
@@ -39,6 +49,7 @@ export default function useLinks(
             includeUser: "true",
             includeWebhooks: "true",
             includeDashboard: "true",
+            folderId,
             ...opts,
           },
           {
