@@ -68,7 +68,6 @@ import { useTargetingModal } from "./targeting-modal";
 import { useMetatags } from "./use-metatags";
 import { useUTMModal } from "./utm-modal";
 import { UTMTemplatesButton } from "./utm-templates-button";
-import { WebhookSelect } from "./webhook-select";
 
 export const LinkModalContext = createContext<{
   workspaceId?: string;
@@ -524,7 +523,6 @@ function LinkBuilderInner({
                   <ABTestingButton />
                   <PasswordButton />
                 </div>
-                <WebhookSelect />
                 <MoreDropdown />
               </div>
               {homepageDemo ? (

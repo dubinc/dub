@@ -17,6 +17,7 @@ import { MOBILE_MORE_ITEMS, MORE_ITEMS } from "./constants";
 import { useExpirationModal } from "./expiration-modal";
 import { usePasswordModal } from "./password-modal";
 import { useTargetingModal } from "./targeting-modal";
+import { useWebhooksModal } from "./webhooks-modal";
 
 export function MoreDropdown() {
   const { isMobile } = useMediaQuery();
@@ -30,17 +31,19 @@ export function MoreDropdown() {
     return [...(isMobile ? MOBILE_MORE_ITEMS : []), ...MORE_ITEMS];
   }, [data, isMobile]);
 
+  const { ABTestingModal, setShowABTestingModal } = useABTestingModal();
   const { PasswordModal, setShowPasswordModal } = usePasswordModal();
   const { TargetingModal, setShowTargetingModal } = useTargetingModal();
   const { ExpirationModal, setShowExpirationModal } = useExpirationModal();
-  const { ABTestingModal, setShowABTestingModal } = useABTestingModal();
+  const { WebhooksModal, setShowWebhooksModal } = useWebhooksModal();
   const { AdvancedModal, setShowAdvancedModal } = useAdvancedModal();
 
   const modalCallbacks = {
+    tests: setShowABTestingModal,
     password: setShowPasswordModal,
     targeting: setShowTargetingModal,
     expiresAt: setShowExpirationModal,
-    tests: setShowABTestingModal,
+    webhookIds: setShowWebhooksModal,
     advanced: setShowAdvancedModal,
   };
 
@@ -60,11 +63,12 @@ export function MoreDropdown() {
 
   return (
     <>
+      <ABTestingModal />
       <PasswordModal />
       <TargetingModal />
       <ExpirationModal />
+      <WebhooksModal />
       <AdvancedModal />
-      <ABTestingModal />
       <Popover
         align="start"
         content={

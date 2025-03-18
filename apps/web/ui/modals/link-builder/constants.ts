@@ -1,4 +1,3 @@
-import { ExpandedLinkProps } from "@/lib/types";
 import {
   CircleHalfDottedClock,
   Crosshairs3,
@@ -6,10 +5,10 @@ import {
   Icon,
   Incognito,
   InputPassword,
+  Webhook,
   WindowSearch,
 } from "@dub/ui/icons";
 import { Settings } from "lucide-react";
-import { UseFormSetValue } from "react-hook-form";
 import { LinkFormData } from ".";
 import { getABTestingLabel } from "./ab-testing-modal";
 import { getExpirationLabel } from "./expiration-modal";
@@ -26,7 +25,6 @@ type MoreItem = {
   type: string;
   badgeLabel?: (data: LinkFormData) => string;
   enabled?: (data: LinkFormData) => boolean;
-  remove?: (setValue: UseFormSetValue<ExpandedLinkProps>) => void;
   add?: boolean;
 };
 
@@ -61,11 +59,16 @@ export const MORE_ITEMS: MoreItem[] = [
     learnMoreUrl: "https://dub.co/help/article/link-expiration",
     shortcutKey: "e",
     enabled: (data) => Boolean(data.expiresAt),
-    remove: (setValue) => {
-      setValue("expiresAt", null, { shouldDirty: true });
-      setValue("expiredUrl", null, { shouldDirty: true });
-    },
     type: "modal",
+  },
+  {
+    key: "webhookIds",
+    icon: Webhook,
+    label: "Webhooks",
+    shortcutKey: "w",
+    enabled: (data) => Boolean(data.webhookIds?.length),
+    type: "modal",
+    add: false,
   },
   {
     key: "advanced",
