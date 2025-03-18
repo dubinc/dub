@@ -46,6 +46,7 @@ export const withWorkspace = (
       "business plus",
       "business max",
       "business extra",
+      "advanced",
       "enterprise",
     ], // if the action needs a specific plan
     featureFlag, // if the action needs a specific feature flag

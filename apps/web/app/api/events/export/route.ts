@@ -120,6 +120,7 @@ export const GET = withWorkspace(
       "business plus",
       "business extra",
       "business max",
+      "advanced",
       "enterprise",
     ],
     requiredPermissions: ["analytics.read"],

@@ -172,11 +172,13 @@ export async function POST(req: NextRequest) {
                     badgeColor:
                       plan === "enterprise"
                         ? "RED"
-                        : plan.startsWith("business")
-                          ? "GREEN"
-                          : plan === "pro"
-                            ? "BLUE"
-                            : "GREY",
+                        : plan === "advanced"
+                          ? "ORANGE"
+                          : plan.startsWith("business")
+                            ? "GREEN"
+                            : plan === "pro"
+                              ? "BLUE"
+                              : "GREY",
                   },
                 },
               ],
