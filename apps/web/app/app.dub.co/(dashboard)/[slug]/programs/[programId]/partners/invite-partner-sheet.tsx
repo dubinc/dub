@@ -9,11 +9,15 @@ import {
   AnimatedSizeContainer,
   BlurImage,
   Button,
+  Eye,
+  EyeSlash,
   Sheet,
+  useLocalStorage,
   useMediaQuery,
 } from "@dub/ui";
+import { motion } from "framer-motion";
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, memo, SetStateAction, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -204,43 +208,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
             </div>
           </div>
 
-          <div className="mt-8">
-            <h2 className="text-sm font-medium text-neutral-900">Preview</h2>
-            <div className="mt-2 overflow-hidden rounded-md border border-neutral-200">
-              <div className="grid gap-4 p-6 pb-10">
-                <BlurImage
-                  src={program?.logo || "https://assets.dub.co/logo.png"}
-                  alt={program?.name || "Dub"}
-                  className="my-2 size-8 rounded-full"
-                  width={48}
-                  height={48}
-                />
-                <h3 className="font-medium text-neutral-900">
-                  {program?.name || "Dub"} invited you to join Dub Partners
-                </h3>
-                <p className="text-sm text-neutral-500">
-                  {program?.name || "Dub"} uses Dub Partners to power their
-                  affiliate program and wants to partner with great people like
-                  yourself!
-                </p>
-                <Button type="button" text="Accept invite" className="w-fit" />
-              </div>
-              <div className="grid gap-1 border-t border-neutral-200 bg-neutral-50 px-6 py-4">
-                <p className="text-sm text-neutral-500">
-                  <strong className="font-medium text-neutral-900">
-                    From:{" "}
-                  </strong>
-                  system@dub.co
-                </p>
-                <p className="text-sm text-neutral-500">
-                  <strong className="font-medium text-neutral-900">
-                    Subject:{" "}
-                  </strong>
-                  You've been invited to Dub Partners
-                </p>
-              </div>
-            </div>
-          </div>
+          <EmailPreview />
         </div>
       </div>
 
@@ -267,6 +235,76 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
     </form>
   );
 }
+
+function EmailPreview() {
+  const { program } = useProgram();
+
+  const [showPreview, setShowPreview] = useLocalStorage(
+    "show-partner-invite-email-preview",
+    false,
+  );
+
+  return (
+    <div className="mt-8 rounded-md border border-neutral-200 bg-neutral-100 p-2 pt-2.5">
+      <div className="flex justify-between px-2">
+        <h2 className="text-sm font-medium text-neutral-900">Email preview</h2>
+        <button
+          type="button"
+          className="flex items-center gap-2 text-sm font-medium text-neutral-500 transition-colors duration-100 hover:text-neutral-600"
+          onClick={() => setShowPreview(!showPreview)}
+        >
+          {showPreview ? (
+            <EyeSlash className="size-4" />
+          ) : (
+            <Eye className="size-4" />
+          )}
+          {showPreview ? "Hide" : "Show"}
+        </button>
+      </div>
+      <motion.div
+        animate={{
+          height: showPreview ? "auto" : 0,
+        }}
+        className="overflow-hidden"
+      >
+        <div className="mt-2 overflow-hidden rounded-md border border-neutral-200 bg-white">
+          <div className="grid gap-4 p-6 pb-10">
+            <MemoBlurImage
+              src={program?.logo || "https://assets.dub.co/logo.png"}
+              alt={program?.name || "Dub"}
+              className="my-2 size-8 rounded-full"
+              width={48}
+              height={48}
+            />
+            <h3 className="font-medium text-neutral-900">
+              {program?.name || "Dub"} invited you to join Dub Partners
+            </h3>
+            <p className="text-sm text-neutral-500">
+              {program?.name || "Dub"} uses Dub Partners to power their
+              affiliate program and wants to partner with great people like
+              yourself!
+            </p>
+            <Button type="button" text="Accept invite" className="w-fit" />
+          </div>
+          <div className="grid gap-1 border-t border-neutral-200 bg-neutral-50 px-6 py-4">
+            <p className="text-sm text-neutral-500">
+              <strong className="font-medium text-neutral-900">From: </strong>
+              system@dub.co
+            </p>
+            <p className="text-sm text-neutral-500">
+              <strong className="font-medium text-neutral-900">
+                Subject:{" "}
+              </strong>
+              You've been invited to Dub Partners
+            </p>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+const MemoBlurImage = memo(BlurImage);
 
 export function InvitePartnerSheet({
   isOpen,
