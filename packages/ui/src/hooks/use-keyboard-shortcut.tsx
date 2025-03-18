@@ -15,6 +15,8 @@ type KeyboardShortcutListener = {
   key: string | string[];
   enabled?: boolean;
   priority?: number;
+  modal?: boolean;
+  sheet?: boolean;
 };
 
 export const KeyboardShortcutContext = createContext<{
@@ -42,9 +44,9 @@ export function KeyboardShortcutProvider({
 export function useKeyboardShortcut(
   key: KeyboardShortcutListener["key"],
   callback: (e: KeyboardEvent) => void,
-  options: { modal?: boolean; sheet?: boolean } & Pick<
+  options: Pick<
     KeyboardShortcutListener,
-    "enabled" | "priority"
+    "enabled" | "priority" | "modal" | "sheet"
   > = {},
 ) {
   const id = useId();
@@ -53,6 +55,8 @@ export function useKeyboardShortcut(
 
   const onKeyDown = useCallback(
     (e: KeyboardEvent) => {
+      if (options.enabled === false) return;
+
       const target = e.target as HTMLElement;
       const existingModalBackdrop = document.getElementById("modal-backdrop");
       const existingSheetBackdrop = document.querySelector(
@@ -77,8 +81,12 @@ export function useKeyboardShortcut(
       const matchingListeners = listeners.filter(
         (l) =>
           l.enabled !== false &&
+          !!existingModalBackdrop === !!l.modal &&
+          !!existingSheetBackdrop === !!l.sheet &&
           (Array.isArray(l.key) ? l.key.includes(e.key) : l.key === e.key),
       );
+
+      console.log({ matchingListeners });
 
       if (!matchingListeners.length) return;
 
@@ -94,7 +102,15 @@ export function useKeyboardShortcut(
       e.preventDefault();
       callback(e);
     },
-    [key, listeners, id, callback, options.modal, options.sheet],
+    [
+      key,
+      listeners,
+      id,
+      callback,
+      options.enabled,
+      options.modal,
+      options.sheet,
+    ],
   );
 
   useEffect(() => {
