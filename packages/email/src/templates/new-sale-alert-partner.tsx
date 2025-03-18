@@ -21,7 +21,7 @@ export function NewSaleAlertPartner({
     referralLink: "https://refer.dub.co/steven",
   },
   program = {
-    id: "prog_CYCu7IMAapjkRpTnr8F1azjN",
+    slug: "acme",
     name: "Acme",
     logo: DUB_WORDMARK,
   },
@@ -36,7 +36,7 @@ export function NewSaleAlertPartner({
     referralLink: string;
   };
   program: {
-    id: string;
+    slug: string;
     name: string;
     logo: string | null;
   };
@@ -45,8 +45,6 @@ export function NewSaleAlertPartner({
     earnings: number;
   };
 }) {
-  const linkToSale = `https://partners.dub.co/${partner.id}/${program.id}/sales`;
-
   const earningsInDollars = currencyFormatter(sale.earnings / 100, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
@@ -102,7 +100,7 @@ export function NewSaleAlertPartner({
             <Section className="mb-12 mt-8">
               <Link
                 className="rounded-md bg-neutral-900 px-4 py-3 text-[12px] font-medium text-white no-underline"
-                href={linkToSale}
+                href={`https://partners.dub.co/programs/${program.slug}/earnings`}
               >
                 View sale
               </Link>

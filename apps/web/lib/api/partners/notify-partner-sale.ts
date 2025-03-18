@@ -23,6 +23,7 @@ export async function notifyPartnerSale({
     },
     select: {
       id: true,
+      slug: true,
       name: true,
       logo: true,
       holdingPeriodDays: true,
@@ -73,6 +74,7 @@ export async function notifyPartnerSale({
   const data = {
     program: {
       id: program.id,
+      slug: program.slug,
       name: program.name,
       logo: program.logo,
       holdingPeriodDays: program.holdingPeriodDays,
