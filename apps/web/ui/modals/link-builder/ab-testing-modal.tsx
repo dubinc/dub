@@ -41,19 +41,7 @@ import { LinkFormData } from ".";
 const parseTests = (tests: LinkFormData["tests"]) =>
   Array.isArray(tests) ? LinkTestsSchema.parse(tests) : null;
 
-const fixPercentages = (tests: z.infer<typeof LinkTestsSchema>) => {
-  // Round percentages down to the nearest integer
-  let result = tests.map((test) => ({
-    ...test,
-    percentage: Math.floor(test.percentage),
-  }));
-
-  // Fix the last percentage to ensure the total is 100
-  result[result.length - 1].percentage =
-    100 - result.slice(0, -1).reduce((sum, test) => sum + test.percentage, 0);
-
-  return result;
-};
+const inTwoWeeks = new Date(Date.now() + 2 * 7 * 24 * 60 * 60 * 1000);
 
 function ABTestingModal({
   showABTestingModal,
@@ -94,7 +82,8 @@ function ABTestingModal({
       tests: parseTests(getValuesParent("tests")) ?? [
         { url: getValuesParent("url") || "", percentage: 100 },
       ],
-      testsCompleteAt: getValuesParent("testsCompleteAt") as Date | null,
+      testsCompleteAt:
+        (getValuesParent("testsCompleteAt") as Date | null) ?? inTwoWeeks,
     },
   });
 
@@ -421,8 +410,6 @@ function ABTestingModal({
             />
             <input
               type="datetime-local"
-              id="testsCompleteAt"
-              name="testsCompleteAt"
               value={
                 getValues("testsCompleteAt")
                   ? getDateTimeLocal(getValues("testsCompleteAt") as Date)
@@ -437,6 +424,7 @@ function ABTestingModal({
               className="w-[40px] border-none bg-transparent text-neutral-500 focus:outline-none focus:ring-0 sm:text-sm"
             />
           </div>
+          <p className="mt-1 text-xs text-neutral-500">6 weeks maximum</p>
         </div>
 
         {testsParent && (
