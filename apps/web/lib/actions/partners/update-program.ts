@@ -64,7 +64,7 @@ export const updateProgramAction = authActionClient
           : null,
       ]);
 
-      await prisma.program.update({
+      const updatedProgram = await prisma.program.update({
         where: {
           id: programId,
         },
@@ -91,14 +91,19 @@ export const updateProgramAction = authActionClient
           ...(wordmarkUrl && program.wordmark
             ? [storage.delete(program.wordmark.replace(`${R2_URL}/`, ""))]
             : []),
+
           recordAuditLog({
-            action: "program.update",
-            workspace_id: workspace.id,
-            program_id: programId,
-            actor_id: user.id,
-            actor_name: user.name,
-            targets: [{ id: programId, type: "program" }],
-            description: `Updated program info.`,
+            workspaceId: workspace.id,
+            programId: program.id,
+            event: "program.update",
+            actor: user,
+            targets: [
+              {
+                type: "program",
+                id: program.id,
+                metadata: updatedProgram,
+              },
+            ],
           }),
         ]),
       );

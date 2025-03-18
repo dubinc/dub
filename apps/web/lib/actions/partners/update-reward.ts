@@ -69,7 +69,7 @@ export const updateRewardAction = authActionClient
       }
     }
 
-    await prisma.reward.update({
+    const updatedReward = await prisma.reward.update({
       where: {
         id: rewardId,
       },
@@ -92,13 +92,17 @@ export const updateRewardAction = authActionClient
 
     waitUntil(
       recordAuditLog({
-        action: "reward.update",
-        workspace_id: workspace.id,
-        program_id: programId,
-        actor_id: user.id,
-        actor_name: user.name,
-        targets: [{ id: rewardId, type: "reward" }],
-        description: "A reward was updated.",
+        workspaceId: workspace.id,
+        programId: programId,
+        event: "reward.update",
+        actor: user,
+        targets: [
+          {
+            type: "reward",
+            id: updatedReward.id,
+            metadata: updatedReward,
+          },
+        ],
       }),
     );
   });

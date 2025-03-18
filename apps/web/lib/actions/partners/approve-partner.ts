@@ -1,7 +1,6 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { EventType } from "@/lib/api/audit-logs/schemas";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { sendEmail } from "@dub/email";
@@ -114,17 +113,15 @@ export const approvePartnerAction = authActionClient
         recordAuditLog({
           workspaceId: workspace.id,
           programId: programId,
-          actorId: user.id,
-          actorName: user.name,
-          description: `Approved partner ${partner.name || partner.email} to join the program.`,
-          event: {
-            type: EventType.PARTNER_APPROVE,
-            metadata: {
+          actor: user,
+          event: "partner.approve",
+          targets: [
+            {
+              type: "partner",
               id: partnerId,
-              name: partner.name,
-              email: partner.email!,
+              metadata: partner,
             },
-          },
+          ],
         }),
 
         // TODO: send partner.created webhook

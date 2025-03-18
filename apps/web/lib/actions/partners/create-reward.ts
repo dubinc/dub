@@ -119,13 +119,17 @@ export const createRewardAction = authActionClient
 
     waitUntil(
       recordAuditLog({
-        action: "reward.create",
-        workspace_id: workspace.id,
-        program_id: programId,
-        actor_id: user.id,
-        actor_name: user.name,
-        targets: [{ id: reward.id, type: "reward" }],
-        description: "A new reward was created.",
+        workspaceId: workspace.id,
+        programId: program.id,
+        event: "reward.create",
+        actor: user,
+        targets: [
+          {
+            type: "reward",
+            id: reward.id,
+            metadata: reward,
+          },
+        ],
       }),
     );
   });

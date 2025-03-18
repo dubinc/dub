@@ -1,7 +1,6 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { EventType } from "@/lib/api/audit-logs/schemas";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { prisma } from "@dub/prisma";
@@ -59,21 +58,16 @@ export const deleteDiscountAction = authActionClient
     waitUntil(
       recordAuditLog({
         workspaceId: workspace.id,
-        programId: programId,
-        actor: {
-          type: "user",
-          id: user.id,
-          name: user.name,
-        },
-        event: {
-          type: EventType.DISCOUNT_DELETE,
-          metadata: {
+        programId: program.id,
+        event: "discount.delete",
+        actor: user,
+        targets: [
+          {
+            type: "discount",
             id: discount.id,
-            amount: discount.amount,
-            type: discount.type,
-            maxDuration: discount.maxDuration,
+            metadata: discount,
           },
-        },
+        ],
       }),
     );
   });

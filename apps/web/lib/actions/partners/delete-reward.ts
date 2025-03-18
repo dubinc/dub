@@ -26,7 +26,7 @@ export const deleteRewardAction = authActionClient
       programId,
     });
 
-    await getRewardOrThrow({
+    const reward = await getRewardOrThrow({
       rewardId,
       programId,
     });
@@ -46,13 +46,17 @@ export const deleteRewardAction = authActionClient
 
     waitUntil(
       recordAuditLog({
-        action: "reward.delete",
-        workspace_id: workspace.id,
-        program_id: programId,
-        actor_id: user.id,
-        actor_name: user.name,
-        targets: [{ id: rewardId, type: "reward" }],
-        description: "A reward was deleted.",
+        workspaceId: workspace.id,
+        programId: programId,
+        event: "reward.delete",
+        actor: user,
+        targets: [
+          {
+            type: "reward",
+            id: reward.id,
+            metadata: reward,
+          },
+        ],
       }),
     );
   });

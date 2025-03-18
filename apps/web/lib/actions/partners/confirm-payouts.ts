@@ -191,14 +191,16 @@ export const confirmPayoutsAction = authActionClient
           );
         }
 
-        await recordAuditLog({
-          action: "payout.confirm",
-          workspace_id: workspace.id,
-          program_id: programId,
-          actor_id: user.id,
-          actor_name: user.name,
-          targets: [{ id: newInvoice.id, type: "invoice" }],
-          description: `Confirmed payouts for invoice ${newInvoice.id}.`,
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId: programId,
+          actor: user,
+          event: "payout.confirm",
+          targets: payouts.map((payout) => ({
+            type: "payout",
+            id: payout.id,
+            metadata: payout,
+          })),
         });
       })(),
     );

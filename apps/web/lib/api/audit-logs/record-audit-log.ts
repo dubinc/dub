@@ -4,7 +4,7 @@ import { ipAddress } from "@vercel/functions";
 import { headers } from "next/headers";
 import { z } from "zod";
 import { getIP } from "../utils";
-import { CreateAuditLogEvent, auditLogSchema } from "./schemas";
+import { AuditLogEvent, auditLogSchema, RecordAuditLog } from "./schemas-v2";
 
 export const recordAuditLogTB = tb.buildIngestEndpoint({
   datasource: "dub_audit_logs",
@@ -12,24 +12,26 @@ export const recordAuditLogTB = tb.buildIngestEndpoint({
   wait: true,
 });
 
-export const recordAuditLog = async (params: CreateAuditLogEvent) => {
+export const recordAuditLog = async (data: RecordAuditLog) => {
   const headersList = headers();
-  const ip = params.req ? ipAddress(params.req) : getIP();
-  const ua = headersList.get("user-agent");
+  const location = data.req ? ipAddress(data.req) : getIP();
+  const userAgent = headersList.get("user-agent");
+
+  const targets = z.array(AuditLogEvent).parse(data.targets);
 
   const auditLogTB: z.infer<typeof auditLogSchema> = {
     id: nanoid(),
-    workspace_id: params.workspaceId,
-    program_id: params.programId,
-    action: params.event.type,
-    actor_type: params.actor.type,
-    actor_id: params.actor.id,
-    actor_name: params.actor.name,
-    description: params.description || "",
-    ip: ip || "",
-    user_agent: ua || "",
+    workspace_id: data.workspaceId,
+    program_id: data.programId,
+    event: data.event,
+    actor_type: data.actor.type || "user",
+    actor_id: data.actor.id,
+    actor_name: data.actor.name || "",
+    description: data.description || "",
+    location: location || "",
+    user_agent: userAgent || "",
     timestamp: new Date().toISOString(),
-    metadata: params.event.metadata,
+    targets: targets ? JSON.stringify(targets) : "",
   };
 
   if (process.env.NODE_ENV === "development") {

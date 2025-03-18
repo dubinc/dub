@@ -57,13 +57,17 @@ export const createManualPayoutAction = authActionClient
 
     waitUntil(
       recordAuditLog({
-        action: "payout.create_manual",
-        workspace_id: workspace.id,
-        program_id: programId,
-        actor_id: user.id,
-        actor_name: user.name,
-        targets: [{ id: payout.id, type: "payout" }],
-        description: "A new manual payout was created.",
+        workspaceId: workspace.id,
+        programId: programId,
+        event: "payout.create",
+        actor: user,
+        targets: [
+          {
+            type: "payout",
+            id: payout.id,
+            metadata: payout,
+          },
+        ],
       }),
     );
 

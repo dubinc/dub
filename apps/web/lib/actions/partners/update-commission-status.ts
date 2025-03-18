@@ -56,7 +56,7 @@ export const updateCommissionStatusAction = authActionClient
       });
     }
 
-    await prisma.commission.update({
+    const updatedCommission = await prisma.commission.update({
       where: {
         id: sale.id,
       },
@@ -68,13 +68,22 @@ export const updateCommissionStatusAction = authActionClient
 
     waitUntil(
       recordAuditLog({
-        action: "commission.update",
-        workspace_id: workspace.id,
-        program_id: sale.programId,
-        actor_id: user.id,
-        actor_name: user.name,
-        targets: [{ id: sale.id, type: "commission" }],
-        description: `Updated commission status to ${status}.`,
+        workspaceId: workspace.id,
+        programId: sale.programId,
+        actor: user,
+        event:
+          updatedCommission.status === "duplicate"
+            ? "sale.mark_duplicate"
+            : updatedCommission.status === "fraud"
+              ? "sale.mark_fraud"
+              : "sale.mark_pending",
+        targets: [
+          {
+            type: "sale",
+            id: updatedCommission.id,
+            metadata: updatedCommission,
+          },
+        ],
       }),
     );
 

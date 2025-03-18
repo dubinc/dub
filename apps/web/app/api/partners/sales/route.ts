@@ -1,5 +1,4 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { EventType } from "@/lib/api/audit-logs/schemas";
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
@@ -10,6 +9,7 @@ import { redis } from "@/lib/upstash";
 import { updatePartnerSaleSchema } from "@/lib/zod/schemas/partners";
 import { ProgramSaleSchema } from "@/lib/zod/schemas/program-sales";
 import { prisma } from "@dub/prisma";
+import { Payout } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -105,9 +105,10 @@ export const PATCH = withWorkspace(
 
     const amountDifference = finalAmount - sale.amount;
     const earningsDifference = finalEarnings - sale.earnings;
+    let updatedPayout: Payout | null = null;
 
     if (amountDifference !== 0) {
-      await Promise.all([
+      const [_, payout] = await Promise.all([
         // update link sales
         prisma.link.update({
           where: {
@@ -121,6 +122,7 @@ export const PATCH = withWorkspace(
             },
           },
         }),
+
         // If the sale has already been paid, we need to update the payout
         sale.status === "processed" &&
           sale.payoutId &&
@@ -137,22 +139,42 @@ export const PATCH = withWorkspace(
             },
           }),
       ]);
+
+      if (payout) {
+        updatedPayout = payout;
+      }
     }
 
     waitUntil(
       recordAuditLog({
         workspaceId: workspace.id,
         programId: programId,
-        actorId: session.user.id,
-        actorName: session.user.name,
-        description: "Updated sale amount.",
-        event: {
-          type: EventType.COMMISSION_UPDATE,
-          metadata: {
+        event: "sale.update",
+        actor: session.user,
+        targets: [
+          {
+            type: "sale",
             id: sale.id,
-            amount: finalAmount,
+            metadata: {
+              amount: updatedSale.amount,
+              earnings: updatedSale.earnings,
+              status: updatedSale.status,
+            },
           },
-        },
+          ...(updatedPayout
+            ? [
+                {
+                  type: "payout" as const,
+                  id: updatedPayout.id,
+                  metadata: {
+                    amount: updatedPayout.amount,
+                    status: updatedPayout.status,
+                    quantity: updatedPayout.quantity,
+                  },
+                },
+              ]
+            : []),
+        ],
       }),
     );
 

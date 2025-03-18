@@ -1,16 +1,16 @@
 SCHEMA >
-    `id` String `json:$.id`,
-    `timestamp` DateTime64(3) `json:$.timestamp`,
-    `workspace_id` String `json:$.workspace_id`,
-    `program_id` String `json:$.program_id`,
-    `action` LowCardinality(String) `json:$.action`,
-    `actor_type` LowCardinality(String) `json:$.actor_type`,
-    `actor_id` String `json:$.actor_id`,
-    `actor_name` String `json:$.actor_name`,
-    `targets` String `json:$.targets`,
-    `description` String `json:$.description`,
-    `ip` String `json:$.ip`,
-    `user_agent` String `json:$.user_agent`
+  `id` String `json:$.id`,
+  `timestamp` DateTime64(3) `json:$.timestamp`,
+  `workspace_id` String `json:$.workspace_id`,
+  `program_id` String `json:$.program_id`,
+  `event` LowCardinality(String) `json:$.event`,
+  `actor_type` LowCardinality(String) `json:$.actor_type`,
+  `actor_id` String `json:$.actor_id`,
+  `actor_name` String `json:$.actor_name`,
+  `targets` String `json:$.targets`,
+  `description` String `json:$.description`,
+  `location` String `json:$.location`,
+  `user_agent` String `json:$.user_agent`
 
 ENGINE "MergeTree"
 ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"

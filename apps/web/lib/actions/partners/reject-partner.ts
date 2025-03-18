@@ -54,13 +54,17 @@ export const rejectPartnerAction = authActionClient
 
     waitUntil(
       recordAuditLog({
-        action: "partner.reject",
-        workspace_id: workspace.id,
-        program_id: programId,
-        actor_id: user.id,
-        actor_name: user.name,
-        targets: [{ id: partnerId, type: "partner" }],
-        description: `Rejected application from ${partner.name || partner.email}.`,
+        workspaceId: workspace.id,
+        programId: programId,
+        actor: user,
+        event: "partner.reject",
+        targets: [
+          {
+            type: "partner",
+            id: partnerId,
+            metadata: partner,
+          },
+        ],
       }),
     );
   });
