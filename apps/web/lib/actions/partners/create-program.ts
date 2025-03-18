@@ -67,8 +67,7 @@ export const createProgram = async ({
       url,
       defaultFolderId: programFolder.id,
       ...(type &&
-        amount &&
-        maxDuration && {
+        amount && {
           rewards: {
             create: {
               id: createId({ prefix: "rw_" }),

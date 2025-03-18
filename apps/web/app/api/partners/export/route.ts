@@ -82,6 +82,7 @@ export const GET = withWorkspace(
       "business extra",
       "business max",
       "business plus",
+      "advanced",
       "enterprise",
     ],
   },
