@@ -97,7 +97,7 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
     recordLeadWithTimestamp({
       ...clickEvent,
       event_id: nanoid(16),
-      event_name: "Sign up",
+      event_name: eventName,
       customer_id: randomCustomerId,
       timestamp: new Date(creationDate).toISOString(),
     }),
