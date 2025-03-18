@@ -6,15 +6,22 @@ export async function getRandomKey({
   domain,
   prefix,
   long,
+  skipKeyAvailabilityCheck = false,
 }: {
   domain: string;
   prefix?: string;
   long?: boolean;
+  skipKeyAvailabilityCheck?: boolean;
 }): Promise<string> {
   /* recursively get random key till it gets one that's available */
   let key = long ? nanoid(69) : nanoid();
   if (prefix) {
     key = `${prefix.replace(/^\/|\/$/g, "")}/${key}`;
+  }
+
+  // if we're skipping the availability check, we can just return the key
+  if (skipKeyAvailabilityCheck) {
+    return key;
   }
 
   const exists = await checkIfKeyExists({ domain, key });
@@ -29,10 +36,12 @@ export async function getRandomKey({
         key,
         ignoreCaseSensitivity: true,
       });
+
       if (unencodedExists) {
         return getRandomKey({ domain, prefix, long });
       }
     }
+
     return key;
   }
 }
