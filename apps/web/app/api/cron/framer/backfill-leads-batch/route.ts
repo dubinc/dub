@@ -24,13 +24,9 @@ const schema = z.array(
   }),
 );
 
-// const FRAMER_WORKSPACE_ID = "clsvopiw0000ejy0grp821me0";
-// const CACHE_KEY = "framerMigratedLeadEventNames";
-// const DOMAIN = "framer.link";
-
-const FRAMER_WORKSPACE_ID = "cl7pj5kq4006835rbjlt2ofka";
+const FRAMER_WORKSPACE_ID = "clsvopiw0000ejy0grp821me0";
 const CACHE_KEY = "framerMigratedLeadEventNames";
-const DOMAIN = "dub.sh";
+const DOMAIN = "framer.link";
 
 // POST /api/cron/framer/backfill-leads-batch
 export const POST = withWorkspace(async ({ req, workspace }) => {
