@@ -1,9 +1,9 @@
 import { getProgram } from "@/lib/fetchers/get-program";
 import { getReward } from "@/lib/fetchers/get-reward";
+import { formatRewardDescription } from "@/ui/partners/program-reward-description";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { Wordmark } from "@dub/ui";
-import { currencyFormatter } from "@dub/utils";
 import { constructMetadata } from "@dub/utils/src/functions";
 import { notFound } from "next/navigation";
 import { PropsWithChildren } from "react";
@@ -23,15 +23,9 @@ export async function generateMetadata({
 
   return constructMetadata({
     title: `${program.name} Affiliate Program`,
-    description: `Join the ${program.name} affiliate program and earn ${
-      reward.type === "percentage"
-        ? `${reward.amount}%`
-        : currencyFormatter(reward.amount / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })
-    } on any subscriptions generated through your referral.`,
-    noIndex: true, // TODO: Remove this once we launch to GA
+    description: `Join the ${program.name} affiliate program and earn ${formatRewardDescription(
+      { reward },
+    )} by referring ${program.name} to your friends and followers.`,
   });
 }
 
