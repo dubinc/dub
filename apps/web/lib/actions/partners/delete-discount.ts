@@ -3,6 +3,7 @@
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { qstash } from "@/lib/cron";
+import { redis } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -31,14 +32,46 @@ export const deleteDiscountAction = authActionClient
       discountId,
     });
 
+    const isDefault = program.defaultDiscountId === discountId;
+
+    if (!isDefault) {
+      let offset = 0;
+
+      while (true) {
+        const partners = await prisma.programEnrollment.findMany({
+          where: {
+            programId,
+            discountId,
+          },
+          select: {
+            partnerId: true,
+          },
+          skip: offset,
+          take: 1000,
+        });
+
+        if (partners.length === 0) {
+          break;
+        }
+
+        await redis.lpush(
+          `discount-partners:${discountId}`,
+          partners.map((partner) => partner.partnerId),
+        );
+
+        offset += 1000;
+      }
+    }
+
     const deletedDiscountId = await prisma.$transaction(async (tx) => {
       // if this is the default discount, set the program default discount to null
-      if (program.defaultDiscountId === discountId) {
+      if (isDefault) {
         await tx.program.update({
           where: { id: programId },
           data: { defaultDiscountId: null },
         });
       }
+
       // update all program enrollments to have no discount
       await tx.programEnrollment.updateMany({
         where: {
@@ -48,6 +81,7 @@ export const deleteDiscountAction = authActionClient
           discountId: null,
         },
       });
+
       // delete the discount
       await tx.discount.delete({
         where: {
@@ -58,14 +92,17 @@ export const deleteDiscountAction = authActionClient
       return discountId;
     });
 
-    // if (deletedDiscountId) {
-    //   waitUntil(
-    //     qstash.publishJSON({
-    //       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/sync-discounts`,
-    //       body: {
-    //         discountId,
-    //       },
-    //     }),
-    //   );
-    // }
+    if (deletedDiscountId) {
+      waitUntil(
+        qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/sync-discounts`,
+          body: {
+            programId,
+            discountId,
+            action: "discount-deleted",
+            isDefault,
+          },
+        }),
+      );
+    }
   });
