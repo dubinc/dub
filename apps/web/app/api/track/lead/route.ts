@@ -276,6 +276,7 @@ export const POST = withWorkspace(
       "business plus",
       "business extra",
       "business max",
+      "advanced",
       "enterprise",
     ],
   },

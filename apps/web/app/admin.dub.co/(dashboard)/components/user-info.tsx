@@ -1,6 +1,6 @@
 "use client";
 import { Badge, Copy, Tick, useCopyToClipboard } from "@dub/ui";
-import { capitalize, nFormatter } from "@dub/utils";
+import { capitalize, currencyFormatter, nFormatter } from "@dub/utils";
 import { toast } from "sonner";
 
 export interface UserInfoProps {
@@ -74,7 +74,7 @@ export default function UserInfo({ data }: { data: UserInfoProps }) {
             <div className="flex justify-between text-sm">
               <span className="font-medium text-neutral-700">Sales</span>
               <span className="text-neutral-500">
-                {nFormatter(workspace.sales, { full: true })}
+                {currencyFormatter(workspace.sales / 100)}
               </span>
             </div>
           </div>

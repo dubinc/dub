@@ -257,6 +257,7 @@ export const plans = [
   "business plus",
   "business extra",
   "business max",
+  "advanced",
   "enterprise",
 ] as const;
 

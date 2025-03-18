@@ -124,12 +124,6 @@ export const POST = withWorkspace(
   },
   {
     requiredPermissions: ["links.write"],
-    requiredPlan: [
-      "business",
-      "business plus",
-      "business extra",
-      "business max",
-      "enterprise",
-    ],
+    requiredPlan: ["advanced", "enterprise"],
   },
 );

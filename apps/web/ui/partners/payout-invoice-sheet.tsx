@@ -221,7 +221,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
         <Tooltip
           content={
             <SimpleTooltipContent
-              title={`${selectedPaymentMethod.fee * 100}% processing fee.${selectedPaymentMethod.type !== "us_bank_account" ? " Switch to ACH for a reduced fee." : ""}`}
+              title={`${Math.round(selectedPaymentMethod.fee * 100)}% processing fee.${selectedPaymentMethod.type !== "us_bank_account" ? " Switch to ACH for a reduced fee." : ""}`}
               cta="Learn more"
               href="https://d.to/payouts"
             />
