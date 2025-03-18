@@ -56,6 +56,7 @@ export async function updateLink({
     tagIds,
     tagNames,
     webhookIds,
+    tests,
     ...rest
   } = updatedLink;
 
@@ -92,6 +93,8 @@ export async function updateLink({
       utm_content: utm_content || null,
       expiresAt: expiresAt ? new Date(expiresAt) : null,
       geo: geo || Prisma.JsonNull,
+
+      tests: tests || Prisma.JsonNull,
 
       // Associate tags by tagNames
       ...(tagNames &&

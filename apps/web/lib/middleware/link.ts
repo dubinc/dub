@@ -25,10 +25,12 @@ import {
   NextResponse,
   userAgent,
 } from "next/server";
+import { z } from "zod";
 import { linkCache } from "../api/links/cache";
 import { isCaseSensitiveDomain } from "../api/links/case-sensitivity";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
+import { LinkTestsSchema, MAX_TEST_COUNT } from "../zod/schemas/links";
 import { hasEmptySearchParams } from "./utils/has-empty-search-params";
 
 export default async function LinkMiddleware(
@@ -134,7 +136,6 @@ export default async function LinkMiddleware(
 
   const {
     id: linkId,
-    url,
     password,
     trackConversion,
     proxy,
@@ -146,8 +147,15 @@ export default async function LinkMiddleware(
     expiredUrl,
     doIndex,
     webhookIds,
+    tests,
+    testsCompleteAt,
     projectId: workspaceId,
   } = cachedLink;
+
+  const url =
+    tests && testsCompleteAt
+      ? getTestDestinationURL({ url: cachedLink.url, tests, testsCompleteAt })
+      : cachedLink.url;
 
   // by default, we only index default dub domain links (e.g. dub.sh)
   // everything else is not indexed by default, unless the user has explicitly set it to be indexed
@@ -506,3 +514,45 @@ export default async function LinkMiddleware(
     );
   }
 }
+
+/**
+ * Determines the destination URL for a link with A/B tests using weighted random selection
+ */
+const getTestDestinationURL = ({
+  url,
+  tests,
+  testsCompleteAt,
+}: {
+  url?: string;
+  tests: z.infer<typeof LinkTestsSchema>;
+  testsCompleteAt: Date;
+}) => {
+  try {
+    if (!tests || !testsCompleteAt || !(new Date(testsCompleteAt) > new Date()))
+      return url;
+
+    if (tests.length < 2 || tests.length > MAX_TEST_COUNT) {
+      throw new Error("Invalid test count: " + tests.length);
+    }
+
+    let i = 0;
+    const weights = [tests[0].percentage];
+
+    // Calculate cumulative weights
+    for (i = 1; i < tests.length; ++i)
+      weights[i] = tests[i].percentage + weights[i - 1];
+
+    // Generate a random number between 0 and the total cumulative weight
+    const random = Math.random() * weights[weights.length - 1];
+
+    // Loop through cumulative weights and stop when we've found the first one greater than `random`
+    for (i = 0; i < weights.length; ++i) if (weights[i] > random) break;
+
+    // Return the corresponding test URL
+    return tests[i].url;
+  } catch (e) {
+    console.error("Error getting test destination URL", e);
+  }
+
+  return url;
+};
