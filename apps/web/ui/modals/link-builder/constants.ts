@@ -62,7 +62,7 @@ export const MORE_ITEMS: MoreItem[] = [
     key: "advanced",
     icon: Settings,
     label: "Advanced Settings",
-    shortcutKey: "a",
+    shortcutKey: "v",
     type: "modal",
     enabled: (data) => Boolean(data.externalId || data.tenantId),
     add: false,
