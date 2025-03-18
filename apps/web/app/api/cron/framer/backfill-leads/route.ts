@@ -2,7 +2,11 @@ import { createId } from "@/lib/api/create-id";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
-import { recordClick, recordLeadWithTimestamp } from "@/lib/tinybird";
+import {
+  recordClick,
+  recordLeadWithTimestamp,
+  recordSaleWithTimestamp,
+} from "@/lib/tinybird";
 import z from "@/lib/zod";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { prisma } from "@dub/prisma";
@@ -28,7 +32,7 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
     await parseRequestBody(req),
   );
 
-  const customerFound = await prisma.customer.findUnique({
+  const customer = await prisma.customer.findUnique({
     where: {
       projectId_externalId: {
         projectId: workspace.id,
@@ -37,9 +41,9 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
     },
   });
 
-  if (customerFound) {
+  if (customer) {
     return NextResponse.json({
-      message: "Customer already exists",
+      message: `A customer already exists for externalId: ${externalId}.`,
     });
   }
 
@@ -47,10 +51,14 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
   // - record a dummy click
   // - create a customer
   // - record a lead
-  // - increment link leads
+  // - record a sale
+  // - increment link leads and sales
   const link = await prisma.link.findUniqueOrThrow({
     where: {
-      domain_key: { domain: "framer.link", key: via },
+      domain_key: {
+        domain: "framer.link",
+        key: via,
+      },
     },
   });
 
@@ -82,12 +90,14 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
     qr: 0,
   });
 
-  const randomCustomerId = createId({ prefix: "cus_" });
+  const customerId = createId({ prefix: "cus_" });
+  const saleEventId = nanoid(16);
 
   await Promise.all([
+    // Record a lead
     prisma.customer.create({
       data: {
-        id: randomCustomerId,
+        id: customerId,
         name: generateRandomName(),
         externalId,
         projectId: workspace.id,
@@ -104,17 +114,49 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
       ...clickEvent,
       event_id: nanoid(16),
       event_name: eventName,
-      customer_id: randomCustomerId,
+      customer_id: customerId,
       timestamp: new Date(creationDate).toISOString(),
     }),
 
+    // Record a sale
+    prisma.commission.create({
+      data: {
+        id: createId({ prefix: "cm_" }),
+        eventId: saleEventId,
+        type: "sale",
+        programId: link.programId!,
+        partnerId: link.partnerId!,
+        linkId: link.id,
+        customerId: customerId,
+        amount: 0,
+        quantity: 1,
+        status: "paid",
+        createdAt: new Date(creationDate),
+      },
+    }),
+
+    recordSaleWithTimestamp({
+      ...clickEvent,
+      event_id: saleEventId,
+      event_name: "Invoice paid",
+      amount: 0,
+      customer_id: customerId,
+      payment_processor: "custom",
+      currency: "usd",
+      timestamp: new Date(creationDate).toISOString(),
+    }),
+
+    // Update link stats
     prisma.link.update({
       where: { id: link.id },
-      data: { leads: { increment: 1 } },
+      data: {
+        leads: { increment: 1 },
+        sales: { increment: 1 },
+      },
     }),
   ]);
 
   return NextResponse.json({
-    message: "Customer and lead created",
+    message: `Lead and sale recorded for ${externalId}.`,
   });
 });
