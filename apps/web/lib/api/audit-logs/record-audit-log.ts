@@ -4,7 +4,7 @@ import { ipAddress } from "@vercel/functions";
 import { headers } from "next/headers";
 import { z } from "zod";
 import { getIP } from "../utils";
-import { AuditLogEvent, auditLogSchema, RecordAuditLog } from "./schemas-v2";
+import { AuditLogEvent, auditLogSchema, RecordAuditLog } from "./schemas";
 
 export const recordAuditLogTB = tb.buildIngestEndpoint({
   datasource: "dub_audit_logs",

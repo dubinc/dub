@@ -1,6 +1,6 @@
 import { tb } from "@/lib/tinybird";
 import { z } from "zod";
-import { AuditLogSchema } from "./schemas";
+import { auditLogSchema } from "./schemas";
 
 export const auditLogFilterSchemaTB = z.object({
   workspaceId: z.string(),
@@ -9,7 +9,7 @@ export const auditLogFilterSchemaTB = z.object({
   end: z.string(),
 });
 
-export const auditLogResponseSchemaTB = AuditLogSchema.pick({
+export const auditLogResponseSchemaTB = auditLogSchema.pick({
   id: true,
   action: true,
   actor_type: true,
