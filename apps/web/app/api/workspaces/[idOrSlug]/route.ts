@@ -1,10 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { validateAllowedHostnames } from "@/lib/api/validate-allowed-hostnames";
-import {
-  normalizeWorkspaceId,
-  prefixWorkspaceId,
-} from "@/lib/api/workspace-id";
+import { prefixWorkspaceId } from "@/lib/api/workspace-id";
 import { deleteWorkspace } from "@/lib/api/workspaces";
 import { withWorkspace } from "@/lib/auth";
 import { getFeatureFlags } from "@/lib/edge-config";
@@ -85,7 +82,7 @@ export const PATCH = withWorkspace(
 
     const logoUploaded = logo
       ? await storage.upload(
-          `workspaces/${normalizeWorkspaceId(workspace.id)}/logo_${nanoid(7)}`,
+          `workspaces/${prefixWorkspaceId(workspace.id)}/logo_${nanoid(7)}`,
           logo,
         )
       : null;
