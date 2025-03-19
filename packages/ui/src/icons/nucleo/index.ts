@@ -84,6 +84,7 @@ export * from "./flag-wavy";
 export * from "./flag2";
 export * from "./flag6";
 export * from "./flask";
+export * from "./flask-small";
 export * from "./folder";
 export * from "./folder-bookmark";
 export * from "./folder-lock";

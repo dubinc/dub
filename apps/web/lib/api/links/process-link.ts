@@ -289,8 +289,8 @@ export async function processLink<T extends Record<string, any>>({
     }
   }
 
-  if (trackConversion) {
-    if (!workspace || workspace.plan === "free" || workspace.plan === "pro") {
+  if (!workspace || workspace.plan === "free" || workspace.plan === "pro") {
+    if (trackConversion) {
       return {
         link: payload,
         error:
@@ -298,6 +298,23 @@ export async function processLink<T extends Record<string, any>>({
         code: "forbidden",
       };
     }
+
+    if (tests) {
+      return {
+        link: payload,
+        error:
+          "A/B testing is only available for workspaces with a Business plan and above. Please upgrade to continue.",
+        code: "forbidden",
+      };
+    }
+  }
+
+  if (!trackConversion && tests) {
+    return {
+      link: payload,
+      error: "Conversion tracking must be enabled to use A/B testing.",
+      code: "unprocessable_entity",
+    };
   }
 
   if (externalId && workspace && !skipExternalIdChecks) {

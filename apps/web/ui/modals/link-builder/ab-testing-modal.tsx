@@ -4,6 +4,7 @@ import {
   MIN_TEST_PERCENTAGE,
 } from "@/lib/zod/schemas/links";
 import { useAvailableDomains } from "@/ui/links/use-available-domains";
+import { BusinessBadgeTooltip } from "@/ui/shared/business-badge-tooltip";
 import { X } from "@/ui/shared/icons";
 import {
   AnimatedSizeContainer,
@@ -222,6 +223,7 @@ function ABTestingModal({
             }
 
             setValueParent("url", currentTests[0].url, { shouldDirty: true });
+            setValueParent("trackConversion", true);
             setValueParent("tests", currentTests, { shouldDirty: true });
             setValueParent("testsCompleteAt", data.testsCompleteAt, {
               shouldDirty: true,
@@ -233,7 +235,7 @@ function ABTestingModal({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <h3 className="text-lg font-medium">A/B Testing</h3>
-            <InfoTooltip
+            <BusinessBadgeTooltip
               content={
                 <SimpleTooltipContent
                   title="Test different URLs against each other to optimize your conversion rates."
