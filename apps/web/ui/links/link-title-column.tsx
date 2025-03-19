@@ -141,7 +141,7 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
               {link.comments && <CommentsBadge comments={link.comments} />}
               {link.tests &&
                 link.testsCompleteAt &&
-                new Date(link.testsCompleteAt) < new Date() && (
+                new Date(link.testsCompleteAt) > new Date() && (
                   <TestsBadge link={link} />
                 )}
             </div>
