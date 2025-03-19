@@ -67,8 +67,9 @@ export async function createLink(link: ProcessedLinkProps) {
       expiresAt: expiresAt ? new Date(expiresAt) : null,
       geo: geo || Prisma.JsonNull,
 
-      testsCompleteAt: testsCompleteAt ? new Date(testsCompleteAt) : null,
       tests: tests || Prisma.JsonNull,
+      testsCompleteAt: testsCompleteAt ? new Date(testsCompleteAt) : null,
+      testsStartedAt: tests && testsCompleteAt ? new Date() : null,
 
       // Associate tags by tagNames
       ...(tagNames?.length &&

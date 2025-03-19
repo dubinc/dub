@@ -67,6 +67,10 @@ export const PATCH = withPartnerProfile(
           link.testsCompleteAt instanceof Date
             ? link.testsCompleteAt.toISOString()
             : link.testsCompleteAt,
+        testsStartedAt:
+          link.testsStartedAt instanceof Date
+            ? link.testsStartedAt.toISOString()
+            : link.testsStartedAt,
 
         // merge in new props
         key: key || undefined,
@@ -96,6 +100,7 @@ export const PATCH = withPartnerProfile(
         domain: link.domain,
         key: link.key,
         image: link.image,
+        testsCompleteAt: link.testsCompleteAt,
       },
       updatedLink: processedLink,
     });

@@ -35,6 +35,7 @@ model Link {
 
   // A/B Testing
   tests           Json?   @db.Json // A/B testing data
+  testsStartedAt  DateTime? // When tests were started
   testsCompleteAt DateTime? // When tests were or will be completed
 
   // User who created the link

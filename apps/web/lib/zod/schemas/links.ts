@@ -402,6 +402,10 @@ export const createLinkBodySchema = z.object({
       "An array of webhook IDs to trigger when the link is clicked. These webhooks will receive click event data.",
     ),
   tests: LinkTestsSchema.nullish(),
+  testsStartedAt: z
+    .string()
+    .nullish()
+    .describe("The date and time when the tests started."),
   testsCompleteAt: z
     .string()
     .nullish()
@@ -623,6 +627,10 @@ export const LinkSchema = z
       .nullable()
       .describe("The UTM content of the short link."),
     tests: LinkTestsSchema.nullish(),
+    testsStartedAt: z
+      .string()
+      .nullish()
+      .describe("The date and time when the tests started."),
     testsCompleteAt: z
       .string()
       .nullish()
@@ -726,7 +734,8 @@ export const linkEventSchema = LinkSchema.extend({
   updatedAt: z.coerce.date(),
   lastClicked: z.coerce.date(),
   expiresAt: z.coerce.date(),
-  testsCompleteAt: z.coerce.date(),
+  testsCompleteAt: z.coerce.date().nullable(),
+  testsStartedAt: z.coerce.date().nullable(),
   // userId can be null
   userId: z.string().nullable(),
 });

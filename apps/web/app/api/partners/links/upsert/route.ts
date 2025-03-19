@@ -90,6 +90,10 @@ export const PUT = withWorkspace(
           link.testsCompleteAt instanceof Date
             ? link.testsCompleteAt.toISOString()
             : link.testsCompleteAt,
+        testsStartedAt:
+          link.testsStartedAt instanceof Date
+            ? link.testsStartedAt.toISOString()
+            : link.testsStartedAt,
         // merge in new props
         ...linkProps,
         // set default fields
@@ -144,6 +148,7 @@ export const PUT = withWorkspace(
             domain: link.domain,
             key: link.key,
             image: link.image,
+            testsCompleteAt: link.testsCompleteAt,
           },
           updatedLink: processedLink,
         });

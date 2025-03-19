@@ -38,7 +38,15 @@ export const LinkTests = memo(({ link }: { link: ResponseLink }) => {
     }[]
   >(
     Boolean(tests && tests.length) &&
-      `/api/analytics?event=composite&groupBy=top_urls&linkId=${link.id}&workspaceId=${workspaceId}`,
+      `/api/analytics?${new URLSearchParams({
+        event: "composite",
+        groupBy: "top_urls",
+        linkId: link.id,
+        workspaceId: workspaceId!,
+        ...(link.testsStartedAt && {
+          start: new Date(link.testsStartedAt).toISOString(),
+        }),
+      }).toString()}`,
     fetcher,
     {
       revalidateOnFocus: false,

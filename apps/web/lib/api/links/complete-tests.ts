@@ -19,6 +19,7 @@ export async function completeTests(link: Link & { project: Project }) {
     linkId: link.id,
     workspaceId: link.projectId,
     dataAvailableFrom: link.project.createdAt,
+    start: link.testsStartedAt ? new Date(link.testsStartedAt) : undefined,
     end: link.testsCompleteAt,
   })) as { url: string; leads: number }[];
 
@@ -71,6 +72,10 @@ export async function completeTests(link: Link & { project: Project }) {
       link.testsCompleteAt instanceof Date
         ? link.testsCompleteAt.toISOString()
         : link.testsCompleteAt,
+    testsStartedAt:
+      link.testsStartedAt instanceof Date
+        ? link.testsStartedAt.toISOString()
+        : link.testsStartedAt,
 
     // Update URL
     url: winner.url,
@@ -106,6 +111,7 @@ export async function completeTests(link: Link & { project: Project }) {
       domain: link.domain,
       key: link.key,
       image: link.image,
+      testsCompleteAt: link.testsCompleteAt,
     },
     updatedLink: processedLink,
   });
