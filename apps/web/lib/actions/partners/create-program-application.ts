@@ -1,12 +1,10 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
+import { notifyPartnerApplication } from "@/lib/api/partners/notify-partner-application";
 import { getIP } from "@/lib/api/utils";
 import { getSession } from "@/lib/auth";
-import { limiter } from "@/lib/cron/limiter";
 import { ratelimit } from "@/lib/upstash";
-import { sendEmail } from "@dub/email";
-import { PartnerApplicationReceived } from "@dub/email/templates/partner-application-received";
 import { prisma } from "@dub/prisma";
 import { Partner, Program, ProgramEnrollment } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
@@ -94,7 +92,7 @@ async function createApplicationAndEnrollment({
   const applicationId = createId({ prefix: "pga_" });
   const enrollmentId = createId({ prefix: "pge_" });
 
-  await Promise.all([
+  const [application, _] = await Promise.all([
     prisma.programApplication.create({
       data: {
         ...data,
@@ -116,55 +114,11 @@ async function createApplicationAndEnrollment({
   ]);
 
   waitUntil(
-    (async () => {
-      const workspaceUsers = await prisma.projectUsers.findMany({
-        where: {
-          projectId: program.workspaceId,
-          notificationPreference: {
-            newPartnerApplication: true,
-          },
-          user: {
-            email: {
-              not: null,
-            },
-          },
-        },
-        include: {
-          user: {
-            select: {
-              email: true,
-            },
-          },
-        },
-      });
-
-      await Promise.all(
-        workspaceUsers.map(({ user }) =>
-          limiter.schedule(() =>
-            sendEmail({
-              subject: `New partner application for ${program.name}.`,
-              email: user.email!,
-              react: PartnerApplicationReceived({
-                email: user.email!,
-                partner: {
-                  id: partner.id,
-                  name: partner.name,
-                  email: partner.email!,
-                  image: partner.image,
-                  country: partner.country,
-                  proposal: data.proposal,
-                  comments: data.comments,
-                },
-                program: {
-                  id: program.id,
-                  name: program.name,
-                },
-              }),
-            }),
-          ),
-        ),
-      );
-    })(),
+    notifyPartnerApplication({
+      partner,
+      program,
+      application,
+    }),
   );
 
   return {

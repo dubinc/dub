@@ -40,8 +40,8 @@ export function PartnerApplicationReceived({
     email: string;
     image: string | null;
     country: string | null;
-    proposal: string;
-    comments?: string;
+    proposal: string | null;
+    comments: string | null;
   };
   program: {
     id: string;
@@ -123,23 +123,21 @@ export function PartnerApplicationReceived({
                       How do you plan on promoting {program.name}
                     </Text>
                     <Text className="m-0 p-0 leading-6 text-neutral-600">
-                      {partner.proposal}
+                      {partner.proposal ?? "No proposal provided."}
                     </Text>
                   </Section>
 
-                  {partner.comments && (
-                    <Section className="mb-6">
-                      <Text className="m-0 mb-2 p-0 text-base font-medium text-neutral-900">
-                        Any additional question or comments{" "}
-                        <span className="font-normal text-neutral-500">
-                          (optional)
-                        </span>
-                      </Text>
-                      <Text className="m-0 p-0 leading-6 text-neutral-600">
-                        {partner.comments}
-                      </Text>
-                    </Section>
-                  )}
+                  <Section className="mb-6">
+                    <Text className="m-0 mb-2 p-0 text-base font-medium text-neutral-900">
+                      Any additional question or comments{" "}
+                      <span className="font-normal text-neutral-500">
+                        (optional)
+                      </span>
+                    </Text>
+                    <Text className="m-0 p-0 leading-6 text-neutral-600">
+                      {partner.comments ?? "No comments provided."}
+                    </Text>
+                  </Section>
 
                   <Section className="mt-8 text-center">
                     <Link
