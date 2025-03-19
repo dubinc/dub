@@ -1,6 +1,7 @@
 import { ProcessedLinkProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { getParamsFromURL, linkConstructorSimple, truncate } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { createId } from "../create-id";
 import { combineTagIds } from "../tags/combine-tag-ids";
@@ -71,6 +72,7 @@ export async function bulkCreateLinks({
         utm_content,
         expiresAt: link.expiresAt ? new Date(link.expiresAt) : null,
         geo: link.geo || undefined,
+        tests: link.tests || Prisma.JsonNull,
       };
     }),
     skipDuplicates: true,
