@@ -105,8 +105,8 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
           projectConnectId: workspace.stripeConnectId,
           clickId: nanoid(16),
           linkId: linkMap.get(p.via)!.id,
-          clickedAt: new Date(p.creationDate),
-          createdAt: new Date(p.creationDate),
+          clickedAt: p.creationDate,
+          createdAt: p.creationDate,
         };
       });
 
@@ -135,7 +135,7 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
         const link = linkMap.get(p.via)!;
 
         const clickData = {
-          timestamp: new Date(p.creationDate).toISOString(),
+          timestamp: p.creationDate.toISOString(),
           identity_hash: p.externalId,
           click_id: customerMap.get(p.externalId)!.clickId,
           link_id: link.id,
@@ -173,7 +173,7 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
           event_id: nanoid(16),
           event_name: p.eventName,
           customer_id: customerMap.get(p.externalId)!.id,
-          timestamp: new Date(p.creationDate).toISOString(),
+          timestamp: p.creationDate.toISOString(),
         };
 
         const saleEventId = nanoid(16);
@@ -186,7 +186,7 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
           customer_id: customerMap.get(p.externalId)!.id,
           payment_processor: "custom",
           currency: "usd",
-          timestamp: new Date(p.creationDate).toISOString(),
+          timestamp: p.creationDate.toISOString(),
         };
 
         const commissionData: Prisma.CommissionCreateManyInput = {
@@ -200,7 +200,7 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
           amount: 0,
           quantity: 1,
           status: "paid",
-          createdAt: new Date(p.creationDate),
+          createdAt: p.creationDate,
         };
 
         return {
