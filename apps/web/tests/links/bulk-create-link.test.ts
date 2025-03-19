@@ -1,3 +1,4 @@
+import { normalizeWorkspaceId } from "@/lib/api/workspace-id";
 import z from "@/lib/zod";
 import { Link } from "@dub/prisma/client";
 import { expect, onTestFinished, test } from "vitest";
@@ -12,7 +13,7 @@ const setupBulkTest = async (ctx: any) => {
   const h = new IntegrationHarness(ctx);
   const { workspace, http, user } = await h.init();
   const workspaceId = workspace.id;
-  const projectId = workspaceId.replace("ws_", "");
+  const projectId = normalizeWorkspaceId(workspaceId);
   return { h, http, user, workspaceId, projectId };
 };
 
