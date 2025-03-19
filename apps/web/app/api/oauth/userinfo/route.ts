@@ -1,4 +1,5 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { prefixWorkspaceId } from "@/lib/api/workspace-id";
 import { getAuthTokenOrThrow, hashToken } from "@/lib/auth";
 import { prisma } from "@dub/prisma";
 import { NextRequest, NextResponse } from "next/server";
@@ -59,7 +60,7 @@ export async function GET(req: NextRequest) {
       name: user.name,
       image: user.image,
       workspace: {
-        id: `ws_${tokenRecord.project.id}`,
+        id: prefixWorkspaceId(tokenRecord.project.id),
         slug: tokenRecord.project.slug,
         name: tokenRecord.project.name,
         logo: tokenRecord.project.logo,

@@ -28,7 +28,7 @@ export const exportPartnerColumns = [
   },
   { id: "createdAt", label: "Enrolled at", default: true },
   { id: "createdAt", label: "Enrolled at", default: true },
-  { id: "bio", label: "Bio", default: false },
+  { id: "description", label: "Description", default: false },
   { id: "clicks", label: "Clicks", default: false },
   { id: "leads", label: "Leads", default: false },
   { id: "sales", label: "Sales", default: false },

@@ -1,6 +1,7 @@
 import { prisma } from "@dub/prisma";
 import { CommissionType, EventType } from "@dub/prisma/client";
 import { createId } from "../api/create-id";
+import { DUB_MIN_PAYOUT_AMOUNT_CENTS } from "../partners/constants";
 import { RewardfulApi } from "./api";
 import { rewardfulImporter } from "./importer";
 
@@ -21,8 +22,10 @@ export async function importCampaign({ programId }: { programId: string }) {
 
   const {
     commission_amount_cents,
+    minimum_payout_cents,
     commission_percent,
     max_commission_period_months,
+    days_until_commissions_are_due,
     reward_type,
   } = campaign;
 
@@ -52,6 +55,8 @@ export async function importCampaign({ programId }: { programId: string }) {
       },
     });
 
+    // if there's no default reward, set this as the default reward
+    // it also means that this is a newly imported program
     if (!defaultRewardId) {
       await prisma.program.update({
         where: {
@@ -59,6 +64,12 @@ export async function importCampaign({ programId }: { programId: string }) {
         },
         data: {
           defaultRewardId: reward.id,
+          // minimum payout amount is the max of the Rewardful campaign minimum payout and Dub's minimum payout ($100)
+          minPayoutAmount: Math.max(
+            minimum_payout_cents,
+            DUB_MIN_PAYOUT_AMOUNT_CENTS,
+          ),
+          holdingPeriodDays: days_until_commissions_are_due,
         },
       });
     }

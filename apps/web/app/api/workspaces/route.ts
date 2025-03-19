@@ -1,4 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
+import { createWorkspaceId, prefixWorkspaceId } from "@/lib/api/workspace-id";
 import { withSession } from "@/lib/auth";
 import { checkIfUserExists } from "@/lib/planetscale";
 import {
@@ -45,11 +46,12 @@ export const GET = withSession(async ({ session }) => {
       createdAt: "asc",
     },
   });
+
   return NextResponse.json(
     workspaces.map((project) =>
       WorkspaceSchema.parse({
         ...project,
-        id: `ws_${project.id}`,
+        id: prefixWorkspaceId(project.id),
       }),
     ),
   );
@@ -91,6 +93,7 @@ export const POST = withSession(async ({ req, session }) => {
   try {
     const workspaceResponse = await prisma.project.create({
       data: {
+        id: createWorkspaceId(),
         name,
         slug,
         users: {
@@ -144,7 +147,7 @@ export const POST = withSession(async ({ req, session }) => {
     return NextResponse.json(
       WorkspaceSchema.parse({
         ...workspaceResponse,
-        id: `ws_${workspaceResponse.id}`,
+        id: prefixWorkspaceId(workspaceResponse.id),
       }),
     );
   } catch (error) {
