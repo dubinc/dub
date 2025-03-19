@@ -8,18 +8,53 @@ const config: Pick<Config, "presets"> = {
       content: [
         "./app/**/*.{js,ts,jsx,tsx}",
         "./ui/**/*.{js,ts,jsx,tsx}",
-        // h/t to https://www.willliu.com/blog/Why-your-Tailwind-styles-aren-t-working-in-your-Turborepo
         "../../packages/ui/src/**/*{.js,.ts,.jsx,.tsx}",
         "../../packages/blocks/src/**/*{.js,.ts,.jsx,.tsx}",
       ],
       theme: {
         extend: {
           ...sharedConfig?.theme?.extend,
+          colors: {
+            primary: {
+              DEFAULT: "#006666",
+              light: "#DBF2F2",
+              lighter: "#F8FCFC",
+              extraLight: "#F2F7F7",
+              dark: "#004D4D",
+            },
+            secondary: {
+              DEFAULT: "#0066CC",
+              light: "#E6F0FF",
+              dark: "#0052A3",
+              text: "#1E293B",
+              textMuted: "#2C3345",
+            },
+            neutral: {
+              DEFAULT: "#212121",
+              light: "#424242",
+              lighter: "#6E7275",
+              muted: "#799290",
+              dark: "#121620",
+            },
+            border: {
+              DEFAULT: "#D9E7FF",
+              light: "#F0F2F5",
+            },
+          },
+          backgroundImage: {
+            "qr-gradient":
+              "linear-gradient(90deg, #115740 44.41%, #25BD8B 83.62%)",
+          },
           animation: {
             ...sharedConfig?.theme?.extend?.animation,
             // Infinite scroll animation
             "infinite-scroll": "infinite-scroll 22s linear infinite",
             "infinite-scroll-y": "infinite-scroll-y 22s linear infinite",
+            // Scrolling banner animations
+            "scrolling-banner":
+              "scrolling-banner var(--duration) linear infinite",
+            "scrolling-banner-vertical":
+              "scrolling-banner-vertical var(--duration) linear infinite",
             // Text appear animation
             "text-appear": "text-appear 0.15s ease",
             // Table pinned column shadow animation
@@ -41,6 +76,15 @@ const config: Pick<Config, "presets"> = {
             "infinite-scroll-y": {
               "0%": { transform: "translateY(0)" },
               "100%": { transform: "translateY(var(--scroll, -150%))" },
+            },
+            // Scrolling banner keyframes
+            "scrolling-banner": {
+              from: { transform: "translateX(0)" },
+              to: { transform: "translateX(calc(-50% - var(--gap) / 2))" },
+            },
+            "scrolling-banner-vertical": {
+              from: { transform: "translateY(0)" },
+              to: { transform: "translateY(calc(-50% - var(--gap) / 2))" },
             },
             // Text appear animation
             "text-appear": {
