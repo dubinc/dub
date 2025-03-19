@@ -1,3 +1,4 @@
+import { normalizeWorkspaceId } from "@/lib/api/workspace-id";
 import { Link } from "@dub/prisma/client";
 import { expect, onTestFinished, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
@@ -9,7 +10,7 @@ test("GET /links", async (ctx) => {
   const h = new IntegrationHarness(ctx);
   const { workspace, http, user } = await h.init();
   const workspaceId = workspace.id;
-  const projectId = workspaceId.replace("ws_", "");
+  const projectId = normalizeWorkspaceId(workspaceId);
 
   onTestFinished(async () => {
     await h.deleteLink(firstLink.id);
