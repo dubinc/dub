@@ -1,5 +1,6 @@
 "use client";
 
+import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { updateProgramAction } from "@/lib/actions/partners/update-program";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import useProgram from "@/lib/swr/use-program";
@@ -20,7 +21,11 @@ export function RewardSettings() {
   const { id: workspaceId } = useWorkspace();
   const { program } = useProgram();
 
-  const form = useForm<FormData>({
+  const {
+    register,
+    handleSubmit,
+    formState: { isDirty, isValid, isSubmitting, errors },
+  } = useForm<FormData>({
     mode: "onBlur",
     defaultValues: {
       holdingPeriodDays: program?.holdingPeriodDays,
@@ -30,19 +35,13 @@ export function RewardSettings() {
     },
   });
 
-  const {
-    register,
-    handleSubmit,
-    formState: { isDirty, isValid, isSubmitting, errors },
-  } = form;
-
   const { executeAsync } = useAction(updateProgramAction, {
-    async onSuccess() {
+    onSuccess: async () => {
+      await mutate(`/api/programs/${program?.id}?workspaceId=${workspaceId}`);
       toast.success("Reward settings updated successfully.");
-      mutate(`/api/programs/${program?.id}?workspaceId=${workspaceId}`);
     },
-    onError({ error }) {
-      toast.error(error.serverError || "Failed to update reward settings.");
+    onError: ({ error }) => {
+      toast.error(parseActionError(error, "Failed to update reward settings."));
     },
   });
 
