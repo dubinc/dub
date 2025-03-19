@@ -113,18 +113,9 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
     });
   };
 
-  const partnerSalesRewards = useMemo(() => {
-    return rewards?.filter(
-      (reward) =>
-        reward.event === "sale" && reward.id != program?.defaultRewardId,
-    );
+  const salesRewards = useMemo(() => {
+    return rewards?.filter((reward) => reward.event === "sale");
   }, [rewards, program?.defaultRewardId]);
-
-  const partnerDiscounts = useMemo(() => {
-    return discounts?.filter(
-      (discount) => discount.id != program?.defaultDiscountId,
-    );
-  }, [discounts, program?.defaultDiscountId]);
 
   const buttonDisabled =
     isPending ||
@@ -245,7 +236,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                   disabled={rewardsLoading}
                 >
                   <option value="">Select a reward</option>
-                  {partnerSalesRewards?.map((reward) => (
+                  {salesRewards?.map((reward) => (
                     <option value={reward.id} key={reward.id}>
                       {reward.name || formatRewardDescription({ reward })}
                     </option>
@@ -274,7 +265,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                   disabled={discountsLoading}
                 >
                   <option value="">Select a discount</option>
-                  {partnerDiscounts?.map((discount) => (
+                  {discounts?.map((discount) => (
                     <option value={discount.id} key={discount.id}>
                       {formatDiscountDescription({ discount })}
                     </option>

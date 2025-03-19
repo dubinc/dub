@@ -27,7 +27,10 @@ export const createAndEnrollPartner = async ({
   status = "approved",
   skipEnrollmentCheck = false,
 }: {
-  program: Pick<ProgramProps, "id" | "defaultFolderId">;
+  program: Pick<
+    ProgramProps,
+    "id" | "defaultFolderId" | "defaultRewardId" | "defaultDiscountId"
+  >;
   workspace: Pick<WorkspaceProps, "id" | "webhookEnabled">;
   link: ProgramPartnerLinkProps;
   partner: Pick<
@@ -88,16 +91,18 @@ export const createAndEnrollPartner = async ({
             id: link.id,
           },
         },
-        ...(rewardId && {
-          rewards: {
-            create: {
-              rewardId,
+        ...(rewardId &&
+          rewardId !== program.defaultRewardId && {
+            rewards: {
+              create: {
+                rewardId,
+              },
             },
-          },
-        }),
-        ...(discountId && {
-          discountId,
-        }),
+          }),
+        ...(discountId &&
+          discountId !== program.defaultDiscountId && {
+            discountId,
+          }),
       },
     },
   };

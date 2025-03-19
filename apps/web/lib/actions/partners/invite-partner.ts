@@ -19,7 +19,7 @@ export const invitePartnerAction = authActionClient
     const { programId, name, email, linkId, rewardId, discountId } =
       parsedInput;
 
-    const [program, link, reward, discount] = await Promise.all([
+    const [program, link, , ,] = await Promise.all([
       getProgramOrThrow({
         workspaceId: workspace.id,
         programId,
@@ -44,18 +44,6 @@ export const invitePartnerAction = authActionClient
           })
         : null,
     ]);
-
-    if (reward && reward.id === program.defaultRewardId) {
-      throw new Error(
-        "Cannot use default reward for partner-specific rewards.",
-      );
-    }
-
-    if (discount && discount.id === program.defaultDiscountId) {
-      throw new Error(
-        "Cannot use default discount for partner-specific discounts.",
-      );
-    }
 
     if (link.partnerId) {
       throw new Error("Link is already associated with another partner.");
