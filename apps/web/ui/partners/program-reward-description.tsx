@@ -84,7 +84,7 @@ export function ProgramRewardDescription({
 export function formatRewardDescription({
   reward,
 }: {
-  reward: RewardProps;
+  reward: Pick<RewardProps, "amount" | "type" | "event" | "maxDuration">;
 }): string {
   const rewardAmount = constructRewardAmount(reward);
   const parts: string[] = [];
