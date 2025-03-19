@@ -55,9 +55,7 @@ export const GET = withWorkspace(
       const result = {};
 
       columns.forEach((column) => {
-        if (column === "bio") {
-          result[columnIdToLabel[column]] = partner.description || "";
-        } else if (column === "payoutsEnabledAt" || column === "createdAt") {
+        if (column === "payoutsEnabledAt" || column === "createdAt") {
           result[columnIdToLabel[column]] = partner[column]
             ? new Date(partner[column]).toISOString()
             : "";
