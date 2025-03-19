@@ -1,8 +1,15 @@
+"use client";
+
+import { useMediaQuery } from "@dub/ui";
 import Link from "next/link";
 import { FC } from "react";
 import { Rating } from "./components/rating.tsx";
 
 export const RatingInfoSection: FC = () => {
+  const { isMobile } = useMediaQuery();
+
+  if (isMobile) return null;
+
   return (
     <section className="bg-primary-lighter mx-auto flex w-full max-w-[1172px] flex-row items-center justify-between gap-[42px] px-3 py-[42px]">
       <Rating alignItems={"start"} />

@@ -25,6 +25,7 @@ export const GetQRInfoCardsSection: FC = () => {
       <div className="gap flex flex-col items-stretch justify-center gap-4 md:flex-row md:gap-6">
         {GET_QR_CARDS.map((card, idx) => (
           <InfoCard
+            key={idx}
             title={card.title}
             content={card.content}
             img={

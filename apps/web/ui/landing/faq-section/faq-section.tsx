@@ -1,3 +1,5 @@
+"use client";
+
 import { FAQ_ITEMS } from "@/ui/landing/faq-section/config.ts";
 import { BlockMarkdown } from "@/ui/partners/lander-blocks/BlockMarkdown";
 import {
@@ -5,16 +7,14 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
+  useMediaQuery,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Icon } from "@iconify/react";
-import { FC } from "react";
 
-interface IFaqSectionProps {
-  isMobile: boolean;
-}
+export const FAQSection = () => {
+  const { isMobile } = useMediaQuery();
 
-export const FAQSection: FC<IFaqSectionProps> = ({ isMobile }) => {
   return (
     <section className="mx-auto flex max-w-[1172px] flex-col justify-between gap-2 px-3 pt-3 lg:flex-row lg:gap-6 lg:pt-8">
       <h2 className="text-neutral-dark mb-4 text-center text-xl font-bold md:text-[28px] lg:max-w-64 lg:text-left">

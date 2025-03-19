@@ -1,20 +1,21 @@
+"use client";
+
 import QrCodeIcon from "@/ui/landing/assets/svg/qr-code.svg";
+import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Icon } from "@iconify/react";
 import * as ScrollArea from "@radix-ui/react-scroll-area";
 import * as Tabs from "@radix-ui/react-tabs";
 import Image from "next/image";
 import Link from "next/link";
-import { FC, useState } from "react";
+import { useState } from "react";
 import { QR_TYPES } from "../../constants/get-qr-config.ts";
 import { QrTabsDetailedImage } from "./components/qr-tabs-detailed-image.tsx";
 import { QrTabsDetailedTitle } from "./components/qr-tabs-detailed-title.tsx";
 
-interface IQRTabsProps {
-  isMobile: boolean;
-}
+export const QrTabsDetailed = () => {
+  const { isMobile } = useMediaQuery();
 
-export const QrTabsDetailed: FC<IQRTabsProps> = ({ isMobile }) => {
   const [activeTab, setActiveTab] = useState<string>("website");
 
   return (
