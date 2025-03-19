@@ -45,17 +45,17 @@ function LinksSettingsForm({ program }: { program: ProgramProps }) {
     ? getDomainWithoutWWW(program.url)
     : "dub.co";
 
-  const linkStructures = [
+  const LINK_TYPES = [
     {
       label: "Short link",
       example: `${shortDomain}/steven`,
       comingSoon: false,
     },
-    {
-      label: "Query parameter",
-      example: `${websiteDomain}?via=steven`,
-      comingSoon: true,
-    },
+    // {
+    //   label: "Query parameter",
+    //   example: `${websiteDomain}?via=steven`,
+    //   comingSoon: true,
+    // },
     {
       label: "Dynamic path",
       example: `${websiteDomain}/refer/steven`,
@@ -163,17 +163,17 @@ function LinksSettingsForm({ program }: { program: ProgramProps }) {
           </div>
         </SettingsRow>
 
-        <SettingsRow heading="Link structure">
+        <SettingsRow heading="Link type">
           <div className="grid grid-cols-1 gap-3">
-            {linkStructures.map((linkStructure, idx) => {
+            {LINK_TYPES.map((type, idx) => {
               const isSelected = idx === 0;
 
               return (
                 <label
-                  key={linkStructure.label}
+                  key={type.label}
                   className={cn(
                     "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600",
-                    linkStructure.comingSoon
+                    type.comingSoon
                       ? "cursor-default opacity-80"
                       : "hover:bg-neutral-50",
                     "transition-all duration-150",
@@ -183,19 +183,17 @@ function LinksSettingsForm({ program }: { program: ProgramProps }) {
                 >
                   <input
                     type="radio"
-                    value={linkStructure.label}
+                    value={type.label}
                     className="hidden"
                     checked={isSelected}
-                    disabled={linkStructure.comingSoon}
+                    disabled={type.comingSoon}
                     readOnly
                   />
                   <div className="flex grow flex-col text-sm">
-                    <span className="font-medium">{linkStructure.label}</span>
-                    <span className="text-neutral-600">
-                      {linkStructure.example}
-                    </span>
+                    <span className="font-medium">{type.label}</span>
+                    <span className="text-neutral-600">{type.example}</span>
                   </div>
-                  {linkStructure.comingSoon ? (
+                  {type.comingSoon ? (
                     <Badge variant="blueGradient">Coming soon</Badge>
                   ) : (
                     <CircleCheckFill

@@ -11,7 +11,10 @@ import useRewards from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps, RewardProps } from "@/lib/types";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
-import { createRewardSchema } from "@/lib/zod/schemas/rewards";
+import {
+  COMMISSION_TYPES,
+  createRewardSchema,
+} from "@/lib/zod/schemas/rewards";
 import { SelectEligiblePartnersSheet } from "@/ui/partners/select-eligible-partners-sheet";
 import { X } from "@/ui/shared/icons";
 import { EventType } from "@dub/prisma/client";
@@ -40,7 +43,7 @@ interface RewardSheetProps {
 
 type FormData = z.infer<typeof createRewardSchema>;
 
-const partnerTypes = [
+const PARTNER_TYPES = [
   {
     key: "all",
     label: "All Partners",
@@ -53,19 +56,6 @@ const partnerTypes = [
   },
 ] as const;
 
-const commissionTypes = [
-  {
-    label: "One-off",
-    description: "Pay a one-time payout",
-    recurring: false,
-  },
-  {
-    label: "Recurring",
-    description: "Pay an ongoing payout",
-    recurring: true,
-  },
-] as const;
-
 function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -75,7 +65,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
   const [isAddPartnersOpen, setIsAddPartnersOpen] = useState(false);
 
   const [selectedPartnerType, setSelectedPartnerType] =
-    useState<(typeof partnerTypes)[number]["key"]>("all");
+    useState<(typeof PARTNER_TYPES)[number]["key"]>("all");
 
   const [isRecurring, setIsRecurring] = useState(
     reward ? reward.maxDuration !== 0 : false,
@@ -95,17 +85,16 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
         ? reward.maxDuration === null
           ? Infinity
           : reward.maxDuration
-        : 0,
+        : 12,
       amount: reward?.type === "flat" ? reward.amount / 100 : reward?.amount,
       partnerIds: null,
     },
   });
 
-  const [partnerIds = [], amount, type] = watch([
-    "partnerIds",
+  const [amount, type, partnerIds = []] = watch([
     "amount",
     "type",
-    "maxDuration",
+    "partnerIds",
   ]);
 
   const hasProgramWideClickReward = rewards?.some(
@@ -335,7 +324,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
             {event !== "sale" && (
               <div className="mt-2">
                 <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-                  {partnerTypes.map((partnerType) => {
+                  {PARTNER_TYPES.map((partnerType) => {
                     const isSelected = selectedPartnerType === partnerType.key;
 
                     const isDisabled =
@@ -421,9 +410,10 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                     >
                       <div className="p-1">
                         <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-                          {commissionTypes.map(
-                            ({ label, description, recurring }) => {
-                              const isSelected = isRecurring === recurring;
+                          {COMMISSION_TYPES.map(
+                            ({ label, description, value }) => {
+                              const isSelected =
+                                (value === "recurring") === isRecurring;
 
                               return (
                                 <label
@@ -437,16 +427,16 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                                 >
                                   <input
                                     type="radio"
-                                    value={label}
+                                    value={value}
                                     className="hidden"
                                     checked={isSelected}
                                     onChange={(e) => {
                                       if (e.target.checked) {
-                                        setIsRecurring(recurring);
+                                        setIsRecurring(value === "recurring");
                                         setValue(
                                           "maxDuration",
-                                          recurring
-                                            ? reward?.maxDuration || 3
+                                          value === "recurring"
+                                            ? reward?.maxDuration || 12
                                             : 0,
                                         );
                                       }
@@ -488,7 +478,9 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                             <div className="relative mt-2 rounded-md shadow-sm">
                               <select
                                 className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                                {...register("maxDuration")}
+                                {...register("maxDuration", {
+                                  valueAsNumber: true,
+                                })}
                               >
                                 {RECURRING_MAX_DURATIONS.filter(
                                   (v) => v !== 0,

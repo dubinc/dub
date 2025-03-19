@@ -9,9 +9,11 @@ enum CommissionType {
 }
 
 enum ProgramEnrollmentStatus {
-  approved
-  pending
-  rejected
+  invited // partner who already has an account
+  approved // partner who doesn't have an account
+  rejected // program rejected the partner
+  declined // partner declined the invite
+  pending // pending applications that need approval
 }
 
 enum CommissionInterval {
@@ -33,6 +35,7 @@ model Program {
   type              ProgramType @default(affiliate)
   cookieLength      Int         @default(90)
   holdingPeriodDays Int         @default(0) // number of days to wait before earnings are added to a payout
+  minPayoutAmount   Int         @default(10000) // Default minimum payout amount of $100
   defaultRewardId   String?     @unique // default reward for the program
   defaultDiscountId String?     @unique // default discount for the program
   landerData        Json?       @db.Json
@@ -49,7 +52,6 @@ model Program {
   payouts         Payout[]
   invoices        Invoice[]
   applications    ProgramApplication[]
-  invites         ProgramInvite[]
   links           Link[]
   commissions     Commission[]
   rewards         Reward[]
@@ -104,18 +106,4 @@ model ProgramApplication {
 
   @@index([programId])
   @@index([partnerId])
-}
-
-model ProgramInvite {
-  id        String   @id @default(cuid())
-  programId String
-  email     String
-  linkId    String   @unique
-  createdAt DateTime @default(now())
-
-  program Program @relation(fields: [programId], references: [id])
-  link    Link?   @relation(fields: [linkId], references: [id])
-
-  @@unique([email, programId])
-  @@index([programId])
 }

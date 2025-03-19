@@ -2,6 +2,7 @@ import baseX from "base-x";
 import crypto from "crypto";
 
 const prefixes = [
+  "ws_",
   "user_",
   "link_",
   "tag_",
@@ -19,6 +20,7 @@ const prefixes = [
   "pga_",
   "pgi_",
   "pge_",
+  "pgr_",
   "inv_",
   "cm_",
   "rw_",

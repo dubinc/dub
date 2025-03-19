@@ -5,13 +5,20 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 // GET /api/partner-profile/programs - get all enrolled programs for a given partnerId
-export const GET = withPartnerProfile(async ({ partner }) => {
+export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
   const programEnrollments = await prisma.programEnrollment.findMany({
     where: {
       partnerId: partner.id,
     },
     include: {
-      program: true,
+      program: searchParams.includeRewardsDiscounts
+        ? {
+            include: {
+              rewards: true,
+              discounts: true,
+            },
+          }
+        : true,
     },
   });
 

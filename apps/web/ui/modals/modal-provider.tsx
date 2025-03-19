@@ -28,6 +28,7 @@ import { useAddEditTagModal } from "./add-edit-tag-modal";
 import { useImportRebrandlyModal } from "./import-rebrandly-modal";
 import { useImportRewardfulModal } from "./import-rewardful-modal";
 import { useLinkBuilder } from "./link-builder";
+import { useProgramWelcomeModal } from "./program-welcome-modal";
 import { useWelcomeModal } from "./welcome-modal";
 
 export const ModalContext = createContext<{
@@ -98,16 +99,17 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
     useImportRebrandlyModal();
   const { setShowImportCsvModal, ImportCsvModal } = useImportCsvModal();
   const { setShowWelcomeModal, WelcomeModal } = useWelcomeModal();
+  const { setShowProgramWelcomeModal, ProgramWelcomeModal } =
+    useProgramWelcomeModal();
   const { setShowImportRewardfulModal, ImportRewardfulModal } =
     useImportRewardfulModal();
 
-  useEffect(
-    () =>
-      setShowWelcomeModal(
-        searchParams.has("onboarded") || searchParams.has("upgraded"),
-      ),
-    [searchParams],
-  );
+  useEffect(() => {
+    setShowProgramWelcomeModal(searchParams.has("onboarded-program"));
+    setShowWelcomeModal(
+      searchParams.has("onboarded") || searchParams.has("upgraded"),
+    );
+  }, [searchParams]);
 
   const [hashes, setHashes] = useCookies<SimpleLinkProps[]>("hashes__dub", [], {
     domain: !!process.env.NEXT_PUBLIC_VERCEL_URL ? ".dub.co" : undefined,
@@ -204,6 +206,7 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
       <ImportCsvModal />
       <ImportRewardfulModal />
       <WelcomeModal />
+      <ProgramWelcomeModal />
       {children}
     </ModalContext.Provider>
   );

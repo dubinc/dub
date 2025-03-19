@@ -40,11 +40,14 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
   // 1. linkId is defined
   // 2. type is count
   // 3. interval is all
-  // 4. no other dimensional filters are applied
+  // 4. no custom start or end date is provided
+  // 5. no other dimensional filters are applied
   if (
     linkId &&
     groupBy === "count" &&
     interval === "all" &&
+    !start &&
+    !end &&
     DIMENSIONAL_ANALYTICS_FILTERS.every(
       (filter) => !params[filter as keyof AnalyticsFilters],
     )

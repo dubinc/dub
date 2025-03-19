@@ -55,11 +55,22 @@ export const determinePartnerRewards = async ({
     (reward) => reward._count.partners > 0,
   );
 
-  const programWideReward = rewards.find(
+  const programWideSaleReward = rewards.find(
     (reward) => reward._count.partners === 0,
   );
 
-  const partnerRewards = [...partnerSpecificRewards, programWideReward];
+  const partnerSpecificSaleReward = partnerSpecificRewards.find(
+    (reward) => reward.event === EventType.sale,
+  );
+
+  const partnerSaleReward = partnerSpecificSaleReward ?? programWideSaleReward;
+
+  const partnerRewards = [
+    partnerSaleReward,
+    ...partnerSpecificRewards.filter(
+      (reward) => reward.id !== partnerSaleReward?.id,
+    ),
+  ];
 
   if (partnerRewards.length === 0) {
     return null;

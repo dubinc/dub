@@ -1,3 +1,4 @@
+import { normalizeWorkspaceId } from "@/lib/api/workspace-id";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaces from "@/lib/swr/use-workspaces";
@@ -115,9 +116,10 @@ function TransferLinkModalInner({
                   value: workspace.name,
                   image:
                     workspace.logo || `${DICEBEAR_AVATAR_URL}${workspace.name}`,
-                  disabled: workspace.id.replace("ws_", "") === props.projectId,
+                  disabled:
+                    normalizeWorkspaceId(workspace.id) === props.projectId,
                   label:
-                    workspace.id.replace("ws_", "") === props.projectId
+                    normalizeWorkspaceId(workspace.id) === props.projectId
                       ? "Current"
                       : "",
                 }))

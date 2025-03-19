@@ -28,7 +28,6 @@ type FormData = z.infer<typeof onboardPartnerSchema>;
 
 export function OnboardingForm({
   partner,
-  lockName,
 }: {
   partner?: Partial<
     Pick<
@@ -39,9 +38,9 @@ export function OnboardingForm({
       | "image"
       | "profileType"
       | "companyName"
+      | "stripeConnectId"
     >
   > | null;
-  lockName?: boolean;
 }) {
   const router = useRouter();
   const { data: session } = useSession();
@@ -104,8 +103,7 @@ export function OnboardingForm({
               ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
               : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
           )}
-          readOnly={!errors.name && lockName}
-          autoFocus={!isMobile && !errors.name && !lockName}
+          autoFocus={!isMobile && !errors.name}
           {...register("name", {
             required: true,
           })}
@@ -163,10 +161,10 @@ export function OnboardingForm({
           name="country"
           rules={{ required: true }}
           render={({ field }) => (
-            // Disable the combobox if the partner already has a country
+            // Disable the combobox if the partner already has a stripeConnectId
             <CountryCombobox
               {...field}
-              disabled={!!partner?.country}
+              disabled={!!partner?.stripeConnectId}
               error={errors.country ? true : false}
             />
           )}
@@ -214,17 +212,17 @@ export function OnboardingForm({
               ]}
               selected={profileType}
               selectAction={(option: "individual" | "company") => {
-                if (!partner?.profileType) {
+                if (!partner?.stripeConnectId) {
                   setValue("profileType", option);
                 }
               }}
               className={cn(
                 "flex w-full items-center gap-0.5 rounded-lg border-neutral-300 bg-neutral-100 p-0.5",
-                partner?.profileType && "cursor-not-allowed opacity-70",
+                partner?.stripeConnectId && "cursor-not-allowed opacity-70",
               )}
               optionClassName={cn(
                 "h-9 flex items-center justify-center rounded-lg flex-1",
-                partner?.profileType && "pointer-events-none",
+                partner?.stripeConnectId && "pointer-events-none",
               )}
               indicatorClassName="bg-white"
             />

@@ -2,6 +2,7 @@ import {
   DUB_PARTNERS_ANALYTICS_INTERVAL,
   intervals,
 } from "@/lib/analytics/constants";
+import { DUB_MIN_PAYOUT_AMOUNT_CENTS } from "@/lib/partners/constants";
 import { ProgramEnrollmentStatus, ProgramType } from "@dub/prisma/client";
 import { z } from "zod";
 import { DiscountSchema } from "./discount";
@@ -25,6 +26,7 @@ export const ProgramSchema = z.object({
   defaultDiscountId: z.string().nullable(),
   rewards: z.array(RewardSchema).nullish(),
   holdingPeriodDays: z.number(),
+  minPayoutAmount: z.number(),
 
   // Discounts (for dual-sided incentives)
   discounts: z.array(DiscountSchema).nullish(),
@@ -44,6 +46,13 @@ export const createProgramSchema = z.object({
     .number()
     .refine((val) => HOLDING_PERIOD_DAYS.includes(val), {
       message: `Holding period must be ${HOLDING_PERIOD_DAYS.join(", ")} days`,
+    }),
+  minPayoutAmount: z.coerce
+    .number()
+    .nullish()
+    .transform((val) => (val ? val * 100 : DUB_MIN_PAYOUT_AMOUNT_CENTS))
+    .refine((val) => val >= DUB_MIN_PAYOUT_AMOUNT_CENTS, {
+      message: "Minimum payout amount must be at least $100",
     }),
 });
 
