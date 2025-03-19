@@ -55,6 +55,11 @@ export async function notifyPartnerSale({
         notificationPreference: {
           newPartnerSale: true,
         },
+        user: {
+          email: {
+            not: null,
+          },
+        },
       },
       include: {
         user: {
