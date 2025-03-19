@@ -120,9 +120,9 @@ async function createApplicationAndEnrollment({
       const workspaceUsers = await prisma.projectUsers.findMany({
         where: {
           projectId: program.workspaceId,
-          // notificationPreference: {
-          //   newPartnerSale: true, // TODO: change to newPartnerApplication
-          // },
+          notificationPreference: {
+            newPartnerApplication: true,
+          },
         },
         include: {
           user: {
@@ -138,7 +138,7 @@ async function createApplicationAndEnrollment({
           limiter.schedule(() =>
             sendEmail({
               subject: `New partner application for ${program.name}.`,
-              email: "kiran@dub.co", //partner.email!,
+              email: user.email!,
               react: PartnerApplicationReceived({
                 email: partner.email!,
                 partner: {
@@ -152,6 +152,7 @@ async function createApplicationAndEnrollment({
                 },
                 program: {
                   id: program.id,
+                  name: program.name,
                 },
               }),
             }),

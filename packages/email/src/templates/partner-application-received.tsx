@@ -1,4 +1,4 @@
-import { DUB_WORDMARK } from "@dub/utils";
+import { DICEBEAR_AVATAR_URL, DUB_WORDMARK } from "@dub/utils";
 import {
   Body,
   Container,
@@ -30,6 +30,7 @@ export function PartnerApplicationReceived({
   },
   program = {
     id: "prog_CYCu7IMAapjkRpTnr8F1azjN",
+    name: "Acme",
   },
 }: {
   email: string;
@@ -44,6 +45,7 @@ export function PartnerApplicationReceived({
   };
   program: {
     id: string;
+    name: string;
   };
 }) {
   const applicationUrl = `https://app.dub.co/acme/programs/${program.id}/partners?partnerId=${partner.id}`;
@@ -65,7 +67,7 @@ export function PartnerApplicationReceived({
 
             <Text className="text-sm leading-6 text-neutral-600">
               You have a new pending application to review, view their
-              application below and or{" "}
+              application below or{" "}
               <Link
                 href={applicationUrl}
                 className="text-neutral-600 underline underline-offset-4"
@@ -76,42 +78,36 @@ export function PartnerApplicationReceived({
             </Text>
 
             <Container className="mb-8 mt-10 rounded-lg border border-solid border-neutral-200">
-              <Section className="p-4">
-                <Container className="mb-4 w-full rounded-lg bg-[#f9fafb] p-6">
+              <Section className="p-2">
+                <Container className="mb-4 w-full rounded-lg border border-solid border-neutral-100 bg-neutral-50 p-6">
                   <div>
-                    <div
-                      style={{
-                        position: "relative",
-                        marginBottom: "16px",
-                        display: "inline-block",
-                      }}
-                    >
+                    <div className="relative w-fit">
                       <Img
-                        src={partner.image ?? undefined}
-                        width="64"
-                        height="64"
+                        src={
+                          partner.image ||
+                          `${DICEBEAR_AVATAR_URL}${partner.name}`
+                        }
+                        width="48"
+                        height="48"
                         alt={partner.name}
-                        style={{ borderRadius: "9999px" }}
+                        className="rounded-full"
                       />
 
                       {partner.country && (
-                        <Img
-                          src={`https://flag.vercel.app/${partner.country}.svg`}
-                          width="18"
-                          height="18"
-                          alt={partner.country}
-                          style={{
-                            position: "absolute",
-                            bottom: "0",
-                            right: "0",
-                            borderRadius: "50%",
-                            border: "2px solid white",
-                          }}
-                        />
+                        <div className="absolute -right-1 top-0 overflow-hidden rounded-full bg-neutral-50 p-0.5">
+                          <Img
+                            src={`https://flag.vercel.app/m/${partner.country}.svg`}
+                            width="12"
+                            height="12"
+                            alt={partner.country}
+                            className="size-3 rounded-full"
+                          />
+                        </div>
                       )}
                     </div>
+
                     <div>
-                      <Text className="m-0 p-0 text-2xl font-medium text-black">
+                      <Text className="m-0 p-0 text-lg font-medium text-neutral-900">
                         {partner.name}
                       </Text>
                       <Text className="m-0 p-0 text-sm text-neutral-500">
@@ -121,49 +117,38 @@ export function PartnerApplicationReceived({
                   </div>
                 </Container>
 
-                <Section className="mb-6">
-                  <Text className="m-0 mb-2 p-0 text-base font-medium text-neutral-900">
-                    How do you plan on promoting Cal.com
-                  </Text>
-                  <Text className="m-0 p-0 leading-6 text-neutral-600">
-                    {partner.proposal}
-                  </Text>
-                </Section>
-
-                {partner.comments && (
+                <Section className="p-4">
                   <Section className="mb-6">
                     <Text className="m-0 mb-2 p-0 text-base font-medium text-neutral-900">
-                      Any additional question or comments{" "}
-                      <span className="font-normal text-neutral-500">
-                        (optional)
-                      </span>
+                      How do you plan on promoting {program.name}
                     </Text>
                     <Text className="m-0 p-0 leading-6 text-neutral-600">
-                      {partner.comments}
+                      {partner.proposal}
                     </Text>
                   </Section>
-                )}
 
-                <Section className="mt-8 text-center">
-                  <Link
-                    href={applicationUrl}
-                    style={{
-                      backgroundColor: "#111111",
-                      borderRadius: "6px",
-                      color: "#fff",
-                      display: "block",
-                      fontSize: "14px",
-                      fontWeight: "500",
-                      lineHeight: "100%",
-                      padding: "16px 0",
-                      textDecoration: "none",
-                      textAlign: "center",
-                      width: "100%",
-                      boxSizing: "border-box",
-                    }}
-                  >
-                    Review application on Dub
-                  </Link>
+                  {partner.comments && (
+                    <Section className="mb-6">
+                      <Text className="m-0 mb-2 p-0 text-base font-medium text-neutral-900">
+                        Any additional question or comments{" "}
+                        <span className="font-normal text-neutral-500">
+                          (optional)
+                        </span>
+                      </Text>
+                      <Text className="m-0 p-0 leading-6 text-neutral-600">
+                        {partner.comments}
+                      </Text>
+                    </Section>
+                  )}
+
+                  <Section className="mt-8 text-center">
+                    <Link
+                      href={applicationUrl}
+                      className="box-border block w-full rounded-md bg-black px-0 py-4 text-center text-sm font-medium leading-none text-white no-underline"
+                    >
+                      Review application on Dub
+                    </Link>
+                  </Section>
                 </Section>
               </Section>
             </Container>
