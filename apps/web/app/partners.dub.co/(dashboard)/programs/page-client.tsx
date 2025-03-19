@@ -16,8 +16,8 @@ export function PartnersDashboardPageClient() {
     (programEnrollment) => programEnrollment.status === "invited",
   );
 
-  const approvedProgramEnrollments = programEnrollments?.filter(
-    (programEnrollment) => programEnrollment.status === "approved",
+  const otherProgramEnrollments = programEnrollments?.filter(
+    (programEnrollment) => programEnrollment.status !== "invited",
   );
 
   return (
@@ -52,7 +52,7 @@ export function PartnersDashboardPageClient() {
                 />
               ))}
 
-              {approvedProgramEnrollments?.map((programEnrollment, idx) => (
+              {otherProgramEnrollments?.map((programEnrollment, idx) => (
                 <ProgramCard key={idx} programEnrollment={programEnrollment} />
               ))}
             </>
