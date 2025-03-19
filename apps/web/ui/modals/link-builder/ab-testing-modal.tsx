@@ -66,8 +66,9 @@ function ABTestingModal({
     currentDomain: domain,
   });
 
-  const { EndABTestingModal, setShowEndABTestingModal } =
-    useEndABTestingModal();
+  const { EndABTestingModal, setShowEndABTestingModal } = useEndABTestingModal({
+    onEndTest: () => setShowABTestingModal(false),
+  });
 
   const {
     watch,

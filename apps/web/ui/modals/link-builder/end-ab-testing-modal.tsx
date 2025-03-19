@@ -12,9 +12,11 @@ import { LinkFormData } from ".";
 function EndABTestingModal({
   showEndABTestingModal,
   setShowEndABTestingModal,
+  onEndTest,
 }: {
   showEndABTestingModal: boolean;
   setShowEndABTestingModal: Dispatch<SetStateAction<boolean>>;
+  onEndTest?: () => void;
 }) {
   const { watch: watchParent, setValue: setValueParent } =
     useFormContext<LinkFormData>();
@@ -23,6 +25,8 @@ function EndABTestingModal({
     url: string;
     percentage: number;
   }> | null;
+
+  const [selectedUrl, setSelectedUrl] = useState<string | null>(null);
 
   return (
     <Modal
@@ -34,7 +38,7 @@ function EndABTestingModal({
         <h3 className="text-lg font-medium">End A/B test</h3>
 
         <div className="mt-4">
-          <p className="text-sm text-neutral-700">
+          <p className="text-sm text-neutral-600">
             Select which destination URL to use as the current destination URL,
             and end the test. Save your changes on the link editor to confirm
             the change.
@@ -43,35 +47,60 @@ function EndABTestingModal({
             {tests?.map((test, index) => (
               <button
                 key={index}
-                onClick={() => {
-                  setValueParent("url", test.url, { shouldDirty: true });
-                  setValueParent("tests", null, { shouldDirty: true });
-                  setValueParent("testsCompleteAt", null, {
-                    shouldDirty: true,
-                  });
-                  setShowEndABTestingModal(false);
-                }}
-                className="flex w-full items-center justify-between rounded-md border border-neutral-200 p-3 text-left hover:border-neutral-700"
+                onClick={() => setSelectedUrl(test.url)}
+                className={`relative flex w-full items-center rounded-md border bg-white p-0 text-left ring-0 ring-black transition-all duration-100 hover:bg-neutral-50 ${
+                  selectedUrl === test.url
+                    ? "border-black ring-1"
+                    : "border-neutral-300"
+                }`}
               >
-                <div className="flex items-center space-x-3">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-neutral-100 text-sm font-medium">
+                <div className="flex grow items-center space-x-3 overflow-hidden">
+                  <span className="flex h-9 w-8 shrink-0 items-center justify-center border-r border-neutral-300 text-center text-sm font-medium text-neutral-800">
                     {index + 1}
                   </span>
-                  <span className="text-sm font-medium">{test.url}</span>
+                  <span className="truncate text-sm font-medium">
+                    {test.url}
+                  </span>
                 </div>
-                <span className="text-sm text-neutral-500">
-                  {test.percentage}%
-                </span>
+                <div className="flex size-9 shrink-0 items-center justify-center">
+                  <div
+                    className={`size-4 rounded-full border transition-all ${
+                      selectedUrl === test.url
+                        ? "border-4 border-black"
+                        : "border-neutral-400"
+                    }`}
+                  />
+                </div>
               </button>
             ))}
           </div>
         </div>
 
-        <div className="mt-4 flex justify-end">
+        <div className="mt-9 flex justify-end gap-2">
           <Button
             text="Cancel"
             variant="secondary"
-            onClick={() => setShowEndABTestingModal(false)}
+            className="h-9 w-fit"
+            onClick={() => {
+              setSelectedUrl(null);
+              setShowEndABTestingModal(false);
+            }}
+          />
+          <Button
+            text="End test"
+            variant="primary"
+            className="h-9 w-fit"
+            disabled={!selectedUrl}
+            onClick={() => {
+              if (selectedUrl) {
+                setValueParent("url", selectedUrl, { shouldDirty: true });
+                setValueParent("testsCompleteAt", null, {
+                  shouldDirty: true,
+                });
+                setShowEndABTestingModal(false);
+                onEndTest?.();
+              }
+            }}
           />
         </div>
       </div>
@@ -79,7 +108,11 @@ function EndABTestingModal({
   );
 }
 
-export function useEndABTestingModal() {
+export function useEndABTestingModal({
+  onEndTest,
+}: {
+  onEndTest?: () => void;
+} = {}) {
   const [showEndABTestingModal, setShowEndABTestingModal] = useState(false);
 
   const EndABTestingModalCallback = useCallback(() => {
@@ -87,6 +120,7 @@ export function useEndABTestingModal() {
       <EndABTestingModal
         showEndABTestingModal={showEndABTestingModal}
         setShowEndABTestingModal={setShowEndABTestingModal}
+        onEndTest={onEndTest}
       />
     );
   }, [showEndABTestingModal, setShowEndABTestingModal]);
