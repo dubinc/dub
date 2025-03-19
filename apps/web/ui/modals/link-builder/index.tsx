@@ -55,7 +55,7 @@ import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
-import { useABTestingModal } from "./ab-testing-modal";
+import { useABTestingModal } from "./ab-testing/ab-testing-modal";
 import { ConversionTrackingToggle } from "./conversion-tracking-toggle";
 import { DraftControls, DraftControlsHandle } from "./draft-controls";
 import { useExpirationModal } from "./expiration-modal";

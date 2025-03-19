@@ -10,6 +10,7 @@ import { X } from "@/ui/shared/icons";
 import {
   AnimatedSizeContainer,
   Button,
+  CircleCheck,
   Flask,
   InfoTooltip,
   Modal,
@@ -39,7 +40,7 @@ import {
 import { useForm, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { LinkFormData } from ".";
+import { LinkFormData } from "..";
 
 const parseTests = (tests: LinkFormData["tests"]) =>
   Array.isArray(tests) ? LinkTestsSchema.parse(tests) : null;
@@ -512,7 +513,7 @@ export function getABTestingLabel({
 }: Pick<LinkFormData, "tests" | "testsCompleteAt">) {
   const enabled = Boolean(tests && testsCompleteAt);
 
-  if (testsCompleteAt && new Date(testsCompleteAt) < new Date())
+  if (testsCompleteAt && new Date() > new Date(testsCompleteAt))
     return "Test Complete";
 
   return enabled && Array.isArray(tests) ? `${tests?.length} URLs` : "A/B Test";
@@ -531,17 +532,20 @@ function ABTestingButton({
   });
 
   const enabled = Boolean(tests && testsCompleteAt);
+  const complete = enabled && new Date() > new Date(testsCompleteAt!);
 
   const label = useMemo(
     () => getABTestingLabel({ tests, testsCompleteAt }),
     [tests, testsCompleteAt],
   );
 
+  const Icon = complete ? CircleCheck : Flask;
+
   return (
     <Button
       variant="secondary"
       text={label}
-      icon={<Flask className={cn("size-4", enabled && "text-blue-500")} />}
+      icon={<Icon className={cn("size-4", enabled && "text-blue-500")} />}
       className="h-9 w-fit px-2.5 font-medium text-neutral-700"
       onClick={() => setShowABTestingModal(true)}
     />

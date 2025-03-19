@@ -7,7 +7,7 @@ import {
   useState,
 } from "react";
 import { useFormContext } from "react-hook-form";
-import { LinkFormData } from ".";
+import { LinkFormData } from "..";
 
 function EndABTestingModal({
   showEndABTestingModal,
@@ -94,7 +94,7 @@ function EndABTestingModal({
             onClick={() => {
               if (selectedUrl) {
                 setValueParent("url", selectedUrl, { shouldDirty: true });
-                setValueParent("testsCompleteAt", null, {
+                setValueParent("testsCompleteAt", new Date(), {
                   shouldDirty: true,
                 });
                 setShowEndABTestingModal(false);

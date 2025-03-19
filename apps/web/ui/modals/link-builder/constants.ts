@@ -10,7 +10,7 @@ import {
 } from "@dub/ui/icons";
 import { Settings } from "lucide-react";
 import { LinkFormData } from ".";
-import { getABTestingLabel } from "./ab-testing-modal";
+import { getABTestingLabel } from "./ab-testing/ab-testing-modal";
 import { getExpirationLabel } from "./expiration-modal";
 import { getPasswordLabel } from "./password-modal";
 import { getTargetingLabel } from "./targeting-modal";

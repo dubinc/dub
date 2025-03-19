@@ -11,7 +11,7 @@ import { cn } from "@dub/utils";
 import { useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { LinkFormData } from ".";
-import { useABTestingModal } from "./ab-testing-modal";
+import { useABTestingModal } from "./ab-testing/ab-testing-modal";
 import { useAdvancedModal } from "./advanced-modal";
 import { MOBILE_MORE_ITEMS, MORE_ITEMS } from "./constants";
 import { useExpirationModal } from "./expiration-modal";
