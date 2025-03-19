@@ -1,6 +1,7 @@
 "use server";
 
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
+import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { invitePartnerSchema } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
 import { PartnerInvite } from "@dub/email/templates/partner-invite";
@@ -14,9 +15,9 @@ export const invitePartnerAction = authActionClient
   .schema(invitePartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { programId, name, email, linkId } = parsedInput;
+    const { programId, name, email, linkId, rewardId } = parsedInput;
 
-    const [program, link] = await Promise.all([
+    const [program, link, reward] = await Promise.all([
       getProgramOrThrow({
         workspaceId: workspace.id,
         programId,
@@ -26,7 +27,20 @@ export const invitePartnerAction = authActionClient
         workspaceId: workspace.id,
         linkId,
       }),
+
+      rewardId
+        ? getRewardOrThrow({
+            programId,
+            rewardId,
+          })
+        : null,
     ]);
+
+    if (reward && reward.id === program.defaultRewardId) {
+      throw new Error(
+        "Cannot use default reward for partner-specific rewards.",
+      );
+    }
 
     if (link.partnerId) {
       throw new Error("Link is already associated with another partner.");
@@ -67,6 +81,7 @@ export const invitePartnerAction = authActionClient
       },
       skipEnrollmentCheck: true,
       status: "invited",
+      ...(rewardId && { rewardId }),
     });
 
     waitUntil(

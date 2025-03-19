@@ -1,9 +1,11 @@
 import { invitePartnerAction } from "@/lib/actions/partners/invite-partner";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgram from "@/lib/swr/use-program";
+import useRewards from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { invitePartnerSchema } from "@/lib/zod/schemas/partners";
 import { PartnerLinkSelector } from "@/ui/partners/partner-link-selector";
+import { formatRewardDescription } from "@/ui/partners/program-reward-description";
 import { X } from "@/ui/shared/icons";
 import {
   AnimatedSizeContainer,
@@ -15,9 +17,10 @@ import {
   useLocalStorage,
   useMediaQuery,
 } from "@dub/ui";
+import { cn } from "@dub/utils/src";
 import { motion } from "framer-motion";
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, memo, SetStateAction, useState } from "react";
+import { Dispatch, memo, SetStateAction, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -32,6 +35,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
   const { program } = useProgram();
   const { isMobile } = useMediaQuery();
   const { id: workspaceId, slug } = useWorkspace();
+  const { rewards, loading: rewardsLoading } = useRewards();
 
   const {
     register,
@@ -105,6 +109,13 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
       programId: program.id,
     });
   };
+
+  const salesRewards = useMemo(() => {
+    return rewards?.filter(
+      (reward) =>
+        reward.event === "sale" && reward.id != program?.defaultRewardId,
+    );
+  }, [rewards, program?.defaultRewardId]);
 
   const buttonDisabled =
     isPending ||
@@ -205,6 +216,33 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                   )}
                 </div>
               </AnimatedSizeContainer>
+            </div>
+
+            <div>
+              <label htmlFor="email" className="flex items-center space-x-2">
+                <h2 className="text-sm font-medium text-neutral-900">
+                  Sale reward{" "}
+                  <span className="text-neutral-500">(optional)</span>
+                </h2>
+              </label>
+              <div className="relative mt-2 rounded-md shadow-sm">
+                <select
+                  className={cn(
+                    "block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                    errors.rewardId && "border-red-600",
+                    rewardsLoading && "opacity-50",
+                  )}
+                  {...register("rewardId")}
+                  disabled={rewardsLoading}
+                >
+                  <option value="">Select a partner reward</option>
+                  {salesRewards?.map((reward) => (
+                    <option value={reward.id} key={reward.id}>
+                      {reward.name || formatRewardDescription({ reward })}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
