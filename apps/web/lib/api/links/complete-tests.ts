@@ -67,7 +67,10 @@ export async function completeTests(link: Link & { project: Project }) {
     geo: link.geo as NewLinkProps["geo"],
 
     tests: link.tests as NewLinkProps["tests"],
-    testsCompleteAt: new Date(link.testsCompleteAt).toISOString(),
+    testsCompleteAt:
+      link.testsCompleteAt instanceof Date
+        ? link.testsCompleteAt.toISOString()
+        : link.testsCompleteAt,
 
     // Update URL
     url: winner.url,
