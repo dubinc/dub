@@ -7,6 +7,7 @@ import { FC, useState } from "react";
 import {
   ADDITIONAL_QR_TYPES,
   DEFAULT_QR_TYPES,
+  LINKED_QR_TYPE_LABELS,
   QR_TYPES,
 } from "../../constants/get-qr-config.ts";
 import { Rating } from "../rating-info/components/rating.tsx";
@@ -92,6 +93,7 @@ export const QRTabs: FC<IQRTabsProps> = ({ isMobile }) => {
 
           {QR_TYPES.map((type, idx) => {
             const firstTab = idx === 0;
+            const showWebsiteInput = LINKED_QR_TYPE_LABELS.includes(type.id);
 
             return (
               <Tabs.Content
@@ -119,11 +121,11 @@ export const QRTabs: FC<IQRTabsProps> = ({ isMobile }) => {
                     <div
                       className={cn(
                         "flex flex-col items-center gap-0 md:flex-row md:items-end",
-                        firstTab && "gap-4",
+                        showWebsiteInput && "gap-4",
                         isMobile && "w-full",
                       )}
                     >
-                      {firstTab && (
+                      {showWebsiteInput && (
                         <div
                           className={cn(
                             "flex basis-3/5 flex-col gap-2",

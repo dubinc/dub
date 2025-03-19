@@ -9,8 +9,20 @@ import QrWhatsappFull from "@/ui/landing/assets/png/get-qr-whatsapp-full.png";
 import QrWifiFull from "@/ui/landing/assets/png/get-qr-wifi-full.png";
 import { StaticImageData } from "next/image";
 
+export enum EQRType {
+  WEBSITE = "website",
+  PDF = "pdf",
+  IMAGES = "images",
+  VIDEO = "video",
+  WHATSAPP = "whatsapp",
+  SOCIAL = "social",
+  WIFI = "wifi",
+  APP_LINK = "app-link",
+  FEEDBACK = "feedback",
+}
+
 export type QRType = {
-  id: string;
+  id: EQRType;
   label: string;
   icon: string;
   img: StaticImageData;
@@ -19,7 +31,7 @@ export type QRType = {
 
 export const DEFAULT_QR_TYPES: QRType[] = [
   {
-    id: "website",
+    id: EQRType.WEBSITE,
     label: "Website",
     icon: "streamline:web",
     img: QrWebsiteFull,
@@ -27,7 +39,7 @@ export const DEFAULT_QR_TYPES: QRType[] = [
       "Turn every scan into a visit! Link your website to a QR code and make it easy for customers, clients, or followers to connect with your brand in seconds.",
   },
   {
-    id: "pdf",
+    id: EQRType.PDF,
     label: "PDF",
     icon: "hugeicons:pdf-02",
     img: QrPDFFull,
@@ -35,7 +47,7 @@ export const DEFAULT_QR_TYPES: QRType[] = [
       "Share important documents instantly! Link your PDF to a QR code and give people quick and easy access to menus, guides, brochures, or portfolios—anytime, anywhere.",
   },
   {
-    id: "images",
+    id: EQRType.IMAGES,
     label: "Images",
     icon: "hugeicons:ai-image",
     img: QrImagesFull,
@@ -43,7 +55,7 @@ export const DEFAULT_QR_TYPES: QRType[] = [
       "Showcase your visuals with ease! Use a QR code to share product galleries, event photos, or special moments instantly—perfect for businesses, creatives, and personal use.",
   },
   {
-    id: "video",
+    id: EQRType.VIDEO,
     label: "Video",
     icon: "hugeicons:ai-video",
     img: QrVideosFull,
@@ -51,7 +63,7 @@ export const DEFAULT_QR_TYPES: QRType[] = [
       "Bring your content to life! Use a QR code to instantly share videos—whether it's tutorials, trailers, promotions, or educational content—anytime, anywhere.",
   },
   {
-    id: "whatsapp",
+    id: EQRType.WHATSAPP,
     label: "Whatsapp",
     icon: "basil:whatsapp-outline",
     img: QrWhatsappFull,
@@ -59,7 +71,7 @@ export const DEFAULT_QR_TYPES: QRType[] = [
       "Start conversations instantly! Use a QR code to let customers, clients, or friends message you on WhatsApp with a single scan.",
   },
   {
-    id: "social",
+    id: EQRType.SOCIAL,
     label: "Social Media Link",
     icon: "solar:add-circle-broken",
     img: QrSocialFull,
@@ -67,7 +79,7 @@ export const DEFAULT_QR_TYPES: QRType[] = [
       "Grow your audience effortlessly! Use a QR code to share your social media profiles in one scan—making it easy for people to follow, connect, and engage with your content.",
   },
   {
-    id: "wifi",
+    id: EQRType.WIFI,
     label: "Wifi",
     icon: "streamline:wifi",
     img: QrWifiFull,
@@ -78,7 +90,7 @@ export const DEFAULT_QR_TYPES: QRType[] = [
 
 export const ADDITIONAL_QR_TYPES: QRType[] = [
   {
-    id: "app-link",
+    id: EQRType.APP_LINK,
     label: "App Link",
     icon: "meteor-icons:link",
     img: QrAppLinkFull,
@@ -86,7 +98,7 @@ export const ADDITIONAL_QR_TYPES: QRType[] = [
       "Make app downloads effortless! Use a QR code to instantly direct users to your app’s download page—no searching required. Perfect for boosting installs and engagement.",
   },
   {
-    id: "feedback",
+    id: EQRType.FEEDBACK,
     label: "Feedback Request",
     icon: "hugeicons:bubble-chat-favourite",
     img: QrFeedbackFull,
@@ -96,3 +108,9 @@ export const ADDITIONAL_QR_TYPES: QRType[] = [
 ];
 
 export const QR_TYPES: QRType[] = [...DEFAULT_QR_TYPES, ...ADDITIONAL_QR_TYPES];
+
+export const LINKED_QR_TYPE_LABELS: EQRType[] = [
+  EQRType.WEBSITE,
+  EQRType.APP_LINK,
+  EQRType.SOCIAL,
+];
