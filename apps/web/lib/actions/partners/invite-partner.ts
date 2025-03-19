@@ -1,6 +1,7 @@
 "use server";
 
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
+import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { invitePartnerSchema } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
@@ -15,9 +16,10 @@ export const invitePartnerAction = authActionClient
   .schema(invitePartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { programId, name, email, linkId, rewardId } = parsedInput;
+    const { programId, name, email, linkId, rewardId, discountId } =
+      parsedInput;
 
-    const [program, link, reward] = await Promise.all([
+    const [program, link, reward, discount] = await Promise.all([
       getProgramOrThrow({
         workspaceId: workspace.id,
         programId,
@@ -34,11 +36,24 @@ export const invitePartnerAction = authActionClient
             rewardId,
           })
         : null,
+
+      discountId
+        ? getDiscountOrThrow({
+            programId,
+            discountId,
+          })
+        : null,
     ]);
 
     if (reward && reward.id === program.defaultRewardId) {
       throw new Error(
         "Cannot use default reward for partner-specific rewards.",
+      );
+    }
+
+    if (discount && discount.id === program.defaultDiscountId) {
+      throw new Error(
+        "Cannot use default discount for partner-specific discounts.",
       );
     }
 
@@ -82,6 +97,7 @@ export const invitePartnerAction = authActionClient
       skipEnrollmentCheck: true,
       status: "invited",
       ...(rewardId && { rewardId }),
+      ...(discountId && { discountId }),
     });
 
     waitUntil(

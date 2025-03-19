@@ -1,11 +1,13 @@
 import { invitePartnerAction } from "@/lib/actions/partners/invite-partner";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import useDiscounts from "@/lib/swr/use-discounts";
 import useProgram from "@/lib/swr/use-program";
 import useRewards from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { invitePartnerSchema } from "@/lib/zod/schemas/partners";
+import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
+import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { PartnerLinkSelector } from "@/ui/partners/partner-link-selector";
-import { formatRewardDescription } from "@/ui/partners/program-reward-description";
 import { X } from "@/ui/shared/icons";
 import {
   AnimatedSizeContainer,
@@ -36,6 +38,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
   const { isMobile } = useMediaQuery();
   const { id: workspaceId, slug } = useWorkspace();
   const { rewards, loading: rewardsLoading } = useRewards();
+  const { discounts, loading: discountsLoading } = useDiscounts();
 
   const {
     register,
@@ -110,12 +113,18 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
     });
   };
 
-  const salesRewards = useMemo(() => {
+  const partnerSalesRewards = useMemo(() => {
     return rewards?.filter(
       (reward) =>
         reward.event === "sale" && reward.id != program?.defaultRewardId,
     );
   }, [rewards, program?.defaultRewardId]);
+
+  const partnerDiscounts = useMemo(() => {
+    return discounts?.filter(
+      (discount) => discount.id != program?.defaultDiscountId,
+    );
+  }, [discounts, program?.defaultDiscountId]);
 
   const buttonDisabled =
     isPending ||
@@ -219,7 +228,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
             </div>
 
             <div>
-              <label htmlFor="email" className="flex items-center space-x-2">
+              <label htmlFor="rewardId" className="flex items-center space-x-2">
                 <h2 className="text-sm font-medium text-neutral-900">
                   Sale reward{" "}
                   <span className="text-neutral-500">(optional)</span>
@@ -235,10 +244,39 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                   {...register("rewardId")}
                   disabled={rewardsLoading}
                 >
-                  <option value="">Select a partner reward</option>
-                  {salesRewards?.map((reward) => (
+                  <option value="">Select a reward</option>
+                  {partnerSalesRewards?.map((reward) => (
                     <option value={reward.id} key={reward.id}>
                       {reward.name || formatRewardDescription({ reward })}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label
+                htmlFor="discountId"
+                className="flex items-center space-x-2"
+              >
+                <h2 className="text-sm font-medium text-neutral-900">
+                  Discount <span className="text-neutral-500">(optional)</span>
+                </h2>
+              </label>
+              <div className="relative mt-2 rounded-md shadow-sm">
+                <select
+                  className={cn(
+                    "block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                    errors.discountId && "border-red-600",
+                    discountsLoading && "opacity-50",
+                  )}
+                  {...register("discountId")}
+                  disabled={discountsLoading}
+                >
+                  <option value="">Select a discount</option>
+                  {partnerDiscounts?.map((discount) => (
+                    <option value={discount.id} key={discount.id}>
+                      {formatDiscountDescription({ discount })}
                     </option>
                   ))}
                 </select>

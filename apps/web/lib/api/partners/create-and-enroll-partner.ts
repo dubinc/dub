@@ -22,6 +22,7 @@ export const createAndEnrollPartner = async ({
   link,
   partner,
   rewardId,
+  discountId,
   tenantId,
   status = "approved",
   skipEnrollmentCheck = false,
@@ -34,6 +35,7 @@ export const createAndEnrollPartner = async ({
     "email" | "name" | "image" | "country" | "description"
   >;
   rewardId?: string;
+  discountId?: string;
   tenantId?: string;
   status?: ProgramEnrollmentStatus;
   skipEnrollmentCheck?: boolean;
@@ -92,6 +94,9 @@ export const createAndEnrollPartner = async ({
               rewardId,
             },
           },
+        }),
+        ...(discountId && {
+          discountId,
         }),
       },
     },
