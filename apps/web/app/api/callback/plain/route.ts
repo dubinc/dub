@@ -1,3 +1,4 @@
+import { prefixWorkspaceId } from "@/lib/api/workspace-id";
 import { plain } from "@/lib/plain";
 import { prisma } from "@dub/prisma";
 import { capitalize, formatDate } from "@dub/utils";
@@ -143,7 +144,7 @@ export async function POST(req: NextRequest) {
         components: [
           ...plainCopySection({
             label: "Workspace ID",
-            value: `ws_${id}`,
+            value: prefixWorkspaceId(id),
           }),
           ...plainCopySection({
             label: "Workspace Name",

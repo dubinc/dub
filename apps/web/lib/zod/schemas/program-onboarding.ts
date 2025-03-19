@@ -22,7 +22,7 @@ export const programRewardSchema = z
         id: z.string(),
         affiliates: z.number(),
         commission_amount_cents: z.number().nullable(),
-        max_commission_period_months: z.number(),
+        max_commission_period_months: z.number().nullable(),
         reward_type: z.enum(["amount", "percent"]),
         commission_percent: z.number().nullable(),
       })

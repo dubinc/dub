@@ -10,7 +10,9 @@ export interface RewardfulCampaign {
   url: string;
   affiliates: number;
   commission_amount_cents: number;
+  minimum_payout_cents: number;
   max_commission_period_months: number;
+  days_until_commissions_are_due: number;
   reward_type: "amount" | "percent";
   commission_percent: number;
   created_at: string;
