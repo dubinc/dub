@@ -558,7 +558,7 @@ function ABTestingComplete({
       <h3 className="text-lg font-medium">A/B test complete</h3>
 
       {/* Testing URLs */}
-      <div className="mt-8">
+      <div className="mt-6">
         <div className="flex flex-col gap-2">
           {tests?.map((test, index) => (
             <div
