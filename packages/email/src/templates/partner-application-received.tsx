@@ -19,7 +19,7 @@ export function PartnerApplicationReceived({
   partner = {
     id: "pn_1JPBEGP7EXF76CXT1W99VERW5",
     name: "John Doe",
-    email: "panic@thedis.co",
+    email: "john@example.com",
     image:
       "https://www.gravatar.com/avatar/2c7d99fe281ecd3bcd65ab915bac6dd5?s=250",
     country: "US",

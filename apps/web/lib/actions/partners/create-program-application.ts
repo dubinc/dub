@@ -123,6 +123,11 @@ async function createApplicationAndEnrollment({
           notificationPreference: {
             newPartnerApplication: true,
           },
+          user: {
+            email: {
+              not: null,
+            },
+          },
         },
         include: {
           user: {
@@ -133,14 +138,14 @@ async function createApplicationAndEnrollment({
         },
       });
 
-      await Promise.all([
-        ...workspaceUsers.map(({ user }) =>
+      await Promise.all(
+        workspaceUsers.map(({ user }) =>
           limiter.schedule(() =>
             sendEmail({
               subject: `New partner application for ${program.name}.`,
               email: user.email!,
               react: PartnerApplicationReceived({
-                email: partner.email!,
+                email: user.email!,
                 partner: {
                   id: partner.id,
                   name: partner.name,
@@ -158,7 +163,7 @@ async function createApplicationAndEnrollment({
             }),
           ),
         ),
-      ]);
+      );
     })(),
   );
 
