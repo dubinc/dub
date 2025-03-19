@@ -9,6 +9,7 @@ import {
 import { redis } from "@/lib/upstash";
 import z from "@/lib/zod";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
+import { parseDateSchema } from "@/lib/zod/schemas/utils";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { linkConstructorSimple, nanoid } from "@dub/utils";
@@ -20,12 +21,12 @@ const schema = z.array(
     via: z.string(),
     externalId: z.string(),
     eventName: z.string(),
-    creationDate: z.string(),
+    creationDate: parseDateSchema,
   }),
 );
 
 const FRAMER_WORKSPACE_ID = "clsvopiw0000ejy0grp821me0";
-const CACHE_KEY = "framerMigratedLeadEventNames";
+const CACHE_KEY = "framerMigratedExternalIdEventNames";
 const DOMAIN = "framer.link";
 
 // POST /api/cron/framer/backfill-leads-batch
@@ -34,12 +35,14 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  let payload = schema.parse(await parseRequestBody(req));
+  const originalPayload = schema.parse(await parseRequestBody(req));
 
   // Filter out those eventName that are already recorded
-  const eventNames = payload.map((p) => p.eventName);
-  const existsResults = await redis.smismember(CACHE_KEY, eventNames);
-  payload = payload.filter((_, index) => !existsResults[index]);
+  const externalIdEventNames = originalPayload.map(
+    (p) => `${p.externalId}:${p.eventName}`,
+  );
+  const existsResults = await redis.smismember(CACHE_KEY, externalIdEventNames);
+  const payload = originalPayload.filter((_, index) => !existsResults[index]);
 
   const links = await prisma.link.findMany({
     where: {
@@ -74,13 +77,45 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
 
   const linkMap = new Map(links.map((l) => [l.key, l]));
 
+  const customerData = payload.map((p) => {
+    return {
+      id: createId({ prefix: "cus_" }),
+      name: generateRandomName(),
+      externalId: p.externalId,
+      projectId: workspace.id,
+      projectConnectId: workspace.stripeConnectId,
+      clickId: nanoid(16),
+      linkId: linkMap.get(p.via)!.id,
+      clickedAt: new Date(p.creationDate),
+      createdAt: new Date(p.creationDate),
+    };
+  });
+
+  await prisma.customer.createMany({
+    data: customerData,
+    skipDuplicates: true,
+  });
+
+  const finalCustomers = await prisma.customer.findMany({
+    where: {
+      projectId: workspace.id,
+      externalId: {
+        in: customerData.map((c) => c.externalId),
+      },
+    },
+  });
+
+  const customerMap = new Map(
+    finalCustomers.map((c) => [c.externalId, { id: c.id, clickId: c.clickId }]),
+  );
+
   const dataArray = payload.map((p) => {
     const link = linkMap.get(p.via)!;
 
     const clickData = {
       timestamp: new Date(p.creationDate).toISOString(),
-      identity_hash: nanoid(25), // TODO: Fix it
-      click_id: nanoid(16),
+      identity_hash: p.externalId,
+      click_id: customerMap.get(p.externalId)!.clickId,
       link_id: link.id,
       alias_link_id: "",
       url: link.url,
@@ -110,26 +145,12 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
     };
 
     const clickEvent = clickEventSchemaTB.parse(clickData);
-    const customerId = createId({ prefix: "cus_" });
-
-    const customerData = {
-      id: customerId,
-      name: generateRandomName(),
-      externalId: p.externalId,
-      projectId: workspace.id,
-      projectConnectId: workspace.stripeConnectId,
-      clickId: clickEvent.click_id,
-      linkId: link.id,
-      country: clickEvent.country,
-      clickedAt: new Date(p.creationDate),
-      createdAt: new Date(p.creationDate),
-    };
 
     const leadEventData = {
       ...clickEvent,
       event_id: nanoid(16),
       event_name: p.eventName,
-      customer_id: customerId,
+      customer_id: customerMap.get(p.externalId)!.id,
       timestamp: new Date(p.creationDate).toISOString(),
     };
 
@@ -140,7 +161,7 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
       event_id: saleEventId,
       event_name: "Invoice paid",
       amount: 0,
-      customer_id: customerId,
+      customer_id: customerMap.get(p.externalId)!.id,
       payment_processor: "custom",
       currency: "usd",
       timestamp: new Date(p.creationDate).toISOString(),
@@ -153,7 +174,7 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
       programId: link.programId!,
       partnerId: link.partnerId!,
       linkId: link.id,
-      customerId: customerId,
+      customerId: customerMap.get(p.externalId)!.id,
       amount: 0,
       quantity: 1,
       status: "paid",
@@ -161,101 +182,100 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
     };
 
     return {
+      ...p,
       clickData,
-      customerData,
       leadEventData,
       saleEventData,
       commissionData,
     };
   });
 
-  await Promise.all([
-    // Record clicks
-    fetch(
-      `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_click_events&wait=true`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
-          "Content-Type": "application/x-ndjson",
+  if (dataArray.length > 0) {
+    await Promise.all([
+      // Record clicks
+      fetch(
+        `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_click_events&wait=true`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
+            "Content-Type": "application/x-ndjson",
+          },
+          body: dataArray.map((d) => JSON.stringify(d.clickData)).join("\n"),
         },
-        body: dataArray.map((d) => JSON.stringify(d.clickData)).join("\n"),
-      },
-    ),
+      ),
 
-    // Record customers
-    prisma.customer.createMany({
-      data: dataArray.map((d) => d.customerData),
-      skipDuplicates: true,
-    }),
+      // Record leads
+      recordLeadWithTimestamp(dataArray.map((d) => d.leadEventData)),
 
-    // Record leads
-    recordLeadWithTimestamp(dataArray.map((d) => d.leadEventData)),
+      // Record commissions
+      prisma.commission.createMany({
+        data: dataArray.map((d) => d.commissionData),
+        skipDuplicates: true,
+      }),
 
-    // Record commissions
-    prisma.commission.createMany({
-      data: dataArray.map((d) => d.commissionData),
-      skipDuplicates: true,
-    }),
+      // Record sales
+      recordSaleWithTimestamp(dataArray.map((d) => d.saleEventData)),
 
-    // Record sales
-    recordSaleWithTimestamp(dataArray.map((d) => d.saleEventData)),
-
-    // Cache the eventName
-    redis.sadd(CACHE_KEY, ...dataArray.map((d) => d.leadEventData.event_name)),
-  ]);
-
-  waitUntil(
-    (async () => {
-      // Update link stats
-      const linkCount = payload.reduce(
-        (acc, p) => {
-          acc[p.via] = (acc[p.via] || 0) + 1;
-          return acc;
-        },
-        {} as Record<string, number>,
-      );
-
-      // Group the links by the number of times they appear in the payload
-      const groupedLinks = Object.entries(linkCount).reduce(
-        (acc, [key, value]) => {
-          acc[value] = (acc[value] || []).concat(key);
-          return acc;
-        },
-        {} as Record<number, string[]>,
-      );
-
-      await Promise.all(
-        Object.entries(groupedLinks).map(([count, linkKeys]) =>
-          prisma.link.updateMany({
-            where: {
-              shortLink: {
-                in: linkKeys.map((key) =>
-                  linkConstructorSimple({
-                    domain: DOMAIN,
-                    key,
-                  }),
-                ),
-              },
-            },
-            data: {
-              clicks: {
-                increment: parseInt(count),
-              },
-              leads: {
-                increment: parseInt(count),
-              },
-              sales: {
-                increment: parseInt(count),
-              },
-            },
-          }),
+      // Cache the externalId:eventName pairs
+      redis.sadd(
+        CACHE_KEY,
+        ...dataArray.map(
+          ({ externalId, eventName }) => `${externalId}:${eventName}`,
         ),
-      );
-    })(),
-  );
+      ),
+    ]);
 
-  return NextResponse.json({
-    message: `Backfilled ${payload.length} leads and sales.`,
-  });
+    waitUntil(
+      (async () => {
+        // Update link stats
+        const linkCount = payload.reduce(
+          (acc, p) => {
+            acc[p.via] = (acc[p.via] || 0) + 1;
+            return acc;
+          },
+          {} as Record<string, number>,
+        );
+
+        // Group the links by the number of times they appear in the payload
+        const groupedLinks = Object.entries(linkCount).reduce(
+          (acc, [key, value]) => {
+            acc[value] = (acc[value] || []).concat(key);
+            return acc;
+          },
+          {} as Record<number, string[]>,
+        );
+
+        await Promise.all(
+          Object.entries(groupedLinks).map(([count, linkKeys]) =>
+            prisma.link.updateMany({
+              where: {
+                shortLink: {
+                  in: linkKeys.map((key) =>
+                    linkConstructorSimple({
+                      domain: DOMAIN,
+                      key,
+                    }),
+                  ),
+                },
+              },
+              data: {
+                clicks: {
+                  increment: parseInt(count),
+                },
+                leads: {
+                  increment: parseInt(count),
+                },
+                sales: {
+                  increment: parseInt(count),
+                },
+              },
+            }),
+          ),
+        );
+      })(),
+    );
+  }
+
+  return NextResponse.json(originalPayload);
 });
