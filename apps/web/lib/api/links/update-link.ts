@@ -28,7 +28,6 @@ export async function updateLink({
     domain: string;
     key: string;
     image?: string | null;
-    testsCompleteAt?: Date | null;
   };
   updatedLink: ProcessedLinkProps &
     Pick<LinkProps, "id" | "clicks" | "lastClicked" | "updatedAt">;
@@ -63,6 +62,7 @@ export async function updateLink({
     tagNames,
     webhookIds,
     tests,
+    testsStartedAt,
     testsCompleteAt,
     ...rest
   } = updatedLink;
@@ -75,15 +75,6 @@ export async function updateLink({
     domain: updatedLink.domain,
     key: updatedLink.key,
   });
-
-  // Update testsStartedAt to now if there are tests to be completed, and the old link had no tests or completed tests
-  const testsStartedAt =
-    tests &&
-    testsCompleteAt &&
-    new Date(testsCompleteAt) > new Date() &&
-    (!oldLink.testsCompleteAt || new Date(oldLink.testsCompleteAt) < new Date())
-      ? new Date()
-      : undefined;
 
   const response = await prisma.link.update({
     where: {
@@ -112,7 +103,7 @@ export async function updateLink({
 
       tests: tests || Prisma.JsonNull,
       testsCompleteAt: testsCompleteAt ? new Date(testsCompleteAt) : null,
-      testsStartedAt,
+      testsStartedAt: testsStartedAt ? new Date(testsStartedAt) : null,
 
       // Associate tags by tagNames
       ...(tagNames &&

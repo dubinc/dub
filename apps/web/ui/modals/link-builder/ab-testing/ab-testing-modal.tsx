@@ -69,19 +69,12 @@ function ABTestingModalInner({
 }: {
   setShowABTestingModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { watch: watchParent, setValue: setValueParent } =
-    useFormContext<LinkFormData>();
+  const { watch: watchParent } = useFormContext<LinkFormData>();
 
   const [tests, testsCompleteAt] = watchParent(["tests", "testsCompleteAt"]);
 
   return tests && testsCompleteAt && new Date(testsCompleteAt) < new Date() ? (
-    <ABTestingComplete
-      setShowABTestingModal={setShowABTestingModal}
-      onCreateNew={() => {
-        setValueParent("tests", null, { shouldDirty: true });
-        setValueParent("testsCompleteAt", null, { shouldDirty: true });
-      }}
-    />
+    <ABTestingComplete setShowABTestingModal={setShowABTestingModal} />
   ) : (
     <ABTestingEdit setShowABTestingModal={setShowABTestingModal} />
   );
@@ -135,7 +128,11 @@ function ABTestingEdit({
 
   const tests = watch("tests") || [];
   const testsCompleteAt = watch("testsCompleteAt");
-  const [idParent, testsParent] = watchParent(["id", "tests"]);
+  const [idParent, testsParent, testsStartedAtParent] = watchParent([
+    "id",
+    "tests",
+    "testsStartedAt",
+  ]);
 
   const addTestUrl = () => {
     if (!tests.length || tests.length >= MAX_TEST_COUNT) return;
@@ -269,6 +266,11 @@ function ABTestingEdit({
             setValueParent("testsCompleteAt", data.testsCompleteAt, {
               shouldDirty: true,
             });
+            if (!testsStartedAtParent)
+              setValueParent("testsStartedAt", new Date(), {
+                shouldDirty: true,
+              });
+
             setShowABTestingModal(false);
           })(e);
         }}
@@ -543,10 +545,8 @@ function ABTestingEdit({
 
 function ABTestingComplete({
   setShowABTestingModal,
-  onCreateNew,
 }: {
   setShowABTestingModal: Dispatch<SetStateAction<boolean>>;
-  onCreateNew: () => void;
 }) {
   const { watch } = useFormContext<LinkFormData>();
 
@@ -589,13 +589,6 @@ function ABTestingComplete({
             onClick={() => {
               setShowABTestingModal(false);
             }}
-          />
-          <Button
-            type="submit"
-            variant="primary"
-            text="Create new test"
-            className="h-9 w-fit"
-            onClick={onCreateNew}
           />
         </div>
       </div>

@@ -146,7 +146,6 @@ export const PUT = withWorkspace(
             domain: link.domain,
             key: link.key,
             image: link.image,
-            testsCompleteAt: link.testsCompleteAt,
           },
           updatedLink: processedLink,
         });
