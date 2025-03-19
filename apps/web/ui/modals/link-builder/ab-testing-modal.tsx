@@ -91,7 +91,7 @@ function ABTestingModal({
 
   const tests = watch("tests") || [];
   const testsCompleteAt = watch("testsCompleteAt");
-  const testsParent = watchParent("tests");
+  const [idParent, testsParent] = watchParent(["id", "tests"]);
 
   const addTestUrl = () => {
     if (!tests.length || tests.length >= MAX_TEST_COUNT) return;
@@ -442,7 +442,22 @@ function ABTestingModal({
         )}
 
         <div className="mt-4 flex items-center justify-between">
-          <div></div>
+          <div>
+            {Boolean(testsParent) && (
+              <button
+                type="button"
+                className="text-xs font-medium text-neutral-700 transition-colors hover:text-neutral-950"
+                onClick={() => {
+                  (["tests", "testsCompleteAt"] as const).forEach((key) =>
+                    setValueParent(key, null, { shouldDirty: true }),
+                  );
+                  setShowABTestingModal(false);
+                }}
+              >
+                {idParent ? "End" : "Remove"} A/B test
+              </button>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             <Button
               type="button"
