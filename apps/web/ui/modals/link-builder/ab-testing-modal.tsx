@@ -4,6 +4,7 @@ import {
   MIN_TEST_PERCENTAGE,
 } from "@/lib/zod/schemas/links";
 import { useAvailableDomains } from "@/ui/links/use-available-domains";
+import { useEndABTestingModal } from "@/ui/modals/link-builder/end-ab-testing-modal";
 import { BusinessBadgeTooltip } from "@/ui/shared/business-badge-tooltip";
 import { X } from "@/ui/shared/icons";
 import {
@@ -64,6 +65,9 @@ function ABTestingModal({
   const { domains } = useAvailableDomains({
     currentDomain: domain,
   });
+
+  const { EndABTestingModal, setShowEndABTestingModal } =
+    useEndABTestingModal();
 
   const {
     watch,
@@ -189,6 +193,7 @@ function ABTestingModal({
       setShowModal={setShowABTestingModal}
       className="sm:max-w-md"
     >
+      <EndABTestingModal />
       <form
         className="px-5 py-4"
         onSubmit={(e) => {
@@ -448,10 +453,14 @@ function ABTestingModal({
                 type="button"
                 className="text-xs font-medium text-neutral-700 transition-colors hover:text-neutral-950"
                 onClick={() => {
-                  (["tests", "testsCompleteAt"] as const).forEach((key) =>
-                    setValueParent(key, null, { shouldDirty: true }),
-                  );
-                  setShowABTestingModal(false);
+                  if (idParent) {
+                    setShowEndABTestingModal(true);
+                  } else {
+                    (["tests", "testsCompleteAt"] as const).forEach((key) =>
+                      setValueParent(key, null, { shouldDirty: true }),
+                    );
+                    setShowABTestingModal(false);
+                  }
                 }}
               >
                 {idParent ? "End" : "Remove"} A/B test
@@ -543,10 +552,12 @@ export function useABTestingModal() {
 
   const ABTestingModalCallback = useCallback(() => {
     return (
-      <ABTestingModal
-        showABTestingModal={showABTestingModal}
-        setShowABTestingModal={setShowABTestingModal}
-      />
+      <>
+        <ABTestingModal
+          showABTestingModal={showABTestingModal}
+          setShowABTestingModal={setShowABTestingModal}
+        />
+      </>
     );
   }, [showABTestingModal, setShowABTestingModal]);
 
