@@ -143,4 +143,5 @@ export const notificationTypes = z.enum([
   "linkUsageSummary",
   "domainConfigurationUpdates",
   "newPartnerSale",
+  "newPartnerApplication",
 ]);

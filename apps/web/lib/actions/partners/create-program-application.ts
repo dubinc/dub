@@ -1,16 +1,17 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
+import { notifyPartnerApplication } from "@/lib/api/partners/notify-partner-application";
 import { getIP } from "@/lib/api/utils";
 import { getSession } from "@/lib/auth";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { Partner, Program, ProgramEnrollment } from "@dub/prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { addDays } from "date-fns";
 import { cookies } from "next/headers";
 import z from "../../zod";
 import { actionClient } from "../safe-action";
-
 const createProgramApplicationSchema = z.object({
   programId: z.string(),
   name: z.string().trim().min(1).max(100),
@@ -91,7 +92,7 @@ async function createApplicationAndEnrollment({
   const applicationId = createId({ prefix: "pga_" });
   const enrollmentId = createId({ prefix: "pge_" });
 
-  await Promise.all([
+  const [application, _] = await Promise.all([
     prisma.programApplication.create({
       data: {
         ...data,
@@ -111,6 +112,14 @@ async function createApplicationAndEnrollment({
       },
     }),
   ]);
+
+  waitUntil(
+    notifyPartnerApplication({
+      partner,
+      program,
+      application,
+    }),
+  );
 
   return {
     programApplicationId: applicationId,
