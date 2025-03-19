@@ -26,6 +26,14 @@ const schema = z.array(
   }),
 );
 
+// type coercion cause for some reason the return type of parseDateSchema is not Date
+type PayloadItem = {
+  via: string;
+  externalId: string;
+  eventName: string;
+  creationDate: Date;
+};
+
 const FRAMER_WORKSPACE_ID = "clsvopiw0000ejy0grp821me0";
 const CACHE_KEY = "framerMigratedExternalIdEventNames";
 const DOMAIN = "framer.link";
@@ -40,7 +48,9 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
       });
     }
 
-    const originalPayload = schema.parse(await parseRequestBody(req));
+    const originalPayload = schema.parse(
+      await parseRequestBody(req),
+    ) as PayloadItem[];
 
     // Filter out those eventName that are already recorded
     const externalIdEventNames = originalPayload.map(
@@ -50,7 +60,9 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
       CACHE_KEY,
       externalIdEventNames,
     );
-    const payload = originalPayload.filter((_, index) => !existsResults[index]);
+    const payload = originalPayload.filter(
+      (_, index) => !existsResults[index],
+    ) as PayloadItem[];
 
     if (payload.length > 0) {
       const links = await prisma.link.findMany({
