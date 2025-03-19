@@ -2,6 +2,7 @@ import { prisma } from "@dub/prisma";
 import { DUB_WORKSPACE_ID, isDubDomain } from "@dub/utils";
 import { Project } from "@prisma/client";
 import { DubApiError } from "../errors";
+import { prefixWorkspaceId } from "../workspace-id";
 
 export const getDomainOrThrow = async ({
   workspace,
@@ -37,13 +38,13 @@ export const getDomainOrThrow = async ({
     if (dubDomainChecks && workspace.id !== DUB_WORKSPACE_ID) {
       throw new DubApiError({
         code: "forbidden",
-        message: `Domain ${domain} does not belong to workspace ws_${workspace.id}.`,
+        message: `Domain ${domain} does not belong to workspace ${prefixWorkspaceId(workspace.id)}.`,
       });
     }
   } else if (domainRecord.projectId !== workspace.id) {
     throw new DubApiError({
       code: "forbidden",
-      message: `Domain ${domain} does not belong to workspace ws_${workspace.id}.`,
+      message: `Domain ${domain} does not belong to workspace ${prefixWorkspaceId(workspace.id)}.`,
     });
   }
 
