@@ -7,6 +7,7 @@ import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import EditColumnsButton from "@/ui/analytics/events/edit-columns-button";
+import { PartnerApplicationSheet } from "@/ui/partners/partner-application-sheet";
 import { PartnerDetailsSheet } from "@/ui/partners/partner-details-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
@@ -233,15 +234,24 @@ export function PartnerTable() {
 
   return (
     <div className="flex flex-col gap-3">
-      {detailsSheetState.partner && (
-        <PartnerDetailsSheet
-          isOpen={detailsSheetState.open}
-          setIsOpen={(open) =>
-            setDetailsSheetState((s) => ({ ...s, open }) as any)
-          }
-          partner={detailsSheetState.partner}
-        />
-      )}
+      {detailsSheetState.partner &&
+        (detailsSheetState.partner.status === "pending" ? (
+          <PartnerApplicationSheet
+            isOpen={detailsSheetState.open}
+            setIsOpen={(open) =>
+              setDetailsSheetState((s) => ({ ...s, open }) as any)
+            }
+            partner={detailsSheetState.partner}
+          />
+        ) : (
+          <PartnerDetailsSheet
+            isOpen={detailsSheetState.open}
+            setIsOpen={(open) =>
+              setDetailsSheetState((s) => ({ ...s, open }) as any)
+            }
+            partner={detailsSheetState.partner}
+          />
+        ))}
       <div>
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <Filter.Select

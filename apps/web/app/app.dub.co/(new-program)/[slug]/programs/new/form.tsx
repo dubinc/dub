@@ -127,7 +127,7 @@ export function Form() {
         </label>
         <Input
           {...register("name", { required: true })}
-          placeholder="Acme Partner Program"
+          placeholder="Acme"
           autoFocus={!isMobile}
           className={"mt-2 max-w-full"}
         />

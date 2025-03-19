@@ -1,6 +1,7 @@
 import z from "@/lib/zod";
 import { ExpandedLink } from "../api/links";
 import { decodeKeyIfCaseSensitive } from "../api/links/case-sensitivity";
+import { prefixWorkspaceId } from "../api/workspace-id";
 import { tb } from "./client";
 
 // Domains that are not recorded in Tinybird
@@ -33,11 +34,8 @@ export const dubLinksMetadataSchema = z.object({
     .nullish()
     .transform((v) => {
       if (!v) return ""; // return empty string if null or undefined
-      if (!v.startsWith("ws_")) {
-        return `ws_${v}`;
-      } else {
-        return v;
-      }
+
+      return prefixWorkspaceId(v);
     }),
   created_at: z
     .date()
