@@ -31,16 +31,15 @@ import {
   Dispatch,
   SetStateAction,
   useCallback,
-  useEffect,
   useId,
   useMemo,
-  useRef,
   useState,
 } from "react";
 import { useForm, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { LinkFormData } from "..";
+import { TrafficSplitSlider } from "./traffic-split-slider";
 
 const parseTests = (tests: LinkFormData["tests"]) =>
   Array.isArray(tests) ? LinkTestsSchema.parse(tests) : null;
@@ -52,6 +51,45 @@ function ABTestingModal({
   setShowABTestingModal,
 }: {
   showABTestingModal: boolean;
+  setShowABTestingModal: Dispatch<SetStateAction<boolean>>;
+}) {
+  return (
+    <Modal
+      showModal={showABTestingModal}
+      setShowModal={setShowABTestingModal}
+      className="sm:max-w-md"
+    >
+      <ABTestingModalInner setShowABTestingModal={setShowABTestingModal} />
+    </Modal>
+  );
+}
+
+function ABTestingModalInner({
+  setShowABTestingModal,
+}: {
+  setShowABTestingModal: Dispatch<SetStateAction<boolean>>;
+}) {
+  const { watch: watchParent, setValue: setValueParent } =
+    useFormContext<LinkFormData>();
+
+  const [tests, testsCompleteAt] = watchParent(["tests", "testsCompleteAt"]);
+
+  return tests && testsCompleteAt && new Date(testsCompleteAt) < new Date() ? (
+    <ABTestingComplete
+      setShowABTestingModal={setShowABTestingModal}
+      onCreateNew={() => {
+        setValueParent("tests", null, { shouldDirty: true });
+        setValueParent("testsCompleteAt", null, { shouldDirty: true });
+      }}
+    />
+  ) : (
+    <ABTestingEdit setShowABTestingModal={setShowABTestingModal} />
+  );
+}
+
+function ABTestingEdit({
+  setShowABTestingModal,
+}: {
   setShowABTestingModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const id = useId();
@@ -190,11 +228,7 @@ function ABTestingModal({
   };
 
   return (
-    <Modal
-      showModal={showABTestingModal}
-      setShowModal={setShowABTestingModal}
-      className="sm:max-w-md"
-    >
+    <>
       <EndABTestingModal />
       <form
         className="px-5 py-4"
@@ -503,7 +537,69 @@ function ABTestingModal({
           </div>
         </div>
       </form>
-    </Modal>
+    </>
+  );
+}
+
+function ABTestingComplete({
+  setShowABTestingModal,
+  onCreateNew,
+}: {
+  setShowABTestingModal: Dispatch<SetStateAction<boolean>>;
+  onCreateNew: () => void;
+}) {
+  const { watch } = useFormContext<LinkFormData>();
+
+  const [testsRaw, winnerUrl] = watch(["tests", "url"]);
+  const tests = useMemo(() => parseTests(testsRaw), [testsRaw]);
+
+  return (
+    <div className="px-5 py-4">
+      <h3 className="text-lg font-medium">A/B test complete</h3>
+
+      {/* Testing URLs */}
+      <div className="mt-8">
+        <div className="flex flex-col gap-2">
+          {tests?.map((test, index) => (
+            <div
+              key={index}
+              className="relative block flex grow items-center overflow-hidden rounded-md border border-neutral-300 focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500"
+            >
+              <span className="flex h-9 w-8 shrink-0 items-center justify-center border-r border-neutral-300 text-center text-sm font-medium text-neutral-800">
+                {index + 1}
+              </span>
+              <span className="min-w-0 grow truncate px-2 text-sm text-neutral-800 placeholder-neutral-400">
+                {test.url}
+              </span>
+              {winnerUrl === test.url && (
+                <CircleCheck className="ml-2 mr-3 size-4 shrink-0 text-blue-500" />
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-4 flex items-center justify-end">
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            text="Close"
+            className="h-9 w-fit"
+            onClick={() => {
+              setShowABTestingModal(false);
+            }}
+          />
+          <Button
+            type="submit"
+            variant="primary"
+            text="Create new test"
+            className="h-9 w-fit"
+            onClick={onCreateNew}
+          />
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -577,114 +673,5 @@ export function useABTestingModal() {
       ABTestingButton: ABTestingButtonCallback,
     }),
     [setShowABTestingModal, ABTestingModalCallback, ABTestingButtonCallback],
-  );
-}
-
-function TrafficSplitSlider({
-  tests,
-  onChange,
-}: {
-  tests: { url: string; percentage: number }[];
-  onChange: (percentages: number[]) => void;
-}) {
-  const [isDragging, setIsDragging] = useState<number | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  const handleMouseDown = (index: number) => (e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsDragging(index);
-  };
-
-  const handleMouseMove = useCallback(
-    (e: MouseEvent) => {
-      if (isDragging === null || !containerRef.current) return;
-
-      const containerRect = containerRef.current.getBoundingClientRect();
-      const containerWidth = containerRect.width;
-      const mouseX = e.clientX - containerRect.x;
-      const mousePercentage = Math.round((mouseX / containerWidth) * 100);
-
-      // Get sum of percentages to the left and right of the two being affected
-      const leftPercentage = tests
-        .slice(0, Math.max(0, isDragging))
-        .reduce((sum, { percentage }) => sum + percentage, 0);
-      const rightPercentage = tests
-        .slice(isDragging + 2)
-        .reduce((sum, { percentage }) => sum + percentage, 0);
-
-      let newPercentages = tests.map(({ percentage }) => percentage);
-
-      newPercentages[isDragging] = mousePercentage - leftPercentage;
-      newPercentages[isDragging + 1] = 100 - rightPercentage - mousePercentage;
-
-      // Ensure minimum 10% for each test
-      if (newPercentages.every((p) => p >= MIN_TEST_PERCENTAGE)) {
-        onChange(newPercentages);
-      }
-    },
-    [isDragging, tests, onChange],
-  );
-
-  const handleMouseUp = useCallback(() => {
-    setIsDragging(null);
-  }, []);
-
-  useEffect(() => {
-    if (isDragging !== null) {
-      window.addEventListener("mousemove", handleMouseMove);
-      window.addEventListener("mouseup", handleMouseUp);
-      return () => {
-        window.removeEventListener("mousemove", handleMouseMove);
-        window.removeEventListener("mouseup", handleMouseUp);
-      };
-    }
-  }, [isDragging, handleMouseMove, handleMouseUp]);
-
-  return (
-    <div
-      ref={containerRef}
-      className={cn(
-        "relative h-10",
-        isDragging !== null && "cursor-col-resize",
-      )}
-    >
-      <div className="absolute inset-0 flex h-full">
-        {tests.map((test, i) => (
-          <div
-            key={i}
-            className="@container pointer-events-none relative flex h-full"
-            style={{ width: `${test.percentage}%` }}
-          >
-            {i > 0 && <div className="w-1.5" />}
-            <div className="flex h-full grow items-center justify-center gap-2 rounded-md border border-neutral-300 text-xs">
-              <span className="text-xs font-semibold text-neutral-900">
-                {i + 1}
-              </span>
-              <span className="@[64px]:block hidden font-medium text-neutral-600">
-                {test.percentage}%
-              </span>
-            </div>
-            {i < tests.length - 1 && (
-              <>
-                <div className="w-1.5" />
-                <div
-                  className="group pointer-events-auto absolute -right-1.5 flex h-full w-3 cursor-col-resize items-center px-1"
-                  onMouseDown={handleMouseDown(i)}
-                >
-                  <div
-                    className={cn(
-                      "h-2/3 w-1 rounded-full bg-neutral-200",
-                      isDragging === i
-                        ? "bg-neutral-400"
-                        : "group-hover:bg-neutral-300",
-                    )}
-                  />
-                </div>
-              </>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
   );
 }

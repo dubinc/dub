@@ -58,7 +58,7 @@ function EndABTestingModal({
                   <span className="flex h-9 w-8 shrink-0 items-center justify-center border-r border-neutral-300 text-center text-sm font-medium text-neutral-800">
                     {index + 1}
                   </span>
-                  <span className="truncate text-sm font-medium">
+                  <span className="min-w-0 truncate text-sm font-medium">
                     {test.url}
                   </span>
                 </div>
