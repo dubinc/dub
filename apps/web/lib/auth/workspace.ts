@@ -11,6 +11,7 @@ import {
 } from "../api/rbac/permissions";
 import { throwIfNoAccess } from "../api/tokens/permissions";
 import { Scope, mapScopesToPermissions } from "../api/tokens/scopes";
+import { normalizeWorkspaceId } from "../api/workspace-id";
 import { getFeatureFlags } from "../edge-config";
 import { hashToken } from "./hash-token";
 import { Session, getSession } from "./utils";
@@ -131,7 +132,7 @@ export const withWorkspace = (
 
         if (idOrSlug) {
           if (idOrSlug.startsWith("ws_")) {
-            workspaceId = idOrSlug.replace("ws_", "");
+            workspaceId = normalizeWorkspaceId(idOrSlug);
           } else {
             workspaceSlug = idOrSlug;
           }

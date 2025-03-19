@@ -26,7 +26,7 @@ function AddEditDomainModal({
       showModal={showAddEditDomainModal} // TODO change back to showAddEditDomainModal
       setShowModal={setShowAddEditDomainModal}
       drawerRootProps={{ repositionInputs: false }}
-      className="flex max-h-[90vh] max-w-lg flex-col"
+      className="max-h-[90vh] max-w-lg"
     >
       <h3 className="border-b border-neutral-200 px-4 py-4 text-lg font-medium sm:px-6">
         {props ? "Update" : "Add"} Domain

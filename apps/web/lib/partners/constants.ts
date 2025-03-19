@@ -15,3 +15,5 @@ export const PAYOUT_FEES = {
     card: 0.06,
   },
 };
+
+export const DUB_MIN_PAYOUT_AMOUNT_CENTS = 10000;

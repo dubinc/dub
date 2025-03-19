@@ -1,3 +1,4 @@
+import { normalizeWorkspaceId } from "@/lib/api/workspace-id";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 import * as fs from "fs";
@@ -40,7 +41,7 @@ async function main() {
     "premium_workspaces.csv",
     Papa.unparse(
       workspaces.map((w) => ({
-        id: `ws_${w.id}`,
+        id: normalizeWorkspaceId(w.id),
         slug: w.slug,
       })),
     ),
