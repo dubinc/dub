@@ -18,6 +18,7 @@ import { combineTagIds } from "../tags/combine-tag-ids";
 import { linkCache } from "./cache";
 import { encodeKeyIfCaseSensitive } from "./case-sensitivity";
 import { includeTags } from "./include-tags";
+import { scheduleTestCompletion } from "./schedule-test-completion";
 import { updateLinksUsage } from "./update-links-usage";
 import { transformLink } from "./utils";
 
@@ -178,6 +179,8 @@ export async function createLink(link: ProcessedLinkProps) {
         propagateWebhookTriggerChanges({
           webhookIds,
         }),
+
+      tests && testsCompleteAt && scheduleTestCompletion(response),
     ]),
   );
 
