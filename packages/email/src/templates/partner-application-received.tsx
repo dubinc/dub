@@ -53,7 +53,10 @@ export function PartnerApplicationReceived({
   return (
     <Html>
       <Head />
-      <Preview>New partner application</Preview>
+      <Preview>
+        {partner.name} ({partner.email}) just applied to your partner program,{" "}
+        {program.name}. Review their application below.
+      </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
@@ -62,7 +65,7 @@ export function PartnerApplicationReceived({
             </Section>
 
             <Heading className="mx-0 p-0 text-lg font-medium text-neutral-800">
-              New partner application
+              New partner application for {program.name}
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">

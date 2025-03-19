@@ -38,7 +38,7 @@ export async function notifyPartnerApplication({
     workspaceUsers.map(({ user }) =>
       limiter.schedule(() =>
         sendEmail({
-          subject: `New partner application for ${program.name}.`,
+          subject: `New partner application for ${program.name}`,
           email: user.email!,
           react: PartnerApplicationReceived({
             email: user.email!,
