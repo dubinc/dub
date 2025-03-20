@@ -107,7 +107,7 @@ export async function getPartners(filters: PartnerFilters) {
       ${tenantId ? Prisma.sql`AND pe.tenantId = ${tenantId}` : Prisma.sql``}
       ${country ? Prisma.sql`AND p.country = ${country}` : Prisma.sql``}
       ${rewardId ? Prisma.sql`AND EXISTS (SELECT 1 FROM PartnerReward pr WHERE pr.programEnrollmentId = pe.id AND pr.rewardId = ${rewardId})` : Prisma.sql``}
-      ${search ? Prisma.sql`AND (LOWER(p.name) LIKE LOWER(${`%${search}%`}) OR LOWER(p.email) LIKE LOWER(${`%${search}%`}))` : Prisma.sql``}
+      ${search ? Prisma.sql`AND (LOWER(p.name) LIKE LOWER(${`%${search}%`}) OR LOWER(p.email) LIKE LOWER(${`%${search}%`})) OR l.shortLink LIKE LOWER(${`%${search}%`})` : Prisma.sql``}
       ${ids && ids.length > 0 ? Prisma.sql`AND pe.partnerId IN (${Prisma.join(ids)})` : Prisma.sql``}
     GROUP BY 
       p.id, pe.id, metrics.totalClicks, metrics.totalLeads, metrics.totalSales, metrics.totalSaleAmount
