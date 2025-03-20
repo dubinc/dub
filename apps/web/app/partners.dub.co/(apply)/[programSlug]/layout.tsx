@@ -1,6 +1,6 @@
 import { getProgram } from "@/lib/fetchers/get-program";
 import { getReward } from "@/lib/fetchers/get-reward";
-import { formatRewardDescription } from "@/ui/partners/program-reward-description";
+import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { Wordmark } from "@dub/ui";
