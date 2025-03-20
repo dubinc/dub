@@ -44,7 +44,7 @@ export default function NotificationsSettingsPageClient() {
             {
               type: "newPartnerSale",
               icon: DollarSign,
-              title: "New referral sales",
+              title: "New partner sale",
               description:
                 "Alert when a new sale is made in your partner program.",
             },
