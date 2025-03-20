@@ -13,7 +13,7 @@ export const InfoCard: FC<IGetInfoCardProps> = ({
   cardNumber,
 }) => {
   return (
-    <div className="border-border-light flex flex-col items-center gap-3 rounded-lg border p-3 shadow-md md:gap-4 md:p-4">
+    <div className="border-border-100 flex flex-col items-center gap-3 rounded-lg border p-3 shadow-md md:gap-4 md:p-4">
       {img}
       <div className="flex w-full flex-row items-center gap-2">
         <div className="relative flex h-7 w-7 items-center justify-center rounded-full md:h-8 md:w-8">
@@ -35,7 +35,7 @@ export const InfoCard: FC<IGetInfoCardProps> = ({
           {title}
         </h3>
       </div>
-      <p className="text-neutral-light text-left text-sm">{content}</p>
+      <p className="text-left text-sm text-neutral-300">{content}</p>
     </div>
   );
 };

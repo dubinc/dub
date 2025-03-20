@@ -30,7 +30,7 @@ export const QRTabs = () => {
   };
 
   return (
-    <section className="bg-primary-lighter w-full px-3 pb-6 md:pb-[42px]">
+    <section className="bg-primary-100 w-full px-3 pb-6 md:pb-[42px]">
       <div className="mx-auto flex max-w-[992px] flex-col items-center justify-center gap-4 md:gap-[42px]">
         <QrTabsTitle />
         <Tabs.Root
@@ -58,8 +58,8 @@ export const QRTabs = () => {
                   value={type.id}
                   className={cn(
                     "text-neutral flex w-32 items-center justify-center gap-2 rounded-md px-4 py-3.5 transition-colors",
-                    "hover:bg-primary-light hover:text-neutral",
-                    "data-[state=active]:bg-primary-light data-[state=active]:text-neutral",
+                    "hover:bg-primary-300 hover:text-neutral",
+                    "data-[state=active]:bg-primary-300 data-[state=active]:text-neutral",
                   )}
                 >
                   <Icon
@@ -67,8 +67,8 @@ export const QRTabs = () => {
                     className={cn(
                       "h-5 w-5 flex-none",
                       idx === 4
-                        ? "[&>path]:fill-neutral-lighter"
-                        : "[&>g]:stroke-neutral-lighter [&>path]:stroke-neutral-lighter",
+                        ? "[&>path]:fill-neutral-200"
+                        : "[&>g]:stroke-neutral-200 [&>path]:stroke-neutral-200",
                       activeTab === type.id &&
                         (idx === 4
                           ? "[&>path]:fill-primary"
@@ -113,7 +113,7 @@ export const QRTabs = () => {
                         <h3 className="text-neutral text-2xl font-semibold">
                           {type.label}
                         </h3>
-                        <p className="text-neutral-light text-sm">
+                        <p className="text-sm text-neutral-300">
                           {type.content}
                         </p>
                       </div>
@@ -156,7 +156,7 @@ export const QRTabs = () => {
                       {isMobile && (
                         <p
                           className={cn(
-                            "text-neutral-lighter mt-3 text-sm",
+                            "mt-3 text-sm text-neutral-200",
                             firstTab && "mt-0",
                           )}
                         >

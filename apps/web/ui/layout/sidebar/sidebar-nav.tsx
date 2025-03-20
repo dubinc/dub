@@ -1,4 +1,5 @@
-import { AnimatedSizeContainer, ClientOnly, Icon, NavWordmark } from "@dub/ui";
+import { Logo } from "@/ui/shared/logo.tsx";
+import { AnimatedSizeContainer, ClientOnly, Icon } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, ChevronLeft } from "lucide-react";
@@ -85,7 +86,8 @@ export function SidebarNav<T extends Record<any, any>>({
                     {title}
                   </div>
                 ) : (
-                  <NavWordmark className="h-6" isInApp />
+                  <Logo className="h-6" isInApp />
+                  // <NavWordmark className="h-6" isInApp />
                 )}
               </Link>
             );
