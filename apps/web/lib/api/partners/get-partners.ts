@@ -10,17 +10,19 @@ const sortColumnsMap = {
   leads: "totalLeads",
   sales: "totalSales",
   saleAmount: "totalSaleAmount",
-  earnings: "totalSaleAmount",
+  commissions: "totalCommissions",
+  netRevenue: "netRevenue",
 };
 
 // secondary sort column
 const sortColumnExtraMap = {
   createdAt: "totalClicks",
-  clicks: "totalSales",
-  leads: "totalClicks",
+  clicks: "totalLeads",
+  leads: "totalSaleAmount",
   sales: "totalClicks",
   saleAmount: "totalClicks",
-  earnings: "totalClicks",
+  commissions: "totalSaleAmount",
+  netRevenue: "totalSaleAmount",
 };
 
 type PartnerFilters = z.infer<typeof partnersQuerySchema> & {
@@ -63,6 +65,8 @@ export async function getPartners(filters: PartnerFilters) {
       COALESCE(metrics.totalLeads, 0) as totalLeads,
       COALESCE(metrics.totalSales, 0) as totalSales,
       COALESCE(metrics.totalSaleAmount, 0) as totalSaleAmount,
+      COALESCE(commissions.totalCommissions, 0) as totalCommissions,
+      COALESCE(metrics.totalSaleAmount, 0) - COALESCE(commissions.totalCommissions, 0) as netRevenue,
       COALESCE(
         JSON_ARRAYAGG(
           IF(l.id IS NOT NULL,
@@ -101,6 +105,16 @@ export async function getPartners(filters: PartnerFilters) {
         AND partnerId IS NOT NULL
       GROUP BY partnerId
     ) metrics ON metrics.partnerId = pe.partnerId
+    LEFT JOIN (
+      SELECT 
+        partnerId,
+        SUM(earnings) as totalCommissions
+      FROM Commission
+      WHERE programId = ${program.id}
+        AND partnerId IS NOT NULL
+        AND status IN ('pending', 'processed', 'paid')
+      GROUP BY partnerId
+    ) commissions ON commissions.partnerId = pe.partnerId
     WHERE 
       pe.programId = ${program.id}
       ${status ? Prisma.sql`AND pe.status = ${status}` : Prisma.sql`AND pe.status != 'rejected'`}
@@ -123,7 +137,7 @@ export async function getPartners(filters: PartnerFilters) {
       }
       ${ids && ids.length > 0 ? Prisma.sql`AND pe.partnerId IN (${Prisma.join(ids)})` : Prisma.sql``}
     GROUP BY 
-      p.id, pe.id, metrics.totalClicks, metrics.totalLeads, metrics.totalSales, metrics.totalSaleAmount
+      p.id, pe.id, metrics.totalClicks, metrics.totalLeads, metrics.totalSales, metrics.totalSaleAmount, commissions.totalCommissions
     ORDER BY ${Prisma.raw(sortColumnsMap[sortBy])} ${Prisma.raw(sortOrder)} ${Prisma.raw(`, ${sortColumnExtraMap[sortBy]} ${sortOrder}`)}
     LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`) satisfies Array<any>;
 
@@ -135,6 +149,8 @@ export async function getPartners(filters: PartnerFilters) {
       leads: Number(partner.totalLeads),
       sales: Number(partner.totalSales),
       saleAmount: Number(partner.totalSaleAmount),
+      commissions: Number(partner.totalCommissions),
+      netRevenue: Number(partner.netRevenue),
       links: partner.links.filter((link: any) => link !== null),
     };
   });
