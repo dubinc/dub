@@ -10,17 +10,19 @@ const sortColumnsMap = {
   leads: "totalLeads",
   sales: "totalSales",
   saleAmount: "totalSaleAmount",
-  earnings: "totalSaleAmount",
+  commissions: "totalCommissions",
+  netRevenue: "netRevenue",
 };
 
 // secondary sort column
 const sortColumnExtraMap = {
   createdAt: "totalClicks",
-  clicks: "totalSales",
-  leads: "totalClicks",
+  clicks: "totalLeads",
+  leads: "totalSaleAmount",
   sales: "totalClicks",
   saleAmount: "totalClicks",
-  earnings: "totalClicks",
+  commissions: "totalSaleAmount",
+  netRevenue: "totalSaleAmount",
 };
 
 type PartnerFilters = z.infer<typeof partnersQuerySchema> & {

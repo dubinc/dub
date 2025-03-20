@@ -235,7 +235,15 @@ export function PartnerTable() {
     onPaginationChange: setPagination,
     columnVisibility,
     onColumnVisibilityChange: setColumnVisibility,
-    sortableColumns: ["createdAt", "clicks", "leads", "sales", "saleAmount"],
+    sortableColumns: [
+      "createdAt",
+      "clicks",
+      "leads",
+      "sales",
+      "saleAmount",
+      "commissions",
+      "netRevenue",
+    ],
     sortBy,
     sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>
