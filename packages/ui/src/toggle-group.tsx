@@ -34,7 +34,7 @@ export function ToggleGroup({
       <motion.div
         layout
         className={cn(
-          "border-border-subtle bg-bg-default relative inline-flex items-center gap-1 rounded-xl border p-1",
+          "border-border-subtle bg-bg-default relative z-0 inline-flex items-center gap-1 rounded-xl border p-1",
           className,
         )}
         style={style}
