@@ -22,17 +22,24 @@ export const createAndEnrollPartner = async ({
   workspace,
   link,
   partner,
+  rewardId,
+  discountId,
   tenantId,
   status = "approved",
   skipEnrollmentCheck = false,
 }: {
-  program: Pick<ProgramProps, "id" | "defaultFolderId">;
+  program: Pick<
+    ProgramProps,
+    "id" | "defaultFolderId" | "defaultRewardId" | "defaultDiscountId"
+  >;
   workspace: Pick<WorkspaceProps, "id" | "webhookEnabled">;
   link: ProgramPartnerLinkProps;
   partner: Pick<
     CreatePartnerProps,
     "email" | "name" | "image" | "country" | "description"
   >;
+  rewardId?: string;
+  discountId?: string;
   tenantId?: string;
   status?: ProgramEnrollmentStatus;
   skipEnrollmentCheck?: boolean;
@@ -79,12 +86,24 @@ export const createAndEnrollPartner = async ({
       create: {
         programId: program.id,
         tenantId,
+        status,
         links: {
           connect: {
             id: link.id,
           },
         },
-        status,
+        ...(rewardId &&
+          rewardId !== program.defaultRewardId && {
+            rewards: {
+              create: {
+                rewardId,
+              },
+            },
+          }),
+        ...(discountId &&
+          discountId !== program.defaultDiscountId && {
+            discountId,
+          }),
       },
     },
   };

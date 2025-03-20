@@ -261,7 +261,10 @@ export function PartnerTable() {
             onSelect={onSelect}
             onRemove={onRemove}
           />
-          <SearchBoxPersisted />
+          <SearchBoxPersisted
+            placeholder="Search by name, email, or link"
+            inputClassName="md:w-72"
+          />
         </div>
         <AnimatedSizeContainer height>
           <div>
