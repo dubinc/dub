@@ -1,7 +1,9 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { prisma } from "@dub/prisma";
 import { CommissionStatus } from "@dub/prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
 
@@ -19,7 +21,7 @@ const updateCommissionStatusSchema = z.object({
 export const updateCommissionStatusAction = authActionClient
   .schema(updateCommissionStatusSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     const { commissionId, status } = parsedInput;
 
     const sale = await prisma.commission.findUniqueOrThrow({
@@ -54,7 +56,7 @@ export const updateCommissionStatusAction = authActionClient
       });
     }
 
-    await prisma.commission.update({
+    const updatedCommission = await prisma.commission.update({
       where: {
         id: sale.id,
       },
@@ -63,6 +65,27 @@ export const updateCommissionStatusAction = authActionClient
         payoutId: null,
       },
     });
+
+    waitUntil(
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId: sale.programId,
+        actor: user,
+        event:
+          updatedCommission.status === "duplicate"
+            ? "sale.mark_duplicate"
+            : updatedCommission.status === "fraud"
+              ? "sale.mark_fraud"
+              : "sale.mark_pending",
+        targets: [
+          {
+            type: "sale",
+            id: updatedCommission.id,
+            metadata: updatedCommission,
+          },
+        ],
+      }),
+    );
 
     // TODO: We might want to store the history of the sale status changes
     // TODO: Send email to the partner informing them about the sale status change

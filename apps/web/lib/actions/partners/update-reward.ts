@@ -1,16 +1,18 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
 import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { updateRewardSchema } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
 export const updateRewardAction = authActionClient
   .schema(updateRewardSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     const { programId, rewardId, partnerIds, amount, maxDuration, type } =
       parsedInput;
 
@@ -67,7 +69,7 @@ export const updateRewardAction = authActionClient
       }
     }
 
-    await prisma.reward.update({
+    const updatedReward = await prisma.reward.update({
       where: {
         id: rewardId,
       },
@@ -87,4 +89,20 @@ export const updateRewardAction = authActionClient
         }),
       },
     });
+
+    waitUntil(
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId: programId,
+        event: "reward.update",
+        actor: user,
+        targets: [
+          {
+            type: "reward",
+            id: updatedReward.id,
+            metadata: updatedReward,
+          },
+        ],
+      }),
+    );
   });

@@ -1,3 +1,4 @@
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { createLink, processLink } from "@/lib/api/links";
@@ -20,7 +21,7 @@ export const createProgram = async ({
   user,
 }: {
   workspace: Pick<Project, "id" | "store" | "plan" | "webhookEnabled">;
-  user: Pick<User, "id">;
+  user: Pick<User, "id" | "name">;
 }) => {
   const store = workspace.store as Record<string, any>;
   if (!store.programOnboarding) {
@@ -113,7 +114,7 @@ export const createProgram = async ({
           workspace,
           program,
           partner,
-          userId: user.id,
+          user,
         }),
       ),
     );
@@ -144,6 +145,20 @@ export const createProgram = async ({
       uploadedLogo &&
         isStored(uploadedLogo) &&
         storage.delete(uploadedLogo.replace(`${R2_URL}/`, "")),
+
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId: program.id,
+        event: "program.create",
+        actor: user,
+        targets: [
+          {
+            type: "program",
+            id: program.id,
+            metadata: program,
+          },
+        ],
+      }),
     ]),
   );
 
@@ -155,7 +170,7 @@ async function invitePartner({
   program,
   workspace,
   partner,
-  userId,
+  user,
 }: {
   program: Program;
   workspace: Pick<Project, "id" | "plan" | "webhookEnabled">;
@@ -163,7 +178,7 @@ async function invitePartner({
     email: string;
     key: string;
   };
-  userId: string;
+  user: Pick<User, "id" | "name">;
 }) {
   const { link: partnerLink, error } = await processLink({
     payload: {
@@ -177,7 +192,7 @@ async function invitePartner({
       id: workspace.id,
       plan: workspace.plan as PlanProps,
     },
-    userId,
+    userId: user.id,
   });
 
   if (error != null) {
@@ -197,6 +212,7 @@ async function invitePartner({
     },
     skipEnrollmentCheck: true,
     status: "invited",
+    user,
   });
 
   waitUntil(

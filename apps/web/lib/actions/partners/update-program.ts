@@ -1,5 +1,6 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getFolderOrThrow } from "@/lib/folder/get-folder-or-throw";
 import { isStored, storage } from "@/lib/storage";
 import { prisma } from "@dub/prisma";
@@ -21,7 +22,7 @@ const schema = createProgramSchema.partial().extend({
 export const updateProgramAction = authActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     const {
       programId,
       defaultFolderId,
@@ -63,7 +64,7 @@ export const updateProgramAction = authActionClient
           : null,
       ]);
 
-      await prisma.program.update({
+      const updatedProgram = await prisma.program.update({
         where: {
           id: programId,
         },
@@ -90,6 +91,20 @@ export const updateProgramAction = authActionClient
           ...(wordmarkUrl && program.wordmark
             ? [storage.delete(program.wordmark.replace(`${R2_URL}/`, ""))]
             : []),
+
+          recordAuditLog({
+            workspaceId: workspace.id,
+            programId: program.id,
+            event: "program.update",
+            actor: user,
+            targets: [
+              {
+                type: "program",
+                id: program.id,
+                metadata: updatedProgram,
+              },
+            ],
+          }),
         ]),
       );
 

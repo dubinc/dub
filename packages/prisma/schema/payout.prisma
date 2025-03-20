@@ -29,6 +29,7 @@ model Payout {
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
   paidAt           DateTime?
+  paidByUserId     String?
 
   program     Program      @relation(fields: [programId], references: [id])
   partner     Partner      @relation(fields: [partnerId], references: [id])

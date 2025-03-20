@@ -1,15 +1,17 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { updateDiscountSchema } from "@/lib/zod/schemas/discount";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
 export const updateDiscountAction = authActionClient
   .schema(updateDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     const {
       programId,
       discountId,
@@ -55,7 +57,7 @@ export const updateDiscountAction = authActionClient
       throw new Error("Default discount cannot be updated with partners.");
     }
 
-    await prisma.discount.update({
+    const discount = await prisma.discount.update({
       where: {
         id: discountId,
       },
@@ -97,4 +99,20 @@ export const updateDiscountAction = authActionClient
         }),
       ]);
     }
+
+    waitUntil(
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId: program.id,
+        event: "discount.update",
+        actor: user,
+        targets: [
+          {
+            type: "discount",
+            id: discount.id,
+            metadata: discount,
+          },
+        ],
+      }),
+    );
   });

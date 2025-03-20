@@ -1,5 +1,6 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { PAYOUT_FEES } from "@/lib/partners/constants";
@@ -24,7 +25,7 @@ const allowedPaymentMethods = ["us_bank_account", "card", "link"];
 export const confirmPayoutsAction = authActionClient
   .schema(confirmPayoutsSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     const { programId, paymentMethodId, payoutIds } = parsedInput;
 
     const { minPayoutAmount } = await getProgramOrThrow({
@@ -155,6 +156,7 @@ export const confirmPayoutsAction = authActionClient
         data: {
           invoiceId: invoice.id,
           status: "processing",
+          paidByUserId: user.id,
         },
       });
 
@@ -188,6 +190,18 @@ export const confirmPayoutsAction = authActionClient
               ),
           );
         }
+
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId: programId,
+          actor: user,
+          event: "payout.confirm",
+          targets: payouts.map((payout) => ({
+            type: "payout",
+            id: payout.id,
+            metadata: payout,
+          })),
+        });
       })(),
     );
   });

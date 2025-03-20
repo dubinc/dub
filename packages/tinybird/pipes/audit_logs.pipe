@@ -1,0 +1,34 @@
+DESCRIPTION >
+    Audit logs endpoint to fetch audit log events with filtering capabilities
+
+TOKEN "audit_logs_endpoint_read_1234" READ
+
+TAGS "Dub Endpoints"
+
+NODE audit_log_events
+SQL >
+
+    %
+    SELECT
+        id,
+        action,
+        actor_type,
+        actor_id,
+        actor_name,
+        targets,
+        description,
+        ip,
+        user_agent,
+        timestamp
+    FROM dub_audit_logs
+    WHERE
+        timestamp >= {{ DateTime(start, '2024-06-01 00:00:00') }}
+        AND timestamp < {{ DateTime(end, '2024-06-07 00:00:00') }}
+        {% if defined(workspaceId) %} AND workspace_id = {{ String(workspaceId) }} {% end %}
+        {% if defined(programId) %} AND program_id = {{ String(programId) }} {% end %}
+    ORDER BY timestamp DESC
+
+NODE endpoint
+SQL >
+
+    SELECT * FROM dub_audit_logs

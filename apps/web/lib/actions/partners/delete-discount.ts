@@ -1,8 +1,10 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
 
@@ -15,7 +17,7 @@ const deleteDiscountSchema = z.object({
 export const deleteDiscountAction = authActionClient
   .schema(deleteDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     const { programId, discountId } = parsedInput;
 
     const program = await getProgramOrThrow({
@@ -23,7 +25,7 @@ export const deleteDiscountAction = authActionClient
       programId,
     });
 
-    await getDiscountOrThrow({
+    const discount = await getDiscountOrThrow({
       programId,
       discountId,
     });
@@ -52,4 +54,20 @@ export const deleteDiscountAction = authActionClient
         },
       });
     });
+
+    waitUntil(
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId: program.id,
+        event: "discount.delete",
+        actor: user,
+        targets: [
+          {
+            type: "discount",
+            id: discount.id,
+            metadata: discount,
+          },
+        ],
+      }),
+    );
   });

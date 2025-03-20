@@ -1,5 +1,6 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { sendEmail } from "@dub/email";
@@ -23,7 +24,7 @@ const approvePartnerSchema = z.object({
 export const approvePartnerAction = authActionClient
   .schema(approvePartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     const { programId, partnerId, linkId } = parsedInput;
 
     const [program, link] = await Promise.all([
@@ -107,6 +108,20 @@ export const approvePartnerAction = authActionClient
               reward,
             }),
           }),
+        }),
+
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId: programId,
+          actor: user,
+          event: "partner.approve",
+          targets: [
+            {
+              type: "partner",
+              id: partnerId,
+              metadata: partner,
+            },
+          ],
         }),
 
         // TODO: send partner.created webhook

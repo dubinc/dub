@@ -13,7 +13,7 @@ import { authActionClient } from "../safe-action";
 export const invitePartnerAction = authActionClient
   .schema(invitePartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     const { programId, name, email, linkId } = parsedInput;
 
     const [program, link] = await Promise.all([
@@ -67,6 +67,7 @@ export const invitePartnerAction = authActionClient
       },
       skipEnrollmentCheck: true,
       status: "invited",
+      user,
     });
 
     waitUntil(
