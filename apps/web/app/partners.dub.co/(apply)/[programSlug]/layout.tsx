@@ -4,6 +4,7 @@ import { formatRewardDescription } from "@/ui/partners/program-reward-descriptio
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { Wordmark } from "@dub/ui";
+import { APP_DOMAIN } from "@dub/utils";
 import { constructMetadata } from "@dub/utils/src/functions";
 import { notFound } from "next/navigation";
 import { PropsWithChildren } from "react";
@@ -26,6 +27,7 @@ export async function generateMetadata({
     description: `Join the ${program.name} affiliate program and earn ${formatRewardDescription(
       { reward },
     )} by referring ${program.name} to your friends and followers.`,
+    image: `${APP_DOMAIN}/api/og/program?slug=${program.slug}`,
   });
 }
 

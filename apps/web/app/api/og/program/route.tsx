@@ -1,5 +1,8 @@
+import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
+import { getProgramViaEdge } from "@/lib/planetscale/get-program-via-edge";
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
+import { SVGProps } from "react";
 
 export const runtime = "edge";
 
@@ -11,21 +14,38 @@ const DARK_CELLS = [
 ];
 
 export async function GET(req: NextRequest) {
-  const interMedium = await fetch(
-    new URL("@/styles/Inter-Medium.ttf", import.meta.url),
-  ).then((res) => res.arrayBuffer());
+  const [interMedium, interSemibold] = await Promise.all([
+    fetch(new URL("@/styles/Inter-Medium.ttf", import.meta.url)).then((res) =>
+      res.arrayBuffer(),
+    ),
+    fetch(new URL("@/styles/Inter-Semibold.ttf", import.meta.url)).then((res) =>
+      res.arrayBuffer(),
+    ),
+  ]);
 
-  const programId = req.nextUrl.searchParams.get("programId");
+  const slug = req.nextUrl.searchParams.get("slug");
 
-  // if (!program) {
-  //   return new Response(`Program not found`, {
-  //     status: 404,
-  //   });
-  // }
+  if (!slug)
+    return new Response("Missing 'slug' parameter", {
+      status: 400,
+    });
+
+  const program = await getProgramViaEdge({ slug });
+
+  if (!program || !program.landerData)
+    return new Response(`Program not found`, {
+      status: 404,
+    });
+
+  const logo = program.wordmark || program.logo;
+  const brandColor = program.brandColor || "#000000";
 
   return new ImageResponse(
     (
-      <div tw="flex flex-col bg-white w-full h-full">
+      <div
+        tw="flex flex-col bg-white w-full h-full"
+        style={{ fontFamily: "Inter Medium" }}
+      >
         {/* @ts-ignore */}
         <svg tw="absolute inset-0 text-black/10" width="1200" height="630">
           <defs>
@@ -77,8 +97,61 @@ export async function GET(req: NextRequest) {
           <rect fill="url(#gradient)" width="1200" height="630" />
         </svg>
 
-        <div tw="relative flex mx-auto h-full bg-white w-[879px] px-16 py-20">
-          WIP
+        <div tw="relative flex flex-col mx-auto h-full bg-white w-[879px] px-16 py-20 overflow-hidden">
+          {logo && <img src={logo} height={48} />}
+          <div
+            tw="mt-16 text-left uppercase text-lg"
+            style={{ color: brandColor }}
+          >
+            Partner Program
+          </div>
+          <div
+            tw="mt-4 text-4xl font-semibold text-neutral-800"
+            style={{
+              display: "block",
+              lineClamp: 2,
+              textOverflow: "ellipsis",
+              fontFamily: "Inter Semibold",
+            }}
+          >
+            {`Join the ${program.name} affiliate program`}
+          </div>
+          <div tw="mt-10 flex">
+            {program.rewardAmount && program.rewardType && (
+              <div tw="w-full flex items-center rounded-md bg-neutral-100 border border-neutral-200 p-8 text-2xl">
+                {/* @ts-ignore */}
+                <InvoiceDollar tw="w-8 h-8 mr-4" />
+                <strong
+                  tw="font-semibold mr-1"
+                  style={{ fontFamily: "Inter Semibold" }}
+                >
+                  {constructRewardAmount({
+                    amount: program.rewardAmount,
+                    type: program.rewardType as any,
+                  })}{" "}
+                  per {program.rewardEvent}
+                </strong>
+                {program.rewardMaxDuration === null ? (
+                  "for the customer's lifetime"
+                ) : program.rewardMaxDuration &&
+                  program.rewardMaxDuration > 1 ? (
+                  <>
+                    , and again every month for {program.rewardMaxDuration}{" "}
+                    months
+                  </>
+                ) : null}
+              </div>
+            )}
+          </div>
+          <div
+            tw="mt-10 text-white px-4 h-16 flex items-center text-2xl justify-center rounded-lg border-2 border-white/30 shadow-xl"
+            style={{
+              fontFamily: "Inter Semibold",
+              backgroundColor: brandColor,
+            }}
+          >
+            Apply today
+          </div>
         </div>
       </div>
     ),
@@ -90,7 +163,67 @@ export async function GET(req: NextRequest) {
           name: "Inter Medium",
           data: interMedium,
         },
+        {
+          name: "Inter Semibold",
+          data: interSemibold,
+        },
       ],
     },
+  );
+}
+
+function InvoiceDollar({
+  strokeWidth = 1.5,
+  ...props
+}: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      height="18"
+      width="18"
+      viewBox="0 0 18 18"
+      xmlns="http://www.w3.org/2000/svg"
+      {...props}
+    >
+      <g fill="currentColor">
+        <path
+          d="M14.75,3.75v12.5l-2.75-1.5-3,1.5-3-1.5-2.75,1.5V3.75c0-1.105,.895-2,2-2h7.5c1.105,0,2,.895,2,2Z"
+          fill="none"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={strokeWidth}
+        />
+        <path
+          d="M10.724,6.556c-.374-.885-1.122-1.086-1.688-1.086-.526,0-1.907,.28-1.779,1.606,.09,.931,.967,1.277,1.734,1.414s1.88,.429,1.907,1.551c.023,.949-.83,1.597-1.861,1.597-.985,0-1.67-.383-1.934-1.25"
+          fill="none"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={strokeWidth}
+        />
+        <line
+          fill="none"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={strokeWidth}
+          x1="9"
+          x2="9"
+          y1="4.75"
+          y2="5.47"
+        />
+        <line
+          fill="none"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={strokeWidth}
+          x1="9"
+          x2="9"
+          y1="11.638"
+          y2="12.25"
+        />
+      </g>
+    </svg>
   );
 }
