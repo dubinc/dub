@@ -15,6 +15,7 @@ import { Prisma, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
 import { includeTags } from "../links/include-tags";
+import { backfillLinkCommissions } from "./backfill-link-commissions";
 
 export const createAndEnrollPartner = async ({
   program,
@@ -134,7 +135,16 @@ export const createAndEnrollPartner = async ({
           },
           include: includeTags,
         })
-        .then((link) => recordLink(link)),
+        .then((link) =>
+          Promise.allSettled([
+            recordLink(link),
+            backfillLinkCommissions({
+              id: link.id,
+              partnerId: upsertedPartner.id,
+              programId: program.id,
+            }),
+          ]),
+        ),
 
       sendWorkspaceWebhook({
         workspace,
