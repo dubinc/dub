@@ -39,6 +39,7 @@ export const backfillLinkCommissions = async (link: {
   }
 
   const data = saleEvents
+    // only create commissions for non-zero sales
     .filter((e) => e.sale.amount > 0)
     .map((e) => ({
       id: createId({ prefix: "cm_" }),
