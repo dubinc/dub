@@ -147,9 +147,9 @@ export function PartnerTable() {
             <div className="flex items-center gap-2">
               {country && (
                 <img
-                  alt=""
-                  src={`https://flag.vercel.app/m/${country}.svg`}
-                  className="h-3 w-4 shrink-0"
+                  alt={`${country} flag`}
+                  src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
+                  className="size-4 shrink-0"
                 />
               )}
               <span className="min-w-0 truncate">
@@ -183,6 +183,28 @@ export function PartnerTable() {
         accessorFn: (d) =>
           d.status !== "pending"
             ? currencyFormatter(d.saleAmount / 100, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })
+            : "-",
+      },
+      {
+        id: "commissions",
+        header: "Commissions",
+        accessorFn: (d) =>
+          d.status !== "pending"
+            ? currencyFormatter(d.commissions / 100, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })
+            : "-",
+      },
+      {
+        id: "netRevenue",
+        header: "Net Revenue",
+        accessorFn: (d) =>
+          d.status !== "pending"
+            ? currencyFormatter(d.netRevenue / 100, {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               })

@@ -160,7 +160,10 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
 
 // Used internally in the Dub dashboard for partners table
 export const EnrolledPartnerSchemaWithExpandedFields =
-  EnrolledPartnerSchema.merge(PartnerOnlinePresenceSchema);
+  EnrolledPartnerSchema.merge(PartnerOnlinePresenceSchema).extend({
+    commissions: z.number().default(0),
+    netRevenue: z.number().default(0),
+  });
 
 export const LeaderboardPartnerSchema = z.object({
   id: z.string(),
