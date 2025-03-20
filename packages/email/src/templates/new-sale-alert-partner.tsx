@@ -23,6 +23,7 @@ export function NewSaleAlertPartner({
   program = {
     id: "prog_CYCu7IMAapjkRpTnr8F1azjN",
     name: "Acme",
+    slug: "acme",
     logo: DUB_WORDMARK,
   },
   sale = {
@@ -38,6 +39,7 @@ export function NewSaleAlertPartner({
   program: {
     id: string;
     name: string;
+    slug: string;
     logo: string | null;
   };
   sale: {
@@ -45,7 +47,7 @@ export function NewSaleAlertPartner({
     earnings: number;
   };
 }) {
-  const linkToSale = `https://partners.dub.co/${partner.id}/${program.id}/sales`;
+  const linkToSale = `https://partners.dub.co/programs/${program.slug}/earnings`;
 
   const earningsInDollars = currencyFormatter(sale.earnings / 100, {
     minimumFractionDigits: 2,

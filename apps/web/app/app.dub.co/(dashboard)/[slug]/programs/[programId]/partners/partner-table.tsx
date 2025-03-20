@@ -1,9 +1,13 @@
 "use client";
 
+import { deleteProgramInviteAction } from "@/lib/actions/partners/delete-program-invite";
+import { resendProgramInviteAction } from "@/lib/actions/partners/resend-program-invite";
+import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import EditColumnsButton from "@/ui/analytics/events/edit-columns-button";
+import { PartnerApplicationSheet } from "@/ui/partners/partner-application-sheet";
 import { PartnerDetailsSheet } from "@/ui/partners/partner-details-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
@@ -22,7 +26,13 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Dots, Users } from "@dub/ui/icons";
+import {
+  Dots,
+  EnvelopeArrowRight,
+  LoadingSpinner,
+  Trash,
+  Users,
+} from "@dub/ui/icons";
 import {
   cn,
   COUNTRIES,
@@ -33,8 +43,10 @@ import {
 import { nFormatter } from "@dub/utils/src/functions";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
+import { useAction } from "next-safe-action/hooks";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import useSWR from "swr";
 import { partnersColumns, useColumnVisibility } from "./use-column-visibility";
 import { usePartnerFilters } from "./use-partner-filters";
@@ -58,6 +70,7 @@ export function PartnerTable() {
 
   const { partnersCount, error: countError } = usePartnersCount<number>();
 
+  // TODO: Combine with usePartners
   const {
     data: partners,
     error,
@@ -67,6 +80,7 @@ export function PartnerTable() {
       {
         workspaceId,
         programId,
+        includeExpandedFields: "true",
       },
       { exclude: ["partnerId"] },
     )}`,
@@ -135,10 +149,12 @@ export function PartnerTable() {
                 <img
                   alt=""
                   src={`https://flag.vercel.app/m/${country}.svg`}
-                  className="h-3 w-4"
+                  className="h-3 w-4 shrink-0"
                 />
               )}
-              {(country ? COUNTRIES[country] : null) ?? "-"}
+              <span className="min-w-0 truncate">
+                {(country ? COUNTRIES[country] : null) ?? "-"}
+              </span>
             </div>
           );
         },
@@ -180,7 +196,9 @@ export function PartnerTable() {
         size: 43,
         maxSize: 43,
         header: () => <EditColumnsButton table={table} />,
-        cell: ({ row }) => <RowMenuButton row={row} />,
+        cell: ({ row }) => (
+          <RowMenuButton row={row} workspaceId={workspaceId!} />
+        ),
       },
     ].filter((c) => c.id === "menu" || partnersColumns.all.includes(c.id)),
     onRowClick: (row) => {
@@ -216,15 +234,24 @@ export function PartnerTable() {
 
   return (
     <div className="flex flex-col gap-3">
-      {detailsSheetState.partner && (
-        <PartnerDetailsSheet
-          isOpen={detailsSheetState.open}
-          setIsOpen={(open) =>
-            setDetailsSheetState((s) => ({ ...s, open }) as any)
-          }
-          partner={detailsSheetState.partner}
-        />
-      )}
+      {detailsSheetState.partner &&
+        (detailsSheetState.partner.status === "pending" ? (
+          <PartnerApplicationSheet
+            isOpen={detailsSheetState.open}
+            setIsOpen={(open) =>
+              setDetailsSheetState((s) => ({ ...s, open }) as any)
+            }
+            partner={detailsSheetState.partner}
+          />
+        ) : (
+          <PartnerDetailsSheet
+            isOpen={detailsSheetState.open}
+            setIsOpen={(open) =>
+              setDetailsSheetState((s) => ({ ...s, open }) as any)
+            }
+            partner={detailsSheetState.partner}
+          />
+        ))}
       <div>
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <Filter.Select
@@ -273,10 +300,44 @@ export function PartnerTable() {
   );
 }
 
-function RowMenuButton({ row }: { row: Row<EnrolledPartnerProps> }) {
+function RowMenuButton({
+  row,
+  workspaceId,
+}: {
+  row: Row<EnrolledPartnerProps>;
+  workspaceId: string;
+}) {
   const router = useRouter();
   const { slug, programId } = useParams();
   const [isOpen, setIsOpen] = useState(false);
+
+  const { executeAsync: resendInvite, isPending: isResendingInvite } =
+    useAction(resendProgramInviteAction, {
+      onSuccess: async () => {
+        toast.success("Resent the partner invite.");
+        setIsOpen(false);
+      },
+      onError: ({ error }) => {
+        toast.error(error.serverError);
+      },
+    });
+
+  const { executeAsync: deleteInvite, isPending: isDeletingInvite } = useAction(
+    deleteProgramInviteAction,
+    {
+      onSuccess: async () => {
+        mutatePrefix(
+          `/api/partners?workspaceId=${workspaceId}&programId=${programId}`,
+        );
+
+        toast.success("Deleted the partner invite.");
+        setIsOpen(false);
+      },
+      onError: ({ error }) => {
+        toast.error(error.serverError);
+      },
+    },
+  );
 
   return (
     <Popover
@@ -285,16 +346,60 @@ function RowMenuButton({ row }: { row: Row<EnrolledPartnerProps> }) {
       content={
         <Command tabIndex={0} loop className="focus:outline-none">
           <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm sm:w-auto sm:min-w-[130px]">
-            <MenuItem
-              icon={MoneyBill2}
-              label="View sales"
-              onSelect={() => {
-                router.push(
-                  `/${slug}/programs/${programId}/sales?partnerId=${row.original.id}&interval=all`,
-                );
-                setIsOpen(false);
-              }}
-            />
+            {row.original.status === "invited" ? (
+              <>
+                <MenuItem
+                  icon={isResendingInvite ? LoadingSpinner : EnvelopeArrowRight}
+                  label="Resend invite"
+                  onSelect={async () => {
+                    if (row.original.status !== "invited") {
+                      return;
+                    }
+
+                    await resendInvite({
+                      workspaceId,
+                      programId: row.original.programId!,
+                      partnerId: row.original.id,
+                    });
+                  }}
+                />
+
+                <MenuItem
+                  icon={isDeletingInvite ? LoadingSpinner : Trash}
+                  label="Delete invite"
+                  variant="danger"
+                  onSelect={async () => {
+                    if (row.original.status !== "invited") {
+                      return;
+                    }
+                    if (
+                      !window.confirm(
+                        "Are you sure you want to delete this invite? This action cannot be undone.",
+                      )
+                    ) {
+                      return;
+                    }
+
+                    await deleteInvite({
+                      workspaceId,
+                      programId: row.original.programId!,
+                      partnerId: row.original.id,
+                    });
+                  }}
+                />
+              </>
+            ) : (
+              <MenuItem
+                icon={MoneyBill2}
+                label="View sales"
+                onSelect={() => {
+                  router.push(
+                    `/${slug}/programs/${programId}/sales?partnerId=${row.original.id}&interval=all`,
+                  );
+                  setIsOpen(false);
+                }}
+              />
+            )}
           </Command.List>
         </Command>
       }
@@ -314,20 +419,36 @@ function MenuItem({
   icon: IconComp,
   label,
   onSelect,
+  variant = "default",
 }: {
   icon: Icon;
   label: string;
   onSelect: () => void;
+  variant?: "default" | "danger";
 }) {
+  const variantStyles = {
+    default: {
+      text: "text-neutral-600",
+      icon: "text-neutral-500",
+    },
+    danger: {
+      text: "text-red-600",
+      icon: "text-red-600",
+    },
+  };
+
+  const { text, icon } = variantStyles[variant];
+
   return (
     <Command.Item
       className={cn(
-        "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm text-neutral-600",
+        "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm",
         "data-[selected=true]:bg-neutral-100",
+        text,
       )}
       onSelect={onSelect}
     >
-      <IconComp className="size-4 shrink-0 text-neutral-500" />
+      <IconComp className={cn("size-4 shrink-0", icon)} />
       {label}
     </Command.Item>
   );

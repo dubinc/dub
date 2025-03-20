@@ -26,32 +26,30 @@ export function ImportExportButtons() {
       <Popover
         content={
           <div className="w-full md:w-52">
-            {flags?.rewardfulImporter && (
-              <div className="grid gap-px p-2">
-                <p className="mb-1.5 mt-1 flex items-center gap-2 px-1 text-xs font-medium text-neutral-500">
-                  Import Partners
-                </p>
-                <ImportOption
-                  onClick={() => {
-                    setOpenPopover(false);
-                    router.push(
-                      `/${slug}/programs/${program?.id}/partners?import=rewardful`,
-                    );
-                  }}
-                >
-                  <IconMenu
-                    text="Import from Rewardful"
-                    icon={
-                      <img
-                        src="https://assets.dub.co/misc/icons/rewardful.svg"
-                        alt="Rewardful logo"
-                        className="h-4 w-4"
-                      />
-                    }
-                  />
-                </ImportOption>
-              </div>
-            )}
+            <div className="grid gap-px p-2">
+              <p className="mb-1.5 mt-1 flex items-center gap-2 px-1 text-xs font-medium text-neutral-500">
+                Import Partners
+              </p>
+              <ImportOption
+                onClick={() => {
+                  setOpenPopover(false);
+                  router.push(
+                    `/${slug}/programs/${program?.id}/partners?import=rewardful`,
+                  );
+                }}
+              >
+                <IconMenu
+                  text="Import from Rewardful"
+                  icon={
+                    <img
+                      src="https://assets.dub.co/misc/icons/rewardful.svg"
+                      alt="Rewardful logo"
+                      className="h-4 w-4"
+                    />
+                  }
+                />
+              </ImportOption>
+            </div>
 
             <div className="border-t border-neutral-200" />
 

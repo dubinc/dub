@@ -13,6 +13,16 @@ const sortColumnsMap = {
   earnings: "totalSaleAmount",
 };
 
+// secondary sort column
+const sortColumnExtraMap = {
+  createdAt: "totalClicks",
+  clicks: "totalSales",
+  leads: "totalClicks",
+  sales: "totalClicks",
+  saleAmount: "totalClicks",
+  earnings: "totalClicks",
+};
+
 type PartnerFilters = z.infer<typeof partnersQuerySchema> & {
   workspaceId: string;
   programId: string;
@@ -101,7 +111,7 @@ export async function getPartners(filters: PartnerFilters) {
       ${ids && ids.length > 0 ? Prisma.sql`AND pe.partnerId IN (${Prisma.join(ids)})` : Prisma.sql``}
     GROUP BY 
       p.id, pe.id, metrics.totalClicks, metrics.totalLeads, metrics.totalSales, metrics.totalSaleAmount
-    ORDER BY ${Prisma.raw(sortColumnsMap[sortBy])} ${Prisma.raw(sortOrder)}
+    ORDER BY ${Prisma.raw(sortColumnsMap[sortBy])} ${Prisma.raw(sortOrder)} ${Prisma.raw(`, ${sortColumnExtraMap[sortBy]} ${sortOrder}`)}
     LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`) satisfies Array<any>;
 
   return partners.map((partner) => {

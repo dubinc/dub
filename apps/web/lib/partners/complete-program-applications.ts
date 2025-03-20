@@ -1,6 +1,7 @@
 import { prisma } from "@dub/prisma";
 import { cookies } from "next/headers";
 import { createId } from "../api/create-id";
+import { notifyPartnerApplication } from "../api/partners/notify-partner-application";
 import { ratelimit } from "../upstash";
 
 /**
@@ -37,7 +38,7 @@ export async function completeProgramApplications(userId: string) {
           select: {
             partnerId: true,
             partner: {
-              select: {
+              include: {
                 programs: {
                   select: {
                     programId: true,
@@ -67,6 +68,9 @@ export async function completeProgramApplications(userId: string) {
             .flat(),
         },
       },
+      include: {
+        program: true,
+      },
       orderBy: {
         createdAt: "desc",
       },
@@ -91,7 +95,20 @@ export async function completeProgramApplications(userId: string) {
         partnerId: user.partners[0].partnerId,
         applicationId: programApplication.id,
       })),
+      skipDuplicates: true,
     });
+
+    for (const programApplication of programApplications) {
+      const partner = user.partners[0].partner;
+      const program = programApplication.program;
+      const application = programApplication;
+
+      await notifyPartnerApplication({
+        partner,
+        program,
+        application,
+      });
+    }
 
     cookieStore.delete("programApplicationIds");
   } catch (error) {

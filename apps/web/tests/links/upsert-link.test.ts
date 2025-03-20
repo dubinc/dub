@@ -1,3 +1,4 @@
+import { normalizeWorkspaceId } from "@/lib/api/workspace-id";
 import { Link } from "@dub/prisma/client";
 import { afterAll, describe, expect, test } from "vitest";
 import { randomId } from "../utils/helpers";
@@ -12,7 +13,7 @@ describe.sequential("PUT /links/upsert", async () => {
   const h = new IntegrationHarness();
   const { workspace, user, http } = await h.init();
   const workspaceId = workspace.id;
-  const projectId = workspaceId.replace("ws_", "");
+  const projectId = normalizeWorkspaceId(workspaceId);
   let createdLink: Link;
 
   afterAll(async () => {

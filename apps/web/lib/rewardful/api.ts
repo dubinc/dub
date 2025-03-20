@@ -66,8 +66,14 @@ export class RewardfulApi {
     campaignId: string;
     page?: number;
   }) {
+    const searchParams = new URLSearchParams();
+    searchParams.append("expand[]", "links");
+    searchParams.append("campaign_id", campaignId);
+    searchParams.append("page", page.toString());
+    searchParams.append("limit", PAGE_LIMIT.toString());
+
     const { data } = await this.fetch<{ data: RewardfulAffiliate[] }>(
-      `${this.baseUrl}/affiliates?expand[]=links&page=${page}&limit=${PAGE_LIMIT}&campaign_id=${campaignId}`,
+      `${this.baseUrl}/affiliates?${searchParams.toString()}`,
     );
 
     return data;

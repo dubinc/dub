@@ -8,6 +8,7 @@ import { withWorkspace } from "@/lib/auth";
 import {
   createPartnerSchema,
   EnrolledPartnerSchema,
+  EnrolledPartnerSchemaWithExpandedFields,
   partnersQuerySchema,
 } from "@/lib/zod/schemas/partners";
 import { NextResponse } from "next/server";
@@ -16,7 +17,7 @@ import { z } from "zod";
 // GET /api/partners - get all partners for a program
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
-    const { programId } = searchParams;
+    const { programId, includeExpandedFields } = searchParams;
 
     if (!programId) {
       throw new DubApiError({
@@ -32,7 +33,15 @@ export const GET = withWorkspace(
       programId,
     });
 
-    return NextResponse.json(z.array(EnrolledPartnerSchema).parse(partners));
+    return NextResponse.json(
+      z
+        .array(
+          includeExpandedFields
+            ? EnrolledPartnerSchemaWithExpandedFields
+            : EnrolledPartnerSchema,
+        )
+        .parse(partners),
+    );
   },
   {
     requiredPlan: [
@@ -40,6 +49,7 @@ export const GET = withWorkspace(
       "business extra",
       "business max",
       "business plus",
+      "advanced",
       "enterprise",
     ],
   },
@@ -102,6 +112,7 @@ export const POST = withWorkspace(
       "business extra",
       "business max",
       "business plus",
+      "advanced",
       "enterprise",
     ],
   },

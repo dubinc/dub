@@ -57,11 +57,13 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
         ),
         getOptionLabel: (value) => COUNTRIES[value],
         options:
-          countriesCount?.map(({ country, _count }) => ({
-            value: country,
-            label: COUNTRIES[country],
-            right: nFormatter(_count, { full: true }),
-          })) ?? [],
+          countriesCount
+            ?.filter(({ country }) => COUNTRIES[country])
+            .map(({ country, _count }) => ({
+              value: country,
+              label: COUNTRIES[country],
+              right: nFormatter(_count, { full: true }),
+            })) ?? [],
       },
       {
         key: "rewardId",

@@ -9,7 +9,10 @@ export function ProgramRewardDescription({
   periodClassName,
   hideIfZero = true,
 }: {
-  reward?: RewardProps | null;
+  reward?: Pick<
+    RewardProps,
+    "amount" | "type" | "event" | "maxDuration"
+  > | null;
   discount?: DiscountProps | null;
   amountClassName?: string;
   periodClassName?: string;
@@ -90,7 +93,7 @@ export function formatRewardDescription({
 
   if (reward.event === "sale") {
     if (reward.maxDuration === null) {
-      parts.push("for lifetime");
+      parts.push("for the customer's lifetime");
     } else if (reward.maxDuration === 0) {
       parts.push("for the first purchase");
     } else if (reward.maxDuration && reward.maxDuration > 0) {

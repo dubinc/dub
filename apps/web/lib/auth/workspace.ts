@@ -11,6 +11,7 @@ import {
 } from "../api/rbac/permissions";
 import { throwIfNoAccess } from "../api/tokens/permissions";
 import { Scope, mapScopesToPermissions } from "../api/tokens/scopes";
+import { normalizeWorkspaceId } from "../api/workspace-id";
 import { getFeatureFlags } from "../edge-config";
 import { hashToken } from "./hash-token";
 import { Session, getSession } from "./utils";
@@ -45,6 +46,7 @@ export const withWorkspace = (
       "business plus",
       "business max",
       "business extra",
+      "advanced",
       "enterprise",
     ], // if the action needs a specific plan
     featureFlag, // if the action needs a specific feature flag
@@ -130,7 +132,7 @@ export const withWorkspace = (
 
         if (idOrSlug) {
           if (idOrSlug.startsWith("ws_")) {
-            workspaceId = idOrSlug.replace("ws_", "");
+            workspaceId = normalizeWorkspaceId(idOrSlug);
           } else {
             workspaceSlug = idOrSlug;
           }
@@ -341,9 +343,15 @@ export const withWorkspace = (
 
         // beta feature checks
         if (featureFlag) {
-          const flags = await getFeatureFlags({
+          let flags = await getFeatureFlags({
             workspaceId: workspace.id,
           });
+
+          // TODO: Remove this once Folders goes GA
+          flags = {
+            ...flags,
+            linkFolders: flags.linkFolders || workspace.partnersEnabled,
+          };
 
           if (!flags[featureFlag]) {
             throw new DubApiError({

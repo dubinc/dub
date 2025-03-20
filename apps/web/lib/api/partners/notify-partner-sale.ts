@@ -24,6 +24,7 @@ export async function notifyPartnerSale({
     select: {
       id: true,
       name: true,
+      slug: true,
       logo: true,
       holdingPeriodDays: true,
       workspace: {
@@ -54,6 +55,11 @@ export async function notifyPartnerSale({
         notificationPreference: {
           newPartnerSale: true,
         },
+        user: {
+          email: {
+            not: null,
+          },
+        },
       },
       include: {
         user: {
@@ -74,6 +80,7 @@ export async function notifyPartnerSale({
     program: {
       id: program.id,
       name: program.name,
+      slug: program.slug,
       logo: program.logo,
       holdingPeriodDays: program.holdingPeriodDays,
     },

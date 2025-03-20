@@ -18,9 +18,11 @@ const BUTTON_CLASSNAME = "h-9 rounded-lg bg-bg-inverted hover:bg-neutral-800";
 export function ReferralsEmbedQuickstart({
   program,
   link,
+  onViewResources,
 }: {
   program: Program;
   link: Link;
+  onViewResources?: () => void;
 }) {
   const [copied, copyToClipboard] = useCopyToClipboard();
   const { isMobile } = useMediaQuery();
@@ -64,7 +66,14 @@ export function ReferralsEmbedQuickstart({
       description:
         "Make sure you get setup for success with the official brand files and supportive content and documents.",
       illustration: <SuccessKit logo={program.logo ?? DUB_LOGO} />,
-      cta: <Button className="h-9 rounded-lg" text="Coming soon" disabled />,
+      cta: (
+        <Button
+          className="h-9 rounded-lg"
+          text={onViewResources ? "View resources" : "No resources"}
+          disabled={!onViewResources}
+          onClick={onViewResources}
+        />
+      ),
     },
     {
       title: "Receive earnings",
