@@ -31,8 +31,7 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
 
     const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
 
-    const cacheKey = `recordClick:${domain}:${key}:${ip}`;
-    let clickId = await redis.get<string>(cacheKey);
+    let clickId = await clickCache.get({ domain, key, ip });
 
     // only generate + record a new click ID if it's not already cached in Redis
     if (!clickId) {
@@ -50,7 +49,6 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
       const allowedHostnames = link.allowedHostnames;
       verifyAnalyticsAllowedHostnames({ allowedHostnames, req });
 
-      let clickId = await clickCache.get({ domain, key, ip });
       const finalUrl = isValidUrl(url) ? url : link.url;
 
       waitUntil(
