@@ -41,6 +41,15 @@ export const exportPartnerColumns = [
   { id: "tiktok", label: "TikTok", default: false },
 ];
 
+export const BAN_PARTNER_REASONS = {
+  tos_violation: "Terms of Service Violation",
+  inappropriate_content: "Inappropriate or Offensive Content",
+  fake_traffic: "Artificial Traffic Generation",
+  fraud: "Fraudulent Activity",
+  spam: "Spam or Misleading Content",
+  brand_abuse: "Brand Abuse or Trademark Violations",
+} as const;
+
 export const exportPartnersColumnsDefault = exportPartnerColumns
   .filter((column) => column.default)
   .map((column) => column.id);
@@ -429,14 +438,6 @@ export const invitePartnerSchema = z.object({
   rewardId: z.string().optional(),
   discountId: z.string().optional(),
 });
-
-export const BAN_PARTNER_REASONS = {
-  tos_violation: "Terms of Service Violation",
-  inappropriate_content: "Inappropriate or Offensive Content",
-  fake_traffic: "Artificial Traffic Generation",
-  fraud: "Fraudulent Activity",
-  spam: "Spam or Misleading Content",
-} as const;
 
 export const banPartnerSchema = z.object({
   workspaceId: z.string(),

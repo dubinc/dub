@@ -46,6 +46,7 @@ import {
 import { nFormatter } from "@dub/utils/src/functions";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
+import { LockOpen } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -462,7 +463,7 @@ function RowMenuButton({
                     />
                   ) : (
                     <MenuItem
-                      icon={UserDelete}
+                      icon={LockOpen}
                       label="Unban partner"
                       onSelect={() => {
                         setShowUnbanPartnerModal(true);

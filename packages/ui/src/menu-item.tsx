@@ -12,7 +12,7 @@ import { Icon } from "./icons";
 const menuItemVariants = cva(
   [
     "flex h-9 w-full rounded-md px-2 items-center justify-center gap-2 transition-colors",
-    "whitespace-nowrap text-sm font-medium",
+    "whitespace-nowrap text-sm font-medium text-content-default hover:bg-bg-subtle transition-colors",
   ],
   {
     variants: {
@@ -48,13 +48,7 @@ export function MenuItem<T extends ElementType>({
   return (
     <Component
       {...(as === "button" ? { type: "button" } : {})}
-      className={cn(
-        className,
-        "flex h-9 w-full rounded-md px-2",
-        "items-center justify-center gap-2",
-        "text-content-default whitespace-nowrap text-sm font-medium",
-        "hover:bg-bg-subtle transition-colors",
-      )}
+      className={cn(menuItemVariants({ variant }), className)}
       {...rest}
     >
       <div className="flex grow items-center gap-2">
