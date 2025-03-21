@@ -52,7 +52,15 @@ export const partnersQuerySchema = z
     rewardId: z.string().optional(),
     search: z.string().optional(),
     sortBy: z
-      .enum(["createdAt", "clicks", "leads", "sales", "saleAmount", "earnings"])
+      .enum([
+        "createdAt",
+        "clicks",
+        "leads",
+        "sales",
+        "saleAmount",
+        "commissions",
+        "netRevenue",
+      ])
       .default("saleAmount"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
     tenantId: z
@@ -160,7 +168,10 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
 
 // Used internally in the Dub dashboard for partners table
 export const EnrolledPartnerSchemaWithExpandedFields =
-  EnrolledPartnerSchema.merge(PartnerOnlinePresenceSchema);
+  EnrolledPartnerSchema.merge(PartnerOnlinePresenceSchema).extend({
+    commissions: z.number().default(0),
+    netRevenue: z.number().default(0),
+  });
 
 export const LeaderboardPartnerSchema = z.object({
   id: z.string(),
@@ -415,4 +426,6 @@ export const invitePartnerSchema = z.object({
   name: z.string().trim().min(1).max(100),
   email: z.string().trim().email().min(1).max(100),
   linkId: z.string(),
+  rewardId: z.string().optional(),
+  discountId: z.string().optional(),
 });

@@ -86,29 +86,6 @@ export default function Main() {
                     />
                   </div>
                 )}
-                {id === "sales" && (
-                  <ToggleGroup
-                    className="absolute right-3 top-3 hidden w-fit shrink-0 items-center gap-1 border-neutral-100 bg-neutral-100 sm:flex"
-                    optionClassName="size-8 p-0 flex items-center justify-center"
-                    indicatorClassName="border border-neutral-200 bg-white"
-                    options={[
-                      {
-                        label: <div className="text-base">$</div>,
-                        value: "saleAmount",
-                      },
-                      {
-                        label: <div className="text-[11px]">123</div>,
-                        value: "sales",
-                      },
-                    ]}
-                    selected={saleUnit}
-                    selectAction={(option: AnalyticsSaleUnit) => {
-                      queryParams({
-                        set: { saleUnit: option },
-                      });
-                    }}
-                  />
-                )}
                 <Link
                   className={cn(
                     "border-box relative block h-full min-w-[110px] flex-none px-4 py-3 sm:min-w-[240px] sm:px-8 sm:py-6",
@@ -179,6 +156,29 @@ export default function Main() {
                     )}
                   </div>
                 </Link>
+                {id === "sales" && (
+                  <ToggleGroup
+                    className="absolute right-3 top-3 hidden w-fit shrink-0 items-center gap-1 border-neutral-100 bg-neutral-100 sm:flex"
+                    optionClassName="size-8 p-0 flex items-center justify-center"
+                    indicatorClassName="border border-neutral-200 bg-white"
+                    options={[
+                      {
+                        label: <div className="text-base">$</div>,
+                        value: "saleAmount",
+                      },
+                      {
+                        label: <div className="text-[11px]">123</div>,
+                        value: "sales",
+                      },
+                    ]}
+                    selected={saleUnit}
+                    selectAction={(option: AnalyticsSaleUnit) => {
+                      queryParams({
+                        set: { saleUnit: option },
+                      });
+                    }}
+                  />
+                )}
               </div>
             );
           })}
