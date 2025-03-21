@@ -38,6 +38,13 @@ export const unbanPartnerAction = authActionClient
     };
 
     await prisma.$transaction([
+      prisma.link.updateMany({
+        where,
+        data: {
+          expiresAt: null,
+        },
+      }),
+
       prisma.programEnrollment.update({
         where: {
           partnerId_programId: where,
@@ -47,22 +54,21 @@ export const unbanPartnerAction = authActionClient
         },
       }),
 
-      prisma.link.updateMany({
-        where,
-        data: {
-          expiresAt: null,
-        },
-      }),
-
       prisma.commission.updateMany({
-        where,
+        where: {
+          ...where,
+          status: "cancelled",
+        },
         data: {
           status: "pending",
         },
       }),
 
       prisma.payout.updateMany({
-        where,
+        where: {
+          ...where,
+          status: "cancelled",
+        },
         data: {
           status: "pending",
         },

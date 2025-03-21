@@ -1,5 +1,6 @@
 "use server";
 
+import { linkCache } from "@/lib/api/links/cache";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import {
   BAN_PARTNER_REASONS,
@@ -39,19 +40,19 @@ export const banPartnerAction = authActionClient
     };
 
     await prisma.$transaction([
+      prisma.link.updateMany({
+        where,
+        data: {
+          expiresAt: new Date(),
+        },
+      }),
+
       prisma.programEnrollment.update({
         where: {
           partnerId_programId: where,
         },
         data: {
           status: "banned",
-        },
-      }),
-
-      prisma.link.updateMany({
-        where,
-        data: {
-          expiresAt: new Date(),
         },
       }),
 
@@ -72,6 +73,18 @@ export const banPartnerAction = authActionClient
 
     waitUntil(
       (async () => {
+        // Delete links from cache
+        const links = await prisma.link.findMany({
+          where,
+          select: {
+            domain: true,
+            key: true,
+          },
+        });
+
+        await linkCache.deleteMany(links);
+
+        // Send email to partner
         const [partner, workspaceUsers] = await Promise.all([
           prisma.partner.findUniqueOrThrow({
             where: {
