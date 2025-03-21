@@ -73,17 +73,6 @@ export const banPartnerAction = authActionClient
 
     waitUntil(
       (async () => {
-        // Delete links from cache
-        const links = await prisma.link.findMany({
-          where,
-          select: {
-            domain: true,
-            key: true,
-          },
-        });
-
-        await linkCache.deleteMany(links);
-
         // Send email to partner
         const [partner, workspaceUsers] = await Promise.all([
           prisma.partner.findUniqueOrThrow({
@@ -138,6 +127,17 @@ export const banPartnerAction = authActionClient
             bannedReason: BAN_PARTNER_REASONS[parsedInput.reason],
           }),
         });
+
+        // Delete links from cache
+        const links = await prisma.link.findMany({
+          where,
+          select: {
+            domain: true,
+            key: true,
+          },
+        });
+
+        await linkCache.deleteMany(links);
       })(),
     );
   });
