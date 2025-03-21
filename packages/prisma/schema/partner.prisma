@@ -21,7 +21,7 @@ model Partner {
   profileType       PartnerProfileType @default(individual)
   email             String?            @unique
   image             String?
-  description       String?            @db.LongText
+  description       String?            @db.Text
   country           String?
   status            PartnerStatus      @default(default)
   stripeConnectId   String?            @unique

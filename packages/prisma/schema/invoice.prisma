@@ -13,7 +13,7 @@ model Invoice {
   amount      Int           @default(0)
   fee         Int           @default(0)
   total       Int           @default(0)
-  receiptUrl  String?       @db.LongText
+  receiptUrl  String?       @db.Text
   createdAt   DateTime      @default(now())
 
   payouts   Payout[]
