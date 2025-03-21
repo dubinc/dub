@@ -6,7 +6,7 @@ import {
   parse,
 } from "@/lib/middleware/utils";
 import { recordClick } from "@/lib/tinybird";
-import { formatRedisLink, redis } from "@/lib/upstash";
+import { formatRedisLink } from "@/lib/upstash";
 import {
   DUB_HEADERS,
   LEGAL_WORKSPACE_ID,
@@ -27,6 +27,7 @@ import {
 } from "next/server";
 import { linkCache } from "../api/links/cache";
 import { isCaseSensitiveDomain } from "../api/links/case-sensitivity";
+import { clickCache } from "../api/links/click-cache";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
 import { getTestDestinationURL } from "./utils/get-test-destination-url";
@@ -235,8 +236,8 @@ export default async function LinkMiddleware(
     // if trackConversion is enabled, check if clickId is cached in Redis
     if (trackConversion) {
       const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
-      const cacheKey = `recordClick:${domain}:${key}:${ip}`;
-      clickId = (await redis.get<string>(cacheKey)) || undefined;
+
+      clickId = (await clickCache.get({ domain, key, ip })) || undefined;
     }
     // if there's still no clickId, generate a new one
     if (!clickId) {
