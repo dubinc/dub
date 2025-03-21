@@ -113,9 +113,12 @@ export const banPartnerAction = authActionClient
           return;
         }
 
+        const supportEmail = program.supportEmail || "support@dub.co";
+
         await sendEmail({
           subject: `You've been banned from the ${program.name} Partner Program`,
           email: partner.email,
+          replyTo: supportEmail,
           react: PartnerBanned({
             partner: {
               name: partner.name,
@@ -123,7 +126,7 @@ export const banPartnerAction = authActionClient
             },
             program: {
               name: program.name,
-              supportEmail: program.supportEmail || "support@dub.co",
+              supportEmail,
             },
             bannedReason: BAN_PARTNER_REASONS[parsedInput.reason],
           }),
