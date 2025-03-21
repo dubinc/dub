@@ -20,6 +20,38 @@ export const createPayout = async ({
     },
   });
 
+  const programEnrollment = await prisma.programEnrollment.findUniqueOrThrow({
+    where: {
+      partnerId_programId: {
+        partnerId,
+        programId,
+      },
+    },
+    select: {
+      status: true,
+    },
+  });
+
+  if (programEnrollment.status === "banned") {
+    await prisma.commission.updateMany({
+      where: {
+        programId,
+        partnerId,
+        status: "pending",
+      },
+      data: {
+        status: "cancelled",
+      },
+    });
+
+    console.log("Cancelled commissions for banned partner.", {
+      programId,
+      partnerId,
+    });
+
+    return;
+  }
+
   await prisma.$transaction(async (tx) => {
     const commissions = await tx.commission.findMany({
       where: {
