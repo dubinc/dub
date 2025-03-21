@@ -2,6 +2,7 @@ import {
   CircleCheck,
   CircleHalfDottedClock,
   CircleWarning,
+  CircleXmark,
 } from "@dub/ui/icons";
 
 export const PayoutStatusBadges = {
@@ -27,6 +28,12 @@ export const PayoutStatusBadges = {
     label: "Failed",
     variant: "error",
     icon: CircleWarning,
+    className: "text-red-600 bg-red-100",
+  },
+  cancelled: {
+    label: "Cancelled",
+    variant: "error",
+    icon: CircleXmark,
     className: "text-red-600 bg-red-100",
   },
 };
