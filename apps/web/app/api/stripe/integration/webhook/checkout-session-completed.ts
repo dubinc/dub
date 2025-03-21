@@ -1,3 +1,4 @@
+import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { createId } from "@/lib/api/create-id";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
@@ -196,10 +197,24 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     }
   }
 
-  // support for Stripe Adaptive Pricing: https://docs.stripe.com/payments/checkout/adaptive-pricing
-  if (charge.currency !== "usd" && charge.currency_conversion) {
-    charge.amount_total = charge.currency_conversion.amount_total;
-    charge.currency = charge.currency_conversion.source_currency;
+  if (charge.currency && charge.currency !== "usd" && charge.amount_total) {
+    // support for Stripe Adaptive Pricing: https://docs.stripe.com/payments/checkout/adaptive-pricing
+    if (charge.currency_conversion) {
+      charge.amount_total = charge.currency_conversion.amount_total;
+      charge.currency = charge.currency_conversion.source_currency;
+
+      // if Stripe Adaptive Pricing is not enabled, we convert the amount to USD based on the current FX rate
+      // TODO: allow custom "defaultCurrency" on workspace table in the future
+    } else {
+      const { currency: convertedCurrency, amount: convertedAmount } =
+        await convertCurrency({
+          currency: charge.currency,
+          amount: charge.amount_total,
+        });
+
+      charge.amount_total = convertedAmount;
+      charge.currency = convertedCurrency;
+    }
   }
 
   const eventId = nanoid(16);
