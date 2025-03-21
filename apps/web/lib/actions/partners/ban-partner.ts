@@ -38,8 +38,8 @@ export const banPartnerAction = authActionClient
     }
 
     const where = {
-      partnerId,
       programId,
+      partnerId,
     };
 
     await prisma.$transaction([
@@ -115,8 +115,8 @@ export const banPartnerAction = authActionClient
 
         const supportEmail = workspaceUsers[0]?.user.email || "support@dub.co";
 
-        sendEmail({
-          subject: "Your partner account has been banned",
+        await sendEmail({
+          subject: `You've been banned from the ${program.name} Partner Program`,
           email: partner.email,
           react: PartnerBanned({
             partner: {

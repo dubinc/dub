@@ -1,5 +1,6 @@
 "use server";
 
+import { linkCache } from "@/lib/api/links/cache";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { banPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
@@ -33,8 +34,8 @@ export const unbanPartnerAction = authActionClient
     }
 
     const where = {
-      partnerId,
       programId,
+      partnerId,
     };
 
     await prisma.$transaction([
@@ -77,6 +78,17 @@ export const unbanPartnerAction = authActionClient
 
     waitUntil(
       (async () => {
+        // Delete links from cache
+        const links = await prisma.link.findMany({
+          where,
+          select: {
+            domain: true,
+            key: true,
+          },
+        });
+
+        await linkCache.deleteMany(links);
+
         // TODO
         // Send email to partner about being unbanned
       })(),

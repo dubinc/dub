@@ -38,7 +38,10 @@ export function PartnerBanned({
   return (
     <Html>
       <Head />
-      <Preview>Your partner account has been banned</Preview>
+      <Preview>
+        You've been banned from the {program.name} Partner Program for{" "}
+        {bannedReason}
+      </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
@@ -51,21 +54,23 @@ export function PartnerBanned({
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              Your partner account has been banned for{" "}
+              You've been banned from the {program.name} Partner Program for{" "}
               <strong>{bannedReason}</strong>.
             </Text>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              You cannot apply to the {program.name} partner program again.
+              All your links have been deactivated, and your pending commissions
+              have been cancelled. You cannot apply to the {program.name}{" "}
+              Partner Program again.
             </Text>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              If you wish to appeal this ban, please{" "}
+              If you wish to appeal this ban, please reach out to{" "}
               <Link
                 href={`mailto:${program.supportEmail}`}
                 className="text-neutral-600 underline underline-offset-4"
               >
-                contact us
+                {program.supportEmail}
               </Link>
               .
             </Text>
