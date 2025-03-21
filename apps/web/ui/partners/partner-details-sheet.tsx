@@ -47,8 +47,8 @@ function PartnerDetailsSheetContent({
     useCreatePayoutSheet({ nested: true, partnerId: partner.id });
 
   return (
-    <>
-      <div className="flex grow flex-col">
+    <div className="flex h-full flex-col">
+      <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
         <div className="flex items-start justify-between p-6">
           <Sheet.Title className="text-xl font-semibold">
             Partner details
@@ -61,6 +61,9 @@ function PartnerDetailsSheetContent({
             />
           </Sheet.Close>
         </div>
+      </div>
+
+      <div className="flex grow flex-col">
         <div className="border-y border-neutral-200 bg-neutral-50 p-6">
           {/* Basic info */}
           <PartnerInfoSection partner={partner}>
@@ -69,7 +72,7 @@ function PartnerDetailsSheetContent({
 
           {/* Stats */}
           {partner.status === "approved" && (
-            <div className="xs:grid-cols-4 mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-neutral-200 bg-neutral-200">
+            <div className="xs:grid-cols-3 mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-neutral-200 bg-neutral-200">
               {[
                 [
                   "Clicks",
@@ -96,6 +99,24 @@ function PartnerDetailsSheetContent({
                     : currencyFormatter(partner.saleAmount / 100, {
                         minimumFractionDigits:
                           partner.saleAmount % 1 === 0 ? 0 : 2,
+                        maximumFractionDigits: 2,
+                      }),
+                ],
+                [
+                  "Commissions",
+                  !partner.commissions
+                    ? "-"
+                    : currencyFormatter(partner.commissions / 100, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      }),
+                ],
+                [
+                  "Net revenue",
+                  !partner.netRevenue
+                    ? "-"
+                    : currencyFormatter(partner.netRevenue / 100, {
+                        minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                       }),
                 ],
@@ -154,7 +175,7 @@ function PartnerDetailsSheetContent({
           )}
         </div>
 
-        <div className="grow p-6">
+        <div className="grow overflow-y-auto p-6">
           {partner.status === "approved" && (
             <>
               {tab === "payouts" && <PartnerPayouts partner={partner} />}
@@ -173,8 +194,8 @@ function PartnerDetailsSheetContent({
       {partner.status === "approved" && (
         <>
           {createPayoutSheet}
-          <div className="flex grow flex-col justify-end">
-            <div className="border-t border-neutral-200 p-5">
+          <div className="sticky bottom-0 z-10 border-t border-neutral-200 bg-white">
+            <div className="p-5">
               <Button
                 variant="primary"
                 text="Create payout"
@@ -184,7 +205,7 @@ function PartnerDetailsSheetContent({
           </div>
         </>
       )}
-    </>
+    </div>
   );
 }
 
