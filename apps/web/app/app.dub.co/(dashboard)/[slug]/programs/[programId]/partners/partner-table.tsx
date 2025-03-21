@@ -147,9 +147,9 @@ export function PartnerTable() {
             <div className="flex items-center gap-2">
               {country && (
                 <img
-                  alt=""
-                  src={`https://flag.vercel.app/m/${country}.svg`}
-                  className="h-3 w-4 shrink-0"
+                  alt={`${country} flag`}
+                  src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
+                  className="size-4 shrink-0"
                 />
               )}
               <span className="min-w-0 truncate">
@@ -188,6 +188,28 @@ export function PartnerTable() {
               })
             : "-",
       },
+      {
+        id: "commissions",
+        header: "Commissions",
+        accessorFn: (d) =>
+          d.status !== "pending"
+            ? currencyFormatter(d.commissions / 100, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })
+            : "-",
+      },
+      {
+        id: "netRevenue",
+        header: "Net Revenue",
+        accessorFn: (d) =>
+          d.status !== "pending"
+            ? currencyFormatter(d.netRevenue / 100, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })
+            : "-",
+      },
       // Menu
       {
         id: "menu",
@@ -213,7 +235,15 @@ export function PartnerTable() {
     onPaginationChange: setPagination,
     columnVisibility,
     onColumnVisibilityChange: setColumnVisibility,
-    sortableColumns: ["createdAt", "clicks", "leads", "sales", "saleAmount"],
+    sortableColumns: [
+      "createdAt",
+      "clicks",
+      "leads",
+      "sales",
+      "saleAmount",
+      "commissions",
+      "netRevenue",
+    ],
     sortBy,
     sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>
@@ -261,7 +291,10 @@ export function PartnerTable() {
             onSelect={onSelect}
             onRemove={onRemove}
           />
-          <SearchBoxPersisted />
+          <SearchBoxPersisted
+            placeholder="Search by name, email, or link"
+            inputClassName="md:w-72"
+          />
         </div>
         <AnimatedSizeContainer height>
           <div>

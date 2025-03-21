@@ -15,23 +15,31 @@ import { Prisma, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
 import { includeTags } from "../links/include-tags";
+import { backfillLinkCommissions } from "./backfill-link-commissions";
 
 export const createAndEnrollPartner = async ({
   program,
   workspace,
   link,
   partner,
+  rewardId,
+  discountId,
   tenantId,
   status = "approved",
   skipEnrollmentCheck = false,
 }: {
-  program: Pick<ProgramProps, "id" | "defaultFolderId">;
+  program: Pick<
+    ProgramProps,
+    "id" | "defaultFolderId" | "defaultRewardId" | "defaultDiscountId"
+  >;
   workspace: Pick<WorkspaceProps, "id" | "webhookEnabled">;
   link: ProgramPartnerLinkProps;
   partner: Pick<
     CreatePartnerProps,
     "email" | "name" | "image" | "country" | "description"
   >;
+  rewardId?: string;
+  discountId?: string;
   tenantId?: string;
   status?: ProgramEnrollmentStatus;
   skipEnrollmentCheck?: boolean;
@@ -78,12 +86,24 @@ export const createAndEnrollPartner = async ({
       create: {
         programId: program.id,
         tenantId,
+        status,
         links: {
           connect: {
             id: link.id,
           },
         },
-        status,
+        ...(rewardId &&
+          rewardId !== program.defaultRewardId && {
+            rewards: {
+              create: {
+                rewardId,
+              },
+            },
+          }),
+        ...(discountId &&
+          discountId !== program.defaultDiscountId && {
+            discountId,
+          }),
       },
     },
   };
@@ -134,7 +154,16 @@ export const createAndEnrollPartner = async ({
           },
           include: includeTags,
         })
-        .then((link) => recordLink(link)),
+        .then((link) =>
+          Promise.allSettled([
+            recordLink(link),
+            backfillLinkCommissions({
+              id: link.id,
+              partnerId: upsertedPartner.id,
+              programId: program.id,
+            }),
+          ]),
+        ),
 
       sendWorkspaceWebhook({
         workspace,
