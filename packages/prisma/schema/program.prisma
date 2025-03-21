@@ -14,6 +14,7 @@ enum ProgramEnrollmentStatus {
   rejected // program rejected the partner
   declined // partner declined the invite
   pending // pending applications that need approval
+  banned // partner is banned from the program
 }
 
 enum CommissionInterval {

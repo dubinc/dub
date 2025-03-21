@@ -3,6 +3,7 @@ import {
   CircleHalfDottedClock,
   CircleXmark,
   EnvelopeArrowRight,
+  UserDelete,
 } from "@dub/ui/icons";
 
 export const PartnerStatusBadges = {
@@ -29,5 +30,11 @@ export const PartnerStatusBadges = {
     variant: "error",
     className: "text-red-600 bg-red-100",
     icon: CircleXmark,
+  },
+  banned: {
+    label: "Banned",
+    variant: "error",
+    className: "text-red-600 bg-red-100",
+    icon: UserDelete,
   },
 };
