@@ -37,17 +37,23 @@ export default function LinksContainer({
 
   // Decide on the folderId to use
   let folderId = searchParams.get("folderId");
-  if (!folderId && defaultFolderId) {
-    folderId = defaultFolderId;
-  } else if (folderId) {
-    folderId = folderId !== "unsorted" ? folderId : "";
+  if (folderId) {
+    folderId = folderId === "unsorted" ? "" : folderId;
   } else {
-    folderId = "";
+    folderId = defaultFolderId ?? "";
   }
 
-  const { links, isValidating } = useLinks({ sortBy, showArchived });
+  const { links, isValidating } = useLinks({
+    sortBy,
+    showArchived,
+    folderId,
+  });
+
   const { data: count } = useLinksCount<number>({
-    query: { showArchived, folderId },
+    query: {
+      showArchived,
+      folderId,
+    },
   });
 
   return (
