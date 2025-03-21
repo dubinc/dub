@@ -200,8 +200,8 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   if (charge.currency && charge.currency !== "usd" && charge.amount_total) {
     // support for Stripe Adaptive Pricing: https://docs.stripe.com/payments/checkout/adaptive-pricing
     if (charge.currency_conversion) {
-      charge.amount_total = charge.currency_conversion.amount_total;
       charge.currency = charge.currency_conversion.source_currency;
+      charge.amount_total = charge.currency_conversion.amount_total;
 
       // if Stripe Adaptive Pricing is not enabled, we convert the amount to USD based on the current FX rate
       // TODO: allow custom "defaultCurrency" on workspace table in the future
@@ -212,8 +212,8 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
           amount: charge.amount_total,
         });
 
-      charge.amount_total = convertedAmount;
       charge.currency = convertedCurrency;
+      charge.amount_total = convertedAmount;
     }
   }
 
