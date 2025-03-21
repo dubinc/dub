@@ -61,7 +61,6 @@ export const GET = withWorkspace(
     const response = await getLinksForWorkspace({
       ...params,
       workspaceId: workspace.id,
-      folderId,
       folderIds,
       searchMode: selectedFolder?.type === "mega" ? "exact" : "fuzzy",
     });

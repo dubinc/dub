@@ -64,10 +64,7 @@ export const GET = withWorkspace(
     }
 
     const count = await getLinksCount({
-      searchParams: {
-        ...params,
-        folderId,
-      },
+      searchParams: params,
       workspaceId: workspace.id,
       folderIds,
     });

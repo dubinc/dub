@@ -15,8 +15,8 @@ export default function useLinks(
 ) {
   const { id: workspaceId } = useWorkspace();
   const { getQueryString } = useRouterStuff();
-  const [admin, setAdmin] = useState(false);
 
+  const [admin, setAdmin] = useState(false);
   useEffect(() => {
     if (window.location.host.startsWith("admin.")) {
       setAdmin(true);

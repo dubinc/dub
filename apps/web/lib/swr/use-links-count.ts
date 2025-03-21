@@ -20,7 +20,6 @@ export default function useLinksCount<T = any>({
 } = {}) {
   const { id: workspaceId } = useWorkspace();
   const { getQueryString } = useRouterStuff();
-  const { isMegaFolder } = useIsMegaFolder();
 
   const [admin, setAdmin] = useState(false);
   useEffect(() => {
@@ -28,6 +27,7 @@ export default function useLinksCount<T = any>({
       setAdmin(true);
     }
   }, []);
+  const { isMegaFolder } = useIsMegaFolder();
 
   const { data, error } = useSWR<any>(
     workspaceId && !isMegaFolder && enabled
