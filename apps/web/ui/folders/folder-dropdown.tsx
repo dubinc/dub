@@ -172,7 +172,7 @@ export const FolderDropdown = ({
             setSelectedFolder(folder);
             onFolderSelect
               ? onFolderSelect(folder)
-              : router.push(`/${slug}?folderId=${folder.id}}`);
+              : router.push(`/${slug}?folderId=${folder.id}`);
           }
         }}
         inputRight={
