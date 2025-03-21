@@ -32,9 +32,7 @@ export const FolderActions = ({
 }) => {
   const router = useRouter();
   const [openPopover, setOpenPopover] = useState(false);
-  const { slug: workspaceSlug, defaultFolderId, role } = useWorkspace();
-
-  const canUpdateFolder = useCheckFolderPermission(folder.id, "folders.write");
+  const { slug: workspaceSlug, defaultFolderId } = useWorkspace();
 
   const { RenameFolderModal, setShowRenameFolderModal } =
     useRenameFolderModal(folder);
@@ -52,16 +50,17 @@ export const FolderActions = ({
   const { folderPermissionsPanel, setShowFolderPermissionsPanel } =
     useFolderPermissionsPanel(folder);
 
-  const [copiedFolderId, copyToClipboard] = useCopyToClipboard();
-
   const copyFolderId = () => {
     toast.promise(copyToClipboard(folder.id), {
       success: "Folder ID copied!",
     });
   };
 
-  const unsortedLinks = folder.id === "unsorted";
+  const [copiedFolderId, copyToClipboard] = useCopyToClipboard();
+  const canUpdateFolder = useCheckFolderPermission(folder.id, "folders.write");
+
   const isDefault = isDefaultFolder({ folder, defaultFolderId });
+  const unsortedLinks = folder.id === "unsorted";
 
   useKeyboardShortcut(
     ["r", "m", "i", "x", "a", "d"],
@@ -114,22 +113,22 @@ export const FolderActions = ({
       <Popover
         content={
           <div className="grid w-full divide-y divide-neutral-200 sm:w-52">
-            {!unsortedLinks && (
-              <div className="grid gap-px p-2">
-                <Button
-                  text="Analytics"
-                  variant="outline"
-                  onClick={() => {
-                    setOpenPopover(false);
-                    router.push(
-                      `/${workspaceSlug}/analytics?folderId=${folder.id}`,
-                    );
-                  }}
-                  icon={<Chart className="h-4 w-4" />}
-                  shortcut="A"
-                  className="h-9 px-2 font-medium"
-                />
+            <div className="grid gap-px p-2">
+              <Button
+                text="Analytics"
+                variant="outline"
+                onClick={() => {
+                  setOpenPopover(false);
+                  router.push(
+                    `/${workspaceSlug}/analytics?folderId=${folder.id}`,
+                  );
+                }}
+                icon={<Chart className="h-4 w-4" />}
+                shortcut="A"
+                className="h-9 px-2 font-medium"
+              />
 
+              {!unsortedLinks && (
                 <Button
                   text="Members"
                   variant="outline"
@@ -141,8 +140,8 @@ export const FolderActions = ({
                   shortcut="M"
                   className="h-9 px-2 font-medium"
                 />
-              </div>
-            )}
+              )}
+            </div>
 
             <div className="grid gap-px p-2">
               {!unsortedLinks && (
@@ -174,9 +173,7 @@ export const FolderActions = ({
                 className="h-9 px-2 font-medium"
                 disabled={isDefault}
                 disabledTooltip={
-                  isDefault
-                    ? "This is your default workspace folder."
-                    : undefined
+                  isDefault ? "This is your default folder." : undefined
                 }
               />
 
