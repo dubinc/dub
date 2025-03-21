@@ -88,6 +88,12 @@ export const WorkspaceSchema = z
       .array(
         z.object({
           role: roleSchema,
+          defaultFolderId: z
+            .string()
+            .nullable()
+            .describe(
+              "The ID of the default folder for the user in the workspace.",
+            ),
         }),
       )
       .describe("The role of the authenticated user in the workspace."),
@@ -115,10 +121,6 @@ export const WorkspaceSchema = z
       .nullable()
       .describe("Specifies hostnames permitted for client-side click tracking.")
       .openapi({ example: ["dub.sh"] }),
-    defaultFolderId: z
-      .string()
-      .nullable()
-      .describe("The ID of the default folder for the workspace."),
   })
   .openapi({
     title: "Workspace",
@@ -141,7 +143,6 @@ export const createWorkspaceSchema = z.object({
 
 export const updateWorkspaceSchema = createWorkspaceSchema.partial().extend({
   allowedHostnames: z.array(z.string()).optional(),
-  defaultFolderId: z.string().nullable().optional(),
 });
 
 export const notificationTypes = z.enum([

@@ -1,4 +1,3 @@
-import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderSummary } from "@/lib/types";
@@ -17,9 +16,9 @@ import { Bookmark } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useDefaultFolderModal } from "../modals/default-folder-modal";
 import { useDeleteFolderModal } from "../modals/delete-folder-modal";
 import { useRenameFolderModal } from "../modals/rename-folder-modal";
+import { useDefaultFolderModal } from "../modals/set-default-folder-modal";
 import { Chart, Delete, ThreeDots } from "../shared/icons";
 import { useFolderPermissionsPanel } from "./folder-permissions-panel";
 import { isDefaultFolder } from "./utils";
@@ -34,12 +33,6 @@ export const FolderActions = ({
   const router = useRouter();
   const [openPopover, setOpenPopover] = useState(false);
   const { slug: workspaceSlug, defaultFolderId, role } = useWorkspace();
-
-  const permissionsError = clientAccessCheck({
-    action: "workspaces.write",
-    role,
-    customPermissionDescription: "set a default folder",
-  }).error;
 
   const canUpdateFolder = useCheckFolderPermission(folder.id, "folders.write");
 
@@ -69,8 +62,6 @@ export const FolderActions = ({
 
   const unsortedLinks = folder.id === "unsorted";
   const isDefault = isDefaultFolder({ folder, defaultFolderId });
-  const canMakeDefault =
-    !isDefault && !permissionsError && folder.accessLevel != null;
 
   useKeyboardShortcut(
     ["r", "m", "i", "x", "a", "d"],
@@ -93,7 +84,7 @@ export const FolderActions = ({
           }
           break;
         case "d":
-          if (canMakeDefault) {
+          if (!isDefault) {
             setShowDefaultFolderModal(true);
           }
           break;
@@ -181,15 +172,11 @@ export const FolderActions = ({
                 icon={<Bookmark className="h-4 w-4" />}
                 shortcut="D"
                 className="h-9 px-2 font-medium"
-                disabled={!canMakeDefault}
+                disabled={isDefault}
                 disabledTooltip={
-                  permissionsError
-                    ? permissionsError
-                    : isDefault
-                      ? "This is the workspace's default folder."
-                      : folder.accessLevel === null
-                        ? "Only folders with workspace access can be set as default."
-                        : undefined
+                  isDefault
+                    ? "This is your default workspace folder."
+                    : undefined
                 }
               />
 

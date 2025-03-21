@@ -69,14 +69,6 @@ export const PATCH = withWorkspace(
       requiredPermission: "folders.write",
     });
 
-    if (workspace.defaultFolderId === folderId && accessLevel === null) {
-      throw new DubApiError({
-        code: "conflict",
-        message:
-          "This is the workspace's default folder and cannot be set to no access.",
-      });
-    }
-
     try {
       const updatedFolder = await prisma.folder.update({
         where: {

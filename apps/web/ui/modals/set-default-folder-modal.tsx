@@ -1,6 +1,8 @@
+import { setDefaultFolderAction } from "@/lib/actions/folders/set-default-folder";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderSummary } from "@/lib/types";
 import { Button, Modal } from "@dub/ui";
+import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
   SetStateAction,
@@ -12,7 +14,7 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 import { FolderIcon } from "../folders/folder-icon";
 
-function DefaultFolderModal({
+function SetDefaultFolderModal({
   showDefaultFolderModal,
   setShowDefaultFolderModal,
   folder,
@@ -22,31 +24,28 @@ function DefaultFolderModal({
   folder: FolderSummary;
 }) {
   const { id: workspaceId } = useWorkspace();
-  const [loading, setLoading] = useState(false);
 
-  const setDefault = async () => {
-    setLoading(true);
-    const response = await fetch(`/api/workspaces/${workspaceId}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        defaultFolderId: folder.id === "unsorted" ? null : folder.id,
-      }),
-    });
-    if (response.ok) {
+  const { executeAsync, isPending } = useAction(setDefaultFolderAction, {
+    onSuccess: async () => {
       await Promise.all([
         mutate("/api/workspaces"),
         mutate(`/api/workspaces/${workspaceId}`),
         mutate(`/api/folders?workspaceId=${workspaceId}`),
       ]);
-      setLoading(false);
       setShowDefaultFolderModal(false);
-    } else {
-      const { error } = await response.json();
-      toast.error(error.message);
-    }
+    },
+    onError({ error }) {
+      toast.error(error.serverError);
+    },
+  });
+
+  const setDefault = async () => {
+    if (!workspaceId) return;
+
+    await executeAsync({
+      workspaceId,
+      folderId: folder.id === "unsorted" ? null : folder.id,
+    });
   };
 
   return (
@@ -77,7 +76,7 @@ function DefaultFolderModal({
             })
           }
           autoFocus
-          loading={loading}
+          loading={isPending}
           text="Set as default folder"
         />
       </div>
@@ -90,7 +89,7 @@ export function useDefaultFolderModal({ folder }: { folder: FolderSummary }) {
 
   const DefaultFolderModalCallback = useCallback(() => {
     return folder ? (
-      <DefaultFolderModal
+      <SetDefaultFolderModal
         showDefaultFolderModal={showDefaultFolderModal}
         setShowDefaultFolderModal={setShowDefaultFolderModal}
         folder={folder}
