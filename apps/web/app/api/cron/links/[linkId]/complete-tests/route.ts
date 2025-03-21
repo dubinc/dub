@@ -6,12 +6,17 @@ import { prisma } from "@dub/prisma";
 /**
  * Completes a link's tests if they're ready, scheduled by QStash
  */
-export async function POST(req: Request) {
+export async function POST(
+  req: Request,
+  { params = {} }: { params: Record<string, string> | undefined },
+) {
   try {
     const rawBody = await req.text();
     await verifyQstashSignature({ req, rawBody });
 
-    const { linkId } = JSON.parse(rawBody);
+    const { linkId } = params;
+
+    if (!linkId) return new Response("Link ID is required.", { status: 400 });
 
     const link = await prisma.link.findUnique({
       where: {

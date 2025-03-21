@@ -3,7 +3,7 @@ import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { ExpandedLink } from "./utils";
 
 export async function scheduleTestCompletion(link: ExpandedLink) {
-  const completionUrl = `${APP_DOMAIN_WITH_NGROK}/api/cron/links/complete-tests`;
+  const completionUrl = `${APP_DOMAIN_WITH_NGROK}/api/cron/links/${link.id}/complete-tests`;
 
   // Remove any previously scheduled completion jobs
   try {
@@ -43,9 +43,6 @@ export async function scheduleTestCompletion(link: ExpandedLink) {
     await qstash.publishJSON({
       url: completionUrl,
       delay: (testsCompleteAt.getTime() - new Date().getTime()) / 1000,
-      body: {
-        linkId: link.id,
-      },
     });
   }
 }
