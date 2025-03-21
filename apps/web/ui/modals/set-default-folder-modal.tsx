@@ -27,19 +27,19 @@ function SetDefaultFolderModal({
 
   const { executeAsync, isPending } = useAction(setDefaultFolderAction, {
     onSuccess: async () => {
+      setShowDefaultFolderModal(false);
       await Promise.all([
         mutate("/api/workspaces"),
         mutate(`/api/workspaces/${workspaceId}`),
         mutate(`/api/folders?workspaceId=${workspaceId}`),
       ]);
-      setShowDefaultFolderModal(false);
     },
     onError({ error }) {
       toast.error(error.serverError);
     },
   });
 
-  const setDefault = async () => {
+  const setDefaultFolder = async () => {
     if (!workspaceId) return;
 
     await executeAsync({
@@ -67,7 +67,7 @@ function SetDefaultFolderModal({
       <div className="flex flex-col space-y-6 bg-neutral-50 px-4 py-8 text-left sm:px-16">
         <Button
           onClick={() =>
-            toast.promise(setDefault, {
+            toast.promise(setDefaultFolder, {
               loading: `Setting ${folder.name} as the default folder...`,
               success: `Successfully set ${folder.name} as the default folder!`,
               error: (error) => {
