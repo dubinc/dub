@@ -9,11 +9,11 @@ enum CommissionType {
 }
 
 enum ProgramEnrollmentStatus {
-  invited // partner who already has an account
-  approved // partner who doesn't have an account
-  rejected // program rejected the partner
-  declined // partner declined the invite
   pending // pending applications that need approval
+  approved // partner who has been approved/actively enrolled
+  rejected // program rejected the partner
+  invited // partner who has been invited
+  declined // partner declined the invite
   banned // partner is banned from the program
 }
 

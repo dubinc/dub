@@ -11,15 +11,6 @@ export const createPayout = async ({
   partnerId: string;
   type: EventType;
 }) => {
-  const { holdingPeriodDays } = await prisma.program.findUniqueOrThrow({
-    where: {
-      id: programId,
-    },
-    select: {
-      holdingPeriodDays: true,
-    },
-  });
-
   const programEnrollment = await prisma.programEnrollment.findUniqueOrThrow({
     where: {
       partnerId_programId: {
@@ -29,6 +20,11 @@ export const createPayout = async ({
     },
     select: {
       status: true,
+      program: {
+        select: {
+          holdingPeriodDays: true,
+        },
+      },
     },
   });
 
@@ -51,6 +47,8 @@ export const createPayout = async ({
 
     return;
   }
+
+  const { holdingPeriodDays } = programEnrollment.program;
 
   await prisma.$transaction(async (tx) => {
     const commissions = await tx.commission.findMany({
