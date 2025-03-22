@@ -43,8 +43,8 @@ export function ProgramHelpSupport() {
   if (supportItems.length === 0) return null;
 
   return (
-    <div className="m-2 grid gap-2 rounded-md border border-neutral-300/80 p-1">
-      <div className="grid gap-2 p-2">
+    <div className="m-2 grid gap-1 rounded-md border border-neutral-300/80 p-1">
+      <div className="grid gap-2 p-2.5">
         {program.logo && (
           <img
             src={program.logo}
@@ -63,7 +63,7 @@ export function ProgramHelpSupport() {
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 rounded-md p-1 text-sm text-neutral-500 transition-colors hover:bg-neutral-200 hover:text-neutral-700"
+            className="flex items-center gap-2 rounded-md p-1.5 text-sm text-neutral-500 transition-colors hover:bg-neutral-300/75 hover:text-neutral-700"
           >
             <Icon className="size-4" />
             {label}
