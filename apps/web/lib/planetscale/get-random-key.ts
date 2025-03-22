@@ -1,5 +1,4 @@
 import { nanoid } from "@dub/utils";
-import { isCaseSensitiveDomain } from "../api/links/case-sensitivity";
 import { checkIfKeyExists } from "./check-if-key-exists";
 
 export async function getRandomKey({
@@ -23,16 +22,6 @@ export async function getRandomKey({
     // by the off chance that key already exists
     return getRandomKey({ domain, prefix, long });
   } else {
-    if (isCaseSensitiveDomain(domain)) {
-      const unencodedExists = await checkIfKeyExists({
-        domain,
-        key,
-        ignoreCaseSensitivity: true,
-      });
-      if (unencodedExists) {
-        return getRandomKey({ domain, prefix, long });
-      }
-    }
     return key;
   }
 }
