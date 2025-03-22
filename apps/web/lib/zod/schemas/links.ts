@@ -25,6 +25,23 @@ export const getDomainQuerySchema = z.object({
     .refine((v) => validDomainRegex.test(v), { message: "Invalid domain" }),
 });
 
+export const MIN_TEST_PERCENTAGE = 10;
+export const MAX_TEST_COUNT = 4;
+
+export const LinkTestsSchema = z
+  .array(
+    z.object({
+      url: z.string(),
+      percentage: z
+        .number()
+        .min(MIN_TEST_PERCENTAGE)
+        .max(100 - MIN_TEST_PERCENTAGE),
+    }),
+  )
+  .min(2)
+  .max(MAX_TEST_COUNT)
+  .describe("An array of A/B test URLs and their percentages");
+
 const LinksQuerySchema = z.object({
   domain: z
     .string()
@@ -384,6 +401,15 @@ export const createLinkBodySchema = z.object({
     .describe(
       "An array of webhook IDs to trigger when the link is clicked. These webhooks will receive click event data.",
     ),
+  tests: LinkTestsSchema.nullish(),
+  testsStartedAt: z
+    .string()
+    .nullish()
+    .describe("The date and time when the tests started."),
+  testsCompleteAt: z
+    .string()
+    .nullish()
+    .describe("The date and time when the tests were or will be completed."),
 });
 
 export const updateLinkBodySchema = createLinkBodySchema.partial();
@@ -600,6 +626,15 @@ export const LinkSchema = z
       .string()
       .nullable()
       .describe("The UTM content of the short link."),
+    tests: LinkTestsSchema.nullish(),
+    testsStartedAt: z
+      .string()
+      .nullish()
+      .describe("The date and time when the tests started."),
+    testsCompleteAt: z
+      .string()
+      .nullish()
+      .describe("The date and time when the tests were or will be completed."),
     userId: z
       .string()
       .nullable()
@@ -699,6 +734,8 @@ export const linkEventSchema = LinkSchema.extend({
   updatedAt: z.coerce.date(),
   lastClicked: z.coerce.date(),
   expiresAt: z.coerce.date(),
+  testsCompleteAt: z.coerce.date().nullable(),
+  testsStartedAt: z.coerce.date().nullable(),
   // userId can be null
   userId: z.string().nullable(),
 });

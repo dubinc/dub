@@ -3,14 +3,43 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { CardList, ExpandingArrow, useMediaQuery } from "@dub/ui";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useContext } from "react";
+import {
+  createContext,
+  Dispatch,
+  memo,
+  SetStateAction,
+  useContext,
+  useState,
+} from "react";
 import { FolderIcon } from "../folders/folder-icon";
 import { useLinkBuilder } from "../modals/link-builder";
 import { LinkDetailsColumn } from "./link-details-column";
+import { LinkTests } from "./link-tests";
 import { LinkTitleColumn } from "./link-title-column";
 import { ResponseLink } from "./links-container";
 
-export function LinkCard({ link }: { link: ResponseLink }) {
+export const LinkCardContext = createContext<{
+  showTests: boolean;
+  setShowTests: Dispatch<SetStateAction<boolean>>;
+} | null>(null);
+
+export function useLinkCardContext() {
+  const context = useContext(LinkCardContext);
+  if (!context)
+    throw new Error("useLinkCardContext must be used within a LinkCard");
+  return context;
+}
+
+export const LinkCard = memo(({ link }: { link: ResponseLink }) => {
+  const [showTests, setShowTests] = useState(false);
+  return (
+    <LinkCardContext.Provider value={{ showTests, setShowTests }}>
+      <LinkCardInner link={link} />
+    </LinkCardContext.Provider>
+  );
+});
+
+const LinkCardInner = memo(({ link }: { link: ResponseLink }) => {
   const { variant } = useContext(CardList.Context);
   const { isMobile } = useMediaQuery();
 
@@ -29,7 +58,8 @@ export function LinkCard({ link }: { link: ResponseLink }) {
       <CardList.Card
         key={link.id}
         onClick={isMobile ? undefined : () => setShowLinkBuilder(true)}
-        innerClassName="flex items-center gap-5 sm:gap-8 md:gap-12 text-sm"
+        outerClassName="overflow-hidden"
+        innerClassName="p-0"
         {...(variant === "loose" &&
           link.folderId &&
           searchParams.get("folderId") !== link.folderId && {
@@ -66,11 +96,14 @@ export function LinkCard({ link }: { link: ResponseLink }) {
             ),
           })}
       >
-        <div className="min-w-0 grow">
-          <LinkTitleColumn link={link} />
+        <div className="flex items-center gap-5 px-4 py-2.5 text-sm sm:gap-8 md:gap-12">
+          <div className="min-w-0 grow">
+            <LinkTitleColumn link={link} />
+          </div>
+          <LinkDetailsColumn link={link} />
         </div>
-        <LinkDetailsColumn link={link} />
+        <LinkTests link={link} />
       </CardList.Card>
     </>
   );
-}
+});

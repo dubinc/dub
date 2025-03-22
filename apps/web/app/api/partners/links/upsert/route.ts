@@ -85,6 +85,15 @@ export const PUT = withWorkspace(
             ? link.expiresAt.toISOString()
             : link.expiresAt,
         geo: link.geo as NewLinkProps["geo"],
+        tests: link.tests as NewLinkProps["tests"],
+        testsCompleteAt:
+          link.testsCompleteAt instanceof Date
+            ? link.testsCompleteAt.toISOString()
+            : link.testsCompleteAt,
+        testsStartedAt:
+          link.testsStartedAt instanceof Date
+            ? link.testsStartedAt.toISOString()
+            : link.testsStartedAt,
         // merge in new props
         ...linkProps,
         // set default fields

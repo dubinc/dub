@@ -1,5 +1,7 @@
+import { z } from "zod";
 import { ExpandedLink } from "../api/links/utils/transform-link";
 import { RedisLinkProps } from "../types";
+import { LinkTestsSchema } from "../zod/schemas/links";
 
 export function formatRedisLink(link: ExpandedLink): RedisLinkProps {
   const {
@@ -17,6 +19,8 @@ export function formatRedisLink(link: ExpandedLink): RedisLinkProps {
     doIndex,
     projectId,
     webhooks,
+    tests,
+    testsCompleteAt,
   } = link;
 
   const webhookIds = webhooks?.map(({ webhookId }) => webhookId) ?? [];
@@ -39,5 +43,11 @@ export function formatRedisLink(link: ExpandedLink): RedisLinkProps {
     ...(projectId && { projectId }), // projectId can be undefined for anonymous links
     ...(doIndex && { doIndex: true }),
     ...(webhookIds.length > 0 && { webhookIds }),
+    ...(Boolean(
+      tests && testsCompleteAt && new Date(testsCompleteAt) > new Date(),
+    ) && {
+      tests: tests as z.infer<typeof LinkTestsSchema>,
+      testsCompleteAt: new Date(testsCompleteAt!),
+    }),
   };
 }

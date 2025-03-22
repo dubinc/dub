@@ -18,6 +18,7 @@ import { combineTagIds } from "../tags/combine-tag-ids";
 import { linkCache } from "./cache";
 import { encodeKeyIfCaseSensitive } from "./case-sensitivity";
 import { includeTags } from "./include-tags";
+import { scheduleTestCompletion } from "./schedule-test-completion";
 import { updateLinksUsage } from "./update-links-usage";
 import { transformLink } from "./utils";
 
@@ -32,6 +33,8 @@ export async function createLink(link: ProcessedLinkProps) {
     proxy,
     geo,
     publicStats,
+    tests,
+    testsCompleteAt,
   } = link;
 
   const combinedTagIds = combineTagIds(link);
@@ -63,6 +66,10 @@ export async function createLink(link: ProcessedLinkProps) {
       utm_content,
       expiresAt: expiresAt ? new Date(expiresAt) : null,
       geo: geo || Prisma.JsonNull,
+
+      tests: tests || Prisma.JsonNull,
+      testsCompleteAt: testsCompleteAt ? new Date(testsCompleteAt) : null,
+      testsStartedAt: tests && testsCompleteAt ? new Date() : null,
 
       // Associate tags by tagNames
       ...(tagNames?.length &&
@@ -173,6 +180,8 @@ export async function createLink(link: ProcessedLinkProps) {
         propagateWebhookTriggerChanges({
           webhookIds,
         }),
+
+      tests && testsCompleteAt && scheduleTestCompletion(response),
     ]),
   );
 

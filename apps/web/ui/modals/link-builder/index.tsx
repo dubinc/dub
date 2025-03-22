@@ -55,6 +55,7 @@ import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
+import { useABTestingModal } from "./ab-testing/ab-testing-modal";
 import { ConversionTrackingToggle } from "./conversion-tracking-toggle";
 import { DraftControls, DraftControlsHandle } from "./draft-controls";
 import { useExpirationModal } from "./expiration-modal";
@@ -68,7 +69,6 @@ import { useTargetingModal } from "./targeting-modal";
 import { useMetatags } from "./use-metatags";
 import { useUTMModal } from "./utm-modal";
 import { UTMTemplatesButton } from "./utm-templates-button";
-import { WebhookSelect } from "./webhook-select";
 
 export const LinkModalContext = createContext<{
   workspaceId?: string;
@@ -122,6 +122,7 @@ function LinkBuilderInner({
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
   const { id: workspaceId, plan, nextPlan, logo, flags } = useWorkspace();
+  const conversionsEnabled = !!plan && plan !== "free" && plan !== "pro";
 
   const {
     control,
@@ -212,17 +213,18 @@ function LinkBuilderInner({
   const draftControlsRef = useRef<DraftControlsHandle>(null);
 
   const { UTMModal, UTMButton } = useUTMModal();
-  const { ExpirationModal, ExpirationButton } = useExpirationModal();
   const { TargetingModal, TargetingButton } = useTargetingModal();
+  const { ABTestingModal, ABTestingButton } = useABTestingModal();
   const { PasswordModal, PasswordButton } = usePasswordModal();
-
+  const { ExpirationModal, ExpirationButton } = useExpirationModal();
   const [, copyToClipboard] = useCopyToClipboard();
 
   return (
     <>
-      <PasswordModal />
       <UTMModal />
       <TargetingModal />
+      {conversionsEnabled && <ABTestingModal />}
+      <PasswordModal />
       <ExpirationModal />
       <Modal
         showModal={showLinkBuilder}
@@ -521,11 +523,11 @@ function LinkBuilderInner({
               <div className="flex min-w-0 items-center gap-2">
                 <UTMButton />
                 <div className="flex items-center gap-2 max-sm:hidden">
-                  <ExpirationButton />
                   <TargetingButton />
+                  {conversionsEnabled && <ABTestingButton />}
                   <PasswordButton />
+                  <ExpirationButton />
                 </div>
-                <WebhookSelect />
                 <MoreDropdown />
               </div>
               {homepageDemo ? (

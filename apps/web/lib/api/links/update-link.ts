@@ -17,13 +17,18 @@ import { combineTagIds } from "../tags/combine-tag-ids";
 import { linkCache } from "./cache";
 import { encodeKeyIfCaseSensitive } from "./case-sensitivity";
 import { includeTags } from "./include-tags";
+import { scheduleTestCompletion } from "./schedule-test-completion";
 import { transformLink } from "./utils";
 
 export async function updateLink({
   oldLink,
   updatedLink,
 }: {
-  oldLink: { domain: string; key: string; image?: string | null };
+  oldLink: {
+    domain: string;
+    key: string;
+    image?: string | null;
+  };
   updatedLink: ProcessedLinkProps &
     Pick<LinkProps, "id" | "clicks" | "lastClicked" | "updatedAt">;
 }) {
@@ -56,6 +61,9 @@ export async function updateLink({
     tagIds,
     tagNames,
     webhookIds,
+    tests,
+    testsStartedAt,
+    testsCompleteAt,
     ...rest
   } = updatedLink;
 
@@ -92,6 +100,10 @@ export async function updateLink({
       utm_content: utm_content || null,
       expiresAt: expiresAt ? new Date(expiresAt) : null,
       geo: geo || Prisma.JsonNull,
+
+      tests: tests || Prisma.JsonNull,
+      testsCompleteAt: testsCompleteAt ? new Date(testsCompleteAt) : null,
+      testsStartedAt: testsStartedAt ? new Date(testsStartedAt) : null,
 
       // Associate tags by tagNames
       ...(tagNames &&
@@ -181,6 +193,8 @@ export async function updateLink({
         propagateWebhookTriggerChanges({
           webhookIds,
         }),
+
+      tests && testsCompleteAt && scheduleTestCompletion(response),
     ]),
   );
 
