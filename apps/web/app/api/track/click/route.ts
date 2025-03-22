@@ -2,11 +2,11 @@ import { verifyAnalyticsAllowedHostnames } from "@/lib/analytics/verify-analytic
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { ExpandedLink } from "@/lib/api/links";
 import { linkCache } from "@/lib/api/links/cache";
+import { clickCache } from "@/lib/api/links/click-cache";
 import { includePartnerAndDiscount } from "@/lib/api/partners/include-partner";
 import { parseRequestBody } from "@/lib/api/utils";
 import { getLinkWithAllowedHostnames } from "@/lib/planetscale/get-link-with-allowed-hostnames";
 import { recordClick } from "@/lib/tinybird";
-import { redis } from "@/lib/upstash";
 import { clickPartnerDiscountSchema } from "@/lib/zod/schemas/clicks";
 import { prismaEdge } from "@dub/prisma/edge";
 import { isValidUrl, LOCALHOST_IP, nanoid } from "@dub/utils";
@@ -36,8 +36,7 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
 
     const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
 
-    const cacheKey = `recordClick:${domain}:${key}:${ip}`;
-    let clickId = await redis.get<string>(cacheKey);
+    let clickId = await clickCache.get({ domain, key, ip });
 
     let partner: ExpandedLink["partner"] | undefined;
     let discount: ExpandedLink["discount"] | undefined;

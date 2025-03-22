@@ -7,6 +7,7 @@ import {
 import { EU_COUNTRY_CODES } from "@dub/utils/src/constants/countries";
 import { geolocation, ipAddress } from "@vercel/functions";
 import { userAgent } from "next/server";
+import { clickCache } from "../api/links/click-cache";
 import { ExpandedLink, transformLink } from "../api/links/utils/transform-link";
 import {
   detectBot,
@@ -67,13 +68,11 @@ export async function recordClick({
 
   const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
 
-  const cacheKey = `recordClick:${domain}:${key}:${ip}`;
-
   // by default, we deduplicate clicks for a domain + key pair from the same IP address – only record 1 click per hour
   // we only need to do these if skipRatelimit is not true (we skip it in /api/track/:path endpoints)
   if (!skipRatelimit) {
     // here, we check if the clickId is cached in Redis within the last hour
-    const cachedClickId = await redis.get<string>(cacheKey);
+    const cachedClickId = await clickCache.get({ domain, key, ip });
     if (cachedClickId) {
       return null;
     }
@@ -153,9 +152,7 @@ export async function recordClick({
     ).then((res) => res.json()),
 
     // cache the click ID in Redis for 1 hour
-    redis.set(cacheKey, clickId, {
-      ex: 60 * 60,
-    }),
+    clickCache.set({ domain, key, ip, clickId }),
 
     // cache the click data for 5 mins
     // we're doing this because ingested click events are not available immediately in Tinybird

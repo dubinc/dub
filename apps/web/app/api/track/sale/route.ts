@@ -1,3 +1,4 @@
+import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
@@ -116,13 +117,11 @@ export const POST = withWorkspace(
     // if currency is not USD, convert it to USD  based on the current FX rate
     // TODO: allow custom "defaultCurrency" on workspace table in the future
     if (currency !== "usd") {
-      const fxRates = await redis.hget("fxRates:usd", currency.toUpperCase()); // e.g. for MYR it'll be around 4.4
-      if (fxRates) {
-        currency = "usd";
-        // convert amount to USD (in cents) based on the current FX rate
-        // round it to 0 decimal places
-        amount = Math.round(amount / Number(fxRates));
-      }
+      const { currency: convertedCurrency, amount: convertedAmount } =
+        await convertCurrency({ currency, amount });
+
+      currency = convertedCurrency;
+      amount = convertedAmount;
     }
 
     const eventId = nanoid(16);

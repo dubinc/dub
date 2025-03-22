@@ -3,6 +3,7 @@ enum PayoutStatus {
   processing
   completed
   failed
+  canceled
 }
 
 enum PayoutType {
