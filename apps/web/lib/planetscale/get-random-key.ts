@@ -5,15 +5,21 @@ export async function getRandomKey({
   domain,
   prefix,
   long,
+  skipKeyAvailabilityCheck = false,
 }: {
   domain: string;
   prefix?: string;
   long?: boolean;
+  skipKeyAvailabilityCheck?: boolean;
 }): Promise<string> {
   /* recursively get random key till it gets one that's available */
   let key = long ? nanoid(69) : nanoid();
   if (prefix) {
     key = `${prefix.replace(/^\/|\/$/g, "")}/${key}`;
+  }
+
+  if (skipKeyAvailabilityCheck) {
+    return key;
   }
 
   const exists = await checkIfKeyExists({ domain, key });

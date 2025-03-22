@@ -31,6 +31,7 @@ export async function processLink<T extends Record<string, any>>({
   skipExternalIdChecks = false, // only skip when externalId doesn't change (e.g. when editing a link)
   skipFolderChecks = false, // only skip for update / upsert links
   skipProgramChecks = false, // only skip for when program is already validated
+  skipKeyAvailabilityCheck = false,
 }: {
   payload: NewLinkProps & T;
   workspace?: Pick<WorkspaceProps, "id" | "plan">;
@@ -40,6 +41,7 @@ export async function processLink<T extends Record<string, any>>({
   skipExternalIdChecks?: boolean;
   skipFolderChecks?: boolean;
   skipProgramChecks?: boolean;
+  skipKeyAvailabilityCheck?: boolean;
 }): Promise<
   | {
       link: NewLinkProps & T;
@@ -262,6 +264,7 @@ export async function processLink<T extends Record<string, any>>({
       domain,
       prefix: payload["prefix"],
       long: domain === "loooooooo.ng",
+      skipKeyAvailabilityCheck,
     });
   } else if (!skipKeyChecks) {
     const processedKey = processKey({ domain, key });
