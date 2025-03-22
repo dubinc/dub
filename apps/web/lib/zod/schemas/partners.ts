@@ -1,4 +1,5 @@
 import {
+  PartnerBannedReason,
   PartnerProfileType,
   PartnerStatus,
   ProgramEnrollmentStatus,
@@ -180,6 +181,15 @@ export const EnrolledPartnerSchemaWithExpandedFields =
   EnrolledPartnerSchema.merge(PartnerOnlinePresenceSchema).extend({
     commissions: z.number().default(0),
     netRevenue: z.number().default(0),
+    bannedAt: z.date().nullish(),
+    bannedReason: z
+      .enum(
+        Object.keys(BAN_PARTNER_REASONS) as [
+          PartnerBannedReason,
+          ...PartnerBannedReason[],
+        ],
+      )
+      .nullish(),
   });
 
 export const LeaderboardPartnerSchema = z.object({
@@ -443,5 +453,10 @@ export const banPartnerSchema = z.object({
   workspaceId: z.string(),
   programId: z.string(),
   partnerId: z.string(),
-  reason: z.enum(Object.keys(BAN_PARTNER_REASONS) as [string, ...string[]]),
+  reason: z.enum(
+    Object.keys(BAN_PARTNER_REASONS) as [
+      PartnerBannedReason,
+      ...PartnerBannedReason[],
+    ],
+  ),
 });

@@ -38,10 +38,7 @@ type PartnerDetailsSheetProps = {
 
 type Tab = "payouts" | "links";
 
-function PartnerDetailsSheetContent({
-  partner,
-  setIsOpen,
-}: PartnerDetailsSheetProps) {
+function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
   const { slug } = useWorkspace();
   const { program } = useProgram();
   const [tab, setTab] = useState<Tab>("links");

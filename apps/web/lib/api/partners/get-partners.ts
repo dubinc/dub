@@ -61,6 +61,8 @@ export async function getPartners(filters: PartnerFilters) {
       pe.tenantId,
       pe.applicationId,
       pe.createdAt as enrollmentCreatedAt,
+      pe.bannedAt,
+      pe.bannedReason,
       COALESCE(metrics.totalClicks, 0) as totalClicks,
       COALESCE(metrics.totalLeads, 0) as totalLeads,
       COALESCE(metrics.totalSales, 0) as totalSales,

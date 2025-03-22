@@ -56,6 +56,8 @@ export const banPartnerAction = authActionClient
         },
         data: {
           status: "banned",
+          bannedAt: new Date(),
+          bannedReason: parsedInput.reason,
         },
       }),
 

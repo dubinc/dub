@@ -52,6 +52,8 @@ export const unbanPartnerAction = authActionClient
         },
         data: {
           status: "approved",
+          bannedAt: null,
+          bannedReason: null,
         },
       }),
 

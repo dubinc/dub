@@ -67,17 +67,26 @@ model Program {
   @@index([domain])
 }
 
+enum PartnerBannedReason {
+  tos_violation
+  inappropriate_content
+  fake_traffic
+  fraud
+  spam
+  brand_abuse
+}
 model ProgramEnrollment {
   id               String                  @id @default(cuid())
   partnerId        String
   programId        String
   tenantId         String?
-  commissionAmount Int? // custom commission amount for this partner // TODO: Remove after the migration
   discountId       String? // custom discount for this partner
   applicationId    String?                 @unique
   status           ProgramEnrollmentStatus @default(pending)
   createdAt        DateTime                @default(now())
   updatedAt        DateTime                @updatedAt
+  bannedAt         DateTime?
+  bannedReason     PartnerBannedReason?
 
   partner     Partner             @relation(fields: [partnerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   program     Program             @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)

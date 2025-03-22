@@ -14,7 +14,6 @@ export const getContentAPI: () => Promise<{
       },
     }).then((res) => res.json());
   } catch (e) {
-    console.error("Failed to fetch content from dub.co/api/content", e);
     return {
       allHelpArticles: [],
       popularHelpArticles: [],

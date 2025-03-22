@@ -26,7 +26,9 @@ export function PartnerStats() {
       (acc, { status, _count }) => ({
         ...acc,
         [status]: _count,
-        all: (acc.all || 0) + _count,
+        all:
+          (acc.all || 0) +
+          (["approved", "pending", "invited"].includes(status) ? _count : 0),
       }),
       { approved: 0, pending: 0, invited: 0, all: 0 },
     ) ?? {};

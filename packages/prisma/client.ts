@@ -8,6 +8,7 @@ export {
   FolderType,
   FolderUserRole,
   InvoiceStatus,
+  PartnerBannedReason,
   PartnerProfileType,
   PartnerRole,
   PartnerStatus,
