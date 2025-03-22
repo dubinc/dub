@@ -53,4 +53,7 @@ export const E2E_PROGRAM = {
   url: "https://acme.com",
 };
 
-export const E2E_PARTNER_ID = "pn_H4TB2V5hDIjpqB7PwrxESoY3";
+export const E2E_PARTNER = {
+  id: "pn_H4TB2V5hDIjpqB7PwrxESoY3",
+  tenantId: "4149092f-7265-4002-98d9-da9f8e67e1fb",
+};

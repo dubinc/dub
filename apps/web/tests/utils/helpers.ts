@@ -19,3 +19,7 @@ export const randomCustomer = () => {
 export const randomTagName = () => {
   return `e2e-${randomId()}`;
 };
+
+export const randomEmail = () => {
+  return `${generateRandomName().split(" ").join(".").toLowerCase()}@example.com`;
+};
