@@ -40,6 +40,7 @@ const config: Pick<Config, "presets"> = {
             border: {
               DEFAULT: "#D9E7FF",
               100: "#F0F2F5",
+              200: "#E2E2E3",
             },
           },
           backgroundImage: {

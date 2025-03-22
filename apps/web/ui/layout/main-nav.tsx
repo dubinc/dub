@@ -72,18 +72,19 @@ export function MainNav({
         {/* Side nav */}
         <div
           className={cn(
-            "relative h-full w-[240px] max-w-full bg-neutral-100 transition-transform md:translate-x-0",
+            "border-r-border-200 relative h-full w-[240px] max-w-full self-end border-r bg-neutral-100 py-4 transition-transform md:translate-x-0 md:py-8",
             !isOpen && "-translate-x-full",
           )}
         >
-          <div className="absolute inset-0 overflow-hidden">
-            <div
-              className={cn(
-                "pointer-events-none absolute -left-2/3 bottom-0 aspect-square w-[140%] translate-y-1/4 rounded-full opacity-15 blur-[75px]",
-                "bg-[conic-gradient(from_32deg_at_center,#855AFC_0deg,#3A8BFD_72deg,#00FFF9_144deg,#5CFF80_198deg,#EAB308_261deg,#f00_360deg)]",
-              )}
-            />
-          </div>
+          {/*<div className="absolute inset-0 overflow-hidden">*/}
+          {/*  <div*/}
+          {/*    className={cn(*/}
+          {/*      "pointer-events-none absolute -left-2/3 bottom-0 aspect-square w-[140%] translate-y-1/4 rounded-full opacity-15 blur-[75px]",*/}
+          {/*      "bg-[conic-gradient(from_32deg_at_center,#855AFC_0deg,#3A8BFD_72deg,#00FFF9_144deg,#5CFF80_198deg,#EAB308_261deg,#f00_360deg)]",*/}
+          {/*    )}*/}
+          {/*  />*/}
+          {/*</div>*/}
+
           <Sidebar toolContent={toolContent} newsContent={newsContent} />
         </div>
       </div>
