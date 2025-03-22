@@ -107,7 +107,7 @@ function BanPartnerModal({
           </p>
         </div>
 
-        <p className="text-center text-sm font-normal leading-5 text-neutral-600">
+        <p className="text-balance text-center text-sm font-normal leading-5 text-neutral-600">
           This will permanently ban the partner, disable all their active links,
           and cancel all pending payouts. This action is not reversible.{" "}
           <span className="font-semibold">

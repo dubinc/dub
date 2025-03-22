@@ -49,6 +49,9 @@ function PartnerDetailsSheetContent({
   const { createPayoutSheet, setIsOpen: setCreatePayoutSheetOpen } =
     useCreatePayoutSheet({ nested: true, partnerId: partner.id });
 
+  const showDetails =
+    partner.status === "approved" || partner.status === "banned";
+
   return (
     <div className="flex h-full flex-col">
       <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
@@ -74,7 +77,7 @@ function PartnerDetailsSheetContent({
           </PartnerInfoSection>
 
           {/* Stats */}
-          {partner.status === "approved" && (
+          {showDetails && (
             <div className="xs:grid-cols-3 mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-neutral-200 bg-neutral-200">
               {[
                 [
@@ -157,7 +160,7 @@ function PartnerDetailsSheetContent({
             </Link>
           </div> */}
 
-          {partner.status === "approved" && (
+          {showDetails && (
             <div className="-mb-6 mt-2 flex items-center gap-2">
               <TabSelect
                 options={[
@@ -179,7 +182,7 @@ function PartnerDetailsSheetContent({
         </div>
 
         <div className="grow overflow-y-auto p-6">
-          {partner.status === "approved" && (
+          {showDetails && (
             <>
               {tab === "payouts" && <PartnerPayouts partner={partner} />}
               {tab === "links" && <PartnerLinks partner={partner} />}
@@ -194,7 +197,7 @@ function PartnerDetailsSheetContent({
         </div>
       </div>
 
-      {partner.status === "approved" && (
+      {showDetails && (
         <>
           {createPayoutSheet}
           <div className="sticky bottom-0 z-10 border-t border-neutral-200 bg-white">
@@ -366,7 +369,6 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
 
 function Menu({ partner }: { partner: EnrolledPartnerProps }) {
   const [openPopover, setOpenPopover] = useState(false);
-  const [banned, setBanned] = useState(partner.status === "banned");
 
   const { partnerProfileSheet, setIsOpen: setPartnerProfileSheetOpen } =
     usePartnerProfileSheet({ nested: true, partner });
@@ -390,7 +392,7 @@ function Menu({ partner }: { partner: EnrolledPartnerProps }) {
       <UnbanPartnerModal />
 
       <div className="flex items-center gap-2">
-        {partner.status === "approved" && (
+        {(partner.status === "approved" || partner.status === "banned") && (
           <Button
             variant="secondary"
             text="View profile"
@@ -419,6 +421,7 @@ function Menu({ partner }: { partner: EnrolledPartnerProps }) {
                   icon={UserDelete}
                   variant="danger"
                   onClick={() => {
+                    setOpenPopover(false);
                     setShowBanPartnerModal(true);
                   }}
                 >
@@ -428,6 +431,7 @@ function Menu({ partner }: { partner: EnrolledPartnerProps }) {
                 <MenuItem
                   icon={LockOpen}
                   onClick={() => {
+                    setOpenPopover(false);
                     setShowUnbanPartnerModal(true);
                   }}
                 >

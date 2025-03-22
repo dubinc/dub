@@ -96,7 +96,7 @@ function UnbanPartnerModal({
           </p>
         </div>
 
-        <p className="text-center text-sm font-normal leading-5 text-neutral-600">
+        <p className="text-balance text-center text-sm font-normal leading-5 text-neutral-600">
           This will unban the partner, enable all their active links, and
           restore all pending payouts.{" "}
           <span className="font-semibold">
