@@ -158,13 +158,13 @@ function NewsCard({
     animation.current.onfinish = () => onDismiss?.();
   };
 
-  const stopDragging = (cancelled: boolean) => {
+  const stopDragging = (canceled: boolean) => {
     if (!ref.current) return;
     unbindListeners();
     setDragging(false);
 
     const dx = drag.current.delta;
-    if (Math.abs(dx) > ref.current.clientWidth / (cancelled ? 2 : 3)) {
+    if (Math.abs(dx) > ref.current.clientWidth / (canceled ? 2 : 3)) {
       dismiss();
       return;
     }

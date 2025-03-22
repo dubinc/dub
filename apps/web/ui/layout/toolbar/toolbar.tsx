@@ -29,7 +29,6 @@ async function ToolbarRSC({ show = ["onboarding", "help"] }: ToolbarProps) {
   )
     .then((res) => res.json())
     .catch(() => {
-      console.error("Error fetching help articles");
       return { popularHelpArticles: [], allHelpArticles: [] };
     });
 

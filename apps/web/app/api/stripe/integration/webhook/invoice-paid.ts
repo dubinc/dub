@@ -1,3 +1,4 @@
+import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { createId } from "@/lib/api/create-id";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
@@ -46,6 +47,19 @@ export async function invoicePaid(event: Stripe.Event) {
 
   if (invoice.amount_paid === 0) {
     return `Invoice with ID ${invoiceId} has an amount of 0, skipping...`;
+  }
+
+  // if currency is not USD, convert it to USD  based on the current FX rate
+  // TODO: allow custom "defaultCurrency" on workspace table in the future
+  if (invoice.currency && invoice.currency !== "usd") {
+    const { currency: convertedCurrency, amount: convertedAmount } =
+      await convertCurrency({
+        currency: invoice.currency,
+        amount: invoice.amount_paid,
+      });
+
+    invoice.currency = convertedCurrency;
+    invoice.amount_paid = convertedAmount;
   }
 
   // Find lead
