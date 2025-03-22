@@ -7,9 +7,6 @@ async function main() {
     projectId: "cm05wnnpo000711ztj05wwdbu",
     archived: false,
     folderId: "fold_LIZsdjTgFVbQVGYSUmYAi5vT",
-    createdAt: {
-      lte: new Date("2025-02-27T00:00:00.000Z"),
-    },
   };
 
   const links = await prisma.link.findMany({
