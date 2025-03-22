@@ -10,20 +10,17 @@ import { EdgeLinkProps } from "./types";
 export const getLinkViaEdge = async ({
   domain,
   key,
-  ignoreCaseSensitivity = false,
 }: {
   domain: string;
   key: string;
-  ignoreCaseSensitivity?: boolean;
 }) => {
   const isCaseSensitive = isCaseSensitiveDomain(domain);
-  const keyToQuery =
-    isCaseSensitive && !ignoreCaseSensitivity
-      ? // for case sensitive domains, we need to encode the key
-        encodeKey(key)
-      : // for non-case sensitive domains, we need to make sure that the key is always URI-decoded + punycode-encoded
-        // (cause that's how we store it in MySQL)
-        punyEncode(decodeURIComponent(key));
+  const keyToQuery = isCaseSensitive
+    ? // for case sensitive domains, we need to encode the key
+      encodeKey(key)
+    : // for non-case sensitive domains, we need to make sure that the key is always URI-decoded + punycode-encoded
+      // (cause that's how we store it in MySQL)
+      punyEncode(decodeURIComponent(key));
 
   const { rows } =
     (await conn.execute("SELECT * FROM Link WHERE domain = ? AND `key` = ?", [
