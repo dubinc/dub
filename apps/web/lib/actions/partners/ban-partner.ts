@@ -62,14 +62,14 @@ export const banPartnerAction = authActionClient
       prisma.commission.updateMany({
         where,
         data: {
-          status: "cancelled",
+          status: "canceled",
         },
       }),
 
       prisma.payout.updateMany({
         where,
         data: {
-          status: "cancelled",
+          status: "canceled",
         },
       }),
     ]);

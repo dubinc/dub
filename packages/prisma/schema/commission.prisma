@@ -5,7 +5,7 @@ enum CommissionStatus {
   refunded
   duplicate
   fraud
-  cancelled
+  canceled
 }
 
 enum EventType {

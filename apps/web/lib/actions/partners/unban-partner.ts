@@ -58,7 +58,7 @@ export const unbanPartnerAction = authActionClient
       prisma.commission.updateMany({
         where: {
           ...where,
-          status: "cancelled",
+          status: "canceled",
         },
         data: {
           status: "pending",
@@ -68,7 +68,7 @@ export const unbanPartnerAction = authActionClient
       prisma.payout.updateMany({
         where: {
           ...where,
-          status: "cancelled",
+          status: "canceled",
         },
         data: {
           status: "pending",

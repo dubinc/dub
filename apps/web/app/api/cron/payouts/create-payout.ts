@@ -36,11 +36,11 @@ export const createPayout = async ({
         status: "pending",
       },
       data: {
-        status: "cancelled",
+        status: "canceled",
       },
     });
 
-    console.log("Cancelled commissions for banned partner.", {
+    console.log("Canceled commissions for banned partner.", {
       programId,
       partnerId,
     });

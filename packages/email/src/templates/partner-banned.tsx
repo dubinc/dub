@@ -60,8 +60,8 @@ export function PartnerBanned({
 
             <Text className="text-sm leading-6 text-neutral-600">
               All your links have been deactivated, and your pending commissions
-              have been cancelled. You cannot apply to the {program.name}{" "}
-              Partner Program again.
+              have been canceled. You cannot apply to the {program.name} Partner
+              Program again.
             </Text>
 
             <Text className="text-sm leading-6 text-neutral-600">

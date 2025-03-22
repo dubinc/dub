@@ -30,10 +30,10 @@ export const PayoutStatusBadges = {
     icon: CircleWarning,
     className: "text-red-600 bg-red-100",
   },
-  cancelled: {
-    label: "Cancelled",
-    variant: "error",
+  canceled: {
+    label: "Canceled",
+    variant: "neutral",
     icon: CircleXmark,
-    className: "text-red-600 bg-red-100",
+    className: "text-gray-600 bg-gray-100",
   },
 };

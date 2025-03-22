@@ -43,10 +43,10 @@ export const SaleStatusBadges = {
     className: "text-red-600 bg-red-100",
     icon: CircleXmark,
   },
-  cancelled: {
-    label: "Cancelled",
-    variant: "error",
-    className: "text-red-600 bg-red-100",
+  canceled: {
+    label: "Canceled",
+    variant: "neutral",
+    className: "text-gray-600 bg-gray-100",
     icon: CircleXmark,
   },
 };
