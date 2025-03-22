@@ -25,9 +25,6 @@ export async function POST(req: Request) {
     projectId: "cm05wnnpo000711ztj05wwdbu",
     archived: false,
     folderId: "fold_LIZsdjTgFVbQVGYSUmYAi5vT",
-    createdAt: {
-      lte: new Date("2025-02-27T00:00:00.000Z"),
-    },
   };
 
   const links = await prisma.link.findMany({
@@ -38,9 +35,6 @@ export async function POST(req: Request) {
       createdAt: true,
     },
     take: 1000,
-    orderBy: {
-      createdAt: "desc",
-    },
   });
 
   if (!links.length) {
@@ -63,13 +57,6 @@ export async function POST(req: Request) {
   console.log(
     `Final deleted link: ${finalDeletedLink.key} (${new Date(finalDeletedLink.createdAt).toISOString()})`,
   );
-
-  if (finalDeletedLink.createdAt <= new Date("2024-05-18T11:54:08.000Z")) {
-    console.log("Reached previously imported links point, pausing for now...");
-    return NextResponse.json({
-      status: `Reached previously imported links point, pausing for now...`,
-    });
-  }
 
   await qstash.publishJSON({
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/migrate`,

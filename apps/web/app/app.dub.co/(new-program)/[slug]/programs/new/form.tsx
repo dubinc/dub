@@ -12,34 +12,13 @@ import {
   Input,
   useMediaQuery,
 } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, getDomainWithoutWWW } from "@dub/utils";
 import { Plus } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
-
-export const LINK_TYPES = [
-  {
-    id: "short",
-    label: "Short link",
-    example: "refer.dub.co/steven",
-    comingSoon: false,
-  },
-  // {
-  //   id: "query",
-  //   label: "Query parameter",
-  //   example: "dub.co/?via=steven",
-  //   comingSoon: false,
-  // },
-  {
-    id: "dynamic",
-    label: "Dynamic path",
-    example: "dub.co/refer/steven",
-    comingSoon: true,
-  },
-];
 
 export function Form() {
   const router = useRouter();
@@ -125,6 +104,21 @@ export function Form() {
   const buttonDisabled =
     isSubmitting || isPending || !name || !url || !domain || !logo;
 
+  const LINK_TYPES = [
+    {
+      id: "short",
+      label: "Short link",
+      example: `${domain || "refer.dub.co"}/steven`,
+      comingSoon: false,
+    },
+    {
+      id: "dynamic",
+      label: "Dynamic path",
+      example: `${(url && getDomainWithoutWWW(url)) || "dub.co"}/refer/steven`,
+      comingSoon: true,
+    },
+  ];
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
       <div>
@@ -133,7 +127,7 @@ export function Form() {
         </label>
         <Input
           {...register("name", { required: true })}
-          placeholder="Acme Partner Program"
+          placeholder="Acme"
           autoFocus={!isMobile}
           className={"mt-2 max-w-full"}
         />

@@ -5,6 +5,7 @@ enum CommissionStatus {
   refunded
   duplicate
   fraud
+  canceled
 }
 
 enum EventType {
@@ -40,6 +41,7 @@ model Commission {
   customer Customer? @relation(fields: [customerId], references: [id])
 
   @@unique([programId, invoiceId])
+  @@index([programId, partnerId, status])
   @@index(programId)
   @@index(partnerId)
   @@index(payoutId)

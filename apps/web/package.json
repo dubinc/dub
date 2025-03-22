@@ -49,7 +49,7 @@
     "@upstash/redis": "^1.25.1",
     "@vercel/edge-config": "^0.4.1",
     "@vercel/functions": "^1.4.2",
-    "@vercel/og": "^0.6.3",
+    "@vercel/og": "^0.6.5",
     "@visx/curve": "^3.3.0",
     "@visx/geo": "^2.10.0",
     "@visx/gradient": "^3.3.0",

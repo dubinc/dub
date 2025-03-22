@@ -1,4 +1,5 @@
 import {
+  PartnerBannedReason,
   PartnerProfileType,
   PartnerStatus,
   ProgramEnrollmentStatus,
@@ -28,7 +29,7 @@ export const exportPartnerColumns = [
   },
   { id: "createdAt", label: "Enrolled at", default: true },
   { id: "createdAt", label: "Enrolled at", default: true },
-  { id: "bio", label: "Bio", default: false },
+  { id: "description", label: "Description", default: false },
   { id: "clicks", label: "Clicks", default: false },
   { id: "leads", label: "Leads", default: false },
   { id: "sales", label: "Sales", default: false },
@@ -41,6 +42,15 @@ export const exportPartnerColumns = [
   { id: "tiktok", label: "TikTok", default: false },
 ];
 
+export const BAN_PARTNER_REASONS = {
+  tos_violation: "Terms of Service Violation",
+  inappropriate_content: "Inappropriate or Offensive Content",
+  fake_traffic: "Artificial Traffic Generation",
+  fraud: "Fraudulent Activity",
+  spam: "Spam or Misleading Content",
+  brand_abuse: "Brand Abuse or Trademark Violations",
+} as const;
+
 export const exportPartnersColumnsDefault = exportPartnerColumns
   .filter((column) => column.default)
   .map((column) => column.id);
@@ -52,7 +62,15 @@ export const partnersQuerySchema = z
     rewardId: z.string().optional(),
     search: z.string().optional(),
     sortBy: z
-      .enum(["createdAt", "clicks", "leads", "sales", "saleAmount", "earnings"])
+      .enum([
+        "createdAt",
+        "clicks",
+        "leads",
+        "sales",
+        "saleAmount",
+        "commissions",
+        "netRevenue",
+      ])
       .default("saleAmount"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
     tenantId: z
@@ -160,7 +178,19 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
 
 // Used internally in the Dub dashboard for partners table
 export const EnrolledPartnerSchemaWithExpandedFields =
-  EnrolledPartnerSchema.merge(PartnerOnlinePresenceSchema);
+  EnrolledPartnerSchema.merge(PartnerOnlinePresenceSchema).extend({
+    commissions: z.number().default(0),
+    netRevenue: z.number().default(0),
+    bannedAt: z.date().nullish(),
+    bannedReason: z
+      .enum(
+        Object.keys(BAN_PARTNER_REASONS) as [
+          PartnerBannedReason,
+          ...PartnerBannedReason[],
+        ],
+      )
+      .nullish(),
+  });
 
 export const LeaderboardPartnerSchema = z.object({
   id: z.string(),
@@ -415,4 +445,18 @@ export const invitePartnerSchema = z.object({
   name: z.string().trim().min(1).max(100),
   email: z.string().trim().email().min(1).max(100),
   linkId: z.string(),
+  rewardId: z.string().optional(),
+  discountId: z.string().optional(),
+});
+
+export const banPartnerSchema = z.object({
+  workspaceId: z.string(),
+  programId: z.string(),
+  partnerId: z.string(),
+  reason: z.enum(
+    Object.keys(BAN_PARTNER_REASONS) as [
+      PartnerBannedReason,
+      ...PartnerBannedReason[],
+    ],
+  ),
 });

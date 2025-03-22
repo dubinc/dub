@@ -1,3 +1,4 @@
+import { normalizeWorkspaceId } from "@/lib/api/workspace-id";
 import { Link } from "@dub/prisma/client";
 import { expectedLink } from "tests/utils/schema";
 import { afterAll, describe, expect, test } from "vitest";
@@ -11,7 +12,7 @@ describe.concurrent("GET /links/{linkId}", async () => {
   const h = new IntegrationHarness();
   const { workspace, http, user } = await h.init();
   const workspaceId = workspace.id;
-  const projectId = workspaceId.replace("ws_", "");
+  const projectId = normalizeWorkspaceId(workspaceId);
   const externalId = randomId();
   const key = randomId();
 
@@ -62,7 +63,7 @@ describe.sequential("GET /links/info", async () => {
   const h = new IntegrationHarness();
   const { workspace, http, user } = await h.init();
   const workspaceId = workspace.id;
-  const projectId = workspaceId.replace("ws_", "");
+  const projectId = normalizeWorkspaceId(workspaceId);
   const externalId = randomId();
   const key = randomId();
 

@@ -53,7 +53,7 @@ export const GET = withWorkspace(
               }),
             },
             every: {
-              status: status || { not: "rejected" },
+              status: status || { notIn: ["rejected", "banned"] },
             },
           },
           ...commonWhere,
@@ -102,6 +102,9 @@ export const GET = withWorkspace(
         partners.push({ _count: 0, status });
       });
 
+      // order by count
+      partners.sort((a, b) => (b._count ?? 0) - (a._count ?? 0));
+
       return NextResponse.json(partners);
     }
 
@@ -113,7 +116,7 @@ export const GET = withWorkspace(
           where: {
             programEnrollment: {
               programId,
-              status: status || { not: "rejected" },
+              status: status || { notIn: ["rejected", "banned"] },
               partner: {
                 ...(country && {
                   country,
@@ -162,7 +165,7 @@ export const GET = withWorkspace(
     const count = await prisma.programEnrollment.count({
       where: {
         programId,
-        status: status || { not: "rejected" },
+        status: status || { notIn: ["rejected", "banned"] },
         ...(rewardId && {
           rewards: {
             some: {
@@ -187,6 +190,7 @@ export const GET = withWorkspace(
       "business extra",
       "business max",
       "business plus",
+      "advanced",
       "enterprise",
     ],
   },

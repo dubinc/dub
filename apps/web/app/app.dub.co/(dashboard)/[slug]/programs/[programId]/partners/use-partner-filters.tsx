@@ -2,8 +2,8 @@ import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { RewardProps } from "@/lib/types";
 import { REWARD_EVENTS } from "@/ui/partners/constants";
+import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
-import { formatRewardDescription } from "@/ui/partners/program-reward-description";
 import { useRouterStuff } from "@dub/ui";
 import { CircleDotted, FlagWavy, Gift } from "@dub/ui/icons";
 import { cn, COUNTRIES, nFormatter } from "@dub/utils";
@@ -84,28 +84,23 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
         key: "status",
         icon: CircleDotted,
         label: "Status",
-        options: Object.entries(PartnerStatusBadges).map(
-          ([value, { label }]) => {
-            const Icon = PartnerStatusBadges[value].icon;
-            const count = statusCount?.find(
-              ({ status }) => status === value,
-            )?._count;
-
+        options:
+          statusCount?.map(({ status, _count }) => {
+            const Icon = PartnerStatusBadges[status].icon;
             return {
-              value,
-              label,
+              value: status,
+              label: PartnerStatusBadges[status].label,
               icon: (
                 <Icon
                   className={cn(
-                    PartnerStatusBadges[value].className,
+                    PartnerStatusBadges[status].className,
                     "size-4 bg-transparent",
                   )}
                 />
               ),
-              right: nFormatter(count || 0, { full: true }),
+              right: nFormatter(_count || 0, { full: true }),
             };
-          },
-        ),
+          }) ?? [],
       },
     ],
     [countriesCount, statusCount, rewardsCount],

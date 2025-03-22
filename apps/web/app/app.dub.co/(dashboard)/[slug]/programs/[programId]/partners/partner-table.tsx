@@ -7,9 +7,12 @@ import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import EditColumnsButton from "@/ui/analytics/events/edit-columns-button";
+import { useBanPartnerModal } from "@/ui/partners/ban-partner-modal";
+import { PartnerApplicationSheet } from "@/ui/partners/partner-application-sheet";
 import { PartnerDetailsSheet } from "@/ui/partners/partner-details-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
+import { useUnbanPartnerModal } from "@/ui/partners/unban-partner-modal";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
@@ -30,6 +33,7 @@ import {
   EnvelopeArrowRight,
   LoadingSpinner,
   Trash,
+  UserDelete,
   Users,
 } from "@dub/ui/icons";
 import {
@@ -42,6 +46,7 @@ import {
 import { nFormatter } from "@dub/utils/src/functions";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
+import { LockOpen } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -146,9 +151,9 @@ export function PartnerTable() {
             <div className="flex items-center gap-2">
               {country && (
                 <img
-                  alt=""
-                  src={`https://flag.vercel.app/m/${country}.svg`}
-                  className="h-3 w-4 shrink-0"
+                  alt={`${country} flag`}
+                  src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
+                  className="size-4 shrink-0"
                 />
               )}
               <span className="min-w-0 truncate">
@@ -187,6 +192,28 @@ export function PartnerTable() {
               })
             : "-",
       },
+      {
+        id: "commissions",
+        header: "Commissions",
+        accessorFn: (d) =>
+          d.status !== "pending"
+            ? currencyFormatter(d.commissions / 100, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })
+            : "-",
+      },
+      {
+        id: "netRevenue",
+        header: "Net Revenue",
+        accessorFn: (d) =>
+          d.status !== "pending"
+            ? currencyFormatter(d.netRevenue / 100, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })
+            : "-",
+      },
       // Menu
       {
         id: "menu",
@@ -212,7 +239,15 @@ export function PartnerTable() {
     onPaginationChange: setPagination,
     columnVisibility,
     onColumnVisibilityChange: setColumnVisibility,
-    sortableColumns: ["createdAt", "clicks", "leads", "sales", "saleAmount"],
+    sortableColumns: [
+      "createdAt",
+      "clicks",
+      "leads",
+      "sales",
+      "saleAmount",
+      "commissions",
+      "netRevenue",
+    ],
     sortBy,
     sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>
@@ -233,15 +268,24 @@ export function PartnerTable() {
 
   return (
     <div className="flex flex-col gap-3">
-      {detailsSheetState.partner && (
-        <PartnerDetailsSheet
-          isOpen={detailsSheetState.open}
-          setIsOpen={(open) =>
-            setDetailsSheetState((s) => ({ ...s, open }) as any)
-          }
-          partner={detailsSheetState.partner}
-        />
-      )}
+      {detailsSheetState.partner &&
+        (detailsSheetState.partner.status === "pending" ? (
+          <PartnerApplicationSheet
+            isOpen={detailsSheetState.open}
+            setIsOpen={(open) =>
+              setDetailsSheetState((s) => ({ ...s, open }) as any)
+            }
+            partner={detailsSheetState.partner}
+          />
+        ) : (
+          <PartnerDetailsSheet
+            isOpen={detailsSheetState.open}
+            setIsOpen={(open) =>
+              setDetailsSheetState((s) => ({ ...s, open }) as any)
+            }
+            partner={detailsSheetState.partner}
+          />
+        ))}
       <div>
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <Filter.Select
@@ -251,7 +295,10 @@ export function PartnerTable() {
             onSelect={onSelect}
             onRemove={onRemove}
           />
-          <SearchBoxPersisted />
+          <SearchBoxPersisted
+            placeholder="Search by name, email, or link"
+            inputClassName="md:w-72"
+          />
         </div>
         <AnimatedSizeContainer height>
           <div>
@@ -301,6 +348,14 @@ function RowMenuButton({
   const { slug, programId } = useParams();
   const [isOpen, setIsOpen] = useState(false);
 
+  const { BanPartnerModal, setShowBanPartnerModal } = useBanPartnerModal({
+    partner: row.original,
+  });
+
+  const { UnbanPartnerModal, setShowUnbanPartnerModal } = useUnbanPartnerModal({
+    partner: row.original,
+  });
+
   const { executeAsync: resendInvite, isPending: isResendingInvite } =
     useAction(resendProgramInviteAction, {
       onSuccess: async () => {
@@ -330,78 +385,107 @@ function RowMenuButton({
   );
 
   return (
-    <Popover
-      openPopover={isOpen}
-      setOpenPopover={setIsOpen}
-      content={
-        <Command tabIndex={0} loop className="focus:outline-none">
-          <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm sm:w-auto sm:min-w-[130px]">
-            {row.original.status === "invited" ? (
-              <>
-                <MenuItem
-                  icon={isResendingInvite ? LoadingSpinner : EnvelopeArrowRight}
-                  label="Resend invite"
-                  onSelect={async () => {
-                    if (row.original.status !== "invited") {
-                      return;
+    <>
+      <BanPartnerModal />
+      <UnbanPartnerModal />
+      <Popover
+        openPopover={isOpen}
+        setOpenPopover={setIsOpen}
+        content={
+          <Command tabIndex={0} loop className="focus:outline-none">
+            <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm sm:w-auto sm:min-w-[130px]">
+              {row.original.status === "invited" ? (
+                <>
+                  <MenuItem
+                    icon={
+                      isResendingInvite ? LoadingSpinner : EnvelopeArrowRight
                     }
+                    label="Resend invite"
+                    onSelect={async () => {
+                      if (row.original.status !== "invited") {
+                        return;
+                      }
 
-                    await resendInvite({
-                      workspaceId,
-                      programId: row.original.programId!,
-                      partnerId: row.original.id,
-                    });
-                  }}
-                />
+                      await resendInvite({
+                        workspaceId,
+                        programId: row.original.programId!,
+                        partnerId: row.original.id,
+                      });
+                    }}
+                  />
 
-                <MenuItem
-                  icon={isDeletingInvite ? LoadingSpinner : Trash}
-                  label="Delete invite"
-                  variant="danger"
-                  onSelect={async () => {
-                    if (row.original.status !== "invited") {
-                      return;
-                    }
-                    if (
-                      !window.confirm(
-                        "Are you sure you want to delete this invite? This action cannot be undone.",
-                      )
-                    ) {
-                      return;
-                    }
+                  <MenuItem
+                    icon={isDeletingInvite ? LoadingSpinner : Trash}
+                    label="Delete invite"
+                    variant="danger"
+                    onSelect={async () => {
+                      if (row.original.status !== "invited") {
+                        return;
+                      }
+                      if (
+                        !window.confirm(
+                          "Are you sure you want to delete this invite? This action cannot be undone.",
+                        )
+                      ) {
+                        return;
+                      }
 
-                    await deleteInvite({
-                      workspaceId,
-                      programId: row.original.programId!,
-                      partnerId: row.original.id,
-                    });
-                  }}
-                />
-              </>
-            ) : (
-              <MenuItem
-                icon={MoneyBill2}
-                label="View sales"
-                onSelect={() => {
-                  router.push(
-                    `/${slug}/programs/${programId}/sales?partnerId=${row.original.id}&interval=all`,
-                  );
-                  setIsOpen(false);
-                }}
-              />
-            )}
-          </Command.List>
-        </Command>
-      }
-      align="end"
-    >
-      <Button
-        type="button"
-        className="h-8 whitespace-nowrap px-2"
-        variant="outline"
-        icon={<Dots className="h-4 w-4 shrink-0" />}
-      />
-    </Popover>
+                      await deleteInvite({
+                        workspaceId,
+                        programId: row.original.programId!,
+                        partnerId: row.original.id,
+                      });
+                    }}
+                  />
+                </>
+              ) : (
+                <>
+                  <MenuItem
+                    icon={MoneyBill2}
+                    label="View sales"
+                    onSelect={() => {
+                      router.push(
+                        `/${slug}/programs/${programId}/sales?partnerId=${row.original.id}&interval=all`,
+                      );
+                      setIsOpen(false);
+                    }}
+                  />
+
+                  {row.original.status !== "banned" ? (
+                    <MenuItem
+                      icon={UserDelete}
+                      label="Ban partner"
+                      variant="danger"
+                      onSelect={() => {
+                        setShowBanPartnerModal(true);
+                        setIsOpen(false);
+                      }}
+                    />
+                  ) : (
+                    <MenuItem
+                      icon={LockOpen}
+                      label="Unban partner"
+                      onSelect={() => {
+                        setShowUnbanPartnerModal(true);
+                        setIsOpen(false);
+                      }}
+                    />
+                  )}
+                </>
+              )}
+            </Command.List>
+          </Command>
+        }
+        align="end"
+      >
+        <Button
+          type="button"
+          className="h-8 whitespace-nowrap px-2"
+          variant="outline"
+          icon={<Dots className="h-4 w-4 shrink-0" />}
+        />
+      </Popover>
+    </>
   );
 }
 

@@ -1,3 +1,4 @@
+import { normalizeWorkspaceId } from "@/lib/api/workspace-id";
 import z from "@/lib/zod";
 import { FolderSchema } from "@/lib/zod/schemas/folders";
 import { Link, Tag } from "@dub/prisma/client";
@@ -16,7 +17,7 @@ describe.sequential("POST /links", async () => {
   const h = new IntegrationHarness();
   const { workspace, user, http } = await h.init();
   const workspaceId = workspace.id;
-  const projectId = workspaceId.replace("ws_", "");
+  const projectId = normalizeWorkspaceId(workspaceId);
 
   test("public link", async () => {
     const { status, data: link } = await http.post<Link>({
@@ -470,7 +471,7 @@ describe.sequential("POST /links?workspaceId=xxx", async () => {
   const h = new IntegrationHarnessOld();
   const { workspace, user, http } = await h.init();
   const workspaceId = workspace.id;
-  const projectId = workspaceId.replace("ws_", "");
+  const projectId = normalizeWorkspaceId(workspaceId);
 
   test("create link with old personal API keys approach", async () => {
     onTestFinished(async () => {
