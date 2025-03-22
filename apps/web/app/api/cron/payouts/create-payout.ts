@@ -11,14 +11,44 @@ export const createPayout = async ({
   partnerId: string;
   type: EventType;
 }) => {
-  const { holdingPeriodDays } = await prisma.program.findUniqueOrThrow({
+  const programEnrollment = await prisma.programEnrollment.findUniqueOrThrow({
     where: {
-      id: programId,
+      partnerId_programId: {
+        partnerId,
+        programId,
+      },
     },
     select: {
-      holdingPeriodDays: true,
+      status: true,
+      program: {
+        select: {
+          holdingPeriodDays: true,
+        },
+      },
     },
   });
+
+  if (programEnrollment.status === "banned") {
+    await prisma.commission.updateMany({
+      where: {
+        programId,
+        partnerId,
+        status: "pending",
+      },
+      data: {
+        status: "canceled",
+      },
+    });
+
+    console.log("Canceled commissions for banned partner.", {
+      programId,
+      partnerId,
+    });
+
+    return;
+  }
+
+  const { holdingPeriodDays } = programEnrollment.program;
 
   await prisma.$transaction(async (tx) => {
     const commissions = await tx.commission.findMany({

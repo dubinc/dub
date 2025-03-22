@@ -21,14 +21,17 @@ export function PartnerStats() {
     ignoreParams: true,
   });
 
-  const { approved, pending, invited, all } = partnersCount?.reduce(
-    (acc, { status, _count }) => ({
-      ...acc,
-      [status]: _count,
-      all: (acc.all || 0) + _count,
-    }),
-    { approved: 0, pending: 0, invited: 0, all: 0 },
-  ) ?? { approved: 0, pending: 0, invited: 0, all: 0 };
+  const { approved, pending, invited, all } =
+    partnersCount?.reduce(
+      (acc, { status, _count }) => ({
+        ...acc,
+        [status]: _count,
+        all:
+          (acc.all || 0) +
+          (["approved", "pending", "invited"].includes(status) ? _count : 0),
+      }),
+      { approved: 0, pending: 0, invited: 0, all: 0 },
+    ) ?? {};
 
   return (
     <div className="xs:grid-cols-4 xs:divide-x xs:divide-y-0 grid divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200">

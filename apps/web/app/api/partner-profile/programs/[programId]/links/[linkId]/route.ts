@@ -17,10 +17,17 @@ export const PATCH = withPartnerProfile(
 
     const { programId, linkId } = params;
 
-    const { program, links } = await getProgramEnrollmentOrThrow({
+    const { program, links, status } = await getProgramEnrollmentOrThrow({
       partnerId: partner.id,
       programId,
     });
+
+    if (status === "banned") {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "You are banned from this program.",
+      });
+    }
 
     const link = links.find((link) => link.id === linkId);
 

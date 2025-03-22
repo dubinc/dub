@@ -1,4 +1,5 @@
 import {
+  PartnerBannedReason,
   PartnerProfileType,
   PartnerStatus,
   ProgramEnrollmentStatus,
@@ -40,6 +41,15 @@ export const exportPartnerColumns = [
   { id: "instagram", label: "Instagram", default: false },
   { id: "tiktok", label: "TikTok", default: false },
 ];
+
+export const BAN_PARTNER_REASONS = {
+  tos_violation: "Terms of Service Violation",
+  inappropriate_content: "Inappropriate or Offensive Content",
+  fake_traffic: "Artificial Traffic Generation",
+  fraud: "Fraudulent Activity",
+  spam: "Spam or Misleading Content",
+  brand_abuse: "Brand Abuse or Trademark Violations",
+} as const;
 
 export const exportPartnersColumnsDefault = exportPartnerColumns
   .filter((column) => column.default)
@@ -171,6 +181,15 @@ export const EnrolledPartnerSchemaWithExpandedFields =
   EnrolledPartnerSchema.merge(PartnerOnlinePresenceSchema).extend({
     commissions: z.number().default(0),
     netRevenue: z.number().default(0),
+    bannedAt: z.date().nullish(),
+    bannedReason: z
+      .enum(
+        Object.keys(BAN_PARTNER_REASONS) as [
+          PartnerBannedReason,
+          ...PartnerBannedReason[],
+        ],
+      )
+      .nullish(),
   });
 
 export const LeaderboardPartnerSchema = z.object({
@@ -428,4 +447,16 @@ export const invitePartnerSchema = z.object({
   linkId: z.string(),
   rewardId: z.string().optional(),
   discountId: z.string().optional(),
+});
+
+export const banPartnerSchema = z.object({
+  workspaceId: z.string(),
+  programId: z.string(),
+  partnerId: z.string(),
+  reason: z.enum(
+    Object.keys(BAN_PARTNER_REASONS) as [
+      PartnerBannedReason,
+      ...PartnerBannedReason[],
+    ],
+  ),
 });

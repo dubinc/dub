@@ -2,7 +2,7 @@ model Customer {
   id               String  @id @default(cuid())
   name             String?
   email            String?
-  avatar           String? @db.LongText
+  avatar           String? @db.Text
   externalId       String?
   stripeCustomerId String? @unique
 
