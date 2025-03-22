@@ -29,10 +29,18 @@ export const POST = withPartnerProfile(
       .pick({ url: true, key: true, comments: true })
       .parse(await parseRequestBody(req));
 
-    const { program, links, tenantId } = await getProgramEnrollmentOrThrow({
-      partnerId: partner.id,
-      programId: params.programId,
-    });
+    const { program, links, tenantId, status } =
+      await getProgramEnrollmentOrThrow({
+        partnerId: partner.id,
+        programId: params.programId,
+      });
+
+    if (status === "banned") {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "You are banned from this program.",
+      });
+    }
 
     if (!program.domain || !program.url) {
       throw new DubApiError({

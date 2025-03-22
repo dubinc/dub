@@ -9,11 +9,12 @@ enum CommissionType {
 }
 
 enum ProgramEnrollmentStatus {
-  invited // partner who already has an account
-  approved // partner who doesn't have an account
-  rejected // program rejected the partner
-  declined // partner declined the invite
   pending // pending applications that need approval
+  approved // partner who has been approved/actively enrolled
+  rejected // program rejected the partner
+  invited // partner who has been invited
+  declined // partner declined the invite
+  banned // partner is banned from the program
 }
 
 enum CommissionInterval {
@@ -40,8 +41,11 @@ model Program {
   defaultDiscountId String?     @unique // default discount for the program
   landerData        Json?       @db.Json
   resources         Json?       @db.Json
-  termsUrl          String?     @db.LongText
+  termsUrl          String?     @db.Text
+  helpUrl           String?     @db.Text
+  supportEmail      String?
   ageVerification   Int?
+  
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -94,9 +98,9 @@ model ProgramApplication {
   partnerId String?
   name      String
   email     String
-  proposal  String?  @db.LongText
+  proposal  String?  @db.Text
   website   String?  @db.Text
-  comments  String?  @db.LongText
+  comments  String?  @db.Text
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

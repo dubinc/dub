@@ -16,17 +16,20 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { GreekTemple, User } from "@dub/ui/icons";
+import { GreekTemple, User, UserDelete } from "@dub/ui/icons";
 import { cn, currencyFormatter, getPrettyUrl, nFormatter } from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
+import { LockOpen } from "lucide-react";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useState } from "react";
 import { AnimatedEmptyState } from "../shared/animated-empty-state";
+import { useBanPartnerModal } from "./ban-partner-modal";
 import { useCreatePayoutSheet } from "./create-payout-sheet";
 import { usePartnerApplicationSheet } from "./partner-application-sheet";
 import { PartnerInfoSection } from "./partner-info-section";
 import { usePartnerProfileSheet } from "./partner-profile-sheet";
 import { PayoutStatusBadges } from "./payout-status-badges";
+import { useUnbanPartnerModal } from "./unban-partner-modal";
 
 type PartnerDetailsSheetProps = {
   partner: EnrolledPartnerProps;
@@ -45,6 +48,9 @@ function PartnerDetailsSheetContent({
 
   const { createPayoutSheet, setIsOpen: setCreatePayoutSheetOpen } =
     useCreatePayoutSheet({ nested: true, partnerId: partner.id });
+
+  const showPartnerDetails =
+    partner.status === "approved" || partner.status === "banned";
 
   return (
     <div className="flex h-full flex-col">
@@ -71,7 +77,7 @@ function PartnerDetailsSheetContent({
           </PartnerInfoSection>
 
           {/* Stats */}
-          {partner.status === "approved" && (
+          {showPartnerDetails && (
             <div className="xs:grid-cols-3 mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-neutral-200 bg-neutral-200">
               {[
                 [
@@ -154,7 +160,7 @@ function PartnerDetailsSheetContent({
             </Link>
           </div> */}
 
-          {partner.status === "approved" && (
+          {showPartnerDetails && (
             <div className="-mb-6 mt-2 flex items-center gap-2">
               <TabSelect
                 options={[
@@ -176,7 +182,7 @@ function PartnerDetailsSheetContent({
         </div>
 
         <div className="grow overflow-y-auto p-6">
-          {partner.status === "approved" && (
+          {showPartnerDetails && (
             <>
               {tab === "payouts" && <PartnerPayouts partner={partner} />}
               {tab === "links" && <PartnerLinks partner={partner} />}
@@ -191,7 +197,7 @@ function PartnerDetailsSheetContent({
         </div>
       </div>
 
-      {partner.status === "approved" && (
+      {showPartnerDetails && (
         <>
           {createPayoutSheet}
           <div className="sticky bottom-0 z-10 border-t border-neutral-200 bg-white">
@@ -370,13 +376,23 @@ function Menu({ partner }: { partner: EnrolledPartnerProps }) {
   const { partnerApplicationSheet, setIsOpen: setPartnerApplicationSheetOpen } =
     usePartnerApplicationSheet({ nested: true, partner });
 
+  const { BanPartnerModal, setShowBanPartnerModal } = useBanPartnerModal({
+    partner,
+  });
+
+  const { UnbanPartnerModal, setShowUnbanPartnerModal } = useUnbanPartnerModal({
+    partner,
+  });
+
   return (
     <>
       {partnerProfileSheet}
       {partnerApplicationSheet}
+      <BanPartnerModal />
+      <UnbanPartnerModal />
 
       <div className="flex items-center gap-2">
-        {partner.status === "approved" && (
+        {(partner.status === "approved" || partner.status === "banned") && (
           <Button
             variant="secondary"
             text="View profile"
@@ -384,10 +400,11 @@ function Menu({ partner }: { partner: EnrolledPartnerProps }) {
             className="h-8 w-fit"
           />
         )}
-        {partner.applicationId && (
-          <Popover
-            content={
-              <div className="grid w-full gap-px p-1.5 sm:w-48">
+
+        <Popover
+          content={
+            <div className="grid w-full gap-px p-1.5 sm:w-44">
+              {partner.applicationId && (
                 <MenuItem
                   icon={User}
                   onClick={() => {
@@ -397,27 +414,50 @@ function Menu({ partner }: { partner: EnrolledPartnerProps }) {
                 >
                   View application
                 </MenuItem>
-              </div>
-            }
-            align="end"
-            openPopover={openPopover}
-            setOpenPopover={setOpenPopover}
-          >
-            <Button
-              variant="secondary"
-              className={cn(
-                "h-8 w-fit px-1.5 outline-none transition-all duration-200",
-                "data-[state=open]:border-neutral-500 sm:group-hover/card:data-[state=closed]:border-neutral-200",
               )}
-              icon={
-                <ThreeDots className="size-[1.125rem] shrink-0 text-neutral-600" />
-              }
-              onClick={() => {
-                setOpenPopover(!openPopover);
-              }}
-            />
-          </Popover>
-        )}
+
+              {partner.status !== "banned" ? (
+                <MenuItem
+                  icon={UserDelete}
+                  variant="danger"
+                  onClick={() => {
+                    setOpenPopover(false);
+                    setShowBanPartnerModal(true);
+                  }}
+                >
+                  Ban partner
+                </MenuItem>
+              ) : (
+                <MenuItem
+                  icon={LockOpen}
+                  onClick={() => {
+                    setOpenPopover(false);
+                    setShowUnbanPartnerModal(true);
+                  }}
+                >
+                  Unban partner
+                </MenuItem>
+              )}
+            </div>
+          }
+          align="end"
+          openPopover={openPopover}
+          setOpenPopover={setOpenPopover}
+        >
+          <Button
+            variant="secondary"
+            className={cn(
+              "h-8 w-fit px-1.5 outline-none transition-all duration-200",
+              "data-[state=open]:border-neutral-500 sm:group-hover/card:data-[state=closed]:border-neutral-200",
+            )}
+            icon={
+              <ThreeDots className="size-[1.125rem] shrink-0 text-neutral-600" />
+            }
+            onClick={() => {
+              setOpenPopover(!openPopover);
+            }}
+          />
+        </Popover>
       </div>
     </>
   );

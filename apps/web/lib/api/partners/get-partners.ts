@@ -117,7 +117,7 @@ export async function getPartners(filters: PartnerFilters) {
     ) commissions ON commissions.partnerId = pe.partnerId
     WHERE 
       pe.programId = ${program.id}
-      ${status ? Prisma.sql`AND pe.status = ${status}` : Prisma.sql`AND pe.status != 'rejected'`}
+      ${status ? Prisma.sql`AND pe.status = ${status}` : Prisma.sql`AND pe.status NOT IN ('rejected', 'banned')`}
       ${tenantId ? Prisma.sql`AND pe.tenantId = ${tenantId}` : Prisma.sql``}
       ${country ? Prisma.sql`AND p.country = ${country}` : Prisma.sql``}
       ${rewardId ? Prisma.sql`AND EXISTS (SELECT 1 FROM PartnerReward pr WHERE pr.programEnrollmentId = pe.id AND pr.rewardId = ${rewardId})` : Prisma.sql``}
