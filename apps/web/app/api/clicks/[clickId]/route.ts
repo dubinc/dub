@@ -1,4 +1,4 @@
-import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { ExpandedLink } from "@/lib/api/links";
 import { linkCache } from "@/lib/api/links/cache";
 import { includePartnerAndDiscount } from "@/lib/api/partners/include-partner";
@@ -59,10 +59,11 @@ export async function GET(
     }
 
     if (!linkId) {
-      throw new DubApiError({
-        code: "not_found",
-        message: `Click event not found for clickId: ${clickId}`,
-      });
+      return NextResponse.json(
+        clickPartnerDiscountSchema.parse({
+          clickId,
+        }),
+      );
     }
 
     // Find the partner and discount for the link
