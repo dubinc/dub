@@ -34,6 +34,11 @@ export const ProgramSchema = z.object({
   wordmark: z.string().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
+
+  // Help & Support
+  supportEmail: z.string().nullish(),
+  helpUrl: z.string().nullish(),
+  termsUrl: z.string().nullish(),
 });
 
 export const createProgramSchema = z.object({
