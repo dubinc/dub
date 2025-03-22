@@ -45,3 +45,12 @@ export const E2E_DISCOUNT = {
   couponId: "XZuejd0Q",
   couponTestId: "2NMXz81x",
 };
+
+// Program
+export const E2E_PROGRAM = {
+  id: "prog_CYCu7IMAapjkRpTnr8F1azjN",
+  domain: "getacme.link",
+  url: "https://acme.com",
+};
+
+export const E2E_PARTNER_ID = "pn_H4TB2V5hDIjpqB7PwrxESoY3";
