@@ -12,8 +12,6 @@ import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
-// TODO:
-// Save the ban reason
 
 // Ban a partner
 export const banPartnerAction = authActionClient
@@ -79,36 +77,15 @@ export const banPartnerAction = authActionClient
     waitUntil(
       (async () => {
         // Send email to partner
-        const [partner, workspaceUsers] = await Promise.all([
-          prisma.partner.findUniqueOrThrow({
-            where: {
-              id: partnerId,
-            },
-            select: {
-              email: true,
-              name: true,
-            },
-          }),
-
-          prisma.projectUsers.findMany({
-            where: {
-              projectId: workspace.id,
-              role: "owner",
-              user: {
-                email: {
-                  not: null,
-                },
-              },
-            },
-            include: {
-              user: {
-                select: {
-                  email: true,
-                },
-              },
-            },
-          }),
-        ]);
+        const partner = await prisma.partner.findUniqueOrThrow({
+          where: {
+            id: partnerId,
+          },
+          select: {
+            email: true,
+            name: true,
+          },
+        });
 
         if (!partner.email) {
           console.error("Partner has no email address.");
