@@ -49,7 +49,7 @@ function PartnerDetailsSheetContent({
   const { createPayoutSheet, setIsOpen: setCreatePayoutSheetOpen } =
     useCreatePayoutSheet({ nested: true, partnerId: partner.id });
 
-  const showDetails =
+  const showPartnerDetails =
     partner.status === "approved" || partner.status === "banned";
 
   return (
@@ -77,7 +77,7 @@ function PartnerDetailsSheetContent({
           </PartnerInfoSection>
 
           {/* Stats */}
-          {showDetails && (
+          {showPartnerDetails && (
             <div className="xs:grid-cols-3 mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-neutral-200 bg-neutral-200">
               {[
                 [
@@ -160,7 +160,7 @@ function PartnerDetailsSheetContent({
             </Link>
           </div> */}
 
-          {showDetails && (
+          {showPartnerDetails && (
             <div className="-mb-6 mt-2 flex items-center gap-2">
               <TabSelect
                 options={[
@@ -182,7 +182,7 @@ function PartnerDetailsSheetContent({
         </div>
 
         <div className="grow overflow-y-auto p-6">
-          {showDetails && (
+          {showPartnerDetails && (
             <>
               {tab === "payouts" && <PartnerPayouts partner={partner} />}
               {tab === "links" && <PartnerLinks partner={partner} />}
@@ -197,7 +197,7 @@ function PartnerDetailsSheetContent({
         </div>
       </div>
 
-      {showDetails && (
+      {showPartnerDetails && (
         <>
           {createPayoutSheet}
           <div className="sticky bottom-0 z-10 border-t border-neutral-200 bg-white">
