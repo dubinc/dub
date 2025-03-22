@@ -83,7 +83,6 @@ function BanPartnerModal({
       !workspaceId ||
       !programId ||
       !partner.id ||
-      reason === "" ||
       confirm !== `confirm ban ${partner.name}`
     );
   }, [workspaceId, programId, partner.id, reason, confirm]);
