@@ -12,6 +12,8 @@ export function isClickOnInteractiveChild(e: MouseEvent) {
       ["button", "a", "input", "textarea"].includes(
         target.tagName.toLowerCase(),
       ) ||
+      target.getAttribute("role") === "dialog" ||
+      target.id === "modal-backdrop" ||
       [
         "data-radix-popper-content-wrapper",
         "data-vaul-overlay",

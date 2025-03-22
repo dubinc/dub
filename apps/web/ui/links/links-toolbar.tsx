@@ -1,4 +1,6 @@
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { useFolderPermissions } from "@/lib/swr/use-folder-permissions";
+import { useIsMegaFolder } from "@/lib/swr/use-is-mega-folder";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   AnimatedSizeContainer,
@@ -48,6 +50,10 @@ export const LinksToolbar = memo(
     linksCount: number;
   }) => {
     const { flags, slug, plan } = useWorkspace();
+
+    const { isMegaFolder } = useIsMegaFolder();
+
+    const { canManageFolderPermissions } = getPlanCapabilities(plan);
     const { folders } = useFolderPermissions();
     const conversionsEnabled = !!plan && plan !== "free" && plan !== "pro";
 
@@ -69,6 +75,9 @@ export const LinksToolbar = memo(
       // `folders` is undefined for users without access, so just check if all links are not in a folder first
       if (selectedLinks.every((link) => !link.folderId)) return true;
 
+      // If the workspace plan doesn't support folder permissions, assume write access
+      if (!canManageFolderPermissions) return true;
+
       if (!folders || !Array.isArray(folders)) return false;
 
       return selectedLinks.every(
@@ -78,7 +87,7 @@ export const LinksToolbar = memo(
             .find((folder) => folder.id === link.folderId)
             ?.permissions.includes("folders.links.write"),
       );
-    }, [selectedLinks, folders]);
+    }, [selectedLinks, canManageFolderPermissions, folders]);
 
     const { LinkBuilder, CreateLinkButton } = useLinkBuilder();
 
@@ -224,13 +233,18 @@ export const LinksToolbar = memo(
                     setPagination={setPagination}
                     totalCount={linksCount}
                     unit={(plural) => `${plural ? "links" : "link"}`}
+                    showTotalCount={!isMegaFolder}
                   >
-                    {loading ? (
-                      <LoadingSpinner className="size-3.5" />
-                    ) : (
-                      <div className="hidden sm:block">
-                        <ArchivedLinksHint />
-                      </div>
+                    {!isMegaFolder && (
+                      <>
+                        {loading ? (
+                          <LoadingSpinner className="size-3.5" />
+                        ) : (
+                          <div className="hidden sm:block">
+                            <ArchivedLinksHint />
+                          </div>
+                        )}
+                      </>
                     )}
                   </PaginationControls>
                   <div className="flex items-center gap-2 pt-3 sm:hidden">

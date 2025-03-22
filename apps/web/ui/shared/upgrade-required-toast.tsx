@@ -25,7 +25,7 @@ export const UpgradeRequiredToast = ({
         target="_blank"
         className="w-full rounded-md border border-black bg-black px-3 py-1.5 text-center text-sm text-white transition-all hover:bg-neutral-800 hover:ring-4 hover:ring-neutral-200"
       >
-        Upgrade to {nextPlan.name}
+        {nextPlan ? `Upgrade to ${nextPlan.name}` : "Contact support"}
       </Link>
     </div>
   );

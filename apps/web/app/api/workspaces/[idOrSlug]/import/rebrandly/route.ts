@@ -1,9 +1,10 @@
+import { createId } from "@/lib/api/create-id";
 import { addDomainToVercel } from "@/lib/api/domains";
 import { DubApiError } from "@/lib/api/errors";
 import { bulkCreateLinks } from "@/lib/api/links";
-import { createId } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
+import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { redis } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
@@ -84,7 +85,16 @@ export const PUT = withWorkspace(async ({ req, workspace }) => {
 
 // POST /api/workspaces/[idOrSlug]/import/rebrandly - create job to import links from Rebrandly
 export const POST = withWorkspace(async ({ req, workspace, session }) => {
-  const { selectedDomains, importTags } = await req.json();
+  const { selectedDomains, importTags, folderId } = await req.json();
+
+  if (folderId) {
+    await verifyFolderAccess({
+      workspace,
+      userId: session.user.id,
+      folderId,
+      requiredPermission: "folders.links.write",
+    });
+  }
 
   const domains = await prisma.domain.findMany({
     where: { projectId: workspace.id },
@@ -114,6 +124,7 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
         domain,
         key: "_root",
         url: "",
+        folderId,
         userId: session?.user?.id,
         projectId: workspace.id,
       })),
@@ -129,6 +140,7 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
           userId: session?.user?.id,
           domainId: id,
           domain,
+          folderId,
           importTags,
         },
       }),

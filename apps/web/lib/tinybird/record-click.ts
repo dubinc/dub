@@ -7,6 +7,7 @@ import {
 import { EU_COUNTRY_CODES } from "@dub/utils/src/constants/countries";
 import { geolocation, ipAddress } from "@vercel/functions";
 import { userAgent } from "next/server";
+import { clickCache } from "../api/links/click-cache";
 import { ExpandedLink, transformLink } from "../api/links/utils/transform-link";
 import {
   detectBot,
@@ -26,22 +27,30 @@ import { transformClickEventData } from "../webhook/transform";
  **/
 export async function recordClick({
   req,
-  linkId,
   clickId,
+  linkId,
+  domain,
+  key,
   url,
   webhookIds,
-  skipRatelimit,
   workspaceId,
+  skipRatelimit,
   timestamp,
+  referrer,
+  trackConversion,
 }: {
   req: Request;
-  linkId: string;
   clickId: string;
+  linkId: string;
+  domain: string;
+  key: string;
   url?: string;
   webhookIds?: string[];
-  skipRatelimit?: boolean;
   workspaceId: string | undefined;
+  skipRatelimit?: boolean;
   timestamp?: string;
+  referrer?: string;
+  trackConversion?: boolean;
 }) {
   const searchParams = new URL(req.url).searchParams;
 
@@ -59,12 +68,11 @@ export async function recordClick({
 
   const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
 
-  const cacheKey = `recordClick:${linkId}:${ip}`;
-
+  // by default, we deduplicate clicks for a domain + key pair from the same IP address – only record 1 click per hour
+  // we only need to do these if skipRatelimit is not true (we skip it in /api/track/:path endpoints)
   if (!skipRatelimit) {
-    // by default, we deduplicate clicks from the same IP address + link ID – only record 1 click per hour
     // here, we check if the clickId is cached in Redis within the last hour
-    const cachedClickId = await redis.get<string>(cacheKey);
+    const cachedClickId = await clickCache.get({ domain, key, ip });
     if (cachedClickId) {
       return null;
     }
@@ -89,7 +97,7 @@ export async function recordClick({
   const isEuCountry = geo.country && EU_COUNTRY_CODES.includes(geo.country);
 
   const ua = userAgent(req);
-  const referer = req.headers.get("referer");
+  const referer = referrer || req.headers.get("referer");
 
   const identity_hash = await getIdentityHash(req);
 
@@ -131,7 +139,7 @@ export async function recordClick({
 
   const hasWebhooks = webhookIds && webhookIds.length > 0;
 
-  const [, , , , workspaceRows] = await Promise.all([
+  const [, , , , workspaceRows] = await Promise.allSettled([
     fetch(
       `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_click_events&wait=true`,
       {
@@ -144,9 +152,14 @@ export async function recordClick({
     ).then((res) => res.json()),
 
     // cache the click ID in Redis for 1 hour
-    redis.set(cacheKey, clickId, {
-      ex: 60 * 60,
-    }),
+    clickCache.set({ domain, key, ip, clickId }),
+
+    // cache the click data for 5 mins
+    // we're doing this because ingested click events are not available immediately in Tinybird
+    trackConversion &&
+      redis.set(`click:${clickId}`, clickData, {
+        ex: 60 * 5,
+      }),
 
     // increment the click count for the link (based on their ID)
     // we have to use planetscale connection directly (not prismaEdge) because of connection pooling
@@ -158,7 +171,7 @@ export async function recordClick({
     // and then we have a cron that will reset it at the start of new billing cycle
     url &&
       conn.execute(
-        "UPDATE Project p JOIN Link l ON p.id = l.projectId SET p.usage = p.usage + 1 WHERE l.id = ?",
+        "UPDATE Project p JOIN Link l ON p.id = l.projectId SET p.usage = p.usage + 1, p.totalClicks = p.totalClicks + 1 WHERE l.id = ?",
         [linkId],
       ),
 
@@ -172,8 +185,13 @@ export async function recordClick({
   ]);
 
   const workspace =
-    workspaceRows && workspaceRows.rows.length > 0
-      ? (workspaceRows.rows[0] as Pick<WorkspaceProps, "usage" | "usageLimit">)
+    workspaceRows.status === "fulfilled" &&
+    workspaceRows.value &&
+    workspaceRows.value.rows.length > 0
+      ? (workspaceRows.value.rows[0] as Pick<
+          WorkspaceProps,
+          "usage" | "usageLimit"
+        >)
       : null;
 
   const hasExceededUsageLimit =

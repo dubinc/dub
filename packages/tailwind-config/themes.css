@@ -1,0 +1,58 @@
+:root,
+.light {
+  --bg-default: 255 255 255;
+  --bg-muted: 250 250 250;
+  --bg-subtle: 245 245 245;
+  --bg-emphasis: 229 229 229;
+  --bg-inverted: 23 23 23;
+
+  --bg-info: 191 219 254;
+  --bg-success: 220 252 231;
+  --bg-attention: 255 237 213;
+  --bg-error: 254 226 226;
+
+  --border-emphasis: 163 163 163;
+  --border-default: 212 212 212;
+  --border-muted: 245 245 245;
+  --border-subtle: 229 229 229;
+
+  --content-inverted: 255 255 255;
+  --content-muted: 163 163 163;
+  --content-subtle: 115 115 115;
+  --content-default: 64 64 64;
+  --content-emphasis: 23 23 23;
+
+  --content-info: 29 78 216;
+  --content-success: 21 128 61;
+  --content-attention: 194 65 12;
+  --content-error: 185 28 28;
+}
+
+.dark {
+  --bg-default: 0 0 0;
+  --bg-muted: 23 23 23;
+  --bg-subtle: 38 38 38;
+  --bg-emphasis: 64 64 64;
+  --bg-inverted: 250 250 250;
+
+  --bg-info: 29 78 216;
+  --bg-success: 21 128 61;
+  --bg-attention: 194 65 12;
+  --bg-error: 185 28 28;
+
+  --border-muted: 38 38 38;
+  --border-subtle: 64 64 64;
+  --border-default: 82 82 82;
+  --border-emphasis: 115 115 115;
+
+  --content-inverted: 0 0 0;
+  --content-muted: 82 82 82;
+  --content-subtle: 163 163 163;
+  --content-default: 212 212 212;
+  --content-emphasis: 250 250 250;
+
+  --content-info: 191 219 254;
+  --content-success: 220 252 231;
+  --content-attention: 255 237 213;
+  --content-error: 254 226 226;
+}

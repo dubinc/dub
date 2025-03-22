@@ -15,12 +15,14 @@ export function PaginationControls({
   unit = (p) => `item${p ? "s" : ""}`,
   className,
   children,
+  showTotalCount = true,
 }: PropsWithChildren<{
   pagination: PaginationState;
   setPagination: (pagination: PaginationState) => void;
   totalCount: number;
   unit?: string | ((plural: boolean) => string);
   className?: string;
+  showTotalCount?: boolean;
 }>) {
   return (
     <div
@@ -42,12 +44,14 @@ export function PaginationControls({
                   totalCount,
                 )}
               </span>{" "}
-              of{" "}
+              {showTotalCount && "of "}
             </>
           )}
-          <span className="font-medium">
-            {nFormatter(totalCount, { full: true })}
-          </span>{" "}
+          {showTotalCount && (
+            <span className="font-medium">
+              {nFormatter(totalCount, { full: true })}
+            </span>
+          )}{" "}
           {typeof unit === "function" ? unit(totalCount !== 1) : unit}
         </div>
         {children}

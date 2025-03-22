@@ -1,18 +1,14 @@
 "use client";
 
+import { SHOW_EMBEEDED_REFERRALS } from "@/lib/embed/constants";
 import { Gift } from "@dub/ui/icons";
-import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 export function ReferButton() {
   const pathname = usePathname();
-  const { data: session } = useSession();
 
-  if (
-    !session?.user?.["dubPartnerId"] ||
-    pathname === "/account/settings/referrals"
-  ) {
+  if (pathname === "/account/settings/referrals" || !SHOW_EMBEEDED_REFERRALS) {
     return null;
   }
 

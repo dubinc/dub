@@ -9,6 +9,7 @@ import { FolderSchema } from "../zod/schemas/folders";
 import { analyticsPath } from "./analytics";
 import { customersPaths } from "./customers";
 import { domainsPaths } from "./domains";
+import { embedTokensPaths } from "./embed-tokens";
 import { eventsPath } from "./events";
 import { foldersPaths } from "./folders";
 import { linksPaths } from "./links";
@@ -16,7 +17,6 @@ import { metatagsPath } from "./metatags";
 import { partnersPaths } from "./partners";
 import { qrCodePaths } from "./qr";
 import { tagsPaths } from "./tags";
-import { tokensPaths } from "./tokens";
 import { trackPaths } from "./track";
 import { workspacesPaths } from "./workspaces";
 
@@ -54,7 +54,7 @@ export const document = createDocument({
     ...customersPaths,
     ...partnersPaths,
     ...workspacesPaths,
-    ...tokensPaths,
+    ...embedTokensPaths,
     ...qrCodePaths,
     ...metatagsPath,
   },

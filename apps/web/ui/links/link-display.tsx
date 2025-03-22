@@ -1,3 +1,4 @@
+import { useIsMegaFolder } from "@/lib/swr/use-is-mega-folder";
 import {
   Button,
   Popover,
@@ -36,10 +37,14 @@ export default function LinkDisplay() {
     reset,
   } = useContext(LinksDisplayContext);
 
+  const { isMegaFolder } = useIsMegaFolder();
+
   const [openPopover, setOpenPopover] = useState(false);
   const { queryParams } = useRouterStuff();
 
-  useKeyboardShortcut("a", () => setShowArchived((o) => !o));
+  useKeyboardShortcut("a", () => setShowArchived((o) => !o), {
+    enabled: !isMegaFolder,
+  });
 
   return (
     <Popover
@@ -74,40 +79,44 @@ export default function LinkDisplay() {
               );
             })}
           </div>
-          <div className="flex h-16 items-center justify-between gap-2 px-4">
-            <span className="flex items-center gap-2">
-              <ArrowsOppositeDirectionY className="h-4 w-4 text-neutral-800" />
-              Ordering
-            </span>
-            <div>
-              <LinkSort />
-            </div>
-          </div>
-          <div className="group flex h-16 items-center justify-between gap-2 px-4">
-            <div className="flex items-center gap-2">
-              <div className="flex w-6 items-center justify-center">
-                <BoxArchive className="size-4 text-neutral-800 group-hover:hidden" />
-                <kbd className="hidden rounded border border-neutral-200 bg-neutral-100 px-2 py-0.5 text-xs font-light text-neutral-500 group-hover:block">
-                  A
-                </kbd>
+          {!isMegaFolder && (
+            <div className="flex h-16 items-center justify-between gap-2 px-4">
+              <span className="flex items-center gap-2">
+                <ArrowsOppositeDirectionY className="h-4 w-4 text-neutral-800" />
+                Ordering
+              </span>
+              <div>
+                <LinkSort />
               </div>
-              Show archived links
             </div>
-            <div>
-              <Switch
-                checked={showArchived}
-                fn={(checked) => {
-                  setShowArchived(checked);
-                  queryParams({
-                    del: [
-                      "showArchived", // Remove legacy query param
-                      "page", // Reset pagination
-                    ],
-                  });
-                }}
-              />
+          )}
+          {!isMegaFolder && (
+            <div className="group flex h-16 items-center justify-between gap-2 px-4">
+              <div className="flex items-center gap-2">
+                <div className="flex w-6 items-center justify-center">
+                  <BoxArchive className="size-4 text-neutral-800 group-hover:hidden" />
+                  <kbd className="hidden rounded border border-neutral-200 bg-neutral-100 px-2 py-0.5 text-xs font-light text-neutral-500 group-hover:block">
+                    A
+                  </kbd>
+                </div>
+                Show archived links
+              </div>
+              <div>
+                <Switch
+                  checked={showArchived}
+                  fn={(checked) => {
+                    setShowArchived(checked);
+                    queryParams({
+                      del: [
+                        "showArchived", // Remove legacy query param
+                        "page", // Reset pagination
+                      ],
+                    });
+                  }}
+                />
+              </div>
             </div>
-          </div>
+          )}
           <div className="p-4">
             <span className="text-xs uppercase text-neutral-500">
               Display Properties

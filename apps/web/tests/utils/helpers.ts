@@ -5,14 +5,14 @@ export const randomId = () => nanoid(24);
 
 // Generate random customer data
 export const randomCustomer = () => {
-  const customerId = `cus_${randomId()}`;
+  const externalId = `cus_${randomId()}`;
   const customerName = generateRandomName();
 
   return {
-    id: customerId,
+    externalId,
     name: customerName,
     email: `${customerName.split(" ").join(".").toLowerCase()}@example.com`,
-    avatar: `https://api.dicebear.com/9.x/notionists/svg?seed=${customerId}`,
+    avatar: `https://api.dicebear.com/9.x/notionists/svg?seed=${externalId}`,
   };
 };
 

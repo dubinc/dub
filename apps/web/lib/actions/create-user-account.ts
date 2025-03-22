@@ -3,7 +3,8 @@
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { flattenValidationErrors } from "next-safe-action";
-import { createId, getIP } from "../api/utils";
+import { createId } from "../api/create-id";
+import { getIP } from "../api/utils";
 import { hashPassword } from "../auth/password";
 import z from "../zod";
 import { signUpSchema } from "../zod/schemas/auth";

@@ -2,8 +2,9 @@ import { ProcessedLinkProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { getParamsFromURL, linkConstructorSimple, truncate } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { createId } from "../create-id";
 import { combineTagIds } from "../tags/combine-tag-ids";
-import { createId } from "../utils";
+import { encodeKeyIfCaseSensitive } from "./case-sensitivity";
 import { includeTags } from "./include-tags";
 import { propagateBulkLinkChanges } from "./propagate-bulk-link-changes";
 import { updateLinksUsage } from "./update-links-usage";
@@ -15,8 +16,10 @@ import {
 
 export async function bulkCreateLinks({
   links,
+  skipRedisCache = false,
 }: {
   links: ProcessedLinkProps[];
+  skipRedisCache?: boolean;
 }) {
   if (links.length === 0) return [];
 
@@ -25,13 +28,20 @@ export async function bulkCreateLinks({
 
   // Create a map of shortLinks to their original indices at the start
   const shortLinkToIndexMap = new Map(
-    links.map((link, index) => [
-      linkConstructorSimple({
+    links.map((link, index) => {
+      const key = encodeKeyIfCaseSensitive({
         domain: link.domain,
         key: link.key,
-      }),
-      index,
-    ]),
+      });
+
+      return [
+        linkConstructorSimple({
+          domain: link.domain,
+          key,
+        }),
+        index,
+      ];
+    }),
   );
 
   // Create all links first using createMany
@@ -39,6 +49,11 @@ export async function bulkCreateLinks({
     data: links.map(({ tagId, tagIds, tagNames, webhookIds, ...link }) => {
       const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
         getParamsFromURL(link.url);
+
+      link.key = encodeKeyIfCaseSensitive({
+        domain: link.domain,
+        key: link.key,
+      });
 
       return {
         ...link,
@@ -87,6 +102,7 @@ export async function bulkCreateLinks({
         const allTagNames = [
           ...new Set(links.flatMap((link) => link.tagNames).filter(Boolean)),
         ] as string[];
+
         const allTagIds = await prisma.tag.findMany({
           where: {
             projectId: links[0].projectId!,
@@ -98,7 +114,7 @@ export async function bulkCreateLinks({
 
         tagNameToIdMap = allTagIds.reduce(
           (acc, tag) => {
-            acc[tag.name] = tag.id;
+            acc[tag.name.toLowerCase()] = tag.id;
             return acc;
           },
           {} as Record<string, string>,
@@ -127,7 +143,7 @@ export async function bulkCreateLinks({
           tagNames.filter(Boolean).forEach((tagName, tagIdx) => {
             linkTagsToCreate.push({
               linkId: link.id,
-              tagId: tagNameToIdMap[tagName],
+              tagId: tagNameToIdMap[tagName.toLowerCase()],
               createdAt: new Date(new Date().getTime() + tagIdx * 100),
             });
           });
@@ -196,7 +212,10 @@ export async function bulkCreateLinks({
 
   waitUntil(
     Promise.all([
-      propagateBulkLinkChanges(createdLinksData),
+      propagateBulkLinkChanges({
+        links: createdLinksData,
+        skipRedisCache,
+      }),
       updateLinksUsage({
         workspaceId: links[0].projectId!, // this will always be present
         increment: links.length,
@@ -211,5 +230,5 @@ export async function bulkCreateLinks({
     return aIndex - bIndex;
   });
 
-  return createdLinksData.map(transformLink);
+  return createdLinksData.map((link) => transformLink(link));
 }

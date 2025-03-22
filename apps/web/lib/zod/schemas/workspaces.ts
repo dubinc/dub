@@ -42,6 +42,9 @@ export const WorkspaceSchema = z
       .string()
       .nullable()
       .describe("The Stripe Connect ID of the workspace."),
+    totalLinks: z
+      .number()
+      .describe("The total number of links in the workspace."),
     usage: z.number().describe("The usage of the workspace."),
     usageLimit: z.number().describe("The usage limit of the workspace."),
     linksUsage: z.number().describe("The links usage of the workspace."),
@@ -135,3 +138,10 @@ export const createWorkspaceSchema = z.object({
 export const updateWorkspaceSchema = createWorkspaceSchema.partial().extend({
   allowedHostnames: z.array(z.string()).optional(),
 });
+
+export const notificationTypes = z.enum([
+  "linkUsageSummary",
+  "domainConfigurationUpdates",
+  "newPartnerSale",
+  "newPartnerApplication",
+]);

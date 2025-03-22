@@ -1,3 +1,4 @@
+import { prefixWorkspaceId } from "@/lib/api/workspace-id";
 import { plain } from "@/lib/plain";
 import { prisma } from "@dub/prisma";
 import { capitalize, formatDate } from "@dub/utils";
@@ -79,7 +80,6 @@ export async function POST(req: NextRequest) {
       include: {
         _count: {
           select: {
-            links: true,
             domains: true,
             tags: true,
             users: true,
@@ -116,12 +116,14 @@ export async function POST(req: NextRequest) {
     plan,
     usage,
     usageLimit,
+    totalClicks,
     linksUsage,
     linksLimit,
+    totalLinks,
     domainsLimit,
     tagsLimit,
     usersLimit,
-    _count: { links, domains, tags, users },
+    _count: { domains, tags, users },
   } = topWorkspace;
 
   if (plainCustomer.data) {
@@ -142,7 +144,7 @@ export async function POST(req: NextRequest) {
         components: [
           ...plainCopySection({
             label: "Workspace ID",
-            value: `ws_${id}`,
+            value: prefixWorkspaceId(id),
           }),
           ...plainCopySection({
             label: "Workspace Name",
@@ -170,11 +172,13 @@ export async function POST(req: NextRequest) {
                     badgeColor:
                       plan === "enterprise"
                         ? "RED"
-                        : plan.startsWith("business")
-                          ? "GREEN"
-                          : plan === "pro"
-                            ? "BLUE"
-                            : "GREY",
+                        : plan === "advanced"
+                          ? "ORANGE"
+                          : plan.startsWith("business")
+                            ? "GREEN"
+                            : plan === "pro"
+                              ? "BLUE"
+                              : "GREY",
                   },
                 },
               ],
@@ -225,7 +229,17 @@ export async function POST(req: NextRequest) {
             },
           },
           plainUsageSection({
-            usage: links,
+            usage: totalClicks,
+            label: "Total Clicks",
+            color: "GREEN",
+          }),
+          {
+            componentSpacer: {
+              spacerSize: "M",
+            },
+          },
+          plainUsageSection({
+            usage: totalLinks,
             label: "Total Links",
             color: "YELLOW",
           }),

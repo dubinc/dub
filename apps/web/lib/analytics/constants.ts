@@ -10,7 +10,6 @@ export const intervals = [
   "qtd",
   "ytd",
   "all",
-  "all_unfiltered",
 ] as const;
 
 export const eventIntervals = [
@@ -24,6 +23,9 @@ export const eventIntervals = [
   "ytd",
   "all",
 ] as const;
+
+export const DUB_LINKS_ANALYTICS_INTERVAL = "24h";
+export const DUB_PARTNERS_ANALYTICS_INTERVAL = "30d";
 
 export const INTERVAL_DISPLAYS = [
   {
@@ -184,8 +186,29 @@ export const VALID_ANALYTICS_FILTERS = [
   "tagId",
   "folderId",
   "tagIds",
-  "qr",
+  "qr", // deprecated, but keeping for now for backwards compatibility
   "root",
+  "utm_source",
+  "utm_medium",
+  "utm_campaign",
+  "utm_term",
+  "utm_content",
+];
+
+// possible analytics filters for a given linkId
+export const DIMENSIONAL_ANALYTICS_FILTERS = [
+  "country",
+  "city",
+  "region",
+  "continent",
+  "device",
+  "browser",
+  "os",
+  "trigger",
+  "referer",
+  "refererUrl",
+  "url",
+  "qr", // deprecated, but keeping for now for backwards compatibility
   "utm_source",
   "utm_medium",
   "utm_campaign",

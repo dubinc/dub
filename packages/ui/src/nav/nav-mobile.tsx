@@ -4,9 +4,10 @@ import { APP_DOMAIN, cn, createHref, fetcher } from "@dub/utils";
 import { ChevronDown, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ElementType, useEffect, useState } from "react";
+import { ComponentProps, ElementType, useEffect, useState } from "react";
 import useSWR from "swr";
 import { AnimatedSizeContainer } from "../animated-size-container";
+import { ButtonProps, buttonVariants } from "../button";
 import { navItems, type NavTheme } from "./nav";
 
 export function NavMobile({
@@ -40,11 +41,29 @@ export function NavMobile({
   );
 
   return (
-    <div className={cn(theme === "dark" && "dark")}>
+    <div
+      className={cn(
+        "fixed right-0 top-0 z-40 flex items-center gap-4 p-2.5 lg:hidden",
+        theme === "dark" && "dark",
+      )}
+    >
+      {session && Object.keys(session).length > 0 ? (
+        <AuthButton href={APP_DOMAIN} className="max-[280px]:hidden">
+          Dashboard
+        </AuthButton>
+      ) : (
+        <div className="flex gap-2 max-[280px]:hidden">
+          <AuthButton variant="secondary" href={`${APP_DOMAIN}/login`}>
+            Log in
+          </AuthButton>
+
+          <AuthButton href={`${APP_DOMAIN}/register`}>Sign Up</AuthButton>
+        </div>
+      )}
       <button
         onClick={() => setOpen(!open)}
         className={cn(
-          "fixed right-3 top-3 z-40 rounded-full p-2 transition-colors duration-200 hover:bg-neutral-200 focus:outline-none active:bg-neutral-300 lg:hidden dark:hover:bg-white/20 dark:active:bg-white/30",
+          "z-30 rounded-full p-2 transition-colors duration-200 hover:bg-neutral-200 focus:outline-none active:bg-neutral-300 dark:hover:bg-white/20 dark:active:bg-white/30",
           open && "hover:bg-neutral-100 active:bg-neutral-200",
         )}
       >
@@ -72,7 +91,7 @@ export function NavMobile({
           ))}
 
           {session && Object.keys(session).length > 0 ? (
-            <li className="py-3">
+            <li className="py-3 min-[281px]:hidden">
               <Link
                 href={APP_DOMAIN}
                 className="flex w-full font-semibold capitalize"
@@ -82,7 +101,7 @@ export function NavMobile({
             </li>
           ) : (
             <>
-              <li className="py-3">
+              <li className="py-3 min-[281px]:hidden">
                 <Link
                   href={`${APP_DOMAIN}/login`}
                   className="flex w-full font-semibold capitalize"
@@ -91,7 +110,7 @@ export function NavMobile({
                 </Link>
               </li>
 
-              <li className="py-3">
+              <li className="py-3 min-[281px]:hidden">
                 <Link
                   href={`${APP_DOMAIN}/register`}
                   className="flex w-full font-semibold capitalize"
@@ -198,3 +217,20 @@ const MobileNavItem = ({
     </li>
   );
 };
+
+export function AuthButton({
+  variant,
+  className,
+  ...rest
+}: Pick<ButtonProps, "variant"> & ComponentProps<typeof Link>) {
+  return (
+    <Link
+      {...rest}
+      className={cn(
+        "flex h-8 w-fit items-center whitespace-nowrap rounded-lg border px-3 text-[0.8125rem]",
+        buttonVariants({ variant }),
+        className,
+      )}
+    />
+  );
+}

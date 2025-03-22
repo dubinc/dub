@@ -1,7 +1,8 @@
 import { confirmPayoutsAction } from "@/lib/actions/partners/confirm-payouts";
-import { MIN_PAYOUT_AMOUNT, PAYOUT_FEES } from "@/lib/partners/constants";
+import { PAYOUT_FEES } from "@/lib/partners/constants";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import usePayouts from "@/lib/swr/use-payouts";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutResponse } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
@@ -27,7 +28,6 @@ import {
 } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { useAction } from "next-safe-action/hooks";
-import { useParams } from "next/navigation";
 import {
   Dispatch,
   Fragment,
@@ -43,8 +43,8 @@ interface PayoutInvoiceSheetProps {
 }
 
 function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
+  const { program } = useProgram();
   const { id: workspaceId, slug, plan } = useWorkspace();
-  const { programId } = useParams<{ programId: string }>();
   const { paymentMethods, loading: paymentMethodsLoading } =
     usePaymentMethods();
 
@@ -105,15 +105,17 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
   });
 
   //  Filter out payouts that:
-  //  - Belong to a partner that doesn't have `payoutsEnabled`
+  //  - Belong to a partner that doesn't have `payoutsEnabledAt`
   //  - Payout amount is less than $10
   const pendingPayouts = useMemo(
     () =>
       payouts?.filter(
         (payout) =>
-          payout.partner.payoutsEnabled && payout.amount >= MIN_PAYOUT_AMOUNT,
+          Boolean(payout.partner.payoutsEnabledAt) &&
+          program &&
+          payout.amount >= program.minPayoutAmount,
       ),
-    [payouts],
+    [payouts, program],
   );
 
   // Set the first payment method as the selected payment method
@@ -219,7 +221,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
         <Tooltip
           content={
             <SimpleTooltipContent
-              title={`${selectedPaymentMethod.fee * 100}% processing fee.${selectedPaymentMethod.type !== "us_bank_account" ? " Switch to ACH for a reduced fee." : ""}`}
+              title={`${Math.round(selectedPaymentMethod.fee * 100)}% processing fee.${selectedPaymentMethod.type !== "us_bank_account" ? " Switch to ACH for a reduced fee." : ""}`}
               cta="Learn more"
               href="https://d.to/payouts"
             />
@@ -377,7 +379,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
             onClick={async () => {
               if (
                 !workspaceId ||
-                !programId ||
+                !program?.id ||
                 !selectedPayouts.length ||
                 !selectedPaymentMethod
               ) {
@@ -386,7 +388,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
 
               await executeAsync({
                 workspaceId,
-                programId,
+                programId: program.id,
                 paymentMethodId: selectedPaymentMethod.id,
                 payoutIds: selectedPayouts.map((p) => p.id),
               });

@@ -4,7 +4,6 @@ import { usePayoutDetailsSheet } from "@/ui/partners/payout-details-sheet";
 import { buttonVariants } from "@dub/ui";
 import {
   cn,
-  COUNTRIES,
   currencyFormatter,
   DICEBEAR_AVATAR_URL,
   fetcher,
@@ -113,7 +112,7 @@ function PayoutRow({ payout }: { payout: PayoutResponse }) {
           <div className="flex flex-col">
             <span className="text-neutral-800">{payout.partner.name}</span>
             <span className="text-neutral-500">
-              {COUNTRIES[payout.partner.country ?? ""] ?? "-"}
+              {payout.partner.email ?? "-"}
             </span>
           </div>
         </div>

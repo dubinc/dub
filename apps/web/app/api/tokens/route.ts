@@ -1,6 +1,7 @@
+import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { scopesToName, validateScopesForRole } from "@/lib/api/tokens/scopes";
-import { createId, parseRequestBody } from "@/lib/api/utils";
+import { parseRequestBody } from "@/lib/api/utils";
 import { hashToken, withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
 import { createTokenSchema, tokenSchema } from "@/lib/zod/schemas/token";

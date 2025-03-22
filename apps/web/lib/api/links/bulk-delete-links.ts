@@ -1,5 +1,6 @@
 import { storage } from "@/lib/storage";
 import { recordLinkTB, transformLinkTB } from "@/lib/tinybird";
+import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
 import { linkCache } from "./cache";
 import { ExpandedLink } from "./utils";
@@ -25,5 +26,15 @@ export async function bulkDeleteLinks(links: ExpandedLink[]) {
     links
       .filter((link) => link.image?.startsWith(`${R2_URL}/images/${link.id}`))
       .map((link) => storage.delete(link.image!.replace(`${R2_URL}/`, ""))),
+
+    // Update totalLinks for the workspace
+    prisma.project.update({
+      where: {
+        id: links[0].projectId!,
+      },
+      data: {
+        totalLinks: { decrement: links.length },
+      },
+    }),
   ]);
 }

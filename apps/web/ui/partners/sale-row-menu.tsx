@@ -2,11 +2,13 @@ import { updateCommissionStatusAction } from "@/lib/actions/partners/update-comm
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { SaleResponse } from "@/lib/types";
-import { Button, Icon, Popover } from "@dub/ui";
+import { Button, Icon, Popover, useCopyToClipboard } from "@dub/ui";
 import {
+  CircleCheck,
   CircleHalfDottedClock,
   Dots,
   Duplicate,
+  InvoiceDollar,
   ShieldAlert,
 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
@@ -48,6 +50,8 @@ export function SaleRowMenu({ row }: { row: Row<SaleResponse> }) {
 
   const isPaid = row.original.status === "paid";
 
+  const [copied, copyToClipboard] = useCopyToClipboard();
+
   return (
     <Popover
       openPopover={isOpen}
@@ -58,36 +62,53 @@ export function SaleRowMenu({ row }: { row: Row<SaleResponse> }) {
           loop
           className="pointer-events-auto focus:outline-none"
         >
-          <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm sm:w-auto sm:min-w-[180px]">
-            {["duplicate", "fraud"].includes(row.original.status) ? (
-              <MenuItem
-                icon={CircleHalfDottedClock}
-                label="Mark as pending"
-                onSelect={() => {
-                  updateStatus("pending");
-                  setIsOpen(false);
-                }}
-              />
-            ) : (
+          <Command.List className="flex w-screen flex-col gap-1 text-sm sm:w-auto sm:min-w-[180px]">
+            <Command.Group className="p-1.5">
+              {["duplicate", "fraud"].includes(row.original.status) ? (
+                <MenuItem
+                  icon={CircleHalfDottedClock}
+                  label="Mark as pending"
+                  onSelect={() => {
+                    updateStatus("pending");
+                    setIsOpen(false);
+                  }}
+                />
+              ) : (
+                <>
+                  <MenuItem
+                    icon={Duplicate}
+                    label="Mark as duplicate"
+                    onSelect={() => {
+                      updateStatus("duplicate");
+                      setIsOpen(false);
+                    }}
+                    disabled={isPaid}
+                  />
+                  <MenuItem
+                    icon={ShieldAlert}
+                    label="Mark as fraud"
+                    onSelect={() => {
+                      updateStatus("fraud");
+                      setIsOpen(false);
+                    }}
+                    disabled={isPaid}
+                  />
+                </>
+              )}
+            </Command.Group>
+            {row.original.invoiceId && (
               <>
-                <MenuItem
-                  icon={Duplicate}
-                  label="Mark as duplicate"
-                  onSelect={() => {
-                    updateStatus("duplicate");
-                    setIsOpen(false);
-                  }}
-                  disabled={isPaid}
-                />
-                <MenuItem
-                  icon={ShieldAlert}
-                  label="Mark as fraud"
-                  onSelect={() => {
-                    updateStatus("fraud");
-                    setIsOpen(false);
-                  }}
-                  disabled={isPaid}
-                />
+                <Command.Separator className="w-full border-t border-neutral-200" />
+                <Command.Group className="p-1.5">
+                  <MenuItem
+                    icon={copied ? CircleCheck : InvoiceDollar}
+                    label="Copy invoice ID"
+                    onSelect={() => {
+                      copyToClipboard(row.original.invoiceId!);
+                      toast.success("Invoice ID copied to clipboard");
+                    }}
+                  />
+                </Command.Group>
               </>
             )}
           </Command.List>

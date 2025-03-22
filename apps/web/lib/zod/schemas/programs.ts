@@ -1,4 +1,8 @@
-import { intervals } from "@/lib/analytics/constants";
+import {
+  DUB_PARTNERS_ANALYTICS_INTERVAL,
+  intervals,
+} from "@/lib/analytics/constants";
+import { DUB_MIN_PAYOUT_AMOUNT_CENTS } from "@/lib/partners/constants";
 import { ProgramEnrollmentStatus, ProgramType } from "@dub/prisma/client";
 import { z } from "zod";
 import { DiscountSchema } from "./discount";
@@ -6,7 +10,7 @@ import { LinkSchema } from "./links";
 import { RewardSchema } from "./rewards";
 import { parseDateSchema } from "./utils";
 
-export const HOLDING_PERIOD_DAYS = [0, 30, 60, 90];
+export const HOLDING_PERIOD_DAYS = [0, 14, 30, 60, 90];
 
 export const ProgramSchema = z.object({
   id: z.string(),
@@ -19,8 +23,10 @@ export const ProgramSchema = z.object({
   type: z.nativeEnum(ProgramType),
   cookieLength: z.number(),
   defaultRewardId: z.string().nullable(),
+  defaultDiscountId: z.string().nullable(),
   rewards: z.array(RewardSchema).nullish(),
   holdingPeriodDays: z.number(),
+  minPayoutAmount: z.number(),
 
   // Discounts (for dual-sided incentives)
   discounts: z.array(DiscountSchema).nullish(),
@@ -28,6 +34,11 @@ export const ProgramSchema = z.object({
   wordmark: z.string().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
+
+  // Help & Support
+  supportEmail: z.string().nullish(),
+  helpUrl: z.string().nullish(),
+  termsUrl: z.string().nullish(),
 });
 
 export const createProgramSchema = z.object({
@@ -40,6 +51,13 @@ export const createProgramSchema = z.object({
     .number()
     .refine((val) => HOLDING_PERIOD_DAYS.includes(val), {
       message: `Holding period must be ${HOLDING_PERIOD_DAYS.join(", ")} days`,
+    }),
+  minPayoutAmount: z.coerce
+    .number()
+    .nullish()
+    .transform((val) => (val ? val * 100 : DUB_MIN_PAYOUT_AMOUNT_CENTS))
+    .refine((val) => val >= DUB_MIN_PAYOUT_AMOUNT_CENTS, {
+      message: "Minimum payout amount must be at least $100",
     }),
 });
 
@@ -62,7 +80,7 @@ export const ProgramEnrollmentSchema = z.object({
   program: ProgramSchema,
   status: z.nativeEnum(ProgramEnrollmentStatus),
   links: z.array(ProgramPartnerLinkSchema).nullable(),
-  reward: RewardSchema.nullish(),
+  rewards: z.array(RewardSchema).nullish(),
   discount: DiscountSchema.nullish(),
   createdAt: z.date(),
 });
@@ -75,7 +93,7 @@ export const ProgramInviteSchema = z.object({
 });
 
 export const getProgramMetricsQuerySchema = z.object({
-  interval: z.enum(intervals).default("30d"),
+  interval: z.enum(intervals).default(DUB_PARTNERS_ANALYTICS_INTERVAL),
   start: parseDateSchema.optional(),
   end: parseDateSchema.optional(),
 });

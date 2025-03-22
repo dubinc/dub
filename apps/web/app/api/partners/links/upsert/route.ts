@@ -94,6 +94,7 @@ export const PUT = withWorkspace(
         programId: program.id,
         tenantId: partner.tenantId,
         partnerId: partner.partnerId,
+        folderId: program.defaultFolderId,
         trackConversion: true,
       };
 
@@ -170,6 +171,7 @@ export const PUT = withWorkspace(
           programId: program.id,
           tenantId: partner.tenantId,
           partnerId: partner.partnerId,
+          folderId: program.defaultFolderId,
           trackConversion: true,
         },
         workspace,

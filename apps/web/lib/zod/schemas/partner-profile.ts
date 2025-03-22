@@ -1,4 +1,7 @@
-import { intervals } from "@/lib/analytics/constants";
+import {
+  DUB_PARTNERS_ANALYTICS_INTERVAL,
+  intervals,
+} from "@/lib/analytics/constants";
 import { z } from "zod";
 import { LinkSchema } from "./links";
 import {
@@ -37,7 +40,7 @@ export const getPartnerEarningsQuerySchema = getProgramSalesQuerySchema
   })
   .merge(
     z.object({
-      interval: z.enum(intervals).default("30d"),
+      interval: z.enum(intervals).default(DUB_PARTNERS_ANALYTICS_INTERVAL),
       type: z.enum(["click", "lead", "sale"]).optional(),
       linkId: z.string().optional(),
       sortBy: z.enum(["createdAt", "amount", "earnings"]).default("createdAt"),
@@ -51,7 +54,7 @@ export const getPartnerEarningsCountQuerySchema =
     })
     .merge(
       z.object({
-        interval: z.enum(intervals).default("30d"),
+        interval: z.enum(intervals).default(DUB_PARTNERS_ANALYTICS_INTERVAL),
         type: z.enum(["click", "lead", "sale"]).optional(),
         linkId: z.string().optional(),
         groupBy: z.enum(["linkId", "customerId", "status", "type"]).optional(),

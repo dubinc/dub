@@ -2,8 +2,8 @@ import { tb } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { Link } from "@dub/prisma/client";
 import { transformLink } from "../api/links";
+import { decodeLinkIfCaseSensitive } from "../api/links/case-sensitivity";
 import { generateRandomName } from "../names";
-import { tbDemo } from "../tinybird/demo-client";
 import z from "../zod";
 import { eventsFilterTB } from "../zod/schemas/analytics";
 import {
@@ -67,7 +67,7 @@ export const getEvents = async (params: EventsFilters) => {
     sortOrder = order;
   }
 
-  const pipe = (isDemo ? tbDemo : tb).buildPipe({
+  const pipe = tb.buildPipe({
     pipe: "v2_events",
     parameters: eventsFilterTB,
     data:
@@ -107,10 +107,12 @@ export const getEvents = async (params: EventsFilters) => {
 
   const events = response.data
     .map((evt) => {
-      const link = linksMap[evt.link_id];
+      let link = linksMap[evt.link_id];
       if (!link) {
         return null;
       }
+
+      link = decodeLinkIfCaseSensitive(link);
 
       const eventData = {
         ...evt,
@@ -127,7 +129,7 @@ export const getEvents = async (params: EventsFilters) => {
           refererUrl: evt.referer_url_processed ?? "",
         }),
         // transformLink -> add shortLink, qrCode, workspaceId, etc.
-        link: transformLink(link),
+        link: transformLink(link, { skipDecodeKey: true }),
         ...(evt.event === "lead" || evt.event === "sale"
           ? {
               eventId: evt.event_id,

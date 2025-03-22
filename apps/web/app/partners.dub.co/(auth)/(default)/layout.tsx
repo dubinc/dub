@@ -14,7 +14,7 @@ export default function PartnerAuthLayout({
       <div className="relative z-10 mt-10 flex w-full flex-col items-center justify-center px-3 text-center md:px-8">
         <div className="animate-slide-up-fade relative flex w-auto flex-col items-center [--offset:10px] [animation-duration:1.3s] [animation-fill-mode:both]">
           <Wordmark className="relative h-10" />
-          <span className="text-sm font-medium text-neutral-700">Partner</span>
+          <span className="text-sm font-medium text-neutral-700">Partners</span>
         </div>
         {children}
       </div>

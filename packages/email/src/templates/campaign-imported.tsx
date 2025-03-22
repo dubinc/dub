@@ -19,7 +19,6 @@ export function CampaignImported({
   provider = "Rewardful",
   workspace = {
     slug: "acme",
-    name: "Acme",
   },
   program = {
     id: "prog_CYCu7IMAapjkRpTnr8F1azjN",
@@ -30,7 +29,6 @@ export function CampaignImported({
   provider: "Rewardful";
   workspace: {
     slug: string;
-    name: string;
   };
   program: {
     id: string;

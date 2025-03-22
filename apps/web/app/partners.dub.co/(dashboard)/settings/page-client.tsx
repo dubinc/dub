@@ -3,6 +3,7 @@
 import { updatePartnerProfileAction } from "@/lib/actions/partners/update-partner-profile";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerProps } from "@/lib/types";
+import { OnlinePresenceForm } from "@/ui/partners/online-presence-form";
 import {
   Button,
   buttonVariants,
@@ -11,7 +12,7 @@ import {
   MaxWidthWrapper,
   useEnterSubmit,
 } from "@dub/ui";
-import { cn, DICEBEAR_AVATAR_URL } from "@dub/utils";
+import { cn, COUNTRIES, DICEBEAR_AVATAR_URL } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { PropsWithChildren, useRef } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -22,11 +23,14 @@ export function ProfileSettingsPageClient() {
   const { partner, error } = usePartnerProfile();
 
   return (
-    <MaxWidthWrapper>
+    <MaxWidthWrapper className="mb-20 flex flex-col gap-8">
       <div className="max-w-screen-md rounded-lg border border-neutral-200 bg-white">
         <div className="border-b border-neutral-200 p-6">
-          <h2 className="text-xl font-medium text-neutral-800">About you</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-xl font-medium text-neutral-800">About you</h2>
+          </div>
         </div>
+
         {partner ? (
           <ProfileForm partner={partner} />
         ) : (
@@ -34,6 +38,39 @@ export function ProfileSettingsPageClient() {
             {error ? (
               <span className="text-sm text-neutral-500">
                 Failed to load profile data
+              </span>
+            ) : (
+              <LoadingSpinner />
+            )}
+          </div>
+        )}
+      </div>
+
+      <div
+        className="max-w-screen-md rounded-lg border border-neutral-200 bg-white"
+        id="online-presence"
+      >
+        <div className="border-b border-neutral-200 p-6">
+          <h2 className="text-xl font-medium text-neutral-800">
+            Online presence
+          </h2>
+          <p className="text-sm text-neutral-700">
+            These improve your reputation score and rank you higher.{" "}
+          </p>
+        </div>
+        {partner ? (
+          <OnlinePresenceForm
+            partner={partner}
+            variant="settings"
+            onSubmitSuccessful={() => {
+              toast.success("Online presence updated successfully.");
+            }}
+          />
+        ) : (
+          <div className="flex h-32 w-full items-center justify-center">
+            {error ? (
+              <span className="text-sm text-neutral-500">
+                Failed to load online presence data
               </span>
             ) : (
               <LoadingSpinner />
@@ -159,6 +196,24 @@ function ProfileForm({ partner }: { partner: PartnerProps }) {
           <FormRow>
             <label className="contents">
               <span className="text-sm font-medium text-neutral-800">
+                Country
+              </span>
+              <div>
+                <input
+                  type="text"
+                  className="mt-2 block w-full rounded-md border-neutral-300 text-neutral-900 read-only:bg-neutral-100 read-only:text-neutral-500 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                  readOnly
+                  defaultValue={
+                    partner.country ? COUNTRIES[partner.country] : ""
+                  }
+                />
+              </div>
+            </label>
+          </FormRow>
+
+          <FormRow>
+            <label className="contents">
+              <span className="text-sm font-medium text-neutral-800">
                 Description
               </span>
               <div>
@@ -178,6 +233,24 @@ function ProfileForm({ partner }: { partner: PartnerProps }) {
               </div>
             </label>
           </FormRow>
+
+          {partner.profileType === "company" && (
+            <FormRow>
+              <label className="contents">
+                <span className="text-sm font-medium text-neutral-800">
+                  Legal company name
+                </span>
+                <div>
+                  <input
+                    type="text"
+                    className="mt-2 block w-full rounded-md border-neutral-300 text-neutral-900 read-only:bg-neutral-100 read-only:text-neutral-500 sm:text-sm"
+                    readOnly
+                    defaultValue={partner.companyName ?? ""}
+                  />
+                </div>
+              </label>
+            </FormRow>
+          )}
         </div>
       </div>
       <div className="flex justify-end rounded-b-lg border-t border-neutral-200 bg-neutral-100 px-5 py-3.5">

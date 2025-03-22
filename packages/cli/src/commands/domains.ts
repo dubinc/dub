@@ -49,7 +49,7 @@ export const domains = new Command()
         {
           onCancel: () => {
             logger.info("");
-            logger.warn("You cancelled the prompt.");
+            logger.warn("You canceled the prompt.");
             logger.info("");
             process.exit(0);
           },

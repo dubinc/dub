@@ -458,6 +458,7 @@ function DomainCombobox({
   const {
     domains,
     allWorkspaceDomains,
+    activeWorkspaceDomains,
     loading: loadingDomains,
   } = useAvailableDomains({
     search: useAsync ? debouncedSearch : undefined,
@@ -480,11 +481,19 @@ function DomainCombobox({
     () =>
       loadingDomains
         ? undefined
-        : domains?.map(({ slug }) => ({
-            value: slug,
-            label: punycode(slug),
-          })),
-    [loadingDomains, domains],
+        : domains?.reduce<
+            Array<{ value: string; label: string; separatorAfter?: boolean }>
+          >((acc, { slug }, idx) => {
+            acc.push({
+              value: slug,
+              label: punycode(slug),
+              separatorAfter:
+                activeWorkspaceDomains?.some((d) => d.slug === slug) &&
+                idx === activeWorkspaceDomains.length - 1,
+            });
+            return acc;
+          }, []),
+    [loadingDomains, domains, activeWorkspaceDomains],
   );
 
   return (

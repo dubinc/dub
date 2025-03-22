@@ -40,14 +40,14 @@ export function PayoutsCard({ programId }: { programId?: string }) {
           <span className="block text-base font-semibold leading-none text-neutral-800">
             Payouts
           </span>
-          {payouts?.length && (
+          {payouts?.length ? (
             <Link
               href={`/settings/payouts?programId=${programId}`}
               className="text-sm font-medium leading-none text-neutral-500 hover:text-neutral-600"
             >
               {payouts.length} of {payoutsCount} results
             </Link>
-          )}
+          ) : null}
         </div>
         {payouts ? (
           payouts.length ? (

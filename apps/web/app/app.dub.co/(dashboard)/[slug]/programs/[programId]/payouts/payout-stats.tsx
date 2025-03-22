@@ -38,11 +38,18 @@ export function PayoutStats() {
     typeof eligiblePendingPayouts?.amount === "number" &&
     allPendingPayouts.amount - eligiblePendingPayouts.amount;
 
-  const totalPaid = payoutsCount?.find(
+  const confirmButtonDisabled = eligiblePendingPayouts?.amount === 0;
+
+  const completedPayouts = payoutsCount?.find(
     (p) => p.status === PayoutStatus.completed,
   );
 
-  const confirmButtonDisabled = eligiblePendingPayouts?.amount === 0;
+  const processingPayouts = payoutsCount?.find(
+    (p) => p.status === PayoutStatus.processing,
+  );
+
+  const totalPaid =
+    (completedPayouts?.amount || 0) + (processingPayouts?.amount || 0);
 
   return (
     <>
@@ -141,13 +148,44 @@ export function PayoutStats() {
             {loading ? (
               <div className="h-8 w-32 animate-pulse rounded bg-neutral-200" />
             ) : (
-              currencyFormatter(
-                totalPaid?.amount ? totalPaid.amount / 100 : 0,
-                {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                },
-              ) + " USD"
+              <Tooltip
+                content={
+                  <div className="w-64">
+                    <div className="border-b border-neutral-200 p-3 text-sm font-medium text-neutral-700">
+                      Total paid
+                    </div>
+                    <div className="grid gap-1 p-3">
+                      {[
+                        {
+                          display: "Completed payouts",
+                          amount: completedPayouts?.amount || 0,
+                        },
+                        {
+                          display: "Processing payouts",
+                          amount: processingPayouts?.amount || 0,
+                        },
+                      ].map(({ display, amount }, index) => (
+                        <div className="flex justify-between" key={index}>
+                          <div className="text-sm text-neutral-500">
+                            {display}
+                          </div>
+                          <div className="text-sm text-neutral-500">
+                            {currencyFormatter(amount / 100, {
+                              maximumFractionDigits: 2,
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                }
+              >
+                <span className="underline decoration-dotted underline-offset-2">
+                  {currencyFormatter(totalPaid / 100, {
+                    maximumFractionDigits: 2,
+                  }) + " USD"}
+                </span>
+              </Tooltip>
             )}
           </div>
         </div>

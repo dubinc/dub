@@ -3,6 +3,7 @@ import { fetcher } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
+import { DUB_PARTNERS_ANALYTICS_INTERVAL } from "../analytics/constants";
 import { PartnerEarningsTimeseriesFilters } from "../analytics/types";
 
 export function usePartnerEarningsTimeseries(
@@ -26,7 +27,9 @@ export function usePartnerEarningsTimeseries(
                 start: params.start.toISOString(),
                 end: params.end.toISOString(),
               }
-            : { interval: params?.interval ?? "30d" }),
+            : {
+                interval: params?.interval ?? DUB_PARTNERS_ANALYTICS_INTERVAL,
+              }),
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         },
         { include: ["type", "linkId", "customerId", "status"] },

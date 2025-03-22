@@ -1,6 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { validateAllowedHostnames } from "@/lib/api/validate-allowed-hostnames";
+import { prefixWorkspaceId } from "@/lib/api/workspace-id";
 import { deleteWorkspace } from "@/lib/api/workspaces";
 import { withWorkspace } from "@/lib/auth";
 import { getFeatureFlags } from "@/lib/edge-config";
@@ -36,15 +37,21 @@ export const GET = withWorkspace(
       }),
     ]);
 
+    const flags = await getFeatureFlags({
+      workspaceId: workspace.id,
+    });
+
     return NextResponse.json(
       {
         ...WorkspaceSchema.parse({
           ...workspace,
-          id: `ws_${workspace.id}`,
+          id: prefixWorkspaceId(workspace.id),
           domains,
-          flags: await getFeatureFlags({
-            workspaceId: workspace.id,
-          }),
+          // TODO: Remove this once Folders goes GA
+          flags: {
+            ...flags,
+            linkFolders: flags.linkFolders || workspace.partnersEnabled,
+          },
         }),
         yearInReview: yearInReviews.length > 0 ? yearInReviews[0] : null,
       },
@@ -75,7 +82,7 @@ export const PATCH = withWorkspace(
 
     const logoUploaded = logo
       ? await storage.upload(
-          `workspaces/ws_${workspace.id}/logo_${nanoid(7)}`,
+          `workspaces/${prefixWorkspaceId(workspace.id)}/logo_${nanoid(7)}`,
           logo,
         )
       : null;
@@ -122,7 +129,7 @@ export const PATCH = withWorkspace(
       return NextResponse.json(
         WorkspaceSchema.parse({
           ...response,
-          id: `ws_${response.id}`,
+          id: prefixWorkspaceId(response.id),
           flags: await getFeatureFlags({
             workspaceId: response.id,
           }),

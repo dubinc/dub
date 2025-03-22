@@ -19,12 +19,12 @@ export const GET = withWorkspace(
       });
     }
 
-    await getProgramOrThrow({
+    const program = await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
     });
 
-    const { groupBy, status, country, search, ids } =
+    const { groupBy, status, country, rewardId, search, ids } =
       partnersCountQuerySchema.parse(searchParams);
 
     const commonWhere: Prisma.PartnerWhereInput = {
@@ -44,9 +44,16 @@ export const GET = withWorkspace(
           programs: {
             some: {
               programId,
+              ...(rewardId && {
+                rewards: {
+                  some: {
+                    rewardId,
+                  },
+                },
+              }),
             },
             every: {
-              status: status || { not: "rejected" },
+              status: status || { notIn: ["rejected", "banned"] },
             },
           },
           ...commonWhere,
@@ -68,6 +75,13 @@ export const GET = withWorkspace(
         by: ["status"],
         where: {
           programId,
+          ...(rewardId && {
+            rewards: {
+              some: {
+                rewardId,
+              },
+            },
+          }),
           partner: {
             ...(country && {
               country,
@@ -88,14 +102,77 @@ export const GET = withWorkspace(
         partners.push({ _count: 0, status });
       });
 
+      // order by count
+      partners.sort((a, b) => (b._count ?? 0) - (a._count ?? 0));
+
       return NextResponse.json(partners);
+    }
+
+    // Get partner count by reward
+    if (groupBy === "rewardId") {
+      const [customRewardsPartners, allRewards] = await Promise.all([
+        prisma.partnerReward.groupBy({
+          by: ["rewardId"],
+          where: {
+            programEnrollment: {
+              programId,
+              status: status || { notIn: ["rejected", "banned"] },
+              partner: {
+                ...(country && {
+                  country,
+                }),
+                ...commonWhere,
+              },
+            },
+          },
+          _count: true,
+        }),
+        prisma.reward.findMany({
+          where: {
+            programId,
+            // TODO: remove this once we can filter by that too
+            id: {
+              not: program.defaultRewardId ?? undefined,
+            },
+          },
+        }),
+        // prisma.programEnrollment.count({
+        //   where: {
+        //     rewards: {
+        //       none: {},
+        //     },
+        //   },
+        // }),
+      ]);
+
+      const partnersWithReward = allRewards
+        .map((reward) => {
+          const partnerCount = customRewardsPartners.find(
+            (p) => p.rewardId === reward.id,
+          )?._count;
+
+          return {
+            ...reward,
+            partnersCount: partnerCount,
+          };
+        })
+        .sort((a, b) => (b.partnersCount ?? 0) - (a.partnersCount ?? 0));
+
+      return NextResponse.json(partnersWithReward);
     }
 
     // Get absolute count of partners
     const count = await prisma.programEnrollment.count({
       where: {
         programId,
-        status: status || { not: "rejected" },
+        status: status || { notIn: ["rejected", "banned"] },
+        ...(rewardId && {
+          rewards: {
+            some: {
+              rewardId,
+            },
+          },
+        }),
         partner: {
           ...(country && {
             country,
@@ -113,6 +190,7 @@ export const GET = withWorkspace(
       "business extra",
       "business max",
       "business plus",
+      "advanced",
       "enterprise",
     ],
   },

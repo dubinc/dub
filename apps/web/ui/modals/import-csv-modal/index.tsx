@@ -99,6 +99,8 @@ function ImportCsvModal({
   const searchParams = useSearchParams();
   const { id: workspaceId } = useWorkspace();
 
+  const folderId = searchParams.get("folderId");
+
   useEffect(
     () => setShowImportCsvModal(searchParams?.get("import") === "csv"),
     [searchParams],
@@ -217,6 +219,7 @@ function ImportCsvModal({
                       }
                     }
                     formData.append("id", id);
+                    if (folderId) formData.append("folderId", folderId);
 
                     const res = await fetch(
                       `/api/workspaces/${workspaceId}/import/csv`,
@@ -228,7 +231,9 @@ function ImportCsvModal({
 
                     if (!res.ok) throw new Error();
 
-                    router.push(`/${slug}`);
+                    router.push(
+                      `/${slug}${folderId ? `?folderId=${folderId}` : ""}`,
+                    );
                     await Promise.all([
                       mutatePrefix("/api/links"),
                       mutate(`/api/workspaces/${slug}`),

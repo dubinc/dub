@@ -42,7 +42,6 @@ export const rejectPartnerAction = authActionClient
       },
       data: {
         status: "rejected",
-        linkId: null,
       },
     });
 

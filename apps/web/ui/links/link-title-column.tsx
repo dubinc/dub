@@ -1,7 +1,7 @@
 "use client";
 
 import useDomain from "@/lib/swr/use-domain";
-import useFolders from "@/lib/swr/use-folders";
+import useFolder from "@/lib/swr/use-folder";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   ArrowTurnRight2,
@@ -15,7 +15,7 @@ import {
   useInViewport,
 } from "@dub/ui";
 import {
-  Apple,
+  AppleLogo,
   ArrowRight,
   Bolt,
   BoxArchive,
@@ -55,7 +55,7 @@ const quickViewSettings = [
   { label: "Link Cloaking", icon: Incognito, key: "rewrite" },
   { label: "Password Protection", icon: InputPassword, key: "password" },
   { label: "Link Expiration", icon: CircleHalfDottedClock, key: "expiresAt" },
-  { label: "iOS Targeting", icon: Apple, key: "ios" },
+  { label: "iOS Targeting", icon: AppleLogo, key: "ios" },
   { label: "Android Targeting", icon: Robot, key: "android" },
   { label: "Geo Targeting", icon: EarthPosition, key: "geo" },
 ];
@@ -75,8 +75,7 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
 
   const searchParams = useSearchParams();
   const { slug } = useWorkspace();
-  const { folders } = useFolders();
-  const folder = folders?.find((folder) => folder.id === link.folderId);
+  const { folder } = useFolder({ folderId: link.folderId });
 
   return (
     <div

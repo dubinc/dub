@@ -1,5 +1,6 @@
 import { generateFilters } from "@/lib/ai/generate-filters";
 import {
+  DUB_LINKS_ANALYTICS_INTERVAL,
   INTERVAL_DISPLAYS,
   TRIGGER_DISPLAY,
   VALID_ANALYTICS_FILTERS,
@@ -8,6 +9,7 @@ import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import useDomains from "@/lib/swr/use-domains";
 import useDomainsCount from "@/lib/swr/use-domains-count";
+import useFolder from "@/lib/swr/use-folder";
 import useFolders from "@/lib/swr/use-folders";
 import useFoldersCount from "@/lib/swr/use-folders-count";
 import useTags from "@/lib/swr/use-tags";
@@ -125,8 +127,17 @@ export default function Toggle({
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
 
-  const { tags, loading: loadingTags } = useTags();
-  const { folders, loading: loadingFolders } = useFolders();
+  const { tags, loading: loadingTags } = useTags({
+    query: {
+      search: tagsAsync && selectedFilter === "tagIds" ? debouncedSearch : "",
+    },
+  });
+  const { folders, loading: loadingFolders } = useFolders({
+    query: {
+      search:
+        foldersAsync && selectedFilter === "folderId" ? debouncedSearch : "",
+    },
+  });
 
   const {
     allDomains: domains,
@@ -148,6 +159,12 @@ export default function Toggle({
   const { tags: selectedTags } = useTags({
     query: { ids: selectedTagIds },
     enabled: tagsAsync,
+  });
+
+  const selectedFolderId = searchParamsObj.folderId;
+
+  const { folder: selectedFolder } = useFolder({
+    folderId: selectedFolderId,
   });
 
   const [requestedFilters, setRequestedFilters] = useState<string[]>([]);
@@ -353,18 +370,26 @@ export default function Toggle({
                           />
                         ) : null;
                       },
-                      options:
-                        folders?.map((folder) => ({
-                          value: folder.id,
-                          icon: (
-                            <FolderIcon
-                              folder={folder}
-                              shape="square"
-                              iconClassName="size-3"
-                            />
-                          ),
-                          label: folder.name,
-                        })) ?? null,
+                      options: loadingFolders
+                        ? null
+                        : [
+                            ...(folders || []),
+                            // Add currently filtered folder if not already in the list
+                            ...(selectedFolder &&
+                            !folders?.find((f) => f.id === selectedFolder.id)
+                              ? [selectedFolder]
+                              : []),
+                          ].map((folder) => ({
+                            value: folder.id,
+                            icon: (
+                              <FolderIcon
+                                folder={folder}
+                                shape="square"
+                                iconClassName="size-3"
+                              />
+                            ),
+                            label: folder.name,
+                          })),
                     },
                   ]
                 : []),
@@ -382,15 +407,22 @@ export default function Toggle({
                     <TagBadge color={tagColor} withIcon className="sm:p-1" />
                   ) : null;
                 },
-                options:
-                  tags?.map(({ id, name, color }) => ({
-                    value: id,
-                    icon: (
-                      <TagBadge color={color} withIcon className="sm:p-1" />
-                    ),
-                    label: name,
-                    data: { color },
-                  })) ?? null,
+                options: loadingTags
+                  ? null
+                  : [
+                      ...(tags || []),
+                      // Add currently filtered tags if not already in the list
+                      ...(selectedTags || []).filter(
+                        ({ id }) => !tags?.some((t) => t.id === id),
+                      ),
+                    ].map(({ id, name, color }) => ({
+                      value: id,
+                      icon: (
+                        <TagBadge color={color} withIcon className="sm:p-1" />
+                      ),
+                      label: name,
+                      data: { color },
+                    })),
               },
               {
                 key: "domain",
@@ -645,6 +677,8 @@ export default function Toggle({
       tags,
       folders,
       selectedTags,
+      selectedTagIds,
+      selectedFolder,
       countries,
       cities,
       devices,
@@ -753,7 +787,9 @@ export default function Toggle({
             }
           : undefined
       }
-      presetId={start && end ? undefined : interval ?? "30d"}
+      presetId={
+        start && end ? undefined : interval ?? DUB_LINKS_ANALYTICS_INTERVAL
+      }
       onChange={(range, preset) => {
         if (preset) {
           queryParams({

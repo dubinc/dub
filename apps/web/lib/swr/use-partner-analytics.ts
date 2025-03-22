@@ -2,7 +2,10 @@ import { fetcher } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { useParams, useSearchParams } from "next/navigation";
 import useSWR, { SWRConfiguration } from "swr";
-import { VALID_ANALYTICS_FILTERS } from "../analytics/constants";
+import {
+  DUB_PARTNERS_ANALYTICS_INTERVAL,
+  VALID_ANALYTICS_FILTERS,
+} from "../analytics/constants";
 import { PartnerAnalyticsFilters } from "../analytics/types";
 
 export default function usePartnerAnalytics(
@@ -42,7 +45,9 @@ export default function usePartnerAnalytics(
                 start: params.start.toISOString(),
                 end: params.end.toISOString(),
               }
-            : { interval: params?.interval ?? "30d" }),
+            : {
+                interval: params?.interval ?? DUB_PARTNERS_ANALYTICS_INTERVAL,
+              }),
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         },
       ).toString()}`,

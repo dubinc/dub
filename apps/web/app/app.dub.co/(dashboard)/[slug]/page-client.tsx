@@ -4,6 +4,7 @@ import {
   useCheckFolderPermission,
   useFolderPermissions,
 } from "@/lib/swr/use-folder-permissions";
+import { useIsMegaFolder } from "@/lib/swr/use-is-mega-folder";
 import useLinks from "@/lib/swr/use-links";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { RequestFolderEditAccessButton } from "@/ui/folders/request-edit-button";
@@ -24,18 +25,13 @@ import {
   Popover,
   Tooltip,
   TooltipContent,
+  useRouterStuff,
 } from "@dub/ui";
 import { Download, Globe, TableIcon, Tag } from "@dub/ui/icons";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
-import {
-  Dispatch,
-  ReactNode,
-  SetStateAction,
-  useEffect,
-  useState,
-} from "react";
+import { ReactNode, useEffect, useState } from "react";
 
 export default function WorkspaceLinksClient() {
   const { data: session } = useSession();
@@ -75,6 +71,7 @@ function WorkspaceLinks() {
   } = useLinkFilters();
 
   const folderId = searchParams.get("folderId");
+  const { isMegaFolder } = useIsMegaFolder();
 
   const { isLoading } = useFolderPermissions();
   const canCreateLinks = useCheckFolderPermission(
@@ -90,61 +87,63 @@ function WorkspaceLinks() {
         <MaxWidthWrapper className="flex flex-col gap-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2 lg:flex-nowrap">
             <div className="flex w-full grow gap-2 md:w-auto">
-              <div className="grow basis-0 md:grow-0">
-                <Filter.Select
-                  filters={filters}
-                  activeFilters={activeFilters}
-                  onSelect={onSelect}
-                  onRemove={onRemove}
-                  onSearchChange={setSearch}
-                  onSelectedFilterChange={setSelectedFilter}
-                  className="w-full"
-                  emptyState={{
-                    tagIds: (
-                      <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">
-                        <div className="flex items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
-                          <Tag className="size-6 text-neutral-700" />
+              {!isMegaFolder && (
+                <div className="grow basis-0 md:grow-0">
+                  <Filter.Select
+                    filters={filters}
+                    activeFilters={activeFilters}
+                    onSelect={onSelect}
+                    onRemove={onRemove}
+                    onSearchChange={setSearch}
+                    onSelectedFilterChange={setSelectedFilter}
+                    className="w-full"
+                    emptyState={{
+                      tagIds: (
+                        <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">
+                          <div className="flex items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+                            <Tag className="size-6 text-neutral-700" />
+                          </div>
+                          <p className="mt-2 font-medium text-neutral-950">
+                            No tags found
+                          </p>
+                          <p className="mx-auto mt-1 w-full max-w-[180px] text-neutral-700">
+                            Add tags to organize your links
+                          </p>
+                          <div>
+                            <Button
+                              className="mt-1 h-8"
+                              onClick={() => setShowAddEditTagModal(true)}
+                              text="Add tag"
+                            />
+                          </div>
                         </div>
-                        <p className="mt-2 font-medium text-neutral-950">
-                          No tags found
-                        </p>
-                        <p className="mx-auto mt-1 w-full max-w-[180px] text-neutral-700">
-                          Add tags to organize your links
-                        </p>
-                        <div>
-                          <Button
-                            className="mt-1 h-8"
-                            onClick={() => setShowAddEditTagModal(true)}
-                            text="Add tag"
-                          />
+                      ),
+                      domain: (
+                        <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">
+                          <div className="flex items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+                            <Globe className="size-6 text-neutral-700" />
+                          </div>
+                          <p className="mt-2 font-medium text-neutral-950">
+                            No domains found
+                          </p>
+                          <p className="mx-auto mt-1 w-full max-w-[180px] text-neutral-700">
+                            Add a custom domain to match your brand
+                          </p>
+                          <div>
+                            <Button
+                              className="mt-1 h-8"
+                              onClick={() =>
+                                router.push(`/${slug}/settings/domains`)
+                              }
+                              text="Add domain"
+                            />
+                          </div>
                         </div>
-                      </div>
-                    ),
-                    domain: (
-                      <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">
-                        <div className="flex items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
-                          <Globe className="size-6 text-neutral-700" />
-                        </div>
-                        <p className="mt-2 font-medium text-neutral-950">
-                          No domains found
-                        </p>
-                        <p className="mx-auto mt-1 w-full max-w-[180px] text-neutral-700">
-                          Add a custom domain to match your brand
-                        </p>
-                        <div>
-                          <Button
-                            className="mt-1 h-8"
-                            onClick={() =>
-                              router.push(`/${slug}/settings/domains`)
-                            }
-                            text="Add domain"
-                          />
-                        </div>
-                      </div>
-                    ),
-                  }}
-                />
-              </div>
+                      ),
+                    }}
+                  />
+                </div>
+              )}
               <div className="grow basis-0 md:grow-0">
                 <LinkDisplay />
               </div>
@@ -199,8 +198,7 @@ function WorkspaceLinks() {
 }
 
 const MoreLinkOptions = () => {
-  const router = useRouter();
-  const { slug } = useWorkspace();
+  const { queryParams } = useRouterStuff();
   const [openPopover, setOpenPopover] = useState(false);
   const [_state, setState] = useState<"default" | "import">("default");
   const { ExportLinksModal, setShowExportLinksModal } = useExportLinksModal();
@@ -222,9 +220,12 @@ const MoreLinkOptions = () => {
               <ImportOption
                 onClick={() => {
                   setOpenPopover(false);
-                  router.push(`/${slug}?import=bitly`);
+                  queryParams({
+                    set: {
+                      import: "bitly",
+                    },
+                  });
                 }}
-                setOpenPopover={setOpenPopover}
               >
                 <IconMenu
                   text="Import from Bitly"
@@ -240,9 +241,12 @@ const MoreLinkOptions = () => {
               <ImportOption
                 onClick={() => {
                   setOpenPopover(false);
-                  router.push(`/${slug}?import=rebrandly`);
+                  queryParams({
+                    set: {
+                      import: "rebrandly",
+                    },
+                  });
                 }}
-                setOpenPopover={setOpenPopover}
               >
                 <IconMenu
                   text="Import from Rebrandly"
@@ -258,9 +262,12 @@ const MoreLinkOptions = () => {
               <ImportOption
                 onClick={() => {
                   setOpenPopover(false);
-                  router.push(`/${slug}?import=short`);
+                  queryParams({
+                    set: {
+                      import: "short",
+                    },
+                  });
                 }}
-                setOpenPopover={setOpenPopover}
               >
                 <IconMenu
                   text="Import from Short.io"
@@ -276,9 +283,12 @@ const MoreLinkOptions = () => {
               <ImportOption
                 onClick={() => {
                   setOpenPopover(false);
-                  router.push(`/${slug}?import=csv`);
+                  queryParams({
+                    set: {
+                      import: "csv",
+                    },
+                  });
                 }}
-                setOpenPopover={setOpenPopover}
               >
                 <IconMenu
                   text="Import from CSV"
@@ -323,11 +333,9 @@ const MoreLinkOptions = () => {
 
 function ImportOption({
   children,
-  setOpenPopover,
   onClick,
 }: {
   children: ReactNode;
-  setOpenPopover: Dispatch<SetStateAction<boolean>>;
   onClick: () => void;
 }) {
   const { slug, exceededLinks, nextPlan } = useWorkspace();
@@ -337,7 +345,7 @@ function ImportOption({
       content={
         <TooltipContent
           title="Your workspace has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
-          cta={`Upgrade to ${nextPlan.name}`}
+          cta={nextPlan ? `Upgrade to ${nextPlan.name}` : "Contact support"}
           href={`/${slug}/upgrade`}
         />
       }
