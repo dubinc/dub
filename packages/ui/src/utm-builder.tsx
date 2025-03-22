@@ -11,7 +11,7 @@ import {
   Page2,
   SatelliteDish,
 } from "./icons/nucleo";
-import { Tooltip } from "./tooltip";
+import { DynamicTooltipWrapper, Tooltip } from "./tooltip";
 
 export const UTM_PARAMETERS = [
   {
@@ -130,7 +130,16 @@ export function UTMBuilder({
                   </div>
                 </Tooltip>
                 <div className="min-w-0 grow">
-                  <DisabledTooltipWrapper disabledTooltip={disabledTooltip}>
+                  <DynamicTooltipWrapper
+                    tooltipProps={
+                      disabledTooltip
+                        ? {
+                            content: disabledTooltip,
+                            disableHoverableContent: true,
+                          }
+                        : undefined
+                    }
+                  >
                     <input
                       type="text"
                       id={`${id}-${key}`}
@@ -141,7 +150,7 @@ export function UTMBuilder({
                       value={values[key] || ""}
                       onChange={(e) => onChange(key, e.target.value)}
                     />
-                  </DisabledTooltipWrapper>
+                  </DynamicTooltipWrapper>
                 </div>
               </div>
             </div>
@@ -149,21 +158,5 @@ export function UTMBuilder({
         },
       )}
     </div>
-  );
-}
-
-function DisabledTooltipWrapper({
-  children,
-  disabledTooltip,
-}: {
-  children: ReactNode;
-  disabledTooltip?: string | ReactNode;
-}) {
-  return disabledTooltip ? (
-    <Tooltip content={disabledTooltip} disableHoverableContent>
-      {children}
-    </Tooltip>
-  ) : (
-    children
   );
 }
