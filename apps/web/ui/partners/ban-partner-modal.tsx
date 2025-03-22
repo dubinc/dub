@@ -133,7 +133,9 @@ function BanPartnerModal({
                 required: true,
               })}
             >
-              <option value="">Select a reason</option>
+              <option value="" disabled>
+                Select a reason
+              </option>
               {Object.entries(BAN_PARTNER_REASONS).map(([key, value]) => (
                 <option value={key} key={key}>
                   {value}

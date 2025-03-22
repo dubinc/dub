@@ -28,7 +28,7 @@ export const PartnerStatusBadges = {
   },
   invited: {
     label: "Invited",
-    variant: "pending",
+    variant: "new",
     className: "text-blue-600 bg-blue-100",
     icon: EnvelopeArrowRight,
   },
