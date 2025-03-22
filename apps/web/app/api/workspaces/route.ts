@@ -32,6 +32,7 @@ export const GET = withSession(async ({ session }) => {
         },
         select: {
           role: true,
+          defaultFolderId: true,
         },
       },
       domains: {

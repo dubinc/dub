@@ -1,5 +1,6 @@
 "use client";
 
+import { unsortedLinks } from "@/lib/folder/constants";
 import useFolders from "@/lib/swr/use-folders";
 import useFoldersCount from "@/lib/swr/use-folders-count";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -13,13 +14,10 @@ import { PaginationControls, usePagination, useRouterStuff } from "@dub/ui";
 import { useRouter, useSearchParams } from "next/navigation";
 
 const allLinkFolder: Folder = {
-  id: "unsorted",
-  name: "Links",
   type: "default",
-  accessLevel: null,
-  linkCount: 0,
   createdAt: new Date(),
   updatedAt: new Date(),
+  ...unsortedLinks,
 };
 
 export const FoldersPageClient = () => {

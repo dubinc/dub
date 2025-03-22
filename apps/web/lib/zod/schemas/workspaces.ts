@@ -88,6 +88,12 @@ export const WorkspaceSchema = z
       .array(
         z.object({
           role: roleSchema,
+          defaultFolderId: z
+            .string()
+            .nullable()
+            .describe(
+              "The ID of the default folder for the user in the workspace.",
+            ),
         }),
       )
       .describe("The role of the authenticated user in the workspace."),

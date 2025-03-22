@@ -10,30 +10,42 @@ import { FolderDropdown } from "./folder-dropdown";
 export const FolderSwitcher = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { slug } = useWorkspace();
+  const { slug, defaultFolderId } = useWorkspace();
+  const [folderId, setFolderId] = useState<string | null>(null);
+  const [selectedFolder, setSelectedFolder] = useState<FolderSummary | null>(
+    null,
+  );
 
-  const folderId = searchParams.get("folderId");
+  // Update folderId based on URL params or default
+  useEffect(() => {
+    const paramFolderId = searchParams.get("folderId");
+
+    if (!paramFolderId) {
+      setFolderId(defaultFolderId || "");
+    } else {
+      setFolderId(paramFolderId);
+    }
+  }, [searchParams, defaultFolderId]);
+
   const { folder } = useFolder({
     folderId,
   });
 
-  const [selectedFolder, setSelectedFolder] = useState<FolderSummary | null>(
-    unsortedLinks,
-  );
-
   useEffect(() => {
-    if (folder && folder.id === folderId) {
+    if (folderId === "unsorted") {
+      setSelectedFolder(unsortedLinks);
+    } else if (folder) {
       setSelectedFolder(folder);
+    } else {
+      setSelectedFolder(unsortedLinks);
     }
   }, [folder, folderId]);
-
-  const isUnsorted = selectedFolder?.id === "unsorted";
 
   return (
     <div className="-ml-2 -mt-1 flex w-full items-center gap-1">
       <FolderDropdown hideFolderIcon={true} />
 
-      {selectedFolder && !isUnsorted && (
+      {selectedFolder && (
         <FolderActions
           folder={selectedFolder}
           onDelete={() => router.push(`/${slug}`)}

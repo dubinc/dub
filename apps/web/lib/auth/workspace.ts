@@ -261,6 +261,7 @@ export const withWorkspace = (
               },
               select: {
                 role: true,
+                defaultFolderId: true,
               },
             },
           },
