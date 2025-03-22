@@ -35,6 +35,9 @@ export async function POST(req: Request) {
       createdAt: true,
     },
     take: 1000,
+    orderBy: {
+      createdAt: "desc",
+    },
   });
 
   if (!links.length) {

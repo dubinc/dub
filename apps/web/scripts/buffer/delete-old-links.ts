@@ -17,6 +17,9 @@ async function main() {
       createdAt: true,
     },
     take: 1000,
+    orderBy: {
+      createdAt: "desc",
+    },
   });
 
   if (!links.length) {
