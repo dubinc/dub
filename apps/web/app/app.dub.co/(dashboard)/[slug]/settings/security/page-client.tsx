@@ -28,6 +28,11 @@ const SAMLSection = () => {
   const { RemoveSAMLModal, setShowRemoveSAMLModal } = useRemoveSAMLModal();
   const { provider, configured, loading } = useSAML();
 
+  const currentProvider = useMemo(
+    () => SAML_PROVIDERS.find((p) => p.name.startsWith(provider!)),
+    [provider],
+  );
+
   const data = useMemo(() => {
     if (loading) {
       return {
@@ -39,12 +44,12 @@ const SAMLSection = () => {
       return {
         logo: (
           <img
-            src={SAML_PROVIDERS.find((p) => p.name === provider)!.logo}
-            alt={provider + " logo"}
+            src={currentProvider!.logo}
+            alt={currentProvider!.name}
             className="h-8 w-8"
           />
         ),
-        title: `${provider} SAML`,
+        title: `${currentProvider!.name} SAML`,
         description: "SAML SSO is configured for your workspace.",
       };
     } else
