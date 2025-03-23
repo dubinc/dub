@@ -18,6 +18,7 @@ module.exports = withAxiom({
     "@dub/prisma",
     "@dub/email",
     "@boxyhq/saml-jackson",
+    "jose",
   ],
   webpack: (config, { webpack, isServer }) => {
     if (isServer) {
