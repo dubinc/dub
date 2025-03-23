@@ -35,6 +35,9 @@ export async function POST(req: Request) {
       createdAt: true,
     },
     take: 1000,
+    orderBy: {
+      createdAt: "desc",
+    },
   });
 
   if (!links.length) {
@@ -59,7 +62,7 @@ export async function POST(req: Request) {
   );
 
   await qstash.publishJSON({
-    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/migrate`,
+    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/buffer/delete-old-links`,
     method: "POST",
     body: {},
   });
