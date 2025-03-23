@@ -1107,10 +1107,6 @@ packages:
     resolution: {integrity: sha512-FPwHpZywuyasDSLMqJ6fhbOK3TqUdviZNF8OqRGA4W5Ewib2lEEZ+pBsYcBa88B2NGO/SEnYPGhyBqNlE8ilSw==}
     engines: {node: '>=18.0.0'}
 
-  '@azure/core-client@1.7.3':
-    resolution: {integrity: sha512-kleJ1iUTxcO32Y06dH9Pfi9K4U+Tlb111WXEnbt7R/ne+NLRwppZiTGJuTD5VVoxTMK5NTbEtm5t2vcdNCFe2g==}
-    engines: {node: '>=14.0.0'}
-
   '@azure/core-client@1.9.3':
     resolution: {integrity: sha512-/wGw8fJ4mdpJ1Cum7s1S+VQyXt1ihwKLzfabS1O/RDADnmzVc01dHn44qD0BvGH6KlZNzOMW95tEpKqhkCChPA==}
     engines: {node: '>=18.0.0'}
@@ -1127,10 +1123,6 @@ packages:
     resolution: {integrity: sha512-zqWdVIt+2Z+3wqxEOGzR5hXFZ8MGKK52x4vFLw8n58pR6ZfKRx3EXYTxTaYxYHc/PexPUTyimcTWFJbji9Z6Iw==}
     engines: {node: '>=14.0.0'}
 
-  '@azure/core-rest-pipeline@1.12.1':
-    resolution: {integrity: sha512-SsyWQ+T5MFQRX+M8H/66AlaI6HyCbQStGfFngx2fuiW+vKI2DkhtOvbYodPyf9fOe/ARLWWc3ohX54lQ5Kmaog==}
-    engines: {node: '>=14.0.0'}
-
   '@azure/core-rest-pipeline@1.19.1':
     resolution: {integrity: sha512-zHeoI3NCs53lLBbWNzQycjnYKsA1CVKlnzSNuSFcUDwBp8HHVObePxrM7HaX+Ha5Ks639H7chNC9HOaIhNS03w==}
     engines: {node: '>=18.0.0'}
@@ -1142,10 +1134,6 @@ packages:
   '@azure/core-util@1.11.0':
     resolution: {integrity: sha512-DxOSLua+NdpWoSqULhjDyAZTXFdP/LKkqtYuxxz1SCN289zk3OG8UOpnCQAz/tygyACBtWp/BoO72ptK7msY8g==}
     engines: {node: '>=18.0.0'}
-
-  '@azure/core-util@1.5.0':
-    resolution: {integrity: sha512-GZBpVFDtQ/15hW1OgBcRdT4Bl7AEpcEZqLfbAvOtm1CQUncKWiYapFHVD588hmlV27NbOOtSm3cnLF3lvoHi4g==}
-    engines: {node: '>=14.0.0'}
 
   '@azure/identity@4.8.0':
     resolution: {integrity: sha512-l9ALUGHtFB/JfsqmA+9iYAp2a+cCwdNO/cyIr2y7nJLJsz1aae6qVP8XxT7Kbudg0IQRSIMXj0+iivFdbD1xPA==}
@@ -4954,10 +4942,6 @@ packages:
     resolution: {integrity: sha512-RbzJvlNzmRq5c3O09UipeuXno4tA1FE6ikOjxZK0tuxVv3412l64l5t1W5pj4+rJq9vpkm/kwiR07aZXnsKPxw==}
     engines: {node: '>= 6'}
 
-  '@tootallnate/once@2.0.0':
-    resolution: {integrity: sha512-XCuKFP5PS55gnMVu3dty8KPatLqUoy/ZYzDzAGCQ8JNFCkLXzmI7vNHCR+XpbZaMWQK/vQubr7PkYq8g470J/A==}
-    engines: {node: '>= 10'}
-
   '@tsconfig/node10@1.0.11':
     resolution: {integrity: sha512-DcRjDCujK/kCk/cUe8Xz8ZSpm8mS3mNNpta+jGCA6USEDfktlNvm1+IuZ9eTcDbNk41BHwpHHeW+N1lKCz4zOw==}
 
@@ -7662,10 +7646,6 @@ packages:
     resolution: {integrity: sha512-k0zdNgqWTGA6aeIRVpvfVob4fL52dTfaehylg0Y4UvSySvOq/Y+BOyPrgpUrA7HylqvU8vIZGsRuXmspskV0Tg==}
     engines: {node: '>= 6'}
 
-  http-proxy-agent@5.0.0:
-    resolution: {integrity: sha512-n2hY8YdoRE1i7r6M0w9DIw5GgZN0G25P8zLCRQ8rjXtTU3vsNFBI/vWK/UIeE6g5MUUz6avwAPXmL6Fy9D/90w==}
-    engines: {node: '>= 6'}
-
   http-proxy-agent@7.0.2:
     resolution: {integrity: sha512-T1gkAiYYDWYx3V5Bmyu7HcfcvL7mUrTWiM6yOfa3PIphViJ/gFPbvidQ+veqSOHci/PxBcDabeUNCzpOODJZig==}
     engines: {node: '>= 14'}
@@ -9813,10 +9793,6 @@ packages:
 
   proto-list@1.2.4:
     resolution: {integrity: sha512-vtK/94akxsTMhe0/cbfpR+syPuszcuwhqVjJq26CuNDgFGj682oRBXOP5MJpv2r7JtE8MsiepGIqvvOTBwn2vA==}
-
-  protobufjs@7.2.5:
-    resolution: {integrity: sha512-gGXRSXvxQ7UiPgfw8gevrfRWcTlSbOFg+p/N+JVJEK5VhueL2miT6qTymqAmjr1Q5WbOCyJbyrk6JfWKwlFn6A==}
-    engines: {node: '>=12.0.0'}
 
   protobufjs@7.4.0:
     resolution: {integrity: sha512-mRUWCc3KUU4w1jU8sGxICXH/gNS94DvI1gxqDvBzhj1JpcsimQkYiOJfwsPUykUI5ZaspFbSgmBLER8IrQ3tqw==}
@@ -12430,18 +12406,6 @@ snapshots:
       '@azure/core-util': 1.11.0
       tslib: 2.6.2
 
-  '@azure/core-client@1.7.3':
-    dependencies:
-      '@azure/abort-controller': 1.1.0
-      '@azure/core-auth': 1.9.0
-      '@azure/core-rest-pipeline': 1.12.1
-      '@azure/core-tracing': 1.0.1
-      '@azure/core-util': 1.5.0
-      '@azure/logger': 1.0.4
-      tslib: 2.6.2
-    transitivePeerDependencies:
-      - supports-color
-
   '@azure/core-client@1.9.3':
     dependencies:
       '@azure/abort-controller': 2.1.2
@@ -12457,35 +12421,21 @@ snapshots:
   '@azure/core-http-compat@1.3.0':
     dependencies:
       '@azure/abort-controller': 1.1.0
-      '@azure/core-client': 1.7.3
-      '@azure/core-rest-pipeline': 1.12.1
+      '@azure/core-client': 1.9.3
+      '@azure/core-rest-pipeline': 1.19.1
     transitivePeerDependencies:
       - supports-color
 
   '@azure/core-lro@2.5.4':
     dependencies:
       '@azure/abort-controller': 1.1.0
-      '@azure/core-util': 1.5.0
+      '@azure/core-util': 1.11.0
       '@azure/logger': 1.0.4
       tslib: 2.6.2
 
   '@azure/core-paging@1.5.0':
     dependencies:
       tslib: 2.6.2
-
-  '@azure/core-rest-pipeline@1.12.1':
-    dependencies:
-      '@azure/abort-controller': 1.1.0
-      '@azure/core-auth': 1.9.0
-      '@azure/core-tracing': 1.0.1
-      '@azure/core-util': 1.5.0
-      '@azure/logger': 1.0.4
-      form-data: 4.0.0
-      http-proxy-agent: 5.0.0
-      https-proxy-agent: 5.0.1
-      tslib: 2.6.2
-    transitivePeerDependencies:
-      - supports-color
 
   '@azure/core-rest-pipeline@1.19.1':
     dependencies:
@@ -12507,11 +12457,6 @@ snapshots:
   '@azure/core-util@1.11.0':
     dependencies:
       '@azure/abort-controller': 2.1.2
-      tslib: 2.6.2
-
-  '@azure/core-util@1.5.0':
-    dependencies:
-      '@azure/abort-controller': 1.1.0
       tslib: 2.6.2
 
   '@azure/identity@4.8.0':
@@ -12537,13 +12482,13 @@ snapshots:
     dependencies:
       '@azure/abort-controller': 1.1.0
       '@azure/core-auth': 1.9.0
-      '@azure/core-client': 1.7.3
+      '@azure/core-client': 1.9.3
       '@azure/core-http-compat': 1.3.0
       '@azure/core-lro': 2.5.4
       '@azure/core-paging': 1.5.0
-      '@azure/core-rest-pipeline': 1.12.1
+      '@azure/core-rest-pipeline': 1.19.1
       '@azure/core-tracing': 1.0.1
-      '@azure/core-util': 1.5.0
+      '@azure/core-util': 1.11.0
       '@azure/logger': 1.0.4
       tslib: 2.6.2
     transitivePeerDependencies:
@@ -13919,7 +13864,7 @@ snapshots:
     dependencies:
       lodash.camelcase: 4.3.0
       long: 5.2.3
-      protobufjs: 7.2.5
+      protobufjs: 7.4.0
       yargs: 17.7.2
 
   '@hapi/hoek@9.3.0': {}
@@ -17063,8 +17008,6 @@ snapshots:
 
   '@tootallnate/once@1.1.2': {}
 
-  '@tootallnate/once@2.0.0': {}
-
   '@tsconfig/node10@1.0.11': {}
 
   '@tsconfig/node12@1.0.11': {}
@@ -17407,7 +17350,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/typescript-estree': 5.62.0(typescript@4.9.5)
       '@typescript-eslint/utils': 5.62.0(eslint@8.48.0)(typescript@4.9.5)
-      debug: 4.3.4
+      debug: 4.4.0
       eslint: 8.48.0
       tsutils: 3.21.0(typescript@4.9.5)
     optionalDependencies:
@@ -17421,7 +17364,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/types': 5.62.0
       '@typescript-eslint/visitor-keys': 5.62.0
-      debug: 4.3.4
+      debug: 4.4.0
       globby: 11.1.0
       is-glob: 4.0.3
       semver: 7.6.3
@@ -17834,7 +17777,7 @@ snapshots:
 
   agent-base@6.0.2:
     dependencies:
-      debug: 4.3.4
+      debug: 4.4.0
     transitivePeerDependencies:
       - supports-color
 
@@ -20256,14 +20199,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  http-proxy-agent@5.0.0:
-    dependencies:
-      '@tootallnate/once': 2.0.0
-      agent-base: 6.0.2
-      debug: 4.4.0
-    transitivePeerDependencies:
-      - supports-color
-
   http-proxy-agent@7.0.2:
     dependencies:
       agent-base: 7.1.0
@@ -20608,7 +20543,7 @@ snapshots:
 
   istanbul-lib-source-maps@4.0.1:
     dependencies:
-      debug: 4.3.4
+      debug: 4.4.0
       istanbul-lib-coverage: 3.2.2
       source-map: 0.6.1
     transitivePeerDependencies:
@@ -21131,7 +21066,7 @@ snapshots:
     dependencies:
       config-chain: 1.1.13
       editorconfig: 1.0.4
-      glob: 10.3.12
+      glob: 10.4.5
       nopt: 7.2.0
 
   js-cookie@3.0.5: {}
@@ -23076,21 +23011,6 @@ snapshots:
   property-information@6.5.0: {}
 
   proto-list@1.2.4: {}
-
-  protobufjs@7.2.5:
-    dependencies:
-      '@protobufjs/aspromise': 1.1.2
-      '@protobufjs/base64': 1.1.2
-      '@protobufjs/codegen': 2.0.4
-      '@protobufjs/eventemitter': 1.1.0
-      '@protobufjs/fetch': 1.1.0
-      '@protobufjs/float': 1.0.2
-      '@protobufjs/inquire': 1.1.0
-      '@protobufjs/path': 1.1.2
-      '@protobufjs/pool': 1.1.0
-      '@protobufjs/utf8': 1.1.0
-      '@types/node': 18.11.9
-      long: 5.2.3
 
   protobufjs@7.4.0:
     dependencies:

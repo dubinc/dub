@@ -34,14 +34,6 @@ module.exports = withAxiom({
       );
 
       config.plugins = [...config.plugins, new PrismaPlugin()];
-
-      config.resolve = {
-        ...config.resolve,
-        alias: {
-          ...config.resolve?.alias,
-          jose: require.resolve("jose/dist/node/cjs/index.js"),
-        },
-      };
     }
 
     config.module = {
