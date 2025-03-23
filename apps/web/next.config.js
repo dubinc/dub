@@ -13,11 +13,12 @@ const REDIRECT_SEGMENTS = [
 /** @type {import('next').NextConfig} */
 module.exports = withAxiom({
   reactStrictMode: false,
-  transpilePackages: ["shiki", "@dub/prisma", "@dub/email"],
-  experimental: {
-    serverComponentsExternalPackages: ["@boxyhq/saml-jackson", "jose"],
-    esmExternals: "loose",
-  },
+  transpilePackages: [
+    "shiki",
+    "@dub/prisma",
+    "@dub/email",
+    "@boxyhq/saml-jackson",
+  ],
   webpack: (config, { webpack, isServer }) => {
     if (isServer) {
       config.plugins.push(
@@ -29,18 +30,15 @@ module.exports = withAxiom({
       );
 
       config.plugins = [...config.plugins, new PrismaPlugin()];
-    }
 
-    config.resolve = {
-      ...config.resolve,
-      extensionAlias: {
-        ".js": [".js", ".ts", ".tsx"],
-      },
-      alias: {
-        ...config.resolve?.alias,
-        jose: require.resolve("jose"),
-      },
-    };
+      config.resolve = {
+        ...config.resolve,
+        alias: {
+          ...config.resolve?.alias,
+          jose: require.resolve("jose/dist/node/cjs/index.js"),
+        },
+      };
+    }
 
     config.module = {
       ...config.module,
