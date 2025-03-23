@@ -1,5 +1,5 @@
 import { inviteUser } from "@/lib/api/users";
-import jackson from "@/lib/jackson";
+import { jackson } from "@/lib/jackson";
 import { WorkspaceProps } from "@/lib/types";
 import type {
   DirectorySyncEvent,

@@ -1,4 +1,4 @@
-import jackson from "@/lib/jackson";
+import { jackson } from "@/lib/jackson";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
