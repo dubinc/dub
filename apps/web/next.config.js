@@ -18,7 +18,6 @@ module.exports = withAxiom({
     "@dub/prisma",
     "@dub/email",
     "@boxyhq/saml-jackson",
-    "jose",
   ],
   experimental: {
     serverComponentsExternalPackages: ["jose"],
