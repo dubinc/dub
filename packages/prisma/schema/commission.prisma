@@ -42,7 +42,6 @@ model Commission {
 
   @@unique([programId, invoiceId])
   @@index([programId, partnerId, status])
-  @@index(programId)
   @@index(partnerId)
   @@index(payoutId)
   @@index(customerId)
