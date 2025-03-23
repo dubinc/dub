@@ -20,7 +20,9 @@ module.exports = withAxiom({
     "@boxyhq/saml-jackson",
   ],
   serverExternalPackages: ["jose"],
-  esmExternals: "loose",
+  experimental: {
+    esmExternals: "loose",
+  },
   webpack: (config, { webpack, isServer }) => {
     if (isServer) {
       config.plugins.push(
