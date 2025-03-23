@@ -20,6 +20,9 @@ module.exports = withAxiom({
     "@boxyhq/saml-jackson",
     "jose",
   ],
+  experimental: {
+    serverComponentsExternalPackages: ["jose"],
+  },
   webpack: (config, { webpack, isServer }) => {
     if (isServer) {
       config.plugins.push(
@@ -32,6 +35,14 @@ module.exports = withAxiom({
 
       config.plugins = [...config.plugins, new PrismaPlugin()];
     }
+
+    config.resolve = {
+      ...config.resolve,
+      alias: {
+        ...config.resolve.alias,
+        jose: require.resolve("jose"),
+      },
+    };
 
     config.module = {
       ...config.module,
