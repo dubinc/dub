@@ -19,6 +19,10 @@ module.exports = withAxiom({
     "@dub/email",
     "@boxyhq/saml-jackson",
   ],
+  experimental: {
+    serverComponentsExternalPackages: ["jose"], // Keep this
+    esmExternals: "loose", // Keep this
+  },
   webpack: (config, { webpack, isServer }) => {
     if (isServer) {
       config.plugins.push(
