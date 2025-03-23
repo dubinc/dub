@@ -5,6 +5,7 @@ import type {
   JacksonOption,
 } from "@boxyhq/saml-jackson";
 import jackson from "@boxyhq/saml-jackson";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 
 export const samlAudience = "https://saml.dub.co";
 
@@ -12,7 +13,7 @@ const opts: JacksonOption = {
   externalUrl:
     process.env.NODE_ENV === "production"
       ? "https://api.dub.co"
-      : `${process.env.NEXTAUTH_URL}`,
+      : APP_DOMAIN_WITH_NGROK,
   samlPath:
     process.env.NODE_ENV === "production"
       ? "/auth/saml/callback"
