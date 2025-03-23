@@ -1,5 +1,5 @@
 import { isBlacklistedEmail } from "@/lib/edge-config";
-import jackson from "@/lib/jackson";
+import { jackson } from "@/lib/jackson";
 import { isStored, storage } from "@/lib/storage";
 import { UserProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
