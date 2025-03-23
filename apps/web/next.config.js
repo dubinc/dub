@@ -13,14 +13,9 @@ const REDIRECT_SEGMENTS = [
 /** @type {import('next').NextConfig} */
 module.exports = withAxiom({
   reactStrictMode: false,
-  transpilePackages: [
-    "shiki",
-    "@dub/prisma",
-    "@dub/email",
-    "@boxyhq/saml-jackson",
-  ],
-  serverExternalPackages: ["jose"],
+  transpilePackages: ["shiki", "@dub/prisma", "@dub/email"],
   experimental: {
+    serverComponentsExternalPackages: ["@boxyhq/saml-jackson", "jose"],
     esmExternals: "loose",
   },
   webpack: (config, { webpack, isServer }) => {
