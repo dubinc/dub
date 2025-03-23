@@ -29,7 +29,7 @@ const SAMLSection = () => {
   const { provider, configured, loading } = useSAML();
 
   const currentProvider = useMemo(
-    () => SAML_PROVIDERS.find((p) => p.name.startsWith(provider!)),
+    () => provider && SAML_PROVIDERS.find((p) => p.name.startsWith(provider)),
     [provider],
   );
 
@@ -40,19 +40,19 @@ const SAMLSection = () => {
         title: null,
         description: null,
       };
-    } else if (configured) {
+    } else if (currentProvider) {
       return {
         logo: (
           <img
-            src={currentProvider!.logo}
-            alt={currentProvider!.name}
+            src={currentProvider.logo}
+            alt={currentProvider.name}
             className="h-8 w-8"
           />
         ),
-        title: `${currentProvider!.name} SAML`,
+        title: `${currentProvider.name} SAML`,
         description: "SAML SSO is configured for your workspace.",
       };
-    } else
+    } else {
       return {
         status: "unconfigured",
         logo: (
@@ -63,6 +63,7 @@ const SAMLSection = () => {
         title: "SAML",
         description: "Choose an identity provider to get started.",
       };
+    }
   }, [provider, configured, loading]);
 
   const [openPopover, setOpenPopover] = useState(false);
