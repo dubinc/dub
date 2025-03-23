@@ -6,8 +6,6 @@ import type {
 } from "@boxyhq/saml-jackson";
 import samlJackson from "@boxyhq/saml-jackson";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import * as jose from "jose";
-import * as openidClient from "openid-client";
 
 export const samlAudience = "https://saml.dub.co";
 
@@ -51,15 +49,11 @@ export async function jackson() {
     globalThis.apiController = ret.connectionAPIController;
     globalThis.oauthController = ret.oauthController;
     globalThis.directorySyncController = ret.directorySyncController;
-    globalThis.jose = jose;
-    globalThis.openidClient = openidClient;
   }
 
   return {
     apiController: globalThis.apiController,
     oauthController: globalThis.oauthController,
     directorySyncController: globalThis.directorySyncController,
-    jose: globalThis.jose,
-    openidClient: globalThis.openidClient,
   };
 }
