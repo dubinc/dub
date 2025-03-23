@@ -31,6 +31,5 @@ model PartnerReward {
   reward            Reward            @relation(fields: [rewardId], references: [id], onDelete: Cascade)
 
   @@unique([programEnrollmentId, rewardId])
-  @@index(programEnrollmentId)
   @@index(rewardId)
 }

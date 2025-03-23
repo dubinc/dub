@@ -1,10 +1,9 @@
 model Project {
-  id              String  @id @default(cuid())
-  name            String
-  slug            String  @unique
-  logo            String?
-  inviteCode      String? @unique
-  defaultFolderId String?
+  id         String  @id @default(cuid())
+  name       String
+  slug       String  @unique
+  logo       String?
+  inviteCode String? @unique
 
   plan              String    @default("free")
   stripeId          String?   @unique // Stripe subscription ID
@@ -92,13 +91,15 @@ model ProjectInvite {
 model ProjectUsers {
   id                     String                  @id @default(cuid())
   role                   Role                    @default(member)
-  createdAt              DateTime                @default(now())
-  updatedAt              DateTime                @updatedAt
-  user                   User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                 String
-  project                Project                 @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId              String
   notificationPreference NotificationPreference?
+  defaultFolderId        String?
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([userId, projectId])
   @@index([projectId])
