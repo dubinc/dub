@@ -38,11 +38,11 @@ export const GET = withWorkspace(
           gt: 0,
         },
         programId,
-        type: "sale",
+        partnerId,
         status,
+        type: "sale",
         customerId,
         payoutId,
-        partnerId,
         createdAt: {
           gte: startDate.toISOString(),
           lte: endDate.toISOString(),
