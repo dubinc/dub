@@ -115,6 +115,7 @@ export async function getPartners(filters: PartnerFilters) {
       WHERE programId = ${program.id}
         AND partnerId IS NOT NULL
         AND status IN ('pending', 'processed', 'paid')
+        AND earnings > 0
       GROUP BY partnerId
     ) commissions ON commissions.partnerId = pe.partnerId
     WHERE 
