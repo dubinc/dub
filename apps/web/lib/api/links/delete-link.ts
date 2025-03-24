@@ -3,6 +3,7 @@ import { recordLinkTB, transformLinkTB } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { cancelScheduledABTestCompletion } from "./ab-test-scheduler";
 import { linkCache } from "./cache";
 import { includeTags } from "./include-tags";
 import { transformLink } from "./utils";
@@ -32,6 +33,7 @@ export async function deleteLink(linkId: string) {
         ...transformLinkTB(link),
         deleted: true,
       }),
+
       link.projectId &&
         prisma.project.update({
           where: {
@@ -41,6 +43,10 @@ export async function deleteLink(linkId: string) {
             totalLinks: { decrement: 1 },
           },
         }),
+
+      link.testVariants &&
+        link.testCompletedAt &&
+        cancelScheduledABTestCompletion(link.id),
     ]),
   );
 

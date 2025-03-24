@@ -1,34 +1,31 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { completeTests } from "@/lib/api/links/complete-tests";
+import { completeABTests } from "@/lib/api/links/complete-ab-tests";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@dub/prisma";
 
-/**
- * Completes a link's tests if they're ready, scheduled by QStash
- */
+// POST - /api/cron/links/[linkId]/complete-tests
+// Completes a link's tests if they're ready, scheduled by QStash
 export async function POST(
   req: Request,
-  { params = {} }: { params: Record<string, string> | undefined },
+  {
+    params: { linkId },
+  }: {
+    params: { linkId: string };
+  },
 ) {
   try {
     const rawBody = await req.text();
     await verifyQstashSignature({ req, rawBody });
 
-    const { linkId } = params;
-
-    if (!linkId) return new Response("Link ID is required.", { status: 400 });
-
     const link = await prisma.link.findUnique({
       where: {
         id: linkId,
       },
-      include: {
-        project: true,
-      },
     });
 
-    if (!link || !link.project)
-      return new Response("Link not found. Skipping...", { status: 200 });
+    if (!link) {
+      return new Response(`Link ${linkId} not found. Skipping...`);
+    }
 
     if (
       link.testVariants &&
@@ -36,11 +33,12 @@ export async function POST(
       link.testCompletedAt < new Date() &&
       Date.now() - link.testCompletedAt.getTime() < 2 * 60 * 60 * 1000 // Limit to two hour window
     ) {
-      await completeTests(link as any);
-      return new Response("Tests completed.", { status: 200 });
+      await completeABTests(link as any);
+
+      return new Response(`Tests completed for link ${linkId}.`);
     }
 
-    return new Response("No test completion necessary.", { status: 200 });
+    return new Response(`No test completion necessary for link ${linkId}.`);
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }

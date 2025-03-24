@@ -8,7 +8,7 @@ import { DubApiError, ErrorCodes } from "../errors";
 import { processLink } from "./process-link";
 import { updateLink } from "./update-link";
 
-export async function completeTests(link: Link & { project: Project }) {
+export async function completeABTests(link: Link & { project: Project }) {
   if (!link.testVariants || !link.testCompletedAt || !link.projectId) return;
 
   const testVariants = LinkTestsSchema.parse(link.testVariants);

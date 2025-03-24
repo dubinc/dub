@@ -14,10 +14,10 @@ import {
 import { waitUntil } from "@vercel/functions";
 import { createId } from "../create-id";
 import { combineTagIds } from "../tags/combine-tag-ids";
+import { scheduleABTestCompletion } from "./ab-test-scheduler";
 import { linkCache } from "./cache";
 import { encodeKeyIfCaseSensitive } from "./case-sensitivity";
 import { includeTags } from "./include-tags";
-import { scheduleTestCompletion } from "./schedule-test-completion";
 import { transformLink } from "./utils";
 
 export async function updateLink({
@@ -194,7 +194,7 @@ export async function updateLink({
           webhookIds,
         }),
 
-      testVariants && testCompletedAt && scheduleTestCompletion(response),
+      testVariants && testCompletedAt && scheduleABTestCompletion(response),
     ]),
   );
 
