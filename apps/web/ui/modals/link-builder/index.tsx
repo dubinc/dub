@@ -596,8 +596,8 @@ export function CreateLinkButton({
 
   return (
     <Button
-      text="Create link"
-      shortcut="C"
+      text="Create QR code"
+      // shortcut="C"
       disabledTooltip={
         exceededLinks ? (
           <TooltipContent

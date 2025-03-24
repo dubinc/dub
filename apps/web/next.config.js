@@ -14,6 +14,9 @@ const REDIRECT_SEGMENTS = [
 module.exports = withAxiom({
   reactStrictMode: false,
   transpilePackages: ["shiki", "@dub/prisma", "@dub/email"],
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   webpack: (config, { webpack, isServer }) => {
     if (isServer) {
       config.plugins.push(

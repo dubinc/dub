@@ -14,6 +14,8 @@ import { ipAddress } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/analytics/dashboard – get analytics for the dashboard
+export const dynamic = "force-dynamic";
+
 export const GET = async (req: Request) => {
   try {
     const searchParams = getSearchParams(req.url);

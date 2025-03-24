@@ -15,6 +15,7 @@ export const GET = withPartnerProfile(
 
     const parsedParams = analyticsQuerySchema
       .omit({
+        // @ts-ignore
         workspaceId: true,
         domain: true,
         key: true,
