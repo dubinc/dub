@@ -2,6 +2,7 @@ import { ExpandedLinkProps } from "@/lib/types";
 import {
   CircleHalfDottedClock,
   Crosshairs3,
+  CursorRays,
   Incognito,
   InputPassword,
   WindowSearch,
@@ -9,6 +10,7 @@ import {
 import { UseFormSetValue } from "react-hook-form";
 import { LinkFormData } from ".";
 import { getExpirationLabel } from "./expiration-modal";
+import { getMaxClicksLabel } from "./max-clicks-modal";
 import { getPasswordLabel } from "./password-modal";
 import { getTargetingLabel } from "./targeting-modal";
 
@@ -63,6 +65,22 @@ export const MOBILE_MORE_ITEMS = [
     remove: (setValue: UseFormSetValue<ExpandedLinkProps>) => {
       setValue("expiresAt", null, { shouldDirty: true });
       setValue("expiredUrl", null, { shouldDirty: true });
+    },
+    type: "modal",
+  },
+  {
+    key: "maxClicks",
+    icon: CursorRays,
+    label: "Max Clicks",
+    badgeLabel: getMaxClicksLabel,
+    description:
+      "Set a maximum number of clicks for your links – after which it won't be accessible.",
+    learnMoreUrl: "https://dub.co/help/article/link-expiration",
+    shortcutKey: "m",
+    enabled: (data: LinkFormData) => Boolean(data.maxClicks),
+    remove: (setValue: UseFormSetValue<ExpandedLinkProps>) => {
+      setValue("maxClicks", null, { shouldDirty: true });
+      setValue("maxClicksUrl", null, { shouldDirty: true });
     },
     type: "modal",
   },
