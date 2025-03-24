@@ -7,6 +7,7 @@ import {
 import { EU_COUNTRY_CODES } from "@dub/utils/src/constants/countries";
 import { geolocation, ipAddress } from "@vercel/functions";
 import { userAgent } from "next/server";
+import { linkCache } from "../api/links/cache";
 import { clickCache } from "../api/links/click-cache";
 import { ExpandedLink, transformLink } from "../api/links/utils/transform-link";
 import {
@@ -139,7 +140,7 @@ export async function recordClick({
 
   const hasWebhooks = webhookIds && webhookIds.length > 0;
 
-  const [, , , , workspaceRows] = await Promise.allSettled([
+  const [, , , , , workspaceRows] = await Promise.allSettled([
     fetch(
       `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_click_events&wait=true`,
       {
@@ -175,6 +176,9 @@ export async function recordClick({
         [linkId],
       ),
 
+    // increment the clicks count in Redis cache
+    linkCache.incrementClicks({ domain, key }),
+
     // fetch the workspace usage for the workspace
     workspaceId && hasWebhooks
       ? conn.execute(
@@ -187,6 +191,9 @@ export async function recordClick({
   const workspace =
     workspaceRows.status === "fulfilled" &&
     workspaceRows.value &&
+    typeof workspaceRows.value === "object" &&
+    "rows" in workspaceRows.value &&
+    Array.isArray(workspaceRows.value.rows) &&
     workspaceRows.value.rows.length > 0
       ? (workspaceRows.value.rows[0] as Pick<
           WorkspaceProps,
@@ -238,7 +245,7 @@ async function sendLinkClickWebhooks({
   const link = await conn
     .execute(
       `
-    SELECT 
+    SELECT
       l.*,
       JSON_ARRAYAGG(
         IF(t.id IS NOT NULL,
