@@ -202,7 +202,10 @@ export function NewSaleAlertProgramOwner({
               </Link>
             </Text>
 
-            <Footer email={user.email} />
+            <Footer
+              email={user.email}
+              notificationSettingsUrl={notificationPreferencesLink}
+            />
           </Container>
         </Body>
       </Tailwind>
