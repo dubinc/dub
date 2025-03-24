@@ -247,6 +247,39 @@ describe.sequential("POST /links", async () => {
     expect(LinkSchema.strict().parse(link)).toBeTruthy();
   });
 
+  test("max clicks", async () => {
+    const maxClicks = 100;
+    const maxClicksUrl = "https://github.com/max-clicks-reached";
+
+    onTestFinished(async () => {
+      await h.deleteLink(link.id);
+    });
+
+    const { status, data: link } = await http.post<Link>({
+      path: "/links",
+      body: {
+        url,
+        domain,
+        maxClicks,
+        maxClicksUrl,
+      },
+    });
+
+    expect(status).toEqual(200);
+    expect(link).toStrictEqual({
+      ...expectedLink,
+      url,
+      maxClicks,
+      maxClicksUrl,
+      userId: user.id,
+      projectId,
+      workspaceId,
+      shortLink: `https://${domain}/${link.key}`,
+      qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
+    });
+    expect(LinkSchema.strict().parse(link)).toBeTruthy();
+  });
+
   test("device targeting", async () => {
     const ios = "https://apps.apple.com/app/1611158928";
     const android =
