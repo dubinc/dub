@@ -27,9 +27,12 @@ export const resolveABTestURL = ({
     }
 
     const cookieStore = cookies();
-    const cookieUrl = cookieStore.get("dub_test_url")?.value;
-    if (cookieUrl && testVariants.map((t) => t.url).includes(cookieUrl)) {
-      return cookieUrl;
+    const urlFromCookie = cookieStore.get("dub_test_url")?.value;
+    if (
+      urlFromCookie &&
+      testVariants.map((t) => t.url).includes(urlFromCookie)
+    ) {
+      return urlFromCookie;
     }
 
     let i = 0;
@@ -54,7 +57,7 @@ export const resolveABTestURL = ({
 
     return testVariants[i].url;
   } catch (e) {
-    console.error("Error getting test destination URL", e);
+    console.error("Error resolving AB test URL.", e);
   }
 
   return null;
