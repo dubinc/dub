@@ -173,6 +173,7 @@ export const updateUsage = async () => {
                   createdLinks: workspace.linksUsage,
                   topLinks: topFiveLinks,
                 }),
+                variant: "notifications",
               }),
             );
           }),
