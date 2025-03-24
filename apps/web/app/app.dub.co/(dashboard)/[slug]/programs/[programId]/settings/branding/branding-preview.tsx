@@ -43,7 +43,7 @@ export function BrandingPreview() {
               <div className="relative flex min-w-0 grow items-center justify-center gap-2 truncate rounded-md bg-neutral-50 px-2 py-1">
                 <LockFill className="size-2.5 shrink-0 text-neutral-900" />
                 <span className="select-none truncate text-xs font-medium leading-none">
-                  partners.dub.co
+                  partners.getqr-dev.vercel.app
                 </span>
               </div>
               <div className="hidden grow basis-0 sm:block" />

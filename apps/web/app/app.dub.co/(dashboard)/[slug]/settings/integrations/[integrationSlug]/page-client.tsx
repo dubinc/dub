@@ -140,7 +140,7 @@ export default function IntegrationPageClient({
                       <TooltipContent
                         title="You cannot uninstall the Stripe integration from here. Please visit the Stripe dashboard to uninstall the app."
                         cta="Go to Stripe"
-                        href="https://dashboard.stripe.com/settings/apps/dub.co"
+                        href="https://dashboard.stripe.com/settings/apps/getqr-dev.vercel.app"
                         target="_blank"
                       />
                     ),

@@ -176,7 +176,7 @@ function InviteSavedToast({ teammates }: { teammates: number }) {
         {pluralize("Invitation", teammates)} saved. You'll need a pro plan to
         invite teammates.{" "}
         <a
-          href="https://dub.co/help/article/how-to-invite-teammates"
+          href="https://getqr-dev.vercel.app/help/article/how-to-invite-teammates"
           target="_blank"
           className="text-neutral-500 underline transition-colors hover:text-neutral-800"
         >

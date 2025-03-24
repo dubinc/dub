@@ -17,7 +17,7 @@ import { Footer } from "../components/footer";
 export function ConfirmEmailChange({
   email = "panic@thedis.co",
   newEmail = "panic+1@thedis.co",
-  confirmUrl = "https://dub.co/auth/confirm-email-change",
+  confirmUrl = "https://getqr-dev.vercel.app/auth/confirm-email-change",
 }: {
   email: string;
   newEmail: string;

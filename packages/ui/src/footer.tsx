@@ -75,7 +75,7 @@ export function Footer({
   staticDomain?: string;
   className?: string;
 }) {
-  let { domain = "dub.co" } = useParams() as { domain: string };
+  let { domain = "getqr-dev.vercel.app" } = useParams() as { domain: string };
   if (staticDomain) {
     domain = staticDomain;
   }
@@ -206,7 +206,7 @@ export function Footer({
                     ))}
                     <li>
                       <a
-                        href="https://security.dub.co"
+                        href="https://security.getqr-dev.vercel.app"
                         target="_blank"
                         rel="noreferrer"
                         className={cn(
@@ -258,7 +258,7 @@ export function Footer({
             className="flex sm:justify-center"
           >
             <Image
-              src="https://assets.dub.co/misc/soc2.svg"
+              src="https://assets.getqr-dev.vercel.app/misc/soc2.svg"
               alt="AICPA SOC 2 Type II Certified"
               width={63}
               height={32}
@@ -283,7 +283,7 @@ function StatusBadge() {
         | "partial_outage"
         | "full_outage";
     }[];
-  }>("https://status.dub.co/api/v1/summary", fetcher);
+  }>("https://status.getqr-dev.vercel.app/api/v1/summary", fetcher);
 
   const [color, setColor] = useState("bg-neutral-200");
   const [status, setStatus] = useState("Loading status...");
@@ -307,7 +307,7 @@ function StatusBadge() {
 
   return (
     <Link
-      href="https://status.dub.co"
+      href="https://status.getqr-dev.vercel.app"
       target="_blank"
       className="group flex max-w-fit items-center gap-2 rounded-lg border border-neutral-200 bg-white py-2 pl-2 pr-2.5 transition-colors hover:bg-neutral-50 active:bg-neutral-100"
     >

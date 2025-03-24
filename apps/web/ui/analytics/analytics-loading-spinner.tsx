@@ -18,7 +18,9 @@ export function AnalyticsLoadingSpinner() {
         {nextPlan.name} plan required to view more analytics
       </p>
       <Link
-        href={slug ? `/${slug}/upgrade` : "https://dub.co/pricing"}
+        href={
+          slug ? `/${slug}/upgrade` : "https://getqr-dev.vercel.app/pricing"
+        }
         {...(slug ? {} : { target: "_blank" })}
         className="w-full rounded-md border border-black bg-black px-3 py-1.5 text-center text-sm text-white transition-all hover:bg-neutral-800 hover:ring-4 hover:ring-neutral-200"
       >

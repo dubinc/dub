@@ -182,7 +182,7 @@ export const analyticsQuerySchema = z
       .string()
       .optional()
       .describe("The full referer URL to retrieve analytics for.")
-      .openapi({ example: "https://dub.co/blog" }),
+      .openapi({ example: "https://getqr-dev.vercel.app/blog" }),
     url: z.string().optional().describe("The URL to retrieve analytics for."),
     tagId: z
       .string()

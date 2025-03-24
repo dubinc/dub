@@ -7,7 +7,7 @@ export function ModalHero() {
     <div className="relative h-48 w-full overflow-hidden bg-white">
       <BackgroundGradient className="opacity-15" />
       <Image
-        src="https://assets.dub.co/misc/welcome-modal-background.svg"
+        src="https://assets.getqr-dev.vercel.app/misc/welcome-modal-background.svg"
         alt="Welcome to Dub"
         fill
         className="object-cover object-top"

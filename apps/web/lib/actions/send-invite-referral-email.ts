@@ -39,7 +39,7 @@ export const sendInviteReferralEmail = authActionClient
         react: ReferralInvite({
           email,
           appName: process.env.NEXT_PUBLIC_APP_NAME as string,
-          url: `https://refer.dub.co/${workspace.slug}`,
+          url: `https://refer.getqr-dev.vercel.app/${workspace.slug}`,
           workspaceUser: ctx.user.name || null,
           workspaceUserEmail: ctx.user.email || null,
         }),

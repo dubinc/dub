@@ -12,11 +12,14 @@ export default async function EmbedMiddleware(req: NextRequest) {
     const linkId = await embedToken.get(token);
 
     if (linkId) {
-      return NextResponse.rewrite(new URL(`/app.dub.co${fullPath}`, req.url), {
-        headers: {
-          "Set-Cookie": `${EMBED_PUBLIC_TOKEN_COOKIE_NAME}=${token}; HttpOnly; Secure; SameSite=None; Path=/`,
+      return NextResponse.rewrite(
+        new URL(`/app.getqr-dev.vercel.app${fullPath}`, req.url),
+        {
+          headers: {
+            "Set-Cookie": `${EMBED_PUBLIC_TOKEN_COOKIE_NAME}=${token}; HttpOnly; Secure; SameSite=None; Path=/`,
+          },
         },
-      });
+      );
     }
   }
 

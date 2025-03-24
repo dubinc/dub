@@ -17,7 +17,7 @@ import { Footer } from "../components/footer";
 export function ReferralInvite({
   email = "panic@thedis.co",
   appName = "Dub.co",
-  url = "https://dub.co",
+  url = "https://getqr-dev.vercel.app",
   workspaceUser = "Brendon Urie",
   workspaceUserEmail = "panic@thedis.co",
 }: {

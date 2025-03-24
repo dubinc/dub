@@ -78,7 +78,7 @@ export default async function InspectPage({
             <LinkPreview defaultUrl={data.url} />
           </Suspense>
           <a
-            href="https://dub.co/tools/inspector"
+            href="https://getqr-dev.vercel.app/tools/inspector"
             rel="noreferrer"
             target="_blank"
             className="mx-auto mt-2 flex items-center justify-center space-x-2 text-sm text-neutral-500 transition-all hover:text-black"

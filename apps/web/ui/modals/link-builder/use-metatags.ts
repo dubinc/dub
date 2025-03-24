@@ -39,7 +39,10 @@ export function useMetatags({
         "description",
         "This link is password protected. Please enter the password to view it.",
       );
-      setValue("image", "https://assets.dub.co/misc/password-protected.png");
+      setValue(
+        "image",
+        "https://assets.getqr-dev.vercel.app/misc/password-protected.png",
+      );
       return;
     }
 

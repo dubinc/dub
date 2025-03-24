@@ -80,7 +80,10 @@ export function EmbedQuickstart({
               : undefined
           }
           onClick={() =>
-            window.open("https://partners.dub.co/settings/payouts", "_blank")
+            window.open(
+              "https://partners.getqr-dev.vercel.app/settings/payouts",
+              "_blank",
+            )
           }
           text="Connect payouts"
         />

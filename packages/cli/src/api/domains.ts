@@ -13,7 +13,7 @@ export async function getDomains() {
   const [{ result: domainsResponse }, defaultDomainsResponse] =
     await Promise.all([
       dub.domains.list(),
-      fetch("https://api.dub.co/domains/default", {
+      fetch("https://api.getqr-dev.vercel.app/domains/default", {
         method: "GET",
         headers: {
           Authorization: `Bearer ${config.access_token}`,

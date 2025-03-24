@@ -77,7 +77,7 @@ export default function WorkspaceTagsClient() {
               </>
             }
             addButton={<AddTagButton />}
-            learnMoreHref="https://dub.co/help/article/how-to-use-tags"
+            learnMoreHref="https://getqr-dev.vercel.app/help/article/how-to-use-tags"
           />
         ) : (
           <>

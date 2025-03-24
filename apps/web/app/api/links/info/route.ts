@@ -18,7 +18,8 @@ export const GET = withWorkspace(
         code: "bad_request",
         message:
           "You must provide a domain and a key or a linkId or an externalId to retrieve a link.",
-        docUrl: "https://dub.co/docs/api-reference/endpoint/retrieve-a-link",
+        docUrl:
+          "https://getqr-dev.vercel.app/docs/api-reference/endpoint/retrieve-a-link",
       });
     }
 

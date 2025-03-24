@@ -154,7 +154,7 @@ export function RegisterDomainForm({
                   <SimpleTooltipContent
                     title="Search for a free .link domain to use for your short links."
                     cta="Learn more."
-                    href="https://dub.co/help/article/free-dot-link-domain"
+                    href="https://getqr-dev.vercel.app/help/article/free-dot-link-domain"
                   />
                 }
               />
@@ -299,7 +299,7 @@ export function RegisterDomainForm({
           <p className="-my-2 text-pretty text-left text-sm text-neutral-400">
             By claiming your .link domain, you agree to our{" "}
             <a
-              href="https://dub.co/help/article/free-dot-link-domain#terms-and-conditions"
+              href="https://getqr-dev.vercel.app/help/article/free-dot-link-domain#terms-and-conditions"
               target="_blank"
               className="underline transition-colors hover:text-neutral-700"
             >
@@ -379,7 +379,7 @@ function DomainSavedToast() {
       <p className="text-[13px] font-medium text-neutral-900">
         Domain saved. You'll need a pro plan to complete the registration.{" "}
         <a
-          href="https://dub.co/help/article/free-dot-link-domain"
+          href="https://getqr-dev.vercel.app/help/article/free-dot-link-domain"
           target="_blank"
           className="text-neutral-500 underline transition-colors hover:text-neutral-800"
         >

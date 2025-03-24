@@ -9,7 +9,7 @@ export default function Workspace() {
       title="Create a workspace"
       description={
         <a
-          href="https://dub.co/help/article/what-is-a-workspace"
+          href="https://getqr-dev.vercel.app/help/article/what-is-a-workspace"
           target="_blank"
           className="underline transition-colors hover:text-neutral-700"
         >

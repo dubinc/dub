@@ -210,7 +210,7 @@ export default function AnalyticsProvider({
         domain: domainSlug,
       };
     } else if (dashboardId) {
-      // Public stats page, e.g. app.dub.co/share/dsh_123
+      // Public stats page, e.g. app.getqr-dev.vercel.app/share/dsh_123
       return {
         basePath: `/share/${dashboardId}`,
         baseApiPath: "/api/analytics/dashboard",

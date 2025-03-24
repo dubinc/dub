@@ -59,7 +59,7 @@ export function LinksImportErrors({
               {Intl.NumberFormat("en-us").format(errorLinks.length)} links from{" "}
               {provider} failed to import into your Dub.co workspace,{" "}
               <Link
-                href={`https://app.dub.co/${workspaceSlug}`}
+                href={`https://app.getqr-dev.vercel.app/${workspaceSlug}`}
                 className="font-medium text-blue-600 no-underline"
               >
                 {workspaceName}↗

@@ -4,7 +4,7 @@ import "dotenv-flow/config";
 async function main() {
   const domains = await prisma.domain.updateMany({
     where: {
-      placeholder: "https://dub.co/help/article/what-is-dub",
+      placeholder: "https://getqr-dev.vercel.app/help/article/what-is-dub",
     },
     data: {
       placeholder: null,

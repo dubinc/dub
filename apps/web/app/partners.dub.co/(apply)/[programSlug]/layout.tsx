@@ -71,7 +71,7 @@ export default async function ApplyLayout({
           </span>
           <span className="flex items-center gap-2">
             <a
-              href="https://dub.co/legal/terms"
+              href="https://getqr-dev.vercel.app/legal/terms"
               target="_blank"
               className="transition-colors duration-75 hover:text-neutral-600"
             >
@@ -79,7 +79,7 @@ export default async function ApplyLayout({
             </a>
             <span className="text-base text-neutral-200">&bull;</span>
             <a
-              href="https://dub.co/legal/privacy"
+              href="https://getqr-dev.vercel.app/legal/privacy"
               target="_blank"
               className="transition-colors duration-75 hover:text-neutral-600"
             >
@@ -92,7 +92,7 @@ export default async function ApplyLayout({
       {/* Background grid */}
       <div className="absolute inset-0 flex h-fit w-full items-center justify-center">
         <img
-          src="https://assets.dub.co/misc/program-apply-grid.svg"
+          src="https://assets.getqr-dev.vercel.app/misc/program-apply-grid.svg"
           alt=""
           width={1280}
           height={480}

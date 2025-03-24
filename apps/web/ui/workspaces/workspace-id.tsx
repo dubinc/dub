@@ -29,7 +29,7 @@ export default function WorkspaceId() {
           <p className="text-sm text-neutral-500">
             Used to identify your workspace when interacting with the{" "}
             <a
-              href="https://dub.co/api"
+              href="https://getqr-dev.vercel.app/api"
               target="_blank"
               className="underline underline-offset-2 transition-colors hover:text-neutral-700"
             >

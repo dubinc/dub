@@ -24,7 +24,7 @@ export function NewBackground(props: { showAnimation?: boolean }) {
       <BackgroundGradient className="opacity-15" />
       <div className="absolute left-1/2 top-0 -translate-x-1/2 opacity-50 transition-all sm:opacity-100">
         <Image
-          src="https://assets.dub.co/misc/welcome-background-grid.svg"
+          src="https://assets.getqr-dev.vercel.app/misc/welcome-background-grid.svg"
           onLoad={() => setIsGridLoaded(true)}
           alt=""
           width={1750}
@@ -32,7 +32,7 @@ export function NewBackground(props: { showAnimation?: boolean }) {
           className="absolute inset-0"
         />
         <Image
-          src="https://assets.dub.co/misc/welcome-background.svg"
+          src="https://assets.getqr-dev.vercel.app/misc/welcome-background.svg"
           onLoad={() => setIsBackgroundLoaded(true)}
           alt=""
           width={1750}

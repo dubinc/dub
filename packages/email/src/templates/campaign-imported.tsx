@@ -58,7 +58,7 @@ export function CampaignImported({
             <Text className="text-sm leading-6 text-black">
               We have successfully imported your {provider} campaign{" "}
               <Link
-                href={`https://app.dub.co/${workspace.slug}/programs/${program.id}/partners`}
+                href={`https://app.getqr-dev.vercel.app/${workspace.slug}/programs/${program.id}/partners`}
                 className="font-medium text-blue-600 no-underline"
               >
                 {program.name}↗

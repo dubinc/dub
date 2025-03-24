@@ -8,21 +8,21 @@ import Logos from "./logos";
 const RATINGS = [
   {
     name: "G2",
-    logo: "https://assets.dub.co/companies/g2.svg",
+    logo: "https://assets.getqr-dev.vercel.app/companies/g2.svg",
     stars: 5,
     href: "https://www.g2.com/products/dub/reviews",
   },
   {
     name: "Product Hunt",
-    logo: "https://assets.dub.co/companies/product-hunt-logo.svg",
+    logo: "https://assets.getqr-dev.vercel.app/companies/product-hunt-logo.svg",
     stars: 5,
     href: "https://www.producthunt.com/products/dub",
   },
   {
     name: "Trustpilot",
-    logo: "https://assets.dub.co/companies/trustpilot.svg",
+    logo: "https://assets.getqr-dev.vercel.app/companies/trustpilot.svg",
     stars: 4.5,
-    href: "https://www.trustpilot.com/review/dub.co",
+    href: "https://www.trustpilot.com/review/getqr-dev.vercel.app",
   },
 ];
 

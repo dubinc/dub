@@ -211,7 +211,7 @@ export function AddEditDomainForm({
                 <SimpleTooltipContent
                   title="Not sure which domain to use?"
                   cta="Check out our guide"
-                  href="https://dub.co/help/article/choosing-a-custom-domain"
+                  href="https://getqr-dev.vercel.app/help/article/choosing-a-custom-domain"
                 />
               }
             />
@@ -367,7 +367,7 @@ export function AddEditDomainForm({
                                   }}
                                   customPreview={
                                     <QRCode
-                                      url="https://dub.co"
+                                      url="https://getqr-dev.vercel.app"
                                       fgColor="#000"
                                       logo={field.value || ""}
                                       scale={0.6}

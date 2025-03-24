@@ -23,7 +23,7 @@ export function DubWrapped({
   workspace = {
     name: "Dub",
     slug: "dub",
-    logo: "https://assets.dub.co/logo.png",
+    logo: "https://assets.getqr-dev.vercel.app/logo.png",
   },
   stats = {
     "Total Links": 1429,
@@ -117,30 +117,30 @@ export function DubWrapped({
       title: "Free .LINK domains on all paid plans",
       description:
         "We partnered with Nova Registry to offer a <b>1-year free .link custom domain</b> to all paying Dub customers. By using a custom domain, you get <b>30% higher click-through rates</b> and better brand recognition.",
-      image: "https://assets.dub.co/blog/free-dot-link.jpg",
+      image: "https://assets.getqr-dev.vercel.app/blog/free-dot-link.jpg",
       cta: {
         text: "Read the announcement",
-        href: "https://ship.dub.co/free-domains",
+        href: "https://ship.getqr-dev.vercel.app/free-domains",
       },
     },
     {
       title: "New link builder + dashboard",
       description:
         "We launched a new link builder, rebuilt from the ground up, to help you manage your links better. We also gave our dashboard a makeover as well.",
-      image: "https://assets.dub.co/changelog/new-dashboard.jpg",
+      image: "https://assets.getqr-dev.vercel.app/changelog/new-dashboard.jpg",
       cta: {
         text: "Read the announcement",
-        href: "https://ship.dub.co/builder",
+        href: "https://ship.getqr-dev.vercel.app/builder",
       },
     },
     {
       title: "Dub API General Availability",
       description:
         "Our Dub API went GA, allowing you to build your powerful integrations with Dub. We also launched <b>native SDKs in 5 different languages</b>: TypeScript, Python, Ruby, PHP, and Go.",
-      image: "https://assets.dub.co/blog/dub-api.jpg",
+      image: "https://assets.getqr-dev.vercel.app/blog/dub-api.jpg",
       cta: {
         text: "Read the announcement",
-        href: "https://dub.co/blog/announcing-dub-api",
+        href: "https://getqr-dev.vercel.app/blog/announcing-dub-api",
       },
     },
   ];
@@ -170,7 +170,7 @@ export function DubWrapped({
             <Section className="my-8 rounded-lg border border-solid border-neutral-200 p-2">
               <div>
                 <Img
-                  src="https://assets.dub.co/misc/year-in-review-header.jpg"
+                  src="https://assets.getqr-dev.vercel.app/misc/year-in-review-header.jpg"
                   alt="header"
                   className="max-w-[500px] rounded-lg"
                 />
@@ -226,7 +226,7 @@ export function DubWrapped({
               </Text>
             ))}
             <Img
-              src="https://assets.dub.co/misc/year-in-review-2024.jpg"
+              src="https://assets.getqr-dev.vercel.app/misc/year-in-review-2024.jpg"
               alt="Thank you"
               className="max-w-[500px] rounded-lg"
             />
@@ -268,14 +268,14 @@ export function DubWrapped({
             <Text className="text-sm leading-6 text-black">
               You can also check out more updates on our{" "}
               <Link
-                href="https://ship.dub.co/blog"
+                href="https://ship.getqr-dev.vercel.app/blog"
                 className="text-black underline underline-offset-2"
               >
                 blog
               </Link>{" "}
               and{" "}
               <Link
-                href="https://ship.dub.co/changelog"
+                href="https://ship.getqr-dev.vercel.app/changelog"
                 className="text-black underline underline-offset-2"
               >
                 changelog
@@ -286,7 +286,7 @@ export function DubWrapped({
               Thank you again, and happy holidays!
             </Text>
             <Img
-              src="https://assets.dub.co/misc/email-signature.png"
+              src="https://assets.getqr-dev.vercel.app/misc/email-signature.png"
               alt="Email signature"
               className="max-w-[200px]"
             />
@@ -350,7 +350,7 @@ const StatTable = ({
                 {title === "Top Links" ? (
                   <div className="py-2">
                     <Link
-                      href={`https://app.dub.co/${workspaceSlug}/analytics?domain=${domain}&key=${path}&interval=1y`}
+                      href={`https://app.getqr-dev.vercel.app/${workspaceSlug}/analytics?domain=${domain}&key=${path}&interval=1y`}
                       className="font-medium text-black underline underline-offset-2"
                     >
                       {smartTruncate(item, 33)} ↗

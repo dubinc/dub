@@ -43,7 +43,7 @@ export function ConversionTrackingToggle() {
               <SimpleTooltipContent
                 title="View analytics on conversions from your short links."
                 cta="Learn more."
-                href="https://dub.co/docs/conversions/quickstart"
+                href="https://getqr-dev.vercel.app/docs/conversions/quickstart"
               />
             }
           />
@@ -62,7 +62,9 @@ export function ConversionTrackingToggle() {
               title="Conversion tracking is only available on Business plans and above."
               cta="Upgrade to Business"
               href={
-                slug ? `/${slug}/upgrade?exit=close` : "https://dub.co/pricing"
+                slug
+                  ? `/${slug}/upgrade?exit=close`
+                  : "https://getqr-dev.vercel.app/pricing"
               }
               target="_blank"
             />

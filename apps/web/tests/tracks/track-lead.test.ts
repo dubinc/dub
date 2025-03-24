@@ -54,7 +54,8 @@ describe("POST /track/lead", async () => {
     expect(response.data).toStrictEqual({
       error: {
         code: "conflict",
-        doc_url: "https://dub.co/docs/api-reference/errors#conflict",
+        doc_url:
+          "https://getqr-dev.vercel.app/docs/api-reference/errors#conflict",
         message: `Customer with externalId ${customer.id} and event name Signup has already been recorded.`,
       },
     });

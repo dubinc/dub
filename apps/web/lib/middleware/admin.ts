@@ -29,6 +29,6 @@ export default async function AdminMiddleware(req: NextRequest) {
   }
 
   return NextResponse.rewrite(
-    new URL(`/admin.dub.co${path === "/" ? "" : path}`, req.url),
+    new URL(`/admin.getqr-dev.vercel.app${path === "/" ? "" : path}`, req.url),
   );
 }

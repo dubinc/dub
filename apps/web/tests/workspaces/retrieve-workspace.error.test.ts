@@ -15,7 +15,8 @@ test("retrieve a workspace by invalid slug or id", async (ctx) => {
     error: {
       code: "not_found",
       message: "Workspace not found.",
-      doc_url: "https://dub.co/docs/api-reference/errors#not-found",
+      doc_url:
+        "https://getqr-dev.vercel.app/docs/api-reference/errors#not-found",
     },
   });
 });

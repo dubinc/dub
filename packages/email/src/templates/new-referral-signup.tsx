@@ -29,7 +29,7 @@ export function NewReferralSignup({
     slug: string;
   };
 }) {
-  const referralLink = `https://refer.dub.co/${workspace.slug}`;
+  const referralLink = `https://refer.getqr-dev.vercel.app/${workspace.slug}`;
   return (
     <Html>
       <Head />
@@ -63,7 +63,7 @@ export function NewReferralSignup({
               earned an additional {REFERRAL_CLICKS_QUOTA_BONUS} clicks quota
               for your{" "}
               <a
-                href={`https://app.dub.co/${workspace.slug}`}
+                href={`https://app.getqr-dev.vercel.app/${workspace.slug}`}
                 className="text-semibold font-medium text-black underline"
               >
                 {workspace.name}
@@ -73,7 +73,7 @@ export function NewReferralSignup({
             <Section className="my-8 text-center">
               <Link
                 className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                href={`https://app.dub.co/${workspace.slug}`}
+                href={`https://app.getqr-dev.vercel.app/${workspace.slug}`}
               >
                 View your referral stats
               </Link>

@@ -85,7 +85,7 @@ test("PATCH /links/bulk", async (ctx) => {
       },
     ],
     shortLink: `https://${domain}/${createdLinks[0].key}`,
-    qrCode: `https://api.dub.co/qr?url=https://${domain}/${createdLinks[0].key}?qr=1`,
+    qrCode: `https://api.getqr-dev.vercel.app/qr?url=https://${domain}/${createdLinks[0].key}?qr=1`,
   });
 
   // second link should throw an error because it does not exist

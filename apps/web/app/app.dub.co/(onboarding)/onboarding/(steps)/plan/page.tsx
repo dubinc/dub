@@ -12,7 +12,7 @@ export default function Plan() {
       <PlanSelector />
       <div className="mt-8 flex flex-col gap-3">
         <a
-          href="https://dub.co/enterprise"
+          href="https://getqr-dev.vercel.app/enterprise"
           target="_blank"
           className="w-full text-center text-sm text-neutral-500 transition-colors hover:text-neutral-700"
         >

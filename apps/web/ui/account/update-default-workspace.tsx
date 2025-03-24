@@ -90,7 +90,7 @@ export default function UpdateDefaultWorkspace() {
 
       <div className="flex items-center justify-between space-x-4 rounded-b-lg border-t border-neutral-200 bg-neutral-50 p-3 sm:px-10">
         <a
-          href="https://dub.co/help/article/how-to-change-default-workspace"
+          href="https://getqr-dev.vercel.app/help/article/how-to-change-default-workspace"
           target="_blank"
           className="text-sm text-neutral-500 underline underline-offset-4 hover:text-neutral-700"
         >

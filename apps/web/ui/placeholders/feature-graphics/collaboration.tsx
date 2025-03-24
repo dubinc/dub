@@ -20,7 +20,8 @@ export function Collaboration() {
               key={idx}
               className="aspect-square rounded-lg bg-neutral-300 transition-transform hover:scale-110 sm:rounded-xl"
               style={{
-                backgroundImage: "url(https://assets.dub.co/home/people.png)",
+                backgroundImage:
+                  "url(https://assets.getqr-dev.vercel.app/home/people.png)",
                 backgroundSize: "3600%", // 36 images
                 backgroundPositionX: idx * 100 + "%",
               }}

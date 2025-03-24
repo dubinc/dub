@@ -46,7 +46,7 @@ export function DomainClaimed({
               <code className="text-purple-600">{domain}</code> domain for your
               Dub workspace{" "}
               <Link
-                href={`https://app.dub.co/${workspaceSlug}`}
+                href={`https://app.getqr-dev.vercel.app/${workspaceSlug}`}
                 className="font-medium text-blue-600 no-underline"
               >
                 {workspaceSlug}↗
@@ -56,7 +56,7 @@ export function DomainClaimed({
             <Section className="my-8 text-center">
               <Link
                 className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                href={`https://app.dub.co/${workspaceSlug}/settings/domains`}
+                href={`https://app.getqr-dev.vercel.app/${workspaceSlug}/settings/domains`}
               >
                 Manage your domain
               </Link>

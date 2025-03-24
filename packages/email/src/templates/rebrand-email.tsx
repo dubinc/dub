@@ -58,7 +58,7 @@ export function RebrandEmail({
             <Text className="text-sm leading-6 text-black">
               You can learn more about the rebrand and what's changing{" "}
               <Link
-                href="https://dub.co/blog/rebrand"
+                href="https://getqr-dev.vercel.app/blog/rebrand"
                 className="font-medium text-blue-600 no-underline"
               >
                 in this blog post
@@ -80,7 +80,7 @@ export function RebrandEmail({
             <Text className="ml-1 text-sm leading-6 text-black">
               ◆{" "}
               <Link
-                href="https://dub.co/blog/migration-assistants"
+                href="https://getqr-dev.vercel.app/blog/migration-assistants"
                 className="font-bold text-blue-600 no-underline"
               >
                 Migration Assistants
@@ -90,7 +90,7 @@ export function RebrandEmail({
             <Text className="ml-1 text-sm leading-6 text-black">
               ◆{" "}
               <Link
-                href="https://dub.co/help"
+                href="https://getqr-dev.vercel.app/help"
                 className="font-bold text-blue-600 no-underline"
               >
                 Dub Help Center
@@ -122,7 +122,7 @@ export function RebrandEmail({
             <Text className="text-sm leading-6 text-black">
               Check out our{" "}
               <Link
-                href="https://dub.co/changelog"
+                href="https://getqr-dev.vercel.app/changelog"
                 className="font-medium text-blue-600 no-underline"
               >
                 changelog

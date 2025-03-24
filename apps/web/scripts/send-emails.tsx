@@ -16,7 +16,7 @@ const workspace = {
 async function main() {
   const res = await sendEmail({
     email: user.email as string,
-    from: "steven@dub.co",
+    from: "steven@getqr-dev.vercel.app",
     subject: `${
       attemptCount == 2
         ? "2nd notice: "

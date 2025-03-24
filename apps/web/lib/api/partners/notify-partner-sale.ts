@@ -40,7 +40,7 @@ export async function notifyPartnerSale({
       limiter.schedule(() =>
         sendEmailViaResend({
           subject: "You just made a sale via Dub Partners!",
-          from: "Dub Partners <system@dub.co>",
+          from: "Dub Partners <system@getqr-dev.vercel.app>",
           email: user.email!,
           react: NewSaleCreated({
             email: user.email!,

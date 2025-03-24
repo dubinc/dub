@@ -9,7 +9,7 @@ export default function Custom() {
       title="Connect a custom domain"
       description={
         <a
-          href="https://dub.co/help/article/choosing-a-custom-domain"
+          href="https://getqr-dev.vercel.app/help/article/choosing-a-custom-domain"
           target="_blank"
           className="underline transition-colors hover:text-neutral-700"
         >

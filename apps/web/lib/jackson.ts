@@ -6,12 +6,12 @@ import type {
 } from "@boxyhq/saml-jackson";
 import jackson from "@boxyhq/saml-jackson";
 
-export const samlAudience = "https://saml.dub.co";
+export const samlAudience = "https://saml.getqr-dev.vercel.app";
 
 const opts: JacksonOption = {
   externalUrl:
     process.env.NODE_ENV === "production"
-      ? "https://api.dub.co"
+      ? "https://api.getqr-dev.vercel.app"
       : `${process.env.NEXTAUTH_URL}`,
   samlPath:
     process.env.NODE_ENV === "production"

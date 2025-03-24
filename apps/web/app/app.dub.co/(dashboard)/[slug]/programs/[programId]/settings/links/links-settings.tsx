@@ -35,10 +35,10 @@ export function LinksSettings() {
 function LinksSettingsForm({ program }: { program: ProgramProps }) {
   const { id: workspaceId } = useWorkspace();
 
-  const shortDomain = program.domain || "refer.dub.co";
+  const shortDomain = program.domain || "refer.getqr-dev.vercel.app";
   const websiteDomain = program.url
     ? getDomainWithoutWWW(program.url)
-    : "dub.co";
+    : "getqr-dev.vercel.app";
 
   const linkStructures = [
     {
@@ -236,7 +236,7 @@ function LinksSettingsForm({ program }: { program: ProgramProps }) {
             <p className="mt-2 text-sm text-neutral-500">
               View our{" "}
               <a
-                href="https://dub.co/docs/sdks/client-side/introduction"
+                href="https://getqr-dev.vercel.app/docs/sdks/client-side/introduction"
                 target="_blank"
                 className="underline transition-colors duration-75 hover:text-neutral-600"
               >

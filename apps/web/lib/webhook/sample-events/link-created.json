@@ -29,7 +29,7 @@
   "webhookIds": [],
   "comments": null,
   "shortLink": "https://dub.sh/sOvvXDT",
-  "qrCode": "https://api.dub.co/qr?url=https://dub.sh/sOvvXDT?qr=1",
+  "qrCode": "https://api.getqr-dev.vercel.app/qr?url=https://dub.sh/sOvvXDT?qr=1",
   "utm_source": null,
   "utm_medium": null,
   "utm_campaign": null,

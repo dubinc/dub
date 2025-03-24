@@ -12,7 +12,7 @@ export const metadata = constructMetadata({
   title: "Link Not Found",
   description:
     "This link does not exist on Dub.co. Please check the URL and try again.",
-  image: "https://assets.dub.co/misc/notfoundlink.jpg",
+  image: "https://assets.getqr-dev.vercel.app/misc/notfoundlink.jpg",
   noIndex: true,
 });
 

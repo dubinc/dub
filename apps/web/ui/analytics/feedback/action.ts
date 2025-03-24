@@ -8,8 +8,8 @@ export async function submitFeedback(data: FormData) {
   const feedback = data.get("feedback") as string;
 
   return await resend?.emails.send({
-    from: "feedback@dub.co",
-    to: "steven@dub.co",
+    from: "feedback@getqr-dev.vercel.app",
+    to: "steven@getqr-dev.vercel.app",
     ...(email && { replyTo: email }),
     subject: "🎉 New Feedback Received!",
     react: FeedbackEmail({ email, feedback }),

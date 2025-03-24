@@ -94,7 +94,7 @@ describe.sequential("GET /links/info", async () => {
       workspaceId,
       userId: user.id,
       shortLink: `https://${domain}/${key}`,
-      qrCode: `https://api.dub.co/qr?url=https://${domain}/${key}?qr=1`,
+      qrCode: `https://api.getqr-dev.vercel.app/qr?url=https://${domain}/${key}?qr=1`,
     });
   });
 

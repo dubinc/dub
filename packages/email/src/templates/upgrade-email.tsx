@@ -39,7 +39,7 @@ export function UpgradeEmail({
             </Heading>
             <Section className="my-8">
               <Img
-                src="https://assets.dub.co/misc/thank-you-thumbnail.jpg"
+                src="https://assets.getqr-dev.vercel.app/misc/thank-you-thumbnail.jpg"
                 alt="Thank you"
                 className="max-w-[500px]"
               />

@@ -29,7 +29,7 @@ export default function RootProviders({ children }: { children: ReactNode }) {
   return (
     <PostHogProvider client={posthog}>
       <PlausibleProvider
-        domain="dub.co"
+        domain="getqr-dev.vercel.app"
         revenue
         scriptProps={{
           src: "/_proxy/plausible/script.js",
@@ -44,9 +44,9 @@ export default function RootProviders({ children }: { children: ReactNode }) {
           {children}
           <DubAnalytics
             apiHost="/_proxy/dub"
-            shortDomain="refer.dub.co"
+            shortDomain="refer.getqr-dev.vercel.app"
             cookieOptions={{
-              domain: ".dub.co",
+              domain: ".getqr-dev.vercel.app",
             }}
           />
         </KeyboardShortcutProvider>

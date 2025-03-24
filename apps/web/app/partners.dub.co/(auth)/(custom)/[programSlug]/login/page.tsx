@@ -21,7 +21,7 @@ export default function CustomPartnerLoginPage({
     <div className="mx-auto my-10 flex w-full max-w-sm flex-col gap-8">
       <div className="animate-slide-up-fade relative flex w-auto flex-col items-center [--offset:10px] [animation-duration:1.3s] [animation-fill-mode:both]">
         <img
-          src="https://assets.dub.co/testimonials/companies/framer.svg"
+          src="https://assets.getqr-dev.vercel.app/testimonials/companies/framer.svg"
           alt="Framer Logo"
           className="h-8"
         />

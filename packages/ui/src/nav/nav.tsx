@@ -73,7 +73,7 @@ export function Nav({
   staticDomain?: string;
   maxWidthWrapperClassName?: string;
 }) {
-  let { domain = "dub.co" } = useParams() as { domain: string };
+  let { domain = "getqr-dev.vercel.app" } = useParams() as { domain: string };
   if (staticDomain) {
     domain = staticDomain;
   }
@@ -83,7 +83,7 @@ export function Nav({
   const scrolled = useScroll(40);
   const pathname = usePathname();
   const { data: session, isLoading } = useSWR(
-    domain.endsWith("dub.co") && "/api/auth/session",
+    domain.endsWith("getqr-dev.vercel.app") && "/api/auth/session",
     fetcher,
     {
       dedupingInterval: 60000,
@@ -94,7 +94,7 @@ export function Nav({
   // if they do, we should just use app.dub.co links
   // if not, we can use conversion-enabled d.to links
   const hasDubCookie =
-    domain === "dub.co" && Cookies.get("dub_id") ? true : false;
+    domain === "getqr-dev.vercel.app" && Cookies.get("dub_id") ? true : false;
 
   return (
     <NavContext.Provider value={{ theme }}>
@@ -205,7 +205,7 @@ export function Nav({
                     <Link
                       href={
                         hasDubCookie
-                          ? "https://app.dub.co/login"
+                          ? "https://app.getqr-dev.vercel.app/login"
                           : "https://d.to/login"
                       }
                       className={cn(
@@ -219,7 +219,7 @@ export function Nav({
                     <Link
                       href={
                         hasDubCookie
-                          ? "https://app.dub.co/register"
+                          ? "https://app.getqr-dev.vercel.app/register"
                           : "https://d.to/register"
                       }
                       className={cn(

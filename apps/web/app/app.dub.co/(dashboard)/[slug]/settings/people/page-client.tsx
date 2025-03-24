@@ -110,7 +110,7 @@ export default function WorkspacePeopleClient() {
             ) : (
               <div className="flex flex-col items-center justify-center py-10">
                 <img
-                  src="https://assets.dub.co/misc/video-park.svg"
+                  src="https://assets.getqr-dev.vercel.app/misc/video-park.svg"
                   alt="No invitations sent"
                   width={300}
                   height={300}

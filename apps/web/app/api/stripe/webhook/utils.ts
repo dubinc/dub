@@ -29,8 +29,8 @@ export async function sendCancellationFeedback({
         owner.email &&
         sendEmail({
           email: owner.email,
-          from: "Steven Tey <steven@dub.co>",
-          replyTo: "steven.tey@dub.co",
+          from: "Steven Tey <steven@getqr-dev.vercel.app>",
+          replyTo: "steven.tey@getqr-dev.vercel.app",
           subject: "Feedback for Dub.co?",
           text: `Hey ${owner.name ? owner.name.split(" ")[0] : "there"}!\n\nSaw you canceled your Dub subscription${reasonText ? ` and mentioned that ${reasonText}` : ""} – do you mind sharing if there's anything we could've done better on our side?\n\nWe're always looking to improve our product offering so any feedback would be greatly appreciated!\n\nThank you so much in advance!\n\nBest,\nSteven Tey\nFounder, Dub.co`,
         }),

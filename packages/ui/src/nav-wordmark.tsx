@@ -33,7 +33,7 @@ export function NavWordmark({
   isInApp?: boolean;
   className?: string;
 }) {
-  const { domain = "dub.co" } = useParams() as { domain: string };
+  const { domain = "getqr-dev.vercel.app" } = useParams() as { domain: string };
 
   const { theme } = useContext(NavContext);
 
@@ -99,17 +99,19 @@ export function NavWordmark({
             <ContextMenuButton
               text="Brand Guidelines"
               variant="outline"
-              onClick={() => window.open("https://dub.co/brand", "_blank")}
+              onClick={() =>
+                window.open("https://getqr-dev.vercel.app/brand", "_blank")
+              }
               icon={<BoxSelect strokeWidth={2} className="h-4 w-4" />}
             />
             {/* If it's in the app or it's a domain placeholder page (not dub.co homepage), show the home button */}
-            {isInApp || domain != "dub.co" ? (
+            {isInApp || domain != "getqr-dev.vercel.app" ? (
               <ContextMenuButton
                 text="Home Page"
                 variant="outline"
                 onClick={() =>
                   window.open(
-                    `https://dub.co${isInApp ? "/home" : ""}`,
+                    `https://getqr-dev.vercel.app${isInApp ? "/home" : ""}`,
                     "_blank",
                   )
                 }
@@ -119,7 +121,9 @@ export function NavWordmark({
               <ContextMenuButton
                 text="Dashboard"
                 variant="outline"
-                onClick={() => window.open("https://app.dub.co", "_blank")}
+                onClick={() =>
+                  window.open("https://app.getqr-dev.vercel.app", "_blank")
+                }
                 icon={<LayoutGrid strokeWidth={2} className="h-4 w-4" />}
               />
             )}

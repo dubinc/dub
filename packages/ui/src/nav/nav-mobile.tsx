@@ -16,7 +16,7 @@ export function NavMobile({
   theme?: NavTheme;
   staticDomain?: string;
 }) {
-  let { domain = "dub.co" } = useParams() as { domain: string };
+  let { domain = "getqr-dev.vercel.app" } = useParams() as { domain: string };
   if (staticDomain) {
     domain = staticDomain;
   }
@@ -32,7 +32,7 @@ export function NavMobile({
   }, [open]);
 
   const { data: session } = useSWR(
-    domain.endsWith("dub.co") && "/api/auth/session",
+    domain.endsWith("getqr-dev.vercel.app") && "/api/auth/session",
     fetcher,
     {
       dedupingInterval: 60000,
@@ -124,7 +124,7 @@ const MobileNavItem = ({
   }[];
   setOpen: (open: boolean) => void;
 }) => {
-  const { domain = "dub.co" } = useParams() as { domain: string };
+  const { domain = "getqr-dev.vercel.app" } = useParams() as { domain: string };
   const [expanded, setExpanded] = useState(false);
 
   if (childItems) {

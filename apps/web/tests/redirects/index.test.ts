@@ -102,7 +102,7 @@ describe.runIf(env.CI)("Link Redirects", async () => {
     );
 
     expect(response.headers.get("location")).toBe(
-      "https://dub.co/blog?emptyquery",
+      "https://getqr-dev.vercel.app/blog?emptyquery",
     );
     expect(response.headers.get("x-powered-by")).toBe(poweredBy);
     expect(response.status).toBe(302);
@@ -114,7 +114,9 @@ describe.runIf(env.CI)("Link Redirects", async () => {
       fetchOptions,
     );
 
-    expect(response.headers.get("location")).toBe("https://dub.co/");
+    expect(response.headers.get("location")).toBe(
+      "https://getqr-dev.vercel.app/",
+    );
     expect(response.headers.get("x-powered-by")).toBe(poweredBy);
     expect(response.status).toBe(302);
   });
@@ -132,14 +134,16 @@ describe.runIf(env.CI)("Link Redirects", async () => {
 
   test("redirection url", async () => {
     const response = await fetch(
-      `${h.baseUrl}/redir-url-test?${REDIRECTION_QUERY_PARAM}=https://dub.co/blog`,
+      `${h.baseUrl}/redir-url-test?${REDIRECTION_QUERY_PARAM}=https://getqr-dev.vercel.app/blog`,
       {
         ...fetchOptions,
         headers: {},
       },
     );
 
-    expect(response.headers.get("location")).toBe("https://dub.co/blog");
+    expect(response.headers.get("location")).toBe(
+      "https://getqr-dev.vercel.app/blog",
+    );
     expect(response.headers.get("x-powered-by")).toBe(poweredBy);
     expect(response.status).toBe(302);
   });

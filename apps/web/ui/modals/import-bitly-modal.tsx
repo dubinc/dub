@@ -241,7 +241,7 @@ function ImportBitlyModal({
               loading={redirecting}
               icon={
                 <img
-                  src="https://assets.dub.co/misc/icons/bitly.svg"
+                  src="https://assets.getqr-dev.vercel.app/misc/icons/bitly.svg"
                   alt="Bitly logo"
                   className="h-5 w-5 rounded-full border border-neutral-200"
                 />
@@ -252,7 +252,7 @@ function ImportBitlyModal({
               }}
             />
             <a
-              href="https://dub.co/help/article/migrating-from-bitly"
+              href="https://getqr-dev.vercel.app/help/article/migrating-from-bitly"
               target="_blank"
               className="text-center text-xs text-neutral-500 underline underline-offset-4 transition-colors hover:text-neutral-800"
             >

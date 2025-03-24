@@ -41,7 +41,7 @@ export function ImportPartnersButton() {
                   text="Import from Rewardful"
                   icon={
                     <img
-                      src="https://assets.dub.co/misc/icons/rewardful.svg"
+                      src="https://assets.getqr-dev.vercel.app/misc/icons/rewardful.svg"
                       alt="Rewardful logo"
                       className="h-4 w-4"
                     />

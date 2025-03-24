@@ -292,7 +292,7 @@ function TargetingModal({
                     <SimpleTooltipContent
                       title="Redirect your iOS users to a different link."
                       cta="Learn more about device targeting."
-                      href="https://dub.co/help/article/device-targeting"
+                      href="https://getqr-dev.vercel.app/help/article/device-targeting"
                     />
                   }
                 />
@@ -332,7 +332,7 @@ function TargetingModal({
                     <SimpleTooltipContent
                       title="Redirect your Android users to a different link."
                       cta="Learn more about device targeting."
-                      href="https://dub.co/help/article/device-targeting"
+                      href="https://getqr-dev.vercel.app/help/article/device-targeting"
                     />
                   }
                 />

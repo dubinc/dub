@@ -242,7 +242,7 @@ function AddEditTokenModal({
                               : "Only the workspace owner can create machine users."
                           }
                           cta="Learn more"
-                          href="https://dub.co/docs/api-reference/tokens#machine-users"
+                          href="https://getqr-dev.vercel.app/docs/api-reference/tokens#machine-users"
                         />
                       }
                     />

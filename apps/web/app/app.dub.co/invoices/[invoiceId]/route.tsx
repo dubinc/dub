@@ -160,7 +160,7 @@ export const GET = withSession(async ({ session, params }) => {
         city: "San Francisco",
         state: "CA",
         postalCode: "94114",
-        email: "support@dub.co",
+        email: "support@getqr-dev.vercel.app",
       },
     },
     {
@@ -187,7 +187,9 @@ export const GET = withSession(async ({ session, params }) => {
             <Text style={tw("text-sm font-medium text-neutral-800")}>
               Dub Technologies Inc.
             </Text>
-            <Text style={tw("text-sm text-neutral-500 ")}>support@dub.co</Text>
+            <Text style={tw("text-sm text-neutral-500 ")}>
+              support@getqr-dev.vercel.app
+            </Text>
           </View>
         </View>
 
@@ -351,12 +353,18 @@ export const GET = withSession(async ({ session, params }) => {
 
         <Text style={tw("text-sm text-neutral-600 mt-6")}>
           If you have any questions, visit our support site at{" "}
-          <Link href="https://dub.co/help" style={tw("text-neutral-900")}>
-            https://dub.co/help
+          <Link
+            href="https://getqr-dev.vercel.app/help"
+            style={tw("text-neutral-900")}
+          >
+            https://getqr-dev.vercel.app/help
           </Link>{" "}
           or contact us at{" "}
-          <Link href="mailto:support@dub.co" style={tw("text-neutral-900")}>
-            support@dub.co
+          <Link
+            href="mailto:support@getqr-dev.vercel.app"
+            style={tw("text-neutral-900")}
+          >
+            support@getqr-dev.vercel.app
           </Link>
         </Text>
       </Page>

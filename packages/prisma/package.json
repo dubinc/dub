@@ -30,7 +30,7 @@
     "./client": "./client.ts"
   },
   "author": "Steven Tey <stevensteel97@gmail.com>",
-  "homepage": "https://dub.co",
+  "homepage": "https://getqr-dev.vercel.app",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dubinc/dub.git"
@@ -40,7 +40,7 @@
   },
   "keywords": [
     "dub",
-    "dub.co",
+    "getqr-dev.vercel.app",
     "prisma",
     "planetscale"
   ],

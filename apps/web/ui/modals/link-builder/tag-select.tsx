@@ -158,7 +158,7 @@ export function TagSelect() {
               <SimpleTooltipContent
                 title={`Tags are used to organize your links in your ${process.env.NEXT_PUBLIC_APP_NAME} dashboard.`}
                 cta="Learn more."
-                href="https://dub.co/help/article/how-to-use-tags"
+                href="https://getqr-dev.vercel.app/help/article/how-to-use-tags"
               />
             }
           />

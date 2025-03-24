@@ -41,7 +41,7 @@ export default function LinkInspectorCard({
         </div>
       </div>
       <Link
-        href={`https://dub.co/legal/abuse?link=${linkConstructor({
+        href={`https://getqr-dev.vercel.app/legal/abuse?link=${linkConstructor({
           domain,
           key,
         })}`}
