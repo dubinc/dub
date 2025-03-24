@@ -47,7 +47,7 @@ const NAV_AREAS: SidebarNavAreas<{
       {
         items: [
           {
-            name: "Links",
+            name: "My QR Codes",
             icon: Hyperlink,
             href: `/${slug}${pathname === `/${slug}` ? "" : queryString}`,
             exact: true,

@@ -1,5 +1,4 @@
 import { MaxWidthWrapper } from "@dub/ui";
-import { cn } from "@dub/utils";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { PropsWithChildren, ReactNode } from "react";
@@ -26,13 +25,8 @@ export function PageContent({
   const hasDescription = description !== undefined;
 
   return (
-    <div className="bg-neutral-100 md:bg-white">
-      <MaxWidthWrapper
-        className={cn(
-          "mt-3",
-          (hasTitle || hasDescription) && "md:mt-6 md:py-3",
-        )}
-      >
+    <div className="bg-neutral-100 py-4 md:bg-white md:pt-8">
+      <MaxWidthWrapper>
         <div className="flex items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-4">
             <NavButton />

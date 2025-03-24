@@ -98,7 +98,7 @@ function WorkspaceLinks() {
                   onRemove={onRemove}
                   onSearchChange={setSearch}
                   onSelectedFilterChange={setSelectedFilter}
-                  className="w-full"
+                  className="h-9 w-full"
                   emptyState={{
                     tagIds: (
                       <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">

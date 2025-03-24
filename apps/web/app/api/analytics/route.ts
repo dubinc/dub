@@ -1,6 +1,7 @@
 import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { getFolderIdsToFilter } from "@/lib/analytics/get-folder-ids-to-filter";
+import { EventType } from "@/lib/analytics/types.ts";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
@@ -14,26 +15,27 @@ import {
 import { Link } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
-type Endpoint = "count" |
-  "timeseries" |
-  "continents" |
-  "regions" |
-  "countries" |
-  "cities" |
-  "devices" |
-  "browsers" |
-  "os" |
-  "trigger" |
-  "triggers" |
-  "referers" |
-  "referer_urls" |
-  "top_links" |
-  "top_urls" |
-  "utm_sources" |
-  "utm_mediums" |
-  "utm_campaigns" |
-  "utm_terms" |
-  "utm_contents";
+type Endpoint =
+  | "count"
+  | "timeseries"
+  | "continents"
+  | "regions"
+  | "countries"
+  | "cities"
+  | "devices"
+  | "browsers"
+  | "os"
+  | "trigger"
+  | "triggers"
+  | "referers"
+  | "referer_urls"
+  | "top_links"
+  | "top_urls"
+  | "utm_sources"
+  | "utm_mediums"
+  | "utm_campaigns"
+  | "utm_terms"
+  | "utm_contents";
 
 // GET /api/analytics – get analytics
 export const GET = withWorkspace(
@@ -44,7 +46,11 @@ export const GET = withWorkspace(
       analyticsPathParamsSchema.parse(params);
 
     // for backwards compatibility (we used to support /analytics/[endpoint] as well)
-    if (!oldType && oldEvent && VALID_ANALYTICS_ENDPOINTS.includes(oldEvent as Endpoint)) {
+    if (
+      !oldType &&
+      oldEvent &&
+      VALID_ANALYTICS_ENDPOINTS.includes(oldEvent as Endpoint)
+    ) {
       oldType = oldEvent;
       oldEvent = undefined;
     }
@@ -66,8 +72,8 @@ export const GET = withWorkspace(
 
     let link: Link | null = null;
 
-    event = oldEvent || event;
-    groupBy = oldType || groupBy;
+    event = (oldEvent || event) as EventType;
+    groupBy = (oldType || groupBy) as EventType;
 
     if (domain) {
       await getDomainOrThrow({ workspace, domain: domain as string });
