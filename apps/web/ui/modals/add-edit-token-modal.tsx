@@ -203,7 +203,7 @@ function AddEditTokenModal({
                         <SimpleTooltipContent
                           title="This API key will be tied to your user account – if you are removed from the workspace, it will be deleted."
                           cta="Learn more"
-                          href="https://getqr-dev.vercel.app/docs/api-reference/tokens"
+                          href="https://dub.co/docs/api-reference/tokens"
                         />
                       }
                     />
@@ -242,7 +242,7 @@ function AddEditTokenModal({
                               : "Only the workspace owner can create machine users."
                           }
                           cta="Learn more"
-                          href="https://getqr-dev.vercel.app/docs/api-reference/tokens#machine-users"
+                          href="https://dub.co/docs/api-reference/tokens#machine-users"
                         />
                       }
                     />

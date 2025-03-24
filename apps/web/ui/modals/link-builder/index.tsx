@@ -476,7 +476,7 @@ function LinkBuilderInner({
                           <SimpleTooltipContent
                             title="Use comments to add context to your short links – for you and your team."
                             cta="Learn more."
-                            href="https://getqr-dev.vercel.app/help/article/link-comments"
+                            href="https://dub.co/help/article/link-comments"
                           />
                         }
                       />

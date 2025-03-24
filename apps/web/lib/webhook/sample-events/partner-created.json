@@ -21,10 +21,10 @@
     "links": [
       {
         "id": "link_5myDHLqhIQvUmUPjchVygF9R",
-        "domain": "refer.getqr-dev.vercel.app",
+        "domain": "refer.dub.co",
         "key": "track-test",
-        "shortLink": "https://refer.getqr-dev.vercel.app/track-test",
-        "url": "https://refer.getqr-dev.vercel.app",
+        "shortLink": "https://refer.dub.co/track-test",
+        "url": "https://refer.dub.co",
         "clicks": 100,
         "leads": 70,
         "sales": 25,

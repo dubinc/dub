@@ -14,13 +14,13 @@ const mainLinks = [
   {
     title: "Docs",
     description: "Platform documentation",
-    thumbnail: "https://assets.getqr-dev.vercel.app/misc/docs-thumbnail.jpg",
+    thumbnail: "https://assets.dub.co/misc/docs-thumbnail.jpg",
     href: "/docs/introduction",
   },
   {
     title: "Help Center",
     description: "Answers to your questions",
-    thumbnail: "https://assets.getqr-dev.vercel.app/misc/help-thumbnail.jpg", // TODO: Update
+    thumbnail: "https://assets.dub.co/misc/help-thumbnail.jpg", // TODO: Update
     href: "/help",
   },
 ];

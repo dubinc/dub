@@ -42,7 +42,7 @@ const Form = () => {
   return (
     <div className="relative flex w-full rounded-md shadow-sm">
       <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-5 text-neutral-500 sm:text-sm">
-        app.getqr-dev.vercel.app
+        app.dub.co
       </span>
       <input
         name="slug"

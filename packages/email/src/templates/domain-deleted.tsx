@@ -45,7 +45,7 @@ export function DomainDeleted({
               Your domain <code className="text-purple-600">{domain}</code> for
               your Dub.co workspace{" "}
               <Link
-                href={`https://app.getqr-dev.vercel.app/${workspaceSlug}`}
+                href={`https://app.dub.co/${workspaceSlug}`}
                 className="font-medium text-blue-600 no-underline"
               >
                 {workspaceSlug}↗
@@ -60,7 +60,7 @@ export function DomainDeleted({
             <Section className="my-8 text-center">
               <Link
                 className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                href={`https://app.getqr-dev.vercel.app/${workspaceSlug}/settings/domains`}
+                href={`https://app.dub.co/${workspaceSlug}/settings/domains`}
               >
                 Add a domain
               </Link>

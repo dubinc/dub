@@ -57,14 +57,14 @@ export function WelcomeEmail({
             <Text className="ml-1 text-sm leading-4 text-black">
               ◆ Create a{" "}
               <Link
-                href="https://app.getqr-dev.vercel.app?newWorkspace=true"
+                href="https://app.dub.co?newWorkspace=true"
                 className="font-medium text-blue-600 no-underline"
               >
                 new workspace
               </Link>{" "}
               and{" "}
               <Link
-                href="https://getqr-dev.vercel.app/help/article/how-to-add-custom-domain"
+                href="https://dub.co/help/article/how-to-add-custom-domain"
                 className="font-medium text-blue-600 no-underline"
               >
                 add your custom domain
@@ -73,7 +73,7 @@ export function WelcomeEmail({
             <Text className="ml-1 text-sm leading-4 text-black">
               ◆ Create your first{" "}
               <Link
-                href="https://getqr-dev.vercel.app/help/article/how-to-create-link"
+                href="https://dub.co/help/article/how-to-create-link"
                 className="font-medium text-blue-600 no-underline"
               >
                 short link
@@ -82,7 +82,7 @@ export function WelcomeEmail({
             <Text className="ml-1 text-sm leading-4 text-black">
               ◆ Check out our{" "}
               <Link
-                href="https://getqr-dev.vercel.app/api"
+                href="https://dub.co/api"
                 className="font-medium text-blue-600 no-underline"
               >
                 API documentation

@@ -51,7 +51,7 @@ export const sendOtpAction = actionClient
 
       if (isDisposable) {
         throw new Error(
-          "Invalid email address – please use your work email instead. If you think this is a mistake, please contact us at support@getqr-dev.vercel.app",
+          "Invalid email address – please use your work email instead. If you think this is a mistake, please contact us at support@dub.co",
         );
       }
 
@@ -64,7 +64,7 @@ export const sendOtpAction = actionClient
 
         if (blacklistedEmailDomainTermsRegex.test(domain)) {
           throw new Error(
-            "Invalid email address – please use your work email instead. If you think this is a mistake, please contact us at support@getqr-dev.vercel.app",
+            "Invalid email address – please use your work email instead. If you think this is a mistake, please contact us at support@dub.co",
           );
         }
       }

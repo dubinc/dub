@@ -37,7 +37,7 @@ async function main() {
       return {
         shortLink: truncate(getPrettyUrl(link.shortLink), 24),
         clicks: link.clicks,
-        dashboardUrl: `https://preview.getqr-dev.vercel.app/share/${dashboard.id}`,
+        dashboardUrl: `https://preview.dub.co/share/${dashboard.id}`,
       };
     }),
   );

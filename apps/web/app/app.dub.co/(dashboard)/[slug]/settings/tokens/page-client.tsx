@@ -175,7 +175,7 @@ export default function TokensPageClient() {
           </>
         )}
         addButton={<AddTokenButton />}
-        learnMoreHref="https://getqr-dev.vercel.app/docs/api-reference/tokens"
+        learnMoreHref="https://dub.co/docs/api-reference/tokens"
       />
     ),
     resourceName: (plural) => `token${plural ? "s" : ""}`,
@@ -194,7 +194,7 @@ export default function TokensPageClient() {
         caution – do not share your API key with others, or expose it in the
         browser or other client-side code.{" "}
         <a
-          href="https://getqr-dev.vercel.app/docs/api-reference/tokens"
+          href="https://dub.co/docs/api-reference/tokens"
           target="_blank"
           className="font-medium underline underline-offset-4 hover:text-black"
         >

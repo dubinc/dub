@@ -102,7 +102,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       limiter.schedule(() =>
         sendEmail({
           email: user.email as string,
-          replyTo: "steven.tey@getqr-dev.vercel.app",
+          replyTo: "steven.tey@dub.co",
           subject: `Thank you for upgrading to Dub.co ${plan.name}!`,
           react: UpgradeEmail({
             name: user.name,

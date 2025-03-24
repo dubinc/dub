@@ -238,7 +238,7 @@ function ConversionTrackingPaywall() {
           className="group relative flex aspect-video w-full max-w-80 items-center justify-center overflow-hidden rounded-lg border border-neutral-200 bg-neutral-100"
         >
           <BlurImage
-            src="https://assets.getqr-dev.vercel.app/blog/conversion-analytics.png"
+            src="https://assets.dub.co/blog/conversion-analytics.png"
             alt="thumbnail"
             fill
             className="object-cover"

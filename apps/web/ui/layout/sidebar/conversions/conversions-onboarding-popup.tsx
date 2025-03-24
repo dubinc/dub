@@ -68,7 +68,7 @@ export function ConversionOnboardingPopup({
               className="group relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-md border border-neutral-200 bg-neutral-100"
             >
               <BlurImage
-                src="https://assets.getqr-dev.vercel.app/blog/conversion-analytics.png"
+                src="https://assets.dub.co/blog/conversion-analytics.png"
                 alt="thumbnail"
                 fill
                 className="object-cover"

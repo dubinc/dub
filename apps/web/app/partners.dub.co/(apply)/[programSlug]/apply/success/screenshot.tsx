@@ -390,7 +390,7 @@ export function Screenshot({
             style={{ whiteSpace: "pre" }}
           >
             <tspan x="403.5" y="371.091">
-              refer.getqr-dev.vercel.app/steven
+              refer.dub.co/steven
             </tspan>
           </text>
           <path

@@ -83,7 +83,7 @@ export function QRCodePreview() {
               <SimpleTooltipContent
                 title="Set a custom QR code design to improve click-through rates."
                 cta="Learn more."
-                href="https://getqr-dev.vercel.app/help/article/custom-qr-codes"
+                href="https://dub.co/help/article/custom-qr-codes"
               />
             }
           />

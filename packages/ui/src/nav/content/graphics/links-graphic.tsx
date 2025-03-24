@@ -429,7 +429,7 @@ export function LinksGraphic(props: SVGProps<SVGSVGElement>) {
           style={{ whiteSpace: "pre" }}
         >
           <tspan x="110" y="179.773">
-            app.getqr-dev.vercel.app/register
+            app.dub.co/register
           </tspan>
         </text>
         <path
@@ -652,7 +652,7 @@ export function LinksGraphic(props: SVGProps<SVGSVGElement>) {
           <use xlinkHref={`#${id}-z`} transform="scale(.01563)" />
         </pattern>
         <image
-          href={`${GOOGLE_FAVICON_URL}getqr-dev.vercel.app`}
+          href={`${GOOGLE_FAVICON_URL}dub.co`}
           id={`${id}-z`}
           width="64"
           height="64"

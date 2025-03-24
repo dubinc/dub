@@ -26,11 +26,11 @@ export default function UserInfo({ data }: { data: UserInfoProps }) {
     <div className="grid gap-2">
       <LoginLinkCopyButton text={data.email} url={data.email} />
       <LoginLinkCopyButton
-        text="app.getqr-dev.vercel.app login link"
+        text="app.dub.co login link"
         url={data.impersonateUrl.app}
       />
       <LoginLinkCopyButton
-        text="partners.getqr-dev.vercel.app login link"
+        text="partners.dub.co login link"
         url={data.impersonateUrl.partners}
       />
       {Object.keys(data.defaultDomainLinks).length > 0 && (

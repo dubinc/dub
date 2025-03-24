@@ -108,7 +108,7 @@ export function IntegrationsCards({
               )}
               addButton={
                 <a
-                  href="mailto:support@getqr-dev.vercel.app?subject=Integration%20Request"
+                  href="mailto:support@dub.co?subject=Integration%20Request"
                   className={cn(
                     buttonVariants({ variant: "primary" }),
                     "flex h-8 items-center rounded-md border px-2.5 text-sm",

@@ -106,7 +106,7 @@ function ArchiveDomainModal({
             ? "By unarchiving this domain, it will show up in the link builder. "
             : "Archiving a domain will hide it from the link builder. "}
           <a
-            href="https://getqr-dev.vercel.app/help/article/archiving-domains"
+            href="https://dub.co/help/article/archiving-domains"
             target="_blank"
             className="text-sm text-neutral-500 underline"
           >

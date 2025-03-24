@@ -1,5 +1,5 @@
 {
-  "id": "getqr-dev.vercel.app",
+  "id": "dub.co",
   "version": "0.0.10",
   "name": "Dub - Conversion Analytics",
   "icon": "./stripe-icon.png",
@@ -50,10 +50,10 @@
     ],
     "content_security_policy": {
       "connect-src": [
-        "https://api.getqr-dev.vercel.app/oauth/",
-        "https://api-staging.getqr-dev.vercel.app/oauth/",
-        "https://api.getqr-dev.vercel.app/stripe/integration",
-        "https://api-staging.getqr-dev.vercel.app/stripe/integration"
+        "https://api.dub.co/oauth/",
+        "https://api-staging.dub.co/oauth/",
+        "https://api.dub.co/stripe/integration",
+        "https://api-staging.dub.co/stripe/integration"
       ],
       "image-src": null,
       "purpose": ""
@@ -64,8 +64,8 @@
     "url": ""
   },
   "allowed_redirect_uris": [
-    "https://app.getqr-dev.vercel.app/api/stripe/integration/callback",
-    "https://preview.getqr-dev.vercel.app/api/stripe/integration/callback"
+    "https://app.dub.co/api/stripe/integration/callback",
+    "https://preview.dub.co/api/stripe/integration/callback"
   ],
   "stripe_api_access_type": "oauth",
   "distribution_type": "public"

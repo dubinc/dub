@@ -99,7 +99,7 @@ function PasswordModalInner({
               <SimpleTooltipContent
                 title="Restrict access to your short links by encrypting it with a password."
                 cta="Learn more."
-                href="https://getqr-dev.vercel.app/help/article/password-protected-links"
+                href="https://dub.co/help/article/password-protected-links"
               />
             }
           />

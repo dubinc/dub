@@ -36,7 +36,7 @@ export default function OAuthAppsPageClient() {
             content={
               <TooltipContent
                 title="Learn how to use OAuth applications to build integrations with Dub."
-                href="https://getqr-dev.vercel.app/docs/integrations/quickstart"
+                href="https://dub.co/docs/integrations/quickstart"
                 target="_blank"
                 cta="Learn more"
               />

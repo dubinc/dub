@@ -32,7 +32,7 @@ export default function TokensPageClient() {
         <AlertDescription className="text-neutral-500">
           We recommend creating a new{" "}
           <a
-            href="https://getqr-dev.vercel.app/docs/api-reference/tokens"
+            href="https://dub.co/docs/api-reference/tokens"
             target="_blank"
             className="font-medium underline underline-offset-4 hover:text-black"
           >
@@ -41,7 +41,7 @@ export default function TokensPageClient() {
           for more granular control over your resources such as Links, Tags,
           Domains, Analytics, etc.{" "}
           <a
-            href="https://getqr-dev.vercel.app/blog/workspace-api-keys"
+            href="https://dub.co/blog/workspace-api-keys"
             target="_blank"
             className="font-medium underline underline-offset-4 hover:text-black"
           >

@@ -101,7 +101,7 @@ function ExpirationModal({
                 <SimpleTooltipContent
                   title="Set an expiration date for your links – after which it won't be accessible."
                   cta="Learn more."
-                  href="https://getqr-dev.vercel.app/help/article/link-expiration"
+                  href="https://dub.co/help/article/link-expiration"
                 />
               }
             />
@@ -197,7 +197,7 @@ function ExpirationModal({
                 <SimpleTooltipContent
                   title="Redirect users to a specific URL when the link has expired."
                   cta="Learn more."
-                  href="https://getqr-dev.vercel.app/help/article/link-expiration#setting-a-custom-expiration-url"
+                  href="https://dub.co/help/article/link-expiration#setting-a-custom-expiration-url"
                 />
               }
             />
@@ -219,7 +219,7 @@ function ExpirationModal({
         </div>
 
         <a
-          href="https://getqr-dev.vercel.app/help/article/link-expiration#setting-a-default-expiration-url-for-all-links-under-a-domain"
+          href="https://dub.co/help/article/link-expiration#setting-a-default-expiration-url-for-all-links-under-a-domain"
           target="_blank"
           className="group mt-2 flex items-center text-xs text-neutral-500 hover:text-neutral-700"
         >

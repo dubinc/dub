@@ -31,7 +31,7 @@ function GoogleOauthModal({
           account with Google.{" "}
           <a
             className="underline underline-offset-4 transition-colors hover:text-black"
-            href="https://getqr-dev.vercel.app/changelog/sign-in-with-google"
+            href="https://dub.co/changelog/sign-in-with-google"
             target="_blank"
             rel="noopener noreferrer"
           >

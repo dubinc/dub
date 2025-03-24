@@ -53,7 +53,5 @@ export default async function PartnersMiddleware(req: NextRequest) {
     }
   }
 
-  return NextResponse.rewrite(
-    new URL(`/partners.getqr-dev.vercel.app${fullPath}`, req.url),
-  );
+  return NextResponse.rewrite(new URL(`/partners.dub.co${fullPath}`, req.url));
 }

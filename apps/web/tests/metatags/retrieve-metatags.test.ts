@@ -9,7 +9,7 @@ test("GET /metatags", async (ctx) => {
   const { status, data: metatags } = await http.get<MetaTag>({
     path: `/metatags`,
     query: {
-      url: "https://getqr-dev.vercel.app",
+      url: "https://dub.co",
     },
   });
 
@@ -18,7 +18,7 @@ test("GET /metatags", async (ctx) => {
     title: "Dub.co - Link Management for Modern Marketing Teams",
     description:
       "Dub.co is the open-source link management platform for modern marketing teams to create marketing campaigns, link sharing features, and referral programs.",
-    image: "https://assets.getqr-dev.vercel.app/thumbnail.jpg",
+    image: "https://assets.dub.co/thumbnail.jpg",
     poweredBy: "Dub.co - Link management for modern marketing teams",
   });
 });

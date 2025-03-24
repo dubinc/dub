@@ -23,7 +23,7 @@ export default function WorkspaceExceededClicks() {
           collecting data on your links, but you need to upgrade to view them.
         </p>
         <img
-          src="https://assets.getqr-dev.vercel.app/misc/video-park.svg"
+          src="https://assets.dub.co/misc/video-park.svg"
           alt="No links yet"
           width={400}
           height={400}

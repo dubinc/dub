@@ -109,7 +109,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
               </span>
             </div>
             <a
-              href="https://getqr-dev.vercel.app/help/article/free-dot-link-domain"
+              href="https://dub.co/help/article/free-dot-link-domain"
               target="_blank"
               className="text-neutral-500 underline transition-colors hover:text-neutral-800"
             >
@@ -234,7 +234,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                     Good news! Your DNS records are set up correctly, but it can
                     take some time for them to propagate globally.{" "}
                     <Link
-                      href="https://getqr-dev.vercel.app/help/article/how-to-add-custom-domain#how-long-do-i-have-to-wait-for-my-domain-to-work"
+                      href="https://dub.co/help/article/how-to-add-custom-domain#how-long-do-i-have-to-wait-for-my-domain-to-work"
                       target="_blank"
                       className="underline transition-colors hover:text-green-800"
                     >

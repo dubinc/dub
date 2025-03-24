@@ -70,7 +70,7 @@ export default function Logos({
             {logos.map((logo) => (
               <img
                 key={logo}
-                src={`https://assets.getqr-dev.vercel.app/clients/${logo}.svg`}
+                src={`https://assets.dub.co/clients/${logo}.svg`}
                 alt={logo.toUpperCase()}
                 width={520}
                 height={182}

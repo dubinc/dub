@@ -5,7 +5,7 @@ export const detectBot = (req: Request) => {
   if (ua) {
     /* Note:
      * - bot is for most bots & crawlers
-     * - metatags is for Dub.co Metatags API (https://api.getqr-dev.vercel.app/metatags)
+     * - metatags is for Dub.co Metatags API (https://api.dub.co/metatags)
      * - ChatGPT is for ChatGPT
      * - bluesky is for Bluesky crawler
      * - facebookexternalhit is for Facebook crawler

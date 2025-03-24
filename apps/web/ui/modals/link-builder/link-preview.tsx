@@ -77,7 +77,7 @@ export function LinkPreview() {
 
   const [debouncedUrl] = useDebounce(url, 500);
   const hostname = useMemo(() => {
-    if (password) return "getqr-dev.vercel.app";
+    if (password) return "dub.co";
     return getDomainWithoutWWW(debouncedUrl) ?? null;
   }, [password, debouncedUrl]);
 
@@ -108,7 +108,7 @@ export function LinkPreview() {
               <SimpleTooltipContent
                 title="Customize how your links look when shared on social media to improve click-through rates. When enabled, the preview settings below will be shown publicly (instead of the URL's original metatags)."
                 cta="Learn more."
-                href="https://getqr-dev.vercel.app/help/article/custom-link-previews"
+                href="https://dub.co/help/article/custom-link-previews"
               />
             }
           />
@@ -127,7 +127,7 @@ export function LinkPreview() {
                 href={
                   slug
                     ? `/${slug}/upgrade?exit=close`
-                    : "https://getqr-dev.vercel.app/pricing"
+                    : "https://dub.co/pricing"
                 }
                 target="_blank"
               />

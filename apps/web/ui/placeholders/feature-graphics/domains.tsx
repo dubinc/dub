@@ -35,10 +35,7 @@ export function Domains() {
               style={{ "--idx": idx } as CSSProperties}
             >
               <div className="flex-none rounded-full border border-neutral-200 bg-gradient-to-t from-neutral-100 p-2">
-                <LinkLogo
-                  apexDomain="getqr-dev.vercel.app"
-                  className="size-6 sm:size-6"
-                />
+                <LinkLogo apexDomain="dub.co" className="size-6 sm:size-6" />
               </div>
 
               <span className="text-base font-medium text-neutral-900">

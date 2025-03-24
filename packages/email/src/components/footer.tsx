@@ -18,7 +18,7 @@ export function Footer({
           Don't want to get these emails?{" "}
           <Link
             className="text-neutral-700 underline"
-            href="https://app.getqr-dev.vercel.app/account/settings"
+            href="https://app.dub.co/account/settings"
           >
             Unsubscribe here.
           </Link>

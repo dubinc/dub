@@ -114,7 +114,7 @@ function SCIMModal({
                   <SimpleTooltipContent
                     title="Your directory provider is the IDP you use to manage your users."
                     cta={selectedProvider ? "Read the guide." : "Learn more."}
-                    href={`https://getqr-dev.vercel.app/help/${
+                    href={`https://dub.co/help/${
                       currentProvider
                         ? `article/${currentProvider.saml}-scim`
                         : "category/saml-sso"
@@ -148,7 +148,7 @@ function SCIMModal({
             </select>
             {currentProvider && (
               <a
-                href={`https://getqr-dev.vercel.app/help/article/${currentProvider.saml}-scim`}
+                href={`https://dub.co/help/article/${currentProvider.saml}-scim`}
                 target="_blank"
                 className="ml-2 mt-2 block text-sm text-neutral-500 underline"
               >
@@ -170,7 +170,7 @@ function SCIMModal({
                       <SimpleTooltipContent
                         title="Your directory provider is the IDP you use to manage your users."
                         cta="Read the guide."
-                        href={`https://getqr-dev.vercel.app/help/article/${currentProvider.saml}-scim`}
+                        href={`https://dub.co/help/article/${currentProvider.saml}-scim`}
                       />
                     }
                   />
@@ -210,7 +210,7 @@ function SCIMModal({
                       <SimpleTooltipContent
                         title="Your directory provider is the IDP you use to manage your users."
                         cta="Read the guide."
-                        href={`https://getqr-dev.vercel.app/help/article/${currentProvider.saml}-scim`}
+                        href={`https://dub.co/help/article/${currentProvider.saml}-scim`}
                       />
                     }
                   />

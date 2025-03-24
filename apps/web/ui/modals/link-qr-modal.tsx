@@ -158,7 +158,7 @@ function LinkQRModalInner({
               <SimpleTooltipContent
                 title="Set a custom QR code design to improve click-through rates."
                 cta="Learn more."
-                href="https://getqr-dev.vercel.app/help/article/custom-qr-codes"
+                href="https://dub.co/help/article/custom-qr-codes"
               />
             }
           />
@@ -192,7 +192,7 @@ function LinkQRModalInner({
                 <SimpleTooltipContent
                   title="Customize your QR code to fit your brand."
                   cta="Learn more."
-                  href="https://getqr-dev.vercel.app/help/article/custom-qr-codes"
+                  href="https://dub.co/help/article/custom-qr-codes"
                 />
               }
             />
@@ -265,7 +265,7 @@ function LinkQRModalInner({
               <SimpleTooltipContent
                 title="Display your logo in the center of the QR code."
                 cta="Learn more."
-                href="https://getqr-dev.vercel.app/help/article/custom-qr-codes"
+                href="https://dub.co/help/article/custom-qr-codes"
               />
             }
           />
@@ -284,7 +284,7 @@ function LinkQRModalInner({
                 href={
                   slug
                     ? `/${slug}/upgrade?exit=close`
-                    : "https://getqr-dev.vercel.app/pricing"
+                    : "https://dub.co/pricing"
                 }
                 target="_blank"
               />

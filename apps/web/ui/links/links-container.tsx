@@ -134,8 +134,7 @@ function LinksList({
                 <CreateLinkButton />
               </div>
             ),
-            learnMoreHref:
-              "https://getqr-dev.vercel.app/help/article/how-to-create-link",
+            learnMoreHref: "https://dub.co/help/article/how-to-create-link",
             learnMoreClassName: "h-10",
           })}
         />

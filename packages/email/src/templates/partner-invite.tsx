@@ -38,9 +38,7 @@ export function PartnerInvite({
           <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-neutral-200 px-10 py-5">
             <Section className="my-8">
               <Img
-                src={
-                  program.logo || "https://assets.getqr-dev.vercel.app/logo.png"
-                }
+                src={program.logo || "https://assets.dub.co/logo.png"}
                 height="32"
                 alt={appName}
               />
@@ -58,7 +56,7 @@ export function PartnerInvite({
             <Section className="mb-12 mt-8">
               <Link
                 className="rounded-md bg-neutral-900 px-4 py-3 text-[12px] font-medium text-white no-underline"
-                href="https://partners.getqr-dev.vercel.app"
+                href="https://partners.dub.co"
               >
                 Accept Invite
               </Link>

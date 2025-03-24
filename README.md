@@ -1,4 +1,4 @@
-<a href="https://getqr-dev.vercel.app">
+<a href="https://dub.co">
   <img alt="Dub.co is the open-source link management infrastructure for modern marketing teams." src="https://github.com/dubinc/dub/assets/28986134/3815d859-afaa-48f9-a9b3-c09964e4d404">
 </a>
 
@@ -7,7 +7,7 @@
 <p align="center">
     The open-source link attribution platform.
     <br />
-    <a href="https://getqr-dev.vercel.app"><strong>Learn more »</strong></a>
+    <a href="https://dub.co"><strong>Learn more »</strong></a>
     <br />
     <br />
     <a href="#introduction"><strong>Introduction</strong></a> ·
@@ -35,7 +35,7 @@ Dub.co is the open-source link attribution platform for modern marketing teams.
 
 ## Features
 
-- **Free custom domains**: Create branded short links [with your own domain](https://getqr-dev.vercel.app/help/article/how-to-add-custom-domain) and [improve click-through rates by 30%](https://dub.co/blog/custom-domains). Paid plans also include a [complimentary custom domain](https://dub.co/help/article/free-dot-link-domain).
+- **Free custom domains**: Create branded short links [with your own domain](https://dub.co/help/article/how-to-add-custom-domain) and [improve click-through rates by 30%](https://dub.co/blog/custom-domains). Paid plans also include a [complimentary custom domain](https://dub.co/help/article/free-dot-link-domain).
 - **Advanced link features**: Supercharge your links with [custom link previews](https://dub.co/help/article/custom-link-previews), [device targeting](https://dub.co/help/article/device-targeting), [geo targeting](https://dub.co/help/article/geo-targeting), [link cloaking](https://dub.co/help/article/link-cloaking), [password protection](https://dub.co/help/article/password-protected-links), and more.
 - **Advanced Analytics**: Dub provides [powerful analytics](https://dub.co/analytics) for your links, including geolocation, device, browser, and referrer information.
 - **QR Codes**: QR codes and short links are like peas in a pod. Dub offers [free QR codes](https://dub.co/tools/qr-code) for every short link you create. Feeling artsy? [Customize them with your own logo](https://dub.co/help/article/custom-qr-codes).

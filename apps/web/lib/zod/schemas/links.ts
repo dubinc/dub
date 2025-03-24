@@ -480,19 +480,19 @@ export const LinkSchema = z
       .string()
       .nullable()
       .describe(
-        "The title of the short link generated via `api.getqr-dev.vercel.app/metatags`. Will be used for Custom Social Media Cards if `proxy` is true.",
+        "The title of the short link generated via `api.dub.co/metatags`. Will be used for Custom Social Media Cards if `proxy` is true.",
       ),
     description: z
       .string()
       .nullable()
       .describe(
-        "The description of the short link generated via `api.getqr-dev.vercel.app/metatags`. Will be used for Custom Social Media Cards if `proxy` is true.",
+        "The description of the short link generated via `api.dub.co/metatags`. Will be used for Custom Social Media Cards if `proxy` is true.",
       ),
     image: z
       .string()
       .nullable()
       .describe(
-        "The image of the short link generated via `api.getqr-dev.vercel.app/metatags`. Will be used for Custom Social Media Cards if `proxy` is true.",
+        "The image of the short link generated via `api.dub.co/metatags`. Will be used for Custom Social Media Cards if `proxy` is true.",
       ),
     video: z
       .string()
@@ -563,7 +563,7 @@ export const LinkSchema = z
       .string()
       .url()
       .describe(
-        "The full URL of the QR code for the short link (e.g. `https://api.getqr-dev.vercel.app/qr?url=https://dub.sh/try`).",
+        "The full URL of the QR code for the short link (e.g. `https://api.dub.co/qr?url=https://dub.sh/try`).",
       ),
     utm_source: z
       .string()

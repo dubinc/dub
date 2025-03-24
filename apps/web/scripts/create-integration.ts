@@ -9,7 +9,7 @@ async function main() {
       slug: "slack",
       description: "Create links from Slack messages easily with Dub.",
       developer: "Dub",
-      website: "https://getqr-dev.vercel.app",
+      website: "https://dub.co",
       verified: true,
       projectId: DUB_WORKSPACE_ID,
 

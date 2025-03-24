@@ -66,8 +66,8 @@ export default async function dashboardPage({
 
   return (
     <div className="flex min-h-screen flex-col justify-between bg-neutral-50/80">
-      <NavMobile staticDomain="app.getqr-dev.vercel.app" />
-      <Nav staticDomain="app.getqr-dev.vercel.app" />
+      <NavMobile staticDomain="app.dub.co" />
+      <Nav staticDomain="app.dub.co" />
       <Suspense fallback={<div className="h-screen w-full bg-neutral-50" />}>
         <Analytics
           dashboardProps={{
@@ -79,7 +79,7 @@ export default async function dashboardPage({
           }}
         />
       </Suspense>
-      <Footer staticDomain="app.getqr-dev.vercel.app" />
+      <Footer staticDomain="app.dub.co" />
     </div>
   );
 }

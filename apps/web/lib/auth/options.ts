@@ -514,7 +514,7 @@ export const authOptions: NextAuthOptions = {
               subscribe({ email, name: user.name || undefined }),
               sendEmail({
                 email,
-                replyTo: "steven.tey@getqr-dev.vercel.app",
+                replyTo: "steven.tey@dub.co",
                 subject: "Welcome to Dub.co!",
                 react: WelcomeEmail({
                   email,

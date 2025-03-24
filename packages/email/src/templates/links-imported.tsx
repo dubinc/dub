@@ -89,7 +89,7 @@ export function LinksImported({
               </strong>{" "}
               from {provider} into your Dub.co workspace,{" "}
               <Link
-                href={`https://app.getqr-dev.vercel.app/${workspaceSlug}`}
+                href={`https://app.dub.co/${workspaceSlug}`}
                 className="font-medium text-blue-600 no-underline"
               >
                 {workspaceName}↗
@@ -132,7 +132,7 @@ export function LinksImported({
               <Section className="my-8 text-center">
                 <Link
                   className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                  href={`https://app.getqr-dev.vercel.app/${workspaceSlug}`}
+                  href={`https://app.dub.co/${workspaceSlug}`}
                 >
                   View {Intl.NumberFormat("en-us").format(count - 5)} more links
                 </Link>
@@ -141,7 +141,7 @@ export function LinksImported({
             <Text className="text-sm leading-6 text-black">
               If you haven't already{" "}
               <Link
-                href="https://getqr-dev.vercel.app/help/article/how-to-add-custom-domain#step-2-configure-your-domain"
+                href="https://dub.co/help/article/how-to-add-custom-domain#step-2-configure-your-domain"
                 className="font-medium text-blue-600 no-underline"
               >
                 configured your {pluralize("domain", domains.length)}

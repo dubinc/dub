@@ -175,7 +175,7 @@ function UTMModalInner({ setShowUTMModal }: UTMModalProps) {
               <SimpleTooltipContent
                 title="Add UTM parameters to your short links for conversion tracking."
                 cta="Learn more."
-                href="https://getqr-dev.vercel.app/help/article/utm-builder"
+                href="https://dub.co/help/article/utm-builder"
               />
             }
           />

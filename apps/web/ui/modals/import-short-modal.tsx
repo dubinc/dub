@@ -94,7 +94,7 @@ function ImportShortModal({
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-8 sm:px-16">
         <div className="flex items-center space-x-3 py-4">
           <img
-            src="https://assets.getqr-dev.vercel.app/misc/icons/short.svg"
+            src="https://assets.dub.co/misc/icons/short.svg"
             alt="Short.io logo"
             className="h-10 w-10"
           />
@@ -205,7 +205,7 @@ function ImportShortModal({
                 account.
               </p>
               <a
-                href="mailto:support@getqr-dev.vercel.app?subject=I%20need%20help%20with%20importing%20my%20Short.io%20links"
+                href="mailto:support@dub.co?subject=I%20need%20help%20with%20importing%20my%20Short.io%20links"
                 className={cn(
                   buttonVariants({ variant: "secondary" }),
                   "flex h-8 items-center justify-center rounded-md border px-4 text-sm",
@@ -251,7 +251,7 @@ function ImportShortModal({
                     <SimpleTooltipContent
                       title={`Your Short.io API Key can be found in your Short.io account under "Integrations & API".`}
                       cta="Read the guide."
-                      href="https://getqr-dev.vercel.app/help/article/migrating-from-short"
+                      href="https://dub.co/help/article/migrating-from-short"
                     />
                   }
                 />

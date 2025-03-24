@@ -260,7 +260,7 @@ function NewsCard({
         >
           <div className="flex items-center justify-between pt-3 text-xs">
             <Link
-              href={href || "https://getqr-dev.vercel.app"}
+              href={href || "https://dub.co"}
               target="_blank"
               className="font-medium text-neutral-700 transition-colors duration-75 hover:text-neutral-900"
             >

@@ -27,7 +27,7 @@ export const DomainSchema = z.object({
       "Provide context to your teammates in the link creation modal by showing them an example of a link to be shortened.",
     )
     .openapi({
-      example: "https://getqr-dev.vercel.app/help/article/what-is-dub",
+      example: "https://dub.co/help/article/what-is-dub",
     }),
   expiredUrl: z
     .string()
@@ -125,7 +125,7 @@ export const createDomainBodySchema = z.object({
       "Provide context to your teammates in the link creation modal by showing them an example of a link to be shortened.",
     )
     .openapi({
-      example: "https://getqr-dev.vercel.app/help/article/what-is-dub",
+      example: "https://dub.co/help/article/what-is-dub",
     }),
   logo: z
     .string()

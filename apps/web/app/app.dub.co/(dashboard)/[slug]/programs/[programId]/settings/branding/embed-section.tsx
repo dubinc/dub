@@ -16,7 +16,7 @@ export function EmbedSection() {
         <p className="mt-2 text-sm text-neutral-600">
           View our {/* TODO: Update link to an installation guide */}
           <a
-            href="https://getqr-dev.vercel.app/help/category/partners"
+            href="https://dub.co/help/category/partners"
             target="_blank"
             className="underline hover:text-neutral-800"
           >

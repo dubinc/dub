@@ -25,7 +25,7 @@
     "typescript": "^5.1.6"
   },
   "author": "Steven Tey <stevensteel97@gmail.com>",
-  "homepage": "https://getqr-dev.vercel.app",
+  "homepage": "https://dub.co",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dubinc/dub.git"
@@ -35,7 +35,7 @@
   },
   "keywords": [
     "dub",
-    "getqr-dev.vercel.app",
+    "dub.co",
     "ui"
   ],
   "publishConfig": {

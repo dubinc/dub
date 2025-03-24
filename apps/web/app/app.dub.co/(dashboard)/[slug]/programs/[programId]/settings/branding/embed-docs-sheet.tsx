@@ -57,7 +57,7 @@ function EmbedDocsSheetContent({ setIsOpen }: EmbedDocsSheetProps) {
           <p className="mt-10 text-sm text-neutral-500">
             View detailed{" "}
             <a
-              href="https://getqr-dev.vercel.app/docs/sdks/client-side/embed"
+              href="https://dub.co/docs/sdks/client-side/embed"
               target="_blank"
               className="underline transition-colors duration-75 hover:text-neutral-600"
             >

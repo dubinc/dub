@@ -25,25 +25,25 @@ export default function PartnerAuthLayout({
           </p>
           <div className="flex gap-3 text-center text-xs text-neutral-500 underline underline-offset-2">
             <a
-              href="https://getqr-dev.vercel.app/legal/privacy"
+              href="https://dub.co/legal/privacy"
               target="_blank"
               className="hover:text-neutral-800"
             >
               Privacy Policy
             </a>
             <a
-              href="https://getqr-dev.vercel.app/legal/terms"
+              href="https://dub.co/legal/terms"
               target="_blank"
               className="hover:text-neutral-800"
             >
               Terms of Service
             </a>
             <a
-              href="https://app.getqr-dev.vercel.app"
+              href="https://app.dub.co"
               target="_blank"
               className="hover:text-neutral-800"
             >
-              app.getqr-dev.vercel.app
+              app.dub.co
             </a>
           </div>
         </div>

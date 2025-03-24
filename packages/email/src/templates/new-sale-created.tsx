@@ -18,7 +18,7 @@ export function NewSaleCreated({
   email = "panic@thedis.co",
   partner = {
     id: "pn_OfewI1Faaf5pV8QH3mha8L7S",
-    referralLink: "https://refer.getqr-dev.vercel.app/steven",
+    referralLink: "https://refer.dub.co/steven",
   },
   program = {
     id: "prog_CYCu7IMAapjkRpTnr8F1azjN",
@@ -45,7 +45,7 @@ export function NewSaleCreated({
     earnings: number;
   };
 }) {
-  const linkToSale = `https://partners.getqr-dev.vercel.app/${partner.id}/${program.id}/sales`;
+  const linkToSale = `https://partners.dub.co/${partner.id}/${program.id}/sales`;
 
   const earningsInDollars = currencyFormatter(sale.earnings / 100, {
     minimumFractionDigits: 2,
@@ -69,9 +69,7 @@ export function NewSaleCreated({
           <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-neutral-200 px-10 py-5">
             <Section className="my-8">
               <Img
-                src={
-                  program.logo || "https://assets.getqr-dev.vercel.app/logo.png"
-                }
+                src={program.logo || "https://assets.dub.co/logo.png"}
                 height="32"
                 alt={program.name}
               />

@@ -8,7 +8,7 @@ export function Analytics() {
     >
       <div className="relative mx-3.5 h-full overflow-hidden rounded-t-xl border-x border-t border-neutral-200 shadow-[0_20px_20px_0_#00000017]">
         <Image
-          src="https://assets.getqr-dev.vercel.app/home/analytics.png"
+          src="https://assets.dub.co/home/analytics.png"
           alt="Analytics"
           fill
           draggable={false}

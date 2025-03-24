@@ -63,7 +63,7 @@ export function LinksLimitAlert({
             <Text className="text-sm leading-6 text-black">
               Your Dub.co workspace,{" "}
               <Link
-                href={`https://app.getqr-dev.vercel.app/${slug}`}
+                href={`https://app.dub.co/${slug}`}
                 className="text-black underline"
               >
                 <strong>{name}</strong>
@@ -111,7 +111,7 @@ export function LinksLimitAlert({
             <Section className="mb-8 text-center">
               <Link
                 className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                href={`https://app.getqr-dev.vercel.app/${slug}/upgrade`}
+                href={`https://app.dub.co/${slug}/upgrade`}
               >
                 Upgrade my plan
               </Link>

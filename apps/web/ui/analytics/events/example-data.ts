@@ -11,8 +11,8 @@ const dubLink = {
   id: "1",
   domain: "dub.link",
   key: "uxUrVCz",
-  shortLink: "https://getqr-dev.vercel.app/uxUrVCz",
-  url: "https://getqr-dev.vercel.app/",
+  shortLink: "https://dub.co/uxUrVCz",
+  url: "https://dub.co/",
 };
 
 const githubLink = {
@@ -25,19 +25,19 @@ const githubLink = {
 
 const steven = {
   name: "Steven Tey",
-  email: "steven@getqr-dev.vercel.app",
+  email: "steven@dub.co",
   avatar: "https://avatar.vercel.sh/s.png?text=S",
 };
 
 const tim = {
   name: "Tim Wilson",
-  email: "tim@getqr-dev.vercel.app",
+  email: "tim@dub.co",
   avatar: "https://avatar.vercel.sh/t.png?text=T",
 };
 
 const kiran = {
   name: "Kiran Kuriya",
-  email: "kiran@getqr-dev.vercel.app",
+  email: "kiran@dub.co",
   avatar: "https://avatar.vercel.sh/k.png?text=K",
 };
 

@@ -19,7 +19,7 @@ export function InvalidDomain({
   domain = "dub.sh",
   workspaceSlug = "dub",
   invalidDays = 14,
-  appDomain = "getqr-dev.vercel.app",
+  appDomain = "dub.co",
 }: {
   email: string;
   domain: string;
@@ -51,7 +51,7 @@ export function InvalidDomain({
               Your domain <code className="text-purple-600">{domain}</code> for
               your Dub.co workspace{" "}
               <Link
-                href={`https://app.getqr-dev.vercel.app/${workspaceSlug}`}
+                href={`https://app.dub.co/${workspaceSlug}`}
                 className="font-medium text-blue-600 no-underline"
               >
                 {workspaceSlug}↗
@@ -66,7 +66,7 @@ export function InvalidDomain({
             <Section className="my-8 text-center">
               <Link
                 className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                href={`https://app.getqr-dev.vercel.app/${workspaceSlug}/settings/domains`}
+                href={`https://app.dub.co/${workspaceSlug}/settings/domains`}
               >
                 Configure domain
               </Link>
@@ -74,7 +74,7 @@ export function InvalidDomain({
             <Text className="text-sm leading-6 text-black">
               If you do not want to keep this domain on Dub.co, you can{" "}
               <Link
-                href={`https://app.getqr-dev.vercel.app/${workspaceSlug}/settings/domains`}
+                href={`https://app.dub.co/${workspaceSlug}/settings/domains`}
                 className="font-medium text-blue-600 no-underline"
               >
                 delete it

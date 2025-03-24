@@ -80,7 +80,7 @@ export function HelpArticles({
           <div />
         )}
         <a
-          href="https://getqr-dev.vercel.app/help"
+          href="https://dub.co/help"
           target="_blank"
           className="flex items-center space-x-2 hover:underline"
         >
@@ -124,7 +124,7 @@ const CommandResults = () => {
           query: search,
           slug,
         });
-        window.open(`https://getqr-dev.vercel.app/help/article/${slug}`);
+        window.open(`https://dub.co/help/article/${slug}`);
       }}
       className="group flex cursor-pointer items-center justify-between space-x-2 rounded-md px-4 py-2 hover:bg-neutral-100 active:bg-neutral-200 aria-selected:bg-neutral-100"
     >

@@ -34,24 +34,21 @@ const PAYMENT_PROCESSORS = [
   {
     name: "Stripe",
     icon: Stripe,
-    guide: "https://getqr-dev.vercel.app/docs/conversions/sales/stripe",
-    thumbnail:
-      "https://assets.getqr-dev.vercel.app/help/conversions-guide-stripe.png",
+    guide: "https://dub.co/docs/conversions/sales/stripe",
+    thumbnail: "https://assets.dub.co/help/conversions-guide-stripe.png",
   },
   {
     name: "Shopify",
     icon: Shopify,
-    guide: "https://getqr-dev.vercel.app/docs/conversions/sales/shopify",
-    thumbnail:
-      "https://assets.getqr-dev.vercel.app/help/conversions-guide-shopify.png",
+    guide: "https://dub.co/docs/conversions/sales/shopify",
+    thumbnail: "https://assets.dub.co/help/conversions-guide-shopify.png",
   },
   {
     name: "Custom Payments",
     shortName: "Custom",
     icon: Custom,
-    guide: "https://getqr-dev.vercel.app/docs/conversions/sales/introduction",
-    thumbnail:
-      "https://assets.getqr-dev.vercel.app/help/conversions-guide-sales.png",
+    guide: "https://dub.co/docs/conversions/sales/introduction",
+    thumbnail: "https://assets.dub.co/help/conversions-guide-sales.png",
   },
 ];
 
@@ -59,46 +56,40 @@ const AUTH_PROVIDERS = [
   {
     name: "Auth.js",
     icon: AuthJs,
-    guide: "https://getqr-dev.vercel.app/docs/conversions/leads/next-auth",
-    thumbnail:
-      "https://assets.getqr-dev.vercel.app/help/conversions-guide-next-auth.png",
+    guide: "https://dub.co/docs/conversions/leads/next-auth",
+    thumbnail: "https://assets.dub.co/help/conversions-guide-next-auth.png",
   },
   {
     name: "Clerk",
     icon: Clerk,
-    guide: "https://getqr-dev.vercel.app/docs/conversions/leads/clerk",
-    thumbnail:
-      "https://assets.getqr-dev.vercel.app/help/conversions-guide-clerk.png",
+    guide: "https://dub.co/docs/conversions/leads/clerk",
+    thumbnail: "https://assets.dub.co/help/conversions-guide-clerk.png",
   },
   {
     name: "Supabase",
     icon: Supabase,
-    guide: "https://getqr-dev.vercel.app/docs/conversions/leads/supabase-auth",
-    thumbnail:
-      "https://assets.getqr-dev.vercel.app/help/conversions-guide-supabase.png",
+    guide: "https://dub.co/docs/conversions/leads/supabase-auth",
+    thumbnail: "https://assets.dub.co/help/conversions-guide-supabase.png",
   },
   {
     name: "Auth0",
     icon: Auth0,
-    guide: "https://getqr-dev.vercel.app/docs/conversions/leads/auth0",
-    thumbnail:
-      "https://assets.getqr-dev.vercel.app/help/conversions-guide-auth0.png",
+    guide: "https://dub.co/docs/conversions/leads/auth0",
+    thumbnail: "https://assets.dub.co/help/conversions-guide-auth0.png",
   },
   {
     name: "Custom Auth",
     shortName: "Custom",
     icon: Custom,
-    guide: "https://getqr-dev.vercel.app/docs/conversions/leads/introduction",
-    thumbnail:
-      "https://assets.getqr-dev.vercel.app/help/conversions-guide-leads.png",
+    guide: "https://dub.co/docs/conversions/leads/introduction",
+    thumbnail: "https://assets.dub.co/help/conversions-guide-leads.png",
   },
   {
     name: "Shopify",
     icon: Shopify,
     hidden: true,
-    guide: "https://getqr-dev.vercel.app/docs/conversions/sales/shopify",
-    thumbnail:
-      "https://assets.getqr-dev.vercel.app/help/conversions-guide-shopify.png",
+    guide: "https://dub.co/docs/conversions/sales/shopify",
+    thumbnail: "https://assets.dub.co/help/conversions-guide-shopify.png",
   },
 ];
 
@@ -372,9 +363,7 @@ function Docs() {
         ].map(({ icon: Icon, label, url, thumbnail }) => (
           <Link
             key={label}
-            href={
-              url || "https://getqr-dev.vercel.app/docs/conversions/quickstart"
-            }
+            href={url || "https://dub.co/docs/conversions/quickstart"}
             target="_blank"
             className="group flex flex-col items-center rounded-lg bg-neutral-200/40 pb-4 pt-6 transition-colors duration-100 hover:bg-neutral-200/60"
           >

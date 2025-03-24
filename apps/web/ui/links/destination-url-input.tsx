@@ -58,7 +58,7 @@ export const DestinationUrlInput = forwardRef<
                   <SimpleTooltipContent
                     title="The URL your users will get redirected to when they visit your root domain link."
                     cta="Learn more."
-                    href="https://getqr-dev.vercel.app/help/article/how-to-redirect-root-domain"
+                    href="https://dub.co/help/article/how-to-redirect-root-domain"
                   />
                 }
               />
@@ -68,7 +68,7 @@ export const DestinationUrlInput = forwardRef<
                   <SimpleTooltipContent
                     title="The URL your users will get redirected to when they visit your short link."
                     cta="Learn more."
-                    href="https://getqr-dev.vercel.app/help/article/how-to-create-link"
+                    href="https://dub.co/help/article/how-to-create-link"
                   />
                 }
               />
@@ -83,7 +83,7 @@ export const DestinationUrlInput = forwardRef<
             id={inputId}
             placeholder={
               domains?.find(({ slug }) => slug === domain)?.placeholder ||
-              "https://getqr-dev.vercel.app/help/article/what-is-dub"
+              "https://dub.co/help/article/what-is-dub"
             }
             autoFocus={!key && !isMobile}
             autoComplete="off"

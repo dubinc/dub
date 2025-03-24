@@ -1,4 +1,4 @@
-Contact: mailto:security@getqr-dev.vercel.app
+Contact: mailto:security@dub.co
 Expires: 2034-10-21T23:22:00.000Z
 Preferred-Languages: en
-Canonical: https://getqr-dev.vercel.app/.well-known/security.txt
+Canonical: https://dub.co/.well-known/security.txt

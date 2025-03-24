@@ -29,8 +29,8 @@ export const document = createDocument({
     version: "0.0.1",
     contact: {
       name: "Dub.co Support",
-      email: "support@getqr-dev.vercel.app",
-      url: "https://getqr-dev.vercel.app/api",
+      email: "support@dub.co",
+      url: "https://dub.co/api",
     },
     license: {
       name: "AGPL-3.0 license",
@@ -39,7 +39,7 @@ export const document = createDocument({
   },
   servers: [
     {
-      url: "https://api.getqr-dev.vercel.app",
+      url: "https://api.dub.co",
       description: "Production API",
     },
   ],

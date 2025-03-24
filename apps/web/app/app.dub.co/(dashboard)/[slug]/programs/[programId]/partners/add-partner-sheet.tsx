@@ -289,10 +289,7 @@ function AddPartnerSheetContent({ setIsOpen }: AddPartnerSheetProps) {
               <div className="mt-2 overflow-hidden rounded-md border border-neutral-200">
                 <div className="grid gap-4 p-6 pb-10">
                   <BlurImage
-                    src={
-                      program?.logo ||
-                      "https://assets.getqr-dev.vercel.app/logo.png"
-                    }
+                    src={program?.logo || "https://assets.dub.co/logo.png"}
                     alt={program?.name || "Dub"}
                     className="my-2 size-8 rounded-full"
                     width={48}
@@ -317,7 +314,7 @@ function AddPartnerSheetContent({ setIsOpen }: AddPartnerSheetProps) {
                     <strong className="font-medium text-neutral-900">
                       From:{" "}
                     </strong>
-                    system@getqr-dev.vercel.app
+                    system@dub.co
                   </p>
                   <p className="text-sm text-neutral-500">
                     <strong className="font-medium text-neutral-900">

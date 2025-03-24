@@ -33,7 +33,7 @@ export function FreeDotLinkBanner() {
               Claim a free <span className="font-semibold">.link</span> domain,
               free for 1 year.{" "}
               <a
-                href="https://getqr-dev.vercel.app/help/article/free-dot-link-domain"
+                href="https://dub.co/help/article/free-dot-link-domain"
                 target="_blank"
                 className="text-neutral-700 underline transition-colors hover:text-black"
               >

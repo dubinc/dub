@@ -111,7 +111,7 @@ export default function WorkspaceDomainsClient() {
               content={
                 <TooltipContent
                   title="Learn more about how to add, configure, and verify custom domains on Dub."
-                  href="https://getqr-dev.vercel.app/help/article/how-to-add-custom-domain"
+                  href="https://dub.co/help/article/how-to-add-custom-domain"
                   target="_blank"
                   cta="Learn more"
                 />
@@ -246,7 +246,7 @@ export default function WorkspaceDomainsClient() {
                   </>
                 }
                 addButton={<AddDomainButton />}
-                learnMoreHref="https://getqr-dev.vercel.app/help/article/how-to-add-custom-domain"
+                learnMoreHref="https://dub.co/help/article/how-to-add-custom-domain"
               />
             )
           ) : (

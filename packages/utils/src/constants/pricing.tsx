@@ -36,7 +36,7 @@ const BUSINESS_PLAN_MODIFIER = ({
 }) => ({
   name,
   tagline: "For fast-growing startups and businesses looking to scale",
-  link: "https://getqr-dev.vercel.app/help/article/business-plan",
+  link: "https://dub.co/help/article/business-plan",
   price: {
     monthly,
     yearly,
@@ -60,7 +60,7 @@ const BUSINESS_PLAN_MODIFIER = ({
   cta: {
     text: `Get started with ${name}`,
     shortText: `Get ${name}`,
-    href: "https://app.getqr-dev.vercel.app/register",
+    href: "https://app.dub.co/register",
     color: "bg-sky-900 hover:bg-sky-800 hover:ring-sky-100",
   },
   featureTitle: "Everything in Pro, plus:",
@@ -143,7 +143,7 @@ export const PLANS = [
     },
     cta: {
       text: "Start for free",
-      href: "https://app.getqr-dev.vercel.app/register",
+      href: "https://app.dub.co/register",
       color:
         "bg-white hover:bg-neutral-50 border border-neutral-200 hover:ring-neutral-100 text-neutral-800",
     },
@@ -164,7 +164,7 @@ export const PLANS = [
           title:
             "Get location (country, city, continent), device (type, browser, OS), and referer data on your clicks.",
           cta: "Learn more.",
-          href: "https://getqr-dev.vercel.app/analytics",
+          href: "https://dub.co/analytics",
         },
       },
       { id: "ai", text: "10 AI credits/mo" },
@@ -175,7 +175,7 @@ export const PLANS = [
         footnote: {
           title: "Programatically manage your links using our REST API.",
           cta: "Learn more.",
-          href: "https://getqr-dev.vercel.app/docs/api-reference/introduction",
+          href: "https://dub.co/docs/api-reference/introduction",
         },
       },
     ] as PlanFeature[],
@@ -183,7 +183,7 @@ export const PLANS = [
   {
     name: "Pro",
     tagline: "For content creators or small teams needing advanced features",
-    link: "https://getqr-dev.vercel.app/help/article/pro-plan",
+    link: "https://dub.co/help/article/pro-plan",
     price: {
       monthly: 24,
       yearly: 19,
@@ -214,7 +214,7 @@ export const PLANS = [
     cta: {
       text: "Get started with Pro",
       shortText: "Get Pro",
-      href: "https://app.getqr-dev.vercel.app/register",
+      href: "https://app.dub.co/register",
       color: "bg-black hover:bg-neutral-800 hover:ring-neutral-200",
     },
     featureTitle: "Everything in Free, plus:",
@@ -237,7 +237,7 @@ export const PLANS = [
           title:
             "Subject to fair use policy – you will be notified if you exceed the limit, which are high enough for frequent usage.",
           cta: "Learn more.",
-          href: "https://getqr-dev.vercel.app/blog/introducing-dub-ai",
+          href: "https://dub.co/blog/introducing-dub-ai",
         },
       },
       { id: "priority-support", text: "Priority support" },
@@ -247,7 +247,7 @@ export const PLANS = [
         footnote: {
           title: "Stand out from the crowd with a premium dub.link domain.",
           cta: "Learn more.",
-          href: "https://getqr-dev.vercel.app/help/article/default-dub-domains#premium-dublink-domain",
+          href: "https://dub.co/help/article/default-dub-domains#premium-dublink-domain",
         },
       },
       {
@@ -257,7 +257,7 @@ export const PLANS = [
           title:
             "All our paid plans come with a free .link custom domain, which helps improve click-through rates.",
           cta: "Learn more.",
-          href: "https://getqr-dev.vercel.app/help/article/free-dot-link-domain",
+          href: "https://dub.co/help/article/free-dot-link-domain",
         },
       },
     ] as PlanFeature[],
@@ -336,7 +336,7 @@ export const PLANS = [
   {
     name: "Enterprise",
     tagline: "For large organizations and governments with custom needs",
-    link: "https://getqr-dev.vercel.app/enterprise",
+    link: "https://dub.co/enterprise",
     price: {
       monthly: null,
       yearly: null,

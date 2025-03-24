@@ -14,7 +14,7 @@ export default function OnboardingVerification() {
         <div className="divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200">
           <div className="flex items-center justify-center bg-neutral-50 p-6">
             <img
-              src="https://assets.getqr-dev.vercel.app/misc/stripe-wordmark.svg"
+              src="https://assets.dub.co/misc/stripe-wordmark.svg"
               alt="Stripe wordmark"
               className="aspect-[96/40] h-12"
             />

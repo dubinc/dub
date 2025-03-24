@@ -50,7 +50,7 @@ export default function WrappedPageClient() {
         <div
           className="flex h-24 flex-col items-center justify-center rounded-lg"
           style={{
-            backgroundImage: `url(https://assets.getqr-dev.vercel.app/misc/year-in-review-header.jpg)`,
+            backgroundImage: `url(https://assets.dub.co/misc/year-in-review-header.jpg)`,
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
@@ -100,11 +100,11 @@ export default function WrappedPageClient() {
 
       <Link
         className="group flex flex-col gap-4 rounded-lg border border-neutral-200 bg-white p-4 sm:flex-row"
-        href="https://getqr-dev.vercel.app/blog/2024"
+        href="https://dub.co/blog/2024"
         target="_blank"
       >
         <Image
-          src="https://assets.getqr-dev.vercel.app/blog/2024.jpg"
+          src="https://assets.dub.co/blog/2024.jpg"
           alt="Dub logo with confetti"
           width={1838}
           height={1172}

@@ -77,7 +77,7 @@ export default function WorkspaceUtmTemplatesClient() {
               </>
             }
             addButton={<AddUtmTemplateButton />}
-            learnMoreHref="https://getqr-dev.vercel.app/help/article/how-to-create-utm-templates"
+            learnMoreHref="https://dub.co/help/article/how-to-create-utm-templates"
           />
         )}
       </div>

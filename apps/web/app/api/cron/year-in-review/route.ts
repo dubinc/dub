@@ -68,9 +68,9 @@ export async function POST() {
             return {
               workspaceId: workspace.id,
               email: {
-                from: "Steven from Dub.co <steven@ship.getqr-dev.vercel.app>",
+                from: "Steven from Dub.co <steven@ship.dub.co>",
                 to: user.email,
-                reply_to: "steven.tey@getqr-dev.vercel.app",
+                reply_to: "steven.tey@dub.co",
                 subject: "Dub Year in Review 🎊",
                 text: "Thank you for your support and here's to another year of your activity on Dub! Here's a look back at your activity in 2024.",
                 react: DubWrapped({
