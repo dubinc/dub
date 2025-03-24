@@ -1,11 +1,9 @@
+import { NavButton } from "@/ui/layout/page-content/nav-button.tsx";
+import { Logo } from "@/ui/shared/logo.tsx";
 import { MaxWidthWrapper } from "@dub/ui";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { PropsWithChildren, ReactNode } from "react";
-import { HelpButtonRSC } from "../sidebar/help-button-rsc";
-import { ReferButton } from "../sidebar/refer-button";
-import UserDropdown from "../sidebar/user-dropdown";
-import { NavButton } from "./nav-button";
 
 export function PageContent({
   title,
@@ -29,9 +27,11 @@ export function PageContent({
       <MaxWidthWrapper>
         <div className="flex items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-4">
-            <NavButton />
-            {(hasTitle || hasDescription) && (
-              <div>
+            <div className="flex md:hidden">
+              <Logo />
+            </div>
+            {(hasTitle || hasDescription) && ( // @TODO: Move this title to dashboard view
+              <div className="hidden md:flex">
                 {hasTitle && (
                   <div className="flex items-center gap-2">
                     {titleBackButtonLink && (
@@ -55,13 +55,14 @@ export function PageContent({
               </div>
             )}
           </div>
-          {titleControls && (
-            <div className="hidden md:block">{titleControls}</div>
-          )}
+          {/*{titleControls && (*/}
+          {/*  <div className="hidden md:block">{titleControls}</div>*/}
+          {/*)}*/}
           <div className="flex items-center gap-4 md:hidden">
-            {!hideReferButton && <ReferButton />}
-            <HelpButtonRSC />
-            <UserDropdown />
+            <NavButton />
+            {/*{!hideReferButton && <ReferButton />}*/}
+            {/*<HelpButtonRSC />*/}
+            {/*<UserDropdown />*/}
           </div>
         </div>
       </MaxWidthWrapper>

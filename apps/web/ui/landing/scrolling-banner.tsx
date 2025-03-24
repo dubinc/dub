@@ -60,16 +60,16 @@ export const ScrollingBanner = React.forwardRef<
               className={cn(
                 "pointer-events-none absolute z-10",
                 isVertical
-                  ? "from-primary-lighter/20 left-0 right-0 top-0 h-[300px] bg-gradient-to-b to-transparent"
-                  : "from-primary-lighter/20 bottom-0 left-0 top-0 w-[300px] bg-gradient-to-r to-transparent",
+                  ? "from-primary-100/20 left-0 right-0 top-0 h-[300px] bg-gradient-to-b to-transparent"
+                  : "from-primary-100/20 bottom-0 left-0 top-0 w-[300px] bg-gradient-to-r to-transparent",
               )}
             />
             <div
               className={cn(
                 "pointer-events-none absolute z-10",
                 isVertical
-                  ? "from-primary-lighter/20 bottom-0 left-0 right-0 h-[300px] bg-gradient-to-t to-transparent"
-                  : "from-primary-lighter/20 bottom-0 right-0 top-0 w-[300px] bg-gradient-to-l to-transparent",
+                  ? "from-primary-100/20 bottom-0 left-0 right-0 h-[300px] bg-gradient-to-t to-transparent"
+                  : "from-primary-100/20 bottom-0 right-0 top-0 w-[300px] bg-gradient-to-l to-transparent",
               )}
             />
           </>

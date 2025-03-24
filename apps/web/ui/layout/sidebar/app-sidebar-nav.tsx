@@ -1,7 +1,11 @@
 "use client";
 
 import usePrograms from "@/lib/swr/use-programs";
-import { useRouterStuff } from "@dub/ui";
+import { NewQRIcon } from "@/ui/layout/sidebar/icons/new-qr.tsx";
+import { PaymentsIcon } from "@/ui/layout/sidebar/icons/payments.tsx";
+import { QRCodesIcon } from "@/ui/layout/sidebar/icons/qr-codes.tsx";
+import { StatisticsIcon } from "@/ui/layout/sidebar/icons/statistics.tsx";
+import { User, useRouterStuff } from "@dub/ui";
 import {
   Books2,
   CircleInfo,
@@ -17,17 +21,14 @@ import {
   Users6,
   Webhook,
 } from "@dub/ui/icons";
+import { HelpCircle } from "lucide-react";
 import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
-import UserSurveyButton from "../user-survey";
-import { CursorRays } from "./icons/cursor-rays";
-import { Gear } from "./icons/gear";
-import { Hyperlink } from "./icons/hyperlink";
 import { LinesY } from "./icons/lines-y";
 import { SidebarNav, SidebarNavAreas } from "./sidebar-nav";
-import { Usage } from "./usage";
 import { WorkspaceDropdown } from "./workspace-dropdown";
 
 const NAV_AREAS: SidebarNavAreas<{
@@ -40,32 +41,63 @@ const NAV_AREAS: SidebarNavAreas<{
 }> = {
   // Top-level
   default: ({ slug, pathname, queryString, programs, showNews }) => ({
-    showSwitcher: true,
+    showSwitcher: false,
     showNews,
     direction: "left",
     content: [
       {
         items: [
+          // {
+          //   name: "Links",
+          //   icon: Hyperlink,
+          //   href: `/${slug}${pathname === `/${slug}` ? "" : queryString}`,
+          //   exact: true,
+          // },
+          // {
+          //   name: "Analytics",
+          //   icon: LinesY,
+          //   href: `/${slug}/analytics${pathname === `/${slug}/analytics` ? "" : queryString}`,
+          // },
+          // {
+          //   name: "Events",
+          //   icon: CursorRays,
+          //   href: `/${slug}/events${pathname === `/${slug}/events` ? "" : queryString}`,
+          // },
+          // {
+          //   name: "Settings",
+          //   icon: Gear,
+          //   href: `/${slug}/settings`,
+          // },
           {
-            name: "My QR Codes",
-            icon: Hyperlink,
-            href: `/${slug}${pathname === `/${slug}` ? "" : queryString}`,
+            name: "New QR",
+            icon: NewQRIcon,
+            href: "/new", // @TODO: Add new QR page
             exact: true,
           },
           {
-            name: "Analytics",
-            icon: LinesY,
-            href: `/${slug}/analytics${pathname === `/${slug}/analytics` ? "" : queryString}`,
+            name: "My QR Codes",
+            icon: QRCodesIcon,
+            href: "/my", // @TODO: Add my QR codes page
           },
           {
-            name: "Events",
-            icon: CursorRays,
-            href: `/${slug}/events${pathname === `/${slug}/events` ? "" : queryString}`,
+            name: "Statistics",
+            icon: StatisticsIcon,
+            href: "/statistics", // @TODO: Add statistics page`,
           },
           {
-            name: "Settings",
-            icon: Gear,
-            href: `/${slug}/settings`,
+            name: "Plans and Payments",
+            icon: PaymentsIcon,
+            href: "/plans", // @TODO: Add plans and payments page
+          },
+          {
+            name: "Account",
+            icon: User,
+            href: "/account/settings",
+          },
+          {
+            name: "FAQ",
+            icon: HelpCircle,
+            href: "/faq", // @TODO: Add FAQ page
           },
         ],
       },
@@ -271,8 +303,14 @@ export function AppSidebarNav({
       switcher={<WorkspaceDropdown />}
       bottom={
         <>
-          <UserSurveyButton />
-          <Usage />
+          <Link
+            className="bg-secondary hover:bg-secondary/90 flex h-11 w-full items-center justify-center self-center rounded-lg px-6 py-3 text-sm font-medium text-white md:max-w-[208px] md:text-base"
+            href={"/upgrade"} // @TODO: Add upgrade page
+          >
+            Upgrade
+          </Link>
+          {/*<UserSurveyButton />*/}
+          {/*<Usage />*/}
         </>
       }
     />

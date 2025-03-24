@@ -19,11 +19,11 @@ export const QrTabsDetailed = () => {
   const [activeTab, setActiveTab] = useState<string>("website");
 
   return (
-    <section className="bg-primary-lighter w-full px-3 py-6 md:py-[42px]">
+    <section className="bg-primary-100 w-full px-3 py-6 md:py-[42px]">
       <div className="mx-auto flex max-w-[1172px] flex-col items-center justify-center gap-4 md:gap-8">
         <div className="flex flex-col items-center justify-center gap-3 md:gap-4">
           <QrTabsDetailedTitle />
-          <p className="text-neutral-light text-left text-sm md:text-center md:text-lg">
+          <p className="text-left text-sm text-neutral-300 md:text-center md:text-lg">
             From websites and social media to PDFs, business cards, and Wi-Fi
             access—there’s no limit to <br /> what you can create a QR code for.
             GetQR offers every type of QR code you need, all in one place.
@@ -45,9 +45,9 @@ export const QrTabsDetailed = () => {
                     key={type.id}
                     value={type.id}
                     className={cn(
-                      "bg-primary-extraLight text-neutral flex h-24 w-24 flex-col items-center justify-around gap-2 rounded-lg border border-transparent px-2 py-3 transition-colors md:h-[104px] md:w-[116px] md:gap-3",
-                      "hover:bg-primary-light hover:text-neutral",
-                      "data-[state=active]:bg-primary-light data-[state=active]:border-primary data-[state=active]:text-neutral data-[state=active]:border",
+                      "bg-primary-200 text-neutral flex h-24 w-24 flex-col items-center justify-around gap-2 rounded-lg border border-transparent px-2 py-3 transition-colors md:h-[104px] md:w-[116px] md:gap-3",
+                      "hover:bg-primary-300 hover:text-neutral",
+                      "data-[state=active]:bg-primary-300 data-[state=active]:border-primary data-[state=active]:text-neutral data-[state=active]:border",
                     )}
                   >
                     <Icon
@@ -55,8 +55,8 @@ export const QrTabsDetailed = () => {
                       className={cn(
                         "h-7 w-7 flex-none",
                         idx === 4
-                          ? "[&>path]:fill-neutral-lighter"
-                          : "[&>g]:stroke-neutral-lighter [&>path]:stroke-neutral-lighter",
+                          ? "[&>path]:fill-neutral-200"
+                          : "[&>g]:stroke-neutral-200 [&>path]:stroke-neutral-200",
                         activeTab === type.id &&
                           (idx === 4
                             ? "[&>path]:fill-primary"
@@ -72,7 +72,7 @@ export const QrTabsDetailed = () => {
             </ScrollArea.Viewport>
             <ScrollArea.Scrollbar
               orientation="horizontal"
-              className="!bg-border-light !-bottom-[14%] !h-1 rounded-[3px] border border-[#00002D17]"
+              className="!bg-border-100 !-bottom-[14%] !h-1 rounded-[3px] border border-[#00002D17]"
             >
               <ScrollArea.Thumb className="!bg-primary !h-full rounded-lg" />
             </ScrollArea.Scrollbar>
@@ -86,7 +86,7 @@ export const QrTabsDetailed = () => {
                 className={cn("w-full focus:outline-none md:mt-0")}
               >
                 <div className="flex w-full flex-col items-center justify-start gap-[14px] rounded-lg md:flex-row md:gap-8">
-                  <div className="bg-primary-light relative h-[413px] w-full max-w-[534px] flex-shrink-0 overflow-hidden rounded-lg">
+                  <div className="bg-primary-300 relative h-[413px] w-full max-w-[534px] flex-shrink-0 overflow-hidden rounded-lg">
                     <div className="to-primary absolute bottom-[23px] left-1/2 h-[328px] w-[314px] -translate-x-1/2 rounded-[99px] bg-gradient-to-b from-white opacity-50 blur-[80px]"></div>
                     <QrTabsDetailedImage
                       imgSrc={type.img}
@@ -99,7 +99,7 @@ export const QrTabsDetailed = () => {
                       <h3 className="text-neutral text-left text-base font-semibold md:text-xl">
                         {type.label}
                       </h3>
-                      <p className="text-neutral-light text-left text-sm">
+                      <p className="text-left text-sm text-neutral-300">
                         {type.content}
                       </p>
                     </div>

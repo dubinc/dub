@@ -17,7 +17,7 @@ export const FAQSection = () => {
 
   return (
     <section className="mx-auto flex max-w-[1172px] flex-col justify-between gap-2 px-3 pt-3 lg:flex-row lg:gap-6 lg:pt-8">
-      <h2 className="text-neutral-dark mb-4 text-center text-xl font-bold md:text-[28px] lg:max-w-64 lg:text-left">
+      <h2 className="mb-4 text-center text-xl font-bold text-neutral-900 md:text-[28px] lg:max-w-64 lg:text-left">
         {isMobile ? "FAQ" : "Frequently Asked Questions"}
       </h2>
       <Accordion type="multiple" className="w-full">
@@ -37,7 +37,7 @@ export const FAQSection = () => {
               />
             </AccordionTrigger>
             <AccordionContent>
-              <BlockMarkdown className="text-neutral-light py-2 text-left text-xs lg:text-base">
+              <BlockMarkdown className="py-2 text-left text-xs text-neutral-300 lg:text-base">
                 {item.content}
               </BlockMarkdown>
             </AccordionContent>
