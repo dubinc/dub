@@ -157,11 +157,12 @@ export const createAndEnrollPartner = async ({
         .then((link) =>
           Promise.allSettled([
             recordLink(link),
-            backfillLinkCommissions({
-              id: link.id,
-              partnerId: upsertedPartner.id,
-              programId: program.id,
-            }),
+            link.saleAmount > 0 &&
+              backfillLinkCommissions({
+                id: link.id,
+                partnerId: upsertedPartner.id,
+                programId: program.id,
+              }),
           ]),
         ),
 
