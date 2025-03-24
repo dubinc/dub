@@ -1,5 +1,5 @@
 import { withWorkspace } from "@/lib/auth";
-import jackson, { samlAudience } from "@/lib/jackson";
+import { jackson, samlAudience } from "@/lib/jackson";
 import z from "@/lib/zod";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";

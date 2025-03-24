@@ -22,8 +22,6 @@ model Customer {
 
   @@unique([projectId, externalId])
   @@unique([projectConnectId, externalId])
-  @@index([projectId])
-  @@index([projectConnectId])
-  @@index([externalId])
-  @@index([linkId])
+  @@index(externalId)
+  @@index(linkId)
 }

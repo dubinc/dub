@@ -1,6 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
-import jackson from "@/lib/jackson";
+import { jackson } from "@/lib/jackson";
 import z from "@/lib/zod";
 import { NextResponse } from "next/server";
 

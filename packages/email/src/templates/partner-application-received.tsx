@@ -32,6 +32,9 @@ export function PartnerApplicationReceived({
     id: "prog_CYCu7IMAapjkRpTnr8F1azjN",
     name: "Acme",
   },
+  workspace = {
+    slug: "acme",
+  },
 }: {
   email: string;
   partner: {
@@ -47,8 +50,11 @@ export function PartnerApplicationReceived({
     id: string;
     name: string;
   };
+  workspace: {
+    slug: string;
+  };
 }) {
-  const applicationUrl = `https://app.dub.co/acme/programs/${program.id}/partners?partnerId=${partner.id}`;
+  const applicationUrl = `https://app.dub.co/${workspace.slug}/programs/${program.id}/partners?partnerId=${partner.id}`;
 
   return (
     <Html>
