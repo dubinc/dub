@@ -296,7 +296,7 @@ function ABTestingModal({
               <div className="flex flex-col gap-2 p-1">
                 {testVariants.map((_, index) => (
                   <div key={index} className="flex items-center gap-2">
-                    <label className="relative block flex grow items-center overflow-hidden rounded-md border border-neutral-300 focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500">
+                    <label className="relative flex grow items-center overflow-hidden rounded-md border border-neutral-300 focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500">
                       <span className="flex h-9 w-8 items-center justify-center border-r border-neutral-300 text-center text-sm font-medium text-neutral-800">
                         {index + 1}
                       </span>
@@ -359,7 +359,7 @@ function ABTestingModal({
         <div className="mt-6">
           <div className="flex items-center gap-2">
             <label className="block text-sm font-medium text-neutral-700">
-              Traffic split
+              Traffic Split
             </label>
             <InfoTooltip
               content={`Adjust the percentage of traffic to each URL. The minimum is ${MIN_TEST_PERCENTAGE}%`}
