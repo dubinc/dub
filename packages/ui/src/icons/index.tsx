@@ -29,6 +29,7 @@ export * from "./linkedin";
 export * from "./prisma";
 export * from "./product-hunt";
 export * from "./raycast";
+export * from "./slack";
 export * from "./tiktok";
 export * from "./tinybird";
 export * from "./twitter";
