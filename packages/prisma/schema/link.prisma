@@ -33,6 +33,11 @@ model Link {
   android String? @db.Text // custom link for Android devices
   geo     Json?   @db.Json // custom link for specific countries
 
+  // A/B Testing
+  testVariants   Json?   @db.Json // A/B testing data
+  testStartedAt  DateTime? // When tests were started
+  testCompletedAt DateTime? // When tests were or will be completed
+  
   // User who created the link
   user   User?   @relation(fields: [userId], references: [id])
   userId String?
@@ -84,4 +89,5 @@ model Link {
   @@unique([projectId, externalId])
   @@index([programId, partnerId])
   @@index(folderId) // used in /api/folders
+  @@index(userId) // for relation to User table
 }
