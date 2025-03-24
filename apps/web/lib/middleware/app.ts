@@ -16,10 +16,6 @@ export default async function AppMiddleware(req: NextRequest) {
     return EmbedMiddleware(req);
   }
 
-  if (path === "/") {
-    return NextResponse.rewrite(new URL(`/app.dub.co/landing/`, req.url));
-  }
-
   const user = await getUserViaToken(req);
   const isWorkspaceInvite =
     req.nextUrl.searchParams.get("invite") || path.startsWith("/invites/");
@@ -28,6 +24,7 @@ export default async function AppMiddleware(req: NextRequest) {
   if (
     !user &&
     path !== "/login" &&
+    path !== "/landing" &&
     path !== "/forgot-password" &&
     path !== "/register" &&
     path !== "/auth/saml" &&
@@ -36,7 +33,7 @@ export default async function AppMiddleware(req: NextRequest) {
   ) {
     return NextResponse.redirect(
       new URL(
-        `/login${path === "/" ? "" : `?next=${encodeURIComponent(fullPath)}`}`,
+        `/landing${path === "/" ? "" : `?next=${encodeURIComponent(fullPath)}`}`,
         req.url,
       ),
     );

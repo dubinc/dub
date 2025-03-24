@@ -17,28 +17,30 @@ const config: Pick<Config, "presets"> = {
           colors: {
             primary: {
               DEFAULT: "#006666",
-              light: "#DBF2F2",
-              lighter: "#F8FCFC",
-              extraLight: "#F2F7F7",
-              dark: "#004D4D",
+              100: "#F8FCFC",
+              200: "#F2F7F7",
+              300: "#DBF2F2",
+              800: "#004D4D",
             },
             secondary: {
               DEFAULT: "#0066CC",
-              light: "#E6F0FF",
-              dark: "#0052A3",
+              100: "#E6F0FF",
+              800: "#0052A3",
               text: "#1E293B",
               textMuted: "#2C3345",
             },
             neutral: {
               DEFAULT: "#212121",
-              light: "#424242",
-              lighter: "#6E7275",
-              muted: "#799290",
-              dark: "#121620",
+              100: "#F6F6F7",
+              200: "#6E7275",
+              300: "#424242",
+              400: "#799290",
+              900: "#121620",
             },
             border: {
               DEFAULT: "#D9E7FF",
-              light: "#F0F2F5",
+              100: "#F0F2F5",
+              200: "#E2E2E3",
             },
           },
           backgroundImage: {
@@ -47,28 +49,21 @@ const config: Pick<Config, "presets"> = {
           },
           animation: {
             ...sharedConfig?.theme?.extend?.animation,
-            // Infinite scroll animation
             "infinite-scroll": "infinite-scroll 22s linear infinite",
             "infinite-scroll-y": "infinite-scroll-y 22s linear infinite",
-            // Scrolling banner animations
             "scrolling-banner":
               "scrolling-banner var(--duration) linear infinite",
             "scrolling-banner-vertical":
               "scrolling-banner-vertical var(--duration) linear infinite",
-            // Text appear animation
             "text-appear": "text-appear 0.15s ease",
-            // Table pinned column shadow animation
             "table-pinned-shadow":
               "table-pinned-shadow cubic-bezier(0, 0, 1, 0)",
-            // OTP caret blink animation
             "caret-blink": "caret-blink 1s ease-out infinite",
-            // Pulse scale animation used for onboarding/welcome
             "pulse-scale": "pulse-scale 6s ease-out infinite",
             "gradient-move": "gradient-move 5s linear infinite",
           },
           keyframes: {
             ...sharedConfig?.theme?.extend?.keyframes,
-            // Infinite scroll animation
             "infinite-scroll": {
               "0%": { transform: "translateX(0)" },
               "100%": { transform: "translateX(var(--scroll, -150%))" },
@@ -77,7 +72,6 @@ const config: Pick<Config, "presets"> = {
               "0%": { transform: "translateY(0)" },
               "100%": { transform: "translateY(var(--scroll, -150%))" },
             },
-            // Scrolling banner keyframes
             "scrolling-banner": {
               from: { transform: "translateX(0)" },
               to: { transform: "translateX(calc(-50% - var(--gap) / 2))" },
@@ -86,7 +80,6 @@ const config: Pick<Config, "presets"> = {
               from: { transform: "translateY(0)" },
               to: { transform: "translateY(calc(-50% - var(--gap) / 2))" },
             },
-            // Text appear animation
             "text-appear": {
               "0%": {
                 opacity: "0",
@@ -97,23 +90,19 @@ const config: Pick<Config, "presets"> = {
                 transform: "rotateX(0deg) scale(1)",
               },
             },
-            // Table pinned column shadow animation
             "table-pinned-shadow": {
               "0%": { filter: "drop-shadow(rgba(0, 0, 0, 0.1) -2px 10px 6px)" },
               "100%": { filter: "drop-shadow(rgba(0, 0, 0, 0) -2px 10px 6px)" },
             },
-            // OTP caret blink animation
             "caret-blink": {
               "0%,70%,100%": { opacity: "0" },
               "20%,50%": { opacity: "1" },
             },
-            // Pulse scale animation used for onboarding/welcome
             "pulse-scale": {
               "0%": { transform: "scale(0.8)", opacity: "0" },
               "30%": { opacity: "1" },
               "100%": { transform: "scale(2)", opacity: "0" },
             },
-            // Gradient move animation for gradient text
             "gradient-move": {
               "0%": { backgroundPosition: "0% 50%" },
               "100%": { backgroundPosition: "200% 50%" },

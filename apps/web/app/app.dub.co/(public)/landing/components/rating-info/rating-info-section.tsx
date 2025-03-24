@@ -11,7 +11,7 @@ export const RatingInfoSection: FC = () => {
   if (isMobile) return null;
 
   return (
-    <section className="bg-primary-lighter mx-auto flex w-full max-w-[1172px] flex-row items-center justify-between gap-[42px] px-3 py-[42px]">
+    <section className="bg-primary-100 mx-auto flex w-full max-w-[1172px] flex-row items-center justify-between gap-[42px] px-3 py-[42px]">
       <Rating alignItems={"start"} />
       <Link
         href={"/register"}
@@ -19,7 +19,7 @@ export const RatingInfoSection: FC = () => {
       >
         Create your free account
       </Link>
-      <p className="text-neutral-lighter">
+      <p className="text-neutral-200">
         No credit card is required during registration.
       </p>
     </section>
