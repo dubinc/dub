@@ -4,7 +4,7 @@ import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@dub/prisma";
 
 // POST - /api/cron/links/[linkId]/complete-tests
-// Completes a link's tests if they're ready, scheduled by QStash
+// Completes a link's AB tests if they're ready, scheduled by QStash
 export async function POST(
   req: Request,
   {
@@ -20,6 +20,9 @@ export async function POST(
     const link = await prisma.link.findUnique({
       where: {
         id: linkId,
+      },
+      include: {
+        project: true,
       },
     });
 

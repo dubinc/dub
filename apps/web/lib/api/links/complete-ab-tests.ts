@@ -31,7 +31,7 @@ export async function completeABTests(link: Link & { project: Project }) {
     ),
   );
 
-  // All results are zero, do nothing
+  // There are no leads generated for any test variant, do nothing
   if (max === 0) {
     console.log(
       `AB Test completed but all results are zero for ${link.id}, doing nothing.`,
@@ -67,7 +67,6 @@ export async function completeABTests(link: Link & { project: Project }) {
         ? link.expiresAt.toISOString()
         : link.expiresAt,
     geo: link.geo as NewLinkProps["geo"],
-
     testVariants: link.testVariants as NewLinkProps["testVariants"],
     testCompletedAt:
       link.testCompletedAt instanceof Date
@@ -77,9 +76,7 @@ export async function completeABTests(link: Link & { project: Project }) {
       link.testStartedAt instanceof Date
         ? link.testStartedAt.toISOString()
         : link.testStartedAt,
-
     url: winner.url,
-
     ...(link.key === "_root" && {
       domain: link.domain,
       key: link.key,
