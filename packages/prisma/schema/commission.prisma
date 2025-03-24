@@ -41,7 +41,6 @@ model Commission {
   customer Customer? @relation(fields: [customerId], references: [id])
 
   @@unique([programId, invoiceId])
-  @@index([programId, partnerId, status])
   @@index([programId, partnerId, status, earnings])
   @@index(partnerId)
   @@index(payoutId)
