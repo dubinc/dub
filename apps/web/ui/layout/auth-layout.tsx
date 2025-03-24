@@ -36,14 +36,14 @@ export const AuthLayout = ({ children }: AuthLayoutProps) => {
           </p>
           <div className="flex gap-3 text-center text-xs text-neutral-500 underline underline-offset-2">
             <a
-              href="https://dub.co/legal/privacy"
+              href="https://getqr-dev.vercel.app/legal/privacy"
               target="_blank"
               className="hover:text-neutral-800"
             >
               Privacy Policy
             </a>
             <a
-              href="https://dub.co/legal/terms"
+              href="https://getqr-dev.vercel.app/legal/terms"
               target="_blank"
               className="hover:text-neutral-800"
             >
@@ -57,14 +57,14 @@ export const AuthLayout = ({ children }: AuthLayoutProps) => {
         <div className="ml-12 h-1/2 w-[140%] rounded-xl border border-neutral-200 p-2 shadow-xl">
           <BlurImage
             alt="Dub.co Analytics"
-            src="https://assets.dub.co/changelog/new-dashboard.jpg"
+            src="https://assets.getqr-dev.vercel.app/changelog/new-dashboard.jpg"
             width={2400}
             height={1260}
             className="aspect-[2400/1260] h-full rounded-lg border border-neutral-200 object-cover object-left-top"
           />
         </div>
         <a
-          href="https://dub.co/customers"
+          href="https://getqr-dev.vercel.app/customers"
           target="_blank"
           className="animate-infinite-scroll flex items-center space-x-4"
         >
@@ -72,7 +72,7 @@ export const AuthLayout = ({ children }: AuthLayoutProps) => {
             <BlurImage
               alt={`${logo} logo`}
               key={idx}
-              src={`https://assets.dub.co/clients/${logo}.svg`}
+              src={`https://assets.getqr-dev.vercel.app/clients/${logo}.svg`}
               width={520}
               height={182}
               className="h-12 grayscale transition-all hover:grayscale-0"

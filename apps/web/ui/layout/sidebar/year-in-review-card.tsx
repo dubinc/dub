@@ -36,7 +36,7 @@ export function YearInReviewCard() {
           )}
         />
         <Image
-          src="https://assets.dub.co/blog/2024.jpg"
+          src="https://assets.getqr-dev.vercel.app/blog/2024.jpg"
           alt="Dub logo with confetti"
           fill
           sizes="10vw"

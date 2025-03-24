@@ -26,7 +26,7 @@ const LINKS = [
   // {
   //   name: "Help center",
   //   icon: HelpCircle,
-  //   href: "https://dub.co/help",
+  //   href: "https://getqr-dev.vercel.app/help",
   //   target: "_blank",
   // },
   // {

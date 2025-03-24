@@ -41,7 +41,7 @@ function AddWorkspaceModalHelper({
         <Logo />
         <h3 className="text-lg font-medium">Create a new workspace</h3>
         <a
-          href="https://dub.co/help/article/what-is-a-workspace"
+          href="https://getqr-dev.vercel.app/help/article/what-is-a-workspace"
           target="_blank"
           className="-translate-y-2 text-center text-xs text-neutral-500 underline underline-offset-4 hover:text-neutral-800"
         >

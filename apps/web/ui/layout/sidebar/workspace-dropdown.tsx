@@ -144,13 +144,13 @@ const LINKS = [
   {
     name: "Help Center",
     icon: HelpCircle,
-    href: "https://dub.co/help",
+    href: "https://getqr-dev.vercel.app/help",
     target: "_blank",
   },
   {
     name: "Documentation",
     icon: Book2,
-    href: "https://dub.co/docs",
+    href: "https://getqr-dev.vercel.app/docs",
     target: "_blank",
   },
 ];

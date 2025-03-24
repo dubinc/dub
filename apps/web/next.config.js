@@ -41,7 +41,7 @@ module.exports = withAxiom({
   images: {
     remotePatterns: [
       {
-        hostname: "assets.dub.co", // for Dub's static assets
+        hostname: "assets.getqr-dev.vercel.app", // for Dub's static assets
       },
       {
         hostname: "dubassets.com", // for Dub's user generated images
@@ -115,7 +115,7 @@ module.exports = withAxiom({
             value: "app.dub.sh",
           },
         ],
-        destination: "https://app.dub.co",
+        destination: "https://app.getqr-dev.vercel.app",
         permanent: true,
         statusCode: 301,
       },
@@ -127,7 +127,7 @@ module.exports = withAxiom({
             value: "app.dub.sh",
           },
         ],
-        destination: "https://app.dub.co/:path*",
+        destination: "https://app.getqr-dev.vercel.app/:path*",
         permanent: true,
         statusCode: 301,
       },
@@ -141,7 +141,7 @@ module.exports = withAxiom({
                 value: "dub.sh",
               },
             ],
-            destination: `https://dub.co/${segment}`,
+            destination: `https://getqr-dev.vercel.app/${segment}`,
             permanent: true,
             statusCode: 301,
           },
@@ -153,7 +153,7 @@ module.exports = withAxiom({
                 value: "dub.sh",
               },
             ],
-            destination: `https://dub.co/${segment}/:path*`,
+            destination: `https://getqr-dev.vercel.app/${segment}/:path*`,
             permanent: true,
             statusCode: 301,
           }
@@ -167,7 +167,7 @@ module.exports = withAxiom({
             value: "dub.sh",
           },
         ],
-        destination: "https://dub.co/tools/metatags",
+        destination: "https://getqr-dev.vercel.app/tools/metatags",
         permanent: true,
         statusCode: 301,
       },
@@ -176,7 +176,7 @@ module.exports = withAxiom({
         has: [
           {
             type: "host",
-            value: "dub.co",
+            value: "getqr-dev.vercel.app",
           },
         ],
         destination: "/tools/metatags",
@@ -191,7 +191,7 @@ module.exports = withAxiom({
             value: "staging.dub.sh",
           },
         ],
-        destination: "https://dub.co",
+        destination: "https://getqr-dev.vercel.app",
         permanent: true,
         statusCode: 301,
       },
@@ -203,7 +203,7 @@ module.exports = withAxiom({
             value: "preview.dub.sh",
           },
         ],
-        destination: "https://preview.dub.co",
+        destination: "https://preview.getqr-dev.vercel.app",
         permanent: true,
         statusCode: 301,
       },
@@ -215,7 +215,7 @@ module.exports = withAxiom({
             value: "admin.dub.sh",
           },
         ],
-        destination: "https://admin.dub.co",
+        destination: "https://admin.getqr-dev.vercel.app",
         permanent: true,
         statusCode: 301,
       },
@@ -226,7 +226,7 @@ module.exports = withAxiom({
       // for dub proxy
       {
         source: "/_proxy/dub/track/click",
-        destination: "https://api.dub.co/track/click",
+        destination: "https://api.getqr-dev.vercel.app/track/click",
       },
       // for posthog proxy
       {

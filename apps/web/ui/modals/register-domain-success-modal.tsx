@@ -44,7 +44,7 @@ const RegisterDomainSuccess = ({
               Your domain is now registered and ready to use, though it may take
               some time for the domain configuration to propagate globally.{" "}
               <a
-                href="https://dub.co/help/article/free-dot-link-domain#claim-your-domain-and-wait-for-it-to-be-provisioned"
+                href="https://getqr-dev.vercel.app/help/article/free-dot-link-domain#claim-your-domain-and-wait-for-it-to-be-provisioned"
                 target="_blank"
                 className="underline transition-colors hover:text-neutral-700"
               >

@@ -95,7 +95,7 @@ function ImportBitlyModal({
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-8 sm:px-16">
         <div className="flex items-center space-x-3 py-4">
           <img
-            src="https://assets.dub.co/misc/icons/bitly.svg"
+            src="https://assets.getqr-dev.vercel.app/misc/icons/bitly.svg"
             alt="Bitly logo"
             className="h-10 w-10 rounded-full"
           />

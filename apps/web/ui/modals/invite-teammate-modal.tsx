@@ -57,7 +57,7 @@ function InviteTeammateModal({
         <p className="text-center text-sm text-neutral-500">
           Invite teammates with{" "}
           <a
-            href="https://dub.co/help/article/workspace-roles"
+            href="https://getqr-dev.vercel.app/help/article/workspace-roles"
             target="_blank"
             className="underline hover:text-neutral-900"
           >

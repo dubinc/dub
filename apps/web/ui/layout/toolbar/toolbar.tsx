@@ -20,7 +20,7 @@ export default function Toolbar(props: ToolbarProps) {
 
 async function ToolbarRSC({ show = ["onboarding", "help"] }: ToolbarProps) {
   const { popularHelpArticles, allHelpArticles } = await fetch(
-    "https://dub.co/api/content",
+    "https://getqr-dev.vercel.app/api/content",
     {
       next: {
         revalidate: 60 * 60 * 24, // cache for 24 hours

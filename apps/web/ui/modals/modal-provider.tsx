@@ -110,7 +110,9 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
   );
 
   const [hashes, setHashes] = useCookies<SimpleLinkProps[]>("hashes__dub", [], {
-    domain: !!process.env.NEXT_PUBLIC_VERCEL_URL ? ".dub.co" : undefined,
+    domain: !!process.env.NEXT_PUBLIC_VERCEL_URL
+      ? ".getqr-dev.vercel.app"
+      : undefined,
   });
 
   const { id: workspaceId, error } = useWorkspace();

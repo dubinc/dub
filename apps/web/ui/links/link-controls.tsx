@@ -289,7 +289,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
                     <SimpleTooltipContent
                       title="Since this is a custom domain link, you can only transfer it to another workspace if you transfer the domain as well."
                       cta="Learn more."
-                      href="https://dub.co/help/article/how-to-transfer-domains"
+                      href="https://getqr-dev.vercel.app/help/article/how-to-transfer-domains"
                     />
                   ) : !canManageLink ? (
                     "You don't have permission to transfer this link."

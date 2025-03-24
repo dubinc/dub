@@ -150,7 +150,7 @@ function TargetingModal({
                     <SimpleTooltipContent
                       title="Redirect your users to different links based on their location."
                       cta="Learn more about geo targeting."
-                      href="https://dub.co/help/article/geo-targeting"
+                      href="https://getqr-dev.vercel.app/help/article/geo-targeting"
                     />
                   }
                 />
