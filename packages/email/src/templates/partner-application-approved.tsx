@@ -21,6 +21,7 @@ export function PartnerApplicationApproved({
     name: "Acme",
     logo: DUB_WORDMARK,
     slug: "acme",
+    supportEmail: "support@acme.com",
   },
   partner = {
     name: "John Doe",
@@ -33,6 +34,7 @@ export function PartnerApplicationApproved({
     name: string;
     logo: string | null;
     slug: string;
+    supportEmail?: string | null;
   };
   partner: {
     name: string;
@@ -131,7 +133,16 @@ export function PartnerApplicationApproved({
 
             <Text className="text-sm leading-6 text-neutral-600">
               If you have any questions about the program please don't hesitate
-              to reach out to the <strong>{program.name}</strong> team.
+              to reach out to the <strong>{program.name}</strong> team
+              {program.supportEmail ? (
+                <Link href={`mailto:${program.supportEmail}`}>
+                  {" "}
+                  ({program.supportEmail})
+                </Link>
+              ) : (
+                ""
+              )}
+              .
             </Text>
 
             <Text className="text-sm leading-6 text-neutral-600">
