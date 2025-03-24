@@ -30,19 +30,19 @@ export async function scheduleTestCompletion(link: ExpandedLink) {
     );
   }
 
-  if (!link.tests) return;
+  if (!link.testVariants) return;
 
-  const testsCompleteAt = link.testsCompleteAt
-    ? new Date(link.testsCompleteAt)
+  const testCompletedAt = link.testCompletedAt
+    ? new Date(link.testCompletedAt)
     : null;
 
-  if (!testsCompleteAt) return;
+  if (!testCompletedAt) return;
 
-  if (testsCompleteAt > new Date()) {
+  if (testCompletedAt > new Date()) {
     // Tests are not complete yet, schedule a job for completion
     await qstash.publishJSON({
       url: completionUrl,
-      delay: (testsCompleteAt.getTime() - new Date().getTime()) / 1000,
+      delay: (testCompletedAt.getTime() - new Date().getTime()) / 1000,
     });
   }
 }

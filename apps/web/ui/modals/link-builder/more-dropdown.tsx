@@ -39,7 +39,7 @@ export function MoreDropdown() {
   const { AdvancedModal, setShowAdvancedModal } = useAdvancedModal();
 
   const modalCallbacks = {
-    tests: setShowABTestingModal,
+    testVariants: setShowABTestingModal,
     password: setShowPasswordModal,
     targeting: setShowTargetingModal,
     expiresAt: setShowExpirationModal,

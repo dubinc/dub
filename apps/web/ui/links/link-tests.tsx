@@ -12,21 +12,21 @@ export const LinkTests = memo(({ link }: { link: ResponseLink }) => {
   const { id: workspaceId } = useWorkspace();
   const { showTests } = useLinkCardContext();
 
-  const tests = useMemo(() => {
+  const testVariants = useMemo(() => {
     if (
-      !link.tests ||
-      !link.testsCompleteAt ||
-      !(new Date() < new Date(link.testsCompleteAt))
+      !link.testVariants ||
+      !link.testCompletedAt ||
+      !(new Date() < new Date(link.testCompletedAt))
     )
       return null;
 
     try {
-      return LinkTestsSchema.parse(link.tests);
+      return LinkTestsSchema.parse(link.testVariants);
     } catch (e) {
-      console.error(`Failed to parse link tests for link ${link.id}`, e);
+      console.error(`Failed to parse link testVariants for link ${link.id}`, e);
     }
     return null;
-  }, [link.tests, link.testsCompleteAt, link.id]);
+  }, [link.testVariants, link.testCompletedAt, link.id]);
 
   const { data, isLoading, error } = useSWR<
     {
@@ -37,14 +37,14 @@ export const LinkTests = memo(({ link }: { link: ResponseLink }) => {
       sales: number;
     }[]
   >(
-    Boolean(tests && tests.length) &&
+    Boolean(testVariants && testVariants.length) &&
       `/api/analytics?${new URLSearchParams({
         event: "composite",
         groupBy: "top_urls",
         linkId: link.id,
         workspaceId: workspaceId!,
-        ...(link.testsStartedAt && {
-          start: new Date(link.testsStartedAt).toISOString(),
+        ...(link.testStartedAt && {
+          start: new Date(link.testStartedAt).toISOString(),
         }),
       }).toString()}`,
     fetcher,
@@ -54,7 +54,7 @@ export const LinkTests = memo(({ link }: { link: ResponseLink }) => {
   );
   console.log(data);
 
-  if (!tests || !tests.length) return null;
+  if (!testVariants || !testVariants.length) return null;
 
   return (
     <motion.div
@@ -64,7 +64,7 @@ export const LinkTests = memo(({ link }: { link: ResponseLink }) => {
       className="overflow-hidden"
     >
       <ul className="flex flex-col gap-2.5 border-t border-neutral-200 bg-neutral-100 p-3">
-        {tests.map((test, idx) => {
+        {testVariants.map((test, idx) => {
           const analytics = data?.find(({ url }) => url === test.url);
 
           return (

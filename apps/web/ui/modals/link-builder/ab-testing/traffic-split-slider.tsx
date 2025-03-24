@@ -3,10 +3,10 @@ import { cn } from "@dub/utils";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export function TrafficSplitSlider({
-  tests,
+  testVariants,
   onChange,
 }: {
-  tests: { url: string; percentage: number }[];
+  testVariants: { url: string; percentage: number }[];
   onChange: (percentages: number[]) => void;
 }) {
   const [isDragging, setIsDragging] = useState<number | null>(null);
@@ -27,14 +27,14 @@ export function TrafficSplitSlider({
       const mousePercentage = Math.round((mouseX / containerWidth) * 100);
 
       // Get sum of percentages to the left and right of the two being affected
-      const leftPercentage = tests
+      const leftPercentage = testVariants
         .slice(0, Math.max(0, isDragging))
         .reduce((sum, { percentage }) => sum + percentage, 0);
-      const rightPercentage = tests
+      const rightPercentage = testVariants
         .slice(isDragging + 2)
         .reduce((sum, { percentage }) => sum + percentage, 0);
 
-      let newPercentages = tests.map(({ percentage }) => percentage);
+      let newPercentages = testVariants.map(({ percentage }) => percentage);
 
       newPercentages[isDragging] = mousePercentage - leftPercentage;
       newPercentages[isDragging + 1] = 100 - rightPercentage - mousePercentage;
@@ -44,7 +44,7 @@ export function TrafficSplitSlider({
         onChange(newPercentages);
       }
     },
-    [isDragging, tests, onChange],
+    [isDragging, testVariants, onChange],
   );
 
   const handleMouseUp = useCallback(() => {
@@ -71,7 +71,7 @@ export function TrafficSplitSlider({
       )}
     >
       <div className="absolute inset-0 flex h-full">
-        {tests.map((test, i) => (
+        {testVariants.map((test, i) => (
           <div
             key={i}
             className="@container pointer-events-none relative flex h-full"
@@ -86,7 +86,7 @@ export function TrafficSplitSlider({
                 {test.percentage}%
               </span>
             </div>
-            {i < tests.length - 1 && (
+            {i < testVariants.length - 1 && (
               <>
                 <div className="w-1.5" />
                 <div

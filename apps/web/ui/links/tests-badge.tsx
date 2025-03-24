@@ -9,7 +9,7 @@ import { ResponseLink } from "./links-container";
 export function TestsBadge({
   link,
 }: {
-  link: Pick<ResponseLink, "tests" | "testsCompleteAt">;
+  link: Pick<ResponseLink, "testVariants" | "testCompletedAt">;
 }) {
   const { showTests, setShowTests } = useLinkCardContext();
 

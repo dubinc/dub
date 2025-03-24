@@ -19,8 +19,8 @@ export function formatRedisLink(link: ExpandedLink): RedisLinkProps {
     doIndex,
     projectId,
     webhooks,
-    tests,
-    testsCompleteAt,
+    testVariants,
+    testCompletedAt,
   } = link;
 
   const webhookIds = webhooks?.map(({ webhookId }) => webhookId) ?? [];
@@ -44,10 +44,10 @@ export function formatRedisLink(link: ExpandedLink): RedisLinkProps {
     ...(doIndex && { doIndex: true }),
     ...(webhookIds.length > 0 && { webhookIds }),
     ...(Boolean(
-      tests && testsCompleteAt && new Date(testsCompleteAt) > new Date(),
+      testVariants && testCompletedAt && new Date(testCompletedAt) > new Date(),
     ) && {
-      tests: tests as z.infer<typeof LinkTestsSchema>,
-      testsCompleteAt: new Date(testsCompleteAt!),
+      testVariants: testVariants as z.infer<typeof LinkTestsSchema>,
+      testCompletedAt: new Date(testCompletedAt!),
     }),
   };
 }

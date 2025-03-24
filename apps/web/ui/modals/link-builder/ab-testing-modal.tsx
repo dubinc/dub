@@ -41,8 +41,8 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { LinkFormData } from ".";
 
-const parseTests = (tests: LinkFormData["tests"]) =>
-  Array.isArray(tests) ? LinkTestsSchema.parse(tests) : null;
+const parseTests = (testVariants: LinkFormData["testVariants"]) =>
+  Array.isArray(testVariants) ? LinkTestsSchema.parse(testVariants) : null;
 
 const inTwoWeeks = new Date(Date.now() + 2 * 7 * 24 * 60 * 60 * 1000);
 
@@ -79,56 +79,57 @@ function ABTestingModal({
     formState: { isDirty, isValid },
     handleSubmit,
   } = useForm<
-    { tests: z.infer<typeof LinkTestsSchema> } & Pick<
+    { testVariants: z.infer<typeof LinkTestsSchema> } & Pick<
       LinkFormData,
-      "testsCompleteAt"
+      "testCompletedAt"
     >
   >({
     mode: "onChange",
     values: {
-      tests: parseTests(getValuesParent("tests")) ?? [
+      testVariants: parseTests(getValuesParent("testVariants")) ?? [
         { url: getValuesParent("url") || "", percentage: 100 },
       ],
-      testsCompleteAt:
-        (getValuesParent("testsCompleteAt") as Date | null) ?? inTwoWeeks,
+      testCompletedAt:
+        (getValuesParent("testCompletedAt") as Date | null) ?? inTwoWeeks,
     },
   });
 
-  const tests = watch("tests") || [];
-  const testsCompleteAt = watch("testsCompleteAt");
-  const [idParent, testsParent] = watchParent(["id", "tests"]);
+  const testVariants = watch("testVariants") || [];
+  const testCompletedAt = watch("testCompletedAt");
+  const [idParent, testVariantsParent] = watchParent(["id", "testVariants"]);
 
   const addTestUrl = () => {
-    if (!tests.length || tests.length >= MAX_TEST_COUNT) return;
+    if (!testVariants.length || testVariants.length >= MAX_TEST_COUNT) return;
 
-    const allEqual = tests.every(
-      ({ percentage }) => Math.abs(percentage - tests[0].percentage) <= 1,
+    const allEqual = testVariants.every(
+      ({ percentage }) =>
+        Math.abs(percentage - testVariants[0].percentage) <= 1,
     );
 
     if (allEqual) {
       // All percentages are equal so let's keep it that way
-      const each = Math.floor(100 / (tests.length + 1));
+      const each = Math.floor(100 / (testVariants.length + 1));
       setValue(
-        "tests",
+        "testVariants",
         [
-          ...tests.map((t) => ({ ...t, percentage: each })),
-          { url: "", percentage: 100 - each * tests.length },
+          ...testVariants.map((t) => ({ ...t, percentage: each })),
+          { url: "", percentage: 100 - each * testVariants.length },
         ],
         { shouldDirty: true },
       );
     } else {
       // Not all percentages are equal so let's split the latest one we can
-      const toSplitIndex = tests.findLastIndex(
+      const toSplitIndex = testVariants.findLastIndex(
         ({ percentage }) => percentage >= MIN_TEST_PERCENTAGE * 2,
       );
-      const toSplit = tests[toSplitIndex];
+      const toSplit = testVariants[toSplitIndex];
       const toSplitPercentage = Math.floor(toSplit.percentage / 2);
       const remainingPercentage = toSplit.percentage - toSplitPercentage;
 
       setValue(
-        "tests",
+        "testVariants",
         [
-          ...tests.map((test, idx) => ({
+          ...testVariants.map((test, idx) => ({
             ...test,
             percentage:
               idx === toSplitIndex ? toSplitPercentage : test.percentage,
@@ -143,20 +144,21 @@ function ABTestingModal({
   };
 
   const removeTestUrl = (index: number) => {
-    if (tests.length < 2) return;
+    if (testVariants.length < 2) return;
 
-    const allEqual = tests.every(
-      ({ percentage }) => Math.abs(percentage - tests[0].percentage) <= 1,
+    const allEqual = testVariants.every(
+      ({ percentage }) =>
+        Math.abs(percentage - testVariants[0].percentage) <= 1,
     );
 
     if (allEqual) {
       // All percentages are equal so let's keep it that way
-      const each = Math.floor(100 / (tests.length - 1));
-      const remainder = 100 - each * (tests.length - 2);
+      const each = Math.floor(100 / (testVariants.length - 1));
+      const remainder = 100 - each * (testVariants.length - 2);
 
       setValue(
-        "tests",
-        tests
+        "testVariants",
+        testVariants
           ?.filter((_, i) => i !== index)
           .map((test, idx, arr) => ({
             ...test,
@@ -168,11 +170,11 @@ function ABTestingModal({
       );
     } else {
       // Not all percentages are equal so let's give the last one the remainder
-      const remainder = tests[index].percentage;
+      const remainder = testVariants[index].percentage;
 
       setValue(
-        "tests",
-        tests
+        "testVariants",
+        testVariants
           ?.filter((_, i) => i !== index)
           .map((test, idx, arr) => ({
             ...test,
@@ -200,11 +202,11 @@ function ABTestingModal({
         onSubmit={(e) => {
           e.stopPropagation();
           handleSubmit((data) => {
-            const currentTests = data.tests;
+            const currentTests = data.testVariants;
 
             if (!currentTests || currentTests.length <= 1) {
-              setValueParent("tests", null, { shouldDirty: true });
-              setValueParent("testsCompleteAt", null, {
+              setValueParent("testVariants", null, { shouldDirty: true });
+              setValueParent("testCompletedAt", null, {
                 shouldDirty: true,
               });
 
@@ -230,8 +232,8 @@ function ABTestingModal({
 
             setValueParent("url", currentTests[0].url, { shouldDirty: true });
             setValueParent("trackConversion", true);
-            setValueParent("tests", currentTests, { shouldDirty: true });
-            setValueParent("testsCompleteAt", data.testsCompleteAt, {
+            setValueParent("testVariants", currentTests, { shouldDirty: true });
+            setValueParent("testCompletedAt", data.testCompletedAt, {
               shouldDirty: true,
             });
             setShowABTestingModal(false);
@@ -292,7 +294,7 @@ function ABTestingModal({
               className="-m-1"
             >
               <div className="flex flex-col gap-2 p-1">
-                {tests.map((_, index) => (
+                {testVariants.map((_, index) => (
                   <div key={index} className="flex items-center gap-2">
                     <label className="relative block flex grow items-center overflow-hidden rounded-md border border-neutral-300 focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500">
                       <span className="flex h-9 w-8 items-center justify-center border-r border-neutral-300 text-center text-sm font-medium text-neutral-800">
@@ -306,14 +308,15 @@ function ABTestingModal({
                           "https://dub.co/help/article/what-is-dub"
                         }
                         className="block h-9 grow border-none px-2 text-neutral-900 placeholder-neutral-400 focus:ring-0 sm:text-sm"
-                        {...register(`tests.${index}.url`, {
-                          validate: (value, { tests }) => {
+                        {...register(`testVariants.${index}.url`, {
+                          validate: (value, { testVariants }) => {
                             if (!value) return "URL is required";
 
                             if (!isValidUrl(value)) return "Invalid URL";
 
                             return (
-                              tests.length > 1 && tests.length <= MAX_TEST_COUNT
+                              testVariants.length > 1 &&
+                              testVariants.length <= MAX_TEST_COUNT
                             );
                           },
                         })}
@@ -343,7 +346,7 @@ function ABTestingModal({
               className="mt-2 h-8"
               onClick={addTestUrl}
               disabledTooltip={
-                tests.length >= MAX_TEST_COUNT
+                testVariants.length >= MAX_TEST_COUNT
                   ? `You may only add ${MAX_TEST_COUNT} URLs`
                   : undefined
               }
@@ -364,10 +367,10 @@ function ABTestingModal({
           </div>
           <div className="mt-4">
             <TrafficSplitSlider
-              tests={tests}
+              testVariants={testVariants}
               onChange={(percentages) => {
                 percentages.forEach((percentage, index) => {
-                  setValue(`tests.${index}.percentage`, percentage, {
+                  setValue(`testVariants.${index}.percentage`, percentage, {
                     shouldDirty: true,
                   });
                 });
@@ -380,7 +383,7 @@ function ABTestingModal({
         <div className="mt-6">
           <div className="flex items-center gap-2">
             <label
-              htmlFor={`${id}-testsCompleteAt`}
+              htmlFor={`${id}-testCompletedAt`}
               className="block text-sm font-medium text-neutral-700"
             >
               Completion Date
@@ -397,19 +400,19 @@ function ABTestingModal({
           </div>
           <div className="mt-2 flex w-full items-center justify-between rounded-md border border-neutral-300 bg-white shadow-sm transition-all focus-within:border-neutral-800 focus-within:outline-none focus-within:ring-1 focus-within:ring-neutral-500">
             <input
-              id={`${id}-testsCompleteAt`}
+              id={`${id}-testCompletedAt`}
               type="text"
               placeholder='E.g. "in 2 weeks" or "next month"'
               defaultValue={
-                getValues("testsCompleteAt")
-                  ? formatDateTime(getValues("testsCompleteAt") as Date)
+                getValues("testCompletedAt")
+                  ? formatDateTime(getValues("testCompletedAt") as Date)
                   : ""
               }
               onBlur={(e) => {
                 if (e.target.value.length > 0) {
                   const parsedDateTime = parseDateTime(e.target.value);
                   if (parsedDateTime) {
-                    setValue("testsCompleteAt", parsedDateTime, {
+                    setValue("testCompletedAt", parsedDateTime, {
                       shouldDirty: true,
                     });
                     e.target.value = formatDateTime(parsedDateTime);
@@ -421,13 +424,13 @@ function ABTestingModal({
             <input
               type="datetime-local"
               value={
-                getValues("testsCompleteAt")
-                  ? getDateTimeLocal(getValues("testsCompleteAt") as Date)
+                getValues("testCompletedAt")
+                  ? getDateTimeLocal(getValues("testCompletedAt") as Date)
                   : ""
               }
               onChange={(e) => {
                 const completeDate = new Date(e.target.value);
-                setValue("testsCompleteAt", completeDate, {
+                setValue("testCompletedAt", completeDate, {
                   shouldDirty: true,
                 });
               }}
@@ -437,7 +440,7 @@ function ABTestingModal({
           <p className="mt-1 text-xs text-neutral-500">6 weeks maximum</p>
         </div>
 
-        {testsParent && (
+        {testVariantsParent && (
           <div className="mt-6 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-4">
             <TriangleWarning className="mt-0.5 size-4 shrink-0 text-amber-500" />
             <p className="text-sm font-medium text-amber-900">
@@ -449,7 +452,7 @@ function ABTestingModal({
 
         <div className="mt-4 flex items-center justify-between">
           <div>
-            {Boolean(testsParent) && (
+            {Boolean(testVariantsParent) && (
               <button
                 type="button"
                 className="text-xs font-medium text-neutral-700 transition-colors hover:text-neutral-950"
@@ -457,8 +460,8 @@ function ABTestingModal({
                   if (idParent) {
                     setShowEndABTestingModal(true);
                   } else {
-                    (["tests", "testsCompleteAt"] as const).forEach((key) =>
-                      setValueParent(key, null, { shouldDirty: true }),
+                    (["testVariants", "testCompletedAt"] as const).forEach(
+                      (key) => setValueParent(key, null, { shouldDirty: true }),
                     );
                     setShowABTestingModal(false);
                   }
@@ -483,7 +486,8 @@ function ABTestingModal({
               type="submit"
               variant="primary"
               text={
-                Array.isArray(testsParent) && testsParent.length > 1
+                Array.isArray(testVariantsParent) &&
+                testVariantsParent.length > 1
                   ? "Save changes"
                   : "Start testing"
               }
@@ -492,10 +496,10 @@ function ABTestingModal({
                 !isDirty ||
                 !isValid ||
                 Boolean(
-                  testsCompleteAt &&
+                  testCompletedAt &&
                     // Restrict competion date from -1 days to 6 weeks
-                    (differenceInDays(testsCompleteAt, new Date()) > 6 * 7 ||
-                      differenceInDays(testsCompleteAt, new Date()) < -1),
+                    (differenceInDays(testCompletedAt, new Date()) > 6 * 7 ||
+                      differenceInDays(testCompletedAt, new Date()) < -1),
                 )
               }
             />
@@ -507,15 +511,17 @@ function ABTestingModal({
 }
 
 export function getABTestingLabel({
-  tests,
-  testsCompleteAt,
-}: Pick<LinkFormData, "tests" | "testsCompleteAt">) {
-  const enabled = Boolean(tests && testsCompleteAt);
+  testVariants,
+  testCompletedAt,
+}: Pick<LinkFormData, "testVariants" | "testCompletedAt">) {
+  const enabled = Boolean(testVariants && testCompletedAt);
 
-  if (testsCompleteAt && new Date(testsCompleteAt) < new Date())
+  if (testCompletedAt && new Date(testCompletedAt) < new Date())
     return "Test Complete";
 
-  return enabled && Array.isArray(tests) ? `${tests?.length} URLs` : "A/B Test";
+  return enabled && Array.isArray(testVariants)
+    ? `${testVariants?.length} URLs`
+    : "A/B Test";
 }
 
 function ABTestingButton({
@@ -524,17 +530,20 @@ function ABTestingButton({
   setShowABTestingModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const { watch } = useFormContext<LinkFormData>();
-  const [tests, testsCompleteAt] = watch(["tests", "testsCompleteAt"]);
+  const [testVariants, testCompletedAt] = watch([
+    "testVariants",
+    "testCompletedAt",
+  ]);
 
   useKeyboardShortcut("a", () => setShowABTestingModal(true), {
     modal: true,
   });
 
-  const enabled = Boolean(tests && testsCompleteAt);
+  const enabled = Boolean(testVariants && testCompletedAt);
 
   const label = useMemo(
-    () => getABTestingLabel({ tests, testsCompleteAt }),
-    [tests, testsCompleteAt],
+    () => getABTestingLabel({ testVariants, testCompletedAt }),
+    [testVariants, testCompletedAt],
   );
 
   return (
@@ -577,10 +586,10 @@ export function useABTestingModal() {
 }
 
 function TrafficSplitSlider({
-  tests,
+  testVariants,
   onChange,
 }: {
-  tests: { url: string; percentage: number }[];
+  testVariants: { url: string; percentage: number }[];
   onChange: (percentages: number[]) => void;
 }) {
   const [isDragging, setIsDragging] = useState<number | null>(null);
@@ -601,14 +610,14 @@ function TrafficSplitSlider({
       const mousePercentage = Math.round((mouseX / containerWidth) * 100);
 
       // Get sum of percentages to the left and right of the two being affected
-      const leftPercentage = tests
+      const leftPercentage = testVariants
         .slice(0, Math.max(0, isDragging))
         .reduce((sum, { percentage }) => sum + percentage, 0);
-      const rightPercentage = tests
+      const rightPercentage = testVariants
         .slice(isDragging + 2)
         .reduce((sum, { percentage }) => sum + percentage, 0);
 
-      let newPercentages = tests.map(({ percentage }) => percentage);
+      let newPercentages = testVariants.map(({ percentage }) => percentage);
 
       newPercentages[isDragging] = mousePercentage - leftPercentage;
       newPercentages[isDragging + 1] = 100 - rightPercentage - mousePercentage;
@@ -618,7 +627,7 @@ function TrafficSplitSlider({
         onChange(newPercentages);
       }
     },
-    [isDragging, tests, onChange],
+    [isDragging, testVariants, onChange],
   );
 
   const handleMouseUp = useCallback(() => {
@@ -645,7 +654,7 @@ function TrafficSplitSlider({
       )}
     >
       <div className="absolute inset-0 flex h-full">
-        {tests.map((test, i) => (
+        {testVariants.map((test, i) => (
           <div
             key={i}
             className="@container pointer-events-none relative flex h-full"
@@ -660,7 +669,7 @@ function TrafficSplitSlider({
                 {test.percentage}%
               </span>
             </div>
-            {i < tests.length - 1 && (
+            {i < testVariants.length - 1 && (
               <>
                 <div className="w-1.5" />
                 <div

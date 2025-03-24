@@ -25,7 +25,7 @@ export async function bulkUpdateLinks(
     proxy,
     expiresAt,
     geo,
-    tests,
+    testVariants,
     tagId,
     tagIds,
     tagNames,
@@ -55,7 +55,7 @@ export async function bulkUpdateLinks(
               : image,
           expiresAt: expiresAt ? new Date(expiresAt) : null,
           geo: geo || Prisma.JsonNull,
-          tests: tests || Prisma.JsonNull,
+          testVariants: testVariants || Prisma.JsonNull,
 
           ...(url && getParamsFromURL(url)),
           // Associate tags by tagNames

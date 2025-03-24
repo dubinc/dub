@@ -21,7 +21,7 @@ function EndABTestingModal({
   const { watch: watchParent, setValue: setValueParent } =
     useFormContext<LinkFormData>();
 
-  const tests = watchParent("tests") as Array<{
+  const testVariants = watchParent("testVariants") as Array<{
     url: string;
     percentage: number;
   }> | null;
@@ -44,7 +44,7 @@ function EndABTestingModal({
             the change.
           </p>
           <div className="mt-4 flex flex-col gap-2">
-            {tests?.map((test, index) => (
+            {testVariants?.map((test, index) => (
               <button
                 key={index}
                 onClick={() => setSelectedUrl(test.url)}
@@ -94,7 +94,7 @@ function EndABTestingModal({
             onClick={() => {
               if (selectedUrl) {
                 setValueParent("url", selectedUrl, { shouldDirty: true });
-                setValueParent("testsCompleteAt", new Date(), {
+                setValueParent("testCompletedAt", new Date(), {
                   shouldDirty: true,
                 });
                 setShowEndABTestingModal(false);

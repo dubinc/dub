@@ -31,10 +31,10 @@ export async function POST(
       return new Response("Link not found. Skipping...", { status: 200 });
 
     if (
-      link.tests &&
-      link.testsCompleteAt &&
-      link.testsCompleteAt < new Date() &&
-      Date.now() - link.testsCompleteAt.getTime() < 2 * 60 * 60 * 1000 // Limit to two hour window
+      link.testVariants &&
+      link.testCompletedAt &&
+      link.testCompletedAt < new Date() &&
+      Date.now() - link.testCompletedAt.getTime() < 2 * 60 * 60 * 1000 // Limit to two hour window
     ) {
       await completeTests(link as any);
       return new Response("Tests completed.", { status: 200 });

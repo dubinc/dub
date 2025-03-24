@@ -76,12 +76,12 @@ export async function processLink<T extends Record<string, any>>({
     partnerId,
     programId,
     webhookIds,
-    tests,
+    testVariants,
   } = payload;
 
   let expiresAt: string | Date | null | undefined = payload.expiresAt;
-  let testsCompleteAt: string | Date | null | undefined =
-    payload.testsCompleteAt;
+  let testCompletedAt: string | Date | null | undefined =
+    payload.testCompletedAt;
 
   let defaultProgramFolderId: string | null = null;
   const tagIds = combineTagIds(payload);
@@ -299,7 +299,7 @@ export async function processLink<T extends Record<string, any>>({
       };
     }
 
-    if (tests) {
+    if (testVariants) {
       return {
         link: payload,
         error:
@@ -309,7 +309,7 @@ export async function processLink<T extends Record<string, any>>({
     }
   }
 
-  if (!trackConversion && tests) {
+  if (!trackConversion && testVariants) {
     return {
       link: payload,
       error: "Conversion tracking must be enabled to use A/B testing.",
@@ -553,8 +553,8 @@ export async function processLink<T extends Record<string, any>>({
   }
 
   // A/B testing checks
-  if (tests && testsCompleteAt) {
-    const datetime = parseDateTime(testsCompleteAt);
+  if (testVariants && testCompletedAt) {
+    const datetime = parseDateTime(testCompletedAt);
     if (!datetime) {
       return {
         link: payload,
@@ -562,17 +562,17 @@ export async function processLink<T extends Record<string, any>>({
         code: "unprocessable_entity",
       };
     }
-    testsCompleteAt = datetime;
+    testCompletedAt = datetime;
 
-    const parsedTests = LinkTestsSchema.safeParse(tests);
+    const parsedTests = LinkTestsSchema.safeParse(testVariants);
     if (!parsedTests.success) {
       return {
         link: payload,
-        error: "Invalid tests.",
+        error: "Invalid testVariants.",
         code: "unprocessable_entity",
       };
     }
-    tests = parsedTests.data;
+    testVariants = parsedTests.data;
   }
 
   // remove polyfill attributes from payload
@@ -592,8 +592,8 @@ export async function processLink<T extends Record<string, any>>({
       url,
       expiresAt,
       expiredUrl,
-      tests,
-      testsCompleteAt,
+      testVariants,
+      testCompletedAt,
       // partnerId derived from payload or program enrollment
       partnerId: partnerId || null,
       // make sure projectId is set to the current workspace

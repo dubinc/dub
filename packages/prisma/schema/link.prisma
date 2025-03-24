@@ -34,9 +34,9 @@ model Link {
   geo     Json?   @db.Json // custom link for specific countries
 
   // A/B Testing
-  tests           Json?   @db.Json // A/B testing data
-  testsStartedAt  DateTime? // When tests were started
-  testsCompleteAt DateTime? // When tests were or will be completed
+  testVariants   Json?   @db.Json // A/B testing data
+  testStartedAt  DateTime? // When tests were started
+  testCompletedAt DateTime? // When tests were or will be completed
 
   // User who created the link
   user   User?   @relation(fields: [userId], references: [id])

@@ -98,12 +98,12 @@ export const MOBILE_MORE_ITEMS: MoreItem[] = [
     type: "modal",
   },
   {
-    key: "tests",
+    key: "testVariants",
     icon: Flask,
     label: "A/B Testing",
     badgeLabel: getABTestingLabel,
     shortcutKey: "b",
-    enabled: (data) => Boolean(data.tests && data.testsCompleteAt),
+    enabled: (data) => Boolean(data.testVariants && data.testCompletedAt),
     type: "modal",
   },
   {

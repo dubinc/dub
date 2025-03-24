@@ -61,9 +61,9 @@ export async function updateLink({
     tagIds,
     tagNames,
     webhookIds,
-    tests,
-    testsStartedAt,
-    testsCompleteAt,
+    testVariants,
+    testStartedAt,
+    testCompletedAt,
     ...rest
   } = updatedLink;
 
@@ -101,9 +101,9 @@ export async function updateLink({
       expiresAt: expiresAt ? new Date(expiresAt) : null,
       geo: geo || Prisma.JsonNull,
 
-      tests: tests || Prisma.JsonNull,
-      testsCompleteAt: testsCompleteAt ? new Date(testsCompleteAt) : null,
-      testsStartedAt: testsStartedAt ? new Date(testsStartedAt) : null,
+      testVariants: testVariants || Prisma.JsonNull,
+      testCompletedAt: testCompletedAt ? new Date(testCompletedAt) : null,
+      testStartedAt: testStartedAt ? new Date(testStartedAt) : null,
 
       // Associate tags by tagNames
       ...(tagNames &&
@@ -194,7 +194,7 @@ export async function updateLink({
           webhookIds,
         }),
 
-      tests && testsCompleteAt && scheduleTestCompletion(response),
+      testVariants && testCompletedAt && scheduleTestCompletion(response),
     ]),
   );
 

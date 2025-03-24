@@ -113,8 +113,8 @@ export interface RedisLinkProps {
   doIndex?: boolean;
   projectId?: string;
   webhookIds?: string[];
-  tests?: z.infer<typeof LinkTestsSchema>;
-  testsCompleteAt?: Date;
+  testVariants?: z.infer<typeof LinkTestsSchema>;
+  testCompletedAt?: Date;
 }
 
 export interface TagProps {

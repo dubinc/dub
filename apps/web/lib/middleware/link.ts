@@ -147,14 +147,14 @@ export default async function LinkMiddleware(
     expiredUrl,
     doIndex,
     webhookIds,
-    tests,
-    testsCompleteAt,
+    testVariants,
+    testCompletedAt,
     projectId: workspaceId,
   } = cachedLink;
 
   const testUrl = getTestDestinationURL({
-    tests,
-    testsCompleteAt,
+    testVariants,
+    testCompletedAt,
   });
   const url = testUrl || cachedLink.url;
 

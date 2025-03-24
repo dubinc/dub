@@ -139,9 +139,9 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
               />
               {hasQuickViewSettings && <SettingsBadge link={link} />}
               {link.comments && <CommentsBadge comments={link.comments} />}
-              {link.tests &&
-                link.testsCompleteAt &&
-                new Date(link.testsCompleteAt) > new Date() && (
+              {link.testVariants &&
+                link.testCompletedAt &&
+                new Date(link.testCompletedAt) > new Date() && (
                   <TestsBadge link={link} />
                 )}
             </div>

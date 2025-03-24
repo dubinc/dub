@@ -9,9 +9,9 @@ import { processLink } from "./process-link";
 import { updateLink } from "./update-link";
 
 export async function completeTests(link: Link & { project: Project }) {
-  if (!link.tests || !link.testsCompleteAt || !link.projectId) return;
+  if (!link.testVariants || !link.testCompletedAt || !link.projectId) return;
 
-  const tests = LinkTestsSchema.parse(link.tests);
+  const testVariants = LinkTestsSchema.parse(link.testVariants);
 
   const analytics = (await getAnalytics({
     event: "leads",
@@ -19,12 +19,12 @@ export async function completeTests(link: Link & { project: Project }) {
     linkId: link.id,
     workspaceId: link.projectId,
     dataAvailableFrom: link.project.createdAt,
-    start: link.testsStartedAt ? new Date(link.testsStartedAt) : undefined,
-    end: link.testsCompleteAt,
+    start: link.testStartedAt ? new Date(link.testStartedAt) : undefined,
+    end: link.testCompletedAt,
   })) as { url: string; leads: number }[];
 
   const max = Math.max(
-    ...tests.map(
+    ...testVariants.map(
       (test) => analytics.find(({ url }) => url === test.url)?.leads || 0,
     ),
   );
@@ -37,7 +37,7 @@ export async function completeTests(link: Link & { project: Project }) {
     return;
   }
 
-  const winners = tests.filter(
+  const winners = testVariants.filter(
     (test) =>
       (analytics.find(({ url }) => url === test.url)?.leads || 0) === max,
   );
@@ -49,7 +49,7 @@ export async function completeTests(link: Link & { project: Project }) {
 
   const winner = winners[Math.floor(Math.random() * winners.length)];
   console.log(
-    `completeTests: Determined A/B tests winner for ${link.id}: ${winner.url}${winners.length > 1 ? ` (${winners.length} tied)` : ""}`,
+    `completeTests: Determined A/B testVariants winner for ${link.id}: ${winner.url}${winners.length > 1 ? ` (${winners.length} tied)` : ""}`,
   );
 
   if (winner.url === link.url) return;
@@ -67,15 +67,15 @@ export async function completeTests(link: Link & { project: Project }) {
         : link.expiresAt,
     geo: link.geo as NewLinkProps["geo"],
 
-    tests: link.tests as NewLinkProps["tests"],
-    testsCompleteAt:
-      link.testsCompleteAt instanceof Date
-        ? link.testsCompleteAt.toISOString()
-        : link.testsCompleteAt,
-    testsStartedAt:
-      link.testsStartedAt instanceof Date
-        ? link.testsStartedAt.toISOString()
-        : link.testsStartedAt,
+    testVariants: link.testVariants as NewLinkProps["testVariants"],
+    testCompletedAt:
+      link.testCompletedAt instanceof Date
+        ? link.testCompletedAt.toISOString()
+        : link.testCompletedAt,
+    testStartedAt:
+      link.testStartedAt instanceof Date
+        ? link.testStartedAt.toISOString()
+        : link.testStartedAt,
 
     // Update URL
     url: winner.url,

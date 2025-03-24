@@ -33,8 +33,8 @@ export async function createLink(link: ProcessedLinkProps) {
     proxy,
     geo,
     publicStats,
-    tests,
-    testsCompleteAt,
+    testVariants,
+    testCompletedAt,
   } = link;
 
   const combinedTagIds = combineTagIds(link);
@@ -67,9 +67,9 @@ export async function createLink(link: ProcessedLinkProps) {
       expiresAt: expiresAt ? new Date(expiresAt) : null,
       geo: geo || Prisma.JsonNull,
 
-      tests: tests || Prisma.JsonNull,
-      testsCompleteAt: testsCompleteAt ? new Date(testsCompleteAt) : null,
-      testsStartedAt: tests && testsCompleteAt ? new Date() : null,
+      testVariants: testVariants || Prisma.JsonNull,
+      testCompletedAt: testCompletedAt ? new Date(testCompletedAt) : null,
+      testStartedAt: testVariants && testCompletedAt ? new Date() : null,
 
       // Associate tags by tagNames
       ...(tagNames?.length &&
@@ -181,7 +181,7 @@ export async function createLink(link: ProcessedLinkProps) {
           webhookIds,
         }),
 
-      tests && testsCompleteAt && scheduleTestCompletion(response),
+      testVariants && testCompletedAt && scheduleTestCompletion(response),
     ]),
   );
 

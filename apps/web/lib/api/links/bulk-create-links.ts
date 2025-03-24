@@ -72,7 +72,7 @@ export async function bulkCreateLinks({
         utm_content,
         expiresAt: link.expiresAt ? new Date(link.expiresAt) : null,
         geo: link.geo || undefined,
-        tests: link.tests || Prisma.JsonNull,
+        testVariants: link.testVariants || Prisma.JsonNull,
       };
     }),
     skipDuplicates: true,
