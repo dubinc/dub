@@ -69,7 +69,10 @@ export function DomainDeleted({
               If you did not want to keep using this domain on Dub.co anyway,
               you can simply ignore this email.
             </Text>
-            <Footer email={email} />
+            <Footer
+              email={email}
+              notificationSettingsUrl={`https://app.dub.co/${workspaceSlug}/settings/notifications`}
+            />
           </Container>
         </Body>
       </Tailwind>
