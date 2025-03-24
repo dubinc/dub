@@ -4,7 +4,6 @@ import { getPangeaDomainIntel } from "@/lib/pangea";
 import { checkIfUserExists, getRandomKey } from "@/lib/planetscale";
 import { isStored } from "@/lib/storage";
 import { NewLinkProps, ProcessedLinkProps, WorkspaceProps } from "@/lib/types";
-import { ABTestVariantsSchema } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
 import {
   DUB_DOMAINS,
@@ -532,6 +531,7 @@ export async function processLink<T extends Record<string, any>>({
   // expire date checks
   if (expiresAt) {
     const datetime = parseDateTime(expiresAt);
+
     if (!datetime) {
       return {
         link: payload,
@@ -539,9 +539,12 @@ export async function processLink<T extends Record<string, any>>({
         code: "unprocessable_entity",
       };
     }
+
     expiresAt = datetime;
+
     if (expiredUrl) {
       expiredUrl = getUrlFromString(expiredUrl);
+
       if (!isValidUrl(expiredUrl)) {
         return {
           link: payload,
@@ -552,9 +555,9 @@ export async function processLink<T extends Record<string, any>>({
     }
   }
 
-  // A/B testing checks
-  if (testVariants && testCompletedAt) {
+  if (testCompletedAt) {
     const datetime = parseDateTime(testCompletedAt);
+
     if (!datetime) {
       return {
         link: payload,
@@ -562,17 +565,8 @@ export async function processLink<T extends Record<string, any>>({
         code: "unprocessable_entity",
       };
     }
-    testCompletedAt = datetime;
 
-    const parsedTests = ABTestVariantsSchema.safeParse(testVariants);
-    if (!parsedTests.success) {
-      return {
-        link: payload,
-        error: "Invalid testVariants.",
-        code: "unprocessable_entity",
-      };
-    }
-    testVariants = parsedTests.data;
+    testCompletedAt = datetime;
   }
 
   // remove polyfill attributes from payload

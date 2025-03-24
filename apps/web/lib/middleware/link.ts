@@ -30,8 +30,8 @@ import { isCaseSensitiveDomain } from "../api/links/case-sensitivity";
 import { clickCache } from "../api/links/click-cache";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
-import { getTestDestinationURL } from "./utils/get-test-destination-url";
 import { hasEmptySearchParams } from "./utils/has-empty-search-params";
+import { resolveABTestURL } from "./utils/resolve-ab-test-url";
 
 export default async function LinkMiddleware(
   req: NextRequest,
@@ -137,10 +137,11 @@ export default async function LinkMiddleware(
     projectId: workspaceId,
   } = cachedLink;
 
-  const testUrl = getTestDestinationURL({
+  const testUrl = resolveABTestURL({
     testVariants,
     testCompletedAt,
   });
+
   const url = testUrl || cachedLink.url;
 
   // by default, we only index default dub domain links (e.g. dub.sh)
