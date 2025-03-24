@@ -23,7 +23,15 @@ export const transformLink = (
   }
 
   // remove webhooks array, dashboard from link
-  const { webhooks, dashboard, ...rest } = link;
+  const {
+    webhooks,
+    dashboard,
+    // TODO: Add these back for PR #2173
+    testCompletedAt,
+    testStartedAt,
+    testVariants,
+    ...rest
+  } = link;
 
   return {
     ...rest,

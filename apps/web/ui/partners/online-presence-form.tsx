@@ -39,6 +39,7 @@ type OnlinePresenceFormData = z.infer<typeof onlinePresenceSchema>;
 interface OnlinePresenceFormProps {
   variant?: "onboarding" | "settings";
   partner?: {
+    email: string | null;
     website: string | null;
     youtube: string | null;
     twitter: string | null;
@@ -100,6 +101,11 @@ export function OnlinePresenceForm({
   } | null>(null);
 
   const startVerification = useOAuthVerification(variant);
+
+  const enableTikTokVerification =
+    partner?.email === "integrations-testing@tiktok.com";
+
+  console.log({ enableTikTokVerification, partnerEmail: partner?.email });
 
   return (
     <>
@@ -350,7 +356,9 @@ export function OnlinePresenceForm({
                   onClick={() =>
                     startVerification("tiktok", getValues("tiktok"))
                   }
-                  disabledTooltip="TikTok verification is coming soon."
+                  {...(!enableTikTokVerification && {
+                    disabledTooltip: "TikTok verification is coming soon.",
+                  })}
                 />
               }
             />

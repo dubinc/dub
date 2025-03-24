@@ -6,7 +6,7 @@ model Link {
   shortLink       String    @unique @db.VarChar(400) // new column for the full short link
   archived        Boolean   @default(false) // whether the link is archived or not
   expiresAt       DateTime? // when the link expires – stored on Redis via ttl
-  expiredUrl      String?   @db.LongText // URL to redirect the user to when the link is expired
+  expiredUrl      String?   @db.Text // URL to redirect the user to when the link is expired
   password        String? // password to access the link
   trackConversion Boolean   @default(false) // whether to track conversions or not
 
@@ -14,7 +14,7 @@ model Link {
   title       String? // OG title for the link (e.g. Dub.co - Open-Source Link Management Infrastructure)
   description String? @db.VarChar(280) // OG description for the link (e.g. An open-source link management tool for modern marketing teams to create, share, and track short links.)
   image       String? @db.LongText // OG image for the link (e.g. https://d.to/og)
-  video       String? @db.LongText // OG video for the link
+  video       String? @db.Text // OG video for the link
 
   // UTM parameters
   utm_source   String? // UTM source for the link (e.g. youtube.com)
@@ -29,10 +29,15 @@ model Link {
   doIndex Boolean @default(false) // we don't index short links by default
 
   // Custom device targeting
-  ios     String? @db.LongText // custom link for iOS devices
-  android String? @db.LongText // custom link for Android devices
+  ios     String? @db.Text // custom link for iOS devices
+  android String? @db.Text // custom link for Android devices
   geo     Json?   @db.Json // custom link for specific countries
 
+  // A/B Testing
+  testVariants   Json?   @db.Json // A/B testing data
+  testStartedAt  DateTime? // When tests were started
+  testCompletedAt DateTime? // When tests were or will be completed
+  
   // User who created the link
   user   User?   @relation(fields: [userId], references: [id])
   userId String?
@@ -68,7 +73,7 @@ model Link {
   webhooks LinkWebhook[]
 
   // Comments on the particular shortlink
-  comments String? @db.LongText
+  comments String? @db.Text
 
   dashboard         Dashboard?
   partnerId         String?
@@ -79,9 +84,9 @@ model Link {
   commissions Commission[]
 
   @@unique([domain, key])
+  @@index([projectId, folderId, createdAt(sort: Desc)])
   @@unique([projectId, externalId])
-  @@index([projectId, archived, folderId, createdAt(sort: Desc)])
   @@index([programId, partnerId])
   @@index(folderId) // used in /api/folders
-  @@index(userId) // used in /api/admin/links
+  @@index(userId) // for relation to User table
 }
