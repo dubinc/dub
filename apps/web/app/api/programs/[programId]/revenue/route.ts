@@ -56,6 +56,7 @@ export const GET = withWorkspace(
       FROM Commission
       WHERE 
         programId = ${program.id}
+        AND earnings > 0
         AND createdAt >= ${startDate}
         AND createdAt < ${endDate}
       GROUP BY start
