@@ -14,6 +14,9 @@ export const GET = withReferralsEmbedToken(
 
     const commissions = await prisma.commission.findMany({
       where: {
+        amount: {
+          gt: 0,
+        },
         programId,
         partnerId,
       },
