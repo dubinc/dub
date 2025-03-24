@@ -85,7 +85,6 @@ model Link {
 
   @@unique([domain, key])
   @@index([projectId, folderId, createdAt(sort: Desc)])
-  @@index([projectId, archived, folderId, createdAt(sort: Desc)])
   @@unique([projectId, externalId])
   @@index([programId, partnerId])
   @@index(folderId) // used in /api/folders
