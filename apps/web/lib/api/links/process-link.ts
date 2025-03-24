@@ -130,7 +130,8 @@ export async function processLink<T extends Record<string, any>>({
       ios ||
       android ||
       geo ||
-      doIndex
+      doIndex ||
+      maxClicks
     ) {
       const proFeaturesString = combineWords(
         [
@@ -142,6 +143,7 @@ export async function processLink<T extends Record<string, any>>({
           android && "Android targeting",
           geo && "geo targeting",
           doIndex && "search engine indexing",
+          maxClicks && "max clicks limit",
         ].filter(Boolean) as string[],
       );
 
