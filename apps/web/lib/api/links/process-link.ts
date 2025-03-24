@@ -4,7 +4,7 @@ import { getPangeaDomainIntel } from "@/lib/pangea";
 import { checkIfUserExists, getRandomKey } from "@/lib/planetscale";
 import { isStored } from "@/lib/storage";
 import { NewLinkProps, ProcessedLinkProps, WorkspaceProps } from "@/lib/types";
-import { LinkTestsSchema } from "@/lib/zod/schemas/links";
+import { ABTestVariantsSchema } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
 import {
   DUB_DOMAINS,
@@ -564,7 +564,7 @@ export async function processLink<T extends Record<string, any>>({
     }
     testCompletedAt = datetime;
 
-    const parsedTests = LinkTestsSchema.safeParse(testVariants);
+    const parsedTests = ABTestVariantsSchema.safeParse(testVariants);
     if (!parsedTests.success) {
       return {
         link: payload,

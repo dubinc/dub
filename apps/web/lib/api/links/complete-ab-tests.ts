@@ -1,7 +1,7 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { NewLinkProps, WorkspaceProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import { linkEventSchema, LinkTestsSchema } from "@/lib/zod/schemas/links";
+import { ABTestVariantsSchema, linkEventSchema } from "@/lib/zod/schemas/links";
 import { Link, Project } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { DubApiError, ErrorCodes } from "../errors";
@@ -9,11 +9,13 @@ import { processLink } from "./process-link";
 import { updateLink } from "./update-link";
 
 export async function completeABTests(link: Link & { project: Project }) {
-  if (!link.testVariants || !link.testCompletedAt || !link.projectId) return;
+  if (!link.testVariants || !link.testCompletedAt || !link.projectId) {
+    return;
+  }
 
-  const testVariants = LinkTestsSchema.parse(link.testVariants);
+  const testVariants = ABTestVariantsSchema.parse(link.testVariants);
 
-  const analytics = (await getAnalytics({
+  const analytics: { url: string; leads: number }[] = await getAnalytics({
     event: "leads",
     groupBy: "top_urls",
     linkId: link.id,
@@ -21,7 +23,7 @@ export async function completeABTests(link: Link & { project: Project }) {
     dataAvailableFrom: link.project.createdAt,
     start: link.testStartedAt ? new Date(link.testStartedAt) : undefined,
     end: link.testCompletedAt,
-  })) as { url: string; leads: number }[];
+  });
 
   const max = Math.max(
     ...testVariants.map(
@@ -29,11 +31,12 @@ export async function completeABTests(link: Link & { project: Project }) {
     ),
   );
 
+  // All results are zero, do nothing
   if (max === 0) {
-    // All results are zero, do nothing
     console.log(
-      `completeTests: All results are zero for ${link.id}, doing nothing`,
+      `AB Test completed but all results are zero for ${link.id}, doing nothing.`,
     );
+
     return;
   }
 
@@ -42,21 +45,19 @@ export async function completeABTests(link: Link & { project: Project }) {
       (analytics.find(({ url }) => url === test.url)?.leads || 0) === max,
   );
 
-  if (winners.length === 0)
+  if (winners.length === 0) {
     throw new Error(
-      `completeTests: Failed to find winners based on max leads for link ${link.id}`,
+      `AB Test completed but failed to find winners based on max leads for link ${link.id}.`,
     );
+  }
 
   const winner = winners[Math.floor(Math.random() * winners.length)];
-  console.log(
-    `completeTests: Determined A/B testVariants winner for ${link.id}: ${winner.url}${winners.length > 1 ? ` (${winners.length} tied)` : ""}`,
-  );
 
-  if (winner.url === link.url) return;
+  if (winner.url === link.url) {
+    return;
+  }
 
   // Update the link's URL to the winner
-
-  // Add body onto existing link but maintain NewLinkProps form for processLink
   const { project, ...originalLink } = link;
 
   const updatedLink = {
@@ -77,10 +78,8 @@ export async function completeABTests(link: Link & { project: Project }) {
         ? link.testStartedAt.toISOString()
         : link.testStartedAt,
 
-    // Update URL
     url: winner.url,
 
-    // When root domain
     ...(link.key === "_root" && {
       domain: link.domain,
       key: link.key,

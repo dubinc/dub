@@ -1,4 +1,4 @@
-import { LinkTestsSchema, MAX_TEST_COUNT } from "@/lib/zod/schemas/links";
+import { ABTestVariantsSchema, MAX_TEST_COUNT } from "@/lib/zod/schemas/links";
 import { cookies } from "next/headers";
 import { z } from "zod";
 
@@ -9,7 +9,7 @@ export const getTestDestinationURL = ({
   testVariants,
   testCompletedAt,
 }: {
-  testVariants?: z.infer<typeof LinkTestsSchema>;
+  testVariants?: z.infer<typeof ABTestVariantsSchema>;
   testCompletedAt?: Date;
 }) => {
   try {

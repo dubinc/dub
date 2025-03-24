@@ -1,5 +1,5 @@
 import {
-  LinkTestsSchema,
+  ABTestVariantsSchema,
   MAX_TEST_COUNT,
   MIN_TEST_PERCENTAGE,
 } from "@/lib/zod/schemas/links";
@@ -42,7 +42,7 @@ import { LinkFormData } from "..";
 import { TrafficSplitSlider } from "./traffic-split-slider";
 
 const parseTests = (testVariants: LinkFormData["testVariants"]) =>
-  Array.isArray(testVariants) ? LinkTestsSchema.parse(testVariants) : null;
+  Array.isArray(testVariants) ? ABTestVariantsSchema.parse(testVariants) : null;
 
 const inTwoWeeks = new Date(Date.now() + 2 * 7 * 24 * 60 * 60 * 1000);
 
@@ -116,7 +116,7 @@ function ABTestingEdit({
     formState: { isDirty, isValid },
     handleSubmit,
   } = useForm<
-    { testVariants: z.infer<typeof LinkTestsSchema> } & Pick<
+    { testVariants: z.infer<typeof ABTestVariantsSchema> } & Pick<
       LinkFormData,
       "testCompletedAt"
     >

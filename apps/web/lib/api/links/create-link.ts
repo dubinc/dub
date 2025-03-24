@@ -34,6 +34,7 @@ export async function createLink(link: ProcessedLinkProps) {
     geo,
     publicStats,
     testVariants,
+    testStartedAt,
     testCompletedAt,
   } = link;
 
@@ -69,7 +70,7 @@ export async function createLink(link: ProcessedLinkProps) {
 
       testVariants: testVariants || Prisma.JsonNull,
       testCompletedAt: testCompletedAt ? new Date(testCompletedAt) : null,
-      testStartedAt: testVariants && testCompletedAt ? new Date() : null,
+      testStartedAt: testStartedAt ? new Date(testStartedAt) : null,
 
       // Associate tags by tagNames
       ...(tagNames?.length &&

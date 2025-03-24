@@ -1,5 +1,5 @@
 import useWorkspace from "@/lib/swr/use-workspace";
-import { LinkTestsSchema } from "@/lib/zod/schemas/links";
+import { ABTestVariantsSchema } from "@/lib/zod/schemas/links";
 import { fetcher } from "@dub/utils";
 import { motion } from "framer-motion";
 import { memo, useMemo } from "react";
@@ -21,7 +21,7 @@ export const LinkTests = memo(({ link }: { link: ResponseLink }) => {
       return null;
 
     try {
-      return LinkTestsSchema.parse(link.testVariants);
+      return ABTestVariantsSchema.parse(link.testVariants);
     } catch (e) {
       console.error(`Failed to parse link testVariants for link ${link.id}`, e);
     }
@@ -52,7 +52,6 @@ export const LinkTests = memo(({ link }: { link: ResponseLink }) => {
       revalidateOnFocus: false,
     },
   );
-  console.log(data);
 
   if (!testVariants || !testVariants.length) return null;
 

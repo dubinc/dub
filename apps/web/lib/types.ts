@@ -39,7 +39,7 @@ import {
   leadEventResponseSchema,
   trackLeadResponseSchema,
 } from "./zod/schemas/leads";
-import { createLinkBodySchema, LinkTestsSchema } from "./zod/schemas/links";
+import { createLinkBodySchema, ABTestVariantsSchema } from "./zod/schemas/links";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
 import {
   createPartnerSchema,
@@ -113,7 +113,7 @@ export interface RedisLinkProps {
   doIndex?: boolean;
   projectId?: string;
   webhookIds?: string[];
-  testVariants?: z.infer<typeof LinkTestsSchema>;
+  testVariants?: z.infer<typeof ABTestVariantsSchema>;
   testCompletedAt?: Date;
 }
 
