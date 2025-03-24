@@ -44,7 +44,10 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
     if (!clickId) {
       clickId = nanoid(16);
 
-      let link = await getLinkWithAllowedHostnames(domain, key);
+      let link = await getLinkWithAllowedHostnames({
+        domain,
+        key,
+      });
 
       if (!link) {
         return NextResponse.json(
@@ -57,8 +60,10 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
         );
       }
 
-      const allowedHostnames = link.allowedHostnames;
-      verifyAnalyticsAllowedHostnames({ allowedHostnames, req });
+      verifyAnalyticsAllowedHostnames({
+        allowedHostnames: link.allowedHostnames,
+        req,
+      });
 
       const finalUrl = isValidUrl(url) ? url : link.url;
 

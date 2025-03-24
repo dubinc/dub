@@ -2,7 +2,10 @@ import { verifyAnalyticsAllowedHostnames } from "@/lib/analytics/verify-analytic
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { clickCache } from "@/lib/api/links/click-cache";
 import { parseRequestBody } from "@/lib/api/utils";
-import { getLinkWithAllowedHostnames } from "@/lib/planetscale/get-link-with-allowed-hostnames";
+import {
+  getLinkWithAllowedHostnames,
+  LinkWithAllowedHostnames,
+} from "@/lib/planetscale/get-link-with-allowed-hostnames";
 import { recordClick } from "@/lib/tinybird";
 import { isValidUrl, LOCALHOST_IP, nanoid } from "@dub/utils";
 import { ipAddress, waitUntil } from "@vercel/functions";
@@ -20,24 +23,46 @@ const CORS_HEADERS = {
 // POST /api/track/click – Track a click event from the client-side
 export const POST = withAxiom(async (req: AxiomRequest) => {
   try {
-    const { domain, key, url, referrer } = await parseRequestBody(req);
+    let { domain, key, url, referrer, tenantId } = await parseRequestBody(req);
 
-    if (!domain || !key) {
+    if (!domain && !key && !tenantId) {
       throw new DubApiError({
         code: "bad_request",
-        message: "Missing domain or key",
+        message: "Either domain and key or tenantId is required.",
       });
     }
 
-    const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
+    let link: LinkWithAllowedHostnames | null = null;
 
+    if (tenantId) {
+      link = await getLinkWithAllowedHostnames({
+        tenantId,
+      });
+
+      if (!link) {
+        throw new DubApiError({
+          code: "not_found",
+          message: `Link not found for tenantId: ${tenantId}.`,
+        });
+      }
+
+      domain = link.domain;
+      key = link.key;
+    }
+
+    const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
     let clickId = await clickCache.get({ domain, key, ip });
 
     // only generate + record a new click ID if it's not already cached in Redis
     if (!clickId) {
       clickId = nanoid(16);
 
-      const link = await getLinkWithAllowedHostnames(domain, key);
+      if (!link) {
+        link = await getLinkWithAllowedHostnames({
+          domain,
+          key,
+        });
+      }
 
       if (!link) {
         throw new DubApiError({
@@ -46,8 +71,10 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
         });
       }
 
-      const allowedHostnames = link.allowedHostnames;
-      verifyAnalyticsAllowedHostnames({ allowedHostnames, req });
+      verifyAnalyticsAllowedHostnames({
+        allowedHostnames: link.allowedHostnames,
+        req,
+      });
 
       const finalUrl = isValidUrl(url) ? url : link.url;
 
