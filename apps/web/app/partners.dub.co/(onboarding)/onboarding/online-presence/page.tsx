@@ -41,6 +41,7 @@ async function OnlinePresenceFormRSC() {
         },
       },
       select: {
+        email: true,
         country: true,
         website: true,
         youtube: true,
