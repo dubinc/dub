@@ -77,8 +77,11 @@ export function PayoutStatsAndSettings() {
         <NumberFlow
           className="mt-2 text-2xl text-neutral-800"
           value={
-            (payoutsCount?.find((p) => p.status === PayoutStatus.completed)
-              ?.amount ?? 0) / 100
+            (payoutsCount?.find(
+              (p) =>
+                p.status === PayoutStatus.completed ||
+                p.status === PayoutStatus.processing,
+            )?.amount ?? 0) / 100
           }
           format={{
             style: "currency",
