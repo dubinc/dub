@@ -70,6 +70,9 @@
     "saleAmount": 290300,
     "createdAt": "2024-09-02T18:49:56.136Z",
     "updatedAt": "2025-01-14T04:49:23.740Z",
-    "projectId": "clrei1gld0002vs9mzn93p8ik"
+    "projectId": "clrei1gld0002vs9mzn93p8ik",
+    "testVariants": null,
+    "testCompletedAt": null,
+    "testStartedAt": null
   }
 }
