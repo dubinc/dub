@@ -60,7 +60,7 @@ export function ReferralsEmbedFAQ({
       className="border-border-muted bg-bg-default rounded-lg border px-4 py-2 sm:px-8 sm:py-4"
       {...TAB_ITEM_ANIMATION_SETTINGS}
     >
-      <Accordion type="single">
+      <Accordion type="single" collapsible>
         {items.map((item, idx) => (
           <AccordionItem key={idx} value={idx.toString()}>
             <AccordionTrigger
