@@ -1,3 +1,5 @@
+import { ReactNode } from "react";
+import { nFormatter } from "../functions";
 import { INFINITY_NUMBER } from "./misc";
 
 export type PlanFeature = {
@@ -307,6 +309,295 @@ export const PLANS = [
       { id: "logs", text: "Audit logs" },
       { id: "success", text: "Dedicated success manager" },
     ] as PlanFeature[],
+  },
+];
+
+export const PLAN_COMPARE_FEATURES: {
+  category: string;
+  features: {
+    text: (d: { id: string; plan: (typeof PLANS)[number] }) => ReactNode;
+    check?:
+      | boolean
+      | {
+          default?: boolean;
+          free?: boolean;
+          pro?: boolean;
+          business?: boolean;
+          advanced?: boolean;
+          enterprise?: boolean;
+        };
+  }[];
+}[] = [
+  {
+    category: "Short links",
+    features: [
+      {
+        text: () => (
+          <>
+            <strong>Unlimited</strong> clicks
+          </>
+        ),
+      },
+      {
+        text: ({ plan }) => (
+          <>
+            <strong>{nFormatter(plan.limits.links)}</strong> new links/mo
+          </>
+        ),
+      },
+      {
+        text: () => (
+          <>
+            <strong>Unlimited</strong> redirects
+          </>
+        ),
+      },
+      {
+        text: () => <>QR Codes</>,
+      },
+      {
+        text: () => <>UTM Builder</>,
+      },
+      {
+        check: {
+          free: false,
+          default: true,
+        },
+        text: () => <>Custom link previews</>,
+      },
+      {
+        check: {
+          free: false,
+          default: true,
+        },
+        text: () => <>Link cloaking</>,
+      },
+
+      {
+        check: {
+          free: false,
+          default: true,
+        },
+        text: () => <>Link expiration</>,
+      },
+      {
+        check: {
+          free: false,
+          default: true,
+        },
+        text: () => <>Password protection</>,
+      },
+      {
+        check: {
+          free: false,
+          default: true,
+        },
+        text: () => <>Device targeting</>,
+      },
+      {
+        check: {
+          free: false,
+          default: true,
+        },
+        text: () => <>Geo targeting</>,
+      },
+    ],
+  },
+  {
+    category: "Domains",
+    features: [
+      {
+        text: ({ plan }) => (
+          <>
+            <strong>{nFormatter(plan.limits.domains, { full: true })}</strong>{" "}
+            custom domains
+          </>
+        ),
+      },
+      {
+        text: () => <>SSL certificates</>,
+      },
+      {
+        check: {
+          default: true,
+          free: false,
+        },
+        text: () => (
+          <>
+            Premium <strong>dub.link</strong> domain
+          </>
+        ),
+      },
+      {
+        check: {
+          default: true,
+          free: false,
+        },
+        text: () => (
+          <>
+            Free <strong>.link</strong> domain
+          </>
+        ),
+      },
+    ],
+  },
+  {
+    category: "Analytics",
+    features: [
+      {
+        text: ({ id }) => (
+          <>
+            <strong>
+              {
+                {
+                  free: "30 day",
+                  pro: "1 year",
+                  business: "3 year",
+                  enterprise: "Unlimited",
+                }[id]
+              }
+            </strong>{" "}
+            retention
+          </>
+        ),
+      },
+      {
+        text: () => <>Advanced analytics</>,
+      },
+      {
+        text: ({ plan }) => (
+          <>
+            <strong>{nFormatter(plan.limits.clicks)}</strong> tracked clicks/mo
+          </>
+        ),
+      },
+      {
+        check: {
+          default: false,
+          business: true,
+          enterprise: true,
+        },
+        text: () => (
+          <>
+            <strong>Real-time</strong> events stream
+          </>
+        ),
+      },
+      {
+        check: {
+          default: false,
+          business: true,
+          enterprise: true,
+        },
+        text: () => <>Conversion tracking</>,
+      },
+    ],
+  },
+  {
+    category: "Workspace",
+    features: [
+      {
+        text: ({ plan }) => (
+          <>
+            <strong>{nFormatter(plan.limits.users)}</strong> user
+            {plan.limits.users === 1 ? "" : "s"}
+          </>
+        ),
+      },
+      {
+        check: {
+          default: false,
+          enterprise: true,
+        },
+        text: () => <>SSO/SAML</>,
+      },
+      {
+        check: {
+          default: false,
+          enterprise: true,
+        },
+        text: () => <>Custom SLA</>,
+      },
+      {
+        check: {
+          default: false,
+          enterprise: true,
+        },
+        text: () => <>Audit logs</>,
+      },
+      {
+        check: {
+          default: false,
+          enterprise: true,
+        },
+        text: () => <>Role-based controls</>,
+      },
+    ],
+  },
+  {
+    category: "Support",
+    features: [
+      {
+        text: ({ id }) => (
+          <>
+            <strong>
+              {
+                {
+                  free: "Basic",
+                  pro: "Elevated",
+                  business: "Priority",
+                  enterprise: "Priority",
+                }[id]
+              }
+            </strong>{" "}
+            {id === "enterprise" ? "with SLA" : "support"}
+          </>
+        ),
+      },
+      {
+        check: {
+          default: false,
+          enterprise: true,
+        },
+        text: () => (
+          <>
+            <strong>Dedicated</strong> success manager
+          </>
+        ),
+      },
+    ],
+  },
+  {
+    category: "API",
+    features: [
+      {
+        text: () => <>API access</>,
+      },
+      {
+        text: ({ id, plan }) => (
+          <>
+            <strong>
+              {id === "enterprise"
+                ? "Custom"
+                : nFormatter(plan.limits.api) + "/min"}
+            </strong>{" "}
+            rate limit
+          </>
+        ),
+      },
+      {
+        check: {
+          default: false,
+          business: true,
+          enterprise: true,
+        },
+        text: () => (
+          <>
+            <strong>Event webhooks</strong>
+          </>
+        ),
+      },
+    ],
   },
 ];
 
