@@ -103,7 +103,6 @@ export const POST = withWorkspace(
       payload: body,
       workspace,
       ...(session && { userId: session.user.id }),
-      skipKeyAvailabilityCheck: !key,
     });
 
     if (error != null) {
@@ -113,31 +112,24 @@ export const POST = withWorkspace(
       });
     }
 
-    try {
-      const response = await createLinkWithKeyRetry({
-        link,
-        isRandomKey: !key,
-      });
+    const response = await createLinkWithKeyRetry({
+      link,
+      isRandomKey: !key,
+    });
 
-      if (response.projectId && response.userId) {
-        waitUntil(
-          sendWorkspaceWebhook({
-            trigger: "link.created",
-            workspace,
-            data: linkEventSchema.parse(response),
-          }),
-        );
-      }
-
-      return NextResponse.json(response, {
-        headers,
-      });
-    } catch (error) {
-      throw new DubApiError({
-        code: "unprocessable_entity",
-        message: error.message,
-      });
+    if (response.projectId && response.userId) {
+      waitUntil(
+        sendWorkspaceWebhook({
+          trigger: "link.created",
+          workspace,
+          data: linkEventSchema.parse(response),
+        }),
+      );
     }
+
+    return NextResponse.json(response, {
+      headers,
+    });
   },
   {
     requiredPermissions: ["links.write"],

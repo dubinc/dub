@@ -166,33 +166,26 @@ export const PATCH = withWorkspace(
       });
     }
 
-    try {
-      const response = await updateLink({
-        oldLink: {
-          domain: link.domain,
-          key: link.key,
-          image: link.image,
-        },
-        updatedLink: processedLink,
-      });
+    const response = await updateLink({
+      oldLink: {
+        domain: link.domain,
+        key: link.key,
+        image: link.image,
+      },
+      updatedLink: processedLink,
+    });
 
-      waitUntil(
-        sendWorkspaceWebhook({
-          trigger: "link.updated",
-          workspace,
-          data: linkEventSchema.parse(response),
-        }),
-      );
+    waitUntil(
+      sendWorkspaceWebhook({
+        trigger: "link.updated",
+        workspace,
+        data: linkEventSchema.parse(response),
+      }),
+    );
 
-      return NextResponse.json(response, {
-        headers,
-      });
-    } catch (error) {
-      throw new DubApiError({
-        code: "unprocessable_entity",
-        message: error.message,
-      });
-    }
+    return NextResponse.json(response, {
+      headers,
+    });
   },
   {
     requiredPermissions: ["links.write"],
