@@ -101,12 +101,12 @@ export async function notifyPartnerSale({
       ? [
           sendEmail({
             subject: "You just made a sale via Dub Partners!",
-            from: "Dub Partners <system@dub.co>",
             email: partner.email!,
             react: NewSaleAlertPartner({
               email: partner.email!,
               ...data,
             }),
+            variant: "notifications",
           }),
         ]
       : []),
@@ -114,7 +114,6 @@ export async function notifyPartnerSale({
       limiter.schedule(() =>
         sendEmail({
           subject: `New commission for ${partner.name}`,
-          from: "Dub Partners <system@dub.co>",
           email: user.email!,
           react: NewSaleAlertProgramOwner({
             ...data,
@@ -124,6 +123,7 @@ export async function notifyPartnerSale({
             },
             workspace,
           }),
+          variant: "notifications",
         }),
       ),
     ),

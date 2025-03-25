@@ -31,11 +31,16 @@ export async function notifyPartnerApplication({
           email: true,
         },
       },
+      project: {
+        select: {
+          slug: true,
+        },
+      },
     },
   });
 
   await Promise.all(
-    workspaceUsers.map(({ user }) =>
+    workspaceUsers.map(({ user, project }) =>
       limiter.schedule(() =>
         sendEmail({
           subject: `New partner application for ${program.name}`,
@@ -55,7 +60,11 @@ export async function notifyPartnerApplication({
               id: program.id,
               name: program.name,
             },
+            workspace: {
+              slug: project.slug,
+            },
           }),
+          variant: "notifications",
         }),
       ),
     ),
