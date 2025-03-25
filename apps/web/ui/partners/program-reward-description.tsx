@@ -52,7 +52,7 @@ export function ProgramRewardDescription({
       {discount ? (
         <>
           {" "}
-          Referred users get{" "}
+          New users get{" "}
           <strong className={cn("font-semibold", amountClassName)}>
             {constructRewardAmount({
               amount: discount.amount,

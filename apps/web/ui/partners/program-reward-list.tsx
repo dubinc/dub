@@ -40,7 +40,7 @@ export function ProgramRewardList({
       {discount && (
         <Item icon={Gift}>
           {" "}
-          Users get{" "}
+          New users get{" "}
           {constructRewardAmount({
             amount: discount.amount,
             type: discount.type,
