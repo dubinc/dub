@@ -108,11 +108,24 @@ export default async function SuccessPage({
               </p>
             )}
             {!hasPartnerProfile && (
-              <p>
-                Complete your account setup on{" "}
-                <strong className="font-semibold">Dub Partners</strong> to
-                finish submitting your application.
-              </p>
+              <>
+                <p>
+                  Create a{" "}
+                  <strong className="font-semibold">Dub Partners</strong>{" "}
+                  account to finish your application. This is required to earn
+                  rewards and access your dashboard.
+                </p>
+                {application && (
+                  <p>
+                    Once your account is set up, we'll review your application
+                    and send updates to{" "}
+                    <strong className="font-semibold">
+                      {application.email}
+                    </strong>
+                    .
+                  </p>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -123,24 +136,26 @@ export default async function SuccessPage({
         </div>
 
         {/* Screenshot */}
-        <div className="relative mt-12">
-          <Screenshot
-            program={{ name: program.name, logo: program.logo }}
-            className="h-auto w-full rounded border border-black/10 [mask-image:linear-gradient(black_80%,transparent)]"
-          />
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2">
-            <div className="absolute -inset-[50%] rounded-full bg-white blur-lg" />
-            <div className="relative flex items-center gap-2 rounded-full border border-neutral-100 bg-gradient-to-b from-white to-neutral-50 p-2 shadow-[0_8px_28px_0_#00000017]">
-              <img
-                className="size-10 shrink-0 rounded-full"
-                src={program.logo || `${DICEBEAR_AVATAR_URL}${program.name}`}
-                alt={`${program.name} logo`}
-              />
-              <BoltFill className="shrink-0 text-[var(--brand)] opacity-30" />
-              <Logo className="size-10 shrink-0" />
+        {programSlug !== "dub" && (
+          <div className="relative mt-16">
+            <Screenshot
+              program={{ name: program.name, logo: program.logo }}
+              className="h-auto w-full rounded border border-black/10 [mask-image:linear-gradient(black_80%,transparent)]"
+            />
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2">
+              <div className="absolute -inset-[50%] rounded-full bg-white blur-lg" />
+              <div className="relative flex items-center gap-2 rounded-full border border-neutral-100 bg-gradient-to-b from-white to-neutral-50 p-2 shadow-[0_8px_28px_0_#00000017]">
+                <img
+                  className="size-10 shrink-0 rounded-full"
+                  src={program.logo || `${DICEBEAR_AVATAR_URL}${program.name}`}
+                  alt={`${program.name} logo`}
+                />
+                <BoltFill className="shrink-0 text-[var(--brand)] opacity-30" />
+                <Logo className="size-10 shrink-0" />
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Feature grid */}
         <div className="mt-16 grid grid-cols-1 gap-10 sm:grid-cols-2">
