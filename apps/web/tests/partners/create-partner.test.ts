@@ -30,7 +30,7 @@ const expectedPartner = {
   ]),
 };
 
-describe.sequential.skip("POST /partners", async () => {
+describe.sequential("POST /partners", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
 

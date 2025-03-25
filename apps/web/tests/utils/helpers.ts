@@ -20,6 +20,10 @@ export const randomTagName = () => {
   return `e2e-${randomId()}`;
 };
 
-export const randomEmail = () => {
-  return `${generateRandomName().split(" ").join(".").toLowerCase()}@example.com`;
+export const randomEmail = ({
+  domain = "dub-internal-test.com",
+}: {
+  domain?: string;
+} = {}) => {
+  return `${generateRandomName().split(" ").join(".").toLowerCase()}@${domain}`;
 };
