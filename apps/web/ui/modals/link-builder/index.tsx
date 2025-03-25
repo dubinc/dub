@@ -223,7 +223,7 @@ function LinkBuilderInner({
     <>
       <UTMModal />
       <TargetingModal />
-      {conversionsEnabled && <ABTestingModal />}
+      {conversionsEnabled && flags?.abTesting && <ABTestingModal />}
       <PasswordModal />
       <ExpirationModal />
       <Modal
@@ -524,7 +524,9 @@ function LinkBuilderInner({
                 <UTMButton />
                 <div className="flex items-center gap-2 max-sm:hidden">
                   <TargetingButton />
-                  {conversionsEnabled && <ABTestingButton />}
+                  {conversionsEnabled && flags?.abTesting && (
+                    <ABTestingButton />
+                  )}
                   <PasswordButton />
                   <ExpirationButton />
                 </div>

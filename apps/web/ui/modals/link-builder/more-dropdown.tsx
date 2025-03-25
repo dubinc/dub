@@ -1,3 +1,4 @@
+import useWorkspace from "@/lib/swr/use-workspace";
 import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
 import {
   Button,
@@ -20,6 +21,7 @@ import { useTargetingModal } from "./targeting-modal";
 import { useWebhooksModal } from "./webhooks-modal";
 
 export function MoreDropdown() {
+  const { flags } = useWorkspace();
   const { isMobile } = useMediaQuery();
 
   const { watch, setValue } = useFormContext<LinkFormData>();
@@ -28,8 +30,10 @@ export function MoreDropdown() {
   const [openPopover, setOpenPopover] = useState(false);
 
   const options = useMemo(() => {
-    return [...(isMobile ? MOBILE_MORE_ITEMS : []), ...MORE_ITEMS];
-  }, [data, isMobile]);
+    return [...(isMobile ? MOBILE_MORE_ITEMS : []), ...MORE_ITEMS].filter(
+      (option) => (option.key === "testVariants" ? flags?.abTesting : true),
+    );
+  }, [data, isMobile, flags]);
 
   const { ABTestingModal, setShowABTestingModal } = useABTestingModal();
   const { PasswordModal, setShowPasswordModal } = usePasswordModal();

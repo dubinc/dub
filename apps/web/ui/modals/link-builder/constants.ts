@@ -100,7 +100,7 @@ export const MOBILE_MORE_ITEMS: MoreItem[] = [
   {
     key: "testVariants",
     icon: Flask,
-    label: "A/B Testing",
+    label: "A/B Test",
     badgeLabel: getABTestingLabel,
     shortcutKey: "b",
     enabled: (data) => Boolean(data.testVariants && data.testCompletedAt),
