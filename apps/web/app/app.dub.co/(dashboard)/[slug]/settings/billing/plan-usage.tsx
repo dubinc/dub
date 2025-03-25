@@ -1,5 +1,8 @@
 "use client";
 
+import { PAYOUT_FEES } from "@/lib/partners/constants";
+import usePartnersCount from "@/lib/swr/use-partners-count";
+import usePrograms from "@/lib/swr/use-programs";
 import useTagsCount from "@/lib/swr/use-tags-count";
 import useUsers from "@/lib/swr/use-users";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -7,6 +10,7 @@ import SubscriptionMenu from "@/ui/workspaces/subscription-menu";
 import { buttonVariants, Icon, Tooltip, useRouterStuff } from "@dub/ui";
 import {
   CircleDollar,
+  CirclePercentage,
   CrownSmall,
   CursorRays,
   Folder5,
@@ -14,6 +18,7 @@ import {
   Hyperlink,
   Tag,
   Users,
+  Users6,
 } from "@dub/ui/icons";
 import {
   capitalize,
@@ -44,9 +49,19 @@ export default function PlanUsage() {
     foldersLimit,
     tagsLimit,
     usersLimit,
+    partnersEnabled,
     billingCycleStart,
     flags,
   } = useWorkspace();
+
+  const { programs } = usePrograms();
+  const { partnersCount } = usePartnersCount<number>({
+    enabled: !!programs?.[0]?.id,
+    programId: programs?.[0]?.id,
+    status: "approved",
+  });
+
+  const payoutFees = plan ? PAYOUT_FEES[plan.toLowerCase()]?.ach : null;
 
   const { data: tags } = useTagsCount();
   const { users } = useUsers();
@@ -153,6 +168,7 @@ export default function PlanUsage() {
             "grid grid-cols-1 gap-[1px] overflow-hidden rounded-b-lg bg-neutral-200 md:grid-cols-3",
             flags?.linkFolders &&
               "md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4",
+            !partnersEnabled && "rounded-b-lg",
           )}
         >
           <UsageCategory
@@ -182,6 +198,27 @@ export default function PlanUsage() {
             usageLimit={usersLimit}
           />
         </div>
+        {partnersEnabled && (
+          <div className="grid grid-cols-1 gap-[1px] overflow-hidden rounded-b-lg bg-neutral-200 md:grid-cols-2">
+            <UsageCategory
+              title="Partners"
+              icon={Users6}
+              usage={programs && !programs.length ? 0 : partnersCount}
+              usageLimit={INFINITY_NUMBER}
+            />
+            <UsageCategory
+              title="Payout fees"
+              icon={CirclePercentage}
+              usage={
+                plan
+                  ? payoutFees
+                    ? `${Math.round(payoutFees * 100)}%`
+                    : "-"
+                  : undefined
+              }
+            />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -329,29 +366,37 @@ function UsageTabCard({
 function UsageCategory(data: {
   title: string;
   icon: Icon;
-  usage?: number;
+  usage?: number | string;
   usageLimit?: number;
 }) {
   let { title, icon: Icon, usage, usageLimit } = data;
 
   return (
-    <div className="flex items-center justify-between bg-white p-6 md:p-8">
-      <div className="flex cursor-default items-center space-x-2">
-        <Icon className="size-4 text-neutral-600" />
+    <div className="flex flex-col justify-between gap-4 bg-white p-6 md:px-8">
+      <div className="flex cursor-default items-center gap-2 text-neutral-800">
+        <Icon className="size-4 shrink-0" />
         <h3 className="text-sm font-medium">{title}</h3>
       </div>
-      <div className="flex items-center gap-1.5 font-medium text-black">
+      <div className="flex items-center gap-1.5 text-sm font-medium text-neutral-800">
         {usage || usage === 0 ? (
-          <p>{nFormatter(usage, { full: true })}</p>
+          <p>
+            {typeof usage === "number"
+              ? nFormatter(usage, { full: true })
+              : usage}
+          </p>
         ) : (
-          <div className="size-6 animate-pulse rounded-md bg-neutral-200" />
+          <div className="size-5 animate-pulse rounded-md bg-neutral-200" />
         )}
-        <span>/</span>
-        <p className="text-neutral-400">
-          {usageLimit && usageLimit >= INFINITY_NUMBER
-            ? "∞"
-            : nFormatter(usageLimit, { full: true })}
-        </p>
+        {usageLimit !== undefined && (
+          <>
+            <span>/</span>
+            <p className="text-neutral-500">
+              {usageLimit && usageLimit >= INFINITY_NUMBER
+                ? "∞"
+                : nFormatter(usageLimit, { full: true })}
+            </p>
+          </>
+        )}
       </div>
     </div>
   );
