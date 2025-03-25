@@ -25,17 +25,19 @@ export const updatePartnerProfileAction = authPartnerActionClient
       partner.country &&
       partner.country.toLowerCase() !== country?.toLowerCase()
     ) {
-      // Partner should be able to update their country if they don't have any payouts with status `processing`
-      const pendingPayoutsCount = await prisma.payout.count({
+      // Partner should be able to update their country if they don't have any sent payouts
+      const sentPayoutsCount = await prisma.payout.count({
         where: {
           partnerId: partner.id,
-          status: "processing",
+          status: {
+            in: ["processing", "completed"],
+          },
         },
       });
 
-      if (pendingPayoutsCount > 0) {
+      if (sentPayoutsCount > 0) {
         throw new Error(
-          "Unable to change country while you have payouts in processing.",
+          "Since you've already received payouts on Dub, you cannot change your country. If you need to update your country, please contact support.",
         );
       }
 
