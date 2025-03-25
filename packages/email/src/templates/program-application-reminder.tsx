@@ -12,7 +12,7 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import { Footer } from "src/components/footer";
+import { Footer } from "../components/footer";
 
 export default function ProgramApplicationReminder({
   email = "panic@thedis.co",
