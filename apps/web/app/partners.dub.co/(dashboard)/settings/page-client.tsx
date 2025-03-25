@@ -3,6 +3,7 @@
 import { updatePartnerProfileAction } from "@/lib/actions/partners/update-partner-profile";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerProps } from "@/lib/types";
+import { CountryCombobox } from "@/ui/partners/country-combobox";
 import { OnlinePresenceForm } from "@/ui/partners/online-presence-form";
 import {
   Button,
@@ -12,7 +13,7 @@ import {
   MaxWidthWrapper,
   useEnterSubmit,
 } from "@dub/ui";
-import { cn, COUNTRIES, DICEBEAR_AVATAR_URL } from "@dub/utils";
+import { cn, DICEBEAR_AVATAR_URL } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { PropsWithChildren, useRef } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -93,11 +94,13 @@ function ProfileForm({ partner }: { partner: PartnerProps }) {
     name: string;
     image: string | null;
     description: string | null;
+    country: string;
   }>({
     defaultValues: {
       name: partner.name,
       image: partner.image,
       description: partner.description ?? null,
+      country: partner.country ?? "",
     },
   });
 
@@ -199,13 +202,17 @@ function ProfileForm({ partner }: { partner: PartnerProps }) {
                 Country
               </span>
               <div>
-                <input
-                  type="text"
-                  className="mt-2 block w-full rounded-md border-neutral-300 text-neutral-900 read-only:bg-neutral-100 read-only:text-neutral-500 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                  readOnly
-                  defaultValue={
-                    partner.country ? COUNTRIES[partner.country] : ""
-                  }
+                <Controller
+                  control={control}
+                  name="country"
+                  rules={{ required: true }}
+                  render={({ field }) => (
+                    <CountryCombobox
+                      value={field.value || ""}
+                      onChange={field.onChange}
+                      error={errors.country ? true : false}
+                    />
+                  )}
                 />
               </div>
             </label>
