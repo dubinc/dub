@@ -4,7 +4,6 @@ import {
   isReservedKey,
   isReservedUsername,
 } from "@/lib/edge-config";
-import { checkIfKeyExists } from "@/lib/planetscale";
 import { WorkspaceProps } from "@/lib/types";
 import {
   DEFAULT_REDIRECTS,
@@ -33,14 +32,6 @@ export async function keyChecks({
     return {
       error: `${key} is a reserved path and cannot be used as a short link.`,
       code: "forbidden",
-    };
-  }
-
-  const link = await checkIfKeyExists({ domain, key });
-  if (link) {
-    return {
-      error: "Duplicate key: This short link already exists.",
-      code: "conflict",
     };
   }
 
