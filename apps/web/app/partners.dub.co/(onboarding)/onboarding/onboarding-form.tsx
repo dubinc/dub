@@ -1,6 +1,8 @@
 "use client";
 
 import { onboardPartnerAction } from "@/lib/actions/partners/onboard-partner";
+import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
+import { PayoutsCount } from "@/lib/types";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
 import { CountryCombobox } from "@/ui/partners/country-combobox";
 import { Partner } from "@dub/prisma/client";
@@ -86,6 +88,14 @@ export function OnboardingForm({
   const formRef = useRef<HTMLFormElement>(null);
   const { handleKeyDown } = useEnterSubmit(formRef);
 
+  const { payoutsCount } = usePartnerPayoutsCount<PayoutsCount[]>({
+    groupBy: "status",
+  });
+
+  const sentPayoutsCount = payoutsCount?.find(
+    (payout) => payout.status === "processing" || payout.status === "completed",
+  )?.count;
+
   return (
     <form
       ref={formRef}
@@ -160,10 +170,13 @@ export function OnboardingForm({
           name="country"
           rules={{ required: true }}
           render={({ field }) => (
-            // Disable the combobox if the partner already has a stripeConnectId
             <CountryCombobox
               {...field}
-              disabled={!!partner?.stripeConnectId}
+              disabledTooltip={
+                sentPayoutsCount && sentPayoutsCount > 0
+                  ? "Since you've already received payouts, you cannot change your country. Contact support if you need to update your country."
+                  : undefined
+              }
               error={errors.country ? true : false}
             />
           )}

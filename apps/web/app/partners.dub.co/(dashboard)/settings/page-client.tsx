@@ -109,8 +109,8 @@ function ProfileForm({ partner }: { partner: PartnerProps }) {
     groupBy: "status",
   });
 
-  const processingPayoutsCount = payoutsCount?.find(
-    (payout) => payout.status === "processing",
+  const sentPayoutsCount = payoutsCount?.find(
+    (payout) => payout.status === "processing" || payout.status === "completed",
   )?.count;
 
   const formRef = useRef<HTMLFormElement>(null);
@@ -220,10 +220,10 @@ function ProfileForm({ partner }: { partner: PartnerProps }) {
                       value={field.value || ""}
                       onChange={field.onChange}
                       error={errors.country ? true : false}
-                      disabled={
-                        processingPayoutsCount && processingPayoutsCount > 0
-                          ? true
-                          : false
+                      disabledTooltip={
+                        sentPayoutsCount && sentPayoutsCount > 0
+                          ? "Since you've already received payouts on Dub, you cannot change your country. If you need to update your country, please contact support."
+                          : undefined
                       }
                     />
                   )}

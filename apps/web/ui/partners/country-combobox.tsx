@@ -5,12 +5,12 @@ import { useMemo } from "react";
 export function CountryCombobox({
   value,
   onChange,
-  disabled,
+  disabledTooltip,
   error,
 }: {
   value: string;
   onChange: (value: string) => void;
-  disabled?: boolean;
+  disabledTooltip?: string;
   error?: boolean;
 }) {
   const options = useMemo(
@@ -56,10 +56,10 @@ export function CountryCombobox({
           "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
           "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
           !value && "text-neutral-400",
-          disabled && "cursor-not-allowed",
+          disabledTooltip && "cursor-not-allowed",
           error && "border-red-500 ring-red-500 ring-1",
         ),
-        disabled,
+        disabledTooltip,
       }}
     />
   );
