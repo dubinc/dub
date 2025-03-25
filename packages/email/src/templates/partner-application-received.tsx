@@ -160,7 +160,10 @@ export function PartnerApplicationReceived({
               </Section>
             </Container>
 
-            <Footer email={email} />
+            <Footer
+              email={email}
+              notificationSettingsUrl={`https://app.dub.co/${workspace.slug}/settings/notifications`}
+            />
           </Container>
         </Body>
       </Tailwind>

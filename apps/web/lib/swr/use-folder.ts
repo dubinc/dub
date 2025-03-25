@@ -6,14 +6,19 @@ import useWorkspace from "./use-workspace";
 export default function useFolder({ folderId }: { folderId?: string | null }) {
   const { id: workspaceId, plan, flags } = useWorkspace();
 
+  const enabled =
+    folderId &&
+    folderId !== "unsorted" &&
+    workspaceId &&
+    flags?.linkFolders &&
+    plan !== "free";
+
   const {
     data: folder,
     isValidating,
     isLoading,
   } = useSWR<Folder>(
-    folderId && workspaceId && flags?.linkFolders && plan !== "free"
-      ? `/api/folders/${folderId}?workspaceId=${workspaceId}`
-      : null,
+    enabled ? `/api/folders/${folderId}?workspaceId=${workspaceId}` : null,
     fetcher,
     {
       dedupingInterval: 60000,

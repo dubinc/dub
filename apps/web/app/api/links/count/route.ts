@@ -33,6 +33,7 @@ export const GET = withWorkspace(
         folderId,
         requiredPermission: "folders.read",
       });
+
       if (selectedFolder.type === "mega") {
         throw new DubApiError({
           code: "bad_request",
@@ -61,6 +62,7 @@ export const GET = withWorkspace(
         folderIds = undefined;
       }
     }
+
     const count = await getLinksCount({
       searchParams: params,
       workspaceId: workspace.id,

@@ -64,6 +64,7 @@ export async function notifyPartnerApplication({
               slug: project.slug,
             },
           }),
+          variant: "notifications",
         }),
       ),
     ),
