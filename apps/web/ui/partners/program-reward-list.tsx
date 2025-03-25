@@ -25,16 +25,20 @@ export function ProgramRewardList({
     >
       {sortedFilteredRewards.map((reward) => (
         <Item key={reward.id} icon={REWARD_EVENTS[reward.event].icon}>
-          {constructRewardAmount({
-            amount: reward.amount,
-            type: reward.type,
-          })}{" "}
-          per {reward.event}
-          {reward.maxDuration === null ? (
-            <> for the customer's lifetime</>
-          ) : reward.maxDuration && reward.maxDuration > 1 ? (
-            <>, and again every month for {reward.maxDuration} months</>
-          ) : null}
+          {reward.description || (
+            <>
+              {constructRewardAmount({
+                amount: reward.amount,
+                type: reward.type,
+              })}{" "}
+              per {reward.event}
+              {reward.maxDuration === null ? (
+                <> for the customer's lifetime</>
+              ) : reward.maxDuration && reward.maxDuration > 1 ? (
+                <>, and again every month for {reward.maxDuration} months</>
+              ) : null}
+            </>
+          )}
         </Item>
       ))}
       {discount && (
