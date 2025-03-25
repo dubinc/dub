@@ -44,11 +44,6 @@ export async function createLinkWithKeyRetry({
           });
         }
 
-        console.debug("Retrying with a new key", {
-          currentKey: link.key,
-          attempts,
-        });
-
         // Otherwise, generate a new random key and retry
         const newKey = await getRandomKey({
           prefix: link["prefix"],
