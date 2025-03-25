@@ -3,7 +3,6 @@
 import useTagsCount from "@/lib/swr/use-tags-count";
 import useUsers from "@/lib/swr/use-users";
 import useWorkspace from "@/lib/swr/use-workspace";
-import PlanBadge from "@/ui/workspaces/plan-badge";
 import SubscriptionMenu from "@/ui/workspaces/subscription-menu";
 import { buttonVariants, Icon, Tooltip, useRouterStuff } from "@dub/ui";
 import {
@@ -17,6 +16,7 @@ import {
   Users,
 } from "@dub/ui/icons";
 import {
+  capitalize,
   cn,
   getFirstAndLastDay,
   INFINITY_NUMBER,
@@ -72,20 +72,11 @@ export default function PlanUsage() {
 
   return (
     <div className="rounded-lg border border-neutral-200 bg-white">
-      <div className="flex flex-col items-start justify-between gap-y-4 p-6 md:p-8 lg:flex-row">
+      <div className="flex flex-col items-start justify-between gap-y-4 p-6 md:px-8 lg:flex-row">
         <div>
-          <h2 className="text-xl font-medium">Plan and Usage</h2>
-          <p className="mt-1 text-balance text-sm leading-normal text-neutral-500">
-            You are currently on the{" "}
-            {plan ? (
-              <PlanBadge plan={plan} />
-            ) : (
-              <span className="rounded-full bg-neutral-200 px-2 py-0.5 text-xs text-neutral-200">
-                load
-              </span>
-            )}{" "}
-            plan.
-            {billingStart && billingEnd && (
+          <h2 className="text-xl font-medium">{capitalize(plan)}</h2>
+          {billingStart && billingEnd && (
+            <p className="mt-1 text-balance text-sm leading-normal text-neutral-500">
               <>
                 {" "}
                 Current billing cycle:{" "}
@@ -94,19 +85,24 @@ export default function PlanUsage() {
                 </span>
                 .
               </>
-            )}
-          </p>
+            </p>
+          )}
         </div>
         <div className="flex items-center gap-2">
-          {plan === "free" ? (
+          {plan !== "enterprise" ? (
             <Link
-              href={`/${slug}/upgrade`}
+              href={
+                isMaxPlan
+                  ? "https://dub.co/contact"
+                  : `/${slug}/settings/billing/upgrade`
+              }
+              target={isMaxPlan ? "_blank" : undefined}
               className={cn(
                 buttonVariants({ variant: "primary" }),
                 "flex h-9 w-full items-center justify-center whitespace-nowrap rounded-md border px-4 text-sm",
               )}
             >
-              Upgrade Plan
+              Upgrade
             </Link>
           ) : (
             <Link
@@ -188,25 +184,6 @@ export default function PlanUsage() {
           />
         </div>
       </div>
-      {plan !== "enterprise" && plan !== "free" && (
-        <div className="flex flex-col items-center justify-between space-y-3 border-t border-neutral-200 px-6 py-4 text-center md:flex-row md:space-y-0 md:px-8 md:text-left">
-          <p className="text-sm text-neutral-500">
-            {isMaxPlan
-              ? "Looking for higher limits / volume discounts? Contact us for an Enterprise quote."
-              : `For higher limits, upgrade to the ${nextPlan.name} plan.`}
-          </p>
-          <Link
-            href={isMaxPlan ? `https://dub.co/contact` : `/${slug}/upgrade`}
-            {...(isMaxPlan && { target: "_blank" })}
-            className={cn(
-              buttonVariants(),
-              "flex h-9 w-fit items-center justify-center rounded-md border px-3 text-sm",
-            )}
-          >
-            {isMaxPlan ? "Contact us" : `Upgrade to ${nextPlan.name}`}
-          </Link>
-        </div>
-      )}
     </div>
   );
 }
