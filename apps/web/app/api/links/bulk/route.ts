@@ -245,15 +245,15 @@ export const POST = withWorkspace(
       });
     }
 
-    let validLinksResponse;
+    let validLinksResponse: ProcessedLinkProps[] = [];
 
     if (validLinks.length > 0) {
       const response = await bulkCreateLinks({
         links: validLinks,
       });
 
-      validLinksResponse = response.validLinks;
-      errorLinks = errorLinks.concat(response.invalidLinks);
+      validLinksResponse.push(...response.validLinks);
+      errorLinks.push(...response.invalidLinks);
     }
 
     return NextResponse.json([...validLinksResponse, ...errorLinks], {

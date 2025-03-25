@@ -290,7 +290,9 @@ export async function bulkCreateLinks({
   });
 
   return {
-    validLinks: createdLinksData.map((link) => transformLink(link)),
+    validLinks: createdLinksData.map(
+      (link) => transformLink(link) as ProcessedLinkProps,
+    ),
     invalidLinks,
   };
 }
