@@ -35,7 +35,7 @@ export const updatePartnerProfileAction = authPartnerActionClient
 
       if (pendingPayoutsCount > 0) {
         throw new Error(
-          "Unable to change country while you have pending payouts.",
+          "Unable to change country while you have payouts in processing.",
         );
       }
 
