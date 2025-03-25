@@ -37,7 +37,7 @@ export function useCheckFolderPermission(
     return true;
   }
 
-  if (!folderId) {
+  if (!folderId || folderId === "unsorted") {
     return true;
   }
 

@@ -3,8 +3,9 @@
 import { useIsMegaFolder } from "@/lib/swr/use-is-mega-folder";
 import useLinks from "@/lib/swr/use-links";
 import useLinksCount from "@/lib/swr/use-links-count";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { ExpandedLinkProps, UserProps } from "@/lib/types";
-import { CardList, MaxWidthWrapper } from "@dub/ui";
+import { CardList, MaxWidthWrapper, useRouterStuff } from "@dub/ui";
 import { CursorRays, Hyperlink } from "@dub/ui/icons";
 import { useSearchParams } from "next/navigation";
 import {
@@ -30,11 +31,29 @@ export default function LinksContainer({
 }: {
   CreateLinkButton: () => JSX.Element;
 }) {
+  const { defaultFolderId } = useWorkspace();
+  const { searchParams } = useRouterStuff();
   const { viewMode, sortBy, showArchived } = useContext(LinksDisplayContext);
 
-  const { links, isValidating } = useLinks({ sortBy, showArchived });
+  // Decide on the folderId to use
+  let folderId = searchParams.get("folderId");
+  if (folderId) {
+    folderId = folderId === "unsorted" ? "" : folderId;
+  } else {
+    folderId = defaultFolderId ?? "";
+  }
+
+  const { links, isValidating } = useLinks({
+    sortBy,
+    showArchived,
+    folderId,
+  });
+
   const { data: count } = useLinksCount<number>({
-    query: { showArchived },
+    query: {
+      showArchived,
+      folderId,
+    },
   });
 
   return (
