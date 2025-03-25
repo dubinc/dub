@@ -38,6 +38,7 @@ export default function useWorkspace({
     exceededDomains:
       workspace?.domains && workspace.domains.length >= workspace.domainsLimit,
     error,
+    defaultFolderId: workspace?.users && workspace.users[0].defaultFolderId,
     mutate,
     loading: slug && !workspace && !error ? true : false,
   };
