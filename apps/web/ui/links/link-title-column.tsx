@@ -75,7 +75,7 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
   const hasQuickViewSettings = quickViewSettings.some(({ key }) => link?.[key]);
 
   const searchParams = useSearchParams();
-  const { slug } = useWorkspace();
+  const { slug, defaultFolderId } = useWorkspace();
   const { folder } = useFolder({ folderId: link.folderId });
 
   return (
@@ -85,7 +85,9 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
     >
       {variant === "compact" &&
         link.folderId &&
-        searchParams.get("folderId") !== link.folderId && (
+        ![defaultFolderId, searchParams.get("folderId")].includes(
+          link.folderId,
+        ) && (
           <Link href={`/${slug}?folderId=${link.folderId}`}>
             {folder ? (
               <FolderIcon

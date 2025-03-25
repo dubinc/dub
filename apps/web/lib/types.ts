@@ -147,6 +147,7 @@ export interface WorkspaceProps extends Project {
   }[];
   users: {
     role: RoleProps;
+    defaultFolderId: string | null;
   }[];
   flags?: {
     [key in BetaFeatures]: boolean;

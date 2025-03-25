@@ -47,7 +47,7 @@ const LinkCardInner = memo(({ link }: { link: ResponseLink }) => {
     props: link,
   });
   const searchParams = useSearchParams();
-  const { slug } = useWorkspace();
+  const { slug, defaultFolderId } = useWorkspace();
 
   // TODO: only enable this when the link card is in view
   const { folder } = useFolder({ folderId: link.folderId });
@@ -62,7 +62,9 @@ const LinkCardInner = memo(({ link }: { link: ResponseLink }) => {
         innerClassName="p-0"
         {...(variant === "loose" &&
           link.folderId &&
-          searchParams.get("folderId") !== link.folderId && {
+          ![defaultFolderId, searchParams.get("folderId")].includes(
+            link.folderId,
+          ) && {
             banner: (
               <Link
                 href={`/${slug}?folderId=${folder?.id}`}
