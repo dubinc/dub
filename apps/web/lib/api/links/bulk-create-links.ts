@@ -21,13 +21,18 @@ export async function bulkCreateLinks({
   links: ProcessedLinkProps[];
   skipRedisCache?: boolean;
 }) {
-  if (links.length === 0) return [];
+  if (links.length === 0) {
+    return {
+      validLinks: [],
+      invalidLinks: [],
+    };
+  }
 
   const hasTags = checkIfLinksHaveTags(links);
   const hasWebhooks = checkIfLinksHaveWebhooks(links);
 
   // Create a map of shortLinks to their original indices at the start
-  const shortLinkToIndexMap = new Map(
+  let shortLinkToIndexMap = new Map(
     links.map((link, index) => {
       const key = encodeKeyIfCaseSensitive({
         domain: link.domain,
@@ -43,6 +48,60 @@ export async function bulkCreateLinks({
       ];
     }),
   );
+
+  // Check if any links already exist
+  const existingLinks = await prisma.link.findMany({
+    where: {
+      shortLink: {
+        in: Array.from(shortLinkToIndexMap.keys()),
+      },
+    },
+    select: {
+      shortLink: true,
+    },
+    take: shortLinkToIndexMap.size,
+  });
+
+  const invalidLinks: {
+    error: string;
+    code: string;
+    link: ProcessedLinkProps;
+  }[] = [];
+
+  if (existingLinks.length > 0) {
+    existingLinks.forEach((existingLink) => {
+      invalidLinks.push({
+        code: "conflict",
+        error: "Duplicate key: This short link already exists.",
+        link: links.find(
+          (l) =>
+            existingLink.shortLink ===
+            linkConstructorSimple({ domain: l.domain, key: l.key }),
+        ) as ProcessedLinkProps,
+      });
+    });
+  }
+
+  // Remove existing links from the links array
+  links = links.filter(
+    (link) =>
+      !existingLinks.some(
+        (l) =>
+          linkConstructorSimple({ domain: link.domain, key: link.key }) ===
+          l.shortLink,
+      ),
+  );
+
+  existingLinks.forEach((link) => {
+    shortLinkToIndexMap.delete(link.shortLink);
+  });
+
+  if (links.length === 0) {
+    return {
+      validLinks: [],
+      invalidLinks,
+    };
+  }
 
   // Create all links first using createMany
   await prisma.link.createMany({
@@ -230,5 +289,8 @@ export async function bulkCreateLinks({
     return aIndex - bIndex;
   });
 
-  return createdLinksData.map((link) => transformLink(link));
+  return {
+    validLinks: createdLinksData.map((link) => transformLink(link)),
+    invalidLinks,
+  };
 }

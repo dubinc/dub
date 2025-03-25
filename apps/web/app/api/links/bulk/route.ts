@@ -245,8 +245,16 @@ export const POST = withWorkspace(
       });
     }
 
-    const validLinksResponse =
-      validLinks.length > 0 ? await bulkCreateLinks({ links: validLinks }) : [];
+    let validLinksResponse;
+
+    if (validLinks.length > 0) {
+      const response = await bulkCreateLinks({
+        links: validLinks,
+      });
+
+      validLinksResponse = response.validLinks;
+      errorLinks = errorLinks.concat(response.invalidLinks);
+    }
 
     return NextResponse.json([...validLinksResponse, ...errorLinks], {
       headers,
