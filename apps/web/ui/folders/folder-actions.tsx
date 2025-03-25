@@ -226,7 +226,7 @@ export const FolderActions = ({
         <Button
           variant="secondary"
           className={cn(
-            "h-8 bg-transparent px-1 outline-none transition-all duration-200",
+            "h-8 flex-1 bg-transparent px-1 outline-none transition-all duration-200",
             "border-transparent data-[state=open]:border-neutral-500 sm:group-hover/card:data-[state=closed]:border-neutral-200",
           )}
           onClick={() => setOpenPopover(true)}

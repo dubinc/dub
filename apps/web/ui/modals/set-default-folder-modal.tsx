@@ -56,11 +56,20 @@ function SetDefaultFolderModal({
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-4 pt-8 text-center sm:px-16">
         <FolderIcon folder={folder} />
         <h3 className="text-lg font-medium">
-          Set {folder.name} as default folder
+          Set "{folder.name}" as your default folder
         </h3>
         <p className="text-sm text-neutral-500">
-          Setting this folder as default will make it the default view when
-          accessing your links.
+          This will make this folder the default folder for your links
+          dashboard.{" "}
+          <a
+            // TODO: Update help article when ready
+            href="https://dub.co/help"
+            className="underline"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Learn more ↗
+          </a>
         </p>
       </div>
 
