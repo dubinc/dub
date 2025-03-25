@@ -41,9 +41,19 @@ export const GET = withPartnerProfile(
 
     const earnings = await prisma.commission.findMany({
       where: {
-        amount: {
-          gt: 0,
-        },
+        OR: [
+          {
+            type: "sale",
+            amount: {
+              gt: 0,
+            },
+          },
+          {
+            type: {
+              not: "sale",
+            },
+          },
+        ],
         programId: program.id,
         partnerId: partner.id,
         type,
