@@ -3,29 +3,60 @@
 import { storage } from "@/lib/storage";
 import { prisma } from "@dub/prisma";
 import { COUNTRIES, nanoid } from "@dub/utils";
+import { PartnerProfileType } from "@prisma/client";
 import { stripe } from "../../stripe";
 import z from "../../zod";
 import { authPartnerActionClient } from "../safe-action";
 
-const updatePartnerProfileSchema = z.object({
-  name: z.string(),
-  image: z.string().nullable(),
-  description: z.string().nullable(),
-  country: z.enum(Object.keys(COUNTRIES) as [string, ...string[]]).nullable(),
-});
+const updatePartnerProfileSchema = z
+  .object({
+    name: z.string(),
+    image: z.string().nullable(),
+    description: z.string().nullable(),
+    country: z.enum(Object.keys(COUNTRIES) as [string, ...string[]]).nullable(),
+    profileType: z.nativeEnum(PartnerProfileType),
+    companyName: z.string().nullable(),
+  })
+  .refine(
+    (data) => {
+      if (data.profileType === "company") {
+        return !!data.companyName;
+      }
+
+      return true;
+    },
+    {
+      message: "Legal company name is required.",
+      path: ["companyName"],
+    },
+  )
+  .transform((data) => ({
+    ...data,
+    companyName: data.profileType === "individual" ? null : data.companyName,
+  }));
 
 // Update a partner profile
 export const updatePartnerProfileAction = authPartnerActionClient
   .schema(updatePartnerProfileSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
-    const { name, image, description, country } = parsedInput;
+    const { name, image, description, country, profileType, companyName } =
+      parsedInput;
 
-    if (
-      partner.country &&
-      partner.country.toLowerCase() !== country?.toLowerCase()
-    ) {
-      // Partner should be able to update their country if they don't have any payouts with status `processing`
+    const countryChanged =
+      partner.country?.toLowerCase() !== country?.toLowerCase();
+
+    const profileTypeChanged =
+      partner.profileType.toLowerCase() !== profileType.toLowerCase();
+
+    const companyNameChanged =
+      partner.companyName?.toLowerCase() !== companyName?.toLowerCase();
+
+    console.log({ countryChanged, profileTypeChanged, companyNameChanged });
+
+    if (countryChanged || profileTypeChanged || companyNameChanged) {
+      // Partner should be able to update their country, profile type, or company name
+      // if they don't have any payouts with status `processing`
       const pendingPayoutsCount = await prisma.payout.count({
         where: {
           partnerId: partner.id,
@@ -74,6 +105,8 @@ export const updatePartnerProfileAction = authPartnerActionClient
         description,
         image: imageUrl,
         country,
+        profileType,
+        companyName,
       },
     });
   });
