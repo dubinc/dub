@@ -11,6 +11,7 @@ export const dynamic = "force-dynamic";
 
 const E2E_USER_ID = "clxz1q7c7000hbqx5ckv4r82h";
 const E2E_WORKSPACE_ID = "clrei1gld0002vs9mzn93p8ik";
+const E2E_PROGRAM_ID = "prog_CYCu7IMAapjkRpTnr8F1azjN";
 
 /***
     This route is used to remove links, domains and tags created during the E2E test.
@@ -80,6 +81,11 @@ export async function GET(req: Request) {
         },
         select: {
           id: true,
+          programs: {
+            where: {
+              programId: E2E_PROGRAM_ID,
+            },
+          },
         },
       }),
     ]);
