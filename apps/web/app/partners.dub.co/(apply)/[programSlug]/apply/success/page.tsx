@@ -87,7 +87,9 @@ export default async function SuccessPage({
       <div className="p-6">
         <div className="grid grid-cols-1 gap-5 sm:pt-20">
           <h1 className="text-4xl font-semibold">
-            Application {hasPartnerProfile ? "submitted" : "saved"}
+            {hasPartnerProfile
+              ? "Application submitted"
+              : "Complete your setup"}
           </h1>
           <div className="flex flex-col gap-4 text-base text-neutral-700">
             {hasPartnerProfile && (
@@ -113,6 +115,11 @@ export default async function SuccessPage({
               </p>
             )}
           </div>
+        </div>
+
+        {/* Buttons */}
+        <div className="mt-12 flex flex-col gap-3">
+          <CTAButtons />
         </div>
 
         {/* Screenshot */}
@@ -144,10 +151,6 @@ export default async function SuccessPage({
               <p className="text-neutral-500">{description}</p>
             </div>
           ))}
-        </div>
-
-        <div className="mt-12 flex flex-col gap-3">
-          <CTAButtons />
         </div>
       </div>
     </div>
