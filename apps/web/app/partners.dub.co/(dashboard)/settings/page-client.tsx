@@ -1,8 +1,9 @@
 "use client";
 
 import { updatePartnerProfileAction } from "@/lib/actions/partners/update-partner-profile";
+import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import { PartnerProps } from "@/lib/types";
+import { PartnerProps, PayoutsCount } from "@/lib/types";
 import { CountryCombobox } from "@/ui/partners/country-combobox";
 import { OnlinePresenceForm } from "@/ui/partners/online-presence-form";
 import {
@@ -103,6 +104,14 @@ function ProfileForm({ partner }: { partner: PartnerProps }) {
       country: partner.country ?? "",
     },
   });
+
+  const { payoutsCount } = usePartnerPayoutsCount<PayoutsCount[]>({
+    groupBy: "status",
+  });
+
+  const processingPayoutsCount = payoutsCount?.find(
+    (payout) => payout.status === "processing",
+  )?.count;
 
   const formRef = useRef<HTMLFormElement>(null);
   const { handleKeyDown } = useEnterSubmit(formRef);
@@ -211,6 +220,11 @@ function ProfileForm({ partner }: { partner: PartnerProps }) {
                       value={field.value || ""}
                       onChange={field.onChange}
                       error={errors.country ? true : false}
+                      disabled={
+                        processingPayoutsCount && processingPayoutsCount > 0
+                          ? true
+                          : false
+                      }
                     />
                   )}
                 />
