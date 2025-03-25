@@ -453,6 +453,7 @@ export const PLAN_COMPARE_FEATURES: {
                   free: "30 day",
                   pro: "1 year",
                   business: "3 year",
+                  advanced: "5 year",
                   enterprise: "Unlimited",
                 }[id]
               }
@@ -475,6 +476,7 @@ export const PLAN_COMPARE_FEATURES: {
         check: {
           default: false,
           business: true,
+          advanced: true,
           enterprise: true,
         },
         text: () => (
@@ -487,6 +489,7 @@ export const PLAN_COMPARE_FEATURES: {
         check: {
           default: false,
           business: true,
+          advanced: true,
           enterprise: true,
         },
         text: () => <>Conversion tracking</>,
@@ -541,14 +544,10 @@ export const PLAN_COMPARE_FEATURES: {
         text: ({ id }) => (
           <>
             <strong>
-              {
-                {
-                  free: "Basic",
-                  pro: "Elevated",
-                  business: "Priority",
-                  enterprise: "Priority",
-                }[id]
-              }
+              {{
+                free: "Basic",
+                pro: "Elevated",
+              }[id] ?? "Priority"}
             </strong>{" "}
             {id === "enterprise" ? "with SLA" : "support"}
           </>
@@ -589,6 +588,7 @@ export const PLAN_COMPARE_FEATURES: {
         check: {
           default: false,
           business: true,
+          advanced: true,
           enterprise: true,
         },
         text: () => (
