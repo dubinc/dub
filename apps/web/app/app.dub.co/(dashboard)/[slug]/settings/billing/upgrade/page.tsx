@@ -1,3 +1,10 @@
+import { MaxWidthWrapper } from "@dub/ui";
+import { WorkspaceBillingUpgradePageClient } from "./page-client";
+
 export default function WorkspaceBillingUpgrade() {
-  return <div className="grid gap-8">Plans</div>;
+  return (
+    <MaxWidthWrapper className="grid max-w-screen-lg gap-8">
+      <WorkspaceBillingUpgradePageClient />
+    </MaxWidthWrapper>
+  );
 }

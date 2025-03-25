@@ -643,3 +643,13 @@ export const getNextPlan = (plan?: string | null) => {
     PLANS.findIndex((p) => p.name.toLowerCase() === plan.toLowerCase()) + 1
   ];
 };
+
+export const isDowngradePlan = (currentPlan: string, newPlan: string) => {
+  const currentPlanIndex = PLANS.findIndex(
+    (p) => p.name.toLowerCase() === currentPlan.toLowerCase(),
+  );
+  const newPlanIndex = PLANS.findIndex(
+    (p) => p.name.toLowerCase() === newPlan.toLowerCase(),
+  );
+  return currentPlanIndex > newPlanIndex;
+};

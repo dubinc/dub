@@ -32,7 +32,6 @@ export default function PlanUsage() {
     slug,
     plan,
     stripeId,
-    nextPlan,
     usage,
     usageLimit,
     salesUsage,
