@@ -94,6 +94,7 @@ export async function completeProgramApplications(userId: string) {
           id: {
             in: programApplications.map(({ id }) => id),
           },
+          partnerId: null,
         },
         data: { partnerId: user.partners[0].partnerId },
       }),
