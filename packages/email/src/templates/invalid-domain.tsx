@@ -31,16 +31,15 @@ export function InvalidDomain({
       <Preview>Invalid Domain Configuration</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
-          <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-neutral-200 px-10 py-5">
-            <Section className="mt-8">
+          <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
+            <Section className="mt-8 mt-6">
               <Img
                 src={DUB_WORDMARK}
-                height="40"
+                height="32"
                 alt="Dub"
-                className="mx-auto my-0"
               />
             </Section>
-            <Heading className="mx-0 my-7 p-0 text-center text-xl font-semibold text-black">
+            <Heading className="mx-0 my-7 p-0 text-lg font-medium text-black">
               Invalid Domain Configuration
             </Heading>
             <Text className="text-sm leading-6 text-black">
@@ -59,7 +58,7 @@ export function InvalidDomain({
               automatically deleted from Dub.co. Please click the link below to
               configure your domain.
             </Text>
-            <Section className="my-8 text-center">
+            <Section className="my-8">
               <Link
                 className="rounded-lg bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
                 href={`https://app.dub.co/${workspaceSlug}/settings/domains`}
