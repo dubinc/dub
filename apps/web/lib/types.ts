@@ -114,7 +114,7 @@ export interface RedisLinkProps {
   projectId?: string;
   webhookIds?: string[];
   partner?: Pick<PartnerProps, "id" | "name" | "image">;
-  discount?: Pick<DiscountProps, "id" | "maxDuration" | "amount" | "type">;
+  discount?: Pick<DiscountProps, "id" | "amount" | "type" | "maxDuration">;
 }
 
 export interface TagProps {
