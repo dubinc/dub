@@ -5,12 +5,13 @@ import { linkCache } from "@/lib/api/links/cache";
 import { clickCache } from "@/lib/api/links/click-cache";
 import { includePartnerAndDiscount } from "@/lib/api/partners/include-partner";
 import { parseRequestBody } from "@/lib/api/utils";
+import { getIpAddress } from "@/lib/ip-address";
 import { getLinkWithAllowedHostnames } from "@/lib/planetscale/get-link-with-allowed-hostnames";
 import { recordClick } from "@/lib/tinybird";
 import { linkPartnerDiscountSchema } from "@/lib/zod/schemas/clicks";
 import { prismaEdge } from "@dub/prisma/edge";
-import { isValidUrl, LOCALHOST_IP, nanoid } from "@dub/utils";
-import { ipAddress, waitUntil } from "@vercel/functions";
+import { isValidUrl, nanoid } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { AxiomRequest, withAxiom } from "next-axiom";
 import { NextResponse } from "next/server";
 
@@ -34,12 +35,14 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
       });
     }
 
-    const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
-
-    let clickId = await clickCache.get({ domain, key, ip });
-
     let partner: ExpandedLink["partner"] | undefined;
     let discount: ExpandedLink["discount"] | undefined;
+
+    let clickId = await clickCache.get({
+      domain,
+      key,
+      ip: getIpAddress(req),
+    });
 
     // only generate + record a new click ID if it's not already cached in Redis
     if (!clickId) {

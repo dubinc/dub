@@ -11,13 +11,11 @@ import {
   DUB_HEADERS,
   LEGAL_WORKSPACE_ID,
   LOCALHOST_GEO_DATA,
-  LOCALHOST_IP,
   isDubDomain,
   isUnsupportedKey,
   nanoid,
   punyEncode,
 } from "@dub/utils";
-import { ipAddress } from "@vercel/functions";
 import { cookies } from "next/headers";
 import {
   NextFetchEvent,
@@ -28,6 +26,7 @@ import {
 import { linkCache } from "../api/links/cache";
 import { isCaseSensitiveDomain } from "../api/links/case-sensitivity";
 import { clickCache } from "../api/links/click-cache";
+import { getIpAddress } from "../ip-address";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
 import { getPartnerAndDiscount } from "../planetscale/get-partner-discount";
@@ -228,9 +227,12 @@ export default async function LinkMiddleware(
   if (!clickId) {
     // if trackConversion is enabled, check if clickId is cached in Redis
     if (trackConversion) {
-      const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
-
-      clickId = (await clickCache.get({ domain, key, ip })) || undefined;
+      clickId =
+        (await clickCache.get({
+          domain,
+          key,
+          ip: getIpAddress(req),
+        })) || undefined;
     }
     // if there's still no clickId, generate a new one
     if (!clickId) {

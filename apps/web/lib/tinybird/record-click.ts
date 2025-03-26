@@ -1,14 +1,14 @@
 import {
   LOCALHOST_GEO_DATA,
-  LOCALHOST_IP,
   capitalize,
   getDomainWithoutWWW,
 } from "@dub/utils";
 import { EU_COUNTRY_CODES } from "@dub/utils/src/constants/countries";
-import { geolocation, ipAddress } from "@vercel/functions";
+import { geolocation } from "@vercel/functions";
 import { userAgent } from "next/server";
 import { clickCache } from "../api/links/click-cache";
 import { ExpandedLink, transformLink } from "../api/links/utils/transform-link";
+import { getIpAddress } from "../ip-address";
 import {
   detectBot,
   detectQr,
@@ -70,7 +70,7 @@ export async function recordClick({
     return null;
   }
 
-  const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
+  const ip = getIpAddress(req);
 
   // by default, we deduplicate clicks for a domain + key pair from the same IP address – only record 1 click per hour
   // we only need to do these if skipRatelimit is not true (we skip it in /api/track/:path endpoints)
@@ -81,8 +81,6 @@ export async function recordClick({
       return null;
     }
   }
-
-  const isQr = detectQr(req);
 
   // get continent, region & geolocation data
   // interesting, geolocation().region is Vercel's edge region – NOT the actual region
@@ -97,14 +95,11 @@ export async function recordClick({
 
   const geo =
     process.env.VERCEL === "1" ? geolocation(req) : LOCALHOST_GEO_DATA;
-
+  const isQr = detectQr(req);
   const isEuCountry = geo.country && EU_COUNTRY_CODES.includes(geo.country);
-
   const ua = userAgent(req);
   const referer = referrer || req.headers.get("referer");
-
   const identity_hash = await getIdentityHash(req);
-
   const finalUrl = url ? getFinalUrlForRecordClick({ req, url }) : "";
 
   const clickData = {
