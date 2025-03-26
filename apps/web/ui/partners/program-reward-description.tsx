@@ -11,7 +11,7 @@ export function ProgramRewardDescription({
 }: {
   reward?: Pick<
     RewardProps,
-    "amount" | "type" | "event" | "maxDuration"
+    "amount" | "type" | "event" | "maxDuration" | "description"
   > | null;
   discount?: DiscountProps | null;
   amountClassName?: string;
@@ -20,39 +20,41 @@ export function ProgramRewardDescription({
 }) {
   return (
     <>
-      {reward && (reward.amount > 0 || !hideIfZero) ? (
-        <>
-          Earn{" "}
-          <strong className={cn("font-semibold", amountClassName)}>
-            {constructRewardAmount({
-              amount: reward.amount,
-              type: reward.type,
-            })}{" "}
-          </strong>
-          for each {reward.event}
-          {reward.maxDuration === null ? (
-            <strong className={cn("font-semibold", periodClassName)}>
-              {" "}
-              for the customer's lifetime.
-            </strong>
-          ) : reward.maxDuration && reward.maxDuration > 1 ? (
+      {reward && (reward.amount > 0 || !hideIfZero)
+        ? reward.description || (
             <>
-              , and again{" "}
-              <strong className={cn("font-semibold", periodClassName)}>
-                every month for {reward.maxDuration} months
+              Earn{" "}
+              <strong className={cn("font-semibold", amountClassName)}>
+                {constructRewardAmount({
+                  amount: reward.amount,
+                  type: reward.type,
+                })}{" "}
               </strong>
-              .
+              for each {reward.event}
+              {reward.maxDuration === null ? (
+                <strong className={cn("font-semibold", periodClassName)}>
+                  {" "}
+                  for the customer's lifetime.
+                </strong>
+              ) : reward.maxDuration && reward.maxDuration > 1 ? (
+                <>
+                  , and again{" "}
+                  <strong className={cn("font-semibold", periodClassName)}>
+                    every month for {reward.maxDuration} months
+                  </strong>
+                  .
+                </>
+              ) : (
+                "."
+              )}
             </>
-          ) : (
-            "."
-          )}
-        </>
-      ) : null}
+          )
+        : null}
 
       {discount ? (
         <>
           {" "}
-          Referred users get{" "}
+          New users get{" "}
           <strong className={cn("font-semibold", amountClassName)}>
             {constructRewardAmount({
               amount: discount.amount,

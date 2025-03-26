@@ -45,7 +45,9 @@ export async function deletePartner({ partnerId }: { partnerId: string }) {
 
   await prisma.link.deleteMany({
     where: {
-      partnerId: partner.id,
+      id: {
+        in: links.map((link) => link.id),
+      },
     },
   });
 

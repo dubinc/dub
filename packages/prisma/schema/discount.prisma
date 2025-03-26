@@ -4,6 +4,7 @@ model Discount {
   amount      Int            @default(0)
   type        CommissionType @default(percentage)
   maxDuration Int? // in months (0 -> not recurring, null -> lifetime)
+  description String?
 
   couponId     String?
   couponTestId String?
@@ -16,10 +17,6 @@ model Discount {
   programEnrollments ProgramEnrollment[]
   defaultForProgram  Program?            @relation("ProgramDefaultDiscount")
   program            Program             @relation("ProgramDiscounts", fields: [programId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-
-  // Remove these fields after running the migration
-  duration Int?
-  interval CommissionInterval?
 
   @@index(programId)
 }

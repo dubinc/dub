@@ -15,7 +15,7 @@ import useSWR from "swr";
 export function ReferralsEmbedEarnings({ salesCount }: { salesCount: number }) {
   const { pagination, setPagination } = usePagination(SALES_PAGE_SIZE);
   const { data: earnings, isLoading } = useSWR<PartnerEarningsResponse[]>(
-    `/api/embed/referrals/commissions?page=${pagination.pageIndex}`,
+    `/api/embed/referrals/earnings?page=${pagination.pageIndex}`,
     fetcher,
     {
       keepPreviousData: true,

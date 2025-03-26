@@ -5,16 +5,16 @@ import { PartnerEarningsSchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
-// GET /api/embed/referrals/commissions – get commissions for a partner from an embed token
+// GET /api/embed/referrals/earnings – get commissions for a partner from an embed token
 export const GET = withReferralsEmbedToken(
   async ({ programId, partnerId, searchParams }) => {
     const { page } = z
       .object({ page: z.coerce.number().optional().default(1) })
       .parse(searchParams);
 
-    const commissions = await prisma.commission.findMany({
+    const earnings = await prisma.commission.findMany({
       where: {
-        amount: {
+        earnings: {
           gt: 0,
         },
         programId,
@@ -51,6 +51,6 @@ export const GET = withReferralsEmbedToken(
       },
     });
 
-    return NextResponse.json(z.array(PartnerEarningsSchema).parse(commissions));
+    return NextResponse.json(z.array(PartnerEarningsSchema).parse(earnings));
   },
 );
