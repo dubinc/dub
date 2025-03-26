@@ -65,7 +65,9 @@ export function PayoutStats() {
               <p className="text-black">
                 {currencyFormatter(
                   (payoutsCount?.find(
-                    (payout) => payout.status === PayoutStatus.completed,
+                    (payout) =>
+                      payout.status === PayoutStatus.completed ||
+                      payout.status === PayoutStatus.processing,
                   )?.amount || 0) / 100,
                   {
                     maximumFractionDigits: 2,

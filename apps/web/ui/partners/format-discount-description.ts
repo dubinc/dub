@@ -10,7 +10,7 @@ export function formatDiscountDescription({
   const discountAmount = constructRewardAmount(discount);
   const parts: string[] = [];
 
-  parts.push(`Referred users get ${discountAmount} off `);
+  parts.push(`New users get ${discountAmount} off `);
 
   if (discount.maxDuration === null) {
     parts.push("for the their lifetime");
