@@ -120,6 +120,7 @@ export const POST = withSession(async ({ req, session }) => {
           },
           select: {
             role: true,
+            defaultFolderId: true,
           },
         },
         domains: {

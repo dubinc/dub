@@ -44,4 +44,17 @@ export const E2E_DISCOUNT = {
   maxDuration: 3,
   couponId: "XZuejd0Q",
   couponTestId: "2NMXz81x",
+  description: null,
+};
+
+// Program
+export const E2E_PROGRAM = {
+  id: "prog_CYCu7IMAapjkRpTnr8F1azjN",
+  domain: "getacme.link",
+  url: "https://acme.com",
+};
+
+export const E2E_PARTNER = {
+  id: "pn_H4TB2V5hDIjpqB7PwrxESoY3",
+  tenantId: "4149092f-7265-4002-98d9-da9f8e67e1fb",
 };

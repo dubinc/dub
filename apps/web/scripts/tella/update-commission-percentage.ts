@@ -16,9 +16,9 @@ async function main() {
     },
     complete: async () => {
       const where: Prisma.CommissionWhereInput = {
+        earnings: 0,
         programId: "prog_xxx",
         status: "pending",
-        earnings: 0,
         partner: {
           email: {
             notIn: flatRatePartners,

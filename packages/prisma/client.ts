@@ -1,7 +1,6 @@
 export * from "@prisma/client";
 
 export {
-  CommissionInterval,
   CommissionStatus,
   CommissionType,
   EventType,

@@ -126,6 +126,9 @@ export const createProgram = async ({
           id: workspace.id,
         },
         data: {
+          foldersUsage: {
+            increment: 1,
+          },
           store: {
             ...store,
             programOnboarding: undefined,
