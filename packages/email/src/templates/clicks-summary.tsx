@@ -170,7 +170,7 @@ export function ClicksSummary({
                 </Text>
                 <Section className="my-8 text-center">
                   <Link
-                    className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
+                    className="rounded-lg bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
                     href={`https://app.dub.co/${workspaceSlug}/analytics?interval=30d`}
                   >
                     View my stats

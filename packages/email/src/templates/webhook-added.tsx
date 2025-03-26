@@ -55,9 +55,9 @@ export function WebhookAdded({
               Webhook with the name <strong>{webhook.name}</strong> has been
               added to your Dub.co workspace {workspace.name}.
             </Text>
-            <Section className="mb-8 mt-4 text-center">
+            <Section className="mb-8 mt-8 text-center">
               <Link
-                className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
+                className="rounded-lg bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
                 href={`https://app.dub.co/${workspace.slug}/settings/webhooks`}
               >
                 View Webhook

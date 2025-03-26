@@ -106,7 +106,7 @@ export function NewSaleAlertProgramOwner({
   return (
     <Html>
       <Head />
-      <Preview>You received a payment from a customer referred! 💰</Preview>
+      <Preview>You received a sale from a customer referred! 💰</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-neutral-200 px-10 py-5">
@@ -123,7 +123,7 @@ export function NewSaleAlertProgramOwner({
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              You received a payment from a customer referred by{" "}
+              <strong>{workspace.name}</strong> earned a sale from a customer referred by {" "}
               <strong>
                 {partner.name
                   ? `${partner.name} (${partner.email})`
