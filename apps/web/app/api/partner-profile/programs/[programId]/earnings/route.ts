@@ -1,4 +1,5 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
+import { typeAmountFilter } from "@/lib/api/commissions/type-amount-filter";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { generateRandomName } from "@/lib/names";
@@ -41,30 +42,7 @@ export const GET = withPartnerProfile(
 
     const earnings = await prisma.commission.findMany({
       where: {
-        ...(type
-          ? {
-              type,
-              ...(type === "sale" && {
-                amount: {
-                  gt: 0,
-                },
-              }),
-            }
-          : {
-              OR: [
-                {
-                  type: "sale",
-                  amount: {
-                    gt: 0,
-                  },
-                },
-                {
-                  type: {
-                    not: "sale",
-                  },
-                },
-              ],
-            }),
+        ...typeAmountFilter(type),
         programId: program.id,
         partnerId: partner.id,
         status,
