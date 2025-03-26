@@ -6,7 +6,7 @@ interface QueryResult {
   image: string | null;
   discountId: string;
   amount: number;
-  type: string;
+  type: "percentage" | "flat";
   maxDuration: number | null;
 }
 

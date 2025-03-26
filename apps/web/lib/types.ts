@@ -153,6 +153,7 @@ export interface WorkspaceProps extends Project {
     [key in BetaFeatures]: boolean;
   };
   store: Record<string, any> | null;
+  allowedHostnames: string[];
 }
 
 export type ExpandedWorkspaceProps = WorkspaceProps & {

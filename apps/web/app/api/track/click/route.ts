@@ -3,17 +3,19 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { ExpandedLink } from "@/lib/api/links";
 import { linkCache } from "@/lib/api/links/cache";
 import { clickCache } from "@/lib/api/links/click-cache";
-import { includePartnerAndDiscount } from "@/lib/api/partners/include-partner";
 import { parseRequestBody } from "@/lib/api/utils";
 import { getIpAddress } from "@/lib/ip-address";
-import { getLinkWithAllowedHostnames } from "@/lib/planetscale/get-link-with-allowed-hostnames";
+import { getLinkViaEdge } from "@/lib/planetscale";
+import { getPartnerAndDiscount } from "@/lib/planetscale/get-partner-discount";
+import { getWorkspaceViaEdge } from "@/lib/planetscale/get-workspace-via-edge";
 import { recordClick } from "@/lib/tinybird";
+import { formatRedisLink } from "@/lib/upstash/format-redis-link";
 import { linkPartnerDiscountSchema } from "@/lib/zod/schemas/clicks";
-import { prismaEdge } from "@dub/prisma/edge";
 import { isValidUrl, nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { AxiomRequest, withAxiom } from "next-axiom";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 export const runtime = "edge";
 
@@ -23,21 +25,25 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
+const schema = z.object({
+  domain: z.string(),
+  key: z.string(),
+  url: z.string().nullish(),
+  referrer: z.string().nullish(),
+});
+
 // POST /api/track/click – Track a click event from the client-side
 export const POST = withAxiom(async (req: AxiomRequest) => {
   try {
-    const { domain, key, url, referrer } = await parseRequestBody(req);
+    const {
+      domain,
+      key,
+      url = "",
+      referrer = "",
+    } = schema.parse(await parseRequestBody(req));
 
-    if (!domain || !key) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "Missing domain or key",
-      });
-    }
-
-    let partner: ExpandedLink["partner"] | undefined;
-    let discount: ExpandedLink["discount"] | undefined;
-
+    let partner: ExpandedLink["partner"] | null;
+    let discount: ExpandedLink["discount"] | null;
     let clickId = await clickCache.get({
       domain,
       key,
@@ -46,83 +52,104 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
 
     // only generate + record a new click ID if it's not already cached in Redis
     if (!clickId) {
-      clickId = nanoid(16);
+      let cachedLink = await linkCache.get({
+        domain,
+        key,
+      });
 
-      const link = await getLinkWithAllowedHostnames(domain, key);
-
-      if (!link) {
-        throw new DubApiError({
-          code: "not_found",
-          message: `Link not found for domain: ${domain} and key: ${key}.`,
-        });
-      }
-
-      const allowedHostnames = link.allowedHostnames;
-      verifyAnalyticsAllowedHostnames({ allowedHostnames, req });
-
-      const finalUrl = isValidUrl(url) ? url : link.url;
-
-      // Find the partner and discount for the link
-      if (link.programId) {
-        const cachedLink = await linkCache.get({
+      if (!cachedLink) {
+        let linkData = await getLinkViaEdge({
           domain,
           key,
         });
 
-        if (cachedLink) {
-          partner = cachedLink?.partner;
-          discount = cachedLink?.discount;
+        if (!linkData || !linkData?.projectId) {
+          throw new DubApiError({
+            code: "not_found",
+            message: `Link not found for domain: ${domain} and key: ${key}.`,
+          });
         }
 
-        if (!partner) {
-          const { programEnrollment, program, ...rest } =
-            await prismaEdge.link.findUniqueOrThrow({
-              where: {
-                domain_key: {
-                  domain,
-                  key,
-                },
-              },
-              include: {
-                ...includePartnerAndDiscount,
-              },
-            });
+        if (linkData.partnerId && linkData.programId) {
+          const response = await getPartnerAndDiscount({
+            partnerId: linkData.partnerId,
+            programId: linkData.programId,
+          });
 
-          partner = programEnrollment?.partner;
-          discount = programEnrollment?.discount || program?.defaultDiscount;
+          linkData = {
+            ...linkData,
+            ...response,
+          };
+        }
 
-          waitUntil(
-            linkCache.set({
-              ...rest,
+        cachedLink = formatRedisLink(linkData as any);
+
+        waitUntil(linkCache.set(linkData as any));
+      }
+
+      // Verify the referrer is allowed
+      const workspace = await getWorkspaceViaEdge(cachedLink.projectId!, [
+        "allowedHostnames",
+      ]);
+
+      if (workspace?.allowedHostnames) {
+        verifyAnalyticsAllowedHostnames({
+          allowedHostnames: workspace.allowedHostnames,
+          req,
+        });
+      }
+
+      const finalUrl = url
+        ? isValidUrl(url)
+          ? url
+          : cachedLink.url
+        : cachedLink.url;
+
+      clickId = nanoid(16);
+      partner = cachedLink.partner || null;
+      discount = cachedLink.discount || null;
+
+      waitUntil(
+        Promise.all([
+          recordClick({
+            req,
+            clickId,
+            linkId: cachedLink.id,
+            domain,
+            key,
+            url: finalUrl,
+            workspaceId: cachedLink.projectId,
+            skipRatelimit: true,
+            ...(referrer && { referrer }),
+            trackConversion: cachedLink.trackConversion,
+            ...(partner && { partner }),
+            ...(discount && { discount }),
+          }),
+
+          partner &&
+            clickCache.setPartner(clickId, {
               partner,
               discount,
             }),
-          );
-        }
-      }
-
-      waitUntil(
-        recordClick({
-          req,
-          clickId,
-          linkId: link.id,
-          domain,
-          key,
-          url: finalUrl,
-          workspaceId: link.projectId,
-          skipRatelimit: true,
-          ...(referrer && { referrer }),
-          trackConversion: link.trackConversion,
-        }),
+        ]),
       );
+    } else {
+      const partnerData = await clickCache.getPartner(clickId);
+
+      if (partnerData) {
+        partner = partnerData.partner;
+        discount = partnerData.discount;
+      }
     }
 
     return NextResponse.json(
-      linkPartnerDiscountSchema.parse({
+      {
         clickId,
-        partner,
-        discount,
-      }),
+        ...linkPartnerDiscountSchema.parse({
+          partner,
+          discount,
+        }),
+      },
       {
         headers: CORS_HEADERS,
       },

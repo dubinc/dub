@@ -13,7 +13,10 @@ interface KeyProps {
 
 interface LinkPartnerDiscount {
   partner: Pick<PartnerProps, "id" | "name" | "image">;
-  discount?: Pick<DiscountProps, "id" | "amount" | "type" | "maxDuration">;
+  discount: Pick<
+    DiscountProps,
+    "id" | "amount" | "type" | "maxDuration"
+  > | null;
 }
 
 class ClickCache {
@@ -27,17 +30,13 @@ class ClickCache {
     return await redis.get<string>(this._createKey({ domain, key, ip }));
   }
 
-  _createKey({ domain, key, ip }: KeyProps) {
-    return `recordClick:${domain}:${key}:${ip}`;
-  }
-
   // Cache the partner and discount
   async setPartner(
     clickId: string,
     { partner, discount }: LinkPartnerDiscount,
   ) {
     return await redis.set(
-      `${PARTNER_CLICK_CACHE_KEY}:${clickId}`,
+      this._createPartnerKey(clickId),
       {
         partner,
         discount,
@@ -51,8 +50,16 @@ class ClickCache {
   // Get the partner and discount
   async getPartner(clickId: string) {
     return await redis.get<LinkPartnerDiscount>(
-      `${PARTNER_CLICK_CACHE_KEY}:${clickId}`,
+      this._createPartnerKey(clickId),
     );
+  }
+
+  _createKey({ domain, key, ip }: KeyProps) {
+    return `recordClick:${domain}:${key}:${ip}`;
+  }
+
+  _createPartnerKey(clickId: string) {
+    return `${PARTNER_CLICK_CACHE_KEY}:${clickId}`;
   }
 }
 

@@ -154,7 +154,11 @@ export async function recordClick({
     clickCache.set({ domain, key, ip, clickId }),
 
     // cache the partner and discount in Redis for 1 hour
-    partner && clickCache.setPartner(clickId, { partner, discount }),
+    partner &&
+      clickCache.setPartner(clickId, {
+        partner,
+        discount: discount || null,
+      }),
 
     // cache the click data for 5 mins
     // we're doing this because ingested click events are not available immediately in Tinybird
