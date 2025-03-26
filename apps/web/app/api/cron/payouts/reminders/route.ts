@@ -13,7 +13,7 @@ export async function GET(req: Request) {
   try {
     await verifyVercelSignature(req);
 
-    const payouts = await prisma.payout.groupBy({
+    const pendingPayouts = await prisma.payout.groupBy({
       by: ["partnerId", "programId"],
       where: {
         status: "pending",
@@ -31,9 +31,53 @@ export async function GET(req: Request) {
       },
     });
 
-    console.log({ payouts });
+    const partnerData = await prisma.partner.findMany({
+      where: {
+        id: {
+          in: pendingPayouts.map((payout) => payout.partnerId),
+        },
+      },
+    });
 
-    return NextResponse.json(payouts);
+    const programData = await prisma.program.findMany({
+      where: {
+        id: {
+          in: pendingPayouts.map((payout) => payout.programId),
+        },
+      },
+    });
+
+    const partnerPrograms = pendingPayouts.reduce(
+      (acc, payout) => {
+        const { partnerId, programId } = payout;
+        const { amount } = payout._sum;
+
+        const partner = partnerData.find((p) => p.id === partnerId);
+        const program = programData.find((p) => p.id === programId);
+        if (!partner?.email || !program) {
+          return acc;
+        }
+
+        acc[partner.email] = acc[partner.email] || [];
+        acc[partner.email].push({
+          amount: amount ?? 0,
+          partner: {
+            name: partner.name,
+            email: partner.email,
+          },
+          program: {
+            name: program.name,
+          },
+        });
+        return acc;
+      },
+      {} as Record<
+        string,
+        Array<{ amount: number; partner: any; program: any }>
+      >,
+    );
+
+    return NextResponse.json(partnerPrograms);
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }
