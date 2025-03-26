@@ -41,25 +41,28 @@ export function ProgramRewardList({
           )}
         </Item>
       ))}
-      {discount &&
-        (discount.description || (
-          <Item icon={Gift}>
-            {" "}
-            New users get{" "}
-            {constructRewardAmount({
-              amount: discount.amount,
-              type: discount.type,
-            })}{" "}
-            off{" "}
-            {discount.maxDuration === null ? (
-              <> for their lifetime</>
-            ) : discount.maxDuration && discount.maxDuration > 1 ? (
-              <>for {discount.maxDuration} months</>
-            ) : (
-              <>for their first purchase</>
-            )}
-          </Item>
-        ))}
+      {discount && (
+        <Item icon={Gift}>
+          {discount.description || (
+            <>
+              {" "}
+              New users get{" "}
+              {constructRewardAmount({
+                amount: discount.amount,
+                type: discount.type,
+              })}{" "}
+              off{" "}
+              {discount.maxDuration === null ? (
+                <> for their lifetime</>
+              ) : discount.maxDuration && discount.maxDuration > 1 ? (
+                <>for {discount.maxDuration} months</>
+              ) : (
+                <>for their first purchase</>
+              )}
+            </>
+          )}
+        </Item>
+      )}
     </ul>
   );
 }
