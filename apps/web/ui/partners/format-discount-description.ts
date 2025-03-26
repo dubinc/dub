@@ -5,8 +5,15 @@ import { pluralize } from "@dub/utils";
 export function formatDiscountDescription({
   discount,
 }: {
-  discount: Pick<DiscountProps, "amount" | "type" | "maxDuration">;
+  discount: Pick<
+    DiscountProps,
+    "amount" | "type" | "maxDuration" | "description"
+  >;
 }): string {
+  if (discount.description) {
+    return discount.description;
+  }
+
   const discountAmount = constructRewardAmount(discount);
   const parts: string[] = [];
 
