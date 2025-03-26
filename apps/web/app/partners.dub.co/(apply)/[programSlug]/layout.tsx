@@ -66,7 +66,7 @@ export default async function ApplyLayout({
         {/* Footer */}
         <footer className="mt-14 flex flex-col items-center gap-4 py-6 text-center text-xs text-neutral-500">
           <span className="flex items-center gap-1.5">
-            Powered by <Wordmark className="h-3.5" />
+            Powered by <Wordmark className="h-4 p-0.5" />
           </span>
           <span className="flex items-center gap-2">
             <a

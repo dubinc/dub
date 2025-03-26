@@ -31,7 +31,6 @@ model Partner {
   updatedAt         DateTime           @updatedAt
 
   programs     ProgramEnrollment[]
-  applications ProgramApplication[]
   users        PartnerUser[]
   invites      PartnerInvite[]
   payouts      Payout[]
