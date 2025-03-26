@@ -56,6 +56,7 @@ export const createPayout = async ({
         earnings: {
           gt: 0,
         },
+        programId,
         partnerId,
         payoutId: null,
         status: "pending",

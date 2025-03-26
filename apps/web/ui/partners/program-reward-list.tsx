@@ -43,19 +43,23 @@ export function ProgramRewardList({
       ))}
       {discount && (
         <Item icon={Gift}>
-          {" "}
-          New users get{" "}
-          {constructRewardAmount({
-            amount: discount.amount,
-            type: discount.type,
-          })}{" "}
-          off{" "}
-          {discount.maxDuration === null ? (
-            <> for their lifetime</>
-          ) : discount.maxDuration && discount.maxDuration > 1 ? (
-            <>for {discount.maxDuration} months</>
-          ) : (
-            <>for their first purchase</>
+          {discount.description || (
+            <>
+              {" "}
+              New users get{" "}
+              {constructRewardAmount({
+                amount: discount.amount,
+                type: discount.type,
+              })}{" "}
+              off{" "}
+              {discount.maxDuration === null ? (
+                <> for their lifetime</>
+              ) : discount.maxDuration && discount.maxDuration > 1 ? (
+                <>for {discount.maxDuration} months</>
+              ) : (
+                <>for their first purchase</>
+              )}
+            </>
           )}
         </Item>
       )}
