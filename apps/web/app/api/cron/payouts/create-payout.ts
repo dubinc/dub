@@ -1,3 +1,4 @@
+import { typeAmountFilter } from "@/lib/api/commissions/type-amount-filter";
 import { createId } from "@/lib/api/create-id";
 import { prisma } from "@dub/prisma";
 import { EventType, Payout } from "@dub/prisma/client";
@@ -53,10 +54,10 @@ export const createPayout = async ({
   await prisma.$transaction(async (tx) => {
     const commissions = await tx.commission.findMany({
       where: {
+        ...typeAmountFilter(type),
         programId,
         partnerId,
         payoutId: null,
-        type,
         status: "pending",
         // Only process commissions that were created before the holding period
         ...(holdingPeriodDays > 0 && {

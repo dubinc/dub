@@ -89,12 +89,12 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
         earnings: true,
       },
       where: {
+        type: "sale",
         amount: {
           gt: 0,
         },
         programId: programEnrollment.programId,
         partnerId: programEnrollment.partnerId,
-        type: "sale",
         status: {
           in: ["pending", "processed", "paid"],
         },
@@ -164,12 +164,12 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const topLinkEarnings = await prisma.commission.groupBy({
     by: ["linkId"],
     where: {
+      type: "sale",
       amount: {
         gt: 0,
       },
       programId: programEnrollment.programId,
       partnerId: programEnrollment.partnerId,
-      type: "sale",
       status: {
         in: ["pending", "processed", "paid"],
       },

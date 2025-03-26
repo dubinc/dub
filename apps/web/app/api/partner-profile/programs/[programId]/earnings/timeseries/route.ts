@@ -50,11 +50,14 @@ export const GET = withPartnerProfile(
         SUM(earnings) AS earnings
       FROM Commission
       WHERE 
-        amount > 0
-        AND createdAt >= ${startDate}
-        AND createdAt < ${endDate}
+        (
+          (type = 'sale' AND amount > 0)
+          OR type != 'sale'
+        )
         AND programId = ${program.id}
         AND partnerId = ${partner.id}
+        AND createdAt >= ${startDate}
+        AND createdAt < ${endDate}
         ${type ? Prisma.sql`AND type = ${type}` : Prisma.sql``}
         ${payoutId ? Prisma.sql`AND payoutId = ${payoutId}` : Prisma.sql``}
         ${linkId ? Prisma.sql`AND linkId = ${linkId}` : Prisma.sql``}
