@@ -151,7 +151,7 @@ export function PartnerApplicationReceived({
                   <Section className="mt-8 text-center">
                     <Link
                       href={applicationUrl}
-                      className="box-border block w-full rounded-md bg-black px-0 py-4 text-center text-sm font-medium leading-none text-white no-underline"
+                      className="box-border block w-full rounded-lg bg-black px-0 py-4 text-center text-sm font-semibold leading-none text-white no-underline"
                     >
                       Review application on Dub
                     </Link>

@@ -55,7 +55,7 @@ export function DomainClaimed({
             </Text>
             <Section className="my-8 text-center">
               <Link
-                className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
+                className="rounded-lg bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
                 href={`https://app.dub.co/${workspaceSlug}/settings/domains`}
               >
                 Manage your domain
@@ -63,8 +63,7 @@ export function DomainClaimed({
             </Section>
             <Text className="text-sm leading-6 text-black">
               Once the domain is fully provisioned, you can start creating links
-              with it. This process can take anywhere between a few minutes to
-              an hour.
+              with it. This process can take up to 1 hour.
             </Text>
             <Text className="text-sm leading-6 text-black">
               If your domain is not active after 1 hour, please reply to this
