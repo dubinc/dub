@@ -123,8 +123,8 @@ export function NewSaleAlertProgramOwner({
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              <strong>{program.name}</strong> earned a sale from a customer
-              referred by{" "}
+              Your program <strong>{program.name}</strong> earned a sale from a
+              customer referred by{" "}
               <strong>
                 {partner.name
                   ? `${partner.name} (${partner.email})`
