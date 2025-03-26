@@ -139,11 +139,24 @@ export function ReferralsEmbedPageClient({
               onClick={() => copyToClipboard(links[0].shortLink)}
             />
           </div>
-          <span className="text-content-emphasis mt-12 text-base font-semibold">
-            Rewards
-          </span>
-          <div className="text-content-emphasis relative mt-2 text-lg sm:max-w-[50%]">
-            <ProgramRewardList rewards={rewards} discount={discount} />
+          <div className="mt-12 sm:max-w-[50%]">
+            <div className="flex items-end justify-between">
+              <span className="text-content-emphasis text-base font-semibold leading-none">
+                Rewards
+              </span>
+              {program.termsUrl && (
+                <a
+                  href={program.termsUrl}
+                  target="_blank"
+                  className="text-content-subtle text-xs font-medium leading-none underline-offset-2 hover:underline"
+                >
+                  View terms ↗
+                </a>
+              )}
+            </div>
+            <div className="text-content-emphasis relative mt-4 text-lg">
+              <ProgramRewardList rewards={rewards} discount={discount} />
+            </div>
           </div>
           <div className="mt-4 flex justify-center md:absolute md:bottom-3 md:right-3 md:mt-0">
             <a

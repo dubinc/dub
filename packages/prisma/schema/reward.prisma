@@ -3,6 +3,7 @@ model Reward {
   programId String
 
   name        String?
+  description String?
   event       EventType
   type        CommissionType @default(percentage)
   amount      Int            @default(0)
