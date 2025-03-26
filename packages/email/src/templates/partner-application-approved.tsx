@@ -124,7 +124,7 @@ export function PartnerApplicationApproved({
 
             <Section className="mb-8 mt-8">
               <Link
-                className="rounded-md bg-neutral-900 px-6 py-3 text-[13px] font-medium text-white no-underline"
+                className="rounded-lg bg-neutral-900 px-6 py-3 text-[13px] font-semibold text-white no-underline"
                 href={`https://partners.dub.co/programs/${program.slug}`}
               >
                 Go to your dashboard

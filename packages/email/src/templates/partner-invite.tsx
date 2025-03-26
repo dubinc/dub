@@ -55,7 +55,7 @@ export function PartnerInvite({
 
             <Section className="mb-12 mt-8">
               <Link
-                className="rounded-md bg-neutral-900 px-4 py-3 text-[12px] font-medium text-white no-underline"
+                className="rounded-lg bg-neutral-900 px-4 py-3 text-[12px] font-semibold text-white no-underline"
                 href="https://partners.dub.co/register"
               >
                 Accept Invite
