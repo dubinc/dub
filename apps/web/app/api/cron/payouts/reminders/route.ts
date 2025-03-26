@@ -14,7 +14,7 @@ export async function GET(req: Request) {
     await verifyVercelSignature(req);
 
     const payouts = await prisma.payout.groupBy({
-      by: ["partnerId"],
+      by: ["partnerId", "programId"],
       where: {
         status: "pending",
         partner: {
@@ -24,14 +24,16 @@ export async function GET(req: Request) {
       _sum: {
         amount: true,
       },
+      orderBy: {
+        _sum: {
+          amount: "desc",
+        },
+      },
     });
 
     console.log({ payouts });
 
-    return NextResponse.json({
-      message:
-        "Reminders sent to partners who have pending payouts but haven't configured payouts yet.",
-    });
+    return NextResponse.json(payouts);
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }
