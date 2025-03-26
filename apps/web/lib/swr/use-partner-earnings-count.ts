@@ -24,6 +24,7 @@ export default function usePartnerEarningsCount<T>(opts?: {
         opts,
         {
           include: [
+            "type",
             "linkId",
             "customerId",
             "status",
