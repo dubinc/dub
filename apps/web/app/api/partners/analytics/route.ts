@@ -123,11 +123,11 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
       SUM(earnings) AS earnings
     FROM Commission
     WHERE 
-      amount > 0
+      earnings > 0
       AND programId = ${programEnrollment.programId}
       AND partnerId = ${programEnrollment.partnerId}
-      AND type = 'sale'
       AND status in ('pending', 'processed', 'paid')
+      AND type = 'sale'
       AND createdAt >= ${startDate}
       AND createdAt < ${endDate}
     GROUP BY start

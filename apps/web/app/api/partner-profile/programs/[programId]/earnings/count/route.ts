@@ -34,30 +34,9 @@ export const GET = withPartnerProfile(
     });
 
     const where: Prisma.CommissionWhereInput = {
-      ...(type
-        ? {
-            type,
-            ...(type === "sale" && {
-              amount: {
-                gt: 0,
-              },
-            }),
-          }
-        : {
-            OR: [
-              {
-                type: "sale",
-                amount: {
-                  gt: 0,
-                },
-              },
-              {
-                type: {
-                  not: "sale",
-                },
-              },
-            ],
-          }),
+      earnings: {
+        gt: 0,
+      },
       programId: program.id,
       partnerId: partner.id,
       ...(payoutId && { payoutId }),

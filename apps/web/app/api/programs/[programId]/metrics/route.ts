@@ -35,8 +35,7 @@ export const GET = withWorkspace(
 
       prisma.commission.aggregate({
         where: {
-          type: "sale",
-          amount: {
+          earnings: {
             gt: 0,
           },
           ...where,
@@ -48,8 +47,7 @@ export const GET = withWorkspace(
 
       prisma.commission.count({
         where: {
-          type: "sale",
-          amount: {
+          earnings: {
             gt: 0,
           },
           ...where,
