@@ -111,7 +111,6 @@ async function createApplicationAndEnrollment({
         ...data,
         id: applicationId,
         programId: program.id,
-        partnerId: partner.id,
       },
     }),
 

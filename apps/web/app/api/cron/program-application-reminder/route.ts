@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     const application = await prisma.programApplication.findFirst({
       where: {
         id: applicationId,
-        partner: null,
+        enrollment: null,
         // Only send reminders for applications that were created less than 3 days ago
         createdAt: {
           gt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
