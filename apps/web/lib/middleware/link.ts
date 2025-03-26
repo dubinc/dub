@@ -30,6 +30,7 @@ import { isCaseSensitiveDomain } from "../api/links/case-sensitivity";
 import { clickCache } from "../api/links/click-cache";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
+import { getPartnerAndDiscount } from "../planetscale/get-partner-discount";
 import { hasEmptySearchParams } from "./utils/has-empty-search-params";
 
 export default async function LinkMiddleware(
@@ -112,10 +113,33 @@ export default async function LinkMiddleware(
       }
     }
 
-    // format link to fit the RedisLinkProps interface
     cachedLink = formatRedisLink(linkData as any);
-    // cache in Redis
-    ev.waitUntil(linkCache.set(linkData as any));
+
+    // Cache the link in Redis
+    ev.waitUntil(
+      (async () => {
+        if (!linkData.partnerId || !linkData.programId) {
+          linkCache.set(linkData as any);
+          return;
+        }
+
+        // Get the partner and discount for a program link
+        const response = await getPartnerAndDiscount({
+          partnerId: linkData.partnerId,
+          programId: linkData.programId,
+        });
+
+        linkCache.set({
+          ...(linkData as any),
+          ...(response?.partner && {
+            partner: response.partner,
+          }),
+          ...(response?.discount && {
+            discount: response.discount,
+          }),
+        });
+      })(),
+    );
   }
 
   const {

@@ -14,8 +14,7 @@ export const getLinkViaEdge = async ({
   domain: string;
   key: string;
 }) => {
-  const isCaseSensitive = isCaseSensitiveDomain(domain);
-  const keyToQuery = isCaseSensitive
+  const keyToQuery = isCaseSensitiveDomain(domain)
     ? // for case sensitive domains, we need to encode the key
       encodeKey(key)
     : // for non-case sensitive domains, we need to make sure that the key is always URI-decoded + punycode-encoded

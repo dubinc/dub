@@ -54,8 +54,6 @@ export function formatRedisLink(link: ExpandedLink): RedisLinkProps {
         amount: discount.amount,
         type: discount.type,
         maxDuration: discount.maxDuration,
-        couponId: discount.couponId,
-        couponTestId: discount.couponTestId,
       },
     }),
   };

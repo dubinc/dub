@@ -85,15 +85,14 @@ export const clickEventResponseSchema = z
 export const clickPartnerDiscountSchema = z.object({
   clickId: z.string(),
   partner: PartnerSchema.pick({
+    id: true,
     name: true,
-    email: true,
     image: true,
   }).nullish(),
   discount: DiscountSchema.pick({
+    id: true,
     amount: true,
     type: true,
     maxDuration: true,
-    couponId: true,
-    couponTestId: true,
   }).nullish(),
 });
