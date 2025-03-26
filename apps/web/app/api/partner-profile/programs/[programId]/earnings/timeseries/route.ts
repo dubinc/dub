@@ -50,10 +50,7 @@ export const GET = withPartnerProfile(
         SUM(earnings) AS earnings
       FROM Commission
       WHERE 
-        (
-          (type = 'sale' AND amount > 0)
-          OR type != 'sale'
-        )
+        earnings > 0
         AND programId = ${program.id}
         AND partnerId = ${partner.id}
         AND createdAt >= ${startDate}
