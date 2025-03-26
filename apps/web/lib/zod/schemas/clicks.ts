@@ -82,8 +82,7 @@ export const clickEventResponseSchema = z
   .openapi({ ref: "ClickEvent" });
 
 // Schema for the response from the /clicks/:clickId & the /track/click endpoints
-export const clickPartnerDiscountSchema = z.object({
-  clickId: z.string(),
+export const linkPartnerDiscountSchema = z.object({
   partner: PartnerSchema.pick({
     id: true,
     name: true,

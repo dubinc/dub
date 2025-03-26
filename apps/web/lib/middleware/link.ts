@@ -113,33 +113,23 @@ export default async function LinkMiddleware(
       }
     }
 
+    // Get the partner and discount for a program link
+    if (linkData.partnerId && linkData.programId) {
+      const response = await getPartnerAndDiscount({
+        partnerId: linkData.partnerId,
+        programId: linkData.programId,
+      });
+
+      linkData = {
+        ...linkData,
+        ...response,
+      };
+    }
+
     cachedLink = formatRedisLink(linkData as any);
 
     // Cache the link in Redis
-    ev.waitUntil(
-      (async () => {
-        if (!linkData.partnerId || !linkData.programId) {
-          linkCache.set(linkData as any);
-          return;
-        }
-
-        // Get the partner and discount for a program link
-        const response = await getPartnerAndDiscount({
-          partnerId: linkData.partnerId,
-          programId: linkData.programId,
-        });
-
-        linkCache.set({
-          ...(linkData as any),
-          ...(response?.partner && {
-            partner: response.partner,
-          }),
-          ...(response?.discount && {
-            discount: response.discount,
-          }),
-        });
-      })(),
-    );
+    ev.waitUntil(linkCache.set(linkData as any));
   }
 
   const {
@@ -156,6 +146,8 @@ export default async function LinkMiddleware(
     expiredUrl,
     doIndex,
     webhookIds,
+    partner,
+    discount,
     projectId: workspaceId,
   } = cachedLink;
 
@@ -259,6 +251,8 @@ export default async function LinkMiddleware(
         webhookIds,
         workspaceId,
         trackConversion,
+        partner,
+        discount,
       }),
     );
 
@@ -307,6 +301,8 @@ export default async function LinkMiddleware(
         webhookIds,
         workspaceId,
         trackConversion,
+        partner,
+        discount,
       }),
     );
 
@@ -344,6 +340,8 @@ export default async function LinkMiddleware(
         webhookIds,
         workspaceId,
         trackConversion,
+        partner,
+        discount,
       }),
     );
 
@@ -383,6 +381,8 @@ export default async function LinkMiddleware(
         webhookIds,
         workspaceId,
         trackConversion,
+        partner,
+        discount,
       }),
     );
 
@@ -416,6 +416,8 @@ export default async function LinkMiddleware(
         webhookIds,
         workspaceId,
         trackConversion,
+        partner,
+        discount,
       }),
     );
 
@@ -449,6 +451,8 @@ export default async function LinkMiddleware(
         webhookIds,
         workspaceId,
         trackConversion,
+        partner,
+        discount,
       }),
     );
 
@@ -482,6 +486,8 @@ export default async function LinkMiddleware(
         webhookIds,
         workspaceId,
         trackConversion,
+        partner,
+        discount,
       }),
     );
 

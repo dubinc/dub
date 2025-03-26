@@ -7,7 +7,7 @@ import { includePartnerAndDiscount } from "@/lib/api/partners/include-partner";
 import { parseRequestBody } from "@/lib/api/utils";
 import { getLinkWithAllowedHostnames } from "@/lib/planetscale/get-link-with-allowed-hostnames";
 import { recordClick } from "@/lib/tinybird";
-import { clickPartnerDiscountSchema } from "@/lib/zod/schemas/clicks";
+import { linkPartnerDiscountSchema } from "@/lib/zod/schemas/clicks";
 import { prismaEdge } from "@dub/prisma/edge";
 import { isValidUrl, LOCALHOST_IP, nanoid } from "@dub/utils";
 import { ipAddress, waitUntil } from "@vercel/functions";
@@ -115,7 +115,7 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
     }
 
     return NextResponse.json(
-      clickPartnerDiscountSchema.parse({
+      linkPartnerDiscountSchema.parse({
         clickId,
         partner,
         discount,

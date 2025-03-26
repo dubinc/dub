@@ -16,7 +16,7 @@ import {
   getIdentityHash,
 } from "../middleware/utils";
 import { conn } from "../planetscale";
-import { WorkspaceProps } from "../types";
+import { DiscountProps, PartnerProps, WorkspaceProps } from "../types";
 import { redis } from "../upstash";
 import { webhookCache } from "../webhook/cache";
 import { sendWebhooks } from "../webhook/qstash";
@@ -38,6 +38,8 @@ export async function recordClick({
   timestamp,
   referrer,
   trackConversion,
+  partner,
+  discount,
 }: {
   req: Request;
   clickId: string;
@@ -51,6 +53,8 @@ export async function recordClick({
   timestamp?: string;
   referrer?: string;
   trackConversion?: boolean;
+  partner?: Pick<PartnerProps, "id" | "name" | "image">;
+  discount?: Pick<DiscountProps, "id" | "amount" | "type" | "maxDuration">;
 }) {
   const searchParams = new URL(req.url).searchParams;
 
@@ -153,6 +157,9 @@ export async function recordClick({
 
     // cache the click ID in Redis for 1 hour
     clickCache.set({ domain, key, ip, clickId }),
+
+    // cache the partner and discount in Redis for 1 hour
+    partner && clickCache.setPartner(clickId, { partner, discount }),
 
     // cache the click data for 5 mins
     // we're doing this because ingested click events are not available immediately in Tinybird
