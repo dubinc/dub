@@ -113,7 +113,10 @@ export async function getPartners(filters: PartnerFilters) {
         SUM(earnings) as totalCommissions
       FROM Commission
       WHERE 
-        amount > 0
+        (
+          (type = 'sale' AND amount > 0)
+          OR type != 'sale'
+        )
         AND programId = ${program.id}
         AND partnerId IS NOT NULL
         AND status IN ('pending', 'processed', 'paid')
