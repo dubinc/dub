@@ -88,15 +88,25 @@ export async function completeProgramApplications(userId: string) {
       return true;
     });
 
-    await prisma.programEnrollment.createMany({
-      data: programApplications.map((programApplication) => ({
-        id: createId({ prefix: "pge_" }),
-        programId: programApplication.programId,
-        partnerId: user.partners[0].partnerId,
-        applicationId: programApplication.id,
-      })),
-      skipDuplicates: true,
-    });
+    await Promise.all([
+      prisma.programApplication.updateMany({
+        where: {
+          id: {
+            in: programApplications.map(({ id }) => id),
+          },
+        },
+        data: { partnerId: user.partners[0].partnerId },
+      }),
+      prisma.programEnrollment.createMany({
+        data: programApplications.map((programApplication) => ({
+          id: createId({ prefix: "pge_" }),
+          programId: programApplication.programId,
+          partnerId: user.partners[0].partnerId,
+          applicationId: programApplication.id,
+        })),
+        skipDuplicates: true,
+      }),
+    ]);
 
     for (const programApplication of programApplications) {
       const partner = user.partners[0].partner;
