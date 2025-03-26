@@ -82,7 +82,6 @@ export const createProgramApplicationAction = actionClient
         body: {
           applicationId: application.programApplicationId,
         },
-        contentBasedDeduplication: true,
       });
 
       return application;
