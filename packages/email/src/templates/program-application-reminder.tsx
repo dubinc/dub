@@ -44,10 +44,14 @@ export default function ProgramApplicationReminder({
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              Your application to {program.name} has been saved, but you still
-              need to create your Dub Partners account to finish your
-              application. This is required to earn rewards and access your
-              dashboard.
+              Your application to <b>{program.name}'s Program</b> has been
+              saved, but you still need to create your Dub Partners account to
+              complete your application.
+              <br />
+              <br />
+              Once you create your Dub Partners account, your application will
+              be submitted to <b>{program.name}</b> and you'll be able to start
+              earning rewards for referring customers.
             </Text>
 
             <Section className="mt-8 text-center">
