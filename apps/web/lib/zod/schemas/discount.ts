@@ -7,6 +7,7 @@ export const DiscountSchema = z.object({
   amount: z.number(),
   type: z.nativeEnum(CommissionType),
   maxDuration: z.number().nullable(),
+  description: z.string().nullish(),
   couponId: z.string().nullable(),
   couponTestId: z.string().nullable(),
   partnersCount: z.number().nullish(),

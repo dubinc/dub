@@ -17,11 +17,6 @@ enum ProgramEnrollmentStatus {
   banned // partner is banned from the program
 }
 
-enum CommissionInterval {
-  month
-  year
-}
-
 model Program {
   id                String      @id @default(cuid())
   workspaceId       String
