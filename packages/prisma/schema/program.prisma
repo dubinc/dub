@@ -100,7 +100,6 @@ model ProgramEnrollment {
 model ProgramApplication {
   id        String   @id @default(cuid())
   programId String
-  partnerId String?
   name      String
   email     String
   proposal  String?  @db.Text
@@ -109,10 +108,8 @@ model ProgramApplication {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  partner    Partner?           @relation(fields: [partnerId], references: [id])
   program    Program            @relation(fields: [programId], references: [id])
   enrollment ProgramEnrollment?
 
   @@index([programId])
-  @@index([partnerId])
 }
