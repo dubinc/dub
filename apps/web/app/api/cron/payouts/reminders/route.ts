@@ -14,7 +14,6 @@ export const dynamic = "force-dynamic";
 // GET /api/cron/payouts/reminders
 export async function GET(req: Request) {
   try {
-    // TODO: RESTORE THIS
     await verifyVercelSignature(req);
 
     const pendingPayouts = await prisma.payout.groupBy({
