@@ -36,7 +36,8 @@ model Payout {
   invoice     Invoice?     @relation(fields: [invoiceId], references: [id])
   commissions Commission[]
 
-  @@index([programId])
-  @@index([partnerId])
-  @@index([invoiceId])
+  @@index(programId)
+  @@index(partnerId)
+  @@index(invoiceId)
+  @@index(status)
 }

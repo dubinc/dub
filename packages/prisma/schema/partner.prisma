@@ -26,9 +26,11 @@ model Partner {
   status            PartnerStatus      @default(default)
   stripeConnectId   String?            @unique
   payoutsEnabledAt  DateTime?
+  connectPayoutsLastRemindedAt DateTime?
   showOnLeaderboard Boolean            @default(true)
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
+
 
   programs     ProgramEnrollment[]
   users        PartnerUser[]
