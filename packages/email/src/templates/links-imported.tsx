@@ -131,7 +131,7 @@ export function LinksImported({
             {count > 5 && (
               <Section className="my-8 text-center">
                 <Link
-                  className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
+                  className="rounded-lg bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
                   href={`https://app.dub.co/${workspaceSlug}`}
                 >
                   View {Intl.NumberFormat("en-us").format(count - 5)} more links
@@ -146,7 +146,7 @@ export function LinksImported({
               >
                 configured your {pluralize("domain", domains.length)}
               </Link>
-              , you will need to do it before you can start using your links.
+              , you will need to do this before you can start using your links.
             </Text>
             <Footer email={email} />
           </Container>

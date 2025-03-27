@@ -59,15 +59,14 @@ export function DomainDeleted({
             </Text>
             <Section className="my-8 text-center">
               <Link
-                className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
+                className="rounded-lg bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
                 href={`https://app.dub.co/${workspaceSlug}/settings/domains`}
               >
                 Add a domain
               </Link>
             </Section>
             <Text className="text-sm leading-6 text-black">
-              If you did not want to keep using this domain on Dub.co anyway,
-              you can simply ignore this email.
+            If you don’t plan to keep using this domain on Dub.co, feel free to ignore this email.
             </Text>
             <Footer
               email={email}

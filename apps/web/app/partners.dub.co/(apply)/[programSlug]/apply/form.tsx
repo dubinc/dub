@@ -70,7 +70,7 @@ export function ProgramApplicationForm({
         });
 
         router.push(
-          `/apply/${program.slug}/application/success?${searchParams.toString()}`,
+          `/${program.slug}/apply/success?${searchParams.toString()}`,
         );
       },
       onError({ error }) {

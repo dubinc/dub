@@ -67,7 +67,7 @@ export function APIKeyCreated({
             </Text>
             <Section className="mb-8 mt-4 text-center">
               <Link
-                className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
+                className="rounded-lg bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
                 href={`https://app.dub.co/${workspace.slug}/settings/tokens`}
               >
                 View API Keys

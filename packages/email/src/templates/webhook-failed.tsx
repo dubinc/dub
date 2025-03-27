@@ -66,9 +66,9 @@ export default function WebhookFailed({
               Please review the webhook details and update the URL if necessary
               to restore functionality.
             </Text>
-            <Section className="mb-8 mt-4 text-center">
+            <Section className="mb-8 mt-8 text-center">
               <Link
-                className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
+                className="rounded-lg bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
                 href={`https://app.dub.co/${workspace.slug}/settings/webhooks/${webhook.id}/edit`}
               >
                 Edit Webhook

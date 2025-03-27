@@ -41,8 +41,8 @@ export function VerifyEmail({
             <Text className="mx-auto text-sm leading-6">
               Enter this code on the Dub verify page to complete your sign up:
             </Text>
-            <Section className="my-8">
-              <div className="mx-auto w-fit rounded-xl px-6 py-3 text-center font-mono text-2xl font-semibold tracking-[0.25em]">
+            <Section className="my-8 rounded-lg border border-solid border-neutral-200">
+              <div className="mx-auto w-fit px-6 py-3 text-center font-mono text-2xl font-semibold tracking-[0.25em]">
                 {code}
               </div>
             </Section>
