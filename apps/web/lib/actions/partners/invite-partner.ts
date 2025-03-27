@@ -94,7 +94,6 @@ export const invitePartnerAction = authActionClient
         email,
         react: PartnerInvite({
           email,
-          appName: `${process.env.NEXT_PUBLIC_APP_NAME}`,
           program: {
             name: program.name,
             logo: program.logo,
