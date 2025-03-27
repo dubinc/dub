@@ -1,6 +1,7 @@
 "use client";
 
 import { DiscountProps, RewardProps } from "@/lib/types";
+import { programEmbedSchema } from "@/lib/zod/schemas/program-embed";
 import { programResourcesSchema } from "@/lib/zod/schemas/program-resources";
 import { HeroBackground } from "@/ui/partners/hero-background";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
@@ -57,6 +58,7 @@ export function ReferralsEmbedPageClient({
   const resources = programResourcesSchema.parse(
     program.resources ?? { logos: [], colors: [], files: [] },
   );
+  const programEmbedData = programEmbedSchema.parse(program.embedData);
 
   const hasResources =
     resources &&
@@ -73,7 +75,9 @@ export function ReferralsEmbedPageClient({
     () => [
       ...(showQuickstart ? ["Quickstart"] : []),
       "Earnings",
-      "Leaderboard",
+      ...(programEmbedData?.leaderboard?.mode === "disabled"
+        ? []
+        : ["Leaderboard"]),
       "FAQ",
       ...(hasResources ? ["Resources"] : []),
     ],
@@ -216,7 +220,8 @@ export function ReferralsEmbedPageClient({
                 />
               ) : selectedTab === "Earnings" ? (
                 <ReferralsEmbedEarnings salesCount={stats.sales} />
-              ) : selectedTab === "Leaderboard" ? (
+              ) : selectedTab === "Leaderboard" &&
+                programEmbedData?.leaderboard?.mode !== "disabled" ? (
                 <ReferralsEmbedLeaderboard />
               ) : selectedTab === "FAQ" ? (
                 <ReferralsEmbedFAQ program={program} reward={rewards[0]} />
