@@ -81,6 +81,7 @@ export const basicLink = (link: Link) => {
     comments,
     partnerId,
     //qrCode,
+    folderId,
     ...rest 
   } = link;
 
