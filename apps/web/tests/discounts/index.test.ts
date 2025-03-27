@@ -13,11 +13,7 @@ describe("Discounts", () => {
     });
 
     expect(status).toEqual(200);
-    expect(customers[0].discount).toStrictEqual({
-      ...E2E_DISCOUNT,
-      duration: null,
-      interval: null,
-    });
+    expect(customers[0].discount).toStrictEqual(E2E_DISCOUNT);
   });
 
   test("/customers?externalId=", async () => {
@@ -29,11 +25,7 @@ describe("Discounts", () => {
     });
 
     expect(status).toEqual(200);
-    expect(customers[0].discount).toStrictEqual({
-      ...E2E_DISCOUNT,
-      duration: null,
-      interval: null,
-    });
+    expect(customers[0].discount).toStrictEqual(E2E_DISCOUNT);
   });
 
   test("/customers/:id", async () => {

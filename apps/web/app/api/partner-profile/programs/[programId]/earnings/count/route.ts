@@ -17,7 +17,7 @@ export const GET = withPartnerProfile(
 
     const {
       groupBy,
-      type = "sale",
+      type,
       status,
       linkId,
       customerId,
@@ -26,6 +26,7 @@ export const GET = withPartnerProfile(
       start,
       end,
     } = getPartnerEarningsCountQuerySchema.parse(searchParams);
+
     const { startDate, endDate } = getStartEndDates({
       interval,
       start,
@@ -33,9 +34,11 @@ export const GET = withPartnerProfile(
     });
 
     const where: Prisma.CommissionWhereInput = {
+      earnings: {
+        gt: 0,
+      },
       programId: program.id,
       partnerId: partner.id,
-      ...(type && { type }),
       ...(payoutId && { payoutId }),
       createdAt: {
         gte: startDate.toISOString(),
@@ -110,6 +113,8 @@ export const GET = withPartnerProfile(
           ...(customerId && { customerId }),
         },
       });
+
+      console.log("count", count, where);
 
       return NextResponse.json({ count });
     }

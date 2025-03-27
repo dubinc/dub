@@ -67,7 +67,7 @@ export function PartnerApplicationReceived({
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
             <Section className="mb-8 mt-6">
-              <Img src={DUB_WORDMARK} width="65" height="32" alt="dub" />
+              <Img src={DUB_WORDMARK} width="61" height="32" alt="dub" />
             </Section>
 
             <Heading className="mx-0 p-0 text-lg font-medium text-neutral-800">
@@ -151,7 +151,7 @@ export function PartnerApplicationReceived({
                   <Section className="mt-8 text-center">
                     <Link
                       href={applicationUrl}
-                      className="box-border block w-full rounded-md bg-black px-0 py-4 text-center text-sm font-medium leading-none text-white no-underline"
+                      className="box-border block w-full rounded-lg bg-black px-0 py-4 text-center text-sm font-semibold leading-none text-white no-underline"
                     >
                       Review application on Dub
                     </Link>

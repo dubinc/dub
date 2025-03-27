@@ -17,6 +17,9 @@ export async function GET(req: Request) {
       by: ["programId", "partnerId"],
       where: {
         type: "sale",
+        amount: {
+          not: 0,
+        },
         status: "pending",
         payoutId: null,
       },

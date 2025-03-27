@@ -3,7 +3,6 @@ import { prisma } from "@dub/prisma";
 import { Logo } from "@dub/ui";
 import { BoltFill, CursorRays, LinesY, MoneyBills2 } from "@dub/ui/icons";
 import { DICEBEAR_AVATAR_URL } from "@dub/utils";
-import { subDays } from "date-fns";
 import { Store } from "lucide-react";
 import { notFound } from "next/navigation";
 import { CSSProperties } from "react";
@@ -52,13 +51,9 @@ export default async function SuccessPage({
   }
 
   const application = applicationId
-    ? await prisma.programApplication.findFirst({
+    ? await prisma.programApplication.findUnique({
         where: {
           id: applicationId,
-          programId: program.id,
-          createdAt: {
-            gte: subDays(new Date(), 3),
-          },
         },
       })
     : null;
@@ -87,7 +82,9 @@ export default async function SuccessPage({
       <div className="p-6">
         <div className="grid grid-cols-1 gap-5 sm:pt-20">
           <h1 className="text-4xl font-semibold">
-            Application {hasPartnerProfile ? "submitted" : "saved"}
+            {hasPartnerProfile
+              ? "Application submitted"
+              : "Complete your setup"}
           </h1>
           <div className="flex flex-col gap-4 text-base text-neutral-700">
             {hasPartnerProfile && (
@@ -107,31 +104,49 @@ export default async function SuccessPage({
             )}
             {!hasPartnerProfile && (
               <p>
-                Complete your account setup on{" "}
-                <strong className="font-semibold">Dub Partners</strong> to
-                finish submitting your application.
+                Your application to{" "}
+                <strong className="font-semibold">{program.name}</strong> has
+                been saved, but you still need to create your{" "}
+                <strong className="font-semibold">Dub Partners</strong> account
+                to complete your application.
+                <br />
+                <br />
+                Once you create your account, your application will be submitted
+                to <b>{program.name}</b> and you'll hear back from them{" "}
+                <strong className="font-semibold">
+                  {application?.email ? `at ${application.email}` : "via email"}
+                </strong>
+                .
               </p>
             )}
           </div>
         </div>
 
+        {/* Buttons */}
+        <div className="mt-12 flex flex-col gap-3">
+          <CTAButtons />
+        </div>
+
         {/* Screenshot */}
-        <div className="relative mt-12">
+        <div className="relative mt-16">
           <Screenshot
             program={{ name: program.name, logo: program.logo }}
             className="h-auto w-full rounded border border-black/10 [mask-image:linear-gradient(black_80%,transparent)]"
           />
           <div className="absolute bottom-0 left-1/2 -translate-x-1/2">
             <div className="absolute -inset-[50%] rounded-full bg-white blur-lg" />
-            <div className="relative flex items-center gap-2 rounded-full border border-neutral-100 bg-gradient-to-b from-white to-neutral-50 p-2 shadow-[0_8px_28px_0_#00000017]">
-              <img
-                className="size-10 shrink-0 rounded-full"
-                src={program.logo || `${DICEBEAR_AVATAR_URL}${program.name}`}
-                alt={`${program.name} logo`}
-              />
-              <BoltFill className="shrink-0 text-[var(--brand)] opacity-30" />
-              <Logo className="size-10 shrink-0" />
-            </div>
+
+            {programSlug !== "dub" && (
+              <div className="relative flex items-center gap-2 rounded-full border border-neutral-100 bg-gradient-to-b from-white to-neutral-50 p-2 shadow-[0_8px_28px_0_#00000017]">
+                <img
+                  className="size-10 shrink-0 rounded-full"
+                  src={program.logo || `${DICEBEAR_AVATAR_URL}${program.name}`}
+                  alt={`${program.name} logo`}
+                />
+                <BoltFill className="shrink-0 text-[var(--brand)] opacity-30" />
+                <Logo className="size-10 shrink-0" />
+              </div>
+            )}
           </div>
         </div>
 
@@ -144,10 +159,6 @@ export default async function SuccessPage({
               <p className="text-neutral-500">{description}</p>
             </div>
           ))}
-        </div>
-
-        <div className="mt-12 flex flex-col gap-3">
-          <CTAButtons />
         </div>
       </div>
     </div>

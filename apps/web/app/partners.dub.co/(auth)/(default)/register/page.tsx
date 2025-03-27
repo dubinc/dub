@@ -32,7 +32,6 @@ export default async function RegisterPage({
               in: programApplicationIds.filter(Boolean),
             },
             enrollment: null,
-            partnerId: null,
           },
           orderBy: {
             createdAt: "desc",

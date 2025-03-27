@@ -106,11 +106,11 @@ export function NewSaleAlertProgramOwner({
   return (
     <Html>
       <Head />
-      <Preview>You received a payment from a customer referred! 💰</Preview>
+      <Preview>You received a sale from a customer referred! 💰</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
-          <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-neutral-200 px-10 py-5">
-            <Section className="my-8">
+          <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
+            <Section className="mt-8 mt-6">
               <Img
                 src={program.logo || "https://assets.dub.co/logo.png"}
                 height="32"
@@ -118,12 +118,13 @@ export function NewSaleAlertProgramOwner({
               />
             </Section>
 
-            <Heading className="mx-0 my-6 p-0 text-lg font-medium text-black">
+            <Heading className="mx-0 my-7 p-0 text-lg font-medium text-black">
               Hi {finalName},
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              You received a payment from a customer referred by{" "}
+              <strong>{program.name}</strong> earned a sale from a customer
+              referred by{" "}
               <strong>
                 {partner.name
                   ? `${partner.name} (${partner.email})`
