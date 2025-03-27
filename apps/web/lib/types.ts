@@ -16,7 +16,6 @@ import {
   User,
   UtmTemplate,
   Webhook,
-  YearInReview,
 } from "@dub/prisma/client";
 import {
   FOLDER_PERMISSIONS,
@@ -158,7 +157,6 @@ export type ExpandedWorkspaceProps = WorkspaceProps & {
     id: string;
     name: string;
   }[];
-  yearInReview: YearInReview | null;
   allowedHostnames: string[];
 };
 
