@@ -151,3 +151,7 @@ export const notificationTypes = z.enum([
   "newPartnerSale",
   "newPartnerApplication",
 ]);
+
+export const WorkspaceSchemaExtended = WorkspaceSchema.extend({
+  workspacePreferences: z.record(z.boolean()).optional(),
+});

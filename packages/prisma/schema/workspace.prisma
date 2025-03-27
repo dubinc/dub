@@ -94,6 +94,7 @@ model ProjectUsers {
   userId                 String
   projectId              String
   notificationPreference NotificationPreference?
+  workspacePreferences   Json?
   defaultFolderId        String?
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @updatedAt
