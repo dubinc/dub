@@ -7,9 +7,9 @@ import "dotenv-flow/config";
 // update commissions for a program
 async function main() {
   const where: Prisma.CommissionWhereInput = {
+    earnings: 0,
     programId: "prog_xxx",
     status: "pending",
-    earnings: 0,
   };
 
   const commissions = await prisma.commission.findMany({

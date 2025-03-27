@@ -31,13 +31,7 @@ import { Download, Globe, TableIcon, Tag } from "@dub/ui/icons";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
-import {
-  Dispatch,
-  ReactNode,
-  SetStateAction,
-  useEffect,
-  useState,
-} from "react";
+import { ReactNode, useEffect, useState } from "react";
 
 export default function WorkspaceLinksClient() {
   const { data: session } = useSession();
@@ -205,7 +199,6 @@ function WorkspaceLinks() {
 
 const MoreLinkOptions = () => {
   const { queryParams } = useRouterStuff();
-  const { slug } = useWorkspace();
   const [openPopover, setOpenPopover] = useState(false);
   const [_state, setState] = useState<"default" | "import">("default");
   const { ExportLinksModal, setShowExportLinksModal } = useExportLinksModal();
@@ -233,7 +226,6 @@ const MoreLinkOptions = () => {
                     },
                   });
                 }}
-                setOpenPopover={setOpenPopover}
               >
                 <IconMenu
                   text="Import from Bitly"
@@ -255,7 +247,6 @@ const MoreLinkOptions = () => {
                     },
                   });
                 }}
-                setOpenPopover={setOpenPopover}
               >
                 <IconMenu
                   text="Import from Rebrandly"
@@ -277,7 +268,6 @@ const MoreLinkOptions = () => {
                     },
                   });
                 }}
-                setOpenPopover={setOpenPopover}
               >
                 <IconMenu
                   text="Import from Short.io"
@@ -299,7 +289,6 @@ const MoreLinkOptions = () => {
                     },
                   });
                 }}
-                setOpenPopover={setOpenPopover}
               >
                 <IconMenu
                   text="Import from CSV"
@@ -344,11 +333,9 @@ const MoreLinkOptions = () => {
 
 function ImportOption({
   children,
-  setOpenPopover,
   onClick,
 }: {
   children: ReactNode;
-  setOpenPopover: Dispatch<SetStateAction<boolean>>;
   onClick: () => void;
 }) {
   const { slug, exceededLinks, nextPlan } = useWorkspace();

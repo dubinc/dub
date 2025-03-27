@@ -25,6 +25,10 @@ export const ProgramEnrollmentStatusBadges = {
     label: "Rejected",
     variant: "error",
   },
+  banned: {
+    label: "Banned",
+    variant: "error",
+  },
 };
 
 export function ProgramCard({
@@ -72,9 +76,11 @@ export function ProgramCard({
         <div className="mt-4 flex h-24 items-center justify-center text-balance rounded-md border border-neutral-100 bg-neutral-50 p-5 text-center text-sm text-neutral-500">
           {status === "pending"
             ? `Applied ${formatDate(createdAt)}`
-            : `You will be able to apply again after ${formatDate(
-                addDays(createdAt, 30),
-              )}`}
+            : status === "banned"
+              ? `You're banned from this program`
+              : `You will be able to apply again after ${formatDate(
+                  addDays(createdAt, 30),
+                )}`}
         </div>
       )}
     </div>

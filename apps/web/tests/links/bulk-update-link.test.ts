@@ -1,3 +1,4 @@
+import { normalizeWorkspaceId } from "@/lib/api/workspace-id";
 import { Link, Tag } from "@dub/prisma/client";
 import { expect, onTestFinished, test } from "vitest";
 import { randomId, randomTagName } from "../utils/helpers";
@@ -11,7 +12,7 @@ test("PATCH /links/bulk", async (ctx) => {
   const h = new IntegrationHarness(ctx);
   const { workspace, http, user } = await h.init();
   const workspaceId = workspace.id;
-  const projectId = workspaceId.replace("ws_", "");
+  const projectId = normalizeWorkspaceId(workspaceId);
 
   onTestFinished(async () => {
     await Promise.all([

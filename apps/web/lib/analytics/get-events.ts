@@ -1,6 +1,7 @@
 import { tb } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { Link } from "@dub/prisma/client";
+import { DICEBEAR_AVATAR_URL } from "@dub/utils";
 import { transformLink } from "../api/links";
 import { decodeLinkIfCaseSensitive } from "../api/links/case-sensitivity";
 import { generateRandomName } from "../names";
@@ -35,7 +36,6 @@ export const getEvents = async (params: EventsFilters) => {
     trigger,
     region,
     country,
-    isDemo,
     order,
     sortOrder,
     dataAvailableFrom,
@@ -138,7 +138,7 @@ export const getEvents = async (params: EventsFilters) => {
                 id: evt.customer_id,
                 name: "Deleted Customer",
                 email: "deleted@customer.com",
-                avatar: `https://api.dicebear.com/9.x/micah/svg?seed=${evt.customer_id}`,
+                avatar: `${DICEBEAR_AVATAR_URL}${evt.customer_id}`,
                 externalId: evt.customer_id,
                 createdAt: new Date("1970-01-01"),
               },
@@ -208,9 +208,7 @@ const getCustomersMap = async (customerIds: string[]) => {
         externalId: customer.externalId || "",
         name: customer.name || customer.email || generateRandomName(),
         email: customer.email || "",
-        avatar:
-          customer.avatar ||
-          `https://api.dicebear.com/9.x/notionists/svg?seed=${customer.id}`,
+        avatar: customer.avatar || `${DICEBEAR_AVATAR_URL}${customer.id}`,
         country: customer.country || "",
         createdAt: customer.createdAt,
       });

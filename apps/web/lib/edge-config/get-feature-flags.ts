@@ -1,4 +1,5 @@
 import { get } from "@vercel/edge-config";
+import { prefixWorkspaceId } from "../api/workspace-id";
 import { BetaFeatures } from "../types";
 
 type BetaFeaturesRecord = Record<BetaFeatures, string[]>;
@@ -11,15 +12,12 @@ export const getFeatureFlags = async ({
   workspaceSlug?: string;
 }) => {
   if (workspaceId) {
-    workspaceId = workspaceId.startsWith("ws_")
-      ? workspaceId
-      : `ws_${workspaceId}`;
+    workspaceId = prefixWorkspaceId(workspaceId);
   }
 
   const workspaceFeatures: Record<BetaFeatures, boolean> = {
     noDubLink: false,
     linkFolders: false,
-    rewardfulImporter: false,
   };
 
   if (!process.env.NEXT_PUBLIC_IS_DUB || !process.env.EDGE_CONFIG) {

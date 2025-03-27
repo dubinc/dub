@@ -6,7 +6,7 @@ import {
   parse,
 } from "@/lib/middleware/utils";
 import { recordClick } from "@/lib/tinybird";
-import { formatRedisLink, redis } from "@/lib/upstash";
+import { formatRedisLink } from "@/lib/upstash";
 import {
   DUB_HEADERS,
   LEGAL_WORKSPACE_ID,
@@ -27,6 +27,7 @@ import {
 } from "next/server";
 import { linkCache } from "../api/links/cache";
 import { isCaseSensitiveDomain } from "../api/links/case-sensitivity";
+import { clickCache } from "../api/links/click-cache";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
 import { hasEmptySearchParams } from "./utils/has-empty-search-params";
@@ -85,44 +86,29 @@ export default async function LinkMiddleware(
     });
 
     if (!linkData) {
-      // TODO: remove this once everything is migrated over and are case-sensitive
-      // don't forget to remove ignoreCaseSensitivity too, it won't be needed anymore
+      // TODO: remove this once everything is migrated over
       if (domain === "buff.ly") {
-        // double check if the regular version exists
-        linkData = await getLinkViaEdge({
-          domain,
-          key,
-          ignoreCaseSensitivity: true,
-        });
-
-        if (!linkData) {
-          return NextResponse.rewrite(
-            new URL(`/api/links/crawl/bitly/${domain}/${key}`, req.url),
-          );
-        }
+        return NextResponse.rewrite(
+          new URL(`/api/links/crawl/bitly/${domain}/${key}`, req.url),
+        );
       }
 
-      if (!linkData) {
-        // check if domain has notFoundUrl configured
-        const domainData = await getDomainViaEdge(domain);
-        if (domainData?.notFoundUrl) {
-          return NextResponse.redirect(domainData.notFoundUrl, {
-            headers: {
-              ...DUB_HEADERS,
-              "X-Robots-Tag": "googlebot: noindex",
-              // pass the Referer value to the not found URL
-              Referer: req.url,
-            },
-            status: 302,
-          });
-        } else {
-          return NextResponse.rewrite(
-            new URL(`/${domain}/not-found`, req.url),
-            {
-              headers: DUB_HEADERS,
-            },
-          );
-        }
+      // check if domain has notFoundUrl configured
+      const domainData = await getDomainViaEdge(domain);
+      if (domainData?.notFoundUrl) {
+        return NextResponse.redirect(domainData.notFoundUrl, {
+          headers: {
+            ...DUB_HEADERS,
+            "X-Robots-Tag": "googlebot: noindex",
+            // pass the Referer value to the not found URL
+            Referer: req.url,
+          },
+          status: 302,
+        });
+      } else {
+        return NextResponse.rewrite(new URL(`/${domain}/not-found`, req.url), {
+          headers: DUB_HEADERS,
+        });
       }
     }
 
@@ -227,8 +213,8 @@ export default async function LinkMiddleware(
     // if trackConversion is enabled, check if clickId is cached in Redis
     if (trackConversion) {
       const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
-      const cacheKey = `recordClick:${domain}:${key}:${ip}`;
-      clickId = (await redis.get<string>(cacheKey)) || undefined;
+
+      clickId = (await clickCache.get({ domain, key, ip })) || undefined;
     }
     // if there's still no clickId, generate a new one
     if (!clickId) {

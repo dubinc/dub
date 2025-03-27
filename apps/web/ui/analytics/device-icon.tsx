@@ -1,7 +1,8 @@
 import { DeviceTabs } from "@/lib/analytics/types";
-import { Apple, Chrome, Safari } from "@/ui/shared/icons/devices";
+import { Chrome, Safari } from "@/ui/shared/icons/devices";
 import { BlurImage } from "@dub/ui";
 import {
+  AppleLogo,
   CursorRays,
   Desktop,
   GamingConsole,
@@ -66,7 +67,7 @@ export default function DeviceIcon({
         />
       );
     } else if (display === "iOS") {
-      return <Apple className="-ml-1 h-5 w-5" />;
+      return <AppleLogo className="-ml-1 h-5 w-5" />;
     } else {
       return (
         <BlurImage

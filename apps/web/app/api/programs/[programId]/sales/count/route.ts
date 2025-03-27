@@ -24,10 +24,13 @@ export const GET = withWorkspace(
     const salesCount = await prisma.commission.groupBy({
       by: ["status"],
       where: {
-        type: "sale",
+        earnings: {
+          gt: 0,
+        },
         programId,
-        status,
         partnerId,
+        status,
+        type: "sale",
         payoutId,
         customerId,
         createdAt: {

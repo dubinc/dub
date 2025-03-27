@@ -15,7 +15,7 @@ import {
   useInViewport,
 } from "@dub/ui";
 import {
-  Apple,
+  AppleLogo,
   ArrowRight,
   Bolt,
   BoxArchive,
@@ -55,7 +55,7 @@ const quickViewSettings = [
   { label: "Link Cloaking", icon: Incognito, key: "rewrite" },
   { label: "Password Protection", icon: InputPassword, key: "password" },
   { label: "Link Expiration", icon: CircleHalfDottedClock, key: "expiresAt" },
-  { label: "iOS Targeting", icon: Apple, key: "ios" },
+  { label: "iOS Targeting", icon: AppleLogo, key: "ios" },
   { label: "Android Targeting", icon: Robot, key: "android" },
   { label: "Geo Targeting", icon: EarthPosition, key: "geo" },
 ];
@@ -74,7 +74,7 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
   const hasQuickViewSettings = quickViewSettings.some(({ key }) => link?.[key]);
 
   const searchParams = useSearchParams();
-  const { slug } = useWorkspace();
+  const { slug, defaultFolderId } = useWorkspace();
   const { folder } = useFolder({ folderId: link.folderId });
 
   return (
@@ -84,7 +84,9 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
     >
       {variant === "compact" &&
         link.folderId &&
-        searchParams.get("folderId") !== link.folderId && (
+        ![defaultFolderId, searchParams.get("folderId")].includes(
+          link.folderId,
+        ) && (
           <Link href={`/${slug}?folderId=${link.folderId}`}>
             {folder ? (
               <FolderIcon

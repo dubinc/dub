@@ -1,5 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { createSafeActionClient } from "next-safe-action";
+import { normalizeWorkspaceId } from "../api/workspace-id";
 import { getSession } from "../auth";
 
 export const actionClient = createSafeActionClient({
@@ -43,7 +44,7 @@ export const authActionClient = actionClient.use(
       throw new Error("WorkspaceId is required.");
     }
 
-    workspaceId = workspaceId.replace("ws_", "");
+    workspaceId = normalizeWorkspaceId(workspaceId);
 
     const workspace = await prisma.project.findUnique({
       where: {

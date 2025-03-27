@@ -30,7 +30,6 @@ export async function getLinksCount({
 
   const linksWhere = {
     projectId: workspaceId,
-    archived: showArchived ? undefined : false,
     AND: [
       ...(folderIds
         ? [
@@ -63,6 +62,7 @@ export async function getLinksCount({
           ]
         : []),
     ],
+    archived: showArchived ? undefined : false,
     ...(domain &&
       groupBy !== "domain" && {
         domain,

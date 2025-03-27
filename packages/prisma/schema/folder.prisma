@@ -44,8 +44,7 @@ model FolderUser {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([folderId, userId])
-  @@index([userId])
-  @@index([folderId])
+  @@index(userId)
 }
 
 model FolderAccessRequest {
@@ -58,6 +57,5 @@ model FolderAccessRequest {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([folderId, userId])
-  @@index([userId])
-  @@index([folderId])
+  @@index(userId)
 }

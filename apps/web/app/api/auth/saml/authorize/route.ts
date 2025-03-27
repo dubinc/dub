@@ -1,4 +1,4 @@
-import jackson from "@/lib/jackson";
+import { jackson } from "@/lib/jackson";
 import { getSearchParams } from "@dub/utils";
 import { NextResponse } from "next/server";
 

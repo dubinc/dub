@@ -1,13 +1,13 @@
 "use client";
 
 import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
-import { currencyFormatter } from "@dub/utils";
+import { nFormatter } from "@dub/utils";
 import { Fragment } from "react";
 
 export default function RevenueClient({
   data,
 }: {
-  data: { date: string; value: number }[];
+  data: { date: Date; value: number }[];
 }) {
   // take the last 12 months
   const chartData = data.slice(-12).map(({ date, value }) => ({
@@ -45,15 +45,15 @@ export default function RevenueClient({
       <div className="w-fit border-b-2 border-black px-8 py-6">
         <div className="flex items-center gap-2.5 text-sm text-neutral-600">
           <div className="h-2 w-2 rounded-sm bg-green-200 shadow-[inset_0_0_0_1px_#00000019]" />
-          <span>MRR</span>
+          <span>Total Links</span>
         </div>
         <div className="mt-1 flex items-center gap-3">
-          <h3 className="text-3xl font-medium">
-            {currencyFormatter(finalValue)}
-          </h3>
+          <h3 className="text-3xl font-medium">{nFormatter(finalValue)}</h3>
           <div className="rounded-lg bg-green-100 px-2 py-1.5 text-sm font-medium text-green-500">
             {Number(percentageDifference) > 0 ? "↑" : "↓"}
-            <span className="ml-1">{percentageDifference}%</span>
+            <span className="ml-1">
+              {nFormatter(Number(percentageDifference))}%
+            </span>
           </div>
         </div>
       </div>
@@ -72,10 +72,10 @@ export default function RevenueClient({
                   <Fragment>
                     <div className="flex items-center gap-2">
                       <div className="h-2 w-2 rounded-sm bg-current bg-green-200 opacity-50 shadow-[inset_0_0_0_1px_#0003]" />
-                      <p className="capitalize text-neutral-600">MRR</p>
+                      <p className="capitalize text-neutral-600">Total Links</p>
                     </div>
                     <p className="text-right font-medium text-neutral-900">
-                      {currencyFormatter(d.values.value)}
+                      {nFormatter(d.values.value)}
                     </p>
                   </Fragment>
                 </div>
@@ -84,7 +84,7 @@ export default function RevenueClient({
           >
             <Areas />
             <XAxis maxTicks={5} tickFormat={dateFormatter} />
-            <YAxis showGridLines tickFormat={currencyFormatter} />
+            <YAxis showGridLines tickFormat={nFormatter} />
           </TimeSeriesChart>
         </div>
       </div>

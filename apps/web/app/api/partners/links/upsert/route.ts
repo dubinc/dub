@@ -120,10 +120,14 @@ export const PUT = withWorkspace(
         error,
         code,
       } = await processLink({
-        payload: updatedLink,
+        payload: {
+          ...updatedLink,
+          tags: undefined,
+        },
         workspace,
         skipKeyChecks,
         skipExternalIdChecks,
+        userId: session.user.id,
       });
 
       if (error) {

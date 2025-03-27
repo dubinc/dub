@@ -4,7 +4,7 @@ import { updateNotificationPreference } from "@/lib/actions/update-notification-
 import useWorkspace from "@/lib/swr/use-workspace";
 import { notificationTypes } from "@/lib/zod/schemas/workspaces";
 import { Switch, useOptimisticUpdate } from "@dub/ui";
-import { Globe, Hyperlink } from "@dub/ui/icons";
+import { Globe, Hyperlink, UserPlus } from "@dub/ui/icons";
 import { DollarSign } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useMemo } from "react";
@@ -35,9 +35,16 @@ export default function NotificationsSettingsPageClient() {
       ...(partnersEnabled
         ? [
             {
+              type: "newPartnerApplication",
+              icon: UserPlus,
+              title: "New partner application",
+              description:
+                "Alert when a new partner application is made in your partner program.",
+            },
+            {
               type: "newPartnerSale",
               icon: DollarSign,
-              title: "New referral sales",
+              title: "New partner sale",
               description:
                 "Alert when a new sale is made in your partner program.",
             },

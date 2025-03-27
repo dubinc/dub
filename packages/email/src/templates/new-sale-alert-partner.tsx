@@ -23,6 +23,7 @@ export function NewSaleAlertPartner({
   program = {
     id: "prog_CYCu7IMAapjkRpTnr8F1azjN",
     name: "Acme",
+    slug: "acme",
     logo: DUB_WORDMARK,
   },
   sale = {
@@ -38,6 +39,7 @@ export function NewSaleAlertPartner({
   program: {
     id: string;
     name: string;
+    slug: string;
     logo: string | null;
   };
   sale: {
@@ -45,7 +47,7 @@ export function NewSaleAlertPartner({
     earnings: number;
   };
 }) {
-  const linkToSale = `https://partners.dub.co/${partner.id}/${program.id}/sales`;
+  const linkToSale = `https://partners.dub.co/programs/${program.slug}/earnings`;
 
   const earningsInDollars = currencyFormatter(sale.earnings / 100, {
     minimumFractionDigits: 2,
@@ -66,8 +68,8 @@ export function NewSaleAlertPartner({
       </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
-          <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-neutral-200 px-10 py-5">
-            <Section className="my-8">
+          <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
+            <Section className="mt-8 mt-6">
               <Img
                 src={program.logo || "https://assets.dub.co/logo.png"}
                 height="32"
@@ -75,7 +77,7 @@ export function NewSaleAlertPartner({
               />
             </Section>
 
-            <Heading className="mx-0 p-0 text-lg font-medium text-black">
+            <Heading className="mx-0 my-7 p-0 text-lg font-medium text-black">
               You just made a {earningsInDollars} referral sale!
             </Heading>
 
@@ -101,7 +103,7 @@ export function NewSaleAlertPartner({
 
             <Section className="mb-12 mt-8">
               <Link
-                className="rounded-md bg-neutral-900 px-4 py-3 text-[12px] font-medium text-white no-underline"
+                className="rounded-lg bg-neutral-900 px-4 py-3 text-[12px] font-semibold text-white no-underline"
                 href={linkToSale}
               >
                 View sale

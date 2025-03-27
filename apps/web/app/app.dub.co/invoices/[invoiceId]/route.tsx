@@ -311,15 +311,21 @@ export const GET = withSession(async ({ session, params }) => {
                 <Text>{payout.partner.name}</Text>
               </View>
               <Text style={tw("w-2/6 p-3.5")}>
-                {formatDate(payout.periodStart!, {
-                  month: "short",
-                  year:
-                    new Date(payout.periodStart!).getFullYear() ===
-                    new Date(payout.periodEnd!).getFullYear()
-                      ? undefined
-                      : "numeric",
-                })}
-                -{formatDate(payout.periodEnd!, { month: "short" })}
+                {payout.periodStart && payout.periodEnd ? (
+                  <>
+                    {formatDate(payout.periodStart, {
+                      month: "short",
+                      year:
+                        new Date(payout.periodStart).getFullYear() ===
+                        new Date(payout.periodEnd).getFullYear()
+                          ? undefined
+                          : "numeric",
+                    })}
+                    -{formatDate(payout.periodEnd, { month: "short" })}
+                  </>
+                ) : (
+                  "-"
+                )}
               </Text>
               <Text style={tw("w-1/6 p-3.5")}>{capitalize(payout.type)}</Text>
               <Text style={tw("w-1/6 p-3.5")}>

@@ -24,11 +24,11 @@ export const E2E_CUSTOMER_EXTERNAL_ID = "cus_jTrfVKYN3Buc3F80JoqBiY0g";
 export const E2E_WEBHOOK_ID = "wh_MHR7sZXXtZ7keBaNYZ30rQ0v";
 
 // Folders specific
-export const E2E_WRITE_ACCESS_FOLDER_ID = "fold_stp7lRJOs7RLKlaVcTVPS74P"; // Folder with write access
-export const E2E_READ_ONLY_FOLDER_ID = "fold_0lo6YZoVBvAyFg62SKTgDXTT"; // Folder with read-only access
-export const E2E_NO_ACCESS_FOLDER_ID = "fold_zRbQG7RSPEWZS71MxJNCIF2m"; // Folder with no access
-export const E2E_READ_ONLY_FOLDER_LINK_ID = "link_SbITAiOfL7toD2NpI7IoP0m6"; // A link in read-only folder
-export const E2E_NO_ACCESS_FOLDER_LINK_ID = "link_SeHtHzjuiOOAPCDLAvTNEKXm"; // A link in no access folder
+export const E2E_WRITE_ACCESS_FOLDER_ID = "fold_1JP8FMYP08RGJKJB3S4DNYH13"; // Folder with write access
+export const E2E_READ_ONLY_FOLDER_ID = "fold_1JP8FN462884CA6JJCVPAHAD4"; // Folder with read-only access
+export const E2E_NO_ACCESS_FOLDER_ID = "fold_1JP8FNC96CRGVKAVYAEV80A1M"; // Folder with no access
+export const E2E_READ_ONLY_FOLDER_LINK_ID = "link_1JP8FP63J6JSE85GRZVV2ZP1T"; // A link in read-only folder
+export const E2E_NO_ACCESS_FOLDER_LINK_ID = "link_1JP8FQE9VSVBG2G2Z6EBZWYF6"; // A link in no access folder
 
 // Discounts specific
 export const E2E_CUSTOMER_WITH_DISCOUNT = {
@@ -44,4 +44,17 @@ export const E2E_DISCOUNT = {
   maxDuration: 3,
   couponId: "XZuejd0Q",
   couponTestId: "2NMXz81x",
+  description: null,
+};
+
+// Program
+export const E2E_PROGRAM = {
+  id: "prog_CYCu7IMAapjkRpTnr8F1azjN",
+  domain: "getacme.link",
+  url: "https://acme.com",
+};
+
+export const E2E_PARTNER = {
+  id: "pn_H4TB2V5hDIjpqB7PwrxESoY3",
+  tenantId: "4149092f-7265-4002-98d9-da9f8e67e1fb",
 };

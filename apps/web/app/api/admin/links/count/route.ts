@@ -17,9 +17,6 @@ export const GET = withAdmin(async ({ searchParams }) => {
   const tagIds = tagId ? tagId.split(",") : [];
 
   const linksWhere = {
-    userId: {
-      not: LEGAL_USER_ID,
-    },
     // when filtering by domain, only filter by domain if the filter group is not "Domains"
     ...(domain && groupBy !== "domain"
       ? {
@@ -30,6 +27,9 @@ export const GET = withAdmin(async ({ searchParams }) => {
             in: DUB_DOMAINS_ARRAY,
           },
         }),
+    userId: {
+      not: LEGAL_USER_ID,
+    },
     ...(search && {
       OR: [
         {

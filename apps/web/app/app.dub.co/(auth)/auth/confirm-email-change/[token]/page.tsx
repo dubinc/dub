@@ -67,8 +67,8 @@ const VerifyEmailChange = async ({
     return (
       <EmptyState
         icon={InputPassword}
-        title="Email Change Request Cancelled"
-        description="Your email change request has been cancelled. No changes have been made to your account. You can close this page."
+        title="Email Change Request Canceled"
+        description="Your email change request has been canceled. No changes have been made to your account. You can close this page."
       />
     );
   }

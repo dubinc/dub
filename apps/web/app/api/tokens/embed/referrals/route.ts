@@ -47,6 +47,8 @@ export const POST = withWorkspace(
           id: true,
           workspaceId: true,
           defaultFolderId: true,
+          defaultRewardId: true,
+          defaultDiscountId: true,
           domain: true,
           url: true,
         },
@@ -124,12 +126,6 @@ export const POST = withWorkspace(
   },
   {
     requiredPermissions: ["links.write"],
-    requiredPlan: [
-      "business",
-      "business plus",
-      "business extra",
-      "business max",
-      "enterprise",
-    ],
+    requiredPlan: ["advanced", "enterprise"],
   },
 );

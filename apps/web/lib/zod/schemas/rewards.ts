@@ -2,10 +2,24 @@ import { CommissionType, EventType } from "@dub/prisma/client";
 import { z } from "zod";
 import { getPaginationQuerySchema, maxDurationSchema } from "./misc";
 
+export const COMMISSION_TYPES = [
+  {
+    value: "one-off",
+    label: "One-off",
+    description: "Pay a one-time payout",
+  },
+  {
+    value: "recurring",
+    label: "Recurring",
+    description: "Pay an ongoing payout",
+  },
+] as const;
+
 export const RewardSchema = z.object({
   id: z.string(),
   event: z.nativeEnum(EventType),
   name: z.string().nullish(),
+  description: z.string().nullish(),
   type: z.nativeEnum(CommissionType),
   amount: z.number(),
   maxDuration: z.number().nullish(),
