@@ -1,6 +1,7 @@
 "use client";
 
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
+import { linkTypes } from "@/lib/link-types";
 import useDomains from "@/lib/swr/use-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramData } from "@/lib/types";
@@ -12,7 +13,7 @@ import {
   Input,
   useMediaQuery,
 } from "@dub/ui";
-import { cn, getDomainWithoutWWW } from "@dub/utils";
+import { cn } from "@dub/utils";
 import { Plus } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
@@ -103,21 +104,6 @@ export function Form() {
 
   const buttonDisabled =
     isSubmitting || isPending || !name || !url || !domain || !logo;
-
-  const LINK_TYPES = [
-    {
-      id: "short",
-      label: "Short link",
-      example: `${domain || "refer.dub.co"}/steven`,
-      comingSoon: false,
-    },
-    {
-      id: "dynamic",
-      label: "Dynamic path",
-      example: `${(url && getDomainWithoutWWW(url)) || "dub.co"}/refer/steven`,
-      comingSoon: true,
-    },
-  ];
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
@@ -216,7 +202,10 @@ export function Form() {
         </div>
 
         <div className="flex flex-col gap-3">
-          {LINK_TYPES.map((type) => {
+          {linkTypes({
+            domain,
+            url,
+          }).map((type) => {
             const isSelected = watch("linkType") === type.id;
 
             return (

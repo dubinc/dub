@@ -1,6 +1,7 @@
 "use client";
 
 import { updateProgramAction } from "@/lib/actions/partners/update-program";
+import { linkTypes } from "@/lib/link-types";
 import useDomains from "@/lib/swr/use-domains";
 import useFolders from "@/lib/swr/use-folders";
 import useProgram from "@/lib/swr/use-program";
@@ -8,7 +9,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramProps } from "@/lib/types";
 import { Badge, Button } from "@dub/ui";
 import { CircleCheckFill, LoadingSpinner } from "@dub/ui/icons";
-import { cn, getDomainWithoutWWW } from "@dub/utils";
+import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -17,7 +18,7 @@ import { SettingsRow } from "../settings-row";
 
 type FormData = Pick<
   ProgramProps,
-  "domain" | "url" | "cookieLength" | "defaultFolderId"
+  "domain" | "url" | "cookieLength" | "defaultFolderId" | "linkStructure"
 >;
 
 export function LinksSettings() {
@@ -40,48 +41,25 @@ function LinksSettingsForm({ program }: { program: ProgramProps }) {
   const { id: workspaceId } = useWorkspace();
   const { folders, loading: loadingFolders } = useFolders();
 
-  const shortDomain = program.domain || "refer.dub.co";
-  const websiteDomain = program.url
-    ? getDomainWithoutWWW(program.url)
-    : "dub.co";
-
-  const LINK_TYPES = [
-    {
-      label: "Short link",
-      example: `${shortDomain}/steven`,
-      comingSoon: false,
-    },
-    // {
-    //   label: "Query parameter",
-    //   example: `${websiteDomain}?via=steven`,
-    //   comingSoon: true,
-    // },
-    {
-      label: "Dynamic path",
-      example: `${websiteDomain}/refer/steven`,
-      comingSoon: true,
-    },
-  ];
-
   const { activeWorkspaceDomains: domains, loading: loadingDomains } =
     useDomains();
 
-  const form = useForm<FormData>({
+  const {
+    register,
+    handleSubmit,
+    reset,
+    watch,
+    formState: { isDirty, isValid, isSubmitting },
+  } = useForm<FormData>({
     mode: "onBlur",
     defaultValues: {
       domain: program.domain,
       url: program.url,
       cookieLength: program.cookieLength,
       defaultFolderId: program.defaultFolderId,
+      linkStructure: program.linkStructure,
     },
   });
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { isDirty, isValid, isSubmitting },
-  } = form;
 
   const { executeAsync } = useAction(updateProgramAction, {
     async onSuccess() {
@@ -93,6 +71,8 @@ function LinksSettingsForm({ program }: { program: ProgramProps }) {
       toast.error("Failed to update program.");
     },
   });
+
+  const selectedLinkStructure = watch("linkStructure");
 
   return (
     <form
@@ -165,12 +145,15 @@ function LinksSettingsForm({ program }: { program: ProgramProps }) {
 
         <SettingsRow heading="Link type">
           <div className="grid grid-cols-1 gap-3">
-            {LINK_TYPES.map((type, idx) => {
-              const isSelected = idx === 0;
+            {linkTypes({
+              domain: program.domain,
+              url: program.url,
+            }).map((type) => {
+              const isSelected = type.id === selectedLinkStructure;
 
               return (
                 <label
-                  key={type.label}
+                  key={type.id}
                   className={cn(
                     "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600",
                     type.comingSoon
@@ -183,16 +166,17 @@ function LinksSettingsForm({ program }: { program: ProgramProps }) {
                 >
                   <input
                     type="radio"
-                    value={type.label}
+                    value={type.id}
                     className="hidden"
-                    checked={isSelected}
-                    disabled={type.comingSoon}
-                    readOnly
+                    disabled={type.comingSoon === true}
+                    {...register("linkStructure")}
                   />
+
                   <div className="flex grow flex-col text-sm">
                     <span className="font-medium">{type.label}</span>
                     <span className="text-neutral-600">{type.example}</span>
                   </div>
+
                   {type.comingSoon ? (
                     <Badge variant="blueGradient">Coming soon</Badge>
                   ) : (
