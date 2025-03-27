@@ -30,8 +30,6 @@ export function useWorkspacePreferences<
   const { id: workspaceId, slug, users, loading } = useWorkspace();
   const workspacePreferences = users?.[0]?.workspacePreferences;
 
-  console.log("workspacePreferences", workspacePreferences);
-
   const { executeAsync } = useAction(updateWorkspacePreferences);
   const [item, setItemState] = useState<
     WorkspacePreferencesValue<K> | undefined
