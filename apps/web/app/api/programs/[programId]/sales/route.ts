@@ -40,6 +40,7 @@ export const GET = withWorkspace(
         programId,
         partnerId,
         status,
+        type: "sale",
         customerId,
         payoutId,
         createdAt: {
@@ -55,6 +56,8 @@ export const GET = withWorkspace(
       take: pageSize,
       orderBy: { [sortBy]: sortOrder },
     });
+
+    console.log({ sales });
 
     return NextResponse.json(z.array(ProgramSaleResponseSchema).parse(sales));
   },
