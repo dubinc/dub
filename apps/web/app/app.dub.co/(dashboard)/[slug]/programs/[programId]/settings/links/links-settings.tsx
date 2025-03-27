@@ -1,7 +1,7 @@
 "use client";
 
 import { updateProgramAction } from "@/lib/actions/partners/update-program";
-import { linkTypes } from "@/lib/link-types";
+import { linkStructures } from "@/lib/link-structures";
 import useDomains from "@/lib/swr/use-domains";
 import useFolders from "@/lib/swr/use-folders";
 import useProgram from "@/lib/swr/use-program";
@@ -145,7 +145,7 @@ function LinksSettingsForm({ program }: { program: ProgramProps }) {
 
         <SettingsRow heading="Link type">
           <div className="grid grid-cols-1 gap-3">
-            {linkTypes({
+            {linkStructures({
               domain: program.domain,
               url: program.url,
             }).map((type) => {

@@ -1,7 +1,7 @@
 "use client";
 
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
-import { linkTypes } from "@/lib/link-types";
+import { linkStructures } from "@/lib/link-structures";
 import useDomains from "@/lib/swr/use-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramData } from "@/lib/types";
@@ -74,7 +74,9 @@ export function Form() {
         },
       );
 
-      if (!response.ok) throw new Error("Failed to get signed URL for upload.");
+      if (!response.ok) {
+        throw new Error("Failed to get signed URL for upload.");
+      }
 
       const { signedUrl, destinationUrl } = await response.json();
 
@@ -87,14 +89,14 @@ export function Form() {
         },
       });
 
-      if (!uploadResponse.ok) throw new Error("Failed to upload to signed URL");
+      if (!uploadResponse.ok) {
+        throw new Error("Failed to upload to signed URL");
+      }
 
       setValue("logo", destinationUrl, { shouldDirty: true });
-      console.log(destinationUrl);
       toast.success(`${file.name} uploaded!`);
     } catch (e) {
       toast.error("Failed to upload logo");
-      console.error(e);
     } finally {
       setIsUploading(false);
     }
@@ -202,11 +204,11 @@ export function Form() {
         </div>
 
         <div className="flex flex-col gap-3">
-          {linkTypes({
+          {linkStructures({
             domain,
             url,
           }).map((type) => {
-            const isSelected = watch("linkType") === type.id;
+            const isSelected = watch("linkStructure") === type.id;
 
             return (
               <label
@@ -221,7 +223,7 @@ export function Form() {
               >
                 <input
                   type="radio"
-                  {...register("linkType")}
+                  {...register("linkStructure")}
                   value={type.id}
                   className="hidden"
                   disabled={type.comingSoon}

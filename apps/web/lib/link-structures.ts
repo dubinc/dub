@@ -1,7 +1,7 @@
 import { LinkStructure } from "@dub/prisma/client";
 import { getDomainWithoutWWW } from "@dub/utils";
 
-export const linkTypes = ({
+export const linkStructures = ({
   domain,
   url,
 }: {
@@ -15,7 +15,7 @@ export const linkTypes = ({
     {
       id: LinkStructure.short,
       label: "Short link",
-      example: `${shortDomain || "refer.dub.co"}/steven`,
+      example: `${shortDomain}/steven`,
       comingSoon: false,
     },
     {
