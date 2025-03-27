@@ -5,7 +5,7 @@ import {
 } from "@/lib/links/links-display";
 import { z } from "zod";
 
-const linksDisplaySchema = z.object({
+export const linksDisplaySchema = z.object({
   viewMode: z.enum(linksViewModes),
   sortBy: z.enum(
     linksSortOptions.map(({ slug }) => slug) as [string, ...string[]],
@@ -15,7 +15,7 @@ const linksDisplaySchema = z.object({
 });
 
 export const workspacePreferencesValueSchemas = {
-  linksDisplay: linksDisplaySchema,
+  linksDisplay: linksDisplaySchema.nullish(),
 } as const;
 
 export const workspacePreferencesSchema = z.object(
@@ -24,3 +24,6 @@ export const workspacePreferencesSchema = z.object(
 
 export type WorkspacePreferencesKey =
   keyof typeof workspacePreferencesValueSchemas;
+
+export type WorkspacePreferencesValue<K extends WorkspacePreferencesKey> =
+  z.infer<(typeof workspacePreferencesValueSchemas)[K]>;

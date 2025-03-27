@@ -1,13 +1,13 @@
 import {
   defaultLinksDisplayProperties,
   LinksDisplayProperty,
-  linksDisplayPropertyIds,
   linksSortOptions,
   LinksSortSlug,
   LinksViewMode,
   linksViewModes,
 } from "@/lib/links/links-display";
-import { useLocalStorage } from "@dub/ui";
+import { useWorkspacePreferences } from "@/lib/swr/use-workspace-preferences";
+import { linksDisplaySchema } from "@/lib/zod/schemas/workspace-preferences";
 import { useSearchParams } from "next/navigation";
 import {
   createContext,
@@ -17,27 +17,25 @@ import {
   useMemo,
   useState,
 } from "react";
+import { z } from "zod";
 
-function useLinksDisplayOption<T>(
-  key: string,
-  parsePersisted: (value: T) => T,
-  defaultValue: T,
-  overrideValue?: T,
-) {
-  const [valuePersisted, setValuePersisted] = useLocalStorage<T>(
-    `links-display-${key}`,
-    defaultValue,
-  );
-  const [value, setValue] = useState(overrideValue ?? valuePersisted);
+type LinksDisplayKey = keyof z.infer<typeof linksDisplaySchema>;
+type LinksDisplayValue<K extends LinksDisplayKey> = z.infer<
+  typeof linksDisplaySchema
+>[K];
 
-  return {
-    value,
-    setValue,
-    valuePersisted,
-    setValuePersisted,
-    persist: () => setValuePersisted(value),
-    reset: () => setValue(parsePersisted(valuePersisted)),
-  };
+function useLinksDisplayOption<K extends LinksDisplayKey>(
+  key: K,
+  persisted: z.infer<typeof linksDisplaySchema>,
+  overrideValue?: LinksDisplayValue<K>,
+): [
+  LinksDisplayValue<K>,
+  Dispatch<SetStateAction<LinksDisplayValue<K>>>,
+  () => void,
+] {
+  const [value, setValue] = useState(overrideValue ?? persisted[key]);
+
+  return [value, setValue, () => setValue(persisted[key])];
 }
 
 export const LinksDisplayContext = createContext<{
@@ -69,101 +67,59 @@ export const LinksDisplayContext = createContext<{
   reset: () => {},
 });
 
-const parseViewMode = (viewModeRaw: string) =>
-  linksViewModes.find((vm) => vm === viewModeRaw) ?? linksViewModes[0];
-
-const parseDisplayProperties = (displayPropertiesRaw: string[]) =>
-  linksDisplayPropertyIds.filter(
-    (p) => displayPropertiesRaw.findIndex((pr) => pr === p) !== -1,
-  );
-
 const parseSort = (sort: string) =>
   linksSortOptions.find(({ slug }) => slug === sort)?.slug ??
   linksSortOptions[0].slug;
-
-const parseShowArchived = (showArchived: boolean) => showArchived === true;
 
 export function LinksDisplayProvider({ children }: PropsWithChildren) {
   const searchParams = useSearchParams();
   const sortRaw = searchParams?.get("sortBy");
   const showArchivedRaw = searchParams?.get("showArchived");
 
-  // View mode
-  const {
-    value: viewMode,
-    setValue: setViewMode,
-    valuePersisted: viewModePersisted,
-    persist: persistViewMode,
-    reset: resetViewMode,
-  } = useLinksDisplayOption<string>(
-    "view-mode",
-    parseViewMode,
-    linksViewModes[0],
+  const [persisted, setPersisted] = useWorkspacePreferences("linksDisplay", {
+    viewMode: linksViewModes[0],
+    sortBy: linksSortOptions[0].slug,
+    showArchived: false,
+    displayProperties: defaultLinksDisplayProperties,
+  });
+
+  const [viewMode, setViewMode, resetViewMode] = useLinksDisplayOption(
+    "viewMode",
+    persisted!,
   );
 
-  // Sort
-  const {
-    value: sortBy,
-    setValue: setSort,
-    valuePersisted: sortPersisted,
-    persist: persistSort,
-    reset: resetSort,
-  } = useLinksDisplayOption<string>(
+  const [sortBy, setSort, resetSort] = useLinksDisplayOption(
     "sortBy",
-    parseSort,
-    linksSortOptions[0].slug,
+    persisted!,
     sortRaw ? parseSort(sortRaw) : undefined,
   );
 
-  // Show archived
-  const {
-    value: showArchived,
-    setValue: setShowArchived,
-    valuePersisted: showArchivedPersisted,
-    persist: persistShowArchived,
-    reset: resetShowArchived,
-  } = useLinksDisplayOption<boolean>(
-    "show-archived",
-    parseShowArchived,
-    false,
-    showArchivedRaw ? showArchivedRaw === "true" : undefined,
-  );
+  const [showArchived, setShowArchived, resetShowArchived] =
+    useLinksDisplayOption(
+      "showArchived",
+      persisted!,
+      showArchivedRaw ? showArchivedRaw === "true" : undefined,
+    );
 
-  // Display properties
-  const {
-    value: displayProperties,
-    setValue: setDisplayProperties,
-    valuePersisted: displayPropertiesPersisted,
-    persist: persistDisplayProperties,
-    reset: resetDisplayProperties,
-  } = useLinksDisplayOption<LinksDisplayProperty[]>(
-    "display-properties",
-    parseDisplayProperties,
-    defaultLinksDisplayProperties,
-  );
+  const [displayProperties, setDisplayProperties, resetDisplayProperties] =
+    useLinksDisplayOption("displayProperties", persisted!);
 
   const isDirty = useMemo(() => {
-    if (viewMode !== parseViewMode(viewModePersisted)) return true;
-    if (sortBy !== parseSort(sortPersisted)) return true;
-    if (showArchived !== parseShowArchived(showArchivedPersisted)) return true;
+    if (viewMode !== persisted?.viewMode) return true;
+    if (sortBy !== persisted?.sortBy) return true;
+    if (showArchived !== persisted?.showArchived) return true;
     if (
       displayProperties.slice().sort().join(",") !==
-      parseDisplayProperties(displayPropertiesPersisted)
-        .slice()
-        .sort()
-        .join(",")
+      persisted?.displayProperties.slice().sort().join(",")
     )
       return true;
 
     return false;
   }, [
-    viewModePersisted,
+    JSON.stringify(persisted),
     viewMode,
-    sortPersisted,
     sortBy,
-    showArchivedPersisted,
     showArchived,
-    displayPropertiesPersisted,
     displayProperties,
   ]);
 
@@ -179,12 +135,13 @@ export function LinksDisplayProvider({ children }: PropsWithChildren) {
         showArchived,
         setShowArchived,
         isDirty,
-        persist: () => {
-          persistViewMode();
-          persistDisplayProperties();
-          persistSort();
-          persistShowArchived();
-        },
+        persist: () =>
+          setPersisted({
+            viewMode,
+            sortBy,
+            showArchived,
+            displayProperties,
+          }),
         reset: () => {
           resetViewMode();
           resetDisplayProperties();
