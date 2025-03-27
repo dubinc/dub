@@ -72,8 +72,6 @@ function LinksSettingsForm({ program }: { program: ProgramProps }) {
     },
   });
 
-  const selectedLinkStructure = watch("linkStructure");
-
   return (
     <form
       className="rounded-lg border border-neutral-200 bg-white"
@@ -149,7 +147,7 @@ function LinksSettingsForm({ program }: { program: ProgramProps }) {
               domain: program.domain,
               url: program.url,
             }).map((type) => {
-              const isSelected = type.id === selectedLinkStructure;
+              const isSelected = type.id === watch("linkStructure");
 
               return (
                 <label
