@@ -74,7 +74,7 @@ export const defaultDisplayProperties: LinkDisplayProperty[] = [
   "analytics",
 ];
 
-function useLinksDisplayOption<T>(
+export function useLinksDisplayOption<T>(
   key: string,
   parsePersisted: (value: T) => T,
   defaultValue: T,
