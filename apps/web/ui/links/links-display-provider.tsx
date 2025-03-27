@@ -1,78 +1,22 @@
+import {
+  defaultLinksDisplayProperties,
+  LinksDisplayProperty,
+  linksDisplayPropertyIds,
+  linksSortOptions,
+  LinksSortSlug,
+  LinksViewMode,
+  linksViewModes,
+} from "@/lib/links/links-display";
 import { useLocalStorage } from "@dub/ui";
 import { useSearchParams } from "next/navigation";
 import {
+  createContext,
   Dispatch,
   PropsWithChildren,
   SetStateAction,
-  createContext,
   useMemo,
   useState,
 } from "react";
-
-export const linkViewModes = ["cards", "rows"] as const;
-
-export type LinksViewMode = (typeof linkViewModes)[number];
-
-export const sortOptions = [
-  {
-    display: "Date created",
-    slug: "createdAt",
-  },
-  {
-    display: "Total clicks",
-    slug: "clicks",
-  },
-  {
-    display: "Last clicked",
-    slug: "lastClicked",
-  },
-  {
-    display: "Total sales",
-    slug: "saleAmount",
-  },
-] as const;
-
-export type LinksSortSlug = (typeof sortOptions)[number]["slug"];
-
-export const linkDisplayPropertyIds = [
-  "icon",
-  "link",
-  "url",
-  "title",
-  "description",
-  "createdAt",
-  "user",
-  "tags",
-  "analytics",
-] as const;
-
-export const linkDisplayProperties: {
-  id: LinkDisplayProperty;
-  label: string;
-  switch?: LinkDisplayProperty;
-  mobile?: boolean;
-}[] = [
-  { id: "link", label: "Short link", switch: "title" },
-  { id: "url", label: "Destination URL", switch: "description" },
-  { id: "title", label: "Title", switch: "link" },
-  { id: "description", label: "Description", switch: "url" },
-  { id: "createdAt", label: "Created Date", mobile: false },
-  { id: "user", label: "Creator", mobile: false },
-  { id: "tags", label: "Tags" },
-  { id: "analytics", label: "Analytics" },
-];
-
-export type LinkDisplayProperty = (typeof linkDisplayPropertyIds)[number];
-
-export const defaultDisplayProperties: LinkDisplayProperty[] = [
-  "icon",
-  "link",
-  "url",
-  "createdAt",
-  "user",
-  "tags",
-  "analytics",
-];
 
 function useLinksDisplayOption<T>(
   key: string,
@@ -99,8 +43,8 @@ function useLinksDisplayOption<T>(
 export const LinksDisplayContext = createContext<{
   viewMode: LinksViewMode;
   setViewMode: Dispatch<SetStateAction<LinksViewMode>>;
-  displayProperties: LinkDisplayProperty[];
-  setDisplayProperties: Dispatch<SetStateAction<LinkDisplayProperty[]>>;
+  displayProperties: LinksDisplayProperty[];
+  setDisplayProperties: Dispatch<SetStateAction<LinksDisplayProperty[]>>;
   sortBy: LinksSortSlug;
   setSort: Dispatch<SetStateAction<LinksSortSlug>>;
   showArchived: boolean;
@@ -111,9 +55,9 @@ export const LinksDisplayContext = createContext<{
 }>({
   viewMode: "cards",
   setViewMode: () => {},
-  displayProperties: defaultDisplayProperties,
+  displayProperties: defaultLinksDisplayProperties,
   setDisplayProperties: () => {},
-  sortBy: sortOptions[0].slug,
+  sortBy: linksSortOptions[0].slug,
   setSort: () => {},
   showArchived: false,
   setShowArchived: () => {},
@@ -126,15 +70,16 @@ export const LinksDisplayContext = createContext<{
 });
 
 const parseViewMode = (viewModeRaw: string) =>
-  linkViewModes.find((vm) => vm === viewModeRaw) ?? linkViewModes[0];
+  linksViewModes.find((vm) => vm === viewModeRaw) ?? linksViewModes[0];
 
 const parseDisplayProperties = (displayPropertiesRaw: string[]) =>
-  linkDisplayPropertyIds.filter(
+  linksDisplayPropertyIds.filter(
     (p) => displayPropertiesRaw.findIndex((pr) => pr === p) !== -1,
   );
 
 const parseSort = (sort: string) =>
-  sortOptions.find(({ slug }) => slug === sort)?.slug ?? sortOptions[0].slug;
+  linksSortOptions.find(({ slug }) => slug === sort)?.slug ??
+  linksSortOptions[0].slug;
 
 const parseShowArchived = (showArchived: boolean) => showArchived === true;
 
@@ -153,7 +98,7 @@ export function LinksDisplayProvider({ children }: PropsWithChildren) {
   } = useLinksDisplayOption<string>(
     "view-mode",
     parseViewMode,
-    linkViewModes[0],
+    linksViewModes[0],
   );
 
   // Sort
@@ -166,7 +111,7 @@ export function LinksDisplayProvider({ children }: PropsWithChildren) {
   } = useLinksDisplayOption<string>(
     "sortBy",
     parseSort,
-    sortOptions[0].slug,
+    linksSortOptions[0].slug,
     sortRaw ? parseSort(sortRaw) : undefined,
   );
 
@@ -191,10 +136,10 @@ export function LinksDisplayProvider({ children }: PropsWithChildren) {
     valuePersisted: displayPropertiesPersisted,
     persist: persistDisplayProperties,
     reset: resetDisplayProperties,
-  } = useLinksDisplayOption<LinkDisplayProperty[]>(
+  } = useLinksDisplayOption<LinksDisplayProperty[]>(
     "display-properties",
     parseDisplayProperties,
-    defaultDisplayProperties,
+    defaultLinksDisplayProperties,
   );
 
   const isDirty = useMemo(() => {

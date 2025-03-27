@@ -9,6 +9,7 @@ import { storage } from "@/lib/storage";
 import {
   updateWorkspaceSchema,
   WorkspaceSchema,
+  WorkspaceSchemaExtended,
 } from "@/lib/zod/schemas/workspaces";
 import { prisma } from "@dub/prisma";
 import { nanoid, R2_URL } from "@dub/utils";
@@ -35,7 +36,7 @@ export const GET = withWorkspace(
 
     return NextResponse.json(
       {
-        ...WorkspaceSchema.parse({
+        ...WorkspaceSchemaExtended.parse({
           ...workspace,
           id: prefixWorkspaceId(workspace.id),
           domains,

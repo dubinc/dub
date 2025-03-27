@@ -4,6 +4,7 @@ import { DEFAULT_REDIRECTS, validSlugRegex } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { DomainSchema } from "./domains";
 import { planSchema, roleSchema } from "./misc";
+import { workspacePreferencesSchema } from "./workspace-preferences";
 
 export const workspaceIdSchema = z.object({
   workspaceId: z
@@ -153,5 +154,5 @@ export const notificationTypes = z.enum([
 ]);
 
 export const WorkspaceSchemaExtended = WorkspaceSchema.extend({
-  workspacePreferences: z.record(z.boolean()).optional(),
+  workspacePreferences: workspacePreferencesSchema.nullish(),
 });
