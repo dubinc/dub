@@ -16,13 +16,11 @@ import { Footer } from "../components/footer";
 
 export function ReferralInvite({
   email = "panic@thedis.co",
-  appName = "Dub.co",
   url = "https://dub.co",
   workspaceUser = "Brendon Urie",
   workspaceUserEmail = "panic@thedis.co",
 }: {
   email: string;
-  appName: string;
   url: string;
   workspaceUser: string | null;
   workspaceUserEmail: string | null;
@@ -30,20 +28,15 @@ export function ReferralInvite({
   return (
     <Html>
       <Head />
-      <Preview>Sign up for {appName}</Preview>
+      <Preview>Sign up for Dub</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
-          <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-neutral-200 px-10 py-5">
-            <Section className="mt-8">
-              <Img
-                src={DUB_WORDMARK}
-                height="40"
-                alt={appName}
-                className="mx-auto my-0"
-              />
+          <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
+            <Section className="mt-6 mt-8">
+              <Img src={DUB_WORDMARK} height="32" alt="Dub" />
             </Section>
-            <Heading className="mx-0 my-7 p-0 text-center text-xl font-semibold text-black">
-              Sign up for {appName}
+            <Heading className="mx-0 my-7 p-0 text-xl font-medium text-black">
+              Sign up for Dub
             </Heading>
             {workspaceUser && workspaceUserEmail ? (
               <Text className="text-sm leading-6 text-black">
@@ -54,14 +47,14 @@ export function ReferralInvite({
                 >
                   {workspaceUserEmail}
                 </Link>
-                ) has invited you to start using {appName}!
+                ) has invited you to start using Dub!
               </Text>
             ) : (
               <Text className="text-sm leading-6 text-black">
-                You have been invited to start using {appName}!
+                You have been invited to start using Dub!
               </Text>
             )}
-            <Section className="mb-8 text-center">
+            <Section className="mb-8 mt-8">
               <Link
                 className="rounded-lg bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
                 href={url}

@@ -31,21 +31,16 @@ export function InvalidDomain({
       <Preview>Invalid Domain Configuration</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
-          <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-neutral-200 px-10 py-5">
-            <Section className="mt-8">
-              <Img
-                src={DUB_WORDMARK}
-                height="40"
-                alt="Dub"
-                className="mx-auto my-0"
-              />
+          <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
+            <Section className="mt-6 mt-8">
+              <Img src={DUB_WORDMARK} height="32" alt="Dub" />
             </Section>
-            <Heading className="mx-0 my-7 p-0 text-center text-xl font-semibold text-black">
+            <Heading className="mx-0 my-7 p-0 text-lg font-medium text-black">
               Invalid Domain Configuration
             </Heading>
             <Text className="text-sm leading-6 text-black">
               Your domain <code className="text-purple-600">{domain}</code> for
-              your Dub.co workspace{" "}
+              your Dub workspace{" "}
               <Link
                 href={`https://app.dub.co/${workspaceSlug}`}
                 className="font-medium text-blue-600 no-underline"
@@ -56,10 +51,10 @@ export function InvalidDomain({
             </Text>
             <Text className="text-sm leading-6 text-black">
               If your domain remains unconfigured for 30 days, it will be
-              automatically deleted from Dub.co. Please click the link below to
+              automatically deleted from Dub. Please click the link below to
               configure your domain.
             </Text>
-            <Section className="my-8 text-center">
+            <Section className="my-8">
               <Link
                 className="rounded-lg bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
                 href={`https://app.dub.co/${workspaceSlug}/settings/domains`}
@@ -68,7 +63,7 @@ export function InvalidDomain({
               </Link>
             </Section>
             <Text className="text-sm leading-6 text-black">
-              If you do not want to keep this domain on Dub.co, you can{" "}
+              If you do not want to keep this domain on Dub, you can{" "}
               <Link
                 href={`https://app.dub.co/${workspaceSlug}/settings/domains`}
                 className="font-medium text-blue-600 no-underline"

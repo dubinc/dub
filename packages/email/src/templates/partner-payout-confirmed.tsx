@@ -65,8 +65,8 @@ export function PartnerPayoutConfirmed({
       <Preview>Your payout is being processed</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
-          <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-neutral-200 px-10 py-5">
-            <Section className="my-8">
+          <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
+            <Section className="mt-8 mt-6">
               <Img
                 src={program.logo || "https://assets.dub.co/logo.png"}
                 height="32"

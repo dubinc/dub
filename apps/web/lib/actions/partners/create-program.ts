@@ -208,7 +208,6 @@ async function invitePartner({
       email: partner.email,
       react: PartnerInvite({
         email: partner.email,
-        appName: `${process.env.NEXT_PUBLIC_APP_NAME}`,
         program: {
           name: program.name,
           logo: program.logo,
