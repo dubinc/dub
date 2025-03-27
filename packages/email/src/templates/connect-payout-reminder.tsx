@@ -50,7 +50,7 @@ export default function ConnectPayoutReminder({
       <Head />
       <Preview>
         You have rewards ready to be paid out, but you need to connect your
-        payout details to collect them.
+        payout details to receive them.
       </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
@@ -65,7 +65,7 @@ export default function ConnectPayoutReminder({
 
             <Text className="text-sm leading-6 text-neutral-600">
               You have rewards ready to be paid out, but you need to connect
-              your payout details to collect them.
+              your payout details to receive them.
             </Text>
 
             <Section className="mt-10 text-base">
@@ -83,18 +83,18 @@ export default function ConnectPayoutReminder({
                             program.logo ||
                             `${DICEBEAR_AVATAR_URL}${program.name}`
                           }
-                          width="24"
-                          height="24"
+                          width="20"
+                          height="20"
                           alt="Program logo"
                           className="rounded-full border border-neutral-200"
                         />
                       </Column>
-                      <Column className="font-semibold text-neutral-800">
+                      <Column className="text-sm font-semibold text-neutral-800">
                         {program.name}
                       </Column>
                     </Row>
                   </Column>
-                  <Column className="text-right">
+                  <Column className="text-right text-sm">
                     {currencyFormatter(program.amount / 100, {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,

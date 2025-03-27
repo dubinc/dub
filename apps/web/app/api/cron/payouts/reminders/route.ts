@@ -21,18 +21,15 @@ export async function GET(req: Request) {
       where: {
         status: "pending",
         partner: {
-          createdAt: {
-            lte: new Date(Date.now() - 12 * 60 * 60 * 1000), // Partner is at least 12 hours old
-          },
+          payoutsEnabledAt: null,
           OR: [
+            { connectPayoutsLastRemindedAt: null },
             {
-              lastNotifiedConnectPayout: {
+              connectPayoutsLastRemindedAt: {
                 lte: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // Last notified was at least 3 days ago
               },
             },
-            { lastNotifiedConnectPayout: null },
           ],
-          payoutsEnabledAt: null,
         },
       },
       _sum: {
@@ -100,19 +97,11 @@ export async function GET(req: Request) {
       >,
     );
 
+    console.log(partnerPrograms);
+
     await Promise.all(
       Object.entries(partnerPrograms).map(([partnerEmail, data]) =>
         limiter.schedule(async () => {
-          // Update last notified date
-          await prisma.partner.update({
-            where: {
-              email: partnerEmail,
-            },
-            data: {
-              lastNotifiedConnectPayout: new Date(),
-            },
-          });
-
           await sendEmail({
             subject: `Connect your payout details on Dub Partners`,
             email: partnerEmail,
@@ -127,14 +116,21 @@ export async function GET(req: Request) {
             }),
             variant: "notifications",
           });
+
+          // Update last notified date
+          await prisma.partner.update({
+            where: {
+              email: partnerEmail,
+            },
+            data: {
+              connectPayoutsLastRemindedAt: new Date(),
+            },
+          });
         }),
       ),
     );
 
-    return NextResponse.json({
-      success: true,
-      message: `Queued ${Object.keys(partnerPrograms).length} email(s)`,
-    });
+    return NextResponse.json(partnerPrograms);
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }
