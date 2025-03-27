@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 // This route is used to send reminders to partners who have pending payouts
 // but haven't configured payouts yet.
-// Runs every day but only notifies partners every 3 days
+// Runs once a day at 7AM PST but only notifies partners every 3 days
 // GET /api/cron/payouts/reminders
 export async function GET(req: Request) {
   try {
@@ -65,44 +65,44 @@ export async function GET(req: Request) {
       },
     });
 
-    const partnerPrograms = pendingPayouts.reduce(
-      (acc, payout) => {
-        const { partnerId, programId } = payout;
-        const { amount } = payout._sum;
+    const partnerPrograms = Object.entries(
+      pendingPayouts.reduce(
+        (acc, payout) => {
+          const { partnerId, programId } = payout;
+          const { amount } = payout._sum;
 
-        const partner = partnerData.find((p) => p.id === partnerId);
-        const program = programData.find((p) => p.id === programId);
-        if (!partner?.email || !program) {
+          const partner = partnerData.find((p) => p.id === partnerId);
+          const program = programData.find((p) => p.id === programId);
+          if (!partner?.email || !program) {
+            return acc;
+          }
+
+          acc[partner.email] = acc[partner.email] || [];
+          acc[partner.email].push({
+            amount: amount ?? 0,
+            partner: {
+              name: partner.name,
+              email: partner.email,
+            },
+            program: {
+              id: program.id,
+              name: program.name,
+              logo: program.logo,
+            },
+          });
           return acc;
-        }
-
-        acc[partner.email] = acc[partner.email] || [];
-        acc[partner.email].push({
-          amount: amount ?? 0,
-          partner: {
-            name: partner.name,
-            email: partner.email,
-          },
-          program: {
-            id: program.id,
-            name: program.name,
-            logo: program.logo,
-          },
-        });
-        return acc;
-      },
-      {} as Record<
-        string,
-        Array<{ amount: number; partner: any; program: any }>
-      >,
+        },
+        {} as Record<
+          string,
+          Array<{ amount: number; partner: any; program: any }>
+        >,
+      ),
     );
 
-    console.log(partnerPrograms);
-
     await Promise.all(
-      Object.entries(partnerPrograms).map(([partnerEmail, data]) =>
+      partnerPrograms.map(([partnerEmail, data]) =>
         limiter.schedule(async () => {
-          await sendEmail({
+          const res = await sendEmail({
             subject: `Connect your payout details on Dub Partners`,
             email: partnerEmail,
             react: ConnectPayoutReminder({
@@ -116,6 +116,7 @@ export async function GET(req: Request) {
             }),
             variant: "notifications",
           });
+          console.log(res);
 
           // Update last notified date
           await prisma.partner.update({

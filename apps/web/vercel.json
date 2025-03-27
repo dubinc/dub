@@ -42,7 +42,7 @@
     },
     {
       "path": "/api/cron/payouts/reminders",
-      "schedule": "0 16 * * *"
+      "schedule": "0 14 * * *"
     }
   ],
   "functions": {

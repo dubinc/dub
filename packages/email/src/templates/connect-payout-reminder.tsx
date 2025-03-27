@@ -64,14 +64,14 @@ export default function ConnectPayoutReminder({
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              You have rewards ready to be paid out, but you need to connect
-              your payout details to receive them.
+              You have pending rewards on Dub Partners, but you need to connect
+              your payout details (bank account) to receive them.
             </Text>
 
             <Section className="mt-10 text-base">
               <Row className="mb-1 text-sm text-neutral-600">
                 <Column>Program</Column>
-                <Column className="text-right">Payouts waiting</Column>
+                <Column className="text-right">Pending payouts</Column>
               </Row>
               {programs.map((program) => (
                 <Row key={program.id} className="h-10">
