@@ -299,6 +299,10 @@ export const analyticsResponse = {
       shortLink: z.string().describe("The short link URL"),
       url: z.string().describe("The destination URL of the short link"),
       comments: z.string().nullish().describe("The comments of the short link"),
+      title: z
+        .string()
+        .nullish()
+        .describe("The custom link preview title (og:title)"),
       createdAt: z
         .string()
         .describe("The creation timestamp of the short link"),
