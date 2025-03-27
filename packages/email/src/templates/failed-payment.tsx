@@ -28,7 +28,7 @@ export function FailedPayment({
 }) {
   const title = `${
     attemptCount == 2 ? "2nd notice: " : attemptCount == 3 ? "3rd notice: " : ""
-  }Your payment for Dub.co failed`;
+  }Your payment for Dub failed`;
 
   return (
     <Html>
@@ -37,16 +37,12 @@ export function FailedPayment({
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
-            <Section className="mt-8 mt-6">
-              <Img
-                src={DUB_WORDMARK}
-                height="32"
-                alt="Dub"
-              />
+            <Section className="mt-6 mt-8">
+              <Img src={DUB_WORDMARK} height="32" alt="Dub" />
             </Section>
             <Heading className="mx-0 my-7 p-0 text-lg font-medium text-black">
               {attemptCount == 2 ? "2nd " : attemptCount == 3 ? "3rd  " : ""}
-              Failed Payment for Dub.co
+              Failed Payment for Dub
             </Heading>
             <Text className="text-sm leading-6 text-black">
               Hey{user.name ? `, ${user.name}` : ""}!

@@ -27,15 +27,15 @@ export function UpgradeEmail({
   return (
     <Html>
       <Head />
-      <Preview>Thank you for upgrading to Dub.co {plan}!</Preview>
+      <Preview>Thank you for upgrading to Dub {plan}!</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
-            <Section className="mt-8 mt-6">
+            <Section className="mt-6 mt-8">
               <Img src={DUB_WORDMARK} height="32" alt="Dub" />
             </Section>
             <Heading className="mx-0 my-7 p-0 text-xl font-medium text-black">
-              Thank you for upgrading to Dub.co {plan}!
+              Thank you for upgrading to Dub {plan}!
             </Heading>
             <Section className="my-8">
               <Img
@@ -54,7 +54,7 @@ export function UpgradeEmail({
                 href={planDetails.link}
                 className="font-medium text-blue-600 no-underline"
               >
-                Dub.co {plan}
+                Dub {plan}
               </Link>
               !
             </Text>
@@ -67,7 +67,7 @@ export function UpgradeEmail({
                 open-source
               </Link>{" "}
               business. Your support means the world to us and helps us continue
-              to build and improve Dub.co.
+              to build and improve Dub.
             </Text>
             <Text className="text-sm leading-6 text-black">
               On the {plan} plan, you now have access to:

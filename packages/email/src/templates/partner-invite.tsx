@@ -16,7 +16,7 @@ import { Footer } from "../components/footer";
 
 export function PartnerInvite({
   email = "panic@thedis.co",
-  appName = "Dub.co",
+  appName = "Dub",
   program = {
     name: "Acme",
     logo: DUB_WORDMARK,

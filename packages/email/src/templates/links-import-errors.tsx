@@ -43,12 +43,8 @@ export function LinksImportErrors({
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
-            <Section className="mt-8 mt-6">
-              <Img
-                src={DUB_WORDMARK}
-                height="32"
-                alt="Dub"
-              />
+            <Section className="mt-6 mt-8">
+              <Img src={DUB_WORDMARK} height="32" alt="Dub" />
             </Section>
             <Heading className="mx-0 my-7 p-0 text-lg font-medium text-black">
               Some {provider} links have failed to import
@@ -56,7 +52,7 @@ export function LinksImportErrors({
             <Text className="text-sm leading-6 text-black">
               The following{" "}
               {Intl.NumberFormat("en-us").format(errorLinks.length)} links from{" "}
-              {provider} failed to import into your Dub.co workspace,{" "}
+              {provider} failed to import into your Dub workspace,{" "}
               <Link
                 href={`https://app.dub.co/${workspaceSlug}`}
                 className="font-medium text-blue-600 no-underline"

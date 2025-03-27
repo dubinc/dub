@@ -45,17 +45,13 @@ export function APIKeyCreated({
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
             <Section className="mb-8 mt-6">
-              <Img
-                src={DUB_WORDMARK}
-                height="32"
-                alt="Dub.co"
-              />
+              <Img src={DUB_WORDMARK} height="32" alt="Dub" />
             </Section>
             <Heading className="mx-0 my-6 p-0 text-lg font-medium text-black">
               New Workspace API Key Created
             </Heading>
             <Text className="text-sm leading-6 text-black">
-              You've created a new API key for your Dub.co workspace{" "}
+              You've created a new API key for your Dub workspace{" "}
               <strong>{workspace.name}</strong> with the name{" "}
               <strong>"{token.name}"</strong> on{" "}
               {formatDate(new Date().toString())}.

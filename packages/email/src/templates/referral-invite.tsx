@@ -16,7 +16,7 @@ import { Footer } from "../components/footer";
 
 export function ReferralInvite({
   email = "panic@thedis.co",
-  appName = "Dub.co",
+  appName = "Dub",
   url = "https://dub.co",
   workspaceUser = "Brendon Urie",
   workspaceUserEmail = "panic@thedis.co",
@@ -34,12 +34,8 @@ export function ReferralInvite({
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
-            <Section className="mt-8 mt-6">
-              <Img
-                src={DUB_WORDMARK}
-                height="32"
-                alt={appName}
-              />
+            <Section className="mt-6 mt-8">
+              <Img src={DUB_WORDMARK} height="32" alt={appName} />
             </Section>
             <Heading className="mx-0 my-7 p-0 text-xl font-medium text-black">
               Sign up for {appName}
