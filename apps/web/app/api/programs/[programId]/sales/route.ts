@@ -34,12 +34,14 @@ export const GET = withWorkspace(
 
     const sales = await prisma.commission.findMany({
       where: {
+        earnings: {
+          gt: 0,
+        },
         programId,
-        type: "sale",
+        partnerId,
         status,
         customerId,
         payoutId,
-        partnerId,
         createdAt: {
           gte: startDate.toISOString(),
           lte: endDate.toISOString(),

@@ -119,6 +119,7 @@ export function PartnerTable() {
         id: "partner",
         header: "Partner",
         enableHiding: false,
+        minSize: 250,
         cell: ({ row }) => {
           return <PartnerRowItem partner={row.original} />;
         },
@@ -145,6 +146,7 @@ export function PartnerTable() {
       {
         id: "location",
         header: "Location",
+        minSize: 150,
         cell: ({ row }) => {
           const country = row.original.country;
           return (

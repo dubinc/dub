@@ -2,23 +2,22 @@
 
 import { onboardPartnerAction } from "@/lib/actions/partners/onboard-partner";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
+import { CountryCombobox } from "@/ui/partners/country-combobox";
 import { Partner } from "@dub/prisma/client";
 import {
   Button,
   buttonVariants,
-  Combobox,
   FileUpload,
   ToggleGroup,
   useEnterSubmit,
   useMediaQuery,
 } from "@dub/ui";
-import { COUNTRIES } from "@dub/utils";
 import { cn } from "@dub/utils/src/functions";
 import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Controller, useForm } from "react-hook-form";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
@@ -161,10 +160,13 @@ export function OnboardingForm({
           name="country"
           rules={{ required: true }}
           render={({ field }) => (
-            // Disable the combobox if the partner already has a stripeConnectId
             <CountryCombobox
               {...field}
-              disabled={!!partner?.stripeConnectId}
+              disabledTooltip={
+                partner?.stripeConnectId
+                  ? "Since you've already received payouts, you cannot change your country. Contact support if you need to update your country."
+                  : undefined
+              }
               error={errors.country ? true : false}
             />
           )}
@@ -279,68 +281,5 @@ export function OnboardingForm({
         </motion.div>
       </LayoutGroup>
     </form>
-  );
-}
-
-function CountryCombobox({
-  value,
-  onChange,
-  disabled,
-  error,
-}: {
-  value: string;
-  onChange: (value: string) => void;
-  disabled?: boolean;
-  error?: boolean;
-}) {
-  const options = useMemo(
-    () =>
-      Object.entries(COUNTRIES).map(([key, value]) => ({
-        icon: (
-          <img
-            alt={value}
-            src={`https://hatscripts.github.io/circle-flags/flags/${key.toLowerCase()}.svg`}
-            className="mr-1.5 size-4"
-          />
-        ),
-        value: key,
-        label: value,
-      })),
-    [],
-  );
-
-  return (
-    <Combobox
-      selected={options.find((o) => o.value === value) ?? null}
-      setSelected={(option) => {
-        if (!option) return;
-        onChange(option.value);
-      }}
-      options={options}
-      icon={
-        value ? (
-          <img
-            alt={COUNTRIES[value]}
-            src={`https://hatscripts.github.io/circle-flags/flags/${value.toLowerCase()}.svg`}
-            className="mr-0.5 size-4"
-          />
-        ) : undefined
-      }
-      caret={true}
-      placeholder="Select country"
-      searchPlaceholder="Search countries..."
-      matchTriggerWidth
-      buttonProps={{
-        className: cn(
-          "mt-2 w-full justify-start border-neutral-300 px-3",
-          "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
-          "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
-          !value && "text-neutral-400",
-          disabled && "cursor-not-allowed",
-          error && "border-red-500 ring-red-500 ring-1",
-        ),
-        disabled,
-      }}
-    />
   );
 }

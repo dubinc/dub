@@ -25,6 +25,9 @@ export const GET = withWorkspace(
       by: ["status"],
       where: {
         type: "sale",
+        amount: {
+          gt: 0,
+        },
         programId,
         status,
         partnerId,

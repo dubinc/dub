@@ -64,7 +64,6 @@ export async function inviteUser({
     email,
     react: WorkspaceInvite({
       email,
-      appName: process.env.NEXT_PUBLIC_APP_NAME as string,
       url,
       workspaceName: workspace.name,
       workspaceUser: session?.user.name || null,

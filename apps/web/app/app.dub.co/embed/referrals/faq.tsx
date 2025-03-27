@@ -1,5 +1,6 @@
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { RewardProps } from "@/lib/types";
+import { programEmbedSchema } from "@/lib/zod/schemas/program-embed";
 import { BlockMarkdown } from "@/ui/partners/lander-blocks/BlockMarkdown";
 import { Program } from "@dub/prisma/client";
 import {
@@ -31,7 +32,9 @@ export function ReferralsEmbedFAQ({
       }. There are no limits to how much you can earn.`
     : "";
 
-  const items = [
+  const programEmbedData = programEmbedSchema.parse(program.embedData);
+
+  const items = programEmbedData?.faq || [
     {
       title: `What is the ${program.name} Affiliate Program?`,
       content: `The ${program.name} Affiliate Program is a way for you to earn money by referring new customers to ${program.name}. ${rewardDescription}`,
@@ -57,7 +60,7 @@ export function ReferralsEmbedFAQ({
       className="border-border-muted bg-bg-default rounded-lg border px-4 py-2 sm:px-8 sm:py-4"
       {...TAB_ITEM_ANIMATION_SETTINGS}
     >
-      <Accordion type="multiple">
+      <Accordion type="single" collapsible>
         {items.map((item, idx) => (
           <AccordionItem key={idx} value={idx.toString()}>
             <AccordionTrigger

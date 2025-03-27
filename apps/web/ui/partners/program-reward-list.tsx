@@ -25,33 +25,41 @@ export function ProgramRewardList({
     >
       {sortedFilteredRewards.map((reward) => (
         <Item key={reward.id} icon={REWARD_EVENTS[reward.event].icon}>
-          {constructRewardAmount({
-            amount: reward.amount,
-            type: reward.type,
-          })}{" "}
-          per {reward.event}
-          {reward.maxDuration === null ? (
-            <> for the customer's lifetime</>
-          ) : reward.maxDuration && reward.maxDuration > 1 ? (
-            <>, and again every month for {reward.maxDuration} months</>
-          ) : null}
+          {reward.description || (
+            <>
+              {constructRewardAmount({
+                amount: reward.amount,
+                type: reward.type,
+              })}{" "}
+              per {reward.event}
+              {reward.maxDuration === null ? (
+                <> for the customer's lifetime</>
+              ) : reward.maxDuration && reward.maxDuration > 1 ? (
+                <>, and again every month for {reward.maxDuration} months</>
+              ) : null}
+            </>
+          )}
         </Item>
       ))}
       {discount && (
         <Item icon={Gift}>
-          {" "}
-          Users get{" "}
-          {constructRewardAmount({
-            amount: discount.amount,
-            type: discount.type,
-          })}{" "}
-          off{" "}
-          {discount.maxDuration === null ? (
-            <> for their lifetime</>
-          ) : discount.maxDuration && discount.maxDuration > 1 ? (
-            <>for {discount.maxDuration} months</>
-          ) : (
-            <>for their first purchase</>
+          {discount.description || (
+            <>
+              {" "}
+              New users get{" "}
+              {constructRewardAmount({
+                amount: discount.amount,
+                type: discount.type,
+              })}{" "}
+              off{" "}
+              {discount.maxDuration === null ? (
+                <> for their lifetime</>
+              ) : discount.maxDuration && discount.maxDuration > 1 ? (
+                <>for {discount.maxDuration} months</>
+              ) : (
+                <>for their first purchase</>
+              )}
+            </>
           )}
         </Item>
       )}

@@ -19,6 +19,13 @@ export const GET = withAdmin(async ({ searchParams }) => {
 
   const response = await prisma.link.findMany({
     where: {
+      ...(domain
+        ? { domain }
+        : {
+            domain: {
+              in: DUB_DOMAINS_ARRAY,
+            },
+          }),
       OR: [
         {
           userId: {
@@ -29,13 +36,6 @@ export const GET = withAdmin(async ({ searchParams }) => {
           userId: null,
         },
       ],
-      ...(domain
-        ? { domain }
-        : {
-            domain: {
-              in: DUB_DOMAINS_ARRAY,
-            },
-          }),
       ...(search &&
         (search.startsWith("https://")
           ? {

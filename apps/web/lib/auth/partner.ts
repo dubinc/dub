@@ -45,32 +45,27 @@ export const withPartnerProfile = (
         const searchParams = getSearchParams(req.url);
         const { defaultPartnerId, id: userId } = session.user;
 
-        const partner = await prisma.partner.findFirst({
-          where: {
-            ...(defaultPartnerId && {
-              id: defaultPartnerId,
-            }),
-            users: {
-              some: {
-                userId,
-              },
-            },
-          },
-          include: {
-            users: true,
-          },
-        });
-
-        // partner profile doesn't exist
-        if (!partner || !partner.users) {
+        if (!defaultPartnerId) {
           throw new DubApiError({
             code: "not_found",
             message: "Partner profile not found.",
           });
         }
 
-        // partner profile exists but user is not part of it
-        if (partner.users.length === 0) {
+        const partnerUser = await prisma.partnerUser.findUnique({
+          where: {
+            userId_partnerId: {
+              userId,
+              partnerId: defaultPartnerId,
+            },
+          },
+          include: {
+            partner: true,
+          },
+        });
+
+        // partnerUser relationship doesn't exist
+        if (!partnerUser) {
           throw new DubApiError({
             code: "not_found",
             message: "Partner profile not found.",
@@ -82,7 +77,7 @@ export const withPartnerProfile = (
           params,
           searchParams,
           session,
-          partner,
+          partner: partnerUser.partner,
         });
       } catch (error) {
         req.log.error(error);
