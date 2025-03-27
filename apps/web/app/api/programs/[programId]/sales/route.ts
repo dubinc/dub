@@ -57,8 +57,6 @@ export const GET = withWorkspace(
       orderBy: { [sortBy]: sortOrder },
     });
 
-    console.log({ sales });
-
     return NextResponse.json(z.array(ProgramSaleResponseSchema).parse(sales));
   },
 );
