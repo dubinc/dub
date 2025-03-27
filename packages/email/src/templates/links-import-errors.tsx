@@ -22,7 +22,18 @@ const MAX_ERROR_LINKS = 20;
 export function LinksImportErrors({
   email,
   provider = "CSV",
-  errorLinks,
+  errorLinks = [
+    {
+      domain: "dub.sh",
+      key: "123",
+      error: "Invalid URL",
+    },
+    {
+      domain: "dub.sh",
+      key: "456",
+      error: "Invalid URL",
+    },
+  ],
   workspaceName,
   workspaceSlug,
 }: {

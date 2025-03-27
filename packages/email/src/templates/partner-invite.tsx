@@ -16,14 +16,12 @@ import { Footer } from "../components/footer";
 
 export function PartnerInvite({
   email = "panic@thedis.co",
-  appName = "Dub",
   program = {
     name: "Acme",
     logo: DUB_WORDMARK,
   },
 }: {
   email: string;
-  appName: string;
   program: {
     name: string;
     logo: string | null;
@@ -40,7 +38,7 @@ export function PartnerInvite({
               <Img
                 src={program.logo || "https://assets.dub.co/logo.png"}
                 height="32"
-                alt={appName}
+                alt={program.name}
               />
             </Section>
 
