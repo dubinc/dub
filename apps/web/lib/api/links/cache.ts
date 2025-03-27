@@ -110,6 +110,30 @@ class LinkCache {
     return await pipeline.exec();
   }
 
+  async incrementClicks({ domain, key }: Pick<LinkProps, "domain" | "key">) {
+    const cacheKey = this._createKey({ domain, key });
+    const link = await redis.get<RedisLinkProps>(cacheKey);
+
+    if (link) {
+      // Increment the clicks count in the cached link
+      const updatedLink = {
+        ...link,
+        clicks: (link.clicks || 0) + 1,
+      };
+
+      // Update the cache with the new click count
+      const hasWebhooks =
+        updatedLink.webhookIds && updatedLink.webhookIds.length > 0;
+      return await redis.set(
+        cacheKey,
+        updatedLink,
+        hasWebhooks ? undefined : { ex: CACHE_EXPIRATION },
+      );
+    }
+
+    return null;
+  }
+
   _createKey({ domain, key }: Pick<LinkProps, "domain" | "key">) {
     const caseSensitive = isCaseSensitiveDomain(domain);
     const originalKey = caseSensitive ? decodeKey(key) : key;

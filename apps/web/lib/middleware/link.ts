@@ -133,6 +133,9 @@ export default async function LinkMiddleware(
     doIndex,
     webhookIds,
     projectId: workspaceId,
+    maxClicks,
+    maxClicksUrl,
+    clicks,
   } = cachedLink;
 
   // by default, we only index default dub domain links (e.g. dub.sh)
@@ -191,6 +194,26 @@ export default async function LinkMiddleware(
   if (expiresAt && new Date(expiresAt) < new Date()) {
     if (expiredUrl) {
       return NextResponse.redirect(expiredUrl, {
+        headers: {
+          ...DUB_HEADERS,
+          ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
+        },
+        status: 302,
+      });
+    } else {
+      return NextResponse.rewrite(new URL(`/expired/${domain}`, req.url), {
+        headers: {
+          ...DUB_HEADERS,
+          ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
+        },
+      });
+    }
+  }
+
+  // if the link has reached its max clicks limit
+  if (maxClicks && clicks && clicks >= maxClicks) {
+    if (maxClicksUrl) {
+      return NextResponse.redirect(maxClicksUrl, {
         headers: {
           ...DUB_HEADERS,
           ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),

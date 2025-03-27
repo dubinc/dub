@@ -15,6 +15,7 @@ import { LinkFormData } from ".";
 import { useAdvancedModal } from "./advanced-modal";
 import { MOBILE_MORE_ITEMS, TOGGLES } from "./constants";
 import { useExpirationModal } from "./expiration-modal";
+import { useMaxClicksModal } from "./max-clicks-modal";
 import { usePasswordModal } from "./password-modal";
 import { useTargetingModal } from "./targeting-modal";
 
@@ -45,6 +46,7 @@ export function MoreDropdown() {
   const { PasswordModal, setShowPasswordModal } = usePasswordModal();
   const { TargetingModal, setShowTargetingModal } = useTargetingModal();
   const { ExpirationModal, setShowExpirationModal } = useExpirationModal();
+  const { MaxClicksModal, setShowMaxClicksModal } = useMaxClicksModal();
   const { AdvancedModal, setShowAdvancedModal } = useAdvancedModal();
 
   return (
@@ -52,6 +54,7 @@ export function MoreDropdown() {
       <PasswordModal />
       <TargetingModal />
       <ExpirationModal />
+      <MaxClicksModal />
       <AdvancedModal />
       <Popover
         align="start"
@@ -76,6 +79,7 @@ export function MoreDropdown() {
                         password: setShowPasswordModal,
                         targeting: setShowTargetingModal,
                         expiresAt: setShowExpirationModal,
+                        maxClicks: setShowMaxClicksModal,
                       })[option.key]?.(true);
                     } else
                       setValue(option.key as any, !enabled, {

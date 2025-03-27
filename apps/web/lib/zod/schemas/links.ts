@@ -277,6 +277,17 @@ export const createLinkBodySchema = z.object({
   expiredUrl: parseUrlSchema
     .nullish()
     .describe("The URL to redirect to when the short link has expired."),
+  maxClicks: z
+    .number()
+    .int()
+    .positive()
+    .nullish()
+    .describe("The maximum number of clicks allowed for the short link."),
+  maxClicksUrl: parseUrlSchema
+    .nullish()
+    .describe(
+      "The URL to redirect to when the short link has reached its maximum clicks.",
+    ),
   password: z
     .string()
     .nullish()
@@ -482,6 +493,19 @@ export const LinkSchema = z
       .url()
       .nullable()
       .describe("The URL to redirect to when the short link has expired."),
+    maxClicks: z
+      .number()
+      .int()
+      .positive()
+      .nullable()
+      .describe("The maximum number of clicks allowed for the short link."),
+    maxClicksUrl: z
+      .string()
+      .url()
+      .nullable()
+      .describe(
+        "The URL to redirect to when the short link has reached its maximum clicks.",
+      ),
     password: z
       .string()
       .nullable()
@@ -687,6 +711,7 @@ export const linkEventSchema = LinkSchema.extend({
   // here we use string because url can be empty
   url: z.string(),
   expiredUrl: z.string().nullable(),
+  maxClicksUrl: z.string().nullable(),
   // coerce boolean fields
   archived: z.coerce.boolean(),
   doIndex: z.coerce.boolean(),

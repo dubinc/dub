@@ -106,6 +106,9 @@ export interface RedisLinkProps {
   rewrite?: boolean;
   expiresAt?: Date;
   expiredUrl?: string;
+  maxClicks?: number;
+  maxClicksUrl?: string;
+  clicks?: number;
   ios?: string;
   android?: string;
   geo?: object;
