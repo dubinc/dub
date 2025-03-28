@@ -9,6 +9,9 @@ model Reward {
   amount      Int            @default(0)
   maxDuration Int? // in months (0 -> not recurring, null -> infinite)
 
+  maxTotalPayout      Int? // how much a partner can receive payouts
+  payoutResetInterval Int? // how often the max amount is reset (in months)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
