@@ -389,7 +389,7 @@ function ABTestingEdit({
               onClick={addTestUrl}
               disabledTooltip={
                 testVariants.length >= MAX_TEST_COUNT
-                  ? `You may only add ${MAX_TEST_COUNT} URLs`
+                  ? `You may only add up to ${MAX_TEST_COUNT} URLs for an A/B test`
                   : undefined
               }
               text="Add URL"

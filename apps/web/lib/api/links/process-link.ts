@@ -8,7 +8,6 @@ import { prisma } from "@dub/prisma";
 import {
   DUB_DOMAINS,
   UTMTags,
-  combineWords,
   constructURLFromUTMParams,
   getApexDomain,
   getDomainWithoutWWW,
@@ -20,6 +19,7 @@ import {
   pluralize,
 } from "@dub/utils";
 import { combineTagIds } from "../tags/combine-tag-ids";
+import { businessFeaturesCheck, proFeaturesCheck } from "./plan-features-check";
 import { keyChecks, processKey } from "./utils";
 
 export async function processLink<T extends Record<string, any>>({
@@ -61,13 +61,7 @@ export async function processLink<T extends Record<string, any>>({
     image,
     proxy,
     trackConversion,
-    password,
-    rewrite,
     expiredUrl,
-    ios,
-    android,
-    geo,
-    doIndex,
     tagNames,
     folderId,
     externalId,
@@ -123,36 +117,34 @@ export async function processLink<T extends Record<string, any>>({
         code: "forbidden",
       };
     }
-
-    if (
-      proxy ||
-      password ||
-      rewrite ||
-      expiresAt ||
-      ios ||
-      android ||
-      geo ||
-      doIndex
-    ) {
-      const proFeaturesString = combineWords(
-        [
-          proxy && "custom social media cards",
-          password && "password protection",
-          rewrite && "link cloaking",
-          expiresAt && "link expiration",
-          ios && "iOS targeting",
-          android && "Android targeting",
-          geo && "geo targeting",
-          doIndex && "search engine indexing",
-        ].filter(Boolean) as string[],
-      );
-
+    try {
+      businessFeaturesCheck(payload);
+      proFeaturesCheck(payload);
+    } catch (error) {
       return {
         link: payload,
-        error: `You can only use ${proFeaturesString} on a Pro plan and above. Upgrade to Pro to use these features.`,
+        error: error.message,
         code: "forbidden",
       };
     }
+  } else if (workspace.plan === "pro") {
+    try {
+      businessFeaturesCheck(payload);
+    } catch (error) {
+      return {
+        link: payload,
+        error: error.message,
+        code: "forbidden",
+      };
+    }
+  }
+
+  if (!trackConversion && testVariants) {
+    return {
+      link: payload,
+      error: "Conversion tracking must be enabled to use A/B testing.",
+      code: "unprocessable_entity",
+    };
   }
 
   const domains = workspace
@@ -286,34 +278,6 @@ export async function processLink<T extends Record<string, any>>({
         code: response.code,
       };
     }
-  }
-
-  if (!workspace || workspace.plan === "free" || workspace.plan === "pro") {
-    if (trackConversion) {
-      return {
-        link: payload,
-        error:
-          "Conversion tracking is only available for workspaces with a Business plan and above. Please upgrade to continue.",
-        code: "forbidden",
-      };
-    }
-
-    if (testVariants) {
-      return {
-        link: payload,
-        error:
-          "A/B testing is only available for workspaces with a Business plan and above. Please upgrade to continue.",
-        code: "forbidden",
-      };
-    }
-  }
-
-  if (!trackConversion && testVariants) {
-    return {
-      link: payload,
-      error: "Conversion tracking must be enabled to use A/B testing.",
-      code: "unprocessable_entity",
-    };
   }
 
   if (externalId && workspace && !skipExternalIdChecks) {
