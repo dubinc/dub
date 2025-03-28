@@ -10,8 +10,9 @@ import { AnimatedSizeContainer, MoneyBills2, Tooltip } from "@dub/ui";
 import { currencyFormatter } from "@dub/utils";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { memo } from "react";
 
-export function PayoutStats() {
+export const PayoutStats = memo(() => {
   const { partner } = usePartnerProfile();
   const { payoutsCount } = usePartnerPayoutsCount<PayoutsCount[]>({
     groupBy: "status",
@@ -88,4 +89,4 @@ export function PayoutStats() {
       </div>
     </AnimatedSizeContainer>
   );
-}
+});

@@ -32,7 +32,7 @@ export function HeroBackground({
         {color ? (
           <div className="absolute inset-0 bg-current opacity-10" />
         ) : (
-          <RainbowGradient className="opacity-15" />
+          <RainbowGradient className="opacity-25 sm:opacity-15" />
         )}
       </div>
 
@@ -316,7 +316,7 @@ export function HeroBackground({
         </defs>
       </svg>
 
-      <div className="absolute inset-0 mix-blend-soft-light [mask-image:linear-gradient(90deg,transparent_40%,black)]">
+      <div className="absolute inset-0 mix-blend-soft-light [mask-image:linear-gradient(90deg,transparent_40%,black)] max-sm:hidden">
         {color ? (
           <div className="absolute inset-0 bg-current" />
         ) : (
@@ -353,7 +353,12 @@ export function HeroBackground({
 
 function RainbowGradient({ className }: { className?: string }) {
   return (
-    <div className={cn("absolute inset-0 saturate-[1.5]", className)}>
+    <div
+      className={cn(
+        "absolute inset-0 saturate-[1.5] [transform:translateZ(0)]",
+        className,
+      )}
+    >
       <div className="absolute right-[62cqh] top-1/2 aspect-square h-[200%] -translate-y-1/2 translate-x-1/2 rounded-full bg-[conic-gradient(from_-66deg_at_50%_50%,#855AFC_-32deg,#f00_63deg,#EAB308_158deg,#5CFF80_240deg,#855AFC_328deg,#f00_423deg)] blur-[50px]" />
     </div>
   );
