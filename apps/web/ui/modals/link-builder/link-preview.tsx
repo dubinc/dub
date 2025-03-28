@@ -1,4 +1,5 @@
 import useWorkspace from "@/lib/swr/use-workspace";
+import { useLinkBuilderContext } from "@/ui/links/link-builder/link-builder-provider";
 import {
   Button,
   FileUpload,
@@ -27,7 +28,6 @@ import {
   ComponentType,
   PropsWithChildren,
   useCallback,
-  useContext,
   useMemo,
   useRef,
   useState,
@@ -36,7 +36,7 @@ import { useFormContext } from "react-hook-form";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { useDebounce } from "use-debounce";
-import { LinkFormData, LinkModalContext } from ".";
+import { LinkFormData } from ".";
 import { useOGModal } from "./og-modal";
 
 const tabs = ["default", "x", "linkedin", "facebook"] as const;
@@ -192,7 +192,7 @@ export const ImagePreview = ({
 }) => {
   const { isMobile } = useMediaQuery();
 
-  const { generatingMetatags } = useContext(LinkModalContext);
+  const { generatingMetatags } = useLinkBuilderContext();
 
   const inputFileRef = useRef<HTMLInputElement>(null);
 

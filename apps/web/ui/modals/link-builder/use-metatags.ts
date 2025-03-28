@@ -1,5 +1,6 @@
+import { useLinkBuilderContext } from "@/ui/links/link-builder/link-builder-provider";
 import { getUrlWithoutUTMParams, truncate } from "@dub/utils";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useFormContext } from "react-hook-form";
 import { useDebounce } from "use-debounce";
 import { LinkFormData } from ".";
@@ -22,7 +23,7 @@ export function useMetatags({
   ]);
   const [debouncedUrl] = useDebounce(getUrlWithoutUTMParams(url), 500);
 
-  const [generatingMetatags, setGeneratingMetatags] = useState(initial);
+  const { generatingMetatags, setGeneratingMetatags } = useLinkBuilderContext();
 
   useEffect(() => {
     // no need to generate metatags if proxy is enabled, or if any of the metatags are set
