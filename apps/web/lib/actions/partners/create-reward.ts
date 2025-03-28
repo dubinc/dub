@@ -11,8 +11,16 @@ export const createRewardAction = authActionClient
   .schema(createRewardSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { programId, partnerIds, event, amount, type, maxDuration } =
-      parsedInput;
+    const {
+      programId,
+      partnerIds,
+      event,
+      amount,
+      type,
+      maxDuration,
+      maxTotalPayout,
+      payoutResetInterval,
+    } = parsedInput;
 
     const program = await getProgramOrThrow({
       workspaceId: workspace.id,
@@ -87,6 +95,8 @@ export const createRewardAction = authActionClient
         type,
         amount,
         maxDuration,
+        maxTotalPayout,
+        payoutResetInterval,
         ...(programEnrollments && {
           partners: {
             createMany: {
