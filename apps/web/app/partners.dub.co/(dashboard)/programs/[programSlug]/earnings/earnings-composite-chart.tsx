@@ -22,7 +22,6 @@ import {
   nFormatter,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
-import { endOfDay, startOfDay } from "date-fns";
 import { Fragment, useMemo, useState } from "react";
 
 const LINE_COLORS = [
@@ -62,8 +61,8 @@ export function EarningsCompositeChart() {
   const { data } = usePartnerEarningsTimeseries({
     interval,
     groupBy,
-    start: start ? startOfDay(new Date(start)) : undefined,
-    end: end ? endOfDay(new Date(end)) : undefined,
+    start: start ? new Date(start) : undefined,
+    end: end ? new Date(end) : undefined,
   });
 
   const total = useMemo(
@@ -161,7 +160,7 @@ export function EarningsCompositeChart() {
           />
         </div>
         <div className="mt-5 h-80">
-          {chartData && chartData.length > 0 ? (
+          {chartData ? (
             <TimeSeriesChart
               data={chartData}
               series={series}
