@@ -1,5 +1,5 @@
 import { ExpandedLinkProps } from "@/lib/types";
-import { DEFAULT_LINK_PROPS } from "@dub/utils";
+import { DEFAULT_LINK_PROPS, PLANS } from "@dub/utils";
 import {
   createContext,
   Dispatch,
@@ -16,18 +16,31 @@ export type LinkBuilderProps = {
   props?: ExpandedLinkProps;
   duplicateProps?: ExpandedLinkProps;
   homepageDemo?: boolean;
-  workspace?: { plan?: string; conversionEnabled?: boolean };
+  workspace: {
+    id?: string;
+    slug?: string;
+    plan?: string;
+    nextPlan?: (typeof PLANS)[number];
+    conversionEnabled?: boolean;
+  };
 };
 
 const LinkBuilderContext = createContext<
-  LinkBuilderProps & {
-    generatingMetatags: boolean;
-    setGeneratingMetatags: Dispatch<SetStateAction<boolean>>;
-  }
->({ generatingMetatags: false, setGeneratingMetatags: () => {} });
+  | (LinkBuilderProps & {
+      generatingMetatags: boolean;
+      setGeneratingMetatags: Dispatch<SetStateAction<boolean>>;
+    })
+  | null
+>(null);
 
 export function useLinkBuilderContext() {
-  return useContext(LinkBuilderContext);
+  const context = useContext(LinkBuilderContext);
+  if (!context)
+    throw new Error(
+      "useLinkBuilderContext must be used within a LinkBuilderProvider",
+    );
+
+  return context;
 }
 
 export function LinkBuilderProvider({
