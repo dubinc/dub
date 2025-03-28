@@ -11,6 +11,7 @@ import { isValidUrl, LOCALHOST_IP, nanoid } from "@dub/utils";
 import { ipAddress, waitUntil } from "@vercel/functions";
 import { AxiomRequest, withAxiom } from "next-axiom";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 export const runtime = "edge";
 
@@ -20,38 +21,103 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
+const schema = z.union(
+  [
+    // domain and key
+    z.object({
+      domain: z.string(),
+      key: z.string(),
+      url: z.string().optional(),
+      referrer: z.string().optional(),
+    }),
+
+    // linkId
+    z.object({
+      linkId: z.string(),
+      url: z.string().optional(),
+      referrer: z.string().optional(),
+    }),
+
+    // externalId and workspaceId
+    z.object({
+      externalId: z.string(),
+      workspaceId: z.string(),
+      url: z.string().optional(),
+      referrer: z.string().optional(),
+    }),
+  ],
+  {
+    errorMap: (issue, ctx) => {
+      if (issue.code === "invalid_union") {
+        return {
+          message:
+            "You must provide either: (domain and key), linkId, or (externalId and workspaceId).",
+        };
+      }
+
+      return {
+        message: ctx.defaultError,
+      };
+    },
+  },
+);
+
 // POST /api/track/click – Track a click event from the client-side
 export const POST = withAxiom(async (req: AxiomRequest) => {
   try {
-    let { domain, key, url, referrer, tenantId } = await parseRequestBody(req);
+    const body = schema.parse(await parseRequestBody(req));
 
-    if (!domain && !key && !tenantId) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "Either domain and key or tenantId is required.",
-      });
-    }
-
+    const { url, referrer } = body;
     let link: LinkWithAllowedHostnames | null = null;
+    let domain: string | null = null;
+    let key: string | null = null;
 
-    if (tenantId) {
+    // by linkId
+    if ("linkId" in body) {
       link = await getLinkWithAllowedHostnames({
-        tenantId,
+        linkId: body.linkId,
       });
 
       if (!link) {
         throw new DubApiError({
           code: "not_found",
-          message: `Link not found for tenantId: ${tenantId}.`,
+          message: `Link not found for linkId: ${body.linkId}.`,
         });
       }
-
-      domain = link.domain;
-      key = link.key;
     }
 
-    const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
-    let clickId = await clickCache.get({ domain, key, ip });
+    // by externalId and workspaceId
+    else if ("externalId" in body && "workspaceId" in body) {
+      link = await getLinkWithAllowedHostnames({
+        externalId: body.externalId,
+        workspaceId: body.workspaceId,
+      });
+
+      if (!link) {
+        throw new DubApiError({
+          code: "not_found",
+          message: `Link not found for externalId: ${body.externalId}.`,
+        });
+      }
+    }
+
+    if (link) {
+      domain = link.domain;
+      key = link.key;
+    } else if ("domain" in body && "key" in body) {
+      domain = body.domain;
+      key = body.key;
+    }
+
+    if (!domain || !key) {
+      throw new Error("Bad request.");
+    }
+
+    let clickId = await clickCache.get({
+      domain: domain!,
+      key: key!,
+      ip: process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP,
+    });
 
     // only generate + record a new click ID if it's not already cached in Redis
     if (!clickId) {
@@ -76,8 +142,6 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
         req,
       });
 
-      const finalUrl = isValidUrl(url) ? url : link.url;
-
       waitUntil(
         recordClick({
           req,
@@ -85,7 +149,7 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
           linkId: link.id,
           domain,
           key,
-          url: finalUrl,
+          url: isValidUrl(url) ? url : link.url,
           workspaceId: link.projectId,
           skipRatelimit: true,
           ...(referrer && { referrer }),
