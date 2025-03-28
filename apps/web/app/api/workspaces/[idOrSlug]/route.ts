@@ -9,6 +9,7 @@ import { storage } from "@/lib/storage";
 import {
   updateWorkspaceSchema,
   WorkspaceSchema,
+  WorkspaceSchemaExtended,
 } from "@/lib/zod/schemas/workspaces";
 import { prisma } from "@dub/prisma";
 import { nanoid, R2_URL } from "@dub/utils";
@@ -18,24 +19,16 @@ import { NextResponse } from "next/server";
 // GET /api/workspaces/[idOrSlug] – get a specific workspace by id or slug
 export const GET = withWorkspace(
   async ({ workspace, headers }) => {
-    const [domains, yearInReviews] = await Promise.all([
-      prisma.domain.findMany({
-        where: {
-          projectId: workspace.id,
-        },
-        select: {
-          slug: true,
-          primary: true,
-        },
-        take: 100,
-      }),
-      prisma.yearInReview.findMany({
-        where: {
-          workspaceId: workspace.id,
-          year: 2024,
-        },
-      }),
-    ]);
+    const domains = await prisma.domain.findMany({
+      where: {
+        projectId: workspace.id,
+      },
+      select: {
+        slug: true,
+        primary: true,
+      },
+      take: 100,
+    });
 
     const flags = await getFeatureFlags({
       workspaceId: workspace.id,
@@ -43,7 +36,7 @@ export const GET = withWorkspace(
 
     return NextResponse.json(
       {
-        ...WorkspaceSchema.parse({
+        ...WorkspaceSchemaExtended.parse({
           ...workspace,
           id: prefixWorkspaceId(workspace.id),
           domains,
@@ -53,7 +46,6 @@ export const GET = withWorkspace(
             linkFolders: flags.linkFolders || workspace.partnersEnabled,
           },
         }),
-        yearInReview: yearInReviews.length > 0 ? yearInReviews[0] : null,
       },
       { headers },
     );
