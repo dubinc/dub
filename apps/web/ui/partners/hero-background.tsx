@@ -30,7 +30,7 @@ export function HeroBackground({
     >
       <div className="absolute inset-0 [mask-image:linear-gradient(90deg,transparent_40%,black)]">
         {color ? (
-          <div className="absolute inset-0 bg-current opacity-10" />
+          <div className="absolute inset-0 bg-current opacity-20 sm:opacity-10" />
         ) : (
           <RainbowGradient className="opacity-25 sm:opacity-15" />
         )}
