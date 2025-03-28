@@ -1,12 +1,10 @@
 import { InfoTooltip, SimpleTooltipContent, useEnterSubmit } from "@dub/ui";
 import { memo } from "react";
-import { Controller, useFormContext } from "react-hook-form";
+import { Controller } from "react-hook-form";
 import TextareaAutosize from "react-textarea-autosize";
-import { LinkFormData } from "../link-builder-provider";
 
 export const LinkCommentsInput = memo(() => {
   const { handleKeyDown } = useEnterSubmit();
-  const { control } = useFormContext<LinkFormData>();
 
   return (
     <div>
@@ -29,7 +27,6 @@ export const LinkCommentsInput = memo(() => {
       </div>
       <Controller
         name="comments"
-        control={control}
         render={({ field }) => (
           <TextareaAutosize
             id="comments"

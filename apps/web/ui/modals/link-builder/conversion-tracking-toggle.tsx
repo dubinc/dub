@@ -7,20 +7,21 @@ import {
   TooltipContent,
   useKeyboardShortcut,
 } from "@dub/ui";
-import { useFormContext } from "react-hook-form";
+import { memo } from "react";
+import { useFormContext, useWatch } from "react-hook-form";
 import { LinkFormData } from ".";
 
 // Show new badge for 30 days
 const isNew =
   new Date().getTime() - new Date("2025-01-13").getTime() < 30 * 86_400_000;
 
-export function ConversionTrackingToggle() {
+export const ConversionTrackingToggle = memo(() => {
   const { slug, plan } = useWorkspace();
-  const { watch, setValue } = useFormContext<LinkFormData>();
+  const { control, setValue } = useFormContext<LinkFormData>();
 
   const conversionsEnabled = !!plan && plan !== "free" && plan !== "pro";
 
-  const trackConversion = watch("trackConversion");
+  const trackConversion = useWatch({ control, name: "trackConversion" });
 
   useKeyboardShortcut(
     "c",
@@ -76,4 +77,4 @@ export function ConversionTrackingToggle() {
       />
     </label>
   );
-}
+});
