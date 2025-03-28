@@ -110,7 +110,7 @@ export const hasPartnerReachedLimit = async ({
       status: {
         in: ["pending", "processed", "paid"],
       },
-      type: event, // TODO: We might need to cover this in index?
+      type: event,
       createdAt: {
         gt: startDate,
         lt: endDate,
