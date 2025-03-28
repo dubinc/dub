@@ -17,6 +17,8 @@ export function formatRedisLink(link: ExpandedLink): RedisLinkProps {
     doIndex,
     projectId,
     webhooks,
+    partnerId,
+    programId,
   } = link;
 
   const webhookIds = webhooks?.map(({ webhookId }) => webhookId) ?? [];
@@ -39,5 +41,7 @@ export function formatRedisLink(link: ExpandedLink): RedisLinkProps {
     ...(projectId && { projectId }), // projectId can be undefined for anonymous links
     ...(doIndex && { doIndex: true }),
     ...(webhookIds.length > 0 && { webhookIds }),
+    ...(partnerId && { partnerId }),
+    ...(programId && { programId }),
   };
 }

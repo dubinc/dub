@@ -113,6 +113,8 @@ export interface RedisLinkProps {
   doIndex?: boolean;
   projectId?: string;
   webhookIds?: string[];
+  partnerId?: string;
+  programId?: string;
 }
 
 export interface TagProps {

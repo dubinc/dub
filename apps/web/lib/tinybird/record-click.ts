@@ -38,6 +38,7 @@ export async function recordClick({
   timestamp,
   referrer,
   trackConversion,
+  skipTracking,
 }: {
   req: Request;
   clickId: string;
@@ -51,7 +52,12 @@ export async function recordClick({
   timestamp?: string;
   referrer?: string;
   trackConversion?: boolean;
+  skipTracking?: boolean;
 }) {
+  if (skipTracking) {
+    return null;
+  }
+
   const searchParams = new URL(req.url).searchParams;
 
   // only track the click when there is no `dub-no-track` header or query param
