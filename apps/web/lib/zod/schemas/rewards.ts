@@ -16,21 +16,25 @@ export const COMMISSION_TYPES = [
 ] as const;
 
 export const LIMIT_RESET_OPTIONS = [
-  { label: "Lifetime", value: "" },
+  { label: "None", value: "" },
   { label: "1 year", value: "12" },
   { label: "6 months", value: "6" },
   { label: "3 months", value: "3" },
   { label: "1 month", value: "1" },
 ] as const;
 
-const payoutResetIntervalSchema = z
-  .coerce
+const payoutResetIntervalSchema = z.coerce
   .number()
   .nullish()
   .default(null)
-  .refine((val) => val === null || LIMIT_RESET_OPTIONS.some((o) => o.value === val.toString()), {
-    message: "Invalid payout reset interval",
-  });
+  .refine(
+    (val) =>
+      val === null ||
+      LIMIT_RESET_OPTIONS.some((o) => o.value === val.toString()),
+    {
+      message: "Invalid payout reset interval",
+    },
+  );
 
 export const RewardSchema = z.object({
   id: z.string(),

@@ -32,7 +32,13 @@ import {
 import { cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import {
+  FieldErrors,
+  useForm,
+  UseFormRegister,
+  UseFormSetValue,
+  UseFormWatch,
+} from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
@@ -91,6 +97,10 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
         : 12,
       amount: reward?.type === "flat" ? reward.amount / 100 : reward?.amount,
       partnerIds: null,
+      maxTotalPayout: reward?.maxTotalPayout
+        ? reward.maxTotalPayout / 100
+        : null,
+      payoutResetInterval: reward?.payoutResetInterval || null,
     },
   });
 
@@ -189,6 +199,8 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
       amount: type === "flat" ? data.amount * 100 : data.amount,
       maxDuration:
         Infinity === Number(data.maxDuration) ? null : data.maxDuration,
+      maxTotalPayout: data.maxTotalPayout ? data.maxTotalPayout * 100 : null,
+      payoutResetInterval: data.payoutResetInterval || null,
     };
 
     if (!reward) {
@@ -323,7 +335,13 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                 </div>
 
                 <div>
-                  <RewardLimitSection event={event} />
+                  <RewardLimitSection
+                    event={event}
+                    register={register}
+                    watch={watch}
+                    setValue={setValue}
+                    errors={errors}
+                  />
                 </div>
               </>
             )}
@@ -407,7 +425,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                   <label className="text-sm font-medium text-neutral-800">
                     Commission
                   </label>
-                  <p className="mb-2 text-sm text-neutral-600">
+                  <p className="mb-4 text-sm text-neutral-600">
                     Set how the affiliate will get rewarded
                   </p>
                   <div className="-m-1">
@@ -568,7 +586,13 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                     </div>
 
                     <div>
-                      <RewardLimitSection event={event} />
+                      <RewardLimitSection
+                        event={event}
+                        register={register}
+                        watch={watch}
+                        setValue={setValue}
+                        errors={errors}
+                      />
                     </div>
                   </div>
                 </div>
@@ -658,50 +682,103 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
   );
 }
 
-function RewardLimitSection({ event }: { event: EventType }) {
+function RewardLimitSection({
+  event,
+  register,
+  watch,
+  setValue,
+  errors,
+}: {
+  event: EventType;
+  register: UseFormRegister<FormData>;
+  watch: UseFormWatch<FormData>;
+  setValue: UseFormSetValue<FormData>;
+  errors: FieldErrors<FormData>;
+}) {
+  const [maxTotalPayout] = watch(["maxTotalPayout"]);
+  const [isLimited, setIsLimited] = useState(maxTotalPayout !== null);
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-3">
-        <Switch checked={false} disabled={false} />
+        <Switch
+          checked={isLimited}
+          trackDimensions="radix-state-checked:bg-neutral-900 radix-state-unchecked:bg-neutral-200"
+          fn={(checked: boolean) => {
+            setIsLimited(checked);
+
+            if (!checked) {
+              setValue("maxTotalPayout", null);
+              setValue("payoutResetInterval", null);
+            }
+          }}
+        />
         <span className="text-sm font-medium text-neutral-800">
           Limit {event} rewards
         </span>
         <InfoTooltip content="Limit how much a partner can receive payouts." />
       </div>
 
-      <div>
-        <label className="text-sm font-medium text-neutral-800">
-          Reward limit
-        </label>
-        <div className="relative mt-2 rounded-md shadow-sm">
-          <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
-            $
-          </span>
-          <input
-            className="block w-full rounded-md border-neutral-300 pl-6 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-            type="text"
-            onKeyDown={handleMoneyKeyDown}
-            placeholder="0"
-          />
-          <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
-            USD
-          </span>
-        </div>
-      </div>
+      <div className="-m-1">
+        <AnimatedSizeContainer
+          height
+          transition={{ ease: "easeInOut", duration: 0.2 }}
+        >
+          {isLimited && (
+            <div className="p-1">
+              <div className="flex flex-col gap-4">
+                <div>
+                  <label className="text-sm font-medium text-neutral-800">
+                    Reward limit
+                  </label>
+                  <div className="relative mt-2 rounded-md shadow-sm">
+                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
+                      $
+                    </span>
+                    <input
+                      className={cn(
+                        "block w-full rounded-md border-neutral-300 pl-6 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                        errors.maxTotalPayout &&
+                          "border-red-600 focus:border-red-500 focus:ring-red-600",
+                      )}
+                      {...register("maxTotalPayout", {
+                        required: isLimited,
+                        valueAsNumber: true,
+                        min: 0,
+                        onChange: handleMoneyInputChange,
+                      })}
+                      onKeyDown={handleMoneyKeyDown}
+                      placeholder="0"
+                    />
+                    <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
+                      USD
+                    </span>
+                  </div>
+                </div>
 
-      <div>
-        <label className="text-sm font-medium text-neutral-800">
-          Limit duration
-        </label>
-        <div className="relative mt-2 rounded-md shadow-sm">
-          <select className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm">
-            {LIMIT_RESET_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
+                <div>
+                  <label className="text-sm font-medium text-neutral-800">
+                    Limit reset
+                  </label>
+                  <div className="relative mt-2 rounded-md shadow-sm">
+                    <select
+                      className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                      {...register("payoutResetInterval", {
+                        valueAsNumber: true,
+                      })}
+                    >
+                      {LIMIT_RESET_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </AnimatedSizeContainer>
       </div>
     </div>
   );
