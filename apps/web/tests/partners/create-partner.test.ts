@@ -60,7 +60,6 @@ describe.sequential("POST /partners", async () => {
       name: generateRandomName(),
       email: randomEmail(),
       tenantId: randomId(),
-      image: `https://api.dicebear.com/9.x/notionists/svg?seed=hello`,
       description: "A description of the partner",
       country: "US",
     };

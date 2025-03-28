@@ -1,5 +1,5 @@
 import { generateRandomName } from "@/lib/names";
-import { nanoid } from "@dub/utils";
+import { DICEBEAR_AVATAR_URL, nanoid } from "@dub/utils";
 
 export const randomId = () => nanoid(24);
 
@@ -12,7 +12,7 @@ export const randomCustomer = () => {
     externalId,
     name: customerName,
     email: `${customerName.split(" ").join(".").toLowerCase()}@example.com`,
-    avatar: `https://api.dicebear.com/9.x/notionists/svg?seed=${externalId}`,
+    avatar: `${DICEBEAR_AVATAR_URL}${externalId}`,
   };
 };
 
