@@ -1,31 +1,68 @@
 "use client";
 
+import usePartners from "@/lib/swr/use-partners";
+import usePartnersCount from "@/lib/swr/use-partners-count";
 import { EnrolledPartnerProps } from "@/lib/types";
-import { X } from "@/ui/shared/icons";
-import { Button, LoadingSpinner, Table, Users, useTable } from "@dub/ui";
+import { Search } from "@/ui/shared/icons";
+import { Table, usePagination, useTable } from "@dub/ui";
 import { cn, DICEBEAR_AVATAR_URL } from "@dub/utils";
-import { Dispatch, SetStateAction } from "react";
+import { Row } from "@tanstack/react-table";
+import { useEffect, useState } from "react";
+import { useDebounce } from "use-debounce";
 
 interface PartnersTableProps {
   selectedPartners: EnrolledPartnerProps[];
-  setSelectedPartners: Dispatch<SetStateAction<EnrolledPartnerProps[]>>;
-  loading: boolean;
-  pagination?: any; // TODO: Type this properly
-  setPagination?: any; // TODO: Type this properly
+  // setSelectedPartners: Dispatch<SetStateAction<EnrolledPartnerProps[]>>;
+  // loading: boolean;
+  // pagination?: any; // TODO: Type this properly
+  // setPagination?: any; // TODO: Type this properly
 }
 
-export function PartnersTable({
-  selectedPartners,
-  setSelectedPartners,
-  loading,
-  pagination,
-  setPagination,
-}: PartnersTableProps) {
-  const partnersCount = selectedPartners?.length || 0;
+export function PartnersTable({ selectedPartners }: PartnersTableProps) {
+  const [search, setSearch] = useState("");
+  const [debouncedSearch] = useDebounce(search, 500);
+  const { pagination, setPagination } = usePagination(25);
+
+  const { data: partners, loading } = usePartners({
+    query: {
+      search: debouncedSearch,
+      page: pagination.pageIndex || 1,
+      pageSize: pagination.pageSize || 25,
+    },
+  });
+
+  const { partnersCount } = usePartnersCount<number>({
+    search: debouncedSearch,
+  });
+
+  useEffect(() => {
+    setPagination((prev) => ({ ...prev, pageIndex: 1 }));
+  }, [debouncedSearch, setPagination]);
 
   const table = useTable({
-    data: selectedPartners,
+    data: partners || [],
     columns: [
+      {
+        id: "selection",
+        header: ({ table }) => (
+          <input
+            type="checkbox"
+            className="h-4 w-4 cursor-pointer rounded-full border-neutral-300 text-black focus:outline-none focus:ring-0"
+            checked={table.getIsAllRowsSelected()}
+            onChange={table.getToggleAllRowsSelectedHandler()}
+          />
+        ),
+        cell: ({ row }) => (
+          <input
+            type="checkbox"
+            className="h-4 w-4 cursor-pointer rounded-full border-neutral-300 text-black focus:outline-none focus:ring-0"
+            checked={row.getIsSelected()}
+            onChange={row.getToggleSelectedHandler()}
+          />
+        ),
+        minSize: 10,
+        size: 30,
+      },
       {
         header: "Partner",
         cell: ({ row }) => (
@@ -58,26 +95,6 @@ export function PartnersTable({
         minSize: 210,
         maxSize: 210,
       },
-      {
-        id: "actions",
-        cell: ({ row }) => (
-          <div className="flex justify-end">
-            <Button
-              variant="secondary"
-              icon={<X className="size-4" />}
-              className="size-4 rounded-md border-0 bg-neutral-50 p-0 hover:bg-neutral-100"
-              onClick={() => {
-                setSelectedPartners((prev) =>
-                  prev.filter((p) => p.id !== row.original.id),
-                );
-              }}
-            />
-          </div>
-        ),
-        size: 50,
-        minSize: 50,
-        maxSize: 50,
-      },
     ],
     loading,
     thClassName: () => cn("border-l-0"),
@@ -88,33 +105,51 @@ export function PartnersTable({
     pagination,
     onPaginationChange: setPagination,
     rowCount: partnersCount,
+    onRowSelectionChange: (rows: Row<EnrolledPartnerProps>[]) => {
+      console.log(rows);
+    },
   });
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center rounded-lg border border-neutral-200 bg-white py-8">
-        <LoadingSpinner className="size-4" />
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (!partners || !selectedPartners) {
+      return;
+    }
 
-  if (partnersCount === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-neutral-200 bg-neutral-50 py-10">
-        <div className="flex items-center justify-center">
-          <Users className="size-5 text-neutral-500" />
-        </div>
-        <div className="flex flex-col items-center gap-1 px-4 text-center">
-          <p className="text-sm font-medium text-neutral-600">
-            Eligible partners
-          </p>
-          <p className="text-sm text-neutral-500">
-            No eligible partners added yet
-          </p>
-        </div>
-      </div>
-    );
-  }
+    //"pn_elon_musk"
 
-  return <Table {...table} />;
+    console.log({ selectedPartners });
+
+    table.table.setRowSelection(
+      selectedPartners.reduce(
+        (acc, partner) => {
+          acc[partner.id] = true;
+          return acc;
+        },
+        {} as Record<string, boolean>,
+      ),
+    );
+  }, [partners, selectedPartners]);
+
+  return (
+    <div className="my-2 flex flex-col gap-3">
+      <label className="text-sm font-medium text-neutral-800">
+        Eligible partners
+      </label>
+
+      <div className="relative">
+        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+          <Search className="size-4 text-neutral-400" />
+        </div>
+        <input
+          type="text"
+          placeholder="Search partners"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="block w-full rounded-lg border-neutral-300 pl-10 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+        />
+      </div>
+
+      <Table {...table} />
+    </div>
+  );
 }
