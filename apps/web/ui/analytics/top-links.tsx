@@ -1,8 +1,8 @@
+import { useWorkspacePreferences } from "@/lib/swr/use-workspace-preferences";
 import { LinkLogo, useRouterStuff } from "@dub/ui";
 import { Globe, Hyperlink } from "@dub/ui/icons";
 import { getApexDomain } from "@dub/utils";
 import { useCallback, useContext, useState } from "react";
-import { useLinksDisplayOption } from "../links/links-display-provider";
 import { AnalyticsCard } from "./analytics-card";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
 import { AnalyticsContext } from "./analytics-provider";
@@ -20,11 +20,7 @@ export default function TopLinks() {
     groupBy: `top_${tab}`,
   });
 
-  const { value: displayProperties } = useLinksDisplayOption<string[]>(
-    "display-properties",
-    (value) => value,
-    ["link"],
-  );
+  const [persisted] = useWorkspacePreferences("linksDisplay");
 
   const shortLinkTitle = useCallback(
     (d: { url?: string; title?: string; shortLink?: string }) => {
@@ -32,13 +28,15 @@ export default function TopLinks() {
         return d.url || "Unknown";
       }
 
-      if (displayProperties.includes("title") && d.title) {
+      const displayProperties = persisted?.displayProperties;
+
+      if (displayProperties?.includes("title") && d.title) {
         return d.title;
       }
 
       return d.shortLink || "Unknown";
     },
-    [displayProperties, tab],
+    [persisted, tab],
   );
 
   return (
