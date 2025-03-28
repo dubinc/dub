@@ -57,6 +57,7 @@ export const authActionClient = actionClient.use(
           },
           select: {
             role: true,
+            workspacePreferences: true,
           },
         },
       },
