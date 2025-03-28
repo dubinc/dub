@@ -18,6 +18,8 @@ export interface EdgeLinkProps {
   publicStats: number;
   expiredUrl: string | null;
   createdAt: string;
+  partnerId: string | null;
+  programId: string | null;
 }
 
 export interface EdgeDomainProps {

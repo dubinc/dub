@@ -113,6 +113,8 @@ export interface RedisLinkProps {
   doIndex?: boolean;
   projectId?: string;
   webhookIds?: string[];
+  partner?: Pick<PartnerProps, "id" | "name" | "image">;
+  discount?: Pick<DiscountProps, "id" | "amount" | "type" | "maxDuration">;
 }
 
 export interface TagProps {
@@ -151,6 +153,7 @@ export interface WorkspaceProps extends Project {
     [key in BetaFeatures]: boolean;
   };
   store: Record<string, any> | null;
+  allowedHostnames: string[];
 }
 
 export type ExpandedWorkspaceProps = WorkspaceProps & {

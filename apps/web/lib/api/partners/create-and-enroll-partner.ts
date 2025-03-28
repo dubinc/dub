@@ -14,8 +14,10 @@ import { prisma } from "@dub/prisma";
 import { Prisma, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
+import { linkCache } from "../links/cache";
 import { includeTags } from "../links/include-tags";
 import { backfillLinkCommissions } from "./backfill-link-commissions";
+import { includePartnerAndDiscount } from "./include-partner";
 
 export const createAndEnrollPartner = async ({
   program,
@@ -139,39 +141,53 @@ export const createAndEnrollPartner = async ({
   });
 
   waitUntil(
-    Promise.all([
-      // update and record link
-      prisma.link
-        .update({
-          where: {
-            id: link.id,
-          },
-          data: {
-            programId: program.id,
-            partnerId: upsertedPartner.id,
-            folderId: program.defaultFolderId,
-            trackConversion: true,
-          },
-          include: includeTags,
-        })
-        .then((link) =>
-          Promise.allSettled([
-            recordLink(link),
-            link.saleAmount > 0 &&
-              backfillLinkCommissions({
-                id: link.id,
-                partnerId: upsertedPartner.id,
-                programId: program.id,
-              }),
-          ]),
-        ),
+    (async () => {
+      const {
+        program: linkProgram,
+        programEnrollment,
+        ...partnerLink
+      } = await prisma.link.update({
+        where: {
+          id: link.id,
+        },
+        data: {
+          programId: program.id,
+          partnerId: upsertedPartner.id,
+          folderId: program.defaultFolderId,
+          trackConversion: true,
+        },
+        include: {
+          ...includeTags,
+          ...includePartnerAndDiscount,
+          webhooks: true,
+        },
+      });
 
-      sendWorkspaceWebhook({
-        workspace,
-        trigger: "partner.created",
-        data: enrolledPartner,
-      }),
-    ]),
+      await Promise.all([
+        recordLink(partnerLink),
+
+        linkCache.set({
+          ...partnerLink,
+          partner: programEnrollment?.partner,
+          discount:
+            programEnrollment?.discount ||
+            linkProgram?.defaultDiscount ||
+            undefined,
+        }),
+
+        backfillLinkCommissions({
+          id: link.id,
+          partnerId: upsertedPartner.id,
+          programId: program.id,
+        }),
+
+        sendWorkspaceWebhook({
+          workspace,
+          trigger: "partner.created",
+          data: enrolledPartner,
+        }),
+      ]);
+    })(),
   );
 
   return enrolledPartner;

@@ -11,13 +11,11 @@ import {
   DUB_HEADERS,
   LEGAL_WORKSPACE_ID,
   LOCALHOST_GEO_DATA,
-  LOCALHOST_IP,
   isDubDomain,
   isUnsupportedKey,
   nanoid,
   punyEncode,
 } from "@dub/utils";
-import { ipAddress } from "@vercel/functions";
 import { cookies } from "next/headers";
 import {
   NextFetchEvent,
@@ -28,8 +26,10 @@ import {
 import { linkCache } from "../api/links/cache";
 import { isCaseSensitiveDomain } from "../api/links/case-sensitivity";
 import { clickCache } from "../api/links/click-cache";
+import { getIpAddress } from "../ip-address";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
+import { getPartnerAndDiscount } from "../planetscale/get-partner-discount";
 import { hasEmptySearchParams } from "./utils/has-empty-search-params";
 
 export default async function LinkMiddleware(
@@ -112,9 +112,22 @@ export default async function LinkMiddleware(
       }
     }
 
-    // format link to fit the RedisLinkProps interface
+    // Get the partner and discount for a program link
+    if (linkData.partnerId && linkData.programId) {
+      const response = await getPartnerAndDiscount({
+        partnerId: linkData.partnerId,
+        programId: linkData.programId,
+      });
+
+      linkData = {
+        ...linkData,
+        ...response,
+      };
+    }
+
     cachedLink = formatRedisLink(linkData as any);
-    // cache in Redis
+
+    // Cache the link in Redis
     ev.waitUntil(linkCache.set(linkData as any));
   }
 
@@ -132,6 +145,8 @@ export default async function LinkMiddleware(
     expiredUrl,
     doIndex,
     webhookIds,
+    partner,
+    discount,
     projectId: workspaceId,
   } = cachedLink;
 
@@ -212,9 +227,12 @@ export default async function LinkMiddleware(
   if (!clickId) {
     // if trackConversion is enabled, check if clickId is cached in Redis
     if (trackConversion) {
-      const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
-
-      clickId = (await clickCache.get({ domain, key, ip })) || undefined;
+      clickId =
+        (await clickCache.get({
+          domain,
+          key,
+          ip: getIpAddress(req),
+        })) || undefined;
     }
     // if there's still no clickId, generate a new one
     if (!clickId) {
@@ -235,6 +253,8 @@ export default async function LinkMiddleware(
         webhookIds,
         workspaceId,
         trackConversion,
+        partner,
+        discount,
       }),
     );
 
@@ -283,6 +303,8 @@ export default async function LinkMiddleware(
         webhookIds,
         workspaceId,
         trackConversion,
+        partner,
+        discount,
       }),
     );
 
@@ -320,6 +342,8 @@ export default async function LinkMiddleware(
         webhookIds,
         workspaceId,
         trackConversion,
+        partner,
+        discount,
       }),
     );
 
@@ -359,6 +383,8 @@ export default async function LinkMiddleware(
         webhookIds,
         workspaceId,
         trackConversion,
+        partner,
+        discount,
       }),
     );
 
@@ -392,6 +418,8 @@ export default async function LinkMiddleware(
         webhookIds,
         workspaceId,
         trackConversion,
+        partner,
+        discount,
       }),
     );
 
@@ -425,6 +453,8 @@ export default async function LinkMiddleware(
         webhookIds,
         workspaceId,
         trackConversion,
+        partner,
+        discount,
       }),
     );
 
@@ -458,6 +488,8 @@ export default async function LinkMiddleware(
         webhookIds,
         workspaceId,
         trackConversion,
+        partner,
+        discount,
       }),
     );
 
