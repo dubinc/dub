@@ -1,10 +1,12 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
-import { NewLinkProps } from "@/lib/types";
+import { recordLink } from "@/lib/tinybird";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { ABTestVariantsSchema, linkEventSchema } from "@/lib/zod/schemas/links";
+import { prisma } from "@dub/prisma";
 import { Link, Project } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
-import { updateLink } from "./update-link";
+import { linkCache } from "./cache";
+import { includeTags } from "./include-tags";
 
 export async function completeABTests(link: Link & { project: Project }) {
   if (!link.testVariants || !link.testCompletedAt || !link.projectId) {
@@ -58,40 +60,25 @@ export async function completeABTests(link: Link & { project: Project }) {
   // Update the link's URL to the winner
   const { project, ...originalLink } = link;
 
-  const updatedLink = {
-    ...originalLink,
-    url: winner.url,
-    // all these are just to make TypeScript happy – we should create a helper fn for these later
-    expiresAt:
-      link.expiresAt instanceof Date
-        ? link.expiresAt.toISOString()
-        : link.expiresAt,
-    geo: link.geo as NewLinkProps["geo"],
-    testVariants: link.testVariants as NewLinkProps["testVariants"],
-    testCompletedAt:
-      link.testCompletedAt instanceof Date
-        ? link.testCompletedAt.toISOString()
-        : link.testCompletedAt,
-    testStartedAt:
-      link.testStartedAt instanceof Date
-        ? link.testStartedAt.toISOString()
-        : link.testStartedAt,
-  };
-
-  const response = await updateLink({
-    oldLink: {
-      domain: link.domain,
-      key: link.key,
-      image: link.image,
+  const response = await prisma.link.update({
+    where: {
+      id: link.id,
     },
-    updatedLink,
+    data: {
+      url: winner.url,
+    },
+    include: includeTags,
   });
 
   waitUntil(
-    sendWorkspaceWebhook({
-      trigger: "link.updated",
-      workspace: link.project,
-      data: linkEventSchema.parse(response),
-    }),
+    Promise.allSettled([
+      linkCache.set(response),
+      recordLink(response),
+      sendWorkspaceWebhook({
+        trigger: "link.updated",
+        workspace: link.project,
+        data: linkEventSchema.parse(response),
+      }),
+    ]),
   );
 }
