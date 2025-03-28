@@ -42,8 +42,8 @@ export const getLinkWithAllowedHostnames = async ({
             params: [linkId],
           }
         : {
-            query: `${baseQuery} externalId = ? AND projectId = ?`,
-            params: [externalId!, normalizeWorkspaceId(workspaceId!)],
+            query: `${baseQuery} projectId = ? AND externalId = ?`,
+            params: [normalizeWorkspaceId(workspaceId!), externalId],
           };
 
   const { rows } = await conn.execute<LinkWithAllowedHostnames>(query, params);
