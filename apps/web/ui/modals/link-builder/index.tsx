@@ -122,7 +122,6 @@ function LinkBuilderInner({
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
   const { id: workspaceId, plan, nextPlan, logo, flags } = useWorkspace();
-  const conversionsEnabled = !!plan && plan !== "free" && plan !== "pro";
 
   const {
     control,
@@ -223,7 +222,7 @@ function LinkBuilderInner({
     <>
       <UTMModal />
       <TargetingModal />
-      {conversionsEnabled && flags?.abTesting && <ABTestingModal />}
+      {flags?.abTesting && <ABTestingModal />}
       <PasswordModal />
       <ExpirationModal />
       <Modal
@@ -524,9 +523,7 @@ function LinkBuilderInner({
                 <UTMButton />
                 <div className="flex items-center gap-2 max-sm:hidden">
                   <TargetingButton />
-                  {conversionsEnabled && flags?.abTesting && (
-                    <ABTestingButton />
-                  )}
+                  {flags?.abTesting && <ABTestingButton />}
                   <PasswordButton />
                   <ExpirationButton />
                 </div>
