@@ -14,6 +14,7 @@ import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import {
   COMMISSION_TYPES,
   createRewardSchema,
+  LIMIT_RESET_OPTIONS,
 } from "@/lib/zod/schemas/rewards";
 import { SelectEligiblePartnersSheet } from "@/ui/partners/select-eligible-partners-sheet";
 import { X } from "@/ui/shared/icons";
@@ -22,7 +23,9 @@ import {
   AnimatedSizeContainer,
   Button,
   CircleCheckFill,
+  InfoTooltip,
   Sheet,
+  Switch,
   Tooltip,
   usePagination,
 } from "@dub/ui";
@@ -140,7 +143,6 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
       },
       onError({ error }) {
         toast.error(error.serverError);
-        console.error(error);
       },
     },
   );
@@ -156,7 +158,6 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
       },
       onError({ error }) {
         toast.error(error.serverError);
-        console.error(error);
       },
     },
   );
@@ -291,34 +292,40 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
         <div className="flex-1 overflow-y-auto">
           <div className="flex flex-col gap-4 p-6">
             {event !== "sale" && (
-              <div>
-                <label className="text-sm font-medium text-neutral-800">
-                  {`Amount per ${event}`}
-                </label>
-                <div className="relative mt-2 rounded-md shadow-sm">
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
-                    $
-                  </span>
-                  <input
-                    className={cn(
-                      "block w-full rounded-md border-neutral-300 pl-6 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                      errors.amount &&
-                        "border-red-600 focus:border-red-500 focus:ring-red-600",
-                    )}
-                    {...register("amount", {
-                      required: true,
-                      valueAsNumber: true,
-                      min: 0,
-                      max: 1000,
-                      onChange: handleMoneyInputChange,
-                    })}
-                    onKeyDown={handleMoneyKeyDown}
-                  />
-                  <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
-                    USD
-                  </span>
+              <>
+                <div>
+                  <label className="text-sm font-medium text-neutral-800">
+                    {`Amount per ${event}`}
+                  </label>
+                  <div className="relative mt-2 rounded-md shadow-sm">
+                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
+                      $
+                    </span>
+                    <input
+                      className={cn(
+                        "block w-full rounded-md border-neutral-300 pl-6 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                        errors.amount &&
+                          "border-red-600 focus:border-red-500 focus:ring-red-600",
+                      )}
+                      {...register("amount", {
+                        required: true,
+                        valueAsNumber: true,
+                        min: 0,
+                        max: 1000,
+                        onChange: handleMoneyInputChange,
+                      })}
+                      onKeyDown={handleMoneyKeyDown}
+                    />
+                    <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
+                      USD
+                    </span>
+                  </div>
                 </div>
-              </div>
+
+                <div>
+                  <RewardLimitSection event={event} />
+                </div>
+              </>
             )}
 
             {event !== "sale" && (
@@ -559,6 +566,10 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                         </span>
                       </div>
                     </div>
+
+                    <div>
+                      <RewardLimitSection event={event} />
+                    </div>
                   </div>
                 </div>
               </>
@@ -644,6 +655,55 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
         onSelect={setSelectedPartners}
       />
     </>
+  );
+}
+
+function RewardLimitSection({ event }: { event: EventType }) {
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-3">
+        <Switch checked={false} disabled={false} />
+        <span className="text-sm font-medium text-neutral-800">
+          Limit {event} rewards
+        </span>
+        <InfoTooltip content="Limit how much a partner can receive payouts." />
+      </div>
+
+      <div>
+        <label className="text-sm font-medium text-neutral-800">
+          Reward limit
+        </label>
+        <div className="relative mt-2 rounded-md shadow-sm">
+          <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
+            $
+          </span>
+          <input
+            className="block w-full rounded-md border-neutral-300 pl-6 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+            type="text"
+            onKeyDown={handleMoneyKeyDown}
+            placeholder="0"
+          />
+          <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
+            USD
+          </span>
+        </div>
+      </div>
+
+      <div>
+        <label className="text-sm font-medium text-neutral-800">
+          Limit duration
+        </label>
+        <div className="relative mt-2 rounded-md shadow-sm">
+          <select className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm">
+            {LIMIT_RESET_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+    </div>
   );
 }
 
