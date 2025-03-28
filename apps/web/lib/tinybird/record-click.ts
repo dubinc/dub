@@ -34,11 +34,11 @@ export async function recordClick({
   url,
   webhookIds,
   workspaceId,
-  programId,
   skipRatelimit,
   timestamp,
   referrer,
   trackConversion,
+  skipTracking,
 }: {
   req: Request;
   clickId: string;
@@ -48,12 +48,16 @@ export async function recordClick({
   url?: string;
   webhookIds?: string[];
   workspaceId: string | undefined;
-  programId?: string | null;
   skipRatelimit?: boolean;
   timestamp?: string;
   referrer?: string;
   trackConversion?: boolean;
+  skipTracking?: boolean;
 }) {
+  if (skipTracking) {
+    return null;
+  }
+
   const searchParams = new URL(req.url).searchParams;
 
   // only track the click when there is no `dub-no-track` header or query param
@@ -65,15 +69,6 @@ export async function recordClick({
 
   // don't record clicks from bots
   if (isBot) {
-    return null;
-  }
-
-  // Identify if the link is clicked from the Google Ads
-  const isGoogleClick = searchParams?.get("gclid") !== null;
-  if (isGoogleClick && programId) {
-    console.log(
-      "Click is not tracked because it seems like it is coming from Google Ads.",
-    );
     return null;
   }
 

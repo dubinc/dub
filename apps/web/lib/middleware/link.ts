@@ -36,7 +36,7 @@ export default async function LinkMiddleware(
   req: NextRequest,
   ev: NextFetchEvent,
 ) {
-  let { domain, fullKey: originalKey } = parse(req);
+  let { domain, fullKey: originalKey, searchParamsString } = parse(req);
 
   if (!domain) {
     return NextResponse.next();
@@ -133,6 +133,7 @@ export default async function LinkMiddleware(
     doIndex,
     webhookIds,
     projectId: workspaceId,
+    programId,
   } = cachedLink;
 
   // by default, we only index default dub domain links (e.g. dub.sh)
@@ -222,6 +223,10 @@ export default async function LinkMiddleware(
     }
   }
 
+  // Identify if the link is clicked from the Google Ads
+  const isGoogleClick = searchParamsString?.includes("gclid");
+  const skipTracking = Boolean(isGoogleClick && programId);
+
   // for root domain links, if there's no destination URL, rewrite to placeholder page
   if (!url) {
     ev.waitUntil(
@@ -235,6 +240,7 @@ export default async function LinkMiddleware(
         webhookIds,
         workspaceId,
         trackConversion,
+        skipTracking,
       }),
     );
 
@@ -246,7 +252,7 @@ export default async function LinkMiddleware(
           ...(shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
         },
       }),
-      { clickId, path: `/${originalKey}` },
+      { clickId, path: `/${originalKey}`, skipTracking },
     );
   }
 
@@ -267,7 +273,7 @@ export default async function LinkMiddleware(
           },
         },
       ),
-      { clickId, path: `/${originalKey}` },
+      { clickId, path: `/${originalKey}`, skipTracking },
     );
 
     // rewrite to deeplink page if the link is a mailto: or tel:
@@ -283,6 +289,7 @@ export default async function LinkMiddleware(
         webhookIds,
         workspaceId,
         trackConversion,
+        skipTracking,
       }),
     );
 
@@ -292,7 +299,7 @@ export default async function LinkMiddleware(
           `/deeplink/${encodeURIComponent(
             getFinalUrl(url, {
               req,
-              clickId: trackConversion ? clickId : undefined,
+              clickId: trackConversion && !skipTracking ? clickId : undefined,
             }),
           )}`,
           req.url,
@@ -304,7 +311,7 @@ export default async function LinkMiddleware(
           },
         },
       ),
-      { clickId, path: `/${originalKey}` },
+      { clickId, path: `/${originalKey}`, skipTracking },
     );
 
     // rewrite to target URL if link cloaking is enabled
@@ -320,6 +327,7 @@ export default async function LinkMiddleware(
         webhookIds,
         workspaceId,
         trackConversion,
+        skipTracking,
       }),
     );
 
@@ -329,7 +337,7 @@ export default async function LinkMiddleware(
           `/cloaked/${encodeURIComponent(
             getFinalUrl(url, {
               req,
-              clickId: trackConversion ? clickId : undefined,
+              clickId: trackConversion && !skipTracking ? clickId : undefined,
             }),
           )}`,
           req.url,
@@ -343,7 +351,7 @@ export default async function LinkMiddleware(
           },
         },
       ),
-      { clickId, path: `/${originalKey}` },
+      { clickId, path: `/${originalKey}`, skipTracking },
     );
 
     // redirect to iOS link if it is specified and the user is on an iOS device
@@ -359,6 +367,7 @@ export default async function LinkMiddleware(
         webhookIds,
         workspaceId,
         trackConversion,
+        skipTracking,
       }),
     );
 
@@ -366,7 +375,7 @@ export default async function LinkMiddleware(
       NextResponse.redirect(
         getFinalUrl(ios, {
           req,
-          clickId: trackConversion ? clickId : undefined,
+          clickId: trackConversion && !skipTracking ? clickId : undefined,
         }),
         {
           headers: {
@@ -376,7 +385,7 @@ export default async function LinkMiddleware(
           status: key === "_root" ? 301 : 302,
         },
       ),
-      { clickId, path: `/${originalKey}` },
+      { clickId, path: `/${originalKey}`, skipTracking },
     );
 
     // redirect to Android link if it is specified and the user is on an Android device
@@ -392,6 +401,7 @@ export default async function LinkMiddleware(
         webhookIds,
         workspaceId,
         trackConversion,
+        skipTracking,
       }),
     );
 
@@ -399,7 +409,7 @@ export default async function LinkMiddleware(
       NextResponse.redirect(
         getFinalUrl(android, {
           req,
-          clickId: trackConversion ? clickId : undefined,
+          clickId: trackConversion && !skipTracking ? clickId : undefined,
         }),
         {
           headers: {
@@ -409,7 +419,7 @@ export default async function LinkMiddleware(
           status: key === "_root" ? 301 : 302,
         },
       ),
-      { clickId, path: `/${originalKey}` },
+      { clickId, path: `/${originalKey}`, skipTracking },
     );
 
     // redirect to geo-specific link if it is specified and the user is in the specified country
@@ -425,6 +435,7 @@ export default async function LinkMiddleware(
         webhookIds,
         workspaceId,
         trackConversion,
+        skipTracking,
       }),
     );
 
@@ -432,7 +443,7 @@ export default async function LinkMiddleware(
       NextResponse.redirect(
         getFinalUrl(geo[country], {
           req,
-          clickId: trackConversion ? clickId : undefined,
+          clickId: trackConversion && !skipTracking ? clickId : undefined,
         }),
         {
           headers: {
@@ -442,7 +453,7 @@ export default async function LinkMiddleware(
           status: key === "_root" ? 301 : 302,
         },
       ),
-      { clickId, path: `/${originalKey}` },
+      { clickId, path: `/${originalKey}`, skipTracking },
     );
 
     // regular redirect
@@ -458,6 +469,7 @@ export default async function LinkMiddleware(
         webhookIds,
         workspaceId,
         trackConversion,
+        skipTracking,
       }),
     );
 
@@ -467,7 +479,7 @@ export default async function LinkMiddleware(
           headers: new Headers({
             destination: getFinalUrl(url, {
               req,
-              clickId: trackConversion ? clickId : undefined,
+              clickId: trackConversion && !skipTracking ? clickId : undefined,
             }),
           }),
         },
@@ -478,7 +490,7 @@ export default async function LinkMiddleware(
       NextResponse.redirect(
         getFinalUrl(url, {
           req,
-          clickId: trackConversion ? clickId : undefined,
+          clickId: trackConversion && !skipTracking ? clickId : undefined,
         }),
         {
           headers: {
@@ -488,7 +500,7 @@ export default async function LinkMiddleware(
           status: key === "_root" ? 301 : 302,
         },
       ),
-      { clickId, path: `/${originalKey}` },
+      { clickId, path: `/${originalKey}`, skipTracking },
     );
   }
 }
