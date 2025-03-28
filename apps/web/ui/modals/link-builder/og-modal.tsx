@@ -75,7 +75,7 @@ function OGModalInner({
     },
   });
 
-  const [url, parentProxy] = watchParent(["url", "proxy"]);
+  const url = watchParent("url");
   const { image, title, description } = watch();
 
   const { setShowPromptModal, PromptModal } = usePromptModal({

@@ -10,7 +10,7 @@ import { Dots } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Settings } from "lucide-react";
 import { useMemo, useState } from "react";
-import { useFormContext } from "react-hook-form";
+import { useFormContext, useWatch } from "react-hook-form";
 import { LinkFormData } from ".";
 import { useAdvancedModal } from "./advanced-modal";
 import { MOBILE_MORE_ITEMS, TOGGLES } from "./constants";
@@ -21,14 +21,14 @@ import { useTargetingModal } from "./targeting-modal";
 export function MoreDropdown() {
   const { isMobile } = useMediaQuery();
 
-  const { watch, setValue } = useFormContext<LinkFormData>();
-  const data = watch();
+  const { control, setValue } = useFormContext<LinkFormData>();
+  const data = useWatch({ control });
 
   const [openPopover, setOpenPopover] = useState(false);
 
   const options = useMemo(() => {
     return [...(isMobile ? MOBILE_MORE_ITEMS : []), ...TOGGLES];
-  }, [data, isMobile]);
+  }, [isMobile]);
 
   useKeyboardShortcut(
     options.map(({ shortcutKey }) => shortcutKey),
