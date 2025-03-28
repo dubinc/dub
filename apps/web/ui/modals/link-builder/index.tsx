@@ -4,6 +4,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { ExpandedLinkProps } from "@/lib/types";
 import { FolderDropdown } from "@/ui/folders/folder-dropdown";
 import { DestinationUrlInput } from "@/ui/links/destination-url-input";
+import { LinkCommentsInput } from "@/ui/links/link-builder/controls/link-comments-input";
 import {
   LinkBuilderProps,
   LinkBuilderProvider,
@@ -17,12 +18,9 @@ import {
   ArrowTurnLeft,
   Button,
   ButtonProps,
-  InfoTooltip,
   LinkLogo,
   Modal,
-  SimpleTooltipContent,
   TooltipContent,
-  useEnterSubmit,
   useKeyboardShortcut,
   useRouterStuff,
 } from "@dub/ui";
@@ -45,8 +43,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { Controller, useFormContext } from "react-hook-form";
-import TextareaAutosize from "react-textarea-autosize";
+import { Controller, useFormContext, useWatch } from "react-hook-form";
 import { useDebounce } from "use-debounce";
 import { ConversionTrackingToggle } from "./conversion-tracking-toggle";
 import { DraftControls, DraftControlsHandle } from "./draft-controls";
@@ -105,23 +102,16 @@ function LinkBuilderInner({
 
   const {
     control,
-    watch,
     handleSubmit,
     setValue,
     clearErrors,
     formState: { isDirty, isSubmitting, isSubmitSuccessful, errors },
   } = useFormContext<LinkFormData>();
 
-  const formRef = useRef<HTMLFormElement>(null);
-  const { handleKeyDown } = useEnterSubmit(formRef);
-
-  const [url, domain, key, title, description] = watch([
-    "url",
-    "domain",
-    "key",
-    "title",
-    "description",
-  ]);
+  const [url, domain, key, title, description] = useWatch({
+    control,
+    name: ["url", "domain", "key", "title", "description"],
+  });
 
   const [debouncedUrl] = useDebounce(getUrlWithoutUTMParams(url), 500);
 
@@ -208,7 +198,7 @@ function LinkBuilderInner({
           draftControlsRef.current?.onClose();
         }}
       >
-        <form ref={formRef} onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <div className="flex flex-col items-start gap-2 px-6 py-4 md:flex-row md:items-center md:justify-between">
             {flags?.linkFolders && (
               <div className="flex items-center gap-2">
@@ -335,41 +325,7 @@ function LinkBuilderInner({
 
                 <TagSelect />
 
-                <div>
-                  <div className="flex items-center gap-2">
-                    <label
-                      htmlFor="comments"
-                      className="block text-sm font-medium text-neutral-700"
-                    >
-                      Comments
-                    </label>
-                    <InfoTooltip
-                      content={
-                        <SimpleTooltipContent
-                          title="Use comments to add context to your short links – for you and your team."
-                          cta="Learn more."
-                          href="https://dub.co/help/article/link-comments"
-                        />
-                      }
-                    />
-                  </div>
-                  <Controller
-                    name="comments"
-                    control={control}
-                    render={({ field }) => (
-                      <TextareaAutosize
-                        id="comments"
-                        name="comments"
-                        minRows={3}
-                        className="mt-2 block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                        placeholder="Add comments"
-                        value={field.value ?? ""}
-                        onChange={(e) => field.onChange(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                      />
-                    )}
-                  />
-                </div>
+                <LinkCommentsInput />
 
                 <ConversionTrackingToggle />
 

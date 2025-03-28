@@ -1,7 +1,7 @@
 import { useLinkBuilderContext } from "@/ui/links/link-builder/link-builder-provider";
 import { getUrlWithoutUTMParams, truncate } from "@dub/utils";
 import { useEffect } from "react";
-import { useFormContext } from "react-hook-form";
+import { useFormContext, useWatch } from "react-hook-form";
 import { useDebounce } from "use-debounce";
 import { LinkFormData } from ".";
 
@@ -12,15 +12,11 @@ export function useMetatags({
   initial: boolean;
   enabled: boolean;
 }) {
-  const { watch, setValue } = useFormContext<LinkFormData>();
-  const [url, password, proxy, title, description, image] = watch([
-    "url",
-    "password",
-    "proxy",
-    "title",
-    "description",
-    "image",
-  ]);
+  const { control, setValue } = useFormContext<LinkFormData>();
+  const [url, password, proxy, title, description, image] = useWatch({
+    control,
+    name: ["url", "password", "proxy", "title", "description", "image"],
+  });
   const [debouncedUrl] = useDebounce(getUrlWithoutUTMParams(url), 500);
 
   const { generatingMetatags, setGeneratingMetatags } = useLinkBuilderContext();
