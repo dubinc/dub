@@ -19,7 +19,7 @@ export function useWorkspacePreferences<
   D extends WorkspacePreferencesValue<K> | undefined,
 >(
   key: K,
-  defaultValue: D,
+  defaultValue?: D,
 ): [
   D extends undefined
     ? WorkspacePreferencesValue<K> | undefined

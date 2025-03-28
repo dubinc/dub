@@ -145,6 +145,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         key: true,
         url: true,
         comments: true,
+        title: true,
         createdAt: true,
       },
     });
@@ -171,6 +172,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
             key: punyEncode(link.key),
           }),
           comments: link.comments,
+          title: link.title || null,
           createdAt: link.createdAt.toISOString(),
           ...topLink,
         });
