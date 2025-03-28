@@ -290,7 +290,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          <div className="flex flex-col gap-4 p-6">
+          <div className="flex flex-col gap-6 p-6">
             {event !== "sale" && (
               <>
                 <div>
@@ -329,7 +329,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
             )}
 
             {event !== "sale" && (
-              <div className="mt-2">
+              <div>
                 <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
                   {PARTNER_TYPES.map((partnerType) => {
                     const isSelected = selectedPartnerType === partnerType.key;
@@ -407,7 +407,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                   <label className="text-sm font-medium text-neutral-800">
                     Commission
                   </label>
-                  <p className="mb-4 text-sm text-neutral-600">
+                  <p className="mb-2 text-sm text-neutral-600">
                     Set how the affiliate will get rewarded
                   </p>
                   <div className="-m-1">
@@ -506,14 +506,14 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                   </div>
                 </div>
 
-                <div className="mt-6">
+                <div>
                   <label className="text-sm font-medium text-neutral-800">
                     Payout
                   </label>
-                  <p className="mb-4 text-sm text-neutral-600">
+                  <p className="mb-2 text-sm text-neutral-600">
                     Set how much the affiliate will get rewarded
                   </p>
-                  <div className="flex flex-col gap-6">
+                  <div className="flex flex-col gap-4">
                     <div>
                       <label
                         htmlFor="type"
@@ -576,7 +576,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
             )}
 
             {displayAddPartnerButton && (
-              <div className="mt-2">
+              <div>
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-medium text-neutral-800">
                     Eligible partners
@@ -587,7 +587,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                     onClick={() => setIsAddPartnersOpen(true)}
                   />
                 </div>
-                <div className="mt-4">
+                <div className="mt-2">
                   <PartnersTable
                     selectedPartners={selectedPartners || []}
                     setSelectedPartners={setSelectedPartners}
