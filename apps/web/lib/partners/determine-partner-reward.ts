@@ -1,5 +1,6 @@
 import { prisma } from "@dub/prisma";
-import { EventType } from "@dub/prisma/client";
+import { EventType, Reward } from "@dub/prisma/client";
+import { subMonths } from "date-fns";
 import { RewardSchema } from "../zod/schemas/rewards";
 
 export const determinePartnerReward = async ({
@@ -56,11 +57,80 @@ export const determinePartnerReward = async ({
     (reward) => reward._count.partners === 0,
   );
 
-  const partnerReward = partnerSpecificReward || programWideReward;
+  const reward = partnerSpecificReward || programWideReward;
 
-  if (!partnerReward || partnerReward.amount === 0) {
+  if (!reward || reward.amount === 0) {
     return null;
   }
 
-  return RewardSchema.parse(partnerReward);
+  const hasReachedLimit = await hasPartnerReachedLimit({
+    event,
+    partnerId,
+    programId,
+    reward,
+  });
+
+  if (hasReachedLimit) {
+    console.log(
+      `Partner ${partnerId} has reached the limit for reward ${reward.id} on the program ${programId}.`,
+    );
+
+    return null;
+  }
+
+  return RewardSchema.parse(reward);
+};
+
+// Check if the partner has reached the limit for the reward in the last payoutResetInterval
+export const hasPartnerReachedLimit = async ({
+  event,
+  partnerId,
+  programId,
+  reward,
+}: {
+  event: EventType;
+  partnerId: string;
+  programId: string;
+  reward: Pick<Reward, "maxTotalPayout" | "payoutResetInterval">;
+}) => {
+  if (!reward.maxTotalPayout || !reward.payoutResetInterval) {
+    return false;
+  }
+
+  const endDate = new Date();
+  const startDate = subMonths(endDate, reward.payoutResetInterval);
+
+  const result = await prisma.commission.aggregate({
+    where: {
+      earnings: {
+        gt: 0,
+      },
+      programId,
+      partnerId,
+      status: {
+        in: ["pending", "processed", "paid"],
+      },
+      type: event, // TODO: We might need to cover this in index?
+      createdAt: {
+        gt: startDate,
+        lt: endDate,
+      },
+    },
+    _sum: {
+      earnings: true,
+    },
+  });
+
+  const totalEarnings = result._sum.earnings || 0;
+  const hasReachedLimit = totalEarnings >= reward.maxTotalPayout;
+
+  console.log({
+    startDate,
+    endDate,
+    totalEarnings,
+    hasReachedLimit,
+    maxTotalPayout: reward.maxTotalPayout,
+  });
+
+  return hasReachedLimit;
 };
