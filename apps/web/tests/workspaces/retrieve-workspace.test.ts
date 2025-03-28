@@ -24,7 +24,6 @@ describe("GET /workspaces/{idOrSlug}", async () => {
 
     WorkspaceSchema.extend({
       createdAt: z.string(),
-      yearInReview: z.object({}).nullable(),
     })
       .strict()
       .parse(workspaceFetched);
@@ -46,7 +45,6 @@ describe("GET /workspaces/{idOrSlug}", async () => {
 
     WorkspaceSchema.extend({
       createdAt: z.string(),
-      yearInReview: z.object({}).nullable(),
     })
       .strict()
       .parse(workspaceFetched);
