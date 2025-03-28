@@ -2,8 +2,9 @@
 
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { BookOpen, EnvelopeArrowRight, Page2 } from "@dub/ui";
+import { memo } from "react";
 
-export function ProgramHelpSupport() {
+export const ProgramHelpSupport = memo(() => {
   const { programEnrollment } = useProgramEnrollment();
 
   if (!programEnrollment?.program) return null;
@@ -72,4 +73,4 @@ export function ProgramHelpSupport() {
       </div>
     </div>
   );
-}
+});
