@@ -18,7 +18,6 @@ export async function completeABTests(link: Link & { project: Project }) {
     groupBy: "top_urls",
     linkId: link.id,
     workspaceId: link.projectId,
-    dataAvailableFrom: link.project.createdAt,
     start: link.testStartedAt ? new Date(link.testStartedAt) : undefined,
     end: link.testCompletedAt,
   });

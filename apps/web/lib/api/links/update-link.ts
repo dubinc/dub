@@ -67,6 +67,7 @@ export async function updateLink({
     testCompletedAt,
     ...rest
   } = updatedLink;
+  const changedTestCompletedAt = testCompletedAt !== oldLink.testCompletedAt;
 
   const combinedTagIds = combineTagIds({ tagId, tagIds });
 
@@ -195,7 +196,10 @@ export async function updateLink({
           webhookIds,
         }),
 
-      testVariants && testCompletedAt && scheduleABTestCompletion(response),
+      changedTestCompletedAt &&
+        testVariants &&
+        testCompletedAt &&
+        scheduleABTestCompletion(response),
     ]),
   );
 
