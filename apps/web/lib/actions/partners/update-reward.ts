@@ -11,8 +11,16 @@ export const updateRewardAction = authActionClient
   .schema(updateRewardSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { programId, rewardId, partnerIds, amount, maxDuration, type } =
-      parsedInput;
+    const {
+      programId,
+      rewardId,
+      partnerIds,
+      amount,
+      maxDuration,
+      type,
+      maxTotalPayout,
+      payoutResetInterval,
+    } = parsedInput;
 
     await getProgramOrThrow({
       workspaceId: workspace.id,
@@ -75,6 +83,8 @@ export const updateRewardAction = authActionClient
         type,
         amount,
         maxDuration,
+        maxTotalPayout,
+        payoutResetInterval,
         ...(programEnrollments && {
           partners: {
             deleteMany: {},
