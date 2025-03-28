@@ -30,12 +30,12 @@ export async function POST(
     // only complete tests if:
     // - there are test variants
     // - the tests completion time is in the past
-    // - the tests completion time is within the last 1 minute
+    // - the tests completion time is within the last 15 minutes
     if (
       link.testVariants &&
       link.testCompletedAt &&
       link.testCompletedAt < new Date() &&
-      Date.now() - link.testCompletedAt.getTime() < 60 * 1000 // Limit to 1 minute window
+      Date.now() - link.testCompletedAt.getTime() < 15 * 60 * 1000 // Limit to a 15-minute window
     ) {
       await completeABTests(link);
 
