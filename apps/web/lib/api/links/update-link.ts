@@ -28,6 +28,7 @@ export async function updateLink({
     domain: string;
     key: string;
     image?: string | null;
+    testCompletedAt?: Date | null;
   };
   updatedLink: ProcessedLinkProps &
     Pick<LinkProps, "id" | "clicks" | "lastClicked" | "updatedAt">;

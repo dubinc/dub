@@ -30,11 +30,15 @@ export async function POST(
       return new Response(`Link ${linkId} not found. Skipping...`);
     }
 
+    // only complete tests if:
+    // - there are test variants
+    // - the tests completion time is in the past
+    // - the tests completion time is within the last 1 minute
     if (
       link.testVariants &&
       link.testCompletedAt &&
       link.testCompletedAt < new Date() &&
-      Date.now() - link.testCompletedAt.getTime() < 2 * 60 * 60 * 1000 // Limit to two hour window
+      Date.now() - link.testCompletedAt.getTime() < 60 * 1000 // Limit to 1 minute window
     ) {
       await completeABTests(link as any);
 

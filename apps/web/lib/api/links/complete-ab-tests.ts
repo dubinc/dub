@@ -1,11 +1,9 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
-import { NewLinkProps, WorkspaceProps } from "@/lib/types";
+import { NewLinkProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { ABTestVariantsSchema, linkEventSchema } from "@/lib/zod/schemas/links";
 import { Link, Project } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
-import { DubApiError, ErrorCodes } from "../errors";
-import { processLink } from "./process-link";
 import { updateLink } from "./update-link";
 
 export async function completeABTests(link: Link & { project: Project }) {
@@ -36,7 +34,6 @@ export async function completeABTests(link: Link & { project: Project }) {
     console.log(
       `AB Test completed but all results are zero for ${link.id}, doing nothing.`,
     );
-
     return;
   }
 
@@ -45,10 +42,12 @@ export async function completeABTests(link: Link & { project: Project }) {
       (analytics.find(({ url }) => url === test.url)?.leads || 0) === max,
   );
 
+  // this should NEVER happen, but just in case
   if (winners.length === 0) {
-    throw new Error(
-      `AB Test completed but failed to find winners based on max leads for link ${link.id}.`,
+    console.log(
+      `AB Test completed but failed to find winners based on max leads for link ${link.id}, doing nothing.`,
     );
+    return;
   }
 
   const winner = winners[Math.floor(Math.random() * winners.length)];
@@ -62,6 +61,8 @@ export async function completeABTests(link: Link & { project: Project }) {
 
   const updatedLink = {
     ...originalLink,
+    url: winner.url,
+    // all these are just to make TypeScript happy – we should create a helper fn for these later
     expiresAt:
       link.expiresAt instanceof Date
         ? link.expiresAt.toISOString()
@@ -76,31 +77,7 @@ export async function completeABTests(link: Link & { project: Project }) {
       link.testStartedAt instanceof Date
         ? link.testStartedAt.toISOString()
         : link.testStartedAt,
-    url: winner.url,
-    ...(link.key === "_root" && {
-      domain: link.domain,
-      key: link.key,
-    }),
   };
-
-  const {
-    link: processedLink,
-    error,
-    code,
-  } = await processLink({
-    payload: updatedLink,
-    workspace: link.project as WorkspaceProps,
-    skipKeyChecks: true,
-    skipExternalIdChecks: true,
-    skipFolderChecks: true,
-  });
-
-  if (error) {
-    throw new DubApiError({
-      code: code as ErrorCodes,
-      message: error,
-    });
-  }
 
   const response = await updateLink({
     oldLink: {
@@ -108,7 +85,7 @@ export async function completeABTests(link: Link & { project: Project }) {
       key: link.key,
       image: link.image,
     },
-    updatedLink: processedLink,
+    updatedLink,
   });
 
   waitUntil(
