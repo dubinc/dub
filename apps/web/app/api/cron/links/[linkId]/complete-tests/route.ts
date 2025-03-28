@@ -21,9 +21,6 @@ export async function POST(
       where: {
         id: linkId,
       },
-      include: {
-        project: true,
-      },
     });
 
     if (!link) {
@@ -40,7 +37,7 @@ export async function POST(
       link.testCompletedAt < new Date() &&
       Date.now() - link.testCompletedAt.getTime() < 60 * 1000 // Limit to 1 minute window
     ) {
-      await completeABTests(link as any);
+      await completeABTests(link);
 
       return new Response(`Tests completed for link ${linkId}.`);
     }

@@ -3,12 +3,12 @@ import { recordLink } from "@/lib/tinybird";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { ABTestVariantsSchema, linkEventSchema } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
-import { Link, Project } from "@prisma/client";
+import { Link } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { linkCache } from "./cache";
 import { includeTags } from "./include-tags";
 
-export async function completeABTests(link: Link & { project: Project }) {
+export async function completeABTests(link: Link) {
   if (!link.testVariants || !link.testCompletedAt || !link.projectId) {
     return;
   }
@@ -57,9 +57,6 @@ export async function completeABTests(link: Link & { project: Project }) {
     return;
   }
 
-  // Update the link's URL to the winner
-  const { project, ...originalLink } = link;
-
   const response = await prisma.link.update({
     where: {
       id: link.id,
@@ -67,18 +64,25 @@ export async function completeABTests(link: Link & { project: Project }) {
     data: {
       url: winner.url,
     },
-    include: includeTags,
+    include: {
+      ...includeTags,
+      project: true,
+    },
   });
 
   waitUntil(
     Promise.allSettled([
+      // update the link cache
       linkCache.set(response),
+      // record the link
       recordLink(response),
-      sendWorkspaceWebhook({
-        trigger: "link.updated",
-        workspace: link.project,
-        data: linkEventSchema.parse(response),
-      }),
+      // send a link.updated webhook to the workspace
+      response.project &&
+        sendWorkspaceWebhook({
+          trigger: "link.updated",
+          workspace: response.project,
+          data: linkEventSchema.parse(response),
+        }),
     ]),
   );
 }
