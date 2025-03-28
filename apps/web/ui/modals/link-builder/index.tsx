@@ -68,6 +68,7 @@ export type LinkFormData = ExpandedLinkProps;
 type LinkBuilderModalProps = {
   showLinkBuilder: boolean;
   setShowLinkBuilder: Dispatch<SetStateAction<boolean>>;
+  homepageDemo?: boolean;
 };
 
 export function LinkBuilder(props: LinkBuilderProps & LinkBuilderModalProps) {
@@ -77,6 +78,7 @@ export function LinkBuilder(props: LinkBuilderProps & LinkBuilderModalProps) {
 function LinkBuilderOuter({
   showLinkBuilder,
   setShowLinkBuilder,
+  homepageDemo,
   ...rest
 }: LinkBuilderProps & LinkBuilderModalProps) {
   return (
@@ -84,6 +86,7 @@ function LinkBuilderOuter({
       <LinkBuilderInner
         showLinkBuilder={showLinkBuilder}
         setShowLinkBuilder={setShowLinkBuilder}
+        homepageDemo={homepageDemo}
       />
     </LinkBuilderProvider>
   );
@@ -92,12 +95,13 @@ function LinkBuilderOuter({
 function LinkBuilderInner({
   showLinkBuilder,
   setShowLinkBuilder,
+  homepageDemo,
 }: LinkBuilderModalProps) {
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
   const { id: workspaceId, flags } = useWorkspace();
 
-  const { props, duplicateProps, homepageDemo } = useLinkBuilderContext();
+  const { props, duplicateProps } = useLinkBuilderContext();
 
   const {
     control,

@@ -15,7 +15,6 @@ export type LinkFormData = ExpandedLinkProps;
 export type LinkBuilderProps = {
   props?: ExpandedLinkProps;
   duplicateProps?: ExpandedLinkProps;
-  homepageDemo?: boolean;
   workspace: {
     id?: string;
     slug?: string;
