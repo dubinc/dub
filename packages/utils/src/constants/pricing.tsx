@@ -604,6 +604,7 @@ export const PLAN_COMPARE_FEATURES: {
 export const FREE_PLAN = PLANS.find((plan) => plan.name === "Free")!;
 export const PRO_PLAN = PLANS.find((plan) => plan.name === "Pro")!;
 export const BUSINESS_PLAN = PLANS.find((plan) => plan.name === "Business")!;
+export const ADVANCED_PLAN = PLANS.find((plan) => plan.name === "Advanced")!;
 export const ENTERPRISE_PLAN = PLANS.find(
   (plan) => plan.name === "Enterprise",
 )!;
@@ -612,6 +613,7 @@ export const PUBLIC_PLANS = [
   FREE_PLAN,
   PRO_PLAN,
   BUSINESS_PLAN,
+  ADVANCED_PLAN,
   ENTERPRISE_PLAN,
 ];
 

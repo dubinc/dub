@@ -7,7 +7,7 @@ export default function Plan() {
     <StepPage
       title="Choose your plan"
       description="Find a plan that fits your needs"
-      className="max-w-2xl"
+      className="max-w-screen-lg"
     >
       <PlanSelector />
       <div className="mt-8 flex flex-col gap-3">

@@ -4,7 +4,12 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { PlanFeatures } from "@/ui/workspaces/plan-features";
 import { UpgradePlanButton } from "@/ui/workspaces/upgrade-plan-button";
 import { Badge, ToggleGroup } from "@dub/ui";
-import { PRO_PLAN, SELF_SERVE_PAID_PLANS } from "@dub/utils";
+import {
+  ADVANCED_PLAN,
+  BUSINESS_PLAN,
+  PRO_PLAN,
+  SELF_SERVE_PAID_PLANS,
+} from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import { useEffect, useState } from "react";
 
@@ -29,15 +34,10 @@ export function PlanSelector() {
           }
         />
       </div>
-      <div className="mt-8 grid gap-4 sm:grid-cols-2">
+      <div className="mt-8 grid gap-4 sm:grid-cols-3">
         <PlanCard name="Pro" plans={[PRO_PLAN]} period={periodTab} />
-        <PlanCard
-          name="Business"
-          plans={SELF_SERVE_PAID_PLANS.filter(({ name }) =>
-            name.startsWith("Business"),
-          )}
-          period={periodTab}
-        />
+        <PlanCard name="Business" plans={[BUSINESS_PLAN]} period={periodTab} />
+        <PlanCard name="Advanced" plans={[ADVANCED_PLAN]} period={periodTab} />
       </div>
     </div>
   );

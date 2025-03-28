@@ -28,13 +28,13 @@ export function PlanFeatures({
       animate="show"
       className={cn("flex flex-col gap-2", className)}
     >
-      {selectedPlan.name.startsWith("Business") && (
+      {selectedPlan.featureTitle && (
         <motion.div
           key="business-plan-feature"
           variants={STAGGER_CHILD_VARIANTS}
           className="text-sm text-neutral-500"
         >
-          Everything in Pro, plus:
+          {selectedPlan.featureTitle}
         </motion.div>
       )}
       {selectedPlan.features.map(({ text, footnote }, i) => (
