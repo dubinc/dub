@@ -87,7 +87,7 @@ export const PLANS = [
         "price_1OYJeBAlJJEpqkPVnPGEZeb0", // new yearly (prod)
 
         // 2025 pricing
-        "price_1R6Je3AlJJEpqkPVAXiF4nP5", //  yearly
+        "price_1R7euQAlJJEpqkPVAwD2sPLI", //  yearly
         "price_1R6JeDAlJJEpqkPV2W1gOwpS", // monthly
       ],
     },
