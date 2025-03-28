@@ -117,7 +117,7 @@ function AddLogoModalInner({ setShowAddLogoModal }: AddLogoModalProps) {
                 rules={{ required: "Logo file is required" }}
                 render={({ field }) => (
                   <FileUpload
-                    accept="images"
+                    accept="programResourceImages"
                     className={cn(
                       "aspect-[4.2] w-full rounded-md border border-neutral-300",
                       errors.file && "border-red-300 ring-1 ring-red-500",
