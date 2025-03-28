@@ -44,7 +44,7 @@ export function ReferralsEmbedLeaderboard() {
       },
       {
         id: "name",
-        header: "Name",
+        header: "Partner",
         cell: ({ row }) => {
           return row.original.name;
         },

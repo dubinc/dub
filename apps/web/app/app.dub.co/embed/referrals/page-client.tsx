@@ -181,7 +181,7 @@ export function ReferralsEmbedPageClient({
             leads={stats.leads}
             sales={stats.sales}
           />
-          <ReferralsEmbedPayouts payouts={payouts} />
+          <ReferralsEmbedPayouts payouts={payouts} programSlug={program.slug} />
         </div>
         <div className="mt-4">
           <div className="border-border-subtle flex items-center border-b">
