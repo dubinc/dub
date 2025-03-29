@@ -18,8 +18,7 @@ export const createRewardAction = authActionClient
       amount,
       type,
       maxDuration,
-      maxTotalPayout,
-      payoutResetInterval,
+      maxRewardAmount,
     } = parsedInput;
 
     const program = await getProgramOrThrow({
@@ -95,8 +94,7 @@ export const createRewardAction = authActionClient
         type,
         amount,
         maxDuration,
-        maxTotalPayout,
-        payoutResetInterval,
+        maxRewardAmount,
         ...(programEnrollments && {
           partners: {
             createMany: {

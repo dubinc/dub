@@ -3,6 +3,7 @@ import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
+import { validatePartnerRewardAmount } from "@/lib/partners/partner-reached-max-reward";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
@@ -109,6 +110,18 @@ export async function GET(req: Request) {
         continue;
       }
 
+      const { allowedEarnings } = await validatePartnerRewardAmount({
+        event: "click",
+        partnerId,
+        programId,
+        maxRewardAmount: reward.maxRewardAmount,
+        earnings: reward.amount * quantity,
+      });
+
+      if (allowedEarnings === 0) {
+        continue;
+      }
+
       const commission = await prisma.commission.create({
         data: {
           id: createId({ prefix: "cm_" }),
@@ -118,7 +131,7 @@ export async function GET(req: Request) {
           type: "click",
           quantity,
           amount: 0,
-          earnings: reward.amount * quantity,
+          earnings: allowedEarnings,
         },
       });
 

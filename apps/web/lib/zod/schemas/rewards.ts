@@ -15,25 +15,6 @@ export const COMMISSION_TYPES = [
   },
 ] as const;
 
-export const LIMIT_RESET_OPTIONS = [
-  { label: "None", value: "" },
-  { label: "Every year", value: "12" },
-  { label: "Every 6 months", value: "6" },
-  { label: "Every 3 months", value: "3" },
-  { label: "Every month", value: "1" },
-] as const;
-
-const payoutResetIntervalSchema = z.coerce
-  .number()
-  .nullish()
-  .refine(
-    (val) =>
-      !val || LIMIT_RESET_OPTIONS.some((o) => o.value === val.toString()),
-    {
-      message: "Invalid payout reset interval.",
-    },
-  );
-
 export const RewardSchema = z.object({
   id: z.string(),
   event: z.nativeEnum(EventType),
@@ -42,9 +23,8 @@ export const RewardSchema = z.object({
   type: z.nativeEnum(CommissionType),
   amount: z.number(),
   maxDuration: z.number().nullish(),
+  maxRewardAmount: z.number().nullable(),
   partnersCount: z.number().nullish(),
-  maxTotalPayout: z.number().nullish(),
-  payoutResetInterval: payoutResetIntervalSchema,
 });
 
 export const createOrUpdateRewardSchema = z.object({
@@ -55,8 +35,7 @@ export const createOrUpdateRewardSchema = z.object({
   amount: z.number().min(0),
   maxDuration: maxDurationSchema,
   partnerIds: z.array(z.string()).nullish(),
-  maxTotalPayout: z.number().nullish(),
-  payoutResetInterval: payoutResetIntervalSchema,
+  maxRewardAmount: z.number().nullish(),
 });
 
 export const createRewardSchema = createOrUpdateRewardSchema.superRefine(

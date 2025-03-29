@@ -5,6 +5,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
+import { validatePartnerRewardAmount } from "@/lib/partners/partner-reached-max-reward";
 import { getClickEvent, recordLead, recordLeadSync } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -216,22 +217,34 @@ export const POST = withWorkspace(
             });
 
             if (reward) {
-              await prisma.commission.create({
-                data: {
-                  id: createId({ prefix: "cm_" }),
-                  programId: link.programId,
-                  linkId: link.id,
-                  partnerId: link.partnerId,
-                  eventId: leadEventId,
-                  customerId: customer?.id,
-                  type: "lead",
-                  amount: 0,
-                  quantity: eventQuantity ?? 1,
-                  earnings: eventQuantity
-                    ? reward.amount * eventQuantity
-                    : reward.amount,
-                },
+              const earnings = eventQuantity
+                ? reward.amount * eventQuantity
+                : reward.amount;
+
+              const { allowedEarnings } = await validatePartnerRewardAmount({
+                event: "lead",
+                partnerId: link.partnerId,
+                programId: link.programId,
+                maxRewardAmount: reward.maxRewardAmount,
+                earnings,
               });
+
+              if (allowedEarnings > 0) {
+                await prisma.commission.create({
+                  data: {
+                    id: createId({ prefix: "cm_" }),
+                    programId: link.programId,
+                    linkId: link.id,
+                    partnerId: link.partnerId,
+                    eventId: leadEventId,
+                    customerId: customer?.id,
+                    type: "lead",
+                    amount: 0,
+                    quantity: eventQuantity ?? 1,
+                    earnings: allowedEarnings,
+                  },
+                });
+              }
             }
           }
 

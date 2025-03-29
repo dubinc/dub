@@ -4,6 +4,7 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
+import { validatePartnerRewardAmount } from "@/lib/partners/partner-reached-max-reward";
 import {
   getClickEvent,
   getLeadEvent,
@@ -299,28 +300,38 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         },
       });
 
-      const commission = await prisma.commission.create({
-        data: {
-          id: createId({ prefix: "cm_" }),
-          linkId: link.id,
-          programId: link.programId,
-          partnerId: link.partnerId,
-          customerId: customer.id,
-          eventId,
-          quantity: 1,
-          type: EventType.sale,
-          amount: saleData.amount,
-          earnings,
-          invoiceId,
-        },
+      const { allowedEarnings } = await validatePartnerRewardAmount({
+        event: "sale",
+        partnerId: link.partnerId,
+        programId: link.programId,
+        maxRewardAmount: reward.maxRewardAmount,
+        earnings,
       });
 
-      waitUntil(
-        notifyPartnerSale({
-          link,
-          commission,
-        }),
-      );
+      if (allowedEarnings > 0) {
+        const commission = await prisma.commission.create({
+          data: {
+            id: createId({ prefix: "cm_" }),
+            linkId: link.id,
+            programId: link.programId,
+            partnerId: link.partnerId,
+            customerId: customer.id,
+            eventId,
+            quantity: 1,
+            type: EventType.sale,
+            amount: saleData.amount,
+            earnings: allowedEarnings,
+            invoiceId,
+          },
+        });
+
+        waitUntil(
+          notifyPartnerSale({
+            link,
+            commission,
+          }),
+        );
+      }
     }
   }
 

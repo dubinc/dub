@@ -7,6 +7,7 @@ import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
+import { validatePartnerRewardAmount } from "@/lib/partners/partner-reached-max-reward";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -224,28 +225,38 @@ export const POST = withWorkspace(
                 },
               });
 
-              const commission = await prisma.commission.create({
-                data: {
-                  id: createId({ prefix: "cm_" }),
-                  programId: link.programId,
-                  linkId: link.id,
-                  partnerId: link.partnerId,
-                  eventId,
-                  customerId: customer.id,
-                  quantity: 1,
-                  type: "sale",
-                  amount: saleData.amount,
-                  earnings,
-                  invoiceId,
-                },
+              const { allowedEarnings } = await validatePartnerRewardAmount({
+                event: "sale",
+                partnerId: link.partnerId,
+                programId: link.programId,
+                maxRewardAmount: reward.maxRewardAmount,
+                earnings,
               });
 
-              waitUntil(
-                notifyPartnerSale({
-                  link,
-                  commission,
-                }),
-              );
+              if (allowedEarnings > 0) {
+                const commission = await prisma.commission.create({
+                  data: {
+                    id: createId({ prefix: "cm_" }),
+                    programId: link.programId,
+                    linkId: link.id,
+                    partnerId: link.partnerId,
+                    eventId,
+                    customerId: customer.id,
+                    quantity: 1,
+                    type: "sale",
+                    amount: saleData.amount,
+                    earnings: allowedEarnings,
+                    invoiceId,
+                  },
+                });
+
+                waitUntil(
+                  notifyPartnerSale({
+                    link,
+                    commission,
+                  }),
+                );
+              }
             }
           }
         }

@@ -14,7 +14,6 @@ import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import {
   COMMISSION_TYPES,
   createRewardSchema,
-  LIMIT_RESET_OPTIONS,
 } from "@/lib/zod/schemas/rewards";
 import { SelectEligiblePartnersSheet } from "@/ui/partners/select-eligible-partners-sheet";
 import { X } from "@/ui/shared/icons";
@@ -97,10 +96,9 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
         : 12,
       amount: reward?.type === "flat" ? reward.amount / 100 : reward?.amount,
       partnerIds: null,
-      maxTotalPayout: reward?.maxTotalPayout
-        ? reward.maxTotalPayout / 100
+      maxRewardAmount: reward?.maxRewardAmount
+        ? reward.maxRewardAmount / 100
         : null,
-      payoutResetInterval: reward?.payoutResetInterval || null,
     },
   });
 
@@ -199,8 +197,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
       amount: type === "flat" ? data.amount * 100 : data.amount,
       maxDuration:
         Infinity === Number(data.maxDuration) ? null : data.maxDuration,
-      maxTotalPayout: data.maxTotalPayout ? data.maxTotalPayout * 100 : null,
-      payoutResetInterval: data.payoutResetInterval || null,
+      maxRewardAmount: data.maxRewardAmount ? data.maxRewardAmount * 100 : null,
     };
 
     if (!reward) {
@@ -695,8 +692,8 @@ function RewardLimitSection({
   setValue: UseFormSetValue<FormData>;
   errors: FieldErrors<FormData>;
 }) {
-  const [maxTotalPayout] = watch(["maxTotalPayout"]);
-  const [isLimited, setIsLimited] = useState(maxTotalPayout !== null);
+  const [maxRewardAmount] = watch(["maxRewardAmount"]);
+  const [isLimited, setIsLimited] = useState(maxRewardAmount !== null);
 
   return (
     <div className="flex flex-col gap-4">
@@ -708,8 +705,7 @@ function RewardLimitSection({
             setIsLimited(checked);
 
             if (!checked) {
-              setValue("maxTotalPayout", null);
-              setValue("payoutResetInterval", null);
+              setValue("maxRewardAmount", null);
             }
           }}
         />
@@ -738,10 +734,10 @@ function RewardLimitSection({
                     <input
                       className={cn(
                         "block w-full rounded-md border-neutral-300 pl-6 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                        errors.maxTotalPayout &&
+                        errors.maxRewardAmount &&
                           "border-red-600 focus:border-red-500 focus:ring-red-600",
                       )}
-                      {...register("maxTotalPayout", {
+                      {...register("maxRewardAmount", {
                         required: isLimited,
                         valueAsNumber: true,
                         min: 0,
@@ -753,26 +749,6 @@ function RewardLimitSection({
                     <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
                       USD
                     </span>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-neutral-800">
-                    Limit reset
-                  </label>
-                  <div className="relative mt-2 rounded-md shadow-sm">
-                    <select
-                      className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                      {...register("payoutResetInterval", {
-                        valueAsNumber: true,
-                      })}
-                    >
-                      {LIMIT_RESET_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
                   </div>
                 </div>
               </div>
