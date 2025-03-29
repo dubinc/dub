@@ -5,11 +5,69 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
-import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
+import {
+  createPartnerLinkSchema,
+  retrievePartnerLinksSchema,
+} from "@/lib/zod/schemas/partners";
+import { ProgramPartnerLinkSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
 import { getApexDomain } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
+import { z } from "zod";
+
+// GET /api/partners/links - get the partner links
+export const GET = withWorkspace(
+  async ({ workspace, searchParams }) => {
+    const { programId, partnerId, tenantId } =
+      retrievePartnerLinksSchema.parse(searchParams);
+
+    await getProgramOrThrow({
+      programId,
+      workspaceId: workspace.id,
+    });
+
+    const programEnrollment = await prisma.programEnrollment.findUnique({
+      where: partnerId
+        ? {
+            partnerId_programId: {
+              partnerId,
+              programId,
+            },
+          }
+        : {
+            tenantId_programId: {
+              tenantId: tenantId as string,
+              programId,
+            },
+          },
+      select: {
+        links: true,
+      },
+    });
+
+    if (!programEnrollment) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Partner not found.",
+      });
+    }
+
+    const { links } = programEnrollment;
+
+    return NextResponse.json(z.array(ProgramPartnerLinkSchema).parse(links));
+  },
+  {
+    requiredPlan: [
+      "business",
+      "business extra",
+      "business max",
+      "business plus",
+      "advanced",
+      "enterprise",
+    ],
+  },
+);
 
 // POST /api/partners/links - create a link for a partner
 export const POST = withWorkspace(

@@ -111,6 +111,6 @@ export const PATCH = withPartnerProfile(
       updatedLink: processedLink,
     });
 
-    return NextResponse.json(partnerLink, { status: 201 });
+    return NextResponse.json(partnerLink);
   },
 );
