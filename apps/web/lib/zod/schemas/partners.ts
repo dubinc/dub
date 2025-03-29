@@ -463,3 +463,18 @@ export const banPartnerSchema = z.object({
     ],
   ),
 });
+
+export const retrievePartnerLinksSchema = z
+  .object({
+    programId: z.string(),
+    partnerId: z.string().optional(),
+    tenantId: z.string().optional(),
+  })
+  .refine(
+    (data) => data.partnerId !== undefined || data.tenantId !== undefined,
+    {
+      message:
+        "Either partnerId or tenantId must be provided to retrieve a partner.",
+      path: [],
+    },
+  );
