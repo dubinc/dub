@@ -11,13 +11,26 @@ export const createRewardAction = authActionClient
   .schema(createRewardSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { programId, partnerIds, event, amount, type, maxDuration } =
-      parsedInput;
+    const {
+      programId,
+      partnerIds,
+      event,
+      amount,
+      type,
+      maxDuration,
+      maxRewardAmount,
+    } = parsedInput;
 
     const program = await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
     });
+
+    if (maxRewardAmount && maxRewardAmount < amount) {
+      throw new Error(
+        "Max reward amount cannot be less than the reward amount.",
+      );
+    }
 
     let programEnrollments: { id: string }[] = [];
 
@@ -87,6 +100,7 @@ export const createRewardAction = authActionClient
         type,
         amount,
         maxDuration,
+        maxRewardAmount,
         ...(programEnrollments && {
           partners: {
             createMany: {

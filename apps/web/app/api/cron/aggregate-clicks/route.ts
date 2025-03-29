@@ -1,8 +1,7 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
-import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
-import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
+import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
@@ -62,14 +61,6 @@ export async function GET(req: Request) {
       });
     }
 
-    const processedLinks: {
-      linkId: string;
-      programId: string;
-      partnerId: string;
-      commissionId: string;
-      rewardId: string;
-    }[] = [];
-
     for (const { id: linkId, programId, partnerId } of links) {
       if (!linkId || !programId || !partnerId) {
         continue;
@@ -99,41 +90,16 @@ export async function GET(req: Request) {
         continue;
       }
 
-      const reward = await determinePartnerReward({
-        programId,
-        partnerId,
+      await createPartnerCommission({
         event: "click",
-      });
-
-      if (!reward) {
-        continue;
-      }
-
-      const commission = await prisma.commission.create({
-        data: {
-          id: createId({ prefix: "cm_" }),
-          linkId,
-          programId,
-          partnerId,
-          type: "click",
-          quantity,
-          amount: 0,
-          earnings: reward.amount * quantity,
-        },
-      });
-
-      processedLinks.push({
-        linkId,
         programId,
         partnerId,
-        rewardId: reward.id,
-        commissionId: commission.id,
+        linkId,
+        quantity,
       });
     }
 
-    console.log(processedLinks);
-
-    return NextResponse.json(processedLinks);
+    return NextResponse.json("OK");
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }
