@@ -1,10 +1,7 @@
 import { prisma } from "@dub/prisma";
 import { EventType } from "@dub/prisma/client";
 
-// TODO:
-// Need a better name for this function
-
-export const validatePartnerRewardAmount = async ({
+export const calculateEligibleEarnings = async ({
   event,
   partnerId,
   programId,
@@ -43,12 +40,20 @@ export const validatePartnerRewardAmount = async ({
   const totalEarnings = result._sum.earnings || 0;
 
   if (totalEarnings >= maxRewardAmount) {
+    console.log(
+      "Total earnings has reached the max reward amount, hence no more earnings are allowed",
+    );
+
     return {
       allowedEarnings: 0,
     };
   }
 
   if (totalEarnings + earnings <= maxRewardAmount) {
+    console.log(
+      "Total earnings + earnings <= max reward amount, hence the earnings are allowed",
+    );
+
     return {
       allowedEarnings: earnings,
     };

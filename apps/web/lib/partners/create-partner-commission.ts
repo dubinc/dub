@@ -3,8 +3,8 @@ import { EventType } from "@dub/prisma/client";
 import { log } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { calculateSaleEarnings } from "../api/sales/calculate-sale-earnings";
+import { calculateEligibleEarnings } from "./calculate-eligible-earnings";
 import { determinePartnerReward } from "./determine-partner-reward";
-import { validatePartnerRewardAmount } from "./partner-reached-max-reward";
 
 export const createPartnerCommission = async ({
   event,
@@ -51,7 +51,7 @@ export const createPartnerCommission = async ({
             },
           });
 
-    const { allowedEarnings } = await validatePartnerRewardAmount({
+    const { allowedEarnings } = await calculateEligibleEarnings({
       event,
       partnerId,
       programId,
