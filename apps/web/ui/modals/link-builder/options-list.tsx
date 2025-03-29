@@ -4,7 +4,7 @@ import { LoadingSpinner } from "@dub/ui/icons";
 import { fetcher, isValidUrl as isValidUrlFn } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { ReactNode, useMemo } from "react";
-import { useFormContext } from "react-hook-form";
+import { useFormContext, useWatch } from "react-hook-form";
 import useSWR from "swr";
 import { useDebounce } from "use-debounce";
 import { LinkFormData } from ".";
@@ -13,8 +13,8 @@ import { MOBILE_MORE_ITEMS, TOGGLES } from "./constants";
 export function OptionsList() {
   const { isMobile } = useMediaQuery();
 
-  const { watch, setValue } = useFormContext<LinkFormData>();
-  const data = watch();
+  const { control, setValue } = useFormContext<LinkFormData>();
+  const data = useWatch({ control });
 
   const enabledToggles = useMemo(
     () => TOGGLES.filter(({ key }) => data[key]),
@@ -25,7 +25,9 @@ export function OptionsList() {
     () => [
       ...enabledToggles,
       ...(isMobile
-        ? MOBILE_MORE_ITEMS.filter(({ enabled }) => enabled(data)).map(
+        ? // @ts-ignore - useWatch returns a deep partial, should be fixed in a future react-hook-form release
+          MOBILE_MORE_ITEMS.filter(({ enabled }) => enabled(data)).map(
+            // @ts-ignore - useWatch returns a deep partial, should be fixed in a future react-hook-form release
             (item) => ({ ...item, label: item.badgeLabel(data) }),
           )
         : []),

@@ -1,4 +1,5 @@
 import useWorkspace from "@/lib/swr/use-workspace";
+import { useLinkBuilderContext } from "@/ui/links/link-builder/link-builder-provider";
 import {
   Button,
   FileUpload,
@@ -25,18 +26,18 @@ import { cn, getDomainWithoutWWW, resizeImage } from "@dub/utils";
 import {
   ChangeEvent,
   ComponentType,
+  memo,
   PropsWithChildren,
   useCallback,
-  useContext,
   useMemo,
   useRef,
   useState,
 } from "react";
-import { useFormContext } from "react-hook-form";
+import { useFormContext, useWatch } from "react-hook-form";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { useDebounce } from "use-debounce";
-import { LinkFormData, LinkModalContext } from ".";
+import { LinkFormData } from ".";
 import { useOGModal } from "./og-modal";
 
 const tabs = ["default", "x", "linkedin", "facebook"] as const;
@@ -70,10 +71,13 @@ const tabComponents: Record<Tab, ComponentType<OGPreviewProps>> = {
   facebook: FacebookOGPreview,
 };
 
-export function LinkPreview() {
+export const LinkPreview = memo(() => {
   const { slug, plan } = useWorkspace();
-  const { watch, setValue } = useFormContext<LinkFormData>();
-  const { proxy, title, description, image, url, password } = watch();
+  const { control, setValue } = useFormContext<LinkFormData>();
+  const [proxy, title, description, image, url, password] = useWatch({
+    control,
+    name: ["proxy", "title", "description", "image", "url", "password"],
+  });
 
   const [debouncedUrl] = useDebounce(url, 500);
   const hostname = useMemo(() => {
@@ -181,9 +185,11 @@ export function LinkPreview() {
       </div>
     </div>
   );
-}
+});
 
-export const ImagePreview = ({
+LinkPreview.displayName = "LinkPreview";
+
+const ImagePreview = ({
   image,
   onImageChange,
 }: {
@@ -192,7 +198,7 @@ export const ImagePreview = ({
 }) => {
   const { isMobile } = useMediaQuery();
 
-  const { generatingMetatags } = useContext(LinkModalContext);
+  const { generatingMetatags } = useLinkBuilderContext();
 
   const inputFileRef = useRef<HTMLInputElement>(null);
 

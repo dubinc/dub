@@ -15,7 +15,7 @@ import { Pen2, QRCode as QRCodeIcon } from "@dub/ui/icons";
 import { DUB_QR_LOGO, linkConstructor } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { useMemo, useRef } from "react";
-import { useFormContext } from "react-hook-form";
+import { useFormContext, useWatch } from "react-hook-form";
 import { useDebounce } from "use-debounce";
 import { LinkFormData } from ".";
 import { QRCodeDesign, useLinkQRModal } from "../link-qr-modal";
@@ -28,8 +28,8 @@ export function QRCodePreview() {
     plan: workspacePlan,
   } = useWorkspace();
 
-  const { watch } = useFormContext<LinkFormData>();
-  const { key: rawKey, domain: rawDomain } = watch();
+  const { control } = useFormContext<LinkFormData>();
+  const [rawKey, rawDomain] = useWatch({ control, name: ["key", "domain"] });
   const [key] = useDebounce(rawKey, 500);
   const [domain] = useDebounce(rawDomain, 500);
 

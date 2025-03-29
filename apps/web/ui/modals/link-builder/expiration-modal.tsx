@@ -25,7 +25,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { useForm, useFormContext } from "react-hook-form";
+import { useForm, useFormContext, useWatch } from "react-hook-form";
 import { LinkFormData } from ".";
 
 function ExpirationModal({
@@ -280,8 +280,8 @@ function ExpirationButton({
 }: {
   setShowExpirationModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { watch } = useFormContext<LinkFormData>();
-  const expiresAt = watch("expiresAt");
+  const { control } = useFormContext<LinkFormData>();
+  const expiresAt = useWatch({ control, name: "expiresAt" });
 
   useKeyboardShortcut("e", () => setShowExpirationModal(true), {
     modal: true,
