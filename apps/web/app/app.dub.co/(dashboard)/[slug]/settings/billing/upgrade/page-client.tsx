@@ -191,7 +191,7 @@ export function WorkspaceBillingUpgradePageClient() {
           <div className="h-8 bg-gradient-to-b from-white" />
         </div>
         <div className="flex flex-col gap-8 pb-12">
-          {PLAN_COMPARE_FEATURES.map(({ category, features }) => {
+          {PLAN_COMPARE_FEATURES.map(({ category, href, features }) => {
             const Icon = COMPARE_FEATURE_ICONS[category];
 
             return (
@@ -199,10 +199,17 @@ export function WorkspaceBillingUpgradePageClient() {
                 key={category}
                 className="w-full overflow-x-hidden [container-type:inline-size]"
               >
-                <h3 className="flex items-center gap-2 border-b border-neutral-200 px-5 pb-4 pt-2 text-base font-medium text-black">
+                <a
+                  href={href}
+                  target="_blank"
+                  className="flex items-center gap-2 border-b border-neutral-200 px-5 pb-4 pt-2"
+                >
                   {Icon && <Icon className="size-4 text-neutral-600" />}
-                  {category}
-                </h3>
+                  <h3 className="text-base font-medium text-black">
+                    {category}
+                  </h3>
+                  <span className="text-xs text-neutral-500">↗</span>
+                </a>
                 <table
                   className={cn(
                     "grid grid-cols-4 overflow-hidden text-sm text-neutral-800 [&_strong]:font-medium",
