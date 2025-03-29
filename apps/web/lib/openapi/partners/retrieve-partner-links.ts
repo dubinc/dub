@@ -1,5 +1,5 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import { retrievePartnerSchema } from "@/lib/zod/schemas/partners";
+import { retrievePartnerLinksSchema } from "@/lib/zod/schemas/partners";
 import { ProgramPartnerLinkSchema } from "@/lib/zod/schemas/programs";
 import { z } from "zod";
 import { ZodOpenApiOperationObject } from "zod-openapi";
@@ -10,7 +10,7 @@ export const retrievePartnerLinks: ZodOpenApiOperationObject = {
   summary: "Retrieve a partner's links.",
   description: "Retrieve a partner's links by their partner ID or tenant ID.",
   requestParams: {
-    query: retrievePartnerSchema,
+    query: retrievePartnerLinksSchema,
   },
   responses: {
     "200": {

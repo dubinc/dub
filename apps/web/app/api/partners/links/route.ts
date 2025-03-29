@@ -7,7 +7,7 @@ import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
 import {
   createPartnerLinkSchema,
-  retrievePartnerSchema,
+  retrievePartnerLinksSchema,
 } from "@/lib/zod/schemas/partners";
 import { ProgramPartnerLinkSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
@@ -20,7 +20,7 @@ import { z } from "zod";
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const { programId, partnerId, tenantId } =
-      retrievePartnerSchema.parse(searchParams);
+      retrievePartnerLinksSchema.parse(searchParams);
 
     await getProgramOrThrow({
       programId,
