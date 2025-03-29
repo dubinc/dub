@@ -7,23 +7,32 @@ import { PartnersCount } from "../types";
 import { partnersCountQuerySchema } from "../zod/schemas/partners";
 import useWorkspace from "./use-workspace";
 
-export default function usePartnersCount<T>(
-  opts?: z.infer<typeof partnersCountQuerySchema> & { ignoreParams?: boolean },
-) {
-  const { programId } = useParams();
+export default function usePartnersCount<T>({
+  ignoreParams,
+  programId: programIdArg,
+  enabled,
+  ...params
+}: z.infer<typeof partnersCountQuerySchema> & {
+  programId?: string;
+  ignoreParams?: boolean;
+  enabled?: boolean;
+} = {}) {
+  const { programId: programIdParam } = useParams();
   const { id: workspaceId } = useWorkspace();
   const { getQueryString } = useRouterStuff();
 
-  const queryString = opts?.ignoreParams
+  const programId = programIdArg || programIdParam;
+
+  const queryString = ignoreParams
     ? // @ts-ignore
       `?${new URLSearchParams({
-        ...(opts.groupBy && { groupBy: opts.groupBy }),
+        ...(params.groupBy && { groupBy: params.groupBy }),
         workspaceId,
         programId,
       }).toString()}`
     : getQueryString(
         {
-          ...opts,
+          ...params,
           workspaceId,
           programId,
         },
@@ -33,7 +42,7 @@ export default function usePartnersCount<T>(
       );
 
   const { data: partnersCount, error } = useSWR<PartnersCount>(
-    `/api/partners/count${queryString}`,
+    enabled !== false ? `/api/partners/count${queryString}` : null,
     fetcher,
   );
 

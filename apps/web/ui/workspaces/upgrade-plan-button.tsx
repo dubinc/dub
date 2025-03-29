@@ -2,7 +2,7 @@
 
 import { getStripe } from "@/lib/stripe/client";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { Button } from "@dub/ui";
+import { Button, ButtonProps } from "@dub/ui";
 import { APP_DOMAIN, capitalize, SELF_SERVE_PAID_PLANS } from "@dub/utils";
 import { usePlausible } from "next-plausible";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -12,12 +12,11 @@ import { useState } from "react";
 export function UpgradePlanButton({
   plan,
   period,
-  text,
+  ...rest
 }: {
   plan: string;
   period: "monthly" | "yearly";
-  text?: string;
-}) {
+} & Partial<ButtonProps>) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -84,6 +83,7 @@ export function UpgradePlanButton({
             setClicked(false);
           });
       }}
+      {...rest}
     />
   );
 }

@@ -7,18 +7,20 @@ export default function Plan() {
     <StepPage
       title="Choose your plan"
       description="Find a plan that fits your needs"
-      className="max-w-2xl"
+      className="max-w-screen-lg"
     >
       <PlanSelector />
-      <div className="mt-8 flex flex-col gap-3">
+      <div className="mx-auto mt-8 flex w-fit justify-center gap-4">
         <a
           href="https://dub.co/enterprise"
           target="_blank"
-          className="w-full text-center text-sm text-neutral-500 transition-colors hover:text-neutral-700"
+          className="btext-center text-sm text-neutral-500 transition-colors hover:text-neutral-700"
         >
           Looking for enterprise?
         </a>
-        <LaterButton next="finish">I'll pick a plan later</LaterButton>
+        <LaterButton next="finish">
+          Start for free, pick a plan later
+        </LaterButton>
       </div>
     </StepPage>
   );

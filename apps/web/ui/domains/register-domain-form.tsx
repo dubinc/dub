@@ -367,7 +367,7 @@ function UpgradeTooltipContent() {
         </>
       }
       cta="Upgrade to Pro"
-      onClick={() => window.open(`/${slug}/upgrade?exit=close`)}
+      onClick={() => window.open(`/${slug}/upgrade`)}
     />
   );
 }

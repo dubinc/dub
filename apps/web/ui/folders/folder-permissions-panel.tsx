@@ -211,7 +211,7 @@ const FolderPermissionsPanel = ({
                         <TooltipContent
                           title="You can only set custom folder permissions on a Business plan and above."
                           cta="Upgrade to Business"
-                          href={`/${slug}/upgrade?exit=close`}
+                          href={`/${slug}/upgrade`}
                           target="_blank"
                         />
                       }
