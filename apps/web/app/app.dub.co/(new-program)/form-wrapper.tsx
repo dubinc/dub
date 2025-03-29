@@ -10,7 +10,7 @@ export function FormWrapper({ children }: { children: React.ReactNode }) {
 
   const methods = useForm<ProgramData>({
     defaultValues: {
-      linkType: "short",
+      linkStructure: "short",
       programType: "new",
       type: "flat",
       amount: null,
@@ -19,7 +19,7 @@ export function FormWrapper({ children }: { children: React.ReactNode }) {
     values: programOnboarding
       ? {
           ...programOnboarding,
-          linkType: programOnboarding.linkType ?? "short",
+          linkStructure: programOnboarding.linkStructure ?? "short",
           programType: programOnboarding.programType ?? "new",
           type: programOnboarding.type ?? "flat",
           amount: programOnboarding.amount ?? null,

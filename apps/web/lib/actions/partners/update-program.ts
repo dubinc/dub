@@ -34,6 +34,7 @@ export const updateProgramAction = authActionClient
       logo,
       wordmark,
       brandColor,
+      linkStructure,
     } = parsedInput;
 
     try {
@@ -78,6 +79,7 @@ export const updateProgramAction = authActionClient
           logo: logoUrl ?? undefined,
           wordmark: wordmarkUrl ?? undefined,
           defaultFolderId,
+          linkStructure,
         },
       });
 
@@ -92,10 +94,7 @@ export const updateProgramAction = authActionClient
             : []),
         ]),
       );
-
-      return { ok: true, program };
     } catch (e) {
-      console.error("Failed to update program", e);
-      return { ok: false };
+      throw new Error("Failed to update program.");
     }
   });

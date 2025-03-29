@@ -37,8 +37,8 @@ export function RewardSettings() {
 
   const { executeAsync } = useAction(updateProgramAction, {
     onSuccess: async () => {
-      await mutate(`/api/programs/${program?.id}?workspaceId=${workspaceId}`);
       toast.success("Reward settings updated successfully.");
+      await mutate(`/api/programs/${program?.id}?workspaceId=${workspaceId}`);
     },
     onError: ({ error }) => {
       toast.error(parseActionError(error, "Failed to update reward settings."));
