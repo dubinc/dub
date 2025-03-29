@@ -176,6 +176,7 @@ export default function PlanUsage() {
             icon={Globe}
             usage={domains?.length}
             usageLimit={domainsLimit}
+            href={`/${slug}/settings/domains`}
           />
           {flags?.linkFolders && (
             <UsageCategory
@@ -183,6 +184,7 @@ export default function PlanUsage() {
               icon={Folder5}
               usage={foldersUsage}
               usageLimit={foldersLimit}
+              href={`/${slug}/settings/library/folders`}
             />
           )}
           <UsageCategory
@@ -190,12 +192,14 @@ export default function PlanUsage() {
             icon={Tag}
             usage={tags}
             usageLimit={tagsLimit}
+            href={`/${slug}/settings/library/tags`}
           />
           <UsageCategory
             title="Teammates"
             icon={Users}
             usage={users?.filter((user) => !user.isMachine).length}
             usageLimit={usersLimit}
+            href={`/${slug}/settings/people`}
           />
         </div>
         {partnersEnabled && (
@@ -205,6 +209,11 @@ export default function PlanUsage() {
               icon={Users6}
               usage={programs && !programs.length ? 0 : partnersCount}
               usageLimit={INFINITY_NUMBER}
+              href={
+                programs?.[0]?.id
+                  ? `/${slug}/programs/${programs?.[0]?.id}/partners`
+                  : undefined
+              }
             />
             <UsageCategory
               title="Payout fees"
@@ -216,6 +225,7 @@ export default function PlanUsage() {
                     : "-"
                   : undefined
               }
+              href="https://dub.co/help/article/partner-payouts#payout-fees-and-timing"
             />
           </div>
         )}
@@ -368,11 +378,21 @@ function UsageCategory(data: {
   icon: Icon;
   usage?: number | string;
   usageLimit?: number;
+  href?: string;
 }) {
-  let { title, icon: Icon, usage, usageLimit } = data;
+  let { title, icon: Icon, usage, usageLimit, href } = data;
+
+  const As = href ? Link : "div";
 
   return (
-    <div className="flex flex-col justify-between gap-4 bg-white p-6 md:px-8">
+    <As
+      className={cn(
+        "flex flex-col justify-between gap-4 bg-white p-6 md:px-8",
+        href && "transition-colors hover:bg-neutral-50",
+      )}
+      href={href ?? "#"}
+      {...(href?.startsWith("http") && { target: "_blank" })}
+    >
       <div className="flex cursor-default items-center gap-2 text-neutral-800">
         <Icon className="size-4 shrink-0" />
         <h3 className="text-sm font-medium">{title}</h3>
@@ -398,6 +418,6 @@ function UsageCategory(data: {
           </>
         )}
       </div>
-    </div>
+    </As>
   );
 }
