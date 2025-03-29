@@ -14,8 +14,8 @@ export const validatePartnerRewardAmount = async ({
   event: EventType;
   partnerId: string;
   programId: string;
-  earnings: number; // in cents
-  maxRewardAmount: number | null; // in cen
+  earnings: number;
+  maxRewardAmount: number | null;
 }) => {
   if (!maxRewardAmount) {
     return {
