@@ -1,6 +1,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   CrownSmall,
+  FlaskSmall,
   InfoTooltip,
   SimpleTooltipContent,
   Switch,
@@ -20,7 +21,10 @@ export function ConversionTrackingToggle() {
 
   const conversionsEnabled = !!plan && plan !== "free" && plan !== "pro";
 
-  const trackConversion = watch("trackConversion");
+  const [trackConversion, testVariants] = watch([
+    "trackConversion",
+    "testVariants",
+  ]);
 
   useKeyboardShortcut(
     "c",
@@ -57,7 +61,9 @@ export function ConversionTrackingToggle() {
           })
         }
         disabledTooltip={
-          conversionsEnabled ? undefined : (
+          trackConversion && testVariants ? (
+            <TooltipContent title="Conversion tracking must be enabled to use A/B testing." />
+          ) : conversionsEnabled ? undefined : (
             <TooltipContent
               title="Conversion tracking is only available on Business plans and above."
               cta="Upgrade to Business"
@@ -69,7 +75,11 @@ export function ConversionTrackingToggle() {
           )
         }
         thumbIcon={
-          conversionsEnabled ? undefined : (
+          trackConversion && testVariants ? (
+            <span className="flex size-full items-center justify-center">
+              <FlaskSmall className="size-2 text-blue-500" />
+            </span>
+          ) : conversionsEnabled ? undefined : (
             <CrownSmall className="size-full text-neutral-500" />
           )
         }
