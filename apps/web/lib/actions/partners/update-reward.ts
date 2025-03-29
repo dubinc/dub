@@ -26,6 +26,12 @@ export const updateRewardAction = authActionClient
       programId,
     });
 
+    if (maxRewardAmount && maxRewardAmount < amount) {
+      throw new Error(
+        "Max reward amount cannot be less than the reward amount.",
+      );
+    }
+
     const reward = await getRewardOrThrow(
       {
         rewardId,

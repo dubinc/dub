@@ -26,6 +26,12 @@ export const createRewardAction = authActionClient
       programId,
     });
 
+    if (maxRewardAmount && maxRewardAmount < amount) {
+      throw new Error(
+        "Max reward amount cannot be less than the reward amount.",
+      );
+    }
+
     let programEnrollments: { id: string }[] = [];
 
     // only one program-wide reward is allowed for each event
