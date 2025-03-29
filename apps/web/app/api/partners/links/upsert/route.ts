@@ -66,9 +66,9 @@ export const PUT = withWorkspace(
 
     const link = await prisma.link.findFirst({
       where: {
-        projectId: workspace.id,
         programId,
         partnerId,
+        projectId: workspace.id,
         url,
       },
       include: includeTags,
