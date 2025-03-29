@@ -216,15 +216,16 @@ export const POST = withWorkspace(
 
             if (eligibleForCommission) {
               const commission = await createPartnerCommission({
-                type: "sale",
+                event: "sale",
                 programId: link.programId,
-                linkId: link.id,
                 partnerId: link.partnerId,
-                eventId: eventId,
+                linkId: link.id,
+                eventId,
                 customerId: customer.id,
                 amount: saleData.amount,
                 quantity: 1,
                 invoiceId,
+                currency,
               });
 
               if (commission) {

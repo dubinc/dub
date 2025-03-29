@@ -91,11 +91,10 @@ export async function GET(req: Request) {
       }
 
       await createPartnerCommission({
-        type: "click",
+        event: "click",
         programId,
-        linkId,
         partnerId,
-        amount: 0,
+        linkId,
         quantity,
       });
     }

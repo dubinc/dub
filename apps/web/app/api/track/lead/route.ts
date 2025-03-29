@@ -210,13 +210,12 @@ export const POST = withWorkspace(
 
           if (link.programId && link.partnerId) {
             await createPartnerCommission({
-              type: "lead",
+              event: "lead",
               programId: link.programId,
-              linkId: link.id,
               partnerId: link.partnerId,
+              linkId: link.id,
               eventId: leadEventId,
               customerId: customer?.id,
-              amount: 0,
               quantity: eventQuantity ?? 1,
             });
           }

@@ -99,13 +99,12 @@ export async function createNewCustomer(event: Stripe.Event) {
 
   if (link.programId && link.partnerId) {
     await createPartnerCommission({
-      type: "lead",
+      event: "lead",
       programId: link.programId,
-      linkId: link.id,
       partnerId: link.partnerId,
+      linkId: link.id,
       eventId: leadData.event_id,
       customerId: customer.id,
-      amount: 0,
       quantity: 1,
     });
   }

@@ -284,15 +284,16 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   // for program links
   if (link && link.programId && link.partnerId) {
     const commission = await createPartnerCommission({
-      type: "sale",
+      event: "sale",
       programId: link.programId,
-      linkId: link.id,
       partnerId: link.partnerId,
-      eventId: eventId,
+      linkId: link.id,
+      eventId,
       customerId: customer.id,
       amount: saleData.amount,
       quantity: 1,
       invoiceId,
+      currency: saleData.currency,
     });
 
     if (commission) {

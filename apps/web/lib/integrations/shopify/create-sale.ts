@@ -1,7 +1,6 @@
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
-import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -122,34 +121,26 @@ export async function createShopifySale({
 
   // for program links
   if (link.programId && link.partnerId) {
-    const reward = await determinePartnerReward({
+    const commission = await createPartnerCommission({
+      event: "sale",
       programId: link.programId,
       partnerId: link.partnerId,
-      event: "sale",
+      linkId: link.id,
+      eventId: saleData.event_id,
+      customerId: customer.id,
+      amount: saleData.amount,
+      quantity: 1,
+      invoiceId: saleData.invoice_id,
+      currency: saleData.currency,
     });
 
-    if (reward) {
-      const commission = await createPartnerCommission({
-        type: "sale",
-        programId: link.programId,
-        linkId: link.id,
-        partnerId: link.partnerId,
-        eventId: saleData.event_id,
-        customerId: customer.id,
-        amount,
-        quantity: 1,
-        invoiceId,
-        currency,
-      });
-
-      if (commission) {
-        waitUntil(
-          notifyPartnerSale({
-            link,
-            commission,
-          }),
-        );
-      }
+    if (commission) {
+      waitUntil(
+        notifyPartnerSale({
+          link,
+          commission,
+        }),
+      );
     }
   }
 }
