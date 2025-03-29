@@ -6,6 +6,7 @@ import {
   ChartLine,
   Check,
   CircleQuestion,
+  ConnectedDots4,
   Globe,
   Hyperlink,
   Icon,
@@ -23,9 +24,10 @@ const COMPARE_FEATURE_ICONS: Record<
   (typeof PLAN_COMPARE_FEATURES)[number]["category"],
   Icon
 > = {
-  "Short links": Hyperlink,
-  Domains: Globe,
+  Links: Hyperlink,
   Analytics: ChartLine,
+  Partners: ConnectedDots4,
+  Domains: Globe,
   Workspace: Users2,
   Support: CircleQuestion,
   API: Plug2,
@@ -222,41 +224,53 @@ export function WorkspaceBillingUpgradePageClient() {
                     </tr>
                   </thead>
                   <tbody className="contents">
-                    {features.map(({ check, text }, idx) => (
-                      <tr key={idx} className="contents bg-white">
-                        {plans.map((plan) => {
-                          const id = plan.name.toLowerCase();
-                          const isChecked =
-                            typeof check === "boolean"
-                              ? check
-                              : check === undefined ||
-                                (check[id] ?? check.default ?? false);
+                    {features.map(({ check, text, href }, idx) => {
+                      const As = href ? "a" : "span";
 
-                          return (
-                            <td
-                              key={id}
-                              className={cn(
-                                "flex items-center gap-2 border-b border-neutral-200 bg-white px-5 py-4",
-                                !isChecked && "text-neutral-300",
-                              )}
-                            >
-                              {isChecked ? (
-                                <Check className="size-3 text-neutral-500" />
-                              ) : (
-                                <span className="w-3">&bull;</span>
-                              )}
-                              <span>
-                                {/* @ts-ignore */}
-                                {text({
-                                  id,
-                                  plan,
-                                })}
-                              </span>
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    ))}
+                      return (
+                        <tr key={idx} className="contents bg-white">
+                          {plans.map((plan) => {
+                            const id = plan.name.toLowerCase();
+                            const isChecked =
+                              typeof check === "boolean"
+                                ? check
+                                : check === undefined ||
+                                  (check[id] ?? check.default ?? false);
+
+                            return (
+                              <td
+                                key={id}
+                                className={cn(
+                                  "flex items-center gap-2 border-b border-neutral-200 bg-white px-5 py-4",
+                                  !isChecked && "text-neutral-300",
+                                )}
+                              >
+                                {isChecked ? (
+                                  <Check className="size-3 text-neutral-500" />
+                                ) : (
+                                  <span className="w-3">&bull;</span>
+                                )}
+                                <As
+                                  href={href}
+                                  target="_blank"
+                                  {...(href && {
+                                    className:
+                                      "underline decoration-dotted underline-offset-2 cursor-help",
+                                  })}
+                                >
+                                  {typeof text === "function"
+                                    ? (text({
+                                        id,
+                                        plan,
+                                      }) as React.ReactNode)
+                                    : text}
+                                </As>
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

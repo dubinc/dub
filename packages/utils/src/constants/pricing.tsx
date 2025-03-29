@@ -315,7 +315,10 @@ export const PLANS = [
 export const PLAN_COMPARE_FEATURES: {
   category: string;
   features: {
-    text: (d: { id: string; plan: (typeof PLANS)[number] }) => ReactNode;
+    text:
+      | string
+      | ((d: { id: string; plan: (typeof PLANS)[number] }) => ReactNode);
+    href?: string;
     check?:
       | boolean
       | {
@@ -329,7 +332,7 @@ export const PLAN_COMPARE_FEATURES: {
   }[];
 }[] = [
   {
-    category: "Short links",
+    category: "Links",
     features: [
       {
         text: () => (
@@ -341,36 +344,69 @@ export const PLAN_COMPARE_FEATURES: {
       {
         text: ({ plan }) => (
           <>
-            <strong>{nFormatter(plan.limits.links)}</strong> new links/mo
+            <strong>
+              {plan.name === "Enterprise" ? "∞" : nFormatter(plan.limits.links)}
+            </strong>{" "}
+            new links/mo
           </>
         ),
       },
       {
-        text: () => (
+        text: ({ plan }) => (
           <>
-            <strong>Unlimited</strong> redirects
+            <strong>
+              {plan.limits.tags === INFINITY_NUMBER
+                ? "Unlimited"
+                : nFormatter(plan.limits.tags)}
+            </strong>{" "}
+            tags
+          </>
+        ),
+        href: "https://dub.co/help/article/how-to-use-tags",
+      },
+      {
+        check: {
+          free: false,
+          default: true,
+        },
+        text: ({ plan }) => (
+          <>
+            <strong>
+              {plan.limits.folders === INFINITY_NUMBER
+                ? "Unlimited"
+                : nFormatter(plan.limits.folders)}
+            </strong>{" "}
+            folders
           </>
         ),
       },
       {
-        text: () => <>QR Codes</>,
+        text: "Custom QR codes",
+        href: "https://dub.co/help/article/custom-qr-codes",
       },
       {
-        text: () => <>UTM Builder</>,
+        text: "UTM builder",
+        href: "https://dub.co/help/article/utm-builder",
+      },
+      {
+        text: "UTM templates",
+        href: "https://dub.co/help/article/utm-templates",
       },
       {
         check: {
           free: false,
           default: true,
         },
-        text: () => <>Custom link previews</>,
+        text: "Custom link previews",
+        href: "https://dub.co/help/article/custom-link-previews",
       },
       {
         check: {
           free: false,
           default: true,
         },
-        text: () => <>Link cloaking</>,
+        text: "Link cloaking",
+        href: "https://dub.co/help/article/link-cloaking",
       },
 
       {
@@ -378,28 +414,191 @@ export const PLAN_COMPARE_FEATURES: {
           free: false,
           default: true,
         },
-        text: () => <>Link expiration</>,
+        text: "Link expiration",
+        href: "https://dub.co/help/article/link-expiration",
       },
       {
         check: {
           free: false,
           default: true,
         },
-        text: () => <>Password protection</>,
+        text: "Password protection",
+        href: "https://dub.co/help/article/password-protected-links",
       },
       {
         check: {
           free: false,
           default: true,
         },
-        text: () => <>Device targeting</>,
+        text: "Device targeting",
+        href: "https://dub.co/help/article/device-targeting",
       },
       {
         check: {
           free: false,
           default: true,
         },
-        text: () => <>Geo targeting</>,
+        text: "Geo targeting",
+        href: "https://dub.co/help/article/geo-targeting",
+      },
+    ],
+  },
+  {
+    category: "Analytics",
+    features: [
+      {
+        text: "Advanced analytics",
+        href: "https://dub.co/help/article/dub-analytics",
+      },
+      {
+        text: ({ plan }) => (
+          <>
+            <strong>
+              {plan.name === "Enterprise"
+                ? "∞"
+                : nFormatter(plan.limits.clicks)}
+            </strong>{" "}
+            tracked clicks/mo
+          </>
+        ),
+        href: "https://dub.co/help/article/dub-analytics-limits",
+      },
+      {
+        text: ({ id }) => (
+          <>
+            <strong>
+              {
+                {
+                  free: "30 day",
+                  pro: "1 year",
+                  business: "3 year",
+                  advanced: "5 year",
+                  enterprise: "∞",
+                }[id]
+              }
+            </strong>{" "}
+            retention
+          </>
+        ),
+      },
+      {
+        check: {
+          default: false,
+          business: true,
+          advanced: true,
+          enterprise: true,
+        },
+        text: "Real-time events stream",
+        href: "https://dub.co/help/article/real-time-events-stream",
+      },
+      {
+        check: {
+          default: false,
+          business: true,
+          advanced: true,
+          enterprise: true,
+        },
+        text: "Conversion tracking",
+        href: "https://dub.co/help/article/dub-conversions",
+      },
+    ],
+  },
+  {
+    category: "Partners",
+    features: [
+      {
+        check: {
+          default: false,
+          business: true,
+          advanced: true,
+          enterprise: true,
+        },
+        text: "Partner management",
+        href: "https://dub.co/help/article/dub-partners",
+      },
+      {
+        check: {
+          default: false,
+          business: true,
+          advanced: true,
+          enterprise: true,
+        },
+        text: ({ id, plan }) =>
+          id === "free" || id === "pro" ? (
+            "No tracked sales"
+          ) : id === "enterprise" ? (
+            "∞ tracked sales"
+          ) : (
+            <>
+              <strong>${nFormatter(plan.limits.sales / 100)}</strong> tracked
+              sales/mo
+            </>
+          ),
+      },
+      {
+        check: {
+          default: false,
+          business: true,
+          advanced: true,
+          enterprise: true,
+        },
+        text: "1-click global payouts",
+        href: "https://dub.co/help/article/partner-payouts",
+      },
+      {
+        check: {
+          default: false,
+          business: true,
+          advanced: true,
+          enterprise: true,
+        },
+        text: ({ id }) =>
+          id === "free" || id === "pro" ? (
+            "No payouts"
+          ) : (
+            <>
+              <strong>
+                {
+                  {
+                    business: "7%",
+                    advanced: "5%",
+                    enterprise: "3%",
+                  }[id]
+                }
+              </strong>{" "}
+              payout fees
+            </>
+          ),
+        href: "https://dub.co/help/article/partner-payouts#payout-fees-and-timing",
+      },
+      {
+        check: {
+          default: false,
+          business: true,
+          advanced: true,
+          enterprise: true,
+        },
+        text: "Tax compliance",
+        href: "https://dub.co/help/article/partner-payouts#tax-compliance",
+      },
+      {
+        check: {
+          default: false,
+          business: false,
+          advanced: true,
+          enterprise: true,
+        },
+        text: "White-labeling support",
+        href: "https://dub.co/help/article/dub-partners#white-labeled-in-app-dashboard",
+      },
+      {
+        check: {
+          default: false,
+          business: false,
+          advanced: true,
+          enterprise: true,
+        },
+        text: "Branded email domains",
       },
     ],
   },
@@ -427,6 +626,7 @@ export const PLAN_COMPARE_FEATURES: {
             Premium <strong>dub.link</strong> domain
           </>
         ),
+        href: "https://dub.co/help/article/default-dub-domains#premium-dublink-domain",
       },
       {
         check: {
@@ -438,61 +638,7 @@ export const PLAN_COMPARE_FEATURES: {
             Free <strong>.link</strong> domain
           </>
         ),
-      },
-    ],
-  },
-  {
-    category: "Analytics",
-    features: [
-      {
-        text: ({ id }) => (
-          <>
-            <strong>
-              {
-                {
-                  free: "30 day",
-                  pro: "1 year",
-                  business: "3 year",
-                  advanced: "5 year",
-                  enterprise: "Unlimited",
-                }[id]
-              }
-            </strong>{" "}
-            retention
-          </>
-        ),
-      },
-      {
-        text: () => <>Advanced analytics</>,
-      },
-      {
-        text: ({ plan }) => (
-          <>
-            <strong>{nFormatter(plan.limits.clicks)}</strong> tracked clicks/mo
-          </>
-        ),
-      },
-      {
-        check: {
-          default: false,
-          business: true,
-          advanced: true,
-          enterprise: true,
-        },
-        text: () => (
-          <>
-            <strong>Real-time</strong> events stream
-          </>
-        ),
-      },
-      {
-        check: {
-          default: false,
-          business: true,
-          advanced: true,
-          enterprise: true,
-        },
-        text: () => <>Conversion tracking</>,
+        href: "https://dub.co/help/article/free-dot-link-domain",
       },
     ],
   },
@@ -510,30 +656,32 @@ export const PLAN_COMPARE_FEATURES: {
       {
         check: {
           default: false,
+          advanced: true,
           enterprise: true,
         },
-        text: () => <>SSO/SAML</>,
+        text: "Role-based access control",
       },
       {
         check: {
           default: false,
           enterprise: true,
         },
-        text: () => <>Custom SLA</>,
+        text: "SAML/SSO",
+        href: "https://dub.co/help/category/saml-sso",
       },
       {
         check: {
           default: false,
           enterprise: true,
         },
-        text: () => <>Audit logs</>,
+        text: "Custom SLA",
       },
       {
         check: {
           default: false,
           enterprise: true,
         },
-        text: () => <>Role-based controls</>,
+        text: "Audit logs",
       },
     ],
   },
@@ -544,12 +692,16 @@ export const PLAN_COMPARE_FEATURES: {
         text: ({ id }) => (
           <>
             <strong>
-              {{
-                free: "Basic",
-                pro: "Elevated",
-              }[id] ?? "Priority"}
-            </strong>{" "}
-            {id === "enterprise" ? "with SLA" : "support"}
+              {
+                {
+                  free: "Basic support",
+                  pro: "Elevated support",
+                  business: "Priority support",
+                  advanced: "Priority via Slack",
+                  enterprise: "Priority with SLA",
+                }[id]
+              }
+            </strong>
           </>
         ),
       },
@@ -570,7 +722,12 @@ export const PLAN_COMPARE_FEATURES: {
     category: "API",
     features: [
       {
-        text: () => <>API access</>,
+        text: "API Access",
+        href: "https://dub.co/docs/api-reference/introduction",
+      },
+      {
+        text: "Native SDKs",
+        href: "https://dub.co/docs/sdks/overview",
       },
       {
         text: ({ id, plan }) => (
@@ -591,11 +748,8 @@ export const PLAN_COMPARE_FEATURES: {
           advanced: true,
           enterprise: true,
         },
-        text: () => (
-          <>
-            <strong>Event webhooks</strong>
-          </>
-        ),
+        text: "Event webhooks",
+        href: "https://dub.co/docs/concepts/webhooks/introduction",
       },
     ],
   },
