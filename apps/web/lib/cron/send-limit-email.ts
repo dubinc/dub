@@ -27,10 +27,8 @@ export const sendLimitEmail = async ({
       limiter.schedule(() =>
         sendEmail({
           subject: type.endsWith("UsageLimitEmail")
-            ? `${process.env.NEXT_PUBLIC_APP_NAME} Alert: Clicks Limit Exceeded`
-            : `${process.env.NEXT_PUBLIC_APP_NAME} Alert: ${
-                workspace.name
-              } has used ${percentage.toString()}% of its links limit for the month.`,
+            ? "Dub Alert: Clicks Limit Exceeded"
+            : `Dub Alert: ${workspace.name} has used ${percentage.toString()}% of its links limit for the month.`,
           email,
           react: type.endsWith("UsageLimitEmail")
             ? ClicksExceeded({
@@ -42,6 +40,7 @@ export const sendLimitEmail = async ({
                 email,
                 workspace,
               }),
+          variant: "notifications",
         }),
       );
     }),
