@@ -1,9 +1,7 @@
-import { createId } from "@/lib/api/create-id";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
-import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
+import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
-import { validatePartnerRewardAmount } from "@/lib/partners/partner-reached-max-reward";
 import { recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -131,40 +129,20 @@ export async function createShopifySale({
     });
 
     if (reward) {
-      const earnings = calculateSaleEarnings({
-        reward,
-        sale: {
-          quantity: 1,
-          amount: saleData.amount,
-        },
-      });
-
-      const { allowedEarnings } = await validatePartnerRewardAmount({
-        event: "sale",
-        partnerId: link.partnerId,
+      const commission = await createPartnerCommission({
+        type: "sale",
         programId: link.programId,
-        maxRewardAmount: reward.maxRewardAmount,
-        earnings,
+        linkId: link.id,
+        partnerId: link.partnerId,
+        eventId: saleData.event_id,
+        customerId: customer.id,
+        amount,
+        quantity: 1,
+        invoiceId,
+        currency,
       });
 
-      if (allowedEarnings > 0) {
-        const commission = await prisma.commission.create({
-          data: {
-            id: createId({ prefix: "cm_" }),
-            programId: link.programId,
-            linkId: link.id,
-            partnerId: link.partnerId,
-            eventId: saleData.event_id,
-            customerId: customer.id,
-            quantity: 1,
-            type: "sale",
-            amount,
-            earnings: allowedEarnings,
-            invoiceId,
-            currency,
-          },
-        });
-
+      if (commission) {
         waitUntil(
           notifyPartnerSale({
             link,

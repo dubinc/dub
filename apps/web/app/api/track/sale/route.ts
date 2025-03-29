@@ -1,13 +1,11 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
-import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
-import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
-import { validatePartnerRewardAmount } from "@/lib/partners/partner-reached-max-reward";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -217,39 +215,19 @@ export const POST = withWorkspace(
             }
 
             if (eligibleForCommission) {
-              const earnings = calculateSaleEarnings({
-                reward,
-                sale: {
-                  quantity: 1,
-                  amount: saleData.amount,
-                },
-              });
-
-              const { allowedEarnings } = await validatePartnerRewardAmount({
-                event: "sale",
-                partnerId: link.partnerId,
+              const commission = await createPartnerCommission({
+                type: "sale",
                 programId: link.programId,
-                maxRewardAmount: reward.maxRewardAmount,
-                earnings,
+                linkId: link.id,
+                partnerId: link.partnerId,
+                eventId: eventId,
+                customerId: customer.id,
+                amount: saleData.amount,
+                quantity: 1,
+                invoiceId,
               });
 
-              if (allowedEarnings > 0) {
-                const commission = await prisma.commission.create({
-                  data: {
-                    id: createId({ prefix: "cm_" }),
-                    programId: link.programId,
-                    linkId: link.id,
-                    partnerId: link.partnerId,
-                    eventId,
-                    customerId: customer.id,
-                    quantity: 1,
-                    type: "sale",
-                    amount: saleData.amount,
-                    earnings: allowedEarnings,
-                    invoiceId,
-                  },
-                });
-
+              if (commission) {
                 waitUntil(
                   notifyPartnerSale({
                     link,

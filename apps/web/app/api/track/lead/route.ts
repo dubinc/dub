@@ -4,8 +4,7 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
-import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
-import { validatePartnerRewardAmount } from "@/lib/partners/partner-reached-max-reward";
+import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { getClickEvent, recordLead, recordLeadSync } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -210,42 +209,16 @@ export const POST = withWorkspace(
           ]);
 
           if (link.programId && link.partnerId) {
-            const reward = await determinePartnerReward({
+            await createPartnerCommission({
+              type: "lead",
               programId: link.programId,
+              linkId: link.id,
               partnerId: link.partnerId,
-              event: "lead",
+              eventId: leadEventId,
+              customerId: customer?.id,
+              amount: 0,
+              quantity: eventQuantity ?? 1,
             });
-
-            if (reward) {
-              const earnings = eventQuantity
-                ? reward.amount * eventQuantity
-                : reward.amount;
-
-              const { allowedEarnings } = await validatePartnerRewardAmount({
-                event: "lead",
-                partnerId: link.partnerId,
-                programId: link.programId,
-                maxRewardAmount: reward.maxRewardAmount,
-                earnings,
-              });
-
-              if (allowedEarnings > 0) {
-                await prisma.commission.create({
-                  data: {
-                    id: createId({ prefix: "cm_" }),
-                    programId: link.programId,
-                    linkId: link.id,
-                    partnerId: link.partnerId,
-                    eventId: leadEventId,
-                    customerId: customer?.id,
-                    type: "lead",
-                    amount: 0,
-                    quantity: eventQuantity ?? 1,
-                    earnings: allowedEarnings,
-                  },
-                });
-              }
-            }
           }
 
           await sendWorkspaceWebhook({
