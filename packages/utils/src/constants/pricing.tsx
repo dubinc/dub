@@ -91,7 +91,7 @@ export const PLANS = [
       ],
     },
     limits: {
-      links: 2_000,
+      links: 1_000,
       clicks: 50_000,
       sales: 0,
       domains: 10,
@@ -104,7 +104,7 @@ export const PLANS = [
     },
     features: [
       { id: "clicks", text: "50K tracked clicks/mo" },
-      { id: "links", text: "2,000 new links/mo" },
+      { id: "links", text: "1,000 new links/mo" },
       { id: "retention", text: "1-year analytics retention" },
       { id: "domains", text: "10 domains" },
       { id: "users", text: "3 users" },
