@@ -34,6 +34,9 @@ export const config = {
 export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   const { domain, path, key, fullKey } = parse(req);
 
+  console.log('here');
+  console.log(domain, path, key, fullKey);
+
   AxiomMiddleware(req, ev);
 
   // for App
