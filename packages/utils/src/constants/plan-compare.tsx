@@ -78,12 +78,8 @@ export const PLAN_COMPARE_FEATURES: {
         href: "https://dub.co/help/article/custom-qr-codes",
       },
       {
-        text: "UTM builder",
-        href: "https://dub.co/help/article/utm-builder",
-      },
-      {
-        text: "UTM templates",
-        href: "https://dub.co/help/article/utm-templates",
+        text: "UTM builder + templates",
+        href: "https://dub.co/help/article/how-to-create-utm-templates",
       },
       {
         check: {
@@ -92,6 +88,14 @@ export const PLAN_COMPARE_FEATURES: {
         },
         text: "Custom link previews",
         href: "https://dub.co/help/article/custom-link-previews",
+      },
+      {
+        check: {
+          free: false,
+          default: true,
+        },
+        text: "Deep links",
+        href: "https://dub.co/help/article/custom-domain-deep-links",
       },
       {
         check: {
@@ -137,10 +141,10 @@ export const PLAN_COMPARE_FEATURES: {
       {
         check: {
           free: false,
+          pro: false,
           default: true,
         },
-        text: "Deep links",
-        href: "https://dub.co/help/article/custom-domain-deep-links",
+        text: "A/B testing",
       },
     ],
   },
