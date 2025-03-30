@@ -38,9 +38,12 @@ export const PLAN_COMPARE_FEATURES: {
         text: ({ plan }) => (
           <>
             <strong>
-              {plan.name === "Enterprise" ? "∞" : nFormatter(plan.limits.links)}
+              {plan.name === "Enterprise"
+                ? "Unlimited"
+                : nFormatter(plan.limits.links)}
             </strong>{" "}
-            new links/mo
+            new links
+            {plan.name === "Enterprise" ? "" : "/mo"}
           </>
         ),
       },
@@ -161,29 +164,19 @@ export const PLAN_COMPARE_FEATURES: {
           <>
             <strong>
               {plan.name === "Enterprise"
-                ? "∞"
+                ? "Unlimited"
                 : nFormatter(plan.limits.clicks)}
             </strong>{" "}
-            tracked clicks/mo
+            tracked clicks
+            {plan.name === "Enterprise" ? "" : "/mo"}
           </>
         ),
         href: "https://dub.co/help/article/dub-analytics-limits",
       },
       {
-        text: ({ id }) => (
+        text: ({ plan }) => (
           <>
-            <strong>
-              {
-                {
-                  free: "30 day",
-                  pro: "1 year",
-                  business: "3 year",
-                  advanced: "5 year",
-                  enterprise: "∞",
-                }[id]
-              }
-            </strong>{" "}
-            retention
+            <strong>{plan.limits.retention}</strong> retention
           </>
         ),
       },
@@ -233,12 +226,15 @@ export const PLAN_COMPARE_FEATURES: {
         text: ({ id, plan }) =>
           id === "free" || id === "pro" ? (
             "No tracked sales"
-          ) : id === "enterprise" ? (
-            "∞ tracked sales"
           ) : (
             <>
-              <strong>${nFormatter(plan.limits.sales / 100)}</strong> tracked
-              sales/mo
+              <strong>
+                {plan.name === "Enterprise"
+                  ? "Unlimited"
+                  : `${nFormatter(plan.limits.sales)}`}
+              </strong>{" "}
+              tracked sales
+              {plan.name === "Enterprise" ? "" : "/mo"}
             </>
           ),
       },
@@ -316,7 +312,11 @@ export const PLAN_COMPARE_FEATURES: {
       {
         text: ({ plan }) => (
           <>
-            <strong>{nFormatter(plan.limits.domains, { full: true })}</strong>{" "}
+            <strong>
+              {plan.name === "Enterprise"
+                ? "Unlimited"
+                : nFormatter(plan.limits.domains, { full: true })}
+            </strong>{" "}
             custom domains
           </>
         ),
@@ -393,7 +393,12 @@ export const PLAN_COMPARE_FEATURES: {
       {
         text: ({ plan }) => (
           <>
-            <strong>{nFormatter(plan.limits.users)}</strong> user
+            <strong>
+              {plan.name === "Enterprise"
+                ? "Unlimited"
+                : nFormatter(plan.limits.users)}
+            </strong>{" "}
+            user
             {plan.limits.users === 1 ? "" : "s"}
           </>
         ),

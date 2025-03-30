@@ -28,6 +28,7 @@ export const PLANS = [
       users: 1,
       ai: 10,
       api: 60,
+      retention: "30-day",
     },
     cta: {
       text: "Start for free",
@@ -99,6 +100,7 @@ export const PLANS = [
       users: 3,
       ai: 1000,
       api: 600,
+      retention: "1-year",
     },
     features: [
       { id: "clicks", text: "50K tracked clicks/mo" },
@@ -166,6 +168,7 @@ export const PLANS = [
       users: 10,
       ai: 1000,
       api: 3000,
+      retention: "3-year",
     },
     featureTitle: "Everything in Pro, plus:",
     features: [
@@ -244,6 +247,7 @@ export const PLANS = [
       users: 20,
       ai: 1000,
       api: 3000,
+      retention: "5-year",
     },
     featureTitle: "Everything in Business, plus:",
     features: [
@@ -297,6 +301,7 @@ export const PLANS = [
       users: 500,
       ai: 10000,
       api: 10000,
+      retention: "Unlimited",
     },
     featureTitle: "Everything in Advanced, plus:",
     features: [
