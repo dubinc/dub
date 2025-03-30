@@ -6,7 +6,7 @@ export const SHORT_DOMAIN =
 export const HOME_DOMAIN = `https://${process.env.NEXT_PUBLIC_APP_DOMAIN}`;
 
 export const APP_HOSTNAMES = new Set([
-  `app.${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
+  `${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
   `preview.${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
   "localhost:8888",
   "localhost",

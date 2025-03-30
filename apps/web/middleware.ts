@@ -36,6 +36,7 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
 
   console.log('here');
   console.log(domain, path, key, fullKey);
+  console.log(APP_HOSTNAMES);
 
   AxiomMiddleware(req, ev);
 
