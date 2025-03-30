@@ -36,7 +36,9 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
 
   console.log('here');
   console.log(domain, path, key, fullKey);
+  console.log(APP_HOSTNAMES.has(domain));
   console.log(process.env.NEXT_PUBLIC_VERCEL_ENV);
+  console.log(process.env.NEXT_PUBLIC_APP_DOMAIN);
 
   AxiomMiddleware(req, ev);
 
