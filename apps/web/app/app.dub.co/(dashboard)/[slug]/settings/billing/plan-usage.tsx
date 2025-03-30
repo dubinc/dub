@@ -72,10 +72,12 @@ export default function PlanUsage() {
       const start = firstDay.toLocaleDateString("en-us", {
         month: "short",
         day: "numeric",
+        year: "numeric",
       });
       const end = lastDay.toLocaleDateString("en-us", {
         month: "short",
         day: "numeric",
+        year: "numeric",
       });
       return [start, end];
     }
@@ -88,22 +90,20 @@ export default function PlanUsage() {
     <div className="rounded-lg border border-neutral-200 bg-white">
       <div className="flex flex-col items-start justify-between gap-y-4 p-6 md:px-8 lg:flex-row">
         <div>
-          <h2 className="text-xl font-medium">{capitalize(plan)}</h2>
+          <h2 className="text-xl font-medium">{capitalize(plan)} Plan</h2>
           {billingStart && billingEnd && (
-            <p className="mt-1 text-balance text-sm leading-normal text-neutral-500">
+            <p className="mt-1.5 text-balance text-sm font-medium leading-normal text-neutral-700">
               <>
-                {" "}
                 Current billing cycle:{" "}
-                <span className="font-medium text-black">
+                <span className="font-normal">
                   {billingStart} - {billingEnd}
                 </span>
-                .
               </>
             </p>
           )}
         </div>
         <div className="flex items-center gap-2">
-          {plan !== "enterprise" ? (
+          {plan !== "enterprise" && (
             <Link
               href={
                 isMaxPlan
@@ -118,17 +118,16 @@ export default function PlanUsage() {
             >
               Upgrade
             </Link>
-          ) : (
-            <Link
-              href={`/${slug}/settings/billing/invoices`}
-              className={cn(
-                buttonVariants({ variant: "secondary" }),
-                "flex h-9 w-full items-center justify-center whitespace-nowrap rounded-md border px-4 text-sm",
-              )}
-            >
-              View invoices
-            </Link>
           )}
+          <Link
+            href={`/${slug}/settings/billing/invoices`}
+            className={cn(
+              buttonVariants({ variant: "secondary" }),
+              "flex h-9 w-full items-center justify-center whitespace-nowrap rounded-md border px-4 text-sm",
+            )}
+          >
+            View invoices
+          </Link>
           {stripeId && plan !== "free" && <SubscriptionMenu />}
         </div>
       </div>
