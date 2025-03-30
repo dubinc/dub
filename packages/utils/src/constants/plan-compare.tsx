@@ -134,6 +134,14 @@ export const PLAN_COMPARE_FEATURES: {
         text: "Geo targeting",
         href: "https://dub.co/help/article/geo-targeting",
       },
+      {
+        check: {
+          free: false,
+          default: true,
+        },
+        text: "Deep links",
+        href: "https://dub.co/help/article/custom-domain-deep-links",
+      },
     ],
   },
   {

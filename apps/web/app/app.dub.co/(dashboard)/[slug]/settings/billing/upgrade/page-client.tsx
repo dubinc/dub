@@ -89,11 +89,15 @@ export function WorkspaceBillingUpgradePageClient() {
               }
             >
               {plans.map((plan, idx) => {
-                const disabledCurrentPlan =
-                  plan.name.toLowerCase() === currentPlan && !stripeId;
-                const isDowngrade = isDowngradePlan(
-                  currentPlan || "free",
-                  plan.name,
+                // disable upgrade button if user has a Stripe ID and is on the current plan
+                // (if there's no stripe id, they could be on a free trial so they should be able to upgrade)
+                const disableCurrentPlan = Boolean(
+                  stripeId && plan.name.toLowerCase() === currentPlan,
+                );
+
+                // show downgrade button if user has a stripe id and is on the current plan
+                const isDowngrade = Boolean(
+                  stripeId && isDowngradePlan(currentPlan || "free", plan.name),
                 );
 
                 return (
@@ -162,13 +166,13 @@ export function WorkspaceBillingUpgradePageClient() {
                         <UpgradePlanButton
                           plan={plan.name.toLowerCase()}
                           period={period}
-                          disabled={disabledCurrentPlan}
+                          disabled={disableCurrentPlan}
                           text={
-                            disabledCurrentPlan
+                            disableCurrentPlan
                               ? "Current plan"
                               : isDowngrade
                                 ? "Downgrade"
-                                : "Get started"
+                                : "Upgrade"
                           }
                           variant={isDowngrade ? "secondary" : "primary"}
                           className="h-8 shadow-sm"
