@@ -11,6 +11,7 @@ import WorkspacesMiddleware from "./workspaces";
 
 export default async function AppMiddleware(req: NextRequest) {
   const { path, fullPath } = parse(req);
+  console.log(path, fullPath);
 
   if (path.startsWith("/embed")) {
     return EmbedMiddleware(req);
