@@ -1,7 +1,7 @@
 import { DUB_PARTNERS_ANALYTICS_INTERVAL } from "@/lib/analytics/constants";
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { IntervalOptions } from "@/lib/analytics/types";
-import useProgramEarnings from "@/lib/swr/use-program-earnings";
+import useProgramCommissions from "@/lib/swr/use-program-commissions";
 import useProgramMetrics from "@/lib/swr/use-program-metrics";
 import useProgramRevenue from "@/lib/swr/use-program-revenue";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
@@ -21,10 +21,10 @@ import { useId, useMemo, useState } from "react";
 
 const chartOptions = [
   { value: "revenue", label: "Revenue" },
-  { value: "earnings", label: "Commissions" },
+  { value: "commissions", label: "Commissions" },
 ];
 
-type ViewType = "revenue" | "earnings";
+type ViewType = "revenue" | "commissions";
 
 export function OverviewChart() {
   const id = useId();
@@ -52,17 +52,17 @@ export function OverviewChart() {
     enabled: viewType === "revenue",
   });
 
-  const { data: earnings, error: earningsError } = useProgramEarnings({
+  const { data: commissions, error: commissionsError } = useProgramCommissions({
     event: "sales",
     groupBy: "timeseries",
     interval,
     start: start ? new Date(start) : undefined,
     end: end ? new Date(end) : undefined,
-    enabled: viewType === "earnings",
+    enabled: viewType === "commissions",
   });
 
   const data = useMemo(() => {
-    const sourceData = viewType === "revenue" ? revenue : earnings;
+    const sourceData = viewType === "revenue" ? revenue : commissions;
 
     return sourceData?.map(({ start, saleAmount, earnings }) => ({
       date: new Date(start),
@@ -70,14 +70,14 @@ export function OverviewChart() {
         amount: (viewType === "revenue" ? saleAmount : earnings) / 100,
       },
     }));
-  }, [revenue, earnings, viewType]);
+  }, [revenue, commissions, viewType]);
 
-  const dataLoading = !data && !revenueError && !earningsError;
-  const error = revenueError || earningsError;
+  const dataLoading = !data && !revenueError && !commissionsError;
+  const error = revenueError || commissionsError;
 
   return (
     <div>
-      <div className="flex flex-col gap-2">
+      <div>
         <div className="flex justify-between gap-2">
           <Combobox
             selected={
@@ -87,17 +87,19 @@ export function OverviewChart() {
               option && setViewType(option.value as ViewType)
             }
             options={chartOptions}
+            optionClassName="w-36"
             caret={true}
             hideSearch={true}
             buttonProps={{
-              className: "h-9 w-36 border-neutral-200 bg-white text-sm",
+              variant: "outline",
+              className: "h-9 w-fit",
             }}
           />
 
-          <SimpleDateRangePicker className="h-9 w-full px-2 md:w-fit" />
+          <SimpleDateRangePicker className="h-9 w-fit px-2" />
         </div>
 
-        <div className="flex flex-col gap-1 p-2">
+        <div className="flex flex-col gap-1 px-4">
           {!metrics ? (
             <div className="h-11 w-24 animate-pulse rounded-md bg-neutral-200" />
           ) : (

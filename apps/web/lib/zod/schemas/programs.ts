@@ -109,6 +109,6 @@ export const ProgramMetricsSchema = z.object({
   partnersCount: z.number(),
   salesCount: z.number(),
   revenue: z.number(),
-  earnings: z.number(),
+  commissions: z.number(),
   payouts: z.number(),
 });

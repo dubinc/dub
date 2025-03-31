@@ -14,12 +14,12 @@ const querySchema = analyticsQuerySchema.pick({
   timezone: true,
 });
 
-interface Earnings {
+interface Commission {
   start: string;
   earnings: number;
 }
 
-// GET /api/programs/[programId]/earnings - get earnings timeseries for a program
+// GET /api/programs/[programId]/commissions - get commissions timeseries for a program
 export const GET = withWorkspace(
   async ({ workspace, params, searchParams }) => {
     const program = await getProgramOrThrow({
@@ -38,7 +38,7 @@ export const GET = withWorkspace(
     const { dateFormat, dateIncrement, startFunction, formatString } =
       sqlGranularityMap[granularity];
 
-    const commissions = await prisma.$queryRaw<Earnings[]>`
+    const commissions = await prisma.$queryRaw<Commission[]>`
       SELECT 
         DATE_FORMAT(CONVERT_TZ(createdAt, "UTC", ${timezone || "UTC"}), ${dateFormat}) AS start, 
         SUM(earnings) AS earnings
@@ -64,7 +64,7 @@ export const GET = withWorkspace(
       ]),
     );
 
-    const timeseries: Earnings[] = [];
+    const timeseries: Commission[] = [];
 
     while (currentDate < endDate) {
       const periodKey = currentDate.toFormat(formatString);

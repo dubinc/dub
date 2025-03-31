@@ -5,12 +5,12 @@ import { DUB_PARTNERS_ANALYTICS_INTERVAL } from "../analytics/constants";
 import { PartnerAnalyticsFilters } from "../analytics/types";
 import useWorkspace from "./use-workspace";
 
-interface Earnings {
+interface Commission {
   start: string;
   earnings: number;
 }
 
-export default function useProgramEarnings(
+export default function useProgramCommissions(
   params?: PartnerAnalyticsFilters & { enabled: boolean },
 ) {
   const { programId } = useParams();
@@ -29,9 +29,9 @@ export default function useProgramEarnings(
     workspaceId: workspaceId!,
   });
 
-  const { data, error } = useSWR<Earnings[]>(
+  const { data, error } = useSWR<Commission[]>(
     params?.enabled
-      ? `/api/programs/${programId}/earnings?${searchParams.toString()}`
+      ? `/api/programs/${programId}/commissions?${searchParams.toString()}`
       : null,
     fetcher,
     {

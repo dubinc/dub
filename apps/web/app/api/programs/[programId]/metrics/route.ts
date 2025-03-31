@@ -28,7 +28,7 @@ export const GET = withWorkspace(
       },
     };
 
-    const [payouts, revenue, earnings, salesCount, partnersCount] =
+    const [payouts, revenue, commissions, salesCount, partnersCount] =
       await Promise.all([
         prisma.payout.aggregate({
           where,
@@ -81,7 +81,7 @@ export const GET = withWorkspace(
       partnersCount,
       salesCount,
       revenue: revenue._sum.amount || 0,
-      earnings: earnings._sum.earnings || 0,
+      commissions: commissions._sum.earnings || 0,
       payouts: payouts._sum.amount || 0,
     });
 
