@@ -9,6 +9,8 @@ const querySchema = analyticsQuerySchema.pick({
   end: true,
   interval: true,
   timezone: true,
+  event: true,
+  groupBy: true,
 });
 
 // GET /api/programs/[programId]/revenue - get revenue timeseries for a program
@@ -23,8 +25,6 @@ export const GET = withWorkspace(
 
     const response = await getAnalytics({
       ...parsedParams,
-      event: "sales",
-      groupBy: "timeseries",
       workspaceId: workspace.id,
       programId: program.id,
     });

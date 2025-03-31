@@ -77,26 +77,27 @@ export function OverviewChart() {
 
   return (
     <div>
-      <div className="flex justify-between">
-        <div className="flex flex-col gap-1 p-2">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-neutral-500">
-              {viewType === "revenue" ? "Revenue" : "Earnings"}
-            </span>
+      <div className="flex flex-col gap-2">
+        <div className="flex justify-between gap-2">
+          <Combobox
+            selected={
+              chartOptions.find((opt) => opt.value === viewType) || null
+            }
+            setSelected={(option) =>
+              option && setViewType(option.value as ViewType)
+            }
+            options={chartOptions}
+            caret={true}
+            hideSearch={true}
+            buttonProps={{
+              className: "h-9 w-36 border-neutral-200 bg-white text-sm",
+            }}
+          />
 
-            <Combobox
-              selected={
-                chartOptions.find((opt) => opt.value === viewType) || null
-              }
-              setSelected={(option) =>
-                option && setViewType(option.value as ViewType)
-              }
-              options={chartOptions}
-              buttonProps={{
-                className: "h-7 w-32 border-neutral-200 bg-white text-sm",
-              }}
-            />
-          </div>
+          <SimpleDateRangePicker className="h-9 w-full px-2 md:w-fit" />
+        </div>
+
+        <div className="flex flex-col gap-1 p-2">
           {!metrics ? (
             <div className="h-11 w-24 animate-pulse rounded-md bg-neutral-200" />
           ) : (
@@ -110,7 +111,6 @@ export function OverviewChart() {
             />
           )}
         </div>
-        <SimpleDateRangePicker className="h-9 w-full px-2 md:w-fit" />
       </div>
       <div className="relative mt-4 h-72 md:h-96">
         {dataLoading ? (
