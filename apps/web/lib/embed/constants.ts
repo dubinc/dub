@@ -9,6 +9,3 @@ export const REFERRALS_EMBED_PUBLIC_TOKEN_COOKIE_NAME =
 // Analytics embed token
 export const ANALYTICS_EMBED_PUBLIC_TOKEN_COOKIE_NAME =
   "dub_analytics_embed_token";
-
-// TODO REMOVE ONCE WE LAUNCH TO GA
-export const SHOW_EMBEEDED_REFERRALS = false;
