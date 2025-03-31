@@ -38,10 +38,9 @@ export async function recordClick({
   timestamp,
   referrer,
   trackConversion,
-  skipTracking,
 }: {
   req: Request;
-  clickId: string;
+  clickId?: string;
   linkId: string;
   domain: string;
   key: string;
@@ -52,9 +51,9 @@ export async function recordClick({
   timestamp?: string;
   referrer?: string;
   trackConversion?: boolean;
-  skipTracking?: boolean;
 }) {
-  if (skipTracking) {
+  // Skip tracking if the clickId is not provided
+  if (!clickId) {
     return null;
   }
 

@@ -5,14 +5,12 @@ export function createResponseWithCookie(
   {
     clickId,
     path,
-    skipTracking,
   }: {
-    clickId: string;
+    clickId?: string;
     path: string;
-    skipTracking?: boolean;
   },
 ): NextResponse {
-  if (!skipTracking) {
+  if (clickId) {
     response.cookies.set("dub_id", clickId, {
       path,
       maxAge: 60 * 60, // 1 hour
