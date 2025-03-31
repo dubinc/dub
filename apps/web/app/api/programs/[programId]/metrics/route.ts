@@ -78,8 +78,8 @@ export const GET = withWorkspace(
       ]);
 
     const response = ProgramMetricsSchema.parse({
-      partners: partnersCount,
-      sales: salesCount,
+      partnersCount,
+      salesCount,
       revenue: revenue._sum.amount || 0,
       earnings: earnings._sum.earnings || 0,
       payouts: payouts._sum.amount || 0,
