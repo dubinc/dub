@@ -1,8 +1,10 @@
+import { ElementType } from "react";
 import {
   Book2Fill,
   BulletListFill,
   ConnectedDotsFill,
   CubeSettingsFill,
+  DiamondTurnRightFill,
   FeatherFill,
   Github,
   Go,
@@ -12,6 +14,7 @@ import {
   Hyperlink,
   LinesY,
   LinkedIn,
+  MicrophoneFill,
   Php,
   ProductHunt,
   Python,
@@ -19,10 +22,24 @@ import {
   Ruby,
   Twitter,
   Typescript,
+  UsersFill,
   YouTube,
 } from "./icons";
 import { Elxo } from "./icons/elxo";
 import { Logo } from "./logo";
+
+export type NavItemChild = {
+  title: string;
+  description?: string;
+  href: string;
+  icon: ElementType;
+  iconClassName?: string;
+};
+
+export type NavItemChildren = (
+  | NavItemChild
+  | { label: string; items: NavItemChild[] }
+)[];
 
 export const FEATURES_LIST = [
   {
@@ -108,6 +125,31 @@ export const SDKS = [
       "py-[3px] grayscale brightness-150 transition-[filter] group-hover:grayscale-0 group-hover:brightness-100",
     title: "PHP",
     href: "/solutions/php",
+  },
+];
+
+export const SOLUTIONS: NavItemChildren = [
+  {
+    icon: DiamondTurnRightFill,
+    title: "Marketing Attribution",
+    description: "Easily track and measure marketing impact",
+    href: "/analytics",
+  },
+  {
+    icon: MicrophoneFill,
+    title: "Content Creators",
+    description: "Intelligent audience insights and link tracking",
+    href: "/solutions/creators",
+  },
+  {
+    icon: UsersFill,
+    title: "Content Creators",
+    description: "Intelligent audience insights and link tracking",
+    href: "/solutions/creators",
+  },
+  {
+    label: "SDKs",
+    items: SDKS,
   },
 ];
 
