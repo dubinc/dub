@@ -31,7 +31,7 @@ import {
 import { capitalize, pluralize } from "@dub/utils";
 import { ChevronDown, Crown } from "lucide-react";
 import { useEffect, useState } from "react";
-import { DefaultDomains } from "./default-domains";
+import { DefaultDomains } from "../default-domains";
 
 export default function WorkspaceDomainsClient() {
   const {
