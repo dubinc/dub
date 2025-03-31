@@ -45,9 +45,9 @@ export const PLANS = [
         "price_1OYJeBAlJJEpqkPVnPGEZeb0", // new yearly (prod)
 
         // 2025 pricing
-        "price_1R7f9IAlJJEpqkPV4G9fNwRM", //  yearly
-        "price_1R7f9RAlJJEpqkPV1HgB84WS", // monthly
-        "price_1R7ocDAlJJEpqkPVGiNLZORP", // yearly (test),
+        "price_1R8XtyAlJJEpqkPV5WZ4c0jF", //  yearly
+        "price_1R8XtEAlJJEpqkPV4opVvVPq", // monthly
+        "price_1R8XxZAlJJEpqkPVqGi0wOqD", // yearly (test),
         "price_1R7oeBAlJJEpqkPVh6q5q3h8", // monthly (test),
       ],
     },
@@ -128,7 +128,7 @@ export const PLANS = [
         // 2025 pricing
         "price_1R3j01AlJJEpqkPVXuG1eNzm", //  yearly
         "price_1R6JedAlJJEpqkPVMUkfjch4", // monthly
-        "price_1R7ofLAlJJEpqkPV9sXYs6Lu", // yearly (test),
+        "price_1R8XypAlJJEpqkPVdjzOcYUC", // yearly (test),
         "price_1R7ofLAlJJEpqkPV3MlgDpyx", // monthly (test),
       ],
     },
@@ -223,9 +223,9 @@ export const PLANS = [
       yearly: 250,
       ids: [
         // 2025 pricing
-        "price_1R3j0QAlJJEpqkPVrTW1Ss2i", //  yearly
+        "price_1R8Xw4AlJJEpqkPV6nwdink9", //  yearly
         "price_1R3j0qAlJJEpqkPVkfGNXRwb", // monthly
-        "price_1R7ofzAlJJEpqkPV81LX0Sg3", // yearly (test),
+        "price_1R8XztAlJJEpqkPVnHmIU2tf", // yearly (test),
         "price_1R7ofzAlJJEpqkPV0L2TwyJo", // monthly (test),
       ],
     },
