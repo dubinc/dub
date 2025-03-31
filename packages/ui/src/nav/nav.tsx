@@ -51,11 +51,6 @@ export const navItems = [
     href: "/pricing",
     segments: ["/pricing"],
   },
-  {
-    name: "Company",
-    href: "/about",
-    segments: ["/about"],
-  },
 ];
 
 const navItemClassName = cn(
