@@ -47,7 +47,7 @@ export function SidebarNav<T extends Record<any, any>>({
   currentArea,
   data,
   toolContent,
-  newsContent,
+  // newsContent,
   switcher,
   bottom,
 }: {
@@ -236,7 +236,7 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
         onPointerEnter={() => setHovered(true)}
         onPointerLeave={() => setHovered(false)}
         className={cn(
-          "text-neutral hover:bg-primary-300/50 active:bg-primary-300/80 group flex items-center gap-2.5 rounded-lg py-2 text-sm font-normal leading-none transition-[background-color,color,font-weight] duration-75",
+          "text-neutral hover:bg-primary-300/50 active:bg-primary-300/80 group flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-normal leading-none transition-[background-color,color,font-weight] duration-75",
           isActive &&
             !items &&
             "md:bg-primary-300 text-neutral md:hover:bg-primary-300/80 md:active:bg-primary-300 md:font-medium",
