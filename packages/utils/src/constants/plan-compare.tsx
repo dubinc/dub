@@ -231,7 +231,7 @@ export const PLAN_COMPARE_FEATURES: {
               <strong>
                 {plan.name === "Enterprise"
                   ? "Unlimited"
-                  : `$${nFormatter(plan.limits.sales)}`}
+                  : `$${nFormatter(plan.limits.sales / 100)}`}
               </strong>{" "}
               tracked sales
               {plan.name === "Enterprise" ? "" : "/mo"}
