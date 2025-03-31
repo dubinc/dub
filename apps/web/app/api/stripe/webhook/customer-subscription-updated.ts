@@ -51,13 +51,11 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
   });
 
   if (!workspace) {
-    await log({
-      message:
-        "Workspace with Stripe ID *`" +
+    console.log(
+      "Workspace with Stripe ID *`" +
         stripeId +
         "`* not found in Stripe webhook `customer.subscription.updated` callback",
-      type: "errors",
-    });
+    );
     return NextResponse.json({ received: true });
   }
 
