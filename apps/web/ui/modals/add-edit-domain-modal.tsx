@@ -29,7 +29,7 @@ function AddEditDomainModal({
       className="max-h-[90vh] max-w-lg"
     >
       <h3 className="border-b border-neutral-200 px-4 py-4 text-lg font-medium sm:px-6">
-        {props ? "Update" : "Add"} Domain
+        {props ? "Update" : "Add"} custom domain
       </h3>
       <div className="flex-1 overflow-auto bg-neutral-50">
         <AddEditDomainForm
@@ -61,7 +61,7 @@ function AddDomainButton({
   return (
     <div>
       <Button
-        text="Add Domain"
+        text="Add custom domain"
         disabledTooltip={
           exceededDomains ? (
             <TooltipContent

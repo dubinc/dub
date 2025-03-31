@@ -1,7 +1,7 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import { TabSelect } from "@dub/ui";
+import { InfoTooltip, TabSelect, TooltipContent } from "@dub/ui";
 import { redirect, useRouter, useSelectedLayoutSegment } from "next/navigation";
 
 export function DomainsHeader() {
@@ -16,10 +16,21 @@ export function DomainsHeader() {
 
   return (
     <div className="border-b border-neutral-200">
-      <h1 className="text-2xl font-semibold tracking-tight text-black">
-        Domains
-      </h1>
-
+      <div className="flex items-center gap-x-2">
+        <h1 className="text-2xl font-semibold tracking-tight text-black">
+          Domains
+        </h1>
+        <InfoTooltip
+          content={
+            <TooltipContent
+              title="Learn more about how to add, configure, and verify custom domains on Dub."
+              href="https://dub.co/help/article/how-to-add-custom-domain"
+              target="_blank"
+              cta="Learn more"
+            />
+          }
+        />
+      </div>
       <TabSelect
         variant="accent"
         options={[
