@@ -30,6 +30,7 @@ import { isCaseSensitiveDomain } from "../api/links/case-sensitivity";
 import { clickCache } from "../api/links/click-cache";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
+import { getLinkWithPartner } from "../planetscale/get-link-with-partner";
 import { hasEmptySearchParams } from "./utils/has-empty-search-params";
 
 export default async function LinkMiddleware(
@@ -80,7 +81,7 @@ export default async function LinkMiddleware(
   let cachedLink = await linkCache.get({ domain, key });
 
   if (!cachedLink) {
-    let linkData = await getLinkViaEdge({
+    let linkData = await getLinkWithPartner({
       domain,
       key,
     });
