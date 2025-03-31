@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { LinkPageClient } from "./page-client";
 
 export default function LinkPage({
   params,
@@ -14,9 +15,5 @@ export default function LinkPage({
   const domain = linkParts[0];
   const key = linkParts.length > 1 ? linkParts.slice(1).join("/") : "_root";
 
-  return (
-    <div>
-      LinkPage {domain} {key}
-    </div>
-  );
+  return <LinkPageClient domain={domain} slug={key} />;
 }

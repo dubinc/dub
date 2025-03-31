@@ -3,11 +3,17 @@ import useSWR from "swr";
 import { ExpandedLinkProps } from "../types";
 import useWorkspace from "./use-workspace";
 
-export default function useLink(linkId: string) {
+export default function useLink(
+  linkIdOrLink: string | { domain: string; slug: string },
+) {
   const { id: workspaceId } = useWorkspace();
 
   const { data: link, error } = useSWR<ExpandedLinkProps>(
-    workspaceId && linkId && `/api/links/${linkId}?workspaceId=${workspaceId}`,
+    workspaceId &&
+      linkIdOrLink &&
+      (typeof linkIdOrLink === "string"
+        ? `/api/links/${linkIdOrLink}?workspaceId=${workspaceId}`
+        : `/api/links/info?domain=${linkIdOrLink.domain}&key=${linkIdOrLink.slug}&workspaceId=${workspaceId}`),
     fetcher,
   );
 
