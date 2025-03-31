@@ -26,7 +26,6 @@ import {
   YouTube,
 } from "./icons";
 import { Elxo } from "./icons/elxo";
-import { Logo } from "./logo";
 
 export type NavItemChild = {
   title: string;
@@ -167,21 +166,6 @@ export const RESOURCES = [
     href: "/help",
   },
   {
-    icon: HexadecagonStar,
-    title: "Dub Brand",
-    description: "Logos, wordmark, etc.",
-    href: "/brand",
-  },
-];
-
-export const COMPANY = [
-  {
-    icon: Logo,
-    title: "About",
-    description: "Company and team",
-    href: "/about",
-  },
-  {
     icon: FeatherFill,
     title: "Blog",
     description: "Insights and stories",
@@ -198,6 +182,12 @@ export const COMPANY = [
     title: "Customers",
     description: "Success stories and use cases",
     href: "/customers",
+  },
+  {
+    icon: HexadecagonStar,
+    title: "Dub Brand",
+    description: "Logos, wordmark, etc.",
+    href: "/brand",
   },
 ];
 
