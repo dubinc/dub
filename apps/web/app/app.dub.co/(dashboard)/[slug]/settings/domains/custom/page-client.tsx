@@ -30,7 +30,6 @@ import {
 import { capitalize, pluralize } from "@dub/utils";
 import { ChevronDown, Crown } from "lucide-react";
 import { useEffect, useState } from "react";
-import { DefaultDomains } from "../default-domains";
 
 export function CustomDomains() {
   const {
@@ -252,8 +251,6 @@ export function CustomDomains() {
           />
         </div>
       </div>
-
-      <DefaultDomains />
     </>
   );
 }
