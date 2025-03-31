@@ -29,13 +29,23 @@ export const markPayoutPaidAction = authActionClient
       }),
     ]);
 
-    await prisma.payout.update({
-      where: {
-        id: payout.id,
-      },
-      data: {
-        status: "completed",
-        paidAt: new Date(),
-      },
-    });
+    await Promise.all([
+      prisma.payout.update({
+        where: {
+          id: payout.id,
+        },
+        data: {
+          status: "completed",
+          paidAt: new Date(),
+        },
+      }),
+      prisma.commission.updateMany({
+        where: {
+          payoutId: payout.id,
+        },
+        data: {
+          status: "paid",
+        },
+      }),
+    ]);
   });
