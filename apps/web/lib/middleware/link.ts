@@ -232,6 +232,9 @@ export default async function LinkMiddleware(
     clickId = undefined;
   }
 
+  // Determine if we should include the click ID in the final URL for tracking
+  const shouldIncludeClickId = trackConversion && !skipTracking && clickId;
+
   // for root domain links, if there's no destination URL, rewrite to placeholder page
   if (!url) {
     ev.waitUntil(
@@ -302,7 +305,7 @@ export default async function LinkMiddleware(
           `/deeplink/${encodeURIComponent(
             getFinalUrl(url, {
               req,
-              clickId: trackConversion && !skipTracking ? clickId : undefined,
+              clickId: shouldIncludeClickId ? clickId : undefined,
             }),
           )}`,
           req.url,
@@ -339,7 +342,7 @@ export default async function LinkMiddleware(
           `/cloaked/${encodeURIComponent(
             getFinalUrl(url, {
               req,
-              clickId: trackConversion && !skipTracking ? clickId : undefined,
+              clickId: shouldIncludeClickId ? clickId : undefined,
             }),
           )}`,
           req.url,
@@ -376,7 +379,7 @@ export default async function LinkMiddleware(
       NextResponse.redirect(
         getFinalUrl(ios, {
           req,
-          clickId: trackConversion && !skipTracking ? clickId : undefined,
+          clickId: shouldIncludeClickId ? clickId : undefined,
         }),
         {
           headers: {
@@ -409,7 +412,7 @@ export default async function LinkMiddleware(
       NextResponse.redirect(
         getFinalUrl(android, {
           req,
-          clickId: trackConversion && !skipTracking ? clickId : undefined,
+          clickId: shouldIncludeClickId ? clickId : undefined,
         }),
         {
           headers: {
@@ -442,7 +445,7 @@ export default async function LinkMiddleware(
       NextResponse.redirect(
         getFinalUrl(geo[country], {
           req,
-          clickId: trackConversion && !skipTracking ? clickId : undefined,
+          clickId: shouldIncludeClickId ? clickId : undefined,
         }),
         {
           headers: {
@@ -477,7 +480,7 @@ export default async function LinkMiddleware(
           headers: new Headers({
             destination: getFinalUrl(url, {
               req,
-              clickId: trackConversion && !skipTracking ? clickId : undefined,
+              clickId: shouldIncludeClickId ? clickId : undefined,
             }),
           }),
         },
@@ -488,7 +491,7 @@ export default async function LinkMiddleware(
       NextResponse.redirect(
         getFinalUrl(url, {
           req,
-          clickId: trackConversion && !skipTracking ? clickId : undefined,
+          clickId: shouldIncludeClickId ? clickId : undefined,
         }),
         {
           headers: {
