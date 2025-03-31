@@ -70,7 +70,7 @@ function PlanCard({
     <div className="flex flex-col rounded-lg border border-neutral-200 bg-white p-6">
       <div className="flex items-center gap-2">
         <h2 className="text-lg font-medium text-neutral-900">{name}</h2>
-        {name === "Pro" && <Badge variant="blue">Most popular</Badge>}
+        {name === "Business" && <Badge variant="blue">Most popular</Badge>}
       </div>
       <div className="mt-2 text-3xl font-medium text-neutral-900">
         <NumberFlow

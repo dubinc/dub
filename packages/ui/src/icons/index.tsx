@@ -66,4 +66,7 @@ export * from "./payout-platforms";
 // Nucleo icons
 export * from "./nucleo";
 
+// Feature icons for pricing table
+export * from "./plan-feature-icons";
+
 export type Icon = LucideIcon | ComponentType<SVGProps<SVGSVGElement>>;

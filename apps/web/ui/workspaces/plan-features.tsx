@@ -1,7 +1,12 @@
-import { SimpleTooltipContent, Tooltip } from "@dub/ui";
+import {
+  AdvancedLinkFeaturesTooltip,
+  Check,
+  PLAN_FEATURE_ICONS,
+  SimpleTooltipContent,
+  Tooltip,
+} from "@dub/ui";
 import { cn, SELF_SERVE_PAID_PLANS, STAGGER_CHILD_VARIANTS } from "@dub/utils";
 import { motion } from "framer-motion";
-import { CheckCircleFill } from "../shared/icons";
 
 export function PlanFeatures({
   plan,
@@ -37,33 +42,42 @@ export function PlanFeatures({
           {selectedPlan.featureTitle}
         </motion.div>
       )}
-      {selectedPlan.features.map(({ text, footnote }, i) => (
-        <motion.div
-          key={i}
-          variants={STAGGER_CHILD_VARIANTS}
-          className="flex items-center space-x-2 text-sm text-neutral-500"
-        >
-          <CheckCircleFill className="h-5 w-5 text-green-500" />
+      {selectedPlan.features?.map(({ id, text, tooltip }, i) => {
+        const Icon =
+          id && PLAN_FEATURE_ICONS[id] ? PLAN_FEATURE_ICONS[id] : Check;
 
-          {footnote ? (
-            <Tooltip
-              content={
-                typeof footnote === "string" ? (
-                  footnote
-                ) : (
-                  <SimpleTooltipContent {...footnote} />
-                )
-              }
-            >
-              <p className="cursor-help text-neutral-600 underline decoration-dotted underline-offset-2">
-                {text}
-              </p>
-            </Tooltip>
-          ) : (
-            <p className="text-neutral-600">{text}</p>
-          )}
-        </motion.div>
-      ))}
+        return (
+          <motion.div
+            key={i}
+            variants={STAGGER_CHILD_VARIANTS}
+            className="flex items-center space-x-2 text-sm text-neutral-500"
+          >
+            <Icon className="size-4" />
+
+            {tooltip ? (
+              <Tooltip
+                content={
+                  typeof tooltip === "string" ? (
+                    tooltip === "ADVANCED_LINK_FEATURES" ? (
+                      <AdvancedLinkFeaturesTooltip />
+                    ) : (
+                      tooltip
+                    )
+                  ) : (
+                    <SimpleTooltipContent {...tooltip} />
+                  )
+                }
+              >
+                <p className="cursor-help text-neutral-600 underline decoration-dotted underline-offset-2">
+                  {text}
+                </p>
+              </Tooltip>
+            ) : (
+              <p className="text-neutral-600">{text}</p>
+            )}
+          </motion.div>
+        );
+      })}
     </motion.div>
   );
 }

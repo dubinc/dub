@@ -3,7 +3,7 @@ import { INFINITY_NUMBER } from "./misc";
 export type PlanFeature = {
   id?: string;
   text: string;
-  footnote?: {
+  tooltip?: {
     title: string;
     cta: string;
     href: string;
@@ -30,45 +30,6 @@ export const PLANS = [
       api: 60,
       retention: "30-day",
     },
-    cta: {
-      text: "Start for free",
-      shorText: "Get started",
-      href: "https://app.dub.co/register",
-      color:
-        "bg-white hover:bg-neutral-50 border border-neutral-200 hover:ring-neutral-100 text-neutral-800",
-    },
-    featureTitle: "What's included:",
-    features: [
-      {
-        id: "clicks",
-        text: "1K tracked clicks/mo",
-      },
-      { id: "links", text: "25 new links/mo" },
-      { id: "retention", text: "30-day analytics retention" },
-      { id: "domains", text: "3 domains" },
-      { id: "user", text: "1 user" },
-      {
-        id: "analytics",
-        text: "Advanced analytics",
-        footnote: {
-          title:
-            "Get location (country, city, continent), device (type, browser, OS), and referer data on your clicks.",
-          cta: "Learn more.",
-          href: "https://dub.co/analytics",
-        },
-      },
-      { id: "ai", text: "10 AI credits/mo" },
-      { id: "basic-support", text: "Basic support" },
-      {
-        id: "api",
-        text: "API Access",
-        footnote: {
-          title: "Programatically manage your links using our REST API.",
-          cta: "Learn more.",
-          href: "https://dub.co/docs/api-reference/introduction",
-        },
-      },
-    ] as PlanFeature[],
   },
   {
     name: "Pro",
@@ -102,37 +63,50 @@ export const PLANS = [
       api: 600,
       retention: "1-year",
     },
+    featureTitle: "Everything in Free, plus:",
     features: [
       { id: "clicks", text: "50K tracked clicks/mo" },
-      { id: "links", text: "1,000 new links/mo" },
+      { id: "links", text: "1K new links/mo" },
       { id: "retention", text: "1-year analytics retention" },
       { id: "domains", text: "10 domains" },
       { id: "users", text: "3 users" },
       {
-        id: "link-features",
+        id: "advanced",
         text: "Advanced link features",
-        footnote:
-          "Custom social media cards, password-protected links, link expiration, link cloaking, device targeting, geo targeting etc.",
+        tooltip: "ADVANCED_LINK_FEATURES",
       },
       {
         id: "ai",
         text: "Unlimited AI credits",
-        footnote: {
+        tooltip: {
           title:
             "Subject to fair use policy – you will be notified if you exceed the limit, which are high enough for frequent usage.",
           cta: "Learn more.",
           href: "https://dub.co/blog/introducing-dub-ai",
         },
       },
-      { id: "priority-support", text: "Priority support" },
       {
         id: "dotlink",
-        text: "Free custom domain",
-        footnote: {
+        text: "Free .link domain",
+        tooltip: {
           title:
             "All our paid plans come with a free .link custom domain, which helps improve click-through rates.",
           cta: "Learn more.",
           href: "https://dub.co/help/article/free-dot-link-domain",
+        },
+      },
+      {
+        id: "folders",
+        text: "Link folders",
+      },
+      {
+        id: "deeplinks",
+        text: "Deep links",
+        tooltip: {
+          title:
+            "Redirect users to a specific page within your mobile application using deep links.",
+          cta: "Learn more.",
+          href: "https://dub.co//help/article/custom-domain-deep-links",
         },
       },
     ] as PlanFeature[],
@@ -181,22 +155,18 @@ export const PLANS = [
         text: "10K new links/mo",
       },
       {
+        id: "retention",
+        text: "3-year analytics retention",
+      },
+      {
         id: "sales",
         text: "$25K tracked sales/mo",
-        footnote: {
+        tooltip: {
           title:
             "Use Dub Conversions to track how your link clicks are converting to signups and sales. Limits are based on the total sale amount tracked within a given month.",
           cta: "Learn more.",
           href: "https://d.to/conversions",
         },
-      },
-      {
-        id: "retention",
-        text: "3-year analytics retention",
-      },
-      {
-        id: "domains",
-        text: "100 domains",
       },
       {
         id: "users",
@@ -205,22 +175,44 @@ export const PLANS = [
       {
         id: "events",
         text: "Real-time events stream",
-        footnote: {
+        tooltip: {
           title:
             "Get more data on your link clicks and QR code scans with a detailed, real-time stream of events in your workspace",
           cta: "Learn more.",
-          href: "https://d.to/events",
+          href: "https://dub.co/help/article/real-time-events-stream",
+        },
+      },
+      {
+        id: "partners",
+        text: "Partner management",
+        tooltip: {
+          title: "Use Dub Partners to manage and pay out your affiliates.",
+          cta: "Learn more.",
+          href: "https://dub.co/partners",
+        },
+      },
+      {
+        id: "payouts",
+        text: "1-click global payouts",
+        tooltip: {
+          title: "Send payouts to 180+ countries in 1-click.",
+          cta: "Learn more.",
+          href: "https://dub.co/help/article/partner-payouts",
         },
       },
       {
         id: "webhooks",
-        text: "Real-time webhooks",
-        footnote: {
+        text: "Event webhooks",
+        tooltip: {
           title:
-            "Use webhooks to connect Dub with your data stack and workflows – with native integrations for Segment, Zapier, Slack, and more.",
+            "Get real-time notifications when a link is clicked or a QR code is scanned using webhooks.",
           cta: "Learn more.",
-          href: "https://d.to/webhooks",
+          href: "https://dub.co/docs/concepts/webhooks/introduction",
         },
+      },
+      {
+        id: "tests",
+        text: "A/B testing",
       },
     ] as PlanFeature[],
   },
@@ -260,9 +252,13 @@ export const PLANS = [
         text: "50K new links/mo",
       },
       {
+        id: "retention",
+        text: "5-year analytics retention",
+      },
+      {
         id: "sales",
         text: "$100K tracked sales/mo",
-        footnote: {
+        tooltip: {
           title:
             "Use Dub Conversions to track how your link clicks are converting to signups and sales. Limits are based on the total sale amount tracked within a given month.",
           cta: "Learn more.",
@@ -270,16 +266,33 @@ export const PLANS = [
         },
       },
       {
-        id: "retention",
-        text: "5-year analytics retention",
-      },
-      {
-        id: "domains",
-        text: "250 domains",
-      },
-      {
         id: "users",
         text: "20 users",
+      },
+      {
+        id: "roles",
+        text: "Folders RBAC",
+      },
+      {
+        id: "whitelabel",
+        text: "White-labeling support",
+      },
+      {
+        id: "volume",
+        text: "Lower payout fees",
+        tooltip: {
+          title: "Lower fees associated with Partner payouts.",
+          cta: "Learn more.",
+          href: "https://dub.co/help/article/partner-payouts",
+        },
+      },
+      {
+        id: "email",
+        text: "Branded email domains",
+      },
+      {
+        id: "slack",
+        text: "Priority Slack support",
       },
     ] as PlanFeature[],
   },
