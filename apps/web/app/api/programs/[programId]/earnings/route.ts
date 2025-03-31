@@ -7,7 +7,7 @@ import { prisma } from "@dub/prisma";
 import { DateTime } from "luxon";
 import { NextResponse } from "next/server";
 
-const programAnalyticsQuerySchema = analyticsQuerySchema.pick({
+const querySchema = analyticsQuerySchema.pick({
   start: true,
   end: true,
   interval: true,
@@ -27,8 +27,7 @@ export const GET = withWorkspace(
       programId: params.programId,
     });
 
-    const { start, end, interval, timezone } =
-      programAnalyticsQuerySchema.parse(searchParams);
+    const { start, end, interval, timezone } = querySchema.parse(searchParams);
 
     const { startDate, endDate, granularity } = getStartEndDates({
       interval,

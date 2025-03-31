@@ -1,23 +1,15 @@
-import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
+import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { sqlGranularityMap } from "@/lib/planetscale/granularity";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { NextResponse } from "next/server";
 
-const programAnalyticsQuerySchema = analyticsQuerySchema.pick({
-  event: true,
+const querySchema = analyticsQuerySchema.pick({
   start: true,
   end: true,
   interval: true,
-  groupBy: true,
   timezone: true,
 });
-
-interface Revenue {
-  start: string;
-  amount: number;
-}
 
 // GET /api/programs/[programId]/revenue - get revenue timeseries for a program
 export const GET = withWorkspace(
@@ -27,18 +19,21 @@ export const GET = withWorkspace(
       programId: params.programId,
     });
 
-    const { start, end, interval, timezone } =
-      programAnalyticsQuerySchema.parse(searchParams);
+    const parsedParams = querySchema.parse(searchParams);
 
-    const { startDate, endDate, granularity } = getStartEndDates({
-      interval,
-      start,
-      end,
+    const response = await getAnalytics({
+      ...parsedParams,
+      event: "sales",
+      groupBy: "timeseries",
+      workspaceId: workspace.id,
+      programId: program.id,
     });
 
-    const { dateFormat, dateIncrement, startFunction, formatString } =
-      sqlGranularityMap[granularity];
+    const timeseries = response.map((item) => ({
+      start: item.start,
+      amount: item.saleAmount,
+    }));
 
-    return NextResponse.json([]);
+    return NextResponse.json(timeseries);
   },
 );
