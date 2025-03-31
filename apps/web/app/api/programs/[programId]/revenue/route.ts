@@ -55,7 +55,7 @@ export const GET = withWorkspace(
         SUM(CASE WHEN type = 'sale' THEN amount ELSE 0 END) AS saleAmount
       FROM Commission
       WHERE 
-        amount > 0
+        earnings > 0
         AND programId = ${program.id}
         AND createdAt >= ${startDate}
         AND createdAt < ${endDate}

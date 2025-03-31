@@ -16,11 +16,11 @@ async function main() {
     },
     complete: async () => {
       const where: Prisma.CommissionWhereInput = {
-        programId: "prog_xxx",
-        status: "processed",
         earnings: {
           not: 5000,
         },
+        programId: "prog_xxx",
+        status: "processed",
         partner: {
           email: {
             in: flatRatePartners,

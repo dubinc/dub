@@ -11,7 +11,6 @@ import { PartnerInvite } from "@dub/email/templates/partner-invite";
 import { prisma } from "@dub/prisma";
 import { nanoid, R2_URL } from "@dub/utils";
 import { Program, Project, User } from "@prisma/client";
-import slugify from "@sindresorhus/slugify";
 import { waitUntil } from "@vercel/functions";
 
 // Create a new program from the onboarding data
@@ -19,7 +18,7 @@ export const createProgram = async ({
   workspace,
   user,
 }: {
-  workspace: Pick<Project, "id" | "store" | "plan" | "webhookEnabled">;
+  workspace: Pick<Project, "id" | "slug" | "plan" | "store" | "webhookEnabled">;
   user: Pick<User, "id">;
 }) => {
   const store = workspace.store as Record<string, any>;
@@ -62,7 +61,7 @@ export const createProgram = async ({
       id: createId({ prefix: "prog_" }),
       workspaceId: workspace.id,
       name,
-      slug: slugify(name),
+      slug: workspace.slug,
       domain,
       url,
       defaultFolderId: programFolder.id,
@@ -126,6 +125,9 @@ export const createProgram = async ({
           id: workspace.id,
         },
         data: {
+          foldersUsage: {
+            increment: 1,
+          },
           store: {
             ...store,
             programOnboarding: undefined,
@@ -205,7 +207,6 @@ async function invitePartner({
       email: partner.email,
       react: PartnerInvite({
         email: partner.email,
-        appName: `${process.env.NEXT_PUBLIC_APP_NAME}`,
         program: {
           name: program.name,
           logo: program.logo,

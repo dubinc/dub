@@ -4,8 +4,10 @@ import { currencyFormatter } from "@dub/utils";
 
 export function ReferralsEmbedPayouts({
   payouts,
+  programSlug,
 }: {
   payouts: { status: PayoutStatus; amount: number }[];
+  programSlug: string;
 }) {
   return (
     <div className="border-border-subtle bg-bg-default flex flex-col justify-between gap-4 rounded-lg border p-4">
@@ -14,7 +16,10 @@ export function ReferralsEmbedPayouts({
           <p className="text-content-subtle text-sm">Payouts</p>
           <InfoTooltip content="Payouts are processed at the start of each month. Your earnings are automatically transferred to your bank account." />
         </div>
-        <a href="https://partners.dub.co/register" target="_blank">
+        <a
+          href={`https://partners.dub.co/${programSlug}/register`}
+          target="_blank"
+        >
           <Button
             text="Settings"
             variant="secondary"

@@ -28,7 +28,7 @@ export function FailedPayment({
 }) {
   const title = `${
     attemptCount == 2 ? "2nd notice: " : attemptCount == 3 ? "3rd notice: " : ""
-  }Your payment for Dub.co failed`;
+  }Your payment for Dub failed`;
 
   return (
     <Html>
@@ -36,18 +36,13 @@ export function FailedPayment({
       <Preview>{title}</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
-          <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-neutral-200 px-10 py-5">
-            <Section className="mt-8">
-              <Img
-                src={DUB_WORDMARK}
-                height="40"
-                alt="Dub"
-                className="mx-auto my-0"
-              />
+          <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
+            <Section className="mt-6 mt-8">
+              <Img src={DUB_WORDMARK} height="32" alt="Dub" />
             </Section>
-            <Heading className="mx-0 my-7 p-0 text-center text-xl font-semibold text-black">
+            <Heading className="mx-0 my-7 p-0 text-lg font-medium text-black">
               {attemptCount == 2 ? "2nd " : attemptCount == 3 ? "3rd  " : ""}
-              Failed Payment for Dub.co
+              Failed Payment for Dub
             </Heading>
             <Text className="text-sm leading-6 text-black">
               Hey{user.name ? `, ${user.name}` : ""}!
@@ -66,9 +61,9 @@ export function FailedPayment({
               </Link>{" "}
               using the link below:
             </Text>
-            <Section className="my-8 text-center">
+            <Section className="my-8">
               <Link
-                className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
+                className="rounded-lg bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
                 href={`https://app.dub.co/${workspace.slug}/settings/billing`}
               >
                 Update payment information

@@ -1,3 +1,7 @@
+import {
+  linksDisplayProperties,
+  LinksViewMode,
+} from "@/lib/links/links-display";
 import { useIsMegaFolder } from "@/lib/swr/use-is-mega-folder";
 import {
   Button,
@@ -18,11 +22,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { useContext, useState } from "react";
 import LinkSort from "./link-sort";
-import {
-  LinksDisplayContext,
-  LinksViewMode,
-  linkDisplayProperties,
-} from "./links-display-provider";
+import { LinksDisplayContext } from "./links-display-provider";
 
 export default function LinkDisplay() {
   const {
@@ -122,7 +122,7 @@ export default function LinkDisplay() {
               Display Properties
             </span>
             <div className="mt-4 flex flex-wrap gap-2">
-              {linkDisplayProperties.map((property) => {
+              {linksDisplayProperties.map((property) => {
                 const active = displayProperties.includes(property.id);
                 return (
                   <button

@@ -17,7 +17,6 @@ export const GET = withPartnerProfile(
 
     const {
       groupBy,
-      type,
       status,
       linkId,
       customerId,
@@ -34,30 +33,9 @@ export const GET = withPartnerProfile(
     });
 
     const where: Prisma.CommissionWhereInput = {
-      ...(type
-        ? {
-            type,
-            ...(type === "sale" && {
-              amount: {
-                gt: 0,
-              },
-            }),
-          }
-        : {
-            OR: [
-              {
-                type: "sale",
-                amount: {
-                  gt: 0,
-                },
-              },
-              {
-                type: {
-                  not: "sale",
-                },
-              },
-            ],
-          }),
+      earnings: {
+        gt: 0,
+      },
       programId: program.id,
       partnerId: partner.id,
       ...(payoutId && { payoutId }),
@@ -134,8 +112,6 @@ export const GET = withPartnerProfile(
           ...(customerId && { customerId }),
         },
       });
-
-      console.log("count", count, where);
 
       return NextResponse.json({ count });
     }
