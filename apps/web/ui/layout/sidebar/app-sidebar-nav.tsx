@@ -71,7 +71,7 @@ const NAV_AREAS: SidebarNavAreas<{
           {
             name: "New QR",
             icon: NewQRIcon,
-            href: "/new", // @TODO: Add new QR page
+            href: `/${slug}/new-qr/type`,
             exact: true,
           },
           {

@@ -9,7 +9,7 @@ import { useState } from "react";
 import {
   ADDITIONAL_QR_TYPES,
   DEFAULT_QR_TYPES,
-  LINKED_QR_TYPE_LABELS,
+  LINKED_QR_TYPES,
   QR_TYPES,
 } from "../../constants/get-qr-config.ts";
 import { Rating } from "../rating-info/components/rating.tsx";
@@ -93,7 +93,7 @@ export const QRTabs = () => {
 
           {QR_TYPES.map((type, idx) => {
             const firstTab = idx === 0;
-            const showWebsiteInput = LINKED_QR_TYPE_LABELS.includes(type.id);
+            const showWebsiteInput = LINKED_QR_TYPES.includes(type.id);
 
             return (
               <Tabs.Content
