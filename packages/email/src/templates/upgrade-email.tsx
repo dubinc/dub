@@ -72,7 +72,7 @@ export function UpgradeEmail({
             <Text className="text-sm leading-6 text-black">
               On the {plan} plan, you now have access to:
             </Text>
-            {planDetails.features.map((feature) => (
+            {planDetails.features?.map((feature) => (
               <Text className="ml-1 text-sm leading-4 text-black">
                 ◆{" "}
                 {feature.footnote?.href ? (
