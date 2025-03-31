@@ -35,7 +35,7 @@ export function SolutionsContent({ domain }: { domain: string }) {
   return (
     <div className="grid w-[1020px] grid-cols-[minmax(0,1fr),0.4fr] divide-x divide-neutral-200 dark:divide-white/20">
       <div className="flex h-full flex-col p-4">
-        <p className={cn(contentHeadingClassName, "mb-4 ml-2")}>By use case</p>
+        <p className={cn(contentHeadingClassName, "mb-4 ml-2")}>Use case</p>
         <div className="grid grow grid-cols-3 gap-4">
           {mainLinks.map(({ icon: Icon, title, description, href }) => (
             <NavigationMenuLink key={title} asChild>
