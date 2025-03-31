@@ -4,6 +4,7 @@ import { clickCache } from "@/lib/api/links/click-cache";
 import { parseRequestBody } from "@/lib/api/utils";
 import { getLinkWithAllowedHostnames } from "@/lib/planetscale/get-link-with-allowed-hostnames";
 import { recordClick } from "@/lib/tinybird";
+import { isGoogleAdsClick } from "@/lib/url";
 import { isValidUrl, LOCALHOST_IP, nanoid } from "@dub/utils";
 import { ipAddress, waitUntil } from "@vercel/functions";
 import { AxiomRequest, withAxiom } from "next-axiom";
@@ -35,8 +36,6 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
 
     // only generate + record a new click ID if it's not already cached in Redis
     if (!clickId) {
-      clickId = nanoid(16);
-
       const link = await getLinkWithAllowedHostnames(domain, key);
 
       if (!link) {
@@ -48,28 +47,36 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
 
       const allowedHostnames = link.allowedHostnames;
       verifyAnalyticsAllowedHostnames({ allowedHostnames, req });
-
       const finalUrl = isValidUrl(url) ? url : link.url;
 
-      waitUntil(
-        recordClick({
-          req,
-          clickId,
-          linkId: link.id,
-          domain,
-          key,
-          url: finalUrl,
-          workspaceId: link.projectId,
-          skipRatelimit: true,
-          ...(referrer && { referrer }),
-          trackConversion: link.trackConversion,
-        }),
-      );
+      const skipTracking = isGoogleAdsClick({
+        url: finalUrl,
+        referrer,
+      });
+
+      if (!skipTracking) {
+        clickId = nanoid(16);
+
+        waitUntil(
+          recordClick({
+            req,
+            clickId,
+            linkId: link.id,
+            domain,
+            key,
+            url: finalUrl,
+            workspaceId: link.projectId,
+            skipRatelimit: true,
+            ...(referrer && { referrer }),
+            trackConversion: link.trackConversion,
+          }),
+        );
+      }
     }
 
     return NextResponse.json(
       {
-        clickId,
+        clickId: clickId || null,
       },
       {
         headers: CORS_HEADERS,

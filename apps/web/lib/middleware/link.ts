@@ -30,18 +30,14 @@ import { isCaseSensitiveDomain } from "../api/links/case-sensitivity";
 import { clickCache } from "../api/links/click-cache";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
+import { isGoogleAdsClick } from "../url";
 import { hasEmptySearchParams } from "./utils/has-empty-search-params";
 
 export default async function LinkMiddleware(
   req: NextRequest,
   ev: NextFetchEvent,
 ) {
-  let {
-    domain,
-    fullKey: originalKey,
-    searchParamsString,
-    fullPath,
-  } = parse(req);
+  let { domain, fullKey: originalKey, fullPath } = parse(req);
 
   if (!domain) {
     return NextResponse.next();
@@ -213,9 +209,10 @@ export default async function LinkMiddleware(
     }
   }
 
-  // Identify if the link is clicked from the Google Ads
-  const isGoogleClick = searchParamsString?.includes("gclid");
-  const skipTracking = Boolean(isGoogleClick && programId);
+  const skipTracking = isGoogleAdsClick({
+    url: req.url,
+    referrer: req.headers.get("referer") || "",
+  });
 
   const cookieStore = cookies();
   let clickId = cookieStore.get("dub_id")?.value;
