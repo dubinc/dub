@@ -142,9 +142,9 @@ export const SOLUTIONS: NavItemChildren = [
   },
   {
     icon: UsersFill,
-    title: "Content Creators",
-    description: "Intelligent audience insights and link tracking",
-    href: "/solutions/creators",
+    title: "Affiliate Management",
+    description: "Manage affiliates and automate payouts",
+    href: "/partners",
   },
   {
     label: "SDKs",
