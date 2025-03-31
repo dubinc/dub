@@ -1,8 +1,10 @@
+import { ElementType } from "react";
 import {
   Book2Fill,
   BulletListFill,
   ConnectedDotsFill,
   CubeSettingsFill,
+  DiamondTurnRightFill,
   FeatherFill,
   Github,
   Go,
@@ -12,6 +14,7 @@ import {
   Hyperlink,
   LinesY,
   LinkedIn,
+  MicrophoneFill,
   Php,
   ProductHunt,
   Python,
@@ -19,10 +22,23 @@ import {
   Ruby,
   Twitter,
   Typescript,
+  UsersFill,
   YouTube,
 } from "./icons";
 import { Elxo } from "./icons/elxo";
-import { Logo } from "./logo";
+
+export type NavItemChild = {
+  title: string;
+  description?: string;
+  href: string;
+  icon: ElementType;
+  iconClassName?: string;
+};
+
+export type NavItemChildren = (
+  | NavItemChild
+  | { label: string; items: NavItemChild[] }
+)[];
 
 export const FEATURES_LIST = [
   {
@@ -111,6 +127,31 @@ export const SDKS = [
   },
 ];
 
+export const SOLUTIONS: NavItemChildren = [
+  {
+    icon: DiamondTurnRightFill,
+    title: "Marketing Attribution",
+    description: "Easily track and measure marketing impact",
+    href: "/analytics",
+  },
+  {
+    icon: MicrophoneFill,
+    title: "Content Creators",
+    description: "Intelligent audience insights and link tracking",
+    href: "/solutions/creators",
+  },
+  {
+    icon: UsersFill,
+    title: "Affiliate Management",
+    description: "Manage affiliates and automate payouts",
+    href: "/partners",
+  },
+  {
+    label: "SDKs",
+    items: SDKS,
+  },
+];
+
 export const RESOURCES = [
   {
     icon: Book2Fill,
@@ -123,21 +164,6 @@ export const RESOURCES = [
     title: "Help Center",
     description: "Answers to your questions",
     href: "/help",
-  },
-  {
-    icon: HexadecagonStar,
-    title: "Dub Brand",
-    description: "Logos, wordmark, etc.",
-    href: "/brand",
-  },
-];
-
-export const COMPANY = [
-  {
-    icon: Logo,
-    title: "About",
-    description: "Company and team",
-    href: "/about",
   },
   {
     icon: FeatherFill,
@@ -156,6 +182,12 @@ export const COMPANY = [
     title: "Customers",
     description: "Success stories and use cases",
     href: "/customers",
+  },
+  {
+    icon: HexadecagonStar,
+    title: "Dub Brand",
+    description: "Logos, wordmark, etc.",
+    href: "/brand",
   },
 ];
 
