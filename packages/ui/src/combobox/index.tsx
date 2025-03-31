@@ -67,6 +67,7 @@ export type ComboboxProps<
   optionRight?: (option: ComboboxOption) => ReactNode;
   optionClassName?: string;
   matchTriggerWidth?: boolean;
+  hideSearch?: boolean;
 }>;
 
 function isMultipleSelection(
@@ -100,6 +101,7 @@ export function Combobox({
   optionRight,
   optionClassName,
   matchTriggerWidth,
+  hideSearch = false,
   children,
 }: ComboboxProps<boolean | undefined, any>) {
   const isMultiple = isMultipleSelection(multiple, setSelected);
@@ -204,33 +206,35 @@ export function Combobox({
           className="pointer-events-auto"
         >
           <Command loop shouldFilter={shouldFilter}>
-            <div className="flex items-center overflow-hidden rounded-t-lg border-b border-neutral-200">
-              <CommandInput
-                placeholder={searchPlaceholder}
-                value={search}
-                onValueChange={setSearch}
-                className={cn(
-                  "grow border-0 py-3 pl-4 pr-2 outline-none placeholder:text-neutral-400 focus:ring-0 sm:text-sm",
-                  inputClassName,
+            {!hideSearch && (
+              <div className="flex items-center overflow-hidden rounded-t-lg border-b border-neutral-200">
+                <CommandInput
+                  placeholder={searchPlaceholder}
+                  value={search}
+                  onValueChange={setSearch}
+                  className={cn(
+                    "grow border-0 py-3 pl-4 pr-2 outline-none placeholder:text-neutral-400 focus:ring-0 sm:text-sm",
+                    inputClassName,
+                  )}
+                  onKeyDown={(e) => {
+                    if (
+                      e.key === "Escape" ||
+                      (e.key === "Backspace" && !search)
+                    ) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsOpen(false);
+                    }
+                  }}
+                />
+                {inputRight && <div className="mr-2">{inputRight}</div>}
+                {shortcutHint && (
+                  <kbd className="mr-2 hidden shrink-0 rounded border border-neutral-200 bg-neutral-100 px-2 py-0.5 text-xs font-light text-neutral-500 md:block">
+                    {shortcutHint}
+                  </kbd>
                 )}
-                onKeyDown={(e) => {
-                  if (
-                    e.key === "Escape" ||
-                    (e.key === "Backspace" && !search)
-                  ) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setIsOpen(false);
-                  }
-                }}
-              />
-              {inputRight && <div className="mr-2">{inputRight}</div>}
-              {shortcutHint && (
-                <kbd className="mr-2 hidden shrink-0 rounded border border-neutral-200 bg-neutral-100 px-2 py-0.5 text-xs font-light text-neutral-500 md:block">
-                  {shortcutHint}
-                </kbd>
-              )}
-            </div>
+              </div>
+            )}
             <Scroll>
               <Command.List
                 className={cn("flex w-full min-w-[100px] flex-col gap-1 p-1")}
