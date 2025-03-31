@@ -47,27 +47,21 @@ export function SolutionsContent({ domain }: { domain: string }) {
                   getUtmParams({ domain, utm_content: title }),
                 )}
                 className={cn(
-                  "group relative flex flex-col justify-between overflow-hidden rounded-xl border border-neutral-100 bg-neutral-50 px-5 py-4 transition-colors duration-75 hover:bg-neutral-100/80",
+                  "group relative isolate z-0 flex flex-col justify-between overflow-hidden rounded-xl border border-neutral-100 bg-neutral-50 px-5 py-4 transition-colors duration-75",
                   "dark:border-white/20 dark:bg-neutral-900",
                 )}
               >
-                <div className="absolute inset-0 isolate bg-neutral-50 opacity-0 transition-opacity duration-150 [transform:translateZ(0)] group-hover:opacity-100 dark:bg-neutral-900">
+                <div className="absolute inset-0 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
                   <div className="absolute -inset-[25%] -skew-y-12 [mask-image:linear-gradient(225deg,black,transparent_50%)]">
                     <Grid
                       cellSize={46}
                       patternOffset={[0, -14]}
-                      className="translate-y-4 text-neutral-400 transition-transform duration-150 ease-out group-hover:translate-y-0 dark:text-white/30"
+                      className="translate-y-2 text-[#ad1f3288] transition-transform duration-150 ease-out group-hover:translate-y-0"
                     />
                   </div>
                   <div
                     className={cn(
-                      "absolute -inset-[10%] opacity-5 blur-lg dark:hidden",
-                      "bg-[conic-gradient(#F35066_0deg,#F35066_117deg,#9071F9_180deg,#5182FC_240deg,#F35066_360deg)]",
-                    )}
-                  />
-                  <div
-                    className={cn(
-                      "absolute -inset-[10%] opacity-80 mix-blend-overlay blur-lg dark:brightness-150",
+                      "absolute -inset-[10%] opacity-10 blur-[50px] dark:brightness-150",
                       "bg-[conic-gradient(#F35066_0deg,#F35066_117deg,#9071F9_180deg,#5182FC_240deg,#F35066_360deg)]",
                     )}
                   />
