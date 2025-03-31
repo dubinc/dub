@@ -38,7 +38,7 @@ export function SolutionsContent({ domain }: { domain: string }) {
         <p className={cn(contentHeadingClassName, "mb-4 ml-2")}>By use case</p>
         <div className="grid grow grid-cols-3 gap-4">
           {mainLinks.map(({ icon: Icon, title, description, href }) => (
-            <NavigationMenuLink asChild>
+            <NavigationMenuLink key={title} asChild>
               <Link
                 key={title}
                 href={createHref(

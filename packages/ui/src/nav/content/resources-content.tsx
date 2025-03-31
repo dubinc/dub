@@ -26,7 +26,7 @@ export function ResourcesContent({ domain }: { domain: string }) {
     <div className="grid w-[1020px] grid-cols-[minmax(0,1fr),0.45fr] divide-x divide-neutral-200 dark:divide-white/20">
       <div className="grid grid-cols-2 gap-4 p-4">
         {mainLinks.map(({ title, description, thumbnail, href }) => (
-          <NavigationMenuLink asChild>
+          <NavigationMenuLink key={title} asChild>
             <Link
               key={title}
               href={createHref(
