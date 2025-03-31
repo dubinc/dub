@@ -17,8 +17,8 @@ export function PayoutStatsAndSettings() {
     groupBy: "status",
   });
 
-  const { data: bankAccount } = useSWR<Stripe.BankAccount | null>(
-    partner && `/api/partner-profile/payouts/settings`,
+  const { data: bankAccount } = useSWR<Stripe.BankAccount>(
+    partner && "/api/partner-profile/payouts/settings",
     fetcher,
   );
 
@@ -54,7 +54,7 @@ export function PayoutStatsAndSettings() {
               currency: "USD",
             }}
           />
-          {bankAccount && (
+          {bankAccount && Object.keys(bankAccount).length > 0 && (
             <div className="text-sm">
               <p className="text-neutral-600">{bankAccount.bank_name}</p>
               <div className="flex items-center gap-1.5 font-mono text-neutral-400">

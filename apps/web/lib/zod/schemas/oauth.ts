@@ -22,6 +22,7 @@ export const createOAuthAppSchema = createIntegrationSchema.merge(
       .max(5, {
         message: "only 5 redirect URIs are allowed",
       })
+      .transform((urls) => urls.filter((url) => url.trim().length > 0))
       .refine(
         (urls) => {
           return urls.every((url) => /^(https?:\/\/)/i.test(url));
