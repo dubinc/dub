@@ -8,11 +8,9 @@ import { DateTime } from "luxon";
 import { NextResponse } from "next/server";
 
 const programAnalyticsQuerySchema = analyticsQuerySchema.pick({
-  event: true,
   start: true,
   end: true,
   interval: true,
-  groupBy: true,
   timezone: true,
 });
 
@@ -54,7 +52,6 @@ export const GET = withWorkspace(
       GROUP BY start
       ORDER BY start ASC;`;
 
-    const timeseries: Earnings[] = [];
     let currentDate = startFunction(
       DateTime.fromJSDate(startDate).setZone(timezone || "UTC"),
     );
@@ -67,6 +64,8 @@ export const GET = withWorkspace(
         },
       ]),
     );
+
+    const timeseries: Earnings[] = [];
 
     while (currentDate < endDate) {
       const periodKey = currentDate.toFormat(formatString);
