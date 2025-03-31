@@ -1,8 +1,7 @@
-import { verifyAnalyticsAllowedHostnames } from "@/lib/analytics/verify-analytics-allowed-hostnames";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { clickCache } from "@/lib/api/links/click-cache";
 import { parseRequestBody } from "@/lib/api/utils";
-import { getLinkWithAllowedHostnames } from "@/lib/planetscale/get-link-with-allowed-hostnames";
+import { getLinkWithPartner } from "@/lib/planetscale/get-link-with-partner";
 import { recordClick } from "@/lib/tinybird";
 import { isValidUrl, LOCALHOST_IP, nanoid } from "@dub/utils";
 import { ipAddress, waitUntil } from "@vercel/functions";
@@ -37,7 +36,10 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
     if (!clickId) {
       clickId = nanoid(16);
 
-      const link = await getLinkWithAllowedHostnames(domain, key);
+      const link = await getLinkWithPartner({
+        domain,
+        key,
+      });
 
       if (!link) {
         throw new DubApiError({
@@ -46,8 +48,12 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
         });
       }
 
-      const allowedHostnames = link.allowedHostnames;
-      verifyAnalyticsAllowedHostnames({ allowedHostnames, req });
+      // TODO:
+      // Fetch the allowed hostnames from the database
+      // Cache it in Redis
+
+      // const allowedHostnames = link.allowedHostnames;
+      // verifyAnalyticsAllowedHostnames({ allowedHostnames, req });
 
       const finalUrl = isValidUrl(url) ? url : link.url;
 

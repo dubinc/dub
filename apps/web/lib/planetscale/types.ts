@@ -18,6 +18,7 @@ export interface EdgeLinkProps {
   publicStats: number;
   expiredUrl: string | null;
   createdAt: string;
+  trackConversion: boolean;
 }
 
 export interface EdgeDomainProps {
