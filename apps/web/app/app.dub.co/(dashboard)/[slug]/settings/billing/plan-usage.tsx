@@ -84,8 +84,6 @@ export default function PlanUsage() {
     return [];
   }, [billingCycleStart]);
 
-  const isMaxPlan = plan && ["business max", "advanced"].includes(plan);
-
   return (
     <div className="rounded-lg border border-neutral-200 bg-white">
       <div className="flex flex-col items-start justify-between gap-y-4 p-6 md:px-8 lg:flex-row">
@@ -105,12 +103,7 @@ export default function PlanUsage() {
         <div className="flex items-center gap-2">
           {plan !== "enterprise" && (
             <Link
-              href={
-                isMaxPlan
-                  ? "https://dub.co/contact"
-                  : `/${slug}/settings/billing/upgrade`
-              }
-              target={isMaxPlan ? "_blank" : undefined}
+              href={`/${slug}/settings/billing/upgrade`}
               className={cn(
                 buttonVariants({ variant: "primary" }),
                 "flex h-9 w-full items-center justify-center whitespace-nowrap rounded-md border px-4 text-sm",
