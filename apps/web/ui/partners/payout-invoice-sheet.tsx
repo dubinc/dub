@@ -2,10 +2,12 @@ import { confirmPayoutsAction } from "@/lib/actions/partners/confirm-payouts";
 import { PAYOUT_FEES } from "@/lib/partners/constants";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import usePayouts from "@/lib/swr/use-payouts";
+import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { PayoutResponse } from "@/lib/types";
+import { PayoutsCount } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
+import { PayoutStatus } from "@dub/prisma/client";
 import {
   Button,
   buttonVariants,
@@ -26,7 +28,6 @@ import {
   DICEBEAR_AVATAR_URL,
   truncate,
 } from "@dub/utils";
-import { Row } from "@tanstack/react-table";
 import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
@@ -47,8 +48,6 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
   const { id: workspaceId, slug, plan } = useWorkspace();
   const { paymentMethods, loading: paymentMethodsLoading } =
     usePaymentMethods();
-
-  const [selectedPayouts, setSelectedPayouts] = useState<PayoutResponse[]>([]);
 
   const paymentMethodsTypes = Object.freeze({
     link: {
@@ -83,12 +82,22 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
     useState<PaymentMethodWithFee | null>(null);
 
   const {
-    payouts,
-    error: payoutsError,
-    loading: payoutsLoading,
+    payoutsCount: eligiblePayoutsCount,
+    loading: eligiblePayoutsCountLoading,
+  } = usePayoutsCount<PayoutsCount[]>({
+    groupBy: "status",
+    eligibility: "eligible",
+  });
+
+  const {
+    payouts: eligiblePayouts,
+    error: eligiblePayoutsError,
+    loading: eligiblePayoutsLoading,
   } = usePayouts({
     query: {
       status: "pending",
+      eligibility: "eligible",
+      sortBy: "amount",
     },
   });
 
@@ -103,20 +112,6 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
       toast.error(error.serverError);
     },
   });
-
-  //  Filter out payouts that:
-  //  - Belong to a partner that doesn't have `payoutsEnabledAt`
-  //  - Payout amount is less than $10
-  const pendingPayouts = useMemo(
-    () =>
-      payouts?.filter(
-        (payout) =>
-          Boolean(payout.partner.payoutsEnabledAt) &&
-          program &&
-          payout.amount >= program.minPayoutAmount,
-      ),
-    [payouts, program],
-  );
 
   // Set the first payment method as the selected payment method
   useEffect(() => {
@@ -148,7 +143,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
   );
 
   const invoiceData = useMemo(() => {
-    if (!selectedPayouts) {
+    if (eligiblePayoutsCountLoading) {
       return {
         Method: (
           <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
@@ -168,10 +163,10 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
       };
     }
 
-    const amount = selectedPayouts.reduce(
-      (acc, payout) => acc + payout.amount,
-      0,
-    );
+    const amount =
+      eligiblePayoutsCount?.find((p) => p.status === PayoutStatus.pending)
+        ?.amount ?? 0;
+
     const fee = amount * (selectedPaymentMethod?.fee ?? 0);
     const total = amount + fee;
 
@@ -253,32 +248,11 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
         maximumFractionDigits: 2,
       }),
     };
-  }, [selectedPayouts, paymentMethods, selectedPaymentMethod]);
+  }, [eligiblePayoutsCountLoading, paymentMethods, selectedPaymentMethod]);
 
   const table = useTable({
-    data: pendingPayouts || [],
+    data: eligiblePayouts || [],
     columns: [
-      {
-        id: "selection",
-        header: ({ table }) => (
-          <input
-            type="checkbox"
-            className="h-4 w-4 cursor-pointer rounded-full border-neutral-300 text-black focus:outline-none focus:ring-0"
-            checked={table.getIsAllRowsSelected()}
-            onChange={table.getToggleAllRowsSelectedHandler()}
-          />
-        ),
-        cell: ({ row }) => (
-          <input
-            type="checkbox"
-            className="h-4 w-4 cursor-pointer rounded-full border-neutral-300 text-black focus:outline-none focus:ring-0"
-            checked={row.getIsSelected()}
-            onChange={row.getToggleSelectedHandler()}
-          />
-        ),
-        minSize: 10,
-        size: 30,
-      },
       {
         header: "Partner",
         cell: ({ row }) => (
@@ -313,20 +287,17 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
     className: "[&_tr:last-child>td]:border-b-transparent",
     scrollWrapperClassName: "min-h-[40px]",
     resourceName: (p) => `pending payout${p ? "s" : ""}`,
-    loading: payoutsLoading,
-    error: payoutsError
+    loading: eligiblePayoutsLoading,
+    error: eligiblePayoutsError
       ? "Failed to load payouts for this invoice."
       : undefined,
-    getRowId: (originalRow: PayoutResponse) => originalRow.id,
-    onRowSelectionChange: (rows: Row<PayoutResponse>[]) =>
-      setSelectedPayouts(rows.map((row) => row.original)),
   } as any);
 
   useEffect(() => {
-    if (pendingPayouts) {
+    if (eligiblePayouts) {
       table.table.toggleAllRowsSelected();
     }
-  }, [pendingPayouts]);
+  }, [eligiblePayouts]);
 
   return (
     <>
@@ -377,12 +348,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
             variant="primary"
             loading={isPending}
             onClick={async () => {
-              if (
-                !workspaceId ||
-                !program?.id ||
-                !selectedPayouts.length ||
-                !selectedPaymentMethod
-              ) {
+              if (!workspaceId || !program?.id || !selectedPaymentMethod) {
                 return;
               }
 
@@ -390,17 +356,10 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
                 workspaceId,
                 programId: program.id,
                 paymentMethodId: selectedPaymentMethod.id,
-                payoutIds: selectedPayouts.map((p) => p.id),
               });
             }}
             text="Confirm payout"
             className="w-fit"
-            disabled={selectedPayouts?.length === 0}
-            disabledTooltip={
-              selectedPayouts?.length === 0
-                ? "At least one payout must be selected."
-                : ""
-            }
           />
         </div>
       </div>

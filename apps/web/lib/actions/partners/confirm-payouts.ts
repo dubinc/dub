@@ -15,7 +15,6 @@ const confirmPayoutsSchema = z.object({
   workspaceId: z.string(),
   programId: z.string(),
   paymentMethodId: z.string(),
-  payoutIds: z.array(z.string()).min(1),
 });
 
 const allowedPaymentMethods = ["us_bank_account", "card", "link"];
@@ -25,7 +24,7 @@ export const confirmPayoutsAction = authActionClient
   .schema(confirmPayoutsSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { programId, paymentMethodId, payoutIds } = parsedInput;
+    const { programId, paymentMethodId } = parsedInput;
 
     const { minPayoutAmount } = await getProgramOrThrow({
       workspaceId: workspace.id,
@@ -52,21 +51,15 @@ export const confirmPayoutsAction = authActionClient
     const payouts = await prisma.payout.findMany({
       where: {
         programId,
-        id: {
-          in: payoutIds,
-        },
         status: "pending",
         invoiceId: null, // just to be extra safe
+        amount: {
+          gte: minPayoutAmount,
+        },
         partner: {
-          stripeConnectId: {
-            not: null,
-          },
           payoutsEnabledAt: {
             not: null,
           },
-        },
-        amount: {
-          gte: minPayoutAmount,
         },
       },
       select: {
