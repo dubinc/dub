@@ -75,8 +75,8 @@ export function UpgradeEmail({
             {planDetails.features?.map((feature) => (
               <Text className="ml-1 text-sm leading-4 text-black">
                 ◆{" "}
-                {feature.footnote?.href ? (
-                  <Link href={feature.footnote.href}>{feature.text}</Link>
+                {feature.tooltip?.href ? (
+                  <Link href={feature.tooltip.href}>{feature.text}</Link>
                 ) : (
                   feature.text
                 )}
