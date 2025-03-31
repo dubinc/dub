@@ -62,9 +62,7 @@ export const ConversionTrackingToggle = memo(() => {
             <TooltipContent
               title="Conversion tracking is only available on Business plans and above."
               cta="Upgrade to Business"
-              href={
-                slug ? `/${slug}/upgrade?exit=close` : "https://dub.co/pricing"
-              }
+              href={slug ? `/${slug}/upgrade` : "https://dub.co/pricing"}
               target="_blank"
             />
           )

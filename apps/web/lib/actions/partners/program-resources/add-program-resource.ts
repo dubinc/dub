@@ -78,6 +78,9 @@ export const addProgramResourceAction = authActionClient
           ? {
               headers: {
                 "Content-Disposition": "attachment",
+                ...(extension === "svg" && {
+                  "Content-Type": "image/svg+xml",
+                }),
               },
             }
           : undefined,

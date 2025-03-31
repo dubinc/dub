@@ -366,7 +366,7 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
               {error.split(`Upgrade to ${nextPlan.name}`)[0]}
               <a
                 className="cursor-pointer underline"
-                href={`/${slug}/upgrade?exit=close`}
+                href={`/${slug}/upgrade`}
                 target="_blank"
               >
                 Upgrade to {nextPlan.name}

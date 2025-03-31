@@ -17,7 +17,6 @@ export const GET = withPartnerProfile(
 
     const {
       groupBy,
-      type,
       status,
       linkId,
       customerId,
@@ -113,8 +112,6 @@ export const GET = withPartnerProfile(
           ...(customerId && { customerId }),
         },
       });
-
-      console.log("count", count, where);
 
       return NextResponse.json({ count });
     }

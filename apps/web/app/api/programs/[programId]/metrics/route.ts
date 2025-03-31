@@ -1,11 +1,14 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { getProgramMetricsQuerySchema } from "@/lib/zod/schemas/programs";
+import {
+  getProgramMetricsQuerySchema,
+  ProgramMetricsSchema,
+} from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
-// GET /api/programs/[programId]/stats - get stats for a program
+// GET /api/programs/[programId]/metrics - get metrics for a program
 export const GET = withWorkspace(
   async ({ workspace, params, searchParams }) => {
     const { interval, start, end } =
@@ -25,7 +28,7 @@ export const GET = withWorkspace(
       },
     };
 
-    const [payouts, revenue, salesCount, partnersCount] = await Promise.all([
+    const [payouts, commissions, partnersCount] = await Promise.all([
       prisma.payout.aggregate({
         where,
         _sum: {
@@ -40,32 +43,31 @@ export const GET = withWorkspace(
           },
           ...where,
         },
+        _count: {
+          _all: true,
+        },
         _sum: {
           amount: true,
-        },
-      }),
-
-      prisma.commission.count({
-        where: {
-          earnings: {
-            gt: 0,
-          },
-          ...where,
+          earnings: true,
         },
       }),
 
       prisma.programEnrollment.count({
         where: {
           programId: program.id,
+          status: "approved",
         },
       }),
     ]);
 
-    return NextResponse.json({
-      revenue: revenue._sum.amount,
-      payouts: payouts._sum.amount,
-      salesCount,
+    const response = ProgramMetricsSchema.parse({
       partnersCount,
+      salesCount: commissions._count._all,
+      revenue: commissions._sum.amount || 0,
+      commissions: commissions._sum.earnings || 0,
+      payouts: payouts._sum.amount || 0,
     });
+
+    return NextResponse.json(response);
   },
 );
