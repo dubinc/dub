@@ -209,10 +209,11 @@ export default async function LinkMiddleware(
     }
   }
 
-  const skipTracking = isGoogleAdsClick({
+  const isGoogleClick = isGoogleAdsClick({
     url: req.url,
-    referrer: req.headers.get("referer") || "",
   });
+
+  const skipTracking = programId && isGoogleClick;
 
   const cookieStore = cookies();
   let clickId = cookieStore.get("dub_id")?.value;

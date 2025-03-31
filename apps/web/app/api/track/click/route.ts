@@ -49,10 +49,11 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
       verifyAnalyticsAllowedHostnames({ allowedHostnames, req });
       const finalUrl = isValidUrl(url) ? url : link.url;
 
-      const skipTracking = isGoogleAdsClick({
+      const isGoogleClick = isGoogleAdsClick({
         url: finalUrl,
-        referrer,
       });
+
+      const skipTracking = link.programId && isGoogleClick;
 
       if (!skipTracking) {
         clickId = nanoid(16);

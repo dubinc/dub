@@ -1,10 +1,4 @@
-export const isGoogleAdsClick = ({
-  url,
-  referrer,
-}: {
-  url: string;
-  referrer: string;
-}) => {
+export const isGoogleAdsClick = ({ url }: { url: string }) => {
   const urlObj = new URL(url);
 
   if (!urlObj.search) {
@@ -14,16 +8,6 @@ export const isGoogleAdsClick = ({
   const urlParams = new URLSearchParams(urlObj.search);
 
   if (urlParams.has("gclid")) {
-    return true;
-  }
-
-  if (referrer?.includes("google.com")) {
-    return true;
-  }
-
-  const utmSource = urlParams.get("utm_source");
-
-  if (utmSource === "google") {
     return true;
   }
 
