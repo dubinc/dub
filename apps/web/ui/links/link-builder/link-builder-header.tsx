@@ -16,7 +16,7 @@ export function LinkBuilderHeader({
   children,
   foldersEnabled,
 }: PropsWithChildren<{
-  onClose: () => void;
+  onClose?: () => void;
   foldersEnabled?: boolean;
 }>) {
   const { control, setValue } = useFormContext<LinkFormData>();
@@ -72,13 +72,15 @@ export function LinkBuilderHeader({
         </div>
         <div className="flex items-center gap-4">
           {children}
-          <button
-            type="button"
-            onClick={onClose}
-            className="group hidden rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none active:bg-neutral-200 md:block"
-          >
-            <X className="h-5 w-5" />
-          </button>
+          {onClose && (
+            <button
+              type="button"
+              onClick={onClose}
+              className="group hidden rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none active:bg-neutral-200 md:block"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          )}
         </div>
       </div>
     </div>
