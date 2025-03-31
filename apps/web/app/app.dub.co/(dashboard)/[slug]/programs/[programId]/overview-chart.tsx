@@ -1,10 +1,11 @@
 import { DUB_PARTNERS_ANALYTICS_INTERVAL } from "@/lib/analytics/constants";
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { IntervalOptions } from "@/lib/analytics/types";
-import useProgramRevenue from "@/lib/swr/use-program-analytics";
+import useProgramEarnings from "@/lib/swr/use-program-earnings";
 import useProgramMetrics from "@/lib/swr/use-program-metrics";
+import useProgramRevenue from "@/lib/swr/use-program-revenue";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
-import { useRouterStuff } from "@dub/ui";
+import { Combobox, useRouterStuff } from "@dub/ui";
 import {
   Areas,
   ChartContext,
@@ -16,11 +17,19 @@ import { LoadingSpinner } from "@dub/ui/icons";
 import { currencyFormatter } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import { LinearGradient } from "@visx/gradient";
-import { useId, useMemo } from "react";
+import { useId, useMemo, useState } from "react";
+
+const chartOptions = [
+  { value: "revenue", label: "Revenue" },
+  { value: "earnings", label: "Commissions" },
+];
+
+type ViewType = "revenue" | "earnings";
 
 export function OverviewChart() {
   const id = useId();
   const { searchParamsObj } = useRouterStuff();
+  const [viewType, setViewType] = useState<ViewType>("revenue");
 
   const {
     start,
@@ -34,35 +43,72 @@ export function OverviewChart() {
 
   const { metrics } = useProgramMetrics();
 
-  const { data: timeseries, error } = useProgramRevenue({
+  const { data: revenue, error: revenueError } = useProgramRevenue({
     event: "sales",
     groupBy: "timeseries",
     interval,
     start: start ? new Date(start) : undefined,
     end: end ? new Date(end) : undefined,
+    enabled: viewType === "revenue",
   });
 
-  const data = useMemo(
-    () =>
-      timeseries?.map(({ start, saleAmount }) => ({
-        date: new Date(start),
-        values: { saleAmount: saleAmount / 100 },
-      })),
-    [timeseries],
-  );
+  const { data: earnings, error: earningsError } = useProgramEarnings({
+    event: "sales",
+    groupBy: "timeseries",
+    interval,
+    start: start ? new Date(start) : undefined,
+    end: end ? new Date(end) : undefined,
+    enabled: viewType === "earnings",
+  });
 
-  const dataLoading = !data && !error;
+  const data = useMemo(() => {
+    if (viewType === "revenue") {
+      return revenue?.map(({ start, saleAmount }) => ({
+        date: new Date(start),
+        values: {
+          amount: saleAmount / 100,
+        },
+      }));
+    }
+
+    return earnings?.map(({ start, earnings }) => ({
+      date: new Date(start),
+      values: {
+        amount: earnings / 100,
+      },
+    }));
+  }, [revenue, earnings, viewType]);
+
+  const dataLoading = !data && !revenueError && !earningsError;
+  const error = revenueError || earningsError;
 
   return (
     <div>
       <div className="flex justify-between">
         <div className="flex flex-col gap-1 p-2">
-          <span className="text-sm text-neutral-500">Revenue</span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-neutral-500">
+              {viewType === "revenue" ? "Revenue" : "Earnings"}
+            </span>
+
+            <Combobox
+              selected={
+                chartOptions.find((opt) => opt.value === viewType) || null
+              }
+              setSelected={(option) =>
+                option && setViewType(option.value as ViewType)
+              }
+              options={chartOptions}
+              buttonProps={{
+                className: "h-7 w-32 border-neutral-200 bg-white text-sm",
+              }}
+            />
+          </div>
           {!metrics ? (
             <div className="h-11 w-24 animate-pulse rounded-md bg-neutral-200" />
           ) : (
             <NumberFlow
-              value={metrics.revenue / 100}
+              value={metrics[viewType] / 100}
               className="text-3xl text-neutral-800"
               format={{
                 style: "currency",
@@ -84,12 +130,12 @@ export function OverviewChart() {
           </div>
         ) : (
           <TimeSeriesChart
-            key={`${start?.toString}-${end?.toString()}-${interval?.toString()}`}
-            data={data}
+            key={`${start?.toString}-${end?.toString()}-${interval?.toString()}-${viewType}`}
+            data={data || []}
             series={[
               {
-                id: "saleAmount",
-                valueAccessor: (d) => d.values.saleAmount,
+                id: "amount",
+                valueAccessor: (d) => d.values.amount,
                 colorClassName: "text-[#8B5CF6]",
                 isActive: true,
               },
@@ -104,10 +150,12 @@ export function OverviewChart() {
                   <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-4 py-3 text-sm">
                     <div className="flex items-center gap-2">
                       <div className="h-2 w-2 rounded-sm bg-violet-500 shadow-[inset_0_0_0_1px_#0003]" />
-                      <p className="capitalize text-neutral-600">Revenue</p>
+                      <p className="capitalize text-neutral-600">
+                        {viewType === "revenue" ? "Revenue" : "Commissions"}
+                      </p>
                     </div>
                     <p className="text-right font-medium text-neutral-900">
-                      {currencyFormatter(d.values.saleAmount, {
+                      {currencyFormatter(d.values.amount, {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                       })}
