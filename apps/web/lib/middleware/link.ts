@@ -6,7 +6,7 @@ import {
   parse,
 } from "@/lib/middleware/utils";
 import { recordClick } from "@/lib/tinybird";
-import { formatRedisLink } from "@/lib/upstash";
+import { formatRedisLink, redis } from "@/lib/upstash";
 import {
   DUB_HEADERS,
   LEGAL_WORKSPACE_ID,
@@ -36,7 +36,12 @@ export default async function LinkMiddleware(
   req: NextRequest,
   ev: NextFetchEvent,
 ) {
-  let { domain, fullKey: originalKey, searchParamsString } = parse(req);
+  let {
+    domain,
+    fullKey: originalKey,
+    searchParamsString,
+    fullPath,
+  } = parse(req);
 
   if (!domain) {
     return NextResponse.next();
@@ -230,6 +235,17 @@ export default async function LinkMiddleware(
 
   if (skipTracking) {
     clickId = undefined;
+  }
+
+  if (skipTracking) {
+    ev.waitUntil(
+      redis.lpush("suspicious-partner-links", {
+        fullPath,
+        shortLink: `${domain}/${key}`,
+        reason: "google-ads-traffic",
+        date: new Date().toISOString(),
+      }),
+    );
   }
 
   // Determine if we should include the click ID in the final URL for tracking
