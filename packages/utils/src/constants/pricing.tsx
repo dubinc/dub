@@ -13,7 +13,6 @@ export type PlanFeature = {
 export const PLANS = [
   {
     name: "Free",
-    tagline: "For hobbyists and individuals looking to manage their links",
     price: {
       monthly: 0,
       yearly: 0,
@@ -33,7 +32,6 @@ export const PLANS = [
   },
   {
     name: "Pro",
-    tagline: "For content creators or small teams needing advanced features",
     link: "https://dub.co/help/article/pro-plan",
     price: {
       monthly: 30,
@@ -49,6 +47,8 @@ export const PLANS = [
         // 2025 pricing
         "price_1R7f9IAlJJEpqkPV4G9fNwRM", //  yearly
         "price_1R7f9RAlJJEpqkPV1HgB84WS", // monthly
+        "price_1R7ocDAlJJEpqkPVGiNLZORP", // yearly (test),
+        "price_1R7oeBAlJJEpqkPVh6q5q3h8", // monthly (test),
       ],
     },
     limits: {
@@ -113,8 +113,6 @@ export const PLANS = [
   },
   {
     name: "Business",
-    tagline: "For fast-growing startups and businesses looking to scale",
-    link: "https://dub.co/help/article/business-plan",
     price: {
       monthly: 90,
       yearly: 75,
@@ -130,6 +128,8 @@ export const PLANS = [
         // 2025 pricing
         "price_1R3j01AlJJEpqkPVXuG1eNzm", //  yearly
         "price_1R6JedAlJJEpqkPVMUkfjch4", // monthly
+        "price_1R7ofLAlJJEpqkPV9sXYs6Lu", // yearly (test),
+        "price_1R7ofLAlJJEpqkPV3MlgDpyx", // monthly (test),
       ],
     },
     limits: {
@@ -218,8 +218,6 @@ export const PLANS = [
   },
   {
     name: "Advanced",
-    tagline: "For power users needing more usage quotas",
-    link: "https://dub.co/help/article/advanced-plan",
     price: {
       monthly: 300,
       yearly: 250,
@@ -227,6 +225,8 @@ export const PLANS = [
         // 2025 pricing
         "price_1R3j0QAlJJEpqkPVrTW1Ss2i", //  yearly
         "price_1R3j0qAlJJEpqkPVkfGNXRwb", // monthly
+        "price_1R7ofzAlJJEpqkPV81LX0Sg3", // yearly (test),
+        "price_1R7ofzAlJJEpqkPV0L2TwyJo", // monthly (test),
       ],
     },
     limits: {
@@ -298,8 +298,6 @@ export const PLANS = [
   },
   {
     name: "Enterprise",
-    tagline: "For large organizations and governments with custom needs",
-    link: "https://dub.co/enterprise",
     price: {
       monthly: null,
       yearly: null,
@@ -316,15 +314,6 @@ export const PLANS = [
       api: 10000,
       retention: "Unlimited",
     },
-    featureTitle: "Everything in Advanced, plus:",
-    features: [
-      { id: "sso", text: "SSO/SAML" },
-      { id: "roles", text: "Role-based controls" },
-      { id: "volume", text: "Volume discounts" },
-      { id: "sla", text: "Custom SLA" },
-      { id: "logs", text: "Audit logs" },
-      { id: "success", text: "Dedicated success manager" },
-    ] as PlanFeature[],
   },
 ];
 
@@ -332,20 +321,9 @@ export const FREE_PLAN = PLANS.find((plan) => plan.name === "Free")!;
 export const PRO_PLAN = PLANS.find((plan) => plan.name === "Pro")!;
 export const BUSINESS_PLAN = PLANS.find((plan) => plan.name === "Business")!;
 export const ADVANCED_PLAN = PLANS.find((plan) => plan.name === "Advanced")!;
-export const ENTERPRISE_PLAN = PLANS.find(
-  (plan) => plan.name === "Enterprise",
-)!;
 
-export const PUBLIC_PLANS = [
-  FREE_PLAN,
-  PRO_PLAN,
-  BUSINESS_PLAN,
-  ADVANCED_PLAN,
-  ENTERPRISE_PLAN,
-];
-
-export const SELF_SERVE_PAID_PLANS = PLANS.filter(
-  (p) => p.name !== "Free" && p.name !== "Enterprise",
+export const SELF_SERVE_PAID_PLANS = PLANS.filter((p) =>
+  ["Pro", "Business", "Advanced"].includes(p.name),
 );
 
 export const FREE_WORKSPACES_LIMIT = 2;
