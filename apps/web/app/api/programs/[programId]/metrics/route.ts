@@ -28,59 +28,42 @@ export const GET = withWorkspace(
       },
     };
 
-    const [payouts, revenue, commissions, salesCount, partnersCount] =
-      await Promise.all([
-        prisma.payout.aggregate({
-          where,
-          _sum: {
-            amount: true,
-          },
-        }),
+    const [payouts, commissions, partnersCount] = await Promise.all([
+      prisma.payout.aggregate({
+        where,
+        _sum: {
+          amount: true,
+        },
+      }),
 
-        prisma.commission.aggregate({
-          where: {
-            earnings: {
-              gt: 0,
-            },
-            ...where,
+      prisma.commission.aggregate({
+        where: {
+          earnings: {
+            gt: 0,
           },
-          _sum: {
-            amount: true,
-          },
-        }),
+          ...where,
+        },
+        _count: {
+          _all: true,
+        },
+        _sum: {
+          amount: true,
+          earnings: true,
+        },
+      }),
 
-        prisma.commission.aggregate({
-          where: {
-            earnings: {
-              gt: 0,
-            },
-            ...where,
-          },
-          _sum: {
-            earnings: true,
-          },
-        }),
-
-        prisma.commission.count({
-          where: {
-            earnings: {
-              gt: 0,
-            },
-            ...where,
-          },
-        }),
-
-        prisma.programEnrollment.count({
-          where: {
-            programId: program.id,
-          },
-        }),
-      ]);
+      prisma.programEnrollment.count({
+        where: {
+          programId: program.id,
+          status: "approved",
+        },
+      }),
+    ]);
 
     const response = ProgramMetricsSchema.parse({
       partnersCount,
-      salesCount,
-      revenue: revenue._sum.amount || 0,
+      salesCount: commissions._count._all,
+      revenue: commissions._sum.amount || 0,
       commissions: commissions._sum.earnings || 0,
       payouts: payouts._sum.amount || 0,
     });
