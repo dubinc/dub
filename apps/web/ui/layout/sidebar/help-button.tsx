@@ -2,8 +2,9 @@
 
 import { Popover } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { Icon } from "@iconify/react";
 import { AnimatePresence, motion } from "framer-motion";
-import { CircleHelp, XIcon } from "lucide-react";
+import { XIcon } from "lucide-react";
 import posthog from "posthog-js";
 import { useState } from "react";
 import { HelpArticle, HelpContext } from "../help";
@@ -50,7 +51,10 @@ export function HelpButton({
               {isOpen ? (
                 <XIcon className="size-4" strokeWidth={2} />
               ) : (
-                <CircleHelp className="size-4" />
+                <Icon
+                  className="h-5 w-5 text-neutral-200"
+                  icon="iconoir:question-mark-circle"
+                />
               )}
             </motion.div>
           </AnimatePresence>

@@ -1,7 +1,8 @@
 "use client";
 
-import { Avatar, Gift, Icon, Popover, User } from "@dub/ui";
+import { Avatar, Gift, Icon, Popover } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { Icon as IconifyIcon } from "@iconify/react";
 import { LogOut } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
@@ -33,7 +34,12 @@ export default function UserDropdown() {
           <UserOption
             as={Link}
             label="Account"
-            icon={User}
+            icon={() => (
+              <IconifyIcon
+                className="h-4 w-4 text-neutral-200"
+                icon="iconoir:profile-circle"
+              />
+            )}
             href="/account/settings"
             onClick={() => setOpenPopover(false)}
           />

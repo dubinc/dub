@@ -5,7 +5,7 @@ import { NewQRIcon } from "@/ui/layout/sidebar/icons/new-qr.tsx";
 import { PaymentsIcon } from "@/ui/layout/sidebar/icons/payments.tsx";
 import { QRCodesIcon } from "@/ui/layout/sidebar/icons/qr-codes.tsx";
 import { StatisticsIcon } from "@/ui/layout/sidebar/icons/statistics.tsx";
-import { User, useRouterStuff } from "@dub/ui";
+import { useRouterStuff } from "@dub/ui";
 import {
   Books2,
   CircleInfo,
@@ -21,7 +21,7 @@ import {
   Users6,
   Webhook,
 } from "@dub/ui/icons";
-import { HelpCircle } from "lucide-react";
+import { Icon } from "@iconify/react";
 import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -91,12 +91,22 @@ const NAV_AREAS: SidebarNavAreas<{
           },
           {
             name: "Account",
-            icon: User,
+            icon: () => (
+              <Icon
+                className="h-5 w-5 text-neutral-200"
+                icon="iconoir:profile-circle"
+              />
+            ),
             href: "/account/settings",
           },
           {
             name: "FAQ",
-            icon: HelpCircle,
+            icon: () => (
+              <Icon
+                className="h-5 w-5 text-neutral-200"
+                icon="iconoir:question-mark-circle"
+              />
+            ),
             href: "/faq", // @TODO: Add FAQ page
           },
         ],
