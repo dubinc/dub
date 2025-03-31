@@ -177,6 +177,7 @@ export const confirmPayoutsAction = authActionClient
                       endDate: payout.periodEnd!,
                     },
                   }),
+                  variant: "notifications",
                 }),
               ),
           );

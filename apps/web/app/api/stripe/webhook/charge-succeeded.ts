@@ -92,6 +92,7 @@ export async function chargeSucceeded(event: Stripe.Event) {
               endDate: payout.periodEnd,
             },
           }),
+          variant: "notifications",
         }),
     ]);
   }
