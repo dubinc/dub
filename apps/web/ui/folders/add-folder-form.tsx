@@ -144,7 +144,7 @@ export const AddFolderForm = ({ onSuccess, onCancel }: AddFolderFormProps) => {
                         <TooltipContent
                           title="You can only set custom folder permissions on a Business plan and above."
                           cta="Upgrade to Business"
-                          href={`/${workspace.slug}/upgrade?exit=close`}
+                          href={`/${workspace.slug}/upgrade`}
                           target="_blank"
                         />
                       }
