@@ -35,9 +35,9 @@ export function StepPage({
       <h1 className="mt-4 text-center text-2xl font-medium leading-tight">
         {title}
       </h1>
-      <p className="mt-1.5 text-center text-base leading-tight text-neutral-500">
+      <div className="mt-1.5 text-center text-base leading-tight text-neutral-500">
         {description}
-      </p>
+      </div>
       <div className="mt-8 w-full">{children}</div>
     </div>
   );
