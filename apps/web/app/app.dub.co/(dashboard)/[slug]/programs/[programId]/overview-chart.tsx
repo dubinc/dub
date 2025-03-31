@@ -62,19 +62,12 @@ export function OverviewChart() {
   });
 
   const data = useMemo(() => {
-    if (viewType === "revenue") {
-      return revenue?.map(({ start, saleAmount }) => ({
-        date: new Date(start),
-        values: {
-          amount: saleAmount / 100,
-        },
-      }));
-    }
+    const sourceData = viewType === "revenue" ? revenue : earnings;
 
-    return earnings?.map(({ start, earnings }) => ({
+    return sourceData?.map(({ start, saleAmount, earnings }) => ({
       date: new Date(start),
       values: {
-        amount: earnings / 100,
+        amount: (viewType === "revenue" ? saleAmount : earnings) / 100,
       },
     }));
   }, [revenue, earnings, viewType]);

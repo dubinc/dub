@@ -31,7 +31,7 @@ export const GET = withWorkspace(
 
     const timeseries = response.map((item) => ({
       start: item.start,
-      amount: item.saleAmount,
+      saleAmount: item.saleAmount,
     }));
 
     return NextResponse.json(timeseries);

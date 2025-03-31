@@ -104,3 +104,11 @@ export const PartnerProgramInviteSchema = z.object({
   program: ProgramSchema,
   reward: RewardSchema.nullable(),
 });
+
+export const ProgramMetricsSchema = z.object({
+  partners: z.number(),
+  sales: z.number(),
+  revenue: z.number(),
+  earnings: z.number(),
+  payouts: z.number(),
+});

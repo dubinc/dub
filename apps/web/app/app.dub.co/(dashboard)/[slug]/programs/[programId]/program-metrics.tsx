@@ -14,14 +14,14 @@ export function ProgramMetrics() {
         icon={Users}
         label="Partners"
         tab="partners"
-        value={metrics?.partnersCount}
+        value={metrics?.partners}
         error={error}
       />
       <Stat
         icon={Check2}
         label="Sales"
         tab="sales"
-        value={metrics?.salesCount}
+        value={metrics?.sales}
         error={error}
       />
       <Stat
