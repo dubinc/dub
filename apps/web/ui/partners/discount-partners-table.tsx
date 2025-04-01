@@ -1,5 +1,6 @@
 "use client";
 
+import useDiscountPartners from "@/lib/swr/use-discount-partners";
 import usePartners from "@/lib/swr/use-partners";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import { EnrolledPartnerProps } from "@/lib/types";
@@ -10,27 +11,21 @@ import { Row } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
 import { useDebounce } from "use-debounce";
 
-interface PartnersTableProps {
-  selectedPartnerIds: string[];
-  setSelectedPartnerIds: (ids: string[]) => void;
+interface DiscountPartnersTableProps {
+  programId: string;
+  discountId?: string;
+  setValue: (value: string[]) => void;
 }
 
-export function PartnersTable({
-  selectedPartnerIds,
-  setSelectedPartnerIds,
-}: PartnersTableProps) {
+export function DiscountPartnersTable({
+  programId,
+  discountId,
+  setValue,
+}: DiscountPartnersTableProps) {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
   const { pagination, setPagination } = usePagination(25);
   const [selectedRows, setSelectedRows] = useState<Record<string, boolean>>({});
-
-  const { partnersCount } = usePartnersCount<number>({
-    search: debouncedSearch,
-  });
-
-  useEffect(() => {
-    setPagination((prev) => ({ ...prev, pageIndex: 1 }));
-  }, [debouncedSearch, setPagination]);
 
   const { data: partners, loading } = usePartners({
     query: {
@@ -40,17 +35,32 @@ export function PartnersTable({
     },
   });
 
+  const { partnersCount } = usePartnersCount<number>({
+    search: debouncedSearch,
+  });
+
+  const { data: discountPartners } = useDiscountPartners({
+    query: {
+      discountId,
+    },
+    enabled: Boolean(programId && discountId),
+  });
+
+  useEffect(() => {
+    setPagination((prev) => ({ ...prev, pageIndex: 1 }));
+  }, [debouncedSearch, setPagination]);
+
   useEffect(() => {
     setSelectedRows(
-      selectedPartnerIds.reduce(
+      discountPartners?.reduce(
         (acc, partnerId) => {
           acc[partnerId] = true;
           return acc;
         },
         {} as Record<string, boolean>,
-      ),
+      ) || {},
     );
-  }, [selectedPartnerIds, partners]);
+  }, [discountPartners, partners]);
 
   const table = useTable({
     data: partners || [],
@@ -121,7 +131,7 @@ export function PartnersTable({
     selectedRows,
     getRowId: (row: EnrolledPartnerProps) => row.id,
     onRowSelectionChange: (rows: Row<EnrolledPartnerProps>[]) => {
-      setSelectedPartnerIds(rows.map((row) => row.original.id));
+      setValue(rows.map((row) => row.original.id));
     },
   });
 

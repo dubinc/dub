@@ -9,9 +9,7 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(
   async ({ workspace, params, searchParams }) => {
     const { programId } = params;
-
-    const { rewardId, page, pageSize } =
-      rewardPartnersQuerySchema.parse(searchParams);
+    const { rewardId } = rewardPartnersQuerySchema.parse(searchParams);
 
     await Promise.all([
       getProgramOrThrow({
@@ -40,14 +38,10 @@ export const GET = withWorkspace(
           },
         },
       },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
     });
 
-    const partnerIds = partners.map(
-      ({ programEnrollment: { partner } }) => partner.id,
+    return NextResponse.json(
+      partners.map(({ programEnrollment: { partner } }) => partner.id),
     );
-
-    return NextResponse.json(partnerIds);
   },
 );

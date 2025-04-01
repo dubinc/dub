@@ -5,29 +5,21 @@ import { deleteDiscountAction } from "@/lib/actions/partners/delete-discount";
 import { updateDiscountAction } from "@/lib/actions/partners/update-discount";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
-import useDiscountPartners from "@/lib/swr/use-discount-partners";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { DiscountProps, EnrolledPartnerProps } from "@/lib/types";
+import { DiscountProps } from "@/lib/types";
 import { createDiscountSchema } from "@/lib/zod/schemas/discount";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
-import { SelectEligiblePartnersSheet } from "@/ui/partners/select-eligible-partners-sheet";
 import { X } from "@/ui/shared/icons";
-import {
-  AnimatedSizeContainer,
-  Button,
-  CircleCheckFill,
-  Sheet,
-  usePagination,
-} from "@dub/ui";
+import { AnimatedSizeContainer, Button, CircleCheckFill, Sheet } from "@dub/ui";
 import { cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
-import { PartnersTable } from "./reward-discount-partners-table";
+import { DiscountPartnersTable } from "./discount-partners-table";
 
 interface DiscountSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
@@ -56,10 +48,8 @@ function DiscountSheetContent({
   isDefault,
 }: DiscountSheetProps) {
   const formRef = useRef<HTMLFormElement>(null);
-
   const { id: workspaceId } = useWorkspace();
   const { program, mutate: mutateProgram } = useProgram();
-  const [isAddPartnersOpen, setIsAddPartnersOpen] = useState(false);
 
   const [isRecurring, setIsRecurring] = useState(
     discount ? discount.maxDuration !== 0 : false,
@@ -90,36 +80,6 @@ function DiscountSheetContent({
     },
   });
 
-  // Manage discount partners
-  const { pagination, setPagination } = usePagination(25);
-  const [selectedPartners, setSelectedPartners] =
-    useState<EnrolledPartnerProps[]>();
-
-  const { data: discountPartners, loading: discountPartnersLoading } =
-    useDiscountPartners({
-      query: {
-        discountId: discount?.id,
-        pageSize: pagination.pageSize,
-        page: pagination.pageIndex || 1,
-      },
-      enabled: Boolean(discount && program),
-    });
-
-  useEffect(() => {
-    if (discountPartners) {
-      setSelectedPartners(discountPartners);
-    }
-  }, [discountPartners]);
-
-  useEffect(() => {
-    if (selectedPartners) {
-      setValue(
-        "partnerIds",
-        selectedPartners.map((partner) => partner.id),
-      );
-    }
-  }, [selectedPartners, setValue]);
-
   const [type, partnerIds = []] = watch(["type", "partnerIds"]);
 
   const { executeAsync: createDiscount, isPending: isCreating } = useAction(
@@ -133,7 +93,6 @@ function DiscountSheetContent({
       },
       onError({ error }) {
         toast.error(error.serverError);
-        console.error(error);
       },
     },
   );
@@ -149,7 +108,6 @@ function DiscountSheetContent({
       },
       onError({ error }) {
         toast.error(error.serverError);
-        console.error(error);
       },
     },
   );
@@ -442,28 +400,14 @@ function DiscountSheetContent({
               </div>
             </div>
 
-            {!isDefault && (
-              <div className="mt-2">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-neutral-800">
-                    Eligible partners
-                  </label>
-                  <Button
-                    text="Add partner"
-                    className="h-7 w-fit"
-                    onClick={() => setIsAddPartnersOpen(true)}
-                  />
-                </div>
-                <div className="mt-4">
-                  <PartnersTable
-                    selectedPartners={selectedPartners || []}
-                    setSelectedPartners={setSelectedPartners}
-                    loading={discountPartnersLoading}
-                    pagination={pagination}
-                    setPagination={setPagination}
-                  />
-                </div>
-              </div>
+            {!isDefault && program?.id && (
+              <DiscountPartnersTable
+                programId={program.id}
+                discountId={discount?.id}
+                setValue={(value: string[]) => {
+                  setValue("partnerIds", value);
+                }}
+              />
             )}
           </div>
         </div>
@@ -507,13 +451,6 @@ function DiscountSheetContent({
           </div>
         </div>
       </form>
-
-      <SelectEligiblePartnersSheet
-        isOpen={isAddPartnersOpen}
-        setIsOpen={setIsAddPartnersOpen}
-        existingPartners={selectedPartners || []}
-        onSelect={setSelectedPartners}
-      />
     </>
   );
 }

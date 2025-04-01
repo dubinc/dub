@@ -2,7 +2,6 @@ import { fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
 import { z } from "zod";
-import { EnrolledPartnerProps } from "../types";
 import { discountPartnersQuerySchema } from "../zod/schemas/discount";
 import useWorkspace from "./use-workspace";
 
@@ -19,7 +18,7 @@ export default function useDiscountPartners({
   const { programId } = useParams();
   const { id: workspaceId } = useWorkspace();
 
-  const { data, error, isLoading } = useSWR<EnrolledPartnerProps[]>(
+  const { data, error, isLoading } = useSWR<string[]>(
     enabled && workspaceId && programId
       ? `/api/programs/${programId}/discounts/partners?${new URLSearchParams({
           workspaceId,
