@@ -24,5 +24,10 @@ export const GET = withPartnerProfile(async ({ partner }) => {
     },
   );
 
-  return NextResponse.json(response.parse(externalAccounts.data[0]));
+  const bankAccounts =
+    externalAccounts.data.length > 0
+      ? response.parse(externalAccounts.data[0])
+      : {};
+
+  return NextResponse.json(bankAccounts);
 });
