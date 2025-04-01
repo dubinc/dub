@@ -34,12 +34,20 @@ export const GET = withWorkspace(
       "advanced",
       "enterprise",
     ],
+    f,
   },
 );
 
 // POST /api/email-domains - add an email domain
 export const POST = withWorkspace(
   async ({ req, workspace, session }) => {
+    if (!workspace.partnersEnabled) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "This feature is not enabled on your plan.",
+      });
+    }
+
     const { slug } = createOrUpdateEmailDomainSchema.parse(
       await parseRequestBody(req),
     );
