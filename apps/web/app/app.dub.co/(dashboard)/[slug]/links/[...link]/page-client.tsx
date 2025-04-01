@@ -20,7 +20,7 @@ import {
 import { OptionsList } from "@/ui/modals/link-builder/options-list";
 import { TagSelect } from "@/ui/modals/link-builder/tag-select";
 import { cn } from "@dub/utils";
-import { useRef } from "react";
+import { useCallback, useRef } from "react";
 import { useFormContext } from "react-hook-form";
 
 export function LinkPageClient({
@@ -53,16 +53,16 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
 
   const draftControlsRef = useRef<DraftControlsHandle>(null);
 
-  // const onSubmitSuccess = useCallback(() => {
-  //   draftControlsRef.current?.onSubmitSuccessful();
-  // }, []);
+  const onSubmitSuccess = useCallback(() => {
+    draftControlsRef.current?.onSubmitSuccessful();
+  }, []);
 
   const onSubmit = useLinkBuilderSubmit({
-    // onSuccess: onSubmitSuccess,
+    onSuccess: onSubmitSuccess,
   });
 
   return (
-    <div className="absolute inset-0 flex flex-col">
+    <div className="flex min-h-[calc(100vh-8px)] flex-col rounded-t-[inherit] bg-white">
       <div className="py-2 pl-4 pr-5">
         <LinkBuilderHeader
           className="p-0"
@@ -82,7 +82,7 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
         )}
         onSubmit={handleSubmit(onSubmit)}
       >
-        <div className="scrollbar-hide px-6 md:overflow-auto">
+        <div className="scrollbar-hide px-4 md:overflow-auto md:px-6">
           <div className="mx-auto flex min-h-full w-full max-w-xl flex-col gap-6 py-10">
             <LinkBuilderDestinationUrlInput />
 
@@ -99,7 +99,10 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
             </div>
           </div>
         </div>
-        <div className="bg-neutral-50">WIP</div>
+        <div className="bg-neutral-50">
+          WIP
+          <div className="h-96 w-4 border border-red-500" />
+        </div>
       </form>
     </div>
   );

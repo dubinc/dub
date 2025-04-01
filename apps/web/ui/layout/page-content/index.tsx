@@ -14,6 +14,8 @@ export function PageContent({
   titleControls,
   description,
   hideReferButton,
+  className,
+  contentWrapperClassName,
   children,
 }: PropsWithChildren<{
   title?: ReactNode;
@@ -21,18 +23,21 @@ export function PageContent({
   titleControls?: ReactNode;
   description?: ReactNode;
   hideReferButton?: boolean;
+  className?: string;
+  contentWrapperClassName?: string;
 }>) {
   const hasTitle = title !== undefined;
   const hasDescription = description !== undefined;
 
   return (
-    <div className="bg-neutral-100 md:bg-white">
-      <MaxWidthWrapper
-        className={cn(
-          "mt-3",
-          (hasTitle || hasDescription) && "md:mt-6 md:py-3",
-        )}
-      >
+    <div
+      className={cn(
+        "bg-neutral-100 pt-3 md:bg-white",
+        (hasTitle || hasDescription) && "md:pb-3 md:pt-9",
+        className,
+      )}
+    >
+      <MaxWidthWrapper>
         <div className="flex items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-4">
             <NavButton />
@@ -71,9 +76,14 @@ export function PageContent({
           </div>
         </div>
       </MaxWidthWrapper>
-      <div className="bg-white pt-2.5 max-md:mt-3 max-md:rounded-t-[16px]">
+      <div
+        className={cn(
+          "bg-white pt-2.5 max-md:mt-3 max-md:rounded-t-[16px]",
+          contentWrapperClassName,
+        )}
+      >
         {hasDescription && (
-          <MaxWidthWrapper className="">
+          <MaxWidthWrapper>
             <p className="mb-3 mt-1 text-base text-neutral-500 md:hidden">
               {description}
             </p>
