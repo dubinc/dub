@@ -1,8 +1,10 @@
+import { ElementType } from "react";
 import {
   Book2Fill,
   BulletListFill,
   ConnectedDotsFill,
   CubeSettingsFill,
+  DiamondTurnRightFill,
   FeatherFill,
   Github,
   Go,
@@ -12,6 +14,7 @@ import {
   Hyperlink,
   LinesY,
   LinkedIn,
+  MicrophoneFill,
   Php,
   ProductHunt,
   Python,
@@ -19,10 +22,23 @@ import {
   Ruby,
   Twitter,
   Typescript,
+  UsersFill,
   YouTube,
 } from "./icons";
 import { Elxo } from "./icons/elxo";
-import { Logo } from "./logo";
+
+export type NavItemChild = {
+  title: string;
+  description?: string;
+  href: string;
+  icon: ElementType;
+  iconClassName?: string;
+};
+
+export type NavItemChildren = (
+  | NavItemChild
+  | { label: string; items: NavItemChild[] }
+)[];
 
 export const FEATURES_LIST = [
   {
@@ -80,34 +96,59 @@ export const SDKS = [
     icon: Typescript,
     iconClassName: "py-0.5 group-hover:text-[#3178C6]",
     title: "Typescript",
-    href: "/solutions/typescript",
+    href: "/sdks/typescript",
   },
   {
     icon: Python,
     iconClassName:
       "py-0.5 [&_.snake]:transition-colors group-hover:[&_.snake1]:text-[#3776ab] group-hover:[&_.snake2]:text-[#ffd343]",
     title: "Python",
-    href: "/solutions/python",
+    href: "/sdks/python",
   },
   {
     icon: Go,
     iconClassName: "group-hover:text-[#00ACD7]",
     title: "Go",
-    href: "/solutions/go",
+    href: "/sdks/go",
   },
   {
     icon: Ruby,
     iconClassName:
       "py-[3px] grayscale brightness-150 transition-[filter] group-hover:grayscale-0 group-hover:brightness-100",
     title: "Ruby",
-    href: "/solutions/ruby",
+    href: "/sdks/ruby",
   },
   {
     icon: Php,
     iconClassName:
       "py-[3px] grayscale brightness-150 transition-[filter] group-hover:grayscale-0 group-hover:brightness-100",
     title: "PHP",
-    href: "/solutions/php",
+    href: "/sdks/php",
+  },
+];
+
+export const SOLUTIONS: NavItemChildren = [
+  {
+    icon: DiamondTurnRightFill,
+    title: "Marketing Attribution",
+    description: "Easily track and measure marketing impact",
+    href: "/analytics",
+  },
+  {
+    icon: MicrophoneFill,
+    title: "Content Creators",
+    description: "Intelligent audience insights and link tracking",
+    href: "/solutions/creators",
+  },
+  {
+    icon: UsersFill,
+    title: "Affiliate Management",
+    description: "Manage affiliates and automate payouts",
+    href: "/partners",
+  },
+  {
+    label: "SDKs",
+    items: SDKS,
   },
 ];
 
@@ -123,21 +164,6 @@ export const RESOURCES = [
     title: "Help Center",
     description: "Answers to your questions",
     href: "/help",
-  },
-  {
-    icon: HexadecagonStar,
-    title: "Dub Brand",
-    description: "Logos, wordmark, etc.",
-    href: "/brand",
-  },
-];
-
-export const COMPANY = [
-  {
-    icon: Logo,
-    title: "About",
-    description: "Company and team",
-    href: "/about",
   },
   {
     icon: FeatherFill,
@@ -156,6 +182,12 @@ export const COMPANY = [
     title: "Customers",
     description: "Success stories and use cases",
     href: "/customers",
+  },
+  {
+    icon: HexadecagonStar,
+    title: "Dub Brand",
+    description: "Logos, wordmark, etc.",
+    href: "/brand",
   },
 ];
 

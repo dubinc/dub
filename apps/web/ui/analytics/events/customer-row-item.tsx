@@ -4,7 +4,7 @@ import { ChartActivity2, useRouterStuff } from "@dub/ui";
 import Link from "next/link";
 
 export function CustomerRowItem({ customer }: { customer: Customer }) {
-  const display = customer.name || customer.email || generateRandomName();
+  const display = customer.email || customer.name || generateRandomName();
   const { queryParams } = useRouterStuff();
 
   return (

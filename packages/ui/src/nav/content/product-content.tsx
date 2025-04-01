@@ -29,7 +29,7 @@ const largeLinks = [
 
 export function ProductContent({ domain }: { domain: string }) {
   return (
-    <div className="grid w-[1020px] grid-cols-[minmax(0,1fr),0.4fr] divide-x divide-neutral-200">
+    <div className="grid w-[1020px] grid-cols-[minmax(0,1fr),0.4fr] divide-x divide-neutral-200 dark:divide-white/20">
       <div className="grid grid-cols-2 gap-4 p-4">
         <NavigationMenuLink asChild>
           <Link
