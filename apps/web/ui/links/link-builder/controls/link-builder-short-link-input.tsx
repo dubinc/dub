@@ -1,6 +1,6 @@
 import { LinkFormData } from "@/ui/modals/link-builder";
-import { forwardRef } from "react";
-import { useFormContext, useWatch } from "react-hook-form";
+import { forwardRef, memo } from "react";
+import { useFormContext, useFormState, useWatch } from "react-hook-form";
 import { ShortLinkInput } from "../../short-link-input";
 import { useAvailableDomains } from "../../use-available-domains";
 import { useLinkBuilderContext } from "../link-builder-provider";
@@ -9,16 +9,15 @@ import { useLinkBuilderContext } from "../link-builder-provider";
  * Wraps the ShortLinkInput component with link-builder-specific context & logic
  * @see ShortLinkInput
  */
-export const LinkBuilderShortLinkInput = forwardRef<HTMLInputElement>(
-  (_, ref) => {
+export const LinkBuilderShortLinkInput = memo(
+  forwardRef<HTMLInputElement>((_, ref) => {
     const { props } = useLinkBuilderContext();
-    const {
-      control,
-      setValue,
-      clearErrors,
-      formState: { errors, isSubmitting, isSubmitSuccessful },
-    } = useFormContext<LinkFormData>();
+    const { control, setValue, clearErrors } = useFormContext<LinkFormData>();
 
+    const { errors, isSubmitting, isSubmitSuccessful } = useFormState({
+      control,
+      name: ["key"],
+    });
     const [domain, key, url, title, description] = useWatch({
       control,
       name: ["domain", "key", "url", "title", "description"],
@@ -47,5 +46,7 @@ export const LinkBuilderShortLinkInput = forwardRef<HTMLInputElement>(
         loading={loading}
       />
     ) : null;
-  },
+  }),
 );
+
+LinkBuilderShortLinkInput.displayName = "LinkBuilderShortLinkInput";

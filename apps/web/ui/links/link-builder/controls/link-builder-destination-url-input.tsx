@@ -1,8 +1,13 @@
 import { LinkFormData } from "@/ui/modals/link-builder";
 import { UTMTemplatesButton } from "@/ui/modals/link-builder/utm-templates-button";
 import { constructURLFromUTMParams, isValidUrl } from "@dub/utils";
-import { forwardRef } from "react";
-import { Controller, useFormContext, useWatch } from "react-hook-form";
+import { forwardRef, memo } from "react";
+import {
+  Controller,
+  useFormContext,
+  useFormState,
+  useWatch,
+} from "react-hook-form";
 import { DestinationUrlInput } from "../../destination-url-input";
 import { useAvailableDomains } from "../../use-available-domains";
 
@@ -10,15 +15,12 @@ import { useAvailableDomains } from "../../use-available-domains";
  * Wraps the DestinationUrlInput component with link-builder-specific context & logic
  * @see DestinationUrlInput
  */
-export const LinkBuilderDestinationUrlInput = forwardRef<HTMLInputElement>(
-  (_, ref) => {
-    const {
-      control,
-      setValue,
-      clearErrors,
-      formState: { errors },
-    } = useFormContext<LinkFormData>();
+export const LinkBuilderDestinationUrlInput = memo(
+  forwardRef<HTMLInputElement>((_, ref) => {
+    const { control, setValue, clearErrors } = useFormContext<LinkFormData>();
+    0;
 
+    const { errors } = useFormState({ control, name: ["url"] });
     const [domain, key, url] = useWatch({
       control,
       name: ["domain", "key", "url", "title", "description"],
@@ -62,5 +64,7 @@ export const LinkBuilderDestinationUrlInput = forwardRef<HTMLInputElement>(
         )}
       />
     );
-  },
+  }),
 );
+
+LinkBuilderDestinationUrlInput.displayName = "LinkBuilderDestinationUrlInput";

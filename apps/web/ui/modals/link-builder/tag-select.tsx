@@ -17,8 +17,8 @@ import {
 import { cn } from "@dub/utils";
 import { useCompletion } from "ai/react";
 import posthog from "posthog-js";
-import { useEffect, useMemo, useState } from "react";
-import { useFormContext } from "react-hook-form";
+import { memo, useEffect, useMemo, useState } from "react";
+import { useFormContext, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
@@ -34,7 +34,7 @@ function getTagOption(tag: TagProps) {
   };
 }
 
-export function TagSelect() {
+export const TagSelect = memo(() => {
   const {
     id: workspaceId,
     slug,
@@ -56,14 +56,11 @@ export function TagSelect() {
     },
   });
 
-  const { watch, setValue } = useFormContext<LinkFormData>();
-  const [tags, linkId, url, title, description] = watch([
-    "tags",
-    "id",
-    "url",
-    "title",
-    "description",
-  ]);
+  const { control, setValue } = useFormContext<LinkFormData>();
+  const [tags, linkId, url, title, description] = useWatch({
+    control,
+    name: ["tags", "id", "url", "title", "description"],
+  });
   const [debouncedUrl] = useDebounce(url, 500);
 
   const [isOpen, setIsOpen] = useState(false);
@@ -259,4 +256,6 @@ export function TagSelect() {
       </AnimatedSizeContainer>
     </div>
   );
-}
+});
+
+TagSelect.displayName = "TagSelect";
