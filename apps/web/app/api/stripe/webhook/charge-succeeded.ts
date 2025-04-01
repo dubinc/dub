@@ -16,13 +16,9 @@ export async function chargeSucceeded(event: Stripe.Event) {
 
   console.log({ chargeId, receipt_url, transfer_group });
 
-  const invoice = await prisma.invoice.update({
+  const invoice = await prisma.invoice.findUnique({
     where: {
       id: transfer_group,
-    },
-    data: {
-      status: "completed",
-      receiptUrl: receipt_url,
     },
     include: {
       payouts: {
@@ -93,4 +89,14 @@ export async function chargeSucceeded(event: Stripe.Event) {
         }),
     ]);
   }
+
+  await prisma.invoice.update({
+    where: {
+      id: invoice.id,
+    },
+    data: {
+      status: "completed",
+      receiptUrl: receipt_url,
+    },
+  });
 }

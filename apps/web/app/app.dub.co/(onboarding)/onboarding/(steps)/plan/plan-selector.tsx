@@ -1,20 +1,18 @@
 "use client";
 
-import useWorkspace from "@/lib/swr/use-workspace";
 import { PlanFeatures } from "@/ui/workspaces/plan-features";
 import { UpgradePlanButton } from "@/ui/workspaces/upgrade-plan-button";
 import { Badge, ToggleGroup } from "@dub/ui";
-import {
-  ADVANCED_PLAN,
-  BUSINESS_PLAN,
-  PRO_PLAN,
-  SELF_SERVE_PAID_PLANS,
-} from "@dub/utils";
+import { ADVANCED_PLAN, BUSINESS_PLAN, cn, PRO_PLAN } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
-import { useEffect, useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { CSSProperties, useState } from "react";
+
+const plans = [PRO_PLAN, BUSINESS_PLAN, ADVANCED_PLAN];
 
 export function PlanSelector() {
-  const [periodTab, setPeriodTab] = useState<"monthly" | "yearly">("yearly");
+  const [period, setPeriod] = useState<"monthly" | "yearly">("yearly");
+  const [mobilePlanIndex, setMobilePlanIndex] = useState(0);
 
   return (
     <div>
@@ -28,88 +26,84 @@ export function PlanSelector() {
               badge: <Badge variant="blue">Save 20%</Badge>,
             },
           ]}
-          selected={periodTab}
-          selectAction={(period) =>
-            setPeriodTab(period as "monthly" | "yearly")
+          className="border-none"
+          optionClassName="normal-case"
+          indicatorClassName="border-none bg-neutral-200/70"
+          selected={period}
+          selectAction={(period) => setPeriod(period as "monthly" | "yearly")}
+        />
+      </div>
+      <div className="mt-5 overflow-hidden [container-type:inline-size]">
+        <div
+          className={cn(
+            "grid grid-cols-3 gap-x-4",
+
+            // Mobile
+            "max-lg:w-[calc(300cqw+2*32px)] max-lg:translate-x-[calc(-1*var(--index)*(100cqw+32px))] max-lg:gap-x-8 max-lg:transition-transform",
+          )}
+          style={
+            {
+              "--index": mobilePlanIndex,
+            } as CSSProperties
           }
-        />
-      </div>
-      <div className="mt-8 grid gap-4 sm:grid-cols-3">
-        <PlanCard name="Pro" plans={[PRO_PLAN]} period={periodTab} />
-        <PlanCard name="Business" plans={[BUSINESS_PLAN]} period={periodTab} />
-        <PlanCard name="Advanced" plans={[ADVANCED_PLAN]} period={periodTab} />
-      </div>
-    </div>
-  );
-}
-
-function PlanCard({
-  name,
-  plans,
-  period,
-}: {
-  name: string;
-  plans: (typeof SELF_SERVE_PAID_PLANS)[number][];
-  period: "monthly" | "yearly";
-}) {
-  const [selectedPlanIndex, setSelectedPlanIndex] = useState(0);
-  const selectedPlan = plans[selectedPlanIndex];
-
-  const { plan } = useWorkspace();
-
-  useEffect(() => {
-    if (plan?.startsWith("business")) {
-      const idx = plans.findIndex((p) => p.name.toLowerCase() === plan);
-      if (idx !== -1) {
-        setSelectedPlanIndex(idx);
-      }
-    }
-  }, [plan]);
-
-  return (
-    <div className="flex flex-col rounded-lg border border-neutral-200 bg-white p-6">
-      <div className="flex items-center gap-2">
-        <h2 className="text-lg font-medium text-neutral-900">{name}</h2>
-        {name === "Business" && <Badge variant="blue">Most popular</Badge>}
-      </div>
-      <div className="mt-2 text-3xl font-medium text-neutral-900">
-        <NumberFlow
-          value={selectedPlan.price[period]!}
-          className="tabular-nums"
-          format={{
-            style: "currency",
-            currency: "USD",
-            maximumFractionDigits: 0,
-          }}
-          continuous
-        />
-        <span className="ml-1 text-sm font-medium">
-          per month
-          {period === "yearly" && ", billed yearly"}
-        </span>
-      </div>
-      {plans.length > 1 && (
-        <div className="mt-4">
-          <ToggleGroup
-            className="grid grid-cols-4"
-            style={{ gridTemplateColumns: "1fr ".repeat(plans.length) }}
-            options={plans.map((plan) => ({
-              value: plan.name,
-              label: plan.name.replace(name, "").trim() || "Basic",
-            }))}
-            selected={selectedPlan.name}
-            selectAction={(name) =>
-              setSelectedPlanIndex(plans.findIndex((p) => p.name === name))
-            }
-          />
+        >
+          {plans.map((plan) => (
+            <div
+              key={plan.name}
+              className="flex flex-col rounded-lg border border-neutral-200 bg-white p-6 pb-8"
+            >
+              <div className="flex items-center gap-2">
+                <h2 className="text-xl font-semibold text-neutral-800">
+                  {plan.name}
+                </h2>
+                {plan.name === "Business" && (
+                  <Badge variant="blue">Most popular</Badge>
+                )}
+              </div>
+              <div className="mt-1 text-base font-medium text-neutral-400">
+                <NumberFlow
+                  value={plan.price[period]!}
+                  className="tabular-nums text-neutral-700"
+                  format={{
+                    style: "currency",
+                    currency: "USD",
+                    maximumFractionDigits: 0,
+                  }}
+                  continuous
+                />
+                <span className="ml-1 font-medium">
+                  per month
+                  {period === "yearly" && ", billed yearly"}
+                </span>
+              </div>
+              <div className="my-6 flex gap-2">
+                <button
+                  type="button"
+                  className="h-full w-fit rounded-lg bg-neutral-100 px-2.5 transition-colors duration-75 hover:bg-neutral-200/80 enabled:active:bg-neutral-200 disabled:opacity-30 lg:hidden"
+                  disabled={mobilePlanIndex === 0}
+                  onClick={() => setMobilePlanIndex(mobilePlanIndex - 1)}
+                >
+                  <ChevronLeft className="size-5 text-neutral-800" />
+                </button>
+                <UpgradePlanButton
+                  plan={plan.name.toLowerCase()}
+                  period={period}
+                  text="Get started"
+                  className="h-10 rounded-lg shadow-sm"
+                />
+                <button
+                  type="button"
+                  className="h-full w-fit rounded-lg bg-neutral-100 px-2.5 transition-colors duration-75 hover:bg-neutral-200/80 active:bg-neutral-200 disabled:opacity-30 lg:hidden"
+                  disabled={mobilePlanIndex >= plans.length - 1}
+                  onClick={() => setMobilePlanIndex(mobilePlanIndex + 1)}
+                >
+                  <ChevronRight className="size-5 text-neutral-800" />
+                </button>
+              </div>
+              <PlanFeatures className="mt-2" plan={plan.name} />
+            </div>
+          ))}
         </div>
-      )}
-      <PlanFeatures className="mt-4" plan={selectedPlan.name} />
-      <div className="mt-10 flex grow flex-col justify-end">
-        <UpgradePlanButton
-          plan={selectedPlan.name.toLowerCase()}
-          period={period}
-        />
       </div>
     </div>
   );
