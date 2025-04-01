@@ -112,8 +112,7 @@ export const INTERVAL_DATA: Record<
       const month = now.getMonth();
       const quarter = Math.floor(month / 3);
 
-      // Set time to start of day to avoid timezone issues
-      return new Date(now.getFullYear(), quarter * 3, 1, 0, 0, 0, 0);
+      return new Date(Date.UTC(now.getFullYear(), quarter * 3, 1));
     })(),
     granularity: "day",
   },
