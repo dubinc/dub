@@ -62,6 +62,7 @@ import {
   PartnerProgramInviteSchema,
   ProgramEnrollmentSchema,
   ProgramInviteSchema,
+  ProgramMetricsSchema,
   ProgramPartnerLinkSchema,
   ProgramSchema,
 } from "./zod/schemas/programs";
@@ -465,3 +466,5 @@ export type RewardProps = z.infer<typeof RewardSchema>;
 export type CreatePartnerProps = z.infer<typeof createPartnerSchema>;
 
 export type ProgramData = z.infer<typeof programDataSchema>;
+
+export type ProgramMetrics = z.infer<typeof ProgramMetricsSchema>;

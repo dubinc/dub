@@ -50,13 +50,7 @@ export function UpgradeEmail({
             <Text className="text-sm leading-6 text-black">
               My name is Steven, and I'm the founder of Dub. I wanted to
               personally reach out to thank you for upgrading to{" "}
-              <Link
-                href={planDetails.link}
-                className="font-medium text-blue-600 no-underline"
-              >
-                Dub {plan}
-              </Link>
-              !
+              <strong>Dub {plan}</strong>!
             </Text>
             <Text className="text-sm leading-6 text-black">
               As you might already know, we are fully{" "}
@@ -72,11 +66,11 @@ export function UpgradeEmail({
             <Text className="text-sm leading-6 text-black">
               On the {plan} plan, you now have access to:
             </Text>
-            {planDetails.features.map((feature) => (
+            {planDetails.features?.map((feature) => (
               <Text className="ml-1 text-sm leading-4 text-black">
                 ◆{" "}
-                {feature.footnote?.href ? (
-                  <Link href={feature.footnote.href}>{feature.text}</Link>
+                {feature.tooltip?.href ? (
+                  <Link href={feature.tooltip.href}>{feature.text}</Link>
                 ) : (
                   feature.text
                 )}
