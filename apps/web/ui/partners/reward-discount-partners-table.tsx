@@ -11,17 +11,26 @@ import { useEffect, useState } from "react";
 import { useDebounce } from "use-debounce";
 
 interface PartnersTableProps {
-  selectedPartners: EnrolledPartnerProps[];
-  // setSelectedPartners: Dispatch<SetStateAction<EnrolledPartnerProps[]>>;
-  // loading: boolean;
-  // pagination?: any; // TODO: Type this properly
-  // setPagination?: any; // TODO: Type this properly
+  selectedPartnerIds: string[];
+  setSelectedPartnerIds: (ids: string[]) => void;
 }
 
-export function PartnersTable({ selectedPartners }: PartnersTableProps) {
+export function PartnersTable({
+  selectedPartnerIds,
+  setSelectedPartnerIds,
+}: PartnersTableProps) {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
   const { pagination, setPagination } = usePagination(25);
+  const [selectedRows, setSelectedRows] = useState<Record<string, boolean>>({});
+
+  const { partnersCount } = usePartnersCount<number>({
+    search: debouncedSearch,
+  });
+
+  useEffect(() => {
+    setPagination((prev) => ({ ...prev, pageIndex: 1 }));
+  }, [debouncedSearch, setPagination]);
 
   const { data: partners, loading } = usePartners({
     query: {
@@ -31,13 +40,17 @@ export function PartnersTable({ selectedPartners }: PartnersTableProps) {
     },
   });
 
-  const { partnersCount } = usePartnersCount<number>({
-    search: debouncedSearch,
-  });
-
   useEffect(() => {
-    setPagination((prev) => ({ ...prev, pageIndex: 1 }));
-  }, [debouncedSearch, setPagination]);
+    setSelectedRows(
+      selectedPartnerIds.reduce(
+        (acc, partnerId) => {
+          acc[partnerId] = true;
+          return acc;
+        },
+        {} as Record<string, boolean>,
+      ),
+    );
+  }, [selectedPartnerIds, partners]);
 
   const table = useTable({
     data: partners || [],
@@ -105,30 +118,12 @@ export function PartnersTable({ selectedPartners }: PartnersTableProps) {
     pagination,
     onPaginationChange: setPagination,
     rowCount: partnersCount,
+    selectedRows,
+    getRowId: (row: EnrolledPartnerProps) => row.id,
     onRowSelectionChange: (rows: Row<EnrolledPartnerProps>[]) => {
-      console.log(rows);
+      setSelectedPartnerIds(rows.map((row) => row.original.id));
     },
   });
-
-  useEffect(() => {
-    if (!partners || !selectedPartners) {
-      return;
-    }
-
-    //"pn_elon_musk"
-
-    console.log({ selectedPartners });
-
-    table.table.setRowSelection(
-      selectedPartners.reduce(
-        (acc, partner) => {
-          acc[partner.id] = true;
-          return acc;
-        },
-        {} as Record<string, boolean>,
-      ),
-    );
-  }, [partners, selectedPartners]);
 
   return (
     <div className="my-2 flex flex-col gap-3">

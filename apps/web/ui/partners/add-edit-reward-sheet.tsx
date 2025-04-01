@@ -9,7 +9,7 @@ import useProgram from "@/lib/swr/use-program";
 import useRewardPartners from "@/lib/swr/use-reward-partners";
 import useRewards from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { EnrolledPartnerProps, ProgramProps, RewardProps } from "@/lib/types";
+import { RewardProps } from "@/lib/types";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import {
   COMMISSION_TYPES,
@@ -60,7 +60,6 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
   const { rewards } = useRewards();
   const { id: workspaceId } = useWorkspace();
   const { program, mutate: mutateProgram } = useProgram();
-  const [isAddPartnersOpen, setIsAddPartnersOpen] = useState(false);
 
   const [selectedPartnerType, setSelectedPartnerType] =
     useState<(typeof PARTNER_TYPES)[number]["key"]>("all");
@@ -68,6 +67,8 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
   const [isRecurring, setIsRecurring] = useState(
     reward ? reward.maxDuration !== 0 : false,
   );
+
+  const [selectedPartnerIds, setSelectedPartnerIds] = useState<string[]>([]);
 
   const {
     register,
@@ -127,6 +128,19 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
     hasProgramWideSaleReward,
   ]);
 
+  const { data: rewardPartners } = useRewardPartners({
+    query: {
+      rewardId: reward?.id,
+    },
+    enabled: Boolean(reward && program),
+  });
+
+  useEffect(() => {
+    if (rewardPartners) {
+      setSelectedPartnerIds(rewardPartners);
+    }
+  }, [rewardPartners]);
+
   const { executeAsync: createReward, isPending: isCreating } = useAction(
     createRewardAction,
     {
@@ -138,7 +152,6 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
       },
       onError({ error }) {
         toast.error(error.serverError);
-        console.error(error);
       },
     },
   );
@@ -154,7 +167,6 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
       },
       onError({ error }) {
         toast.error(error.serverError);
-        console.error(error);
       },
     },
   );
@@ -186,6 +198,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
       amount: type === "flat" ? data.amount * 100 : data.amount,
       maxDuration:
         Infinity === Number(data.maxDuration) ? null : data.maxDuration,
+      partnerIds: selectedPartnerIds,
     };
 
     if (!reward) {
@@ -533,7 +546,10 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
             )}
 
             {displayPartners && (
-              <RewardPartnersTable reward={reward} program={program} />
+              <PartnersTable
+                selectedPartnerIds={selectedPartnerIds}
+                setSelectedPartnerIds={setSelectedPartnerIds}
+              />
             )}
           </div>
         </div>
@@ -588,35 +604,33 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
   );
 }
 
-function RewardPartnersTable({
-  reward,
-  program,
-}: {
-  reward: RewardProps | undefined;
-  program: ProgramProps | undefined;
-}) {
-  const [selectedPartners, setSelectedPartners] = useState<
-    EnrolledPartnerProps[]
-  >([]);
+// function RewardPartnersTable({
+//   reward,
+//   program,
+//   partnerIds,
+//   setValue,
+// }: {
+//   reward: RewardProps | undefined;
+//   program: ProgramProps | undefined;
+//   partnerIds: string[] | null;
+//   setValue: any;
+// }) {
+//   const { data: rewardPartners, loading: rewardPartnersLoading } =
+//     useRewardPartners({
+//       query: {
+//         rewardId: reward?.id,
+//       },
+//       enabled: Boolean(reward && program),
+//     });
 
-  const { data: rewardPartners, loading: rewardPartnersLoading } =
-    useRewardPartners({
-      query: {
-        rewardId: reward?.id,
-        // pageSize: pagination.pageSize,
-        // page: pagination.pageIndex || 1,
-      },
-      enabled: Boolean(reward && program),
-    });
+//   useEffect(() => {
+//     if (rewardPartners) {
+//       setValue("partnerIds", rewardPartners);
+//     }
+//   }, [rewardPartners, setValue]);
 
-  useEffect(() => {
-    if (rewardPartners) {
-      setSelectedPartners(rewardPartners);
-    }
-  }, [rewardPartners]);
-
-  return <PartnersTable selectedPartners={selectedPartners || []} />;
-}
+//   return <PartnersTable selectedPartners={partnerIds || []} />;
+// }
 
 export function RewardSheet({
   isOpen,
