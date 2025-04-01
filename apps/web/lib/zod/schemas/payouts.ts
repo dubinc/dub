@@ -28,6 +28,7 @@ export const payoutsQuerySchema = z
     partnerId: z.string().optional(),
     programId: z.string().optional(),
     invoiceId: z.string().optional(),
+    eligibility: z.enum(["eligible", "ineligible"]).optional(),
     sortBy: z
       .enum(["createdAt", "periodStart", "amount", "paidAt"])
       .default("createdAt"),
@@ -44,6 +45,7 @@ export const payoutsCountQuerySchema = payoutsQuerySchema
     status: true,
     programId: true,
     partnerId: true,
+    eligibility: true,
     interval: true,
     start: true,
     end: true,
@@ -51,7 +53,6 @@ export const payoutsCountQuerySchema = payoutsQuerySchema
   .merge(
     z.object({
       groupBy: z.enum(["status"]).optional(),
-      eligibility: z.enum(["eligible"]).optional(),
     }),
   );
 
