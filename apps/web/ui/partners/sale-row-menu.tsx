@@ -10,6 +10,7 @@ import {
   Duplicate,
   InvoiceDollar,
   ShieldAlert,
+  User,
 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
@@ -50,7 +51,8 @@ export function SaleRowMenu({ row }: { row: Row<SaleResponse> }) {
 
   const isPaid = row.original.status === "paid";
 
-  const [copied, copyToClipboard] = useCopyToClipboard();
+  const [copiedCustomerId, copyCustomerIdToClipboard] = useCopyToClipboard();
+  const [copiedInvoiceId, copyInvoiceIdToClipboard] = useCopyToClipboard();
 
   return (
     <Popover
@@ -101,10 +103,20 @@ export function SaleRowMenu({ row }: { row: Row<SaleResponse> }) {
                 <Command.Separator className="w-full border-t border-neutral-200" />
                 <Command.Group className="p-1.5">
                   <MenuItem
-                    icon={copied ? CircleCheck : InvoiceDollar}
+                    icon={copiedCustomerId ? CircleCheck : User}
+                    label="Copy customer ID"
+                    onSelect={() => {
+                      copyCustomerIdToClipboard(
+                        row.original.customer.externalId,
+                      );
+                      toast.success("Customer ID copied to clipboard");
+                    }}
+                  />
+                  <MenuItem
+                    icon={copiedInvoiceId ? CircleCheck : InvoiceDollar}
                     label="Copy invoice ID"
                     onSelect={() => {
-                      copyToClipboard(row.original.invoiceId!);
+                      copyInvoiceIdToClipboard(row.original.invoiceId!);
                       toast.success("Invoice ID copied to clipboard");
                     }}
                   />
