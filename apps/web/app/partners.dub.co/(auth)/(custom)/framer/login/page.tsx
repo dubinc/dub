@@ -24,7 +24,8 @@ export default function CustomPartnerLoginPage() {
         <p className="text-center text-sm text-neutral-700">
           Not a Framer Partner?&nbsp;
           <Link
-            href="/framer/apply"
+            href="https://www.framer.com/creators"
+            target="_blank"
             className="font-normal underline underline-offset-2 transition-colors hover:text-black"
           >
             Apply today

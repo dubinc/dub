@@ -96,34 +96,34 @@ export const SDKS = [
     icon: Typescript,
     iconClassName: "py-0.5 group-hover:text-[#3178C6]",
     title: "Typescript",
-    href: "/solutions/typescript",
+    href: "/sdks/typescript",
   },
   {
     icon: Python,
     iconClassName:
       "py-0.5 [&_.snake]:transition-colors group-hover:[&_.snake1]:text-[#3776ab] group-hover:[&_.snake2]:text-[#ffd343]",
     title: "Python",
-    href: "/solutions/python",
+    href: "/sdks/python",
   },
   {
     icon: Go,
     iconClassName: "group-hover:text-[#00ACD7]",
     title: "Go",
-    href: "/solutions/go",
+    href: "/sdks/go",
   },
   {
     icon: Ruby,
     iconClassName:
       "py-[3px] grayscale brightness-150 transition-[filter] group-hover:grayscale-0 group-hover:brightness-100",
     title: "Ruby",
-    href: "/solutions/ruby",
+    href: "/sdks/ruby",
   },
   {
     icon: Php,
     iconClassName:
       "py-[3px] grayscale brightness-150 transition-[filter] group-hover:grayscale-0 group-hover:brightness-100",
     title: "PHP",
-    href: "/solutions/php",
+    href: "/sdks/php",
   },
 ];
 
