@@ -47,8 +47,16 @@ export function PartnerInvite({
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              {program.name} uses Dub Partners to power their affiliate program
-              and wants to partner with great people like yourself!
+              {program.name} uses{" "}
+              <Link
+                href="https://dub.partners"
+                target="_blank"
+                className="font-semibold text-neutral-800 underline underline-offset-2"
+              >
+                Dub Partners
+              </Link>{" "}
+              to power their affiliate program and wants to partner with great
+              people like yourself!
             </Text>
 
             <Section className="mb-12 mt-8">
