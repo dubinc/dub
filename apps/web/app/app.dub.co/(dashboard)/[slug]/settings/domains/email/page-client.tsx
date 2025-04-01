@@ -27,7 +27,7 @@ export function EmailDomains() {
               <ul className="grid grid-cols-1 gap-3">
                 {emailDomains.map((domain) => (
                   <li key={domain.slug}>
-                    <EmailDomainCard {...domain} />
+                    <EmailDomainCard props={domain} />
                   </li>
                 ))}
               </ul>

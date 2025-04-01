@@ -4,6 +4,7 @@ import { DomainVerificationStatusProps, EmailDomainProps } from "@/lib/types";
 import { DomainCardTitleColumn } from "@/ui/domains/domain-card-title-column";
 import DomainConfiguration from "@/ui/domains/domain-configuration";
 import { useAddEditEmailDomainModal } from "@/ui/modals/add-edit-email-domain";
+import { useDeleteDomainModal } from "@/ui/modals/delete-domain-modal";
 import { Delete, ThreeDots } from "@/ui/shared/icons";
 import {
   Button,
@@ -20,14 +21,13 @@ import { cn, fetcher } from "@dub/utils";
 import { motion } from "framer-motion";
 import { ChevronDown, Mail } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { useMemo, useRef, useState } from "react";
 import useSWRImmutable from "swr/immutable";
 
-export function EmailDomainCard(domain: EmailDomainProps) {
-  const searchParams = useSearchParams();
-  const { id: workspaceId } = useWorkspace();
+export function EmailDomainCard({ props }: { props: EmailDomainProps }) {
+  const { slug: domain } = props || {};
   const domainRef = useRef<HTMLDivElement>(null);
+  const { id: workspaceId } = useWorkspace();
   const [groupHover, setGroupHover] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const isVisible = useInViewport(domainRef, { defaultValue: true });
@@ -43,7 +43,7 @@ export function EmailDomainCard(domain: EmailDomainProps) {
   );
 
   const verificationData = useMemo(() => {
-    if (domain.verified) {
+    if (props.verified) {
       return {
         status: "Valid Configuration",
         response: null,
@@ -52,9 +52,8 @@ export function EmailDomainCard(domain: EmailDomainProps) {
         response: any;
       };
     }
-
     return data;
-  }, [domain.verified, data]);
+  }, [props.verified, data]);
 
   const isInvalid =
     verificationData &&
@@ -73,10 +72,12 @@ export function EmailDomainCard(domain: EmailDomainProps) {
         <div className="p-4 sm:p-5">
           <div className="grid grid-cols-[1.5fr_1fr] items-center gap-3 sm:grid-cols-[3fr_1fr_1.5fr] sm:gap-4 md:grid-cols-[2fr_1fr_0.5fr_1.5fr]">
             <DomainCardTitleColumn
-              domain={domain.slug}
+              domain={domain}
               icon={Mail}
               emailDomain={true}
             />
+
+            <div className="hidden md:flex"></div>
 
             <div className="hidden sm:block">
               {verificationData ? (
@@ -84,8 +85,7 @@ export function EmailDomainCard(domain: EmailDomainProps) {
                   variant={
                     verificationData.status === "Valid Configuration"
                       ? "success"
-                      : verificationData.status === "Pending Verification" ||
-                          verificationData.status === "Conflicting DNS Records"
+                      : verificationData.status === "Pending Verification"
                         ? "pending"
                         : "error"
                   }
@@ -102,7 +102,7 @@ export function EmailDomainCard(domain: EmailDomainProps) {
               )}
             </div>
 
-            <div className="gap-2 sm:gap-3 bg-red-100">
+            <div className="flex justify-end gap-2 sm:gap-3">
               <Button
                 icon={
                   <div className="flex items-center gap-1">
@@ -120,7 +120,6 @@ export function EmailDomainCard(domain: EmailDomainProps) {
                         </div>
                       )}
                     </div>
-
                     <ChevronDown
                       className={cn(
                         "hidden h-4 w-4 text-neutral-400 transition-transform sm:block",
@@ -140,16 +139,13 @@ export function EmailDomainCard(domain: EmailDomainProps) {
                 data-state={showDetails ? "open" : "closed"}
               />
 
-              {showDetails && (
-                <Menu
-                  props={domain}
-                  refreshProps={{ isValidating, mutate }}
-                  groupHover={groupHover}
-                />
-              )}
+              <Menu
+                props={props}
+                refreshProps={{ isValidating, mutate }}
+                groupHover={groupHover}
+              />
             </div>
           </div>
-
           <motion.div
             initial={false}
             animate={{ height: showDetails ? "auto" : 0 }}
@@ -200,29 +196,35 @@ function Menu({
   const { isMobile } = useMediaQuery();
   const [openPopover, setOpenPopover] = useState(false);
 
+  const { setShowAddEditDomainModal, AddEditDomainModal } =
+    useAddEditEmailDomainModal({
+      props,
+    });
+
+  const { setShowDeleteDomainModal, DeleteDomainModal } = useDeleteDomainModal({
+    props: {
+      slug: props.slug,
+      type: "email",
+      registeredDomain: false,
+    },
+  });
+
   const permissionsError = clientAccessCheck({
     action: "domains.write",
     role,
   }).error;
 
-  const { setShowAddEditDomainModal, AddEditDomainModal } =
-    useAddEditEmailDomainModal({ props });
-
-  // const { setShowDeleteDomainModal, DeleteDomainModal } = useDeleteDomainModal({
-  //   props,
-  // });
-
   return (
     <>
       <AddEditDomainModal />
-      {/* <DeleteDomainModal /> */}
+      <DeleteDomainModal />
 
       <motion.div
         animate={{
           width: groupHover && !isMobile ? "auto" : isMobile ? 79 : 39,
         }}
         initial={false}
-        className="flex items-center justify-start divide-x divide-neutral-200 overflow-hidden rounded-md border border-neutral-200 sm:divide-transparent sm:group-hover:divide-neutral-200"
+        className="flex items-center justify-end divide-x divide-neutral-200 overflow-hidden rounded-md border border-neutral-200 sm:divide-transparent sm:group-hover:divide-neutral-200"
       >
         <Button
           icon={<PenWriting className={cn("h-4 w-4 shrink-0")} />}
@@ -230,7 +232,6 @@ function Menu({
           className="h-8 rounded-none border-0 px-3"
           onClick={() => setShowAddEditDomainModal(true)}
         />
-
         <Tooltip content="Refresh">
           <Button
             icon={
@@ -246,15 +247,10 @@ function Menu({
             onClick={() => refreshProps.mutate()}
           />
         </Tooltip>
-
         <Popover
           content={
             <div className="w-full sm:w-48">
               <div className="grid gap-px p-2">
-                <p className="mb-1.5 mt-1 flex items-center gap-2 px-1 text-xs font-medium text-neutral-500">
-                  Domain Settings
-                </p>
-
                 <Button
                   text="Edit Domain"
                   variant="outline"
@@ -271,7 +267,7 @@ function Menu({
                   variant="danger-outline"
                   onClick={() => {
                     setOpenPopover(false);
-                    // setShowDeleteDomainModal(true);
+                    setShowDeleteDomainModal(true);
                   }}
                   icon={<Delete className="h-4 w-4" />}
                   className="h-9 justify-start px-2 font-medium"
