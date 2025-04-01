@@ -5,7 +5,7 @@ import { useFormContext, useWatch } from "react-hook-form";
 import { useDebounce } from "use-debounce";
 import { LinkFormData } from ".";
 
-export function useMetatags({ enabled }: { enabled: boolean }) {
+export function useMetatags({ enabled = true }: { enabled?: boolean } = {}) {
   const { control, setValue } = useFormContext<LinkFormData>();
   const [url, password, proxy, title, description, image] = useWatch({
     control,

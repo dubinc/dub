@@ -310,7 +310,7 @@ function DefaultOGPreview({ title, description, children }: OGPreviewProps) {
         {children}
       </div>
       <ReactTextareaAutosize
-        className="mt-4 line-clamp-2 w-full resize-none border-none p-0 text-xs font-medium text-neutral-700 outline-none focus:ring-0"
+        className="mt-4 line-clamp-2 w-full resize-none border-none bg-transparent p-0 text-xs font-medium text-neutral-700 outline-none focus:ring-0"
         value={title || "Add a title..."}
         maxRows={2}
         onChange={(e) => {
@@ -321,7 +321,7 @@ function DefaultOGPreview({ title, description, children }: OGPreviewProps) {
         }}
       />
       <ReactTextareaAutosize
-        className="mt-1.5 line-clamp-2 w-full resize-none border-none p-0 text-xs text-neutral-700/80 outline-none focus:ring-0"
+        className="mt-1.5 line-clamp-2 w-full resize-none border-none bg-transparent p-0 text-xs text-neutral-700/80 outline-none focus:ring-0"
         value={description || "Add a description..."}
         maxRows={2}
         onChange={(e) => {

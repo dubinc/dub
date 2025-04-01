@@ -17,8 +17,11 @@ import {
   DraftControls,
   DraftControlsHandle,
 } from "@/ui/modals/link-builder/draft-controls";
+import { LinkPreview } from "@/ui/modals/link-builder/link-preview";
 import { OptionsList } from "@/ui/modals/link-builder/options-list";
+import { QRCodePreview } from "@/ui/modals/link-builder/qr-code-preview";
 import { TagSelect } from "@/ui/modals/link-builder/tag-select";
+import { useMetatags } from "@/ui/modals/link-builder/use-metatags";
 import { cn } from "@dub/utils";
 import { useCallback, useRef } from "react";
 import { useFormContext } from "react-hook-form";
@@ -61,6 +64,8 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
     onSuccess: onSubmitSuccess,
   });
 
+  useMetatags();
+
   return (
     <div className="flex min-h-[calc(100vh-8px)] flex-col rounded-t-[inherit] bg-white">
       <div className="py-2 pl-4 pr-5">
@@ -99,9 +104,13 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
             </div>
           </div>
         </div>
-        <div className="bg-neutral-50">
-          WIP
-          <div className="h-96 w-4 border border-red-500" />
+        <div className="divide-y divide-neutral-200 bg-neutral-50">
+          <div className="px-4 py-6">
+            <QRCodePreview />
+          </div>
+          <div className="px-4 py-6">
+            <LinkPreview />
+          </div>
         </div>
       </form>
     </div>
