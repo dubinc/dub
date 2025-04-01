@@ -107,11 +107,13 @@ export const INTERVAL_DATA: Record<
     granularity: "day",
   },
   qtd: {
-    startDate: new Date(
-      new Date().getFullYear(),
-      Math.floor(new Date().getMonth() / 3) * 3,
-      1,
-    ),
+    startDate: (() => {
+      const now = new Date();
+      const month = now.getMonth();
+      const quarter = Math.floor(month / 3);
+
+      return new Date(now.getFullYear(), quarter * 3, 1);
+    })(),
     granularity: "day",
   },
   ytd: {
