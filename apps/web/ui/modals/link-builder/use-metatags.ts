@@ -5,13 +5,7 @@ import { useFormContext, useWatch } from "react-hook-form";
 import { useDebounce } from "use-debounce";
 import { LinkFormData } from ".";
 
-export function useMetatags({
-  initial,
-  enabled,
-}: {
-  initial: boolean;
-  enabled: boolean;
-}) {
+export function useMetatags({ enabled }: { enabled: boolean }) {
   const { control, setValue } = useFormContext<LinkFormData>();
   const [url, password, proxy, title, description, image] = useWatch({
     control,
@@ -41,7 +35,7 @@ export function useMetatags({
     }
 
     // Only generate metatags if enabled (modal is open and url is not empty)
-    if (enabled) {
+    if (enabled !== false && debouncedUrl.length > 0) {
       try {
         // if url is valid, continue to generate metatags, else throw error and return null
         new URL(debouncedUrl);

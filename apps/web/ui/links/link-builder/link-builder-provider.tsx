@@ -48,7 +48,9 @@ export function LinkBuilderProvider({
 }: PropsWithChildren<LinkBuilderProps>) {
   const { plan, conversionEnabled } = rest.workspace || {};
 
-  const [generatingMetatags, setGeneratingMetatags] = useState(false);
+  const [generatingMetatags, setGeneratingMetatags] = useState(
+    Boolean(rest.props),
+  );
 
   const form = useForm<LinkFormData>({
     defaultValues: rest.props ||

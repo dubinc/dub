@@ -2,7 +2,8 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ExpandedLinkProps } from "@/lib/types";
-import { DestinationUrlInput } from "@/ui/links/destination-url-input";
+import { LinkBuilderDestinationUrlInput } from "@/ui/links/link-builder/controls/link-builder-destination-url-input";
+import { LinkBuilderShortLinkInput } from "@/ui/links/link-builder/controls/link-builder-short-link-input";
 import { LinkCommentsInput } from "@/ui/links/link-builder/controls/link-comments-input";
 import { LinkBuilderHeader } from "@/ui/links/link-builder/link-builder-header";
 import {
@@ -11,7 +12,6 @@ import {
   useLinkBuilderContext,
 } from "@/ui/links/link-builder/link-builder-provider";
 import { useLinkBuilderSubmit } from "@/ui/links/link-builder/use-link-builder-submit";
-import { ShortLinkInput } from "@/ui/links/short-link-input";
 import { useAvailableDomains } from "@/ui/links/use-available-domains";
 import {
   ArrowTurnLeft,
@@ -22,12 +22,7 @@ import {
   useKeyboardShortcut,
   useRouterStuff,
 } from "@dub/ui";
-import {
-  cn,
-  constructURLFromUTMParams,
-  getUrlWithoutUTMParams,
-  isValidUrl,
-} from "@dub/utils";
+import { cn, isValidUrl } from "@dub/utils";
 import { useSearchParams } from "next/navigation";
 import {
   Dispatch,
@@ -38,8 +33,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { Controller, useFormContext, useWatch } from "react-hook-form";
-import { useDebounce } from "use-debounce";
+import { useFormContext, useWatch } from "react-hook-form";
 import { ConversionTrackingToggle } from "./conversion-tracking-toggle";
 import { DraftControls, DraftControlsHandle } from "./draft-controls";
 import { useExpirationModal } from "./expiration-modal";
@@ -52,7 +46,6 @@ import { TagSelect } from "./tag-select";
 import { useTargetingModal } from "./targeting-modal";
 import { useMetatags } from "./use-metatags";
 import { useUTMModal } from "./utm-modal";
-import { UTMTemplatesButton } from "./utm-templates-button";
 import { WebhookSelect } from "./webhook-select";
 
 export type LinkFormData = ExpandedLinkProps;
@@ -99,20 +92,16 @@ function LinkBuilderInner({
     control,
     handleSubmit,
     setValue,
-    clearErrors,
-    formState: { isDirty, isSubmitting, isSubmitSuccessful, errors },
+    formState: { isDirty, isSubmitting, isSubmitSuccessful },
   } = useFormContext<LinkFormData>();
 
-  const [url, domain, key, title, description] = useWatch({
+  const [domain, key] = useWatch({
     control,
-    name: ["url", "domain", "key", "title", "description"],
+    name: ["domain", "key"],
   });
 
-  const [debouncedUrl] = useDebounce(getUrlWithoutUTMParams(url), 500);
-
   useMetatags({
-    initial: Boolean(props),
-    enabled: showLinkBuilder && debouncedUrl.length > 0,
+    enabled: showLinkBuilder,
   });
 
   const saveDisabled = useMemo(() => {
@@ -135,7 +124,7 @@ function LinkBuilderInner({
     if (key?.endsWith("-copy")) keyRef.current?.select();
   }, []);
 
-  const { domains, loading, primaryDomain } = useAvailableDomains({
+  const { loading, primaryDomain } = useAvailableDomains({
     currentDomain: domain,
   });
 
@@ -212,61 +201,9 @@ function LinkBuilderInner({
           >
             <div className="scrollbar-hide px-6 md:overflow-auto">
               <div className="flex min-h-full flex-col gap-6 py-4">
-                <Controller
-                  name="url"
-                  control={control}
-                  render={({ field }) => (
-                    <DestinationUrlInput
-                      domain={domain}
-                      _key={key}
-                      value={field.value}
-                      domains={domains}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                        clearErrors("url");
-                        field.onChange(e.target.value);
-                      }}
-                      required={key !== "_root"}
-                      error={errors.url?.message || undefined}
-                      right={
-                        <div className="-mb-1 h-6">
-                          {isValidUrl(url) && (
-                            <UTMTemplatesButton
-                              onLoad={(params) => {
-                                setValue(
-                                  "url",
-                                  constructURLFromUTMParams(url, params),
-                                  {
-                                    shouldDirty: true,
-                                  },
-                                );
-                              }}
-                            />
-                          )}
-                        </div>
-                      }
-                    />
-                  )}
-                />
+                <LinkBuilderDestinationUrlInput />
 
-                {key !== "_root" && (
-                  <ShortLinkInput
-                    ref={keyRef}
-                    domain={domain}
-                    _key={key}
-                    existingLinkProps={props}
-                    error={errors.key?.message || undefined}
-                    onChange={(d) => {
-                      clearErrors("key");
-                      if (d.domain !== undefined)
-                        setValue("domain", d.domain, { shouldDirty: true });
-                      if (d.key !== undefined)
-                        setValue("key", d.key, { shouldDirty: true });
-                    }}
-                    data={{ url, title, description }}
-                    saving={isSubmitting || isSubmitSuccessful}
-                    loading={loading}
-                  />
-                )}
+                <LinkBuilderShortLinkInput ref={keyRef} />
 
                 <TagSelect />
 
