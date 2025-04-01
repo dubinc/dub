@@ -124,11 +124,7 @@ export function LinkPreview() {
               <TooltipContent
                 title="Custom Link Previews are only available on the Pro plan and above."
                 cta="Upgrade to Pro"
-                href={
-                  slug
-                    ? `/${slug}/upgrade?exit=close`
-                    : "https://dub.co/pricing"
-                }
+                href={slug ? `/${slug}/upgrade` : "https://dub.co/pricing"}
                 target="_blank"
               />
             ) : undefined

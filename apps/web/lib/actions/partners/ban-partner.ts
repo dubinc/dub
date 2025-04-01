@@ -12,7 +12,6 @@ import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
-
 // Ban a partner
 export const banPartnerAction = authActionClient
   .schema(banPartnerSchema)
@@ -109,6 +108,7 @@ export const banPartnerAction = authActionClient
             },
             bannedReason: BAN_PARTNER_REASONS[parsedInput.reason],
           }),
+          variant: "notifications",
         });
 
         // Delete links from cache
