@@ -1,7 +1,7 @@
 import { isValidDomain } from "@/lib/api/domains";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { DomainProps } from "@/lib/types";
+import { EmailDomainProps } from "@/lib/types";
 import { createOrUpdateEmailDomainSchema } from "@/lib/zod/schemas/email-domain";
 import { AlertCircleFill, CheckCircleFill, Lock } from "@/ui/shared/icons";
 import {
@@ -64,8 +64,8 @@ export function AddEditEmailDomainForm({
   onSuccess,
   className,
 }: {
-  props?: DomainProps;
-  onSuccess?: (data: DomainProps) => void;
+  props?: EmailDomainProps;
+  onSuccess?: (data: EmailDomainProps) => void;
   className?: string;
 }) {
   const { isMobile } = useMediaQuery();

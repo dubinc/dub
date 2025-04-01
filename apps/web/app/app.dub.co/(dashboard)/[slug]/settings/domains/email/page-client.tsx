@@ -5,6 +5,7 @@ import DomainCardPlaceholder from "@/ui/domains/domain-card-placeholder";
 import { useAddEditEmailDomainModal } from "@/ui/modals/add-edit-email-domain";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { CursorRays, Globe } from "@dub/ui";
+import { EmailDomainCard } from "./domain-card";
 
 export function EmailDomains() {
   const { emailDomains, loading } = useEmailDomains();
@@ -26,14 +27,7 @@ export function EmailDomains() {
               <ul className="grid grid-cols-1 gap-3">
                 {emailDomains.map((domain) => (
                   <li key={domain.slug}>
-                    {/* <DomainCard
-                      props={{
-                        ...domain,
-                        primary: false,
-                        archived: false,
-                        // projectId: workspaceId,
-                      }}
-                    /> */}
+                    <EmailDomainCard {...domain} />
                   </li>
                 ))}
               </ul>

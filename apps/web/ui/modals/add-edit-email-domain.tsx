@@ -1,6 +1,6 @@
 import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { DomainProps } from "@/lib/types";
+import { EmailDomainProps } from "@/lib/types";
 import { Button, ButtonProps, Modal } from "@dub/ui";
 import {
   Dispatch,
@@ -18,7 +18,7 @@ function AddEditEmailDomainModal({
 }: {
   showAddEditDomainModal: boolean;
   setShowAddEditDomainModal: Dispatch<SetStateAction<boolean>>;
-  props?: DomainProps;
+  props?: EmailDomainProps;
 }) {
   return (
     <Modal
@@ -72,7 +72,7 @@ function AddEmailDomainButton({
 export function useAddEditEmailDomainModal({
   props,
   buttonProps,
-}: { props?: DomainProps; buttonProps?: Partial<ButtonProps> } = {}) {
+}: { props?: EmailDomainProps; buttonProps?: Partial<ButtonProps> } = {}) {
   const [showAddEditDomainModal, setShowAddEditDomainModal] = useState(false);
 
   const AddEditDomainModalCallback = useCallback(() => {
