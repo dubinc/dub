@@ -248,7 +248,12 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
         maximumFractionDigits: 2,
       }),
     };
-  }, [eligiblePayoutsCount, eligiblePayoutsCountLoading, paymentMethods, selectedPaymentMethod]);
+  }, [
+    eligiblePayoutsCount,
+    eligiblePayoutsCountLoading,
+    paymentMethods,
+    selectedPaymentMethod,
+  ]);
   const table = useTable({
     data: eligiblePayouts || [],
     columns: [
