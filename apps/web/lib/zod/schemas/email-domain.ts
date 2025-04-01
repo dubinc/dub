@@ -5,7 +5,7 @@ export const EmailDomainSchema = z.object({
   id: z.string(),
   slug: z.string(),
   verified: z.boolean(),
-  lastChecked: z.date().nullable(),
+  lastChecked: z.date(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
