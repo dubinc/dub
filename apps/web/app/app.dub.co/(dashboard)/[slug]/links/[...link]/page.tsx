@@ -18,7 +18,7 @@ export default function LinkPage({
 
   return (
     <PageContent
-      className="pt-0 md:bg-transparent md:pt-0"
+      className="mt-0 md:mt-0 md:bg-transparent md:py-0"
       contentWrapperClassName="pt-0 md:rounded-tl-2xl"
     >
       <LinkPageClient domain={domain} slug={key} />

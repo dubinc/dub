@@ -32,8 +32,8 @@ export function PageContent({
   return (
     <div
       className={cn(
-        "bg-neutral-100 pt-3 md:bg-white",
-        (hasTitle || hasDescription) && "md:pb-3 md:pt-9",
+        "mt-3 bg-neutral-100 md:bg-white",
+        (hasTitle || hasDescription) && "md:mt-6 md:py-3",
         className,
       )}
     >
