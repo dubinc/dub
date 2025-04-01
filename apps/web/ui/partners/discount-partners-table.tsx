@@ -30,8 +30,8 @@ export function DiscountPartnersTable({
   const { data: partners, loading } = usePartners({
     query: {
       search: debouncedSearch,
-      page: pagination.pageIndex || 1,
-      pageSize: pagination.pageSize || 25,
+      page: pagination.pageIndex,
+      pageSize: pagination.pageSize,
     },
   });
 
