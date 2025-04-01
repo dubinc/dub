@@ -64,12 +64,8 @@ export function ClicksSummary({
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
-            <Section className="mt-8 mt-6">
-              <Img
-                src={DUB_WORDMARK}
-                height="32"
-                alt="Dub"
-              />
+            <Section className="mt-8">
+              <Img src={DUB_WORDMARK} height="32" alt="Dub" />
             </Section>
             <Heading className="mx-0 my-7 p-0 text-lg font-medium text-black">
               Your 30-day Dub summary for {workspaceName}
@@ -81,7 +77,7 @@ export function ClicksSummary({
               created <strong>{createdLinks} new links</strong> during that
               time.
             </Text>
-            <Section className="rounded-lg border border-solid border-neutral-200 pt-6 pb-2">
+            <Section className="rounded-lg border border-solid border-neutral-200 pb-2 pt-6">
               <Row>
                 <Column align="center">
                   <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-200">
