@@ -49,7 +49,7 @@ export function PartnerInvite({
             <Text className="text-sm leading-6 text-neutral-600">
               {program.name} uses{" "}
               <Link
-                href="https://dub.partners"
+                href="https://dub.co/help/article/dub-partners"
                 target="_blank"
                 className="font-semibold text-neutral-800 underline underline-offset-2"
               >
