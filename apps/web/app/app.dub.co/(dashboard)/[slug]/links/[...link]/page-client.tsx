@@ -63,13 +63,18 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
 
   return (
     <div className="absolute inset-0 flex flex-col">
-      <LinkBuilderHeader foldersEnabled={!!workspace.flags?.linkFolders}>
-        <DraftControls
-          ref={draftControlsRef}
-          props={link}
-          workspaceId={workspace.id!}
-        />
-      </LinkBuilderHeader>
+      <div className="py-2 pl-4 pr-5">
+        <LinkBuilderHeader
+          className="p-0"
+          foldersEnabled={!!workspace.flags?.linkFolders}
+        >
+          <DraftControls
+            ref={draftControlsRef}
+            props={link}
+            workspaceId={workspace.id!}
+          />
+        </LinkBuilderHeader>
+      </div>
       <form
         className={cn(
           "grid grow grid-cols-1 lg:grid-cols-[minmax(0,1fr)_300px]",

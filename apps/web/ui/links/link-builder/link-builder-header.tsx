@@ -1,6 +1,7 @@
 import { FolderDropdown } from "@/ui/folders/folder-dropdown";
 import { LinkLogo } from "@dub/ui";
 import {
+  cn,
   getApexDomain,
   getUrlWithoutUTMParams,
   linkConstructor,
@@ -14,9 +15,11 @@ import { LinkFormData, useLinkBuilderContext } from "./link-builder-provider";
 export function LinkBuilderHeader({
   onClose,
   children,
+  className,
   foldersEnabled,
 }: PropsWithChildren<{
   onClose?: () => void;
+  className?: string;
   foldersEnabled?: boolean;
 }>) {
   const { control, setValue } = useFormContext<LinkFormData>();
@@ -40,7 +43,12 @@ export function LinkBuilderHeader({
   );
 
   return (
-    <div className="flex flex-col items-start gap-2 px-6 py-4 md:flex-row md:items-center md:justify-between">
+    <div
+      className={cn(
+        "flex flex-col items-start gap-2 px-6 py-4 md:flex-row md:items-center md:justify-between",
+        className,
+      )}
+    >
       {foldersEnabled && (
         <div className="flex items-center gap-2">
           <FolderDropdown
@@ -50,7 +58,7 @@ export function LinkBuilderHeader({
               setValue("folderId", folder.id, { shouldDirty: true });
             }}
             buttonClassName="max-w-60 md:max-w-[24rem]"
-            buttonTextClassName="text-lg md:text-lg font-medium"
+            buttonTextClassName="text-sm md:text-sm font-medium"
             {...(props?.folderId && {
               selectedFolderId: props.folderId,
             })}
@@ -66,7 +74,7 @@ export function LinkBuilderHeader({
             apexDomain={getApexDomain(debouncedUrl)}
             className="size-6 sm:size-6 [&>*]:size-3 sm:[&>*]:size-4"
           />
-          <h3 className="!mt-0 max-w-sm truncate text-lg font-medium">
+          <h3 className="!mt-0 max-w-sm truncate text-sm font-medium">
             {props ? `Edit ${shortLink}` : "New link"}
           </h3>
         </div>
