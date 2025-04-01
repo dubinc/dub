@@ -13,7 +13,7 @@ export function NotFoundHint() {
 }
 
 function NotFoundHintChild() {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const [isLoading, setIsLoading] = useState(false);
 
   return (
