@@ -26,9 +26,6 @@ export function RewardPartnersTable({
   const [selectedPartners, setSelectedPartners] =
     useState<Pick<EnrolledPartnerProps, "id" | "name" | "email" | "image">[]>();
 
-  // Get all partners for the table
-  const { data: allPartners } = usePartners({});
-
   // Get filtered partners for the combobox
   const { data: searchPartners } = usePartners({
     query: {
