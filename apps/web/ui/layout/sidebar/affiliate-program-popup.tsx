@@ -69,7 +69,7 @@ export function AffiliateProgramPopup({
             New Dub Referrals
           </h2>
           <p className="mt-1.5 text-xs text-neutral-500">
-            You can share your love for Dub and{" "}
+            Share your love for Dub and{" "}
             <strong className="font-medium">
               earn 30% for each referral for up to 12 months
             </strong>
