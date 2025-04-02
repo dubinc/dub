@@ -1,4 +1,9 @@
 import { ExpandedLinkProps } from "@/lib/types";
+import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
+import {
+  LinkDraft,
+  useLinkDrafts,
+} from "@/ui/modals/link-builder/use-link-drafts";
 import { AnimatedSizeContainer, Button, Popover, useMediaQuery } from "@dub/ui";
 import { CircleCheck, CircleInfo, LoadingCircle, Xmark } from "@dub/ui/icons";
 import { cn, nanoid, punycode, timeAgo, truncate } from "@dub/utils";
@@ -14,8 +19,6 @@ import {
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
-import { LinkFormData } from "./";
-import { LinkDraft, useLinkDrafts } from "./use-link-drafts";
 
 export type DraftControlsHandle = {
   onSubmitSuccessful: () => void;

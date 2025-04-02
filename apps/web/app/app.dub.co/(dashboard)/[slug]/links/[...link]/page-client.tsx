@@ -8,6 +8,11 @@ import { LinkAnalyticsBadge } from "@/ui/links/link-analytics-badge";
 import { LinkBuilderDestinationUrlInput } from "@/ui/links/link-builder/controls/link-builder-destination-url-input";
 import { LinkBuilderShortLinkInput } from "@/ui/links/link-builder/controls/link-builder-short-link-input";
 import { LinkCommentsInput } from "@/ui/links/link-builder/controls/link-comments-input";
+import { ConversionTrackingToggle } from "@/ui/links/link-builder/conversion-tracking-toggle";
+import {
+  DraftControls,
+  DraftControlsHandle,
+} from "@/ui/links/link-builder/draft-controls";
 import { LinkActionBar } from "@/ui/links/link-builder/link-action-bar";
 import { LinkBuilderHeader } from "@/ui/links/link-builder/link-builder-header";
 import {
@@ -15,17 +20,12 @@ import {
   LinkFormData,
 } from "@/ui/links/link-builder/link-builder-provider";
 import { LinkFeatureButtons } from "@/ui/links/link-builder/link-feature-buttons";
+import { LinkPreview } from "@/ui/links/link-builder/link-preview";
+import { OptionsList } from "@/ui/links/link-builder/options-list";
+import { QRCodePreview } from "@/ui/links/link-builder/qr-code-preview";
+import { TagSelect } from "@/ui/links/link-builder/tag-select";
 import { useLinkBuilderSubmit } from "@/ui/links/link-builder/use-link-builder-submit";
-import { ConversionTrackingToggle } from "@/ui/modals/link-builder/conversion-tracking-toggle";
-import {
-  DraftControls,
-  DraftControlsHandle,
-} from "@/ui/modals/link-builder/draft-controls";
-import { LinkPreview } from "@/ui/modals/link-builder/link-preview";
-import { OptionsList } from "@/ui/modals/link-builder/options-list";
-import { QRCodePreview } from "@/ui/modals/link-builder/qr-code-preview";
-import { TagSelect } from "@/ui/modals/link-builder/tag-select";
-import { useMetatags } from "@/ui/modals/link-builder/use-metatags";
+import { useMetatags } from "@/ui/links/link-builder/use-metatags";
 import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { notFound, useParams, useRouter } from "next/navigation";

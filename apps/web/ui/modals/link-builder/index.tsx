@@ -5,14 +5,25 @@ import { ExpandedLinkProps } from "@/lib/types";
 import { LinkBuilderDestinationUrlInput } from "@/ui/links/link-builder/controls/link-builder-destination-url-input";
 import { LinkBuilderShortLinkInput } from "@/ui/links/link-builder/controls/link-builder-short-link-input";
 import { LinkCommentsInput } from "@/ui/links/link-builder/controls/link-comments-input";
+import { ConversionTrackingToggle } from "@/ui/links/link-builder/conversion-tracking-toggle";
+import {
+  DraftControls,
+  DraftControlsHandle,
+} from "@/ui/links/link-builder/draft-controls";
 import { LinkBuilderHeader } from "@/ui/links/link-builder/link-builder-header";
 import {
   LinkBuilderProps,
   LinkBuilderProvider,
+  LinkFormData,
   useLinkBuilderContext,
 } from "@/ui/links/link-builder/link-builder-provider";
 import { LinkFeatureButtons } from "@/ui/links/link-builder/link-feature-buttons";
+import { LinkPreview } from "@/ui/links/link-builder/link-preview";
+import { OptionsList } from "@/ui/links/link-builder/options-list";
+import { QRCodePreview } from "@/ui/links/link-builder/qr-code-preview";
+import { TagSelect } from "@/ui/links/link-builder/tag-select";
 import { useLinkBuilderSubmit } from "@/ui/links/link-builder/use-link-builder-submit";
+import { useMetatags } from "@/ui/links/link-builder/use-metatags";
 import { useAvailableDomains } from "@/ui/links/use-available-domains";
 import {
   ArrowTurnLeft,
@@ -35,15 +46,6 @@ import {
   useState,
 } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
-import { ConversionTrackingToggle } from "./conversion-tracking-toggle";
-import { DraftControls, DraftControlsHandle } from "./draft-controls";
-import { LinkPreview } from "./link-preview";
-import { OptionsList } from "./options-list";
-import { QRCodePreview } from "./qr-code-preview";
-import { TagSelect } from "./tag-select";
-import { useMetatags } from "./use-metatags";
-
-export type LinkFormData = ExpandedLinkProps;
 
 type LinkBuilderModalProps = {
   showLinkBuilder: boolean;

@@ -1,3 +1,9 @@
+import { MOBILE_MORE_ITEMS, TOGGLES } from "@/ui/links/link-builder/constants";
+import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
+import { useAdvancedModal } from "@/ui/modals/link-builder/advanced-modal";
+import { useExpirationModal } from "@/ui/modals/link-builder/expiration-modal";
+import { usePasswordModal } from "@/ui/modals/link-builder/password-modal";
+import { useTargetingModal } from "@/ui/modals/link-builder/targeting-modal";
 import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
 import {
   Button,
@@ -11,12 +17,6 @@ import { cn } from "@dub/utils";
 import { Settings } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
-import { LinkFormData } from ".";
-import { useAdvancedModal } from "./advanced-modal";
-import { MOBILE_MORE_ITEMS, TOGGLES } from "./constants";
-import { useExpirationModal } from "./expiration-modal";
-import { usePasswordModal } from "./password-modal";
-import { useTargetingModal } from "./targeting-modal";
 
 export function MoreDropdown() {
   const { isMobile } = useMediaQuery();

@@ -1,3 +1,5 @@
+import { MOBILE_MORE_ITEMS, TOGGLES } from "@/ui/links/link-builder/constants";
+import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
 import { AlertCircleFill, CheckCircleFill, X } from "@/ui/shared/icons";
 import { SimpleTooltipContent, Tooltip, useMediaQuery } from "@dub/ui";
 import { LoadingSpinner } from "@dub/ui/icons";
@@ -7,8 +9,6 @@ import { ReactNode, useMemo } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import useSWR from "swr";
 import { useDebounce } from "use-debounce";
-import { LinkFormData } from ".";
-import { MOBILE_MORE_ITEMS, TOGGLES } from "./constants";
 
 export function OptionsList() {
   const { isMobile } = useMediaQuery();

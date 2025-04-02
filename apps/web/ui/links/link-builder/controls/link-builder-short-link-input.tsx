@@ -1,4 +1,4 @@
-import { LinkFormData } from "@/ui/modals/link-builder";
+import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
 import { forwardRef, memo } from "react";
 import { useFormContext, useFormState, useWatch } from "react-hook-form";
 import { ShortLinkInput } from "../../short-link-input";

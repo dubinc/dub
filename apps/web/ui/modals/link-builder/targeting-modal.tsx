@@ -1,3 +1,4 @@
+import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
 import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
 import {
   Button,
@@ -27,7 +28,6 @@ import {
   useState,
 } from "react";
 import { useForm, useFormContext } from "react-hook-form";
-import { LinkFormData } from ".";
 
 function TargetingModal({
   showTargetingModal,

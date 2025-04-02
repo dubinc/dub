@@ -1,3 +1,4 @@
+import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
 import {
   Button,
   DiamondTurnRight,
@@ -23,7 +24,6 @@ import {
   useState,
 } from "react";
 import { FormProvider, useForm, useFormContext } from "react-hook-form";
-import { LinkFormData } from ".";
 import { UTMTemplatesCombo } from "./utm-templates-combo";
 
 type UTMModalProps = {

@@ -1,5 +1,9 @@
 import useWorkspace from "@/lib/swr/use-workspace";
-import { useLinkBuilderContext } from "@/ui/links/link-builder/link-builder-provider";
+import {
+  LinkFormData,
+  useLinkBuilderContext,
+} from "@/ui/links/link-builder/link-builder-provider";
+import { useOGModal } from "@/ui/modals/link-builder/og-modal";
 import {
   Button,
   FileUpload,
@@ -37,8 +41,6 @@ import { useFormContext, useWatch } from "react-hook-form";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { useDebounce } from "use-debounce";
-import { LinkFormData } from ".";
-import { useOGModal } from "./og-modal";
 
 const tabs = ["default", "x", "linkedin", "facebook"] as const;
 type Tab = (typeof tabs)[number];

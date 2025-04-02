@@ -3,6 +3,7 @@ import useTagsCount from "@/lib/swr/use-tags-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TagProps } from "@/lib/types";
 import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
+import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
 import TagBadge from "@/ui/links/tag-badge";
 import {
   AnimatedSizeContainer,
@@ -22,7 +23,6 @@ import { useFormContext, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
-import { LinkFormData } from ".";
 import { MultiTagsIcon } from "./multi-tags-icon";
 
 function getTagOption(tag: TagProps) {

@@ -1,10 +1,10 @@
 import useWebhooks from "@/lib/swr/use-webhooks";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
 import { Button, Combobox, useKeyboardShortcut, Webhook } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
-import { LinkFormData } from ".";
 
 export function WebhookSelect() {
   const [isOpen, setIsOpen] = useState(false);

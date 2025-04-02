@@ -1,9 +1,9 @@
+import { MoreDropdown } from "@/ui/links/link-builder/more-dropdown";
+import { WebhookSelect } from "@/ui/links/link-builder/webhook-select";
 import { useExpirationModal } from "@/ui/modals/link-builder/expiration-modal";
-import { MoreDropdown } from "@/ui/modals/link-builder/more-dropdown";
 import { usePasswordModal } from "@/ui/modals/link-builder/password-modal";
 import { useTargetingModal } from "@/ui/modals/link-builder/targeting-modal";
 import { useUTMModal } from "@/ui/modals/link-builder/utm-modal";
-import { WebhookSelect } from "@/ui/modals/link-builder/webhook-select";
 import { cn } from "@dub/utils";
 
 export function LinkFeatureButtons({

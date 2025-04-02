@@ -1,9 +1,11 @@
-import { useLinkBuilderContext } from "@/ui/links/link-builder/link-builder-provider";
+import {
+  LinkFormData,
+  useLinkBuilderContext,
+} from "@/ui/links/link-builder/link-builder-provider";
 import { getUrlWithoutUTMParams, truncate } from "@dub/utils";
 import { useEffect } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { useDebounce } from "use-debounce";
-import { LinkFormData } from ".";
 
 export function useMetatags({ enabled = true }: { enabled?: boolean } = {}) {
   const { control, setValue } = useFormContext<LinkFormData>();

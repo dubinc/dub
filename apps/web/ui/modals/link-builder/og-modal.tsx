@@ -1,5 +1,8 @@
 import useWorkspace from "@/lib/swr/use-workspace";
-import { useLinkBuilderContext } from "@/ui/links/link-builder/link-builder-provider";
+import {
+  LinkFormData,
+  useLinkBuilderContext,
+} from "@/ui/links/link-builder/link-builder-provider";
 import { Link } from "@/ui/shared/icons";
 import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
@@ -27,7 +30,6 @@ import {
 import { useForm, useFormContext } from "react-hook-form";
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
-import { LinkFormData } from ".";
 import { usePromptModal } from "../prompt-modal";
 import UnsplashSearch from "./unsplash-search";
 

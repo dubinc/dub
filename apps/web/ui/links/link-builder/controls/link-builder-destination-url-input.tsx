@@ -1,5 +1,5 @@
-import { LinkFormData } from "@/ui/modals/link-builder";
-import { UTMTemplatesButton } from "@/ui/modals/link-builder/utm-templates-button";
+import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
+import { UTMTemplatesButton } from "@/ui/links/link-builder/utm-templates-button";
 import { constructURLFromUTMParams, isValidUrl } from "@dub/utils";
 import { forwardRef, memo } from "react";
 import {

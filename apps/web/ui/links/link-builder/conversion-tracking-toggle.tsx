@@ -1,4 +1,5 @@
 import useWorkspace from "@/lib/swr/use-workspace";
+import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
 import {
   CrownSmall,
   InfoTooltip,
@@ -9,7 +10,6 @@ import {
 } from "@dub/ui";
 import { memo } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
-import { LinkFormData } from ".";
 
 // Show new badge for 30 days
 const isNew =

@@ -1,5 +1,6 @@
 import useDomain from "@/lib/swr/use-domain";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
 import { QRCode } from "@/ui/shared/qr-code";
 import {
   Button,
@@ -17,8 +18,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useMemo, useRef } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { useDebounce } from "use-debounce";
-import { LinkFormData } from ".";
-import { QRCodeDesign, useLinkQRModal } from "../link-qr-modal";
+import { QRCodeDesign, useLinkQRModal } from "../../modals/link-qr-modal";
 
 export function QRCodePreview() {
   const { isMobile } = useMediaQuery();
