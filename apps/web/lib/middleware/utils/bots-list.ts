@@ -8,7 +8,6 @@ export const UA_BOTS = [
   "meta-externalagent", // Meta external agent
   "WhatsApp", // WhatsApp crawler
   "google", // Google crawler
-  "linkedin", // LinkedIn crawler
   "baidu", // Baidu crawler
   "bing", // Bing crawler
   "msn", // MSN crawler
