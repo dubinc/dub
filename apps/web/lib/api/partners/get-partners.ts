@@ -105,7 +105,6 @@ export async function getPartners(filters: PartnerFilters) {
       Partner p ON p.id = pe.partnerId 
     LEFT JOIN Link l ON l.programId = pe.programId 
       AND l.partnerId = pe.partnerId
-      AND l.programId = ${program.id}
     LEFT JOIN (
       SELECT 
         partnerId,
@@ -116,6 +115,7 @@ export async function getPartners(filters: PartnerFilters) {
       FROM Link
       WHERE programId = ${program.id}
         AND partnerId IS NOT NULL
+        AND clicks > 0
       GROUP BY partnerId
     ) metrics ON metrics.partnerId = pe.partnerId
     ${
