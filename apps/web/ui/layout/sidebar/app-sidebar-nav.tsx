@@ -50,8 +50,7 @@ const NAV_AREAS: SidebarNavAreas<{
           {
             name: "Links",
             icon: Hyperlink,
-            href: `/${slug}${pathname === `/${slug}` ? "" : queryString}`,
-            exact: true,
+            href: `/${slug}/links${pathname === `/${slug}/links` ? "" : queryString}`,
           },
           {
             name: "Analytics",
