@@ -1,69 +1,78 @@
 "use client";
 
 import usePartners from "@/lib/swr/use-partners";
-import usePartnersCount from "@/lib/swr/use-partners-count";
-import useRewardPartners from "@/lib/swr/use-reward-partners";
 import { EnrolledPartnerProps } from "@/lib/types";
-import { Table, usePagination, useTable } from "@dub/ui";
-import { cn, DICEBEAR_AVATAR_URL } from "@dub/utils";
-import { useEffect, useState } from "react";
+import { Combobox, Table, useTable } from "@dub/ui";
+import { cn, DICEBEAR_AVATAR_URL, pluralize } from "@dub/utils";
+import { useEffect, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
-import { PartnersCombobox } from "./partners-combobox";
 
 interface RewardPartnersTableProps {
   programId: string;
   rewardId?: string;
-  setValue: (value: string[]) => void;
+  partnerIds: string[];
+  setPartners: (value: string[]) => void;
 }
 
 export function RewardPartnersTable({
   programId,
   rewardId,
-  setValue,
+  partnerIds,
+  setPartners,
 }: RewardPartnersTableProps) {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
-  const { pagination, setPagination } = usePagination(300);
-  const [selectedRows, setSelectedRows] = useState<Record<string, boolean>>({});
 
-  const [selectedPartners, setSelectedPartners] = useState<
-    Pick<EnrolledPartnerProps, "id" | "name" | "image" | "email">[]
-  >([]);
-
-  const { data: partners, loading } = usePartners({
+  const { data: partners } = usePartners({
     query: {
       search: debouncedSearch,
-      page: pagination.pageIndex,
-      pageSize: pagination.pageSize,
     },
   });
 
-  const { partnersCount } = usePartnersCount<number>({
-    search: debouncedSearch,
-  });
+  const options = useMemo(
+    () =>
+      partners?.map((partner) => ({
+        icon: (
+          <img
+            alt={partner.name}
+            src={partner.image || ""}
+            className="mr-1.5 size-4"
+          />
+        ),
+        value: partner.id,
+        label: partner.name,
+      })),
+    [partners],
+  );
 
-  const { data: rewardPartners } = useRewardPartners({
-    query: {
-      rewardId,
-    },
-    enabled: Boolean(programId && rewardId),
-  });
+  const selectedPartnersOptions = useMemo(
+    () =>
+      partnerIds
+        .map((id) => options?.find(({ value }) => value === id)!)
+        .filter(Boolean),
+    [partnerIds, options],
+  );
 
-  useEffect(() => {
-    setPagination((prev) => ({ ...prev, pageIndex: 1 }));
-  }, [debouncedSearch, setPagination]);
+  const selectedPartners = useMemo(
+    () =>
+      partnerIds
+        .map((id) => partners?.find((partner) => partner.id === id))
+        .filter((p): p is NonNullable<typeof p> => p != null)
+        .map((partner) => ({
+          id: partner.id,
+          name: partner.name,
+          email: partner.email,
+          image: partner.image,
+        })),
+    [partnerIds, partners],
+  );
 
-  useEffect(() => {
-    setSelectedRows(
-      rewardPartners?.reduce(
-        (acc, partnerId) => {
-          acc[partnerId] = true;
-          return acc;
-        },
-        {} as Record<string, boolean>,
-      ) || {},
-    );
-  }, [rewardPartners, partners]);
+  const handlePartnerSelection = (
+    selectedOptions: typeof selectedPartnersOptions,
+  ) => {
+    const newSelectedIds = selectedOptions.map(({ value }) => value);
+    setPartners(newSelectedIds);
+  };
 
   const table = useTable({
     data: selectedPartners,
@@ -101,16 +110,11 @@ export function RewardPartnersTable({
         maxSize: 210,
       },
     ],
-    loading,
     thClassName: () => cn("border-l-0"),
     tdClassName: () => cn("border-l-0"),
     className: "[&_tr:last-child>td]:border-b-transparent",
     scrollWrapperClassName: "min-h-[40px]",
     resourceName: (p) => `eligible partner${p ? "s" : ""}`,
-    pagination,
-    onPaginationChange: setPagination,
-    rowCount: partnersCount,
-    selectedRows,
     getRowId: (row: EnrolledPartnerProps) => row.id,
   });
 
@@ -120,23 +124,32 @@ export function RewardPartnersTable({
         Eligible partners
       </label>
 
-      {/* <div className="relative">
-        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-          <Search className="size-4 text-neutral-400" />
-        </div>
-        <input
-          type="text"
-          placeholder="Search partners"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="block w-full rounded-lg border-neutral-300 pl-10 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-        />
-      </div> */}
-
-      <PartnersCombobox
-        onChange={setSelectedPartners}
-        partners={partners || []}
-      />
+      <Combobox
+        options={options}
+        selected={selectedPartnersOptions}
+        setSelected={handlePartnerSelection}
+        caret
+        placeholder="Select partners"
+        searchPlaceholder="Search partners by name"
+        matchTriggerWidth
+        multiple
+        shouldFilter={false}
+        onSearchChange={setSearch}
+        buttonProps={{
+          className: cn(
+            "w-full justify-start border-neutral-300 px-3",
+            "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
+            "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
+            !selectedPartnersOptions.length && "text-neutral-400",
+          ),
+        }}
+      >
+        {selectedPartnersOptions.length > 0
+          ? selectedPartnersOptions.length === 1
+            ? selectedPartnersOptions[0].label
+            : `${selectedPartnersOptions.length} ${pluralize("partner", selectedPartnersOptions.length)}`
+          : "Partners"}
+      </Combobox>
 
       <Table {...table} />
     </div>

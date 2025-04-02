@@ -105,6 +105,13 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
     (reward) => reward.event === "sale" && reward.partnersCount === 0,
   );
 
+  // const { data: rewardPartners } = useRewardPartners({
+  //   query: {
+  //     rewardId,
+  //   },
+  //   enabled: Boolean(programId && rewardId),
+  // });
+
   useEffect(() => {
     if (reward) {
       setSelectedPartnerType(reward.partnersCount === 0 ? "all" : "specific");
@@ -533,7 +540,8 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
               <RewardPartnersTable
                 programId={program.id}
                 rewardId={reward?.id}
-                setValue={(value: string[]) => {
+                partnerIds={partnerIds || []}
+                setPartners={(value: string[]) => {
                   setValue("partnerIds", value);
                 }}
               />
