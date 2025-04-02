@@ -23,8 +23,9 @@ export function DiscountPartnersTable({
 }: DiscountPartnersTableProps) {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
-  const [selectedPartners, setSelectedPartners] =
-    useState<Pick<EnrolledPartnerProps, "id" | "name" | "email" | "image">[]>();
+  const [selectedPartners, setSelectedPartners] = useState<
+    Pick<EnrolledPartnerProps, "id" | "name" | "email" | "image">[]
+  >([]);
 
   // Get filtered partners for the combobox
   const { data: searchPartners } = usePartners({
@@ -73,20 +74,19 @@ export function DiscountPartnersTable({
 
   // Update selectedPartners when discountPartners changes
   useEffect(() => {
-    setSelectedPartners(discountPartners);
+    if (discountPartners && discountPartners.length > 0) {
+      setSelectedPartners(discountPartners);
+    }
   }, [discountPartners]);
 
   const handlePartnerSelection = (
     selectedOptions: typeof selectedPartnersOptions,
   ) => {
-    // Update partnerIds using Set for efficient unique values
-    const newPartnerIds = new Set([
-      ...partnerIds,
-      ...selectedOptions.map(({ value }) => value),
-    ]);
-    setPartnerIds(Array.from(newPartnerIds));
+    // Get the new set of partner IDs from the selected options
+    const newPartnerIds = selectedOptions.map(({ value }) => value);
+    setPartnerIds(newPartnerIds);
 
-    // Update selectedPartners efficiently using the partnersMap
+    // Update selectedPartners to match exactly what's selected in the Combobox
     const newSelectedPartners = selectedOptions
       .map(({ value }) => {
         // First check existing selected partners
@@ -104,7 +104,7 @@ export function DiscountPartnersTable({
   };
 
   const table = useTable({
-    data: selectedPartners || [],
+    data: selectedPartners,
     columns: [
       {
         header: "Partner",

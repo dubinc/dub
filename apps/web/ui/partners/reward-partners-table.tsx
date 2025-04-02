@@ -23,8 +23,9 @@ export function RewardPartnersTable({
 }: RewardPartnersTableProps) {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
-  const [selectedPartners, setSelectedPartners] =
-    useState<Pick<EnrolledPartnerProps, "id" | "name" | "email" | "image">[]>();
+  const [selectedPartners, setSelectedPartners] = useState<
+    Pick<EnrolledPartnerProps, "id" | "name" | "email" | "image">[]
+  >([]);
 
   // Get filtered partners for the combobox
   const { data: searchPartners } = usePartners({
@@ -71,22 +72,20 @@ export function RewardPartnersTable({
     [partnerIds, partnersOptions],
   );
 
-  // Update selectedPartners when rewardPartners changes
   useEffect(() => {
-    setSelectedPartners(rewardPartners);
+    if (rewardPartners && rewardPartners.length > 0) {
+      setSelectedPartners(rewardPartners);
+    }
   }, [rewardPartners]);
 
   const handlePartnerSelection = (
     selectedOptions: typeof selectedPartnersOptions,
   ) => {
-    // Update partnerIds using Set for efficient unique values
-    const newPartnerIds = new Set([
-      ...partnerIds,
-      ...selectedOptions.map(({ value }) => value),
-    ]);
-    setPartnerIds(Array.from(newPartnerIds));
+    // Get the new set of partner IDs from the selected options
+    const newPartnerIds = selectedOptions.map(({ value }) => value);
+    setPartnerIds(newPartnerIds);
 
-    // Update selectedPartners efficiently using the partnersMap
+    // Update selectedPartners to match exactly what's selected in the Combobox
     const newSelectedPartners = selectedOptions
       .map(({ value }) => {
         // First check existing selected partners
@@ -104,7 +103,7 @@ export function RewardPartnersTable({
   };
 
   const table = useTable({
-    data: selectedPartners || [],
+    data: selectedPartners,
     columns: [
       {
         header: "Partner",
