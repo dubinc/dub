@@ -33,6 +33,22 @@ export function RewardPartnersTable({
     },
   });
 
+  // Create a map for faster partner lookups
+  const partnersMap = useMemo(() => {
+    if (!searchPartners) return new Map();
+    return new Map(
+      searchPartners.map((partner) => [
+        partner.id,
+        {
+          id: partner.id,
+          name: partner.name,
+          email: partner.email,
+          image: partner.image,
+        },
+      ]),
+    );
+  }, [searchPartners]);
+
   const partnersOptions = useMemo(
     () =>
       searchPartners?.map((partner) => ({
@@ -55,6 +71,7 @@ export function RewardPartnersTable({
     [partnerIds, partnersOptions],
   );
 
+  // Update selectedPartners when rewardPartners changes
   useEffect(() => {
     setSelectedPartners(rewardPartners);
   }, [rewardPartners]);
@@ -62,15 +79,28 @@ export function RewardPartnersTable({
   const handlePartnerSelection = (
     selectedOptions: typeof selectedPartnersOptions,
   ) => {
-    // Get all currently selected IDs
-    const currentIds = new Set(partnerIds);
+    // Update partnerIds using Set for efficient unique values
+    const newPartnerIds = new Set([
+      ...partnerIds,
+      ...selectedOptions.map(({ value }) => value),
+    ]);
+    setPartnerIds(Array.from(newPartnerIds));
 
-    // Add new selections
-    selectedOptions.forEach(({ value }) => {
-      currentIds.add(value);
-    });
+    // Update selectedPartners efficiently using the partnersMap
+    const newSelectedPartners = selectedOptions
+      .map(({ value }) => {
+        // First check existing selected partners
+        const existingPartner = selectedPartners?.find((p) => p.id === value);
+        if (existingPartner) return existingPartner;
 
-    setPartnerIds(Array.from(currentIds));
+        // Then check the partnersMap for new selections
+        return partnersMap.get(value) || null;
+      })
+      .filter(
+        (partner): partner is NonNullable<typeof partner> => partner !== null,
+      );
+
+    setSelectedPartners(newSelectedPartners);
   };
 
   const table = useTable({
