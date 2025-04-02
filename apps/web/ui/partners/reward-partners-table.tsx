@@ -9,22 +9,23 @@ import { useEffect, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
 interface RewardPartnersTableProps {
+  rewardPartners: EnrolledPartnerProps[];
   partnerIds: string[];
-  partners: EnrolledPartnerProps[];
-  setPartners: (value: string[]) => void;
+  setPartnerIds: (value: string[]) => void;
   loading: boolean;
 }
 
 export function RewardPartnersTable({
   partnerIds,
-  partners,
-  setPartners,
+  setPartnerIds,
+  rewardPartners,
   loading,
 }: RewardPartnersTableProps) {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
-  const [selectedPartners, setSelectedPartners] =
-    useState<Pick<EnrolledPartnerProps, "id" | "name" | "email" | "image">[]>();
+  const [selectedPartners, setSelectedPartners] = useState<
+    Pick<EnrolledPartnerProps, "id" | "name" | "email" | "image">[]
+  >([]);
 
   // Get filtered partners for the combobox
   const { data: searchPartners } = usePartners({
@@ -33,7 +34,23 @@ export function RewardPartnersTable({
     },
   });
 
-  const options = useMemo(
+  // Create a map for faster partner lookups
+  const partnersMap = useMemo(() => {
+    if (!searchPartners) return new Map();
+    return new Map(
+      searchPartners.map((partner) => [
+        partner.id,
+        {
+          id: partner.id,
+          name: partner.name,
+          email: partner.email,
+          image: partner.image,
+        },
+      ]),
+    );
+  }, [searchPartners]);
+
+  const partnersOptions = useMemo(
     () =>
       searchPartners?.map((partner) => ({
         icon: (
@@ -45,38 +62,69 @@ export function RewardPartnersTable({
         ),
         value: partner.id,
         label: partner.name,
-      })),
+      })) || [],
     [searchPartners],
   );
 
   const selectedPartnersOptions = useMemo(
     () =>
-      partnerIds
-        .map((id) => options?.find(({ value }) => value === id)!)
-        .filter(Boolean),
-    [partnerIds, options],
+      partnersOptions.filter((partner) => partnerIds.includes(partner.value)),
+    [partnerIds, partnersOptions],
   );
 
   useEffect(() => {
-    setSelectedPartners(partners);
-  }, [partners]);
+    if (rewardPartners && rewardPartners.length > 0) {
+      setSelectedPartners(rewardPartners);
+    }
+  }, [rewardPartners]);
 
   const handlePartnerSelection = (
     selectedOptions: typeof selectedPartnersOptions,
   ) => {
-    // Get all currently selected IDs
-    const currentIds = new Set(partnerIds);
+    // Get all currently selected partner IDs that are not in the current search results
+    const currentSelectedIds = new Set(partnerIds);
 
-    // Add new selections
-    selectedOptions.forEach(({ value }) => {
-      currentIds.add(value);
+    // Remove deselected partners from current search results
+    partnersOptions.forEach((option) => {
+      if (
+        !selectedOptions.some((selected) => selected.value === option.value)
+      ) {
+        currentSelectedIds.delete(option.value);
+      }
     });
 
-    setPartners(Array.from(currentIds));
+    // Add newly selected partners
+    selectedOptions.forEach((option) => {
+      currentSelectedIds.add(option.value);
+    });
+
+    // Convert to array and update partnerIds
+    const newPartnerIds = Array.from(currentSelectedIds);
+    setPartnerIds(newPartnerIds);
+
+    // Update selectedPartners to maintain all selected partners
+    const newSelectedPartners = newPartnerIds
+      .map((id) => {
+        // First check existing selected partners
+        const existingPartner = selectedPartners?.find((p) => p.id === id);
+        if (existingPartner) return existingPartner;
+
+        // Then check rewardPartners
+        const rewardPartner = rewardPartners?.find((p) => p.id === id);
+        if (rewardPartner) return rewardPartner;
+
+        // Finally check the partnersMap for new selections
+        return partnersMap.get(id) || null;
+      })
+      .filter(
+        (partner): partner is NonNullable<typeof partner> => partner !== null,
+      );
+
+    setSelectedPartners(newSelectedPartners);
   };
 
   const table = useTable({
-    data: selectedPartners || [],
+    data: selectedPartners,
     columns: [
       {
         header: "Partner",
@@ -119,7 +167,9 @@ export function RewardPartnersTable({
               icon={<X className="size-4" />}
               className="size-4 rounded-md border-0 bg-neutral-50 p-0 hover:bg-neutral-100"
               onClick={() => {
-                setPartners(partnerIds.filter((id) => id !== row.original.id));
+                setPartnerIds(
+                  partnerIds.filter((id) => id !== row.original.id),
+                );
                 setSelectedPartners(
                   selectedPartners?.filter(
                     (partner) => partner.id !== row.original.id,
@@ -151,7 +201,7 @@ export function RewardPartnersTable({
       </label>
 
       <Combobox
-        options={options}
+        options={partnersOptions}
         selected={selectedPartnersOptions}
         setSelected={handlePartnerSelection}
         caret

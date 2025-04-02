@@ -136,7 +136,10 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
 
   useEffect(() => {
     if (rewardPartners && rewardPartners.length > 0) {
-      setValue("partnerIds", rewardPartners.map(partner => partner.id));
+      setValue(
+        "partnerIds",
+        rewardPartners.map((partner) => partner.id),
+      );
     }
   }, [rewardPartners, setValue]);
 
@@ -544,16 +547,14 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
               </>
             )}
 
-            {displayPartners && program?.id && (
-              <RewardPartnersTable
-                partnerIds={partnerIds || []}
-                partners={rewardPartners || []}
-                setPartners={(value: string[]) => {
-                  setValue("partnerIds", value);
-                }}
-                loading={isLoadingRewardPartners}
-              />
-            )}
+            <RewardPartnersTable
+              partnerIds={partnerIds || []}
+              setPartnerIds={(value: string[]) => {
+                setValue("partnerIds", value);
+              }}
+              rewardPartners={rewardPartners || []}
+              loading={isLoadingRewardPartners}
+            />
           </div>
         </div>
 

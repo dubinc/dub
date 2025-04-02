@@ -421,10 +421,10 @@ function DiscountSheetContent({
             {!isDefault && program?.id && (
               <DiscountPartnersTable
                 partnerIds={partnerIds || []}
-                partners={discountPartners || []}
-                setPartners={(value: string[]) => {
+                setPartnerIds={(value: string[]) => {
                   setValue("partnerIds", value);
                 }}
+                discountPartners={discountPartners || []}
                 loading={isLoadingDiscountPartners}
               />
             )}
