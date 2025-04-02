@@ -2,10 +2,9 @@ import useFolder from "@/lib/swr/use-folder";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CardList, ExpandingArrow, useMediaQuery } from "@dub/ui";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useContext } from "react";
 import { FolderIcon } from "../folders/folder-icon";
-import { useLinkBuilder } from "../modals/link-builder";
 import { LinkDetailsColumn } from "./link-details-column";
 import { LinkTitleColumn } from "./link-title-column";
 import { ResponseLink } from "./links-container";
@@ -14,9 +13,7 @@ export function LinkCard({ link }: { link: ResponseLink }) {
   const { variant } = useContext(CardList.Context);
   const { isMobile } = useMediaQuery();
 
-  const { setShowLinkBuilder, LinkBuilder } = useLinkBuilder({
-    props: link,
-  });
+  const router = useRouter();
   const searchParams = useSearchParams();
   const { slug, defaultFolderId } = useWorkspace();
 
@@ -25,10 +22,13 @@ export function LinkCard({ link }: { link: ResponseLink }) {
 
   return (
     <>
-      <LinkBuilder />
       <CardList.Card
         key={link.id}
-        onClick={isMobile ? undefined : () => setShowLinkBuilder(true)}
+        onClick={
+          isMobile
+            ? undefined
+            : () => router.push(`/${slug}/links/${link.domain}/${link.key}`)
+        }
         innerClassName="flex items-center gap-5 sm:gap-8 md:gap-12 text-sm"
         {...(variant === "loose" &&
           link.folderId &&

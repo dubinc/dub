@@ -23,8 +23,8 @@ import {
 } from "@dub/ui/icons";
 import { cn, isDubDomain, nanoid, punycode } from "@dub/utils";
 import { CopyPlus, Delete, FolderInput } from "lucide-react";
-import { useParams, useSearchParams } from "next/navigation";
-import { useContext } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useContext } from "react";
 import { toast } from "sonner";
 import { useLinkBuilder } from "../modals/link-builder";
 import { useLinkQRModal } from "../modals/link-qr-modal";
@@ -35,6 +35,7 @@ import { LinksListContext, ResponseLink } from "./links-container";
 
 export function LinkControls({ link }: { link: ResponseLink }) {
   const { flags } = useWorkspace();
+  const router = useRouter();
   const { slug } = useParams() as { slug?: string };
   const { data: foldersCount } = useFoldersCount();
   const { hovered } = useContext(CardList.Card.Context);
@@ -54,6 +55,10 @@ export function LinkControls({ link }: { link: ResponseLink }) {
     });
   };
 
+  const openLinkBuilder = useCallback(() => {
+    router.push(`/${slug}/links/${link.domain}/${link.key}`);
+  }, [router, slug, link.domain, link.key]);
+
   const { setShowArchiveLinkModal, ArchiveLinkModal } = useArchiveLinkModal({
     props: link,
   });
@@ -64,9 +69,6 @@ export function LinkControls({ link }: { link: ResponseLink }) {
     props: link,
   });
   const { setShowLinkQRModal, LinkQRModal } = useLinkQRModal({
-    props: link,
-  });
-  const { setShowLinkBuilder, LinkBuilder } = useLinkBuilder({
     props: link,
   });
   const { setShowMoveLinkToFolderModal, MoveLinkToFolderModal } =
@@ -127,7 +129,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
       setOpenPopover(false);
       switch (e.key) {
         case "e":
-          canManageLink && setShowLinkBuilder(true);
+          canManageLink && openLinkBuilder();
           break;
         case "d":
           canManageLink && setShowDuplicateLinkModal(true);
@@ -169,7 +171,6 @@ export function LinkControls({ link }: { link: ResponseLink }) {
   return (
     <div className="flex justify-end">
       <LinkQRModal />
-      <LinkBuilder />
       <DuplicateLinkModal />
       <ArchiveLinkModal />
       <TransferLinkModal />
@@ -184,7 +185,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
                 variant="outline"
                 onClick={() => {
                   setOpenPopover(false);
-                  setShowLinkBuilder(true);
+                  openLinkBuilder();
                 }}
                 icon={<PenWriting className="size-4" />}
                 shortcut="E"
