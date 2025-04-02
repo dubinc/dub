@@ -11,6 +11,7 @@ import {
   LinkBuilderProvider,
   useLinkBuilderContext,
 } from "@/ui/links/link-builder/link-builder-provider";
+import { LinkFeatureButtons } from "@/ui/links/link-builder/link-feature-buttons";
 import { useLinkBuilderSubmit } from "@/ui/links/link-builder/use-link-builder-submit";
 import { useAvailableDomains } from "@/ui/links/use-available-domains";
 import {
@@ -38,7 +39,6 @@ import { ConversionTrackingToggle } from "./conversion-tracking-toggle";
 import { DraftControls, DraftControlsHandle } from "./draft-controls";
 import { useExpirationModal } from "./expiration-modal";
 import { LinkPreview } from "./link-preview";
-import { MoreDropdown } from "./more-dropdown";
 import { OptionsList } from "./options-list";
 import { usePasswordModal } from "./password-modal";
 import { QRCodePreview } from "./qr-code-preview";
@@ -46,7 +46,6 @@ import { TagSelect } from "./tag-select";
 import { useTargetingModal } from "./targeting-modal";
 import { useMetatags } from "./use-metatags";
 import { useUTMModal } from "./utm-modal";
-import { WebhookSelect } from "./webhook-select";
 
 export type LinkFormData = ExpandedLinkProps;
 
@@ -156,10 +155,6 @@ function LinkBuilderInner({
 
   return (
     <>
-      <PasswordModal />
-      <UTMModal />
-      <TargetingModal />
-      <ExpirationModal />
       <Modal
         showModal={showLinkBuilder}
         setShowModal={setShowLinkBuilder}
@@ -227,16 +222,7 @@ function LinkBuilderInner({
             </div>
           </div>
           <div className="flex items-center justify-between gap-2 border-t border-neutral-100 bg-neutral-50 p-4">
-            <div className="flex min-w-0 items-center gap-2">
-              <UTMButton />
-              <div className="flex items-center gap-2 max-sm:hidden">
-                <ExpirationButton />
-                <TargetingButton />
-                <PasswordButton />
-              </div>
-              <WebhookSelect />
-              <MoreDropdown />
-            </div>
+            <LinkFeatureButtons />
             {homepageDemo ? (
               <Button
                 disabledTooltip="This is a demo link. You can't edit it."

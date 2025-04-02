@@ -58,7 +58,7 @@ export function WebhookSelect() {
       shortcutHint="W"
       buttonProps={{
         className:
-          "h-9 px-2.5 w-fit font-medium text-neutral-700 max-w-48 min-w-0",
+          "h-8 text-xs gap-1.5 px-2.5 w-fit font-medium text-neutral-700 max-w-48 min-w-0",
       }}
       open={isOpen}
       onOpenChange={setIsOpen}

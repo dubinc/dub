@@ -454,7 +454,7 @@ function TargetingButton({
       icon={
         <Crosshairs3 className={cn("size-4", enabled && "text-blue-500")} />
       }
-      className="h-9 w-fit px-2.5 font-medium text-neutral-700"
+      className="h-8 w-fit gap-1.5 px-2.5 text-xs font-medium text-neutral-700"
       onClick={() => setShowTargetingModal(true)}
     />
   );

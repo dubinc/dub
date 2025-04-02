@@ -11,6 +11,7 @@ import {
   LinkBuilderProvider,
   LinkFormData,
 } from "@/ui/links/link-builder/link-builder-provider";
+import { LinkFeatureButtons } from "@/ui/links/link-builder/link-feature-buttons";
 import { useLinkBuilderSubmit } from "@/ui/links/link-builder/use-link-builder-submit";
 import { ConversionTrackingToggle } from "@/ui/modals/link-builder/conversion-tracking-toggle";
 import {
@@ -87,8 +88,8 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
         )}
         onSubmit={handleSubmit(onSubmit)}
       >
-        <div className="scrollbar-hide px-4 md:overflow-auto md:px-6">
-          <div className="mx-auto flex min-h-full w-full max-w-xl flex-col gap-6 py-10">
+        <div className="px-4 md:px-6">
+          <div className="mx-auto flex min-h-full w-full max-w-xl flex-col gap-7 py-10">
             <LinkBuilderDestinationUrlInput />
 
             <LinkBuilderShortLinkInput />
@@ -99,9 +100,9 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
 
             <ConversionTrackingToggle />
 
-            <div className="flex grow flex-col justify-end">
-              <OptionsList />
-            </div>
+            <LinkFeatureButtons className="mt-1" />
+
+            <OptionsList />
           </div>
         </div>
         <div className="divide-y divide-neutral-200 bg-neutral-50">
