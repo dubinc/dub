@@ -84,12 +84,12 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
       <form
         className={cn(
           "grid grow grid-cols-1 lg:grid-cols-[minmax(0,1fr)_300px]",
-          "divide-y divide-neutral-200 border-t border-neutral-200 lg:divide-x lg:divide-y-0",
+          "divide-neutral-200 border-t border-neutral-200 lg:divide-x lg:divide-y lg:divide-y-0",
         )}
         onSubmit={handleSubmit(onSubmit)}
       >
         <div className="px-4 md:px-6">
-          <div className="mx-auto flex min-h-full w-full max-w-xl flex-col gap-7 py-10">
+          <div className="mx-auto flex min-h-full w-full max-w-xl flex-col gap-7 pb-4 pt-10 lg:pb-10">
             <LinkBuilderDestinationUrlInput />
 
             <LinkBuilderShortLinkInput />
@@ -100,17 +100,19 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
 
             <ConversionTrackingToggle />
 
-            <LinkFeatureButtons className="mt-1" />
+            <LinkFeatureButtons className="mt-1 flex-wrap" />
 
             <OptionsList />
           </div>
         </div>
-        <div className="divide-y divide-neutral-200 bg-neutral-50">
-          <div className="px-4 py-6">
-            <QRCodePreview />
-          </div>
-          <div className="px-4 py-6">
-            <LinkPreview />
+        <div className="px-4 md:px-6 lg:bg-neutral-50 lg:px-0">
+          <div className="mx-auto max-w-xl divide-neutral-200 lg:divide-y">
+            <div className="py-4 lg:px-4 lg:py-6">
+              <QRCodePreview />
+            </div>
+            <div className="py-4 lg:px-4 lg:py-6">
+              <LinkPreview />
+            </div>
           </div>
         </div>
       </form>
