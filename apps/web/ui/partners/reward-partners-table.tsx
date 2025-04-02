@@ -4,7 +4,7 @@ import usePartners from "@/lib/swr/use-partners";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { Combobox, Table, useTable } from "@dub/ui";
 import { cn, DICEBEAR_AVATAR_URL, pluralize } from "@dub/utils";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
 interface RewardPartnersTableProps {
@@ -20,6 +20,9 @@ export function RewardPartnersTable({
 }: RewardPartnersTableProps) {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
+  const [selectedPartners, setSelectedPartners] = useState<
+    Pick<EnrolledPartnerProps, "id" | "name" | "email" | "image">[]
+  >([]);
 
   // Get all partners for the table
   const { data: allPartners } = usePartners({});
@@ -55,34 +58,32 @@ export function RewardPartnersTable({
     [partnerIds, options],
   );
 
-  const selectedPartners = useMemo(
-    () =>
-      partnerIds
-        .map((id) => allPartners?.find((partner) => partner.id === id))
-        .filter((p): p is NonNullable<typeof p> => p != null)
-        .map((partner) => ({
-          id: partner.id,
-          name: partner.name,
-          email: partner.email,
-          image: partner.image,
-        })),
-    [partnerIds, allPartners],
-  );
+  // Update selected partners when partnerIds changes
+  useEffect(() => {
+    const updatedPartners = partnerIds
+      .map((id) => allPartners?.find((partner) => partner.id === id))
+      .filter((p): p is NonNullable<typeof p> => p != null)
+      .map((partner) => ({
+        id: partner.id,
+        name: partner.name,
+        email: partner.email,
+        image: partner.image,
+      }));
+    setSelectedPartners(updatedPartners);
+  }, [partnerIds, allPartners]);
 
   const handlePartnerSelection = (
     selectedOptions: typeof selectedPartnersOptions,
   ) => {
     // Get all currently selected IDs
     const currentIds = new Set(partnerIds);
-    
+
     // Add new selections
     selectedOptions.forEach(({ value }) => {
       currentIds.add(value);
     });
-    
-    // Convert back to array
-    const newSelectedIds = Array.from(currentIds);
-    setPartners(newSelectedIds);
+
+    setPartners(Array.from(currentIds));
   };
 
   const table = useTable({
