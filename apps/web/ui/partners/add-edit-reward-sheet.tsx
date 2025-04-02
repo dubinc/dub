@@ -9,13 +9,12 @@ import useProgram from "@/lib/swr/use-program";
 import useRewardPartners from "@/lib/swr/use-reward-partners";
 import useRewards from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { EnrolledPartnerProps, RewardProps } from "@/lib/types";
+import { RewardProps } from "@/lib/types";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import {
   COMMISSION_TYPES,
   createRewardSchema,
 } from "@/lib/zod/schemas/rewards";
-import { SelectEligiblePartnersSheet } from "@/ui/partners/select-eligible-partners-sheet";
 import { X } from "@/ui/shared/icons";
 import { EventType } from "@dub/prisma/client";
 import {
@@ -24,7 +23,6 @@ import {
   CircleCheckFill,
   Sheet,
   Tooltip,
-  usePagination,
 } from "@dub/ui";
 import { cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
@@ -33,7 +31,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
-import { PartnersTable } from "./reward-discount-partners-table";
+import { RewardPartnersTable } from "./reward-partners-table";
 
 interface RewardSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
@@ -62,7 +60,6 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
   const { rewards } = useRewards();
   const { id: workspaceId } = useWorkspace();
   const { program, mutate: mutateProgram } = useProgram();
-  const [isAddPartnersOpen, setIsAddPartnersOpen] = useState(false);
 
   const [selectedPartnerType, setSelectedPartnerType] =
     useState<(typeof PARTNER_TYPES)[number]["key"]>("all");
@@ -129,6 +126,20 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
     hasProgramWideSaleReward,
   ]);
 
+  const { data: rewardPartners, loading: isLoadingRewardPartners } =
+    useRewardPartners({
+      query: {
+        rewardId: reward?.id,
+      },
+      enabled: Boolean(reward?.id && program?.id),
+    });
+
+  useEffect(() => {
+    if (rewardPartners && rewardPartners.length > 0) {
+      setValue("partnerIds", rewardPartners.map(partner => partner.id));
+    }
+  }, [rewardPartners, setValue]);
+
   const { executeAsync: createReward, isPending: isCreating } = useAction(
     createRewardAction,
     {
@@ -140,7 +151,6 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
       },
       onError({ error }) {
         toast.error(error.serverError);
-        console.error(error);
       },
     },
   );
@@ -156,7 +166,6 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
       },
       onError({ error }) {
         toast.error(error.serverError);
-        console.error(error);
       },
     },
   );
@@ -188,6 +197,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
       amount: type === "flat" ? data.amount * 100 : data.amount,
       maxDuration:
         Infinity === Number(data.maxDuration) ? null : data.maxDuration,
+      partnerIds,
     };
 
     if (!reward) {
@@ -216,36 +226,6 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
     });
   };
 
-  // Manage reward partners
-  const { pagination, setPagination } = usePagination(25);
-  const [selectedPartners, setSelectedPartners] =
-    useState<EnrolledPartnerProps[]>();
-
-  const { data: rewardPartners, loading: rewardPartnersLoading } =
-    useRewardPartners({
-      query: {
-        rewardId: reward?.id,
-        pageSize: pagination.pageSize,
-        page: pagination.pageIndex || 1,
-      },
-      enabled: Boolean(reward && program),
-    });
-
-  useEffect(() => {
-    if (rewardPartners) {
-      setSelectedPartners(rewardPartners);
-    }
-  }, [rewardPartners]);
-
-  useEffect(() => {
-    if (selectedPartners) {
-      setValue(
-        "partnerIds",
-        selectedPartners.map((partner) => partner.id),
-      );
-    }
-  }, [selectedPartners, setValue]);
-
   const hasDefaultReward = !!program?.defaultRewardId;
 
   const buttonDisabled =
@@ -255,7 +235,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
     (selectedPartnerType === "specific" &&
       (!partnerIds || partnerIds.length === 0));
 
-  const displayAddPartnerButton =
+  const displayPartners =
     (event === "sale" &&
       hasDefaultReward &&
       reward?.id !== program?.defaultRewardId) ||
@@ -564,28 +544,15 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
               </>
             )}
 
-            {displayAddPartnerButton && (
-              <div className="mt-2">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-neutral-800">
-                    Eligible partners
-                  </label>
-                  <Button
-                    text="Add partner"
-                    className="h-7 w-fit"
-                    onClick={() => setIsAddPartnersOpen(true)}
-                  />
-                </div>
-                <div className="mt-4">
-                  <PartnersTable
-                    selectedPartners={selectedPartners || []}
-                    setSelectedPartners={setSelectedPartners}
-                    loading={rewardPartnersLoading}
-                    pagination={pagination}
-                    setPagination={setPagination}
-                  />
-                </div>
-              </div>
+            {displayPartners && program?.id && (
+              <RewardPartnersTable
+                partnerIds={partnerIds || []}
+                partners={rewardPartners || []}
+                setPartners={(value: string[]) => {
+                  setValue("partnerIds", value);
+                }}
+                loading={isLoadingRewardPartners}
+              />
             )}
           </div>
         </div>
@@ -636,13 +603,6 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
           </div>
         </div>
       </form>
-
-      <SelectEligiblePartnersSheet
-        isOpen={isAddPartnersOpen}
-        setIsOpen={setIsAddPartnersOpen}
-        existingPartners={selectedPartners || []}
-        onSelect={setSelectedPartners}
-      />
     </>
   );
 }
