@@ -44,9 +44,11 @@ export default function RootProviders({ children }: { children: ReactNode }) {
           {children}
           <DubAnalytics
             apiHost="/_proxy/dub"
-            shortDomain="refer.dub.co"
             cookieOptions={{
-              domain: ".dub.co",
+              domain: process.env.VERCEL === "1" ? ".dub.co" : "localhost",
+            }}
+            domainsConfig={{
+              refer: "refer.dub.co",
             }}
           />
         </KeyboardShortcutProvider>
