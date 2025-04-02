@@ -5,6 +5,7 @@ import { deleteRewardAction } from "@/lib/actions/partners/delete-reward";
 import { updateRewardAction } from "@/lib/actions/partners/update-reward";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import usePartners from "@/lib/swr/use-partners";
 import useProgram from "@/lib/swr/use-program";
 import useRewardPartners from "@/lib/swr/use-reward-partners";
 import useRewards from "@/lib/swr/use-rewards";
@@ -136,9 +137,25 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
 
   useEffect(() => {
     if (rewardPartners && rewardPartners.length > 0) {
-      setValue("partnerIds", rewardPartners.map(partner => partner.id));
+      setValue(
+        "partnerIds",
+        rewardPartners.map((partner) => partner.id),
+      );
     }
   }, [rewardPartners, setValue]);
+
+  const { data: selectedPartners, loading: selectedPartnersLoading } =
+    usePartners(
+      {
+        enabled: Boolean(partnerIds?.length),
+        query: {
+          ids: partnerIds ?? undefined,
+        },
+      },
+      {
+        keepPreviousData: true,
+      },
+    );
 
   const { executeAsync: createReward, isPending: isCreating } = useAction(
     createRewardAction,
@@ -547,11 +564,11 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
             {displayPartners && program?.id && (
               <RewardPartnersTable
                 partnerIds={partnerIds || []}
-                partners={rewardPartners || []}
+                partners={selectedPartners || rewardPartners || []}
                 setPartners={(value: string[]) => {
                   setValue("partnerIds", value);
                 }}
-                loading={isLoadingRewardPartners}
+                loading={selectedPartnersLoading || isLoadingRewardPartners}
               />
             )}
           </div>

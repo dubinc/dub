@@ -6,6 +6,7 @@ import { updateDiscountAction } from "@/lib/actions/partners/update-discount";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useDiscountPartners from "@/lib/swr/use-discount-partners";
+import usePartners from "@/lib/swr/use-partners";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DiscountProps } from "@/lib/types";
@@ -99,6 +100,19 @@ function DiscountSheetContent({
       );
     }
   }, [discountPartners, setValue]);
+
+  const { data: selectedPartners, loading: selectedPartnersLoading } =
+    usePartners(
+      {
+        enabled: Boolean(partnerIds?.length),
+        query: {
+          ids: partnerIds ?? undefined,
+        },
+      },
+      {
+        keepPreviousData: true,
+      },
+    );
 
   const { executeAsync: createDiscount, isPending: isCreating } = useAction(
     createDiscountAction,
@@ -421,11 +435,11 @@ function DiscountSheetContent({
             {!isDefault && program?.id && (
               <DiscountPartnersTable
                 partnerIds={partnerIds || []}
-                partners={discountPartners || []}
+                partners={selectedPartners || discountPartners || []}
                 setPartners={(value: string[]) => {
                   setValue("partnerIds", value);
                 }}
-                loading={isLoadingDiscountPartners}
+                loading={selectedPartnersLoading || isLoadingDiscountPartners}
               />
             )}
           </div>
