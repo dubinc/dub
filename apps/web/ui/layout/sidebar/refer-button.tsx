@@ -2,15 +2,8 @@
 
 import { Gift } from "@dub/ui/icons";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 
 export function ReferButton() {
-  const pathname = usePathname();
-
-  if (pathname === "/account/settings/referrals") {
-    return null;
-  }
-
   return (
     <Link
       href="/account/settings/referrals"
