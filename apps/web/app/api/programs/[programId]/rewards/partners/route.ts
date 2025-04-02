@@ -41,6 +41,13 @@ export const GET = withWorkspace(
           },
         },
       },
+      orderBy: {
+        programEnrollment: {
+          partner: {
+            name: "asc",
+          },
+        },
+      },
     });
 
     const flatPartners = partners.map(

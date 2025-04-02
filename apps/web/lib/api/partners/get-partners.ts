@@ -65,15 +65,15 @@ export async function getPartners(filters: PartnerFilters) {
       pe.createdAt as enrollmentCreatedAt,
       pe.bannedAt,
       pe.bannedReason,
-      COALESCE(l.totalClicks, 0) as totalClicks,
-      COALESCE(l.totalLeads, 0) as totalLeads,
-      COALESCE(l.totalSales, 0) as totalSales,
-      COALESCE(l.totalSaleAmount, 0) as totalSaleAmount,
+      COALESCE(metrics.totalClicks, 0) as totalClicks,
+      COALESCE(metrics.totalLeads, 0) as totalLeads,
+      COALESCE(metrics.totalSales, 0) as totalSales,
+      COALESCE(metrics.totalSaleAmount, 0) as totalSaleAmount,
       ${
         includeExpandedFields
           ? Prisma.sql`
       COALESCE(commissions.totalCommissions, 0) as totalCommissions,
-      COALESCE(l.totalSaleAmount, 0) - COALESCE(commissions.totalCommissions, 0) as netRevenue,
+      COALESCE(metrics.totalSaleAmount, 0) - COALESCE(commissions.totalCommissions, 0) as netRevenue,
       `
           : Prisma.sql`
       0 as totalCommissions,
@@ -103,17 +103,21 @@ export async function getPartners(filters: PartnerFilters) {
       ProgramEnrollment pe 
     INNER JOIN 
       Partner p ON p.id = pe.partnerId 
+    LEFT JOIN Link l ON l.programId = pe.programId 
+      AND l.partnerId = pe.partnerId
+      AND l.programId = ${program.id}
     LEFT JOIN (
       SELECT 
-        l.*,
-        SUM(l.clicks) OVER (PARTITION BY l.partnerId) as totalClicks,
-        SUM(l.leads) OVER (PARTITION BY l.partnerId) as totalLeads,
-        SUM(l.sales) OVER (PARTITION BY l.partnerId) as totalSales,
-        SUM(l.saleAmount) OVER (PARTITION BY l.partnerId) as totalSaleAmount
-      FROM Link l
-      WHERE l.programId = ${program.id}
-        AND l.partnerId IS NOT NULL
-    ) l ON l.partnerId = pe.partnerId
+        partnerId,
+        SUM(clicks) as totalClicks,
+        SUM(leads) as totalLeads,
+        SUM(sales) as totalSales,
+        SUM(saleAmount) as totalSaleAmount
+      FROM Link
+      WHERE programId = ${program.id}
+        AND partnerId IS NOT NULL
+      GROUP BY partnerId
+    ) metrics ON metrics.partnerId = pe.partnerId
     ${
       includeExpandedFields
         ? Prisma.sql`
@@ -154,7 +158,7 @@ export async function getPartners(filters: PartnerFilters) {
       }
       ${ids && ids.length > 0 ? Prisma.sql`AND pe.partnerId IN (${Prisma.join(ids)})` : Prisma.sql``}
     GROUP BY 
-      p.id, pe.id, l.totalClicks, l.totalLeads, l.totalSales, l.totalSaleAmount${includeExpandedFields ? Prisma.sql`, commissions.totalCommissions` : Prisma.sql``}
+      p.id, pe.id, metrics.totalClicks, metrics.totalLeads, metrics.totalSales, metrics.totalSaleAmount${includeExpandedFields ? Prisma.sql`, commissions.totalCommissions` : Prisma.sql``}
     ORDER BY ${Prisma.raw(sortColumnsMap[sortBy])} ${Prisma.raw(sortOrder)} ${Prisma.raw(`, ${sortColumnExtraMap[sortBy]} ${sortOrder}`)}
     LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`) satisfies Array<any>;
 
