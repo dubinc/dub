@@ -10,7 +10,13 @@ export const constructRewardAmount = ({
 }) => {
   return type === "percentage"
     ? `${amount}%`
-    : currencyFormatter(amount / 100, {
-        maximumFractionDigits: 2,
-      });
+    : currencyFormatter(
+        amount / 100,
+        amount % 100 === 0
+          ? undefined
+          : {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            },
+      );
 };

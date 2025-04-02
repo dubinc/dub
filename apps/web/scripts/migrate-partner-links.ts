@@ -1,3 +1,6 @@
+// @ts-nocheck – this is a one-time migration script for
+// when we moved from programEnrollment.linkId to .links
+
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 

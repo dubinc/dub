@@ -9,26 +9,53 @@ enum PartnerRole {
   member
 }
 
+enum PartnerProfileType {
+  individual
+  company
+}
+
 model Partner {
-  id                  String        @id @default(cuid())
-  name                String
-  email               String?        @unique
-  image               String?
-  bio                 String?       @db.LongText
-  country             String        @default("US")
-  status              PartnerStatus @default(default)
-  stripeConnectId     String?       @unique
-  payoutsEnabled      Boolean       @default(false)
-  showOnLeaderboard   Boolean       @default(true)
-  createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @updatedAt
+  id                String             @id @default(cuid())
+  name              String
+  companyName       String?
+  profileType       PartnerProfileType @default(individual)
+  email             String?            @unique
+  image             String?
+  description       String?            @db.Text
+  country           String?
+  status            PartnerStatus      @default(default)
+  stripeConnectId   String?            @unique
+  payoutsEnabledAt  DateTime?
+  connectPayoutsLastRemindedAt DateTime?
+  showOnLeaderboard Boolean            @default(true)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
 
   programs     ProgramEnrollment[]
-  applications ProgramApplication[]
   users        PartnerUser[]
   invites      PartnerInvite[]
   payouts      Payout[]
-  sales        Sale[]
+  commissions  Commission[]
+
+  website           String?
+  websiteTxtRecord  String?
+  websiteVerifiedAt DateTime?
+
+  youtube           String?
+  youtubeVerifiedAt DateTime?
+
+  twitter           String?
+  twitterVerifiedAt DateTime?
+
+  linkedin           String?
+  linkedinVerifiedAt DateTime?
+
+  instagram           String?
+  instagramVerifiedAt DateTime?
+
+  tiktok           String?
+  tiktokVerifiedAt DateTime?
 }
 
 model PartnerUser {

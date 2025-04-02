@@ -19,13 +19,13 @@ export const UpgradeRequiredToast = ({
         <Crown className="h-5 w-5 text-black" />{" "}
         <p className="font-semibold">{title}</p>
       </div>
-      <p className="text-sm text-gray-600">{message}</p>
+      <p className="text-sm text-neutral-600">{message}</p>
       <Link
-        href={slug ? `/${slug}/upgrade?exit=close` : "https://dub.co/pricing"}
+        href={slug ? `/${slug}/upgrade` : "https://dub.co/pricing"}
         target="_blank"
-        className="w-full rounded-md border border-black bg-black px-3 py-1.5 text-center text-sm text-white transition-all hover:bg-gray-800 hover:ring-4 hover:ring-gray-200"
+        className="w-full rounded-md border border-black bg-black px-3 py-1.5 text-center text-sm text-white transition-all hover:bg-neutral-800 hover:ring-4 hover:ring-neutral-200"
       >
-        Upgrade to {nextPlan.name}
+        {nextPlan ? `Upgrade to ${nextPlan.name}` : "Contact support"}
       </Link>
     </div>
   );

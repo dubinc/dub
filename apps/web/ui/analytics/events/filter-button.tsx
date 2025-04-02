@@ -15,7 +15,7 @@ export default function FilterButton({ set }: { set: Record<string, any> }) {
             getNewPath: true,
           }) as string
         }
-        className="block rounded-md border border-transparent bg-white p-0.5 text-gray-600 transition-colors hover:border-gray-200 hover:bg-gray-100 hover:text-gray-950"
+        className="block rounded-md border border-transparent bg-white p-0.5 text-neutral-600 transition-colors hover:border-neutral-200 hover:bg-neutral-100 hover:text-neutral-950"
       >
         <span className="sr-only">Filter</span>
         <FilterBars className="size-3.5" />

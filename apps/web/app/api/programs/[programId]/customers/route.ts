@@ -29,7 +29,7 @@ export const GET = withWorkspace(
 
     const customers = await prisma.customer.findMany({
       where: {
-        sales: {
+        commissions: {
           some: {
             programId,
           },
@@ -45,7 +45,7 @@ export const GET = withWorkspace(
         externalId: true,
         createdAt: true,
         updatedAt: true,
-        sales: {
+        commissions: {
           select: {
             partner: true,
           },
@@ -61,7 +61,7 @@ export const GET = withWorkspace(
     const customersWithPartner = customers.map((customer) => {
       return responseSchema.parse({
         ...customer,
-        partner: customer.sales[0]?.partner,
+        partner: customer.commissions[0]?.partner,
       });
     });
 

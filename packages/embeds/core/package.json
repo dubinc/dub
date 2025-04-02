@@ -1,7 +1,7 @@
 {
   "name": "@dub/embed-core",
-  "description": "Vanilla JS core script that embeds Dub's referral dashboard.",
-  "version": "0.0.2",
+  "description": "Vanilla JS core script that embeds Dub's dashboards.",
+  "version": "0.0.10",
   "sideEffects": false,
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -28,10 +28,10 @@
   "homepage": "https://dub.co",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/steven-tey/dub.git"
+    "url": "git+https://github.com/dubinc/dub.git"
   },
   "bugs": {
-    "url": "https://github.com/steven-tey/dub/issues"
+    "url": "https://github.com/dubinc/dub/issues"
   },
   "keywords": [
     "dub",

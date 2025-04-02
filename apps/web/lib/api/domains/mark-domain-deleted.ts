@@ -7,21 +7,10 @@ import { removeDomainFromVercel } from "./remove-domain-vercel";
 export async function markDomainAsDeleted({
   domain,
   workspaceId,
-  delay,
 }: {
   domain: string;
   workspaceId: string;
-  delay?: number; // delay the cron job to avoid hitting rate limits
 }) {
-  await prisma.link.updateMany({
-    where: {
-      domain,
-    },
-    data: {
-      projectId: null,
-    },
-  });
-
   const response = await Promise.allSettled([
     removeDomainFromVercel(domain),
 
@@ -36,9 +25,7 @@ export async function markDomainAsDeleted({
   ]);
 
   await queueDomainDeletion({
-    workspaceId,
     domain,
-    delay,
   });
 
   response.forEach((promise) => {

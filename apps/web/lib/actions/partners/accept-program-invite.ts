@@ -1,56 +1,33 @@
 "use server";
 
-import { createId } from "@/lib/api/utils";
 import { prisma } from "@dub/prisma";
-import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { authPartnerActionClient } from "../safe-action";
-import { backfillLinkData } from "./backfill-link-data";
 
 const acceptProgramInviteSchema = z.object({
-  programInviteId: z.string(),
+  partnerId: z.string(),
+  programId: z.string(),
 });
 
 export const acceptProgramInviteAction = authPartnerActionClient
   .schema(acceptProgramInviteSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { partner } = ctx;
-    const { programInviteId } = parsedInput;
+    const { programId } = parsedInput;
 
-    const programInvite = await prisma.programInvite.findUniqueOrThrow({
-      where: { id: programInviteId },
+    await prisma.programEnrollment.update({
+      where: {
+        partnerId_programId: {
+          partnerId: partner.id,
+          programId,
+        },
+        status: "invited",
+      },
+      data: {
+        status: "approved",
+      },
+      include: {
+        links: true,
+      },
     });
-
-    // enroll partner in program and delete the invite
-    const [programEnrollment, _] = await Promise.all([
-      prisma.programEnrollment.create({
-        data: {
-          id: createId({ prefix: "pge_" }),
-          programId: programInvite.programId,
-          linkId: programInvite.linkId,
-          partnerId: partner.id,
-          status: "approved",
-        },
-      }),
-      prisma.programInvite.delete({
-        where: { id: programInvite.id },
-      }),
-      prisma.link.update({
-        where: { id: programInvite.linkId },
-        data: {
-          partnerId: partner.id,
-        },
-      }),
-    ]);
-
-    waitUntil(
-      backfillLinkData({
-        programEnrollmentId: programEnrollment.id,
-        linkId: programInvite.linkId,
-      }),
-    );
-
-    return {
-      id: programEnrollment.id,
-    };
   });

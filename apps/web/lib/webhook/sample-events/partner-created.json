@@ -1,0 +1,35 @@
+{
+  "id": "evt_BmAVZcjmXGfqQALqmDpzatEs6",
+  "event": "partner.created",
+  "createdAt": "2025-02-07T17:58:19.517Z",
+  "data": {
+    "id": "cm6v2l38p000zubyl5fly3i7w",
+    "name": "Matthew Hayden",
+    "email": "matthew@example.com",
+    "image": null,
+    "country": "MR",
+    "description": "I'm a content creator who works with brands to grow their business.",
+    "tenantId": "64dc9a8c-5cf9-4446-b53b-cdc15199fafc",
+    "programId": "prog_CYCu7IMAapjkRpTnr8F1azjN",
+    "status": "approved",
+    "clicks": 0,
+    "leads": 0,
+    "sales": 0,
+    "saleAmount": 0,
+    "earnings": 0,
+    "createdAt": "2025-02-07T17:58:18.793Z",
+    "links": [
+      {
+        "id": "link_5myDHLqhIQvUmUPjchVygF9R",
+        "domain": "refer.dub.co",
+        "key": "track-test",
+        "shortLink": "https://refer.dub.co/track-test",
+        "url": "https://refer.dub.co",
+        "clicks": 100,
+        "leads": 70,
+        "sales": 25,
+        "saleAmount": 2500
+      }
+    ]
+  }
+}

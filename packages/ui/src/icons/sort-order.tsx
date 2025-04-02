@@ -13,7 +13,7 @@ export default function SortOrder({
 }) {
   return (
     <svg
-      className={cn("w-2 text-gray-950", className)}
+      className={cn("w-2 text-neutral-950", className)}
       viewBox="0 0 8 12"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"

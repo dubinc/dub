@@ -18,7 +18,7 @@ export async function generateMetadata({
   const domain = params.domain;
   const key = decodeURIComponent(params.key); // key can potentially be encoded
 
-  const data = await getLinkViaEdge(domain, key);
+  const data = await getLinkViaEdge({ domain, key });
 
   if (!data?.proxy) {
     return;
@@ -44,7 +44,7 @@ export default async function ProxyPage({
   const domain = params.domain;
   const key = decodeURIComponent(params.key);
 
-  const data = await getLinkViaEdge(domain, key);
+  const data = await getLinkViaEdge({ domain, key });
 
   // if the link doesn't exist
   if (!data) {
@@ -59,13 +59,13 @@ export default async function ProxyPage({
 
   return (
     <main className="flex h-screen w-screen items-center justify-center">
-      <div className="mx-5 w-full max-w-lg overflow-hidden rounded-lg border border-gray-200 sm:mx-0">
+      <div className="mx-5 w-full max-w-lg overflow-hidden rounded-lg border border-neutral-200 sm:mx-0">
         <img
           src={data.image}
           alt={unescape(data.title || "")}
           className="w-full object-cover"
         />
-        <div className="flex space-x-3 bg-gray-100 p-5">
+        <div className="flex space-x-3 bg-neutral-100 p-5">
           <BlurImage
             width={20}
             height={20}
@@ -74,10 +74,10 @@ export default async function ProxyPage({
             className="mt-1 h-6 w-6"
           />
           <div className="flex flex-col space-y-3">
-            <h1 className="font-bold text-gray-700">
+            <h1 className="font-bold text-neutral-700">
               {unescape(data.title || "")}
             </h1>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-neutral-500">
               {unescape(data.description || "")}
             </p>
           </div>

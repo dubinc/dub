@@ -3,6 +3,8 @@
 import {
   ANALYTICS_SALE_UNIT,
   ANALYTICS_VIEWS,
+  DUB_LINKS_ANALYTICS_INTERVAL,
+  DUB_PARTNERS_ANALYTICS_INTERVAL,
   EVENT_TYPES,
   VALID_ANALYTICS_FILTERS,
 } from "@/lib/analytics/constants";
@@ -121,6 +123,8 @@ export default function AnalyticsProvider({
     tagIds: searchParams?.get("tagIds")?.split(","),
   })?.join(",");
 
+  const folderId = searchParams?.get("folderId") ?? undefined;
+
   // Default to last 24 hours
   const { start, end } = useMemo(() => {
     const hasRange = searchParams?.has("start") && searchParams?.has("end");
@@ -138,7 +142,9 @@ export default function AnalyticsProvider({
     };
   }, [searchParams?.get("start"), searchParams?.get("end")]);
 
-  const defaultInterval = partnerPage ? "1y" : "24h";
+  const defaultInterval = partnerPage
+    ? DUB_PARTNERS_ANALYTICS_INTERVAL
+    : DUB_LINKS_ANALYTICS_INTERVAL;
 
   // Only set interval if start and end are not provided
   const interval =
@@ -202,9 +208,9 @@ export default function AnalyticsProvider({
       };
     } else if (partner?.id && programSlug) {
       return {
-        basePath: `/api/partner-profile/programs/${programSlug}/analytics`,
+        basePath: `/api/partner-profile/programs/${programSlug}/links/analytics`,
         baseApiPath: `/api/partner-profile/programs/${programSlug}/analytics`,
-        eventsApiPath: `/api/partner-profile/programs/${programSlug}/events`,
+        eventsApiPath: `/api/partner-profile/programs/${programSlug}/links/events`,
         domain: domainSlug,
       };
     } else if (dashboardId) {
@@ -242,11 +248,16 @@ export default function AnalyticsProvider({
         - it's filtered by a link, or
         - the workspace has more than 50 domains
         - is admin page
+        - is filtered by a folder or tag
       - Otherwise, hide root domain links
   */
   const root = searchParams.get("root")
     ? searchParams.get("root") === "true"
-    : (domain && key) || (domains && domains?.length > 50) || adminPage
+    : (domain && key) ||
+        (domains && domains?.length > 50) ||
+        adminPage ||
+        folderId ||
+        tagIds
       ? undefined
       : "false";
 
@@ -271,8 +282,20 @@ export default function AnalyticsProvider({
       ...(tagIds && { tagIds }),
       ...(root && { root: root.toString() }),
       event: selectedTab,
+      ...(folderId && { folderId }),
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     }).toString();
-  }, [workspaceId, domain, key, searchParams, start, end, tagIds, selectedTab]);
+  }, [
+    workspaceId,
+    domain,
+    key,
+    searchParams,
+    start,
+    end,
+    tagIds,
+    selectedTab,
+    folderId,
+  ]);
 
   // Reset requiresUpgrade when query changes
   useEffect(() => setRequiresUpgrade(false), [queryString]);

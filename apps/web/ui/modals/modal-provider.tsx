@@ -26,7 +26,9 @@ import {
 import { toast } from "sonner";
 import { useAddEditTagModal } from "./add-edit-tag-modal";
 import { useImportRebrandlyModal } from "./import-rebrandly-modal";
+import { useImportRewardfulModal } from "./import-rewardful-modal";
 import { useLinkBuilder } from "./link-builder";
+import { useProgramWelcomeModal } from "./program-welcome-modal";
 import { useWelcomeModal } from "./welcome-modal";
 
 export const ModalContext = createContext<{
@@ -38,6 +40,7 @@ export const ModalContext = createContext<{
   setShowImportShortModal: Dispatch<SetStateAction<boolean>>;
   setShowImportRebrandlyModal: Dispatch<SetStateAction<boolean>>;
   setShowImportCsvModal: Dispatch<SetStateAction<boolean>>;
+  setShowImportRewardfulModal: Dispatch<SetStateAction<boolean>>;
 }>({
   setShowAddWorkspaceModal: () => {},
   setShowAddEditDomainModal: () => {},
@@ -47,6 +50,7 @@ export const ModalContext = createContext<{
   setShowImportShortModal: () => {},
   setShowImportRebrandlyModal: () => {},
   setShowImportCsvModal: () => {},
+  setShowImportRewardfulModal: () => {},
 });
 
 export function ModalProvider({ children }: { children: ReactNode }) {
@@ -95,14 +99,17 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
     useImportRebrandlyModal();
   const { setShowImportCsvModal, ImportCsvModal } = useImportCsvModal();
   const { setShowWelcomeModal, WelcomeModal } = useWelcomeModal();
+  const { setShowProgramWelcomeModal, ProgramWelcomeModal } =
+    useProgramWelcomeModal();
+  const { setShowImportRewardfulModal, ImportRewardfulModal } =
+    useImportRewardfulModal();
 
-  useEffect(
-    () =>
-      setShowWelcomeModal(
-        searchParams.has("onboarded") || searchParams.has("upgraded"),
-      ),
-    [searchParams],
-  );
+  useEffect(() => {
+    setShowProgramWelcomeModal(searchParams.has("onboarded-program"));
+    setShowWelcomeModal(
+      searchParams.has("onboarded") || searchParams.has("upgraded"),
+    );
+  }, [searchParams]);
 
   const [hashes, setHashes] = useCookies<SimpleLinkProps[]>("hashes__dub", [], {
     domain: !!process.env.NEXT_PUBLIC_VERCEL_URL ? ".dub.co" : undefined,
@@ -185,6 +192,7 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
         setShowImportShortModal,
         setShowImportRebrandlyModal,
         setShowImportCsvModal,
+        setShowImportRewardfulModal,
       }}
     >
       <AddWorkspaceModal />
@@ -196,7 +204,9 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
       <ImportShortModal />
       <ImportRebrandlyModal />
       <ImportCsvModal />
+      <ImportRewardfulModal />
       <WelcomeModal />
+      <ProgramWelcomeModal />
       {children}
     </ModalContext.Provider>
   );

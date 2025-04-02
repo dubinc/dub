@@ -1,13 +1,16 @@
-import { updateSaleStatusAction } from "@/lib/actions/partners/update-sale-status";
+import { updateCommissionStatusAction } from "@/lib/actions/partners/update-commission-status";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { SaleResponse } from "@/lib/types";
-import { Button, Icon, Popover } from "@dub/ui";
+import { Button, Icon, Popover, useCopyToClipboard } from "@dub/ui";
 import {
+  CircleCheck,
   CircleHalfDottedClock,
   Dots,
   Duplicate,
+  InvoiceDollar,
   ShieldAlert,
+  User,
 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
@@ -22,7 +25,7 @@ export function SaleRowMenu({ row }: { row: Row<SaleResponse> }) {
   const { programId } = useParams() as { programId: string };
   const [isOpen, setIsOpen] = useState(false);
 
-  const { executeAsync } = useAction(updateSaleStatusAction, {
+  const { executeAsync } = useAction(updateCommissionStatusAction, {
     onSuccess: async () => {
       await mutatePrefix([
         `/api/programs/${programId}/payouts`,
@@ -35,7 +38,7 @@ export function SaleRowMenu({ row }: { row: Row<SaleResponse> }) {
     toast.promise(
       executeAsync({
         workspaceId: workspaceId!,
-        saleId: row.original.id,
+        commissionId: row.original.id,
         status,
       }),
       {
@@ -48,6 +51,9 @@ export function SaleRowMenu({ row }: { row: Row<SaleResponse> }) {
 
   const isPaid = row.original.status === "paid";
 
+  const [copiedCustomerId, copyCustomerIdToClipboard] = useCopyToClipboard();
+  const [copiedInvoiceId, copyInvoiceIdToClipboard] = useCopyToClipboard();
+
   return (
     <Popover
       openPopover={isOpen}
@@ -58,36 +64,63 @@ export function SaleRowMenu({ row }: { row: Row<SaleResponse> }) {
           loop
           className="pointer-events-auto focus:outline-none"
         >
-          <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm sm:w-auto sm:min-w-[180px]">
-            {["duplicate", "fraud"].includes(row.original.status) ? (
-              <MenuItem
-                icon={CircleHalfDottedClock}
-                label="Mark as pending"
-                onSelect={() => {
-                  updateStatus("pending");
-                  setIsOpen(false);
-                }}
-              />
-            ) : (
+          <Command.List className="flex w-screen flex-col gap-1 text-sm sm:w-auto sm:min-w-[180px]">
+            <Command.Group className="p-1.5">
+              {["duplicate", "fraud"].includes(row.original.status) ? (
+                <MenuItem
+                  icon={CircleHalfDottedClock}
+                  label="Mark as pending"
+                  onSelect={() => {
+                    updateStatus("pending");
+                    setIsOpen(false);
+                  }}
+                />
+              ) : (
+                <>
+                  <MenuItem
+                    icon={Duplicate}
+                    label="Mark as duplicate"
+                    onSelect={() => {
+                      updateStatus("duplicate");
+                      setIsOpen(false);
+                    }}
+                    disabled={isPaid}
+                  />
+                  <MenuItem
+                    icon={ShieldAlert}
+                    label="Mark as fraud"
+                    onSelect={() => {
+                      updateStatus("fraud");
+                      setIsOpen(false);
+                    }}
+                    disabled={isPaid}
+                  />
+                </>
+              )}
+            </Command.Group>
+            {row.original.invoiceId && (
               <>
-                <MenuItem
-                  icon={Duplicate}
-                  label="Mark as duplicate"
-                  onSelect={() => {
-                    updateStatus("duplicate");
-                    setIsOpen(false);
-                  }}
-                  disabled={isPaid}
-                />
-                <MenuItem
-                  icon={ShieldAlert}
-                  label="Mark as fraud"
-                  onSelect={() => {
-                    updateStatus("fraud");
-                    setIsOpen(false);
-                  }}
-                  disabled={isPaid}
-                />
+                <Command.Separator className="w-full border-t border-neutral-200" />
+                <Command.Group className="p-1.5">
+                  <MenuItem
+                    icon={copiedCustomerId ? CircleCheck : User}
+                    label="Copy customer ID"
+                    onSelect={() => {
+                      copyCustomerIdToClipboard(
+                        row.original.customer.externalId,
+                      );
+                      toast.success("Customer ID copied to clipboard");
+                    }}
+                  />
+                  <MenuItem
+                    icon={copiedInvoiceId ? CircleCheck : InvoiceDollar}
+                    label="Copy invoice ID"
+                    onSelect={() => {
+                      copyInvoiceIdToClipboard(row.original.invoiceId!);
+                      toast.success("Invoice ID copied to clipboard");
+                    }}
+                  />
+                </Command.Group>
               </>
             )}
           </Command.List>
@@ -120,7 +153,7 @@ function MenuItem({
     <Command.Item
       className={cn(
         "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm text-neutral-600",
-        "data-[selected=true]:bg-gray-100",
+        "data-[selected=true]:bg-neutral-100",
         disabled && "cursor-not-allowed opacity-50",
       )}
       onSelect={onSelect}

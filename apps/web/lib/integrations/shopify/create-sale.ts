@@ -1,6 +1,8 @@
+import { createId } from "@/lib/api/create-id";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
-import { createSaleData } from "@/lib/api/sales/create-sale-data";
+import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
+import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -31,21 +33,21 @@ export async function createShopifySale({
     current_subtotal_price_set: { shop_money: shopMoney },
   } = order;
 
-  const currency = shopMoney.currency_code.toLowerCase();
   const amount = Number(shopMoney.amount) * 100;
+  const { link_id: linkId } = leadData;
+  const currency = shopMoney.currency_code.toLowerCase();
 
-  const eventId = nanoid(16);
-  const paymentProcessor = "shopify";
-  const { link_id: linkId, click_id: clickId } = leadData;
-
-  const sale = await prisma.sale.findFirst({
-    where: {
-      invoiceId,
-      clickId,
+  // Skip if invoice id is already processed
+  const ok = await redis.set(
+    `dub_sale_events:linkId:${linkId}:invoiceId:${invoiceId}`,
+    1,
+    {
+      ex: 60 * 60 * 24 * 7,
+      nx: true,
     },
-  });
+  );
 
-  if (sale) {
+  if (!ok) {
     return new Response(
       `[Shopify] Order has been processed already. Skipping...`,
     );
@@ -53,9 +55,9 @@ export async function createShopifySale({
 
   const saleData = {
     ...leadData,
-    event_id: eventId,
+    event_id: nanoid(16),
     event_name: "Purchase",
-    payment_processor: paymentProcessor,
+    payment_processor: "shopify",
     amount,
     currency,
     invoice_id: invoiceId,
@@ -120,62 +122,45 @@ export async function createShopifySale({
   );
 
   // for program links
-  if (link.programId) {
-    const { program, partnerId, commissionAmount } =
-      await prisma.programEnrollment.findFirstOrThrow({
-        where: {
-          links: {
-            some: {
-              id: linkId,
-            },
-          },
-        },
-        select: {
-          program: true,
-          partnerId: true,
-          commissionAmount: true,
+  if (link.programId && link.partnerId) {
+    const reward = await determinePartnerReward({
+      programId: link.programId,
+      partnerId: link.partnerId,
+      event: "sale",
+    });
+
+    if (reward) {
+      const earnings = calculateSaleEarnings({
+        reward,
+        sale: {
+          quantity: 1,
+          amount: saleData.amount,
         },
       });
 
-    const saleRecord = createSaleData({
-      program,
-      partner: {
-        id: partnerId,
-        commissionAmount,
-      },
-      customer: {
-        id: customerId,
-        linkId,
-        clickId,
-      },
-      sale: {
-        amount,
-        currency,
-        invoiceId,
-        eventId,
-        paymentProcessor,
-      },
-      metadata: order,
-    });
+      const commission = await prisma.commission.create({
+        data: {
+          id: createId({ prefix: "cm_" }),
+          programId: link.programId,
+          linkId: link.id,
+          partnerId: link.partnerId,
+          eventId: saleData.event_id,
+          customerId: customer.id,
+          quantity: 1,
+          type: "sale",
+          amount,
+          earnings,
+          invoiceId,
+          currency,
+        },
+      });
 
-    waitUntil(
-      Promise.allSettled([
-        prisma.sale.create({
-          data: saleRecord,
-        }),
-
+      waitUntil(
         notifyPartnerSale({
-          partner: {
-            id: partnerId,
-            referralLink: link.shortLink,
-          },
-          program,
-          sale: {
-            amount: saleRecord.amount,
-            earnings: saleRecord.earnings,
-          },
+          link,
+          commission,
         }),
-      ]),
-    );
+      );
+    }
   }
 }

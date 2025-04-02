@@ -77,7 +77,7 @@ function WelcomeModal({
             >
               <h1
                 className={cn(
-                  "text-lg font-medium text-gray-950",
+                  "text-lg font-medium text-neutral-950",
                   plan ? "text-left" : "text-center",
                 )}
               >
@@ -87,7 +87,7 @@ function WelcomeModal({
               </h1>
               <p
                 className={cn(
-                  "mt-2 text-sm text-gray-500",
+                  "mt-2 text-sm text-neutral-500",
                   plan ? "text-left" : "text-center",
                 )}
               >
@@ -97,7 +97,7 @@ function WelcomeModal({
               </p>
               {plan && (
                 <>
-                  <h2 className="mb-2 mt-6 text-base font-medium text-gray-950">
+                  <h2 className="mb-2 mt-6 text-base font-medium text-neutral-950">
                     Explore the benefits of your {plan.name} plan
                   </h2>
                   <PlanFeatures plan={plan.name} />

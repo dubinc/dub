@@ -5,10 +5,11 @@ export const intervals = [
   "7d",
   "30d",
   "90d",
-  "ytd",
   "1y",
+  "mtd",
+  "qtd",
+  "ytd",
   "all",
-  "all_unfiltered",
 ] as const;
 
 export const eventIntervals = [
@@ -16,10 +17,15 @@ export const eventIntervals = [
   "7d",
   "30d",
   "90d",
-  "ytd",
   "1y",
+  "mtd",
+  "qtd",
+  "ytd",
   "all",
 ] as const;
+
+export const DUB_LINKS_ANALYTICS_INTERVAL = "24h";
+export const DUB_PARTNERS_ANALYTICS_INTERVAL = "30d";
 
 export const INTERVAL_DISPLAYS = [
   {
@@ -35,22 +41,32 @@ export const INTERVAL_DISPLAYS = [
   {
     display: "Last 30 days",
     value: "30d",
-    shortcut: "m",
+    shortcut: "t",
   },
   {
     display: "Last 3 months",
     value: "90d",
-    shortcut: "t",
-  },
-  {
-    display: "Year to Date",
-    value: "ytd",
-    shortcut: "y",
+    shortcut: "3",
   },
   {
     display: "Last 12 months",
     value: "1y",
     shortcut: "l",
+  },
+  {
+    display: "Month to Date",
+    value: "mtd",
+    shortcut: "m",
+  },
+  {
+    display: "Quarter to Date",
+    value: "qtd",
+    shortcut: "q",
+  },
+  {
+    display: "Year to Date",
+    value: "ytd",
+    shortcut: "y",
   },
   {
     display: "All Time",
@@ -82,12 +98,24 @@ export const INTERVAL_DATA: Record<
     startDate: new Date(Date.now() - 7776000000),
     granularity: "day",
   },
-  ytd: {
-    startDate: new Date(new Date().getFullYear(), 0, 1),
-    granularity: "month",
-  },
   "1y": {
     startDate: new Date(Date.now() - 31556952000),
+    granularity: "month",
+  },
+  mtd: {
+    startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+    granularity: "day",
+  },
+  qtd: {
+    startDate: new Date(
+      new Date().getFullYear(),
+      Math.floor(new Date().getMonth() / 3) * 3,
+      1,
+    ),
+    granularity: "day",
+  },
+  ytd: {
+    startDate: new Date(new Date().getFullYear(), 0, 1),
     granularity: "month",
   },
   all: {
@@ -156,9 +184,31 @@ export const VALID_ANALYTICS_FILTERS = [
   "refererUrl",
   "url",
   "tagId",
+  "folderId",
   "tagIds",
-  "qr",
+  "qr", // deprecated, but keeping for now for backwards compatibility
   "root",
+  "utm_source",
+  "utm_medium",
+  "utm_campaign",
+  "utm_term",
+  "utm_content",
+];
+
+// possible analytics filters for a given linkId
+export const DIMENSIONAL_ANALYTICS_FILTERS = [
+  "country",
+  "city",
+  "region",
+  "continent",
+  "device",
+  "browser",
+  "os",
+  "trigger",
+  "referer",
+  "refererUrl",
+  "url",
+  "qr", // deprecated, but keeping for now for backwards compatibility
   "utm_source",
   "utm_medium",
   "utm_campaign",

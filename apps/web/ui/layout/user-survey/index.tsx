@@ -73,10 +73,10 @@ export function UserSurveyPopupInner({ hide }: { hide: () => void }) {
     <AnimatedSizeContainer height>
       <div className="p-4">
         <button
-          className="absolute right-2.5 top-2.5 rounded-full p-1 transition-colors hover:bg-gray-100 active:scale-90"
+          className="absolute right-2.5 top-2.5 rounded-full p-1 transition-colors hover:bg-neutral-100 active:scale-90"
           onClick={hide}
         >
-          <X className="h-4 w-4 text-gray-500" />
+          <X className="h-4 w-4 text-neutral-500" />
         </button>
         <UserSurveyContext.Provider value={{ status }}>
           <SurveyForm
@@ -109,7 +109,7 @@ export function UserSurveyPopupInner({ hide }: { hide: () => void }) {
                 className="absolute inset-0 flex flex-col items-center justify-center space-y-3 rounded-lg bg-white text-sm"
               >
                 <CheckCircleFill className="h-8 w-8 text-green-500" />
-                <p className="text-gray-500">Thank you for your response!</p>
+                <p className="text-neutral-500">Thank you for your response!</p>
               </motion.div>
             )}
           </AnimatePresence>

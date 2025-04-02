@@ -1,3 +1,4 @@
+import { deleteWorkspaceFolders } from "@/lib/api/folders/delete-workspace-folders";
 import { webhookCache } from "@/lib/webhook/cache";
 import { prisma } from "@dub/prisma";
 import { getPlanFromPriceId, log } from "@dub/utils";
@@ -29,6 +30,7 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
       id: true,
       plan: true,
       paymentFailedAt: true,
+      foldersUsage: true,
       users: {
         select: {
           user: {
@@ -49,18 +51,17 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
   });
 
   if (!workspace) {
-    await log({
-      message:
-        "Workspace with Stripe ID *`" +
+    console.log(
+      "Workspace with Stripe ID *`" +
         stripeId +
         "`* not found in Stripe webhook `customer.subscription.updated` callback",
-      type: "errors",
-    });
+    );
     return NextResponse.json({ received: true });
   }
 
   const newPlan = plan.name.toLowerCase();
   const shouldDisableWebhooks = newPlan === "free" || newPlan === "pro";
+  const shouldDeleteFolders = newPlan === "free" && workspace.foldersUsage > 0;
 
   // If a workspace upgrades/downgrades their subscription, update their usage limit in the database.
   if (workspace.plan !== newPlan) {
@@ -76,9 +77,11 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
           domainsLimit: plan.limits.domains!,
           aiLimit: plan.limits.ai!,
           tagsLimit: plan.limits.tags!,
+          foldersLimit: plan.limits.folders!,
           usersLimit: plan.limits.users!,
           salesLimit: plan.limits.sales!,
           paymentFailedAt: null,
+          ...(shouldDeleteFolders && { foldersUsage: 0 }),
         },
       }),
 
@@ -129,6 +132,14 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
       });
 
       await webhookCache.mset(webhooks);
+    }
+
+    // Delete the folders if the new plan is free
+    // For downgrade from Business → Pro, it should be fine since we're accounting that to make sure all folders get write access.
+    if (shouldDeleteFolders) {
+      await deleteWorkspaceFolders({
+        workspaceId: workspace.id,
+      });
     }
   } else if (workspace.paymentFailedAt) {
     await prisma.project.update({

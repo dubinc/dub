@@ -5,6 +5,7 @@ interface imageOptions {
   contentType?: string;
   width?: number;
   height?: number;
+  headers?: Record<string, string>;
 }
 
 class StorageClient {
@@ -35,6 +36,7 @@ class StorageClient {
 
     const headers = {
       "Content-Length": uploadBody.size.toString(),
+      ...opts?.headers,
     };
     if (opts?.contentType) headers["Content-Type"] = opts.contentType;
 

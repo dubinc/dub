@@ -96,7 +96,7 @@ function DomainOption({
   return (
     <div
       className={cn(
-        "relative flex flex-col gap-2 rounded-lg border border-gray-300 px-10 pb-4 pt-9 transition-all",
+        "relative flex flex-col gap-2 rounded-lg border border-neutral-300 px-10 pb-4 pt-9 transition-all",
         isSelected && "border-transparent bg-black/[0.03] ring-2 ring-black",
       )}
       role="button"
@@ -106,13 +106,13 @@ function DomainOption({
       {isSelected && (
         <CheckCircleFill className="absolute left-2 top-2 size-5 text-black" />
       )}
-      <div className="flex w-full flex-col gap-2 rounded-md border border-gray-300 bg-gray-100 p-2 [mask-image:linear-gradient(to_bottom,black_50%,transparent_95%)]">
-        <div className="relative rounded border-gray-200 bg-white px-2 py-1.5 text-center text-sm font-medium text-gray-800">
+      <div className="flex w-full flex-col gap-2 rounded-md border border-neutral-300 bg-neutral-100 p-2 [mask-image:linear-gradient(to_bottom,black_50%,transparent_95%)]">
+        <div className="relative rounded border-neutral-200 bg-white px-2 py-1.5 text-center text-sm font-medium text-neutral-800">
           <Globe2 className="absolute left-2 top-1/2 size-4 -translate-y-1/2" />
           {example}
         </div>
-        <div className="overflow-hidden rounded border border-gray-300">
-          <div className="aspect-[1.9/1] w-full overflow-hidden bg-gray-200">
+        <div className="overflow-hidden rounded border border-neutral-300">
+          <div className="aspect-[1.9/1] w-full overflow-hidden bg-neutral-200">
             {previewImage && (
               <img
                 src={previewImage}
@@ -123,11 +123,11 @@ function DomainOption({
           </div>
         </div>
       </div>
-      <span className="text-center text-sm font-medium text-gray-800">
+      <span className="text-center text-sm font-medium text-neutral-800">
         {title}
       </span>
       {paidPlanRequired && (
-        <span className="flex items-center justify-center gap-1 text-center text-xs font-normal text-gray-500/80">
+        <span className="flex items-center justify-center gap-1 text-center text-xs font-normal text-neutral-500/80">
           <Crown className="size-4" />
           Paid plan required
         </span>

@@ -6,4 +6,3 @@ export * from "./is-blacklisted-referrer";
 export * from "./is-reserved-key";
 export * from "./is-reserved-username";
 export * from "./update";
-export * from "./user-is-in-beta";

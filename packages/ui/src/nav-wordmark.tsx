@@ -83,7 +83,7 @@ export function NavWordmark({
             setIsPopoverOpen(false);
           }}
         >
-          <div className="grid gap-1 rounded-lg border border-gray-200 bg-white p-2 drop-shadow-sm sm:min-w-[240px] dark:border-white/[0.15] dark:bg-black">
+          <div className="grid gap-1 rounded-lg border border-neutral-200 bg-white p-2 drop-shadow-sm sm:min-w-[240px] dark:border-white/[0.15] dark:bg-black">
             <ContextMenuButton
               text="Copy Logo as SVG"
               variant="outline"
@@ -134,7 +134,7 @@ function ContextMenuButton({ className, ...rest }: ButtonProps) {
   return (
     <Button
       className={cn(
-        "h-9 justify-start px-3 font-medium hover:text-gray-700 dark:text-white/70 dark:hover:bg-white/[0.15] dark:hover:text-white",
+        "h-9 justify-start px-3 font-medium hover:text-neutral-700 dark:text-white/70 dark:hover:bg-white/[0.15] dark:hover:text-white",
         className,
       )}
       {...rest}

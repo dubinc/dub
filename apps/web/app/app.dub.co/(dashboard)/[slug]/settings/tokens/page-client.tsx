@@ -80,7 +80,7 @@ export default function TokensPageClient() {
         cell: ({ row }) => {
           return (
             <span className="flex items-center gap-2">
-              <Key className="size-4 text-gray-500" />
+              <Key className="size-4 text-neutral-500" />
               {row.original.name}
             </span>
           );
@@ -298,7 +298,7 @@ function MenuItem({
         "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm text-neutral-600",
         danger
           ? buttonVariants({ variant: "danger-outline" })
-          : "text-neutral-500 data-[selected=true]:bg-gray-100",
+          : "text-neutral-500 data-[selected=true]:bg-neutral-100",
       )}
       onSelect={onSelect}
     >

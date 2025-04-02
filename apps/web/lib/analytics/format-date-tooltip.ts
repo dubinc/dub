@@ -6,12 +6,19 @@ export const formatDateTooltip = (
     interval,
     start,
     end,
+    dataAvailableFrom,
   }: {
     interval?: string;
     start?: string | Date | null;
     end?: string | Date | null;
+    dataAvailableFrom?: Date;
   },
 ) => {
+  if (interval === "all" && dataAvailableFrom) {
+    start = dataAvailableFrom;
+    end = new Date(Date.now());
+  }
+
   if (start && end) {
     const daysDifference = getDaysDifference(
       typeof start === "string" ? new Date(start) : start,

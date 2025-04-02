@@ -1,6 +1,12 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { UtmTemplateProps } from "@/lib/types";
-import { Button, Modal, useMediaQuery, UTMBuilder } from "@dub/ui";
+import {
+  Button,
+  Modal,
+  useKeyboardShortcut,
+  useMediaQuery,
+  UTMBuilder,
+} from "@dub/ui";
 import posthog from "posthog-js";
 import {
   Dispatch,
@@ -113,7 +119,7 @@ function AddEditUtmTemplateModal({
         </div>
         <div className="mt-6">
           <label htmlFor="name">
-            <span className="block text-sm font-medium text-gray-700">
+            <span className="block text-sm font-medium text-neutral-700">
               Template Name
             </span>
             <div className="mt-2 flex rounded-md shadow-sm">
@@ -121,7 +127,7 @@ function AddEditUtmTemplateModal({
                 type="text"
                 autoFocus={!isMobile}
                 autoComplete="off"
-                className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                 placeholder="New Template"
                 {...register("name", { required: true })}
               />
@@ -130,7 +136,7 @@ function AddEditUtmTemplateModal({
         </div>
 
         <div className="mt-6">
-          <span className="mb-2 block text-sm font-medium text-gray-700">
+          <span className="mb-2 block text-sm font-medium text-neutral-700">
             Parameters
           </span>
           <UTMBuilder
@@ -160,11 +166,14 @@ function AddUtmTemplateButton({
 }: {
   setShowAddEditUtmTemplateModal: Dispatch<SetStateAction<boolean>>;
 }) {
+  useKeyboardShortcut("c", () => setShowAddEditUtmTemplateModal(true));
+
   return (
     <div>
       <Button
         variant="primary"
         text="Create template"
+        shortcut="C"
         className="h-9 rounded-lg"
         onClick={() => setShowAddEditUtmTemplateModal(true)}
       />

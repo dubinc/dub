@@ -32,13 +32,13 @@ export function ChangelogPopupInner() {
         translateY: 0,
       }}
       exit={{ opacity: 0, y: "100%" }}
-      className="group fixed bottom-4 z-40 mx-2 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md sm:left-4 sm:mx-auto sm:max-w-sm"
+      className="group fixed bottom-4 z-40 mx-2 overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-md sm:left-4 sm:mx-auto sm:max-w-sm"
     >
       <button
-        className="absolute right-2.5 top-2.5 z-10 rounded-full p-1 transition-colors hover:bg-gray-100 active:scale-90"
+        className="absolute right-2.5 top-2.5 z-10 rounded-full p-1 transition-colors hover:bg-neutral-100 active:scale-90"
         onClick={hidePopup}
       >
-        <X className="h-4 w-4 text-gray-500" />
+        <X className="h-4 w-4 text-neutral-500" />
       </button>
       <Link
         href={CHANGELOG_URL}
@@ -46,7 +46,7 @@ export function ChangelogPopupInner() {
         className="flex max-w-sm flex-col items-center justify-center"
         onClick={() => hidePopup()}
       >
-        <div className="border-b border-gray-200">
+        <div className="border-b border-neutral-200">
           <BlurImage
             src={CHANGELOG_IMAGE_URL}
             alt="Root Domain Links"
@@ -56,10 +56,10 @@ export function ChangelogPopupInner() {
           />
         </div>
         <div className="grid max-w-sm gap-1.5 p-4 text-center">
-          <p className="text-center font-semibold text-gray-800 underline-offset-4 group-hover:underline">
+          <p className="text-center font-semibold text-neutral-800 underline-offset-4 group-hover:underline">
             {CHANGELOG_TITLE}
           </p>
-          <p className="text-pretty text-sm text-gray-500">
+          <p className="text-pretty text-sm text-neutral-500">
             {CHANGELOG_DESCRIPTION}
           </p>
         </div>

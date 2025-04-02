@@ -1,16 +1,18 @@
+import { createId } from "@/lib/api/create-id";
 import { addDomainToVercel, validateDomain } from "@/lib/api/domains";
+import { transformDomain } from "@/lib/api/domains/transform-domain";
 import { DubApiError, exceededLimitError } from "@/lib/api/errors";
 import { createLink, transformLink } from "@/lib/api/links";
-import { createId, parseRequestBody } from "@/lib/api/utils";
+import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { storage } from "@/lib/storage";
 import {
   createDomainBodySchema,
-  DomainSchema,
   getDomainsQuerySchemaExtended,
 } from "@/lib/zod/schemas/domains";
 import { prisma } from "@dub/prisma";
 import { combineWords, DEFAULT_LINK_PROPS, nanoid } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/domains – get all domains for a workspace
@@ -34,7 +36,9 @@ export const GET = withWorkspace(
         ...(includeLink && {
           links: {
             where: {
-              key: "_root",
+              key: {
+                in: ["_root", "akoJCU0="],
+              },
             },
             include: {
               tags: {
@@ -57,7 +61,7 @@ export const GET = withWorkspace(
     });
 
     const response = domains.map((domain) => ({
-      ...DomainSchema.parse(domain),
+      ...transformDomain(domain),
       ...(includeLink &&
         domain.links.length > 0 && {
           link: transformLink({
@@ -78,33 +82,31 @@ export const GET = withWorkspace(
 export const POST = withWorkspace(
   async ({ req, workspace, session }) => {
     const body = await parseRequestBody(req);
-    const { slug, logo, expiredUrl, notFoundUrl, placeholder } =
-      createDomainBodySchema.parse(body);
-
-    const totalDomains = await prisma.domain.count({
-      where: {
-        projectId: workspace.id,
-      },
-    });
-
-    if (totalDomains >= workspace.domainsLimit) {
-      return new Response(
-        exceededLimitError({
-          plan: workspace.plan,
-          limit: workspace.domainsLimit,
-          type: "domains",
-        }),
-        { status: 403 },
-      );
-    }
+    const {
+      slug,
+      logo,
+      expiredUrl,
+      notFoundUrl,
+      placeholder,
+      assetLinks,
+      appleAppSiteAssociation,
+    } = createDomainBodySchema.parse(body);
 
     if (workspace.plan === "free") {
-      if (logo || expiredUrl || notFoundUrl) {
+      if (
+        logo ||
+        expiredUrl ||
+        notFoundUrl ||
+        assetLinks ||
+        appleAppSiteAssociation
+      ) {
         const proFeaturesString = combineWords(
           [
             logo && "custom QR code logos",
             expiredUrl && "default expiration URLs",
             notFoundUrl && "not found URLs",
+            assetLinks && "asset links",
+            appleAppSiteAssociation && "Apple App Site Association",
           ].filter(Boolean) as string[],
         );
 
@@ -139,33 +141,60 @@ export const POST = withWorkspace(
       ? await storage.upload(`domains/${domainId}/logo_${nanoid(7)}`, logo)
       : null;
 
-    const [domainRecord, _] = await Promise.all([
-      prisma.domain.create({
-        data: {
-          id: domainId,
-          slug: slug,
-          projectId: workspace.id,
-          primary: totalDomains === 0,
-          ...(placeholder && { placeholder }),
-          expiredUrl,
-          notFoundUrl,
-          ...(logoUploaded && { logo: logoUploaded.url }),
-        },
-      }),
+    const domainRecord = await prisma.$transaction(
+      async (tx) => {
+        const totalDomains = await tx.domain.count({
+          where: {
+            projectId: workspace.id,
+          },
+        });
 
-      createLink({
-        ...DEFAULT_LINK_PROPS,
-        domain: slug,
-        key: "_root",
-        url: "",
-        tags: undefined,
-        userId: session.user.id,
-        projectId: workspace.id,
-      }),
-    ]);
+        if (totalDomains >= workspace.domainsLimit) {
+          throw new DubApiError({
+            code: "exceeded_limit",
+            message: exceededLimitError({
+              plan: workspace.plan,
+              limit: workspace.domainsLimit,
+              type: "domains",
+            }),
+          });
+        }
+        return await tx.domain.create({
+          data: {
+            id: domainId,
+            slug: slug,
+            projectId: workspace.id,
+            primary: totalDomains === 0,
+            ...(placeholder && { placeholder }),
+            expiredUrl,
+            notFoundUrl,
+            ...(logoUploaded && { logo: logoUploaded.url }),
+            ...(assetLinks && { assetLinks: JSON.parse(assetLinks) }),
+            ...(appleAppSiteAssociation && {
+              appleAppSiteAssociation: JSON.parse(appleAppSiteAssociation),
+            }),
+          },
+        });
+      },
+      {
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        maxWait: 5000,
+        timeout: 5000,
+      },
+    );
+
+    await createLink({
+      ...DEFAULT_LINK_PROPS,
+      domain: slug,
+      key: "_root",
+      url: "",
+      tags: undefined,
+      userId: session.user.id,
+      projectId: workspace.id,
+    });
 
     return NextResponse.json(
-      DomainSchema.parse({
+      transformDomain({
         ...domainRecord,
         registeredDomain: null,
       }),

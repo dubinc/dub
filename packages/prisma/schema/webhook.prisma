@@ -37,6 +37,5 @@ model LinkWebhook {
   webhook Webhook @relation(fields: [webhookId], references: [id], onUpdate: Cascade, onDelete: Cascade)
 
   @@unique([linkId, webhookId])
-  @@index([linkId])
-  @@index([webhookId])
+  @@index(webhookId)
 }

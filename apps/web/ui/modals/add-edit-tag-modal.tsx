@@ -11,6 +11,7 @@ import {
   RadioGroup,
   RadioGroupItem,
   TooltipContent,
+  useKeyboardShortcut,
   useMediaQuery,
 } from "@dub/ui";
 import { capitalize, cn, pluralize } from "@dub/utils";
@@ -80,19 +81,19 @@ function AddEditTagModal({
       showModal={showAddEditTagModal}
       setShowModal={setShowAddEditTagModal}
     >
-      <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
+      <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-4 pt-8 sm:px-16">
         <Logo />
         <div className="flex flex-col space-y-1 text-center">
           <h3 className="text-lg font-medium">
             {props ? "Edit" : "Create"} tag
           </h3>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-neutral-500">
             Use tags to organize your links.{" "}
             <a
               href="https://dub.co/help/article/how-to-use-tags#what-is-a-tag"
               target="_blank"
               rel="noopener noreferrer"
-              className="underline underline-offset-4 hover:text-gray-800"
+              className="underline underline-offset-4 hover:text-neutral-800"
             >
               Learn more
             </a>
@@ -132,11 +133,13 @@ function AddEditTagModal({
             setSaving(false);
           });
         }}
-        className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:rounded-b-2xl sm:px-16"
+        className="flex flex-col space-y-6 bg-neutral-50 px-4 py-8 text-left sm:rounded-b-2xl sm:px-16"
       >
         <div>
           <label htmlFor="name" className="flex items-center space-x-2">
-            <p className="block text-sm font-medium text-gray-700">Tag Name</p>
+            <p className="block text-sm font-medium text-neutral-700">
+              Tag Name
+            </p>
           </label>
           <div className="mt-2 flex rounded-md shadow-sm">
             <input
@@ -146,7 +149,7 @@ function AddEditTagModal({
               required
               autoFocus={!isMobile}
               autoComplete="off"
-              className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+              className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
               placeholder="New Tag"
               value={name}
               onChange={(e) => {
@@ -158,7 +161,9 @@ function AddEditTagModal({
 
         <div>
           <label htmlFor="name" className="flex items-center space-x-2">
-            <p className="block text-sm font-medium text-gray-700">Tag Color</p>
+            <p className="block text-sm font-medium text-neutral-700">
+              Tag Color
+            </p>
             <InfoTooltip content={`A color to make your tag stand out.`} />
           </label>
           <RadioGroup
@@ -209,11 +214,16 @@ function AddTagButton({
   const { tags } = useTags();
   const exceededTags = tags && tagsLimit && tags.length >= tagsLimit;
 
+  useKeyboardShortcut("c", () => setShowAddEditTagModal(true), {
+    enabled: !exceededTags,
+  });
+
   return (
     <div>
       <Button
         variant="primary"
         text="Create tag"
+        shortcut="C"
         className="h-9 rounded-lg"
         disabledTooltip={
           exceededTags ? (

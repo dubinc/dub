@@ -35,11 +35,10 @@ export default function IntegrationCard(
         </Badge>
       ) : undefined}
       <IntegrationLogo src={integration.logo ?? null} alt={integration.name} />
-      <h3 className="mt-4 flex items-center gap-1.5 text-sm font-semibold text-gray-800">
+      <h3 className="mt-4 flex items-center gap-1.5 text-sm font-semibold text-neutral-800">
         {integration.name}
         {dubCrafted && (
-          <Tooltip content="Dub Crafted">
-            {/* TODO: Add "Learn more" link ^ */}
+          <Tooltip content="This is an official integration built and maintained by Dub">
             <div>
               <DubCraftedShield className="size-4 -translate-y-px" />
             </div>
@@ -62,7 +61,7 @@ function Wrapper({
   const { slug } = useWorkspace();
 
   const className = cn(
-    "group relative rounded-lg border border-gray-200 bg-white p-4 transition-[filter]",
+    "group relative rounded-lg border border-neutral-200 bg-white p-4 transition-[filter]",
     integration.comingSoon ? "cursor-default" : "hover:drop-shadow-card-hover",
   );
 

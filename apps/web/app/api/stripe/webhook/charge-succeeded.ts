@@ -1,4 +1,3 @@
-import { limiter } from "@/lib/cron/limiter";
 import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
 import { PartnerPayoutSent } from "@dub/email/templates/partner-payout-sent";
@@ -17,31 +16,15 @@ export async function chargeSucceeded(event: Stripe.Event) {
 
   console.log({ chargeId, receipt_url, transfer_group });
 
-  const invoice = await prisma.invoice.update({
+  const invoice = await prisma.invoice.findUnique({
     where: {
       id: transfer_group,
-    },
-    data: {
-      status: "completed",
-      receiptUrl: receipt_url,
     },
     include: {
       payouts: {
         include: {
           program: true,
-          partner: {
-            include: {
-              users: {
-                select: {
-                  user: {
-                    select: {
-                      email: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
+          partner: true,
         },
       },
     },
@@ -68,49 +51,52 @@ export async function chargeSucceeded(event: Stripe.Event) {
 
     console.log("Transfer created", transfer);
 
-    const partnerUsers = payout.partner.users.map(({ user }) => user);
-
     await Promise.all([
-      prisma.$transaction(async (tx) => {
-        await tx.payout.update({
-          where: {
-            id: payout.id,
-          },
-          data: {
-            stripeTransferId: transfer.id,
-            status: "completed",
-            paidAt: new Date(),
-          },
-        });
-
-        await tx.sale.updateMany({
-          where: {
-            payoutId: payout.id,
-          },
-          data: {
-            status: "paid",
-          },
-        });
+      prisma.payout.update({
+        where: {
+          id: payout.id,
+        },
+        data: {
+          stripeTransferId: transfer.id,
+          status: "completed",
+          paidAt: new Date(),
+        },
       }),
-      partnerUsers.map((user) =>
-        limiter.schedule(() =>
-          sendEmail({
-            subject: "You've been paid!",
-            email: user.email!,
-            from: "Dub Partners <system@dub.co>",
-            react: PartnerPayoutSent({
-              email: user.email!,
-              program: payout.program,
-              payout: {
-                id: payout.id,
-                amount: payout.amount,
-                startDate: payout.periodStart!,
-                endDate: payout.periodEnd!,
-              },
-            }),
+      prisma.commission.updateMany({
+        where: {
+          payoutId: payout.id,
+        },
+        data: {
+          status: "paid",
+        },
+      }),
+      payout.partner.email &&
+        sendEmail({
+          subject: "You've been paid!",
+          email: payout.partner.email,
+          from: "Dub Partners <system@dub.co>",
+          react: PartnerPayoutSent({
+            email: payout.partner.email,
+            program: payout.program,
+            payout: {
+              id: payout.id,
+              amount: payout.amount,
+              startDate: payout.periodStart,
+              endDate: payout.periodEnd,
+            },
           }),
-        ),
-      ),
+          variant: "notifications",
+        }),
     ]);
   }
+
+  await prisma.invoice.update({
+    where: {
+      id: invoice.id,
+    },
+    data: {
+      status: "completed",
+      receiptUrl: receipt_url,
+    },
+  });
 }

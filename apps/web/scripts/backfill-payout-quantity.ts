@@ -11,7 +11,7 @@ async function main() {
       id: true,
       _count: {
         select: {
-          sales: true,
+          commissions: true,
         },
       },
     },
@@ -21,7 +21,7 @@ async function main() {
   for (const payout of payouts) {
     await prisma.payout.update({
       where: { id: payout.id },
-      data: { quantity: payout._count.sales },
+      data: { quantity: payout._count.commissions },
     });
   }
 }

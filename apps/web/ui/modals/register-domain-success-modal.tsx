@@ -27,7 +27,7 @@ const RegisterDomainSuccess = ({
         <ModalHero />
         <div className="px-6 py-8 sm:px-12">
           <div className="relative text-center">
-            <h1 className="text-base font-medium text-gray-950">
+            <h1 className="text-base font-medium text-neutral-950">
               Congratulations! You've claimed
             </h1>
             <p
@@ -40,13 +40,13 @@ const RegisterDomainSuccess = ({
             >
               {registered}
             </p>
-            <p className="mt-4 text-sm text-gray-500">
+            <p className="mt-4 text-sm text-neutral-500">
               Your domain is now registered and ready to use, though it may take
               some time for the domain configuration to propagate globally.{" "}
               <a
                 href="https://dub.co/help/article/free-dot-link-domain#claim-your-domain-and-wait-for-it-to-be-provisioned"
                 target="_blank"
-                className="underline transition-colors hover:text-gray-700"
+                className="underline transition-colors hover:text-neutral-700"
               >
                 Learn more.
               </a>

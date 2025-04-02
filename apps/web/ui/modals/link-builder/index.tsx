@@ -3,6 +3,7 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ExpandedLinkProps } from "@/lib/types";
+import { FolderDropdown } from "@/ui/folders/folder-dropdown";
 import { DestinationUrlInput } from "@/ui/links/destination-url-input";
 import { ShortLinkInput } from "@/ui/links/short-link-input";
 import { useAvailableDomains } from "@/ui/links/use-available-domains";
@@ -11,6 +12,7 @@ import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import {
   ArrowTurnLeft,
   Button,
+  ButtonProps,
   InfoTooltip,
   LinkLogo,
   Modal,
@@ -30,6 +32,7 @@ import {
   isValidUrl,
   linkConstructor,
 } from "@dub/utils";
+import { ChevronRight } from "lucide-react";
 import { useParams, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
 import {
@@ -118,7 +121,7 @@ function LinkBuilderInner({
   const { slug } = params;
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
-  const { id: workspaceId, plan, nextPlan, logo } = useWorkspace();
+  const { id: workspaceId, plan, nextPlan, logo, flags } = useWorkspace();
 
   const {
     control,
@@ -133,14 +136,14 @@ function LinkBuilderInner({
   const formRef = useRef<HTMLFormElement>(null);
   const { handleKeyDown } = useEnterSubmit(formRef);
 
-  const [url, domain, key, title, description, trackConversion] = watch([
+  const [url, domain, key, title, description] = watch([
     "url",
     "domain",
     "key",
     "title",
     "description",
-    "trackConversion",
   ]);
+
   const [debouncedUrl] = useDebounce(getUrlWithoutUTMParams(url), 500);
 
   const endpoint = useMemo(
@@ -245,11 +248,15 @@ function LinkBuilderInner({
             ref={formRef}
             onSubmit={handleSubmit(async (data) => {
               // @ts-ignore – exclude extra attributes from `data` object before sending to API
-              const { user, tags, tagId, ...rest } = data;
+              const { user, tags, tagId, folderId, ...rest } = data;
               const bodyData = {
                 ...rest,
+
                 // Map tags to tagIds
                 tagIds: tags.map(({ id }) => id),
+
+                // Replace "unsorted" folder ID w/ null
+                folderId: folderId === "unsorted" ? null : folderId,
 
                 // Manually reset empty strings to null
                 expiredUrl: rest.expiredUrl || null,
@@ -293,6 +300,11 @@ function LinkBuilderInner({
 
                   // Mutate workspace to update usage stats
                   mutate(`/api/workspaces/${slug}`);
+
+                  // Navigate to the link's folder
+                  if (data.folderId)
+                    queryParams({ set: { folderId: data.folderId } });
+                  else queryParams({ del: ["folderId"] });
                 } else {
                   const { error } = await res.json();
 
@@ -326,42 +338,63 @@ function LinkBuilderInner({
               }
             })}
           >
-            <div className="flex items-center justify-between px-6 py-4">
-              <div className="flex items-center gap-3">
-                <LinkLogo
-                  apexDomain={getApexDomain(debouncedUrl)}
-                  className="size-6 sm:size-6 [&>*]:size-3 sm:[&>*]:size-4"
-                />
-                <h3 className="!mt-0 max-w-sm truncate text-lg font-medium">
-                  {props ? `Edit ${shortLink}` : "New link"}
-                </h3>
-              </div>
-              {!homepageDemo && (
-                <div className="flex items-center gap-4">
-                  {!homepageDemo && workspaceId && (
-                    <DraftControls
-                      ref={draftControlsRef}
-                      props={props}
-                      workspaceId={workspaceId}
-                    />
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowLinkBuilder(false);
-                      if (searchParams.has("newLink")) {
-                        queryParams({
-                          del: ["newLink"],
-                        });
-                      }
-                      draftControlsRef.current?.onClose();
+            <div className="flex flex-col items-start gap-2 px-6 py-4 md:flex-row md:items-center md:justify-between">
+              {flags?.linkFolders && (
+                <div className="flex items-center gap-2">
+                  <FolderDropdown
+                    hideViewAll={true}
+                    disableAutoRedirect={true}
+                    onFolderSelect={(folder) => {
+                      setValue("folderId", folder.id, { shouldDirty: true });
                     }}
-                    className="group hidden rounded-full p-2 text-gray-500 transition-all duration-75 hover:bg-gray-100 focus:outline-none active:bg-gray-200 md:block"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
+                    buttonClassName="max-w-60 md:max-w-[24rem]"
+                    buttonTextClassName="text-lg md:text-lg font-medium"
+                    {...(props?.folderId && {
+                      selectedFolderId: props.folderId,
+                    })}
+                  />
+
+                  <ChevronRight className="hidden size-4 text-neutral-500 md:block" />
                 </div>
               )}
+
+              <div className="flex w-full items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <LinkLogo
+                    apexDomain={getApexDomain(debouncedUrl)}
+                    className="size-6 sm:size-6 [&>*]:size-3 sm:[&>*]:size-4"
+                  />
+                  <h3 className="!mt-0 max-w-sm truncate text-lg font-medium">
+                    {props ? `Edit ${shortLink}` : "New link"}
+                  </h3>
+                </div>
+                {!homepageDemo && (
+                  <div className="flex items-center gap-4">
+                    {!homepageDemo && workspaceId && (
+                      <DraftControls
+                        ref={draftControlsRef}
+                        props={props}
+                        workspaceId={workspaceId}
+                      />
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowLinkBuilder(false);
+                        if (searchParams.has("newLink")) {
+                          queryParams({
+                            del: ["newLink"],
+                          });
+                        }
+                        draftControlsRef.current?.onClose();
+                      }}
+                      className="group hidden rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none active:bg-neutral-200 md:block"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div
@@ -435,7 +468,7 @@ function LinkBuilderInner({
                     <div className="flex items-center gap-2">
                       <label
                         htmlFor="comments"
-                        className="block text-sm font-medium text-gray-700"
+                        className="block text-sm font-medium text-neutral-700"
                       >
                         Comments
                       </label>
@@ -457,7 +490,7 @@ function LinkBuilderInner({
                           id="comments"
                           name="comments"
                           minRows={3}
-                          className="mt-2 block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                          className="mt-2 block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                           placeholder="Add comments"
                           value={field.value ?? ""}
                           onChange={(e) => field.onChange(e.target.value)}
@@ -476,7 +509,7 @@ function LinkBuilderInner({
               </div>
               <div className="scrollbar-hide px-6 md:overflow-auto md:pl-0 md:pr-4">
                 <div className="relative">
-                  <div className="absolute inset-0 rounded-xl border border-gray-200 bg-gray-50 [mask-image:linear-gradient(to_bottom,black,transparent)]"></div>
+                  <div className="absolute inset-0 rounded-xl border border-neutral-200 bg-neutral-50 [mask-image:linear-gradient(to_bottom,black,transparent)]"></div>
                   <div className="relative flex flex-col gap-6 p-4">
                     <QRCodePreview />
                     <LinkPreview />
@@ -484,7 +517,7 @@ function LinkBuilderInner({
                 </div>
               </div>
             </div>
-            <div className="flex items-center justify-between gap-2 border-t border-gray-100 bg-gray-50 p-4">
+            <div className="flex items-center justify-between gap-2 border-t border-neutral-100 bg-neutral-50 p-4">
               <div className="flex min-w-0 items-center gap-2">
                 <UTMButton />
                 <div className="flex items-center gap-2 max-sm:hidden">
@@ -525,11 +558,14 @@ function LinkBuilderInner({
   );
 }
 
+type CreateLinkButtonProps = Partial<ButtonProps>;
+
 export function CreateLinkButton({
   setShowLinkBuilder,
+  ...buttonProps
 }: {
   setShowLinkBuilder: Dispatch<SetStateAction<boolean>>;
-}) {
+} & CreateLinkButtonProps) {
   const { slug, nextPlan, exceededLinks } = useWorkspace();
 
   useKeyboardShortcut("c", () => setShowLinkBuilder(true));
@@ -576,6 +612,7 @@ export function CreateLinkButton({
         ) : undefined
       }
       onClick={() => setShowLinkBuilder(true)}
+      {...buttonProps}
     />
   );
 }
@@ -603,9 +640,14 @@ export function useLinkBuilder({
     );
   }, [showLinkBuilder]);
 
-  const CreateLinkButtonCallback = useCallback(() => {
-    return <CreateLinkButton setShowLinkBuilder={setShowLinkBuilder} />;
-  }, []);
+  const CreateLinkButtonCallback = useCallback(
+    (props?: CreateLinkButtonProps) => {
+      return (
+        <CreateLinkButton setShowLinkBuilder={setShowLinkBuilder} {...props} />
+      );
+    },
+    [],
+  );
 
   return useMemo(
     () => ({

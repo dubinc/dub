@@ -25,11 +25,11 @@ export function LinkLogo({
   ) : (
     <div
       className={cn(
-        "flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 px-0 sm:h-10 sm:w-10",
+        "flex h-8 w-8 items-center justify-center rounded-full bg-neutral-100 px-0 sm:h-10 sm:w-10",
         className,
       )}
     >
-      <Globe2 className="h-4 w-4 text-gray-600 sm:h-5 sm:w-5" />
+      <Globe2 className="h-4 w-4 text-neutral-600 sm:h-5 sm:w-5" />
     </div>
   );
 }

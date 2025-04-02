@@ -36,6 +36,8 @@ function ImportRebrandlyModal({
   const { id: workspaceId, slug } = useWorkspace();
   const searchParams = useSearchParams();
 
+  const folderId = searchParams.get("folderId");
+
   const {
     data: { domains, tagsCount } = {
       domains: null,
@@ -96,28 +98,28 @@ function ImportRebrandlyModal({
         })
       }
     >
-      <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-8 sm:px-16">
+      <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-8 sm:px-16">
         <div className="flex items-center space-x-3 py-4">
           <img
             src="https://assets.dub.co/misc/icons/rebrandly.svg"
             alt="Rebrandly logo"
             className="h-12 w-12"
           />
-          <ArrowRight className="h-5 w-5 text-gray-600" />
+          <ArrowRight className="h-5 w-5 text-neutral-600" />
           <Logo />
         </div>
         <h3 className="text-lg font-medium">Import Your Rebrandly Links</h3>
-        <p className="text-center text-sm text-gray-500">
+        <p className="text-center text-sm text-neutral-500">
           Easily import all your existing Rebrandly links into{" "}
           {process.env.NEXT_PUBLIC_APP_NAME} with just a few clicks.
         </p>
       </div>
 
-      <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16">
+      <div className="flex flex-col space-y-6 bg-neutral-50 px-4 py-8 text-left sm:px-16">
         {isLoading || !workspaceId ? (
           <div className="flex flex-col items-center justify-center space-y-4 bg-none">
             <LoadingSpinner />
-            <p className="text-sm text-gray-500">Connecting to Rebrandly</p>
+            <p className="text-sm text-neutral-500">Connecting to Rebrandly</p>
           </div>
         ) : domains ? (
           <form
@@ -133,11 +135,14 @@ function ImportRebrandlyModal({
                   body: JSON.stringify({
                     selectedDomains,
                     importTags,
+                    ...(folderId && { folderId }),
                   }),
                 }).then(async (res) => {
                   if (res.ok) {
                     await mutate();
-                    router.push(`/${slug}`);
+                    router.push(
+                      `/${slug}${folderId ? `?folderId=${folderId}` : ""}`,
+                    );
                   } else {
                     setImporting(false);
                     throw new Error();
@@ -154,13 +159,13 @@ function ImportRebrandlyModal({
             className="flex flex-col space-y-4"
           >
             <div className="flex flex-col space-y-2">
-              <p className="text-sm font-medium text-gray-700">Domains</p>
+              <p className="text-sm font-medium text-neutral-700">Domains</p>
               {domains.map(({ id, domain, links }) => (
-                <div className="flex items-center justify-between space-x-2 rounded-md border border-gray-200 bg-white px-4 py-2">
+                <div className="flex items-center justify-between space-x-2 rounded-md border border-neutral-200 bg-white px-4 py-2">
                   <div>
-                    <p className="font-medium text-gray-800">{domain}</p>
+                    <p className="font-medium text-neutral-800">{domain}</p>
                     {links > 0 && (
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-neutral-500">
                         {nFormatter(links)} links found
                       </p>
                     )}
@@ -189,7 +194,7 @@ function ImportRebrandlyModal({
               ))}
               {tagsCount && (
                 <div className="flex items-center justify-between space-x-2 rounded-md py-1 pl-2 pr-4">
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-neutral-500">
                     {tagsCount} tags found. Import all?
                   </p>
                   <Switch
@@ -233,7 +238,7 @@ function ImportRebrandlyModal({
           >
             <div>
               <div className="flex items-center space-x-2">
-                <h2 className="text-sm font-medium text-gray-900">
+                <h2 className="text-sm font-medium text-neutral-900">
                   Rebrandly API Key
                 </h2>
                 <InfoTooltip
@@ -254,7 +259,7 @@ function ImportRebrandlyModal({
                 placeholder="93467061146a64622df83c12bcc0bffb"
                 autoComplete="off"
                 required
-                className="mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
+                className="mt-1 block w-full appearance-none rounded-md border border-neutral-300 px-3 py-2 placeholder-neutral-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
               />
             </div>
             <Button text="Confirm API Key" loading={submitting} />

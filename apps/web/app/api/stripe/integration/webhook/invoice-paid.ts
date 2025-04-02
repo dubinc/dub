@@ -1,6 +1,9 @@
+import { convertCurrency } from "@/lib/analytics/convert-currency";
+import { createId } from "@/lib/api/create-id";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
-import { createSaleData } from "@/lib/api/sales/create-sale-data";
+import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
+import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -8,6 +11,7 @@ import { transformSaleEventData } from "@/lib/webhook/transform";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { differenceInMonths } from "date-fns";
 import type Stripe from "stripe";
 
 // Handle event "invoice.paid"
@@ -45,16 +49,32 @@ export async function invoicePaid(event: Stripe.Event) {
     return `Invoice with ID ${invoiceId} has an amount of 0, skipping...`;
   }
 
+  // if currency is not USD, convert it to USD  based on the current FX rate
+  // TODO: allow custom "defaultCurrency" on workspace table in the future
+  if (invoice.currency && invoice.currency !== "usd") {
+    const { currency: convertedCurrency, amount: convertedAmount } =
+      await convertCurrency({
+        currency: invoice.currency,
+        amount: invoice.amount_paid,
+      });
+
+    invoice.currency = convertedCurrency;
+    invoice.amount_paid = convertedAmount;
+  }
+
   // Find lead
   const leadEvent = await getLeadEvent({ customerId: customer.id });
   if (!leadEvent || leadEvent.data.length === 0) {
     return `Lead event with customer ID ${customer.id} not found, skipping...`;
   }
 
+  const eventId = nanoid(16);
+
   const saleData = {
     ...leadEvent.data[0],
-    event_id: nanoid(16),
-    event_name: "Subscription update",
+    event_id: eventId,
+    // if the invoice has no subscription, it's a one-time payment
+    event_name: !invoice.subscription ? "Purchase" : "Invoice paid",
     payment_processor: "stripe",
     amount: invoice.amount_paid,
     currency: invoice.currency,
@@ -110,64 +130,79 @@ export async function invoicePaid(event: Stripe.Event) {
   ]);
 
   // for program links
-  if (link.programId) {
-    const { program, partnerId, commissionAmount } =
-      await prisma.programEnrollment.findFirstOrThrow({
-        where: {
-          links: {
-            some: {
-              id: link.id,
-            },
+  if (link.programId && link.partnerId) {
+    const reward = await determinePartnerReward({
+      programId: link.programId,
+      partnerId: link.partnerId,
+      event: "sale",
+    });
+
+    if (reward) {
+      let eligibleForCommission = true;
+
+      if (typeof reward.maxDuration === "number") {
+        // Get the first commission (earliest sale) for this customer-partner pair
+        const firstCommission = await prisma.commission.findFirst({
+          where: {
+            partnerId: link.partnerId,
+            customerId: customer.id,
+            type: "sale",
           },
-        },
-        select: {
-          program: true,
-          partnerId: true,
-          commissionAmount: true,
-        },
-      });
+          orderBy: {
+            createdAt: "asc",
+          },
+        });
 
-    const saleRecord = createSaleData({
-      program,
-      partner: {
-        id: partnerId,
-        commissionAmount,
-      },
-      customer: {
-        id: saleData.customer_id,
-        linkId: saleData.link_id,
-        clickId: saleData.click_id,
-      },
-      sale: {
-        invoiceId: saleData.invoice_id,
-        eventId: saleData.event_id,
-        paymentProcessor: saleData.payment_processor,
-        amount: saleData.amount,
-        currency: saleData.currency,
-      },
-      metadata: {
-        ...leadEvent.data[0],
-        stripeMetadata: invoice,
-      },
-    });
+        if (firstCommission) {
+          if (reward.maxDuration === 0) {
+            eligibleForCommission = false;
+          } else {
+            // Calculate months difference between first commission and now
+            const monthsDifference = differenceInMonths(
+              new Date(),
+              firstCommission.createdAt,
+            );
 
-    await prisma.sale.create({
-      data: saleRecord,
-    });
+            if (monthsDifference >= reward.maxDuration) {
+              eligibleForCommission = false;
+            }
+          }
+        }
+      }
 
-    waitUntil(
-      notifyPartnerSale({
-        partner: {
-          id: partnerId,
-          referralLink: link.shortLink,
-        },
-        program,
-        sale: {
-          amount: saleRecord.amount,
-          earnings: saleRecord.earnings,
-        },
-      }),
-    );
+      if (eligibleForCommission) {
+        const earnings = calculateSaleEarnings({
+          reward,
+          sale: {
+            quantity: 1,
+            amount: saleData.amount,
+          },
+        });
+
+        const commission = await prisma.commission.create({
+          data: {
+            id: createId({ prefix: "cm_" }),
+            programId: link.programId,
+            linkId: link.id,
+            partnerId: link.partnerId,
+            eventId,
+            customerId: customer.id,
+            quantity: 1,
+            type: "sale",
+            amount: saleData.amount,
+            earnings,
+            invoiceId,
+          },
+        });
+
+        waitUntil(
+          notifyPartnerSale({
+            link,
+            commission,
+          }),
+        );
+      }
+    }
   }
 
   // send workspace webhook

@@ -1,32 +1,10 @@
-import { CreateEmailOptions } from "resend";
 import { resend, sendEmailViaResend } from "./resend";
+import { ResendEmailOptions } from "./resend/types";
 import { sendViaNodeMailer } from "./send-via-nodemailer";
 
-export const sendEmail = async ({
-  email,
-  subject,
-  from,
-  bcc,
-  text,
-  react,
-  scheduledAt,
-  marketing,
-}: Omit<CreateEmailOptions, "to" | "from"> & {
-  email: string;
-  from?: string;
-  marketing?: boolean;
-}) => {
+export const sendEmail = async (opts: ResendEmailOptions) => {
   if (resend) {
-    return await sendEmailViaResend({
-      email,
-      subject,
-      from,
-      bcc,
-      text,
-      react,
-      scheduledAt,
-      marketing,
-    });
+    return await sendEmailViaResend(opts);
   }
 
   // Fallback to SMTP if Resend is not configured
@@ -35,6 +13,7 @@ export const sendEmail = async ({
   );
 
   if (smtpConfigured) {
+    const { email, subject, text, react } = opts;
     return await sendViaNodeMailer({
       email,
       subject,

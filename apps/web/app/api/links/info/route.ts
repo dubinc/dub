@@ -2,13 +2,14 @@ import { DubApiError } from "@/lib/api/errors";
 import { transformLink } from "@/lib/api/links";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { withWorkspace } from "@/lib/auth";
+import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { getLinkInfoQuerySchema } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/links/info – get the info for a link
 export const GET = withWorkspace(
-  async ({ headers, searchParams, workspace }) => {
+  async ({ headers, searchParams, workspace, session }) => {
     const { domain, key, linkId, externalId } =
       getLinkInfoQuerySchema.parse(searchParams);
 
@@ -29,6 +30,15 @@ export const GET = withWorkspace(
       key,
     });
 
+    if (link.folderId) {
+      await verifyFolderAccess({
+        workspace,
+        userId: session.user.id,
+        folderId: link.folderId,
+        requiredPermission: "folders.read",
+      });
+    }
+
     const tags = await prisma.tag.findMany({
       where: {
         links: {
@@ -44,12 +54,15 @@ export const GET = withWorkspace(
       },
     });
 
-    const response = transformLink({
-      ...link,
-      tags: tags.map((tag) => {
-        return { tag };
-      }),
-    });
+    const response = transformLink(
+      {
+        ...link,
+        tags: tags.map((tag) => {
+          return { tag };
+        }),
+      },
+      { skipDecodeKey: true },
+    );
 
     return NextResponse.json(response, {
       headers,

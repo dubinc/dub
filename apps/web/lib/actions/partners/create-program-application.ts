@@ -1,11 +1,15 @@
 "use server";
 
-import { createId, getIP } from "@/lib/api/utils";
+import { createId } from "@/lib/api/create-id";
+import { notifyPartnerApplication } from "@/lib/api/partners/notify-partner-application";
+import { getIP } from "@/lib/api/utils";
 import { getSession } from "@/lib/auth";
-import { updateConfig } from "@/lib/edge-config";
+import { qstash } from "@/lib/cron";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { Partner, Program, ProgramEnrollment } from "@dub/prisma/client";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { addDays } from "date-fns";
 import { cookies } from "next/headers";
 import z from "../../zod";
@@ -67,10 +71,20 @@ export const createProgramApplicationAction = actionClient
         });
       }
 
-      return createApplication({
+      const application = await createApplication({
         program,
         data: parsedInput,
       });
+
+      await qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/program-application-reminder`,
+        delay: 15 * 60, // 15 minutes
+        body: {
+          applicationId: application.programApplicationId,
+        },
+      });
+
+      return application;
     },
   );
 
@@ -91,13 +105,12 @@ async function createApplicationAndEnrollment({
   const applicationId = createId({ prefix: "pga_" });
   const enrollmentId = createId({ prefix: "pge_" });
 
-  await Promise.all([
+  const [application, _] = await Promise.all([
     prisma.programApplication.create({
       data: {
         ...data,
         id: applicationId,
         programId: program.id,
-        partnerId: partner.id,
       },
     }),
 
@@ -112,6 +125,14 @@ async function createApplicationAndEnrollment({
     }),
   ]);
 
+  waitUntil(
+    notifyPartnerApplication({
+      partner,
+      program,
+      application,
+    }),
+  );
+
   return {
     programApplicationId: applicationId,
     programEnrollmentId: enrollmentId,
@@ -125,20 +146,13 @@ async function createApplication({
   program: Program;
   data: z.infer<typeof createProgramApplicationSchema>;
 }) {
-  const [application, _] = await Promise.all([
-    prisma.programApplication.create({
-      data: {
-        ...data,
-        id: createId({ prefix: "pga_" }),
-        programId: program.id,
-      },
-    }),
-    // TODO: Remove this once we open up partners.dub.co to everyone
-    updateConfig({
-      key: "partnersPortal",
-      value: data.email,
-    }),
-  ]);
+  const application = await prisma.programApplication.create({
+    data: {
+      ...data,
+      id: createId({ prefix: "pga_" }),
+      programId: program.id,
+    },
+  });
 
   // Add application ID to cookie
   const cookieStore = cookies();

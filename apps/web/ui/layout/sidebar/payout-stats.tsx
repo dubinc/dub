@@ -2,17 +2,21 @@
 
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import { PayoutsCount } from "@/lib/types";
 import StripeConnectButton from "@/ui/partners/stripe-connect-button";
 import { AlertCircleFill } from "@/ui/shared/icons";
+import { PayoutStatus } from "@dub/prisma/client";
 import { AnimatedSizeContainer, MoneyBills2, Tooltip } from "@dub/ui";
-import { CONNECT_SUPPORTED_COUNTRIES, currencyFormatter } from "@dub/utils";
-import { PayoutStatus } from "@prisma/client";
+import { currencyFormatter } from "@dub/utils";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { memo } from "react";
 
-export function PayoutStats() {
+export const PayoutStats = memo(() => {
   const { partner } = usePartnerProfile();
-  const { payoutsCount } = usePartnerPayoutsCount();
+  const { payoutsCount } = usePartnerPayoutsCount<PayoutsCount[]>({
+    groupBy: "status",
+  });
 
   return (
     <AnimatedSizeContainer height>
@@ -30,7 +34,7 @@ export function PayoutStats() {
           <div className="grid gap-1 text-sm">
             <p className="text-neutral-500">Upcoming payouts</p>
             <div className="flex items-center gap-2">
-              {partner && !partner.payoutsEnabled && (
+              {partner && !partner.payoutsEnabledAt && (
                 <Tooltip
                   content="You need to set up your Stripe payouts account to be able to receive payouts from the programs you are enrolled in."
                   side="right"
@@ -43,7 +47,7 @@ export function PayoutStats() {
               {payoutsCount ? (
                 <p className="text-black">
                   {currencyFormatter(
-                    (payoutsCount.find(
+                    (payoutsCount?.find(
                       (payout) => payout.status === PayoutStatus.pending,
                     )?.amount || 0) / 100,
                     {
@@ -62,7 +66,9 @@ export function PayoutStats() {
               <p className="text-black">
                 {currencyFormatter(
                   (payoutsCount?.find(
-                    (payout) => payout.status === PayoutStatus.completed,
+                    (payout) =>
+                      payout.status === PayoutStatus.completed ||
+                      payout.status === PayoutStatus.processing,
                   )?.amount || 0) / 100,
                   {
                     maximumFractionDigits: 2,
@@ -74,15 +80,13 @@ export function PayoutStats() {
             )}
           </div>
         </div>
-        {partner &&
-          !partner.payoutsEnabled &&
-          CONNECT_SUPPORTED_COUNTRIES.includes(partner.country) && (
-            <StripeConnectButton
-              className="mt-4 h-9 w-full"
-              text="Connect payouts"
-            />
-          )}
+        {partner && !partner.payoutsEnabledAt && (
+          <StripeConnectButton
+            className="mt-4 h-9 w-full"
+            text="Connect payouts"
+          />
+        )}
       </div>
     </AnimatedSizeContainer>
   );
-}
+});

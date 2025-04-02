@@ -29,17 +29,17 @@ function InviteCodeModal({
       showModal={showInviteCodeModal}
       setShowModal={setShowInviteCodeModal}
     >
-      <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
+      <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-4 pt-8 sm:px-16">
         <Logo />
         <h3 className="text-lg font-medium">Invite Link</h3>
-        <p className="text-center text-sm text-gray-500">
+        <p className="text-center text-sm text-neutral-500">
           Allow other people to join your workspace through the link below.
         </p>
       </div>
 
-      <div className="flex flex-col space-y-3 bg-gray-50 px-4 py-8 text-left sm:px-16">
-        <div className="flex items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-1.5">
-          <p className="scrollbar-hide w-[88%] overflow-scroll font-mono text-xs text-gray-500">
+      <div className="flex flex-col space-y-3 bg-neutral-50 px-4 py-8 text-left sm:px-16">
+        <div className="flex items-center justify-between rounded-md border border-neutral-300 bg-white px-3 py-1.5">
+          <p className="scrollbar-hide w-[88%] overflow-scroll font-mono text-xs text-neutral-500">
             {inviteLink}
           </p>
           <CopyButton value={inviteLink} className="rounded-md" />

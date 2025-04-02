@@ -54,6 +54,7 @@ export const expectedLink: Partial<Link> & {
   tenantId: null,
   programId: null,
   partnerId: null,
+  folderId: null,
 };
 
 export const expectedTag: Partial<Tag> = {

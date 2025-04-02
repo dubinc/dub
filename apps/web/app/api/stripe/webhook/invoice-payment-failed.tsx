@@ -1,7 +1,6 @@
 import { sendEmail } from "@dub/email";
 import { FailedPayment } from "@dub/email/templates/failed-payment";
 import { prisma } from "@dub/prisma";
-import { log } from "@dub/utils";
 import Stripe from "stripe";
 
 export async function invoicePaymentFailed(event: Stripe.Event) {
@@ -12,10 +11,11 @@ export async function invoicePaymentFailed(event: Stripe.Event) {
   } = event.data.object as Stripe.Invoice;
 
   if (!stripeId) {
-    await log({
-      message: "Missing customer ID in invoice.payment_failed event",
-      type: "errors",
-    });
+    console.log(
+      "Invoice with Stripe ID *`" +
+        stripeId +
+        "`* not found in invoice.payment_failed event",
+    );
     return;
   }
 
@@ -46,10 +46,11 @@ export async function invoicePaymentFailed(event: Stripe.Event) {
   });
 
   if (!workspace) {
-    await log({
-      message: `Project with Stripe ID ${stripeId} not found in invoice.payment_failed event`,
-      type: "errors",
-    });
+    console.log(
+      "Workspace with Stripe ID *`" +
+        stripeId +
+        "`* not found in invoice.payment_failed event",
+    );
     return;
   }
 
@@ -65,7 +66,6 @@ export async function invoicePaymentFailed(event: Stripe.Event) {
     ...workspace.users.map(({ user }) =>
       sendEmail({
         email: user.email as string,
-        from: "steven@dub.co",
         subject: `${
           attemptCount == 2
             ? "2nd notice: "

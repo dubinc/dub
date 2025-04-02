@@ -16,14 +16,12 @@ import { Footer } from "../components/footer";
 
 export function PartnerInvite({
   email = "panic@thedis.co",
-  appName = "Dub.co",
   program = {
     name: "Acme",
     logo: DUB_WORDMARK,
   },
 }: {
   email: string;
-  appName: string;
   program: {
     name: string;
     logo: string | null;
@@ -35,12 +33,12 @@ export function PartnerInvite({
       <Preview>Sign up for {program.name}</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
-          <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
-            <Section className="my-8">
+          <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
+            <Section className="mb-8 mt-6">
               <Img
                 src={program.logo || "https://assets.dub.co/logo.png"}
                 height="32"
-                alt={appName}
+                alt={program.name}
               />
             </Section>
 
@@ -48,15 +46,23 @@ export function PartnerInvite({
               {program.name} invited you to join Dub Partners
             </Heading>
 
-            <Text className="text-sm leading-6 text-gray-600">
-              {program.name} uses Dub Partners to power their partnership
-              programs and wants to partner with great people like yourself!
+            <Text className="text-sm leading-6 text-neutral-600">
+              {program.name} uses{" "}
+              <Link
+                href="https://dub.co/help/article/dub-partners"
+                target="_blank"
+                className="font-semibold text-neutral-800 underline underline-offset-2"
+              >
+                Dub Partners
+              </Link>{" "}
+              to power their affiliate program and wants to partner with great
+              people like yourself!
             </Text>
 
             <Section className="mb-12 mt-8">
               <Link
-                className="rounded-md bg-neutral-900 px-4 py-3 text-[12px] font-medium text-white no-underline"
-                href="https://partners.dub.co"
+                className="rounded-lg bg-neutral-900 px-4 py-3 text-[12px] font-semibold text-white no-underline"
+                href="https://partners.dub.co/register"
               >
                 Accept Invite
               </Link>

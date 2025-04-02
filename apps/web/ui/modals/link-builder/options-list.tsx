@@ -78,13 +78,13 @@ function ToggleBadge({
   icon?: ReactNode;
 }) {
   return (
-    <span className="group flex cursor-default items-center gap-1.5 rounded-md border border-gray-200 bg-gray-50 pl-1.5 text-xs text-gray-600">
+    <span className="group flex cursor-default items-center gap-1.5 rounded-md border border-neutral-200 bg-neutral-50 pl-1.5 text-xs text-neutral-600">
       {icon}
       {toggle.label}
       <button
         type="button"
         onClick={onRemove}
-        className="-ml-1 p-1 text-gray-400 hover:text-gray-500"
+        className="-ml-1 p-1 text-neutral-400 hover:text-neutral-500"
       >
         <X className="size-3.5" />
       </button>
@@ -137,8 +137,8 @@ function LinkCloakingToggleBadge({
     <Tooltip
       content={
         data.iframeable ? (
-          <div className="grid max-w-lg gap-2 text-pretty p-4 text-center text-sm text-gray-700">
-            <div className="h-[250px] w-[444px] overflow-hidden rounded-lg border border-gray-200">
+          <div className="grid max-w-lg gap-2 text-pretty p-4 text-center text-sm text-neutral-700">
+            <div className="h-[250px] w-[444px] overflow-hidden rounded-lg border border-neutral-200">
               <iframe
                 src={url}
                 style={{

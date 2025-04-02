@@ -70,16 +70,11 @@ export function LinksImported({
       <Preview>Your {provider} links have been imported</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
-          <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
+          <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
             <Section className="mt-8">
-              <Img
-                src={DUB_WORDMARK}
-                height="40"
-                alt="Dub"
-                className="mx-auto my-0"
-              />
+              <Img src={DUB_WORDMARK} height="32" alt="Dub" />
             </Section>
-            <Heading className="mx-0 my-7 p-0 text-center text-xl font-semibold text-black">
+            <Heading className="mx-0 my-7 p-0 text-lg font-medium text-black">
               Your {provider} links have been imported
             </Heading>
             <Text className="text-sm leading-6 text-black">
@@ -87,7 +82,7 @@ export function LinksImported({
               <strong>
                 imported {Intl.NumberFormat("en-us").format(count)} links
               </strong>{" "}
-              from {provider} into your Dub.co workspace,{" "}
+              from {provider} into your Dub workspace,{" "}
               <Link
                 href={`https://app.dub.co/${workspaceSlug}`}
                 className="font-medium text-blue-600 no-underline"
@@ -100,10 +95,10 @@ export function LinksImported({
             {links.length > 0 && (
               <Section>
                 <Row className="pb-2">
-                  <Column align="left" className="text-sm text-gray-500">
+                  <Column align="left" className="text-sm text-neutral-500">
                     Link
                   </Column>
-                  <Column align="right" className="text-sm text-gray-500">
+                  <Column align="right" className="text-sm text-neutral-500">
                     Created
                   </Column>
                 </Row>
@@ -115,23 +110,23 @@ export function LinksImported({
                       </Column>
                       <Column
                         align="right"
-                        className="text-sm text-gray-600"
+                        className="text-sm text-neutral-600"
                         suppressHydrationWarning
                       >
                         {timeAgo(createdAt)}
                       </Column>
                     </Row>
                     {index !== links.length - 1 && (
-                      <Hr className="my-2 w-full border border-gray-200" />
+                      <Hr className="my-2 w-full border border-neutral-200" />
                     )}
                   </div>
                 ))}
               </Section>
             )}
             {count > 5 && (
-              <Section className="my-8 text-center">
+              <Section className="my-8">
                 <Link
-                  className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
+                  className="rounded-lg bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
                   href={`https://app.dub.co/${workspaceSlug}`}
                 >
                   View {Intl.NumberFormat("en-us").format(count - 5)} more links
@@ -146,7 +141,7 @@ export function LinksImported({
               >
                 configured your {pluralize("domain", domains.length)}
               </Link>
-              , you will need to do it before you can start using your links.
+              , you will need to do this before you can start using your links.
             </Text>
             <Footer email={email} />
           </Container>

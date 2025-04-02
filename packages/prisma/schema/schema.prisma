@@ -22,13 +22,11 @@ model User {
   invalidLoginAttempts Int       @default(0)
   lockedAt             DateTime?
 
-  createdAt        DateTime @default(now())
-  subscribed       Boolean  @default(true) // email subscription
-  source           String? // where the user came from
-  defaultWorkspace String? // slug of the user's default workspace
-  defaultPartnerId String? // the user's default partner ID
-  dubPartnerId     String? // this user's dub partner ID
-
+  createdAt             DateTime               @default(now())
+  subscribed            Boolean                @default(true) // email subscription
+  source                String? // where the user came from
+  defaultWorkspace      String? // slug of the user's default workspace
+  defaultPartnerId      String? // the user's default partner ID
   // relational data
   accounts              Account[]
   sessions              Session[]
@@ -41,6 +39,8 @@ model User {
   oAuthCodes            OAuthCode[]
   integrations          Integration[] // Integrations user created in their workspace
   installedIntegrations InstalledIntegration[] // Integrations user installed in their workspace
+  folders               FolderUser[]
+  folderAccessRequests  FolderAccessRequest[]
   utmTemplates          UtmTemplate[]
 
   @@index(source)

@@ -25,7 +25,7 @@ export default function WebhooksPageClient() {
 
   if (needsHigherPlan) {
     return (
-      <div className="rounded-md border border-gray-200 bg-white p-10">
+      <div className="rounded-md border border-neutral-200 bg-white p-10">
         <EmptyState
           icon={Webhook}
           title="Webhooks"
@@ -75,7 +75,7 @@ export default function WebhooksPageClient() {
               ))}
             </div>
           ) : (
-            <div className="flex flex-col items-center gap-4 rounded-xl border border-gray-200 py-10">
+            <div className="flex flex-col items-center gap-4 rounded-xl border border-neutral-200 py-10">
               <EmptyState
                 icon={Webhook}
                 title="You haven't set up any webhooks yet."

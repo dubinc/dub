@@ -1,0 +1,36 @@
+model Reward {
+  id        String @id @default(cuid())
+  programId String
+
+  name        String?
+  description String?
+  event       EventType
+  type        CommissionType @default(percentage)
+  amount      Int            @default(0)
+  maxDuration Int? // in months (0 -> not recurring, null -> infinite)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  defaultForProgram Program?        @relation("ProgramDefaultReward")
+  program           Program         @relation(fields: [programId], references: [id], onDelete: Cascade)
+  partners          PartnerReward[]
+
+  @@index(programId)
+  @@index(event) // used in /api/cron/aggregate-clicks
+}
+
+model PartnerReward {
+  id                  String @id @default(cuid())
+  programEnrollmentId String
+  rewardId            String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  programEnrollment ProgramEnrollment @relation(fields: [programEnrollmentId], references: [id], onDelete: Cascade)
+  reward            Reward            @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+
+  @@unique([programEnrollmentId, rewardId])
+  @@index(rewardId)
+}

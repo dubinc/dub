@@ -1,21 +1,27 @@
 "use client";
 
-import useTags from "@/lib/swr/use-tags";
+import { PAYOUT_FEES } from "@/lib/partners/constants";
+import usePartnersCount from "@/lib/swr/use-partners-count";
+import usePrograms from "@/lib/swr/use-programs";
+import useTagsCount from "@/lib/swr/use-tags-count";
 import useUsers from "@/lib/swr/use-users";
 import useWorkspace from "@/lib/swr/use-workspace";
-import PlanBadge from "@/ui/workspaces/plan-badge";
 import SubscriptionMenu from "@/ui/workspaces/subscription-menu";
 import { buttonVariants, Icon, Tooltip, useRouterStuff } from "@dub/ui";
 import {
   CircleDollar,
+  CirclePercentage,
   CrownSmall,
   CursorRays,
+  Folder5,
   Globe,
   Hyperlink,
   Tag,
   Users,
+  Users6,
 } from "@dub/ui/icons";
 import {
+  capitalize,
   cn,
   getFirstAndLastDay,
   INFINITY_NUMBER,
@@ -31,7 +37,6 @@ export default function PlanUsage() {
     slug,
     plan,
     stripeId,
-    nextPlan,
     usage,
     usageLimit,
     salesUsage,
@@ -40,12 +45,25 @@ export default function PlanUsage() {
     linksLimit,
     domains,
     domainsLimit,
+    foldersUsage,
+    foldersLimit,
     tagsLimit,
     usersLimit,
+    partnersEnabled,
     billingCycleStart,
+    flags,
   } = useWorkspace();
 
-  const { tags } = useTags();
+  const { programs } = usePrograms();
+  const { partnersCount } = usePartnersCount<number>({
+    enabled: !!programs?.[0]?.id,
+    programId: programs?.[0]?.id,
+    status: "approved",
+  });
+
+  const payoutFees = plan ? PAYOUT_FEES[plan.toLowerCase()]?.ach : null;
+
+  const { data: tags } = useTagsCount();
   const { users } = useUsers();
 
   const [billingStart, billingEnd] = useMemo(() => {
@@ -54,10 +72,12 @@ export default function PlanUsage() {
       const start = firstDay.toLocaleDateString("en-us", {
         month: "short",
         day: "numeric",
+        year: "numeric",
       });
       const end = lastDay.toLocaleDateString("en-us", {
         month: "short",
         day: "numeric",
+        year: "numeric",
       });
       return [start, end];
     }
@@ -66,53 +86,41 @@ export default function PlanUsage() {
 
   return (
     <div className="rounded-lg border border-neutral-200 bg-white">
-      <div className="flex flex-col items-start justify-between gap-y-4 p-6 md:p-8 lg:flex-row">
+      <div className="flex flex-col items-start justify-between gap-y-4 p-6 md:px-8 lg:flex-row">
         <div>
-          <h2 className="text-xl font-medium">Plan and Usage</h2>
-          <p className="mt-1 text-balance text-sm leading-normal text-neutral-500">
-            You are currently on the{" "}
-            {plan ? (
-              <PlanBadge plan={plan} />
-            ) : (
-              <span className="rounded-full bg-neutral-200 px-2 py-0.5 text-xs text-neutral-200">
-                load
-              </span>
-            )}{" "}
-            plan.
-            {billingStart && billingEnd && (
+          <h2 className="text-xl font-medium">{capitalize(plan)} Plan</h2>
+          {billingStart && billingEnd && (
+            <p className="mt-1.5 text-balance text-sm font-medium leading-normal text-neutral-700">
               <>
-                {" "}
                 Current billing cycle:{" "}
-                <span className="font-medium text-black">
+                <span className="font-normal">
                   {billingStart} - {billingEnd}
                 </span>
-                .
               </>
-            )}
-          </p>
+            </p>
+          )}
         </div>
         <div className="flex items-center gap-2">
-          {plan === "free" ? (
+          {plan !== "enterprise" && (
             <Link
-              href={`/${slug}/upgrade`}
+              href={`/${slug}/settings/billing/upgrade`}
               className={cn(
                 buttonVariants({ variant: "primary" }),
                 "flex h-9 w-full items-center justify-center whitespace-nowrap rounded-md border px-4 text-sm",
               )}
             >
-              Upgrade Plan
-            </Link>
-          ) : (
-            <Link
-              href={`/${slug}/settings/billing/invoices`}
-              className={cn(
-                buttonVariants({ variant: "secondary" }),
-                "flex h-9 w-full items-center justify-center whitespace-nowrap rounded-md border px-4 text-sm",
-              )}
-            >
-              View invoices
+              Upgrade
             </Link>
           )}
+          <Link
+            href={`/${slug}/settings/billing/invoices`}
+            className={cn(
+              buttonVariants({ variant: "secondary" }),
+              "flex h-9 w-full items-center justify-center whitespace-nowrap rounded-md border px-4 text-sm",
+            )}
+          >
+            View invoices
+          </Link>
           {stripeId && plan !== "free" && <SubscriptionMenu />}
         </div>
       </div>
@@ -147,45 +155,73 @@ export default function PlanUsage() {
             <UsageChart />
           </div>
         </div>
-        <div className="grid grid-cols-1 divide-y divide-neutral-200 sm:divide-x sm:divide-y-0 md:grid-cols-3">
+        <div
+          className={cn(
+            "grid grid-cols-1 gap-[1px] overflow-hidden rounded-b-lg bg-neutral-200 md:grid-cols-3",
+            flags?.linkFolders &&
+              "md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4",
+            !partnersEnabled && "rounded-b-lg",
+          )}
+        >
           <UsageCategory
             title="Custom Domains"
             icon={Globe}
             usage={domains?.length}
             usageLimit={domainsLimit}
+            href={`/${slug}/settings/domains`}
           />
+          {flags?.linkFolders && (
+            <UsageCategory
+              title="Folders"
+              icon={Folder5}
+              usage={foldersUsage}
+              usageLimit={foldersLimit}
+              href={`/${slug}/settings/library/folders`}
+            />
+          )}
           <UsageCategory
             title="Tags"
             icon={Tag}
-            usage={tags?.length}
+            usage={tags}
             usageLimit={tagsLimit}
+            href={`/${slug}/settings/library/tags`}
           />
           <UsageCategory
             title="Teammates"
             icon={Users}
             usage={users?.filter((user) => !user.isMachine).length}
             usageLimit={usersLimit}
+            href={`/${slug}/settings/people`}
           />
         </div>
+        {partnersEnabled && (
+          <div className="grid grid-cols-1 gap-[1px] overflow-hidden rounded-b-lg bg-neutral-200 md:grid-cols-2">
+            <UsageCategory
+              title="Partners"
+              icon={Users6}
+              usage={programs && !programs.length ? 0 : partnersCount}
+              usageLimit={INFINITY_NUMBER}
+              href={
+                programs?.[0]?.id
+                  ? `/${slug}/programs/${programs?.[0]?.id}/partners`
+                  : undefined
+              }
+            />
+            <UsageCategory
+              title="Payout fees"
+              icon={CirclePercentage}
+              usage={
+                plan
+                  ? payoutFees
+                    ? `${Math.round(payoutFees * 100)}%`
+                    : "-"
+                  : undefined
+              }
+              href="https://dub.co/help/article/partner-payouts#payout-fees-and-timing"
+            />
+          </div>
+        )}
       </div>
-      {plan !== "enterprise" && plan !== "free" && (
-        <div className="flex flex-col items-center justify-between space-y-3 border-t border-neutral-200 px-6 py-4 text-center md:flex-row md:space-y-0 md:px-8 md:text-left">
-          <p className="text-sm text-neutral-500">
-            {plan === "business max"
-              ? "Need more clicks or links? Contact us for an Enterprise quote."
-              : `For higher limits, upgrade to the ${nextPlan.name} plan.`}
-          </p>
-          <Link
-            href={`/${slug}/upgrade`}
-            className={cn(
-              buttonVariants(),
-              "flex h-9 w-fit items-center justify-center rounded-md border px-3 text-sm",
-            )}
-          >
-            Upgrade to {nextPlan.name}
-          </Link>
-        </div>
-      )}
     </div>
   );
 }
@@ -332,30 +368,48 @@ function UsageTabCard({
 function UsageCategory(data: {
   title: string;
   icon: Icon;
-  usage?: number;
+  usage?: number | string;
   usageLimit?: number;
+  href?: string;
 }) {
-  let { title, icon: Icon, usage, usageLimit } = data;
+  let { title, icon: Icon, usage, usageLimit, href } = data;
+
+  const As = href ? Link : "div";
 
   return (
-    <div className="flex items-center justify-between p-6 md:p-8">
-      <div className="flex cursor-default items-center space-x-2">
-        <Icon className="size-4 text-neutral-600" />
+    <As
+      className={cn(
+        "flex flex-col justify-between gap-4 bg-white p-6 md:px-8",
+        href && "transition-colors hover:bg-neutral-50",
+      )}
+      href={href ?? "#"}
+      {...(href?.startsWith("http") && { target: "_blank" })}
+    >
+      <div className="flex cursor-default items-center gap-2 text-neutral-800">
+        <Icon className="size-4 shrink-0" />
         <h3 className="text-sm font-medium">{title}</h3>
       </div>
-      <div className="flex items-center gap-1.5 font-medium text-black">
+      <div className="flex items-center gap-1.5 text-sm font-medium text-neutral-800">
         {usage || usage === 0 ? (
-          <p>{nFormatter(usage, { full: true })}</p>
+          <p>
+            {typeof usage === "number"
+              ? nFormatter(usage, { full: true })
+              : usage}
+          </p>
         ) : (
-          <div className="size-6 animate-pulse rounded-md bg-neutral-200" />
+          <div className="size-5 animate-pulse rounded-md bg-neutral-200" />
         )}
-        <span>/</span>
-        <p className="text-neutral-400">
-          {usageLimit && usageLimit >= INFINITY_NUMBER
-            ? "∞"
-            : nFormatter(usageLimit, { full: true })}
-        </p>
+        {usageLimit !== undefined && (
+          <>
+            <span>/</span>
+            <p className="text-neutral-500">
+              {usageLimit && usageLimit >= INFINITY_NUMBER
+                ? "∞"
+                : nFormatter(usageLimit, { full: true })}
+            </p>
+          </>
+        )}
       </div>
-    </div>
+    </As>
   );
 }

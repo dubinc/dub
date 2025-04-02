@@ -59,17 +59,17 @@ export function DefaultDomains() {
   const [submitting, setSubmitting] = useState(false);
 
   return (
-    <div className="my-10 grid gap-5 border-t border-gray-200 py-10">
+    <div className="my-10 grid gap-5 border-t border-neutral-200 py-10">
       <div>
         <h2 className="text-xl font-semibold tracking-tight text-black">
           Default Domains
         </h2>
-        <p className="mt-3 text-sm text-gray-500">
+        <p className="mt-3 text-sm text-neutral-500">
           Leverage default branded domains from Dub for specific links.{" "}
           <Link
             href="https://dub.co/help/article/default-dub-domains"
             target="_blank"
-            className="underline transition-colors hover:text-gray-800"
+            className="underline transition-colors hover:text-neutral-800"
           >
             Learn more.
           </Link>
@@ -87,7 +87,7 @@ export function DefaultDomains() {
           return (
             <div
               key={slug}
-              className="flex items-center justify-between gap-4 rounded-xl border border-gray-200 bg-white p-5"
+              className="flex items-center justify-between gap-4 rounded-xl border border-neutral-200 bg-white p-5"
             >
               <DomainCardTitleColumn
                 domain={slug}

@@ -109,18 +109,21 @@ export default function EventsTable({
           accessorKey: "eventName",
           enableHiding: false,
           cell: ({ getValue }) =>
-            (
+            getValue() ? (
               <span className="truncate" title={getValue()}>
                 {getValue()}
               </span>
-            ) || <span className="text-neutral-400">-</span>,
+            ) : (
+              <span className="text-neutral-400">-</span>
+            ),
         },
         {
           id: "link",
           header: "Link",
           accessorKey: "link",
-          minSize: 200,
-          maxSize: 150,
+          minSize: 250,
+          size: 250,
+          maxSize: 400,
           meta: {
             filterParams: ({ getValue }) => ({
               domain: getValue().domain,
@@ -149,8 +152,9 @@ export default function EventsTable({
           id: "customer",
           header: "Customer",
           accessorKey: "customer",
-          minSize: 230,
-          maxSize: 200,
+          minSize: 250,
+          size: 250,
+          maxSize: 400,
           cell: ({ getValue }) => <CustomerRowItem customer={getValue()} />,
         },
         {
@@ -381,11 +385,13 @@ export default function EventsTable({
           accessorKey: "sale.invoiceId",
           maxSize: 200,
           cell: ({ getValue }) =>
-            (
+            getValue() ? (
               <span className="truncate" title={getValue()}>
                 {getValue()}
               </span>
-            ) || <span className="text-neutral-400">-</span>,
+            ) : (
+              <span className="text-neutral-400">-</span>
+            ),
         },
         // Date
         {
@@ -428,7 +434,15 @@ export default function EventsTable({
           header: ({ table }) => <EditColumnsButton table={table} />,
           cell: ({ row }) => <RowMenuButton row={row} />,
         },
-      ].filter((c) => c.id === "menu" || eventColumns[tab].all.includes(c.id)),
+      ]
+        .filter((c) => c.id === "menu" || eventColumns[tab].all.includes(c.id))
+        .map((col) => ({
+          ...col,
+          enableResizing: true,
+          size: col.size || Math.max(200, col.minSize || 100),
+          minSize: col.minSize || 100,
+          maxSize: col.maxSize || 1000,
+        })),
     [tab],
   );
 
@@ -477,6 +491,7 @@ export default function EventsTable({
     loading: isLoading,
     error: error && !requiresUpgrade ? "Failed to fetch events." : undefined,
     columns,
+    enableColumnResizing: true,
     pagination,
     onPaginationChange: setPagination,
     rowCount: requiresUpgrade ? 0 : totalEvents?.[tab] ?? 0,
@@ -495,7 +510,6 @@ export default function EventsTable({
     columnPinning: { right: ["menu"] },
     cellRight: (cell) => {
       const meta = cell.column.columnDef.meta as ColumnMeta | undefined;
-
       return (
         meta?.filterParams && <FilterButton set={meta.filterParams(cell)} />
       );

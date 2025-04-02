@@ -37,6 +37,8 @@ function ImportShortModal({
   const { id: workspaceId, slug } = useWorkspace();
   const searchParams = useSearchParams();
 
+  const folderId = searchParams.get("folderId");
+
   const {
     data: domains,
     isLoading,
@@ -91,28 +93,28 @@ function ImportShortModal({
         })
       }
     >
-      <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-8 sm:px-16">
+      <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-8 sm:px-16">
         <div className="flex items-center space-x-3 py-4">
           <img
             src="https://assets.dub.co/misc/icons/short.svg"
             alt="Short.io logo"
             className="h-10 w-10"
           />
-          <ArrowRight className="h-5 w-5 text-gray-600" />
+          <ArrowRight className="h-5 w-5 text-neutral-600" />
           <Logo />
         </div>
         <h3 className="text-lg font-medium">Import Your Short.io Links</h3>
-        <p className="text-center text-sm text-gray-500">
+        <p className="text-center text-sm text-neutral-500">
           Easily import all your existing Short.io links into{" "}
           {process.env.NEXT_PUBLIC_APP_NAME} with just a few clicks.
         </p>
       </div>
 
-      <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16">
+      <div className="flex flex-col space-y-6 bg-neutral-50 px-4 py-8 text-left sm:px-16">
         {isLoading || !workspaceId ? (
           <div className="flex flex-col items-center justify-center space-y-4 bg-none">
             <LoadingSpinner />
-            <p className="text-sm text-gray-500">Connecting to Short.io</p>
+            <p className="text-sm text-neutral-500">Connecting to Short.io</p>
           </div>
         ) : domains ? (
           domains.length > 0 ? (
@@ -129,11 +131,14 @@ function ImportShortModal({
                     body: JSON.stringify({
                       selectedDomains,
                       importTags,
+                      ...(folderId && { folderId }),
                     }),
                   }).then(async (res) => {
                     if (res.ok) {
                       await mutate();
-                      router.push(`/${slug}`);
+                      router.push(
+                        `/${slug}${folderId ? `?folderId=${folderId}` : ""}`,
+                      );
                     } else {
                       setImporting(false);
                       throw new Error();
@@ -150,13 +155,13 @@ function ImportShortModal({
               className="flex flex-col space-y-4"
             >
               <div className="flex flex-col space-y-2">
-                <p className="text-sm font-medium text-gray-700">Domains</p>
+                <p className="text-sm font-medium text-neutral-700">Domains</p>
                 {domains.map(({ id, domain, links }) => (
-                  <div className="flex items-center justify-between space-x-2 rounded-md border border-gray-200 bg-white px-4 py-2">
+                  <div className="flex items-center justify-between space-x-2 rounded-md border border-neutral-200 bg-white px-4 py-2">
                     <div>
-                      <p className="font-medium text-gray-800">{domain}</p>
+                      <p className="font-medium text-neutral-800">{domain}</p>
                       {links > 0 && (
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-neutral-500">
                           {nFormatter(links)} links found
                         </p>
                       )}
@@ -184,7 +189,7 @@ function ImportShortModal({
                   </div>
                 ))}
                 <div className="flex items-center justify-between space-x-2 rounded-md py-1 pl-2 pr-4">
-                  <p className="text-xs text-gray-500">Import all tags?</p>
+                  <p className="text-xs text-neutral-500">Import all tags?</p>
                   <Switch
                     fn={() => setImportTags(!importTags)}
                     checked={importTags}
@@ -199,8 +204,8 @@ function ImportShortModal({
             </form>
           ) : (
             <div className="flex flex-col items-center justify-center gap-2">
-              <ServerOff className="h-6 w-6 text-gray-500" />
-              <p className="max-w-md text-center text-sm text-gray-500">
+              <ServerOff className="h-6 w-6 text-neutral-500" />
+              <p className="max-w-md text-center text-sm text-neutral-500">
                 We weren't able to retrieve any links from your Short.io
                 account.
               </p>
@@ -243,7 +248,7 @@ function ImportShortModal({
           >
             <div>
               <div className="flex items-center space-x-2">
-                <h2 className="text-sm font-medium text-gray-900">
+                <h2 className="text-sm font-medium text-neutral-900">
                   Short.io API Key
                 </h2>
                 <InfoTooltip
@@ -264,7 +269,7 @@ function ImportShortModal({
                 placeholder="sk_xxxxxxxxxxxxxxxx"
                 autoComplete="off"
                 required
-                className="mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
+                className="mt-1 block w-full appearance-none rounded-md border border-neutral-300 px-3 py-2 placeholder-neutral-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
               />
             </div>
             <Button text="Confirm API Key" loading={submitting} />

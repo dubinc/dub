@@ -109,14 +109,15 @@ function ExpirationModal({
           <div className="max-md:hidden">
             <Tooltip
               content={
-                <div className="px-2 py-1 text-xs text-gray-700">
-                  Press <strong className="font-medium text-gray-950">E</strong>{" "}
-                  to open this quickly
+                <div className="px-2 py-1 text-xs text-neutral-700">
+                  Press{" "}
+                  <strong className="font-medium text-neutral-950">E</strong> to
+                  open this quickly
                 </div>
               }
               side="right"
             >
-              <kbd className="flex size-6 cursor-default items-center justify-center rounded-md border border-gray-200 font-sans text-xs text-gray-950">
+              <kbd className="flex size-6 cursor-default items-center justify-center rounded-md border border-neutral-200 font-sans text-xs text-neutral-950">
                 E
               </kbd>
             </Tooltip>
@@ -128,12 +129,12 @@ function ExpirationModal({
           <div className="flex items-center gap-2">
             <label
               htmlFor={`${id}-expiresAt`}
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-neutral-700"
             >
               Date and Time
             </label>
           </div>
-          <div className="mt-2 flex w-full items-center justify-between rounded-md border border-gray-300 bg-white shadow-sm transition-all focus-within:border-gray-800 focus-within:outline-none focus-within:ring-1 focus-within:ring-gray-500">
+          <div className="mt-2 flex w-full items-center justify-between rounded-md border border-neutral-300 bg-white shadow-sm transition-all focus-within:border-neutral-800 focus-within:outline-none focus-within:ring-1 focus-within:ring-neutral-500">
             <input
               ref={inputRef}
               id={`${id}-expiresAt`}
@@ -163,7 +164,7 @@ function ExpirationModal({
                   }
                 }
               }}
-              className="flex-1 border-none bg-transparent text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 sm:text-sm"
+              className="flex-1 border-none bg-transparent text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-0 sm:text-sm"
             />
             <input
               type="datetime-local"
@@ -177,7 +178,7 @@ function ExpirationModal({
                   inputRef.current.value = formatDateTime(expiryDate);
                 }
               }}
-              className="w-[40px] border-none bg-transparent text-gray-500 focus:outline-none focus:ring-0 sm:text-sm"
+              className="w-[40px] border-none bg-transparent text-neutral-500 focus:outline-none focus:ring-0 sm:text-sm"
             />
           </div>
         </div>
@@ -187,7 +188,7 @@ function ExpirationModal({
           <div className="flex items-center gap-2">
             <label
               htmlFor={`${id}-expiredUrl`}
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-neutral-700"
             >
               Expiration URL
             </label>
@@ -210,7 +211,7 @@ function ExpirationModal({
               className={`${
                 errors.expiredUrl
                   ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                  : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500"
+                  : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500"
               } block w-full rounded-md focus:outline-none sm:text-sm`}
               {...register("expiredUrl")}
             />
@@ -220,7 +221,7 @@ function ExpirationModal({
         <a
           href="https://dub.co/help/article/link-expiration#setting-a-default-expiration-url-for-all-links-under-a-domain"
           target="_blank"
-          className="group mt-2 flex items-center text-xs text-gray-500 hover:text-gray-700"
+          className="group mt-2 flex items-center text-xs text-neutral-500 hover:text-neutral-700"
         >
           Set a default expiration URL for your domain
         </a>
@@ -230,7 +231,7 @@ function ExpirationModal({
             {Boolean(expiresAtParent) && (
               <button
                 type="button"
-                className="text-xs font-medium text-gray-700 transition-colors hover:text-gray-950"
+                className="text-xs font-medium text-neutral-700 transition-colors hover:text-neutral-950"
                 onClick={() => {
                   setValueParent("expiresAt", null, { shouldDirty: true });
                   setValueParent("expiredUrl", null, { shouldDirty: true });
@@ -295,7 +296,7 @@ function ExpirationButton({
           className={cn("size-4", expiresAt && "text-blue-500")}
         />
       }
-      className="h-9 w-fit px-2.5 font-medium text-gray-700"
+      className="h-9 w-fit px-2.5 font-medium text-neutral-700"
       onClick={() => setShowExpirationModal(true)}
     />
   );

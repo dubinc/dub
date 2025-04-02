@@ -18,8 +18,9 @@ export default function usePartnerProfile() {
     data: partner,
     error,
     isLoading,
+    mutate,
   } = useSWR<PartnerProps>(
-    isPartnerPage && partnerId && `/api/partner-profile`,
+    isPartnerPage && partnerId && "/api/partner-profile",
     fetcher,
     {
       dedupingInterval: 60000,
@@ -30,5 +31,6 @@ export default function usePartnerProfile() {
     partner,
     error,
     loading: status === "loading" || isLoading,
+    mutate,
   };
 }

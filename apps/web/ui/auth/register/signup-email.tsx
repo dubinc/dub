@@ -12,14 +12,19 @@ import { useRegisterContext } from "./context";
 type SignUpProps = z.infer<typeof signUpSchema>;
 
 export const SignUpEmail = () => {
-  const { setStep, setEmail, setPassword } = useRegisterContext();
+  const { setStep, setEmail, setPassword, email, lockEmail } =
+    useRegisterContext();
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     getValues,
-  } = useForm<SignUpProps>();
+  } = useForm<SignUpProps>({
+    defaultValues: {
+      email,
+    },
+  });
 
   const { executeAsync, isPending } = useAction(sendOtpAction, {
     onSuccess: () => {
@@ -44,6 +49,7 @@ export const SignUpEmail = () => {
           placeholder="Work Email"
           autoComplete="email"
           required
+          readOnly={!errors.email && lockEmail}
           {...register("email")}
           error={errors.email?.message}
         />

@@ -1,6 +1,11 @@
 import z from "@/lib/zod";
 import { ExpandedLink } from "../api/links";
+import { decodeKeyIfCaseSensitive } from "../api/links/case-sensitivity";
+import { prefixWorkspaceId } from "../api/workspace-id";
 import { tb } from "./client";
+
+// Domains that are not recorded in Tinybird
+export const DOMAINS_TO_SKIP = ["buff.ly"];
 
 export const dubLinksMetadataSchema = z.object({
   link_id: z.string(),
@@ -29,11 +34,8 @@ export const dubLinksMetadataSchema = z.object({
     .nullish()
     .transform((v) => {
       if (!v) return ""; // return empty string if null or undefined
-      if (!v.startsWith("ws_")) {
-        return `ws_${v}`;
-      } else {
-        return v;
-      }
+
+      return prefixWorkspaceId(v);
     }),
   created_at: z
     .date()
@@ -51,12 +53,18 @@ export const recordLinkTB = tb.buildIngestEndpoint({
 });
 
 export const transformLinkTB = (link: ExpandedLink) => {
+  const key = decodeKeyIfCaseSensitive({
+    domain: link.domain,
+    key: link.key,
+  });
+
   return {
     link_id: link.id,
     domain: link.domain,
-    key: link.key,
+    key,
     url: link.url,
     tag_ids: link.tags?.map(({ tag }) => tag.id),
+    folder_id: link.folderId ?? "",
     tenant_id: link.tenantId ?? "",
     program_id: link.programId ?? "",
     partner_id: link.partnerId ?? "",
@@ -67,8 +75,20 @@ export const transformLinkTB = (link: ExpandedLink) => {
 
 export const recordLink = async (payload: ExpandedLink | ExpandedLink[]) => {
   if (Array.isArray(payload)) {
-    return await recordLinkTB(payload.map(transformLinkTB));
+    const tbPayload = payload.filter(
+      (link) => !DOMAINS_TO_SKIP.includes(link.domain),
+    );
+
+    if (!tbPayload.length) {
+      return;
+    }
+
+    return await recordLinkTB(tbPayload.map(transformLinkTB));
   } else {
+    if (DOMAINS_TO_SKIP.includes(payload.domain)) {
+      return;
+    }
+
     return await recordLinkTB(transformLinkTB(payload));
   }
 };

@@ -35,12 +35,12 @@ export function Form({
         });
         setSaving(false);
       }}
-      className="rounded-lg border border-gray-200 bg-white"
+      className="rounded-lg border border-neutral-200 bg-white"
     >
       <div className="relative flex flex-col space-y-6 p-5 sm:p-10">
         <div className="flex flex-col space-y-3">
           <h2 className="text-xl font-medium">{title}</h2>
-          <p className="text-sm text-gray-500">{description}</p>
+          <p className="text-sm text-neutral-500">{description}</p>
         </div>
         {typeof inputAttrs.defaultValue === "string" ? (
           <input
@@ -50,21 +50,22 @@ export function Form({
             disabled={disabledTooltip ? true : false}
             onChange={(e) => setValue(e.target.value)}
             className={cn(
-              "w-full max-w-md rounded-md border border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
+              "w-full max-w-md rounded-md border border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
               {
-                "cursor-not-allowed bg-gray-100 text-gray-400": disabledTooltip,
+                "cursor-not-allowed bg-neutral-100 text-neutral-400":
+                  disabledTooltip,
               },
             )}
           />
         ) : (
-          <div className="h-[2.35rem] w-full max-w-md animate-pulse rounded-md bg-gray-200" />
+          <div className="h-[2.35rem] w-full max-w-md animate-pulse rounded-md bg-neutral-200" />
         )}
       </div>
 
-      <div className="flex items-center justify-between space-x-4 rounded-b-lg border-t border-gray-200 bg-gray-50 p-3 sm:px-10">
+      <div className="flex items-center justify-between space-x-4 rounded-b-lg border-t border-neutral-200 bg-neutral-50 p-3 sm:px-10">
         {typeof helpText === "string" ? (
           <p
-            className="prose-sm prose-a:underline prose-a:underline-offset-4 hover:prose-a:text-gray-700 text-gray-500 transition-colors"
+            className="prose-sm prose-a:underline prose-a:underline-offset-4 hover:prose-a:text-neutral-700 text-neutral-500 transition-colors"
             dangerouslySetInnerHTML={{ __html: helpText || "" }}
           />
         ) : (

@@ -53,9 +53,14 @@ export async function POST(req: Request) {
           where: {
             domain,
             projectId: currentWorkspaceId,
-            id: { in: linkIds },
+            id: {
+              in: linkIds,
+            },
           },
-          data: { projectId: newWorkspaceId },
+          data: {
+            projectId: newWorkspaceId,
+            folderId: null,
+          },
         }),
 
         prisma.linkTag.deleteMany({
@@ -73,7 +78,11 @@ export async function POST(req: Request) {
         }),
 
         recordLink(
-          links.map((link) => ({ ...link, projectId: newWorkspaceId })),
+          links.map((link) => ({
+            ...link,
+            projectId: newWorkspaceId,
+            folderId: null,
+          })),
         ),
       ]);
 

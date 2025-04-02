@@ -1,0 +1,50 @@
+enum CommissionStatus {
+  pending
+  processed
+  paid
+  refunded
+  duplicate
+  fraud
+  canceled
+}
+
+enum EventType {
+  click
+  lead
+  sale
+}
+
+model Commission {
+  id         String  @id @default(cuid())
+  programId  String
+  partnerId  String
+  linkId     String
+  payoutId   String?
+  invoiceId  String? // only for sales (idempotency key, each sale event is associated with a unique invoice)
+  customerId String? // only for leads and sales
+  eventId    String? @unique // only for leads and sales
+
+  type     EventType
+  amount   Int // only for sales (amount of the sale event)
+  quantity Int // only for clicks/leads (quantity of the event)
+  earnings Int              @default(0) // amount earned by the partner
+  currency String           @default("usd")
+  status   CommissionStatus @default(pending)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  program  Program   @relation(fields: [programId], references: [id])
+  partner  Partner   @relation(fields: [partnerId], references: [id])
+  payout   Payout?   @relation(fields: [payoutId], references: [id])
+  link     Link      @relation(fields: [linkId], references: [id])
+  customer Customer? @relation(fields: [customerId], references: [id])
+
+  @@unique([programId, invoiceId])
+  @@index([earnings, programId, partnerId, status])
+  @@index([partnerId, customerId])
+  @@index(payoutId)
+  @@index(customerId)
+  @@index(linkId)
+  @@index(status)
+}

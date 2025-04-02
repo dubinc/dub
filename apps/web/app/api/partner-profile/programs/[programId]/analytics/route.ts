@@ -1,8 +1,8 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
-import { calculateEarnings } from "@/lib/api/sales/calculate-earnings";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/programs/[programId]/analytics – get analytics for a program enrollment link
@@ -16,44 +16,37 @@ export const GET = withPartnerProfile(
     const parsedParams = analyticsQuerySchema
       .omit({
         workspaceId: true,
-        domain: true,
-        key: true,
-        linkId: true,
         externalId: true,
         tenantId: true,
       })
       .parse(searchParams);
 
-    const response = await getAnalytics({
-      ...parsedParams,
-      programId: program.id,
-      partnerId: partner.id,
-    });
+    let { linkId, domain, key, ...rest } = parsedParams;
 
-    let data;
-
-    if (response instanceof Array) {
-      data = response.map((item) => {
-        return {
-          ...item,
-          earnings: calculateEarnings({
-            program,
-            sales: item.sales ?? 0,
-            saleAmount: item.saleAmount ?? 0,
-          }),
-        };
+    if (!linkId && domain && key) {
+      const link = await prisma.link.findUnique({
+        where: {
+          domain_key: {
+            domain,
+            key,
+          },
+        },
       });
-    } else {
-      data = {
-        ...response,
-        earnings: calculateEarnings({
-          program,
-          sales: response.sales,
-          saleAmount: response.saleAmount,
-        }),
-      };
+
+      if (!link || link.partnerId !== partner.id) {
+        return NextResponse.json({ error: "Link not found" }, { status: 404 });
+      }
+
+      linkId = link.id;
     }
 
-    return NextResponse.json(data);
+    const response = await getAnalytics({
+      programId: program.id,
+      partnerId: partner.id,
+      linkId,
+      ...rest,
+    });
+
+    return NextResponse.json(response);
   },
 );

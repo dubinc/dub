@@ -33,12 +33,12 @@ export function HelpButton({
             }
             setIsOpen((o) => !o);
           }}
-          className="animate-fade-in font-lg relative h-12 w-12 overflow-hidden rounded-full border border-gray-200 bg-white shadow-md active:bg-gray-50"
+          className="animate-fade-in font-lg relative h-12 w-12 overflow-hidden rounded-full border border-neutral-200 bg-white shadow-md active:bg-neutral-50"
         >
           <AnimatePresence>
             <motion.div
               key={isOpen ? "open" : "closed"}
-              className="absolute inset-0 flex items-center justify-center font-medium text-gray-700 hover:text-gray-700"
+              className="absolute inset-0 flex items-center justify-center font-medium text-neutral-700 hover:text-neutral-700"
               initial={{ opacity: 0, scale: 0 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0 }}

@@ -16,7 +16,7 @@ const RegisterDomain = ({ showModal, setShowModal }: RegisterDomainProps) => {
       setShowModal={setShowModal}
       drawerRootProps={{ repositionInputs: false }}
     >
-      <h3 className="border-b border-gray-200 px-4 py-4 text-lg font-medium sm:px-6">
+      <h3 className="border-b border-neutral-200 px-4 py-4 text-lg font-medium sm:px-6">
         Claim .link domain
       </h3>
       <div className="scrollbar-hide mt-6 max-h-[calc(100dvh-200px)] overflow-auto overflow-y-scroll">

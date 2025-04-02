@@ -1,3 +1,4 @@
+import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TagProps } from "@/lib/types";
 import {
@@ -24,6 +25,7 @@ import {
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
+  memo,
   PropsWithChildren,
   useContext,
   useMemo,
@@ -32,6 +34,7 @@ import {
 } from "react";
 import { useShareDashboardModal } from "../modals/share-dashboard-modal";
 import { LinkControls } from "./link-controls";
+import { useLinkSelection } from "./link-selection-provider";
 import { ResponseLink } from "./links-container";
 import { LinksDisplayContext } from "./links-display-provider";
 import TagBadge from "./tag-badge";
@@ -80,10 +83,20 @@ export function LinkDetailsColumn({ link }: { link: ResponseLink }) {
       {displayProperties.includes("analytics") && (
         <AnalyticsBadge link={link} />
       )}
-      <LinkControls link={link} />
+      <Controls link={link} />
     </div>
   );
 }
+
+const Controls = memo(({ link }: { link: ResponseLink }) => {
+  const { isSelectMode } = useLinkSelection();
+
+  return (
+    <div className={cn(isSelectMode && "hidden sm:block")}>
+      <LinkControls link={link} />
+    </div>
+  );
+});
 
 function TagsTooltip({
   additionalTags,
@@ -136,7 +149,7 @@ function TagButton({ tag, plus }: { tag: TagProps; plus?: number }) {
 }
 
 function AnalyticsBadge({ link }: { link: ResponseLink }) {
-  const { slug } = useWorkspace();
+  const { slug, plan } = useWorkspace();
   const { domain, key, trackConversion, clicks, leads, saleAmount } = link;
 
   const { isMobile } = useMediaQuery();
@@ -181,12 +194,17 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
   // Hacky fix for making sure the tooltip closes (by rerendering) when the modal opens
   const [modalShowCount, setModalShowCount] = useState(0);
 
+  const canManageLink = useCheckFolderPermission(
+    link.folderId,
+    "folders.links.write",
+  );
+
   return isMobile ? (
     <Link
       href={`/${slug}/analytics?domain=${domain}&key=${key}`}
-      className="flex items-center gap-1 rounded-md border border-gray-200 bg-gray-50 px-2 py-0.5 text-sm text-gray-800"
+      className="flex items-center gap-1 rounded-md border border-neutral-200 bg-neutral-50 px-2 py-0.5 text-sm text-neutral-800"
     >
-      <CursorRays className="h-4 w-4 text-gray-600" />
+      <CursorRays className="h-4 w-4 text-neutral-600" />
       {nFormatter(link.clicks)}
     </Link>
   ) : (
@@ -196,10 +214,10 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
         key={modalShowCount}
         side="top"
         content={
-          <div className="flex flex-col gap-2.5 whitespace-nowrap p-3 text-gray-600">
+          <div className="flex flex-col gap-2.5 whitespace-nowrap p-3 text-neutral-600">
             {stats.map(({ id: tab, value }) => (
               <div key={tab} className="text-sm leading-none">
-                <span className="font-medium text-gray-950">
+                <span className="font-medium text-neutral-950">
                   {tab === "sales"
                     ? currencyFormatter(value / 100)
                     : nFormatter(value, { full: value < INFINITY_NUMBER })}
@@ -208,7 +226,7 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
                 {pluralize(tab.slice(0, -1), value)}
               </div>
             ))}
-            <p className="text-xs leading-none text-gray-400">
+            <p className="text-xs leading-none text-neutral-400">
               {link.lastClicked
                 ? `Last clicked ${timeAgo(link.lastClicked, {
                     withAgo: true,
@@ -224,13 +242,14 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
                   setShowShareDashboardModal(true);
                   setModalShowCount((c) => c + 1);
                 }}
+                disabled={!canManageLink}
               />
 
               {link.dashboardId && (
                 <CopyButton
                   value={`${APP_DOMAIN}/share/${link.dashboardId}`}
                   variant="neutral"
-                  className="h-7 items-center justify-center rounded-md border border-neutral-300 bg-white p-1.5 hover:bg-gray-50 active:bg-gray-100"
+                  className="h-7 items-center justify-center rounded-md border border-neutral-300 bg-white p-1.5 hover:bg-neutral-50 active:bg-neutral-100"
                 />
               )}
             </div>
@@ -238,10 +257,10 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
         }
       >
         <Link
-          href={`/${slug}/analytics?domain=${domain}&key=${key}`}
+          href={`/${slug}/analytics?domain=${domain}&key=${key}&interval=${plan === "free" ? "30d" : plan === "pro" ? "1y" : "all"}`}
           className={cn(
-            "overflow-hidden rounded-md border border-gray-200 bg-gray-50 p-0.5 text-sm text-gray-600 transition-colors",
-            variant === "loose" ? "hover:bg-gray-100" : "hover:bg-white",
+            "overflow-hidden rounded-md border border-neutral-200 bg-neutral-50 p-0.5 text-sm text-neutral-600 transition-colors",
+            variant === "loose" ? "hover:bg-neutral-100" : "hover:bg-white",
           )}
         >
           <div className="hidden items-center gap-0.5 sm:flex">
@@ -268,8 +287,8 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
               ),
             )}
             {link.dashboardId && (
-              <div className="border-l border-gray-200 px-1.5">
-                <ReferredVia className="h-4 w-4 shrink-0 text-gray-600" />
+              <div className="border-l border-neutral-200 px-1.5">
+                <ReferredVia className="h-4 w-4 shrink-0 text-neutral-600" />
               </div>
             )}
           </div>

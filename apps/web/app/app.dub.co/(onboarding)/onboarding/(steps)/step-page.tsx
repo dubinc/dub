@@ -27,7 +27,7 @@ export function StepPage({
     >
       {Icon && <StepIcon icon={Icon} />}
       {paidPlanRequired && (
-        <div className="mt-6 flex items-center gap-1.5 rounded-full bg-gray-200/50 px-2.5 py-0.5 text-xs font-medium text-gray-700 shadow-inner">
+        <div className="mt-6 flex items-center gap-1.5 rounded-full bg-neutral-200/50 px-2.5 py-0.5 text-xs font-medium text-neutral-700 shadow-inner">
           <Crown className="size-3" />
           Paid plan required
         </div>
@@ -35,9 +35,9 @@ export function StepPage({
       <h1 className="mt-4 text-center text-2xl font-medium leading-tight">
         {title}
       </h1>
-      <p className="mt-1.5 text-center text-base leading-tight text-gray-500">
+      <div className="mt-1.5 text-center text-base leading-tight text-neutral-500">
         {description}
-      </p>
+      </div>
       <div className="mt-8 w-full">{children}</div>
     </div>
   );
@@ -45,7 +45,7 @@ export function StepPage({
 
 function StepIcon({ icon: Icon }: { icon: Icon }) {
   return (
-    <div className="rounded-full border border-gray-200 bg-white p-2.5">
+    <div className="rounded-full border border-neutral-200 bg-white p-2.5">
       <Icon className="size-[18px]" />
     </div>
   );

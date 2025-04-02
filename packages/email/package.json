@@ -27,19 +27,24 @@
   },
   "exports": {
     ".": {
-      "import": "./src/index.ts"
+      "import": "./src/index.ts",
+      "require": "./src/index.ts"
     },
     "./templates/*": {
-      "import": "./src/templates/*.tsx"
+      "import": "./src/templates/*.tsx",
+      "require": "./src/templates/*.tsx"
     },
     "./resend": {
-      "import": "./src/resend/index.ts"
+      "import": "./src/resend/index.ts",
+      "require": "./src/resend/index.ts"
     },
     "./resend/*": {
-      "import": "./src/resend/*.ts"
+      "import": "./src/resend/*.ts",
+      "require": "./src/resend/*.ts"
     },
     "./send-via-nodemailer": {
-      "import": "./src/send-via-nodemailer.ts"
+      "import": "./src/send-via-nodemailer.ts",
+      "require": "./src/send-via-nodemailer.ts"
     }
   }
 }

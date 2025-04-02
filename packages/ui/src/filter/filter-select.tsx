@@ -174,7 +174,7 @@ export function FilterSelect({
               !selectedFilter || selectedFilter.shouldFilter !== false
             }
           >
-            <div className="flex items-center overflow-hidden rounded-t-lg border-b border-gray-200">
+            <div className="flex items-center overflow-hidden rounded-t-lg border-b border-neutral-200">
               <CommandInput
                 placeholder={`${selectedFilter?.label || "Filter"}...`}
                 value={search}
@@ -205,7 +205,7 @@ export function FilterSelect({
                 }}
               />
               {!selectedFilter && (
-                <kbd className="mr-2 hidden shrink-0 rounded border border-gray-200 bg-gray-100 px-2 py-0.5 text-xs font-light text-gray-500 md:block">
+                <kbd className="mr-2 hidden shrink-0 rounded border border-neutral-200 bg-neutral-100 px-2 py-0.5 text-xs font-light text-neutral-500 md:block">
                   F
                 </kbd>
               )}
@@ -226,7 +226,7 @@ export function FilterSelect({
                           onSelect={() => openFilter(filter.key)}
                         />
                         {filter.separatorAfter && (
-                          <Command.Separator className="-mx-1 my-1 border-b border-gray-200" />
+                          <Command.Separator className="-mx-1 my-1 border-b border-neutral-200" />
                         )}
                       </Fragment>
                     ))
@@ -284,13 +284,13 @@ export function FilterSelect({
         type="button"
         className={cn(
           "group flex h-10 cursor-pointer appearance-none items-center gap-x-2 truncate rounded-md border px-3 text-sm outline-none transition-all",
-          "border-gray-200 bg-white text-gray-900 placeholder-gray-400",
-          "focus-visible:border-gray-500 data-[state=open]:border-gray-500 data-[state=open]:ring-4 data-[state=open]:ring-gray-200",
+          "border-neutral-200 bg-white text-neutral-900 placeholder-neutral-400",
+          "focus-visible:border-neutral-500 data-[state=open]:border-neutral-500 data-[state=open]:ring-4 data-[state=open]:ring-neutral-200",
           className,
         )}
       >
         <ListFilter className="size-4 shrink-0" />
-        <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-left text-gray-900">
+        <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-left text-neutral-900">
           {children ?? "Filter"}
         </span>
         {activeFilters?.length ? (
@@ -299,7 +299,7 @@ export function FilterSelect({
           </div>
         ) : (
           <ChevronDown
-            className={`size-4 shrink-0 text-gray-400 transition-transform duration-75 group-data-[state=open]:rotate-180`}
+            className={`size-4 shrink-0 text-neutral-400 transition-transform duration-75 group-data-[state=open]:rotate-180`}
           />
         )}
       </button>
@@ -327,7 +327,7 @@ const CommandInput = (
     <Command.Input
       {...props}
       size={1}
-      className="grow border-0 py-3 pl-4 pr-2 outline-none placeholder:text-gray-400 focus:ring-0 sm:text-sm"
+      className="grow border-0 py-3 pl-4 pr-2 outline-none placeholder:text-neutral-400 focus:ring-0 sm:text-sm"
       onKeyDown={(e) => {
         props.onKeyDown?.(e);
 
@@ -394,7 +394,7 @@ function FilterButton({
     <Command.Item
       className={cn(
         "flex cursor-pointer items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm",
-        "data-[selected=true]:bg-gray-100",
+        "data-[selected=true]:bg-neutral-100",
       )}
       onPointerDown={(e) => {
         e.preventDefault();
@@ -408,11 +408,11 @@ function FilterButton({
       onSelect={onSelect}
       value={label + option?.value}
     >
-      <span className="shrink-0 text-gray-600">
+      <span className="shrink-0 text-neutral-600">
         {isReactNode(Icon) ? Icon : <Icon className="h-4 w-4" />}
       </span>
       {truncate(label, 48)}
-      <div className="ml-1 flex shrink-0 grow justify-end text-gray-500">
+      <div className="ml-1 flex shrink-0 grow justify-end text-neutral-500">
         {right}
       </div>
     </Command.Item>
@@ -429,16 +429,16 @@ const CommandEmpty = ({
 }>) => {
   if (askAI && search) {
     return (
-      <Command.Empty className="flex min-w-[180px] items-center space-x-2 rounded-md bg-gray-100 px-3 py-2">
+      <Command.Empty className="flex min-w-[180px] items-center space-x-2 rounded-md bg-neutral-100 px-3 py-2">
         <Magic className="h-4 w-4" />
-        <p className="text-center text-sm text-gray-600">
+        <p className="text-center text-sm text-neutral-600">
           Ask AI <span className="text-black">"{search}"</span>
         </p>
       </Command.Empty>
     );
   } else {
     return (
-      <Command.Empty className="p-2 text-center text-sm text-gray-400">
+      <Command.Empty className="p-2 text-center text-sm text-neutral-400">
         {children}
       </Command.Empty>
     );

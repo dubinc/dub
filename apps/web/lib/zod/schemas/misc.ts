@@ -1,6 +1,8 @@
 import { plans, roles } from "@/lib/types";
 import z from "@/lib/zod";
 
+export const RECURRING_MAX_DURATIONS = [0, 3, 6, 12, 18, 24];
+
 export const planSchema = z.enum(plans).describe("The plan of the workspace.");
 
 export const roleSchema = z
@@ -40,3 +42,10 @@ export const getPaginationQuerySchema = ({ pageSize }: { pageSize: number }) =>
         example: 50,
       }),
   });
+
+export const maxDurationSchema = z.coerce
+  .number()
+  .refine((val) => RECURRING_MAX_DURATIONS.includes(val), {
+    message: `Max duration must be ${RECURRING_MAX_DURATIONS.join(", ")}`,
+  })
+  .nullish();

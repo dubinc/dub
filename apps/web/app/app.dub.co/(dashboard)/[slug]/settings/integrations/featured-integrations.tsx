@@ -172,8 +172,8 @@ export function FeaturedIntegrationsLoader() {
     <div>
       <div className="overflow-hidden">
         <div className="-ml-4 flex -translate-x-1/2">
-          {[...Array(3)].map(() => (
-            <div className="min-w-0 shrink-0 grow-0 basis-2/3 pl-4">
+          {[...Array(3)].map((_, idx) => (
+            <div key={idx} className="min-w-0 shrink-0 grow-0 basis-2/3 pl-4">
               <div className="border border-transparent">
                 <div className="aspect-[900/580] animate-pulse rounded-lg bg-neutral-200" />
               </div>
@@ -182,8 +182,11 @@ export function FeaturedIntegrationsLoader() {
         </div>
       </div>
       <div className="mt-6 flex items-center justify-center gap-4 pb-1">
-        {[...Array(4)].map(() => (
-          <div className="size-8 animate-pulse rounded-lg bg-neutral-200" />
+        {[...Array(4)].map((_, idx) => (
+          <div
+            key={idx}
+            className="size-8 animate-pulse rounded-lg bg-neutral-200"
+          />
         ))}
       </div>
     </div>

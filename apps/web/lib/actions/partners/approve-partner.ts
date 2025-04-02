@@ -1,5 +1,9 @@
 "use server";
 
+import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
+import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
+import { sendEmail } from "@dub/email";
+import { PartnerApplicationApproved } from "@dub/email/templates/partner-application-approved";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { getLinkOrThrow } from "../../api/links/get-link-or-throw";
@@ -33,11 +37,11 @@ export const approvePartnerAction = authActionClient
       }),
     ]);
 
-    if (link.programId) {
+    if (link.partnerId) {
       throw new Error("Link is already associated with another partner.");
     }
 
-    const [_, updatedLink] = await Promise.all([
+    const [programEnrollment, updatedLink, reward] = await Promise.all([
       prisma.programEnrollment.update({
         where: {
           partnerId_programId: {
@@ -47,18 +51,21 @@ export const approvePartnerAction = authActionClient
         },
         data: {
           status: "approved",
-          linkId: link.id,
-          discountId: program?.discounts?.[0]?.id || null,
+        },
+        include: {
+          partner: true,
         },
       }),
 
-      // update link to have programId
+      // update link to have programId and partnerId
       prisma.link.update({
         where: {
           id: linkId,
         },
         data: {
           programId,
+          partnerId,
+          folderId: program.defaultFolderId,
         },
         include: {
           tags: {
@@ -68,11 +75,44 @@ export const approvePartnerAction = authActionClient
           },
         },
       }),
+
+      determinePartnerReward({
+        programId,
+        partnerId,
+        event: "sale",
+      }),
     ]);
 
-    waitUntil(recordLink(updatedLink));
+    const partner = programEnrollment.partner;
 
-    // TODO: [partners] Notify partner of approval?
+    waitUntil(
+      Promise.allSettled([
+        recordLink(updatedLink),
+
+        sendEmail({
+          subject: `Your application to join ${program.name} partner program has been approved!`,
+          email: partner.email!,
+          react: PartnerApplicationApproved({
+            program: {
+              name: program.name,
+              logo: program.logo,
+              slug: program.slug,
+              supportEmail: program.supportEmail,
+            },
+            partner: {
+              name: partner.name,
+              email: partner.email!,
+              payoutsEnabled: Boolean(partner.payoutsEnabledAt),
+            },
+            rewardDescription: ProgramRewardDescription({
+              reward,
+            }),
+          }),
+        }),
+
+        // TODO: send partner.created webhook
+      ]),
+    );
 
     return {
       ok: true,

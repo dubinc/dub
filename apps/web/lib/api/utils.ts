@@ -1,4 +1,3 @@
-import { nanoid } from "@dub/utils";
 import { ipAddress } from "@vercel/functions";
 import { getToken } from "next-auth/jwt";
 import { headers } from "next/headers";
@@ -10,6 +9,7 @@ export const parseRequestBody = async (req: Request) => {
   try {
     return await req.json();
   } catch (e) {
+    console.error(e);
     throw new DubApiError({
       code: "bad_request",
       message:
@@ -50,35 +50,4 @@ export const getIP = () => {
   }
 
   return headers().get("x-real-ip") ?? FALLBACK_IP_ADDRESS;
-};
-
-const prefixes = [
-  "user_",
-  "link_",
-  "tag_",
-  "dom_",
-  "po_",
-  "dash_",
-  "int_",
-  "app_",
-  "cus_",
-  "utm_",
-  "wh_",
-  "pgi_",
-  "pge_",
-  "pn_",
-  "sale_",
-  "pga_",
-  "dub_embed_",
-  "inv_",
-] as const;
-
-export const createId = ({
-  prefix,
-  length = 24,
-}: {
-  prefix?: (typeof prefixes)[number];
-  length?: number;
-}) => {
-  return `${prefix || ""}${nanoid(length)}`;
 };

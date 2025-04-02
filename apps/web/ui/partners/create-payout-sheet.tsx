@@ -1,45 +1,18 @@
 "use client";
 
 import { createManualPayoutAction } from "@/lib/actions/partners/create-manual-payout";
-import { AnalyticsResponseOptions } from "@/lib/analytics/types";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartners from "@/lib/swr/use-partners";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { createManualPayoutSchema } from "@/lib/zod/schemas/payouts";
 import { X } from "@/ui/shared/icons";
-import { PayoutType } from "@dub/prisma/client";
-import {
-  Button,
-  Combobox,
-  DateRangePicker,
-  Sheet,
-  useEnterSubmit,
-} from "@dub/ui";
-import {
-  capitalize,
-  cn,
-  currencyFormatter,
-  DICEBEAR_AVATAR_URL,
-  fetcher,
-  formatDate,
-} from "@dub/utils";
-import { nFormatter } from "@dub/utils/src/functions";
-import {
-  endOfMonth,
-  endOfQuarter,
-  endOfYear,
-  startOfMonth,
-  startOfQuarter,
-  startOfYear,
-  subMonths,
-} from "date-fns";
+import { Button, Combobox, Sheet, useEnterSubmit } from "@dub/ui";
+import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useParams, useRouter } from "next/navigation";
 import {
   Dispatch,
-  Fragment,
-  ReactNode,
   SetStateAction,
   useId,
   useMemo,
@@ -48,7 +21,6 @@ import {
 } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import useSWR from "swr";
 import { z } from "zod";
 
 interface CreatePayoutSheetProps {
@@ -56,28 +28,11 @@ interface CreatePayoutSheetProps {
   partnerId?: string;
 }
 
-const schema = createManualPayoutSchema
-  .pick({
-    type: true,
-    amount: true,
-    description: true,
-    partnerId: true,
-  })
-  .and(
-    z.object({
-      start: z.date().optional(),
-      end: z.date().optional(),
-    }),
-  )
-  .refine(
-    (data) => {
-      return data.type === "custom" || (data.start && data.end);
-    },
-    {
-      message: "Please select a date range",
-      path: ["start"],
-    },
-  );
+const schema = createManualPayoutSchema.pick({
+  amount: true,
+  description: true,
+  partnerId: true,
+});
 
 type FormData = z.infer<typeof schema>;
 
@@ -103,28 +58,11 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
     formState: { errors },
   } = useForm<FormData>({
     defaultValues: {
-      type: "custom",
       partnerId: props.partnerId,
     },
   });
 
-  const { type: payoutType, start, end, amount, partnerId } = watch();
-
-  // get start and end dates in UTC
-  const { startDate, endDate } = useMemo(() => {
-    return {
-      startDate: start
-        ? new Date(
-            start.getTime() - start.getTimezoneOffset() * 60000,
-          ).toISOString()
-        : undefined,
-      endDate: end
-        ? new Date(
-            end.getTime() - end.getTimezoneOffset() * 60000,
-          ).toISOString()
-        : undefined,
-    };
-  }, [start, end]);
+  const { amount, partnerId } = watch();
 
   const partnerOptions = useMemo(() => {
     return partners?.map((partner) => ({
@@ -171,8 +109,6 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
       ...data,
       workspaceId,
       programId: program.id,
-      start: startDate,
-      end: endDate,
       amount: amount * 100,
       partnerId,
     });
@@ -180,115 +116,7 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
 
   const selectedPartner = partners?.find((p) => p.id === partnerId);
 
-  const { data: totalEvents, isValidating } = useSWR<{
-    [key in AnalyticsResponseOptions]: number;
-  }>(
-    payoutType !== "custom" &&
-      startDate &&
-      endDate &&
-      program &&
-      selectedPartner &&
-      `/api/analytics?${new URLSearchParams({
-        event: payoutType,
-        workspaceId: workspaceId!,
-        programId: program.id,
-        partnerId: selectedPartner.id,
-        start: startDate,
-        end: endDate,
-      }).toString()}`,
-    fetcher,
-  );
-
-  // Calculate payout amount
-  const payoutAmount = useMemo(() => {
-    if (payoutType === "custom") {
-      return amount;
-    }
-
-    const quantity = totalEvents?.[payoutType];
-
-    if (!quantity || !amount) {
-      return;
-    }
-
-    return quantity * amount;
-  }, [payoutType, totalEvents, amount]);
-
-  // Invoice summary
-  const invoiceData = useMemo(() => {
-    const quantity = totalEvents?.[payoutType];
-    const amountAsNumber = amount ? Number(amount) : undefined;
-
-    return {
-      ...(selectedPartner && {
-        Partner: (
-          <div className="flex items-center gap-2">
-            <img
-              src={
-                selectedPartner.image ||
-                `${DICEBEAR_AVATAR_URL}${selectedPartner.id}`
-              }
-              alt={selectedPartner.name}
-              className="size-5 rounded-full"
-            />
-            <div>{selectedPartner.name}</div>
-          </div>
-        ),
-      }),
-
-      ...(start &&
-        end && {
-          Period: `${formatDate(start, {
-            month: "short",
-            year:
-              new Date(start).getFullYear() === new Date(end).getFullYear()
-                ? undefined
-                : "numeric",
-          })}-${formatDate(end, { month: "short" })}`,
-        }),
-
-      ...(payoutType !== "custom" && {
-        [capitalize(payoutType) as string]: isValidating ? (
-          <div className="h-4 w-12 animate-pulse rounded-md bg-neutral-200" />
-        ) : (
-          nFormatter(quantity, {
-            full: true,
-          })
-        ),
-
-        [`Reward per ${payoutType.replace(/s$/, "")}`]: amountAsNumber
-          ? currencyFormatter(amountAsNumber, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })
-          : "-",
-      }),
-
-      ...(payoutAmount && {
-        Amount: isValidating ? (
-          <div className="h-4 w-12 animate-pulse rounded-md bg-neutral-200" />
-        ) : payoutAmount ? (
-          currencyFormatter(payoutAmount, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })
-        ) : null,
-      }),
-    };
-  }, [
-    selectedPartner,
-    partners,
-    start,
-    end,
-    payoutType,
-    totalEvents,
-    amount,
-    isValidating,
-    payoutAmount,
-  ]);
-
-  const buttonDisabled =
-    isPending || isValidating || !partnerId || !payoutAmount;
+  const buttonDisabled = isPending || !partnerId;
 
   return (
     <form
@@ -312,7 +140,7 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
         <div className="flex flex-col gap-4 p-6">
           {!props.partnerId && (
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-gray-900">
+              <label className="text-sm font-medium text-neutral-900">
                 Partner
                 <span className="ml-1 font-normal text-neutral-500">
                   (required)
@@ -330,15 +158,15 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
                 }}
                 options={partnerOptions}
                 caret={true}
-                placeholder="Select partners"
+                placeholder="Select partner"
                 searchPlaceholder="Search..."
                 matchTriggerWidth
                 buttonProps={{
                   className: cn(
-                    "w-full justify-start border-gray-300 px-3",
-                    "data-[state=open]:ring-1 data-[state=open]:ring-gray-500 data-[state=open]:border-gray-500",
-                    "focus:ring-1 focus:ring-gray-500 focus:border-gray-500 transition-none",
-                    !partnerId && "text-gray-400",
+                    "w-full justify-start border-neutral-300 px-3",
+                    "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
+                    "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
+                    !partnerId && "text-neutral-400",
                     errors.partnerId && "border-red-500",
                   ),
                 }}
@@ -351,122 +179,12 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
             </div>
           )}
 
-          <div className="flex flex-col gap-2">
-            <label
-              htmlFor={dateRangePickerId}
-              className="block text-sm font-medium text-gray-900"
-            >
-              Payout period
-              {payoutType === "custom" && (
-                <span className="ml-1 font-normal text-neutral-500">
-                  (optional)
-                </span>
-              )}
-            </label>
-            <DateRangePicker
-              id={dateRangePickerId}
-              className="border-gray-300"
-              value={
-                start && end
-                  ? {
-                      from: start,
-                      to: end,
-                    }
-                  : undefined
-              }
-              onChange={(range, preset) => {
-                if (preset) {
-                  setValue("start", preset.dateRange.from);
-                  setValue("end", preset.dateRange.to);
-                } else if (range) {
-                  setValue("start", range.from);
-                  setValue("end", range.to);
-                }
-
-                clearErrors("start");
-                clearErrors("end");
-              }}
-              align="end"
-              presets={[
-                {
-                  id: "this-month",
-                  label: "This month",
-                  dateRange: {
-                    from: startOfMonth(new Date()),
-                    to: endOfMonth(new Date()),
-                  },
-                },
-                {
-                  id: "last-month",
-                  label: "Last month",
-                  dateRange: {
-                    from: startOfMonth(subMonths(new Date(), 1)),
-                    to: endOfMonth(subMonths(new Date(), 1)),
-                  },
-                },
-                {
-                  id: "this-quarter",
-                  label: "This quarter",
-                  dateRange: {
-                    from: startOfQuarter(new Date()),
-                    to: endOfQuarter(new Date()),
-                  },
-                },
-                {
-                  id: "this-year",
-                  label: "This year",
-                  dateRange: {
-                    from: startOfYear(new Date()),
-                    to: endOfYear(new Date()),
-                  },
-                },
-              ]}
-              hasError={!!(errors.start || errors.end)}
-            />
-            {(errors.start || errors.end) && (
-              <p className="text-xs text-red-600">{errors.start?.message}</p>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label
-              htmlFor="type"
-              className="flex items-center space-x-2 text-sm font-medium text-gray-900"
-            >
-              Reward type
-            </label>
-            <select
-              {...register("type", { required: true })}
-              className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-              onChange={(e) => {
-                const type = e.target.value as Exclude<PayoutType, "sales">;
-
-                setValue("type", type);
-
-                if (type === "custom") {
-                  clearErrors(["start", "end"]);
-                }
-
-                // @ts-ignore
-                setValue("amount", null);
-              }}
-            >
-              {Object.values(PayoutType)
-                .filter((type) => type !== "sales")
-                .map((type) => (
-                  <option key={type} value={type}>
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
-                  </option>
-                ))}
-            </select>
-          </div>
-
           <div>
             <label
               htmlFor="amount"
               className="flex justify-between text-sm font-medium text-neutral-800"
             >
-              Reward amount
+              Amount
             </label>
             <div className="relative mt-2 rounded-md shadow-sm">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
@@ -475,8 +193,7 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
               <input
                 className={cn(
                   "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                  "pl-6 pr-[6.5rem]",
-                  payoutType === "custom" && "pr-12",
+                  "pl-6 pr-12",
                   errors.amount &&
                     "border-red-600 focus:border-red-500 focus:ring-red-600",
                 )}
@@ -489,8 +206,6 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
               />
               <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
                 USD
-                {payoutType !== "custom" &&
-                  ` per ${payoutType.replace(/s$/, "")}`}
               </span>
             </div>
           </div>
@@ -498,7 +213,7 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
           <div className="flex flex-col gap-2">
             <label
               htmlFor="description"
-              className="flex items-center space-x-2 text-sm font-medium text-gray-900"
+              className="flex items-center space-x-2 text-sm font-medium text-neutral-900"
             >
               Description{" "}
               <span className="ml-1 font-normal text-neutral-500">
@@ -507,28 +222,12 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
             </label>
             <textarea
               {...register("description")}
-              className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
-              placeholder="A note to partner about this payout. Max 190 characters."
+              className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+              placeholder="A note to the partner about this payout. Max 190 characters."
               maxLength={190}
               onKeyDown={handleKeyDown}
             />
           </div>
-
-          {partnerId && Object.entries(invoiceData).length > 0 && (
-            <div className="flex flex-col gap-2">
-              <p className="text-sm font-medium text-neutral-800">Summary</p>
-              <div className="grid grid-cols-2 gap-3 rounded-md border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-600">
-                {Object.entries(invoiceData).map(([key, value]) => (
-                  <Fragment key={key}>
-                    <div className="font-medium text-neutral-500">{key}</div>
-                    <div className="text-neutral-800">
-                      {value as ReactNode | string}
-                    </div>
-                  </Fragment>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </div>
 

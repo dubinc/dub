@@ -29,26 +29,21 @@ export function ConfirmEmailChange({
       <Preview>Confirm your email address change</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
-          <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
+          <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
             <Section className="mt-8">
-              <Img
-                src={DUB_WORDMARK}
-                height="40"
-                alt="Dub"
-                className="mx-auto my-0"
-              />
+              <Img src={DUB_WORDMARK} height="32" alt="Dub" />
             </Section>
-            <Heading className="mx-0 my-7 p-0 text-center text-xl font-semibold text-black">
+            <Heading className="mx-0 my-7 p-0 text-lg font-medium text-black">
               Confirm your email address change
             </Heading>
             <Text className="mx-auto text-sm leading-6">
               Follow this link to confirm the update to your email from{" "}
               <strong>{email}</strong> to <strong>{newEmail}</strong>.
             </Text>
-            <Section className="my-8 text-center">
+            <Section className="my-8">
               <Link
                 href={confirmUrl}
-                className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
+                className="rounded-lg bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
               >
                 <strong>Confirm email change</strong>
               </Link>

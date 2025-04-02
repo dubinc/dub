@@ -183,10 +183,10 @@ function FunnelChartInner({
         >
           <div
             className={cn(
-              "rounded-lg border border-gray-200 bg-white text-base shadow-sm",
+              "rounded-lg border border-neutral-200 bg-white text-base shadow-sm",
             )}
           >
-            <p className="border-b border-gray-200 px-3 py-2 text-sm text-gray-900 sm:px-4 sm:py-3">
+            <p className="border-b border-neutral-200 px-3 py-2 text-sm text-neutral-900 sm:px-4 sm:py-3">
               {tooltipStep.label}
             </p>
             <div className="flex flex-wrap justify-between gap-x-4 gap-y-2 px-3 py-2 text-sm sm:px-4 sm:py-3">
@@ -197,14 +197,14 @@ function FunnelChartInner({
                     "h-2 w-2 shrink-0 rounded-sm bg-current opacity-50 shadow-[inset_0_0_0_1px_#0003]",
                   )}
                 />
-                <p className="whitespace-nowrap capitalize text-gray-600">
+                <p className="whitespace-nowrap capitalize text-neutral-600">
                   {formatPercentage((tooltipStep.value / maxValue) * 100) + "%"}
                 </p>
               </div>
-              <p className="whitespace-nowrap font-medium text-gray-900">
+              <p className="whitespace-nowrap font-medium text-neutral-900">
                 {nFormatter(tooltipStep.value, { full: true })}
                 {tooltipStep.additionalValue !== undefined && (
-                  <span className="text-gray-500">
+                  <span className="text-neutral-500">
                     {" "}
                     (${nFormatter(tooltipStep.additionalValue / 100)})
                   </span>

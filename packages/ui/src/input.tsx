@@ -23,7 +23,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           <input
             type={isPasswordVisible ? "text" : type}
             className={cn(
-              "w-full max-w-md rounded-md border border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm",
+              "w-full max-w-md rounded-md border border-neutral-300 text-neutral-900 placeholder-neutral-400 read-only:bg-neutral-100 read-only:text-neutral-500 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
               props.error &&
                 "border-red-500 focus:border-red-500 focus:ring-red-500",
               className,
@@ -60,12 +60,12 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               >
                 {isPasswordVisible ? (
                   <Eye
-                    className="size-4 flex-none text-gray-500 transition hover:text-gray-700"
+                    className="size-4 flex-none text-neutral-500 transition hover:text-neutral-700"
                     aria-hidden
                   />
                 ) : (
                   <EyeSlash
-                    className="size-4 flex-none text-gray-500 transition hover:text-gray-700"
+                    className="size-4 flex-none text-neutral-500 transition hover:text-neutral-700"
                     aria-hidden
                   />
                 )}

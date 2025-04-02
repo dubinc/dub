@@ -2,7 +2,6 @@
 
 import { useRouterStuff } from "@dub/ui";
 import {
-  ChartActivity2,
   CircleDollar,
   ColorPalette2,
   Gauge6,
@@ -20,6 +19,7 @@ import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
 import { PartnerProgramDropdown } from "./partner-program-dropdown";
 import { PayoutStats } from "./payout-stats";
+import { ProgramHelpSupport } from "./program-help-support";
 import { SidebarNav, SidebarNavAreas } from "./sidebar-nav";
 
 const NAV_AREAS: SidebarNavAreas<{
@@ -67,14 +67,9 @@ const NAV_AREAS: SidebarNavAreas<{
             exact: true,
           },
           {
-            name: "Analytics",
-            icon: ChartActivity2,
-            href: `/programs/${programSlug}/analytics${queryString}`,
-          },
-          {
-            name: "Sales",
+            name: "Earnings",
             icon: CircleDollar,
-            href: `/programs/${programSlug}/sales${queryString}`,
+            href: `/programs/${programSlug}/earnings${queryString}`,
           },
           {
             name: "Links",
@@ -178,7 +173,12 @@ export function PartnersSidebarNav({
       toolContent={toolContent}
       newsContent={newsContent}
       switcher={<PartnerProgramDropdown />}
-      bottom={<PayoutStats />}
+      bottom={
+        <>
+          {programSlug && <ProgramHelpSupport />}
+          <PayoutStats />
+        </>
+      }
     />
   );
 }

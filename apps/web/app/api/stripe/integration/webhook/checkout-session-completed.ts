@@ -1,7 +1,9 @@
+import { convertCurrency } from "@/lib/analytics/convert-currency";
+import { createId } from "@/lib/api/create-id";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
-import { createSaleData } from "@/lib/api/sales/create-sale-data";
-import { createId } from "@/lib/api/utils";
+import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
+import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import {
   getClickEvent,
   getLeadEvent,
@@ -18,7 +20,7 @@ import z from "@/lib/zod";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { prisma } from "@dub/prisma";
-import { Customer } from "@dub/prisma/client";
+import { Customer, EventType } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
@@ -64,22 +66,6 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       // Skip if customer not found
       console.log(error);
       return `Customer with dubCustomerId ${dubCustomerId} not found, skipping...`;
-    }
-
-    if (invoiceId) {
-      // Skip if invoice id is already processed
-      const ok = await redis.set(`dub_sale_events:invoiceId:${invoiceId}`, 1, {
-        ex: 60 * 60 * 24 * 7,
-        nx: true,
-      });
-
-      if (!ok) {
-        console.info(
-          "[Stripe Webhook] Skipping already processed invoice.",
-          invoiceId,
-        );
-        return `Invoice with ID ${invoiceId} already processed, skipping...`;
-      }
     }
 
     // Find lead
@@ -138,7 +124,8 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     const payload = {
       name: stripeCustomerName,
       email: stripeCustomerEmail,
-      externalId: stripeCustomerId, // using Stripe customer ID as externalId
+      // stripeCustomerId can potentially be null, so we use email as fallback
+      externalId: stripeCustomerId || stripeCustomerEmail,
       projectId: workspace.id,
       projectConnectId: stripeAccountId,
       stripeCustomerId,
@@ -164,10 +151,12 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       });
     }
 
+    // remove timestamp from clickEvent
+    const { timestamp, ...rest } = clickEvent;
     leadEvent = {
-      ...clickEvent,
+      ...rest,
       event_id: nanoid(16),
-      event_name: "Checkout session completed",
+      event_name: "Sign up",
       customer_id: customer.id,
       metadata: "",
     };
@@ -175,6 +164,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     if (!existingCustomer) {
       await recordLead(leadEvent);
     }
+
     linkId = clickEvent.link_id;
 
     // if it's not either a regular stripe checkout setup or a stripe checkout link,
@@ -187,16 +177,54 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     return `Checkout session completed for Stripe customer ${stripeCustomerId} with invoice ID ${invoiceId} but amount is 0, skipping...`;
   }
 
-  // support for Stripe Adaptive Pricing: https://docs.stripe.com/payments/checkout/adaptive-pricing
-  if (charge.currency !== "usd" && charge.currency_conversion) {
-    charge.amount_total = charge.currency_conversion.amount_total;
-    charge.currency = charge.currency_conversion.source_currency;
+  if (charge.mode === "setup") {
+    return `Checkout session completed for Stripe customer ${stripeCustomerId} but mode is setup, skipping...`;
   }
+
+  if (invoiceId) {
+    // Skip if invoice id is already processed
+    const ok = await redis.set(`dub_sale_events:invoiceId:${invoiceId}`, 1, {
+      ex: 60 * 60 * 24 * 7,
+      nx: true,
+    });
+
+    if (!ok) {
+      console.info(
+        "[Stripe Webhook] Skipping already processed invoice.",
+        invoiceId,
+      );
+      return `Invoice with ID ${invoiceId} already processed, skipping...`;
+    }
+  }
+
+  if (charge.currency && charge.currency !== "usd" && charge.amount_total) {
+    // support for Stripe Adaptive Pricing: https://docs.stripe.com/payments/checkout/adaptive-pricing
+    if (charge.currency_conversion) {
+      charge.currency = charge.currency_conversion.source_currency;
+      charge.amount_total = charge.currency_conversion.amount_total;
+
+      // if Stripe Adaptive Pricing is not enabled, we convert the amount to USD based on the current FX rate
+      // TODO: allow custom "defaultCurrency" on workspace table in the future
+    } else {
+      const { currency: convertedCurrency, amount: convertedAmount } =
+        await convertCurrency({
+          currency: charge.currency,
+          amount: charge.amount_total,
+        });
+
+      charge.currency = convertedCurrency;
+      charge.amount_total = convertedAmount;
+    }
+  }
+
+  const eventId = nanoid(16);
 
   const saleData = {
     ...leadEvent,
-    event_id: nanoid(16),
-    event_name: "Subscription creation",
+    event_id: eventId,
+    // if the charge is a one-time payment, we set the event name to "Purchase"
+    event_name:
+      charge.mode === "payment" ? "Purchase" : "Subscription creation",
     payment_processor: "stripe",
     amount: charge.amount_total!,
     currency: charge.currency!,
@@ -255,64 +283,45 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   ]);
 
   // for program links
-  if (link?.programId) {
-    const { program, partnerId, commissionAmount } =
-      await prisma.programEnrollment.findFirstOrThrow({
-        where: {
-          links: {
-            some: {
-              id: link.id,
-            },
-          },
-        },
-        select: {
-          program: true,
-          partnerId: true,
-          commissionAmount: true,
+  if (link && link.programId && link.partnerId) {
+    const reward = await determinePartnerReward({
+      programId: link.programId,
+      partnerId: link.partnerId,
+      event: "sale",
+    });
+
+    if (reward) {
+      const earnings = calculateSaleEarnings({
+        reward,
+        sale: {
+          quantity: 1,
+          amount: saleData.amount,
         },
       });
 
-    const saleRecord = createSaleData({
-      program,
-      partner: {
-        id: partnerId,
-        commissionAmount,
-      },
-      customer: {
-        id: saleData.customer_id,
-        linkId: saleData.link_id,
-        clickId: saleData.click_id,
-      },
-      sale: {
-        amount: saleData.amount,
-        currency: saleData.currency,
-        invoiceId: saleData.invoice_id,
-        eventId: saleData.event_id,
-        paymentProcessor: saleData.payment_processor,
-      },
-      metadata: {
-        ...leadEvent,
-        stripeMetadata: charge,
-      },
-    });
-
-    await prisma.sale.create({
-      data: saleRecord,
-    });
-
-    waitUntil(
-      notifyPartnerSale({
-        partner: {
-          id: partnerId,
-          referralLink: link.shortLink,
+      const commission = await prisma.commission.create({
+        data: {
+          id: createId({ prefix: "cm_" }),
+          linkId: link.id,
+          programId: link.programId,
+          partnerId: link.partnerId,
+          customerId: customer.id,
+          eventId,
+          quantity: 1,
+          type: EventType.sale,
+          amount: saleData.amount,
+          earnings,
+          invoiceId,
         },
-        program,
-        sale: {
-          amount: saleRecord.amount,
-          earnings: saleRecord.earnings,
-        },
-      }),
-    );
+      });
+
+      waitUntil(
+        notifyPartnerSale({
+          link,
+          commission,
+        }),
+      );
+    }
   }
 
   waitUntil(

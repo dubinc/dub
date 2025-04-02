@@ -67,15 +67,15 @@ export const POST = withWorkspace(
           linkId: { in: unclaimedLinks.map((link) => link!.id) },
         },
       }),
-      propagateBulkLinkChanges(
-        unclaimedLinks.map((link) => ({
+      propagateBulkLinkChanges({
+        links: unclaimedLinks.map((link) => ({
           ...link!,
           userId: session.user.id,
           projectId: workspace.id,
           publicStats: false,
           tags: [],
         })),
-      ),
+      }),
       updateLinksUsage({
         workspaceId: workspace.id,
         increment: unclaimedLinks.length,

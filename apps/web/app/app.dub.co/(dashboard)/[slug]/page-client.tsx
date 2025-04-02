@@ -1,7 +1,13 @@
 "use client";
 
+import {
+  useCheckFolderPermission,
+  useFolderPermissions,
+} from "@/lib/swr/use-folder-permissions";
+import { useIsMegaFolder } from "@/lib/swr/use-is-mega-folder";
 import useLinks from "@/lib/swr/use-links";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { RequestFolderEditAccessButton } from "@/ui/folders/request-edit-button";
 import LinkDisplay from "@/ui/links/link-display";
 import LinksContainer from "@/ui/links/links-container";
 import { LinksDisplayProvider } from "@/ui/links/links-display-provider";
@@ -19,19 +25,13 @@ import {
   Popover,
   Tooltip,
   TooltipContent,
-  useMediaQuery,
+  useRouterStuff,
 } from "@dub/ui";
 import { Download, Globe, TableIcon, Tag } from "@dub/ui/icons";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
-import {
-  Dispatch,
-  ReactNode,
-  SetStateAction,
-  useEffect,
-  useState,
-} from "react";
+import { ReactNode, useEffect, useState } from "react";
 
 export default function WorkspaceLinksClient() {
   const { data: session } = useSession();
@@ -54,11 +54,11 @@ export default function WorkspaceLinksClient() {
 
 function WorkspaceLinks() {
   const router = useRouter();
-
+  const { isValidating } = useLinks();
+  const searchParams = useSearchParams();
+  const { id: workspaceId, slug } = useWorkspace();
   const { LinkBuilder, CreateLinkButton } = useLinkBuilder();
   const { AddEditTagModal, setShowAddEditTagModal } = useAddEditTagModal();
-
-  const { slug } = useWorkspace();
 
   const {
     filters,
@@ -70,71 +70,80 @@ function WorkspaceLinks() {
     setSelectedFilter,
   } = useLinkFilters();
 
-  const { isValidating } = useLinks();
+  const folderId = searchParams.get("folderId");
+  const { isMegaFolder } = useIsMegaFolder();
+
+  const { isLoading } = useFolderPermissions();
+  const canCreateLinks = useCheckFolderPermission(
+    folderId,
+    "folders.links.write",
+  );
 
   return (
     <>
       <LinkBuilder />
       <AddEditTagModal />
-      <div className="flex w-full items-center pt-3">
+      <div className="flex w-full items-center pt-2">
         <MaxWidthWrapper className="flex flex-col gap-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2 lg:flex-nowrap">
             <div className="flex w-full grow gap-2 md:w-auto">
-              <div className="grow basis-0 md:grow-0">
-                <Filter.Select
-                  filters={filters}
-                  activeFilters={activeFilters}
-                  onSelect={onSelect}
-                  onRemove={onRemove}
-                  onSearchChange={setSearch}
-                  onSelectedFilterChange={setSelectedFilter}
-                  className="w-full"
-                  emptyState={{
-                    tagIds: (
-                      <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">
-                        <div className="flex items-center justify-center rounded-2xl border border-gray-200 bg-gray-50 p-3">
-                          <Tag className="size-6 text-gray-700" />
+              {!isMegaFolder && (
+                <div className="grow basis-0 md:grow-0">
+                  <Filter.Select
+                    filters={filters}
+                    activeFilters={activeFilters}
+                    onSelect={onSelect}
+                    onRemove={onRemove}
+                    onSearchChange={setSearch}
+                    onSelectedFilterChange={setSelectedFilter}
+                    className="w-full"
+                    emptyState={{
+                      tagIds: (
+                        <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">
+                          <div className="flex items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+                            <Tag className="size-6 text-neutral-700" />
+                          </div>
+                          <p className="mt-2 font-medium text-neutral-950">
+                            No tags found
+                          </p>
+                          <p className="mx-auto mt-1 w-full max-w-[180px] text-neutral-700">
+                            Add tags to organize your links
+                          </p>
+                          <div>
+                            <Button
+                              className="mt-1 h-8"
+                              onClick={() => setShowAddEditTagModal(true)}
+                              text="Add tag"
+                            />
+                          </div>
                         </div>
-                        <p className="mt-2 font-medium text-gray-950">
-                          No tags found
-                        </p>
-                        <p className="mx-auto mt-1 w-full max-w-[180px] text-gray-700">
-                          Add tags to organize your links
-                        </p>
-                        <div>
-                          <Button
-                            className="mt-1 h-8"
-                            onClick={() => setShowAddEditTagModal(true)}
-                            text="Add tag"
-                          />
+                      ),
+                      domain: (
+                        <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">
+                          <div className="flex items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+                            <Globe className="size-6 text-neutral-700" />
+                          </div>
+                          <p className="mt-2 font-medium text-neutral-950">
+                            No domains found
+                          </p>
+                          <p className="mx-auto mt-1 w-full max-w-[180px] text-neutral-700">
+                            Add a custom domain to match your brand
+                          </p>
+                          <div>
+                            <Button
+                              className="mt-1 h-8"
+                              onClick={() =>
+                                router.push(`/${slug}/settings/domains`)
+                              }
+                              text="Add domain"
+                            />
+                          </div>
                         </div>
-                      </div>
-                    ),
-                    domain: (
-                      <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">
-                        <div className="flex items-center justify-center rounded-2xl border border-gray-200 bg-gray-50 p-3">
-                          <Globe className="size-6 text-gray-700" />
-                        </div>
-                        <p className="mt-2 font-medium text-gray-950">
-                          No domains found
-                        </p>
-                        <p className="mx-auto mt-1 w-full max-w-[180px] text-gray-700">
-                          Add a custom domain to match your brand
-                        </p>
-                        <div>
-                          <Button
-                            className="mt-1 h-8"
-                            onClick={() =>
-                              router.push(`/${slug}/settings/domains`)
-                            }
-                            text="Add domain"
-                          />
-                        </div>
-                      </div>
-                    ),
-                  }}
-                />
-              </div>
+                      ),
+                    }}
+                  />
+                </div>
+              )}
               <div className="grow basis-0 md:grow-0">
                 <LinkDisplay />
               </div>
@@ -146,10 +155,28 @@ function WorkspaceLinks() {
                   inputClassName="h-10"
                 />
               </div>
-              <div className="grow-0">
-                <CreateLinkButton />
-              </div>
-              <MoreLinkOptions />
+
+              {isLoading ? (
+                <div className="flex grow-0 animate-pulse items-center space-x-2">
+                  <div className="h-10 w-24 rounded-md bg-neutral-200" />
+                  <div className="h-10 w-10 rounded-md bg-neutral-200" />
+                </div>
+              ) : canCreateLinks ? (
+                <>
+                  <div className="hidden grow-0 sm:block">
+                    <CreateLinkButton />
+                  </div>
+                  <MoreLinkOptions />
+                </>
+              ) : (
+                <div className="w-fit">
+                  <RequestFolderEditAccessButton
+                    folderId={folderId!}
+                    workspaceId={workspaceId!}
+                    variant="primary"
+                  />
+                </div>
+              )}
             </div>
           </div>
           <Filter.List
@@ -160,19 +187,20 @@ function WorkspaceLinks() {
           />
         </MaxWidthWrapper>
       </div>
+
       <div className="mt-3">
-        <LinksContainer CreateLinkButton={CreateLinkButton} />
+        <LinksContainer
+          CreateLinkButton={canCreateLinks ? CreateLinkButton : () => <></>}
+        />
       </div>
     </>
   );
 }
 
 const MoreLinkOptions = () => {
-  const router = useRouter();
-  const { slug } = useWorkspace();
-  const { isMobile } = useMediaQuery();
+  const { queryParams } = useRouterStuff();
   const [openPopover, setOpenPopover] = useState(false);
-  const [state, setState] = useState<"default" | "import">("default");
+  const [_state, setState] = useState<"default" | "import">("default");
   const { ExportLinksModal, setShowExportLinksModal } = useExportLinksModal();
 
   useEffect(() => {
@@ -186,15 +214,18 @@ const MoreLinkOptions = () => {
         content={
           <div className="w-full md:w-52">
             <div className="grid gap-px p-2">
-              <p className="mb-1.5 mt-1 flex items-center gap-2 px-1 text-xs font-medium text-gray-500">
+              <p className="mb-1.5 mt-1 flex items-center gap-2 px-1 text-xs font-medium text-neutral-500">
                 Import Links
               </p>
               <ImportOption
                 onClick={() => {
                   setOpenPopover(false);
-                  router.push(`/${slug}?import=bitly`);
+                  queryParams({
+                    set: {
+                      import: "bitly",
+                    },
+                  });
                 }}
-                setOpenPopover={setOpenPopover}
               >
                 <IconMenu
                   text="Import from Bitly"
@@ -210,9 +241,12 @@ const MoreLinkOptions = () => {
               <ImportOption
                 onClick={() => {
                   setOpenPopover(false);
-                  router.push(`/${slug}?import=rebrandly`);
+                  queryParams({
+                    set: {
+                      import: "rebrandly",
+                    },
+                  });
                 }}
-                setOpenPopover={setOpenPopover}
               >
                 <IconMenu
                   text="Import from Rebrandly"
@@ -228,9 +262,12 @@ const MoreLinkOptions = () => {
               <ImportOption
                 onClick={() => {
                   setOpenPopover(false);
-                  router.push(`/${slug}?import=short`);
+                  queryParams({
+                    set: {
+                      import: "short",
+                    },
+                  });
                 }}
-                setOpenPopover={setOpenPopover}
               >
                 <IconMenu
                   text="Import from Short.io"
@@ -246,9 +283,12 @@ const MoreLinkOptions = () => {
               <ImportOption
                 onClick={() => {
                   setOpenPopover(false);
-                  router.push(`/${slug}?import=csv`);
+                  queryParams({
+                    set: {
+                      import: "csv",
+                    },
+                  });
                 }}
-                setOpenPopover={setOpenPopover}
               >
                 <IconMenu
                   text="Import from CSV"
@@ -256,9 +296,9 @@ const MoreLinkOptions = () => {
                 />
               </ImportOption>
             </div>
-            <div className="border-t border-gray-200" />
+            <div className="border-t border-neutral-200" />
             <div className="grid gap-px p-2">
-              <p className="mb-1.5 mt-1 flex items-center gap-2 px-1 text-xs font-medium text-gray-500">
+              <p className="mb-1.5 mt-1 flex items-center gap-2 px-1 text-xs font-medium text-neutral-500">
                 Export Links
               </p>
               <button
@@ -266,7 +306,7 @@ const MoreLinkOptions = () => {
                   setOpenPopover(false);
                   setShowExportLinksModal(true);
                 }}
-                className="w-full rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
+                className="w-full rounded-md p-2 hover:bg-neutral-100 active:bg-neutral-200"
               >
                 <IconMenu
                   text="Export as CSV"
@@ -284,7 +324,7 @@ const MoreLinkOptions = () => {
           onClick={() => setOpenPopover(!openPopover)}
           variant="secondary"
           className="w-auto px-1.5"
-          icon={<ThreeDots className="h-5 w-5 text-gray-500" />}
+          icon={<ThreeDots className="h-5 w-5 text-neutral-500" />}
         />
       </Popover>
     </>
@@ -293,11 +333,9 @@ const MoreLinkOptions = () => {
 
 function ImportOption({
   children,
-  setOpenPopover,
   onClick,
 }: {
   children: ReactNode;
-  setOpenPopover: Dispatch<SetStateAction<boolean>>;
   onClick: () => void;
 }) {
   const { slug, exceededLinks, nextPlan } = useWorkspace();
@@ -307,19 +345,19 @@ function ImportOption({
       content={
         <TooltipContent
           title="Your workspace has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
-          cta={`Upgrade to ${nextPlan.name}`}
+          cta={nextPlan ? `Upgrade to ${nextPlan.name}` : "Contact support"}
           href={`/${slug}/upgrade`}
         />
       }
     >
-      <div className="flex w-full cursor-not-allowed items-center justify-between space-x-2 rounded-md p-2 text-sm text-gray-400 [&_img]:grayscale">
+      <div className="flex w-full cursor-not-allowed items-center justify-between space-x-2 rounded-md p-2 text-sm text-neutral-400 [&_img]:grayscale">
         {children}
       </div>
     </Tooltip>
   ) : (
     <button
       onClick={onClick}
-      className="w-full rounded-md p-2 hover:bg-gray-100 active:bg-gray-200"
+      className="w-full rounded-md p-2 hover:bg-neutral-100 active:bg-neutral-200"
     >
       {children}
     </button>

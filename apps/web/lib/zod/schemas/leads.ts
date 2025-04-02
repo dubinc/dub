@@ -10,15 +10,21 @@ export const trackLeadRequestSchema = z.object({
     .trim()
     .min(1, "clickId is required")
     .describe(
-      "The ID of the click in th Dub. You can read this value from `dub_id` cookie.",
+      "The ID of the click in Dub. You can read this value from `dub_id` cookie.",
     ),
   eventName: z
     .string({ required_error: "eventName is required" })
     .trim()
     .min(1, "eventName is required")
-    .max(50)
-    .describe("The name of the event to track.")
+    .max(255)
+    .describe("The name of the lead event to track.")
     .openapi({ example: "Sign up" }),
+  eventQuantity: z
+    .number()
+    .nullish()
+    .describe(
+      "The numerical value associated with this lead event (e.g., number of provisioned seats in a free trial). If defined as N, the lead event will be tracked N times.",
+    ),
   externalId: z
     .string()
     .trim()
@@ -60,6 +66,12 @@ export const trackLeadRequestSchema = z.object({
     .nullish()
     .default(null)
     .describe("Additional metadata to be stored with the lead event"),
+  mode: z
+    .enum(["async", "wait"])
+    .default("async")
+    .describe(
+      "The mode to use for tracking the lead event. `async` will not block the request; `wait` will block the request until the lead event is fully recorded in Dub.",
+    ),
 });
 
 export const trackLeadResponseSchema = z.object({
@@ -76,7 +88,7 @@ export const trackLeadResponseSchema = z.object({
 
 export const leadEventSchemaTB = clickEventSchemaTB
   .omit({ timestamp: true }) // remove timestamp from lead data because tinybird will generate its own at ingestion time
-  .and(
+  .merge(
     z.object({
       event_id: z.string(),
       event_name: z.string(),

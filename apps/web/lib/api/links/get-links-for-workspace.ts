@@ -2,6 +2,7 @@ import z from "@/lib/zod";
 import { getLinksQuerySchemaExtended } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
 import { combineTagIds } from "../tags/combine-tag-ids";
+import { encodeKeyIfCaseSensitive } from "./case-sensitivity";
 import { transformLink } from "./utils";
 
 export async function getLinksForWorkspace({
@@ -11,6 +12,7 @@ export async function getLinksForWorkspace({
   tagIds,
   tagNames,
   search,
+  searchMode,
   sort, // Deprecated
   sortBy,
   sortOrder,
@@ -19,14 +21,17 @@ export async function getLinksForWorkspace({
   userId,
   showArchived,
   withTags,
+  folderId,
+  folderIds,
+  linkIds,
   includeUser,
   includeWebhooks,
   includeDashboard,
-  linkIds,
   tenantId,
   partnerId,
 }: z.infer<typeof getLinksQuerySchemaExtended> & {
   workspaceId: string;
+  folderIds?: string[];
 }) {
   const combinedTagIds = combineTagIds({ tagId, tagIds });
 
@@ -35,21 +40,69 @@ export async function getLinksForWorkspace({
     sortBy = sort;
   }
 
+  if (searchMode === "exact" && search) {
+    try {
+      const url = new URL(search);
+      const domain = url.hostname;
+      const key = url.pathname.slice(1);
+
+      if (key) {
+        const encodedKey = encodeKeyIfCaseSensitive({
+          domain,
+          key,
+        });
+
+        search = search.replace(key, encodedKey);
+      }
+    } catch (e) {}
+  }
+
   const links = await prisma.link.findMany({
     where: {
       projectId: workspaceId,
+      AND: [
+        ...(folderIds
+          ? [
+              {
+                OR: [
+                  {
+                    folderId: {
+                      in: folderIds,
+                    },
+                  },
+                  {
+                    folderId: null,
+                  },
+                ],
+              },
+            ]
+          : [
+              {
+                folderId: folderId || null,
+              },
+            ]),
+        ...(search
+          ? [
+              {
+                ...(searchMode === "fuzzy" && {
+                  OR: [
+                    {
+                      shortLink: { contains: search },
+                    },
+                    {
+                      url: { contains: search },
+                    },
+                  ],
+                }),
+                ...(searchMode === "exact" && {
+                  shortLink: { startsWith: search },
+                }),
+              },
+            ]
+          : []),
+      ],
       archived: showArchived ? undefined : false,
       ...(domain && { domain }),
-      ...(search && {
-        OR: [
-          {
-            shortLink: { contains: search },
-          },
-          {
-            url: { contains: search },
-          },
-        ],
-      }),
       ...(withTags && {
         tags: {
           some: {},

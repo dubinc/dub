@@ -1,6 +1,7 @@
+import { prefixWorkspaceId } from "@/lib/api/workspace-id";
 import { hashToken, withAdmin } from "@/lib/auth";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN, DUB_DOMAINS_ARRAY, PARTNERS_DOMAIN } from "@dub/utils";
+import { APP_DOMAIN, PARTNERS_DOMAIN } from "@dub/utils";
 import { randomBytes } from "crypto";
 import { NextResponse } from "next/server";
 
@@ -23,16 +24,6 @@ export const POST = withAdmin(async ({ req }) => {
         },
     select: {
       email: true,
-      links: {
-        where: {
-          domain: {
-            in: DUB_DOMAINS_ARRAY,
-          },
-        },
-        select: {
-          domain: true,
-        },
-      },
       projects: {
         select: {
           project: {
@@ -41,13 +32,10 @@ export const POST = withAdmin(async ({ req }) => {
               name: true,
               slug: true,
               plan: true,
-              usage: true,
-              _count: {
-                select: {
-                  domains: true,
-                  links: true,
-                },
-              },
+              totalClicks: true,
+              totalLinks: true,
+              salesUsage: true,
+              foldersUsage: true,
             },
           },
         },
@@ -61,24 +49,13 @@ export const POST = withAdmin(async ({ req }) => {
 
   const data = {
     email: response.email,
-    // object with domain slugs as keys and the count of links as values
-    defaultDomainLinks: response.links.reduce(
-      (acc, { domain }) => {
-        if (acc[domain]) {
-          acc[domain]++;
-        } else {
-          acc[domain] = 1;
-        }
-        return acc;
-      },
-      {} as Record<string, number>,
-    ),
     workspaces: response.projects.map(({ project }) => ({
       ...project,
-      id: `ws_${project.id}`,
-      clicks: project.usage,
-      domains: project._count.domains,
-      links: project._count.links,
+      id: prefixWorkspaceId(project.id),
+      clicks: project.totalClicks,
+      links: project.totalLinks,
+      sales: project.salesUsage,
+      folders: project.foldersUsage,
     })),
     impersonateUrl: await getImpersonateUrl(response.email),
   };

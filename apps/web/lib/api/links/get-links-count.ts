@@ -6,10 +6,11 @@ import { prisma } from "@dub/prisma";
 export async function getLinksCount({
   searchParams,
   workspaceId,
+  folderIds,
 }: {
   searchParams: z.infer<typeof getLinksCountQuerySchema>;
   workspaceId: string;
-  userId?: string | null;
+  folderIds?: string[];
 }) {
   const {
     groupBy,
@@ -21,33 +22,56 @@ export async function getLinksCount({
     userId,
     showArchived,
     withTags,
+    folderId,
+    tenantId,
   } = searchParams;
 
   const combinedTagIds = combineTagIds({ tagId, tagIds });
 
   const linksWhere = {
     projectId: workspaceId,
+    AND: [
+      ...(folderIds
+        ? [
+            {
+              OR: [
+                {
+                  folderId: {
+                    in: folderIds,
+                  },
+                },
+                {
+                  folderId: null,
+                },
+              ],
+            },
+          ]
+        : [
+            {
+              folderId: folderId || null,
+            },
+          ]),
+      ...(search
+        ? [
+            {
+              OR: [
+                { shortLink: { contains: search } },
+                { url: { contains: search } },
+              ],
+            },
+          ]
+        : []),
+    ],
     archived: showArchived ? undefined : false,
-    ...(search && {
-      OR: [
-        {
-          shortLink: { contains: search },
-        },
-        {
-          url: { contains: search },
-        },
-      ],
-    }),
-    // when filtering by domain, only filter by domain if the filter group is not "Domains"
     ...(domain &&
       groupBy !== "domain" && {
         domain,
       }),
-    // when filtering by user, only filter by user if the filter group is not "Users"
     ...(userId &&
       groupBy !== "userId" && {
         userId,
       }),
+    ...(tenantId && { tenantId }),
   };
 
   if (groupBy === "tagId") {
@@ -90,7 +114,11 @@ export async function getLinksCount({
           : {}),
     };
 
-    if (groupBy === "domain" || groupBy === "userId") {
+    if (
+      groupBy === "domain" ||
+      groupBy === "userId" ||
+      groupBy === "folderId"
+    ) {
       return await prisma.link.groupBy({
         by: [groupBy],
         where,

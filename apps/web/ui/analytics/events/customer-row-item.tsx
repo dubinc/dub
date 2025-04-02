@@ -4,7 +4,7 @@ import { ChartActivity2, useRouterStuff } from "@dub/ui";
 import Link from "next/link";
 
 export function CustomerRowItem({ customer }: { customer: Customer }) {
-  const display = customer.name || customer.email || generateRandomName();
+  const display = customer.email || customer.name || generateRandomName();
   const { queryParams } = useRouterStuff();
 
   return (
@@ -25,7 +25,7 @@ export function CustomerRowItem({ customer }: { customer: Customer }) {
           <img
             alt={display}
             src={customer.avatar || ""}
-            className="size-4 shrink-0 rounded-full border border-gray-200"
+            className="size-4 shrink-0 rounded-full border border-neutral-200"
           />
           <span className="truncate">{display}</span>
         </div>

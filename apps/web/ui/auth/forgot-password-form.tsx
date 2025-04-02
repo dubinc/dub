@@ -35,7 +35,7 @@ export const ForgotPasswordForm = () => {
       >
         <div className="flex flex-col gap-8">
           <label>
-            <span className="text-sm font-medium text-gray-700">Email</span>
+            <span className="text-sm font-medium text-neutral-700">Email</span>
             <Input
               type="email"
               autoFocus={!isMobile}

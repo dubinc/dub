@@ -10,7 +10,7 @@ import {
   APP_DOMAIN_WITH_NGROK,
   capitalize,
   getAdjustedBillingCycleStart,
-  linkConstructor,
+  getPrettyUrl,
   log,
 } from "@dub/utils";
 
@@ -124,38 +124,36 @@ export const updateUsage = async () => {
           groupBy: "top_links",
           interval: "30d",
           root: false,
-        }).then(async (data) => {
-          const topFive = data.slice(0, 5);
-          const topFiveLinkIds = topFive.map(({ link }) => link);
-
-          const links = await prisma.link.findMany({
-            where: {
-              projectId: workspace.id,
-              id: {
-                in: topFiveLinkIds,
-              },
-            },
-            select: {
-              id: true,
-              domain: true,
-              key: true,
-            },
-          });
-
-          const allLinks = links.map((link) => ({
-            id: link.id,
-            shortLink: linkConstructor({
-              domain: link.domain,
-              key: link.key,
-              pretty: true,
-            }),
-          }));
-
-          return topFive.map((d) => ({
-            link: allLinks.find((l) => l.id === d.link)?.shortLink || "",
-            clicks: d.clicks,
-          }));
         });
+
+        const topFive = topLinks.slice(0, 5);
+        const topFiveLinkIds = topFive.map(({ link }) => link);
+
+        const linksMetadata = await prisma.link.findMany({
+          where: {
+            projectId: workspace.id,
+            id: {
+              in: topFiveLinkIds,
+            },
+          },
+          select: {
+            id: true,
+            shortLink: true,
+          },
+        });
+
+        const topFiveLinks = topFive.map((d) => ({
+          link:
+            getPrettyUrl(
+              linksMetadata.find((l) => l.id === d.link)?.shortLink,
+            ) || d.link,
+          clicks: d.clicks,
+        }));
+
+        const totalClicks = topLinks.reduce(
+          (acc, curr) => acc + curr.clicks,
+          0,
+        );
 
         const emails = workspace.users.map(
           (user) => user.user.email,
@@ -171,10 +169,11 @@ export const updateUsage = async () => {
                   email,
                   workspaceName: workspace.name,
                   workspaceSlug: workspace.slug,
-                  totalClicks: workspace.usage,
+                  totalClicks,
                   createdLinks: workspace.linksUsage,
-                  topLinks,
+                  topLinks: topFiveLinks,
                 }),
+                variant: "notifications",
               }),
             );
           }),

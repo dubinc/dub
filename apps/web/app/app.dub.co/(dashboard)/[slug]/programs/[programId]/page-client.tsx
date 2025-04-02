@@ -1,7 +1,7 @@
 "use client";
 
 import useProgram from "@/lib/swr/use-program";
-import { ProgramCommissionDescription } from "@/ui/partners/program-commission-description";
+import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import { buttonVariants, Grid, useRouterStuff } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
@@ -13,17 +13,17 @@ import { SaleTableBusiness } from "./sales/sale-table";
 import { TopPartners } from "./top-partners";
 
 export default function ProgramOverviewPageClient() {
+  const { program } = useProgram();
   const { slug, programId } = useParams();
   const { getQueryString } = useRouterStuff();
 
-  const { program } = useProgram();
   if (!program) {
     redirect(`/${slug}`);
   }
 
   return (
     <div className="mb-10">
-      <div className="rounded-lg border border-neutral-200 bg-gray-50 p-3">
+      <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,3fr)] lg:gap-10">
           <OverviewChart />
           <div className="relative flex flex-col overflow-hidden rounded-lg bg-neutral-800">
@@ -45,14 +45,18 @@ export default function ProgramOverviewPageClient() {
             <div className="relative flex grow flex-col justify-end">
               <div className="relative p-5 pt-10">
                 <div className="absolute inset-0 bg-neutral-800 [mask-image:linear-gradient(to_bottom,transparent,black_30%)]" />
-                <p className="relative text-xl text-white">
-                  <ProgramCommissionDescription
-                    program={program}
-                    discount={program.discounts?.[0]}
-                    amountClassName="text-blue-400 font-medium"
-                    periodClassName="text-white font-medium"
-                  />
-                </p>
+                {program.rewards?.[0] && (
+                  <div className="relative">
+                    <h4 className="text-sm font-semibold text-neutral-200">
+                      Rewards
+                    </h4>
+                    <ProgramRewardList
+                      rewards={program.rewards}
+                      discount={program.discounts?.[0]}
+                      className="mt-2 border-neutral-600 bg-neutral-700 text-neutral-300 [&_li>svg]:text-neutral-50"
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </div>

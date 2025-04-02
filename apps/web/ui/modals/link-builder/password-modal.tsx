@@ -107,14 +107,15 @@ function PasswordModalInner({
         <div className="max-md:hidden">
           <Tooltip
             content={
-              <div className="px-2 py-1 text-xs text-gray-700">
-                Press <strong className="font-medium text-gray-950">P</strong>{" "}
-                to open this quickly
+              <div className="px-2 py-1 text-xs text-neutral-700">
+                Press{" "}
+                <strong className="font-medium text-neutral-950">P</strong> to
+                open this quickly
               </div>
             }
             side="right"
           >
-            <kbd className="flex size-6 cursor-default items-center justify-center rounded-md border border-gray-200 font-sans text-xs text-gray-950">
+            <kbd className="flex size-6 cursor-default items-center justify-center rounded-md border border-neutral-200 font-sans text-xs text-neutral-950">
               P
             </kbd>
           </Tooltip>
@@ -123,12 +124,12 @@ function PasswordModalInner({
 
       <div className="mt-6">
         <div className="flex items-center justify-between">
-          <span className="block text-sm font-medium text-gray-700">
+          <span className="block text-sm font-medium text-neutral-700">
             Password
           </span>
           <div className="flex items-center gap-2">
             <ButtonTooltip
-              className="text-gray-500 transition-colors hover:text-gray-800"
+              className="text-neutral-500 transition-colors hover:text-neutral-800"
               tooltipProps={{
                 content: showPassword ? "Hide password" : "Reveal password",
               }}
@@ -160,7 +161,7 @@ function PasswordModalInner({
             className={`${
               errors.password
                 ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500"
+                : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500"
             } block w-full rounded-md focus:outline-none sm:text-sm`}
             {...rest}
             ref={(e) => {
@@ -176,7 +177,7 @@ function PasswordModalInner({
           {Boolean(passwordParent) && (
             <button
               type="button"
-              className="text-xs font-medium text-gray-700 transition-colors hover:text-gray-950"
+              className="text-xs font-medium text-neutral-700 transition-colors hover:text-neutral-950"
               onClick={() => {
                 setValueParent("password", null, { shouldDirty: true });
                 ["title", "description", "image"].forEach(
@@ -237,7 +238,7 @@ function PasswordButton({
       icon={
         <InputPassword className={cn("size-4", password && "text-blue-500")} />
       }
-      className="h-9 w-fit px-2.5 font-medium text-gray-700"
+      className="h-9 w-fit px-2.5 font-medium text-neutral-700"
       onClick={() => setShowPasswordModal(true)}
     />
   );

@@ -8,6 +8,7 @@ import {
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { NewLinkProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema, updateLinkBodySchema } from "@/lib/zod/schemas/links";
@@ -18,11 +19,20 @@ import { NextResponse } from "next/server";
 
 // GET /api/links/[linkId] – get a link
 export const GET = withWorkspace(
-  async ({ headers, workspace, params }) => {
+  async ({ headers, workspace, params, session }) => {
     const link = await getLinkOrThrow({
       workspaceId: workspace.id,
       linkId: params.linkId,
     });
+
+    if (link.folderId) {
+      await verifyFolderAccess({
+        workspace,
+        userId: session.user.id,
+        folderId: link.folderId,
+        requiredPermission: "folders.read",
+      });
+    }
 
     const tags = await prisma.tag.findMany({
       where: {
@@ -39,12 +49,15 @@ export const GET = withWorkspace(
       },
     });
 
-    const response = transformLink({
-      ...link,
-      tags: tags.map((tag) => {
-        return { tag };
-      }),
-    });
+    const response = transformLink(
+      {
+        ...link,
+        tags: tags.map((tag) => {
+          return { tag };
+        }),
+      },
+      { skipDecodeKey: true },
+    );
 
     return NextResponse.json(response, { headers });
   },
@@ -55,13 +68,37 @@ export const GET = withWorkspace(
 
 // PATCH /api/links/[linkId] – update a link
 export const PATCH = withWorkspace(
-  async ({ req, headers, workspace, params }) => {
+  async ({ req, headers, workspace, params, session }) => {
     const link = await getLinkOrThrow({
       workspaceId: workspace.id,
       linkId: params.linkId,
     });
 
     const body = updateLinkBodySchema.parse(await parseRequestBody(req)) || {};
+
+    await Promise.all([
+      ...(link.folderId
+        ? [
+            verifyFolderAccess({
+              workspace,
+              userId: session.user.id,
+              folderId: link.folderId,
+              requiredPermission: "folders.links.write",
+            }),
+          ]
+        : []),
+
+      ...(body.folderId
+        ? [
+            verifyFolderAccess({
+              workspace,
+              userId: session.user.id,
+              folderId: body.folderId,
+              requiredPermission: "folders.links.write",
+            }),
+          ]
+        : []),
+    ]);
 
     // Add body onto existing link but maintain NewLinkProps form for processLink
     const updatedLink = {
@@ -119,6 +156,7 @@ export const PATCH = withWorkspace(
       workspace,
       skipKeyChecks,
       skipExternalIdChecks,
+      skipFolderChecks: true,
     });
 
     if (error) {
@@ -166,11 +204,20 @@ export const PUT = PATCH;
 
 // DELETE /api/links/[linkId] – delete a link
 export const DELETE = withWorkspace(
-  async ({ headers, params, workspace }) => {
+  async ({ headers, params, workspace, session }) => {
     const link = await getLinkOrThrow({
       workspaceId: workspace.id,
       linkId: params.linkId,
     });
+
+    if (link.folderId) {
+      await verifyFolderAccess({
+        workspace,
+        userId: session.user.id,
+        folderId: link.folderId,
+        requiredPermission: "folders.links.write",
+      });
+    }
 
     const response = await deleteLink(link.id);
 

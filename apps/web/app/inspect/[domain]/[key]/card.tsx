@@ -15,7 +15,7 @@ export default function LinkInspectorCard({
   const key = _key;
   const apexDomain = getApexDomain(url);
   return (
-    <div className="flex w-full items-center justify-between rounded-md border border-gray-300 bg-white p-3">
+    <div className="flex w-full items-center justify-between rounded-md border border-neutral-300 bg-white p-3">
       <div className="flex items-center space-x-3">
         <LinkLogo apexDomain={apexDomain} />
         <div>
@@ -34,7 +34,7 @@ export default function LinkInspectorCard({
             href={url}
             target="_blank"
             rel="noopener noreferrer"
-            className="line-clamp-1 text-left text-sm text-gray-500 underline-offset-2 transition-all hover:text-gray-800 hover:underline"
+            className="line-clamp-1 text-left text-sm text-neutral-500 underline-offset-2 transition-all hover:text-neutral-800 hover:underline"
           >
             {url}
           </a>

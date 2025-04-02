@@ -12,7 +12,6 @@ export const dynamic = "force-dynamic";
 
 const schema = z.object({
   domain: z.string(),
-  workspaceId: z.string(),
 });
 
 // POST /api/cron/domains/delete
@@ -21,7 +20,7 @@ export async function POST(req: Request) {
     const rawBody = await req.text();
     await verifyQstashSignature({ req, rawBody });
 
-    const { domain, workspaceId } = schema.parse(JSON.parse(rawBody));
+    const { domain } = schema.parse(JSON.parse(rawBody));
 
     const domainRecord = await prisma.domain.findUnique({
       where: {
@@ -55,7 +54,8 @@ export async function POST(req: Request) {
       // Remove the link from Redis
       linkCache.deleteMany(links),
 
-      // Record link in the Tinybird
+      // Record link in Tinybird
+      // TODO: Maybe we can just delete these links instead?
       recordLink(links),
 
       // Remove image from R2 storage if it exists
@@ -69,6 +69,17 @@ export async function POST(req: Request) {
           id: { in: links.map((link) => link.id) },
         },
       }),
+
+      // Update the project's total links count
+      links[0].projectId &&
+        prisma.project.update({
+          where: {
+            id: links[0].projectId,
+          },
+          data: {
+            totalLinks: { decrement: links.length },
+          },
+        }),
     ]);
 
     console.log(response);
@@ -78,7 +89,6 @@ export async function POST(req: Request) {
         console.error("deleteDomainAndLinks", {
           reason: promise.reason,
           domain,
-          workspaceId,
         });
       }
     });
@@ -93,7 +103,6 @@ export async function POST(req: Request) {
 
     if (remainingLinks > 0) {
       await queueDomainDeletion({
-        workspaceId,
         domain,
         delay: 2,
       });

@@ -155,7 +155,7 @@ export function DubWrapped({
       </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
-          <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
+          <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
             <Section className="mt-8">
               <Img src={DUB_WORDMARK} height="32" alt="Dub" className="my-0" />
             </Section>
@@ -167,7 +167,7 @@ export function DubWrapped({
               support! Here's a look back at your activity in 2024:
             </Text>
 
-            <Section className="my-8 rounded-lg border border-solid border-gray-200 p-2">
+            <Section className="my-8 rounded-lg border border-solid border-neutral-200 p-2">
               <div>
                 <Img
                   src="https://assets.dub.co/misc/year-in-review-header.jpg"
@@ -231,7 +231,7 @@ export function DubWrapped({
               className="max-w-[500px] rounded-lg"
             />
 
-            <Hr className="mx-0 my-6 w-full border border-gray-200" />
+            <Hr className="mx-0 my-6 w-full border border-neutral-200" />
 
             <Heading className="mx-0 mb-4 mt-8 p-0 text-xl font-semibold text-black">
               What we shipped 🚢
@@ -251,7 +251,7 @@ export function DubWrapped({
                   {item.title}
                 </Text>
                 <Text
-                  className="leading-6 text-gray-600"
+                  className="leading-6 text-neutral-600"
                   dangerouslySetInnerHTML={{ __html: item.description }}
                 />
                 <Link
@@ -263,7 +263,7 @@ export function DubWrapped({
               </div>
             ))}
 
-            <Hr className="mx-0 my-6 w-full border border-gray-200" />
+            <Hr className="mx-0 my-6 w-full border border-neutral-200" />
 
             <Text className="text-sm leading-6 text-black">
               You can also check out more updates on our{" "}
@@ -311,7 +311,7 @@ const StatCard = ({
 }) => {
   return (
     <Column className="text-center">
-      <Text className="font-medium text-gray-400">{title}</Text>
+      <Text className="font-medium text-neutral-400">{title}</Text>
       <Text className="-mt-3 text-lg font-medium text-black">
         {typeof value === "number" ? nFormatter(value, { full: true }) : value}
       </Text>
@@ -330,7 +330,7 @@ const StatTable = ({
 }) => {
   return (
     <Section>
-      <Text className="mb-0 font-medium text-gray-400">{title}</Text>
+      <Text className="mb-0 font-medium text-neutral-400">{title}</Text>
       {value.map(({ item, count }, index) => {
         const [domain, ...pathParts] = item.split("/");
         const path = pathParts.join("/") || "_root";
@@ -360,12 +360,12 @@ const StatTable = ({
                   <p>{COUNTRIES[item]}</p>
                 )}
               </Column>
-              <Column align="right" className="text-gray-600">
+              <Column align="right" className="text-neutral-600">
                 {nFormatter(count, { full: count < 99999 })}
               </Column>
             </Row>
             {index !== value.length - 1 && (
-              <Hr className="my-0 w-full border border-gray-200" />
+              <Hr className="my-0 w-full border border-neutral-200" />
             )}
           </div>
         );

@@ -1,4 +1,4 @@
-import { createId } from "@/lib/api/utils";
+import { createId } from "@/lib/api/create-id";
 import { generateRandomName } from "@/lib/names";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
@@ -11,6 +11,7 @@ const clickId = "";
 const linkId = "";
 const workspaceId = "";
 
+// backfill-attribution – backfill missing click/lead attribution events for a link
 async function main() {
   const user = await prisma.user.findUnique({
     where: {

@@ -66,6 +66,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       domainsLimit: plan.limits.domains!,
       aiLimit: plan.limits.ai!,
       tagsLimit: plan.limits.tags!,
+      foldersLimit: plan.limits.folders!,
       usersLimit: plan.limits.users!,
       salesLimit: plan.limits.sales!,
     },
@@ -108,7 +109,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
             email: user.email as string,
             plan: plan.name,
           }),
-          marketing: true,
+          variant: "marketing",
         }),
       );
     }),

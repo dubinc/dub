@@ -2,7 +2,9 @@ import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { DubApiError } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
+import { normalizeWorkspaceId } from "@/lib/api/workspace-id";
 import { withWorkspace } from "@/lib/auth";
+import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { recordLink } from "@/lib/tinybird";
 import z from "@/lib/zod";
 import { prisma } from "@dub/prisma";
@@ -13,8 +15,7 @@ const transferLinkBodySchema = z.object({
   newWorkspaceId: z
     .string()
     .min(1, "Missing new workspace ID.")
-    // replace "ws_" with "" to get the workspace ID
-    .transform((v) => v.replace("ws_", "")),
+    .transform((v) => normalizeWorkspaceId(v)),
 });
 
 // POST /api/links/[linkId]/transfer – transfer a link to another workspace
@@ -24,6 +25,15 @@ export const POST = withWorkspace(
       workspaceId: workspace.id,
       linkId: params.linkId,
     });
+
+    if (link.folderId) {
+      await verifyFolderAccess({
+        workspace,
+        userId: session.user.id,
+        folderId: link.folderId,
+        requiredPermission: "folders.links.write",
+      });
+    }
 
     const { newWorkspaceId } = transferLinkBodySchema.parse(await req.json());
 
@@ -64,7 +74,7 @@ export const POST = withWorkspace(
       interval: "30d",
     });
 
-    const response = await prisma.link.update({
+    const updatedLink = await prisma.link.update({
       where: {
         id: link.id,
       },
@@ -74,13 +84,17 @@ export const POST = withWorkspace(
         tags: {
           deleteMany: {},
         },
+        // remove folder when transferring link
+        folderId: null,
       },
     });
 
     waitUntil(
       Promise.all([
-        linkCache.set({ ...link, projectId: newWorkspaceId }),
-        recordLink({ ...link, projectId: newWorkspaceId }),
+        linkCache.set(updatedLink),
+
+        recordLink(updatedLink),
+
         // increment new workspace usage
         prisma.project.update({
           where: {
@@ -105,7 +119,7 @@ export const POST = withWorkspace(
       ]),
     );
 
-    return NextResponse.json(response, {
+    return NextResponse.json(updatedLink, {
       headers,
     });
   },

@@ -1,12 +1,12 @@
+import { createId } from "@/lib/api/create-id";
 import { bulkCreateLinks } from "@/lib/api/links";
-import { createId } from "@/lib/api/utils";
 import { qstash } from "@/lib/cron";
 import { redis } from "@/lib/upstash";
 import { randomBadgeColor } from "@/ui/links/tag-badge";
 import { sendEmail } from "@dub/email";
 import { LinksImported } from "@dub/email/templates/links-imported";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, linkConstructorSimple } from "@dub/utils";
 
 export const importTagsFromRebrandly = async ({
   workspaceId,
@@ -66,6 +66,7 @@ export const importLinksFromRebrandly = async ({
   userId,
   domainId,
   domain,
+  folderId,
   tagsToId,
   rebrandlyApiKey,
   lastLinkId = null,
@@ -75,6 +76,7 @@ export const importLinksFromRebrandly = async ({
   userId: string;
   domainId: number;
   domain: string;
+  folderId?: string;
   tagsToId?: Record<string, string>;
   rebrandlyApiKey: string;
   lastLinkId?: string | null;
@@ -192,7 +194,12 @@ export const importLinksFromRebrandly = async ({
             domain,
             key,
             url: destination,
+            shortLink: linkConstructorSimple({
+              domain,
+              key,
+            }),
             title,
+            folderId,
             createdAt,
             updatedAt,
             tagIds,
@@ -204,19 +211,19 @@ export const importLinksFromRebrandly = async ({
     // check if links are already in the database
     const alreadyCreatedLinks = await prisma.link.findMany({
       where: {
-        domain,
-        key: {
-          in: importedLinks.map((link) => link.key),
+        shortLink: {
+          in: importedLinks.map((link) => link.shortLink),
         },
       },
       select: {
-        key: true,
+        shortLink: true,
       },
     });
 
     // filter out links that are already in the database
     const linksToCreate = importedLinks.filter(
-      (link) => !alreadyCreatedLinks.some((l) => l.key === link.key),
+      (link) =>
+        !alreadyCreatedLinks.some((l) => l.shortLink === link.shortLink),
     );
 
     // bulk create links
@@ -240,6 +247,7 @@ export const importLinksFromRebrandly = async ({
         userId,
         domainId,
         domain,
+        folderId,
         importTags: tagsToId ? true : false,
         lastLinkId: newLastLinkId,
         count,

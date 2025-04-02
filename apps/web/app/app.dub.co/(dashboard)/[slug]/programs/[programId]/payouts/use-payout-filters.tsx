@@ -8,13 +8,12 @@ import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { useRouterStuff } from "@dub/ui";
 import { CircleDotted, Users } from "@dub/ui/icons";
 import { cn, DICEBEAR_AVATAR_URL, nFormatter } from "@dub/utils";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
 export function usePayoutFilters(extraSearchParams: Record<string, string>) {
   const { searchParamsObj, queryParams } = useRouterStuff();
   const { id: workspaceId } = useWorkspace();
-  const { interval, start, end } = searchParamsObj;
 
   const { payoutsCount } = usePayoutsCount<PayoutsCount[]>({
     groupBy: "status",
@@ -85,25 +84,34 @@ export function usePayoutFilters(extraSearchParams: Record<string, string>) {
       ...(status ? [{ key: "status", value: status }] : []),
       ...(partnerId ? [{ key: "partnerId", value: partnerId }] : []),
     ];
-  }, [searchParamsObj]);
+  }, [searchParamsObj.status, searchParamsObj.partnerId]);
 
-  const onSelect = (key: string, value: any) =>
-    queryParams({
-      set: {
-        [key]: value,
-      },
-      del: "page",
-    });
+  const onSelect = useCallback(
+    (key: string, value: any) =>
+      queryParams({
+        set: {
+          [key]: value,
+        },
+        del: "page",
+      }),
+    [queryParams],
+  );
 
-  const onRemove = (key: string) =>
-    queryParams({
-      del: [key, "page"],
-    });
+  const onRemove = useCallback(
+    (key: string) =>
+      queryParams({
+        del: [key, "page"],
+      }),
+    [queryParams],
+  );
 
-  const onRemoveAll = () =>
-    queryParams({
-      del: ["status", "search", "partnerId"],
-    });
+  const onRemoveAll = useCallback(
+    () =>
+      queryParams({
+        del: ["status", "search", "partnerId"],
+      }),
+    [queryParams],
+  );
 
   const searchQuery = useMemo(
     () =>
@@ -117,7 +125,7 @@ export function usePayoutFilters(extraSearchParams: Record<string, string>) {
     [activeFilters, workspaceId, extraSearchParams],
   );
 
-  const isFiltered = activeFilters.length > 0;
+  const isFiltered = useMemo(() => activeFilters.length > 0, [activeFilters]);
 
   return {
     filters,

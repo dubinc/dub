@@ -11,8 +11,8 @@ const copyButtonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-transparent hover:bg-gray-100 active:bg-gray-200",
-        neutral: "bg-transparent hover:bg-gray-100 active:bg-gray-200",
+        default: "bg-transparent hover:bg-neutral-100 active:bg-neutral-200",
+        neutral: "bg-transparent hover:bg-neutral-100 active:bg-neutral-200",
       },
     },
     defaultVariants: {

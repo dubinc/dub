@@ -3,8 +3,8 @@
 import useIntegrations from "@/lib/swr/use-integrations";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { IntegrationLogo } from "@/ui/integrations/integration-logo";
+import { Integration } from "@dub/prisma/client";
 import { cn } from "@dub/utils";
-import { Integration } from "@prisma/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";

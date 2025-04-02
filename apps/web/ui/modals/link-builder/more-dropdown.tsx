@@ -82,12 +82,12 @@ export function MoreDropdown() {
                         shouldDirty: true,
                       });
                   }}
-                  className="h-9 w-full justify-start px-2 text-sm text-gray-700"
+                  className="h-9 w-full justify-start px-2 text-sm text-neutral-700"
                   textWrapperClassName="grow"
                   text={
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-1">
-                        <option.icon className="mr-1 size-4 text-gray-950" />
+                        <option.icon className="mr-1 size-4 text-neutral-950" />
                         {option.type === "modal"
                           ? enabled
                             ? ""
@@ -106,7 +106,7 @@ export function MoreDropdown() {
                           }
                         />
                       </div>
-                      <kbd className="hidden size-6 cursor-default items-center justify-center rounded-md border border-gray-200 font-sans text-xs text-gray-800 sm:flex">
+                      <kbd className="hidden size-6 cursor-default items-center justify-center rounded-md border border-neutral-200 font-sans text-xs text-neutral-800 sm:flex">
                         {option.shortcutKey.toUpperCase()}
                       </kbd>
                     </div>
@@ -117,7 +117,7 @@ export function MoreDropdown() {
 
             <Button
               variant="outline"
-              className="h-9 justify-start px-2 text-sm text-gray-700"
+              className="h-9 justify-start px-2 text-sm text-neutral-700"
               textWrapperClassName="grow"
               onClick={() => {
                 setOpenPopover(false);
@@ -128,13 +128,13 @@ export function MoreDropdown() {
                   <div className="flex items-center gap-1">
                     <Settings
                       className={cn(
-                        "mr-1 size-4 text-gray-950",
+                        "mr-1 size-4 text-neutral-950",
                         data.externalId && "text-blue-500",
                       )}
                     />
                     Advanced Settings
                   </div>
-                  <kbd className="hidden size-6 cursor-default items-center justify-center rounded-md border border-gray-200 font-sans text-xs text-gray-800 sm:flex">
+                  <kbd className="hidden size-6 cursor-default items-center justify-center rounded-md border border-neutral-200 font-sans text-xs text-neutral-800 sm:flex">
                     A
                   </kbd>
                 </div>

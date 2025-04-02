@@ -80,14 +80,15 @@ function AdvancedModal({
           <div className="max-md:hidden">
             <Tooltip
               content={
-                <div className="px-2 py-1 text-xs text-gray-700">
-                  Press <strong className="font-medium text-gray-950">A</strong>{" "}
-                  to open this quickly
+                <div className="px-2 py-1 text-xs text-neutral-700">
+                  Press{" "}
+                  <strong className="font-medium text-neutral-950">A</strong> to
+                  open this quickly
                 </div>
               }
               side="right"
             >
-              <kbd className="flex size-6 cursor-default items-center justify-center gap-1 rounded-md border border-gray-200 font-sans text-xs text-gray-950">
+              <kbd className="flex size-6 cursor-default items-center justify-center gap-1 rounded-md border border-neutral-200 font-sans text-xs text-neutral-950">
                 A
               </kbd>
             </Tooltip>
@@ -100,7 +101,7 @@ function AdvancedModal({
             <div className="flex items-center gap-2">
               <label
                 htmlFor={`${id}-external-id`}
-                className="flex items-center gap-2 text-sm font-medium text-gray-700"
+                className="flex items-center gap-2 text-sm font-medium text-neutral-700"
               >
                 External ID{" "}
                 <InfoTooltip
@@ -128,7 +129,7 @@ function AdvancedModal({
                 id={`${id}-external-id`}
                 type="text"
                 placeholder="Eg: 123456"
-                className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                 {...register("externalId")}
               />
             </div>
@@ -139,7 +140,7 @@ function AdvancedModal({
             <div className="flex items-center gap-2">
               <label
                 htmlFor={`${id}-tenant-id`}
-                className="flex items-center gap-2 text-sm font-medium text-gray-700"
+                className="flex items-center gap-2 text-sm font-medium text-neutral-700"
               >
                 Tenant ID{" "}
                 <InfoTooltip content="The ID of the tenant that created the link inside your system. If set, it can be used to fetch all links for a tenant." />
@@ -151,7 +152,7 @@ function AdvancedModal({
                 id={`${id}-tenant-id`}
                 type="text"
                 placeholder="Eg: user_123"
-                className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                 {...register("tenantId")}
               />
             </div>
@@ -163,7 +164,7 @@ function AdvancedModal({
             {parentEnabled && (
               <button
                 type="button"
-                className="text-xs font-medium text-gray-700 transition-colors hover:text-gray-950"
+                className="text-xs font-medium text-neutral-700 transition-colors hover:text-neutral-950"
                 onClick={() => {
                   setValueParent("externalId", null, { shouldDirty: true });
                   setShowAdvancedModal(false);

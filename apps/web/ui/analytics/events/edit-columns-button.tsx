@@ -22,14 +22,14 @@ export default function EditColumnsButton({ table }: { table: Table<any> }) {
                   key={column.id}
                   className={cn(
                     "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md px-3 py-1.5",
-                    "data-[selected=true]:bg-gray-100",
+                    "data-[selected=true]:bg-neutral-100",
                   )}
                   onSelect={() => column.toggleVisibility()}
                 >
                   <input
                     checked={column.getIsVisible()}
                     type="checkbox"
-                    className="h-3 w-3 rounded-full border-gray-300 text-black focus:outline-none focus:ring-0"
+                    className="h-3 w-3 rounded-full border-neutral-300 text-black focus:outline-none focus:ring-0"
                     disabled
                   />
                   {column.columnDef.header?.toString()}

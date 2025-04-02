@@ -31,6 +31,13 @@ export async function claimDotLinkDomain({
       message: "Free workspaces cannot register .link domains.",
     });
 
+  if (!workspace.stripeId) {
+    throw new DubApiError({
+      code: "forbidden",
+      message: "You cannot register a .link domain on a free trial.",
+    });
+  }
+
   if (workspace.id !== ACME_WORKSPACE_ID && workspace.dotLinkClaimed) {
     throw new DubApiError({
       code: "forbidden",

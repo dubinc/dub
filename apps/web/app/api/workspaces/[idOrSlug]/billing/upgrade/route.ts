@@ -1,4 +1,5 @@
-import { withWorkspace } from "@/lib/auth";
+import { DubApiError } from "@/lib/api/errors";
+import { isDubAdmin, withWorkspace } from "@/lib/auth";
 import { getDubCustomer } from "@/lib/dub";
 import { stripe } from "@/lib/stripe";
 import { APP_DOMAIN } from "@dub/utils";
@@ -25,6 +26,16 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
         })
         .then((res) => res.data[0])
     : null;
+
+  if (process.env.VERCEL === "1" && process.env.VERCEL_ENV === "preview") {
+    const isAdminUser = await isDubAdmin(session.user.id);
+    if (!isAdminUser) {
+      throw new DubApiError({
+        code: "unauthorized",
+        message: "Unauthorized: Not an admin.",
+      });
+    }
+  }
 
   // if the user has an active subscription, create billing portal to upgrade
   if (workspace.stripeId && activeSubscription) {

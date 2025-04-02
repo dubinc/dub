@@ -60,7 +60,7 @@ function AddEditTokenModal({
   setSelectedToken: Dispatch<SetStateAction<null>>;
 }) {
   const [saving, setSaving] = useState(false);
-  const { id: workspaceId, role, isOwner } = useWorkspace();
+  const { id: workspaceId, role, isOwner, flags } = useWorkspace();
   const [data, setData] = useState<APIKeyProps>(token || newToken);
   const [preset, setPreset] = useState<ScopePreset>("all_access");
 
@@ -134,13 +134,17 @@ function AddEditTokenModal({
   const buttonDisabled =
     (!name || token?.name === name) && token?.scopes === scopes;
 
-  const scopesByResources = useMemo(
-    () =>
-      transformScopesForUI(getScopesByResourceForRole(role)).filter(
-        ({ name }) => name,
-      ),
-    [role],
-  );
+  const scopesByResources = useMemo(() => {
+    let scopes = transformScopesForUI(getScopesByResourceForRole(role)).filter(
+      ({ name }) => name,
+    );
+
+    if (!flags?.linkFolders) {
+      scopes = scopes.filter(({ key }) => key !== "folders");
+    }
+
+    return scopes;
+  }, [role, flags?.linkFolders]);
 
   return (
     <>
@@ -160,12 +164,12 @@ function AddEditTokenModal({
         >
           <div>
             <label htmlFor="name">
-              <h2 className="text-sm font-medium text-gray-900">Name</h2>
+              <h2 className="text-sm font-medium text-neutral-900">Name</h2>
             </label>
             <div className="relative mt-2 rounded-md shadow-sm">
               <input
                 id="name"
-                className="block w-full rounded-md border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:outline-none focus:ring-gray-500 sm:text-sm"
+                className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                 required
                 value={name}
                 onChange={(e) => setData({ ...data, name: e.target.value })}
@@ -178,7 +182,7 @@ function AddEditTokenModal({
           {/* Can't change the type of the token */}
           {!token && (
             <div>
-              <h2 className="text-sm font-medium text-gray-900">Type</h2>
+              <h2 className="text-sm font-medium text-neutral-900">Type</h2>
               <RadioGroup
                 className="mt-2 flex"
                 defaultValue="user"
@@ -187,13 +191,13 @@ function AddEditTokenModal({
                   setData({ ...data, isMachine: value === "machine" })
                 }
               >
-                <div className="flex w-1/2 items-center space-x-2 rounded-md border border-gray-300 bg-white transition-all hover:bg-gray-50 active:bg-gray-100">
+                <div className="flex w-1/2 items-center space-x-2 rounded-md border border-neutral-300 bg-white transition-all hover:bg-neutral-50 active:bg-neutral-100">
                   <RadioGroupItem value="user" id="user" className="ml-3" />
                   <Label
                     htmlFor="user"
                     className="flex flex-1 cursor-pointer items-center justify-between space-x-1 p-3 pl-0"
                   >
-                    <p className="text-gray-600">You</p>
+                    <p className="text-neutral-600">You</p>
                     <InfoTooltip
                       content={
                         <SimpleTooltipContent
@@ -207,7 +211,7 @@ function AddEditTokenModal({
                 </div>
                 <div
                   className={cn(
-                    "flex w-1/2 items-center space-x-2 rounded-md border border-gray-300 bg-white transition-all hover:bg-gray-50 active:bg-gray-100",
+                    "flex w-1/2 items-center space-x-2 rounded-md border border-neutral-300 bg-white transition-all hover:bg-neutral-50 active:bg-neutral-100",
                     {
                       "cursor-not-allowed opacity-75": !isOwner,
                     },
@@ -228,7 +232,7 @@ function AddEditTokenModal({
                       },
                     )}
                   >
-                    <p className="text-gray-600">Machine</p>
+                    <p className="text-neutral-600">Machine</p>
                     <InfoTooltip
                       content={
                         <SimpleTooltipContent
@@ -249,7 +253,9 @@ function AddEditTokenModal({
           )}
 
           <div className="flex flex-col gap-2">
-            <h2 className="text-sm font-medium text-gray-900">Permissions</h2>
+            <h2 className="text-sm font-medium text-neutral-900">
+              Permissions
+            </h2>
 
             <ToggleGroup
               options={scopePresets}

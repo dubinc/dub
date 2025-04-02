@@ -2,6 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { getFolders } from "@/lib/folder/get-folders";
 import { webhookCache } from "@/lib/webhook/cache";
 import { transformWebhook } from "@/lib/webhook/transform";
 import { toggleWebhooksForWorkspace } from "@/lib/webhook/update-webhook";
@@ -42,6 +43,7 @@ export const GET = withWorkspace(
       "business plus",
       "business extra",
       "business max",
+      "advanced",
       "enterprise",
     ],
   },
@@ -49,7 +51,7 @@ export const GET = withWorkspace(
 
 // PATCH /api/webhooks/[webhookId] - update a specific webhook
 export const PATCH = withWorkspace(
-  async ({ workspace, params, req }) => {
+  async ({ workspace, params, req, session }) => {
     const { webhookId } = params;
 
     const { name, url, triggers, linkIds } = updateWebhookSchema.parse(
@@ -92,10 +94,21 @@ export const PATCH = withWorkspace(
     }
 
     if (linkIds && linkIds.length > 0) {
+      const folders = await getFolders({
+        workspaceId: workspace.id,
+        userId: session.user.id,
+      });
+
       const links = await prisma.link.findMany({
         where: {
-          id: { in: linkIds },
+          id: {
+            in: linkIds,
+          },
           projectId: workspace.id,
+          OR: [
+            { folderId: null },
+            { folderId: { in: folders.map((folder) => folder.id) } },
+          ],
         },
         select: {
           id: true,
@@ -137,8 +150,6 @@ export const PATCH = withWorkspace(
             })),
           },
         }),
-        disabledAt: null,
-        consecutiveFailures: 0,
       },
       select: {
         id: true,
@@ -232,6 +243,7 @@ export const PATCH = withWorkspace(
       "business plus",
       "business extra",
       "business max",
+      "advanced",
       "enterprise",
     ],
   },
@@ -311,6 +323,7 @@ export const DELETE = withWorkspace(
       "business plus",
       "business extra",
       "business max",
+      "advanced",
       "enterprise",
     ],
   },

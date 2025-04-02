@@ -48,7 +48,7 @@ export const DestinationUrlInput = forwardRef<
           <div className="flex items-center gap-2">
             <label
               htmlFor={inputId}
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-neutral-700"
             >
               Destination URL
             </label>
@@ -90,7 +90,7 @@ export const DestinationUrlInput = forwardRef<
             className={`${
               error
                 ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500"
+                : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500"
             } block w-full rounded-md focus:outline-none sm:text-sm`}
             aria-invalid="true"
             {...inputProps}

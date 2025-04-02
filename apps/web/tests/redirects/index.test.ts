@@ -43,6 +43,32 @@ describe.runIf(env.CI)("Link Redirects", async () => {
     expect(response.status).toBe(302);
   });
 
+  test("with dub_id", async () => {
+    const response = await fetch(`${h.baseUrl}/conversion-tracking`, {
+      ...fetchOptions,
+      headers: {},
+    });
+
+    // the location should contain `?dub_id=` query param
+    expect(response.headers.get("location")).toMatch(/dub_id=[a-zA-Z0-9]+/);
+    expect(response.headers.get("x-powered-by")).toBe(poweredBy);
+    expect(response.status).toBe(302);
+  });
+
+  test("with dub_client_reference_id", async () => {
+    const response = await fetch(`${h.baseUrl}/client_reference_id`, {
+      ...fetchOptions,
+      headers: {},
+    });
+
+    // the location should contain `?client_reference_id=dub_id_` query param
+    expect(response.headers.get("location")).toMatch(
+      /client_reference_id=dub_id_[a-zA-Z0-9]+/,
+    );
+    expect(response.headers.get("x-powered-by")).toBe(poweredBy);
+    expect(response.status).toBe(302);
+  });
+
   test("with passthrough query", async () => {
     const response = await fetch(
       `${h.baseUrl}/checkly-check-passthrough?utm_source=checkly`,
@@ -64,6 +90,19 @@ describe.runIf(env.CI)("Link Redirects", async () => {
 
     expect(response.headers.get("location")).toBe(
       "https://guides.apple.com/?ug=CglEVUIgR3VpZGUSDgjZMhDEo%2BGA%2BZKqpJUBEg4I2TIQw7y33%2B%2B6ifL%2BARIOCNkyEJC988jqgIrQjQESDgjZMhCB%2B7XSiPTwrfUBEg4I2TIQ5J25xZOynPDxARINCNkyENuVr4POz8aMcBIOCMI7EK36pfjQuerJ0gESDQjCOxDSuurnjM6T7mASDQjCOxD3vr%2F%2Fkq%2FLqUwSDQjCOxCg9cK%2BjeOhnS4%3D",
+    );
+    expect(response.headers.get("x-powered-by")).toBe(poweredBy);
+    expect(response.status).toBe(302);
+  });
+
+  test("query params with no value", async () => {
+    const response = await fetch(
+      `${h.baseUrl}/query-params-no-value`,
+      fetchOptions,
+    );
+
+    expect(response.headers.get("location")).toBe(
+      "https://dub.co/blog?emptyquery",
     );
     expect(response.headers.get("x-powered-by")).toBe(poweredBy);
     expect(response.status).toBe(302);

@@ -1,5 +1,5 @@
+import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
-import { createId } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { createUTMTemplateBodySchema } from "@/lib/zod/schemas/utm";
 import { prisma } from "@dub/prisma";

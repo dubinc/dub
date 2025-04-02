@@ -116,7 +116,7 @@ function CustomerDetailsSheetContent({ customer }: CustomerDetailsSheetProps) {
               <span className="text-lg font-semibold leading-tight text-neutral-900">
                 {customer.name}
               </span>
-              <span className="rounded-full border border-neutral-200 bg-gray-200 px-1.5 py-0.5 text-xs text-neutral-900">
+              <span className="rounded-full border border-neutral-200 bg-neutral-200 px-1.5 py-0.5 text-xs text-neutral-900">
                 {new Date(customer.createdAt).toLocaleDateString("en-US", {
                   month: "short",
                   day: "numeric",

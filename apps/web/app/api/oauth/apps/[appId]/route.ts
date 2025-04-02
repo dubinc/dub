@@ -113,20 +113,7 @@ export const PATCH = withWorkspace(
             },
           },
         },
-        select: {
-          id: true,
-          createdAt: true,
-          updatedAt: true,
-          name: true,
-          slug: true,
-          description: true,
-          developer: true,
-          logo: true,
-          website: true,
-          installUrl: true,
-          readme: true,
-          screenshots: true,
-          verified: true,
+        include: {
           oAuthApp: true,
         },
       });

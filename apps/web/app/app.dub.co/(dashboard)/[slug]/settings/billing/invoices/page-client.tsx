@@ -14,8 +14,6 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { cn, currencyFormatter, fetcher } from "@dub/utils";
-import { ChevronLeft } from "lucide-react";
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
 
@@ -33,25 +31,17 @@ export default function WorkspaceInvoicesClient() {
 
   return (
     <div className="rounded-lg border border-neutral-200 bg-white">
-      <div className="flex flex-col items-start justify-between gap-y-4 p-4 md:pt-6 xl:flex-row">
-        <div className="flex items-center gap-2">
-          <Link
-            href={`/${slug}/settings/billing`}
-            className="rounded-lg p-1.5 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
-          >
-            <ChevronLeft className="size-5" />
-          </Link>
-          <div>
-            <h2 className="text-xl font-medium">Invoices</h2>
-            <p className="text-balance text-sm leading-normal text-neutral-500">
-              A history of all your Dub invoices
-            </p>
-          </div>
+      <div className="flex flex-col items-start justify-between gap-y-4 p-6 md:p-8 md:pb-2 lg:flex-row">
+        <div>
+          <h2 className="text-xl font-medium">Invoices</h2>
+          <p className="text-balance text-sm leading-normal text-neutral-500">
+            A history of all your Dub invoices
+          </p>
         </div>
       </div>
       {programs?.length && (
         <TabSelect
-          className="px-4 sm:px-10"
+          className="px-4 md:px-5"
           options={[
             { id: "subscription", label: "Subscription" },
             { id: "payout", label: "Partner Payouts" },

@@ -1,4 +1,5 @@
 import { TrackSaleResponse } from "@/lib/types";
+import { randomValue } from "@dub/utils";
 import { randomId } from "tests/utils/helpers";
 import {
   E2E_CUSTOMER_EXTERNAL_ID,
@@ -13,7 +14,7 @@ test("POST /track/sale", async () => {
 
   const sale = {
     eventName: "Subscription",
-    amount: 100,
+    amount: randomValue([400, 900, 1900]),
     currency: "usd",
     invoiceId: `INV_${randomId()}`,
     paymentProcessor: "stripe",
@@ -38,7 +39,7 @@ test("POST /track/sale", async () => {
       externalId: E2E_CUSTOMER_EXTERNAL_ID,
     },
     sale: {
-      amount: 100,
+      amount: sale.amount,
       currency: sale.currency,
       paymentProcessor: sale.paymentProcessor,
       invoiceId: sale.invoiceId,
@@ -51,17 +52,35 @@ test("POST /track/sale", async () => {
     invoiceId: sale.invoiceId,
   });
 
-  // An externalId that does not exist should return a 304 status code
+  // An invoiceId that is already processed should return null customer and sale
   const response2 = await http.post<TrackSaleResponse>({
     path: "/track/sale",
     body: {
       ...sale,
-      externalId: "external-id-that-does-not-exist",
+      externalId: E2E_CUSTOMER_EXTERNAL_ID,
+      invoiceId: sale.invoiceId,
     },
   });
 
   expect(response2.status).toEqual(200);
   expect(response2.data).toStrictEqual({
+    eventName: "Subscription",
+    customer: null,
+    sale: null,
+  });
+
+  // An externalId that does not exist should return null customer and sale
+  const response3 = await http.post<TrackSaleResponse>({
+    path: "/track/sale",
+    body: {
+      ...sale,
+      invoiceId: `INV_${randomId()}`,
+      externalId: "external-id-that-does-not-exist",
+    },
+  });
+
+  expect(response3.status).toEqual(200);
+  expect(response3.data).toStrictEqual({
     eventName: "Subscription",
     customer: null,
     sale: null,

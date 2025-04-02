@@ -111,7 +111,7 @@ export default function IntegrationPageClient({
               ) : !integration.verified ? (
                 <Tooltip content="Dub hasn't verified this integration. Install it at your own risk.">
                   <div>
-                    <CircleWarning className="size-5 text-gray-500" invert />
+                    <CircleWarning className="size-5 text-neutral-500" invert />
                   </div>
                 </Tooltip>
               ) : null}

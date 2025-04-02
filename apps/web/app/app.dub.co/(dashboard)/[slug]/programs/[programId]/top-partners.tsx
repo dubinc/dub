@@ -3,7 +3,6 @@ import { EnrolledPartnerProps } from "@/lib/types";
 import { buttonVariants } from "@dub/ui";
 import {
   cn,
-  COUNTRIES,
   currencyFormatter,
   DICEBEAR_AVATAR_URL,
   fetcher,
@@ -17,7 +16,7 @@ export function TopPartners() {
   const { id: workspaceId } = useWorkspace();
 
   const { data: partners, error } = useSWR<EnrolledPartnerProps[]>(
-    `/api/partners?workspaceId=${workspaceId}&programId=${programId}&sortBy=earnings&sortOrder=desc`,
+    `/api/partners?workspaceId=${workspaceId}&programId=${programId}`,
     fetcher,
   );
 
@@ -31,7 +30,7 @@ export function TopPartners() {
         </h2>
 
         <Link
-          href={`/${slug}/programs/${programId}/partners?sortBy=earnings&sortOrder=desc`}
+          href={`/${slug}/programs/${programId}/partners`}
           className={cn(
             buttonVariants({ variant: "secondary" }),
             "flex h-7 items-center rounded-lg border px-2 text-sm",
@@ -78,12 +77,12 @@ export function TopPartners() {
                     <div className="flex flex-col">
                       <span className="text-neutral-800">{partner.name}</span>
                       <span className="text-neutral-500">
-                        {COUNTRIES[partner.country ?? ""] ?? "-"}
+                        {partner.email ?? "-"}
                       </span>
                     </div>
                   </div>
                   <span className="text-sm text-neutral-500">
-                    {currencyFormatter(partner.earnings / 100, {
+                    {currencyFormatter(partner.saleAmount / 100, {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     })}

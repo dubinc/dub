@@ -182,10 +182,10 @@ function ShareDashboardModalInner({
 
   return (
     <>
-      <h3 className="border-b border-gray-200 px-4 py-4 text-lg font-medium sm:px-6">
+      <h3 className="border-b border-neutral-200 px-4 py-4 text-lg font-medium sm:px-6">
         Share dashboard
       </h3>
-      <div className="bg-gray-50 px-6 pb-6 pt-4">
+      <div className="bg-neutral-50 px-6 pb-6 pt-4">
         <LinkCard link={link} isError={Boolean(linkError)} />
         <AnimatedSizeContainer
           height
@@ -194,7 +194,7 @@ function ShareDashboardModalInner({
           {dashboard !== undefined ? (
             <>
               <label className="flex cursor-pointer items-center justify-between gap-2 pt-6">
-                <span className="flex items-center gap-2 text-sm text-gray-600">
+                <span className="flex items-center gap-2 text-sm text-neutral-600">
                   <Globe className="size-4" />
                   Enable public sharing
                 </span>
@@ -207,14 +207,14 @@ function ShareDashboardModalInner({
               {checked &&
                 (dashboard ? (
                   <div className="pt-4 text-sm">
-                    <div className="divide-x-200 flex items-center justify-between divide-x overflow-hidden rounded-md border border-gray-200 bg-gray-100">
+                    <div className="divide-x-200 flex items-center justify-between divide-x overflow-hidden rounded-md border border-neutral-200 bg-neutral-100">
                       <div className="scrollbar-hide overflow-scroll pl-3">
-                        <p className="whitespace-nowrap text-gray-400">
+                        <p className="whitespace-nowrap text-neutral-400">
                           {getPrettyUrl(`${APP_DOMAIN}/share/${dashboard.id}`)}
                         </p>
                       </div>
                       <button
-                        className="flex h-8 items-center gap-2 whitespace-nowrap border-l bg-white px-3 hover:bg-gray-50 active:bg-gray-100"
+                        className="flex h-8 items-center gap-2 whitespace-nowrap border-l bg-white px-3 hover:bg-neutral-50 active:bg-neutral-100"
                         onClick={() => {
                           const url = `${APP_DOMAIN}/share/${dashboard.id}`;
                           toast.promise(copyToClipboard(url), {
@@ -223,9 +223,9 @@ function ShareDashboardModalInner({
                         }}
                       >
                         {copied ? (
-                          <Tick className="h-4 w-4 text-gray-500" />
+                          <Tick className="h-4 w-4 text-neutral-500" />
                         ) : (
-                          <Copy className="h-4 w-4 text-gray-500" />
+                          <Copy className="h-4 w-4 text-neutral-500" />
                         )}
                         Copy link
                       </button>
@@ -236,7 +236,7 @@ function ShareDashboardModalInner({
                     >
                       <p className="text-base font-medium">Settings</p>
                       <div className="flex items-center justify-between gap-2">
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-neutral-600">
                           Search engine indexing
                         </p>
                         <Switch
@@ -249,7 +249,7 @@ function ShareDashboardModalInner({
                         />
                       </div>
                       <div className="flex items-center justify-between gap-2">
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-neutral-600">
                           Password protection
                         </p>
                         <Switch
@@ -279,13 +279,13 @@ function ShareDashboardModalInner({
                     </form>
                   </div>
                 ) : (
-                  <div className="mt-4 h-7 w-full animate-pulse rounded-md bg-gray-200" />
+                  <div className="mt-4 h-7 w-full animate-pulse rounded-md bg-neutral-200" />
                 ))}
             </>
           ) : (
             <div className="flex w-full items-center justify-between pt-6">
-              <div className="h-5 w-36 animate-pulse rounded-md bg-gray-200" />
-              <div className="h-5 w-12 animate-pulse rounded-md bg-gray-200" />
+              <div className="h-5 w-36 animate-pulse rounded-md bg-neutral-200" />
+              <div className="h-5 w-12 animate-pulse rounded-md bg-neutral-200" />
             </div>
           )}
         </AnimatedSizeContainer>
@@ -304,20 +304,20 @@ function LinkCard({
   return (
     <div className="flex items-center gap-3 rounded-lg border border-neutral-300 bg-white p-3">
       {isError ? (
-        <span className="text-sm text-gray-400">Failed to load link</span>
+        <span className="text-sm text-neutral-400">Failed to load link</span>
       ) : link === undefined ? (
         <>
-          <div className="m-px size-9 animate-pulse rounded-full bg-gray-200" />
+          <div className="m-px size-9 animate-pulse rounded-full bg-neutral-200" />
           <div className="flex flex-col gap-2">
-            <div className="h-5 w-24 max-w-full animate-pulse rounded-md bg-gray-200" />
-            <div className="h-4 w-32 max-w-full animate-pulse rounded-md bg-gray-200" />
+            <div className="h-5 w-24 max-w-full animate-pulse rounded-md bg-neutral-200" />
+            <div className="h-4 w-32 max-w-full animate-pulse rounded-md bg-neutral-200" />
           </div>
         </>
       ) : (
         <>
-          <div className="relative flex shrink-0 items-center justify-center rounded-full border border-gray-200">
+          <div className="relative flex shrink-0 items-center justify-center rounded-full border border-neutral-200">
             {/* Background gradient + white border */}
-            <div className="absolute inset-0 rounded-full border border-white bg-gradient-to-t from-gray-100" />
+            <div className="absolute inset-0 rounded-full border border-white bg-gradient-to-t from-neutral-100" />
             <div className="shrink-0 p-2">
               <LinkLogo
                 apexDomain={link ? getApexDomain(link?.url) : ""}
@@ -330,7 +330,7 @@ function LinkCard({
           </div>
           <div className="flex min-w-0 flex-col text-sm">
             {link && (
-              <span className="truncate font-semibold leading-6 text-gray-800">
+              <span className="truncate font-semibold leading-6 text-neutral-800">
                 {linkConstructor({
                   domain: link.domain,
                   key: link.key,
@@ -339,19 +339,19 @@ function LinkCard({
               </span>
             )}
             <div className="flex items-center gap-1">
-              <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-gray-400" />
+              <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-neutral-400" />
               {link?.url ? (
                 <a
                   href={link.url}
                   target="_blank"
                   rel="noopener noreferrer"
                   title={link.url}
-                  className="truncate text-gray-500 transition-colors hover:text-gray-700 hover:underline hover:underline-offset-2"
+                  className="truncate text-neutral-500 transition-colors hover:text-neutral-700 hover:underline hover:underline-offset-2"
                 >
                   {getPrettyUrl(link.url)}
                 </a>
               ) : (
-                <span className="truncate text-gray-400">
+                <span className="truncate text-neutral-400">
                   No URL configured
                 </span>
               )}

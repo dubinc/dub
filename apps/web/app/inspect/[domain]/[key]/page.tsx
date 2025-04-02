@@ -27,7 +27,7 @@ export async function generateMetadata({
   const domain = params.domain;
   const key = decodeURIComponent(params.key).slice(0, -1);
 
-  const data = await getLinkViaEdge(domain, key);
+  const data = await getLinkViaEdge({ domain, key });
 
   if (!data) {
     return;
@@ -52,7 +52,7 @@ export default async function InspectPage({
   const domain = params.domain;
   const key = decodeURIComponent(params.key).slice(0, -1);
 
-  const data = await getLinkViaEdge(domain, key);
+  const data = await getLinkViaEdge({ domain, key });
 
   // if the link doesn't exist
   if (!data) {
@@ -68,7 +68,7 @@ export default async function InspectPage({
           <h1 className="font-display text-5xl font-extrabold leading-[1.15] text-black sm:text-6xl sm:leading-[1.15]">
             Link Inspector
           </h1>
-          <h2 className="text-lg text-gray-600 sm:text-xl">
+          <h2 className="text-lg text-neutral-600 sm:text-xl">
             Inspect a short link on Dub to make sure it's safe to click on. If
             you think this link is malicious, please report it.
           </h2>
@@ -81,7 +81,7 @@ export default async function InspectPage({
             href="https://dub.co/tools/inspector"
             rel="noreferrer"
             target="_blank"
-            className="mx-auto mt-2 flex items-center justify-center space-x-2 text-sm text-gray-500 transition-all hover:text-black"
+            className="mx-auto mt-2 flex items-center justify-center space-x-2 text-sm text-neutral-500 transition-all hover:text-black"
           >
             Inspect another short link →
           </a>

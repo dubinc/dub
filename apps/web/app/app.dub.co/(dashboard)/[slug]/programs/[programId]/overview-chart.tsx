@@ -1,9 +1,11 @@
+import { DUB_PARTNERS_ANALYTICS_INTERVAL } from "@/lib/analytics/constants";
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { IntervalOptions } from "@/lib/analytics/types";
-import useProgramAnalytics from "@/lib/swr/use-program-analytics";
+import useProgramCommissions from "@/lib/swr/use-program-commissions";
 import useProgramMetrics from "@/lib/swr/use-program-metrics";
+import useProgramRevenue from "@/lib/swr/use-program-revenue";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
-import { useRouterStuff } from "@dub/ui";
+import { Combobox, useRouterStuff } from "@dub/ui";
 import {
   Areas,
   ChartContext,
@@ -15,16 +17,24 @@ import { LoadingSpinner } from "@dub/ui/icons";
 import { currencyFormatter } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import { LinearGradient } from "@visx/gradient";
-import { useId, useMemo } from "react";
+import { useId, useMemo, useState } from "react";
+
+const chartOptions = [
+  { value: "revenue", label: "Revenue" },
+  { value: "commissions", label: "Commissions" },
+];
+
+type ViewType = "revenue" | "commissions";
 
 export function OverviewChart() {
   const id = useId();
   const { searchParamsObj } = useRouterStuff();
+  const [viewType, setViewType] = useState<ViewType>("revenue");
 
   const {
     start,
     end,
-    interval = "1y",
+    interval = DUB_PARTNERS_ANALYTICS_INTERVAL,
   } = searchParamsObj as {
     start?: string;
     end?: string;
@@ -33,35 +43,68 @@ export function OverviewChart() {
 
   const { metrics } = useProgramMetrics();
 
-  const { data: timeseries, error } = useProgramAnalytics({
+  const { data: revenue, error: revenueError } = useProgramRevenue({
     event: "sales",
     groupBy: "timeseries",
     interval,
     start: start ? new Date(start) : undefined,
     end: end ? new Date(end) : undefined,
+    enabled: viewType === "revenue",
   });
 
-  const data = useMemo(
-    () =>
-      timeseries?.map(({ start, saleAmount }) => ({
-        date: new Date(start),
-        values: { saleAmount: saleAmount / 100 },
-      })),
-    [timeseries],
-  );
+  const { data: commissions, error: commissionsError } = useProgramCommissions({
+    event: "sales",
+    groupBy: "timeseries",
+    interval,
+    start: start ? new Date(start) : undefined,
+    end: end ? new Date(end) : undefined,
+    enabled: viewType === "commissions",
+  });
 
-  const dataLoading = !data && !error;
+  const data = useMemo(() => {
+    const sourceData = viewType === "revenue" ? revenue : commissions;
+
+    return sourceData?.map(({ start, saleAmount, earnings }) => ({
+      date: new Date(start),
+      values: {
+        amount: (viewType === "revenue" ? saleAmount : earnings) / 100,
+      },
+    }));
+  }, [revenue, commissions, viewType]);
+
+  const dataLoading = !data && !revenueError && !commissionsError;
+  const error = revenueError || commissionsError;
 
   return (
     <div>
-      <div className="flex justify-between">
-        <div className="flex flex-col gap-1 p-2">
-          <span className="text-sm text-neutral-500">Revenue</span>
+      <div>
+        <div className="flex justify-between gap-2">
+          <Combobox
+            selected={
+              chartOptions.find((opt) => opt.value === viewType) || null
+            }
+            setSelected={(option) =>
+              option && setViewType(option.value as ViewType)
+            }
+            options={chartOptions}
+            optionClassName="w-36"
+            caret={true}
+            hideSearch={true}
+            buttonProps={{
+              variant: "outline",
+              className: "h-9 w-fit",
+            }}
+          />
+
+          <SimpleDateRangePicker className="h-9 w-fit px-2" />
+        </div>
+
+        <div className="flex flex-col gap-1 px-4">
           {!metrics ? (
             <div className="h-11 w-24 animate-pulse rounded-md bg-neutral-200" />
           ) : (
             <NumberFlow
-              value={metrics.revenue / 100}
+              value={metrics[viewType] / 100}
               className="text-3xl text-neutral-800"
               format={{
                 style: "currency",
@@ -70,7 +113,6 @@ export function OverviewChart() {
             />
           )}
         </div>
-        <SimpleDateRangePicker className="h-9 w-full px-2 md:w-fit" />
       </div>
       <div className="relative mt-4 h-72 md:h-96">
         {dataLoading ? (
@@ -83,12 +125,12 @@ export function OverviewChart() {
           </div>
         ) : (
           <TimeSeriesChart
-            key={`${start?.toString}-${end?.toString()}-${interval?.toString()}`}
-            data={data}
+            key={`${start?.toString}-${end?.toString()}-${interval?.toString()}-${viewType}`}
+            data={data || []}
             series={[
               {
-                id: "saleAmount",
-                valueAccessor: (d) => d.values.saleAmount,
+                id: "amount",
+                valueAccessor: (d) => d.values.amount,
                 colorClassName: "text-[#8B5CF6]",
                 isActive: true,
               },
@@ -97,16 +139,18 @@ export function OverviewChart() {
             tooltipContent={(d) => {
               return (
                 <>
-                  <p className="border-b border-gray-200 px-4 py-3 text-sm text-gray-900">
+                  <p className="border-b border-neutral-200 px-4 py-3 text-sm text-neutral-900">
                     {formatDateTooltip(d.date, { interval, start, end })}
                   </p>
                   <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-4 py-3 text-sm">
                     <div className="flex items-center gap-2">
                       <div className="h-2 w-2 rounded-sm bg-violet-500 shadow-[inset_0_0_0_1px_#0003]" />
-                      <p className="capitalize text-gray-600">Revenue</p>
+                      <p className="capitalize text-neutral-600">
+                        {viewType === "revenue" ? "Revenue" : "Commissions"}
+                      </p>
                     </div>
-                    <p className="text-right font-medium text-gray-900">
-                      {currencyFormatter(d.values.saleAmount, {
+                    <p className="text-right font-medium text-neutral-900">
+                      {currencyFormatter(d.values.amount, {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                       })}
@@ -128,8 +172,12 @@ export function OverviewChart() {
                 />
               )}
             </ChartContext.Consumer>
-            <XAxis />
-            <YAxis showGridLines />
+            <XAxis
+              tickFormat={(date) =>
+                formatDateTooltip(date, { interval, start, end })
+              }
+            />
+            <YAxis showGridLines tickFormat={currencyFormatter} />
             <Areas
               seriesStyles={[
                 {

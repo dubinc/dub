@@ -32,7 +32,7 @@ export default async function ResetPasswordPage({ params: { token } }: Props) {
         <h1 className="text-lg font-medium text-neutral-800">
           Reset your password
         </h1>
-        <p className="mt-3 text-sm text-gray-500">
+        <p className="mt-3 text-sm text-neutral-500">
           Enter a new password for your account.
         </p>
         <div className="mt-8 text-left">

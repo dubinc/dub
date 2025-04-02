@@ -4,13 +4,20 @@ import { useEffect, useState } from "react";
 import useSWR from "swr";
 import z from "../zod";
 import { getLinksCountQuerySchema } from "../zod/schemas/links";
+import { useIsMegaFolder } from "./use-is-mega-folder";
 import useWorkspace from "./use-workspace";
 
 const partialQuerySchema = getLinksCountQuerySchema.partial();
 
-export default function useLinksCount<T = any>(
-  opts: z.infer<typeof partialQuerySchema> & { ignoreParams?: boolean } = {},
-) {
+export default function useLinksCount<T = any>({
+  query,
+  ignoreParams,
+  enabled = true,
+}: {
+  query?: z.infer<typeof partialQuerySchema>;
+  ignoreParams?: boolean;
+  enabled?: boolean;
+} = {}) {
   const { id: workspaceId } = useWorkspace();
   const { getQueryString } = useRouterStuff();
 
@@ -20,25 +27,24 @@ export default function useLinksCount<T = any>(
       setAdmin(true);
     }
   }, []);
+  const { isMegaFolder } = useIsMegaFolder();
 
   const { data, error } = useSWR<any>(
-    workspaceId
-      ? `/api/links/count${
-          opts.ignoreParams
-            ? `?workspaceId=${workspaceId}`
-            : getQueryString(
-                {
-                  workspaceId,
-                  ...opts,
-                },
-                {
-                  ignore: ["import", "upgrade", "newLink"],
-                },
-              )
-        }`
+    workspaceId && !isMegaFolder && enabled
+      ? `/api/links/count${getQueryString(
+          {
+            workspaceId,
+            ...query,
+          },
+          ignoreParams
+            ? { include: [] }
+            : {
+                exclude: ["import", "upgrade", "newLink"],
+              },
+        )}`
       : admin
         ? `/api/admin/links/count${getQueryString({
-            ...opts,
+            ...query,
           })}`
         : null,
     fetcher,

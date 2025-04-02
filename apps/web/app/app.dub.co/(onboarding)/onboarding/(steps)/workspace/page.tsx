@@ -11,7 +11,7 @@ export default function Workspace() {
         <a
           href="https://dub.co/help/article/what-is-a-workspace"
           target="_blank"
-          className="underline transition-colors hover:text-gray-700"
+          className="underline transition-colors hover:text-neutral-700"
         >
           What is a workspace?
         </a>

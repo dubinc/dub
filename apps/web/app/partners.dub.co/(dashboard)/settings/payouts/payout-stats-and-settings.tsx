@@ -2,24 +2,25 @@
 
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import { PayoutsCount } from "@/lib/types";
 import StripeConnectButton from "@/ui/partners/stripe-connect-button";
+import { PayoutStatus } from "@dub/prisma/client";
 import { MatrixLines } from "@dub/ui";
 import { CONNECT_SUPPORTED_COUNTRIES, COUNTRIES, fetcher } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
-import { PayoutStatus } from "@prisma/client";
 import { Stripe } from "stripe";
 import useSWR from "swr";
 
 export function PayoutStatsAndSettings() {
   const { partner } = usePartnerProfile();
-  const { payoutsCount } = usePartnerPayoutsCount();
+  const { payoutsCount } = usePartnerPayoutsCount<PayoutsCount[]>({
+    groupBy: "status",
+  });
 
-  const { data: bankAccount } = useSWR<Stripe.BankAccount | null>(
-    partner && `/api/partner-profile/payouts/settings`,
+  const { data: bankAccount } = useSWR<Stripe.BankAccount>(
+    partner && "/api/partner-profile/payouts/settings",
     fetcher,
   );
-
-  console.log({ partner });
 
   return (
     <div className="grid grid-cols-1 divide-neutral-200 rounded-lg border border-neutral-200 bg-neutral-50 max-sm:divide-y sm:grid-cols-2 sm:divide-x">
@@ -30,10 +31,10 @@ export function PayoutStatsAndSettings() {
           </div>
           <StripeConnectButton
             text={
-              partner?.payoutsEnabled ? "Payout settings" : "Connect payouts"
+              partner?.payoutsEnabledAt ? "Payout settings" : "Connect payouts"
             }
             className="h-8 w-fit px-3"
-            variant={partner?.payoutsEnabled ? "secondary" : "primary"}
+            variant={partner?.payoutsEnabledAt ? "secondary" : "primary"}
             disabledTooltip={
               partner?.country &&
               !CONNECT_SUPPORTED_COUNTRIES.includes(partner.country) &&
@@ -53,7 +54,7 @@ export function PayoutStatsAndSettings() {
               currency: "USD",
             }}
           />
-          {bankAccount && (
+          {bankAccount && Object.keys(bankAccount).length > 0 && (
             <div className="text-sm">
               <p className="text-neutral-600">{bankAccount.bank_name}</p>
               <div className="flex items-center gap-1.5 font-mono text-neutral-400">
@@ -76,8 +77,11 @@ export function PayoutStatsAndSettings() {
         <NumberFlow
           className="mt-2 text-2xl text-neutral-800"
           value={
-            (payoutsCount?.find((p) => p.status === PayoutStatus.completed)
-              ?.amount ?? 0) / 100
+            (payoutsCount?.find(
+              (p) =>
+                p.status === PayoutStatus.completed ||
+                p.status === PayoutStatus.processing,
+            )?.amount ?? 0) / 100
           }
           format={{
             style: "currency",

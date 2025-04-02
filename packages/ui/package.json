@@ -1,7 +1,7 @@
 {
   "name": "@dub/ui",
   "description": "UI components for Dub.co",
-  "version": "0.2.20",
+  "version": "0.2.31",
   "sideEffects": false,
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -103,10 +103,10 @@
   "homepage": "https://dub.co",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/steven-tey/dub.git"
+    "url": "git+https://github.com/dubinc/dub.git"
   },
   "bugs": {
-    "url": "https://github.com/steven-tey/dub/issues"
+    "url": "https://github.com/dubinc/dub/issues"
   },
   "keywords": [
     "dub",

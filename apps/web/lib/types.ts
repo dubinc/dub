@@ -1,26 +1,37 @@
 import z from "@/lib/zod";
 import { metaTagsSchema } from "@/lib/zod/schemas/metatags";
+import {
+  PartnerEarningsSchema,
+  PartnerProfileLinkSchema,
+} from "@/lib/zod/schemas/partner-profile";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import {
+  CommissionStatus,
+  FolderUserRole,
   Link,
   PayoutStatus,
   Prisma,
   ProgramEnrollmentStatus,
   Project,
-  SaleStatus,
+  User,
   UtmTemplate,
   Webhook,
-  YearInReview,
 } from "@dub/prisma/client";
+import {
+  FOLDER_PERMISSIONS,
+  FOLDER_WORKSPACE_ACCESS,
+} from "./folder/constants";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import { clickEventResponseSchema } from "./zod/schemas/clicks";
 import {
   customerActivityResponseSchema,
   customerActivitySchema,
+  CustomerEnrichedSchema,
   CustomerSchema,
 } from "./zod/schemas/customers";
 import { dashboardSchema } from "./zod/schemas/dashboard";
 import { DiscountSchema } from "./zod/schemas/discount";
+import { FolderSchema } from "./zod/schemas/folders";
 import { integrationSchema } from "./zod/schemas/integration";
 import { InvoiceSchema } from "./zod/schemas/invoices";
 import {
@@ -30,23 +41,29 @@ import {
 import { createLinkBodySchema } from "./zod/schemas/links";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
 import {
-  EnrolledPartnerSchema,
-  PartnerSaleResponseSchema,
+  createPartnerSchema,
+  EnrolledPartnerSchemaWithExpandedFields,
   PartnerSchema,
-  SaleResponseSchema,
-  SaleSchema,
 } from "./zod/schemas/partners";
 import {
   PartnerPayoutResponseSchema,
   PayoutResponseSchema,
   PayoutSchema,
 } from "./zod/schemas/payouts";
+import { programDataSchema } from "./zod/schemas/program-onboarding";
+import {
+  ProgramSaleResponseSchema,
+  ProgramSaleSchema,
+} from "./zod/schemas/program-sales";
 import {
   PartnerProgramInviteSchema,
   ProgramEnrollmentSchema,
   ProgramInviteSchema,
+  ProgramMetricsSchema,
+  ProgramPartnerLinkSchema,
   ProgramSchema,
 } from "./zod/schemas/programs";
+import { RewardSchema } from "./zod/schemas/rewards";
 import {
   saleEventResponseSchema,
   trackSaleResponseSchema,
@@ -58,6 +75,7 @@ import {
   webhookEventSchemaTB,
   WebhookSchema,
 } from "./zod/schemas/webhooks";
+import { workspacePreferencesSchema } from "./zod/schemas/workspace-preferences";
 
 export type LinkProps = Link;
 
@@ -115,7 +133,7 @@ export type PlanProps = (typeof plans)[number];
 
 export type RoleProps = (typeof roles)[number];
 
-export type BetaFeatures = "noDubLink";
+export type BetaFeatures = "noDubLink" | "linkFolders";
 
 export interface WorkspaceProps extends Project {
   logo: string | null;
@@ -128,6 +146,7 @@ export interface WorkspaceProps extends Project {
   }[];
   users: {
     role: RoleProps;
+    defaultFolderId: string | null;
   }[];
   flags?: {
     [key in BetaFeatures]: boolean;
@@ -136,12 +155,10 @@ export interface WorkspaceProps extends Project {
 }
 
 export type ExpandedWorkspaceProps = WorkspaceProps & {
-  programs: {
-    id: string;
-    name: string;
-  }[];
-  yearInReview: YearInReview | null;
   allowedHostnames: string[];
+  users: (WorkspaceProps["users"][number] & {
+    workspacePreferences?: z.infer<typeof workspacePreferencesSchema>;
+  })[];
 };
 
 export type WorkspaceWithUsers = Omit<WorkspaceProps, "domains">;
@@ -155,7 +172,6 @@ export interface UserProps {
   source: string | null;
   defaultWorkspace?: string;
   defaultPartnerId?: string;
-  dubPartnerId?: string;
   isMachine: boolean;
   hasPassword: boolean;
   provider: string | null;
@@ -186,6 +202,8 @@ export interface DomainProps {
   link?: LinkProps;
   registeredDomain?: RegisteredDomainProps;
   logo?: string;
+  appleAppSiteAssociation?: string;
+  assetLinks?: string;
 }
 
 export interface RegisteredDomainProps {
@@ -234,6 +252,7 @@ export const plans = [
   "business plus",
   "business extra",
   "business max",
+  "advanced",
   "enterprise",
 ] as const;
 
@@ -339,23 +358,38 @@ export type TrackSaleResponse = z.infer<typeof trackSaleResponseSchema>;
 
 export type Customer = z.infer<typeof CustomerSchema>;
 
+export type CustomerEnriched = z.infer<typeof CustomerEnrichedSchema>;
+
 export type UsageResponse = z.infer<typeof usageResponse>;
 
 export type PartnersCount = Record<ProgramEnrollmentStatus | "all", number>;
 
-export type SaleProps = z.infer<typeof SaleSchema>;
+export type SaleProps = z.infer<typeof ProgramSaleSchema>;
 
-export type SalesCount = Record<SaleStatus | "all", number>;
+export type SalesCount = Record<
+  CommissionStatus | "all",
+  {
+    count: number;
+    amount: number;
+    earnings: number;
+  }
+>;
 
-export type SaleResponse = z.infer<typeof SaleResponseSchema>;
+export type SaleResponse = z.infer<typeof ProgramSaleResponseSchema>;
 
-export type PartnerSaleResponse = z.infer<typeof PartnerSaleResponseSchema>;
+export type PartnerEarningsResponse = z.infer<typeof PartnerEarningsSchema>;
 
 export type CustomerProps = z.infer<typeof CustomerSchema>;
 
 export type PartnerProps = z.infer<typeof PartnerSchema>;
 
-export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema>;
+export type ProgramPartnerLinkProps = z.infer<typeof ProgramPartnerLinkSchema>;
+
+export type PartnerProfileLinkProps = z.infer<typeof PartnerProfileLinkSchema>;
+
+export type EnrolledPartnerProps = z.infer<
+  typeof EnrolledPartnerSchemaWithExpandedFields
+>;
 
 export type DiscountProps = z.infer<typeof DiscountSchema>;
 
@@ -397,3 +431,35 @@ export type ClickEvent = z.infer<typeof clickEventResponseSchema>;
 export type SaleEvent = z.infer<typeof saleEventResponseSchema>;
 
 export type LeadEvent = z.infer<typeof leadEventResponseSchema>;
+
+// Folders
+
+export type Folder = z.infer<typeof FolderSchema>;
+
+export type FolderAccessLevel = keyof typeof FOLDER_WORKSPACE_ACCESS;
+
+export type FolderPermission = (typeof FOLDER_PERMISSIONS)[number];
+
+export type FolderUser = Pick<User, "id" | "name" | "email" | "image"> & {
+  role: FolderUserRole;
+};
+
+export type FolderWithPermissions = {
+  id: string;
+  permissions: FolderPermission[];
+};
+
+export type FolderSummary = Pick<
+  Folder,
+  "id" | "name" | "accessLevel" | "linkCount"
+>;
+
+// Rewards
+
+export type RewardProps = z.infer<typeof RewardSchema>;
+
+export type CreatePartnerProps = z.infer<typeof createPartnerSchema>;
+
+export type ProgramData = z.infer<typeof programDataSchema>;
+
+export type ProgramMetrics = z.infer<typeof ProgramMetricsSchema>;

@@ -27,7 +27,7 @@ export function HelpArticles({
     <div>
       <div className="p-2 sm:p-4">
         <div className="p-2">
-          <h3 className="text-lg font-semibold text-gray-700">
+          <h3 className="text-lg font-semibold text-neutral-700">
             👋 How can we help?
           </h3>
         </div>
@@ -42,22 +42,22 @@ export function HelpArticles({
               debouncedTrackSearch(e.currentTarget.value);
             }}
             placeholder="Search articles, guides, and more..."
-            className="w-full border-none p-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-0 sm:text-base"
+            className="w-full border-none p-2 text-sm placeholder-neutral-400 focus:outline-none focus:ring-0 sm:text-base"
           />
           <Command.List
             ref={commandListRef}
-            className="scrollbar-hide h-[22rem] overflow-scroll border-t border-gray-200 py-2 transition-all"
+            className="scrollbar-hide h-[22rem] overflow-scroll border-t border-neutral-200 py-2 transition-all"
           >
             <Command.Empty
               onClick={() => setScreen("contact")}
-              className="flex cursor-pointer items-center space-x-2 rounded-md bg-gray-100 px-4 py-2 text-sm text-gray-600"
+              className="flex cursor-pointer items-center space-x-2 rounded-md bg-neutral-100 px-4 py-2 text-sm text-neutral-600"
             >
-              <MessageSquareText className="h-4 w-4 text-gray-400" />
+              <MessageSquareText className="h-4 w-4 text-neutral-400" />
               <div className="flex flex-col space-y-1">
                 <p className="text-sm font-medium text-blue-600">
                   Can't find what you're looking for?
                 </p>
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-neutral-400">
                   Send us a message and we'll get back to you as soon as
                   possible.
                 </p>
@@ -67,7 +67,7 @@ export function HelpArticles({
           </Command.List>
         </Command>
       </div>
-      <div className="flex justify-between border-t border-gray-200 px-3 py-4 sm:px-6">
+      <div className="flex justify-between border-t border-neutral-200 px-3 py-4 sm:px-6">
         {session ? (
           <button
             onClick={() => setScreen("contact")}
@@ -126,7 +126,7 @@ const CommandResults = () => {
         });
         window.open(`https://dub.co/help/article/${slug}`);
       }}
-      className="group flex cursor-pointer items-center justify-between space-x-2 rounded-md px-4 py-2 hover:bg-gray-100 active:bg-gray-200 aria-selected:bg-gray-100"
+      className="group flex cursor-pointer items-center justify-between space-x-2 rounded-md px-4 py-2 hover:bg-neutral-100 active:bg-neutral-200 aria-selected:bg-neutral-100"
     >
       <div className="flex flex-col space-y-1">
         <Highlighter
@@ -134,14 +134,14 @@ const CommandResults = () => {
           searchWords={search.split(" ")}
           autoEscape={true}
           textToHighlight={title}
-          className="text-sm font-medium text-gray-600 group-aria-selected:text-blue-600 sm:group-hover:text-blue-600"
+          className="text-sm font-medium text-neutral-600 group-aria-selected:text-blue-600 sm:group-hover:text-blue-600"
         />
         <Highlighter
           highlightClassName="underline bg-transparent text-blue-600"
           searchWords={search.split(" ")}
           autoEscape={true}
           textToHighlight={summary}
-          className="line-clamp-1 text-xs text-gray-400"
+          className="line-clamp-1 text-xs text-neutral-400"
         />
       </div>
       <ExpandingArrow className="invisible -ml-4 h-4 w-4 text-blue-600 group-aria-selected:visible sm:group-hover:visible" />

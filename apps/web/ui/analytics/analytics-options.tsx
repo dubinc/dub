@@ -22,11 +22,11 @@ export default function AnalyticsOptions() {
         onClick={() => setOpenPopover(!openPopover)}
         className={cn(
           "flex h-10 items-center rounded-md border px-1.5 outline-none transition-all",
-          "border-gray-200 bg-white text-gray-900 placeholder-gray-400",
-          "focus-visible:border-gray-500 data-[state=open]:border-gray-500 data-[state=open]:ring-4 data-[state=open]:ring-gray-200",
+          "border-neutral-200 bg-white text-neutral-900 placeholder-neutral-400",
+          "focus-visible:border-neutral-500 data-[state=open]:border-neutral-500 data-[state=open]:ring-4 data-[state=open]:ring-neutral-200",
         )}
       >
-        <ThreeDots className="h-5 w-5 text-gray-500" />
+        <ThreeDots className="h-5 w-5 text-neutral-500" />
       </button>
     </Popover>
   );

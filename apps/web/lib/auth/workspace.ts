@@ -11,6 +11,7 @@ import {
 } from "../api/rbac/permissions";
 import { throwIfNoAccess } from "../api/tokens/permissions";
 import { Scope, mapScopesToPermissions } from "../api/tokens/scopes";
+import { normalizeWorkspaceId } from "../api/workspace-id";
 import { getFeatureFlags } from "../edge-config";
 import { hashToken } from "./hash-token";
 import { Session, getSession } from "./utils";
@@ -45,6 +46,7 @@ export const withWorkspace = (
       "business plus",
       "business max",
       "business extra",
+      "advanced",
       "enterprise",
     ], // if the action needs a specific plan
     featureFlag, // if the action needs a specific feature flag
@@ -101,7 +103,10 @@ export const withWorkspace = (
         */
         if (!idOrSlug && !isRestrictedToken) {
           // special case for anonymous link creation
-          if (req.headers.has("dub-anonymous-link-creation")) {
+          if (
+            req.headers.has("dub-anonymous-link-creation") &&
+            ["/links", "/api/links"].includes(req.nextUrl.pathname)
+          ) {
             // @ts-expect-error
             return await handler({
               req,
@@ -127,7 +132,7 @@ export const withWorkspace = (
 
         if (idOrSlug) {
           if (idOrSlug.startsWith("ws_")) {
-            workspaceId = idOrSlug.replace("ws_", "");
+            workspaceId = normalizeWorkspaceId(idOrSlug);
           } else {
             workspaceSlug = idOrSlug;
           }
@@ -145,6 +150,7 @@ export const withWorkspace = (
                 rateLimit: true,
                 projectId: true,
                 expires: true,
+                installationId: true,
               }),
               user: {
                 select: {
@@ -255,6 +261,8 @@ export const withWorkspace = (
               },
               select: {
                 role: true,
+                defaultFolderId: true,
+                workspacePreferences: !apiKey, // Hide from API
               },
             },
           },
@@ -314,6 +322,15 @@ export const withWorkspace = (
           permissions = mapScopesToPermissions(tokenScopes).filter((p) =>
             permissions.includes(p),
           );
+
+          // Prevent integration tokens from accessing API endpoints without explicit permissions
+          if (token.installationId && requiredPermissions.length === 0) {
+            throw new DubApiError({
+              code: "forbidden",
+              message:
+                "You don't have the necessary permissions to complete this request.",
+            });
+          }
         }
 
         // Check user has permission to make the action
@@ -328,9 +345,15 @@ export const withWorkspace = (
 
         // beta feature checks
         if (featureFlag) {
-          const flags = await getFeatureFlags({
+          let flags = await getFeatureFlags({
             workspaceId: workspace.id,
           });
+
+          // TODO: Remove this once Folders goes GA
+          flags = {
+            ...flags,
+            linkFolders: flags.linkFolders || workspace.partnersEnabled,
+          };
 
           if (!flags[featureFlag]) {
             throw new DubApiError({
@@ -375,9 +398,6 @@ export const withWorkspace = (
         req.log.error(error);
         return handleAndReturnErrorResponse(error, headers);
       }
-    },
-    {
-      logRequestDetails: ["body", "nextUrl"],
     },
   );
 };

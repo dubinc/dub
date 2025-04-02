@@ -32,6 +32,15 @@ export async function deleteLink(linkId: string) {
         ...transformLinkTB(link),
         deleted: true,
       }),
+      link.projectId &&
+        prisma.project.update({
+          where: {
+            id: link.projectId,
+          },
+          data: {
+            totalLinks: { decrement: 1 },
+          },
+        }),
     ]),
   );
 

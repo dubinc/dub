@@ -2,6 +2,7 @@ import z from "@/lib/zod";
 import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
+import { PartnerSchema } from "./partners";
 
 export const getCustomersQuerySchema = z.object({
   email: z
@@ -47,9 +48,12 @@ export const createCustomerBodySchema = z.object({
 
 export const updateCustomerBodySchema = createCustomerBodySchema.partial();
 
-// customer object schema
 export const CustomerSchema = z.object({
-  id: z.string().describe("The unique identifier of the customer in Dub."),
+  id: z
+    .string()
+    .describe(
+      "The unique ID of the customer. You may use either the customer's `id` on Dub (obtained via `/customers` endpoint) or their `externalId` (unique ID within your system, prefixed with `ext_`, e.g. `ext_123`).",
+    ),
   externalId: z
     .string()
     .describe("Unique identifier for the customer in the client's app."),
@@ -58,6 +62,10 @@ export const CustomerSchema = z.object({
   avatar: z.string().nullish().describe("Avatar URL of the customer."),
   country: z.string().nullish().describe("Country of the customer."),
   createdAt: z.date().describe("The date the customer was created."),
+});
+
+// An extended schema that includes the customer's link, partner, and discount.
+export const CustomerEnrichedSchema = CustomerSchema.extend({
   link: LinkSchema.pick({
     id: true,
     domain: true,
@@ -65,14 +73,12 @@ export const CustomerSchema = z.object({
     shortLink: true,
     programId: true,
   }).nullish(),
-  partner: z
-    .object({
-      id: z.string(),
-      name: z.string(),
-      email: z.string(),
-      image: z.string().nullish(),
-    })
-    .nullish(),
+  partner: PartnerSchema.pick({
+    id: true,
+    name: true,
+    email: true,
+    image: true,
+  }).nullish(),
   discount: DiscountSchema.nullish(),
 });
 

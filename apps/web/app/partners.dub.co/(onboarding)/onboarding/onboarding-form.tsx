@@ -2,32 +2,43 @@
 
 import { onboardPartnerAction } from "@/lib/actions/partners/onboard-partner";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
+import { CountryCombobox } from "@/ui/partners/country-combobox";
 import { Partner } from "@dub/prisma/client";
 import {
   Button,
   buttonVariants,
-  Combobox,
   FileUpload,
+  ToggleGroup,
   useEnterSubmit,
   useMediaQuery,
 } from "@dub/ui";
-import { COUNTRIES } from "@dub/utils";
 import { cn } from "@dub/utils/src/functions";
+import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Controller, useForm } from "react-hook-form";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { z } from "zod";
 
+type FormData = z.infer<typeof onboardPartnerSchema>;
+
 export function OnboardingForm({
   partner,
 }: {
-  partner?: Pick<
-    Partner,
-    "name" | "email" | "bio" | "country" | "image"
+  partner?: Partial<
+    Pick<
+      Partner,
+      | "name"
+      | "description"
+      | "country"
+      | "image"
+      | "profileType"
+      | "companyName"
+      | "stripeConnectId"
+    >
   > | null;
 }) {
   const router = useRouter();
@@ -42,33 +53,29 @@ export function OnboardingForm({
     setValue,
     watch,
     formState: { errors, isSubmitting, isSubmitSuccessful },
-  } = useForm<z.infer<typeof onboardPartnerSchema>>({
+  } = useForm<FormData>({
     defaultValues: {
       name: partner?.name ?? undefined,
-      email: partner?.email ?? undefined,
-      description: partner?.bio ?? undefined,
+      description: partner?.description ?? undefined,
       country: partner?.country ?? undefined,
       image: partner?.image ?? undefined,
+      profileType: partner?.profileType ?? "individual",
+      companyName: partner?.companyName ?? undefined,
     },
   });
 
-  const { name, email, image } = watch();
+  const { name, image, profileType } = watch();
 
   useEffect(() => {
     if (session?.user) {
       !name && setValue("name", session.user.name ?? "");
-      !email && setValue("email", session.user.email ?? "");
       !image && setValue("image", session.user.image ?? "");
     }
-  }, [session?.user, name, email, image]);
+  }, [session?.user, name, image]);
 
   const { executeAsync, isPending } = useAction(onboardPartnerAction, {
     onSuccess: () => {
-      if (watch("country") === "US") {
-        router.push("/onboarding/verify");
-      } else {
-        router.push("/programs");
-      }
+      router.push("/onboarding/online-presence");
     },
     onError: ({ error, input }) => {
       toast.error(error.serverError);
@@ -82,23 +89,20 @@ export function OnboardingForm({
   return (
     <form
       ref={formRef}
-      onSubmit={handleSubmit(executeAsync)}
+      onSubmit={handleSubmit(async (data) => await executeAsync(data))}
       className="flex w-full flex-col gap-4 text-left"
     >
       <label>
-        <span className="text-sm font-medium text-gray-800">
-          Full Name
-          <span className="font-normal text-neutral-500"> (required)</span>
-        </span>
+        <span className="text-sm font-medium text-neutral-800">Full Name</span>
         <input
           type="text"
           className={cn(
-            "mt-2 block w-full rounded-md focus:outline-none sm:text-sm",
+            "mt-2 block w-full rounded-md read-only:bg-neutral-100 read-only:text-neutral-500 focus:outline-none sm:text-sm",
             errors.name
               ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-              : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500",
+              : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
           )}
-          autoFocus={!isMobile}
+          autoFocus={!isMobile && !errors.name}
           {...register("name", {
             required: true,
           })}
@@ -106,29 +110,8 @@ export function OnboardingForm({
       </label>
 
       <label>
-        <span className="text-sm font-medium text-gray-800">
-          Email
-          <span className="font-normal text-neutral-500"> (required)</span>
-        </span>
-        <input
-          type="text"
-          disabled
-          className={cn(
-            "mt-2 block w-full rounded-md focus:outline-none disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-500 sm:text-sm",
-            errors.email
-              ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-              : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500",
-          )}
-          {...register("email", {
-            required: true,
-          })}
-        />
-      </label>
-
-      <label>
-        <span className="text-sm font-medium text-gray-800">
-          Display Image
-          <span className="font-normal text-neutral-500"> (required)</span>
+        <span className="text-sm font-medium text-neutral-800">
+          Profile Image
         </span>
         <div className="flex items-center gap-5">
           <Controller
@@ -139,10 +122,10 @@ export function OnboardingForm({
               <FileUpload
                 accept="images"
                 className={cn(
-                  "mt-2 size-20 rounded-md border border-gray-300",
+                  "mt-2 size-20 rounded-full border border-neutral-300",
                   errors.image && "border-0 ring-2 ring-red-500",
                 )}
-                iconClassName="w-5 h-5"
+                iconClassName="size-5"
                 previewClassName="size-10 rounded-full"
                 variant="plain"
                 imageSrc={field.value}
@@ -163,7 +146,7 @@ export function OnboardingForm({
             >
               Upload image
             </div>
-            <p className="mt-1.5 text-xs text-gray-500">
+            <p className="mt-1.5 text-xs text-neutral-500">
               Recommended size: 160x160px
             </p>
           </div>
@@ -171,26 +154,39 @@ export function OnboardingForm({
       </label>
 
       <label>
-        <span className="text-sm font-medium text-gray-800">
-          Country
-          <span className="font-normal text-neutral-500"> (required)</span>
-        </span>
+        <span className="text-sm font-medium text-neutral-800">Country</span>
         <Controller
           control={control}
           name="country"
           rules={{ required: true }}
-          render={({ field }) => <CountryCombobox {...field} />}
+          render={({ field }) => (
+            <CountryCombobox
+              {...field}
+              disabledTooltip={
+                partner?.stripeConnectId
+                  ? "Since you've already received payouts, you cannot change your country. Contact support if you need to update your country."
+                  : undefined
+              }
+              error={errors.country ? true : false}
+            />
+          )}
         />
+        <p className="mt-1.5 text-xs text-neutral-500">
+          Your country cannot be changed once set.
+        </p>
       </label>
 
       <label>
-        <span className="text-sm font-medium text-gray-800">Description</span>
+        <span className="text-sm font-medium text-neutral-800">
+          Description
+          <span className="font-normal text-neutral-500"> (optional)</span>
+        </span>
         <ReactTextareaAutosize
           className={cn(
             "mt-2 block w-full rounded-md focus:outline-none sm:text-sm",
             errors.description
               ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-              : "border-gray-300 text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500",
+              : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
           )}
           placeholder="Tell us about the kind of content you create – e.g. tech, travel, fashion, etc."
           minRows={3}
@@ -199,68 +195,91 @@ export function OnboardingForm({
         />
       </label>
 
-      <Button
-        type="submit"
-        text="Create partner account"
-        className="mt-2"
-        loading={isPending || isSubmitting || isSubmitSuccessful}
-      />
+      <LayoutGroup>
+        <div>
+          <span className="text-sm font-medium text-neutral-800">
+            Profile Type
+          </span>
+          <div className="mt-2">
+            <ToggleGroup
+              options={[
+                {
+                  value: "individual",
+                  label: "Individual",
+                },
+                {
+                  value: "company",
+                  label: "Company",
+                },
+              ]}
+              selected={profileType}
+              selectAction={(option: "individual" | "company") => {
+                if (!partner?.stripeConnectId) {
+                  setValue("profileType", option);
+                }
+              }}
+              className={cn(
+                "flex w-full items-center gap-0.5 rounded-lg border-neutral-300 bg-neutral-100 p-0.5",
+                partner?.stripeConnectId && "cursor-not-allowed opacity-70",
+              )}
+              optionClassName={cn(
+                "h-9 flex items-center justify-center rounded-lg flex-1",
+                partner?.stripeConnectId && "pointer-events-none",
+              )}
+              indicatorClassName="bg-white"
+            />
+          </div>
+        </div>
+
+        <AnimatePresence mode="popLayout">
+          {profileType === "company" && (
+            <motion.div
+              layout
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{
+                type: "spring",
+                stiffness: 300,
+                damping: 30,
+                opacity: { duration: 0.2 },
+                layout: { duration: 0.3, type: "spring" },
+              }}
+            >
+              <label>
+                <span className="text-sm font-medium text-neutral-800">
+                  Legal company name
+                </span>
+                <input
+                  type="text"
+                  className={cn(
+                    "mt-2 block w-full rounded-md read-only:bg-neutral-100 read-only:text-neutral-500 focus:outline-none sm:text-sm",
+                    errors.companyName
+                      ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                      : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+                  )}
+                  readOnly={!!partner?.companyName || !!errors.companyName}
+                  {...register("companyName", {
+                    required: profileType === "company",
+                  })}
+                />
+                <p className="mt-1.5 text-xs text-neutral-500">
+                  This cannot be changed once set.
+                </p>
+              </label>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <motion.div layout>
+          <Button
+            type="submit"
+            text="Continue"
+            className="mt-2"
+            loading={isPending || isSubmitting || isSubmitSuccessful}
+          />
+        </motion.div>
+      </LayoutGroup>
     </form>
-  );
-}
-
-function CountryCombobox({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (value: string) => void;
-}) {
-  const options = useMemo(
-    () =>
-      Object.entries(COUNTRIES).map(([key, value]) => ({
-        icon: (
-          <img
-            alt={value}
-            src={`https://hatscripts.github.io/circle-flags/flags/${key.toLowerCase()}.svg`}
-            className="mr-1.5 size-4"
-          />
-        ),
-        value: key,
-        label: value,
-      })),
-    [],
-  );
-
-  return (
-    <Combobox
-      selected={options.find((o) => o.value === value) ?? null}
-      setSelected={(option) => {
-        if (!option) return;
-        onChange(option.value);
-      }}
-      options={options}
-      icon={
-        value ? (
-          <img
-            alt={COUNTRIES[value]}
-            src={`https://hatscripts.github.io/circle-flags/flags/${value.toLowerCase()}.svg`}
-            className="mr-0.5 size-4"
-          />
-        ) : undefined
-      }
-      caret={true}
-      placeholder="Select country"
-      searchPlaceholder="Search countries..."
-      matchTriggerWidth
-      buttonProps={{
-        className: cn(
-          "mt-2 w-full justify-start border-gray-300 px-3",
-          "data-[state=open]:ring-1 data-[state=open]:ring-gray-500 data-[state=open]:border-gray-500",
-          "focus:ring-1 focus:ring-gray-500 focus:border-gray-500 transition-none",
-          !value && "text-gray-400",
-        ),
-      }}
-    />
   );
 }

@@ -65,8 +65,18 @@ export function AnalyticsCard<T extends string>({
         setShowModal={setShowModal}
         className="max-w-lg px-0"
       >
-        <div className="border-b border-gray-200 px-6 py-4">
+        <div className="flex items-center justify-between border-b border-neutral-200 px-6 py-4">
           <h1 className="text-lg font-semibold">{selectedTab?.label}</h1>
+          <div className="flex items-center gap-1 text-neutral-500">
+            {event === "sales" ? (
+              <InvoiceDollar className="h-4 w-4" />
+            ) : event === "leads" ? (
+              <UserCheck className="h-4 w-4" />
+            ) : (
+              <CursorRays className="h-4 w-4" />
+            )}
+            <p className="text-xs uppercase">{event}</p>
+          </div>
         </div>
         {subTabs && selectedSubTabId && onSelectSubTab && (
           <SubTabs
@@ -79,11 +89,11 @@ export function AnalyticsCard<T extends string>({
       </Modal>
       <div
         className={cn(
-          "relative z-0 h-[400px] overflow-hidden border border-gray-200 bg-white sm:rounded-xl",
+          "group relative z-0 h-[400px] overflow-hidden border border-neutral-200 bg-white sm:rounded-xl",
           className,
         )}
       >
-        <div className="flex items-center justify-between border-b border-gray-200 px-4">
+        <div className="flex items-center justify-between border-b border-neutral-200 px-4">
           {/* Main tabs */}
           {isMobile ? (
             <Popover
@@ -103,7 +113,7 @@ export function AnalyticsCard<T extends string>({
                       icon={<Icon className="size-4" />}
                       className={cn(
                         "h-9 w-full justify-start px-2 font-medium",
-                        selectedTabId === id && "bg-gray-100",
+                        selectedTabId === id && "bg-neutral-100",
                       )}
                     />
                   ))}
@@ -119,7 +129,7 @@ export function AnalyticsCard<T extends string>({
                 text={selectedTab.label}
                 right={
                   <ChevronsUpDown
-                    className="size-4 shrink-0 text-gray-400"
+                    className="size-4 shrink-0 text-neutral-400"
                     aria-hidden="true"
                   />
                 }
@@ -133,7 +143,7 @@ export function AnalyticsCard<T extends string>({
             />
           )}
 
-          <div className="flex items-center gap-1 pr-2 text-gray-500">
+          <div className="flex items-center gap-1 pr-2 text-neutral-500">
             {event === "sales" ? (
               <InvoiceDollar className="hidden h-4 w-4 sm:block" />
             ) : event === "leads" ? (
@@ -170,7 +180,7 @@ export function AnalyticsCard<T extends string>({
               onClick={() => setShowModal(true)}
               className="group relative flex w-full items-center justify-center py-4"
             >
-              <div className="rounded-md border border-gray-200 bg-white px-2.5 py-1 text-sm text-gray-950 group-hover:bg-gray-100 group-active:border-gray-300">
+              <div className="rounded-md border border-neutral-200 bg-white px-2.5 py-1 text-sm text-neutral-950 group-hover:bg-neutral-100 group-active:border-neutral-300">
                 View All
               </div>
             </button>
@@ -199,9 +209,9 @@ function SubTabs({
       }))}
       selected={selectedTab}
       selectAction={(period) => onSelectTab(period)}
-      className="flex w-full flex-wrap rounded-none border-x-0 border-t-0 border-gray-200 bg-gray-50 px-6 py-2.5 sm:flex-nowrap"
-      optionClassName="text-xs px-2 font-normal hover:text-gray-700"
-      indicatorClassName="border-0 bg-gray-200 rounded-md"
+      className="flex w-full flex-wrap rounded-none border-x-0 border-t-0 border-neutral-200 bg-neutral-50 px-6 py-2.5 sm:flex-nowrap"
+      optionClassName="text-xs px-2 font-normal hover:text-neutral-700"
+      indicatorClassName="border-0 bg-neutral-200 rounded-md"
     />
   );
 }

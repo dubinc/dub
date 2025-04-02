@@ -3,7 +3,6 @@ import { PartnerProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { getSearchParams } from "@dub/utils";
 import { AxiomRequest, withAxiom } from "next-axiom";
-import { ratelimit } from "../upstash";
 import { Session, getSession } from "./utils";
 
 interface WithPartnerProfileHandler {
@@ -46,45 +45,30 @@ export const withPartnerProfile = (
         const searchParams = getSearchParams(req.url);
         const { defaultPartnerId, id: userId } = session.user;
 
-        const partner = await prisma.partner.findFirst({
+        if (!defaultPartnerId) {
+          throw new DubApiError({
+            code: "not_found",
+            message: "Partner profile not found.",
+          });
+        }
+
+        const partnerUser = await prisma.partnerUser.findUnique({
           where: {
-            ...(defaultPartnerId && {
-              id: defaultPartnerId,
-            }),
-            users: {
-              some: {
-                userId,
-              },
+            userId_partnerId: {
+              userId,
+              partnerId: defaultPartnerId,
             },
           },
           include: {
-            users: true,
+            partner: true,
           },
         });
 
-        // partner profile doesn't exist
-        if (!partner || !partner.users) {
+        // partnerUser relationship doesn't exist
+        if (!partnerUser) {
           throw new DubApiError({
             code: "not_found",
             message: "Partner profile not found.",
-          });
-        }
-
-        // partner profile exists but user is not part of it
-        if (partner.users.length === 0) {
-          throw new DubApiError({
-            code: "not_found",
-            message: "Partner profile not found.",
-          });
-        }
-
-        // rate limit
-        const { success } = await ratelimit(600, "1 m").limit(partner.id);
-
-        if (!success) {
-          throw new DubApiError({
-            code: "rate_limit_exceeded",
-            message: "Too many requests.",
           });
         }
 
@@ -93,7 +77,7 @@ export const withPartnerProfile = (
           params,
           searchParams,
           session,
-          partner,
+          partner: partnerUser.partner,
         });
       } catch (error) {
         req.log.error(error);

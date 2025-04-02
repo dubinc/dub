@@ -1,4 +1,4 @@
-import { createId } from "@/lib/api/utils";
+import { createId } from "@/lib/api/create-id";
 import { prisma } from "@dub/prisma";
 import { getPrettyUrl, truncate } from "@dub/utils";
 import "dotenv-flow/config";

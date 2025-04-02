@@ -6,8 +6,8 @@ import { subscribe } from "@dub/email/resend/subscribe";
 import { unsubscribe } from "@dub/email/resend/unsubscribe";
 import { EmailUpdated } from "@dub/email/templates/email-updated";
 import { prisma } from "@dub/prisma";
+import { VerificationToken } from "@dub/prisma/client";
 import { InputPassword, LoadingSpinner } from "@dub/ui";
-import { VerificationToken } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
@@ -67,8 +67,8 @@ const VerifyEmailChange = async ({
     return (
       <EmptyState
         icon={InputPassword}
-        title="Email Change Request Cancelled"
-        description="Your email change request has been cancelled. No changes have been made to your account. You can close this page."
+        title="Email Change Request Canceled"
+        description="Your email change request has been canceled. No changes have been made to your account. You can close this page."
       />
     );
   }

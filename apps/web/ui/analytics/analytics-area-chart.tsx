@@ -1,6 +1,7 @@
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { EventType } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
 import { cn, currencyFormatter, fetcher, nFormatter } from "@dub/utils";
 import { subDays } from "date-fns";
@@ -32,6 +33,8 @@ export default function AnalyticsAreaChart({
   resource: EventType;
   demo?: boolean;
 }) {
+  const { createdAt } = useWorkspace();
+
   const {
     baseApiPath,
     queryString,
@@ -54,7 +57,6 @@ export default function AnalyticsAreaChart({
     !demo &&
       `${baseApiPath}?${editQueryString(queryString, {
         groupBy: "timeseries",
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       })}`,
     fetcher,
     {
@@ -113,11 +115,12 @@ export default function AnalyticsAreaChart({
           tooltipContent={(d) => {
             return (
               <>
-                <p className="border-b border-gray-200 px-4 py-3 text-sm text-gray-900">
+                <p className="border-b border-neutral-200 px-4 py-3 text-sm text-neutral-900">
                   {formatDateTooltip(d.date, {
                     interval: demo ? "day" : interval,
                     start,
                     end,
+                    dataAvailableFrom: createdAt,
                   })}
                 </p>
                 <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-4 py-3 text-sm">
@@ -131,9 +134,9 @@ export default function AnalyticsAreaChart({
                           )}
                         />
                       )}
-                      <p className="capitalize text-gray-600">{resource}</p>
+                      <p className="capitalize text-neutral-600">{resource}</p>
                     </div>
-                    <p className="text-right font-medium text-gray-900">
+                    <p className="text-right font-medium text-neutral-900">
                       {resource === "sales" && saleUnit === "saleAmount"
                         ? currencyFormatter(d.values.saleAmount)
                         : nFormatter(d.values[resource], { full: true })}
@@ -151,6 +154,7 @@ export default function AnalyticsAreaChart({
                 interval,
                 start,
                 end,
+                dataAvailableFrom: createdAt,
               })
             }
           />

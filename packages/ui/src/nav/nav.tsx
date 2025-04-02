@@ -3,19 +3,18 @@
 import { APP_DOMAIN, cn, createHref, fetcher } from "@dub/utils";
 import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu";
 import { LayoutGroup } from "framer-motion";
-import Cookies from "js-cookie";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { PropsWithChildren, SVGProps, createContext, useId } from "react";
 import useSWR from "swr";
 import { buttonVariants } from "../button";
-import { COMPANY, FEATURES_LIST, RESOURCES } from "../content";
+import { FEATURES_LIST, RESOURCES, SOLUTIONS } from "../content";
 import { useScroll } from "../hooks";
 import { MaxWidthWrapper } from "../max-width-wrapper";
 import { NavWordmark } from "../nav-wordmark";
-import { CompanyContent } from "./content/company-content";
 import { ProductContent } from "./content/product-content";
 import { ResourcesContent } from "./content/resources-content";
+import { SolutionsContent } from "./content/solutions-content";
 
 export type NavTheme = "light" | "dark";
 
@@ -31,16 +30,16 @@ export const navItems = [
     segments: ["/home", "/analytics", "/features", "/compare"],
   },
   {
+    name: "Solutions",
+    content: SolutionsContent,
+    childItems: SOLUTIONS,
+    segments: ["/solutions"],
+  },
+  {
     name: "Resources",
     content: ResourcesContent,
     childItems: RESOURCES,
-    segments: ["/solutions", "/docs", "/help", "/brand"],
-  },
-  {
-    name: "Company",
-    content: CompanyContent,
-    childItems: COMPANY,
-    segments: ["about", "/blog", "/changelog", "/customers"],
+    segments: ["/docs", "/help", "/brand", "/blog", "/changelog", "/customers"],
   },
   {
     name: "Enterprise",
@@ -89,12 +88,6 @@ export function Nav({
       dedupingInterval: 60000,
     },
   );
-
-  // here we need to check if the user has a dub_id cookie
-  // if they do, we should just use app.dub.co links
-  // if not, we can use conversion-enabled d.to links
-  const hasDubCookie =
-    domain === "dub.co" && Cookies.get("dub_id") ? true : false;
 
   return (
     <NavContext.Provider value={{ theme }}>
@@ -203,11 +196,7 @@ export function Nav({
                 ) : !isLoading ? (
                   <>
                     <Link
-                      href={
-                        hasDubCookie
-                          ? "https://app.dub.co/login"
-                          : "https://d.to/login"
-                      }
+                      href="https://app.dub.co/login"
                       className={cn(
                         buttonVariants({ variant: "secondary" }),
                         "flex h-8 items-center rounded-lg border px-4 text-sm",
@@ -217,11 +206,7 @@ export function Nav({
                       Log in
                     </Link>
                     <Link
-                      href={
-                        hasDubCookie
-                          ? "https://app.dub.co/register"
-                          : "https://d.to/register"
-                      }
+                      href="https://app.dub.co/register"
                       className={cn(
                         buttonVariants({ variant: "primary" }),
                         "flex h-8 items-center rounded-lg border px-4 text-sm",

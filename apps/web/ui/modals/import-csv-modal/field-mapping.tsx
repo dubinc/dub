@@ -140,8 +140,8 @@ function FieldRow({
                           setIsOpen(false);
                         }}
                         className={cn(
-                          "flex w-full items-center justify-between space-x-2 rounded-md px-1 py-2 hover:bg-gray-100 active:bg-gray-200",
-                          column === "None" && "text-gray-400",
+                          "flex w-full items-center justify-between space-x-2 rounded-md px-1 py-2 hover:bg-neutral-100 active:bg-neutral-200",
+                          column === "None" && "text-neutral-400",
                         )}
                       >
                         <IconMenu
@@ -167,15 +167,17 @@ function FieldRow({
                 disabled={isLoading}
                 text={
                   <div className="flex w-full grow items-center justify-between gap-1">
-                    <span className="flex-1 truncate whitespace-nowrap text-left text-gray-800">
+                    <span className="flex-1 truncate whitespace-nowrap text-left text-neutral-800">
                       {field.value || (
-                        <span className="text-gray-600">Select column...</span>
+                        <span className="text-neutral-600">
+                          Select column...
+                        </span>
                       )}
                     </span>
                     {isLoading ? (
                       <LoadingSpinner className="size-4 shrink-0" />
                     ) : (
-                      <ChevronDown className="size-4 shrink-0 text-gray-400 transition-transform duration-75 group-data-[state=open]:rotate-180" />
+                      <ChevronDown className="size-4 shrink-0 text-neutral-400 transition-transform duration-75 group-data-[state=open]:rotate-180" />
                     )}
                   </div>
                 }
@@ -188,14 +190,16 @@ function FieldRow({
         <Tooltip
           content={
             <div className="block px-4 py-3 text-sm">
-              <span className="font-medium text-gray-950">Example values:</span>
+              <span className="font-medium text-neutral-950">
+                Example values:
+              </span>
               <ul className="mt-0.5">
                 {examples?.map((example, idx) => (
                   <li
                     key={example + idx}
-                    className="block text-xs leading-tight text-gray-500"
+                    className="block text-xs leading-tight text-neutral-500"
                   >
-                    <span className="translate-y-1 text-base text-gray-600">
+                    <span className="translate-y-1 text-base text-neutral-600">
                       &bull;
                     </span>{" "}
                     {example}
@@ -206,16 +210,16 @@ function FieldRow({
           }
         >
           <div className="flex items-center justify-end">
-            <ArrowRight className="size-4 text-gray-500" />
+            <ArrowRight className="size-4 text-neutral-500" />
           </div>
         </Tooltip>
       ) : (
         <div className="flex items-center justify-end">
-          <ArrowRight className="size-4 text-gray-500" />
+          <ArrowRight className="size-4 text-neutral-500" />
         </div>
       )}
-      <span className="flex h-9 items-center gap-1 rounded-md border border-gray-200 bg-gray-100 px-3">
-        <span className="grow whitespace-nowrap text-sm font-normal text-gray-700">
+      <span className="flex h-9 items-center gap-1 rounded-md border border-neutral-200 bg-neutral-100 px-3">
+        <span className="grow whitespace-nowrap text-sm font-normal text-neutral-700">
           {label} {required && <span className="text-red-700">*</span>}
         </span>
         {field === "tags" && (

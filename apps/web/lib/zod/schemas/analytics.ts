@@ -7,6 +7,7 @@ import {
   eventIntervals,
   intervals,
 } from "@/lib/analytics/constants";
+import { prefixWorkspaceId } from "@/lib/api/workspace-id";
 import z from "@/lib/zod";
 import {
   CONTINENT_CODES,
@@ -196,6 +197,12 @@ export const analyticsQuerySchema = z
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
       .optional()
       .describe("The tag IDs to retrieve analytics for."),
+    folderId: z
+      .string()
+      .optional()
+      .describe(
+        "The folder ID to retrieve analytics for. If not provided, return analytics for unsorted links.",
+      ),
     qr: booleanQuerySchema
       .optional()
       .describe(
@@ -217,16 +224,7 @@ export const analyticsFilterTB = z
     workspaceId: z
       .string()
       .optional()
-      .transform((v) => {
-        if (v && !v.startsWith("ws_")) {
-          return `ws_${v}`;
-        } else {
-          return v;
-        }
-      }),
-    programId: z.string().optional(),
-    partnerId: z.string().optional(),
-    tenantId: z.string().optional(),
+      .transform((v) => (v ? prefixWorkspaceId(v) : undefined)),
     customerId: z.string().optional(),
     root: z.boolean().optional(),
     qr: z.boolean().optional(),
@@ -238,6 +236,12 @@ export const analyticsFilterTB = z
       .string()
       .optional()
       .describe("The UTM tag to group by. Defaults to `utm_source`."),
+    folderIds: z
+      .union([z.string(), z.array(z.string())])
+      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+      .optional()
+      .describe("The folder IDs to retrieve analytics for."),
+    isMegaFolder: z.boolean().optional(),
   })
   .merge(
     analyticsQuerySchema.pick({
@@ -259,6 +263,10 @@ export const analyticsFilterTB = z
       utm_campaign: true,
       utm_term: true,
       utm_content: true,
+      programId: true,
+      partnerId: true,
+      tenantId: true,
+      folderId: true,
     }),
   );
 

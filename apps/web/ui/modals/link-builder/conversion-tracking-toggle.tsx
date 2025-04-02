@@ -36,7 +36,7 @@ export function ConversionTrackingToggle() {
             New
           </div>
         )}
-        <span className="flex select-none items-center gap-1 text-sm font-medium text-gray-700">
+        <span className="flex select-none items-center gap-1 text-sm font-medium text-neutral-700">
           Conversion Tracking
           <InfoTooltip
             content={
@@ -61,9 +61,7 @@ export function ConversionTrackingToggle() {
             <TooltipContent
               title="Conversion tracking is only available on Business plans and above."
               cta="Upgrade to Business"
-              href={
-                slug ? `/${slug}/upgrade?exit=close` : "https://dub.co/pricing"
-              }
+              href={slug ? `/${slug}/upgrade` : "https://dub.co/pricing"}
               target="_blank"
             />
           )

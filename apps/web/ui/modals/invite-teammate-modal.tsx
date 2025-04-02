@@ -41,7 +41,7 @@ function InviteTeammateModal({
       setShowModal={setShowInviteTeammateModal}
       className="max-h-[95dvh]"
     >
-      <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-4 pt-8 sm:px-16">
+      <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-4 pt-8 sm:px-16">
         {logo ? (
           <BlurImage
             src={logo}
@@ -54,12 +54,12 @@ function InviteTeammateModal({
           <Logo />
         )}
         <h3 className="text-lg font-medium">Invite Teammates</h3>
-        <p className="text-center text-sm text-gray-500">
+        <p className="text-center text-sm text-neutral-500">
           Invite teammates with{" "}
           <a
             href="https://dub.co/help/article/workspace-roles"
             target="_blank"
-            className="underline hover:text-gray-900"
+            className="underline hover:text-neutral-900"
           >
             different roles and permissions
           </a>
@@ -73,7 +73,7 @@ function InviteTeammateModal({
       ) : (
         <InviteTeammatesForm
           onSuccess={() => setShowInviteTeammateModal(false)}
-          className="bg-gray-50 px-4 py-8 sm:px-16"
+          className="bg-neutral-50 px-4 py-8 sm:px-16"
           invites={invites}
         />
       )}

@@ -137,12 +137,13 @@ const DateRangePickerInner = ({
                 <div
                   className={cn(
                     "relative flex h-16 w-full items-center sm:h-full sm:w-48",
-                    "border-b border-gray-200 sm:border-b-0 sm:border-l",
+                    "border-b border-neutral-200 sm:border-b-0 sm:border-l",
                     "scrollbar-hide overflow-auto",
                   )}
                 >
                   <div className="absolute px-3 sm:inset-0 sm:left-0 sm:p-3">
                     <Presets
+                      currentPresetId={presetId}
                       currentValue={range}
                       presets={presets}
                       onSelect={onPresetSelected}
@@ -165,7 +166,7 @@ const DateRangePickerInner = ({
                   className="scrollbar-hide overflow-x-scroll"
                   classNames={{
                     months:
-                      "flex flex-row divide-x divide-gray-200 overflow-x-scroll scrollbar-hide",
+                      "flex flex-row divide-x divide-neutral-200 overflow-x-scroll scrollbar-hide",
                   }}
                   {...props}
                 />

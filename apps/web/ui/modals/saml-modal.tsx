@@ -45,18 +45,18 @@ function SAMLModal({
 
   return (
     <Modal showModal={showSAMLModal} setShowModal={setShowSAMLModal}>
-      <div className="flex flex-col items-center justify-center space-y-3 border-b border-gray-200 px-4 py-8 sm:px-16">
-        <div className="rounded-full border border-gray-200 p-3">
-          <Lock className="h-5 w-5 text-gray-600" />
+      <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-8 sm:px-16">
+        <div className="rounded-full border border-neutral-200 p-3">
+          <Lock className="h-5 w-5 text-neutral-600" />
         </div>
         <h3 className="text-lg font-medium">Configure SAML</h3>
-        <p className="text-center text-sm text-gray-500">
+        <p className="text-center text-sm text-neutral-500">
           Select a provider to configure SAML for your{" "}
           {process.env.NEXT_PUBLIC_APP_NAME} workspace.
         </p>
       </div>
 
-      <div className="flex flex-col space-y-6 bg-gray-50 px-4 py-8 text-left sm:px-16">
+      <div className="flex flex-col space-y-6 bg-neutral-50 px-4 py-8 text-left sm:px-16">
         <form
           onSubmit={async (e) => {
             e.preventDefault();
@@ -88,7 +88,7 @@ function SAMLModal({
         >
           <div>
             <div className="flex items-center space-x-1">
-              <h2 className="text-sm font-medium text-gray-900">
+              <h2 className="text-sm font-medium text-neutral-900">
                 SAML Provider
               </h2>
               <InfoTooltip content="Your SAML provider is the service you use to manage your users." />
@@ -101,7 +101,7 @@ function SAMLModal({
               onChange={(e) =>
                 setSelectedProvider(e.target.value as SAMLProviderProps["saml"])
               }
-              className="mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
+              className="mt-1 block w-full appearance-none rounded-md border border-neutral-300 px-3 py-2 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
             >
               <option disabled selected>
                 Select a provider
@@ -121,7 +121,7 @@ function SAMLModal({
               <a
                 href={`https://dub.co/help/article/${selectedProvider}-saml`}
                 target="_blank"
-                className="ml-2 mt-2 block text-sm text-gray-500 underline"
+                className="ml-2 mt-2 block text-sm text-neutral-500 underline"
               >
                 Read the guide on {currentProvider.name} SSO
               </a>
@@ -129,7 +129,7 @@ function SAMLModal({
               <a
                 href="https://dub.co/help/category/saml-sso"
                 target="_blank"
-                className="ml-2 mt-2 block text-sm text-gray-500 underline"
+                className="ml-2 mt-2 block text-sm text-neutral-500 underline"
               >
                 Learn more about SAML SSO
               </a>
@@ -138,9 +138,9 @@ function SAMLModal({
 
           {currentProvider &&
             (selectedProvider === "google" ? (
-              <div className="border-t border-gray-200 pt-4">
+              <div className="border-t border-neutral-200 pt-4">
                 <div className="flex items-center space-x-1">
-                  <h2 className="text-sm font-medium text-gray-900">
+                  <h2 className="text-sm font-medium text-neutral-900">
                     {currentProvider.samlModalCopy}
                   </h2>
                   <InfoTooltip
@@ -155,17 +155,19 @@ function SAMLModal({
                 </div>
                 <label
                   htmlFor="metadataRaw"
-                  className="group relative mt-1 flex h-24 w-full cursor-pointer flex-col items-center justify-center rounded-md border border-gray-300 bg-white shadow-sm transition-all hover:bg-gray-50"
+                  className="group relative mt-1 flex h-24 w-full cursor-pointer flex-col items-center justify-center rounded-md border border-neutral-300 bg-white shadow-sm transition-all hover:bg-neutral-50"
                 >
                   {file ? (
                     <>
                       <Check className="h-5 w-5 text-green-600 transition-all duration-75 group-hover:scale-110 group-active:scale-95" />
-                      <p className="mt-2 text-sm text-gray-500">{file.name}</p>
+                      <p className="mt-2 text-sm text-neutral-500">
+                        {file.name}
+                      </p>
                     </>
                   ) : (
                     <>
-                      <UploadCloud className="h-5 w-5 text-gray-500 transition-all duration-75 group-hover:scale-110 group-active:scale-95" />
-                      <p className="mt-2 text-sm text-gray-500">
+                      <UploadCloud className="h-5 w-5 text-neutral-500 transition-all duration-75 group-hover:scale-110 group-active:scale-95" />
+                      <p className="mt-2 text-sm text-neutral-500">
                         Choose an .xml file to upload
                       </p>
                     </>
@@ -193,9 +195,9 @@ function SAMLModal({
                 />
               </div>
             ) : (
-              <div className="border-t border-gray-200 pt-4">
+              <div className="border-t border-neutral-200 pt-4">
                 <div className="flex items-center space-x-1">
-                  <h2 className="text-sm font-medium text-gray-900">
+                  <h2 className="text-sm font-medium text-neutral-900">
                     {currentProvider.samlModalCopy}
                   </h2>
                   <InfoTooltip
@@ -216,7 +218,7 @@ function SAMLModal({
                   placeholder="https://"
                   autoComplete="off"
                   required
-                  className="mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
+                  className="mt-1 block w-full appearance-none rounded-md border border-neutral-300 px-3 py-2 placeholder-neutral-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
                 />
               </div>
             ))}

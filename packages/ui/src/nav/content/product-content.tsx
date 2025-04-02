@@ -29,7 +29,7 @@ const largeLinks = [
 
 export function ProductContent({ domain }: { domain: string }) {
   return (
-    <div className="grid w-[1020px] grid-cols-[minmax(0,1fr),0.4fr] divide-x divide-gray-200">
+    <div className="grid w-[1020px] grid-cols-[minmax(0,1fr),0.4fr] divide-x divide-neutral-200 dark:divide-white/20">
       <div className="grid grid-cols-2 gap-4 p-4">
         <NavigationMenuLink asChild>
           <Link
@@ -107,10 +107,10 @@ export function ProductContent({ domain }: { domain: string }) {
                   getUtmParams({ domain, utm_content: title }),
                 )}
                 icon={
-                  <div className="shrink-0 rounded-[10px] border border-gray-200 bg-white/50 p-2 dark:border-white/20 dark:bg-white/10">
+                  <div className="shrink-0 rounded-[10px] border border-neutral-200 bg-white/50 p-2 dark:border-white/20 dark:bg-white/10">
                     <Icon
                       className={cn(
-                        "h-4 w-4 shrink-0 text-gray-600 transition-colors dark:text-white/60",
+                        "h-4 w-4 shrink-0 text-neutral-600 transition-colors dark:text-white/60",
                         iconClassName,
                       )}
                     />

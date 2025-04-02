@@ -100,7 +100,7 @@ export function LinkPreview() {
       <OGModal />
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h2 className="text-sm font-medium text-gray-700">
+          <h2 className="text-sm font-medium text-neutral-700">
             Custom Link Preview
           </h2>
           <InfoTooltip
@@ -124,11 +124,7 @@ export function LinkPreview() {
               <TooltipContent
                 title="Custom Link Previews are only available on the Pro plan and above."
                 cta="Upgrade to Pro"
-                href={
-                  slug
-                    ? `/${slug}/upgrade?exit=close`
-                    : "https://dub.co/pricing"
-                }
+                href={slug ? `/${slug}/upgrade` : "https://dub.co/pricing"}
                 target="_blank"
               />
             ) : undefined
@@ -152,10 +148,10 @@ export function LinkPreview() {
                 <Icon className="size-4 text-current" fill="currentColor" />
               }
               className={cn(
-                "h-7 text-gray-800",
+                "h-7 text-neutral-800",
                 tab === selectedTab
-                  ? "border-gray-400 bg-white drop-shadow-sm"
-                  : "border-gray-300 bg-transparent hover:bg-white",
+                  ? "border-neutral-400 bg-white drop-shadow-sm"
+                  : "border-neutral-300 bg-transparent hover:bg-white",
               )}
               title={tabTitles[tab]}
             />
@@ -222,7 +218,7 @@ export const ImagePreview = ({
   const previewImage = useMemo(() => {
     if (generatingMetatags || resizing) {
       return (
-        <div className="flex aspect-[var(--aspect,1200/630)] w-full flex-col items-center justify-center bg-gray-100">
+        <div className="flex aspect-[var(--aspect,1200/630)] w-full flex-col items-center justify-center bg-neutral-100">
           <LoadingCircle />
         </div>
       );
@@ -273,8 +269,8 @@ export const ImagePreview = ({
             <ShimmerDots className="pointer-events-none opacity-30 [mask-image:radial-gradient(40%_80%,transparent_50%,black)]" />
           )}
           <div className="pointer-events-none relative flex size-full flex-col items-center justify-center gap-2">
-            <NucleoPhoto className="size-5 text-gray-700" />
-            <p className="max-w-32 text-center text-xs text-gray-700">
+            <NucleoPhoto className="size-5 text-neutral-700" />
+            <p className="max-w-32 text-center text-xs text-neutral-700">
               Enter a link to generate a preview
             </p>
           </div>
@@ -304,11 +300,11 @@ function DefaultOGPreview({ title, description, children }: OGPreviewProps) {
 
   return (
     <div>
-      <div className="group relative overflow-hidden rounded-md border border-gray-300">
+      <div className="group relative overflow-hidden rounded-md border border-neutral-300">
         {children}
       </div>
       <ReactTextareaAutosize
-        className="mt-4 line-clamp-2 w-full resize-none border-none p-0 text-xs font-medium text-gray-700 outline-none focus:ring-0"
+        className="mt-4 line-clamp-2 w-full resize-none border-none p-0 text-xs font-medium text-neutral-700 outline-none focus:ring-0"
         value={title || "Add a title..."}
         maxRows={2}
         onChange={(e) => {
@@ -319,7 +315,7 @@ function DefaultOGPreview({ title, description, children }: OGPreviewProps) {
         }}
       />
       <ReactTextareaAutosize
-        className="mt-1.5 line-clamp-2 w-full resize-none border-none p-0 text-xs text-gray-700/80 outline-none focus:ring-0"
+        className="mt-1.5 line-clamp-2 w-full resize-none border-none p-0 text-xs text-neutral-700/80 outline-none focus:ring-0"
         value={description || "Add a description..."}
         maxRows={2}
         onChange={(e) => {
@@ -346,10 +342,10 @@ function FacebookOGPreview({
 
   return (
     <div>
-      <div className="relative border border-gray-300">
+      <div className="relative border border-neutral-300">
         {children}
         {(hostname || title || description) && (
-          <div className="grid gap-1 border-t border-gray-300 bg-[#f2f3f5] p-2">
+          <div className="grid gap-1 border-t border-neutral-300 bg-[#f2f3f5] p-2">
             {hostname && (
               <p className="text-xs uppercase text-[#606770]">{hostname}</p>
             )}
@@ -366,7 +362,7 @@ function FacebookOGPreview({
               }}
             />
             <ReactTextareaAutosize
-              className="mb-1 line-clamp-2 w-full resize-none rounded-md border-none bg-gray-200 bg-transparent p-0 text-xs text-[#606770] outline-none focus:ring-0"
+              className="mb-1 line-clamp-2 w-full resize-none rounded-md border-none bg-neutral-200 bg-transparent p-0 text-xs text-[#606770] outline-none focus:ring-0"
               value={description || "Add a description..."}
               maxRows={2}
               onChange={(e) => {
@@ -420,7 +416,7 @@ function LinkedInOGPreview({ title, hostname, children }: OGPreviewProps) {
 function XOGPreview({ title, hostname, children }: OGPreviewProps) {
   return (
     <div>
-      <div className="group relative overflow-hidden rounded-2xl border border-gray-300">
+      <div className="group relative overflow-hidden rounded-2xl border border-neutral-300">
         {children}
         <div className="absolute bottom-2 left-0 w-full px-2">
           <div className="w-fit max-w-full rounded bg-black/[0.77] px-1.5 py-px">

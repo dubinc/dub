@@ -27,11 +27,9 @@ export async function queueDomainUpdate({
 }
 
 export async function queueDomainDeletion({
-  workspaceId,
   domain,
   delay,
 }: {
-  workspaceId: string;
   domain: string;
   delay?: number;
 }) {
@@ -39,7 +37,6 @@ export async function queueDomainDeletion({
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/domains/delete`,
     ...(delay && { delay }),
     body: {
-      workspaceId,
       domain,
     },
   });
