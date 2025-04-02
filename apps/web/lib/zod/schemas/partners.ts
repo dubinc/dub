@@ -146,8 +146,8 @@ export const PartnerSchema = z
   })
   .merge(PartnerOnlinePresenceSchema);
 
-// Used by GET /partners if no includeExpandedFields
-export const SimpleEnrolledPartnerSchema = PartnerSchema.pick({
+// Used externally by GET+POST /api/partners and partner.created webhook
+export const EnrolledPartnerSchema = PartnerSchema.pick({
   id: true,
   name: true,
   email: true,
@@ -156,20 +156,15 @@ export const SimpleEnrolledPartnerSchema = PartnerSchema.pick({
   country: true,
   payoutsEnabledAt: true,
   createdAt: true,
-}).merge(
-  ProgramEnrollmentSchema.pick({
-    status: true,
-    programId: true,
-    tenantId: true,
-  }),
-);
-
-// Used externally by GET+POST /api/partners and partner.created webhook
-export const EnrolledPartnerSchema = SimpleEnrolledPartnerSchema.merge(
-  ProgramEnrollmentSchema.pick({
-    links: true,
-  }),
-)
+})
+  .merge(
+    ProgramEnrollmentSchema.pick({
+      status: true,
+      programId: true,
+      tenantId: true,
+      links: true,
+    }),
+  )
   .extend({
     clicks: z.number().default(0),
     leads: z.number().default(0),
