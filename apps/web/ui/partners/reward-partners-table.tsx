@@ -4,21 +4,19 @@ import usePartners from "@/lib/swr/use-partners";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { Combobox, Table, useTable } from "@dub/ui";
 import { cn, DICEBEAR_AVATAR_URL, pluralize } from "@dub/utils";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
 interface RewardPartnersTableProps {
-  programId: string;
-  rewardId?: string;
   partnerIds: string[];
   setPartners: (value: string[]) => void;
+  loading: boolean;
 }
 
 export function RewardPartnersTable({
-  programId,
-  rewardId,
   partnerIds,
   setPartners,
+  loading,
 }: RewardPartnersTableProps) {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
@@ -116,6 +114,7 @@ export function RewardPartnersTable({
     scrollWrapperClassName: "min-h-[40px]",
     resourceName: (p) => `eligible partner${p ? "s" : ""}`,
     getRowId: (row: EnrolledPartnerProps) => row.id,
+    loading,
   });
 
   return (

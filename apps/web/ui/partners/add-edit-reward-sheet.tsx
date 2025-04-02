@@ -6,6 +6,7 @@ import { updateRewardAction } from "@/lib/actions/partners/update-reward";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgram from "@/lib/swr/use-program";
+import useRewardPartners from "@/lib/swr/use-reward-partners";
 import useRewards from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { RewardProps } from "@/lib/types";
@@ -105,13 +106,6 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
     (reward) => reward.event === "sale" && reward.partnersCount === 0,
   );
 
-  // const { data: rewardPartners } = useRewardPartners({
-  //   query: {
-  //     rewardId,
-  //   },
-  //   enabled: Boolean(programId && rewardId),
-  // });
-
   useEffect(() => {
     if (reward) {
       setSelectedPartnerType(reward.partnersCount === 0 ? "all" : "specific");
@@ -131,6 +125,20 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
     hasProgramWideLeadReward,
     hasProgramWideSaleReward,
   ]);
+
+  const { data: rewardPartners, loading: isLoadingRewardPartners } =
+    useRewardPartners({
+      query: {
+        rewardId: reward?.id,
+      },
+      enabled: Boolean(reward?.id && program?.id),
+    });
+
+  useEffect(() => {
+    if (rewardPartners && rewardPartners.length > 0) {
+      setValue("partnerIds", rewardPartners);
+    }
+  }, [rewardPartners, setValue]);
 
   const { executeAsync: createReward, isPending: isCreating } = useAction(
     createRewardAction,
@@ -538,12 +546,11 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
 
             {displayPartners && program?.id && (
               <RewardPartnersTable
-                programId={program.id}
-                rewardId={reward?.id}
                 partnerIds={partnerIds || []}
                 setPartners={(value: string[]) => {
                   setValue("partnerIds", value);
                 }}
+                loading={isLoadingRewardPartners}
               />
             )}
           </div>
