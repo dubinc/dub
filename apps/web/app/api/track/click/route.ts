@@ -28,7 +28,7 @@ const trackClickSchema = z.object({
   referrer: z.string().nullish(),
 });
 
-export const partnerDiscountSchema = z.object({
+const partnerDiscountSchema = z.object({
   clickId: z.string(),
   partner: PartnerSchema.pick({
     id: true,
