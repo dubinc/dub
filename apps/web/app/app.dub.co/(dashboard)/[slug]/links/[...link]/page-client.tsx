@@ -24,6 +24,7 @@ import { OptionsList } from "@/ui/modals/link-builder/options-list";
 import { QRCodePreview } from "@/ui/modals/link-builder/qr-code-preview";
 import { TagSelect } from "@/ui/modals/link-builder/tag-select";
 import { useMetatags } from "@/ui/modals/link-builder/use-metatags";
+import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useCallback, useEffect, useRef } from "react";
 import { useFormContext, useFormState } from "react-hook-form";
@@ -58,6 +59,8 @@ export function LinkPageClient({
 
 function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
   const workspace = useWorkspace();
+
+  const { isDesktop } = useMediaQuery();
 
   const { control, handleSubmit, reset, getValues } =
     useFormContext<LinkFormData>();
@@ -113,16 +116,22 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
 
             <ConversionTrackingToggle />
 
-            <LinkFeatureButtons className="mt-1 flex-wrap" />
+            {isDesktop && (
+              <LinkFeatureButtons className="mt-1 flex-wrap" variant="page" />
+            )}
 
             <OptionsList />
           </div>
 
-          <div className="grow" />
-          <LinkActionBar />
+          {isDesktop && (
+            <>
+              <div className="grow" />
+              <LinkActionBar />
+            </>
+          )}
         </div>
         <div className="px-4 md:px-6 lg:bg-neutral-50 lg:px-0">
-          <div className="mx-auto max-w-xl divide-neutral-200 lg:divide-y">
+          <div className="divide-nxeutral-200 mx-auto max-w-xl lg:divide-y">
             <div className="py-4 lg:px-4 lg:py-6">
               <QRCodePreview />
             </div>
@@ -131,6 +140,11 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
             </div>
           </div>
         </div>
+        {!isDesktop && (
+          <LinkActionBar>
+            <LinkFeatureButtons variant="page" />
+          </LinkActionBar>
+        )}
       </form>
     </div>
   );

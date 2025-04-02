@@ -6,7 +6,13 @@ import { useUTMModal } from "@/ui/modals/link-builder/utm-modal";
 import { WebhookSelect } from "@/ui/modals/link-builder/webhook-select";
 import { cn } from "@dub/utils";
 
-export function LinkFeatureButtons({ className }: { className?: string }) {
+export function LinkFeatureButtons({
+  variant = "page",
+  className,
+}: {
+  variant?: "page" | "modal";
+  className?: string;
+}) {
   const { UTMModal, UTMButton } = useUTMModal();
   const { ExpirationModal, ExpirationButton } = useExpirationModal();
   const { TargetingModal, TargetingButton } = useTargetingModal();
@@ -21,7 +27,12 @@ export function LinkFeatureButtons({ className }: { className?: string }) {
 
       <div className={cn("flex min-w-0 items-center gap-2", className)}>
         <UTMButton />
-        <div className="flex items-center gap-2 max-sm:hidden">
+        <div
+          className={cn(
+            "flex items-center gap-2 max-sm:hidden",
+            variant === "page" && "max-[960px]:hidden",
+          )}
+        >
           <ExpirationButton />
           <TargetingButton />
           <PasswordButton />
