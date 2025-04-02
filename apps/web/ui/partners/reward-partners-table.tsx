@@ -4,12 +4,11 @@ import usePartners from "@/lib/swr/use-partners";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useRewardPartners from "@/lib/swr/use-reward-partners";
 import { EnrolledPartnerProps } from "@/lib/types";
-import { Search } from "@/ui/shared/icons";
 import { Table, usePagination, useTable } from "@dub/ui";
 import { cn, DICEBEAR_AVATAR_URL } from "@dub/utils";
-import { Row } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
 import { useDebounce } from "use-debounce";
+import { PartnersCombobox } from "./partners-combobox";
 
 interface RewardPartnersTableProps {
   programId: string;
@@ -24,8 +23,12 @@ export function RewardPartnersTable({
 }: RewardPartnersTableProps) {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
-  const { pagination, setPagination } = usePagination(25);
+  const { pagination, setPagination } = usePagination(300);
   const [selectedRows, setSelectedRows] = useState<Record<string, boolean>>({});
+
+  const [selectedPartners, setSelectedPartners] = useState<
+    Pick<EnrolledPartnerProps, "id" | "name" | "image" | "email">[]
+  >([]);
 
   const { data: partners, loading } = usePartners({
     query: {
@@ -63,29 +66,8 @@ export function RewardPartnersTable({
   }, [rewardPartners, partners]);
 
   const table = useTable({
-    data: partners || [],
+    data: selectedPartners,
     columns: [
-      {
-        id: "selection",
-        header: ({ table }) => (
-          <input
-            type="checkbox"
-            className="h-4 w-4 cursor-pointer rounded-full border-neutral-300 text-black focus:outline-none focus:ring-0"
-            checked={table.getIsAllRowsSelected()}
-            onChange={table.getToggleAllRowsSelectedHandler()}
-          />
-        ),
-        cell: ({ row }) => (
-          <input
-            type="checkbox"
-            className="h-4 w-4 cursor-pointer rounded-full border-neutral-300 text-black focus:outline-none focus:ring-0"
-            checked={row.getIsSelected()}
-            onChange={row.getToggleSelectedHandler()}
-          />
-        ),
-        minSize: 10,
-        size: 30,
-      },
       {
         header: "Partner",
         cell: ({ row }) => (
@@ -130,9 +112,6 @@ export function RewardPartnersTable({
     rowCount: partnersCount,
     selectedRows,
     getRowId: (row: EnrolledPartnerProps) => row.id,
-    onRowSelectionChange: (rows: Row<EnrolledPartnerProps>[]) => {
-      setValue(rows.map((row) => row.original.id));
-    },
   });
 
   return (
@@ -141,7 +120,7 @@ export function RewardPartnersTable({
         Eligible partners
       </label>
 
-      <div className="relative">
+      {/* <div className="relative">
         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
           <Search className="size-4 text-neutral-400" />
         </div>
@@ -152,7 +131,12 @@ export function RewardPartnersTable({
           onChange={(e) => setSearch(e.target.value)}
           className="block w-full rounded-lg border-neutral-300 pl-10 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
         />
-      </div>
+      </div> */}
+
+      <PartnersCombobox
+        onChange={setSelectedPartners}
+        partners={partners || []}
+      />
 
       <Table {...table} />
     </div>
