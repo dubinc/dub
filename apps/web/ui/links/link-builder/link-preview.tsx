@@ -164,7 +164,7 @@ export const LinkPreview = memo(() => {
           );
         })}
       </div>
-      <div className="relative mt-2">
+      <div className="relative z-0 mt-2">
         <Button
           type="button"
           variant="secondary"

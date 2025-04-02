@@ -100,7 +100,7 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
           className="p-0"
           foldersEnabled={!!workspace.flags?.linkFolders}
         >
-          <div className="flex items-center gap-2">
+          <div className="flex min-w-0 items-center gap-2">
             <DraftControls
               ref={draftControlsRef}
               props={link}

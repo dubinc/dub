@@ -50,7 +50,7 @@ export function LinkBuilderHeader({
       )}
     >
       {foldersEnabled && (
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 items-center gap-2">
           <FolderDropdown
             hideViewAll={true}
             disableAutoRedirect={true}
@@ -68,11 +68,11 @@ export function LinkBuilderHeader({
         </div>
       )}
 
-      <div className="flex w-full items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
+      <div className="flex w-full min-w-0 items-center justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-2">
           <LinkLogo
             apexDomain={getApexDomain(debouncedUrl)}
-            className="size-6 sm:size-6 [&>*]:size-3 sm:[&>*]:size-4"
+            className="size-6 shrink-0 sm:size-6 [&>*]:size-3 sm:[&>*]:size-4"
           />
           <h3 className="!mt-0 max-w-sm truncate text-sm font-medium">
             {props ? `Edit ${shortLink}` : "New link"}
