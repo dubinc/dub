@@ -10,24 +10,21 @@ import { useDebounce } from "use-debounce";
 
 interface DiscountPartnersTableProps {
   partnerIds: string[];
-  partners: EnrolledPartnerProps[];
-  setPartners: (value: string[]) => void;
+  setPartnerIds: (value: string[]) => void;
+  discountPartners: EnrolledPartnerProps[];
   loading: boolean;
 }
 
 export function DiscountPartnersTable({
   partnerIds,
-  partners,
-  setPartners,
+  setPartnerIds,
+  discountPartners,
   loading,
 }: DiscountPartnersTableProps) {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
   const [selectedPartners, setSelectedPartners] =
     useState<Pick<EnrolledPartnerProps, "id" | "name" | "email" | "image">[]>();
-
-  // Get all partners for the table
-  const { data: allPartners } = usePartners({});
 
   // Get filtered partners for the combobox
   const { data: searchPartners } = usePartners({
@@ -36,7 +33,7 @@ export function DiscountPartnersTable({
     },
   });
 
-  const options = useMemo(
+  const partnersOptions = useMemo(
     () =>
       searchPartners?.map((partner) => ({
         icon: (
@@ -48,21 +45,19 @@ export function DiscountPartnersTable({
         ),
         value: partner.id,
         label: partner.name,
-      })),
+      })) || [],
     [searchPartners],
   );
 
   const selectedPartnersOptions = useMemo(
     () =>
-      partnerIds
-        .map((id) => options?.find(({ value }) => value === id)!)
-        .filter(Boolean),
-    [partnerIds, options],
+      partnersOptions.filter((partner) => partnerIds.includes(partner.value)),
+    [partnerIds, partnersOptions],
   );
 
   useEffect(() => {
-    setSelectedPartners(partners);
-  }, [partners]);
+    setSelectedPartners(discountPartners);
+  }, [discountPartners]);
 
   const handlePartnerSelection = (
     selectedOptions: typeof selectedPartnersOptions,
@@ -75,7 +70,7 @@ export function DiscountPartnersTable({
       currentIds.add(value);
     });
 
-    setPartners(Array.from(currentIds));
+    setPartnerIds(Array.from(currentIds));
   };
 
   const table = useTable({
@@ -122,7 +117,9 @@ export function DiscountPartnersTable({
               icon={<X className="size-4" />}
               className="size-4 rounded-md border-0 bg-neutral-50 p-0 hover:bg-neutral-100"
               onClick={() => {
-                setPartners(partnerIds.filter((id) => id !== row.original.id));
+                setPartnerIds(
+                  partnerIds.filter((id) => id !== row.original.id),
+                );
                 setSelectedPartners(
                   selectedPartners?.filter(
                     (partner) => partner.id !== row.original.id,
@@ -154,7 +151,7 @@ export function DiscountPartnersTable({
       </label>
 
       <Combobox
-        options={options}
+        options={partnersOptions}
         selected={selectedPartnersOptions}
         setSelected={handlePartnerSelection}
         caret

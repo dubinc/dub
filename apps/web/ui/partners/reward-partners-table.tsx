@@ -9,16 +9,16 @@ import { useEffect, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
 interface RewardPartnersTableProps {
+  rewardPartners: EnrolledPartnerProps[];
   partnerIds: string[];
-  partners: EnrolledPartnerProps[];
-  setPartners: (value: string[]) => void;
+  setPartnerIds: (value: string[]) => void;
   loading: boolean;
 }
 
 export function RewardPartnersTable({
   partnerIds,
-  partners,
-  setPartners,
+  setPartnerIds,
+  rewardPartners,
   loading,
 }: RewardPartnersTableProps) {
   const [search, setSearch] = useState("");
@@ -33,7 +33,7 @@ export function RewardPartnersTable({
     },
   });
 
-  const options = useMemo(
+  const partnersOptions = useMemo(
     () =>
       searchPartners?.map((partner) => ({
         icon: (
@@ -45,21 +45,19 @@ export function RewardPartnersTable({
         ),
         value: partner.id,
         label: partner.name,
-      })),
+      })) || [],
     [searchPartners],
   );
 
   const selectedPartnersOptions = useMemo(
     () =>
-      partnerIds
-        .map((id) => options?.find(({ value }) => value === id)!)
-        .filter(Boolean),
-    [partnerIds, options],
+      partnersOptions.filter((partner) => partnerIds.includes(partner.value)),
+    [partnerIds, partnersOptions],
   );
 
   useEffect(() => {
-    setSelectedPartners(partners);
-  }, [partners]);
+    setSelectedPartners(rewardPartners);
+  }, [rewardPartners]);
 
   const handlePartnerSelection = (
     selectedOptions: typeof selectedPartnersOptions,
@@ -72,7 +70,7 @@ export function RewardPartnersTable({
       currentIds.add(value);
     });
 
-    setPartners(Array.from(currentIds));
+    setPartnerIds(Array.from(currentIds));
   };
 
   const table = useTable({
@@ -119,7 +117,9 @@ export function RewardPartnersTable({
               icon={<X className="size-4" />}
               className="size-4 rounded-md border-0 bg-neutral-50 p-0 hover:bg-neutral-100"
               onClick={() => {
-                setPartners(partnerIds.filter((id) => id !== row.original.id));
+                setPartnerIds(
+                  partnerIds.filter((id) => id !== row.original.id),
+                );
                 setSelectedPartners(
                   selectedPartners?.filter(
                     (partner) => partner.id !== row.original.id,
@@ -151,7 +151,7 @@ export function RewardPartnersTable({
       </label>
 
       <Combobox
-        options={options}
+        options={partnersOptions}
         selected={selectedPartnersOptions}
         setSelected={handlePartnerSelection}
         caret
