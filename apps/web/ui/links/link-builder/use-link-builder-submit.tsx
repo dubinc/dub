@@ -58,12 +58,14 @@ export function useLinkBuilderSubmit({
         });
 
         if (res.status === 200) {
+          const data = await res.json();
+          onSuccess?.(data);
+
           await mutatePrefix([
             "/api/links",
             // if updating root domain link, mutate domains as well
             ...(getValues("key") === "_root" ? ["/api/domains"] : []),
           ]);
-          const data = await res.json();
           posthog.capture(props ? "link_updated" : "link_created", data);
 
           // copy shortlink to clipboard when adding a new link
@@ -76,14 +78,8 @@ export function useLinkBuilderSubmit({
             }
           } else toast.success("Successfully updated short link!");
 
-          onSuccess?.(data);
-
           // Mutate workspace to update usage stats
           mutate(`/api/workspaces/${workspace?.slug}`);
-
-          // Navigate to the link's folder
-          if (data.folderId) queryParams({ set: { folderId: data.folderId } });
-          else queryParams({ del: ["folderId"] });
         } else {
           const { error } = await res.json();
 

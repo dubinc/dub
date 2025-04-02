@@ -28,16 +28,19 @@ import { TagSelect } from "@/ui/modals/link-builder/tag-select";
 import { useMetatags } from "@/ui/modals/link-builder/use-metatags";
 import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { useCallback, useEffect, useRef } from "react";
+import { notFound, useParams, useRouter } from "next/navigation";
+import { useEffect, useRef } from "react";
 import { useFormContext, useFormState } from "react-hook-form";
 
-export function LinkPageClient({
-  domain,
-  slug,
-}: {
-  domain: string;
-  slug: string;
-}) {
+export function LinkPageClient() {
+  const params = useParams<{ link: string | string[] }>();
+
+  const linkParts = Array.isArray(params.link) ? params.link : null;
+  if (!linkParts) notFound();
+
+  const domain = linkParts[0];
+  const slug = linkParts.length > 1 ? linkParts.slice(1).join("/") : "_root";
+
   const workspace = useWorkspace();
 
   const { link } = useLink(
@@ -60,6 +63,7 @@ export function LinkPageClient({
 }
 
 function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
+  const router = useRouter();
   const workspace = useWorkspace();
 
   const { isDesktop } = useMediaQuery();
@@ -70,9 +74,13 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
 
   const draftControlsRef = useRef<DraftControlsHandle>(null);
 
-  const onSubmitSuccess = useCallback(() => {
+  const onSubmitSuccess = (data: LinkFormData) => {
     draftControlsRef.current?.onSubmitSuccessful();
-  }, []);
+
+    router.replace(`/${workspace.slug}/links/${data.domain}/${data.key}`, {
+      scroll: false,
+    });
+  };
 
   useEffect(() => {
     if (isSubmitSuccessful)

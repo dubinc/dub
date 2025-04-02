@@ -37,15 +37,11 @@ import {
 import { useFormContext, useWatch } from "react-hook-form";
 import { ConversionTrackingToggle } from "./conversion-tracking-toggle";
 import { DraftControls, DraftControlsHandle } from "./draft-controls";
-import { useExpirationModal } from "./expiration-modal";
 import { LinkPreview } from "./link-preview";
 import { OptionsList } from "./options-list";
-import { usePasswordModal } from "./password-modal";
 import { QRCodePreview } from "./qr-code-preview";
 import { TagSelect } from "./tag-select";
-import { useTargetingModal } from "./targeting-modal";
 import { useMetatags } from "./use-metatags";
-import { useUTMModal } from "./utm-modal";
 
 export type LinkFormData = ExpandedLinkProps;
 
@@ -139,13 +135,13 @@ function LinkBuilderInner({
 
   const draftControlsRef = useRef<DraftControlsHandle>(null);
 
-  const { UTMModal, UTMButton } = useUTMModal();
-  const { ExpirationModal, ExpirationButton } = useExpirationModal();
-  const { TargetingModal, TargetingButton } = useTargetingModal();
-  const { PasswordModal, PasswordButton } = usePasswordModal();
-
-  const onSubmitSuccess = useCallback(() => {
+  const onSubmitSuccess = useCallback((data: LinkFormData) => {
     draftControlsRef.current?.onSubmitSuccessful();
+
+    // Navigate to the link's folder
+    if (data.folderId) queryParams({ set: { folderId: data.folderId } });
+    else queryParams({ del: ["folderId"] });
+
     setShowLinkBuilder(false);
   }, []);
 
