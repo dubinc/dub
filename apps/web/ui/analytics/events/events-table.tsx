@@ -121,8 +121,8 @@ export default function EventsTable({
           id: "link",
           header: "Link",
           accessorKey: "link",
-          minSize: 150,
-          size: 200,
+          minSize: 250,
+          size: 250,
           maxSize: 400,
           meta: {
             filterParams: ({ getValue }) => ({
@@ -152,8 +152,8 @@ export default function EventsTable({
           id: "customer",
           header: "Customer",
           accessorKey: "customer",
-          minSize: 150,
-          size: 230,
+          minSize: 250,
+          size: 250,
           maxSize: 400,
           cell: ({ getValue }) => <CustomerRowItem customer={getValue()} />,
         },

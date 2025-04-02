@@ -11,7 +11,7 @@ import { Program } from "@prisma/client";
 import Link from "next/link";
 import { PartnerBanner } from "../partner-banner";
 
-type PartialProgram = Pick<Program, "name" | "logo">;
+type PartialProgram = Pick<Program, "name" | "logo" | "slug">;
 
 export default function RegisterPageClient({
   program,
