@@ -23,13 +23,13 @@ export async function getLinksCount({
     showArchived,
     withTags,
     folderId,
+    tenantId,
   } = searchParams;
 
   const combinedTagIds = combineTagIds({ tagId, tagIds });
 
   const linksWhere = {
     projectId: workspaceId,
-    archived: showArchived ? undefined : false,
     AND: [
       ...(folderIds
         ? [
@@ -62,6 +62,7 @@ export async function getLinksCount({
           ]
         : []),
     ],
+    archived: showArchived ? undefined : false,
     ...(domain &&
       groupBy !== "domain" && {
         domain,
@@ -70,6 +71,7 @@ export async function getLinksCount({
       groupBy !== "userId" && {
         userId,
       }),
+    ...(tenantId && { tenantId }),
   };
 
   if (groupBy === "tagId") {

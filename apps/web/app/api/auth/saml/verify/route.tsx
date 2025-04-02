@@ -1,4 +1,4 @@
-import jackson from "@/lib/jackson";
+import { jackson } from "@/lib/jackson";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 

@@ -1,13 +1,15 @@
+import { convertCurrency } from "@/lib/analytics/convert-currency";
+import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
-import { createId, parseRequestBody } from "@/lib/api/utils";
+import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
-import { sendWorkspaceWebhookOnEdge } from "@/lib/webhook/publish-edge";
+import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
@@ -115,13 +117,11 @@ export const POST = withWorkspace(
     // if currency is not USD, convert it to USD  based on the current FX rate
     // TODO: allow custom "defaultCurrency" on workspace table in the future
     if (currency !== "usd") {
-      const fxRates = await redis.hget("fxRates:usd", currency.toUpperCase()); // e.g. for MYR it'll be around 4.4
-      if (fxRates) {
-        currency = "usd";
-        // convert amount to USD (in cents) based on the current FX rate
-        // round it to 0 decimal places
-        amount = Math.round(amount / Number(fxRates));
-      }
+      const { currency: convertedCurrency, amount: convertedAmount } =
+        await convertCurrency({ currency, amount });
+
+      currency = convertedCurrency;
+      amount = convertedAmount;
     }
 
     const eventId = nanoid(16);
@@ -198,17 +198,19 @@ export const POST = withWorkspace(
                 },
               });
 
-              if (reward.maxDuration === 0 && firstCommission) {
-                eligibleForCommission = false;
-              } else if (firstCommission) {
-                // Calculate months difference between first commission and now
-                const monthsDifference = differenceInMonths(
-                  new Date(),
-                  firstCommission.createdAt,
-                );
-
-                if (monthsDifference >= reward.maxDuration) {
+              if (firstCommission) {
+                if (reward.maxDuration === 0) {
                   eligibleForCommission = false;
+                } else {
+                  // Calculate months difference between first commission and now
+                  const monthsDifference = differenceInMonths(
+                    new Date(),
+                    firstCommission.createdAt,
+                  );
+
+                  if (monthsDifference >= reward.maxDuration) {
+                    eligibleForCommission = false;
+                  }
                 }
               }
             }
@@ -222,7 +224,7 @@ export const POST = withWorkspace(
                 },
               });
 
-              await prisma.commission.create({
+              const commission = await prisma.commission.create({
                 data: {
                   id: createId({ prefix: "cm_" }),
                   programId: link.programId,
@@ -238,28 +240,12 @@ export const POST = withWorkspace(
                 },
               });
 
-              const program = await prisma.program.findUniqueOrThrow({
-                where: {
-                  id: link.programId!,
-                },
-                select: {
-                  id: true,
-                  name: true,
-                  logo: true,
-                },
-              });
-
-              await notifyPartnerSale({
-                program,
-                partner: {
-                  id: link.partnerId!,
-                  referralLink: link.shortLink,
-                },
-                sale: {
-                  amount: saleData.amount,
-                  earnings,
-                },
-              });
+              waitUntil(
+                notifyPartnerSale({
+                  link,
+                  commission,
+                }),
+              );
             }
           }
         }
@@ -272,7 +258,7 @@ export const POST = withWorkspace(
           customer,
         });
 
-        await sendWorkspaceWebhookOnEdge({
+        await sendWorkspaceWebhook({
           trigger: "sale.created",
           data: sale,
           workspace,
@@ -308,6 +294,7 @@ export const POST = withWorkspace(
       "business plus",
       "business extra",
       "business max",
+      "advanced",
       "enterprise",
     ],
   },

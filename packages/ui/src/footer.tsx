@@ -35,16 +35,24 @@ const socials = [
 ];
 
 const navigation = {
-  features: FEATURES_LIST.map(({ title, href }) => ({
-    name: title,
-    href,
-  })),
   product: [
+    ...FEATURES_LIST.map(({ title, href }) => ({
+      name: title,
+      href,
+    })),
+    { name: "Dub Enterprise", href: "/enterprise" },
+    { name: "Pricing", href: "/pricing" },
+  ],
+  solutions: [
+    { name: "Marketing attribution", href: "/analytics" },
+    { name: "Content creators", href: "/solutions/creators" },
+    { name: "Affiliate management", href: "/partners" },
+  ],
+  resources: [
+    { name: "About", href: "/about" },
     { name: "Blog", href: "/blog" },
     { name: "Changelog", href: "/changelog" },
     { name: "Customers", href: "/customers" },
-    { name: "Enterprise", href: "/enterprise" },
-    { name: "Pricing", href: "/pricing" },
     { name: "Docs", href: "/docs/introduction" },
     { name: "Help Center", href: "/help" },
     { name: "Brand", href: "/brand" },
@@ -123,30 +131,52 @@ export function Footer({
           </div>
           <div className="mt-16 grid grid-cols-2 gap-4 xl:col-span-2 xl:mt-0">
             <div className="md:grid md:grid-cols-2">
-              <div>
-                <h3 className={linkListHeaderClassName}>Product</h3>
-                <ul role="list" className={linkListClassName}>
-                  {navigation.features.map((item) => (
-                    <li key={item.name}>
-                      <Link
-                        href={createHref(item.href, domain, {
-                          utm_source: "Custom Domain",
-                          utm_medium: "Footer",
-                          utm_campaign: domain,
-                          utm_content: item.name,
-                        })}
-                        className={linkListItemClassName}
-                      >
-                        {item.name}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
+              <div className="grid gap-8">
+                <div>
+                  <h3 className={linkListHeaderClassName}>Product</h3>
+                  <ul role="list" className={linkListClassName}>
+                    {navigation.product.map((item) => (
+                      <li key={item.name}>
+                        <Link
+                          href={createHref(item.href, domain, {
+                            utm_source: "Custom Domain",
+                            utm_medium: "Footer",
+                            utm_campaign: domain,
+                            utm_content: item.name,
+                          })}
+                          className={linkListItemClassName}
+                        >
+                          {item.name}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h3 className={linkListHeaderClassName}>Solutions</h3>
+                  <ul role="list" className={linkListClassName}>
+                    {navigation.solutions.map((item) => (
+                      <li key={item.name}>
+                        <Link
+                          href={createHref(item.href, domain, {
+                            utm_source: "Custom Domain",
+                            utm_medium: "Footer",
+                            utm_campaign: domain,
+                            utm_content: item.name,
+                          })}
+                          className={linkListItemClassName}
+                        >
+                          {item.name}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
               <div className="mt-10 md:mt-0">
                 <h3 className={linkListHeaderClassName}>Resources</h3>
                 <ul role="list" className={linkListClassName}>
-                  {navigation.product.map((item) => (
+                  {navigation.resources.map((item) => (
                     <li key={item.name}>
                       <Link
                         href={createHref(item.href, domain, {
@@ -165,7 +195,7 @@ export function Footer({
               </div>
             </div>
             <div className="md:grid md:grid-cols-2">
-              <div className="flex flex-col space-y-8">
+              <div className="grid gap-8">
                 <div>
                   <h3 className={linkListHeaderClassName}>Compare</h3>
                   <ul role="list" className={linkListClassName}>

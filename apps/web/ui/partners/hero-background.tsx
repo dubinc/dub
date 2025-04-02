@@ -4,18 +4,22 @@ import { BlurImage } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { CSSProperties, useId } from "react";
 
+const BG_INVERTED = "rgb(var(--bg-inverted))";
+
 export function HeroBackground({
   logo,
   color,
+  embed = false,
 }: {
   logo?: string | null;
   color?: string | null;
+  embed?: boolean;
 }) {
   const id = useId();
 
   return (
     <div
-      className="absolute inset-0 isolate -z-[1] overflow-hidden bg-neutral-50 [container-type:size]"
+      className="bg-bg-muted absolute inset-0 isolate -z-[1] overflow-hidden [container-type:size]"
       style={
         {
           color: color || "#737373",
@@ -26,9 +30,9 @@ export function HeroBackground({
     >
       <div className="absolute inset-0 [mask-image:linear-gradient(90deg,transparent_40%,black)]">
         {color ? (
-          <div className="absolute inset-0 bg-current opacity-10" />
+          <div className="absolute inset-0 bg-current opacity-20 sm:opacity-10" />
         ) : (
-          <RainbowGradient className="opacity-15" />
+          <RainbowGradient className="opacity-25 sm:opacity-15" />
         )}
       </div>
 
@@ -38,7 +42,10 @@ export function HeroBackground({
         height="258"
         fill="none"
         viewBox="0 0 718 258"
-        className="pointer-events-none absolute right-0 top-0 hidden h-full w-auto md:block"
+        className={cn(
+          "pointer-events-none absolute right-0 top-0 hidden h-full w-auto",
+          embed ? "md:block" : "lg:block",
+        )}
       >
         <mask
           id={`${id}-grid-mask`}
@@ -61,11 +68,12 @@ export function HeroBackground({
           <g filter={`url(#${id}-d)`}>
             <path
               fill={`url(#${id}-e)`}
+              className="dark:opacity-30"
               d="M478 65c0-8.837 7.163-16 16-16h128c8.837 0 16 7.163 16 16v128c0 8.837-7.163 16-16 16H494c-8.837 0-16-7.163-16-16z"
             />
           </g>
           <path
-            stroke="#000"
+            stroke={BG_INVERTED}
             strokeOpacity="0.06"
             strokeWidth="0.75"
             d="M478 65c0-8.837 7.163-16 16-16h128c8.837 0 16 7.163 16 16v128c0 8.837-7.163 16-16 16H494c-8.837 0-16-7.163-16-16z"
@@ -96,7 +104,7 @@ export function HeroBackground({
                 height="40"
                 x="418"
                 y="29"
-                stroke="#000"
+                stroke={BG_INVERTED}
                 strokeOpacity="0.06"
                 strokeWidth="0.75"
                 rx="8"
@@ -126,7 +134,7 @@ export function HeroBackground({
                 height="40"
                 x="658"
                 y="189"
-                stroke="#000"
+                stroke={BG_INVERTED}
                 strokeOpacity="0.06"
                 strokeWidth="0.75"
                 rx="8"
@@ -224,8 +232,8 @@ export function HeroBackground({
             <feBlend in2="shape" result="effect1_innerShadow_21_5513" />
           </filter>
           <linearGradient id={`${id}-c`} gradientUnits="userSpaceOnUse">
-            <stop offset="0" stopColor="#000" stopOpacity="0" />
-            <stop offset="1" stopColor="#000" stopOpacity="1" />
+            <stop offset="0" stopColor={BG_INVERTED} stopOpacity="0" />
+            <stop offset="1" stopColor={BG_INVERTED} stopOpacity="1" />
           </linearGradient>
           <linearGradient
             id={`${id}-e`}
@@ -246,8 +254,15 @@ export function HeroBackground({
             y2="29"
             gradientUnits="userSpaceOnUse"
           >
-            <stop stopColor="#fff" stopOpacity="0.23" />
-            <stop offset="1" stopColor="#fff" stopOpacity="0.3" />
+            <stop
+              stopColor="#fff"
+              className="[stop-opacity:0.23] dark:[stop-opacity:0.1]"
+            />
+            <stop
+              offset="1"
+              stopColor="#fff"
+              className="[stop-opacity:0.3] dark:[stop-opacity:0.17]"
+            />
           </linearGradient>
           <linearGradient
             id={`${id}-l`}
@@ -257,15 +272,22 @@ export function HeroBackground({
             y2="189"
             gradientUnits="userSpaceOnUse"
           >
-            <stop stopColor="#fff" stopOpacity="0.23" />
-            <stop offset="1" stopColor="#fff" stopOpacity="0.3" />
+            <stop
+              stopColor="#fff"
+              className="[stop-opacity:0.23] dark:[stop-opacity:0.1]"
+            />
+            <stop
+              offset="1"
+              stopColor="#fff"
+              className="[stop-opacity:0.3] dark:[stop-opacity:0.17]"
+            />
           </linearGradient>
           <radialGradient
             id={`${id}-g`}
             cx="0"
             cy="0"
             r="1"
-            gradientTransform="rotate(90 214 343.5)scale(159.5)"
+            gradientTransform="rotate(90 214 343.5) scale(159.5)"
             gradientUnits="userSpaceOnUse"
           >
             <stop offset="0.73" stopColor="#fff" />
@@ -285,19 +307,20 @@ export function HeroBackground({
             <path
               d={`M 20 0 L 0 0 0 20`}
               fill="transparent"
+              className="text-border-emphasis"
               stroke="currentColor"
-              strokeOpacity={0.2}
+              strokeOpacity={0.12}
               strokeWidth={1}
             />
           </pattern>
         </defs>
       </svg>
 
-      <div className="absolute inset-0 mix-blend-soft-light [mask-image:linear-gradient(90deg,transparent_40%,black)]">
+      <div className="absolute inset-0 mix-blend-soft-light [mask-image:linear-gradient(90deg,transparent_40%,black)] max-sm:hidden">
         {color ? (
           <div className="absolute inset-0 bg-current" />
         ) : (
-          <RainbowGradient />
+          <RainbowGradient className="dark:opacity-50" />
         )}
       </div>
 
@@ -306,7 +329,10 @@ export function HeroBackground({
           "absolute right-4 top-4 block size-6 min-[300px]:size-8",
 
           // Position based on cqh to adjust for container height
-          "md:right-[62cqh] md:top-1/2 md:size-[32cqh] md:-translate-y-1/2 md:translate-x-1/2",
+          "",
+          embed
+            ? "md:right-[62cqh] md:top-1/2 md:size-[32cqh] md:-translate-y-1/2 md:translate-x-1/2"
+            : "lg:right-[62cqh] lg:top-1/2 lg:size-[32cqh] lg:-translate-y-1/2 lg:translate-x-1/2",
 
           "drop-shadow-[0_0_15px_rgb(from_var(--brand-dark,#000)_r_g_b/0.4)]",
         )}
@@ -327,7 +353,12 @@ export function HeroBackground({
 
 function RainbowGradient({ className }: { className?: string }) {
   return (
-    <div className={cn("absolute inset-0 saturate-[1.5]", className)}>
+    <div
+      className={cn(
+        "absolute inset-0 saturate-[1.5] [transform:translateZ(0)]",
+        className,
+      )}
+    >
       <div className="absolute right-[62cqh] top-1/2 aspect-square h-[200%] -translate-y-1/2 translate-x-1/2 rounded-full bg-[conic-gradient(from_-66deg_at_50%_50%,#855AFC_-32deg,#f00_63deg,#EAB308_158deg,#5CFF80_240deg,#855AFC_328deg,#f00_423deg)] blur-[50px]" />
     </div>
   );

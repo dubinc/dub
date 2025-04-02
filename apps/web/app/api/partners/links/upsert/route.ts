@@ -66,9 +66,9 @@ export const PUT = withWorkspace(
 
     const link = await prisma.link.findFirst({
       where: {
-        projectId: workspace.id,
         programId,
         partnerId,
+        projectId: workspace.id,
         url,
       },
       include: includeTags,
@@ -94,6 +94,7 @@ export const PUT = withWorkspace(
         programId: program.id,
         tenantId: partner.tenantId,
         partnerId: partner.partnerId,
+        folderId: program.defaultFolderId,
         trackConversion: true,
       };
 
@@ -119,10 +120,14 @@ export const PUT = withWorkspace(
         error,
         code,
       } = await processLink({
-        payload: updatedLink,
+        payload: {
+          ...updatedLink,
+          tags: undefined,
+        },
         workspace,
         skipKeyChecks,
         skipExternalIdChecks,
+        userId: session.user.id,
       });
 
       if (error) {
@@ -170,6 +175,7 @@ export const PUT = withWorkspace(
           programId: program.id,
           tenantId: partner.tenantId,
           partnerId: partner.partnerId,
+          folderId: program.defaultFolderId,
           trackConversion: true,
         },
         workspace,
@@ -201,5 +207,6 @@ export const PUT = withWorkspace(
   },
   {
     requiredPermissions: ["links.write"],
+    requiredPlan: ["advanced", "enterprise"],
   },
 );

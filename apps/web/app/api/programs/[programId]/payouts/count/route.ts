@@ -1,7 +1,6 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { MIN_PAYOUT_AMOUNT } from "@/lib/partners/constants";
 import { payoutsCountQuerySchema } from "@/lib/zod/schemas/payouts";
 import { prisma } from "@dub/prisma";
 import { PayoutStatus, Prisma } from "@dub/prisma/client";
@@ -13,7 +12,7 @@ export const GET = withWorkspace(
     const { programId } = params;
     const parsed = payoutsCountQuerySchema.parse(searchParams);
 
-    await getProgramOrThrow({
+    const { minPayoutAmount } = await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
     });
@@ -42,10 +41,12 @@ export const GET = withWorkspace(
       ...(partnerId && { partnerId }),
       ...(eligibility === "eligible" && {
         amount: {
-          gte: MIN_PAYOUT_AMOUNT,
+          gte: minPayoutAmount,
         },
         partner: {
-          payoutsEnabled: true,
+          payoutsEnabledAt: {
+            not: null,
+          },
         },
       }),
     };

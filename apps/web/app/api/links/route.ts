@@ -22,7 +22,8 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(
   async ({ headers, searchParams, workspace, session }) => {
     const params = getLinksQuerySchemaExtended.parse(searchParams);
-    const { domain, folderId, search, tagId, tagIds, tagNames } = params;
+    const { domain, folderId, search, tagId, tagIds, tagNames, tenantId } =
+      params;
 
     if (domain) {
       await getDomainOrThrow({ workspace, domain });
@@ -40,10 +41,10 @@ export const GET = withWorkspace(
 
     /* we only need to get the folder ids if we are:
       - not filtering by folder
-      - filtering by search, domain, or tags
+      - filtering by search, domain, tags, or tenantId
     */
     let folderIds =
-      !folderId && (search || domain || tagId || tagIds || tagNames)
+      !folderId && (search || domain || tagId || tagIds || tagNames || tenantId)
         ? await getFolderIdsToFilter({
             workspace,
             userId: session.user.id,

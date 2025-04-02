@@ -1,7 +1,8 @@
+import { convertCurrency } from "@/lib/analytics/convert-currency";
+import { createId } from "@/lib/api/create-id";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
-import { createId } from "@/lib/api/utils";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import {
   getClickEvent,
@@ -196,10 +197,24 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     }
   }
 
-  // support for Stripe Adaptive Pricing: https://docs.stripe.com/payments/checkout/adaptive-pricing
-  if (charge.currency !== "usd" && charge.currency_conversion) {
-    charge.amount_total = charge.currency_conversion.amount_total;
-    charge.currency = charge.currency_conversion.source_currency;
+  if (charge.currency && charge.currency !== "usd" && charge.amount_total) {
+    // support for Stripe Adaptive Pricing: https://docs.stripe.com/payments/checkout/adaptive-pricing
+    if (charge.currency_conversion) {
+      charge.currency = charge.currency_conversion.source_currency;
+      charge.amount_total = charge.currency_conversion.amount_total;
+
+      // if Stripe Adaptive Pricing is not enabled, we convert the amount to USD based on the current FX rate
+      // TODO: allow custom "defaultCurrency" on workspace table in the future
+    } else {
+      const { currency: convertedCurrency, amount: convertedAmount } =
+        await convertCurrency({
+          currency: charge.currency,
+          amount: charge.amount_total,
+        });
+
+      charge.currency = convertedCurrency;
+      charge.amount_total = convertedAmount;
+    }
   }
 
   const eventId = nanoid(16);
@@ -284,7 +299,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         },
       });
 
-      await prisma.commission.create({
+      const commission = await prisma.commission.create({
         data: {
           id: createId({ prefix: "cm_" }),
           linkId: link.id,
@@ -301,30 +316,10 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       });
 
       waitUntil(
-        (async () => {
-          const program = await prisma.program.findUniqueOrThrow({
-            where: {
-              id: link.programId!,
-            },
-            select: {
-              id: true,
-              name: true,
-              logo: true,
-            },
-          });
-
-          await notifyPartnerSale({
-            program,
-            partner: {
-              id: link.partnerId!,
-              referralLink: link.shortLink,
-            },
-            sale: {
-              amount: saleData.amount,
-              earnings,
-            },
-          });
-        })(),
+        notifyPartnerSale({
+          link,
+          commission,
+        }),
       );
     }
   }

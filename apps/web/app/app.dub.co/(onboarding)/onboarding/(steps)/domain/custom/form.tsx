@@ -13,7 +13,7 @@ export function Form() {
         onSuccess={() => {
           continueTo("invite");
         }}
-        showAdvancedOptions={false}
+        enableDomainConfig={false}
       />
       <LaterButton next="invite" className="mt-4" />
     </div>

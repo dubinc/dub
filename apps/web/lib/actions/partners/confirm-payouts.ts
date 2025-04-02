@@ -1,9 +1,8 @@
 "use server";
 
+import { createId } from "@/lib/api/create-id";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
-import { createId } from "@/lib/api/utils";
-import { limiter } from "@/lib/cron/limiter";
-import { MIN_PAYOUT_AMOUNT, PAYOUT_FEES } from "@/lib/partners/constants";
+import { PAYOUT_FEES } from "@/lib/partners/constants";
 import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
 import { PartnerPayoutConfirmed } from "@dub/email/templates/partner-payout-confirmed";
@@ -16,7 +15,6 @@ const confirmPayoutsSchema = z.object({
   workspaceId: z.string(),
   programId: z.string(),
   paymentMethodId: z.string(),
-  payoutIds: z.array(z.string()).min(1),
 });
 
 const allowedPaymentMethods = ["us_bank_account", "card", "link"];
@@ -26,9 +24,9 @@ export const confirmPayoutsAction = authActionClient
   .schema(confirmPayoutsSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { programId, paymentMethodId, payoutIds } = parsedInput;
+    const { programId, paymentMethodId } = parsedInput;
 
-    await getProgramOrThrow({
+    const { minPayoutAmount } = await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
     });
@@ -53,19 +51,15 @@ export const confirmPayoutsAction = authActionClient
     const payouts = await prisma.payout.findMany({
       where: {
         programId,
-        id: {
-          in: payoutIds,
-        },
         status: "pending",
         invoiceId: null, // just to be extra safe
+        amount: {
+          gte: minPayoutAmount,
+        },
         partner: {
-          stripeConnectId: {
+          payoutsEnabledAt: {
             not: null,
           },
-          payoutsEnabled: true,
-        },
-        amount: {
-          gte: MIN_PAYOUT_AMOUNT,
         },
       },
       select: {
@@ -75,15 +69,7 @@ export const confirmPayoutsAction = authActionClient
         periodEnd: true,
         partner: {
           select: {
-            users: {
-              select: {
-                user: {
-                  select: {
-                    email: true,
-                  },
-                },
-              },
-            },
+            email: true,
           },
         },
         program: {
@@ -173,19 +159,17 @@ export const confirmPayoutsAction = authActionClient
         // Send emails to all the partners involved in the payouts if the payout method is ACH
         // ACH takes 4 business days to process
         if (newInvoice && paymentMethod.type === "us_bank_account") {
-          for (const payout of payouts) {
-            const { program, partner } = payout;
-            const partnerUsers = partner.users.map(({ user }) => user);
-
-            partnerUsers.map((user) =>
-              limiter.schedule(() =>
+          await Promise.all(
+            payouts
+              .filter((payout) => payout.partner.email)
+              .map((payout) =>
                 sendEmail({
                   subject: "You've got money coming your way!",
-                  email: user.email!,
+                  email: payout.partner.email!,
                   from: "Dub Partners <system@dub.co>",
                   react: PartnerPayoutConfirmed({
-                    email: user.email!,
-                    program,
+                    email: payout.partner.email!,
+                    program: payout.program,
                     payout: {
                       id: payout.id,
                       amount: payout.amount,
@@ -193,10 +177,10 @@ export const confirmPayoutsAction = authActionClient
                       endDate: payout.periodEnd!,
                     },
                   }),
+                  variant: "notifications",
                 }),
               ),
-            );
-          }
+          );
         }
       })(),
     );

@@ -1,6 +1,11 @@
 import { prisma } from "@dub/prisma";
 import { Link } from "@dub/prisma/client";
 import { DubApiError } from "../errors";
+import { prefixWorkspaceId } from "../workspace-id";
+import {
+  decodeLinkIfCaseSensitive,
+  encodeKeyIfCaseSensitive,
+} from "./case-sensitivity";
 
 interface GetLinkParams {
   workspaceId: string;
@@ -39,6 +44,11 @@ export const getLinkOrThrow = async (params: GetLinkParams) => {
 
   // Get link by domain and key
   else if (domain && key) {
+    key = encodeKeyIfCaseSensitive({
+      domain,
+      key,
+    });
+
     link = await prisma.link.findUnique({
       where: {
         domain_key: {
@@ -66,9 +76,9 @@ export const getLinkOrThrow = async (params: GetLinkParams) => {
   if (link.projectId !== workspaceId) {
     throw new DubApiError({
       code: "unauthorized",
-      message: `Link does not belong to workspace ws_${workspaceId}.`,
+      message: `Link does not belong to workspace ${prefixWorkspaceId(workspaceId)}.`,
     });
   }
 
-  return link;
+  return decodeLinkIfCaseSensitive(link);
 };

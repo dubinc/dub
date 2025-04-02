@@ -6,6 +6,7 @@ import RefreshDomain from "./components/refresh-domain";
 
 export const metadata = constructMetadata({
   title: "Dub Admin",
+  noIndex: true,
 });
 
 export default function AdminPage() {

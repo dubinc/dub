@@ -1,5 +1,5 @@
 import { isBlacklistedEmail } from "@/lib/edge-config";
-import jackson from "@/lib/jackson";
+import { jackson } from "@/lib/jackson";
 import { isStored, storage } from "@/lib/storage";
 import { UserProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
@@ -18,7 +18,8 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
-import { createId } from "../api/utils";
+
+import { createId } from "../api/create-id";
 import { completeProgramApplications } from "../partners/complete-program-applications";
 import { FRAMER_API_HOST } from "./constants";
 import {
@@ -522,7 +523,7 @@ export const authOptions: NextAuthOptions = {
                 }),
                 // send the welcome email 5 minutes after the user signed up
                 scheduledAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
-                marketing: true,
+                variant: "marketing",
               }),
               trackLead(user),
             ]),

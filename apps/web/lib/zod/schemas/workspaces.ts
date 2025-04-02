@@ -88,6 +88,12 @@ export const WorkspaceSchema = z
       .array(
         z.object({
           role: roleSchema,
+          defaultFolderId: z
+            .string()
+            .nullable()
+            .describe(
+              "The ID of the default folder for the user in the workspace.",
+            ),
         }),
       )
       .describe("The role of the authenticated user in the workspace."),
@@ -137,4 +143,19 @@ export const createWorkspaceSchema = z.object({
 
 export const updateWorkspaceSchema = createWorkspaceSchema.partial().extend({
   allowedHostnames: z.array(z.string()).optional(),
+});
+
+export const notificationTypes = z.enum([
+  "linkUsageSummary",
+  "domainConfigurationUpdates",
+  "newPartnerSale",
+  "newPartnerApplication",
+]);
+
+export const WorkspaceSchemaExtended = WorkspaceSchema.extend({
+  users: z.array(
+    WorkspaceSchema.shape.users.element.extend({
+      workspacePreferences: z.record(z.any()).nullish(),
+    }),
+  ),
 });

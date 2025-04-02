@@ -1,6 +1,6 @@
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
+import { transformDomain } from "@/lib/api/domains/transform-domain";
 import { withWorkspace } from "@/lib/auth";
-import { DomainSchema } from "@/lib/zod/schemas/domains";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
@@ -41,7 +41,7 @@ export const POST = withWorkspace(
       }),
     ]);
 
-    return NextResponse.json(DomainSchema.parse(domainRecord), { headers });
+    return NextResponse.json(transformDomain(domainRecord), { headers });
   },
   {
     requiredPermissions: ["domains.write"],

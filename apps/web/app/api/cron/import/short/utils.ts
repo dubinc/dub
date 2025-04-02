@@ -1,5 +1,5 @@
+import { createId } from "@/lib/api/create-id";
 import { bulkCreateLinks } from "@/lib/api/links";
-import { createId } from "@/lib/api/utils";
 import { qstash } from "@/lib/cron";
 import { redis } from "@/lib/upstash";
 import { randomBadgeColor } from "@/ui/links/tag-badge";

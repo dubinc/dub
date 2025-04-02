@@ -1,7 +1,8 @@
+import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { OAUTH_CONFIG } from "@/lib/api/oauth/constants";
 import { createToken } from "@/lib/api/oauth/utils";
-import { createId, parseRequestBody } from "@/lib/api/utils";
+import { parseRequestBody } from "@/lib/api/utils";
 import { hashToken, withWorkspace } from "@/lib/auth";
 import { storage } from "@/lib/storage";
 import z from "@/lib/zod";
@@ -111,20 +112,7 @@ export const POST = withWorkspace(
             },
           },
         },
-        select: {
-          id: true,
-          createdAt: true,
-          updatedAt: true,
-          name: true,
-          slug: true,
-          description: true,
-          developer: true,
-          logo: true,
-          website: true,
-          installUrl: true,
-          readme: true,
-          screenshots: true,
-          verified: true,
+        include: {
           oAuthApp: true,
         },
       });

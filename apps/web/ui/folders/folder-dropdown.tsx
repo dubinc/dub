@@ -37,7 +37,7 @@ export const FolderDropdown = ({
   selectedFolderId,
 }: FolderDropdownProps) => {
   const router = useRouter();
-  const { slug, plan } = useWorkspace();
+  const { slug, plan, defaultFolderId } = useWorkspace();
   const searchParams = useSearchParams();
 
   const [search, setSearch] = useState("");
@@ -65,7 +65,8 @@ export const FolderDropdown = ({
     unsortedLinks,
   );
 
-  const folderId = selectedFolderId || searchParams.get("folderId");
+  const folderId =
+    selectedFolderId || searchParams.get("folderId") || defaultFolderId;
 
   const { folder: selectedFolderData } = useFolder({
     folderId,
@@ -88,10 +89,13 @@ export const FolderDropdown = ({
 
   // Update selected folder when folderId changes and selectedFolderData is available
   useEffect(() => {
-    if (folderId === selectedFolderData?.id)
+    if (selectedFolderData && folderId === selectedFolderData.id) {
       setSelectedFolder(selectedFolderData);
-    else if (!folderId || folderId === "unsorted")
+      onFolderSelect?.(selectedFolderData);
+    } else if (!folderId || folderId === "unsorted") {
       setSelectedFolder(unsortedLinks);
+      onFolderSelect?.(unsortedLinks);
+    }
   }, [folderId, selectedFolderData]);
 
   const { canAddFolder } = getPlanCapabilities(plan);
@@ -106,6 +110,7 @@ export const FolderDropdown = ({
         ? [selectedFolderData]
         : []),
     ];
+
     return [
       ...allFolders.map((folder) => ({
         value: folder.id,
@@ -167,9 +172,7 @@ export const FolderDropdown = ({
             setSelectedFolder(folder);
             onFolderSelect
               ? onFolderSelect(folder)
-              : router.push(
-                  `/${slug}${folder.id === "unsorted" ? "" : `?folderId=${folder.id}`}`,
-                );
+              : router.push(`/${slug}?folderId=${folder.id}`);
           }
         }}
         inputRight={

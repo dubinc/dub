@@ -211,7 +211,7 @@ const FolderPermissionsPanel = ({
                         <TooltipContent
                           title="You can only set custom folder permissions on a Business plan and above."
                           cta="Upgrade to Business"
-                          href={`/${slug}/upgrade?exit=close`}
+                          href={`/${slug}/upgrade`}
                           target="_blank"
                         />
                       }
@@ -283,7 +283,7 @@ const FolderUserRow = ({
     "folders.users.write",
   );
 
-  const { executeAsync, isExecuting } = useAction(updateUserRoleInFolder, {
+  const { executeAsync, isPending } = useAction(updateUserRoleInFolder, {
     onSuccess: () => {
       toast.success("Role updated!");
     },
@@ -293,7 +293,7 @@ const FolderUserRow = ({
   });
 
   const isCurrentUser = user.email === session?.user?.email;
-  const disableRoleUpdate = !canUpdateRole || isExecuting || isCurrentUser;
+  const disableRoleUpdate = !canUpdateRole || isPending || isCurrentUser;
 
   return (
     <div key={user.id} className="flex items-center justify-between gap-3">

@@ -17,8 +17,8 @@ export function PayoutStatsAndSettings() {
     groupBy: "status",
   });
 
-  const { data: bankAccount } = useSWR<Stripe.BankAccount | null>(
-    partner && `/api/partner-profile/payouts/settings`,
+  const { data: bankAccount } = useSWR<Stripe.BankAccount>(
+    partner && "/api/partner-profile/payouts/settings",
     fetcher,
   );
 
@@ -31,10 +31,10 @@ export function PayoutStatsAndSettings() {
           </div>
           <StripeConnectButton
             text={
-              partner?.payoutsEnabled ? "Payout settings" : "Connect payouts"
+              partner?.payoutsEnabledAt ? "Payout settings" : "Connect payouts"
             }
             className="h-8 w-fit px-3"
-            variant={partner?.payoutsEnabled ? "secondary" : "primary"}
+            variant={partner?.payoutsEnabledAt ? "secondary" : "primary"}
             disabledTooltip={
               partner?.country &&
               !CONNECT_SUPPORTED_COUNTRIES.includes(partner.country) &&
@@ -54,7 +54,7 @@ export function PayoutStatsAndSettings() {
               currency: "USD",
             }}
           />
-          {bankAccount && (
+          {bankAccount && Object.keys(bankAccount).length > 0 && (
             <div className="text-sm">
               <p className="text-neutral-600">{bankAccount.bank_name}</p>
               <div className="flex items-center gap-1.5 font-mono text-neutral-400">
@@ -77,8 +77,11 @@ export function PayoutStatsAndSettings() {
         <NumberFlow
           className="mt-2 text-2xl text-neutral-800"
           value={
-            (payoutsCount?.find((p) => p.status === PayoutStatus.completed)
-              ?.amount ?? 0) / 100
+            (payoutsCount?.find(
+              (p) =>
+                p.status === PayoutStatus.completed ||
+                p.status === PayoutStatus.processing,
+            )?.amount ?? 0) / 100
           }
           format={{
             style: "currency",

@@ -1,6 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { validateAllowedHostnames } from "@/lib/api/validate-allowed-hostnames";
+import { prefixWorkspaceId } from "@/lib/api/workspace-id";
 import { deleteWorkspace } from "@/lib/api/workspaces";
 import { withWorkspace } from "@/lib/auth";
 import { getFeatureFlags } from "@/lib/edge-config";
@@ -8,6 +9,7 @@ import { storage } from "@/lib/storage";
 import {
   updateWorkspaceSchema,
   WorkspaceSchema,
+  WorkspaceSchemaExtended,
 } from "@/lib/zod/schemas/workspaces";
 import { prisma } from "@dub/prisma";
 import { nanoid, R2_URL } from "@dub/utils";
@@ -17,36 +19,33 @@ import { NextResponse } from "next/server";
 // GET /api/workspaces/[idOrSlug] – get a specific workspace by id or slug
 export const GET = withWorkspace(
   async ({ workspace, headers }) => {
-    const [domains, yearInReviews] = await Promise.all([
-      prisma.domain.findMany({
-        where: {
-          projectId: workspace.id,
-        },
-        select: {
-          slug: true,
-          primary: true,
-        },
-        take: 100,
-      }),
-      prisma.yearInReview.findMany({
-        where: {
-          workspaceId: workspace.id,
-          year: 2024,
-        },
-      }),
-    ]);
+    const domains = await prisma.domain.findMany({
+      where: {
+        projectId: workspace.id,
+      },
+      select: {
+        slug: true,
+        primary: true,
+      },
+      take: 100,
+    });
+
+    const flags = await getFeatureFlags({
+      workspaceId: workspace.id,
+    });
 
     return NextResponse.json(
       {
-        ...WorkspaceSchema.parse({
+        ...WorkspaceSchemaExtended.parse({
           ...workspace,
-          id: `ws_${workspace.id}`,
+          id: prefixWorkspaceId(workspace.id),
           domains,
-          flags: await getFeatureFlags({
-            workspaceId: workspace.id,
-          }),
+          // TODO: Remove this once Folders goes GA
+          flags: {
+            ...flags,
+            linkFolders: flags.linkFolders || workspace.partnersEnabled,
+          },
         }),
-        yearInReview: yearInReviews.length > 0 ? yearInReviews[0] : null,
       },
       { headers },
     );
@@ -75,7 +74,7 @@ export const PATCH = withWorkspace(
 
     const logoUploaded = logo
       ? await storage.upload(
-          `workspaces/ws_${workspace.id}/logo_${nanoid(7)}`,
+          `workspaces/${prefixWorkspaceId(workspace.id)}/logo_${nanoid(7)}`,
           logo,
         )
       : null;
@@ -122,7 +121,7 @@ export const PATCH = withWorkspace(
       return NextResponse.json(
         WorkspaceSchema.parse({
           ...response,
-          id: `ws_${response.id}`,
+          id: prefixWorkspaceId(response.id),
           flags: await getFeatureFlags({
             workspaceId: response.id,
           }),

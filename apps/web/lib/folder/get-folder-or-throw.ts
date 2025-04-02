@@ -39,7 +39,10 @@ export const getFolderOrThrow = async ({
   }
 
   if (folder.projectId !== workspaceId) {
-    throw new Error("Folder does not belong to the workspace.");
+    throw new DubApiError({
+      code: "not_found",
+      message: "Folder does not belong to the workspace.",
+    });
   }
 
   return {

@@ -22,6 +22,7 @@ import {
   nFormatter,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
+import { endOfDay, startOfDay } from "date-fns";
 import { Fragment, useMemo, useState } from "react";
 
 const LINE_COLORS = [
@@ -61,8 +62,8 @@ export function EarningsCompositeChart() {
   const { data } = usePartnerEarningsTimeseries({
     interval,
     groupBy,
-    start: start ? new Date(start) : undefined,
-    end: end ? new Date(end) : undefined,
+    start: start ? startOfDay(new Date(start)) : undefined,
+    end: end ? endOfDay(new Date(end)) : undefined,
   });
 
   const total = useMemo(
@@ -160,7 +161,7 @@ export function EarningsCompositeChart() {
           />
         </div>
         <div className="mt-5 h-80">
-          {chartData ? (
+          {chartData && chartData.length > 0 ? (
             <TimeSeriesChart
               data={chartData}
               series={series}
@@ -247,15 +248,29 @@ function EarningsTableControls() {
 
   const { earningsCount: links } = usePartnerEarningsCount<
     { id: string; domain: string; key: string; url: string; _count: number }[]
-  >({ groupBy: "linkId", enabled: selectedFilter === "linkId" });
+  >({
+    groupBy: "linkId",
+    enabled:
+      selectedFilter === "linkId" || searchParamsObj.linkId ? true : false,
+  });
 
   const { earningsCount: customers } = usePartnerEarningsCount<
-    { id: string; name: string; email: string; _count: number }[]
-  >({ groupBy: "customerId", enabled: selectedFilter === "customerId" });
+    { id: string; email: string; _count: number }[]
+  >({
+    groupBy: "customerId",
+    enabled:
+      selectedFilter === "customerId" || searchParamsObj.customerId
+        ? true
+        : false,
+  });
 
   const { earningsCount: statuses } = usePartnerEarningsCount<
     { status: string; _count: number }[]
-  >({ groupBy: "status", enabled: selectedFilter === "status" });
+  >({
+    groupBy: "status",
+    enabled:
+      selectedFilter === "status" || searchParamsObj.status ? true : false,
+  });
 
   const filters = useMemo(
     () => [

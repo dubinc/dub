@@ -54,7 +54,8 @@ export async function POST(req: Request) {
       // Remove the link from Redis
       linkCache.deleteMany(links),
 
-      // Record link in the Tinybird
+      // Record link in Tinybird
+      // TODO: Maybe we can just delete these links instead?
       recordLink(links),
 
       // Remove image from R2 storage if it exists
@@ -68,6 +69,17 @@ export async function POST(req: Request) {
           id: { in: links.map((link) => link.id) },
         },
       }),
+
+      // Update the project's total links count
+      links[0].projectId &&
+        prisma.project.update({
+          where: {
+            id: links[0].projectId,
+          },
+          data: {
+            totalLinks: { decrement: links.length },
+          },
+        }),
     ]);
 
     console.log(response);

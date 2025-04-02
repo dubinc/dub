@@ -109,7 +109,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
             email: user.email as string,
             plan: plan.name,
           }),
-          marketing: true,
+          variant: "marketing",
         }),
       );
     }),

@@ -7,6 +7,7 @@ import {
 import { EU_COUNTRY_CODES } from "@dub/utils/src/constants/countries";
 import { geolocation, ipAddress } from "@vercel/functions";
 import { userAgent } from "next/server";
+import { clickCache } from "../api/links/click-cache";
 import { ExpandedLink, transformLink } from "../api/links/utils/transform-link";
 import {
   detectBot,
@@ -36,6 +37,7 @@ export async function recordClick({
   skipRatelimit,
   timestamp,
   referrer,
+  trackConversion,
 }: {
   req: Request;
   clickId: string;
@@ -48,6 +50,7 @@ export async function recordClick({
   skipRatelimit?: boolean;
   timestamp?: string;
   referrer?: string;
+  trackConversion?: boolean;
 }) {
   const searchParams = new URL(req.url).searchParams;
 
@@ -65,13 +68,11 @@ export async function recordClick({
 
   const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
 
-  const cacheKey = `recordClick:${domain}:${key}:${ip}`;
-
   // by default, we deduplicate clicks for a domain + key pair from the same IP address – only record 1 click per hour
   // we only need to do these if skipRatelimit is not true (we skip it in /api/track/:path endpoints)
   if (!skipRatelimit) {
     // here, we check if the clickId is cached in Redis within the last hour
-    const cachedClickId = await redis.get<string>(cacheKey);
+    const cachedClickId = await clickCache.get({ domain, key, ip });
     if (cachedClickId) {
       return null;
     }
@@ -138,7 +139,7 @@ export async function recordClick({
 
   const hasWebhooks = webhookIds && webhookIds.length > 0;
 
-  const [, , , , workspaceRows] = await Promise.all([
+  const [, , , , workspaceRows] = await Promise.allSettled([
     fetch(
       `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_click_events&wait=true`,
       {
@@ -151,9 +152,14 @@ export async function recordClick({
     ).then((res) => res.json()),
 
     // cache the click ID in Redis for 1 hour
-    redis.set(cacheKey, clickId, {
-      ex: 60 * 60,
-    }),
+    clickCache.set({ domain, key, ip, clickId }),
+
+    // cache the click data for 5 mins
+    // we're doing this because ingested click events are not available immediately in Tinybird
+    trackConversion &&
+      redis.set(`click:${clickId}`, clickData, {
+        ex: 60 * 5,
+      }),
 
     // increment the click count for the link (based on their ID)
     // we have to use planetscale connection directly (not prismaEdge) because of connection pooling
@@ -179,8 +185,13 @@ export async function recordClick({
   ]);
 
   const workspace =
-    workspaceRows && workspaceRows.rows.length > 0
-      ? (workspaceRows.rows[0] as Pick<WorkspaceProps, "usage" | "usageLimit">)
+    workspaceRows.status === "fulfilled" &&
+    workspaceRows.value &&
+    workspaceRows.value.rows.length > 0
+      ? (workspaceRows.value.rows[0] as Pick<
+          WorkspaceProps,
+          "usage" | "usageLimit"
+        >)
       : null;
 
   const hasExceededUsageLimit =

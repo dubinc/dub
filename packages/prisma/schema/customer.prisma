@@ -2,7 +2,7 @@ model Customer {
   id               String  @id @default(cuid())
   name             String?
   email            String?
-  avatar           String? @db.LongText
+  avatar           String? @db.Text
   externalId       String?
   stripeCustomerId String? @unique
 
@@ -16,14 +16,12 @@ model Customer {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  project  Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  link     Link?      @relation(fields: [linkId], references: [id])
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  link        Link?        @relation(fields: [linkId], references: [id])
   commissions Commission[]
 
   @@unique([projectId, externalId])
   @@unique([projectConnectId, externalId])
-  @@index([projectId])
-  @@index([projectConnectId])
-  @@index([externalId])
-  @@index([linkId])
+  @@index(externalId)
+  @@index(linkId)
 }

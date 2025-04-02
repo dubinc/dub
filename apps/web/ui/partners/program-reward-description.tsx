@@ -1,6 +1,6 @@
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { DiscountProps, RewardProps } from "@/lib/types";
-import { cn, pluralize } from "@dub/utils";
+import { cn } from "@dub/utils";
 
 export function ProgramRewardDescription({
   reward,
@@ -9,7 +9,10 @@ export function ProgramRewardDescription({
   periodClassName,
   hideIfZero = true,
 }: {
-  reward?: RewardProps | null;
+  reward?: Pick<
+    RewardProps,
+    "amount" | "type" | "event" | "maxDuration" | "description"
+  > | null;
   discount?: DiscountProps | null;
   amountClassName?: string;
   periodClassName?: string;
@@ -17,50 +20,62 @@ export function ProgramRewardDescription({
 }) {
   return (
     <>
-      {reward && (reward.amount > 0 || !hideIfZero) ? (
-        <>
-          Earn{" "}
-          <strong className={cn("font-semibold", amountClassName)}>
-            {constructRewardAmount({
-              amount: reward.amount,
-              type: reward.type,
-            })}{" "}
-          </strong>
-          for each {reward.event}
-          {reward.maxDuration === null ? (
-            <strong className={cn("font-semibold", periodClassName)}>
-              {" "}
-              for the customer's lifetime.
-            </strong>
-          ) : reward.maxDuration && reward.maxDuration > 1 ? (
+      {reward && (reward.amount > 0 || !hideIfZero)
+        ? reward.description || (
             <>
-              , and again{" "}
-              <strong className={cn("font-semibold", periodClassName)}>
-                every month for {reward.maxDuration} months
+              Earn{" "}
+              <strong className={cn("font-semibold", amountClassName)}>
+                {constructRewardAmount({
+                  amount: reward.amount,
+                  type: reward.type,
+                })}{" "}
               </strong>
-              .
+              for each {reward.event}
+              {reward.maxDuration === null ? (
+                <strong className={cn("font-semibold", periodClassName)}>
+                  {" "}
+                  for the customer's lifetime.
+                </strong>
+              ) : reward.maxDuration && reward.maxDuration > 1 ? (
+                <>
+                  , and again{" "}
+                  <strong className={cn("font-semibold", periodClassName)}>
+                    every month for {reward.maxDuration} months
+                  </strong>
+                  .
+                </>
+              ) : (
+                "."
+              )}
             </>
-          ) : (
-            "."
-          )}
-        </>
-      ) : null}
+          )
+        : null}
 
       {discount ? (
         <>
           {" "}
-          Referred users get{" "}
+          New users get{" "}
           <strong className={cn("font-semibold", amountClassName)}>
             {constructRewardAmount({
               amount: discount.amount,
               type: discount.type,
             })}
           </strong>{" "}
-          off for{" "}
+          off{" "}
           <strong className={cn("font-semibold", periodClassName)}>
-            {discount.duration
-              ? `${discount.duration} ${pluralize(discount.interval || "cycle", discount.duration)}.`
-              : "their first purchase."}
+            {discount.maxDuration === null ? (
+              <strong className={cn("font-semibold", periodClassName)}>
+                {" "}
+                for their lifetime
+              </strong>
+            ) : discount.maxDuration && discount.maxDuration > 1 ? (
+              <strong className={cn("font-semibold", periodClassName)}>
+                for {discount.maxDuration} months
+              </strong>
+            ) : (
+              " for their first purchase"
+            )}
+            .
           </strong>
         </>
       ) : null}

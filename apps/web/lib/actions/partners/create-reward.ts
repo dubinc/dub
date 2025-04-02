@@ -1,7 +1,7 @@
 "use server";
 
+import { createId } from "@/lib/api/create-id";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
-import { createId } from "@/lib/api/utils";
 import { createRewardSchema } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
 import { EventType } from "@dub/prisma/client";

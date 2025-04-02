@@ -11,10 +11,10 @@ import { useContext, useState } from "react";
 import { toast } from "sonner";
 import { errorCodes, LoginFormContext } from "./login-form";
 
-export const EmailSignIn = ({ redirectTo }: { redirectTo?: string }) => {
+export const EmailSignIn = ({ next }: { next?: string }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams?.get("next");
+  const finalNext = next ?? searchParams?.get("next");
   const { isMobile } = useMediaQuery();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -85,7 +85,7 @@ export const EmailSignIn = ({ redirectTo }: { redirectTo?: string }) => {
           const response = await signIn(provider, {
             email,
             redirect: false,
-            callbackUrl: next || redirectTo || "/workspaces",
+            callbackUrl: finalNext || "/workspaces",
             ...(password && { password }),
           });
 
@@ -114,7 +114,7 @@ export const EmailSignIn = ({ redirectTo }: { redirectTo?: string }) => {
           }
 
           if (provider === "credentials") {
-            router.push(response?.url || redirectTo || "/workspaces");
+            router.push(response?.url || finalNext || "/workspaces");
           }
         }}
         className="flex flex-col gap-y-3"

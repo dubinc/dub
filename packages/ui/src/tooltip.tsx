@@ -254,3 +254,19 @@ export function ButtonTooltip({
     </Tooltip>
   );
 }
+
+export function DynamicTooltipWrapper({
+  children,
+  tooltipProps,
+}: {
+  children: ReactNode;
+  tooltipProps?: TooltipProps;
+}) {
+  return tooltipProps ? (
+    <Tooltip {...tooltipProps}>
+      <div>{children}</div>
+    </Tooltip>
+  ) : (
+    children
+  );
+}

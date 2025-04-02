@@ -1,7 +1,8 @@
+import { convertCurrency } from "@/lib/analytics/convert-currency";
+import { createId } from "@/lib/api/create-id";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
-import { createId } from "@/lib/api/utils";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
@@ -46,6 +47,19 @@ export async function invoicePaid(event: Stripe.Event) {
 
   if (invoice.amount_paid === 0) {
     return `Invoice with ID ${invoiceId} has an amount of 0, skipping...`;
+  }
+
+  // if currency is not USD, convert it to USD  based on the current FX rate
+  // TODO: allow custom "defaultCurrency" on workspace table in the future
+  if (invoice.currency && invoice.currency !== "usd") {
+    const { currency: convertedCurrency, amount: convertedAmount } =
+      await convertCurrency({
+        currency: invoice.currency,
+        amount: invoice.amount_paid,
+      });
+
+    invoice.currency = convertedCurrency;
+    invoice.amount_paid = convertedAmount;
   }
 
   // Find lead
@@ -139,17 +153,19 @@ export async function invoicePaid(event: Stripe.Event) {
           },
         });
 
-        if (reward.maxDuration === 0 && firstCommission) {
-          eligibleForCommission = false;
-        } else if (firstCommission) {
-          // Calculate months difference between first commission and now
-          const monthsDifference = differenceInMonths(
-            new Date(),
-            firstCommission.createdAt,
-          );
-
-          if (monthsDifference >= reward.maxDuration) {
+        if (firstCommission) {
+          if (reward.maxDuration === 0) {
             eligibleForCommission = false;
+          } else {
+            // Calculate months difference between first commission and now
+            const monthsDifference = differenceInMonths(
+              new Date(),
+              firstCommission.createdAt,
+            );
+
+            if (monthsDifference >= reward.maxDuration) {
+              eligibleForCommission = false;
+            }
           }
         }
       }
@@ -163,7 +179,7 @@ export async function invoicePaid(event: Stripe.Event) {
           },
         });
 
-        await prisma.commission.create({
+        const commission = await prisma.commission.create({
           data: {
             id: createId({ prefix: "cm_" }),
             programId: link.programId,
@@ -180,30 +196,10 @@ export async function invoicePaid(event: Stripe.Event) {
         });
 
         waitUntil(
-          (async () => {
-            const program = await prisma.program.findUniqueOrThrow({
-              where: {
-                id: link.programId!,
-              },
-              select: {
-                id: true,
-                name: true,
-                logo: true,
-              },
-            });
-
-            await notifyPartnerSale({
-              program,
-              partner: {
-                id: link.partnerId!,
-                referralLink: link.shortLink,
-              },
-              sale: {
-                amount: saleData.amount,
-                earnings,
-              },
-            });
-          })(),
+          notifyPartnerSale({
+            link,
+            commission,
+          }),
         );
       }
     }

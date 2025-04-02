@@ -27,6 +27,7 @@ export const updateProgramAction = authActionClient
       defaultFolderId,
       name,
       holdingPeriodDays,
+      minPayoutAmount,
       cookieLength,
       domain,
       url,
@@ -70,11 +71,13 @@ export const updateProgramAction = authActionClient
           name,
           cookieLength,
           holdingPeriodDays,
+          minPayoutAmount,
           domain,
           url,
           brandColor,
           logo: logoUrl ?? undefined,
           wordmark: wordmarkUrl ?? undefined,
+          defaultFolderId,
         },
       });
 

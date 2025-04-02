@@ -11,6 +11,7 @@ import {
   RadioGroup,
   RadioGroupItem,
   TooltipContent,
+  useKeyboardShortcut,
   useMediaQuery,
 } from "@dub/ui";
 import { capitalize, cn, pluralize } from "@dub/utils";
@@ -213,11 +214,16 @@ function AddTagButton({
   const { tags } = useTags();
   const exceededTags = tags && tagsLimit && tags.length >= tagsLimit;
 
+  useKeyboardShortcut("c", () => setShowAddEditTagModal(true), {
+    enabled: !exceededTags,
+  });
+
   return (
     <div>
       <Button
         variant="primary"
         text="Create tag"
+        shortcut="C"
         className="h-9 rounded-lg"
         disabledTooltip={
           exceededTags ? (

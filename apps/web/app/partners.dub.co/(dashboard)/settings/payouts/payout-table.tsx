@@ -98,7 +98,8 @@ export function PayoutTable() {
           <AmountRowItem
             amount={row.original.amount}
             status={row.original.status}
-            payoutsEnabled={partner?.payoutsEnabled || false}
+            payoutsEnabled={Boolean(partner?.payoutsEnabledAt)}
+            minPayoutAmount={row.original.program.minPayoutAmount}
           />
         ),
       },

@@ -6,6 +6,7 @@ import {
 } from "@/lib/analytics/constants";
 import { IntervalOptions } from "@/lib/analytics/types";
 import usePartnerLinks from "@/lib/swr/use-partner-links";
+import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { usePartnerLinkModal } from "@/ui/modals/partner-link-modal";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import { Button, CardList, useKeyboardShortcut, useRouterStuff } from "@dub/ui";
@@ -34,6 +35,7 @@ export function ProgramLinksPageClient() {
   const { programSlug } = useParams() as { programSlug: string };
   const { searchParamsObj } = useRouterStuff();
   const { links, error, loading, isValidating } = usePartnerLinks();
+  const { programEnrollment } = useProgramEnrollment();
   const { setShowPartnerLinkModal, PartnerLinkModal } = usePartnerLinkModal();
 
   const {
@@ -67,12 +69,19 @@ export function ProgramLinksPageClient() {
           align="start"
           defaultInterval={DUB_PARTNERS_ANALYTICS_INTERVAL}
         />
-        {["dub", "acme"].includes(programSlug) && (
+        {/* TODO: Add this to Program table */}
+        {["dub", "acme", "tella"].includes(programSlug) && (
           <Button
             text="Create Link"
             className="w-fit"
             shortcut="C"
             onClick={() => setShowPartnerLinkModal(true)}
+            disabled={programEnrollment?.status === "banned"}
+            disabledTooltip={
+              programEnrollment?.status === "banned"
+                ? "You are banned from this program."
+                : undefined
+            }
           />
         )}
       </div>

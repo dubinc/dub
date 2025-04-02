@@ -10,6 +10,9 @@ const schema = z.object({
   value: z.any(),
 });
 
+// TODO:
+// Add validation for key and value, otherwise it is open to abuse
+
 // Update a workspace store item
 export const updateWorkspaceStore = authActionClient
   .schema(schema)

@@ -1,3 +1,4 @@
+import { prefixWorkspaceId } from "@/lib/api/workspace-id";
 import { hashToken, withAdmin } from "@/lib/auth";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN, PARTNERS_DOMAIN } from "@dub/utils";
@@ -31,8 +32,8 @@ export const POST = withAdmin(async ({ req }) => {
               name: true,
               slug: true,
               plan: true,
-              usage: true,
-              linksUsage: true,
+              totalClicks: true,
+              totalLinks: true,
               salesUsage: true,
               foldersUsage: true,
             },
@@ -50,9 +51,9 @@ export const POST = withAdmin(async ({ req }) => {
     email: response.email,
     workspaces: response.projects.map(({ project }) => ({
       ...project,
-      id: `ws_${project.id}`,
-      clicks: project.usage,
-      links: project.linksUsage,
+      id: prefixWorkspaceId(project.id),
+      clicks: project.totalClicks,
+      links: project.totalLinks,
       sales: project.salesUsage,
       folders: project.foldersUsage,
     })),

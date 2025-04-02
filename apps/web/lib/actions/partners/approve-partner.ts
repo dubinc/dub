@@ -97,11 +97,12 @@ export const approvePartnerAction = authActionClient
               name: program.name,
               logo: program.logo,
               slug: program.slug,
+              supportEmail: program.supportEmail,
             },
             partner: {
               name: partner.name,
               email: partner.email!,
-              payoutsEnabled: partner.payoutsEnabled,
+              payoutsEnabled: Boolean(partner.payoutsEnabledAt),
             },
             rewardDescription: ProgramRewardDescription({
               reward,

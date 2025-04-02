@@ -13,15 +13,17 @@ export const GET = withWorkspace(
     const { rewardId, page, pageSize } =
       rewardPartnersQuerySchema.parse(searchParams);
 
-    await getProgramOrThrow({
-      workspaceId: workspace.id,
-      programId,
-    });
+    await Promise.all([
+      getProgramOrThrow({
+        workspaceId: workspace.id,
+        programId,
+      }),
 
-    await getRewardOrThrow({
-      rewardId,
-      programId,
-    });
+      getRewardOrThrow({
+        rewardId,
+        programId,
+      }),
+    ]);
 
     const partners = await prisma.partnerReward.findMany({
       where: {

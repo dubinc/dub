@@ -15,7 +15,9 @@ export async function getRandomKey({
   if (prefix) {
     key = `${prefix.replace(/^\/|\/$/g, "")}/${key}`;
   }
-  const exists = await checkIfKeyExists(domain, key);
+
+  const exists = await checkIfKeyExists({ domain, key });
+
   if (exists) {
     // by the off chance that key already exists
     return getRandomKey({ domain, prefix, long });
