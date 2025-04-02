@@ -3,27 +3,28 @@
 import usePartners from "@/lib/swr/use-partners";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { Button, Combobox, Table, useTable } from "@dub/ui";
-import { cn, DICEBEAR_AVATAR_URL, pluralize } from "@dub/utils";
+import { cn, DICEBEAR_AVATAR_URL } from "@dub/utils";
 import { X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
 interface RewardPartnersTableProps {
   partnerIds: string[];
+  partners: EnrolledPartnerProps[];
   setPartners: (value: string[]) => void;
   loading: boolean;
 }
 
 export function RewardPartnersTable({
   partnerIds,
+  partners,
   setPartners,
   loading,
 }: RewardPartnersTableProps) {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
-  const [selectedPartners, setSelectedPartners] = useState<
-    Pick<EnrolledPartnerProps, "id" | "name" | "email" | "image">[]
-  >([]);
+  const [selectedPartners, setSelectedPartners] =
+    useState<Pick<EnrolledPartnerProps, "id" | "name" | "email" | "image">[]>();
 
   // Get all partners for the table
   const { data: allPartners } = usePartners({});
@@ -37,7 +38,7 @@ export function RewardPartnersTable({
 
   const options = useMemo(
     () =>
-      searchPartners?.map((partner) => ({
+      searchPartners?.map((partner, index) => ({
         icon: (
           <img
             alt={partner.name}
@@ -59,19 +60,9 @@ export function RewardPartnersTable({
     [partnerIds, options],
   );
 
-  // Update selected partners when partnerIds changes
   useEffect(() => {
-    const updatedPartners = partnerIds
-      .map((id) => allPartners?.find((partner) => partner.id === id))
-      .filter((p): p is NonNullable<typeof p> => p != null)
-      .map((partner) => ({
-        id: partner.id,
-        name: partner.name,
-        email: partner.email,
-        image: partner.image,
-      }));
-    setSelectedPartners(updatedPartners);
-  }, [partnerIds, allPartners]);
+    setSelectedPartners(partners);
+  }, [partners]);
 
   const handlePartnerSelection = (
     selectedOptions: typeof selectedPartnersOptions,
@@ -88,7 +79,7 @@ export function RewardPartnersTable({
   };
 
   const table = useTable({
-    data: selectedPartners,
+    data: selectedPartners || [],
     columns: [
       {
         header: "Partner",
@@ -132,6 +123,11 @@ export function RewardPartnersTable({
               className="size-4 rounded-md border-0 bg-neutral-50 p-0 hover:bg-neutral-100"
               onClick={() => {
                 setPartners(partnerIds.filter((id) => id !== row.original.id));
+                setSelectedPartners(
+                  selectedPartners?.filter(
+                    (partner) => partner.id !== row.original.id,
+                  ),
+                );
               }}
             />
           </div>
@@ -148,7 +144,7 @@ export function RewardPartnersTable({
     resourceName: (p) => `eligible partner${p ? "s" : ""}`,
     getRowId: (row: EnrolledPartnerProps) => row.id,
     loading,
-    rowCount: selectedPartners.length,
+    rowCount: selectedPartners?.length || 0,
   });
 
   return (
@@ -176,13 +172,7 @@ export function RewardPartnersTable({
             !selectedPartnersOptions.length && "text-neutral-400",
           ),
         }}
-      >
-        {selectedPartnersOptions.length > 0
-          ? selectedPartnersOptions.length === 1
-            ? selectedPartnersOptions[0].label
-            : `${selectedPartnersOptions.length} ${pluralize("partner", selectedPartnersOptions.length)}`
-          : "Partners"}
-      </Combobox>
+      />
 
       <Table {...table} />
     </div>

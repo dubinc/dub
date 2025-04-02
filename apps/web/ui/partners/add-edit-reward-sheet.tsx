@@ -547,6 +547,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
             {displayPartners && program?.id && (
               <RewardPartnersTable
                 partnerIds={partnerIds || []}
+                partners={rewardPartners || []}
                 setPartners={(value: string[]) => {
                   setValue("partnerIds", value);
                 }}
