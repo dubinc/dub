@@ -17,7 +17,7 @@ export async function generateMetadata({
 }) {
   const program = await getProgram({ slug: programSlug });
 
-  if (!program || !program.landerData || !program.defaultRewardId) {
+  if (!program || !program.defaultRewardId) {
     notFound();
   }
 
@@ -55,7 +55,7 @@ export default async function ApplyLayout({
 }: PropsWithChildren<{ params: { programSlug: string } }>) {
   const program = await getProgram({ slug: programSlug });
 
-  if (!program || !program.landerData) {
+  if (!program) {
     notFound();
   }
 
