@@ -84,6 +84,7 @@ export async function invoicePaymentFailed(event: Stripe.Event) {
             workspace={workspace}
           />
         ),
+        variant: "notifications",
       }),
     ),
   ]);
