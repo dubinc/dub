@@ -2,8 +2,9 @@
 
 import usePartners from "@/lib/swr/use-partners";
 import { EnrolledPartnerProps } from "@/lib/types";
-import { Combobox, Table, useTable } from "@dub/ui";
+import { Button, Combobox, Table, useTable } from "@dub/ui";
 import { cn, DICEBEAR_AVATAR_URL, pluralize } from "@dub/utils";
+import { X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
@@ -120,6 +121,26 @@ export function RewardPartnersTable({
         size: 210,
         minSize: 210,
         maxSize: 210,
+      },
+      {
+        id: "actions",
+        cell: ({ row }) => (
+          <div className="flex justify-end">
+            <Button
+              variant="secondary"
+              icon={<X className="size-4" />}
+              className="size-4 rounded-md border-0 bg-neutral-50 p-0 hover:bg-neutral-100"
+              onClick={() => {
+                setSelectedPartners((prev) =>
+                  prev.filter((p) => p.id !== row.original.id),
+                );
+              }}
+            />
+          </div>
+        ),
+        size: 50,
+        minSize: 50,
+        maxSize: 50,
       },
     ],
     thClassName: () => cn("border-l-0"),
