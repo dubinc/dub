@@ -136,7 +136,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
 
   useEffect(() => {
     if (rewardPartners && rewardPartners.length > 0) {
-      setValue("partnerIds", rewardPartners);
+      setValue("partnerIds", rewardPartners.map(partner => partner.id));
     }
   }, [rewardPartners, setValue]);
 

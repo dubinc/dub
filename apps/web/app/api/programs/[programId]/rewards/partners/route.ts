@@ -33,6 +33,9 @@ export const GET = withWorkspace(
             partner: {
               select: {
                 id: true,
+                name: true,
+                image: true,
+                email: true,
               },
             },
           },
@@ -40,8 +43,10 @@ export const GET = withWorkspace(
       },
     });
 
-    return NextResponse.json(
-      partners.map(({ programEnrollment: { partner } }) => partner.id),
+    const flatPartners = partners.map(
+      ({ programEnrollment: { partner } }) => partner,
     );
+
+    return NextResponse.json(flatPartners);
   },
 );

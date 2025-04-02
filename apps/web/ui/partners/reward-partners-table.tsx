@@ -21,7 +21,11 @@ export function RewardPartnersTable({
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
 
-  const { data: partners } = usePartners({
+  // Get all partners for the table
+  const { data: allPartners } = usePartners({});
+
+  // Get filtered partners for the combobox
+  const { data: searchPartners } = usePartners({
     query: {
       search: debouncedSearch,
     },
@@ -29,7 +33,7 @@ export function RewardPartnersTable({
 
   const options = useMemo(
     () =>
-      partners?.map((partner) => ({
+      searchPartners?.map((partner) => ({
         icon: (
           <img
             alt={partner.name}
@@ -40,7 +44,7 @@ export function RewardPartnersTable({
         value: partner.id,
         label: partner.name,
       })),
-    [partners],
+    [searchPartners],
   );
 
   const selectedPartnersOptions = useMemo(
@@ -54,7 +58,7 @@ export function RewardPartnersTable({
   const selectedPartners = useMemo(
     () =>
       partnerIds
-        .map((id) => partners?.find((partner) => partner.id === id))
+        .map((id) => allPartners?.find((partner) => partner.id === id))
         .filter((p): p is NonNullable<typeof p> => p != null)
         .map((partner) => ({
           id: partner.id,
@@ -62,13 +66,22 @@ export function RewardPartnersTable({
           email: partner.email,
           image: partner.image,
         })),
-    [partnerIds, partners],
+    [partnerIds, allPartners],
   );
 
   const handlePartnerSelection = (
     selectedOptions: typeof selectedPartnersOptions,
   ) => {
-    const newSelectedIds = selectedOptions.map(({ value }) => value);
+    // Get all currently selected IDs
+    const currentIds = new Set(partnerIds);
+    
+    // Add new selections
+    selectedOptions.forEach(({ value }) => {
+      currentIds.add(value);
+    });
+    
+    // Convert back to array
+    const newSelectedIds = Array.from(currentIds);
     setPartners(newSelectedIds);
   };
 
@@ -115,6 +128,7 @@ export function RewardPartnersTable({
     resourceName: (p) => `eligible partner${p ? "s" : ""}`,
     getRowId: (row: EnrolledPartnerProps) => row.id,
     loading,
+    rowCount: selectedPartners.length,
   });
 
   return (
