@@ -3,6 +3,7 @@
 import useLink from "@/lib/swr/use-link";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ExpandedLinkProps } from "@/lib/types";
+import LayoutLoader from "@/ui/layout/layout-loader";
 import { LinkAnalyticsBadge } from "@/ui/links/link-analytics-badge";
 import { LinkBuilderDestinationUrlInput } from "@/ui/links/link-builder/controls/link-builder-destination-url-input";
 import { LinkBuilderShortLinkInput } from "@/ui/links/link-builder/controls/link-builder-short-link-input";
@@ -54,7 +55,7 @@ export function LinkPageClient({
       <LinkBuilder link={link} />
     </LinkBuilderProvider>
   ) : (
-    <div>Loading...</div>
+    <LayoutLoader />
   );
 }
 
