@@ -31,13 +31,14 @@ import { clickCache } from "../api/links/click-cache";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
 import { getPartnerAndDiscount } from "../planetscale/get-partner-discount";
+import { isGoogleAdsClick } from "../url";
 import { hasEmptySearchParams } from "./utils/has-empty-search-params";
 
 export default async function LinkMiddleware(
   req: NextRequest,
   ev: NextFetchEvent,
 ) {
-  let { domain, fullKey: originalKey } = parse(req);
+  let { domain, fullKey: originalKey, fullPath } = parse(req);
 
   if (!domain) {
     return NextResponse.next();
@@ -284,6 +285,14 @@ export default async function LinkMiddleware(
   // - there is a clickId
   const shouldPassClickId = trackConversion && !isPartnerLink && clickId;
 
+  // we only pass the via param if:
+  // - it's a partner link
+  // - it's not coming from Google Ads
+  const shouldPassVia = isPartnerLink && !isGoogleAdsClick({ url: req.url });
+
+  // TODO (Kiran):
+  // Record the partner suspicious activity
+
   // rewrite to proxy page (/proxy/[domain]/[key]) if it's a bot and proxy is enabled
   if (isBot && proxy) {
     return createResponseWithCookie(
@@ -322,7 +331,7 @@ export default async function LinkMiddleware(
             getFinalUrl(url, {
               req,
               ...(shouldPassClickId && { clickId }),
-              ...(isPartnerLink && { via: key }),
+              ...(shouldPassVia && { via: key }),
             }),
           )}`,
           req.url,
@@ -360,7 +369,7 @@ export default async function LinkMiddleware(
             getFinalUrl(url, {
               req,
               ...(shouldPassClickId && { clickId }),
-              ...(isPartnerLink && { via: key }),
+              ...(shouldPassVia && { via: key }),
             }),
           )}`,
           req.url,
@@ -398,7 +407,7 @@ export default async function LinkMiddleware(
         getFinalUrl(ios, {
           req,
           ...(shouldPassClickId && { clickId }),
-          ...(isPartnerLink && { via: key }),
+          ...(shouldPassVia && { via: key }),
         }),
         {
           headers: {
@@ -432,7 +441,7 @@ export default async function LinkMiddleware(
         getFinalUrl(android, {
           req,
           ...(shouldPassClickId && { clickId }),
-          ...(isPartnerLink && { via: key }),
+          ...(shouldPassVia && { via: key }),
         }),
         {
           headers: {
@@ -466,7 +475,7 @@ export default async function LinkMiddleware(
         getFinalUrl(geo[country], {
           req,
           ...(shouldPassClickId && { clickId }),
-          ...(isPartnerLink && { via: key }),
+          ...(shouldPassVia && { via: key }),
         }),
         {
           headers: {
@@ -502,7 +511,7 @@ export default async function LinkMiddleware(
             destination: getFinalUrl(url, {
               req,
               ...(shouldPassClickId && { clickId }),
-              ...(isPartnerLink && { via: key }),
+              ...(shouldPassVia && { via: key }),
             }),
           }),
         },
@@ -514,7 +523,7 @@ export default async function LinkMiddleware(
         getFinalUrl(url, {
           req,
           ...(shouldPassClickId && { clickId }),
-          ...(isPartnerLink && { via: key }),
+          ...(shouldPassVia && { via: key }),
         }),
         {
           headers: {
