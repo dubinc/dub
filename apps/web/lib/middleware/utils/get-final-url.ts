@@ -4,7 +4,7 @@ import { NextRequest } from "next/server";
 
 export const getFinalUrl = (
   url: string,
-  { req, clickId }: { req: NextRequest; clickId?: string },
+  { req, clickId, via }: { req: NextRequest; clickId?: string; via?: string },
 ) => {
   // query is the query string (e.g. d.to/github?utm_source=twitter -> ?utm_source=twitter)
   const searchParams = req.nextUrl.searchParams;
@@ -34,6 +34,10 @@ export const getFinalUrl = (
     } else if (!searchParams.has("dub-no-track")) {
       urlObj.searchParams.set("dub_id", clickId);
     }
+  }
+
+  if (via) {
+    urlObj.searchParams.set("via", via);
   }
 
   // if there are no query params, then return the target url as is (no need to parse it)

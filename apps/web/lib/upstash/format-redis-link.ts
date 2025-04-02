@@ -17,6 +17,8 @@ export function formatRedisLink(link: ExpandedLink): RedisLinkProps {
     doIndex,
     projectId,
     webhooks,
+    programId,
+    partnerId,
     partner,
     discount,
   } = link;
@@ -41,6 +43,8 @@ export function formatRedisLink(link: ExpandedLink): RedisLinkProps {
     ...(projectId && { projectId }), // projectId can be undefined for anonymous links
     ...(doIndex && { doIndex: true }),
     ...(webhookIds.length > 0 && { webhookIds }),
+    ...(programId && { programId }),
+    ...(partnerId && { partnerId }),
     ...(partner && {
       partner: {
         id: partner.id,

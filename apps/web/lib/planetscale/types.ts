@@ -19,6 +19,8 @@ export interface EdgeLinkProps {
   expiredUrl: string | null;
   createdAt: string;
   trackConversion: boolean;
+  programId: string | null;
+  partnerId: string | null;
 }
 
 export interface EdgeDomainProps {

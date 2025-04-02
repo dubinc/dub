@@ -7,7 +7,7 @@ import {
 import { conn } from "./connection";
 import { EdgeLinkProps } from "./types";
 
-interface LinkWithPartnerProps extends EdgeLinkProps {
+interface QueryResult extends EdgeLinkProps {
   allowedHostnames: string[];
   partner?: {
     id: string;
@@ -28,12 +28,15 @@ export const getLinkWithPartner = async ({
 }: {
   domain: string;
   key: string;
-}): Promise<LinkWithPartnerProps | null> => {
+}): Promise<QueryResult | null> => {
   const keyToQuery = isCaseSensitiveDomain(domain)
     ? encodeKey(key)
     : punyEncode(decodeURIComponent(key));
 
   console.time("getLinkWithPartner");
+
+  // TODO:
+  // Use inner query for program discount
 
   const { rows } =
     (await conn.execute(
