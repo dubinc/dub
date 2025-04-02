@@ -6,6 +6,7 @@ import { ExpandedLinkProps } from "@/lib/types";
 import { LinkBuilderDestinationUrlInput } from "@/ui/links/link-builder/controls/link-builder-destination-url-input";
 import { LinkBuilderShortLinkInput } from "@/ui/links/link-builder/controls/link-builder-short-link-input";
 import { LinkCommentsInput } from "@/ui/links/link-builder/controls/link-comments-input";
+import { LinkActionBar } from "@/ui/links/link-builder/link-action-bar";
 import { LinkBuilderHeader } from "@/ui/links/link-builder/link-builder-header";
 import {
   LinkBuilderProvider,
@@ -24,8 +25,8 @@ import { QRCodePreview } from "@/ui/modals/link-builder/qr-code-preview";
 import { TagSelect } from "@/ui/modals/link-builder/tag-select";
 import { useMetatags } from "@/ui/modals/link-builder/use-metatags";
 import { cn } from "@dub/utils";
-import { useCallback, useRef } from "react";
-import { useFormContext } from "react-hook-form";
+import { useCallback, useEffect, useRef } from "react";
+import { useFormContext, useFormState } from "react-hook-form";
 
 export function LinkPageClient({
   domain,
@@ -36,10 +37,15 @@ export function LinkPageClient({
 }) {
   const workspace = useWorkspace();
 
-  const { link } = useLink({
-    domain,
-    slug,
-  });
+  const { link } = useLink(
+    {
+      domain,
+      slug,
+    },
+    {
+      keepPreviousData: true,
+    },
+  );
 
   return link ? (
     <LinkBuilderProvider props={link} workspace={workspace}>
@@ -53,13 +59,20 @@ export function LinkPageClient({
 function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
   const workspace = useWorkspace();
 
-  const { handleSubmit } = useFormContext<LinkFormData>();
+  const { control, handleSubmit, reset, getValues } =
+    useFormContext<LinkFormData>();
+  const { isSubmitSuccessful } = useFormState({ control });
 
   const draftControlsRef = useRef<DraftControlsHandle>(null);
 
   const onSubmitSuccess = useCallback(() => {
     draftControlsRef.current?.onSubmitSuccessful();
   }, []);
+
+  useEffect(() => {
+    if (isSubmitSuccessful)
+      reset(getValues(), { keepValues: true, keepDirty: false });
+  }, [isSubmitSuccessful, reset, getValues]);
 
   const onSubmit = useLinkBuilderSubmit({
     onSuccess: onSubmitSuccess,
@@ -88,8 +101,8 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
         )}
         onSubmit={handleSubmit(onSubmit)}
       >
-        <div className="px-4 md:px-6">
-          <div className="mx-auto flex min-h-full w-full max-w-xl flex-col gap-7 pb-4 pt-10 lg:pb-10">
+        <div className="relative flex min-h-full flex-col px-4 md:px-6">
+          <div className="relative mx-auto flex w-full max-w-xl flex-col gap-7 pb-4 pt-10 lg:pb-10">
             <LinkBuilderDestinationUrlInput />
 
             <LinkBuilderShortLinkInput />
@@ -104,6 +117,9 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
 
             <OptionsList />
           </div>
+
+          <div className="grow" />
+          <LinkActionBar />
         </div>
         <div className="px-4 md:px-6 lg:bg-neutral-50 lg:px-0">
           <div className="mx-auto max-w-xl divide-neutral-200 lg:divide-y">
