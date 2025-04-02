@@ -1,11 +1,14 @@
 export const UA_BOTS = [
-  "bot", // most bots & crawlers
+  "bot", // most bots
+  "crawler", // most crawlers
   "metatags", // Dub.co Metatags API (https://api.dub.co/metatags)
   "chatgpt", // ChatGPT
   "bluesky", // Bluesky crawler
   "facebookexternalhit", // Facebook crawler
+  "meta-externalagent", // Meta external agent
   "WhatsApp", // WhatsApp crawler
   "google", // Google crawler
+  "linkedin", // LinkedIn crawler
   "baidu", // Baidu crawler
   "bing", // Bing crawler
   "msn", // MSN crawler
@@ -31,6 +34,18 @@ export const UA_BOTS = [
   "cron-job",
   "InternetMeasurement",
   "HostTracker",
+
+  // AI bots
+  "anthropic-ai", // Anthropic AI
+  "Claude-Web", // Claude AI
+  "Applebot-Extended", // Applebot Extended
+  "Bytespider", // Bytespider
+  "CCBot", // Common Crawl
+  "ChatGPT-User", // ChatGPT User
+  "cohere", // Cohere AI
+  "perplexity", // Perplexity AI
+  "Omigili", // Omigili
+  "timpi", // Timpi.io
 ];
 
 export const IP_BOTS = [
