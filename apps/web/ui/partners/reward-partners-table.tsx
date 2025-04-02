@@ -172,7 +172,9 @@ export function RewardPartnersTable({
             !selectedPartnersOptions.length && "text-neutral-400",
           ),
         }}
-      />
+      >
+        Select partners...
+      </Combobox>
 
       <Table {...table} />
     </div>
