@@ -1,9 +1,14 @@
 import useFolder from "@/lib/swr/use-folder";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { CardList, ExpandingArrow, useMediaQuery } from "@dub/ui";
+import {
+  CardList,
+  ExpandingArrow,
+  useIntersectionObserver,
+  useMediaQuery,
+} from "@dub/ui";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useContext } from "react";
+import { useContext, useRef } from "react";
 import { FolderIcon } from "../folders/folder-icon";
 import { LinkDetailsColumn } from "./link-details-column";
 import { LinkTitleColumn } from "./link-title-column";
@@ -12,13 +17,19 @@ import { ResponseLink } from "./links-container";
 export function LinkCard({ link }: { link: ResponseLink }) {
   const { variant } = useContext(CardList.Context);
   const { isMobile } = useMediaQuery();
+  const ref = useRef<HTMLDivElement>(null);
 
   const router = useRouter();
   const searchParams = useSearchParams();
   const { slug, defaultFolderId } = useWorkspace();
 
-  // TODO: only enable this when the link card is in view
-  const { folder } = useFolder({ folderId: link.folderId });
+  const entry = useIntersectionObserver(ref);
+  const isInView = entry?.isIntersecting;
+
+  const { folder } = useFolder({
+    folderId: link.folderId,
+    enabled: isInView,
+  });
 
   return (
     <CardList.Card
@@ -67,7 +78,7 @@ export function LinkCard({ link }: { link: ResponseLink }) {
           ),
         })}
     >
-      <div className="min-w-0 grow">
+      <div ref={ref} className="min-w-0 grow">
         <LinkTitleColumn link={link} />
       </div>
       <LinkDetailsColumn link={link} />
