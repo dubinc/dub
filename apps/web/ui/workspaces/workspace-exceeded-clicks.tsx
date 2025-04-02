@@ -25,7 +25,7 @@ export default function WorkspaceExceededClicks() {
             nextPlan ? `Upgrade to ${nextPlan.name}` : "Contact support"
           }
           learnMoreHref={
-            nextPlan ? `/${slug}/upgrade?exit=close` : "https://dub.co/contact"
+            nextPlan ? `/${slug}/upgrade` : "https://dub.co/contact"
           }
         />
       </div>

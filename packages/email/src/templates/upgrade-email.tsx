@@ -31,7 +31,7 @@ export function UpgradeEmail({
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
-            <Section className="mt-6 mt-8">
+            <Section className="mt-8">
               <Img src={DUB_WORDMARK} height="32" alt="Dub" />
             </Section>
             <Heading className="mx-0 my-7 p-0 text-xl font-medium text-black">
@@ -50,13 +50,7 @@ export function UpgradeEmail({
             <Text className="text-sm leading-6 text-black">
               My name is Steven, and I'm the founder of Dub. I wanted to
               personally reach out to thank you for upgrading to{" "}
-              <Link
-                href={planDetails.link}
-                className="font-medium text-blue-600 no-underline"
-              >
-                Dub {plan}
-              </Link>
-              !
+              <strong>Dub {plan}</strong>!
             </Text>
             <Text className="text-sm leading-6 text-black">
               As you might already know, we are fully{" "}
@@ -72,11 +66,11 @@ export function UpgradeEmail({
             <Text className="text-sm leading-6 text-black">
               On the {plan} plan, you now have access to:
             </Text>
-            {planDetails.features.map((feature) => (
+            {planDetails.features?.map((feature) => (
               <Text className="ml-1 text-sm leading-4 text-black">
                 ◆{" "}
-                {feature.footnote?.href ? (
-                  <Link href={feature.footnote.href}>{feature.text}</Link>
+                {feature.tooltip?.href ? (
+                  <Link href={feature.tooltip.href}>{feature.text}</Link>
                 ) : (
                   feature.text
                 )}

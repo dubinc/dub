@@ -29,6 +29,7 @@ export * from "./linkedin";
 export * from "./prisma";
 export * from "./product-hunt";
 export * from "./raycast";
+export * from "./slack";
 export * from "./tiktok";
 export * from "./tinybird";
 export * from "./twitter";
@@ -64,5 +65,8 @@ export * from "./payout-platforms";
 
 // Nucleo icons
 export * from "./nucleo";
+
+// Feature icons for pricing table
+export * from "./plan-feature-icons";
 
 export type Icon = LucideIcon | ComponentType<SVGProps<SVGSVGElement>>;

@@ -21,7 +21,7 @@ export const UpgradeRequiredToast = ({
       </div>
       <p className="text-sm text-neutral-600">{message}</p>
       <Link
-        href={slug ? `/${slug}/upgrade?exit=close` : "https://dub.co/pricing"}
+        href={slug ? `/${slug}/upgrade` : "https://dub.co/pricing"}
         target="_blank"
         className="w-full rounded-md border border-black bg-black px-3 py-1.5 text-center text-sm text-white transition-all hover:bg-neutral-800 hover:ring-4 hover:ring-neutral-200"
       >
