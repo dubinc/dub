@@ -154,3 +154,4 @@ SQL >
         {% else %} count_composite
         {% end %}
 
+TYPE endpoint

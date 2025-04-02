@@ -181,4 +181,4 @@ SQL >
         {% else %} regions_composite
         {% end %}
 
-
+TYPE endpoint
