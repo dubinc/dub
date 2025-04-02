@@ -79,8 +79,7 @@ export default async function LinkMiddleware(
   }
 
   let cachedLink = await linkCache.get({ domain, key });
-  let isPartnerLink =
-    cachedLink?.programId !== null && cachedLink?.partnerId !== null;
+  let isPartnerLink = Boolean(cachedLink?.programId && cachedLink?.partnerId);
 
   if (!cachedLink) {
     let linkData = await getLinkViaEdge({
@@ -122,7 +121,7 @@ export default async function LinkMiddleware(
 
     ev.waitUntil(
       (async () => {
-        if (!linkData.programId || !linkData.partnerId) {
+        if (!isPartnerLink) {
           linkCache.set(linkData as any);
           return;
         }
@@ -132,7 +131,7 @@ export default async function LinkMiddleware(
           partnerId: linkData.partnerId,
         });
 
-        // we'll use this data on `/track/click`
+        // we'll use this data on /track/click
         linkCache.set({
           ...(linkData as any),
           ...(partner && { partner }),
