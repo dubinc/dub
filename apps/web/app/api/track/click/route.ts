@@ -1,7 +1,9 @@
+import { verifyAnalyticsAllowedHostnames } from "@/lib/analytics/verify-analytics-allowed-hostnames";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { clickCache } from "@/lib/api/links/click-cache";
 import { parseRequestBody } from "@/lib/api/utils";
+import { workspaceCache } from "@/lib/api/workspace-cache";
 import { getLinkWithPartner } from "@/lib/planetscale/get-link-with-partner";
 import { recordClick } from "@/lib/tinybird";
 import { formatRedisLink } from "@/lib/upstash";
@@ -89,10 +91,24 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
       waitUntil(linkCache.set(link as any));
     }
 
-    // verifyAnalyticsAllowedHostnames({
-    //   allowedHostnames: link.allowedHostnames,
-    //   req,
-    // });
+    if (!cachedLink.projectId) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Link not found.",
+      });
+    }
+
+    const allowedHostnames = await workspaceCache.get({
+      id: cachedLink.projectId,
+      key: "allowedHostnames",
+    });
+
+    if (allowedHostnames) {
+      verifyAnalyticsAllowedHostnames({
+        allowedHostnames,
+        req,
+      });
+    }
 
     const finalUrl = url
       ? isValidUrl(url)
