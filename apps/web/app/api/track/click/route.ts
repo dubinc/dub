@@ -131,10 +131,15 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
       }),
     );
 
+    const isPartnerLink = Boolean(cachedLink.programId && cachedLink.partnerId);
+    const { partner = null, discount = null } = cachedLink;
+
     const response = partnerDiscountSchema.parse({
       clickId,
-      ...(cachedLink.partner && { partner: cachedLink.partner }),
-      ...(cachedLink.discount && { discount: cachedLink.discount }),
+      ...(isPartnerLink && {
+        partner,
+        discount,
+      }),
     });
 
     return NextResponse.json(response, { headers: CORS_HEADERS });

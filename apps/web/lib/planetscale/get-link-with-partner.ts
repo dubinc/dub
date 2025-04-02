@@ -83,6 +83,7 @@ export const getLinkWithPartner = async ({
 
   return {
     ...rest,
+    partnerId,
     key: decodeKeyIfCaseSensitive({ domain, key }),
     partner: partnerId
       ? {
