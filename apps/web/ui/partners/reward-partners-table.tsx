@@ -42,8 +42,8 @@ export function RewardPartnersTable({
         icon: (
           <img
             alt={partner.name}
-            src={partner.image || ""}
-            className="mr-1.5 size-4"
+            src={partner.image || `${DICEBEAR_AVATAR_URL}${partner.name}`}
+            className="mr-1.5 size-4 shrink-0 rounded-full"
           />
         ),
         value: partner.id,
