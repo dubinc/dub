@@ -1,3 +1,4 @@
+import { getPartnerAndDiscount } from "@/lib/planetscale/get-partner-discount";
 import { isStored, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { LinkProps, ProcessedLinkProps } from "@/lib/types";
@@ -155,7 +156,14 @@ export async function updateLink({
   waitUntil(
     Promise.allSettled([
       // record link in Redis
-      linkCache.set(response),
+      linkCache.set({
+        ...response,
+        ...(response.programId &&
+          (await getPartnerAndDiscount({
+            programId: response.programId,
+            partnerId: response.partnerId,
+          }))),
+      }),
 
       // record link in Tinybird
       recordLink(response),

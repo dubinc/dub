@@ -9,7 +9,7 @@ export type ExpandedLink = Link & {
   tags?: { tag: Pick<Tag, "id" | "name" | "color"> }[];
   webhooks?: { webhookId: string }[];
   dashboard?: Dashboard | null;
-  partner?: Pick<PartnerProps, "id" | "name" | "image">;
+  partner?: Pick<PartnerProps, "id" | "name" | "image"> | null;
   discount?: Pick<
     DiscountProps,
     "id" | "amount" | "type" | "maxDuration"

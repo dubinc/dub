@@ -15,9 +15,16 @@ export const getPartnerAndDiscount = async ({
   partnerId,
   programId,
 }: {
-  partnerId: string;
-  programId: string;
+  partnerId: string | null;
+  programId: string | null;
 }) => {
+  if (!partnerId || !programId) {
+    return {
+      partner: null,
+      discount: null,
+    };
+  }
+
   console.time("getPartnerAndDiscount");
 
   const { rows } = await conn.execute<QueryResult>(
