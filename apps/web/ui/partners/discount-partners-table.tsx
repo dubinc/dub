@@ -82,19 +82,40 @@ export function DiscountPartnersTable({
   const handlePartnerSelection = (
     selectedOptions: typeof selectedPartnersOptions,
   ) => {
-    // Get the new set of partner IDs from the selected options
-    const newPartnerIds = selectedOptions.map(({ value }) => value);
+    // Get all currently selected partner IDs that are not in the current search results
+    const currentSelectedIds = new Set(partnerIds);
+
+    // Remove deselected partners from current search results
+    partnersOptions.forEach((option) => {
+      if (
+        !selectedOptions.some((selected) => selected.value === option.value)
+      ) {
+        currentSelectedIds.delete(option.value);
+      }
+    });
+
+    // Add newly selected partners
+    selectedOptions.forEach((option) => {
+      currentSelectedIds.add(option.value);
+    });
+
+    // Convert to array and update partnerIds
+    const newPartnerIds = Array.from(currentSelectedIds);
     setPartnerIds(newPartnerIds);
 
-    // Update selectedPartners to match exactly what's selected in the Combobox
-    const newSelectedPartners = selectedOptions
-      .map(({ value }) => {
+    // Update selectedPartners to maintain all selected partners
+    const newSelectedPartners = newPartnerIds
+      .map((id) => {
         // First check existing selected partners
-        const existingPartner = selectedPartners?.find((p) => p.id === value);
+        const existingPartner = selectedPartners?.find((p) => p.id === id);
         if (existingPartner) return existingPartner;
 
-        // Then check the partnersMap for new selections
-        return partnersMap.get(value) || null;
+        // Then check discountPartners
+        const discountPartner = discountPartners?.find((p) => p.id === id);
+        if (discountPartner) return discountPartner;
+
+        // Finally check the partnersMap for new selections
+        return partnersMap.get(id) || null;
       })
       .filter(
         (partner): partner is NonNullable<typeof partner> => partner !== null,
