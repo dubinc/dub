@@ -1,9 +1,10 @@
-import { verifyAnalyticsAllowedHostnames } from "@/lib/analytics/verify-analytics-allowed-hostnames";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { linkCache } from "@/lib/api/links/cache";
 import { clickCache } from "@/lib/api/links/click-cache";
 import { parseRequestBody } from "@/lib/api/utils";
 import { getLinkWithPartner } from "@/lib/planetscale/get-link-with-partner";
 import { recordClick } from "@/lib/tinybird";
+import { formatRedisLink } from "@/lib/upstash";
 import { DiscountSchema } from "@/lib/zod/schemas/discount";
 import { PartnerSchema } from "@/lib/zod/schemas/partners";
 import { isValidUrl, LOCALHOST_IP, nanoid } from "@dub/utils";
@@ -63,45 +64,61 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
     }
 
     // Otherwise, track the click event
-    const link = await getLinkWithPartner({
+    clickId = nanoid(16);
+
+    let cachedLink = await linkCache.get({
       domain,
       key,
     });
 
-    if (!link) {
-      throw new DubApiError({
-        code: "not_found",
-        message: `Link not found for domain: ${domain} and key: ${key}.`,
+    if (!cachedLink) {
+      const link = await getLinkWithPartner({
+        domain,
+        key,
       });
+
+      if (!link) {
+        throw new DubApiError({
+          code: "not_found",
+          message: `Link not found for domain: ${domain} and key: ${key}.`,
+        });
+      }
+
+      cachedLink = formatRedisLink(link as any);
+
+      waitUntil(linkCache.set(link as any));
     }
 
-    verifyAnalyticsAllowedHostnames({
-      allowedHostnames: link.allowedHostnames,
-      req,
-    });
+    // verifyAnalyticsAllowedHostnames({
+    //   allowedHostnames: link.allowedHostnames,
+    //   req,
+    // });
 
-    const finalUrl = url ? (isValidUrl(url) ? url : link.url) : link.url;
-    clickId = nanoid(16);
+    const finalUrl = url
+      ? isValidUrl(url)
+        ? url
+        : cachedLink.url
+      : cachedLink.url;
 
     waitUntil(
       recordClick({
         req,
         clickId,
-        linkId: link.id,
+        linkId: cachedLink.id,
         domain,
         key,
         url: finalUrl,
-        workspaceId: link.projectId,
+        workspaceId: cachedLink.projectId,
         skipRatelimit: true,
         ...(referrer && { referrer }),
-        trackConversion: link.trackConversion,
+        trackConversion: cachedLink.trackConversion,
       }),
     );
 
     const response = partnerDiscountSchema.parse({
       clickId,
-      ...(link.partner && { partner: link.partner }),
-      ...(link.discount && { discount: link.discount }),
+      ...(cachedLink.partner && { partner: cachedLink.partner }),
+      ...(cachedLink.discount && { discount: cachedLink.discount }),
     });
 
     return NextResponse.json(response, { headers: CORS_HEADERS });
