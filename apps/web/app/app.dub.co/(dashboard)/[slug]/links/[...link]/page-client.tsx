@@ -3,6 +3,7 @@
 import useLink from "@/lib/swr/use-link";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ExpandedLinkProps } from "@/lib/types";
+import { LinkAnalyticsBadge } from "@/ui/links/link-analytics-badge";
 import { LinkBuilderDestinationUrlInput } from "@/ui/links/link-builder/controls/link-builder-destination-url-input";
 import { LinkBuilderShortLinkInput } from "@/ui/links/link-builder/controls/link-builder-short-link-input";
 import { LinkCommentsInput } from "@/ui/links/link-builder/controls/link-comments-input";
@@ -90,11 +91,16 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
           className="p-0"
           foldersEnabled={!!workspace.flags?.linkFolders}
         >
-          <DraftControls
-            ref={draftControlsRef}
-            props={link}
-            workspaceId={workspace.id!}
-          />
+          <div className="flex items-center gap-2">
+            <DraftControls
+              ref={draftControlsRef}
+              props={link}
+              workspaceId={workspace.id!}
+            />
+            <div className="shrink-0">
+              <LinkAnalyticsBadge link={link} />
+            </div>
+          </div>
         </LinkBuilderHeader>
       </div>
       <form
