@@ -1,91 +1,86 @@
 "use client";
 
-import useDiscountPartners from "@/lib/swr/use-discount-partners";
 import usePartners from "@/lib/swr/use-partners";
-import usePartnersCount from "@/lib/swr/use-partners-count";
 import { EnrolledPartnerProps } from "@/lib/types";
-import { Search } from "@/ui/shared/icons";
-import { Table, usePagination, useTable } from "@dub/ui";
+import { Button, Combobox, Table, useTable } from "@dub/ui";
 import { cn, DICEBEAR_AVATAR_URL } from "@dub/utils";
-import { Row } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
+import { X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
 interface DiscountPartnersTableProps {
-  programId: string;
-  discountId?: string;
-  setValue: (value: string[]) => void;
+  partnerIds: string[];
+  partners: EnrolledPartnerProps[];
+  setPartners: (value: string[]) => void;
+  loading: boolean;
 }
 
 export function DiscountPartnersTable({
-  programId,
-  discountId,
-  setValue,
+  partnerIds,
+  partners,
+  setPartners,
+  loading,
 }: DiscountPartnersTableProps) {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
-  const { pagination, setPagination } = usePagination(25);
-  const [selectedRows, setSelectedRows] = useState<Record<string, boolean>>({});
+  const [selectedPartners, setSelectedPartners] =
+    useState<Pick<EnrolledPartnerProps, "id" | "name" | "email" | "image">[]>();
 
-  const { data: partners, loading } = usePartners({
+  // Get all partners for the table
+  const { data: allPartners } = usePartners({});
+
+  // Get filtered partners for the combobox
+  const { data: searchPartners } = usePartners({
     query: {
       search: debouncedSearch,
-      page: pagination.pageIndex,
-      pageSize: pagination.pageSize,
     },
   });
 
-  const { partnersCount } = usePartnersCount<number>({
-    search: debouncedSearch,
-  });
+  const options = useMemo(
+    () =>
+      searchPartners?.map((partner) => ({
+        icon: (
+          <img
+            alt={partner.name}
+            src={partner.image || `${DICEBEAR_AVATAR_URL}${partner.name}`}
+            className="mr-1.5 size-4 shrink-0 rounded-full"
+          />
+        ),
+        value: partner.id,
+        label: partner.name,
+      })),
+    [searchPartners],
+  );
 
-  const { data: discountPartners } = useDiscountPartners({
-    query: {
-      discountId,
-    },
-    enabled: Boolean(programId && discountId),
-  });
+  const selectedPartnersOptions = useMemo(
+    () =>
+      partnerIds
+        .map((id) => options?.find(({ value }) => value === id)!)
+        .filter(Boolean),
+    [partnerIds, options],
+  );
 
   useEffect(() => {
-    setPagination((prev) => ({ ...prev, pageIndex: 1 }));
-  }, [debouncedSearch, setPagination]);
+    setSelectedPartners(partners);
+  }, [partners]);
 
-  useEffect(() => {
-    setSelectedRows(
-      discountPartners?.reduce(
-        (acc, partnerId) => {
-          acc[partnerId] = true;
-          return acc;
-        },
-        {} as Record<string, boolean>,
-      ) || {},
-    );
-  }, [discountPartners, partners]);
+  const handlePartnerSelection = (
+    selectedOptions: typeof selectedPartnersOptions,
+  ) => {
+    // Get all currently selected IDs
+    const currentIds = new Set(partnerIds);
+
+    // Add new selections
+    selectedOptions.forEach(({ value }) => {
+      currentIds.add(value);
+    });
+
+    setPartners(Array.from(currentIds));
+  };
 
   const table = useTable({
-    data: partners || [],
+    data: selectedPartners || [],
     columns: [
-      {
-        id: "selection",
-        header: ({ table }) => (
-          <input
-            type="checkbox"
-            className="h-4 w-4 cursor-pointer rounded-full border-neutral-300 text-black focus:outline-none focus:ring-0"
-            checked={table.getIsAllRowsSelected()}
-            onChange={table.getToggleAllRowsSelectedHandler()}
-          />
-        ),
-        cell: ({ row }) => (
-          <input
-            type="checkbox"
-            className="h-4 w-4 cursor-pointer rounded-full border-neutral-300 text-black focus:outline-none focus:ring-0"
-            checked={row.getIsSelected()}
-            onChange={row.getToggleSelectedHandler()}
-          />
-        ),
-        minSize: 10,
-        size: 30,
-      },
       {
         header: "Partner",
         cell: ({ row }) => (
@@ -118,21 +113,38 @@ export function DiscountPartnersTable({
         minSize: 210,
         maxSize: 210,
       },
+      {
+        id: "actions",
+        cell: ({ row }) => (
+          <div className="flex justify-end">
+            <Button
+              variant="secondary"
+              icon={<X className="size-4" />}
+              className="size-4 rounded-md border-0 bg-neutral-50 p-0 hover:bg-neutral-100"
+              onClick={() => {
+                setPartners(partnerIds.filter((id) => id !== row.original.id));
+                setSelectedPartners(
+                  selectedPartners?.filter(
+                    (partner) => partner.id !== row.original.id,
+                  ),
+                );
+              }}
+            />
+          </div>
+        ),
+        size: 50,
+        minSize: 50,
+        maxSize: 50,
+      },
     ],
-    loading,
     thClassName: () => cn("border-l-0"),
     tdClassName: () => cn("border-l-0"),
     className: "[&_tr:last-child>td]:border-b-transparent",
     scrollWrapperClassName: "min-h-[40px]",
     resourceName: (p) => `eligible partner${p ? "s" : ""}`,
-    pagination,
-    onPaginationChange: setPagination,
-    rowCount: partnersCount,
-    selectedRows,
     getRowId: (row: EnrolledPartnerProps) => row.id,
-    onRowSelectionChange: (rows: Row<EnrolledPartnerProps>[]) => {
-      setValue(rows.map((row) => row.original.id));
-    },
+    loading,
+    rowCount: selectedPartners?.length || 0,
   });
 
   return (
@@ -141,18 +153,28 @@ export function DiscountPartnersTable({
         Eligible partners
       </label>
 
-      <div className="relative">
-        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-          <Search className="size-4 text-neutral-400" />
-        </div>
-        <input
-          type="text"
-          placeholder="Search partners"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="block w-full rounded-lg border-neutral-300 pl-10 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-        />
-      </div>
+      <Combobox
+        options={options}
+        selected={selectedPartnersOptions}
+        setSelected={handlePartnerSelection}
+        caret
+        placeholder="Select partners"
+        searchPlaceholder="Search partners by name"
+        matchTriggerWidth
+        multiple
+        shouldFilter={false}
+        onSearchChange={setSearch}
+        buttonProps={{
+          className: cn(
+            "w-full justify-start border-neutral-300 px-3",
+            "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
+            "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
+            !selectedPartnersOptions.length && "text-neutral-400",
+          ),
+        }}
+      >
+        Select partners...
+      </Combobox>
 
       <Table {...table} />
     </div>

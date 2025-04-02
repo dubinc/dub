@@ -31,11 +31,14 @@ export const GET = withWorkspace(
         partner: {
           select: {
             id: true,
+            name: true,
+            image: true,
+            email: true,
           },
         },
       },
     });
 
-    return NextResponse.json(partners.map(({ partner }) => partner.id));
+    return NextResponse.json(partners.map(({ partner }) => partner));
   },
 );

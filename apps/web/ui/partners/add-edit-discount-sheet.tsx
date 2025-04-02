@@ -5,6 +5,7 @@ import { deleteDiscountAction } from "@/lib/actions/partners/delete-discount";
 import { updateDiscountAction } from "@/lib/actions/partners/update-discount";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import useDiscountPartners from "@/lib/swr/use-discount-partners";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DiscountProps } from "@/lib/types";
@@ -14,7 +15,7 @@ import { X } from "@/ui/shared/icons";
 import { AnimatedSizeContainer, Button, CircleCheckFill, Sheet } from "@dub/ui";
 import { cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, SetStateAction, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -81,6 +82,23 @@ function DiscountSheetContent({
   });
 
   const [type, partnerIds = []] = watch(["type", "partnerIds"]);
+
+  const { data: discountPartners, loading: isLoadingDiscountPartners } =
+    useDiscountPartners({
+      query: {
+        discountId: discount?.id,
+      },
+      enabled: Boolean(discount?.id && program?.id),
+    });
+
+  useEffect(() => {
+    if (discountPartners && discountPartners.length > 0) {
+      setValue(
+        "partnerIds",
+        discountPartners.map((partner) => partner.id),
+      );
+    }
+  }, [discountPartners, setValue]);
 
   const { executeAsync: createDiscount, isPending: isCreating } = useAction(
     createDiscountAction,
@@ -402,11 +420,12 @@ function DiscountSheetContent({
 
             {!isDefault && program?.id && (
               <DiscountPartnersTable
-                programId={program.id}
-                discountId={discount?.id}
-                setValue={(value: string[]) => {
+                partnerIds={partnerIds || []}
+                partners={discountPartners || []}
+                setPartners={(value: string[]) => {
                   setValue("partnerIds", value);
                 }}
+                loading={isLoadingDiscountPartners}
               />
             )}
           </div>

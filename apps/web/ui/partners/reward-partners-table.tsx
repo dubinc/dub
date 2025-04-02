@@ -38,7 +38,7 @@ export function RewardPartnersTable({
 
   const options = useMemo(
     () =>
-      searchPartners?.map((partner, index) => ({
+      searchPartners?.map((partner) => ({
         icon: (
           <img
             alt={partner.name}
