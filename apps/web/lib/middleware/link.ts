@@ -38,7 +38,7 @@ export default async function LinkMiddleware(
   req: NextRequest,
   ev: NextFetchEvent,
 ) {
-  let { domain, fullKey: originalKey, fullPath } = parse(req);
+  let { domain, fullKey: originalKey } = parse(req);
 
   if (!domain) {
     return NextResponse.next();
