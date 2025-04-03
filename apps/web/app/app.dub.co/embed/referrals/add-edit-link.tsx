@@ -35,6 +35,7 @@ export function ReferralsEmbedCreateUpdateLink({
   const [, copyToClipboard] = useCopyToClipboard();
   const [lockKey, setLockKey] = useState(Boolean(link));
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const {
     watch,
@@ -55,6 +56,7 @@ export function ReferralsEmbedCreateUpdateLink({
 
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
+    setErrorMessage(null);
 
     try {
       const endpoint = !link
@@ -78,7 +80,7 @@ export function ReferralsEmbedCreateUpdateLink({
       const result = await response.json();
 
       if (!response.ok) {
-        const { error } = result;
+        setErrorMessage(result.error.message);
         return;
       }
 
@@ -88,6 +90,8 @@ export function ReferralsEmbedCreateUpdateLink({
 
       await mutateSuffix("api/embed/referrals/links");
       onCancel();
+    } catch (error) {
+      setErrorMessage("Something went wrong. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -231,6 +235,12 @@ export function ReferralsEmbedCreateUpdateLink({
                 disabled={lockKey}
               />
             </div>
+
+            {errorMessage && (
+              <div className="mt-2 flex justify-end">
+                <span className="text-sm text-red-600">{errorMessage}</span>
+              </div>
+            )}
           </div>
         </div>
       </form>
