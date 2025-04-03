@@ -1,6 +1,6 @@
 import { Link } from "@dub/prisma/client";
 import { useState } from "react";
-import { ReferralsEmbedCreateUpdateLink } from "./create-update-link";
+import { ReferralsEmbedCreateUpdateLink } from "./add-edit-link";
 import { ReferralsEmbedLinksList } from "./links-list";
 
 interface Props {

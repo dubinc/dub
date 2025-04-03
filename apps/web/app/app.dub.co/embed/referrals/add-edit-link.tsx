@@ -49,7 +49,7 @@ export function ReferralsEmbedCreateUpdateLink({
       : undefined,
   });
 
-  const [key] = watch("key");
+  const key = watch("key");
 
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
