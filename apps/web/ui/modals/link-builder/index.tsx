@@ -59,6 +59,7 @@ import { ConversionTrackingToggle } from "./conversion-tracking-toggle";
 import { DraftControls, DraftControlsHandle } from "./draft-controls";
 import { useExpirationModal } from "./expiration-modal";
 import { LinkPreview } from "./link-preview";
+import { useMaxClicksModal } from "./max-clicks-modal";
 import { MoreDropdown } from "./more-dropdown";
 import { OptionsList } from "./options-list";
 import { usePasswordModal } from "./password-modal";
@@ -166,7 +167,7 @@ function LinkBuilderInner({
   });
 
   const saveDisabled = useMemo(() => {
-    /* 
+    /*
       Disable save if:
       - modal is not open
       - saving is in progress
@@ -213,6 +214,7 @@ function LinkBuilderInner({
 
   const { UTMModal, UTMButton } = useUTMModal();
   const { ExpirationModal, ExpirationButton } = useExpirationModal();
+  const { MaxClicksModal, MaxClicksButton } = useMaxClicksModal();
   const { TargetingModal, TargetingButton } = useTargetingModal();
   const { PasswordModal, PasswordButton } = usePasswordModal();
 
@@ -224,6 +226,7 @@ function LinkBuilderInner({
       <UTMModal />
       <TargetingModal />
       <ExpirationModal />
+      <MaxClicksModal />
       <Modal
         showModal={showLinkBuilder}
         setShowModal={setShowLinkBuilder}
@@ -262,6 +265,9 @@ function LinkBuilderInner({
                 expiredUrl: rest.expiredUrl || null,
                 ios: rest.ios || null,
                 android: rest.android || null,
+                maxClicksUrl: rest.maxClicksUrl || null,
+                // Ensure maxClicks is properly included
+                maxClicks: rest.maxClicks === undefined ? null : rest.maxClicks,
               };
 
               try {
@@ -522,6 +528,7 @@ function LinkBuilderInner({
                 <UTMButton />
                 <div className="flex items-center gap-2 max-sm:hidden">
                   <ExpirationButton />
+                  <MaxClicksButton />
                   <TargetingButton />
                   <PasswordButton />
                 </div>

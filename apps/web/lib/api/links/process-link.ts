@@ -64,6 +64,8 @@ export async function processLink<T extends Record<string, any>>({
     password,
     rewrite,
     expiredUrl,
+    maxClicks,
+    maxClicksUrl,
     ios,
     android,
     geo,
@@ -128,7 +130,8 @@ export async function processLink<T extends Record<string, any>>({
       ios ||
       android ||
       geo ||
-      doIndex
+      doIndex ||
+      maxClicks
     ) {
       const proFeaturesString = combineWords(
         [
@@ -140,6 +143,7 @@ export async function processLink<T extends Record<string, any>>({
           android && "Android targeting",
           geo && "geo targeting",
           doIndex && "search engine indexing",
+          maxClicks && "max clicks limit",
         ].filter(Boolean) as string[],
       );
 
@@ -530,6 +534,27 @@ export async function processLink<T extends Record<string, any>>({
     }
   }
 
+  // max clicks checks
+  if (maxClicks !== undefined && maxClicks !== null) {
+    if (maxClicks <= 0) {
+      return {
+        link: payload,
+        error: "Max clicks must be greater than 0.",
+        code: "unprocessable_entity",
+      };
+    }
+    if (maxClicksUrl) {
+      maxClicksUrl = getUrlFromString(maxClicksUrl);
+      if (!isValidUrl(maxClicksUrl)) {
+        return {
+          link: payload,
+          error: "Invalid max clicks URL.",
+          code: "unprocessable_entity",
+        };
+      }
+    }
+  }
+
   // remove polyfill attributes from payload
   delete payload["shortLink"];
   delete payload["qrCode"];
@@ -547,6 +572,8 @@ export async function processLink<T extends Record<string, any>>({
       url,
       expiresAt,
       expiredUrl,
+      maxClicks,
+      maxClicksUrl,
       // partnerId derived from payload or program enrollment
       partnerId: partnerId || null,
       // make sure projectId is set to the current workspace
