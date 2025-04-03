@@ -2,7 +2,6 @@ import { DUB_PARTNERS_ANALYTICS_INTERVAL } from "@/lib/analytics/constants";
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { IntervalOptions } from "@/lib/analytics/types";
 import useProgramCommissions from "@/lib/swr/use-program-commissions";
-import useProgramMetrics from "@/lib/swr/use-program-metrics";
 import useProgramRevenue from "@/lib/swr/use-program-revenue";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import { Combobox, useRouterStuff } from "@dub/ui";
@@ -41,8 +40,6 @@ export function OverviewChart() {
     interval?: IntervalOptions;
   };
 
-  const { metrics } = useProgramMetrics();
-
   const { data: revenue, error: revenueError } = useProgramRevenue({
     event: "sales",
     groupBy: "timeseries",
@@ -72,6 +69,10 @@ export function OverviewChart() {
     }));
   }, [revenue, commissions, viewType]);
 
+  const total = useMemo(() => {
+    return data?.reduce((acc, curr) => acc + curr.values.amount, 0);
+  }, [data]);
+
   const dataLoading = !data && !revenueError && !commissionsError;
   const error = revenueError || commissionsError;
 
@@ -100,11 +101,11 @@ export function OverviewChart() {
         </div>
 
         <div className="flex flex-col gap-1 px-4">
-          {!metrics ? (
+          {total === undefined ? (
             <div className="h-11 w-24 animate-pulse rounded-md bg-neutral-200" />
           ) : (
             <NumberFlow
-              value={metrics[viewType] / 100}
+              value={total}
               className="text-3xl text-neutral-800"
               format={{
                 style: "currency",
