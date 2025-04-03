@@ -21,9 +21,12 @@ export function ReferralsEmbedLinksList({
 }: Props) {
   const [partnerLinks, setPartnerLinks] = useState<ReferralsEmbedLink[]>(links);
 
-  const { data: refreshedLinks } = useSWR<ReferralsEmbedLink[]>(
+  const { data: refreshedLinks, isLoading } = useSWR<ReferralsEmbedLink[]>(
     "/api/embed/referrals/links",
     fetcher,
+    {
+      keepPreviousData: true,
+    },
   );
 
   useEffect(() => {
@@ -122,6 +125,7 @@ export function ReferralsEmbedLinksList({
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (plural) => `link${plural ? "s" : ""}`,
+    loading: isLoading,
   });
 
   return (
