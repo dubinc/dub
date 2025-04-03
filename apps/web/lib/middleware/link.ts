@@ -31,6 +31,7 @@ import { clickCache } from "../api/links/click-cache";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
 import { getPartnerAndDiscount } from "../planetscale/get-partner-discount";
+import { recordPartnerActivity } from "../tinybird/record-partner-activity";
 import { isGoogleAdsClick } from "../url";
 import { hasEmptySearchParams } from "./utils/has-empty-search-params";
 
@@ -157,6 +158,8 @@ export default async function LinkMiddleware(
     doIndex,
     webhookIds,
     projectId: workspaceId,
+    programId,
+    partnerId,
   } = cachedLink;
 
   // by default, we only index default dub domain links (e.g. dub.sh)
@@ -288,10 +291,21 @@ export default async function LinkMiddleware(
   // we only pass the via param if:
   // - it's a partner link
   // - it's not coming from Google Ads
-  const shouldPassVia = isPartnerLink && !isGoogleAdsClick({ url: req.url });
+  const isGoogleClick = isGoogleAdsClick({ url: req.url });
+  const shouldPassVia = isPartnerLink && !isGoogleClick;
 
-  // TODO (Kiran):
-  // Record the partner suspicious activity
+  ev.waitUntil(
+    (async () => {
+      if (isPartnerLink && isGoogleClick) {
+        recordPartnerActivity({
+          program_id: programId!,
+          partner_id: partnerId!,
+          url: req.url,
+          activity: "google-ads",
+        });
+      }
+    })(),
+  );
 
   // rewrite to proxy page (/proxy/[domain]/[key]) if it's a bot and proxy is enabled
   if (isBot && proxy) {
