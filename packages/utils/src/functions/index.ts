@@ -24,6 +24,7 @@ export * from "./normalize-string";
 export * from "./pluralize";
 export * from "./punycode";
 export * from "./random-value";
+export * from "./regex-escape";
 export * from "./resize-image";
 export * from "./smart-truncate";
 export * from "./stable-sort";
