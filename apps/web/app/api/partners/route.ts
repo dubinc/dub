@@ -31,6 +31,7 @@ export const GET = withWorkspace(
       ...partnersQuerySchema.parse(searchParams),
       workspaceId: workspace.id,
       programId,
+      includeExpandedFields: includeExpandedFields === "true",
     });
 
     return NextResponse.json(

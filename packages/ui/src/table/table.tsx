@@ -130,6 +130,12 @@ export function useTable<T extends any>(
   );
 
   useEffect(() => {
+    if (props.selectedRows && !deepEqual(props.selectedRows, rowSelection)) {
+      setRowSelection(props.selectedRows ?? {});
+    }
+  }, [props.selectedRows]);
+
+  useEffect(() => {
     props.onRowSelectionChange?.(table.getSelectedRowModel().rows);
   }, [rowSelection]);
 
