@@ -18,6 +18,7 @@ model Payout {
   programId        String
   partnerId        String
   invoiceId        String?
+  userId           String?
   amount           Int          @default(0)
   currency         String       @default("USD")
   status           PayoutStatus @default(pending)
@@ -34,10 +35,12 @@ model Payout {
   program     Program      @relation(fields: [programId], references: [id])
   partner     Partner      @relation(fields: [partnerId], references: [id])
   invoice     Invoice?     @relation(fields: [invoiceId], references: [id])
+  user        User?        @relation(fields: [userId], references: [id])
   commissions Commission[]
 
   @@index(programId)
   @@index(partnerId)
   @@index(invoiceId)
   @@index(status)
+  @@index(userId)
 }
