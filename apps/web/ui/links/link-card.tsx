@@ -44,7 +44,7 @@ export function LinkCard({ link }: { link: ResponseLink }) {
     <>
       <CardList.Card
         key={link.id}
-        onClick={isMobile ? () => router.push(editUrl) : undefined}
+        onClick={!isMobile ? () => router.push(editUrl) : undefined}
         innerClassName="flex items-center gap-5 sm:gap-8 md:gap-12 text-sm"
         {...(variant === "loose" &&
           link.folderId &&
