@@ -17,7 +17,6 @@ export const partnersColumns = {
   defaultVisible: [
     "partner",
     "createdAt",
-    "status",
     "location",
     "clicks",
     "leads",

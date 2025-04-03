@@ -5,20 +5,17 @@ import { Button, useScroll, Wordmark } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 export function Header({
   program,
-  slug,
   showLogin = true,
   showApply = true,
 }: {
-  program: Pick<Program, "wordmark" | "logo">;
-  slug: string;
+  program: Pick<Program, "slug" | "wordmark" | "logo">;
   showLogin?: boolean;
   showApply?: boolean;
 }) {
-  const router = useRouter();
   const pathname = usePathname();
   const { data: session, status } = useSession();
 
@@ -38,7 +35,7 @@ export function Header({
         )}
       />
 
-      <Link href={`/${slug}`} className="animate-fade-in my-0.5 block">
+      <Link href={`/${program.slug}`} className="animate-fade-in my-0.5 block">
         {program.wordmark || program.logo ? (
           <img
             className="h-7 max-w-32"
@@ -61,7 +58,7 @@ export function Header({
           </Link>
         )}
         {showApply && (
-          <Link href={`/${slug}/apply`}>
+          <Link href={`/${program.slug}/apply`}>
             <Button
               type="button"
               text="Apply"

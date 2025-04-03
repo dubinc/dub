@@ -29,14 +29,7 @@ export default async function ApplicationPage({
         } as CSSProperties
       }
     >
-      <Header
-        program={{
-          logo: program.logo,
-          wordmark: program.wordmark,
-        }}
-        slug={programSlug}
-        showApply={false}
-      />
+      <Header program={program} showApply={false} />
       <div className="p-6">
         {/* Hero section */}
         <div className="grid grid-cols-1 gap-5 sm:pt-20">

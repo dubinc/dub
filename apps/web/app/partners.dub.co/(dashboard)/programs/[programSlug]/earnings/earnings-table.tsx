@@ -20,7 +20,6 @@ import { CircleDollar } from "@dub/ui/icons";
 import {
   currencyFormatter,
   fetcher,
-  formatDate,
   formatDateTime,
   getApexDomain,
   getPrettyUrl,
@@ -70,9 +69,13 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
         id: "createdAt",
         header: "Date",
         accessorKey: "timestamp",
+        minSize: 140,
         cell: ({ row }) => (
           <p title={formatDateTime(row.original.createdAt)}>
-            {formatDate(row.original.createdAt, { month: "short" })}
+            {formatDateTime(row.original.createdAt, {
+              month: "short",
+              year: undefined,
+            })}
           </p>
         ),
       },
