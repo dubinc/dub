@@ -2,8 +2,10 @@ import { PARTNER_LINKS_LIMIT } from "@/lib/embed/constants";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { Button, CopyButton, Table, Users, useTable } from "@dub/ui";
 import { Pen2, Plus2 } from "@dub/ui/icons";
-import { getPrettyUrl, TAB_ITEM_ANIMATION_SETTINGS } from "@dub/utils";
+import { fetcher, getPrettyUrl, TAB_ITEM_ANIMATION_SETTINGS } from "@dub/utils";
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import useSWR from "swr";
 import { ReferralsEmbedLink } from "./types";
 
 interface Props {
@@ -17,10 +19,23 @@ export function ReferralsEmbedLinksList({
   onCreateLink,
   onEditLink,
 }: Props) {
-  const linksLimitReached = links.length >= PARTNER_LINKS_LIMIT;
+  const [partnerLinks, setPartnerLinks] = useState<ReferralsEmbedLink[]>(links);
+
+  const { data: refreshedLinks } = useSWR<ReferralsEmbedLink[]>(
+    "/api/embed/referrals/links",
+    fetcher,
+  );
+
+  useEffect(() => {
+    if (refreshedLinks) {
+      setPartnerLinks(refreshedLinks);
+    }
+  }, [refreshedLinks]);
+
+  const linksLimitReached = partnerLinks.length >= PARTNER_LINKS_LIMIT;
 
   const { table, ...tableProps } = useTable({
-    data: links,
+    data: partnerLinks,
     columns: [
       {
         id: "link",
@@ -67,7 +82,11 @@ export function ReferralsEmbedLinksList({
             icon={<Plus2 className="text-white" />}
             onClick={onCreateLink}
             disabled={linksLimitReached}
-            disabledTooltip={`You have reached the limit of ${PARTNER_LINKS_LIMIT} referral links.`}
+            disabledTooltip={
+              linksLimitReached
+                ? `You have reached the limit of ${PARTNER_LINKS_LIMIT} referral links.`
+                : undefined
+            }
           />
         ),
         minSize: 60,

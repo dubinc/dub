@@ -8,6 +8,13 @@ import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
 import { getApexDomain } from "@dub/utils";
 import { NextResponse } from "next/server";
 
+// GET /api/embed/referrals/links – get links for a partner
+export const GET = withReferralsEmbedToken(async ({ links }) => {
+  const partnerLinks = ReferralsEmbedLinkSchema.array().parse(links);
+
+  return NextResponse.json(partnerLinks);
+});
+
 // POST /api/embed/referrals/links – create links for a partner
 export const POST = withReferralsEmbedToken(
   async ({ req, programEnrollment, program, links }) => {

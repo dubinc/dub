@@ -82,7 +82,7 @@ export function ReferralsEmbedCreateUpdateLink({
         return;
       }
 
-      await mutateSuffix("/links");
+      await mutateSuffix("api/embed/referrals/links");
       onCancel();
     } finally {
       setIsSubmitting(false);
