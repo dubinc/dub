@@ -1,4 +1,5 @@
 import { mutateSuffix } from "@/lib/swr/mutate";
+import { Link } from "@dub/prisma/client";
 import {
   Button,
   InfoTooltip,
@@ -14,6 +15,7 @@ import { useForm } from "react-hook-form";
 interface Props {
   destinationDomain: string;
   shortLinkDomain: string;
+  link?: Link | null;
   onCancel: () => void;
 }
 
@@ -25,22 +27,40 @@ interface FormData {
 export function ReferralsEmbedCreateUpdateLink({
   destinationDomain,
   shortLinkDomain,
+  link,
   onCancel,
 }: Props) {
   const { isMobile } = useMediaQuery();
   const [, copyToClipboard] = useCopyToClipboard();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { watch, register, handleSubmit } = useForm<FormData>();
+  const {
+    watch,
+    setValue,
+    register,
+    handleSubmit,
+    formState: { isDirty },
+  } = useForm<FormData>({
+    defaultValues: link
+      ? {
+          url: link.url.replace(`https://${destinationDomain}/`, ""),
+          key: link.key,
+        }
+      : undefined,
+  });
 
-  const [key, url] = watch("key", "url");
+  const [key] = watch("key");
 
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("/api/embed/referrals/links", {
-        method: "POST",
+      const endpoint = !link
+        ? "/api/embed/referrals/links"
+        : `/api/embed/referrals/links/${link.id}`;
+
+      const response = await fetch(endpoint, {
+        method: !link ? "POST" : "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
@@ -55,23 +75,21 @@ export function ReferralsEmbedCreateUpdateLink({
 
       const result = await response.json();
 
-      // TODO:
-      // Display success or error message
-
       if (!response.ok) {
         const { error } = result;
         return;
       }
 
       await mutateSuffix("/links");
+      onCancel();
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const saveDisabled = useMemo(
-    () => Boolean(isSubmitting || !key || !url),
-    [isSubmitting, key, url],
+    () => Boolean(isSubmitting || (!link ? !key : !isDirty)),
+    [isSubmitting, key, isDirty, link],
   );
 
   return (
@@ -84,7 +102,9 @@ export function ReferralsEmbedCreateUpdateLink({
         className="max-h-[26rem] overflow-auto"
       >
         <div className="flex items-center justify-between border-b border-neutral-200 px-4 py-3">
-          <span className="text-base font-semibold">New link</span>
+          <span className="text-base font-semibold">
+            {!link ? "New link" : "Edit link"}
+          </span>
           <div className="flex items-center gap-x-2">
             <Button
               text="Cancel"
@@ -94,7 +114,7 @@ export function ReferralsEmbedCreateUpdateLink({
               onClick={onCancel}
             />
             <Button
-              text="Create link"
+              text={!link ? "Create link" : "Update link"}
               variant="primary"
               loading={isSubmitting}
               disabled={saveDisabled}
@@ -144,6 +164,10 @@ export function ReferralsEmbedCreateUpdateLink({
                   } catch (err) {
                     e.currentTarget.value = text;
                   }
+
+                  setValue("url", e.currentTarget.value, {
+                    shouldDirty: true,
+                  });
                 }}
               />
             </div>
@@ -183,8 +207,6 @@ export function ReferralsEmbedCreateUpdateLink({
           </div>
         </div>
       </form>
-
-      <div className="from-bg-default pointer-events-none absolute -bottom-px left-0 h-16 w-full rounded-b-lg bg-gradient-to-t sm:bottom-0" />
     </motion.div>
   );
 }

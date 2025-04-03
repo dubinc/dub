@@ -15,10 +15,7 @@ export default function ReferralsEmbedLinks({
   shortLinkDomain,
 }: Props) {
   const [createLink, setCreateLink] = useState(false);
-
-  const handleEditLink = (link: Link) => {
-    console.log("Edit link:", link);
-  };
+  const [link, setLink] = useState<Link | null>(null);
 
   return (
     <div className="flex flex-col space-y-6">
@@ -26,13 +23,20 @@ export default function ReferralsEmbedLinks({
         <ReferralsEmbedCreateUpdateLink
           destinationDomain={destinationDomain}
           shortLinkDomain={shortLinkDomain}
-          onCancel={() => setCreateLink(false)}
+          link={link}
+          onCancel={() => {
+            setCreateLink(false);
+            setLink(null);
+          }}
         />
       ) : (
         <ReferralsEmbedLinksList
           links={links}
-          onEditLink={handleEditLink}
           onCreateLink={() => setCreateLink(true)}
+          onEditLink={(link) => {
+            setLink(link);
+            setCreateLink(true);
+          }}
         />
       )}
     </div>
