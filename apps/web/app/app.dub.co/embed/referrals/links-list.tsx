@@ -5,7 +5,17 @@ import { Pen2, Plus2 } from "@dub/ui/icons";
 import { getPrettyUrl, TAB_ITEM_ANIMATION_SETTINGS } from "@dub/utils";
 import { motion } from "framer-motion";
 
-export function ReferralsEmbedLinksList({ links }: { links: Link[] }) {
+interface Props {
+  links: Link[];
+  onCreateLink: () => void;
+  onEditLink: (link: Link) => void;
+}
+
+export function ReferralsEmbedLinksList({
+  links,
+  onCreateLink,
+  onEditLink,
+}: Props) {
   const { table, ...tableProps } = useTable({
     data: links,
     columns: [
@@ -52,6 +62,7 @@ export function ReferralsEmbedLinksList({ links }: { links: Link[] }) {
             variant="primary"
             className="h-7 w-7 p-1.5"
             icon={<Plus2 className="text-white" />}
+            onClick={onCreateLink}
           />
         ),
         minSize: 60,
@@ -62,6 +73,7 @@ export function ReferralsEmbedLinksList({ links }: { links: Link[] }) {
               variant="secondary"
               className="h-7 w-7 p-1.5"
               icon={<Pen2 className="size-4" />}
+              onClick={() => onEditLink(row.original)}
             />
           );
         },

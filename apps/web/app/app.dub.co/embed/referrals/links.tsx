@@ -1,5 +1,6 @@
 import { Link } from "@dub/prisma/client";
-import { ReferralsEmbedCreateLink } from "./create-link";
+import { useState } from "react";
+import { ReferralsEmbedCreateUpdateLink } from "./create-update-link";
 import { ReferralsEmbedLinksList } from "./links-list";
 
 interface Props {
@@ -13,13 +14,27 @@ export default function ReferralsEmbedLinks({
   destinationDomain,
   shortLinkDomain,
 }: Props) {
+  const [createLink, setCreateLink] = useState(false);
+
+  const handleEditLink = (link: Link) => {
+    console.log("Edit link:", link);
+  };
+
   return (
     <div className="flex flex-col space-y-6">
-      <ReferralsEmbedCreateLink
-        destinationDomain={destinationDomain}
-        shortLinkDomain={shortLinkDomain}
-      />
-      <ReferralsEmbedLinksList links={links} />
+      {createLink ? (
+        <ReferralsEmbedCreateUpdateLink
+          destinationDomain={destinationDomain}
+          shortLinkDomain={shortLinkDomain}
+          onCancel={() => setCreateLink(false)}
+        />
+      ) : (
+        <ReferralsEmbedLinksList
+          links={links}
+          onEditLink={handleEditLink}
+          onCreateLink={() => setCreateLink(true)}
+        />
+      )}
     </div>
   );
 }

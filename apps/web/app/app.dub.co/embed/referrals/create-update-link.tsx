@@ -14,6 +14,7 @@ import { useForm } from "react-hook-form";
 interface Props {
   destinationDomain: string;
   shortLinkDomain: string;
+  onCancel: () => void;
 }
 
 interface FormData {
@@ -21,9 +22,10 @@ interface FormData {
   key: string;
 }
 
-export function ReferralsEmbedCreateLink({
+export function ReferralsEmbedCreateUpdateLink({
   destinationDomain,
   shortLinkDomain,
+  onCancel,
 }: Props) {
   const { isMobile } = useMediaQuery();
   const [, copyToClipboard] = useCopyToClipboard();
@@ -89,6 +91,7 @@ export function ReferralsEmbedCreateLink({
               variant="secondary"
               type="button"
               className="h-9"
+              onClick={onCancel}
             />
             <Button
               text="Create link"

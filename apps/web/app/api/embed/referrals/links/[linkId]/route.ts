@@ -1,5 +1,5 @@
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
-import { createLink, processLink } from "@/lib/api/links";
+import { processLink, updateLink } from "@/lib/api/links";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { LinkSchema } from "@/lib/zod/schemas/links";
@@ -7,12 +7,9 @@ import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { getApexDomain } from "@dub/utils";
 import { NextResponse } from "next/server";
 
-// TODO: Move this to a constant
-const PARTNER_LINKS_LIMIT = 5;
-
-// POST /api/embed/referrals/links – create links for a partner
-export const POST = withReferralsEmbedToken(
-  async ({ req, programEnrollment, program, links }) => {
+// PATCH /api/embed/referrals/links/[linkId] - update a link for a partner
+export const PATCH = withReferralsEmbedToken(
+  async ({ req, params, programEnrollment, program, links }) => {
     const { url, key } = createPartnerLinkSchema
       .pick({ url: true, key: true })
       .parse(await parseRequestBody(req));
@@ -24,18 +21,20 @@ export const POST = withReferralsEmbedToken(
       });
     }
 
+    const link = links.find((link) => link.id === params.linkId);
+
+    if (!link) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Link not found.",
+      });
+    }
+
     if (!program.domain || !program.url) {
       throw new DubApiError({
         code: "bad_request",
         message:
           "This program needs a domain and URL set before creating a link.",
-      });
-    }
-
-    if (links.length >= PARTNER_LINKS_LIMIT) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: `You have reached the limit of ${PARTNER_LINKS_LIMIT} program links.`,
       });
     }
 
@@ -46,25 +45,26 @@ export const POST = withReferralsEmbedToken(
       });
     }
 
-    // TODO:
-    // Under which workspace user the link should be created?
+    // if domain and key are the same, we don't need to check if the key exists
+    const skipKeyChecks = link.key.toLowerCase() === key?.toLowerCase();
 
-    const { link, error, code } = await processLink({
+    const {
+      link: processedLink,
+      error,
+      code,
+    } = await processLink({
+      // @ts-expect-error
       payload: {
+        ...link,
         key: key || undefined,
         url: url || program.url,
-        domain: program.domain,
-        programId: program.id,
-        folderId: program.defaultFolderId,
-        tenantId: programEnrollment.tenantId,
-        partnerId: programEnrollment.partnerId,
-        trackConversion: true,
       },
       workspace: {
         id: program.workspaceId,
         plan: "business",
       },
-      userId: "cm1ypncqa0000tc44pfgxp6qs", //session.user.id,
+      userId: link.userId!,
+      skipKeyChecks,
       skipFolderChecks: true, // can't be changed by the partner
       skipProgramChecks: true, // can't be changed by the partner
       skipExternalIdChecks: true, // can't be changed by the partner
@@ -77,15 +77,22 @@ export const POST = withReferralsEmbedToken(
       });
     }
 
-    const partnerLink = await createLink(link);
+    const partnerLink = await updateLink({
+      oldLink: {
+        domain: link.domain,
+        key: link.key,
+        image: link.image,
+      },
+      updatedLink: processedLink,
+    });
 
-    const createdLink = LinkSchema.pick({
+    const updatedLink = LinkSchema.pick({
       id: true,
       domain: true,
       key: true,
       url: true,
     }).parse(partnerLink);
 
-    return NextResponse.json(createdLink, { status: 201 });
+    return NextResponse.json(updatedLink);
   },
 );
