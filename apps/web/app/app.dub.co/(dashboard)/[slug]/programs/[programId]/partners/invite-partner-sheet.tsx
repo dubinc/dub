@@ -146,7 +146,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
 
       <div className="flex-1 overflow-y-auto">
         <div className="p-6">
-          <div className="grid gap-6">
+          <div className="grid grid-cols-1 gap-6">
             <div>
               <label htmlFor="name" className="flex items-center space-x-2">
                 <h2 className="text-sm font-medium text-neutral-900">Name</h2>
@@ -243,7 +243,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
 
               <AnimatedSizeContainer height>
                 {showAdvancedOptions && (
-                  <div className="grid gap-6 py-6">
+                  <div className="grid grid-cols-1 gap-6 py-6">
                     <div>
                       <label
                         htmlFor="rewardId"
@@ -370,7 +370,7 @@ function EmailPreview() {
         className="overflow-hidden"
       >
         <div className="mt-2 overflow-hidden rounded-md border border-neutral-200 bg-white">
-          <div className="grid gap-4 p-6 pb-10">
+          <div className="grid grid-cols-1 gap-4 p-6 pb-10">
             <MemoBlurImage
               src={program?.logo || "https://assets.dub.co/logo.png"}
               alt={program?.name || "Dub"}
