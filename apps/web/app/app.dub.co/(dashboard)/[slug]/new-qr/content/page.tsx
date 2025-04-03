@@ -1,7 +1,7 @@
 "use client";
 
 import { useMediaQuery } from "@dub/ui";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { ChangeEvent, useEffect, useState } from "react";
 import {
   EQRType,
@@ -20,6 +20,7 @@ import { ENCRYPTION_TYPES, QR_CONTENT_CONFIG } from "./constants.ts";
 export default function NewQRContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { slug } = useParams() as { slug?: string };
   const qrType = searchParams.get("type") as EQRType;
   const { setTitle, setCurrentStep } = usePageContext();
   const { isMobile } = useMediaQuery();
@@ -77,8 +78,8 @@ export default function NewQRContent() {
         Object.keys(inputErrors).length === renderedInputs().length;
     }
 
-    if (qrDataExists) {
-      router.replace("/new-qr/customization");
+    if (qrDataExists && slug) {
+      router.replace(`/${slug}/new-qr/customization`);
     }
   };
 

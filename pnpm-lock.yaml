@@ -273,6 +273,9 @@ importers:
       posthog-js:
         specifier: ^1.164.1
         version: 1.164.1
+      qr-code-styling:
+        specifier: ^1.9.1
+        version: 1.9.1
       react:
         specifier: ^18.2.0
         version: 18.2.0
@@ -19097,6 +19100,17 @@ packages:
   /punycode@2.3.1:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
     engines: {node: '>=6'}
+
+  /qr-code-styling@1.9.1:
+    resolution: {integrity: sha512-T/VxQchuZkQwYhIcyyMUmtXHPeDT6lJBYHfqGD5CBDyIjswxS7JZKf443q+SXO1K/9SUswi6JpXEUQ5AoMCpyg==}
+    engines: {node: '>=18.18.0'}
+    dependencies:
+      qrcode-generator: 1.4.4
+    dev: false
+
+  /qrcode-generator@1.4.4:
+    resolution: {integrity: sha512-HM7yY8O2ilqhmULxGMpcHSF1EhJJ9yBj8gvDEuZ6M+KGJ0YY2hKpnXvRD+hZPLrDVck3ExIGhmPtSdcjC+guuw==}
+    dev: false
 
   /qs@6.14.0:
     resolution: {integrity: sha512-YWWTjgABSKcvs/nWBi9PycY/JiPJqOD4JA6o9Sej2AtvSGarXxKC3OQSk4pAarbdQlKAh5D4FCQkJNkW+GAn3w==}
