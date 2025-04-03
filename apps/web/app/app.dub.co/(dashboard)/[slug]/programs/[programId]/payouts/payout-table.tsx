@@ -25,8 +25,8 @@ import {
   useTable,
 } from "@dub/ui";
 import { CircleCheck, Dots, MoneyBill2, MoneyBills2 } from "@dub/ui/icons";
-import { cn } from "@dub/utils";
-import { formatDate, formatPeriod } from "@dub/utils/src/functions/datetime";
+import { cn, formatDateTime } from "@dub/utils";
+import { formatPeriod } from "@dub/utils/src/functions/datetime";
 import { fetcher } from "@dub/utils/src/functions/fetcher";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
@@ -141,9 +141,8 @@ const PayoutTableInner = memo(
           header: "Paid",
           cell: ({ row }) =>
             row.original.paidAt
-              ? formatDate(row.original.paidAt, {
+              ? formatDateTime(row.original.paidAt, {
                   month: "short",
-                  day: "numeric",
                   year: undefined,
                 })
               : "-",
