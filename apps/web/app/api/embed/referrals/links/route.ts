@@ -1,14 +1,12 @@
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, processLink } from "@/lib/api/links";
+import { PARTNER_LINKS_LIMIT } from "@/lib/api/partners/constants";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
-import { LinkSchema } from "@/lib/zod/schemas/links";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
+import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
 import { getApexDomain } from "@dub/utils";
 import { NextResponse } from "next/server";
-
-// TODO: Move this to a constant
-const PARTNER_LINKS_LIMIT = 5;
 
 // POST /api/embed/referrals/links – create links for a partner
 export const POST = withReferralsEmbedToken(
@@ -78,13 +76,7 @@ export const POST = withReferralsEmbedToken(
     }
 
     const partnerLink = await createLink(link);
-
-    const createdLink = LinkSchema.pick({
-      id: true,
-      domain: true,
-      key: true,
-      url: true,
-    }).parse(partnerLink);
+    const createdLink = ReferralsEmbedLinkSchema.parse(partnerLink);
 
     return NextResponse.json(createdLink, { status: 201 });
   },

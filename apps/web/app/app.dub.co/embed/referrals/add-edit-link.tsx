@@ -1,6 +1,5 @@
 import { mutateSuffix } from "@/lib/swr/mutate";
 import { Lock } from "@/ui/shared/icons";
-import { Link } from "@dub/prisma/client";
 import {
   Button,
   InfoTooltip,
@@ -12,11 +11,12 @@ import { cn, linkConstructor, TAB_ITEM_ANIMATION_SETTINGS } from "@dub/utils";
 import { motion } from "framer-motion";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
+import { ReferralsEmbedLink } from "./types";
 
 interface Props {
   destinationDomain: string;
   shortLinkDomain: string;
-  link?: Link | null;
+  link?: ReferralsEmbedLink | null;
   onCancel: () => void;
 }
 

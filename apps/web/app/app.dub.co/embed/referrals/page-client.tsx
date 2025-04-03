@@ -6,7 +6,7 @@ import { programResourcesSchema } from "@/lib/zod/schemas/program-resources";
 import { HeroBackground } from "@/ui/partners/hero-background";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import { ThreeDots } from "@/ui/shared/icons";
-import { Link, PayoutStatus, Program } from "@dub/prisma/client";
+import { PayoutStatus, Program } from "@dub/prisma/client";
 import {
   Button,
   Check,
@@ -31,6 +31,7 @@ import { ReferralsEmbedQuickstart } from "./quickstart";
 import { ReferralsEmbedResources } from "./resources";
 import { ThemeOptions } from "./theme-options";
 import { ReferralsReferralsEmbedToken } from "./token";
+import { ReferralsEmbedLink } from "./types";
 
 export function ReferralsEmbedPageClient({
   program,
@@ -42,7 +43,7 @@ export function ReferralsEmbedPageClient({
   themeOptions,
 }: {
   program: Program;
-  links: Link[];
+  links: ReferralsEmbedLink[];
   rewards: RewardProps[];
   discount?: DiscountProps | null;
   payouts: {

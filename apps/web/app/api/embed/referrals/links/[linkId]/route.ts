@@ -2,8 +2,8 @@ import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { processLink, updateLink } from "@/lib/api/links";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
-import { LinkSchema } from "@/lib/zod/schemas/links";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
+import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
 import { getApexDomain } from "@dub/utils";
 import { NextResponse } from "next/server";
 
@@ -86,12 +86,7 @@ export const PATCH = withReferralsEmbedToken(
       updatedLink: processedLink,
     });
 
-    const updatedLink = LinkSchema.pick({
-      id: true,
-      domain: true,
-      key: true,
-      url: true,
-    }).parse(partnerLink);
+    const updatedLink = ReferralsEmbedLinkSchema.parse(partnerLink);
 
     return NextResponse.json(updatedLink);
   },

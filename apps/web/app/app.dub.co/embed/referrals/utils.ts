@@ -2,8 +2,10 @@ import { referralsEmbedToken } from "@/lib/embed/referrals/token-class";
 import { determinePartnerDiscount } from "@/lib/partners/determine-partner-discount";
 import { determinePartnerRewards } from "@/lib/partners/determine-partner-rewards";
 import { RewardProps } from "@/lib/types";
+import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
 import { prisma } from "@dub/prisma";
 import { notFound } from "next/navigation";
+import { z } from "zod";
 
 export const getReferralsEmbedData = async (token: string) => {
   const { programId, partnerId } = (await referralsEmbedToken.get(token)) ?? {};
@@ -56,7 +58,7 @@ export const getReferralsEmbedData = async (token: string) => {
 
   return {
     program,
-    links,
+    links: z.array(ReferralsEmbedLinkSchema).parse(links),
     rewards: rewards as RewardProps[],
     discount,
     payouts: payouts.map((payout) => ({

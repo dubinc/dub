@@ -1,10 +1,10 @@
-import { Link } from "@dub/prisma/client";
 import { useState } from "react";
 import { ReferralsEmbedCreateUpdateLink } from "./add-edit-link";
 import { ReferralsEmbedLinksList } from "./links-list";
+import { ReferralsEmbedLink } from "./types";
 
 interface Props {
-  links: Link[];
+  links: ReferralsEmbedLink[];
   destinationDomain: string;
   shortLinkDomain: string;
 }
@@ -15,7 +15,7 @@ export default function ReferralsEmbedLinks({
   shortLinkDomain,
 }: Props) {
   const [createLink, setCreateLink] = useState(false);
-  const [link, setLink] = useState<Link | null>(null);
+  const [link, setLink] = useState<ReferralsEmbedLink | null>(null);
 
   return (
     <div className="flex flex-col space-y-6">

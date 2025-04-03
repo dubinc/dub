@@ -1,14 +1,14 @@
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { Link } from "@dub/prisma/client";
 import { Button, CopyButton, Table, Users, useTable } from "@dub/ui";
 import { Pen2, Plus2 } from "@dub/ui/icons";
 import { getPrettyUrl, TAB_ITEM_ANIMATION_SETTINGS } from "@dub/utils";
 import { motion } from "framer-motion";
+import { ReferralsEmbedLink } from "./types";
 
 interface Props {
-  links: Link[];
+  links: ReferralsEmbedLink[];
   onCreateLink: () => void;
-  onEditLink: (link: Link) => void;
+  onEditLink: (link: ReferralsEmbedLink) => void;
 }
 
 export function ReferralsEmbedLinksList({
