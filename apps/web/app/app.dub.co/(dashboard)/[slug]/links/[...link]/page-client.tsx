@@ -28,7 +28,7 @@ import { useMetatags } from "@/ui/links/link-builder/use-metatags";
 import { useKeyboardShortcut, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { notFound, useParams, useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFormContext, useFormState } from "react-hook-form";
 
 export function LinkPageClient() {
@@ -69,7 +69,7 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
 
   const { control, handleSubmit, reset, getValues } =
     useFormContext<LinkFormData>();
-  const { isSubmitSuccessful } = useFormState({ control });
+  const { isSubmitSuccessful, isDirty } = useFormState({ control });
 
   const draftControlsRef = useRef<DraftControlsHandle>(null);
 
@@ -92,94 +92,106 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
 
   useMetatags();
 
-  return (
-    <>
-      <EscapeShortcut />
-      <div className="flex min-h-[calc(100vh-8px)] flex-col rounded-t-[inherit] bg-white">
-        <div className="py-2 pl-4 pr-5">
-          <LinkBuilderHeader
-            className="p-0"
-            foldersEnabled={!!workspace.flags?.linkFolders}
-          >
-            <div className="flex min-w-0 items-center gap-2">
-              <DraftControls
-                ref={draftControlsRef}
-                props={link}
-                workspaceId={workspace.id!}
-              />
-              <div className="shrink-0">
-                <LinkAnalyticsBadge link={link} />
-              </div>
-            </div>
-          </LinkBuilderHeader>
-        </div>
-        <form
-          className={cn(
-            "grid grow grid-cols-1 lg:grid-cols-[minmax(0,1fr)_300px]",
-            "divide-neutral-200 border-t border-neutral-200 lg:divide-x lg:divide-y lg:divide-y-0",
-          )}
-          onSubmit={handleSubmit(onSubmit)}
-        >
-          <div className="relative flex min-h-full flex-col px-4 md:px-6">
-            <div className="relative mx-auto flex w-full max-w-xl flex-col gap-7 pb-4 pt-10 lg:pb-10">
-              <LinkBuilderDestinationUrlInput />
-
-              <LinkBuilderShortLinkInput />
-
-              <TagSelect />
-
-              <LinkCommentsInput />
-
-              <ConversionTrackingToggle />
-
-              {isDesktop && (
-                <LinkFeatureButtons className="mt-1 flex-wrap" variant="page" />
-              )}
-
-              <OptionsList />
-            </div>
-
-            {isDesktop && (
-              <>
-                <div className="grow" />
-                <LinkActionBar />
-              </>
-            )}
-          </div>
-          <div className="px-4 md:px-6 lg:bg-neutral-50 lg:px-0">
-            <div className="mx-auto max-w-xl divide-neutral-200 lg:divide-y">
-              <div className="py-4 lg:px-4 lg:py-6">
-                <QRCodePreview />
-              </div>
-              <div className="py-4 lg:px-4 lg:py-6">
-                <LinkPreview />
-              </div>
-            </div>
-          </div>
-          {!isDesktop && (
-            <LinkActionBar>
-              <LinkFeatureButtons variant="page" />
-            </LinkActionBar>
-          )}
-        </form>
-      </div>
-    </>
-  );
-}
-
-function EscapeShortcut() {
-  const router = useRouter();
-  const { slug } = useWorkspace();
-
-  const { control } = useFormContext<LinkFormData>();
-  const { isDirty } = useFormState({ control });
-
   // Go back to `/links` when ESC is pressed
-  useKeyboardShortcut("Escape", () => router.push(`/${slug}/links`), {
+  useKeyboardShortcut("Escape", () => router.push(`/${workspace.slug}/links`), {
     enabled: !isDirty,
   });
 
-  return null;
+  const [isChangingLink, setIsChangingLink] = useState(false);
+
+  return (
+    <div className="flex min-h-[calc(100vh-8px)] flex-col rounded-t-[inherit] bg-white">
+      <div className="py-2 pl-4 pr-5">
+        <LinkBuilderHeader
+          onSelectLink={(selectedLink) => {
+            if (selectedLink.id === link.id) return;
+
+            if (isDirty) {
+              if (
+                !confirm(
+                  "You have unsaved changes. Are you sure you want to continue?",
+                )
+              )
+                return;
+            }
+
+            setIsChangingLink(true);
+            router.push(
+              `/${workspace.slug}/links/${selectedLink.domain}/${selectedLink.key}`,
+            );
+          }}
+          className="p-0"
+          foldersEnabled={!!workspace.flags?.linkFolders}
+        >
+          <div
+            className={cn(
+              "flex min-w-0 items-center gap-2 transition-opacity",
+              isChangingLink && "opacity-50",
+            )}
+          >
+            <DraftControls
+              ref={draftControlsRef}
+              props={link}
+              workspaceId={workspace.id!}
+            />
+            <div className="shrink-0">
+              <LinkAnalyticsBadge link={link} />
+            </div>
+          </div>
+        </LinkBuilderHeader>
+      </div>
+      <form
+        className={cn(
+          "grid grow grid-cols-1 transition-opacity lg:grid-cols-[minmax(0,1fr)_300px]",
+          "divide-neutral-200 border-t border-neutral-200 lg:divide-x lg:divide-y lg:divide-y-0",
+          isChangingLink && "opacity-50",
+        )}
+        onSubmit={handleSubmit(onSubmit)}
+      >
+        <div className="relative flex min-h-full flex-col px-4 md:px-6">
+          <div className="relative mx-auto flex w-full max-w-xl flex-col gap-7 pb-4 pt-10 lg:pb-10">
+            <LinkBuilderDestinationUrlInput />
+
+            <LinkBuilderShortLinkInput />
+
+            <TagSelect />
+
+            <LinkCommentsInput />
+
+            <ConversionTrackingToggle />
+
+            {isDesktop && (
+              <LinkFeatureButtons className="mt-1 flex-wrap" variant="page" />
+            )}
+
+            <OptionsList />
+          </div>
+
+          {isDesktop && (
+            <>
+              <div className="grow" />
+              <LinkActionBar />
+            </>
+          )}
+        </div>
+        <div className="px-4 md:px-6 lg:bg-neutral-50 lg:px-0">
+          <div className="mx-auto max-w-xl divide-neutral-200 lg:divide-y">
+            <div className="py-4 lg:px-4 lg:py-6">
+              <QRCodePreview />
+            </div>
+            <div className="py-4 lg:px-4 lg:py-6">
+              <LinkPreview />
+            </div>
+          </div>
+        </div>
+        {!isDesktop && (
+          <LinkActionBar>
+            <LinkFeatureButtons variant="page" />
+          </LinkActionBar>
+        )}
+      </form>
+    </div>
+  );
 }
 
 function LoadingSkeleton() {
@@ -208,14 +220,7 @@ function LoadingSkeleton() {
           </div>
         </div>
         <div className="px-4 md:px-6 lg:bg-neutral-50 lg:px-0">
-          <div className="mx-auto max-w-xl divide-neutral-200 lg:divide-y">
-            {/* <div className="py-4 lg:px-4 lg:py-6">
-                <QRCodePreview />
-              </div>
-              <div className="py-4 lg:px-4 lg:py-6">
-                <LinkPreview />
-              </div> */}
-          </div>
+          <div className="mx-auto max-w-xl divide-neutral-200 lg:divide-y"></div>
         </div>
       </div>
     </div>
