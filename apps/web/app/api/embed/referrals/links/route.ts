@@ -15,6 +15,9 @@ export const GET = withReferralsEmbedToken(async ({ links }) => {
   return NextResponse.json(partnerLinks);
 });
 
+// TODO:
+// Under which workspace user the link should be created? 
+
 // POST /api/embed/referrals/links – create links for a partner
 export const POST = withReferralsEmbedToken(
   async ({ req, programEnrollment, program, links }) => {
@@ -51,9 +54,6 @@ export const POST = withReferralsEmbedToken(
       });
     }
 
-    // TODO:
-    // Under which workspace user the link should be created?
-
     const { link, error, code } = await processLink({
       payload: {
         key: key || undefined,
@@ -69,7 +69,7 @@ export const POST = withReferralsEmbedToken(
         id: program.workspaceId,
         plan: "business",
       },
-      userId: "cm1ypncqa0000tc44pfgxp6qs", //session.user.id,
+      //  userId: session.user.id,
       skipFolderChecks: true, // can't be changed by the partner
       skipProgramChecks: true, // can't be changed by the partner
       skipExternalIdChecks: true, // can't be changed by the partner
