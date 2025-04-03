@@ -6,6 +6,7 @@ import { GetQRInfoCardsSection } from "./components/get-qr-info-cards/get-qr-inf
 import { QrTabsDetailed } from "./components/qr-tabs-detailed/qr-tabs-detailed.tsx";
 import { QRTabs } from "./components/qr-tabs/qr-tabs.tsx";
 import { RatingInfoSection } from "./components/rating-info/rating-info-section.tsx";
+import { ReviewsSection } from "./components/reviews/reviews-section.tsx";
 
 export default function LandingPage() {
   return (
@@ -15,7 +16,7 @@ export default function LandingPage() {
       <RatingInfoSection />
       <QrTabsDetailed />
       <GetQRFeaturesCardsSection />
-      {/*<ReviewsSection />*/} {/* Temporarily hidden */}
+      <ReviewsSection />
       <FAQSection />
     </main>
   );

@@ -15,9 +15,7 @@ export const FeaturesCard: FC<IGetInfoCardProps> = ({
       <div className="[&_svg>path]:fill-primary [&_svg>g]:stroke-primary [&_svg]:h-8 [&_svg]:w-8">
         {img}
       </div>
-      <h3 className="text-neutral text-base font-semibold md:text-lg">
-        {title}
-      </h3>
+      <h3 className="text-neutral text-base font-semibold">{title}</h3>
       <p className="text-sm text-neutral-300">{content}</p>
     </div>
   );
