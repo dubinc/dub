@@ -14,7 +14,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export function PartnerSuspiciousActivities({
+export function PartnerActivitySummary({
   email = "panic@thedis.co",
   startDate = new Date("2024-11-01"),
   endDate = new Date("2024-11-30"),
@@ -42,7 +42,7 @@ export function PartnerSuspiciousActivities({
   program: {
     id: string;
     name: string;
-    logo: string;
+    logo: string | null;
   };
   activities: {
     partner: {
@@ -125,4 +125,4 @@ export function PartnerSuspiciousActivities({
   );
 }
 
-export default PartnerSuspiciousActivities;
+export default PartnerActivitySummary;

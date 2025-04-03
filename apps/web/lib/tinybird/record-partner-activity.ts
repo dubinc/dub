@@ -1,10 +1,11 @@
 import { z } from "zod";
 
-const partnerActivitySchema = z.object({
+export const partnerActivitySchema = z.object({
   program_id: z.string(),
   partner_id: z.string(),
   url: z.string(),
   activity: z.string(),
+  timestamp: z.string().optional(),
 });
 
 export async function recordPartnerActivity(
