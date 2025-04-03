@@ -1,3 +1,4 @@
+import { PARTNER_LINKS_LIMIT } from "@/lib/embed/constants";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { Button, CopyButton, Table, Users, useTable } from "@dub/ui";
 import { Pen2, Plus2 } from "@dub/ui/icons";
@@ -16,6 +17,8 @@ export function ReferralsEmbedLinksList({
   onCreateLink,
   onEditLink,
 }: Props) {
+  const linksLimitReached = links.length >= PARTNER_LINKS_LIMIT;
+
   const { table, ...tableProps } = useTable({
     data: links,
     columns: [
@@ -63,6 +66,8 @@ export function ReferralsEmbedLinksList({
             className="h-7 w-7 p-1.5"
             icon={<Plus2 className="text-white" />}
             onClick={onCreateLink}
+            disabled={linksLimitReached}
+            disabledTooltip={`You have reached the limit of ${PARTNER_LINKS_LIMIT} referral links.`}
           />
         ),
         minSize: 60,

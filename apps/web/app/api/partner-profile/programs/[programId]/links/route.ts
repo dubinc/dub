@@ -1,9 +1,9 @@
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, processLink } from "@/lib/api/links";
-import { PARTNER_LINKS_LIMIT } from "@/lib/api/partners/constants";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { PARTNER_LINKS_LIMIT } from "@/lib/embed/constants";
 import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { getApexDomain } from "@dub/utils";

@@ -1,7 +1,7 @@
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, processLink } from "@/lib/api/links";
-import { PARTNER_LINKS_LIMIT } from "@/lib/api/partners/constants";
 import { parseRequestBody } from "@/lib/api/utils";
+import { PARTNER_LINKS_LIMIT } from "@/lib/embed/constants";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";

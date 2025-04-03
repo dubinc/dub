@@ -9,3 +9,5 @@ export const REFERRALS_EMBED_PUBLIC_TOKEN_COOKIE_NAME =
 // Analytics embed token
 export const ANALYTICS_EMBED_PUBLIC_TOKEN_COOKIE_NAME =
   "dub_analytics_embed_token";
+
+export const PARTNER_LINKS_LIMIT = 5;
