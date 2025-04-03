@@ -82,6 +82,10 @@ export function ReferralsEmbedCreateUpdateLink({
         return;
       }
 
+      if (!link) {
+        copyToClipboard(result.shortLink);
+      }
+
       await mutateSuffix("api/embed/referrals/links");
       onCancel();
     } finally {
