@@ -1,7 +1,7 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
-import { Link, Program } from "@dub/prisma/client";
+import { Link, Program, ProgramEnrollment } from "@dub/prisma/client";
 import { getSearchParams } from "@dub/utils";
 import { AxiomRequest, withAxiom } from "next-axiom";
 import { cookies } from "next/headers";
@@ -14,8 +14,7 @@ interface WithReferralsEmbedTokenHandler {
     params,
     searchParams,
     program,
-    programId,
-    partnerId,
+    programEnrollment,
     links,
     embedToken,
   }: {
@@ -23,8 +22,7 @@ interface WithReferralsEmbedTokenHandler {
     params: Record<string, string>;
     searchParams: Record<string, string>;
     program: Program;
-    programId: string;
-    partnerId: string;
+    programEnrollment: ProgramEnrollment;
     links: Link[];
     embedToken: string;
   }): Promise<Response>;
@@ -85,7 +83,7 @@ export const withReferralsEmbedToken = (
           });
         }
 
-        const programEnrollment =
+        const { program, links, ...programEnrollment } =
           await prisma.programEnrollment.findUniqueOrThrow({
             where: {
               partnerId_programId: { partnerId, programId },
@@ -100,10 +98,9 @@ export const withReferralsEmbedToken = (
           req,
           params,
           searchParams,
-          program: programEnrollment.program,
-          programId,
-          partnerId: programEnrollment.partnerId,
-          links: programEnrollment.links,
+          program,
+          programEnrollment,
+          links,
           embedToken: tokenFromCookie,
         });
       } catch (error) {

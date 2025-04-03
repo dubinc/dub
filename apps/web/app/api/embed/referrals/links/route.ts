@@ -1,44 +1,26 @@
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, processLink } from "@/lib/api/links";
-import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
-import { withPartnerProfile } from "@/lib/auth/partner";
-import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
+import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
+import { LinkSchema } from "@/lib/zod/schemas/links";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { getApexDomain } from "@dub/utils";
 import { NextResponse } from "next/server";
 
+// TODO: Move this to a constant
 const PARTNER_LINKS_LIMIT = 5;
 
-// GET /api/partner-profile/programs/[programId]/links - get a partner's links in a program
-export const GET = withPartnerProfile(async ({ partner, params }) => {
-  const { links } = await getProgramEnrollmentOrThrow({
-    partnerId: partner.id,
-    programId: params.programId,
-  });
-
-  return NextResponse.json(
-    links.map((link) => PartnerProfileLinkSchema.parse(link)),
-  );
-});
-
-// POST /api/partner-profile/[programId]/links - create a link for a partner
-export const POST = withPartnerProfile(
-  async ({ partner, params, req, session }) => {
-    const { url, key, comments } = createPartnerLinkSchema
-      .pick({ url: true, key: true, comments: true })
+// POST /api/embed/referrals/links – create links for a partner
+export const POST = withReferralsEmbedToken(
+  async ({ req, programEnrollment, program, links }) => {
+    const { url, key } = createPartnerLinkSchema
+      .pick({ url: true, key: true })
       .parse(await parseRequestBody(req));
 
-    const { program, links, tenantId, status } =
-      await getProgramEnrollmentOrThrow({
-        partnerId: partner.id,
-        programId: params.programId,
-      });
-
-    if (status === "banned") {
+    if (programEnrollment.status === "banned") {
       throw new DubApiError({
         code: "forbidden",
-        message: "You are banned from this program.",
+        message: "You are banned from this program hence cannot create links.",
       });
     }
 
@@ -64,23 +46,25 @@ export const POST = withPartnerProfile(
       });
     }
 
+    // TODO:
+    // Under which workspace user the link should be created?
+
     const { link, error, code } = await processLink({
       payload: {
-        domain: program.domain,
         key: key || undefined,
         url: url || program.url,
+        domain: program.domain,
         programId: program.id,
-        tenantId,
-        partnerId: partner.id,
         folderId: program.defaultFolderId,
-        comments,
+        tenantId: programEnrollment.tenantId,
+        partnerId: programEnrollment.partnerId,
         trackConversion: true,
       },
       workspace: {
         id: program.workspaceId,
         plan: "business",
       },
-      userId: session.user.id, // TODO: Hm, this is the partner user, not the workspace user?
+      userId: "cm1ypncqa0000tc44pfgxp6qs", //session.user.id,
       skipFolderChecks: true, // can't be changed by the partner
       skipProgramChecks: true, // can't be changed by the partner
       skipExternalIdChecks: true, // can't be changed by the partner
@@ -93,7 +77,12 @@ export const POST = withPartnerProfile(
       });
     }
 
-    const partnerLink = await createLink(link);
+    const partnerLink = LinkSchema.pick({
+      id: true,
+      domain: true,
+      key: true,
+      url: true,
+    }).parse(await createLink(link));
 
     return NextResponse.json(partnerLink, { status: 201 });
   },
