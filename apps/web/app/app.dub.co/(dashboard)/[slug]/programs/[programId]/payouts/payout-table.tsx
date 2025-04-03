@@ -20,12 +20,18 @@ import {
   Popover,
   StatusBadge,
   Table,
+  Tooltip,
   usePagination,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
 import { CircleCheck, Dots, MoneyBill2, MoneyBills2 } from "@dub/ui/icons";
-import { cn, formatDateTime } from "@dub/utils";
+import {
+  cn,
+  DICEBEAR_AVATAR_URL,
+  formatDate,
+  formatDateTime,
+} from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
 import { fetcher } from "@dub/utils/src/functions/fetcher";
 import { Row } from "@tanstack/react-table";
@@ -137,15 +143,62 @@ const PayoutTableInner = memo(
           },
         },
         {
-          id: "paidAt",
           header: "Paid",
           cell: ({ row }) =>
-            row.original.paidAt
-              ? formatDateTime(row.original.paidAt, {
-                  month: "short",
-                  year: undefined,
-                })
-              : "-",
+            row.original.paidAt ? (
+              <Tooltip
+                content={
+                  <div className="flex flex-col gap-1 p-2.5">
+                    {row.original.user && (
+                      <div className="flex flex-col gap-2">
+                        <img
+                          src={
+                            row.original.user.image ||
+                            `${DICEBEAR_AVATAR_URL}${row.original.user.name}`
+                          }
+                          alt={row.original.user.name}
+                          className="size-6 shrink-0 rounded-full"
+                        />
+                        <p className="text-sm font-medium">
+                          {row.original.user.name}
+                        </p>
+                      </div>
+                    )}
+                    <div className="text-xs text-neutral-500">
+                      Paid at{" "}
+                      <span className="font-medium text-neutral-700">
+                        {formatDateTime(row.original.paidAt, {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                          hour: "numeric",
+                          minute: "numeric",
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                }
+              >
+                <div className="flex items-center gap-2">
+                  {row.original.user && (
+                    <img
+                      src={
+                        row.original.user.image ||
+                        `${DICEBEAR_AVATAR_URL}${row.original.user.name}`
+                      }
+                      alt={row.original.user.name}
+                      className="size-5 shrink-0 rounded-full"
+                    />
+                  )}
+                  {formatDate(row.original.paidAt, {
+                    month: "short",
+                    year: undefined,
+                  })}
+                </div>
+              </Tooltip>
+            ) : (
+              "-"
+            ),
         },
         {
           id: "amount",
