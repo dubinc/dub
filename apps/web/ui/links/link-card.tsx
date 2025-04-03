@@ -7,8 +7,8 @@ import {
   useMediaQuery,
 } from "@dub/ui";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { useContext, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useContext, useEffect, useMemo, useRef } from "react";
 import { FolderIcon } from "../folders/folder-icon";
 import { LinkDetailsColumn } from "./link-details-column";
 import { LinkTitleColumn } from "./link-title-column";
@@ -19,8 +19,8 @@ export function LinkCard({ link }: { link: ResponseLink }) {
   const { isMobile } = useMediaQuery();
   const ref = useRef<HTMLDivElement>(null);
 
-  const linkRef = useRef<HTMLAnchorElement>(null);
   const searchParams = useSearchParams();
+  const router = useRouter();
   const { slug, defaultFolderId } = useWorkspace();
 
   const entry = useIntersectionObserver(ref);
@@ -31,18 +31,20 @@ export function LinkCard({ link }: { link: ResponseLink }) {
     enabled: isInView,
   });
 
+  const editUrl = useMemo(
+    () => `/${slug}/links/${link.domain}/${link.key}`,
+    [slug, link.domain, link.key],
+  );
+
+  useEffect(() => {
+    if (isInView) router.prefetch(editUrl);
+  }, [isInView, editUrl]);
+
   return (
     <>
-      {!isMobile && (
-        <Link
-          ref={linkRef}
-          href={`/${slug}/links/${link.domain}/${link.key}`}
-          className="hidden"
-        />
-      )}
       <CardList.Card
         key={link.id}
-        onClick={() => linkRef.current?.click()}
+        onClick={isMobile ? () => router.push(editUrl) : undefined}
         innerClassName="flex items-center gap-5 sm:gap-8 md:gap-12 text-sm"
         {...(variant === "loose" &&
           link.folderId &&
