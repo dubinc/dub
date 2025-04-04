@@ -225,11 +225,6 @@ export default async function LinkMiddleware(
     }
   }
 
-  // if there's still no clickId, generate a new one
-  if (!clickId) {
-    clickId = nanoid(16);
-  }
-
   const cookieData = {
     name: cookieName,
     value: clickId,
