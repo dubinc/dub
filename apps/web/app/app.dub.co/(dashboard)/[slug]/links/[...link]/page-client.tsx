@@ -162,7 +162,7 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
       <form
         className={cn(
           "grid grow grid-cols-1 transition-opacity lg:grid-cols-[minmax(0,1fr)_300px]",
-          "divide-neutral-200 border-t border-neutral-200 lg:divide-x lg:divide-y",
+          "divide-neutral-200 border-t border-neutral-200 lg:divide-x lg:divide-y-0",
           isChangingLink && "opacity-50",
         )}
         onSubmit={handleSubmit(onSubmit)}
@@ -232,6 +232,8 @@ const Controls = memo(({ link }: { link: ExpandedLinkProps }) => {
           reset(getValues(), { keepValues: true, keepDirty: false });
         }}
         onDeleteSuccess={() => router.push(`/${slug}/links`)}
+        className="h-7 border border-neutral-200"
+        iconClassName="size-4"
       />
     </div>
   );
@@ -247,7 +249,7 @@ function LoadingSkeleton() {
       <div
         className={cn(
           "grid grow grid-cols-1 lg:grid-cols-[minmax(0,1fr)_300px]",
-          "divide-neutral-200 border-t border-neutral-200 lg:divide-x lg:divide-y lg:divide-y-0",
+          "divide-neutral-200 border-t border-neutral-200 lg:divide-x lg:divide-y-0",
         )}
       >
         <div className="relative flex min-h-full flex-col px-4 md:px-6">

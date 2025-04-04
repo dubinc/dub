@@ -52,6 +52,8 @@ export function LinkControls({
   options = Object.keys(OPTIONS),
   onMoveSuccess,
   onDeleteSuccess,
+  className,
+  iconClassName,
 }: {
   link: ExpandedLinkProps;
   openPopover: boolean;
@@ -60,6 +62,8 @@ export function LinkControls({
   options?: string[];
   onMoveSuccess?: (folderId: string | null) => void;
   onDeleteSuccess?: () => void;
+  className?: string;
+  iconClassName?: string;
 }) {
   const { flags } = useWorkspace();
   const router = useRouter();
@@ -380,8 +384,9 @@ export function LinkControls({
           className={cn(
             "h-8 px-1.5 outline-none transition-all duration-200",
             "border-transparent data-[state=open]:border-neutral-500 sm:group-hover/card:data-[state=closed]:border-neutral-200",
+            className,
           )}
-          icon={<ThreeDots className="h-5 w-5 shrink-0" />}
+          icon={<ThreeDots className={cn("size-5 shrink-0", iconClassName)} />}
           onClick={() => {
             setOpenPopover(!openPopover);
           }}
