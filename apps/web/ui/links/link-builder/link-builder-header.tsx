@@ -31,9 +31,9 @@ export function LinkBuilderHeader({
   const { control, setValue } = useFormContext<LinkFormData>();
   const { props } = useLinkBuilderContext();
 
-  const [url, key, domain] = useWatch({
+  const [url, key, domain, folderId] = useWatch({
     control,
-    name: ["url", "key", "domain"],
+    name: ["url", "key", "domain", "folderId"],
   });
 
   const [debouncedUrl] = useDebounce(getUrlWithoutUTMParams(url), 500);
@@ -65,9 +65,7 @@ export function LinkBuilderHeader({
             }}
             buttonClassName="max-w-60 md:max-w-[24rem]"
             buttonTextClassName="text-sm md:text-sm font-medium"
-            {...(props?.folderId && {
-              selectedFolderId: props.folderId,
-            })}
+            selectedFolderId={folderId ?? undefined}
           />
 
           <ChevronRight className="hidden size-4 shrink-0 text-neutral-500 md:block" />
