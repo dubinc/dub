@@ -232,7 +232,9 @@ export default async function LinkMiddleware(
 
   const cookieStore = cookies();
   let clickId = cookieStore.get("dub_id")?.value;
-  if (!clickId && !isPartnerLink) {
+
+  // TODO: once the migration to new format is done (?via=key), add !isPartnerLink
+  if (!clickId) {
     // if trackConversion is enabled, check if clickId is cached in Redis
     if (trackConversion) {
       const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
@@ -280,9 +282,9 @@ export default async function LinkMiddleware(
 
   // we only pass the clickId if:
   // - trackConversion is enabled
-  // - not a partner link
+  // - not a partner link (TODO: add this later) !isPartnerLink 
   // - there is a clickId
-  const shouldPassClickId = trackConversion && !isPartnerLink && clickId;
+  const shouldPassClickId = trackConversion && clickId;
 
   // rewrite to proxy page (/proxy/[domain]/[key]) if it's a bot and proxy is enabled
   if (isBot && proxy) {
