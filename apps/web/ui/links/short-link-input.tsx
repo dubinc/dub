@@ -13,7 +13,6 @@ import {
   Magic,
   Tooltip,
   Twitter,
-  useKeyboardShortcut,
 } from "@dub/ui";
 import { ArrowTurnRight2 } from "@dub/ui/icons";
 import {
@@ -43,6 +42,7 @@ import { useDebounce } from "use-debounce";
 import { FreeDotLinkBanner } from "../domains/free-dot-link-banner";
 import { AlertCircleFill } from "../shared/icons";
 import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
+import { useLinkBuilderKeyboardShortcut } from "./link-builder/use-link-builder-keyboard-shortcut";
 import { useAvailableDomains } from "./use-available-domains";
 
 type ShortLinkInputProps = {
@@ -475,7 +475,7 @@ function DomainCombobox({
 
   const [isOpen, setIsOpen] = useState(false);
 
-  useKeyboardShortcut("d", () => setIsOpen(true), { modal: true });
+  useLinkBuilderKeyboardShortcut("d", () => setIsOpen(true));
 
   const options = useMemo(
     () =>

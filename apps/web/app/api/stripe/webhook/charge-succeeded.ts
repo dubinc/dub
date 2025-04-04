@@ -22,6 +22,11 @@ export async function chargeSucceeded(event: Stripe.Event) {
     },
     include: {
       payouts: {
+        where: {
+          status: {
+            not: "completed",
+          },
+        },
         include: {
           program: true,
           partner: true,
@@ -32,6 +37,16 @@ export async function chargeSucceeded(event: Stripe.Event) {
 
   if (!invoice) {
     console.log(`Invoice with transfer group ${transfer_group} not found.`);
+    return;
+  }
+
+  if (invoice.status === "completed") {
+    console.log("Invoice already completed, skipping...");
+    return;
+  }
+
+  if (invoice.payouts.length === 0) {
+    console.log("No payouts found with status not completed, skipping...");
     return;
   }
 

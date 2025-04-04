@@ -1,3 +1,5 @@
+import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
+import { useLinkBuilderKeyboardShortcut } from "@/ui/links/link-builder/use-link-builder-keyboard-shortcut";
 import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
 import {
   Button,
@@ -5,7 +7,6 @@ import {
   Modal,
   SimpleTooltipContent,
   Tooltip,
-  useKeyboardShortcut,
   UTM_PARAMETERS,
 } from "@dub/ui";
 import { Crosshairs3, Trash } from "@dub/ui/icons";
@@ -27,7 +28,6 @@ import {
   useState,
 } from "react";
 import { useForm, useFormContext } from "react-hook-form";
-import { LinkFormData } from ".";
 
 function TargetingModal({
   showTargetingModal,
@@ -435,9 +435,7 @@ function TargetingButton({
   const { watch } = useFormContext<LinkFormData>();
   const [ios, android, geo] = watch(["ios", "android", "geo"]);
 
-  useKeyboardShortcut("g", () => setShowTargetingModal(true), {
-    modal: true,
-  });
+  useLinkBuilderKeyboardShortcut("g", () => setShowTargetingModal(true));
 
   const geoEnabled = Object.keys(geo || {}).length > 0;
   const enabled = Boolean(ios || android || geoEnabled);
@@ -454,7 +452,7 @@ function TargetingButton({
       icon={
         <Crosshairs3 className={cn("size-4", enabled && "text-blue-500")} />
       }
-      className="h-9 w-fit px-2.5 font-medium text-neutral-700"
+      className="h-8 w-fit gap-1.5 px-2.5 text-xs font-medium text-neutral-700"
       onClick={() => setShowTargetingModal(true)}
     />
   );

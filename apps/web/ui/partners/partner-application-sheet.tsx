@@ -181,10 +181,8 @@ function PartnerApproval({
   }, [selectedLinkId]);
 
   const { executeAsync, isPending } = useAction(approvePartnerAction, {
-    onSuccess() {
-      mutatePrefix(
-        `/api/partners?workspaceId=${workspaceId}&programId=${program!.id}`,
-      );
+    onSuccess: async () => {
+      await mutatePrefix("/api/partners");
 
       toast.success("Approved the partner successfully.");
       setIsOpen(false);

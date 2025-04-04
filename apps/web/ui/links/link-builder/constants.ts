@@ -1,4 +1,8 @@
 import { ExpandedLinkProps } from "@/lib/types";
+import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
+import { getExpirationLabel } from "@/ui/modals/link-builder/expiration-modal";
+import { getPasswordLabel } from "@/ui/modals/link-builder/password-modal";
+import { getTargetingLabel } from "@/ui/modals/link-builder/targeting-modal";
 import {
   CircleHalfDottedClock,
   Crosshairs3,
@@ -7,10 +11,6 @@ import {
   WindowSearch,
 } from "@dub/ui/icons";
 import { UseFormSetValue } from "react-hook-form";
-import { LinkFormData } from ".";
-import { getExpirationLabel } from "./expiration-modal";
-import { getPasswordLabel } from "./password-modal";
-import { getTargetingLabel } from "./targeting-modal";
 
 export const TOGGLES = [
   {

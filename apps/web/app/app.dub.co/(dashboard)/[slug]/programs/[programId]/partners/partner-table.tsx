@@ -371,9 +371,7 @@ function RowMenuButton({
     deleteProgramInviteAction,
     {
       onSuccess: async () => {
-        mutatePrefix(
-          `/api/partners?workspaceId=${workspaceId}&programId=${programId}`,
-        );
+        await mutatePrefix("/api/partners");
 
         toast.success("Deleted the partner invite.");
         setIsOpen(false);
