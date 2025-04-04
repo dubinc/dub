@@ -1,6 +1,7 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
-import { useCopyToClipboard, useRouterStuff } from "@dub/ui";
+import { useCopyToClipboard } from "@dub/ui";
+import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import { useCallback } from "react";
 import { useFormContext } from "react-hook-form";
@@ -13,7 +14,7 @@ export function useLinkBuilderSubmit({
 }: {
   onSuccess?: (data: LinkFormData) => void;
 } = {}) {
-  const { queryParams } = useRouterStuff();
+  const router = useRouter();
   const { workspace, props } = useLinkBuilderContext();
   const { getValues, setError } = useFormContext<LinkFormData>();
 
@@ -60,6 +61,15 @@ export function useLinkBuilderSubmit({
         if (res.status === 200) {
           const data = await res.json();
           onSuccess?.(data);
+
+          // for editing links, if domain / key is changed, push to new url
+          console.log({ props, data });
+          if (
+            props &&
+            (props.domain !== data.domain || props.key !== data.key)
+          ) {
+            router.push(`/${workspace.slug}/links/${data.domain}/${data.key}`);
+          }
 
           await mutatePrefix([
             "/api/links",

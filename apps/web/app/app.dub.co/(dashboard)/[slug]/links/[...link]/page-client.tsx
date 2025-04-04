@@ -50,10 +50,16 @@ export function LinkPageClient() {
     },
     {
       keepPreviousData: true,
-      onError: (error) => {
+      // doing onErrorRetry to avoid race condiition for when a link's domain / key is updated
+      onErrorRetry: (error, _key, _config, revalidate, { retryCount }) => {
         if (error.status === 401 || error.status === 404) {
-          router.push(`/${workspace.slug}/links`);
+          if (retryCount >= 3) {
+            router.push(`/${workspace.slug}/links`);
+            return;
+          }
         }
+        // Default retry behavior for other errors
+        setTimeout(() => revalidate({ retryCount }), 5000);
       },
     },
   );
