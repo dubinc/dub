@@ -1,4 +1,5 @@
 import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
+import { useLinkBuilderKeyboardShortcut } from "@/ui/links/link-builder/use-link-builder-keyboard-shortcut";
 import {
   Button,
   InfoTooltip,
@@ -49,6 +50,8 @@ function AdvancedModal({
 
   const parentEnabled = Boolean(externalIdParent || tenantIdParent);
 
+  useLinkBuilderKeyboardShortcut("v", () => setShowAdvancedModal(true));
+
   return (
     <Modal
       showModal={showAdvancedModal}
@@ -72,6 +75,22 @@ function AdvancedModal({
       >
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-medium">Advanced Options</h3>
+          <div className="max-md:hidden">
+            <Tooltip
+              content={
+                <div className="px-2 py-1 text-xs text-neutral-700">
+                  Press{" "}
+                  <strong className="font-medium text-neutral-950">V</strong> to
+                  open this quickly
+                </div>
+              }
+              side="right"
+            >
+              <kbd className="flex size-6 cursor-default items-center justify-center gap-1 rounded-md border border-neutral-200 font-sans text-xs text-neutral-950">
+                V
+              </kbd>
+            </Tooltip>
+          </div>
         </div>
 
         <div className="mt-6 flex flex-col gap-6">
