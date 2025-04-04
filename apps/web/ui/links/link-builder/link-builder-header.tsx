@@ -154,7 +154,6 @@ function LinkSelector({
   return (
     <Combobox
       caret
-      matchTriggerWidth
       side="top" // Since this control is near the bottom of the page, prefer top to avoid jumping
       options={options}
       selected={selectedOption}
