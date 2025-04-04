@@ -31,13 +31,15 @@ export function LinkFeatureButtons({
 
       <div className={cn("flex min-w-0 items-center gap-2", className)}>
         <UTMButton />
+        <div className="contents max-[380px]:hidden">
+          <TargetingButton />
+        </div>
         <div
           className={cn(
-            "flex items-center gap-2 max-sm:hidden",
+            "contents max-sm:hidden",
             variant === "page" && "max-[960px]:hidden",
           )}
         >
-          <TargetingButton />
           {flags?.abTesting && <ABTestingButton />}
           <PasswordButton />
           <ExpirationButton />
