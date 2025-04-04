@@ -5,19 +5,13 @@ import { useExpirationModal } from "@/ui/modals/link-builder/expiration-modal";
 import { usePasswordModal } from "@/ui/modals/link-builder/password-modal";
 import { useTargetingModal } from "@/ui/modals/link-builder/targeting-modal";
 import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
-import {
-  Button,
-  Popover,
-  SimpleTooltipContent,
-  useKeyboardShortcut,
-  useMediaQuery,
-} from "@dub/ui";
+import { Button, Popover, SimpleTooltipContent, useMediaQuery } from "@dub/ui";
 import { Dots } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Settings } from "lucide-react";
-import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
+import { useLinkBuilderKeyboardShortcut } from "./use-link-builder-keyboard-shortcut";
 
 export function MoreDropdown() {
   const { isMobile } = useMediaQuery();
@@ -31,9 +25,7 @@ export function MoreDropdown() {
     return [...(isMobile ? MOBILE_MORE_ITEMS : []), ...TOGGLES];
   }, [data, isMobile]);
 
-  const { link } = useParams() as { link: string | string[] };
-
-  useKeyboardShortcut(
+  useLinkBuilderKeyboardShortcut(
     options.map(({ shortcutKey }) => shortcutKey),
     (e) => {
       const option = options.find(({ shortcutKey }) => shortcutKey === e.key);
@@ -42,7 +34,6 @@ export function MoreDropdown() {
       setOpenPopover(false);
       setValue(option.key as any, !data[option.key], { shouldDirty: true });
     },
-    { modal: link ? false : true },
   );
 
   const { PasswordModal, setShowPasswordModal } = usePasswordModal();

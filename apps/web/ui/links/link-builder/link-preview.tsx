@@ -13,7 +13,6 @@ import {
   SimpleTooltipContent,
   Switch,
   TooltipContent,
-  useKeyboardShortcut,
   useMediaQuery,
 } from "@dub/ui";
 import {
@@ -27,7 +26,6 @@ import {
   Twitter,
 } from "@dub/ui/icons";
 import { cn, getDomainWithoutWWW, resizeImage } from "@dub/utils";
-import { useParams } from "next/navigation";
 import {
   ChangeEvent,
   ComponentType,
@@ -42,6 +40,7 @@ import { useFormContext, useWatch } from "react-hook-form";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { useDebounce } from "use-debounce";
+import { useLinkBuilderKeyboardShortcut } from "./use-link-builder-keyboard-shortcut";
 
 const tabs = ["default", "x", "linkedin", "facebook"] as const;
 type Tab = (typeof tabs)[number];
@@ -90,11 +89,7 @@ export const LinkPreview = memo(() => {
 
   const { OGModal, setShowOGModal } = useOGModal();
 
-  const { link } = useParams() as { link: string | string[] };
-
-  useKeyboardShortcut("l", () => setShowOGModal(true), {
-    modal: link ? false : true,
-  });
+  useLinkBuilderKeyboardShortcut("l", () => setShowOGModal(true));
 
   const [selectedTab, setSelectedTab] = useState<Tab>("default");
 

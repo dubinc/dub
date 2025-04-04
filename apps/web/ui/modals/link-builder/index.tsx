@@ -330,6 +330,7 @@ export function useLinkBuilder({
         duplicateProps={duplicateProps}
         homepageDemo={homepageDemo}
         workspace={workspace}
+        modal={true}
       />
     );
   }, [showLinkBuilder]);
