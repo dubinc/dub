@@ -146,7 +146,12 @@ function ProfileForm({ partner }: { partner: PartnerProps }) {
     <form
       ref={formRef}
       onSubmit={handleSubmit(async (data) => {
-        await executeAsync(data);
+        const imageChanged = data.image !== partner.image;
+
+        await executeAsync({
+          ...data,
+          image: imageChanged ? data.image : null,
+        });
       })}
     >
       <div className="px-5">

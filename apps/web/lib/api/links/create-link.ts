@@ -1,4 +1,5 @@
 import { qstash } from "@/lib/cron";
+import { getPartnerAndDiscount } from "@/lib/planetscale/get-partner-discount";
 import { isStored, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { ProcessedLinkProps } from "@/lib/types";
@@ -129,7 +130,15 @@ export async function createLink(link: ProcessedLinkProps) {
   waitUntil(
     Promise.allSettled([
       // cache link in Redis
-      linkCache.set(response),
+      linkCache.set({
+        ...response,
+        ...(response.programId &&
+          (await getPartnerAndDiscount({
+            programId: response.programId,
+            partnerId: response.partnerId,
+          }))),
+      }),
+
       // record link in Tinybird
       recordLink(response),
       // Upload image to R2 and update the link with the uploaded image URL when

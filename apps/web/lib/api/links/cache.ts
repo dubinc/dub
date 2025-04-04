@@ -8,7 +8,7 @@ import { ExpandedLink } from "./utils/transform-link";
  * Caveat: we don't set expiration for links with webhooks since it's expensive
  * to fetch and set on-demand inside link middleware.
  */
-const CACHE_EXPIRATION = 60 * 60 * 24;
+export const CACHE_EXPIRATION = 60 * 60 * 24;
 
 class LinkCache {
   async mset(links: ExpandedLink[]) {
