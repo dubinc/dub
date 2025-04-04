@@ -7,7 +7,7 @@ import { NextResponse } from "next/server";
 
 // GET /api/embed/referrals/earnings – get commissions for a partner from an embed token
 export const GET = withReferralsEmbedToken(
-  async ({ programId, partnerId, searchParams }) => {
+  async ({ programEnrollment, searchParams }) => {
     const { page } = z
       .object({ page: z.coerce.number().optional().default(1) })
       .parse(searchParams);
@@ -17,8 +17,8 @@ export const GET = withReferralsEmbedToken(
         earnings: {
           gt: 0,
         },
-        programId,
-        partnerId,
+        programId: programEnrollment.programId,
+        partnerId: programEnrollment.partnerId,
       },
       select: {
         id: true,
