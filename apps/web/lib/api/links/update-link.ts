@@ -13,6 +13,7 @@ import {
 } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { createId } from "../create-id";
+import { DubApiError } from "../errors";
 import { combineTagIds } from "../tags/combine-tag-ids";
 import { linkCache } from "./cache";
 import { encodeKeyIfCaseSensitive } from "./case-sensitivity";
@@ -68,89 +69,107 @@ export async function updateLink({
     key: updatedLink.key,
   });
 
-  const response = await prisma.link.update({
-    where: {
-      id,
-    },
-    data: {
-      ...rest,
-      key,
-      shortLink: linkConstructorSimple({
-        domain: updatedLink.domain,
-        key,
-      }),
-      title: truncate(title, 120),
-      description: truncate(description, 240),
-      image:
-        proxy && image && !isStored(image)
-          ? `${R2_URL}/images/${id}_${imageUrlNonce}`
-          : image,
-      utm_source: utm_source || null,
-      utm_medium: utm_medium || null,
-      utm_campaign: utm_campaign || null,
-      utm_term: utm_term || null,
-      utm_content: utm_content || null,
-      expiresAt: expiresAt ? new Date(expiresAt) : null,
-      geo: geo || Prisma.JsonNull,
+  let response;
 
-      // Associate tags by tagNames
-      ...(tagNames &&
-        updatedLink.projectId && {
-          tags: {
-            deleteMany: {},
-            create: tagNames.map((tagName, idx) => ({
-              tag: {
-                connect: {
-                  name_projectId: {
-                    name: tagName,
-                    projectId: updatedLink.projectId as string,
+  try {
+    response = await prisma.link.update({
+      where: {
+        id,
+      },
+      data: {
+        ...rest,
+        key,
+        shortLink: linkConstructorSimple({
+          domain: updatedLink.domain,
+          key,
+        }),
+        title: truncate(title, 120),
+        description: truncate(description, 240),
+        image:
+          proxy && image && !isStored(image)
+            ? `${R2_URL}/images/${id}_${imageUrlNonce}`
+            : image,
+        utm_source: utm_source || null,
+        utm_medium: utm_medium || null,
+        utm_campaign: utm_campaign || null,
+        utm_term: utm_term || null,
+        utm_content: utm_content || null,
+        expiresAt: expiresAt ? new Date(expiresAt) : null,
+        geo: geo || Prisma.JsonNull,
+
+        // Associate tags by tagNames
+        ...(tagNames &&
+          updatedLink.projectId && {
+            tags: {
+              deleteMany: {},
+              create: tagNames.map((tagName, idx) => ({
+                tag: {
+                  connect: {
+                    name_projectId: {
+                      name: tagName,
+                      projectId: updatedLink.projectId as string,
+                    },
                   },
                 },
-              },
+                createdAt: new Date(new Date().getTime() + idx * 100), // increment by 100ms for correct order
+              })),
+            },
+          }),
+
+        // Associate tags by IDs (takes priority over tagNames)
+        ...(combinedTagIds && {
+          tags: {
+            deleteMany: {},
+            create: combinedTagIds.map((tagId, idx) => ({
+              tagId,
               createdAt: new Date(new Date().getTime() + idx * 100), // increment by 100ms for correct order
             })),
           },
         }),
 
-      // Associate tags by IDs (takes priority over tagNames)
-      ...(combinedTagIds && {
-        tags: {
-          deleteMany: {},
-          create: combinedTagIds.map((tagId, idx) => ({
-            tagId,
-            createdAt: new Date(new Date().getTime() + idx * 100), // increment by 100ms for correct order
-          })),
-        },
-      }),
-
-      // Webhooks
-      ...(webhookIds && {
-        webhooks: {
-          deleteMany: {},
-          createMany: {
-            data: webhookIds.map((webhookId) => ({
-              webhookId,
-            })),
+        // Webhooks
+        ...(webhookIds && {
+          webhooks: {
+            deleteMany: {},
+            createMany: {
+              data: webhookIds.map((webhookId) => ({
+                webhookId,
+              })),
+            },
           },
-        },
-      }),
+        }),
 
-      // Shared dashboard
-      ...(publicStats && {
-        dashboard: {
-          create: {
-            id: createId({ prefix: "dash_" }),
-            projectId: updatedLink.projectId,
-            userId: updatedLink.userId,
+        // Shared dashboard
+        ...(publicStats && {
+          dashboard: {
+            create: {
+              id: createId({ prefix: "dash_" }),
+              projectId: updatedLink.projectId,
+              userId: updatedLink.userId,
+            },
           },
-        },
-      }),
-    },
-    include: {
-      ...includeTags,
-      webhooks: webhookIds ? true : false,
-    },
-  });
+        }),
+      },
+      include: {
+        ...includeTags,
+        webhooks: webhookIds ? true : false,
+      },
+    });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2002") {
+        throw new DubApiError({
+          code: "conflict",
+          message: "Duplicate key: This short link already exists.",
+        });
+      }
+    }
+
+    throw new DubApiError({
+      code: "unprocessable_entity",
+      message: error.message,
+    });
+  }
 
   waitUntil(
     Promise.allSettled([
