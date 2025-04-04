@@ -56,11 +56,11 @@ export const determinePartnerReward = async ({
     (reward) => reward._count.partners === 0,
   );
 
-  const partnerReward = partnerSpecificReward || programWideReward;
+  const reward = partnerSpecificReward || programWideReward;
 
-  if (!partnerReward || partnerReward.amount === 0) {
+  if (!reward || reward.amount === 0) {
     return null;
   }
 
-  return RewardSchema.parse(partnerReward);
+  return RewardSchema.parse(reward);
 };

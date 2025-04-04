@@ -1,8 +1,7 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
-import { createId } from "@/lib/api/create-id";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
-import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
+import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
@@ -171,36 +170,27 @@ export async function invoicePaid(event: Stripe.Event) {
       }
 
       if (eligibleForCommission) {
-        const earnings = calculateSaleEarnings({
-          reward,
-          sale: {
-            quantity: 1,
-            amount: saleData.amount,
-          },
+        const commission = await createPartnerCommission({
+          event: "sale",
+          programId: link.programId,
+          partnerId: link.partnerId,
+          linkId: link.id,
+          eventId,
+          customerId: customer.id,
+          amount: saleData.amount,
+          quantity: 1,
+          invoiceId,
+          currency: saleData.currency,
         });
 
-        const commission = await prisma.commission.create({
-          data: {
-            id: createId({ prefix: "cm_" }),
-            programId: link.programId,
-            linkId: link.id,
-            partnerId: link.partnerId,
-            eventId,
-            customerId: customer.id,
-            quantity: 1,
-            type: "sale",
-            amount: saleData.amount,
-            earnings,
-            invoiceId,
-          },
-        });
-
-        waitUntil(
-          notifyPartnerSale({
-            link,
-            commission,
-          }),
-        );
+        if (commission) {
+          waitUntil(
+            notifyPartnerSale({
+              link,
+              commission,
+            }),
+          );
+        }
       }
     }
   }
