@@ -60,7 +60,6 @@ export async function POST(req: Request) {
             ],
           },
           select: {
-            id: true,
             domain: true,
             key: true,
           },
@@ -128,7 +127,6 @@ export async function POST(req: Request) {
             ],
           },
           select: {
-            id: true,
             domain: true,
             key: true,
           },

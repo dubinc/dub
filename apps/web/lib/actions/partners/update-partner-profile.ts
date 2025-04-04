@@ -1,9 +1,16 @@
 "use server";
 
+import { qstash } from "@/lib/cron";
 import { storage } from "@/lib/storage";
 import { prisma } from "@dub/prisma";
-import { COUNTRIES, nanoid } from "@dub/utils";
+import {
+  APP_DOMAIN_WITH_NGROK,
+  COUNTRIES,
+  deepEqual,
+  nanoid,
+} from "@dub/utils";
 import { PartnerProfileType } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { stripe } from "../../stripe";
 import z from "../../zod";
 import { authPartnerActionClient } from "../safe-action";
@@ -96,17 +103,43 @@ export const updatePartnerProfileAction = authPartnerActionClient
         ).url
       : null;
 
-    await prisma.partner.update({
+    const updatedPartner = await prisma.partner.update({
       where: {
         id: partner.id,
       },
       data: {
         name,
         description,
-        image: imageUrl,
+        ...(imageUrl && { image: imageUrl }),
         country,
         profileType,
         companyName,
       },
     });
+
+    waitUntil(
+      (async () => {
+        const shouldExpireCache = !deepEqual(
+          {
+            name: partner.name,
+            image: partner.image,
+          },
+          {
+            name: updatedPartner.name,
+            image: updatedPartner.image,
+          },
+        );
+
+        if (!shouldExpireCache) {
+          return;
+        }
+
+        qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-partners`,
+          body: {
+            partnerId: partner.id,
+          },
+        });
+      })(),
+    );
   });
