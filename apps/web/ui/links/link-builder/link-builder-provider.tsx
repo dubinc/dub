@@ -22,6 +22,7 @@ export type LinkBuilderProps = {
     nextPlan?: (typeof PLANS)[number];
     conversionEnabled?: boolean;
   };
+  modal: boolean;
 };
 
 const LinkBuilderContext = createContext<

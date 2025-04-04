@@ -7,12 +7,14 @@ interface MoveLinkToFolderModalProps {
   links: ExpandedLinkProps[];
   showModal: boolean;
   setShowModal: (showModal: boolean) => void;
+  onSuccess?: (folderId: string | null) => void;
 }
 
 const MoveLinkToFolderModal = ({
   links,
   showModal,
   setShowModal,
+  onSuccess,
 }: MoveLinkToFolderModalProps) => {
   return (
     <Modal
@@ -22,7 +24,10 @@ const MoveLinkToFolderModal = ({
     >
       <MoveLinkForm
         links={links}
-        onSuccess={() => setShowModal(false)}
+        onSuccess={(folderId) => {
+          setShowModal(false);
+          onSuccess?.(folderId);
+        }}
         onCancel={() => setShowModal(false)}
       />
     </Modal>
@@ -30,13 +35,14 @@ const MoveLinkToFolderModal = ({
 };
 
 export function useMoveLinkToFolderModal(
-  props:
+  props: { onSuccess?: (folderId: string | null) => void } & (
     | {
         link: ExpandedLinkProps;
       }
     | {
         links: ExpandedLinkProps[];
-      },
+      }
+  ),
 ) {
   const [showMoveLinkToFolderModal, setShowMoveLinkToFolderModal] =
     useState(false);
@@ -47,6 +53,7 @@ export function useMoveLinkToFolderModal(
         links={"link" in props ? [props.link] : props.links}
         showModal={showMoveLinkToFolderModal}
         setShowModal={setShowMoveLinkToFolderModal}
+        onSuccess={props.onSuccess}
       />
     );
   }, [showMoveLinkToFolderModal, setShowMoveLinkToFolderModal]);

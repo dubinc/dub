@@ -6,11 +6,10 @@ import {
   SimpleTooltipContent,
   Switch,
   TooltipContent,
-  useKeyboardShortcut,
 } from "@dub/ui";
-import { useParams } from "next/navigation";
 import { memo } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
+import { useLinkBuilderKeyboardShortcut } from "./use-link-builder-keyboard-shortcut";
 
 // Show new badge for 30 days
 const isNew =
@@ -24,12 +23,10 @@ export const ConversionTrackingToggle = memo(() => {
 
   const trackConversion = useWatch({ control, name: "trackConversion" });
 
-  const { link } = useParams() as { link: string | string[] };
-
-  useKeyboardShortcut(
+  useLinkBuilderKeyboardShortcut(
     "c",
     () => setValue("trackConversion", !trackConversion, { shouldDirty: true }),
-    { modal: link ? false : true, enabled: conversionsEnabled },
+    { enabled: conversionsEnabled },
   );
 
   return (

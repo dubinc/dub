@@ -1,4 +1,5 @@
 import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
+import { useLinkBuilderKeyboardShortcut } from "@/ui/links/link-builder/use-link-builder-keyboard-shortcut";
 import {
   Button,
   DiamondTurnRight,
@@ -6,7 +7,6 @@ import {
   Modal,
   SimpleTooltipContent,
   Tooltip,
-  useKeyboardShortcut,
   UTM_PARAMETERS,
   UTMBuilder,
 } from "@dub/ui";
@@ -16,7 +16,6 @@ import {
   getParamsFromURL,
   isValidUrl,
 } from "@dub/utils";
-import { useParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -290,11 +289,7 @@ function UTMButton({
     [url],
   );
 
-  const { link } = useParams() as { link: string | string[] };
-
-  useKeyboardShortcut("u", () => setShowUTMModal(true), {
-    modal: link ? false : true,
-  });
+  useLinkBuilderKeyboardShortcut("u", () => setShowUTMModal(true));
 
   return (
     <Button
