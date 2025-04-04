@@ -1,22 +1,25 @@
+import {
+  MOBILE_MORE_ITEMS,
+  MORE_ITEMS,
+} from "@/ui/links/link-builder/constants";
+import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
 import { AlertCircleFill, CheckCircleFill, X } from "@/ui/shared/icons";
 import { SimpleTooltipContent, Tooltip, useMediaQuery } from "@dub/ui";
 import { LoadingSpinner } from "@dub/ui/icons";
 import { fetcher, isValidUrl as isValidUrlFn } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { ReactNode, useMemo } from "react";
-import { useFormContext } from "react-hook-form";
+import { useFormContext, useWatch } from "react-hook-form";
 import useSWR from "swr";
 import { useDebounce } from "use-debounce";
-import { LinkFormData } from ".";
-import { MOBILE_MORE_ITEMS, MORE_ITEMS } from "./constants";
 
 const TOGGLES = MORE_ITEMS.filter(({ type }) => type === "boolean");
 
 export function OptionsList() {
   const { isMobile } = useMediaQuery();
 
-  const { watch, setValue } = useFormContext<LinkFormData>();
-  const data = watch();
+  const { control, setValue } = useFormContext<LinkFormData>();
+  const data = useWatch({ control });
 
   const enabledToggles = useMemo(
     () => TOGGLES.filter(({ key }) => data[key]),
@@ -27,9 +30,11 @@ export function OptionsList() {
     () => [
       ...enabledToggles,
       ...(isMobile
-        ? MOBILE_MORE_ITEMS.filter(({ enabled }) => enabled?.(data)).map(
+        ? // @ts-ignore - useWatch returns a deep partial, should be fixed in a future react-hook-form release
+          MOBILE_MORE_ITEMS.filter(({ enabled }) => enabled?.(data)).map(
             (item) => ({
               ...item,
+              // @ts-ignore - useWatch returns a deep partial, should be fixed in a future react-hook-form release
               label: item.badgeLabel?.(data) || item.label,
             }),
           )
@@ -56,6 +61,7 @@ export function OptionsList() {
                 {...(item.type === "modal" &&
                   "enabled" in item &&
                   typeof item.enabled === "function" &&
+                  // @ts-ignore - useWatch returns a deep partial, should be fixed in a future react-hook-form release
                   item.enabled(data) && {
                     icon: <item.icon className="size-3.5 text-blue-500" />,
                   })}

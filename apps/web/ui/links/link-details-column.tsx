@@ -6,7 +6,7 @@ import { memo, PropsWithChildren, useContext, useMemo, useRef } from "react";
 import { LinkAnalyticsBadge } from "./link-analytics-badge";
 import { LinkControls } from "./link-controls";
 import { useLinkSelection } from "./link-selection-provider";
-import { ResponseLink } from "./links-container";
+import { LinksListContext, ResponseLink } from "./links-container";
 import { LinksDisplayContext } from "./links-display-provider";
 import TagBadge from "./tag-badge";
 
@@ -53,6 +53,7 @@ export function LinkDetailsColumn({ link }: { link: ResponseLink }) {
       )}
       {displayProperties.includes("analytics") && (
         <LinkAnalyticsBadge link={link} />
+        <LinkAnalyticsBadge link={link} />
       )}
       <Controls link={link} />
     </div>
@@ -61,10 +62,25 @@ export function LinkDetailsColumn({ link }: { link: ResponseLink }) {
 
 const Controls = memo(({ link }: { link: ResponseLink }) => {
   const { isSelectMode } = useLinkSelection();
+  const { hovered } = useContext(CardList.Card.Context);
+
+  const { openMenuLinkId, setOpenMenuLinkId } = useContext(LinksListContext);
+  const openPopover = openMenuLinkId === link.id;
+  const setOpenPopover = useCallback(
+    (open: boolean) => {
+      setOpenMenuLinkId(open ? link.id : null);
+    },
+    [link.id, setOpenMenuLinkId],
+  );
 
   return (
     <div className={cn(isSelectMode && "hidden sm:block")}>
-      <LinkControls link={link} />
+      <LinkControls
+        link={link}
+        openPopover={openPopover}
+        setOpenPopover={setOpenPopover}
+        shortcutsEnabled={openPopover || (hovered && openMenuLinkId === null)}
+      />
     </div>
   );
 });

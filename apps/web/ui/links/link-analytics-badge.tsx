@@ -30,7 +30,7 @@ export function LinkAnalyticsBadge({
   url,
   sharingEnabled = true,
 }: {
-  link: ResponseLink;
+  link: Omit<ResponseLink, "user">;
   url?: string;
   sharingEnabled?: boolean;
 }) {
@@ -146,7 +146,7 @@ export function LinkAnalyticsBadge({
         <Link
           href={`/${slug}/analytics?domain=${domain}&key=${key}${url ? `&url=${url}` : ""}&interval=${plan === "free" ? "30d" : plan === "pro" ? "1y" : "all"}`}
           className={cn(
-            "overflow-hidden rounded-md border border-neutral-200 bg-neutral-50 p-0.5 text-sm text-neutral-600 transition-colors",
+            "block overflow-hidden rounded-md border border-neutral-200 bg-neutral-50 p-0.5 text-sm text-neutral-600 transition-colors",
             variant === "loose" ? "hover:bg-neutral-100" : "hover:bg-white",
           )}
         >

@@ -13,7 +13,7 @@ import {
 } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { TagSelect } from "./link-builder/tag-select";
+import { TagSelect } from "../links/link-builder/tag-select";
 
 interface TagLinkModalProps {
   showTagLinkModal: boolean;

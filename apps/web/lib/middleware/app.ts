@@ -10,7 +10,7 @@ import { isTopLevelSettingsRedirect } from "./utils/is-top-level-settings-redire
 import WorkspacesMiddleware from "./workspaces";
 
 export default async function AppMiddleware(req: NextRequest) {
-  const { path, fullPath } = parse(req);
+  const { path, fullPath, searchParamsString } = parse(req);
 
   if (path.startsWith("/embed")) {
     return EmbedMiddleware(req);
@@ -83,6 +83,7 @@ export default async function AppMiddleware(req: NextRequest) {
         "/login",
         "/register",
         "/workspaces",
+        "/links",
         "/analytics",
         "/events",
         "/programs",

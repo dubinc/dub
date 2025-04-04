@@ -1,24 +1,19 @@
 import useWorkspace from "@/lib/swr/use-workspace";
+import { useABTestingModal } from "@/ui/modals/link-builder/ab-testing-modal";
+import { useAdvancedModal } from "@/ui/modals/link-builder/advanced-modal";
+import { useExpirationModal } from "@/ui/modals/link-builder/expiration-modal";
+import { usePasswordModal } from "@/ui/modals/link-builder/password-modal";
+import { useTargetingModal } from "@/ui/modals/link-builder/targeting-modal";
+import { useWebhooksModal } from "@/ui/modals/link-builder/webhooks-modal";
 import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
-import {
-  Button,
-  Popover,
-  SimpleTooltipContent,
-  useKeyboardShortcut,
-  useMediaQuery,
-} from "@dub/ui";
+import { Button, Popover, SimpleTooltipContent, useMediaQuery } from "@dub/ui";
 import { Dots } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
-import { LinkFormData } from ".";
-import { useABTestingModal } from "./ab-testing/ab-testing-modal";
-import { useAdvancedModal } from "./advanced-modal";
 import { MOBILE_MORE_ITEMS, MORE_ITEMS } from "./constants";
-import { useExpirationModal } from "./expiration-modal";
-import { usePasswordModal } from "./password-modal";
-import { useTargetingModal } from "./targeting-modal";
-import { useWebhooksModal } from "./webhooks-modal";
+import { LinkFormData } from "./link-builder-provider";
+import { useLinkBuilderKeyboardShortcut } from "./use-link-builder-keyboard-shortcut";
 
 export function MoreDropdown() {
   const { flags } = useWorkspace();
@@ -51,7 +46,7 @@ export function MoreDropdown() {
     advanced: setShowAdvancedModal,
   };
 
-  useKeyboardShortcut(
+  useLinkBuilderKeyboardShortcut(
     options.map(({ shortcutKey }) => shortcutKey),
     (e) => {
       const option = options.find(({ shortcutKey }) => shortcutKey === e.key);
@@ -150,7 +145,7 @@ export function MoreDropdown() {
         <Button
           variant="secondary"
           icon={<Dots className="size-4" />}
-          className="h-9 w-fit px-2.5"
+          className="h-8 w-fit px-2"
         />
       </Popover>
     </>
