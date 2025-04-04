@@ -22,6 +22,11 @@ export async function chargeSucceeded(event: Stripe.Event) {
     },
     include: {
       payouts: {
+        where: {
+          status: {
+            not: "completed",
+          },
+        },
         include: {
           program: true,
           partner: true,
