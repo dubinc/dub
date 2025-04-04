@@ -1,8 +1,15 @@
 import { TagProps } from "@/lib/types";
-import { Tooltip, useRouterStuff } from "@dub/ui";
+import { CardList, Tooltip, useRouterStuff } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useSearchParams } from "next/navigation";
-import { memo, PropsWithChildren, useContext, useMemo, useRef } from "react";
+import {
+  memo,
+  PropsWithChildren,
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+} from "react";
 import { LinkAnalyticsBadge } from "./link-analytics-badge";
 import { LinkControls } from "./link-controls";
 import { useLinkSelection } from "./link-selection-provider";
@@ -52,7 +59,6 @@ export function LinkDetailsColumn({ link }: { link: ResponseLink }) {
         </TagsTooltip>
       )}
       {displayProperties.includes("analytics") && (
-        <LinkAnalyticsBadge link={link} />
         <LinkAnalyticsBadge link={link} />
       )}
       <Controls link={link} />

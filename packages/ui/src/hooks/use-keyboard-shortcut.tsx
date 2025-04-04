@@ -87,12 +87,12 @@ export function useKeyboardShortcut(
       const matchingListeners = listeners.filter(
         (l) =>
           l.enabled !== false &&
+          !!existingModalBackdrop === !!l.modal &&
+          !!existingSheetBackdrop === !!l.sheet &&
           (Array.isArray(l.key)
             ? l.key.includes(pressedKey)
             : l.key === pressedKey),
       );
-
-      console.log({ matchingListeners });
 
       if (!matchingListeners.length) return;
 

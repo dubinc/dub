@@ -1,13 +1,8 @@
 import useWebhooks from "@/lib/swr/use-webhooks";
 import useWorkspace from "@/lib/swr/use-workspace";
-import {
-  Button,
-  Combobox,
-  Modal,
-  Tooltip,
-  useKeyboardShortcut,
-  Webhook,
-} from "@dub/ui";
+import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
+import { useLinkBuilderKeyboardShortcut } from "@/ui/links/link-builder/use-link-builder-keyboard-shortcut";
+import { Button, Combobox, Modal, Tooltip, Webhook } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { ChevronsUpDown } from "lucide-react";
 import {
@@ -18,7 +13,6 @@ import {
   useState,
 } from "react";
 import { useForm, useFormContext } from "react-hook-form";
-import { LinkFormData } from ".";
 
 function WebhooksModal({
   showWebhooksModal,
@@ -178,7 +172,8 @@ export function WebhookSelect({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const { webhooks: availableWebhooks } = useWebhooks();
-  useKeyboardShortcut("w", () => setIsOpen(true), { modal: true });
+
+  useLinkBuilderKeyboardShortcut("w", () => setIsOpen(true));
 
   const options = useMemo(
     () =>
