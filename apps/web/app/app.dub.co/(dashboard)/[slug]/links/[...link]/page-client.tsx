@@ -143,7 +143,7 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
       <form
         className={cn(
           "grid grow grid-cols-1 transition-opacity lg:grid-cols-[minmax(0,1fr)_300px]",
-          "divide-neutral-200 border-t border-neutral-200 lg:divide-x lg:divide-y lg:divide-y-0",
+          "divide-neutral-200 border-t border-neutral-200 lg:divide-x lg:divide-y",
           isChangingLink && "opacity-50",
         )}
         onSubmit={handleSubmit(onSubmit)}
