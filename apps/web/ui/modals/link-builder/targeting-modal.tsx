@@ -18,6 +18,7 @@ import {
   isValidUrl,
   pluralize,
 } from "@dub/utils";
+import { useParams } from "next/navigation";
 import {
   Dispatch,
   Fragment,
@@ -435,8 +436,10 @@ function TargetingButton({
   const { watch } = useFormContext<LinkFormData>();
   const [ios, android, geo] = watch(["ios", "android", "geo"]);
 
+  const { link } = useParams() as { link: string | string[] };
+
   useKeyboardShortcut("g", () => setShowTargetingModal(true), {
-    modal: true,
+    modal: link ? false : true,
   });
 
   const geoEnabled = Object.keys(geo || {}).length > 0;

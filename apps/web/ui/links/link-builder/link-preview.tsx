@@ -27,6 +27,7 @@ import {
   Twitter,
 } from "@dub/ui/icons";
 import { cn, getDomainWithoutWWW, resizeImage } from "@dub/utils";
+import { useParams } from "next/navigation";
 import {
   ChangeEvent,
   ComponentType,
@@ -88,8 +89,11 @@ export const LinkPreview = memo(() => {
   }, [password, debouncedUrl]);
 
   const { OGModal, setShowOGModal } = useOGModal();
+
+  const { link } = useParams() as { link: string | string[] };
+
   useKeyboardShortcut("l", () => setShowOGModal(true), {
-    modal: true,
+    modal: link ? false : true,
   });
 
   const [selectedTab, setSelectedTab] = useState<Tab>("default");

@@ -15,6 +15,7 @@ import {
 import { Pen2, QRCode as QRCodeIcon } from "@dub/ui/icons";
 import { DUB_QR_LOGO, linkConstructor } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
+import { useParams } from "next/navigation";
 import { useMemo, useRef } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { useDebounce } from "use-debounce";
@@ -67,8 +68,10 @@ export function QRCodePreview() {
     onSave: (data) => setData(data),
   });
 
+  const { link } = useParams() as { link: string | string[] };
+
   useKeyboardShortcut("q", () => setShowLinkQRModal(true), {
-    modal: true,
+    modal: link ? false : true,
     enabled: Boolean(shortLinkUrl),
   });
 

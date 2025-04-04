@@ -28,6 +28,7 @@ import {
 } from "@dub/utils";
 import { useCompletion } from "ai/react";
 import { TriangleAlert } from "lucide-react";
+import { useParams } from "next/navigation";
 import posthog from "posthog-js";
 import {
   forwardRef,
@@ -475,7 +476,10 @@ function DomainCombobox({
 
   const [isOpen, setIsOpen] = useState(false);
 
-  useKeyboardShortcut("d", () => setIsOpen(true), { modal: true });
+  const { link } = useParams() as { link: string | string[] };
+  useKeyboardShortcut("d", () => setIsOpen(true), {
+    modal: link ? false : true,
+  });
 
   const options = useMemo(
     () =>

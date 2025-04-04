@@ -11,6 +11,7 @@ import {
 } from "@dub/ui";
 import { Eye, EyeSlash, InputPassword, Shuffle } from "@dub/ui/icons";
 import { cn, nanoid } from "@dub/utils";
+import { useParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -21,7 +22,6 @@ import {
   useState,
 } from "react";
 import { useForm, useFormContext } from "react-hook-form";
-
 function PasswordModal({
   showPasswordModal,
   setShowPasswordModal,
@@ -227,8 +227,10 @@ function PasswordButton({
   const { watch } = useFormContext<LinkFormData>();
   const password = watch("password");
 
+  const { link } = useParams() as { link: string | string[] };
+
   useKeyboardShortcut("p", () => setShowPasswordModal(true), {
-    modal: true,
+    modal: link ? false : true,
   });
 
   return (

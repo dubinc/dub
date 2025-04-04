@@ -8,6 +8,7 @@ import {
   TooltipContent,
   useKeyboardShortcut,
 } from "@dub/ui";
+import { useParams } from "next/navigation";
 import { memo } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 
@@ -23,10 +24,12 @@ export const ConversionTrackingToggle = memo(() => {
 
   const trackConversion = useWatch({ control, name: "trackConversion" });
 
+  const { link } = useParams() as { link: string | string[] };
+
   useKeyboardShortcut(
     "c",
     () => setValue("trackConversion", !trackConversion),
-    { modal: true, enabled: conversionsEnabled },
+    { modal: link ? false : true, enabled: conversionsEnabled },
   );
 
   return (

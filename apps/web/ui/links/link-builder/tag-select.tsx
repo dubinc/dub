@@ -17,6 +17,7 @@ import {
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useCompletion } from "ai/react";
+import { useParams } from "next/navigation";
 import posthog from "posthog-js";
 import { memo, useEffect, useMemo, useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
@@ -99,7 +100,12 @@ export const TagSelect = memo(() => {
     [tags],
   );
 
-  useKeyboardShortcut("t", () => setIsOpen(true), { modal: true, priority: 2 });
+  const { link } = useParams() as { link: string | string[] };
+
+  useKeyboardShortcut("t", () => setIsOpen(true), {
+    modal: link ? false : true,
+    priority: 2,
+  });
 
   const [suggestedTags, setSuggestedTags] = useState<TagProps[]>([]);
 

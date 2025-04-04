@@ -3,6 +3,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
 import { Button, Combobox, useKeyboardShortcut, Webhook } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
 
@@ -10,7 +11,12 @@ export function WebhookSelect() {
   const [isOpen, setIsOpen] = useState(false);
   const { watch, setValue } = useFormContext<LinkFormData>();
   const { webhooks: availableWebhooks } = useWebhooks();
-  useKeyboardShortcut("w", () => setIsOpen(true), { modal: true });
+
+  const { link } = useParams() as { link: string | string[] };
+
+  useKeyboardShortcut("w", () => setIsOpen(true), {
+    modal: link ? false : true,
+  });
 
   const webhookIds = watch("webhookIds") as string[];
 

@@ -16,6 +16,7 @@ import {
   getDateTimeLocal,
   parseDateTime,
 } from "@dub/utils";
+import { useParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -283,8 +284,10 @@ function ExpirationButton({
   const { control } = useFormContext<LinkFormData>();
   const expiresAt = useWatch({ control, name: "expiresAt" });
 
+  const { link } = useParams() as { link: string | string[] };
+
   useKeyboardShortcut("e", () => setShowExpirationModal(true), {
-    modal: true,
+    modal: link ? false : true,
   });
 
   return (

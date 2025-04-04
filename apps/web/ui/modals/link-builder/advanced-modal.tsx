@@ -7,6 +7,7 @@ import {
   Tooltip,
   useKeyboardShortcut,
 } from "@dub/ui";
+import { useParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -48,8 +49,10 @@ function AdvancedModal({
     "tenantId",
   ]);
 
+  const { link } = useParams() as { link: string | string[] };
+
   useKeyboardShortcut("a", () => setShowAdvancedModal(true), {
-    modal: true,
+    modal: link ? false : true,
   });
 
   const parentEnabled = Boolean(externalIdParent || tenantIdParent);

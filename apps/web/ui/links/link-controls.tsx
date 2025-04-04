@@ -2,6 +2,7 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
 import useFoldersCount from "@/lib/swr/use-folders-count";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { ExpandedLinkProps } from "@/lib/types";
 import { useArchiveLinkModal } from "@/ui/modals/archive-link-modal";
 import { useDeleteLinkModal } from "@/ui/modals/delete-link-modal";
 import {
@@ -31,9 +32,9 @@ import { useLinkQRModal } from "../modals/link-qr-modal";
 import { useMoveLinkToFolderModal } from "../modals/move-link-to-folder-modal";
 import { useTransferLinkModal } from "../modals/transfer-link-modal";
 import { ThreeDots } from "../shared/icons";
-import { LinksListContext, ResponseLink } from "./links-container";
+import { LinksListContext } from "./links-container";
 
-export function LinkControls({ link }: { link: ResponseLink }) {
+export function LinkControls({ link }: { link: ExpandedLinkProps }) {
   const { flags } = useWorkspace();
   const router = useRouter();
   const { slug } = useParams() as { slug?: string };

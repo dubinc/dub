@@ -16,6 +16,7 @@ import {
   getParamsFromURL,
   isValidUrl,
 } from "@dub/utils";
+import { useParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -289,8 +290,10 @@ function UTMButton({
     [url],
   );
 
+  const { link } = useParams() as { link: string | string[] };
+
   useKeyboardShortcut("u", () => setShowUTMModal(true), {
-    modal: true,
+    modal: link ? false : true,
   });
 
   return (

@@ -15,6 +15,7 @@ import {
 import { Dots } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Settings } from "lucide-react";
+import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
 
@@ -30,6 +31,8 @@ export function MoreDropdown() {
     return [...(isMobile ? MOBILE_MORE_ITEMS : []), ...TOGGLES];
   }, [data, isMobile]);
 
+  const { link } = useParams() as { link: string | string[] };
+
   useKeyboardShortcut(
     options.map(({ shortcutKey }) => shortcutKey),
     (e) => {
@@ -39,7 +42,7 @@ export function MoreDropdown() {
       setOpenPopover(false);
       setValue(option.key as any, !data[option.key], { shouldDirty: true });
     },
-    { modal: true },
+    { modal: link ? false : true },
   );
 
   const { PasswordModal, setShowPasswordModal } = usePasswordModal();
