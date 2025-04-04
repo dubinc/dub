@@ -8,4 +8,5 @@ export const InvoiceSchema = z.object({
   createdAt: z.date(),
   description: z.string().default("Dub payout"),
   pdfUrl: z.string().nullable(),
+  failedReason: z.string().nullish().default(null),
 });

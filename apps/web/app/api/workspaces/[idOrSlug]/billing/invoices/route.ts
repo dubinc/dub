@@ -55,8 +55,8 @@ const payoutInvoices = async (workspaceId: string) => {
       id: true,
       total: true,
       createdAt: true,
-      receiptUrl: true,
       status: true,
+      failedReason: true,
     },
     orderBy: {
       createdAt: "desc",
@@ -67,7 +67,10 @@ const payoutInvoices = async (workspaceId: string) => {
     return {
       ...invoice,
       description: "Dub Partner payout",
-      pdfUrl: `${APP_DOMAIN}/invoices/${invoice.id}`,
+      pdfUrl:
+        invoice.status === "completed"
+          ? `${APP_DOMAIN}/invoices/${invoice.id}`
+          : null,
     };
   });
 };
