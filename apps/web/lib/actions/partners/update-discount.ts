@@ -122,7 +122,7 @@ export const updateDiscountAction = authActionClient
         }
 
         qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/sync-discounts`,
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
           body: {
             programId,
             discountId,

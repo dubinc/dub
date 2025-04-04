@@ -15,7 +15,7 @@ const schema = z.object({
 });
 
 // This route is used to invalidate the partnerlink cache when a discount is created/updated/deleted.
-// POST /api/cron/partners/sync-discounts
+// POST /api/cron/links/invalidate-for-discounts
 export async function POST(req: Request) {
   try {
     const rawBody = await req.text();

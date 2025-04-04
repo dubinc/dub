@@ -102,7 +102,7 @@ export const createDiscountAction = authActionClient
 
     waitUntil(
       qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/sync-discounts`,
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
         body: {
           programId,
           discountId: discount.id,
