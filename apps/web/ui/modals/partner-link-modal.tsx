@@ -23,6 +23,7 @@ import {
   getDomainWithoutWWW,
   getPrettyUrl,
   linkConstructor,
+  regexEscape,
 } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -179,7 +180,10 @@ function PartnerLinkModalContent({
   const form = useForm<PartnerLinkFormData>({
     defaultValues: link
       ? {
-          url: link.url.replace(`https://${destinationDomain}/`, ""),
+          url: link.url.replace(
+            new RegExp(`^https?:\/\/${regexEscape(destinationDomain)}\/?`),
+            "",
+          ),
           key: link.key,
           comments: link.comments ?? "",
         }
