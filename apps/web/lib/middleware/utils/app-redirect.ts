@@ -9,10 +9,6 @@ export const appRedirect = (path: string) => {
     return APP_REDIRECTS[path];
   }
 
-  // Redirect "/[slug]" to "/[slug]/links"
-  const rootRegex = /^\/([^\/]+)$/;
-  if (rootRegex.test(path)) return path.replace(rootRegex, "/$1/links");
-
   // Redirect "programs/[programId]/settings" to "programs/[programId]/settings/rewards" (first tab)
   const programSettingsRegex = /\/programs\/([^\/]+)\/settings$/;
   if (programSettingsRegex.test(path))
