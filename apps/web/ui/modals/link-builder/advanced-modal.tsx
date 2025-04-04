@@ -1,3 +1,4 @@
+import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
 import {
   Button,
   InfoTooltip,
@@ -6,6 +7,7 @@ import {
   Tooltip,
   useKeyboardShortcut,
 } from "@dub/ui";
+import { useParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -15,7 +17,6 @@ import {
   useState,
 } from "react";
 import { useForm, useFormContext } from "react-hook-form";
-import { LinkFormData } from ".";
 
 function AdvancedModal({
   showAdvancedModal,
@@ -48,8 +49,10 @@ function AdvancedModal({
     "tenantId",
   ]);
 
+  const { link } = useParams() as { link: string | string[] };
+
   useKeyboardShortcut("a", () => setShowAdvancedModal(true), {
-    modal: true,
+    modal: link ? false : true,
   });
 
   const parentEnabled = Boolean(externalIdParent || tenantIdParent);

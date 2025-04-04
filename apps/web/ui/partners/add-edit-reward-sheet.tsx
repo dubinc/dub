@@ -581,14 +581,16 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
               </>
             )}
 
-            <RewardPartnersTable
-              partnerIds={partnerIds || []}
-              setPartnerIds={(value: string[]) => {
-                setValue("partnerIds", value);
-              }}
-              rewardPartners={rewardPartners || []}
-              loading={isLoadingRewardPartners}
-            />
+            {displayPartners && program?.id && (
+              <RewardPartnersTable
+                partnerIds={partnerIds || []}
+                setPartnerIds={(value: string[]) => {
+                  setValue("partnerIds", value);
+                }}
+                rewardPartners={rewardPartners || []}
+                loading={isLoadingRewardPartners}
+              />
+            )}
           </div>
         </div>
 

@@ -2,7 +2,7 @@ import useLink from "@/lib/swr/use-link";
 import useLinks from "@/lib/swr/use-links";
 import useProgram from "@/lib/swr/use-program";
 import { LinkProps } from "@/lib/types";
-import { Combobox, LinkLogo } from "@dub/ui";
+import { Combobox, LinkLogo, Tooltip } from "@dub/ui";
 import { ArrowTurnRight2 } from "@dub/ui/icons";
 import { cn, getApexDomain, linkConstructor } from "@dub/utils";
 import { useMemo, useState } from "react";
@@ -100,15 +100,27 @@ export function PartnerLinkSelector({
       {selectedLink?.url && showDestinationUrl && (
         <div className="ml-2 mt-2 flex items-center gap-1 text-xs text-neutral-500">
           <ArrowTurnRight2 className="size-3 shrink-0" />
-          <span className="min-w-0 truncate">
-            Destination URL:{" "}
-            <a
-              href={selectedLink.url}
-              target="_blank"
-              className="underline-offset-2 hover:underline"
+          <span className="flex min-w-0 items-center gap-1 whitespace-nowrap">
+            <span>Destination URL:</span>
+            <Tooltip
+              align="end"
+              alignOffset={-10}
+              sideOffset={9}
+              delayDuration={300}
+              content={
+                <div className="line-clamp-4 max-w-[495px] overflow-hidden break-all p-2.5 text-xs text-neutral-600">
+                  {selectedLink.url}
+                </div>
+              }
             >
-              {selectedLink.url}
-            </a>
+              <a
+                href={selectedLink.url}
+                target="_blank"
+                className="min-w-0 truncate underline-offset-2 hover:underline"
+              >
+                {selectedLink.url}
+              </a>
+            </Tooltip>
           </span>
         </div>
       )}
