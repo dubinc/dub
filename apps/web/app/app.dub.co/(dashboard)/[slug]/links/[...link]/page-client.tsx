@@ -226,11 +226,12 @@ const Controls = memo(({ link }: { link: ExpandedLinkProps }) => {
         openPopover={openPopover}
         setOpenPopover={setOpenPopover}
         shortcutsEnabled={openPopover}
-        options={["move", "id", "archive", "delete"]}
+        options={["id", "move", "archive", "transfer", "delete"]}
         onMoveSuccess={(folderId) => {
           setValue("folderId", folderId);
           reset(getValues(), { keepValues: true, keepDirty: false });
         }}
+        onTransferSuccess={() => router.push(`/${slug}/links`)}
         onDeleteSuccess={() => router.push(`/${slug}/links`)}
         className="h-7 border border-neutral-200"
         iconClassName="size-4"

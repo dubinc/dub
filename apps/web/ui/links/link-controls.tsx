@@ -51,6 +51,7 @@ export function LinkControls({
   shortcutsEnabled,
   options = Object.keys(OPTIONS),
   onMoveSuccess,
+  onTransferSuccess,
   onDeleteSuccess,
   className,
   iconClassName,
@@ -61,6 +62,7 @@ export function LinkControls({
   shortcutsEnabled: boolean;
   options?: string[];
   onMoveSuccess?: (folderId: string | null) => void;
+  onTransferSuccess?: () => void;
   onDeleteSuccess?: () => void;
   className?: string;
   iconClassName?: string;
@@ -88,6 +90,7 @@ export function LinkControls({
   });
   const { setShowTransferLinkModal, TransferLinkModal } = useTransferLinkModal({
     props: link,
+    onSuccess: onTransferSuccess,
   });
   const { setShowDeleteLinkModal, DeleteLinkModal } = useDeleteLinkModal({
     props: link,
