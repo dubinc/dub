@@ -56,14 +56,14 @@ export function LinkBuilderHeader({
       )}
     >
       {foldersEnabled && (
-        <div className="flex min-w-0 items-center gap-1">
+        <div className="flex min-w-0 max-w-full items-center gap-1">
           <FolderDropdown
             hideViewAll={true}
             disableAutoRedirect={true}
             onFolderSelect={(folder) => {
               setValue("folderId", folder.id, { shouldDirty: true });
             }}
-            buttonClassName="max-w-60 md:max-w-[24rem]"
+            buttonClassName="max-w-60 md:max-w-[24rem] min-w-0"
             buttonTextClassName="text-sm md:text-sm font-medium"
             selectedFolderId={folderId ?? undefined}
           />
@@ -173,7 +173,7 @@ function LinkSelector({
       }}
     >
       {selectedLink ? (
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 items-center gap-2">
           <LinkLogo
             apexDomain={getApexDomain(selectedLink.url)}
             className="size-4 shrink-0 sm:size-4"
