@@ -28,7 +28,7 @@ export const ConversionTrackingToggle = memo(() => {
 
   useKeyboardShortcut(
     "c",
-    () => setValue("trackConversion", !trackConversion),
+    () => setValue("trackConversion", !trackConversion, { shouldDirty: true }),
     { modal: link ? false : true, enabled: conversionsEnabled },
   );
 
