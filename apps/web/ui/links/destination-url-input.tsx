@@ -10,9 +10,9 @@ import {
 import { getParamsFromURL } from "@dub/utils";
 import { forwardRef, HTMLProps, ReactNode, useId } from "react";
 import { useFormContext } from "react-hook-form";
-import { LinkFormData } from "../modals/link-builder";
 import { AlertCircleFill } from "../shared/icons";
 import { ProBadgeTooltip } from "../shared/pro-badge-tooltip";
+import { LinkFormData } from "./link-builder/link-builder-provider";
 
 type DestinationUrlInputProps = {
   _key?: string;

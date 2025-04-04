@@ -1,3 +1,9 @@
+import { MOBILE_MORE_ITEMS, TOGGLES } from "@/ui/links/link-builder/constants";
+import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
+import { useAdvancedModal } from "@/ui/modals/link-builder/advanced-modal";
+import { useExpirationModal } from "@/ui/modals/link-builder/expiration-modal";
+import { usePasswordModal } from "@/ui/modals/link-builder/password-modal";
+import { useTargetingModal } from "@/ui/modals/link-builder/targeting-modal";
 import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
 import {
   Button,
@@ -9,14 +15,9 @@ import {
 import { Dots } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Settings } from "lucide-react";
+import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
-import { LinkFormData } from ".";
-import { useAdvancedModal } from "./advanced-modal";
-import { MOBILE_MORE_ITEMS, TOGGLES } from "./constants";
-import { useExpirationModal } from "./expiration-modal";
-import { usePasswordModal } from "./password-modal";
-import { useTargetingModal } from "./targeting-modal";
 
 export function MoreDropdown() {
   const { isMobile } = useMediaQuery();
@@ -30,6 +31,8 @@ export function MoreDropdown() {
     return [...(isMobile ? MOBILE_MORE_ITEMS : []), ...TOGGLES];
   }, [data, isMobile]);
 
+  const { link } = useParams() as { link: string | string[] };
+
   useKeyboardShortcut(
     options.map(({ shortcutKey }) => shortcutKey),
     (e) => {
@@ -39,7 +42,7 @@ export function MoreDropdown() {
       setOpenPopover(false);
       setValue(option.key as any, !data[option.key], { shouldDirty: true });
     },
-    { modal: true },
+    { modal: link ? false : true },
   );
 
   const { PasswordModal, setShowPasswordModal } = usePasswordModal();
@@ -148,7 +151,7 @@ export function MoreDropdown() {
         <Button
           variant="secondary"
           icon={<Dots className="size-4" />}
-          className="h-9 w-fit px-2.5"
+          className="h-8 w-fit px-2"
         />
       </Popover>
     </>

@@ -1,6 +1,7 @@
 "use client";
 
 import { editQueryString } from "@/lib/analytics/utils";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { ClickEvent, Customer, LeadEvent, SaleEvent } from "@/lib/types";
 import { CustomerDetailsSheet } from "@/ui/partners/customer-details-sheet";
 import EmptyState from "@/ui/shared/empty-state";
@@ -26,6 +27,7 @@ import {
 } from "@dub/utils";
 import { Cell, ColumnDef } from "@tanstack/react-table";
 import { Link2 } from "lucide-react";
+import Link from "next/link";
 import { ReactNode, useContext, useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import { AnalyticsContext } from "../analytics-provider";
@@ -54,6 +56,7 @@ export default function EventsTable({
   requiresUpgrade?: boolean;
   upgradeOverlay?: ReactNode;
 }) {
+  const { slug } = useWorkspace();
   const { searchParams, queryParams } = useRouterStuff();
   const { setExportQueryString } = useContext(EventsContext);
   const {
@@ -131,21 +134,19 @@ export default function EventsTable({
             }),
           },
           cell: ({ getValue }) => (
-            <div className="flex items-center gap-3">
+            <Link
+              href={`/${slug}/links/${getValue().domain}/${getValue().key}`}
+              target="_blank"
+              className="flex cursor-alias items-center gap-3 decoration-dotted hover:underline"
+            >
               <LinkLogo
                 apexDomain={getApexDomain(getValue().url)}
                 className="size-4 shrink-0 sm:size-4"
               />
-              <CopyText
-                value={getValue().shortLink}
-                successMessage="Copied link to clipboard!"
-                className="truncate"
-              >
-                <span className="truncate" title={getValue().shortLink}>
-                  {getPrettyUrl(getValue().shortLink)}
-                </span>
-              </CopyText>
-            </div>
+              <span className="truncate" title={getValue().shortLink}>
+                {getPrettyUrl(getValue().shortLink)}
+              </span>
+            </Link>
           ),
         },
         {

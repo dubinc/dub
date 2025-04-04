@@ -1,4 +1,9 @@
 import { ExpandedLinkProps } from "@/lib/types";
+import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
+import {
+  LinkDraft,
+  useLinkDrafts,
+} from "@/ui/modals/link-builder/use-link-drafts";
 import { AnimatedSizeContainer, Button, Popover, useMediaQuery } from "@dub/ui";
 import { CircleCheck, CircleInfo, LoadingCircle, Xmark } from "@dub/ui/icons";
 import { cn, nanoid, punycode, timeAgo, truncate } from "@dub/utils";
@@ -14,8 +19,6 @@ import {
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
-import { LinkFormData } from "./";
-import { LinkDraft, useLinkDrafts } from "./use-link-drafts";
 
 export type DraftControlsHandle = {
   onSubmitSuccessful: () => void;
@@ -145,7 +148,7 @@ export const DraftControls = forwardRef<
         type="button"
         variant="outline"
         className={cn(
-          "animate-fade-in group h-9 text-sm transition-colors data-[state=open]:bg-neutral-100",
+          "animate-fade-in group h-9 w-fit text-sm transition-colors data-[state=open]:bg-neutral-100",
           isDirty && hasSaved
             ? "pl-3 pr-4 text-neutral-400 hover:text-neutral-600"
             : "pl-4 pr-3 text-neutral-500 hover:text-neutral-700",
