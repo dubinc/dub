@@ -4,14 +4,15 @@ const APP_REDIRECTS = {
   "/welcome": "/onboarding",
 };
 
-export const appRedirect = (path: string) => {
+export const appRedirect = (path: string, searchParamsString: string) => {
   if (APP_REDIRECTS[path]) {
     return APP_REDIRECTS[path];
   }
 
   // Redirect "/[slug]" to "/[slug]/links"
   const rootRegex = /^\/([^\/]+)$/;
-  if (rootRegex.test(path)) return path.replace(rootRegex, "/$1/links");
+  if (rootRegex.test(path))
+    return path.replace(rootRegex, "/$1/links") + searchParamsString;
 
   // Redirect "programs/[programId]/settings" to "programs/[programId]/settings/rewards" (first tab)
   const programSettingsRegex = /\/programs\/([^\/]+)\/settings$/;
