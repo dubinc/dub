@@ -207,19 +207,19 @@ export default async function LinkMiddleware(
     }
   }
 
-  const cookieStore = cookies();
-  let clickId = cookieStore.get("dub_id")?.value;
-  if (!clickId) {
-    // if trackConversion is enabled, check if clickId is cached in Redis
-    if (trackConversion) {
-      const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
+  let clickId;
+  // for links with trackConversion enabled, always check
+  if (trackConversion) {
+    const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
+    clickId = (await clickCache.get({ domain, key, ip })) || undefined;
+  } else {
+    const cookieStore = cookies();
+    clickId = cookieStore.get("dub_id")?.value;
+  }
 
-      clickId = (await clickCache.get({ domain, key, ip })) || undefined;
-    }
-    // if there's still no clickId, generate a new one
-    if (!clickId) {
-      clickId = nanoid(16);
-    }
+  // if there's still no clickId, generate a new one
+  if (!clickId) {
+    clickId = nanoid(16);
   }
 
   // for root domain links, if there's no destination URL, rewrite to placeholder page
