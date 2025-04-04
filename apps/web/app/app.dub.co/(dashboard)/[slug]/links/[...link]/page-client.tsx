@@ -53,7 +53,7 @@ export function LinkPageClient() {
       // doing onErrorRetry to avoid race condiition for when a link's domain / key is updated
       onErrorRetry: (error, _key, _config, revalidate, { retryCount }) => {
         if (error.status === 401 || error.status === 404) {
-          if (retryCount >= 3) {
+          if (retryCount > 1) {
             router.push(`/${workspace.slug}/links`);
             return;
           }
