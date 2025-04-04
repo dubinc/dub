@@ -109,6 +109,11 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
     enabled: !isDirty,
   });
 
+  // Save when CMD+S or CTRL+S is pressed
+  useKeyboardShortcut(["meta+s", "ctrl+s"], () => handleSubmit(onSubmit)(), {
+    enabled: isDirty,
+  });
+
   const [isChangingLink, setIsChangingLink] = useState(false);
 
   return (
