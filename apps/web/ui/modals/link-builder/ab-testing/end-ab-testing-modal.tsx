@@ -1,3 +1,4 @@
+import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
 import { Button, Modal } from "@dub/ui";
 import {
   Dispatch,
@@ -7,7 +8,6 @@ import {
   useState,
 } from "react";
 import { useFormContext } from "react-hook-form";
-import { LinkFormData } from "..";
 
 function EndABTestingModal({
   showEndABTestingModal,

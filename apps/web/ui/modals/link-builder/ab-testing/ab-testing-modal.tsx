@@ -3,6 +3,7 @@ import {
   MAX_TEST_COUNT,
   MIN_TEST_PERCENTAGE,
 } from "@/lib/zod/schemas/links";
+import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
 import { useAvailableDomains } from "@/ui/links/use-available-domains";
 import { useEndABTestingModal } from "@/ui/modals/link-builder/ab-testing/end-ab-testing-modal";
 import { BusinessBadgeTooltip } from "@/ui/shared/business-badge-tooltip";
@@ -38,7 +39,6 @@ import {
 import { useForm, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { LinkFormData } from "..";
 import { TrafficSplitSlider } from "./traffic-split-slider";
 
 const parseTests = (testVariants: LinkFormData["testVariants"]) =>

@@ -3,6 +3,8 @@ import {
   MAX_TEST_COUNT,
   MIN_TEST_PERCENTAGE,
 } from "@/lib/zod/schemas/links";
+import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
+import { useLinkBuilderKeyboardShortcut } from "@/ui/links/link-builder/use-link-builder-keyboard-shortcut";
 import { useAvailableDomains } from "@/ui/links/use-available-domains";
 import { useEndABTestingModal } from "@/ui/modals/link-builder/ab-testing/end-ab-testing-modal";
 import { BusinessBadgeTooltip } from "@/ui/shared/business-badge-tooltip";
@@ -16,7 +18,6 @@ import {
   SimpleTooltipContent,
   Tooltip,
   TriangleWarning,
-  useKeyboardShortcut,
 } from "@dub/ui";
 import {
   cn,
@@ -39,7 +40,6 @@ import {
 import { useForm, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { LinkFormData } from ".";
 
 const parseTests = (testVariants: LinkFormData["testVariants"]) =>
   Array.isArray(testVariants) ? ABTestVariantsSchema.parse(testVariants) : null;
@@ -535,9 +535,7 @@ function ABTestingButton({
     "testCompletedAt",
   ]);
 
-  useKeyboardShortcut("a", () => setShowABTestingModal(true), {
-    modal: true,
-  });
+  useLinkBuilderKeyboardShortcut("a", () => setShowABTestingModal(true));
 
   const enabled = Boolean(testVariants && testCompletedAt);
 
