@@ -70,6 +70,7 @@ export const FolderDropdown = ({
 
   const { folder: selectedFolderData } = useFolder({
     folderId,
+    enabled: !!folderId,
   });
 
   const { AddFolderModal, setShowAddFolderModal } = useAddFolderModal({
