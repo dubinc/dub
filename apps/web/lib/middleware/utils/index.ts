@@ -1,4 +1,4 @@
-export * from "./create-response-with-cookie";
+export * from "./create-response-with-cookies";
 export * from "./detect-bot";
 export * from "./detect-qr";
 export * from "./get-final-url";

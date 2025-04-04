@@ -8,13 +8,45 @@ import {
 } from "@dub/ui";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useContext, useEffect, useMemo, useRef } from "react";
+import {
+  createContext,
+  Dispatch,
+  memo,
+  SetStateAction,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { FolderIcon } from "../folders/folder-icon";
 import { LinkDetailsColumn } from "./link-details-column";
+import { LinkTests } from "./link-tests";
 import { LinkTitleColumn } from "./link-title-column";
 import { ResponseLink } from "./links-container";
 
-export function LinkCard({ link }: { link: ResponseLink }) {
+export const LinkCardContext = createContext<{
+  showTests: boolean;
+  setShowTests: Dispatch<SetStateAction<boolean>>;
+} | null>(null);
+
+export function useLinkCardContext() {
+  const context = useContext(LinkCardContext);
+  if (!context)
+    throw new Error("useLinkCardContext must be used within a LinkCard");
+  return context;
+}
+
+export const LinkCard = memo(({ link }: { link: ResponseLink }) => {
+  const [showTests, setShowTests] = useState(false);
+  return (
+    <LinkCardContext.Provider value={{ showTests, setShowTests }}>
+      <LinkCardInner link={link} />
+    </LinkCardContext.Provider>
+  );
+});
+
+const LinkCardInner = memo(({ link }: { link: ResponseLink }) => {
   const { variant } = useContext(CardList.Context);
   const { isMobile } = useMediaQuery();
   const ref = useRef<HTMLDivElement>(null);
@@ -45,7 +77,8 @@ export function LinkCard({ link }: { link: ResponseLink }) {
       <CardList.Card
         key={link.id}
         onClick={!isMobile ? () => router.push(editUrl) : undefined}
-        innerClassName="flex items-center gap-5 sm:gap-8 md:gap-12 text-sm"
+        outerClassName="overflow-hidden"
+        innerClassName="p-0"
         {...(variant === "loose" &&
           link.folderId &&
           ![defaultFolderId, searchParams.get("folderId")].includes(
@@ -84,11 +117,14 @@ export function LinkCard({ link }: { link: ResponseLink }) {
             ),
           })}
       >
-        <div ref={ref} className="min-w-0 grow">
-          <LinkTitleColumn link={link} />
+        <div className="flex items-center gap-5 px-4 py-2.5 text-sm sm:gap-8 md:gap-12">
+          <div ref={ref} className="min-w-0 grow">
+            <LinkTitleColumn link={link} />
+          </div>
+          <LinkDetailsColumn link={link} />
         </div>
-        <LinkDetailsColumn link={link} />
+        <LinkTests link={link} />
       </CardList.Card>
     </>
   );
-}
+});

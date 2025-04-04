@@ -25,6 +25,37 @@ export const getDomainQuerySchema = z.object({
     .refine((v) => validDomainRegex.test(v), { message: "Invalid domain" }),
 });
 
+export const MIN_TEST_PERCENTAGE = 10;
+export const MAX_TEST_COUNT = 4;
+
+export const ABTestVariantsSchema = z
+  .array(
+    z.object({
+      url: z.string(),
+      percentage: z
+        .number()
+        .min(MIN_TEST_PERCENTAGE)
+        .max(100 - MIN_TEST_PERCENTAGE),
+    }),
+  )
+  .min(2)
+  .max(MAX_TEST_COUNT)
+  .describe(
+    "An array of A/B test URLs and the percentage of traffic to send to each URL.",
+  )
+  .openapi({
+    example: [
+      {
+        url: "https://example.com/variant-1",
+        percentage: 50,
+      },
+      {
+        url: "https://example.com/variant-2",
+        percentage: 50,
+      },
+    ],
+  });
+
 const LinksQuerySchema = z.object({
   domain: z
     .string()
@@ -384,6 +415,15 @@ export const createLinkBodySchema = z.object({
     .describe(
       "An array of webhook IDs to trigger when the link is clicked. These webhooks will receive click event data.",
     ),
+  testVariants: ABTestVariantsSchema.nullish(),
+  testStartedAt: z
+    .string()
+    .nullish()
+    .describe("The date and time when the tests started."),
+  testCompletedAt: z
+    .string()
+    .nullish()
+    .describe("The date and time when the tests were or will be completed."),
 });
 
 export const updateLinkBodySchema = createLinkBodySchema.partial();
@@ -600,6 +640,15 @@ export const LinkSchema = z
       .string()
       .nullable()
       .describe("The UTM content of the short link."),
+    testVariants: ABTestVariantsSchema.nullish(),
+    testStartedAt: z
+      .string()
+      .nullish()
+      .describe("The date and time when the tests started."),
+    testCompletedAt: z
+      .string()
+      .nullish()
+      .describe("The date and time when the tests were or will be completed."),
     userId: z
       .string()
       .nullable()
@@ -699,6 +748,8 @@ export const linkEventSchema = LinkSchema.extend({
   updatedAt: z.coerce.date(),
   lastClicked: z.coerce.date(),
   expiresAt: z.coerce.date(),
+  testCompletedAt: z.coerce.date().nullable(),
+  testStartedAt: z.coerce.date().nullable(),
   // userId can be null
   userId: z.string().nullable(),
 });

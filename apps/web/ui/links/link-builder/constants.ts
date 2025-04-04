@@ -1,18 +1,34 @@
-import { ExpandedLinkProps } from "@/lib/types";
 import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
+import { getABTestingLabel } from "@/ui/modals/link-builder/ab-testing-modal";
 import { getExpirationLabel } from "@/ui/modals/link-builder/expiration-modal";
 import { getPasswordLabel } from "@/ui/modals/link-builder/password-modal";
 import { getTargetingLabel } from "@/ui/modals/link-builder/targeting-modal";
 import {
   CircleHalfDottedClock,
   Crosshairs3,
+  Flask,
+  Icon,
   Incognito,
   InputPassword,
+  Webhook,
   WindowSearch,
 } from "@dub/ui/icons";
-import { UseFormSetValue } from "react-hook-form";
+import { Settings } from "lucide-react";
 
-export const TOGGLES = [
+type MoreItem = {
+  key: string;
+  icon: Icon;
+  label: string;
+  description?: string;
+  learnMoreUrl?: string;
+  shortcutKey: string;
+  type: string;
+  badgeLabel?: (data: LinkFormData) => string;
+  enabled?: (data: LinkFormData) => boolean;
+  add?: boolean;
+};
+
+export const MORE_ITEMS: MoreItem[] = [
   {
     key: "rewrite",
     icon: Incognito,
@@ -33,23 +49,27 @@ export const TOGGLES = [
     shortcutKey: "s",
     type: "boolean",
   },
+  {
+    key: "webhookIds",
+    icon: Webhook,
+    label: "Webhooks",
+    shortcutKey: "w",
+    enabled: (data) => Boolean(data.webhookIds?.length),
+    type: "modal",
+    add: false,
+  },
+  {
+    key: "advanced",
+    icon: Settings,
+    label: "Advanced Settings",
+    shortcutKey: "v",
+    type: "modal",
+    enabled: (data) => Boolean(data.externalId || data.tenantId),
+    add: false,
+  },
 ];
 
-export const MOBILE_MORE_ITEMS = [
-  {
-    key: "password",
-    icon: InputPassword,
-    label: "Password",
-    badgeLabel: getPasswordLabel,
-    description:
-      "Protect your links with a password so only authorized users can access them.",
-    learnMoreUrl: "https://dub.co/help/article/password-protected-links",
-    shortcutKey: "l",
-    enabled: (data: LinkFormData) => Boolean(data.password),
-    remove: (setValue: UseFormSetValue<ExpandedLinkProps>) =>
-      setValue("password", null, { shouldDirty: true }),
-    type: "modal",
-  },
+export const MOBILE_MORE_ITEMS: MoreItem[] = [
   {
     key: "expiresAt",
     icon: CircleHalfDottedClock,
@@ -59,11 +79,7 @@ export const MOBILE_MORE_ITEMS = [
       "Set an expiration date for your links – after which it won't be accessible.",
     learnMoreUrl: "https://dub.co/help/article/link-expiration",
     shortcutKey: "e",
-    enabled: (data: LinkFormData) => Boolean(data.expiresAt),
-    remove: (setValue: UseFormSetValue<ExpandedLinkProps>) => {
-      setValue("expiresAt", null, { shouldDirty: true });
-      setValue("expiredUrl", null, { shouldDirty: true });
-    },
+    enabled: (data) => Boolean(data.expiresAt),
     type: "modal",
   },
   {
@@ -75,15 +91,31 @@ export const MOBILE_MORE_ITEMS = [
       "Target your links to specific audiences based on their location, device, or browser.",
     learnMoreUrl: "https://dub.co/help/article/geo-targeting",
     shortcutKey: "x",
-    enabled: (data: LinkFormData) =>
+    enabled: (data) =>
       Boolean(
         data.ios || data.android || Object.keys(data.geo || {}).length > 0,
       ),
-    remove: (setValue: UseFormSetValue<ExpandedLinkProps>) => {
-      setValue("ios", null, { shouldDirty: true });
-      setValue("android", null, { shouldDirty: true });
-      setValue("geo", null, { shouldDirty: true });
-    },
+    type: "modal",
+  },
+  {
+    key: "testVariants",
+    icon: Flask,
+    label: "A/B Test",
+    badgeLabel: getABTestingLabel,
+    shortcutKey: "b",
+    enabled: (data) => Boolean(data.testVariants && data.testCompletedAt),
+    type: "modal",
+  },
+  {
+    key: "password",
+    icon: InputPassword,
+    label: "Password",
+    badgeLabel: getPasswordLabel,
+    description:
+      "Protect your links with a password so only authorized users can access them.",
+    learnMoreUrl: "https://dub.co/help/article/password-protected-links",
+    shortcutKey: "l",
+    enabled: (data) => Boolean(data.password),
     type: "modal",
   },
 ];
