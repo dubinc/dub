@@ -40,6 +40,7 @@ export function LinkPageClient() {
   const domain = linkParts[0];
   const slug = linkParts.length > 1 ? linkParts.slice(1).join("/") : "_root";
 
+  const router = useRouter();
   const workspace = useWorkspace();
 
   const { link } = useLink(
@@ -49,6 +50,11 @@ export function LinkPageClient() {
     },
     {
       keepPreviousData: true,
+      onError: (error) => {
+        if (error.status === 401 || error.status === 404) {
+          router.push(`/${workspace.slug}/links`);
+        }
+      },
     },
   );
 
