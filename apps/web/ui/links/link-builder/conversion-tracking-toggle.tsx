@@ -1,4 +1,5 @@
 import useWorkspace from "@/lib/swr/use-workspace";
+import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
 import {
   CrownSmall,
   InfoTooltip,
@@ -7,25 +8,28 @@ import {
   TooltipContent,
   useKeyboardShortcut,
 } from "@dub/ui";
-import { useFormContext } from "react-hook-form";
-import { LinkFormData } from ".";
+import { useParams } from "next/navigation";
+import { memo } from "react";
+import { useFormContext, useWatch } from "react-hook-form";
 
 // Show new badge for 30 days
 const isNew =
   new Date().getTime() - new Date("2025-01-13").getTime() < 30 * 86_400_000;
 
-export function ConversionTrackingToggle() {
+export const ConversionTrackingToggle = memo(() => {
   const { slug, plan } = useWorkspace();
-  const { watch, setValue } = useFormContext<LinkFormData>();
+  const { control, setValue } = useFormContext<LinkFormData>();
 
   const conversionsEnabled = !!plan && plan !== "free" && plan !== "pro";
 
-  const trackConversion = watch("trackConversion");
+  const trackConversion = useWatch({ control, name: "trackConversion" });
+
+  const { link } = useParams() as { link: string | string[] };
 
   useKeyboardShortcut(
     "c",
-    () => setValue("trackConversion", !trackConversion),
-    { modal: true, enabled: conversionsEnabled },
+    () => setValue("trackConversion", !trackConversion, { shouldDirty: true }),
+    { modal: link ? false : true, enabled: conversionsEnabled },
   );
 
   return (
@@ -74,4 +78,4 @@ export function ConversionTrackingToggle() {
       />
     </label>
   );
-}
+});

@@ -1,3 +1,4 @@
+import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
 import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
 import {
   Button,
@@ -10,6 +11,7 @@ import {
 } from "@dub/ui";
 import { Eye, EyeSlash, InputPassword, Shuffle } from "@dub/ui/icons";
 import { cn, nanoid } from "@dub/utils";
+import { useParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -20,8 +22,6 @@ import {
   useState,
 } from "react";
 import { useForm, useFormContext } from "react-hook-form";
-import { LinkFormData } from ".";
-
 function PasswordModal({
   showPasswordModal,
   setShowPasswordModal,
@@ -227,8 +227,10 @@ function PasswordButton({
   const { watch } = useFormContext<LinkFormData>();
   const password = watch("password");
 
+  const { link } = useParams() as { link: string | string[] };
+
   useKeyboardShortcut("p", () => setShowPasswordModal(true), {
-    modal: true,
+    modal: link ? false : true,
   });
 
   return (
@@ -238,7 +240,7 @@ function PasswordButton({
       icon={
         <InputPassword className={cn("size-4", password && "text-blue-500")} />
       }
-      className="h-9 w-fit px-2.5 font-medium text-neutral-700"
+      className="h-8 w-fit gap-1.5 px-2.5 text-xs font-medium text-neutral-700"
       onClick={() => setShowPasswordModal(true)}
     />
   );
