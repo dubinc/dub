@@ -13,7 +13,7 @@ import { useImportShortModal } from "@/ui/modals/import-short-modal";
 import { useCookies } from "@dub/ui";
 import { DEFAULT_LINK_PROPS, getUrlFromString } from "@dub/utils";
 import { useSession } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useSelectedLayoutSegment } from "next/navigation";
 import {
   Dispatch,
   ReactNode,
@@ -63,6 +63,8 @@ export function ModalProvider({ children }: { children: ReactNode }) {
 
 function ModalProviderClient({ children }: { children: ReactNode }) {
   const searchParams = useSearchParams();
+  const segment = useSelectedLayoutSegment();
+
   const newLinkValues = useMemo(() => {
     const newLink = searchParams.get("newLink");
     if (newLink && getUrlFromString(newLink)) {
@@ -105,11 +107,12 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
     useImportRewardfulModal();
 
   useEffect(() => {
+    if (segment === "(redirects)") return;
     setShowProgramWelcomeModal(searchParams.has("onboarded-program"));
     setShowWelcomeModal(
       searchParams.has("onboarded") || searchParams.has("upgraded"),
     );
-  }, [searchParams]);
+  }, [segment, searchParams]);
 
   const [hashes, setHashes] = useCookies<SimpleLinkProps[]>("hashes__dub", [], {
     domain: !!process.env.NEXT_PUBLIC_VERCEL_URL ? ".dub.co" : undefined,
@@ -150,10 +153,10 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
 
   // handle ?newWorkspace and ?newLink query params
   useEffect(() => {
-    if (searchParams.has("newWorkspace")) {
+    if (searchParams.has("newWorkspace") && segment !== "(redirects)") {
       setShowAddWorkspaceModal(true);
     }
-    if (searchParams.has("newLink")) {
+    if (searchParams.has("newLink") && segment !== "(redirects)") {
       setShowLinkBuilder(true);
     }
   }, []);
