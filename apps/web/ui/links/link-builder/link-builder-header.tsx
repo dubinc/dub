@@ -55,38 +55,39 @@ export function LinkBuilderHeader({
         className,
       )}
     >
-      {foldersEnabled && (
-        <div className="flex min-w-0 max-w-full items-center gap-1">
-          <FolderDropdown
-            hideViewAll={true}
-            disableAutoRedirect={true}
-            onFolderSelect={(folder) => {
-              setValue("folderId", folder.id, { shouldDirty: true });
-            }}
-            buttonClassName="max-w-60 md:max-w-[24rem] min-w-0"
-            buttonTextClassName="text-sm md:text-sm font-medium"
-            selectedFolderId={folderId ?? undefined}
-          />
+      <div className="flex min-w-0 max-w-full items-center gap-1">
+        {foldersEnabled && (
+          <>
+            <FolderDropdown
+              hideViewAll={true}
+              disableAutoRedirect={true}
+              onFolderSelect={(folder) => {
+                setValue("folderId", folder.id, { shouldDirty: true });
+              }}
+              buttonClassName="max-w-60 md:max-w-[24rem] min-w-0"
+              buttonTextClassName="text-sm md:text-sm font-medium"
+              selectedFolderId={folderId ?? undefined}
+            />
 
-          <ChevronRight className="hidden size-4 shrink-0 text-neutral-500 md:block" />
-
-          {onSelectLink ? (
-            <div className="min-w-0">
-              <LinkSelector selectedLink={props!} onSelect={onSelectLink} />
-            </div>
-          ) : (
-            <div className="flex min-w-0 items-center gap-2">
-              <LinkLogo
-                apexDomain={getApexDomain(debouncedUrl)}
-                className="size-6 shrink-0 sm:size-6 [&>*]:size-3 sm:[&>*]:size-4"
-              />
-              <h3 className="!mt-0 max-w-sm truncate text-sm font-medium">
-                {props ? `Edit ${shortLink}` : "New link"}
-              </h3>
-            </div>
-          )}
-        </div>
-      )}
+            <ChevronRight className="hidden size-4 shrink-0 text-neutral-500 md:block" />
+          </>
+        )}
+        {onSelectLink ? (
+          <div className="min-w-0">
+            <LinkSelector selectedLink={props!} onSelect={onSelectLink} />
+          </div>
+        ) : (
+          <div className="flex min-w-0 items-center gap-2">
+            <LinkLogo
+              apexDomain={getApexDomain(debouncedUrl)}
+              className="size-6 shrink-0 sm:size-6 [&>*]:size-3 sm:[&>*]:size-4"
+            />
+            <h3 className="!mt-0 max-w-sm truncate text-sm font-medium">
+              {props ? `Edit ${shortLink}` : "New link"}
+            </h3>
+          </div>
+        )}
+      </div>
       <div className="flex items-center gap-4">
         {children}
         {onClose && (
