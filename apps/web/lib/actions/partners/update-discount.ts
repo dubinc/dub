@@ -5,7 +5,7 @@ import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { qstash } from "@/lib/cron";
 import { updateDiscountSchema } from "@/lib/zod/schemas/discount";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, deepEqual } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
@@ -29,7 +29,7 @@ export const updateDiscountAction = authActionClient
       programId,
     });
 
-    await getDiscountOrThrow({
+    const discount = await getDiscountOrThrow({
       programId,
       discountId,
     });
@@ -58,7 +58,7 @@ export const updateDiscountAction = authActionClient
       throw new Error("Default discount cannot be updated with partners.");
     }
 
-    await prisma.discount.update({
+    const updatedDiscount = await prisma.discount.update({
       where: {
         id: discountId,
       },
@@ -85,6 +85,7 @@ export const updateDiscountAction = authActionClient
             discountId,
           },
         }),
+
         // remove discountId from partners not in partnerIds
         prisma.programEnrollment.updateMany({
           where: {
@@ -102,14 +103,33 @@ export const updateDiscountAction = authActionClient
     }
 
     waitUntil(
-      qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/sync-discounts`,
-        body: {
-          programId,
-          discountId,
-          isDefault,
-          action: "discount-updated",
-        },
-      }),
+      (async () => {
+        const shouldExpireCache = !deepEqual(
+          {
+            amount: discount.amount,
+            type: discount.type,
+            maxDuration: discount.maxDuration,
+          },
+          {
+            amount: updatedDiscount.amount,
+            type: updatedDiscount.type,
+            maxDuration: updatedDiscount.maxDuration,
+          },
+        );
+
+        if (!shouldExpireCache) {
+          return;
+        }
+
+        qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/sync-discounts`,
+          body: {
+            programId,
+            discountId,
+            isDefault,
+            action: "discount-updated",
+          },
+        });
+      })(),
     );
   });

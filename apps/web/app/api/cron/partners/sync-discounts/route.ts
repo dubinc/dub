@@ -1,10 +1,8 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { linkCache } from "@/lib/api/links/cache";
-import { qstash } from "@/lib/cron";
+import { CACHE_EXPIRATION, linkCache } from "@/lib/api/links/cache";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { redis } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -13,22 +11,19 @@ const schema = z.object({
   programId: z.string(),
   discountId: z.string(),
   isDefault: z.boolean(),
-  page: z.number().optional().default(1),
   action: z.enum(["discount-created", "discount-updated", "discount-deleted"]),
 });
 
-const PAGE_SIZE = 100;
-
-// POST /api/cron/partners/sync-discounts - Sync the partner link discounts to Redis
+// This route is used to invalidate the partnerlink cache when a discount is created/updated/deleted.
+// POST /api/cron/partners/sync-discounts
 export async function POST(req: Request) {
   try {
     const rawBody = await req.text();
     await verifyQstashSignature({ req, rawBody });
 
     const body = schema.parse(JSON.parse(rawBody));
-    const { discountId, page, action, isDefault, programId } = body;
+    const { programId, discountId, isDefault, action } = body;
 
-    // If the discount is created or updated, we need to add it to the Redis cache
     if (action === "discount-created" || action === "discount-updated") {
       const discount = await prisma.discount.findUnique({
         where: {
@@ -40,62 +35,56 @@ export async function POST(req: Request) {
         return new Response("Discount not found.");
       }
 
-      const links = await prisma.link.findMany({
-        where: {
-          programId,
-          programEnrollment: {
-            discountId: isDefault ? null : discountId,
-          },
-        },
-        include: {
-          webhooks: {
-            select: {
-              id: true,
+      let page = 0;
+      let total = 0;
+      const take = 1000;
+
+      while (true) {
+        const links = await prisma.link.findMany({
+          where: {
+            programId,
+            programEnrollment: {
+              discountId: isDefault ? null : discountId,
             },
-          },
-          programEnrollment: {
-            select: {
-              partner: {
-                select: {
-                  id: true,
-                  name: true,
-                  image: true,
+            OR: [
+              {
+                updatedAt: {
+                  gt: new Date(Date.now() - CACHE_EXPIRATION * 1000),
                 },
               },
-            },
+              {
+                lastClicked: {
+                  gt: new Date(Date.now() - CACHE_EXPIRATION * 1000),
+                },
+              },
+            ],
           },
-        },
-        take: PAGE_SIZE,
-        skip: (page - 1) * PAGE_SIZE,
-      });
+          select: {
+            id: true,
+            domain: true,
+            key: true,
+          },
+          take,
+          skip: page * take,
+        });
 
-      if (links.length === 0) {
-        return new Response("No more links to process. Exiting...");
+        if (links.length === 0) {
+          break;
+        }
+
+        await linkCache.expireMany(links);
+
+        page += 1;
+        total += links.length;
       }
 
-      await linkCache.mset(
-        links.map((link) => ({
-          ...link,
-          webhooks: link.webhooks.map(({ id }) => ({ webhookId: id })),
-          partner: link.programEnrollment?.partner,
-          discount,
-        })),
-      );
-
-      await qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/sync-discounts`,
-        body: {
-          ...body,
-          page: page + 1,
-        },
-      });
-
-      return new Response("OK");
+      return new Response(`Invalidated ${total} links.`);
     }
 
-    // If the discount is deleted, we need to remove it from the Redis cache
     if (action === "discount-deleted") {
       let page = 0;
+      let total = 0;
+      const take = 1000;
 
       while (true) {
         let partnerIds: string[] = [];
@@ -104,7 +93,7 @@ export async function POST(req: Request) {
           partnerIds =
             (await redis.lpop<string[]>(
               `discount-partners:${discountId}`,
-              PAGE_SIZE,
+              take,
             )) || [];
 
           // There won't be any entries in Redis for the default discount
@@ -125,44 +114,39 @@ export async function POST(req: Request) {
               }),
               discountId: null,
             },
-          },
-          include: {
-            webhooks: {
-              select: {
-                id: true,
-              },
-            },
-            programEnrollment: {
-              select: {
-                partner: {
-                  select: {
-                    id: true,
-                    name: true,
-                    image: true,
-                  },
+            OR: [
+              {
+                updatedAt: {
+                  gt: new Date(Date.now() - CACHE_EXPIRATION * 1000),
                 },
               },
-            },
+              {
+                lastClicked: {
+                  gt: new Date(Date.now() - CACHE_EXPIRATION * 1000),
+                },
+              },
+            ],
           },
-          take: PAGE_SIZE,
-          skip: page * PAGE_SIZE,
+          select: {
+            id: true,
+            domain: true,
+            key: true,
+          },
+          take,
+          skip: page * take,
         });
 
         if (links.length === 0) {
           break;
         }
 
-        await linkCache.mset(
-          links.map((link) => ({
-            ...link,
-            webhooks: link.webhooks.map(({ id }) => ({ webhookId: id })),
-            partner: link.programEnrollment?.partner,
-            discount: null,
-          })),
-        );
+        await linkCache.expireMany(links);
 
         page += 1;
+        total += links.length;
       }
+
+      return new Response(`Invalidated ${total} links.`);
     }
 
     return new Response("OK");
