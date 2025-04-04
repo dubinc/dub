@@ -45,6 +45,11 @@ export async function chargeSucceeded(event: Stripe.Event) {
     return;
   }
 
+  if (invoice.payouts.length === 0) {
+    console.log("No payouts found with status not completed, skipping...");
+    return;
+  }
+
   for (const payout of invoice.payouts) {
     const transfer = await stripe.transfers.create({
       amount: payout.amount,
