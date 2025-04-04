@@ -25,10 +25,11 @@ import { QRCodePreview } from "@/ui/links/link-builder/qr-code-preview";
 import { TagSelect } from "@/ui/links/link-builder/tag-select";
 import { useLinkBuilderSubmit } from "@/ui/links/link-builder/use-link-builder-submit";
 import { useMetatags } from "@/ui/links/link-builder/use-metatags";
+import { LinkControls } from "@/ui/links/link-controls";
 import { useKeyboardShortcut, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { notFound, useParams, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { useFormContext, useFormState } from "react-hook-form";
 
 export function LinkPageClient() {
@@ -65,7 +66,7 @@ export function LinkPageClient() {
   );
 
   return link ? (
-    <LinkBuilderProvider props={link} workspace={workspace}>
+    <LinkBuilderProvider props={link} workspace={workspace} modal={false}>
       <LinkBuilder link={link} />
     </LinkBuilderProvider>
   ) : (
@@ -109,6 +110,11 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
     enabled: !isDirty,
   });
 
+  // Save when CMD+S or CTRL+S is pressed
+  useKeyboardShortcut(["meta+s", "ctrl+s"], () => handleSubmit(onSubmit)(), {
+    enabled: isDirty,
+  });
+
   const [isChangingLink, setIsChangingLink] = useState(false);
 
   return (
@@ -149,13 +155,14 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
             <div className="shrink-0">
               <LinkAnalyticsBadge link={link} />
             </div>
+            <Controls link={link} />
           </div>
         </LinkBuilderHeader>
       </div>
       <form
         className={cn(
           "grid grow grid-cols-1 transition-opacity lg:grid-cols-[minmax(0,1fr)_300px]",
-          "divide-neutral-200 border-t border-neutral-200 lg:divide-x lg:divide-y",
+          "divide-neutral-200 border-t border-neutral-200 lg:divide-x lg:divide-y-0",
           isChangingLink && "opacity-50",
         )}
         onSubmit={handleSubmit(onSubmit)}
@@ -206,6 +213,33 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
   );
 }
 
+const Controls = memo(({ link }: { link: ExpandedLinkProps }) => {
+  const router = useRouter();
+  const { slug } = useWorkspace();
+  const [openPopover, setOpenPopover] = useState(false);
+  const { setValue, getValues, reset } = useFormContext<LinkFormData>();
+
+  return (
+    <div className="">
+      <LinkControls
+        link={link}
+        openPopover={openPopover}
+        setOpenPopover={setOpenPopover}
+        shortcutsEnabled={openPopover}
+        options={["id", "move", "archive", "transfer", "delete"]}
+        onMoveSuccess={(folderId) => {
+          setValue("folderId", folderId);
+          reset(getValues(), { keepValues: true, keepDirty: false });
+        }}
+        onTransferSuccess={() => router.push(`/${slug}/links`)}
+        onDeleteSuccess={() => router.push(`/${slug}/links`)}
+        className="h-7 border border-neutral-200"
+        iconClassName="size-4"
+      />
+    </div>
+  );
+});
+
 function LoadingSkeleton() {
   return (
     <div className="flex min-h-[calc(100vh-8px)] flex-col rounded-t-[inherit] bg-white">
@@ -216,7 +250,7 @@ function LoadingSkeleton() {
       <div
         className={cn(
           "grid grow grid-cols-1 lg:grid-cols-[minmax(0,1fr)_300px]",
-          "divide-neutral-200 border-t border-neutral-200 lg:divide-x lg:divide-y lg:divide-y-0",
+          "divide-neutral-200 border-t border-neutral-200 lg:divide-x lg:divide-y-0",
         )}
       >
         <div className="relative flex min-h-full flex-col px-4 md:px-6">
