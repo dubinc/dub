@@ -305,7 +305,11 @@ function Menu({
     });
 
   const { setShowDeleteDomainModal, DeleteDomainModal } = useDeleteDomainModal({
-    props,
+    props: {
+      slug: props.slug,
+      type: "custom",
+      registeredDomain: Boolean(props.registeredDomain),
+    },
   });
 
   const { setShowLinkBuilder, LinkBuilder } = useLinkBuilder({
