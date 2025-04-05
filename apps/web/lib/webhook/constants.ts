@@ -14,7 +14,8 @@ export const WORKSPACE_LEVEL_WEBHOOK_TRIGGERS = [
   "link.deleted",
   "lead.created",
   "sale.created",
-  "partner.created",
+  "partner.created", // Deprecated (TODO:Remove this after customers migrate to the new partner.enrolled trigger)
+  "partner.enrolled",
 ] as const;
 
 export const LINK_LEVEL_WEBHOOK_TRIGGERS = ["link.clicked"] as const;
@@ -32,6 +33,7 @@ export const WEBHOOK_TRIGGER_DESCRIPTIONS = {
   "lead.created": "Lead created",
   "sale.created": "Sale created",
   "partner.created": "Partner created",
+  "partner.enrolled": "Partner enrolled",
 } as const;
 
 export const WEBHOOK_FAILURE_NOTIFY_THRESHOLDS = [5, 10, 15] as const;

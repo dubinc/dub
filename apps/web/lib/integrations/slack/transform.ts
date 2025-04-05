@@ -241,6 +241,7 @@ const slackTemplates: Record<WebhookTrigger, any> = {
   "lead.created": createLeadTemplate,
   "sale.created": createSaleTemplate,
   "partner.created": createPartnerTemplate,
+  "partner.enrolled": createPartnerTemplate,
 };
 
 export const formatEventForSlack = (

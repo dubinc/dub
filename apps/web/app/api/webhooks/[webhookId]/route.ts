@@ -124,6 +124,19 @@ export const PATCH = withWorkspace(
       }
     }
 
+    if (triggers) {
+      const hasPartnersTrigger = triggers.some((trigger) =>
+        ["partner.created", "partner.enrolled"].includes(trigger),
+      );
+
+      if (hasPartnersTrigger && !workspace.partnersEnabled) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: `Partners are not enabled on this workspace to use "partner.enrolled" trigger.`,
+        });
+      }
+    }
+
     const oldLinks = await prisma.linkWebhook.findMany({
       where: {
         webhookId,

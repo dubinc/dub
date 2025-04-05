@@ -109,6 +109,19 @@ export const webhookEventSchema = z
       .openapi({
         ref: "PartnerCreatedEvent",
         description: "Triggered when a partner is created.",
+        deprecated: true,
+      }),
+
+    z
+      .object({
+        id: z.string(),
+        event: z.literal("partner.enrolled"),
+        createdAt: z.string(),
+        data: EnrolledPartnerSchema,
+      })
+      .openapi({
+        ref: "PartnerEnrolledEvent",
+        description: "Triggered when a partner is enrolled.",
       }),
   ])
   .openapi({
