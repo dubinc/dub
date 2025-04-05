@@ -2,9 +2,17 @@ import { NextResponse } from "next/server";
 
 export function createResponseWithCookie(
   response: NextResponse,
-  { clickId, path }: { clickId: string; path: string },
-): NextResponse {
-  response.cookies.set("dub_id", clickId, {
+  {
+    name,
+    value,
+    path,
+  }: {
+    name: string;
+    value: string;
+    path: string;
+  },
+) {
+  response.cookies.set(name, value, {
     path,
     maxAge: 60 * 60, // 1 hour
   });
