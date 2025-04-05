@@ -165,4 +165,4 @@ SQL >
         {% else %} referers_composite
         {% end %}
 
-
+TYPE endpoint

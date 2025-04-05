@@ -168,4 +168,4 @@ SQL >
         {% else %} top_urls_composite
         {% end %}
 
-
+TYPE endpoint

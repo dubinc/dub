@@ -327,4 +327,4 @@ SQL >
         {% else %} timeseries_composite
         {% end %}
 
-
+TYPE endpoint

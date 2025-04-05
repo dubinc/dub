@@ -191,4 +191,4 @@ SQL >
         {% else %} utms_composite
         {% end %}
 
-
+TYPE endpoint

@@ -192,4 +192,4 @@ SQL >
         {% else %} continents_composite
         {% end %}
 
-
+TYPE endpoint

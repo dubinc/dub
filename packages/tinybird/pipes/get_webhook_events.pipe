@@ -22,4 +22,4 @@ SQL >
         ORDER BY timestamp DESC
         limit 100
 
-
+TYPE endpoint

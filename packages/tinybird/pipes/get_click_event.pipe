@@ -12,4 +12,4 @@ SQL >
 
     % SELECT * FROM dub_click_events WHERE click_id = {{ clickId }} LIMIT 1
 
-
+TYPE endpoint

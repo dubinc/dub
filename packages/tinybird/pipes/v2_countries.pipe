@@ -192,3 +192,4 @@ SQL >
         {% else %} countries_composite
         {% end %}
 
+TYPE endpoint
