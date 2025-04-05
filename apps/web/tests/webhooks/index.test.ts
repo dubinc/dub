@@ -45,6 +45,7 @@ const eventSchemas: Record<WebhookTrigger, z.ZodSchema> = {
   "lead.created": leadWebhookEventSchemaExtended,
   "sale.created": saleWebhookEventSchemaExtended,
   "partner.created": enrolledPartnerSchemaExtended,
+  "partner.enrolled": enrolledPartnerSchemaExtended,
 };
 
 describe("Webhooks", () => {
@@ -99,14 +100,7 @@ const assertQstashMessage = async (
 
   expect(receivedBody.event).toEqual(trigger);
   expect(receivedBody.data).toEqual(body);
-
-  // TODO:
-  // Fix the partner.created schema not working on GH CI
-  if (trigger !== "partner.created") {
-    expect(eventSchemas[trigger].safeParse(receivedBody.data).success).toBe(
-      true,
-    );
-  }
+  expect(eventSchemas[trigger].safeParse(receivedBody.data).success).toBe(true);
 };
 
 // TODO:

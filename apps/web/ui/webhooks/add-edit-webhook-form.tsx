@@ -197,8 +197,8 @@ export default function AddEditWebhookForm({
           </label>
           <div className="mt-3 flex flex-col gap-2">
             {WORKSPACE_LEVEL_WEBHOOK_TRIGGERS.filter(
-              // if partners are not enabled, don't show partner.created
-              (trigger) => partnersEnabled || trigger !== "partner.created",
+              // if partners are not enabled, don't show partner.enrolled
+              (trigger) => partnersEnabled || trigger !== "partner.enrolled",
             ).map((trigger) => (
               <div key={trigger} className="group flex gap-2">
                 <Checkbox
