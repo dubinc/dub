@@ -29,6 +29,7 @@ export const FolderSwitcher = () => {
 
   const { folder } = useFolder({
     folderId,
+    enabled: !!folderId,
   });
 
   useEffect(() => {
