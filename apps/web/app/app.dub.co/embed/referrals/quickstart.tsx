@@ -1,4 +1,4 @@
-import { Link, Program } from "@dub/prisma/client";
+import { Program } from "@dub/prisma/client";
 import {
   Button,
   Carousel,
@@ -12,6 +12,7 @@ import {
 } from "@dub/ui";
 import { cn, DUB_LOGO, TAB_ITEM_ANIMATION_SETTINGS } from "@dub/utils";
 import { motion } from "framer-motion";
+import { ReferralsEmbedLink } from "./types";
 
 const BUTTON_CLASSNAME = "h-9 rounded-lg bg-bg-inverted hover:bg-neutral-800";
 
@@ -21,7 +22,7 @@ export function ReferralsEmbedQuickstart({
   onViewResources,
 }: {
   program: Program;
-  link: Link;
+  link: ReferralsEmbedLink;
   onViewResources?: () => void;
 }) {
   const [copied, copyToClipboard] = useCopyToClipboard();
