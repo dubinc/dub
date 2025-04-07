@@ -1,15 +1,12 @@
 import { DubApiError } from "@/lib/api/errors";
-import {
-  isBlacklistedKey,
-  isReservedKey,
-  isReservedUsername,
-} from "@/lib/edge-config";
+import { isBlacklistedKey, isReservedUsername } from "@/lib/edge-config";
 import { checkIfKeyExists } from "@/lib/planetscale";
 import { WorkspaceProps } from "@/lib/types";
 import {
   DEFAULT_REDIRECTS,
   isDubDomain,
   isReservedKeyGlobal,
+  RESERVED_KEYS,
 } from "@dub/utils";
 
 export async function keyChecks({
@@ -46,7 +43,7 @@ export async function keyChecks({
 
   if (isDubDomain(domain) && process.env.NEXT_PUBLIC_IS_DUB) {
     if (domain === "dub.sh" || domain === "dub.link") {
-      if (DEFAULT_REDIRECTS[key] || (await isReservedKey(key))) {
+      if (DEFAULT_REDIRECTS[key] || RESERVED_KEYS.includes(key)) {
         return {
           error: "Duplicate key: This short link already exists.",
           code: "conflict",
