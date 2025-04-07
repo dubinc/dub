@@ -1,4 +1,5 @@
 import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
+import { useLinkBuilderKeyboardShortcut } from "@/ui/links/link-builder/use-link-builder-keyboard-shortcut";
 import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
 import {
   Button,
@@ -6,7 +7,6 @@ import {
   Modal,
   SimpleTooltipContent,
   Tooltip,
-  useKeyboardShortcut,
   useMediaQuery,
 } from "@dub/ui";
 import { CircleHalfDottedClock } from "@dub/ui/icons";
@@ -16,7 +16,6 @@ import {
   getDateTimeLocal,
   parseDateTime,
 } from "@dub/utils";
-import { useParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -284,11 +283,7 @@ function ExpirationButton({
   const { control } = useFormContext<LinkFormData>();
   const expiresAt = useWatch({ control, name: "expiresAt" });
 
-  const { link } = useParams() as { link: string | string[] };
-
-  useKeyboardShortcut("e", () => setShowExpirationModal(true), {
-    modal: link ? false : true,
-  });
+  useLinkBuilderKeyboardShortcut("e", () => setShowExpirationModal(true));
 
   return (
     <Button

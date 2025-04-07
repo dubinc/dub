@@ -4,7 +4,7 @@ import { LinkPageClient } from "./page-client";
 export default function LinkPage() {
   return (
     <PageContent
-      className="mt-0 md:mt-0 md:bg-transparent md:py-0"
+      className="md:mt-0 md:bg-transparent md:py-0"
       contentWrapperClassName="pt-0 md:rounded-tl-2xl"
     >
       <LinkPageClient />

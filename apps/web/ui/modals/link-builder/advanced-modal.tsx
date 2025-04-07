@@ -1,13 +1,12 @@
 import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
+import { useLinkBuilderKeyboardShortcut } from "@/ui/links/link-builder/use-link-builder-keyboard-shortcut";
 import {
   Button,
   InfoTooltip,
   Modal,
   SimpleTooltipContent,
   Tooltip,
-  useKeyboardShortcut,
 } from "@dub/ui";
-import { useParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -49,11 +48,7 @@ function AdvancedModal({
     "tenantId",
   ]);
 
-  const { link } = useParams() as { link: string | string[] };
-
-  useKeyboardShortcut("a", () => setShowAdvancedModal(true), {
-    modal: link ? false : true,
-  });
+  useLinkBuilderKeyboardShortcut("a", () => setShowAdvancedModal(true));
 
   const parentEnabled = Boolean(externalIdParent || tenantIdParent);
 

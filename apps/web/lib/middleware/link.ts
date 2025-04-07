@@ -230,10 +230,10 @@ export default async function LinkMiddleware(
     }
   }
 
-  const cookieStore = cookies();
-  let clickId = cookieStore.get("dub_id")?.value;
+  const cookieName = `dub_id_${domain}_${key}`;
 
-  // TODO: once the migration to new format is done (?via=key), add !isPartnerLink
+  const cookieStore = cookies();
+  let clickId = cookieStore.get(cookieName)?.value;
   if (!clickId) {
     // if trackConversion is enabled, check if clickId is cached in Redis
     if (trackConversion) {
@@ -241,11 +241,18 @@ export default async function LinkMiddleware(
 
       clickId = (await clickCache.get({ domain, key, ip })) || undefined;
     }
+
     // if there's still no clickId, generate a new one
     if (!clickId) {
       clickId = nanoid(16);
     }
   }
+
+  const cookieData = {
+    name: cookieName,
+    value: clickId,
+    path: `/${originalKey}`,
+  };
 
   // for root domain links, if there's no destination URL, rewrite to placeholder page
   if (!url) {
@@ -271,7 +278,7 @@ export default async function LinkMiddleware(
           ...(shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
         },
       }),
-      { clickId, path: `/${originalKey}` },
+      cookieData,
     );
   }
 
@@ -282,7 +289,7 @@ export default async function LinkMiddleware(
 
   // we only pass the clickId if:
   // - trackConversion is enabled
-  // - not a partner link (TODO: add this later) !isPartnerLink 
+  // - not a partner link (TODO: add this later) !isPartnerLink
   // - there is a clickId
   const shouldPassClickId = trackConversion && clickId;
 
@@ -298,7 +305,7 @@ export default async function LinkMiddleware(
           },
         },
       ),
-      { clickId, path: `/${originalKey}` },
+      cookieData,
     );
 
     // rewrite to deeplink page if the link is a mailto: or tel:
@@ -336,7 +343,7 @@ export default async function LinkMiddleware(
           },
         },
       ),
-      { clickId, path: `/${originalKey}` },
+      cookieData,
     );
 
     // rewrite to target URL if link cloaking is enabled
@@ -376,7 +383,7 @@ export default async function LinkMiddleware(
           },
         },
       ),
-      { clickId, path: `/${originalKey}` },
+      cookieData,
     );
 
     // redirect to iOS link if it is specified and the user is on an iOS device
@@ -410,7 +417,7 @@ export default async function LinkMiddleware(
           status: key === "_root" ? 301 : 302,
         },
       ),
-      { clickId, path: `/${originalKey}` },
+      cookieData,
     );
 
     // redirect to Android link if it is specified and the user is on an Android device
@@ -444,7 +451,7 @@ export default async function LinkMiddleware(
           status: key === "_root" ? 301 : 302,
         },
       ),
-      { clickId, path: `/${originalKey}` },
+      cookieData,
     );
 
     // redirect to geo-specific link if it is specified and the user is in the specified country
@@ -478,7 +485,7 @@ export default async function LinkMiddleware(
           status: key === "_root" ? 301 : 302,
         },
       ),
-      { clickId, path: `/${originalKey}` },
+      cookieData,
     );
 
     // regular redirect
@@ -526,7 +533,7 @@ export default async function LinkMiddleware(
           status: key === "_root" ? 301 : 302,
         },
       ),
-      { clickId, path: `/${originalKey}` },
+      cookieData,
     );
   }
 }

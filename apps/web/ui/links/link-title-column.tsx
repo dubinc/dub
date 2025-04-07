@@ -87,7 +87,7 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
         ![defaultFolderId, searchParams.get("folderId")].includes(
           link.folderId,
         ) && (
-          <Link href={`/${slug}?folderId=${link.folderId}`}>
+          <Link href={`/${slug}/links?folderId=${link.folderId}`}>
             {folder ? (
               <FolderIcon
                 folder={folder}

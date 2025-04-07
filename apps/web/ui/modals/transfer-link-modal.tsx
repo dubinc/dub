@@ -30,6 +30,7 @@ type TransferLinkModalProps = {
   showTransferLinkModal: boolean;
   setShowTransferLinkModal: Dispatch<SetStateAction<boolean>>;
   props: LinkProps;
+  onSuccess?: () => void;
 };
 
 function TransferLinkModal(props: TransferLinkModalProps) {
@@ -47,6 +48,7 @@ function TransferLinkModal(props: TransferLinkModalProps) {
 function TransferLinkModalInner({
   setShowTransferLinkModal,
   props,
+  onSuccess,
 }: TransferLinkModalProps) {
   const { id } = useWorkspace();
   const { workspaces } = useWorkspaces();
@@ -76,6 +78,7 @@ function TransferLinkModalInner({
       if (res.ok) {
         mutatePrefix("/api/links");
         setShowTransferLinkModal(false);
+        onSuccess?.();
         return true;
       } else {
         const error = await res.json();
@@ -141,7 +144,13 @@ function TransferLinkModalInner({
   );
 }
 
-export function useTransferLinkModal({ props }: { props: LinkProps }) {
+export function useTransferLinkModal({
+  props,
+  onSuccess,
+}: {
+  props: LinkProps;
+  onSuccess?: () => void;
+}) {
   const [showTransferLinkModal, setShowTransferLinkModal] = useState(false);
 
   const TransferLinkModalCallback = useCallback(() => {
@@ -150,6 +159,7 @@ export function useTransferLinkModal({ props }: { props: LinkProps }) {
         showTransferLinkModal={showTransferLinkModal}
         setShowTransferLinkModal={setShowTransferLinkModal}
         props={props}
+        onSuccess={onSuccess}
       />
     ) : null;
   }, [showTransferLinkModal, setShowTransferLinkModal]);
