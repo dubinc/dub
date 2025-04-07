@@ -7,7 +7,6 @@ import { prisma } from "@dub/prisma";
 import { Project, WebhookReceiver } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
-import { DubApiError } from "../api/errors";
 import { createWebhookSchema } from "../zod/schemas/webhooks";
 import { createWebhookSecret } from "./secret";
 
@@ -27,10 +26,7 @@ export async function createWebhook({
 }) {
   // Webhooks are only supported on Business plans and above
   if (["free", "pro"].includes(workspace.plan)) {
-    throw new DubApiError({
-      code: "bad_request",
-      message: "Webhooks are not supported on free or pro plans.",
-    });
+    return;
   }
 
   const hasPartnersTrigger = triggers.some((trigger) =>
@@ -38,10 +34,7 @@ export async function createWebhook({
   );
 
   if (hasPartnersTrigger && !workspace.partnersEnabled) {
-    throw new DubApiError({
-      code: "bad_request",
-      message: `Partners are not enabled on this workspace to use "partner.enrolled" trigger.`,
-    });
+    return;
   }
 
   const webhook = await prisma.webhook.create({
