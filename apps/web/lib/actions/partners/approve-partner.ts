@@ -110,7 +110,7 @@ export const approvePartnerAction = authActionClient
           }),
         }),
 
-        // TODO: send partner.created webhook
+        // TODO: send partner.enrolled webhook
       ]),
     );
 
