@@ -28,7 +28,7 @@ import { useMetatags } from "@/ui/links/link-builder/use-metatags";
 import { LinkControls } from "@/ui/links/link-controls";
 import {
   Button,
-  CircleCheck,
+  Check,
   Copy,
   useCopyToClipboard,
   useKeyboardShortcut,
@@ -161,26 +161,39 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
               props={link}
               workspaceId={workspace.id!}
             />
+            <Button
+              icon={
+                <div className="relative size-4">
+                  <div
+                    className={cn(
+                      "absolute inset-0 transition-[transform,opacity]",
+                      copied && "translate-y-1 opacity-0",
+                    )}
+                  >
+                    <Copy className="size-4" />
+                  </div>
+                  <div
+                    className={cn(
+                      "absolute inset-0 transition-[transform,opacity]",
+                      !copied && "translate-y-1 opacity-0",
+                    )}
+                  >
+                    <Check className="size-4" />
+                  </div>
+                </div>
+              }
+              text="Copy link"
+              variant="secondary"
+              className="xs:w-fit h-7 px-2.5"
+              onClick={() => {
+                copyToClipboard(link.shortLink).then(() => {
+                  toast.success("Link copied to clipboard");
+                });
+              }}
+            />
             <div className="shrink-0">
               <LinkAnalyticsBadge link={link} />
             </div>
-            <Button
-              variant="secondary"
-              className="h-7 w-fit px-2"
-              text={isMobile ? undefined : "Copy"}
-              icon={
-                copied ? (
-                  <CircleCheck className="size-4" />
-                ) : (
-                  <Copy className="size-4" />
-                )
-              }
-              onClick={() =>
-                toast.promise(copyToClipboard(link.shortLink), {
-                  success: "Copied to clipboard!",
-                })
-              }
-            />
             <Controls link={link} />
           </div>
         </LinkBuilderHeader>
