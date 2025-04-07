@@ -26,11 +26,19 @@ import { TagSelect } from "@/ui/links/link-builder/tag-select";
 import { useLinkBuilderSubmit } from "@/ui/links/link-builder/use-link-builder-submit";
 import { useMetatags } from "@/ui/links/link-builder/use-metatags";
 import { LinkControls } from "@/ui/links/link-controls";
-import { useKeyboardShortcut, useMediaQuery } from "@dub/ui";
+import {
+  Button,
+  CircleCheck,
+  Copy,
+  useCopyToClipboard,
+  useKeyboardShortcut,
+  useMediaQuery,
+} from "@dub/ui";
 import { cn } from "@dub/utils";
 import { notFound, useParams, useRouter } from "next/navigation";
 import { memo, useEffect, useRef, useState } from "react";
 import { useFormContext, useFormState } from "react-hook-form";
+import { toast } from "sonner";
 
 export function LinkPageClient() {
   const params = useParams<{ link: string | string[] }>();
@@ -78,7 +86,8 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
   const router = useRouter();
   const workspace = useWorkspace();
 
-  const { isDesktop } = useMediaQuery();
+  const { isDesktop, isMobile } = useMediaQuery();
+  const [copied, copyToClipboard] = useCopyToClipboard();
 
   const { control, handleSubmit, reset, getValues } =
     useFormContext<LinkFormData>();
@@ -155,6 +164,23 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
             <div className="shrink-0">
               <LinkAnalyticsBadge link={link} />
             </div>
+            <Button
+              variant="secondary"
+              className="h-7 w-fit px-2"
+              text={isMobile ? undefined : "Copy"}
+              icon={
+                copied ? (
+                  <CircleCheck className="size-4" />
+                ) : (
+                  <Copy className="size-4" />
+                )
+              }
+              onClick={() =>
+                toast.promise(copyToClipboard(link.shortLink), {
+                  success: "Copied to clipboard!",
+                })
+              }
+            />
             <Controls link={link} />
           </div>
         </LinkBuilderHeader>
