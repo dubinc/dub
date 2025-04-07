@@ -37,6 +37,7 @@ interface RewardSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   event: EventType;
   reward?: RewardProps;
+  isDefault?: boolean;
 }
 
 type FormData = z.infer<typeof createRewardSchema>;
@@ -54,15 +55,35 @@ const PARTNER_TYPES = [
   },
 ] as const;
 
-function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
-  const formRef = useRef<HTMLFormElement>(null);
+const DEFAULT_REWARD_TYPES = [
+  {
+    key: "lead",
+    label: "Lead",
+    description: "For sign ups and leads",
+  },
+  {
+    key: "sale",
+    label: "Sale",
+    description: "For sales and subscriptions",
+  },
+] as const;
 
+function RewardSheetContent({
+  setIsOpen,
+  event,
+  reward,
+  isDefault,
+}: RewardSheetProps) {
   const { rewards } = useRewards();
   const { id: workspaceId } = useWorkspace();
+  const formRef = useRef<HTMLFormElement>(null);
   const { program, mutate: mutateProgram } = useProgram();
 
   const [selectedPartnerType, setSelectedPartnerType] =
     useState<(typeof PARTNER_TYPES)[number]["key"]>("all");
+
+  const [selectedDefaultRewardType, setSelectedDefaultRewardType] =
+    useState<(typeof DEFAULT_REWARD_TYPES)[number]["key"]>("lead");
 
   const [isRecurring, setIsRecurring] = useState(
     reward ? reward.maxDuration !== 0 : false,
@@ -83,7 +104,10 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
           ? Infinity
           : reward.maxDuration
         : 12,
-      amount: reward?.type === "flat" ? reward.amount / 100 : reward?.amount,
+      amount:
+        reward?.type === "flat" && reward?.amount
+          ? reward.amount / 100
+          : reward?.amount,
       partnerIds: null,
     },
   });
@@ -93,6 +117,8 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
     "type",
     "partnerIds",
   ]);
+
+  const selectedEvent = watch("event");
 
   const hasProgramWideClickReward = rewards?.some(
     (reward) => reward.event === "click" && reward.partnersCount === 0,
@@ -110,9 +136,9 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
     if (reward) {
       setSelectedPartnerType(reward.partnersCount === 0 ? "all" : "specific");
     } else if (
-      (event === "click" && hasProgramWideClickReward) ||
-      (event === "lead" && hasProgramWideLeadReward) ||
-      (event === "sale" && hasProgramWideSaleReward)
+      (selectedEvent === "click" && hasProgramWideClickReward) ||
+      (selectedEvent === "lead" && hasProgramWideLeadReward) ||
+      (selectedEvent === "sale" && hasProgramWideSaleReward)
     ) {
       setSelectedPartnerType("specific");
     } else {
@@ -120,7 +146,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
     }
   }, [
     reward,
-    event,
+    selectedEvent,
     hasProgramWideClickReward,
     hasProgramWideLeadReward,
     hasProgramWideSaleReward,
@@ -232,22 +258,12 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
   const hasDefaultReward = !!program?.defaultRewardId;
 
   const buttonDisabled =
-    isCreating ||
-    isUpdating ||
     amount == null ||
     (selectedPartnerType === "specific" &&
       (!partnerIds || partnerIds.length === 0));
 
-  const displayPartners =
-    (event === "sale" &&
-      hasDefaultReward &&
-      reward?.id !== program?.defaultRewardId) ||
-    (event !== "sale" && selectedPartnerType === "specific");
-
-  const canDeleteReward =
-    (reward && program?.defaultRewardId !== reward.id) ||
-    isCreating ||
-    isUpdating;
+  const displayPartners = !isDefault && selectedPartnerType === "specific";
+  const canDeleteReward = reward && program?.defaultRewardId !== reward.id;
 
   return (
     <>
@@ -258,9 +274,8 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
       >
         <div className="flex items-start justify-between border-b border-neutral-200 p-6">
           <Sheet.Title className="text-xl font-semibold">
-            {reward ? "Edit" : "Create"}{" "}
-            {!program?.defaultRewardId && event === "sale" ? "default" : ""}{" "}
-            {event} reward
+            {reward ? "Edit" : "Create"} {isDefault ? "default" : ""}{" "}
+            {selectedEvent} reward
           </Sheet.Title>
           <Sheet.Close asChild>
             <Button
@@ -272,89 +287,45 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          <div className="flex flex-col gap-4 p-6">
-            {event !== "sale" && (
-              <div>
+          <div className="flex flex-col gap-8 p-6">
+            {isDefault && !hasDefaultReward && (
+              <div className="grid grid-cols-1 space-y-4">
                 <label className="text-sm font-medium text-neutral-800">
-                  {`Amount per ${event}`}
+                  Reward type
                 </label>
-                <div className="relative mt-2 rounded-md shadow-sm">
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
-                    $
-                  </span>
-                  <input
-                    className={cn(
-                      "block w-full rounded-md border-neutral-300 pl-6 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                      errors.amount &&
-                        "border-red-600 focus:border-red-500 focus:ring-red-600",
-                    )}
-                    {...register("amount", {
-                      required: true,
-                      valueAsNumber: true,
-                      min: 0,
-                      max: 1000,
-                      onChange: handleMoneyInputChange,
-                    })}
-                    onKeyDown={handleMoneyKeyDown}
-                  />
-                  <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
-                    USD
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {event !== "sale" && (
-              <div className="mt-2">
                 <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-                  {PARTNER_TYPES.map((partnerType) => {
-                    const isSelected = selectedPartnerType === partnerType.key;
-
-                    const isDisabled =
-                      (partnerType.key === "all" &&
-                        ((event === "click" && hasProgramWideClickReward) ||
-                          (event === "lead" && hasProgramWideLeadReward))) ||
-                      !!reward;
-
-                    const tooltipContent = isDisabled
-                      ? reward
-                        ? "Partner type cannot be changed for existing rewards"
-                        : `You can only have one program-wide ${event} reward.`
-                      : undefined;
+                  {DEFAULT_REWARD_TYPES.map((rewardType) => {
+                    const isSelected =
+                      selectedDefaultRewardType === rewardType.key;
 
                     const labelContent = (
                       <label
-                        key={partnerType.label}
+                        key={rewardType.label}
                         className={cn(
                           "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
                           "transition-all duration-150",
                           isSelected &&
                             "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
-                          (isDisabled || !!reward) &&
-                            "cursor-not-allowed opacity-60 hover:bg-white",
                         )}
                       >
                         <input
                           type="radio"
-                          value={partnerType.label}
+                          value={rewardType.label}
                           className="hidden"
                           checked={isSelected}
-                          disabled={isDisabled}
                           onChange={(e) => {
                             if (e.target.checked) {
-                              setSelectedPartnerType(partnerType.key);
-
-                              if (partnerType.key === "all") {
-                                setValue("partnerIds", null);
-                              }
+                              setSelectedDefaultRewardType(rewardType.key);
+                              setValue("event", rewardType.key);
+                              setValue("type", "flat");
                             }
                           }}
                         />
                         <div className="flex grow flex-col text-sm">
                           <span className="font-medium">
-                            {partnerType.label}
+                            {rewardType.label}
                           </span>
-                          <span>{partnerType.description}</span>
+                          <span>{rewardType.description}</span>
                         </div>
                         <CircleCheckFill
                           className={cn(
@@ -365,187 +336,259 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                       </label>
                     );
 
-                    return isDisabled ? (
-                      <Tooltip key={partnerType.label} content={tooltipContent}>
-                        {labelContent}
-                      </Tooltip>
-                    ) : (
-                      labelContent
-                    );
+                    return labelContent;
                   })}
                 </div>
               </div>
             )}
 
-            {event === "sale" && (
-              <>
+            {!isDefault && (
+              <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                {PARTNER_TYPES.map((partnerType) => {
+                  const isSelected = selectedPartnerType === partnerType.key;
+
+                  const isDisabled =
+                    (partnerType.key === "all" &&
+                      ((selectedEvent === "click" &&
+                        hasProgramWideClickReward) ||
+                        (selectedEvent === "lead" &&
+                          hasProgramWideLeadReward) ||
+                        (selectedEvent === "sale" &&
+                          hasProgramWideSaleReward))) ||
+                    !!reward;
+
+                  const tooltipContent = isDisabled
+                    ? reward
+                      ? "Partner type cannot be changed for existing rewards"
+                      : `You can only have one program-wide ${selectedEvent} reward.`
+                    : undefined;
+
+                  const labelContent = (
+                    <label
+                      key={partnerType.label}
+                      className={cn(
+                        "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
+                        "transition-all duration-150",
+                        isSelected &&
+                          "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
+                        (isDisabled || !!reward) &&
+                          "cursor-not-allowed opacity-60 hover:bg-white",
+                      )}
+                    >
+                      <input
+                        type="radio"
+                        value={partnerType.label}
+                        className="hidden"
+                        checked={isSelected}
+                        disabled={isDisabled}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedPartnerType(partnerType.key);
+
+                            if (partnerType.key === "all") {
+                              setValue("partnerIds", null);
+                            }
+                          }
+                        }}
+                      />
+                      <div className="flex grow flex-col text-sm">
+                        <span className="font-medium">{partnerType.label}</span>
+                        <span>{partnerType.description}</span>
+                      </div>
+                      <CircleCheckFill
+                        className={cn(
+                          "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
+                          isSelected && "scale-100 opacity-100",
+                        )}
+                      />
+                    </label>
+                  );
+
+                  return isDisabled ? (
+                    <Tooltip key={partnerType.label} content={tooltipContent}>
+                      {labelContent}
+                    </Tooltip>
+                  ) : (
+                    labelContent
+                  );
+                })}
+              </div>
+            )}
+
+            {selectedEvent === "sale" && (
+              <div className="grid grid-cols-1 space-y-4">
                 <div>
                   <label className="text-sm font-medium text-neutral-800">
-                    Commission
+                    Commission structure
                   </label>
-                  <p className="mb-4 text-sm text-neutral-600">
+                  <p className="text-sm text-neutral-600">
                     Set how the affiliate will get rewarded
                   </p>
-                  <div className="-m-1">
-                    <AnimatedSizeContainer
-                      height
-                      transition={{ ease: "easeInOut", duration: 0.2 }}
-                    >
-                      <div className="p-1">
-                        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-                          {COMMISSION_TYPES.map(
-                            ({ label, description, value }) => {
-                              const isSelected =
-                                (value === "recurring") === isRecurring;
+                </div>
 
-                              return (
-                                <label
-                                  key={label}
-                                  className={cn(
-                                    "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
-                                    "transition-all duration-150",
-                                    isSelected &&
-                                      "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
-                                  )}
-                                >
-                                  <input
-                                    type="radio"
-                                    value={value}
-                                    className="hidden"
-                                    checked={isSelected}
-                                    onChange={(e) => {
-                                      if (e.target.checked) {
-                                        setIsRecurring(value === "recurring");
-                                        setValue(
-                                          "maxDuration",
-                                          value === "recurring"
-                                            ? reward?.maxDuration || 12
-                                            : 0,
-                                        );
-                                      }
-                                    }}
-                                  />
-                                  <div className="flex grow flex-col text-sm">
-                                    <span className="font-medium">{label}</span>
-                                    <span>{description}</span>
-                                  </div>
-                                  <CircleCheckFill
-                                    className={cn(
-                                      "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
-                                      isSelected && "scale-100 opacity-100",
-                                    )}
-                                  />
-                                </label>
-                              );
-                            },
-                          )}
-                        </div>
+                <div className="-m-1">
+                  <AnimatedSizeContainer
+                    height
+                    transition={{ ease: "easeInOut", duration: 0.2 }}
+                  >
+                    <div className="flex flex-col p-1">
+                      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                        {COMMISSION_TYPES.map(
+                          ({ label, description, value }) => {
+                            const isSelected =
+                              (value === "recurring") === isRecurring;
 
-                        <div
-                          className={cn(
-                            "transition-opacity duration-200",
-                            isRecurring ? "h-auto" : "h-0 opacity-0",
-                          )}
-                          aria-hidden={!isRecurring}
-                          {...{
-                            inert: !isRecurring,
-                          }}
-                        >
-                          <div className="pt-6">
-                            <label
-                              htmlFor="duration"
-                              className="text-sm font-medium text-neutral-800"
-                            >
-                              Duration
-                            </label>
-                            <div className="relative mt-2 rounded-md shadow-sm">
-                              <select
-                                className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                                {...register("maxDuration", {
-                                  valueAsNumber: true,
-                                })}
+                            return (
+                              <label
+                                key={label}
+                                className={cn(
+                                  "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
+                                  "transition-all duration-150",
+                                  isSelected &&
+                                    "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
+                                )}
                               >
-                                {RECURRING_MAX_DURATIONS.filter(
-                                  (v) => v !== 0,
-                                ).map((v) => (
-                                  <option value={v} key={v}>
-                                    {v} {pluralize("month", Number(v))}
-                                  </option>
-                                ))}
-                                <option value={Infinity}>Lifetime</option>
-                              </select>
-                            </div>
+                                <input
+                                  type="radio"
+                                  value={value}
+                                  className="hidden"
+                                  checked={isSelected}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setIsRecurring(value === "recurring");
+                                      setValue(
+                                        "maxDuration",
+                                        value === "recurring"
+                                          ? reward?.maxDuration || 12
+                                          : 0,
+                                      );
+                                    }
+                                  }}
+                                />
+                                <div className="flex grow flex-col text-sm">
+                                  <span className="font-medium">{label}</span>
+                                  <span>{description}</span>
+                                </div>
+                                <CircleCheckFill
+                                  className={cn(
+                                    "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
+                                    isSelected && "scale-100 opacity-100",
+                                  )}
+                                />
+                              </label>
+                            );
+                          },
+                        )}
+                      </div>
+
+                      <div
+                        className={cn(
+                          "transition-opacity duration-200",
+                          isRecurring ? "h-auto pt-4" : "h-0 opacity-0",
+                        )}
+                        aria-hidden={!isRecurring}
+                        {...{
+                          inert: !isRecurring,
+                        }}
+                      >
+                        <div>
+                          <label
+                            htmlFor="duration"
+                            className="text-sm font-medium text-neutral-800"
+                          >
+                            Duration
+                          </label>
+                          <div className="relative mt-2 rounded-md shadow-sm">
+                            <select
+                              className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                              {...register("maxDuration", {
+                                valueAsNumber: true,
+                              })}
+                            >
+                              {RECURRING_MAX_DURATIONS.filter(
+                                (v) => v !== 0,
+                              ).map((v) => (
+                                <option value={v} key={v}>
+                                  {v} {pluralize("month", Number(v))}
+                                </option>
+                              ))}
+                              <option value={Infinity}>Lifetime</option>
+                            </select>
                           </div>
                         </div>
                       </div>
-                    </AnimatedSizeContainer>
-                  </div>
-                </div>
-
-                <div className="mt-6">
-                  <label className="text-sm font-medium text-neutral-800">
-                    Payout
-                  </label>
-                  <p className="mb-4 text-sm text-neutral-600">
-                    Set how much the affiliate will get rewarded
-                  </p>
-                  <div className="flex flex-col gap-6">
-                    <div>
-                      <label
-                        htmlFor="type"
-                        className="text-sm font-medium text-neutral-800"
-                      >
-                        Payout model
-                      </label>
-                      <div className="relative mt-2 rounded-md shadow-sm">
-                        <select
-                          className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                          {...register("type", { required: true })}
-                        >
-                          <option value="flat">Flat</option>
-                          <option value="percentage">Percentage</option>
-                        </select>
-                      </div>
                     </div>
-
-                    <div>
-                      <label
-                        htmlFor="amount"
-                        className="text-sm font-medium text-neutral-800"
-                      >
-                        Amount
-                      </label>
-                      <div className="relative mt-2 rounded-md shadow-sm">
-                        {type === "flat" && (
-                          <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
-                            $
-                          </span>
-                        )}
-                        <input
-                          className={cn(
-                            "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                            errors.amount &&
-                              "border-red-600 focus:border-red-500 focus:ring-red-600",
-                            type === "flat" ? "pl-6 pr-12" : "pr-7",
-                          )}
-                          {...register("amount", {
-                            required: true,
-                            valueAsNumber: true,
-                            min: 0,
-                            max: type === "flat" ? 1000 : 100,
-                            onChange: handleMoneyInputChange,
-                          })}
-                          onKeyDown={handleMoneyKeyDown}
-                        />
-                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
-                          {type === "flat" ? "USD" : "%"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+                  </AnimatedSizeContainer>
                 </div>
-              </>
+              </div>
             )}
+
+            <div className="grid grid-cols-1 space-y-4">
+              <div>
+                <label className="text-sm font-medium text-neutral-800">
+                  Payout
+                </label>
+                <p className="text-sm text-neutral-600">
+                  Set how much the affiliate will get rewarded
+                </p>
+              </div>
+
+              {selectedEvent === "sale" && (
+                <div>
+                  <label
+                    htmlFor="type"
+                    className="text-sm font-medium text-neutral-800"
+                  >
+                    Payout model
+                  </label>
+                  <div className="relative mt-2 rounded-md shadow-sm">
+                    <select
+                      className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                      {...register("type", { required: true })}
+                    >
+                      <option value="flat">Flat</option>
+                      <option value="percentage">Percentage</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <label
+                  htmlFor="amount"
+                  className="text-sm font-medium text-neutral-800"
+                >
+                  Amount{" "}
+                  {selectedEvent !== "sale" ? `per ${selectedEvent}` : ""}
+                </label>
+                <div className="relative mt-2 rounded-md shadow-sm">
+                  {type === "flat" && (
+                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
+                      $
+                    </span>
+                  )}
+                  <input
+                    className={cn(
+                      "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                      errors.amount &&
+                        "border-red-600 focus:border-red-500 focus:ring-red-600",
+                      type === "flat" ? "pl-6 pr-12" : "pr-7",
+                    )}
+                    {...register("amount", {
+                      required: true,
+                      valueAsNumber: true,
+                      min: 0,
+                      max: type === "flat" ? 1000 : 100,
+                      onChange: handleMoneyInputChange,
+                    })}
+                    onKeyDown={handleMoneyKeyDown}
+                  />
+                  <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
+                    {type === "flat" ? "USD" : "%"}
+                  </span>
+                </div>
+              </div>
+            </div>
 
             {displayPartners && program?.id && (
               <RewardPartnersTable
@@ -569,7 +612,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                 text="Remove reward"
                 onClick={onDelete}
                 loading={isDeleting}
-                disabled={!canDeleteReward}
+                disabled={!canDeleteReward || isCreating || isUpdating}
                 disabledTooltip={
                   program?.defaultRewardId === reward.id
                     ? "This is a default reward and cannot be deleted."
@@ -595,7 +638,9 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
               text={reward ? "Update reward" : "Create reward"}
               className="w-fit"
               loading={isCreating || isUpdating}
-              disabled={buttonDisabled || isDeleting}
+              disabled={
+                buttonDisabled || isDeleting || isCreating || isUpdating
+              }
               disabledTooltip={
                 selectedPartnerType === "specific" &&
                 (!partnerIds || partnerIds.length === 0)
