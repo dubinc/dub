@@ -1,4 +1,5 @@
 import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
+import { useLinkBuilderKeyboardShortcut } from "@/ui/links/link-builder/use-link-builder-keyboard-shortcut";
 import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
 import {
   Button,
@@ -6,7 +7,6 @@ import {
   Modal,
   SimpleTooltipContent,
   Tooltip,
-  useKeyboardShortcut,
   UTM_PARAMETERS,
 } from "@dub/ui";
 import { Crosshairs3, Trash } from "@dub/ui/icons";
@@ -18,7 +18,6 @@ import {
   isValidUrl,
   pluralize,
 } from "@dub/utils";
-import { useParams } from "next/navigation";
 import {
   Dispatch,
   Fragment,
@@ -436,11 +435,7 @@ function TargetingButton({
   const { watch } = useFormContext<LinkFormData>();
   const [ios, android, geo] = watch(["ios", "android", "geo"]);
 
-  const { link } = useParams() as { link: string | string[] };
-
-  useKeyboardShortcut("g", () => setShowTargetingModal(true), {
-    modal: link ? false : true,
-  });
+  useLinkBuilderKeyboardShortcut("g", () => setShowTargetingModal(true));
 
   const geoEnabled = Object.keys(geo || {}).length > 0;
   const enabled = Boolean(ios || android || geoEnabled);

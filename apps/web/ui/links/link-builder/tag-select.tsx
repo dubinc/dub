@@ -13,11 +13,9 @@ import {
   SimpleTooltipContent,
   Tag,
   Tooltip,
-  useKeyboardShortcut,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useCompletion } from "ai/react";
-import { useParams } from "next/navigation";
 import posthog from "posthog-js";
 import { memo, useEffect, useMemo, useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
@@ -25,6 +23,7 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 import { useDebounce } from "use-debounce";
 import { MultiTagsIcon } from "./multi-tags-icon";
+import { useLinkBuilderKeyboardShortcut } from "./use-link-builder-keyboard-shortcut";
 
 function getTagOption(tag: TagProps) {
   return {
@@ -100,10 +99,7 @@ export const TagSelect = memo(() => {
     [tags],
   );
 
-  const { link } = useParams() as { link: string | string[] };
-
-  useKeyboardShortcut("t", () => setIsOpen(true), {
-    modal: link ? false : true,
+  useLinkBuilderKeyboardShortcut("t", () => setIsOpen(true), {
     priority: 2,
   });
 

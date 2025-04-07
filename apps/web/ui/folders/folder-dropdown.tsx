@@ -80,7 +80,7 @@ export const FolderDropdown = ({
 
       if (!disableAutoRedirect) {
         if (folder.id !== "unsorted") {
-          router.push(`/${slug}?folderId=${folder.id}`);
+          router.push(`/${slug}/links?folderId=${folder.id}`);
         } else {
           router.push(`/${slug}`);
         }
@@ -173,7 +173,7 @@ export const FolderDropdown = ({
             setSelectedFolder(folder);
             onFolderSelect
               ? onFolderSelect(folder)
-              : router.push(`/${slug}?folderId=${folder.id}`);
+              : router.push(`/${slug}/links?folderId=${folder.id}`);
           }
         }}
         inputRight={

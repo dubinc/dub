@@ -8,18 +8,17 @@ import {
   ShimmerDots,
   SimpleTooltipContent,
   useInViewport,
-  useKeyboardShortcut,
   useLocalStorage,
   useMediaQuery,
 } from "@dub/ui";
 import { Pen2, QRCode as QRCodeIcon } from "@dub/ui/icons";
 import { DUB_QR_LOGO, linkConstructor } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { useParams } from "next/navigation";
 import { useMemo, useRef } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { useDebounce } from "use-debounce";
 import { QRCodeDesign, useLinkQRModal } from "../../modals/link-qr-modal";
+import { useLinkBuilderKeyboardShortcut } from "./use-link-builder-keyboard-shortcut";
 
 export function QRCodePreview() {
   const { isMobile } = useMediaQuery();
@@ -68,10 +67,7 @@ export function QRCodePreview() {
     onSave: (data) => setData(data),
   });
 
-  const { link } = useParams() as { link: string | string[] };
-
-  useKeyboardShortcut("q", () => setShowLinkQRModal(true), {
-    modal: link ? false : true,
+  useLinkBuilderKeyboardShortcut("q", () => setShowLinkQRModal(true), {
     enabled: Boolean(shortLinkUrl),
   });
 

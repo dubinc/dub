@@ -28,7 +28,7 @@ import {
 } from "@dub/utils";
 import { useCompletion } from "ai/react";
 import { TriangleAlert } from "lucide-react";
-import { useParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import posthog from "posthog-js";
 import {
   forwardRef,
@@ -477,8 +477,10 @@ function DomainCombobox({
   const [isOpen, setIsOpen] = useState(false);
 
   const { link } = useParams() as { link: string | string[] };
+  const pathname = usePathname();
   useKeyboardShortcut("d", () => setIsOpen(true), {
-    modal: link ? false : true,
+    // We're in a modal if this isn't a link page and isn't onboarding
+    modal: !link && !pathname.startsWith("/onboarding"),
   });
 
   const options = useMemo(

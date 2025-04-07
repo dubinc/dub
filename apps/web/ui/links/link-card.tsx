@@ -53,7 +53,7 @@ export function LinkCard({ link }: { link: ResponseLink }) {
           ) && {
             banner: (
               <Link
-                href={`/${slug}?folderId=${folder?.id}`}
+                href={`/${slug}/links?folderId=${folder?.id}`}
                 className="group flex items-center justify-between gap-2 rounded-t-xl border-b border-neutral-100 bg-neutral-50 px-5 py-2 text-xs"
               >
                 <div className="flex items-center gap-1.5">

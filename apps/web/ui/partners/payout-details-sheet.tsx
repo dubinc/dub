@@ -203,6 +203,7 @@ function PayoutDetailsSheetContent({
             <div className="mt-2 flex justify-end">
               <Link
                 href={`/${slug}/programs/${programId}/sales?payoutId=${payout.id}&interval=all`}
+                target="_blank"
                 className={cn(
                   buttonVariants({ variant: "secondary" }),
                   "flex h-7 items-center rounded-lg border px-2 text-sm",
