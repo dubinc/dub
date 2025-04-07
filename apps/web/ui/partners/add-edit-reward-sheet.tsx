@@ -82,9 +82,6 @@ function RewardSheetContent({
   const [selectedPartnerType, setSelectedPartnerType] =
     useState<(typeof PARTNER_TYPES)[number]["key"]>("all");
 
-  const [selectedDefaultRewardType, setSelectedDefaultRewardType] =
-    useState<(typeof DEFAULT_REWARD_TYPES)[number]["key"]>("lead");
-
   const [isRecurring, setIsRecurring] = useState(
     reward ? reward.maxDuration !== 0 : false,
   );
@@ -295,8 +292,7 @@ function RewardSheetContent({
                 </label>
                 <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
                   {DEFAULT_REWARD_TYPES.map((rewardType) => {
-                    const isSelected =
-                      selectedDefaultRewardType === rewardType.key;
+                    const isSelected = selectedEvent === rewardType.key;
 
                     const labelContent = (
                       <label
@@ -315,7 +311,6 @@ function RewardSheetContent({
                           checked={isSelected}
                           onChange={(e) => {
                             if (e.target.checked) {
-                              setSelectedDefaultRewardType(rewardType.key);
                               setValue("event", rewardType.key);
                               setValue("type", "flat");
                             }

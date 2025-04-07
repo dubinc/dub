@@ -30,6 +30,7 @@ export const programRewardSchema = z
   })
   .merge(
     z.object({
+      defaultRewardType: z.enum(["lead", "sale"]).default("lead"),
       type: z.nativeEnum(CommissionType).nullish(),
       amount: z.number().min(0).nullish(),
       maxDuration: z.coerce
