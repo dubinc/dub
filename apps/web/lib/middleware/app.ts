@@ -10,7 +10,7 @@ import { isTopLevelSettingsRedirect } from "./utils/is-top-level-settings-redire
 import WorkspacesMiddleware from "./workspaces";
 
 export default async function AppMiddleware(req: NextRequest) {
-  const { path, fullPath } = parse(req);
+  const { path, fullPath, searchParamsString } = parse(req);
 
   if (path.startsWith("/embed")) {
     return EmbedMiddleware(req);
@@ -95,8 +95,10 @@ export default async function AppMiddleware(req: NextRequest) {
       isTopLevelSettingsRedirect(path)
     ) {
       return WorkspacesMiddleware(req, user);
-    } else if (appRedirect(fullPath)) {
-      return NextResponse.redirect(new URL(appRedirect(fullPath), req.url));
+    } else if (appRedirect(path)) {
+      return NextResponse.redirect(
+        new URL(`${appRedirect(path)}${searchParamsString}`, req.url),
+      );
     }
   }
 
