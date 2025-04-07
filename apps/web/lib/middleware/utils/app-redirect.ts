@@ -1,4 +1,4 @@
-import { RESERVED_KEYS } from "@dub/utils";
+import { RESERVED_SLUGS } from "@dub/utils";
 
 const APP_REDIRECTS = {
   "/account": "/account/settings",
@@ -13,7 +13,7 @@ export const appRedirect = (path: string) => {
   }
   // Redirect "/[slug]" to "/[slug]/links"
   const rootRegex = /^\/([^\/]+)$/;
-  if (rootRegex.test(path) && !RESERVED_KEYS.includes(path.split("/")[1]))
+  if (rootRegex.test(path) && !RESERVED_SLUGS.includes(path.split("/")[1]))
     return path.replace(rootRegex, "/$1/links");
 
   // Redirect "programs/[programId]/settings" to "programs/[programId]/settings/rewards" (first tab)

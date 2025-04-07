@@ -6,7 +6,7 @@ import {
   DEFAULT_REDIRECTS,
   isDubDomain,
   isReservedKeyGlobal,
-  RESERVED_KEYS,
+  RESERVED_SLUGS,
 } from "@dub/utils";
 
 export async function keyChecks({
@@ -43,7 +43,7 @@ export async function keyChecks({
 
   if (isDubDomain(domain) && process.env.NEXT_PUBLIC_IS_DUB) {
     if (domain === "dub.sh" || domain === "dub.link") {
-      if (DEFAULT_REDIRECTS[key] || RESERVED_KEYS.includes(key)) {
+      if (DEFAULT_REDIRECTS[key] || RESERVED_SLUGS.includes(key)) {
         return {
           error: "Duplicate key: This short link already exists.",
           code: "conflict",

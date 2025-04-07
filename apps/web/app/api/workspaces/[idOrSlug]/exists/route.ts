@@ -1,12 +1,12 @@
 import { withSession } from "@/lib/auth";
 import { prisma } from "@dub/prisma";
-import { DEFAULT_REDIRECTS, RESERVED_KEYS } from "@dub/utils";
+import { DEFAULT_REDIRECTS, RESERVED_SLUGS } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/workspaces/[idOrSlug]/exists – check if a project exists
 export const GET = withSession(async ({ params }) => {
   const { idOrSlug: slug } = params;
-  if (RESERVED_KEYS.includes(slug) || DEFAULT_REDIRECTS[slug]) {
+  if (RESERVED_SLUGS.includes(slug) || DEFAULT_REDIRECTS[slug]) {
     return NextResponse.json(1);
   }
   const project = await prisma.project.findUnique({

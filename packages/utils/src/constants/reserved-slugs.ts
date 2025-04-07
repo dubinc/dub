@@ -4,7 +4,7 @@
  * - cannot be used as a workspace slug
  */
 
-export const RESERVED_KEYS = [
+export const RESERVED_SLUGS = [
   "va",
   "static",
   "stats",
@@ -48,4 +48,8 @@ export const RESERVED_KEYS = [
   "wrapped",
   "invoices",
   "onboarding",
+  "programs",
+  "partners",
+  "payouts",
+  "resources",
 ];

@@ -15,5 +15,5 @@ export * from "./misc";
 export * from "./plan-compare";
 export * from "./pricing";
 export * from "./regions";
-export * from "./reserved-keys";
+export * from "./reserved-slugs";
 export * from "./saml";
