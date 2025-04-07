@@ -35,29 +35,24 @@ export const getLinkWithPartner = async ({
 
   console.time("getLinkWithPartner");
 
-  // TODO:
-  // Use inner query for program discount
-
   const { rows } =
     (await conn.execute(
       `SELECT 
-        l.*,
-        w.allowedHostnames,
-        p.id as partnerId,
-        p.name as partnerName,
-        p.image as partnerImage,
-        COALESCE(partDis.id, pgmDis.id) as discountId,
-        COALESCE(partDis.amount, pgmDis.amount) as discountAmount,
-        COALESCE(partDis.type, pgmDis.type) as discountType,
-        COALESCE(partDis.maxDuration, pgmDis.maxDuration) as discountMaxDuration
-       FROM Link l 
-       LEFT JOIN ProgramEnrollment pe ON l.programId = pe.programId AND l.partnerId = pe.partnerId
-       LEFT JOIN Partner p ON pe.partnerId = p.id
-       LEFT JOIN Discount partDis ON pe.discountId = partDis.id
-       LEFT JOIN Program prog ON l.programId = prog.id
-       LEFT JOIN Discount pgmDis ON prog.defaultDiscountId = pgmDis.id
-       LEFT JOIN Project w ON l.projectId = w.id
-       WHERE l.domain = ? AND l.key = ?`,
+        Link.*,
+        Partner.id as partnerId,
+        Partner.name as partnerName,
+        Partner.image as partnerImage,
+        COALESCE(PartnerDiscount.id, ProgramDiscount.id) as discountId,
+        COALESCE(PartnerDiscount.amount, ProgramDiscount.amount) as discountAmount,
+        COALESCE(PartnerDiscount.type, ProgramDiscount.type) as discountType,
+        COALESCE(PartnerDiscount.maxDuration, ProgramDiscount.maxDuration) as discountMaxDuration
+       FROM Link
+       LEFT JOIN ProgramEnrollment ON ProgramEnrollment.programId = Link.programId AND ProgramEnrollment.partnerId = Link.partnerId
+       LEFT JOIN Partner ON Partner.id = ProgramEnrollment.partnerId
+       LEFT JOIN Discount PartnerDiscount ON ProgramEnrollment.discountId = PartnerDiscount.id
+       LEFT JOIN Program ON Program.id = Link.programId
+       LEFT JOIN Discount ProgramDiscount ON ProgramDiscount.id = Program.defaultDiscountId
+       WHERE Link.domain = ? AND Link.key = ?`,
       [domain, keyToQuery],
     )) || {};
 
@@ -92,13 +87,14 @@ export const getLinkWithPartner = async ({
           image: partnerImage,
         }
       : null,
-    discount: discountId
-      ? {
-          id: discountId,
-          amount: discountAmount,
-          type: discountType,
-          maxDuration: discountMaxDuration,
-        }
-      : null,
+    discount:
+      discountId && discountAmount
+        ? {
+            id: discountId,
+            amount: discountAmount,
+            type: discountType,
+            maxDuration: discountMaxDuration,
+          }
+        : null,
   };
 };
