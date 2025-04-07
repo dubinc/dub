@@ -8,6 +8,7 @@ export const RESERVED_SLUGS = [
   "va",
   "static",
   "stats",
+  "share",
   "robots.txt",
   "proxy",
   "account",
