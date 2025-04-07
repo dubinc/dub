@@ -1,5 +1,5 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { CACHE_EXPIRATION, linkCache } from "@/lib/api/links/cache";
+import { linkCache } from "@/lib/api/links/cache";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { redis } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
@@ -46,18 +46,6 @@ export async function POST(req: Request) {
             programEnrollment: {
               discountId: isDefault ? null : discountId,
             },
-            OR: [
-              {
-                updatedAt: {
-                  gt: new Date(Date.now() - CACHE_EXPIRATION * 1000),
-                },
-              },
-              {
-                lastClicked: {
-                  gt: new Date(Date.now() - CACHE_EXPIRATION * 1000),
-                },
-              },
-            ],
           },
           select: {
             domain: true,
@@ -113,18 +101,6 @@ export async function POST(req: Request) {
               }),
               discountId: null,
             },
-            OR: [
-              {
-                updatedAt: {
-                  gt: new Date(Date.now() - CACHE_EXPIRATION * 1000),
-                },
-              },
-              {
-                lastClicked: {
-                  gt: new Date(Date.now() - CACHE_EXPIRATION * 1000),
-                },
-              },
-            ],
           },
           select: {
             domain: true,
