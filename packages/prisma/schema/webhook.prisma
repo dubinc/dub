@@ -29,9 +29,10 @@ model Webhook {
 }
 
 model LinkWebhook {
-  id        String @id @default(cuid())
+  id        String  @id @default(cuid())
   linkId    String
   webhookId String
+  enabled   Boolean @default(true)
 
   link    Link    @relation(fields: [linkId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   webhook Webhook @relation(fields: [webhookId], references: [id], onUpdate: Cascade, onDelete: Cascade)
