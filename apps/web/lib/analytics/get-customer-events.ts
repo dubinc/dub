@@ -12,7 +12,7 @@ import { EventsFilters } from "./types";
 import { getStartEndDates } from "./utils/get-start-end-dates";
 
 export const getCustomerEvents = async (
-  { customerId, clickId }: { customerId: string; clickId: string },
+  { customerId, clickId }: { customerId: string; clickId?: string | null },
   params: Pick<
     EventsFilters,
     "sortOrder" | "start" | "end" | "dataAvailableFrom" | "interval"
@@ -36,7 +36,7 @@ export const getCustomerEvents = async (
   const response = await pipe({
     ...params,
     customerId,
-    clickId,
+    ...(clickId ? { clickId } : {}),
     order: sortOrder,
     start: startDate.toISOString().replace("T", " ").replace("Z", ""),
     end: endDate.toISOString().replace("T", " ").replace("Z", ""),
