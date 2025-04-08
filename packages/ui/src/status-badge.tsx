@@ -8,6 +8,7 @@ import {
   CircleWarning,
   Icon,
 } from "./icons";
+import { DynamicTooltipWrapper } from "./tooltip";
 
 const statusBadgeVariants = cva(
   "flex gap-1.5 items-center max-w-fit rounded-md px-2 py-1 text-xs font-medium whitespace-nowrap",
@@ -41,32 +42,38 @@ interface BadgeProps
   extends React.HTMLAttributes<HTMLSpanElement>,
     VariantProps<typeof statusBadgeVariants> {
   icon?: Icon | null;
+  tooltip?: string | React.ReactNode;
 }
 
 function StatusBadge({
   className,
   variant,
   icon,
+  tooltip,
   onClick,
   children,
   ...props
 }: BadgeProps) {
   const Icon =
     icon !== null ? icon ?? defaultIcons[variant ?? "neutral"] : null;
+
   return (
-    <span
-      className={cn(
-        statusBadgeVariants({ variant }),
-        onClick &&
-          "cursor-pointer select-none transition-[filter] duration-150 hover:brightness-75 hover:saturate-[1.25]",
-        className,
-      )}
-      onClick={onClick}
-      {...props}
-    >
-      {Icon && <Icon className="h-3 w-3 shrink-0" />}
-      {children}
-    </span>
+    <DynamicTooltipWrapper tooltipProps={{ content: tooltip }}>
+      <span
+        className={cn(
+          statusBadgeVariants({ variant }),
+          tooltip && "cursor-help",
+          onClick &&
+            "cursor-pointer select-none transition-[filter] duration-150 hover:brightness-75 hover:saturate-[1.25]",
+          className,
+        )}
+        onClick={onClick}
+        {...props}
+      >
+        {Icon && <Icon className="h-3 w-3 shrink-0" />}
+        {children}
+      </span>
+    </DynamicTooltipWrapper>
   );
 }
 

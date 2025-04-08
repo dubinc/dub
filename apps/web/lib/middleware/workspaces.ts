@@ -8,7 +8,12 @@ export default async function WorkspacesMiddleware(
   req: NextRequest,
   user: UserProps,
 ) {
-  const { path, searchParamsString } = parse(req);
+  const { path, searchParamsObj, searchParamsString } = parse(req);
+
+  // special case for handling ?next= query param
+  if (searchParamsObj.next) {
+    return NextResponse.redirect(new URL(searchParamsObj.next, req.url));
+  }
 
   const defaultWorkspace = await getDefaultWorkspace(user);
 
