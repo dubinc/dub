@@ -96,7 +96,9 @@ export default async function AppMiddleware(req: NextRequest) {
     ) {
       return WorkspacesMiddleware(req, user);
     } else if (appRedirect(path)) {
-      return NextResponse.redirect(new URL(appRedirect(path), req.url));
+      return NextResponse.redirect(
+        new URL(`${appRedirect(path)}${searchParamsString}`, req.url),
+      );
     }
   }
 

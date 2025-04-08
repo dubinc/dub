@@ -26,11 +26,19 @@ import { TagSelect } from "@/ui/links/link-builder/tag-select";
 import { useLinkBuilderSubmit } from "@/ui/links/link-builder/use-link-builder-submit";
 import { useMetatags } from "@/ui/links/link-builder/use-metatags";
 import { LinkControls } from "@/ui/links/link-controls";
-import { useKeyboardShortcut, useMediaQuery } from "@dub/ui";
+import {
+  Button,
+  Check,
+  Copy,
+  useCopyToClipboard,
+  useKeyboardShortcut,
+  useMediaQuery,
+} from "@dub/ui";
 import { cn } from "@dub/utils";
 import { notFound, useParams, useRouter } from "next/navigation";
 import { memo, useEffect, useRef, useState } from "react";
 import { useFormContext, useFormState } from "react-hook-form";
+import { toast } from "sonner";
 
 export function LinkPageClient() {
   const params = useParams<{ link: string | string[] }>();
@@ -78,7 +86,8 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
   const router = useRouter();
   const workspace = useWorkspace();
 
-  const { isDesktop } = useMediaQuery();
+  const { isDesktop, isMobile } = useMediaQuery();
+  const [copied, copyToClipboard] = useCopyToClipboard();
 
   const { control, handleSubmit, reset, getValues } =
     useFormContext<LinkFormData>();
@@ -151,6 +160,36 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
               ref={draftControlsRef}
               props={link}
               workspaceId={workspace.id!}
+            />
+            <Button
+              icon={
+                <div className="relative size-4">
+                  <div
+                    className={cn(
+                      "absolute inset-0 transition-[transform,opacity]",
+                      copied && "translate-y-1 opacity-0",
+                    )}
+                  >
+                    <Copy className="size-4" />
+                  </div>
+                  <div
+                    className={cn(
+                      "absolute inset-0 transition-[transform,opacity]",
+                      !copied && "translate-y-1 opacity-0",
+                    )}
+                  >
+                    <Check className="size-4" />
+                  </div>
+                </div>
+              }
+              text="Copy link"
+              variant="secondary"
+              className="xs:w-fit h-7 px-2.5"
+              onClick={() => {
+                copyToClipboard(link.shortLink).then(() => {
+                  toast.success("Link copied to clipboard");
+                });
+              }}
             />
             <div className="shrink-0">
               <LinkAnalyticsBadge link={link} />

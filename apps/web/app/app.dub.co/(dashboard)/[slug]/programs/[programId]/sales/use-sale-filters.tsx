@@ -6,7 +6,7 @@ import useSalesCount from "@/lib/swr/use-sales-count";
 import { CustomerProps, EnrolledPartnerProps } from "@/lib/types";
 import { CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/customers";
 import { PARTNERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partners";
-import { SaleStatusBadges } from "@/ui/partners/sale-status-badges";
+import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { CircleDotted, useRouterStuff } from "@dub/ui";
 import { User, Users } from "@dub/ui/icons";
 import { cn, DICEBEAR_AVATAR_URL, nFormatter } from "@dub/utils";
@@ -75,22 +75,26 @@ export function useSaleFilters() {
         key: "status",
         icon: CircleDotted,
         label: "Status",
-        options: Object.entries(SaleStatusBadges).map(([value, { label }]) => {
-          const Icon = SaleStatusBadges[value].icon;
-          return {
-            value,
-            label,
-            icon: (
-              <Icon
-                className={cn(
-                  SaleStatusBadges[value].className,
-                  "size-4 bg-transparent",
-                )}
-              />
-            ),
-            right: nFormatter(salesCount?.[value]?.count || 0, { full: true }),
-          };
-        }),
+        options: Object.entries(CommissionStatusBadges).map(
+          ([value, { label }]) => {
+            const Icon = CommissionStatusBadges[value].icon;
+            return {
+              value,
+              label,
+              icon: (
+                <Icon
+                  className={cn(
+                    CommissionStatusBadges[value].className,
+                    "size-4 bg-transparent",
+                  )}
+                />
+              ),
+              right: nFormatter(salesCount?.[value]?.count || 0, {
+                full: true,
+              }),
+            };
+          },
+        ),
       },
     ],
     [salesCount, partners, customers],
@@ -167,11 +171,11 @@ function usePartnerFilterOptions(search: string) {
     partnersCount && partnersCount > PARTNERS_MAX_PAGE_SIZE,
   );
 
-  const { data: partners, loading: partnersLoading } = usePartners({
+  const { partners, loading: partnersLoading } = usePartners({
     query: { search: partnersAsync ? search : "" },
   });
 
-  const { data: selectedPartners } = usePartners({
+  const { partners: selectedPartners } = usePartners({
     query: {
       ids: searchParamsObj.partnerId ? [searchParamsObj.partnerId] : undefined,
     },
