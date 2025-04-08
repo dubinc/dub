@@ -24,6 +24,12 @@ export const getCustomersQuerySchema = z.object({
     ),
 });
 
+export const getCustomerQuerySchema = getCustomersQuerySchema.extend({
+  includeClickEvent: booleanQuerySchema
+    .optional()
+    .describe("Whether to include the customer's click event."),
+});
+
 export const createCustomerBodySchema = z.object({
   email: z
     .string()
@@ -113,7 +119,7 @@ export const customerActivityResponseSchema = z.object({
   ltv: z.number(),
   timeToLead: z.number().nullable(),
   timeToSale: z.number().nullable(),
-  activity: z.array(customerActivitySchema),
+  events: z.array(z.any()),
   customer: CustomerSchema.merge(
     z.object({
       country: z.string().nullish(),

@@ -26,7 +26,11 @@ export function CustomerPageClient() {
     data: customer,
     isLoading,
     error,
-  } = useCustomer({ customerId, query: { includeExpandedFields: true } });
+  } = useCustomer({
+    customerId,
+    query: { includeExpandedFields: true },
+    includeClickEvent: true,
+  });
 
   let { data: customerActivity, isLoading: isCustomerActivityLoading } =
     useSWR<CustomerActivityResponse>(
@@ -71,7 +75,7 @@ export function CustomerPageClient() {
           )}
         </div>
       </div>
-      <div className="mt-8 grid grid-cols-1 gap-16 md:grid-cols-[minmax(0,1fr)_240px]">
+      <div className="mt-8 grid grid-cols-1 items-start gap-x-16 gap-y-10 lg:grid-cols-[minmax(0,1fr)_240px]">
         {/* Main content */}
         <div className="flex flex-col gap-10">
           <section className="flex flex-col gap-4">
@@ -86,7 +90,7 @@ export function CustomerPageClient() {
         </div>
 
         {/* Right side details */}
-        <div className="flex flex-col gap-6 text-sm text-neutral-900">
+        <div className="-order-1 grid grid-cols-2 gap-6 text-sm text-neutral-900 lg:order-1 lg:grid-cols-1">
           {customer.country && (
             <div className="flex flex-col gap-2">
               <DetailHeading>Details</DetailHeading>
