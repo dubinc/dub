@@ -72,9 +72,9 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
   const [selectedPartnerType, setSelectedPartnerType] =
     useState<(typeof PARTNER_TYPES)[number]["key"]>("all");
 
-  const [isRecurring, setIsRecurring] = useState(
-    reward ? reward.maxDuration !== 0 : false,
-  );
+  const [commissionStructure, setCommissionStructure] = useState<
+    "one-off" | "recurring"
+  >("recurring");
 
   const {
     register,
@@ -85,17 +85,25 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
   } = useForm<FormData>({
     defaultValues: {
       event,
-      type: reward?.type || "flat",
+      type: reward?.type || "percentage",
       maxDuration: reward
         ? reward.maxDuration === null
           ? Infinity
           : reward.maxDuration
-        : 12,
+        : Infinity,
       amount: reward?.type === "flat" ? reward.amount / 100 : reward?.amount,
       partnerIds: null,
       maxAmount: reward?.maxAmount ? reward.maxAmount / 100 : null,
     },
   });
+
+  useEffect(() => {
+    if (reward) {
+      setCommissionStructure(
+        reward.maxDuration === 0 ? "one-off" : "recurring",
+      );
+    }
+  }, [reward]);
 
   const [amount, type, partnerIds = []] = watch([
     "amount",
@@ -417,8 +425,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                         <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
                           {COMMISSION_TYPES.map(
                             ({ label, description, value }) => {
-                              const isSelected =
-                                (value === "recurring") === isRecurring;
+                              const isSelected = value === commissionStructure;
 
                               return (
                                 <label
@@ -437,11 +444,11 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                                     checked={isSelected}
                                     onChange={(e) => {
                                       if (e.target.checked) {
-                                        setIsRecurring(value === "recurring");
+                                        setCommissionStructure(value);
                                         setValue(
                                           "maxDuration",
                                           value === "recurring"
-                                            ? reward?.maxDuration || 12
+                                            ? reward?.maxDuration || Infinity
                                             : 0,
                                         );
                                       }
@@ -466,11 +473,13 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                         <div
                           className={cn(
                             "transition-opacity duration-200",
-                            isRecurring ? "h-auto" : "h-0 opacity-0",
+                            commissionStructure === "recurring"
+                              ? "h-auto"
+                              : "h-0 opacity-0",
                           )}
-                          aria-hidden={!isRecurring}
+                          aria-hidden={commissionStructure !== "recurring"}
                           {...{
-                            inert: !isRecurring,
+                            inert: commissionStructure !== "recurring",
                           }}
                         >
                           <div className="pt-6">

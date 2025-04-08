@@ -57,7 +57,7 @@ export function MoreDropdown() {
       else
         setValue(option.key as any, !data[option.key], { shouldDirty: true });
     },
-    { modal: true, priority: 1 },
+    { priority: 1 },
   );
 
   return (
