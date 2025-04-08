@@ -20,12 +20,12 @@ export function LinkBuilderFolderSelector() {
             shouldDirty: true,
           });
         }}
-        buttonClassName="w-full min-w-0 bg-transparent h-8 pl-1 rounded-md"
+        buttonClassName="w-full min-w-0 bg-transparent h-10 md:h-8 md:pl-1 rounded-md"
         buttonTextClassName="text-sm md:text-sm font-medium"
         iconClassName="size-3"
         selectedFolderId={folderId ?? undefined}
         loadingPlaceholder={
-          <div className="my-px h-8 w-full animate-pulse rounded-lg bg-neutral-200" />
+          <div className="my-px h-10 w-full animate-pulse rounded-lg bg-neutral-200 md:h-8" />
         }
       />
     </div>
