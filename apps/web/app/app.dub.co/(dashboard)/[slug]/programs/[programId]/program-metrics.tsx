@@ -9,7 +9,7 @@ export function ProgramMetrics() {
   const { metrics, error } = useProgramMetrics();
 
   return (
-    <div className="grid grid-cols-1 divide-neutral-200 rounded-lg border border-neutral-200 max-md:divide-y md:grid-cols-4 md:divide-x">
+    <div className="grid grid-cols-1 divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200 max-md:divide-y md:grid-cols-4 md:divide-x">
       <Stat
         icon={Users}
         label="Partners"

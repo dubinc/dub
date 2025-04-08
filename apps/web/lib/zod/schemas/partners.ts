@@ -140,14 +140,12 @@ export const PartnerSchema = z
     status: z.nativeEnum(PartnerStatus),
     stripeConnectId: z.string().nullable(),
     payoutsEnabledAt: z.date().nullable(),
-
     website: z.string().nullable(),
     youtube: z.string().nullable(),
     twitter: z.string().nullable(),
     linkedin: z.string().nullable(),
     instagram: z.string().nullable(),
     tiktok: z.string().nullable(),
-
     createdAt: z.date(),
     updatedAt: z.date(),
   })

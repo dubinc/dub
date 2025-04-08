@@ -169,9 +169,16 @@ export const createAndEnrollPartner = async ({
           ]),
         ),
 
+      // Deprecated and will be removed soon
       sendWorkspaceWebhook({
         workspace,
         trigger: "partner.created",
+        data: enrolledPartner,
+      }),
+
+      sendWorkspaceWebhook({
+        workspace,
+        trigger: "partner.enrolled",
         data: enrolledPartner,
       }),
     ]),

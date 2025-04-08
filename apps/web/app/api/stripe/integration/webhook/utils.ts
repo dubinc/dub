@@ -1,7 +1,7 @@
 import { createId } from "@/lib/api/create-id";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { generateRandomName } from "@/lib/names";
-import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
+import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
@@ -98,28 +98,15 @@ export async function createNewCustomer(event: Stripe.Event) {
   ]);
 
   if (link.programId && link.partnerId) {
-    const reward = await determinePartnerReward({
+    await createPartnerCommission({
+      event: "lead",
       programId: link.programId,
       partnerId: link.partnerId,
-      event: "lead",
+      linkId: link.id,
+      eventId: leadData.event_id,
+      customerId: customer.id,
+      quantity: 1,
     });
-
-    if (reward) {
-      await prisma.commission.create({
-        data: {
-          id: createId({ prefix: "cm_" }),
-          programId: link.programId,
-          linkId: link.id,
-          partnerId: link.partnerId,
-          eventId: leadData.event_id,
-          customerId: customer.id,
-          type: "lead",
-          amount: 0,
-          quantity: 1,
-          earnings: reward.amount,
-        },
-      });
-    }
   }
 
   waitUntil(
