@@ -31,13 +31,13 @@ import { memo } from "react";
 import useSWR from "swr";
 import { useSaleFilters } from "./use-sale-filters";
 
-export function SaleTableBusiness({ limit }: { limit?: number }) {
+export function CommissionTable({ limit }: { limit?: number }) {
   const filters = useSaleFilters();
 
-  return <SaleTableBusinessInner limit={limit} {...filters} />;
+  return <CommissionTableInner limit={limit} {...filters} />;
 }
 
-const SaleTableBusinessInner = memo(
+const CommissionTableInner = memo(
   ({
     limit,
     filters,

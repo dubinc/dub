@@ -5,17 +5,14 @@ import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { ProgramStatsFilter } from "@/ui/partners/program-stats-filter";
 import { useRouterStuff } from "@dub/ui";
 import { Users } from "@dub/ui/icons";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 
-export function SaleStats() {
+export function CommissionStats() {
   const { slug, programId } = useParams();
   const { queryParams } = useRouterStuff();
-  const searchParams = useSearchParams();
   const { salesCount, error } = useSalesCount({
     exclude: ["status"],
   });
-
-  const view = searchParams.get("view") || "sales";
 
   return (
     <div className="xs:grid-cols-4 xs:divide-x xs:divide-y-0 grid divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200">
@@ -23,13 +20,7 @@ export function SaleStats() {
         label="All"
         href={`/${slug}/programs/${programId}/sales`}
         count={salesCount?.all.count}
-        amount={
-          view === "sales"
-            ? salesCount?.all.amount
-            : view === "commissions"
-              ? salesCount?.all.earnings
-              : undefined
-        }
+        amount={salesCount?.all.earnings}
         icon={Users}
         iconClassName="text-neutral-600 bg-neutral-100"
         variant="loose"
@@ -44,13 +35,7 @@ export function SaleStats() {
           }) as string
         }
         count={salesCount?.pending.count}
-        amount={
-          view === "sales"
-            ? salesCount?.pending.amount
-            : view === "commissions"
-              ? salesCount?.pending.earnings
-              : undefined
-        }
+        amount={salesCount?.pending.earnings}
         icon={CommissionStatusBadges.pending.icon}
         iconClassName={CommissionStatusBadges.pending.className}
         variant="loose"
@@ -65,13 +50,7 @@ export function SaleStats() {
           }) as string
         }
         count={salesCount?.processed.count}
-        amount={
-          view === "sales"
-            ? salesCount?.processed.amount
-            : view === "commissions"
-              ? salesCount?.processed.earnings
-              : undefined
-        }
+        amount={salesCount?.processed.earnings}
         icon={CommissionStatusBadges.processed.icon}
         iconClassName={CommissionStatusBadges.processed.className}
         variant="loose"
@@ -86,13 +65,7 @@ export function SaleStats() {
           }) as string
         }
         count={salesCount?.paid.count}
-        amount={
-          view === "sales"
-            ? salesCount?.paid.amount
-            : view === "commissions"
-              ? salesCount?.paid.earnings
-              : undefined
-        }
+        amount={salesCount?.paid.earnings}
         icon={CommissionStatusBadges.paid.icon}
         iconClassName={CommissionStatusBadges.paid.className}
         variant="loose"
