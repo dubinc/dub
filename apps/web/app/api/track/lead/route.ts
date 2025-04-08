@@ -4,7 +4,7 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
-import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
+import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { getClickEvent, recordLead, recordLeadSync } from "@/lib/tinybird";
 import { logConversionEvent } from "@/lib/tinybird/log-conversion-events";
 import { redis } from "@/lib/upstash";
@@ -219,30 +219,15 @@ export const POST = withWorkspace(
           ]);
 
           if (link.programId && link.partnerId) {
-            const reward = await determinePartnerReward({
+            await createPartnerCommission({
+              event: "lead",
               programId: link.programId,
               partnerId: link.partnerId,
-              event: "lead",
+              linkId: link.id,
+              eventId: leadEventId,
+              customerId: customer?.id,
+              quantity: eventQuantity ?? 1,
             });
-
-            if (reward) {
-              await prisma.commission.create({
-                data: {
-                  id: createId({ prefix: "cm_" }),
-                  programId: link.programId,
-                  linkId: link.id,
-                  partnerId: link.partnerId,
-                  eventId: leadEventId,
-                  customerId: customer?.id,
-                  type: "lead",
-                  amount: 0,
-                  quantity: eventQuantity ?? 1,
-                  earnings: eventQuantity
-                    ? reward.amount * eventQuantity
-                    : reward.amount,
-                },
-              });
-            }
           }
 
           await sendWorkspaceWebhook({

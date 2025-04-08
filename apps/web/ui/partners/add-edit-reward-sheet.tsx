@@ -21,13 +21,21 @@ import {
   AnimatedSizeContainer,
   Button,
   CircleCheckFill,
+  InfoTooltip,
   Sheet,
+  Switch,
   Tooltip,
 } from "@dub/ui";
 import { cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import {
+  FieldErrors,
+  useForm,
+  UseFormRegister,
+  UseFormSetValue,
+  UseFormWatch,
+} from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
@@ -64,9 +72,9 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
   const [selectedPartnerType, setSelectedPartnerType] =
     useState<(typeof PARTNER_TYPES)[number]["key"]>("all");
 
-  const [isRecurring, setIsRecurring] = useState(
-    reward ? reward.maxDuration !== 0 : false,
-  );
+  const [commissionStructure, setCommissionStructure] = useState<
+    "one-off" | "recurring"
+  >("recurring");
 
   const {
     register,
@@ -77,16 +85,25 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
   } = useForm<FormData>({
     defaultValues: {
       event,
-      type: reward?.type || "flat",
+      type: reward?.type || "percentage",
       maxDuration: reward
         ? reward.maxDuration === null
           ? Infinity
           : reward.maxDuration
-        : 12,
+        : Infinity,
       amount: reward?.type === "flat" ? reward.amount / 100 : reward?.amount,
       partnerIds: null,
+      maxAmount: reward?.maxAmount ? reward.maxAmount / 100 : null,
     },
   });
+
+  useEffect(() => {
+    if (reward) {
+      setCommissionStructure(
+        reward.maxDuration === 0 ? "one-off" : "recurring",
+      );
+    }
+  }, [reward]);
 
   const [amount, type, partnerIds = []] = watch([
     "amount",
@@ -197,10 +214,11 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
       ...data,
       workspaceId,
       programId: program.id,
+      partnerIds,
       amount: type === "flat" ? data.amount * 100 : data.amount,
       maxDuration:
         Infinity === Number(data.maxDuration) ? null : data.maxDuration,
-      partnerIds,
+      maxAmount: data.maxAmount ? data.maxAmount * 100 : null,
     };
 
     if (!reward) {
@@ -272,40 +290,52 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          <div className="flex flex-col gap-4 p-6">
+          <div className="flex flex-col gap-6 p-6">
             {event !== "sale" && (
-              <div>
-                <label className="text-sm font-medium text-neutral-800">
-                  {`Amount per ${event}`}
-                </label>
-                <div className="relative mt-2 rounded-md shadow-sm">
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
-                    $
-                  </span>
-                  <input
-                    className={cn(
-                      "block w-full rounded-md border-neutral-300 pl-6 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                      errors.amount &&
-                        "border-red-600 focus:border-red-500 focus:ring-red-600",
-                    )}
-                    {...register("amount", {
-                      required: true,
-                      valueAsNumber: true,
-                      min: 0,
-                      max: 1000,
-                      onChange: handleMoneyInputChange,
-                    })}
-                    onKeyDown={handleMoneyKeyDown}
-                  />
-                  <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
-                    USD
-                  </span>
+              <>
+                <div>
+                  <label className="text-sm font-medium text-neutral-800">
+                    {`Amount per ${event}`}
+                  </label>
+                  <div className="relative mt-2 rounded-md shadow-sm">
+                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
+                      $
+                    </span>
+                    <input
+                      className={cn(
+                        "block w-full rounded-md border-neutral-300 pl-6 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                        errors.amount &&
+                          "border-red-600 focus:border-red-500 focus:ring-red-600",
+                      )}
+                      {...register("amount", {
+                        required: true,
+                        valueAsNumber: true,
+                        min: 0,
+                        max: 1000,
+                        onChange: handleMoneyInputChange,
+                      })}
+                      onKeyDown={handleMoneyKeyDown}
+                    />
+                    <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
+                      USD
+                    </span>
+                  </div>
                 </div>
-              </div>
+
+                {/* <div>
+                  <RewardLimitSection
+                    event={event}
+                    register={register}
+                    watch={watch}
+                    setValue={setValue}
+                    errors={errors}
+                  />
+                </div> */}
+              </>
             )}
 
             {event !== "sale" && (
-              <div className="mt-2">
+              <div>
                 <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
                   {PARTNER_TYPES.map((partnerType) => {
                     const isSelected = selectedPartnerType === partnerType.key;
@@ -395,8 +425,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                         <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
                           {COMMISSION_TYPES.map(
                             ({ label, description, value }) => {
-                              const isSelected =
-                                (value === "recurring") === isRecurring;
+                              const isSelected = value === commissionStructure;
 
                               return (
                                 <label
@@ -415,11 +444,11 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                                     checked={isSelected}
                                     onChange={(e) => {
                                       if (e.target.checked) {
-                                        setIsRecurring(value === "recurring");
+                                        setCommissionStructure(value);
                                         setValue(
                                           "maxDuration",
                                           value === "recurring"
-                                            ? reward?.maxDuration || 12
+                                            ? reward?.maxDuration || Infinity
                                             : 0,
                                         );
                                       }
@@ -444,11 +473,13 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                         <div
                           className={cn(
                             "transition-opacity duration-200",
-                            isRecurring ? "h-auto" : "h-0 opacity-0",
+                            commissionStructure === "recurring"
+                              ? "h-auto"
+                              : "h-0 opacity-0",
                           )}
-                          aria-hidden={!isRecurring}
+                          aria-hidden={commissionStructure !== "recurring"}
                           {...{
-                            inert: !isRecurring,
+                            inert: commissionStructure !== "recurring",
                           }}
                         >
                           <div className="pt-6">
@@ -482,14 +513,14 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                   </div>
                 </div>
 
-                <div className="mt-6">
+                <div>
                   <label className="text-sm font-medium text-neutral-800">
                     Payout
                   </label>
-                  <p className="mb-4 text-sm text-neutral-600">
+                  <p className="mb-2 text-sm text-neutral-600">
                     Set how much the affiliate will get rewarded
                   </p>
-                  <div className="flex flex-col gap-6">
+                  <div className="flex flex-col gap-4">
                     <div>
                       <label
                         htmlFor="type"
@@ -542,6 +573,16 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                         </span>
                       </div>
                     </div>
+
+                    {/* <div>
+                      <RewardLimitSection
+                        event={event}
+                        register={register}
+                        watch={watch}
+                        setValue={setValue}
+                        errors={errors}
+                      />
+                    </div> */}
                   </div>
                 </div>
               </>
@@ -607,6 +648,88 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
         </div>
       </form>
     </>
+  );
+}
+
+// Temporarily hiding this in the UI for now – until more users ask for it
+function RewardLimitSection({
+  event,
+  register,
+  watch,
+  setValue,
+  errors,
+}: {
+  event: EventType;
+  register: UseFormRegister<FormData>;
+  watch: UseFormWatch<FormData>;
+  setValue: UseFormSetValue<FormData>;
+  errors: FieldErrors<FormData>;
+}) {
+  const [maxAmount] = watch(["maxAmount"]);
+  const [isLimited, setIsLimited] = useState(maxAmount !== null);
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-3">
+        <Switch
+          checked={isLimited}
+          trackDimensions="radix-state-checked:bg-neutral-900 radix-state-unchecked:bg-neutral-200"
+          fn={(checked: boolean) => {
+            setIsLimited(checked);
+
+            if (!checked) {
+              setValue("maxAmount", null);
+            }
+          }}
+        />
+        <span className="text-sm font-medium text-neutral-800">
+          Limit {event} rewards
+        </span>
+        <InfoTooltip content="Limit how much a partner can receive payouts." />
+      </div>
+
+      <div className="-m-1">
+        <AnimatedSizeContainer
+          height
+          transition={{ ease: "easeInOut", duration: 0.2 }}
+        >
+          {isLimited && (
+            <div className="p-1">
+              <div className="flex flex-col gap-4">
+                <div>
+                  <label className="text-sm font-medium text-neutral-800">
+                    Reward limit
+                  </label>
+                  <div className="relative mt-2 rounded-md shadow-sm">
+                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
+                      $
+                    </span>
+                    <input
+                      className={cn(
+                        "block w-full rounded-md border-neutral-300 pl-6 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                        errors.maxAmount &&
+                          "border-red-600 focus:border-red-500 focus:ring-red-600",
+                      )}
+                      {...register("maxAmount", {
+                        required: isLimited,
+                        valueAsNumber: true,
+                        min: 0,
+                        onChange: handleMoneyInputChange,
+                      })}
+                      onKeyDown={handleMoneyKeyDown}
+                      placeholder="0"
+                    />
+                    <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
+                      USD
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </AnimatedSizeContainer>
+      </div>
+    </div>
   );
 }
 

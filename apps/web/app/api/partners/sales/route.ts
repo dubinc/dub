@@ -100,6 +100,9 @@ export const PATCH = withWorkspace(
       },
     });
 
+    // TODO:
+    // Check the reward limit
+
     const amountDifference = finalAmount - sale.amount;
     const earningsDifference = finalEarnings - sale.earnings;
 

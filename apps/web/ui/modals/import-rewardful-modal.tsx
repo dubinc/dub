@@ -310,9 +310,11 @@ function CampaignsStep({
             </dd>
           </div>
           <div>
-            <dt className="text-neutral-500">Commission Period</dt>
+            <dt className="text-neutral-500">Duration</dt>
             <dd className="font-medium text-neutral-700">
-              {selectedCampaign.max_commission_period_months} months
+              {selectedCampaign.max_commission_period_months
+                ? `${selectedCampaign.max_commission_period_months} months`
+                : "Lifetime"}
             </dd>
           </div>
           <div>
