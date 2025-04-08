@@ -36,7 +36,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { cn, isValidUrl } from "@dub/utils";
-import { useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -82,7 +82,7 @@ function LinkBuilderInner({
 }: LinkBuilderModalProps) {
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
-  const { id: workspaceId, flags } = useWorkspace();
+  const { id: workspaceId, slug, flags } = useWorkspace();
 
   const { props, duplicateProps } = useLinkBuilderContext();
 
@@ -138,12 +138,20 @@ function LinkBuilderInner({
 
   const draftControlsRef = useRef<DraftControlsHandle>(null);
 
+  const { link } = useParams() as { link: string | string[] };
+  const router = useRouter();
+
   const onSubmitSuccess = useCallback((data: LinkFormData) => {
     draftControlsRef.current?.onSubmitSuccessful();
 
-    // Navigate to the link's folder
-    if (data.folderId) queryParams({ set: { folderId: data.folderId } });
-    else queryParams({ del: ["folderId"] });
+    if (link) {
+      // Navigate to the new link
+      router.push(`/${slug}/links/${data.domain}/${data.key}`);
+    } else {
+      // Navigate to the link's folder
+      if (data.folderId) queryParams({ set: { folderId: data.folderId } });
+      else queryParams({ del: ["folderId"] });
+    }
 
     setShowLinkBuilder(false);
   }, []);

@@ -264,13 +264,13 @@ const Controls = memo(({ link }: { link: ExpandedLinkProps }) => {
   const { setValue, getValues, reset } = useFormContext<LinkFormData>();
 
   return (
-    <div className="">
+    <div>
       <LinkControls
         link={link}
         openPopover={openPopover}
         setOpenPopover={setOpenPopover}
         shortcutsEnabled={openPopover}
-        options={["id", "archive", "transfer", "delete"]}
+        options={["duplicate", "id", "archive", "transfer", "delete"]}
         onMoveSuccess={(folderId) => {
           setValue("folderId", folderId);
           reset(getValues(), { keepValues: true, keepDirty: false });
