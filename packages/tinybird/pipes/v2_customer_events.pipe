@@ -117,9 +117,11 @@ SQL >
 
     %
     SELECT * FROM (
+      {% if defined(clickId) %}
     SELECT *, NULL AS saleAmount
     FROM click_events
     UNION ALL
+      {% end %}
     SELECT *, NULL AS saleAmount
     FROM lead_events
     UNION ALL
