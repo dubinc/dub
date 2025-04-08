@@ -101,6 +101,10 @@ export function Form() {
     await executeAsync({
       ...programData,
       workspaceId,
+      maxDuration:
+        Infinity === Number(programData.maxDuration)
+          ? null
+          : programData.maxDuration,
       step: "configure-reward",
     });
   };
@@ -187,11 +191,17 @@ export function Form() {
 }
 
 const NewProgramForm = ({ register, watch, setValue }: FormProps) => {
-  const [isRecurring, setIsRecurring] = useState(false);
+  const [commissionStructure, setCommissionStructure] = useState<
+    "one-off" | "recurring"
+  >("recurring");
   const [type, maxDuration] = watch(["type", "maxDuration"]);
 
   useEffect(() => {
-    setIsRecurring(maxDuration !== 0);
+    setCommissionStructure(maxDuration === 0 ? "one-off" : "recurring");
+
+    if (maxDuration === null) {
+      setValue("maxDuration", Infinity);
+    }
   }, [maxDuration]);
 
   return (
@@ -208,7 +218,7 @@ const NewProgramForm = ({ register, watch, setValue }: FormProps) => {
 
         <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
           {COMMISSION_TYPES.map(({ value, label, description }) => {
-            const isSelected = (value === "recurring") === isRecurring;
+            const isSelected = value === commissionStructure;
 
             return (
               <label
@@ -225,15 +235,15 @@ const NewProgramForm = ({ register, watch, setValue }: FormProps) => {
                   value={value}
                   className="hidden"
                   checked={isSelected}
-                  onChange={(e) => {
+                  onChange={() => {
+                    setCommissionStructure(value);
+
                     if (value === "one-off") {
-                      setIsRecurring(false);
                       setValue("maxDuration", 0, { shouldValidate: true });
                     }
 
                     if (value === "recurring") {
-                      setIsRecurring(true);
-                      setValue("maxDuration", 3, {
+                      setValue("maxDuration", null, {
                         shouldValidate: true,
                       });
                     }
@@ -258,7 +268,7 @@ const NewProgramForm = ({ register, watch, setValue }: FormProps) => {
           })}
         </div>
 
-        {isRecurring && (
+        {commissionStructure === "recurring" && (
           <div>
             <label className="text-sm font-medium text-neutral-800">
               Duration
@@ -269,16 +279,14 @@ const NewProgramForm = ({ register, watch, setValue }: FormProps) => {
             >
               {RECURRING_MAX_DURATIONS.filter((v) => v !== 0).map(
                 (duration) => (
-                  <option
-                    key={duration}
-                    value={duration}
-                    selected={duration === 12}
-                  >
+                  <option key={duration} value={duration}>
                     {duration} {duration === 1 ? "month" : "months"}
                   </option>
                 ),
               )}
-              <option value="">Lifetime</option>
+              <option value={Infinity} selected>
+                Lifetime
+              </option>
             </select>
           </div>
         )}
