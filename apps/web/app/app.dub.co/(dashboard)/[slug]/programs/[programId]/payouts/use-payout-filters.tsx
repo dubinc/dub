@@ -151,11 +151,11 @@ function usePartnerFilterOptions(search: string) {
     partnersCount && partnersCount > PARTNERS_MAX_PAGE_SIZE,
   );
 
-  const { data: partners, loading: partnersLoading } = usePartners({
+  const { partners, loading: partnersLoading } = usePartners({
     query: { search: partnersAsync ? search : "" },
   });
 
-  const { data: selectedPartners } = usePartners({
+  const { partners: selectedPartners } = usePartners({
     query: {
       ids: searchParamsObj.partnerId ? [searchParamsObj.partnerId] : undefined,
     },
@@ -176,7 +176,7 @@ function usePartnerFilterOptions(search: string) {
           ...(selectedPartners
             ?.filter((st) => !partners?.some((t) => t.id === st.id))
             ?.map((st) => ({ ...st, hideDuringSearch: true })) ?? []),
-        ] as (EnrolledPartnerProps & { hideDuringSearch?: boolean })[]) ?? null;
+        ] as (EnrolledPartnerProps & { hideDuringSearch?: boolean })[]);
   }, [partnersLoading, partners, selectedPartners, searchParamsObj.partnerId]);
 
   return { partners: result, partnersAsync };

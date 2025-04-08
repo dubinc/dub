@@ -167,11 +167,11 @@ function usePartnerFilterOptions(search: string) {
     partnersCount && partnersCount > PARTNERS_MAX_PAGE_SIZE,
   );
 
-  const { data: partners, loading: partnersLoading } = usePartners({
+  const { partners, loading: partnersLoading } = usePartners({
     query: { search: partnersAsync ? search : "" },
   });
 
-  const { data: selectedPartners } = usePartners({
+  const { partners: selectedPartners } = usePartners({
     query: {
       ids: searchParamsObj.partnerId ? [searchParamsObj.partnerId] : undefined,
     },
