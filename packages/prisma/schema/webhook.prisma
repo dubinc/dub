@@ -35,7 +35,7 @@ model LinkWebhook {
   enabled   Boolean @default(true)
 
   link    Link    @relation(fields: [linkId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  webhook Webhook @relation(fields: [webhookId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  webhook Webhook @relation(fields: [webhookId], references: [id], onUpdate: Cascade)
 
   @@unique([linkId, webhookId])
   @@index(webhookId)
