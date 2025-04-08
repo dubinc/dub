@@ -117,11 +117,6 @@ function LinkBuilderInner({
     );
   }, [showLinkBuilder, isSubmitting, isSubmitSuccessful, props, isDirty]);
 
-  const keyRef = useRef<HTMLInputElement>(null);
-  useEffect(() => {
-    if (key?.endsWith("-copy")) keyRef.current?.select();
-  }, []);
-
   const { loading, primaryDomain } = useAvailableDomains({
     currentDomain: domain,
   });
@@ -205,7 +200,7 @@ function LinkBuilderInner({
               <div className="flex min-h-full flex-col gap-6 py-4">
                 <LinkBuilderDestinationUrlInput />
 
-                <LinkBuilderShortLinkInput ref={keyRef} />
+                <LinkBuilderShortLinkInput />
 
                 <TagSelect />
 

@@ -21,7 +21,7 @@ import {
   FolderBookmark,
   QRCode,
 } from "@dub/ui/icons";
-import { cn, isDubDomain, nanoid, punycode } from "@dub/utils";
+import { cn, isDubDomain, nanoid } from "@dub/utils";
 import { CopyPlus, Delete, FolderInput } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
@@ -122,7 +122,7 @@ export function LinkControls({
     // @ts-expect-error
     duplicateProps: {
       ...propsToDuplicate,
-      key: isRootLink ? nanoid(7) : `${punycode(link.key)}-copy`,
+      key: nanoid(7),
       clicks: 0,
     },
   });
