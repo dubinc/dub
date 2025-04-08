@@ -1,16 +1,11 @@
 import { DubApiError } from "@/lib/api/errors";
-import { linkCache } from "@/lib/api/links/cache";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getFolders } from "@/lib/folder/get-folders";
-import { webhookCache } from "@/lib/webhook/cache";
 import { createWebhook } from "@/lib/webhook/create-webhook";
 import { transformWebhook } from "@/lib/webhook/transform";
 import { toggleWebhooksForWorkspace } from "@/lib/webhook/update-webhook";
-import {
-  identifyWebhookReceiver,
-  isLinkLevelWebhook,
-} from "@/lib/webhook/utils";
+import { identifyWebhookReceiver } from "@/lib/webhook/utils";
 import { createWebhookSchema } from "@/lib/zod/schemas/webhooks";
 import { sendEmail } from "@dub/email";
 import { WebhookAdded } from "@dub/email/templates/webhook-added";
@@ -61,9 +56,8 @@ export const GET = withWorkspace(
 // POST /api/webhooks/ - create a new webhook
 export const POST = withWorkspace(
   async ({ req, workspace, session }) => {
-    const { name, url, triggers, linkIds, secret } = createWebhookSchema.parse(
-      await parseRequestBody(req),
-    );
+    const { name, url, triggers, linkIds, excludeLinkIds, secret } =
+      createWebhookSchema.parse(await parseRequestBody(req));
 
     const existingWebhook = await prisma.webhook.findFirst({
       where: {
@@ -79,7 +73,9 @@ export const POST = withWorkspace(
       });
     }
 
-    if (linkIds && linkIds.length > 0) {
+    const allLinkIds = [...(linkIds || []), ...(excludeLinkIds || [])];
+
+    if (allLinkIds.length > 0) {
       const folders = await getFolders({
         workspaceId: workspace.id,
         userId: session.user.id,
@@ -88,7 +84,7 @@ export const POST = withWorkspace(
       const links = await prisma.link.findMany({
         where: {
           id: {
-            in: linkIds,
+            in: allLinkIds,
           },
           projectId: workspace.id,
           OR: [
@@ -101,7 +97,7 @@ export const POST = withWorkspace(
         },
       });
 
-      if (links.length !== linkIds.length) {
+      if (links.length !== allLinkIds.length) {
         throw new DubApiError({
           code: "bad_request",
           message:
@@ -132,6 +128,7 @@ export const POST = withWorkspace(
       receiver: isZapierWebhook ? WebhookReceiver.zapier : WebhookReceiver.user,
       triggers,
       linkIds,
+      excludeLinkIds,
       secret,
       workspace,
       installationId: zapierInstallation ? zapierInstallation.id : undefined,
@@ -145,44 +142,26 @@ export const POST = withWorkspace(
     }
 
     waitUntil(
-      (async () => {
-        const links = await prisma.link.findMany({
-          where: {
-            id: { in: linkIds },
-            projectId: workspace.id,
-          },
-          include: {
-            webhooks: {
-              select: {
-                webhookId: true,
-              },
-            },
-          },
-        });
+      Promise.all([
+        toggleWebhooksForWorkspace({
+          workspaceId: workspace.id,
+        }),
 
-        Promise.allSettled([
-          toggleWebhooksForWorkspace({
-            workspaceId: workspace.id,
-          }),
-          sendEmail({
+        sendEmail({
+          email: session.user.email,
+          subject: "New webhook added",
+          react: WebhookAdded({
             email: session.user.email,
-            subject: "New webhook added",
-            react: WebhookAdded({
-              email: session.user.email,
-              workspace: {
-                name: workspace.name,
-                slug: workspace.slug,
-              },
-              webhook: {
-                name,
-              },
-            }),
+            workspace: {
+              name: workspace.name,
+              slug: workspace.slug,
+            },
+            webhook: {
+              name,
+            },
           }),
-          ...(links && links.length > 0 ? [linkCache.mset(links), []] : []),
-
-          ...(isLinkLevelWebhook(webhook) ? [webhookCache.set(webhook)] : []),
-        ]);
-      })(),
+        }),
+      ]),
     );
 
     return NextResponse.json(transformWebhook(webhook), { status: 201 });

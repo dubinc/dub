@@ -285,15 +285,6 @@ export const DELETE = withWorkspace(
       });
     }
 
-    const linkWebhooks = await prisma.linkWebhook.findMany({
-      where: {
-        webhookId,
-      },
-      select: {
-        linkId: true,
-      },
-    });
-
     await prisma.webhook.delete({
       where: {
         id: webhookId,
@@ -301,28 +292,16 @@ export const DELETE = withWorkspace(
     });
 
     waitUntil(
-      (async () => {
-        const links = await prisma.link.findMany({
-          where: {
-            id: { in: linkWebhooks.map(({ linkId }) => linkId) },
-          },
-          include: {
-            webhooks: {
-              select: {
-                webhookId: true,
-              },
-            },
-          },
-        });
+      Promise.all([
+        toggleWebhooksForWorkspace({
+          workspaceId: workspace.id,
+        }),
 
-        await Promise.all([
-          toggleWebhooksForWorkspace({
-            workspaceId: workspace.id,
-          }),
-          linkCache.mset(links),
-          webhookCache.delete(webhookId),
-        ]);
-      })(),
+        webhookCache.delete(webhookId),
+
+        // TODO:
+        // Propagate webhook trigger changes to the links cache if the webhook is a "link-level" webhook
+      ]),
     );
 
     return NextResponse.json({
