@@ -240,7 +240,6 @@ const slackTemplates: Record<WebhookTrigger, any> = {
   "link.clicked": clickLinkTemplate,
   "lead.created": createLeadTemplate,
   "sale.created": createSaleTemplate,
-  "partner.created": enrolledPartnerTemplate,
   "partner.enrolled": enrolledPartnerTemplate,
 };
 

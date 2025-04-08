@@ -47,7 +47,6 @@ const eventSchemas: Record<WebhookTrigger, z.ZodSchema> = {
   "link.clicked": clickWebhookEventSchema,
   "lead.created": leadWebhookEventSchemaExtended,
   "sale.created": saleWebhookEventSchemaExtended,
-  "partner.created": enrolledPartnerSchemaExtended,
   "partner.enrolled": enrolledPartnerSchemaExtended,
 };
 

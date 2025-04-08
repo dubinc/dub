@@ -120,11 +120,6 @@ export default function AddEditWebhookForm({
 
   const workspaceLevelTriggers = WORKSPACE_LEVEL_WEBHOOK_TRIGGERS.filter(
     (trigger) => {
-      // Deprecated
-      if (trigger === "partner.created") {
-        return webhook ? webhook.triggers.includes("partner.created") : false;
-      }
-
       if (trigger === "partner.enrolled") {
         return partnersEnabled;
       }

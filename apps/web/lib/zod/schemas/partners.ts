@@ -145,7 +145,7 @@ export const PartnerSchema = z
   })
   .merge(PartnerOnlinePresenceSchema);
 
-// Used externally by GET+POST /api/partners and partner.created webhook
+// Used externally by GET+POST /api/partners and partner.enrolled webhook
 export const EnrolledPartnerSchema = PartnerSchema.pick({
   id: true,
   name: true,
