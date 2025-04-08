@@ -2,7 +2,7 @@ import { z } from "zod";
 import { tb } from "./client";
 
 const schema = z.object({
-  workspace_slug: z.string(),
+  workspace_id: z.string(),
   link_id: z.string().default(""),
   path: z.string(),
   body: z.string().default(""),

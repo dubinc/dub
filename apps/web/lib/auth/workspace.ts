@@ -406,7 +406,7 @@ export const withWorkspace = (
 
             if (workspace && paths.includes(req.nextUrl.pathname)) {
               logConversionEvent({
-                workspace_slug: workspace.slug,
+                workspace_id: workspace.id,
                 path: req.nextUrl.pathname,
                 error: error.message,
               });

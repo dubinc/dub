@@ -82,7 +82,7 @@ export const POST = withWorkspace(
     if (!customer) {
       waitUntil(
         logConversionEvent({
-          workspace_slug: workspace.slug,
+          workspace_id: workspace.id,
           path: "/track/sale",
           body: JSON.stringify(body),
           error: `Customer not found for externalId: ${customerExternalId}`,
@@ -186,7 +186,7 @@ export const POST = withWorkspace(
           }),
 
           logConversionEvent({
-            workspace_slug: workspace.slug,
+            workspace_id: workspace.id,
             link_id: clickData.link_id,
             path: "/track/sale",
             body: JSON.stringify(body),

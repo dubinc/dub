@@ -2,7 +2,7 @@
 
 SCHEMA >
     `timestamp` DateTime64(3) `json:$.timestamp` DEFAULT now(),
-    `workspace_slug` String `json:$.workspace_slug`,
+    `workspace_id` String `json:$.workspace_id`,
     `link_id` String `json:$.link_id`,
     `path` String `json:$.path`,
     `body` String `json:$.body`,
@@ -10,5 +10,5 @@ SCHEMA >
 
 ENGINE "MergeTree"
 ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"
-ENGINE_SORTING_KEY "timestamp, workspace_slug"
+ENGINE_SORTING_KEY "timestamp, workspace_id"
 ENGINE_TTL "toDateTime(timestamp) + toIntervalDay(90)"
