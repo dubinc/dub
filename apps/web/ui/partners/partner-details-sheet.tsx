@@ -313,28 +313,56 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
         id: "shortLink",
         header: "Link",
         cell: ({ row }) => (
-          <b className="font-medium text-black">
+          <Link
+            href={`/${slug}/links/${row.original.domain}/${row.original.key}`}
+            target="_blank"
+            className="cursor-alias font-medium text-black decoration-dotted hover:underline"
+          >
             {getPrettyUrl(row.original.shortLink)}
-          </b>
+          </Link>
         ),
       },
       {
         header: "Clicks",
-        accessorFn: (d) => nFormatter(d.clicks),
         size: 1,
         minSize: 1,
+        cell: ({ row }) => (
+          <Link
+            href={`/${slug}/events?event=clicks&interval=all&domain=${row.original.domain}&key=${row.original.key}`}
+            target="_blank"
+            className="block w-full cursor-alias decoration-dotted hover:underline"
+          >
+            {nFormatter(row.original.clicks)}
+          </Link>
+        ),
       },
       {
         header: "Leads",
-        accessorFn: (d) => nFormatter(d.leads),
         size: 1,
         minSize: 1,
+        cell: ({ row }) => (
+          <Link
+            href={`/${slug}/events?event=leads&interval=all&domain=${row.original.domain}&key=${row.original.key}`}
+            target="_blank"
+            className="block w-full cursor-alias decoration-dotted hover:underline"
+          >
+            {nFormatter(row.original.leads)}
+          </Link>
+        ),
       },
       {
         header: "Sales",
-        accessorFn: (d) => nFormatter(d.sales),
         size: 1,
         minSize: 1,
+        cell: ({ row }) => (
+          <Link
+            href={`/${slug}/events?event=sales&interval=all&domain=${row.original.domain}&key=${row.original.key}`}
+            target="_blank"
+            className="block w-full cursor-alias decoration-dotted hover:underline"
+          >
+            {nFormatter(row.original.sales)}
+          </Link>
+        ),
       },
       {
         header: "Revenue",
@@ -345,14 +373,20 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
           }),
         size: 1,
         minSize: 1,
+        cell: ({ row }) => (
+          <Link
+            href={`/${slug}/events?event=sales&interval=all&domain=${row.original.domain}&key=${row.original.key}`}
+            target="_blank"
+            className="block w-full cursor-alias decoration-dotted hover:underline"
+          >
+            {currencyFormatter(row.original.saleAmount / 100, {
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0,
+            })}
+          </Link>
+        ),
       },
     ],
-    onRowClick: (row) => {
-      window.open(
-        `/${slug}/events?domain=${row.original.domain}&key=${row.original.key}&interval=all`,
-        "_blank",
-      );
-    },
     resourceName: (p) => `link${p ? "s" : ""}`,
     thClassName: (id) =>
       cn(id === "total" && "[&>div]:justify-end", "border-l-0"),

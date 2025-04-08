@@ -20,11 +20,9 @@ import {
   currencyFormatter,
   DICEBEAR_AVATAR_URL,
   fetcher,
-} from "@dub/utils";
-import {
   formatDateTime,
-  formatPeriod,
-} from "@dub/utils/src/functions/datetime";
+} from "@dub/utils";
+import { formatPeriod } from "@dub/utils/src/functions/datetime";
 import Link from "next/link";
 import { Dispatch, Fragment, SetStateAction, useMemo } from "react";
 import useSWR from "swr";
@@ -192,7 +190,8 @@ function PayoutDetailsSheetContent({
               {sales?.length === SHEET_MAX_ITEMS && (
                 <div className="mt-2 flex justify-end">
                   <Link
-                    href={`/programs/${payout.program.slug}/sales`}
+                    href={`/programs/${payout.program.slug}/earnings?interval=all&payoutId=${payout.id}`}
+                    target="_blank"
                     className={cn(
                       buttonVariants({ variant: "secondary" }),
                       "flex h-7 items-center rounded-lg border px-2 text-sm",

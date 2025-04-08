@@ -70,15 +70,7 @@ export default async function SuccessPage({
         } as CSSProperties
       }
     >
-      <Header
-        program={{
-          logo: program.logo,
-          wordmark: program.wordmark,
-        }}
-        slug={programSlug}
-        showLogin={false}
-        showApply={false}
-      />
+      <Header program={program} showLogin={false} showApply={false} />
       <div className="p-6">
         <div className="grid grid-cols-1 gap-5 sm:pt-20">
           <h1 className="text-4xl font-semibold">

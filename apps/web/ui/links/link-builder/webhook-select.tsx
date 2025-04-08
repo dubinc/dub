@@ -1,16 +1,18 @@
 import useWebhooks from "@/lib/swr/use-webhooks";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { Button, Combobox, useKeyboardShortcut, Webhook } from "@dub/ui";
+import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
+import { Button, Combobox, Webhook } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
-import { LinkFormData } from ".";
+import { useLinkBuilderKeyboardShortcut } from "./use-link-builder-keyboard-shortcut";
 
 export function WebhookSelect() {
   const [isOpen, setIsOpen] = useState(false);
   const { watch, setValue } = useFormContext<LinkFormData>();
   const { webhooks: availableWebhooks } = useWebhooks();
-  useKeyboardShortcut("w", () => setIsOpen(true), { modal: true });
+
+  useLinkBuilderKeyboardShortcut("w", () => setIsOpen(true));
 
   const webhookIds = watch("webhookIds") as string[];
 
@@ -58,7 +60,7 @@ export function WebhookSelect() {
       shortcutHint="W"
       buttonProps={{
         className:
-          "h-9 px-2.5 w-fit font-medium text-neutral-700 max-w-48 min-w-0",
+          "h-8 text-xs gap-1.5 px-2.5 w-fit font-medium text-neutral-700 max-w-48 min-w-0",
       }}
       open={isOpen}
       onOpenChange={setIsOpen}

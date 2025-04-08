@@ -16,8 +16,7 @@ import {
   useTable,
 } from "@dub/ui";
 import { MoneyBill2 } from "@dub/ui/icons";
-import { DICEBEAR_AVATAR_URL } from "@dub/utils";
-import { formatPeriod } from "@dub/utils/src/functions/datetime";
+import { DICEBEAR_AVATAR_URL, formatPeriod } from "@dub/utils";
 import { useEffect, useState } from "react";
 import { PayoutDetailsSheet } from "./payout-details-sheet";
 

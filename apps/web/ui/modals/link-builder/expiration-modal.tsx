@@ -1,3 +1,5 @@
+import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
+import { useLinkBuilderKeyboardShortcut } from "@/ui/links/link-builder/use-link-builder-keyboard-shortcut";
 import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
 import {
   Button,
@@ -5,7 +7,6 @@ import {
   Modal,
   SimpleTooltipContent,
   Tooltip,
-  useKeyboardShortcut,
   useMediaQuery,
 } from "@dub/ui";
 import { CircleHalfDottedClock } from "@dub/ui/icons";
@@ -25,8 +26,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { useForm, useFormContext } from "react-hook-form";
-import { LinkFormData } from ".";
+import { useForm, useFormContext, useWatch } from "react-hook-form";
 
 function ExpirationModal({
   showExpirationModal,
@@ -280,12 +280,10 @@ function ExpirationButton({
 }: {
   setShowExpirationModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { watch } = useFormContext<LinkFormData>();
-  const expiresAt = watch("expiresAt");
+  const { control } = useFormContext<LinkFormData>();
+  const expiresAt = useWatch({ control, name: "expiresAt" });
 
-  useKeyboardShortcut("e", () => setShowExpirationModal(true), {
-    modal: true,
-  });
+  useLinkBuilderKeyboardShortcut("e", () => setShowExpirationModal(true));
 
   return (
     <Button
@@ -296,7 +294,7 @@ function ExpirationButton({
           className={cn("size-4", expiresAt && "text-blue-500")}
         />
       }
-      className="h-9 w-fit px-2.5 font-medium text-neutral-700"
+      className="h-8 w-fit gap-1.5 px-2.5 text-xs font-medium text-neutral-700"
       onClick={() => setShowExpirationModal(true)}
     />
   );

@@ -54,7 +54,7 @@ export function PartnerApplicationReceived({
     slug: string;
   };
 }) {
-  const applicationUrl = `https://app.dub.co/${workspace.slug}/programs/${program.id}/partners?partnerId=${partner.id}`;
+  const applicationUrl = `https://app.dub.co/${workspace.slug}/programs/${program.id}/partners?status=pending&partnerId=${partner.id}`;
 
   return (
     <Html>

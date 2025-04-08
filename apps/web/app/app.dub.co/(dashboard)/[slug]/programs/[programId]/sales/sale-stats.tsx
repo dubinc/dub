@@ -1,8 +1,8 @@
 "use client";
 
 import useSalesCount from "@/lib/swr/use-sales-count";
+import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { ProgramStatsFilter } from "@/ui/partners/program-stats-filter";
-import { SaleStatusBadges } from "@/ui/partners/sale-status-badges";
 import { useRouterStuff } from "@dub/ui";
 import { Users } from "@dub/ui/icons";
 import { useParams, useSearchParams } from "next/navigation";
@@ -51,8 +51,8 @@ export function SaleStats() {
               ? salesCount?.pending.earnings
               : undefined
         }
-        icon={SaleStatusBadges.pending.icon}
-        iconClassName={SaleStatusBadges.pending.className}
+        icon={CommissionStatusBadges.pending.icon}
+        iconClassName={CommissionStatusBadges.pending.className}
         variant="loose"
         error={!!error}
       />
@@ -72,8 +72,8 @@ export function SaleStats() {
               ? salesCount?.processed.earnings
               : undefined
         }
-        icon={SaleStatusBadges.processed.icon}
-        iconClassName={SaleStatusBadges.processed.className}
+        icon={CommissionStatusBadges.processed.icon}
+        iconClassName={CommissionStatusBadges.processed.className}
         variant="loose"
         error={!!error}
       />
@@ -93,8 +93,8 @@ export function SaleStats() {
               ? salesCount?.paid.earnings
               : undefined
         }
-        icon={SaleStatusBadges.paid.icon}
-        iconClassName={SaleStatusBadges.paid.className}
+        icon={CommissionStatusBadges.paid.icon}
+        iconClassName={CommissionStatusBadges.paid.className}
         variant="loose"
         error={!!error}
       />

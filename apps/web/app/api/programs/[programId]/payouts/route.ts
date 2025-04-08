@@ -69,6 +69,7 @@ export const GET = withWorkspace(
       },
       include: {
         partner: true,
+        user: true,
         _count: {
           select: {
             commissions: true,
