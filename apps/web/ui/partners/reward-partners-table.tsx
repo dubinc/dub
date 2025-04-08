@@ -28,7 +28,7 @@ export function RewardPartnersTable({
   >([]);
 
   // Get filtered partners for the combobox
-  const { data: searchPartners } = usePartners({
+  const { partners: searchPartners } = usePartners({
     query: {
       search: debouncedSearch,
     },

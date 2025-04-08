@@ -4,8 +4,8 @@ import usePartnerEarningsCount from "@/lib/swr/use-partner-earnings-count";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerEarningsResponse } from "@/lib/types";
 import FilterButton from "@/ui/analytics/events/filter-button";
+import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
-import { SaleStatusBadges } from "@/ui/partners/sale-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import {
   CopyText,
@@ -21,6 +21,7 @@ import {
   currencyFormatter,
   fetcher,
   formatDateTime,
+  formatDateTimeSmart,
   getApexDomain,
   getPrettyUrl,
 } from "@dub/utils";
@@ -72,10 +73,7 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
         minSize: 140,
         cell: ({ row }) => (
           <p title={formatDateTime(row.original.createdAt)}>
-            {formatDateTime(row.original.createdAt, {
-              month: "short",
-              year: undefined,
-            })}
+            {formatDateTimeSmart(row.original.createdAt)}
           </p>
         ),
       },
@@ -159,10 +157,21 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
       {
         header: "Status",
         cell: ({ row }) => {
-          const badge = SaleStatusBadges[row.original.status];
+          const badge = CommissionStatusBadges[row.original.status];
 
           return (
-            <StatusBadge icon={null} variant={badge.variant}>
+            <StatusBadge
+              icon={null}
+              variant={badge.variant}
+              tooltip={badge.tooltip({
+                holdingPeriodDays:
+                  programEnrollment?.program.holdingPeriodDays ?? 0,
+                minPayoutAmount:
+                  programEnrollment?.program.minPayoutAmount ?? 10000,
+                supportEmail:
+                  programEnrollment?.program.supportEmail ?? "support@dub.co",
+              })}
+            >
               {badge.label}
             </StatusBadge>
           );
