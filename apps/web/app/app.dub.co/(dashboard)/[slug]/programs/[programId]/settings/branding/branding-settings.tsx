@@ -45,14 +45,9 @@ function BrandingSettingsForm({ program }: { program: ProgramProps }) {
   } = form;
 
   const { executeAsync } = useAction(updateProgramAction, {
-    async onSuccess(res) {
-      if (res.data?.ok) {
-        toast.success("Program updated successfully.");
-        mutate(`/api/programs/${program.id}?workspaceId=${workspaceId}`);
-      } else {
-        toast.error("Failed to update program.");
-        return false;
-      }
+    async onSuccess() {
+      toast.success("Program updated successfully.");
+      mutate(`/api/programs/${program.id}?workspaceId=${workspaceId}`);
     },
     onError({ error }) {
       console.error(error);
