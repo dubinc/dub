@@ -12,16 +12,6 @@ export const trackSaleRequestSchema = z.object({
     .describe(
       "This is the unique identifier for the customer in the client's app. This is used to track the customer's journey.",
     ),
-  customerId: z
-    .string()
-    .trim()
-    .max(100)
-    .nullish()
-    .default(null)
-    .describe(
-      "This is the unique identifier for the customer in the client's app. This is used to track the customer's journey.",
-    )
-    .openapi({ deprecated: true }),
   amount: z
     .number({ required_error: "amount is required" })
     .int()

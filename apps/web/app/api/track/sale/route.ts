@@ -30,8 +30,7 @@ type LeadEvent = z.infer<typeof leadEventSchemaTB>;
 export const POST = withWorkspace(
   async ({ req, workspace }) => {
     let {
-      externalId,
-      customerId, // deprecated
+      externalId: customerExternalId,
       paymentProcessor,
       invoiceId,
       amount,
@@ -56,8 +55,6 @@ export const POST = withWorkspace(
         });
       }
     }
-
-    const customerExternalId = customerId || externalId;
 
     if (!customerExternalId) {
       throw new DubApiError({
