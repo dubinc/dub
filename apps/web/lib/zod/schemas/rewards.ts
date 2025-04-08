@@ -23,7 +23,7 @@ export const RewardSchema = z.object({
   type: z.nativeEnum(CommissionType),
   amount: z.number(),
   maxDuration: z.number().nullish(),
-  maxRewardAmount: z.number().nullable(),
+  maxAmount: z.number().nullish(),
   partnersCount: z.number().nullish(),
 });
 
@@ -34,8 +34,8 @@ export const createOrUpdateRewardSchema = z.object({
   type: z.nativeEnum(CommissionType).default("flat"),
   amount: z.number().min(0),
   maxDuration: maxDurationSchema,
+  maxAmount: z.number().nullish(),
   partnerIds: z.array(z.string()).nullish(),
-  maxRewardAmount: z.number().nullish(),
 });
 
 export const createRewardSchema = createOrUpdateRewardSchema.superRefine(

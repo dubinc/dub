@@ -93,9 +93,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
         : 12,
       amount: reward?.type === "flat" ? reward.amount / 100 : reward?.amount,
       partnerIds: null,
-      maxRewardAmount: reward?.maxRewardAmount
-        ? reward.maxRewardAmount / 100
-        : null,
+      maxAmount: reward?.maxAmount ? reward.maxAmount / 100 : null,
     },
   });
 
@@ -212,7 +210,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
       amount: type === "flat" ? data.amount * 100 : data.amount,
       maxDuration:
         Infinity === Number(data.maxDuration) ? null : data.maxDuration,
-      maxRewardAmount: data.maxRewardAmount ? data.maxRewardAmount * 100 : null,
+      maxAmount: data.maxAmount ? data.maxAmount * 100 : null,
     };
 
     if (!reward) {
@@ -658,8 +656,8 @@ function RewardLimitSection({
   setValue: UseFormSetValue<FormData>;
   errors: FieldErrors<FormData>;
 }) {
-  const [maxRewardAmount] = watch(["maxRewardAmount"]);
-  const [isLimited, setIsLimited] = useState(maxRewardAmount !== null);
+  const [maxAmount] = watch(["maxAmount"]);
+  const [isLimited, setIsLimited] = useState(maxAmount !== null);
 
   return (
     <div className="flex flex-col gap-4">
@@ -671,7 +669,7 @@ function RewardLimitSection({
             setIsLimited(checked);
 
             if (!checked) {
-              setValue("maxRewardAmount", null);
+              setValue("maxAmount", null);
             }
           }}
         />
@@ -700,10 +698,10 @@ function RewardLimitSection({
                     <input
                       className={cn(
                         "block w-full rounded-md border-neutral-300 pl-6 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                        errors.maxRewardAmount &&
+                        errors.maxAmount &&
                           "border-red-600 focus:border-red-500 focus:ring-red-600",
                       )}
-                      {...register("maxRewardAmount", {
+                      {...register("maxAmount", {
                         required: isLimited,
                         valueAsNumber: true,
                         min: 0,

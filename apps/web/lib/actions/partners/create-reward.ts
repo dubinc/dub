@@ -18,7 +18,7 @@ export const createRewardAction = authActionClient
       amount,
       type,
       maxDuration,
-      maxRewardAmount,
+      maxAmount,
     } = parsedInput;
 
     const program = await getProgramOrThrow({
@@ -26,7 +26,7 @@ export const createRewardAction = authActionClient
       programId,
     });
 
-    if (maxRewardAmount && maxRewardAmount < amount) {
+    if (maxAmount && maxAmount < amount) {
       throw new Error(
         "Max reward amount cannot be less than the reward amount.",
       );
@@ -100,7 +100,7 @@ export const createRewardAction = authActionClient
         type,
         amount,
         maxDuration,
-        maxRewardAmount,
+        maxAmount,
         ...(programEnrollments && {
           partners: {
             createMany: {

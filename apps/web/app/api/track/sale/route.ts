@@ -5,7 +5,6 @@ import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
-import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -19,7 +18,6 @@ import {
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { differenceInMonths } from "date-fns";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -175,68 +173,26 @@ export const POST = withWorkspace(
 
         // for program links
         if (link.programId && link.partnerId) {
-          const reward = await determinePartnerReward({
+          const commission = await createPartnerCommission({
+            event: "sale",
             programId: link.programId,
             partnerId: link.partnerId,
-            event: "sale",
+            linkId: link.id,
+            eventId,
+            customerId: customer.id,
+            amount: saleData.amount,
+            quantity: 1,
+            invoiceId,
+            currency,
           });
 
-          if (reward) {
-            let eligibleForCommission = true;
-
-            if (typeof reward.maxDuration === "number") {
-              // Get the first commission (earliest sale) for this customer-partner pair
-              const firstCommission = await prisma.commission.findFirst({
-                where: {
-                  partnerId: link.partnerId,
-                  customerId: customer.id,
-                  type: "sale",
-                },
-                orderBy: {
-                  createdAt: "asc",
-                },
-              });
-
-              if (firstCommission) {
-                if (reward.maxDuration === 0) {
-                  eligibleForCommission = false;
-                } else {
-                  // Calculate months difference between first commission and now
-                  const monthsDifference = differenceInMonths(
-                    new Date(),
-                    firstCommission.createdAt,
-                  );
-
-                  if (monthsDifference >= reward.maxDuration) {
-                    eligibleForCommission = false;
-                  }
-                }
-              }
-            }
-
-            if (eligibleForCommission) {
-              const commission = await createPartnerCommission({
-                event: "sale",
-                programId: link.programId,
-                partnerId: link.partnerId,
-                linkId: link.id,
-                eventId,
-                customerId: customer.id,
-                amount: saleData.amount,
-                quantity: 1,
-                invoiceId,
-                currency,
-              });
-
-              if (commission) {
-                waitUntil(
-                  notifyPartnerSale({
-                    link,
-                    commission,
-                  }),
-                );
-              }
-            }
+          if (commission) {
+            waitUntil(
+              notifyPartnerSale({
+                link,
+                commission,
+              }),
+            );
           }
         }
 
