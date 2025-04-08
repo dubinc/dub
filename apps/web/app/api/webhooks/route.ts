@@ -56,9 +56,8 @@ export const GET = withWorkspace(
 // POST /api/webhooks/ - create a new webhook
 export const POST = withWorkspace(
   async ({ req, workspace, session }) => {
-    const { name, url, triggers, linkIds, secret } = createWebhookSchema.parse(
-      await parseRequestBody(req),
-    );
+    const { name, url, triggers, linkIds, excludeLinkIds, secret } =
+      createWebhookSchema.parse(await parseRequestBody(req));
 
     const existingWebhook = await prisma.webhook.findFirst({
       where: {
@@ -74,7 +73,9 @@ export const POST = withWorkspace(
       });
     }
 
-    if (linkIds && linkIds.length > 0) {
+    const allLinkIds = [...(linkIds || []), ...(excludeLinkIds || [])];
+
+    if (allLinkIds.length > 0) {
       const folders = await getFolders({
         workspaceId: workspace.id,
         userId: session.user.id,
@@ -83,7 +84,7 @@ export const POST = withWorkspace(
       const links = await prisma.link.findMany({
         where: {
           id: {
-            in: linkIds,
+            in: allLinkIds,
           },
           projectId: workspace.id,
           OR: [
@@ -96,7 +97,7 @@ export const POST = withWorkspace(
         },
       });
 
-      if (links.length !== linkIds.length) {
+      if (links.length !== allLinkIds.length) {
         throw new DubApiError({
           code: "bad_request",
           message:
@@ -127,6 +128,7 @@ export const POST = withWorkspace(
       receiver: isZapierWebhook ? WebhookReceiver.zapier : WebhookReceiver.user,
       triggers,
       linkIds,
+      excludeLinkIds,
       secret,
       workspace,
       installationId: zapierInstallation ? zapierInstallation.id : undefined,

@@ -1,5 +1,4 @@
 import { createId } from "@/lib/api/create-id";
-import { linkCache } from "@/lib/api/links/cache";
 import { webhookCache } from "@/lib/webhook/cache";
 import { WEBHOOK_ID_PREFIX } from "@/lib/webhook/constants";
 import { isLinkLevelWebhook } from "@/lib/webhook/utils";
@@ -16,6 +15,7 @@ export async function createWebhook({
   secret,
   triggers,
   linkIds,
+  excludeLinkIds,
   workspace,
   receiver,
   installationId,
@@ -40,12 +40,16 @@ export async function createWebhook({
       projectId: workspace.id,
       secret: secret || createWebhookSecret(),
       links: {
-        ...(linkIds &&
-          linkIds.length > 0 && {
-            create: linkIds.map((linkId) => ({
-              linkId,
-            })),
-          }),
+        create: [
+          ...(linkIds?.map((linkId) => ({
+            linkId,
+            enabled: true,
+          })) || []),
+          ...(excludeLinkIds?.map((linkId) => ({
+            linkId,
+            enabled: false,
+          })) || []),
+        ],
       },
     },
     select: {
@@ -71,34 +75,9 @@ export async function createWebhook({
 
   waitUntil(
     (async () => {
-      const links = await prisma.link.findMany({
-        where: {
-          id: { in: linkIds },
-          projectId: workspace.id,
-        },
-        include: {
-          webhooks: {
-            select: {
-              webhookId: true,
-            },
-          },
-        },
-      });
-
-      const formatedLinks = links.map((link) => {
-        return {
-          ...link,
-          webhookIds: link.webhooks.map((webhook) => webhook.webhookId),
-        };
-      });
-
-      Promise.all([
-        ...(links && links.length > 0
-          ? [linkCache.mset(formatedLinks), []]
-          : []),
-
-        ...(isLinkLevelWebhook(webhook) ? [webhookCache.set(webhook)] : []),
-      ]);
+      if (isLinkLevelWebhook(webhook)) {
+        await webhookCache.set(webhook);
+      }
     })(),
   );
 
