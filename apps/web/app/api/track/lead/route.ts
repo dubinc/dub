@@ -30,8 +30,7 @@ export const POST = withWorkspace(
       clickId,
       eventName,
       eventQuantity,
-      externalId,
-      customerId, // deprecated (but we'll support it for backwards compatibility)
+      externalId: customerExternalId,
       customerName,
       customerEmail,
       customerAvatar,
@@ -39,7 +38,6 @@ export const POST = withWorkspace(
       mode = "async", // Default to async mode if not specified
     } = trackLeadRequestSchema.parse(await parseRequestBody(req));
 
-    const customerExternalId = externalId || customerId;
     const finalCustomerName =
       customerName || customerEmail || generateRandomName();
 
