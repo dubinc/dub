@@ -316,7 +316,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                   </div>
                 </div>
 
-                <div>
+                {/* <div>
                   <RewardLimitSection
                     event={event}
                     register={register}
@@ -324,7 +324,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                     setValue={setValue}
                     errors={errors}
                   />
-                </div>
+                </div> */}
               </>
             )}
 
@@ -567,7 +567,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                       </div>
                     </div>
 
-                    <div>
+                    {/* <div>
                       <RewardLimitSection
                         event={event}
                         register={register}
@@ -575,7 +575,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                         setValue={setValue}
                         errors={errors}
                       />
-                    </div>
+                    </div> */}
                   </div>
                 </div>
               </>
@@ -644,6 +644,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
   );
 }
 
+// Temporarily hiding this in the UI for now – until more users ask for it
 function RewardLimitSection({
   event,
   register,
