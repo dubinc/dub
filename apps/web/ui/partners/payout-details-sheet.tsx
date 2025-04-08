@@ -24,9 +24,9 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Dispatch, Fragment, SetStateAction, useMemo, useState } from "react";
 import useSWR from "swr";
+import { CommissionRowMenu } from "./commission-row-menu";
 import { PayoutStatusBadges } from "./payout-status-badges";
 import { PayoutTypeBadge } from "./payout-type-badge";
-import { SaleRowMenu } from "./sale-row-menu";
 
 type PayoutDetailsSheetProps = {
   payout: PayoutResponse;
@@ -150,7 +150,7 @@ function PayoutDetailsSheetContent({
         minSize: 43,
         size: 43,
         maxSize: 43,
-        cell: ({ row }) => <SaleRowMenu row={row} />,
+        cell: ({ row }) => <CommissionRowMenu row={row} />,
       },
     ],
     columnPinning: { right: ["menu"] },

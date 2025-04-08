@@ -1,12 +1,12 @@
 "use client";
 
-import useSalesCount from "@/lib/swr/use-sales-count";
+import useCommissionsCount from "@/lib/swr/use-commissions-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { SaleResponse } from "@/lib/types";
 import FilterButton from "@/ui/analytics/events/filter-button";
+import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
-import { SaleRowMenu } from "@/ui/partners/sale-row-menu";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
@@ -29,10 +29,10 @@ import {
 import { useParams } from "next/navigation";
 import { memo } from "react";
 import useSWR from "swr";
-import { useSaleFilters } from "./use-sale-filters";
+import { useCommissionFilters } from "./use-commission-filters";
 
 export function CommissionTable({ limit }: { limit?: number }) {
-  const filters = useSaleFilters();
+  const filters = useCommissionFilters();
 
   return <CommissionTableInner limit={limit} {...filters} />;
 }
@@ -48,7 +48,7 @@ const CommissionTableInner = memo(
     isFiltered,
     setSearch,
     setSelectedFilter,
-  }: { limit?: number } & ReturnType<typeof useSaleFilters>) => {
+  }: { limit?: number } & ReturnType<typeof useCommissionFilters>) => {
     const { programId } = useParams();
     const { id: workspaceId } = useWorkspace();
     const { pagination, setPagination } = usePagination(limit);
@@ -58,9 +58,9 @@ const CommissionTableInner = memo(
       sortOrder: "asc" | "desc";
     };
 
-    const { salesCount } = useSalesCount();
-    const { data: sales, error } = useSWR<SaleResponse[]>(
-      `/api/programs/${programId}/sales${getQueryString(
+    const { commissionsCount } = useCommissionsCount();
+    const { data: commissions, error } = useSWR<SaleResponse[]>(
+      `/api/programs/${programId}/commissions${getQueryString(
         {
           workspaceId,
         },
@@ -71,10 +71,10 @@ const CommissionTableInner = memo(
       fetcher,
     );
 
-    const loading = !sales && !error;
+    const loading = !commissions && !error;
 
     const table = useTable<SaleResponse>({
-      data: sales?.slice(0, limit) || [],
+      data: commissions?.slice(0, limit) || [],
       columns: [
         {
           id: "createdAt",
@@ -160,7 +160,7 @@ const CommissionTableInner = memo(
           minSize: 43,
           size: 43,
           maxSize: 43,
-          cell: ({ row }) => <SaleRowMenu row={row} />,
+          cell: ({ row }) => <CommissionRowMenu row={row} />,
         },
       ],
       columnPinning: { right: ["menu"] },
@@ -193,9 +193,9 @@ const CommissionTableInner = memo(
       thClassName: "border-l-0",
       tdClassName: "border-l-0",
       resourceName: (p) => `sale${p ? "s" : ""}`,
-      rowCount: salesCount?.[status || "all"].count ?? 0,
+      rowCount: commissionsCount?.[status || "all"].count ?? 0,
       loading,
-      error: error ? "Failed to load sales" : undefined,
+      error: error ? "Failed to load commissions" : undefined,
     });
 
     return (
@@ -241,15 +241,15 @@ const CommissionTableInner = memo(
             </AnimatedSizeContainer>
           </div>
         )}
-        {sales?.length !== 0 ? (
+        {commissions?.length !== 0 ? (
           <Table {...table} />
         ) : (
           <AnimatedEmptyState
-            title="No sales found"
+            title="No commissions found"
             description={
               isFiltered
-                ? "No sales found for the selected filters."
-                : "No sales have been made for this program yet."
+                ? "No commissions found for the selected filters."
+                : "No commissions have been made for this program yet."
             }
             cardContent={() => (
               <>

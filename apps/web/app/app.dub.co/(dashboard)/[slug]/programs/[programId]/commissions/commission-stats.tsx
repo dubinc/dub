@@ -1,6 +1,6 @@
 "use client";
 
-import useSalesCount from "@/lib/swr/use-sales-count";
+import useCommissionsCount from "@/lib/swr/use-commissions-count";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { ProgramStatsFilter } from "@/ui/partners/program-stats-filter";
 import { useRouterStuff } from "@dub/ui";
@@ -10,7 +10,7 @@ import { useParams } from "next/navigation";
 export function CommissionStats() {
   const { slug, programId } = useParams();
   const { queryParams } = useRouterStuff();
-  const { salesCount, error } = useSalesCount({
+  const { commissionsCount, error } = useCommissionsCount({
     exclude: ["status"],
   });
 
@@ -18,9 +18,9 @@ export function CommissionStats() {
     <div className="xs:grid-cols-4 xs:divide-x xs:divide-y-0 grid divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200">
       <ProgramStatsFilter
         label="All"
-        href={`/${slug}/programs/${programId}/sales`}
-        count={salesCount?.all.count}
-        amount={salesCount?.all.earnings}
+        href={`/${slug}/programs/${programId}/commissions`}
+        count={commissionsCount?.all.count}
+        amount={commissionsCount?.all.earnings}
         icon={Users}
         iconClassName="text-neutral-600 bg-neutral-100"
         variant="loose"
@@ -34,8 +34,8 @@ export function CommissionStats() {
             getNewPath: true,
           }) as string
         }
-        count={salesCount?.pending.count}
-        amount={salesCount?.pending.earnings}
+        count={commissionsCount?.pending.count}
+        amount={commissionsCount?.pending.earnings}
         icon={CommissionStatusBadges.pending.icon}
         iconClassName={CommissionStatusBadges.pending.className}
         variant="loose"
@@ -49,8 +49,8 @@ export function CommissionStats() {
             getNewPath: true,
           }) as string
         }
-        count={salesCount?.processed.count}
-        amount={salesCount?.processed.earnings}
+        count={commissionsCount?.processed.count}
+        amount={commissionsCount?.processed.earnings}
         icon={CommissionStatusBadges.processed.icon}
         iconClassName={CommissionStatusBadges.processed.className}
         variant="loose"
@@ -64,8 +64,8 @@ export function CommissionStats() {
             getNewPath: true,
           }) as string
         }
-        count={salesCount?.paid.count}
-        amount={salesCount?.paid.earnings}
+        count={commissionsCount?.paid.count}
+        amount={commissionsCount?.paid.earnings}
         icon={CommissionStatusBadges.paid.icon}
         iconClassName={CommissionStatusBadges.paid.className}
         variant="loose"

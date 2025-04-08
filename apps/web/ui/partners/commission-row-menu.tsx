@@ -20,7 +20,7 @@ import { useParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
-export function SaleRowMenu({ row }: { row: Row<SaleResponse> }) {
+export function CommissionRowMenu({ row }: { row: Row<SaleResponse> }) {
   const { id: workspaceId } = useWorkspace();
   const { programId } = useParams() as { programId: string };
   const [isOpen, setIsOpen] = useState(false);

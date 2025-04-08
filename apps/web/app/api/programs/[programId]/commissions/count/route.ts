@@ -21,7 +21,7 @@ export const GET = withWorkspace(
 
     const { startDate, endDate } = getStartEndDates(parsed);
 
-    const salesCount = await prisma.commission.groupBy({
+    const commissionsCount = await prisma.commission.groupBy({
       by: ["status"],
       where: {
         earnings: {
@@ -45,7 +45,7 @@ export const GET = withWorkspace(
       },
     });
 
-    const counts = salesCount.reduce(
+    const counts = commissionsCount.reduce(
       (acc, p) => {
         acc[p.status] = {
           count: p._count,
@@ -75,7 +75,7 @@ export const GET = withWorkspace(
       }
     });
 
-    counts.all = salesCount.reduce(
+    counts.all = commissionsCount.reduce(
       (acc, p) => ({
         count: acc.count + p._count,
         amount: acc.amount + (p._sum.amount ?? 0),
