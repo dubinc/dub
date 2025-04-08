@@ -10,6 +10,7 @@ export const WebhookSchema = z.object({
   triggers: z.array(z.enum(WEBHOOK_TRIGGERS)),
   disabledAt: z.date().nullable(),
   linkIds: z.array(z.string()).optional(),
+  excludeLinkIds: z.array(z.string()).optional(),
   installationId: z.string().nullable(),
 });
 
@@ -18,7 +19,18 @@ export const createWebhookSchema = z.object({
   url: parseUrlSchema,
   secret: z.string().optional(),
   triggers: z.array(z.enum(WEBHOOK_TRIGGERS)),
-  linkIds: z.array(z.string()).optional(),
+  linkIds: z
+    .array(z.string())
+    .optional()
+    .describe(
+      "Link IDs to include. If not provided, all links will be included.",
+    ),
+  excludeLinkIds: z
+    .array(z.string())
+    .optional()
+    .describe(
+      "Link IDs to exclude. If not provided, all links will be included.",
+    ),
 });
 
 export const updateWebhookSchema = createWebhookSchema.partial();
