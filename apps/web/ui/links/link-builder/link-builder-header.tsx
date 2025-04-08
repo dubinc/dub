@@ -79,7 +79,7 @@ export function LinkBuilderHeader({
     return (
       <>
         {canAddFolder && <FolderIcon folder={selectedFolder} shape="square" />}
-        <span className="text-sm font-semibold text-neutral-800">
+        <span className="min-w-0 truncate text-sm font-semibold text-neutral-800">
           {selectedFolder.name}
         </span>
       </>
@@ -99,7 +99,7 @@ export function LinkBuilderHeader({
             {linkToFolder && canAddFolder ? (
               <Link
                 href={`/${workspace.slug}/links?folderId=${folderId ?? "unsorted"}`}
-                className="flex items-center gap-2 rounded-md py-1 pl-1 pr-2 hover:bg-neutral-100"
+                className="flex min-w-0 items-center gap-2 rounded-md py-1 pl-1 pr-2 hover:bg-neutral-100"
                 onClick={
                   isDirty
                     ? (e) => {
@@ -116,7 +116,7 @@ export function LinkBuilderHeader({
                 {folderContent}
               </Link>
             ) : (
-              <div className="flex items-center gap-2 px-1.5">
+              <div className="flex min-w-0 items-center gap-2 px-1.5">
                 {folderContent}
               </div>
             )}
