@@ -79,6 +79,17 @@ export const createPartnerCommission = async ({
     }
   }
 
+  let earnings =
+    event === "sale"
+      ? calculateSaleEarnings({
+          reward,
+          sale: {
+            quantity,
+            amount,
+          },
+        })
+      : reward.amount * quantity;
+
   // handle rewards with max reward amount limit
   if (reward.maxAmount) {
     const totalRewards = await prisma.commission.aggregate({
@@ -104,18 +115,9 @@ export const createPartnerCommission = async ({
       );
       return;
     }
+    const remainingRewardAmount = reward.maxAmount - totalEarnings;
+    earnings = Math.max(0, Math.min(earnings, remainingRewardAmount));
   }
-
-  const earnings =
-    event === "sale"
-      ? calculateSaleEarnings({
-          reward,
-          sale: {
-            quantity,
-            amount,
-          },
-        })
-      : reward.amount * quantity;
 
   try {
     const commission = await prisma.commission.create({
