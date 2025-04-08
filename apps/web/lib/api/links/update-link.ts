@@ -15,6 +15,7 @@ import {
 import { waitUntil } from "@vercel/functions";
 import { createId } from "../create-id";
 import { combineTagIds } from "../tags/combine-tag-ids";
+import { scheduleABTestCompletion } from "./ab-test-scheduler";
 import { linkCache } from "./cache";
 import { encodeKeyIfCaseSensitive } from "./case-sensitivity";
 import { includeTags } from "./include-tags";
@@ -24,7 +25,12 @@ export async function updateLink({
   oldLink,
   updatedLink,
 }: {
-  oldLink: { domain: string; key: string; image?: string | null };
+  oldLink: {
+    domain: string;
+    key: string;
+    image?: string | null;
+    testCompletedAt?: Date | null;
+  };
   updatedLink: ProcessedLinkProps &
     Pick<LinkProps, "id" | "clicks" | "lastClicked" | "updatedAt">;
 }) {
@@ -57,8 +63,12 @@ export async function updateLink({
     tagIds,
     tagNames,
     webhookIds,
+    testVariants,
+    testStartedAt,
+    testCompletedAt,
     ...rest
   } = updatedLink;
+  const changedTestCompletedAt = testCompletedAt !== oldLink.testCompletedAt;
 
   const combinedTagIds = combineTagIds({ tagId, tagIds });
 
@@ -93,6 +103,10 @@ export async function updateLink({
       utm_content: utm_content || null,
       expiresAt: expiresAt ? new Date(expiresAt) : null,
       geo: geo || Prisma.JsonNull,
+
+      testVariants: testVariants || Prisma.JsonNull,
+      testCompletedAt: testCompletedAt ? new Date(testCompletedAt) : null,
+      testStartedAt: testStartedAt ? new Date(testStartedAt) : null,
 
       // Associate tags by tagNames
       ...(tagNames &&
@@ -189,6 +203,11 @@ export async function updateLink({
         propagateWebhookTriggerChanges({
           webhookIds,
         }),
+
+      changedTestCompletedAt &&
+        testVariants &&
+        testCompletedAt &&
+        scheduleABTestCompletion(response),
     ]),
   );
 

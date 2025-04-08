@@ -1,5 +1,7 @@
+import { z } from "zod";
 import { ExpandedLink } from "../api/links/utils/transform-link";
 import { RedisLinkProps } from "../types";
+import { ABTestVariantsSchema } from "../zod/schemas/links";
 
 export function formatRedisLink(link: ExpandedLink): RedisLinkProps {
   const {
@@ -21,6 +23,8 @@ export function formatRedisLink(link: ExpandedLink): RedisLinkProps {
     partnerId,
     partner,
     discount,
+    testVariants,
+    testCompletedAt,
   } = link;
 
   const webhookIds = webhooks?.map(({ webhookId }) => webhookId) ?? [];
@@ -59,6 +63,12 @@ export function formatRedisLink(link: ExpandedLink): RedisLinkProps {
         type: discount.type,
         maxDuration: discount.maxDuration,
       },
+    }),
+    ...(Boolean(
+      testVariants && testCompletedAt && new Date(testCompletedAt) > new Date(),
+    ) && {
+      testVariants: testVariants as z.infer<typeof ABTestVariantsSchema>,
+      testCompletedAt: new Date(testCompletedAt!),
     }),
   };
 }
