@@ -17,11 +17,9 @@ import {
   currencyFormatter,
   DICEBEAR_AVATAR_URL,
   fetcher,
-} from "@dub/utils";
-import {
   formatDateTime,
-  formatPeriod,
-} from "@dub/utils/src/functions/datetime";
+} from "@dub/utils";
+import { formatPeriod } from "@dub/utils/src/functions/datetime";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Dispatch, Fragment, SetStateAction, useMemo, useState } from "react";

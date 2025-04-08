@@ -34,7 +34,7 @@ export default function usePartners(
   );
 
   return {
-    data,
+    partners: data,
     loading: isLoading,
     error,
   };

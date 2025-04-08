@@ -23,7 +23,6 @@ export const partnersColumns = {
     "sales",
     "saleAmount",
     "commissions",
-    "netRevenue",
   ],
 };
 

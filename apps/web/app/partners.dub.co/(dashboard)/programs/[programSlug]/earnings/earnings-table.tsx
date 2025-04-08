@@ -21,6 +21,7 @@ import {
   currencyFormatter,
   fetcher,
   formatDateTime,
+  formatDateTimeSmart,
   getApexDomain,
   getPrettyUrl,
 } from "@dub/utils";
@@ -72,10 +73,7 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
         minSize: 140,
         cell: ({ row }) => (
           <p title={formatDateTime(row.original.createdAt)}>
-            {formatDateTime(row.original.createdAt, {
-              month: "short",
-              year: undefined,
-            })}
+            {formatDateTimeSmart(row.original.createdAt)}
           </p>
         ),
       },

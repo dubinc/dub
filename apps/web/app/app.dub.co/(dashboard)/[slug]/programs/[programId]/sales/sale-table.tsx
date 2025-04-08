@@ -24,6 +24,7 @@ import {
   DICEBEAR_AVATAR_URL,
   fetcher,
   formatDateTime,
+  formatDateTimeSmart,
 } from "@dub/utils";
 import { useParams } from "next/navigation";
 import { memo } from "react";
@@ -80,10 +81,7 @@ const SaleTableBusinessInner = memo(
           header: "Date",
           cell: ({ row }) => (
             <p title={formatDateTime(row.original.createdAt)}>
-              {formatDateTime(row.original.createdAt, {
-                month: "short",
-                year: undefined,
-              })}
+              {formatDateTimeSmart(row.original.createdAt)}
             </p>
           ),
         },
