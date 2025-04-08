@@ -34,7 +34,10 @@ const saleWebhookEventSchemaExtended = saleWebhookEventSchema.extend({
 
 const enrolledPartnerSchemaExtended = EnrolledPartnerSchema.extend({
   createdAt: z.string().transform((str) => new Date(str)),
-  payoutsEnabledAt: z.string().transform((str) => new Date(str)),
+  payoutsEnabledAt: z
+    .string()
+    .transform((str) => (str ? new Date(str) : null))
+    .nullable(),
 });
 
 const eventSchemas: Record<WebhookTrigger, z.ZodSchema> = {
@@ -45,6 +48,7 @@ const eventSchemas: Record<WebhookTrigger, z.ZodSchema> = {
   "lead.created": leadWebhookEventSchemaExtended,
   "sale.created": saleWebhookEventSchemaExtended,
   "partner.created": enrolledPartnerSchemaExtended,
+  "partner.enrolled": enrolledPartnerSchemaExtended,
 };
 
 describe("Webhooks", () => {
