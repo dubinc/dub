@@ -141,6 +141,13 @@ export const PartnerSchema = z
     stripeConnectId: z.string().nullable(),
     payoutsEnabledAt: z.date().nullable(),
 
+    website: z.string().nullable(),
+    youtube: z.string().nullable(),
+    twitter: z.string().nullable(),
+    linkedin: z.string().nullable(),
+    instagram: z.string().nullable(),
+    tiktok: z.string().nullable(),
+
     createdAt: z.date(),
     updatedAt: z.date(),
   })
@@ -154,6 +161,12 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
   image: true,
   description: true,
   country: true,
+  website: true,
+  youtube: true,
+  twitter: true,
+  linkedin: true,
+  instagram: true,
+  tiktok: true,
   payoutsEnabledAt: true,
   createdAt: true,
 })

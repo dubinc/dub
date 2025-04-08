@@ -2,6 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
 import { createPartnerLink } from "@/lib/api/partners/create-partner-link";
 import { getPartners } from "@/lib/api/partners/get-partners";
+import { transformPartner } from "@/lib/api/partners/transform-partner";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -41,7 +42,7 @@ export const GET = withWorkspace(
             ? EnrolledPartnerSchemaWithExpandedFields
             : EnrolledPartnerSchema,
         )
-        .parse(partners),
+        .parse(partners.map(transformPartner)),
     );
   },
   {
