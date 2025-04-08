@@ -1,16 +1,11 @@
 import { DubApiError } from "@/lib/api/errors";
-import { linkCache } from "@/lib/api/links/cache";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getFolders } from "@/lib/folder/get-folders";
-import { webhookCache } from "@/lib/webhook/cache";
 import { createWebhook } from "@/lib/webhook/create-webhook";
 import { transformWebhook } from "@/lib/webhook/transform";
 import { toggleWebhooksForWorkspace } from "@/lib/webhook/update-webhook";
-import {
-  identifyWebhookReceiver,
-  isLinkLevelWebhook,
-} from "@/lib/webhook/utils";
+import { identifyWebhookReceiver } from "@/lib/webhook/utils";
 import { createWebhookSchema } from "@/lib/zod/schemas/webhooks";
 import { sendEmail } from "@dub/email";
 import { WebhookAdded } from "@dub/email/templates/webhook-added";
@@ -145,44 +140,26 @@ export const POST = withWorkspace(
     }
 
     waitUntil(
-      (async () => {
-        const links = await prisma.link.findMany({
-          where: {
-            id: { in: linkIds },
-            projectId: workspace.id,
-          },
-          include: {
-            webhooks: {
-              select: {
-                webhookId: true,
-              },
-            },
-          },
-        });
+      Promise.all([
+        toggleWebhooksForWorkspace({
+          workspaceId: workspace.id,
+        }),
 
-        Promise.allSettled([
-          toggleWebhooksForWorkspace({
-            workspaceId: workspace.id,
-          }),
-          sendEmail({
+        sendEmail({
+          email: session.user.email,
+          subject: "New webhook added",
+          react: WebhookAdded({
             email: session.user.email,
-            subject: "New webhook added",
-            react: WebhookAdded({
-              email: session.user.email,
-              workspace: {
-                name: workspace.name,
-                slug: workspace.slug,
-              },
-              webhook: {
-                name,
-              },
-            }),
+            workspace: {
+              name: workspace.name,
+              slug: workspace.slug,
+            },
+            webhook: {
+              name,
+            },
           }),
-          ...(links && links.length > 0 ? [linkCache.mset(links), []] : []),
-
-          ...(isLinkLevelWebhook(webhook) ? [webhookCache.set(webhook)] : []),
-        ]);
-      })(),
+        }),
+      ]),
     );
 
     return NextResponse.json(transformWebhook(webhook), { status: 201 });
