@@ -1,22 +1,17 @@
+import { MOBILE_MORE_ITEMS, TOGGLES } from "@/ui/links/link-builder/constants";
+import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
+import { useAdvancedModal } from "@/ui/modals/link-builder/advanced-modal";
+import { useExpirationModal } from "@/ui/modals/link-builder/expiration-modal";
+import { usePasswordModal } from "@/ui/modals/link-builder/password-modal";
+import { useTargetingModal } from "@/ui/modals/link-builder/targeting-modal";
 import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
-import {
-  Button,
-  Popover,
-  SimpleTooltipContent,
-  useKeyboardShortcut,
-  useMediaQuery,
-} from "@dub/ui";
+import { Button, Popover, SimpleTooltipContent, useMediaQuery } from "@dub/ui";
 import { Dots } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Settings } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
-import { LinkFormData } from ".";
-import { useAdvancedModal } from "./advanced-modal";
-import { MOBILE_MORE_ITEMS, TOGGLES } from "./constants";
-import { useExpirationModal } from "./expiration-modal";
-import { usePasswordModal } from "./password-modal";
-import { useTargetingModal } from "./targeting-modal";
+import { useLinkBuilderKeyboardShortcut } from "./use-link-builder-keyboard-shortcut";
 
 export function MoreDropdown() {
   const { isMobile } = useMediaQuery();
@@ -30,7 +25,7 @@ export function MoreDropdown() {
     return [...(isMobile ? MOBILE_MORE_ITEMS : []), ...TOGGLES];
   }, [data, isMobile]);
 
-  useKeyboardShortcut(
+  useLinkBuilderKeyboardShortcut(
     options.map(({ shortcutKey }) => shortcutKey),
     (e) => {
       const option = options.find(({ shortcutKey }) => shortcutKey === e.key);
@@ -39,7 +34,6 @@ export function MoreDropdown() {
       setOpenPopover(false);
       setValue(option.key as any, !data[option.key], { shouldDirty: true });
     },
-    { modal: true },
   );
 
   const { PasswordModal, setShowPasswordModal } = usePasswordModal();
@@ -148,7 +142,7 @@ export function MoreDropdown() {
         <Button
           variant="secondary"
           icon={<Dots className="size-4" />}
-          className="h-9 w-fit px-2.5"
+          className="h-8 w-fit px-2"
         />
       </Popover>
     </>

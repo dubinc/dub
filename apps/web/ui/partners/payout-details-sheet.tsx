@@ -17,11 +17,9 @@ import {
   currencyFormatter,
   DICEBEAR_AVATAR_URL,
   fetcher,
-} from "@dub/utils";
-import {
   formatDateTime,
-  formatPeriod,
-} from "@dub/utils/src/functions/datetime";
+} from "@dub/utils";
+import { formatPeriod } from "@dub/utils/src/functions/datetime";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Dispatch, Fragment, SetStateAction, useMemo, useState } from "react";
@@ -203,6 +201,7 @@ function PayoutDetailsSheetContent({
             <div className="mt-2 flex justify-end">
               <Link
                 href={`/${slug}/programs/${programId}/sales?payoutId=${payout.id}&interval=all`}
+                target="_blank"
                 className={cn(
                   buttonVariants({ variant: "secondary" }),
                   "flex h-7 items-center rounded-lg border px-2 text-sm",

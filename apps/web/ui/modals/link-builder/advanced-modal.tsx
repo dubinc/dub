@@ -1,10 +1,11 @@
+import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
+import { useLinkBuilderKeyboardShortcut } from "@/ui/links/link-builder/use-link-builder-keyboard-shortcut";
 import {
   Button,
   InfoTooltip,
   Modal,
   SimpleTooltipContent,
   Tooltip,
-  useKeyboardShortcut,
 } from "@dub/ui";
 import {
   Dispatch,
@@ -15,7 +16,6 @@ import {
   useState,
 } from "react";
 import { useForm, useFormContext } from "react-hook-form";
-import { LinkFormData } from ".";
 
 function AdvancedModal({
   showAdvancedModal,
@@ -48,9 +48,7 @@ function AdvancedModal({
     "tenantId",
   ]);
 
-  useKeyboardShortcut("a", () => setShowAdvancedModal(true), {
-    modal: true,
-  });
+  useLinkBuilderKeyboardShortcut("a", () => setShowAdvancedModal(true));
 
   const parentEnabled = Boolean(externalIdParent || tenantIdParent);
 

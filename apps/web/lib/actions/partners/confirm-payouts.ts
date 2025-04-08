@@ -23,7 +23,7 @@ const allowedPaymentMethods = ["us_bank_account", "card", "link"];
 export const confirmPayoutsAction = authActionClient
   .schema(confirmPayoutsSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     const { programId, paymentMethodId } = parsedInput;
 
     const { minPayoutAmount } = await getProgramOrThrow({
@@ -148,6 +148,7 @@ export const confirmPayoutsAction = authActionClient
         data: {
           invoiceId: invoice.id,
           status: "processing",
+          userId: user.id,
         },
       });
 

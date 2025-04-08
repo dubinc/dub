@@ -114,7 +114,6 @@ export const PartnerProgramInviteSchema = z.object({
 export const ProgramMetricsSchema = z.object({
   partnersCount: z.number(),
   salesCount: z.number(),
-  revenue: z.number(),
   commissions: z.number(),
   payouts: z.number(),
 });
