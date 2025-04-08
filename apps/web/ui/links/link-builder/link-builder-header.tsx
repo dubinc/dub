@@ -1,6 +1,9 @@
+import { unsortedLinks } from "@/lib/folder/constants";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import useFolder from "@/lib/swr/use-folder";
 import useLinks from "@/lib/swr/use-links";
 import { LinkProps } from "@/lib/types";
-import { FolderDropdown } from "@/ui/folders/folder-dropdown";
+import { FolderIcon } from "@/ui/folders/folder-icon";
 import { Combobox, LinkLogo } from "@dub/ui";
 import {
   cn,
@@ -11,10 +14,11 @@ import {
   truncate,
 } from "@dub/utils";
 import { ChevronRight, X } from "lucide-react";
+import Link from "next/link";
 import { PropsWithChildren, useMemo, useState } from "react";
-import { useFormContext, useWatch } from "react-hook-form";
+import { useFormState, useWatch } from "react-hook-form";
 import { useDebounce } from "use-debounce";
-import { LinkFormData, useLinkBuilderContext } from "./link-builder-provider";
+import { useLinkBuilderContext } from "./link-builder-provider";
 
 export function LinkBuilderHeader({
   onClose,
@@ -22,17 +26,18 @@ export function LinkBuilderHeader({
   children,
   className,
   foldersEnabled,
+  linkToFolder,
 }: PropsWithChildren<{
   onClose?: () => void;
   onSelectLink?: (link: LinkProps) => void;
   className?: string;
   foldersEnabled?: boolean;
+  linkToFolder?: boolean;
 }>) {
-  const { control, setValue } = useFormContext<LinkFormData>();
-  const { props } = useLinkBuilderContext();
+  const { props, workspace } = useLinkBuilderContext();
+  const { isDirty } = useFormState();
 
   const [url, key, domain, folderId] = useWatch({
-    control,
     name: ["url", "key", "domain", "folderId"],
   });
 
@@ -48,39 +53,90 @@ export function LinkBuilderHeader({
     [key, domain],
   );
 
+  const { canAddFolder } = getPlanCapabilities(workspace.plan);
+  const { folder, loading: isFolderLoading } = useFolder({
+    folderId,
+    enabled: !!folderId,
+  });
+
+  const folderContent = useMemo(() => {
+    if (!foldersEnabled) {
+      return (
+        <span className="text-sm font-semibold text-neutral-800">Links</span>
+      );
+    }
+
+    if (folderId && folderId !== "unsorted" && folder?.id !== folderId)
+      return (
+        <div className="h-7 w-24 animate-pulse rounded-md bg-neutral-200" />
+      );
+
+    let selectedFolder =
+      !folderId || folderId === "unsorted"
+        ? unsortedLinks
+        : folder ?? unsortedLinks;
+
+    return (
+      <>
+        {canAddFolder && <FolderIcon folder={selectedFolder} shape="square" />}
+        <span className="text-sm font-semibold text-neutral-800">
+          {selectedFolder.name}
+        </span>
+      </>
+    );
+  }, [foldersEnabled, folderId, folder, isFolderLoading]);
+
   return (
     <div
       className={cn(
-        "flex flex-col items-start gap-2 px-6 py-4 md:flex-row md:items-center md:justify-between",
+        "flex flex-col items-start gap-2 px-6 py-3 md:flex-row md:items-center md:justify-between",
         className,
       )}
     >
       <div className="flex min-w-0 max-w-full items-center gap-1">
         {foldersEnabled && (
           <>
-            <FolderDropdown
-              hideViewAll={true}
-              disableAutoRedirect={true}
-              onFolderSelect={(folder) => {
-                setValue("folderId", folder.id, { shouldDirty: true });
-              }}
-              buttonClassName="max-w-60 md:max-w-[24rem] min-w-0"
-              buttonTextClassName="text-sm md:text-sm font-medium"
-              selectedFolderId={folderId ?? undefined}
-            />
+            {linkToFolder && canAddFolder ? (
+              <Link
+                href={`/${workspace.slug}/links?folderId=${folderId ?? "unsorted"}`}
+                className="flex items-center gap-2 rounded-md py-1 pl-1 pr-2 hover:bg-neutral-100"
+                onClick={
+                  isDirty
+                    ? (e) => {
+                        if (
+                          !window.confirm(
+                            "Are you sure you want to discard your changes and continue?",
+                          )
+                        )
+                          e.preventDefault();
+                      }
+                    : undefined
+                }
+              >
+                {folderContent}
+              </Link>
+            ) : (
+              <div className="flex items-center gap-2 px-1.5">
+                {folderContent}
+              </div>
+            )}
 
             <ChevronRight className="hidden size-4 shrink-0 text-neutral-500 md:block" />
           </>
         )}
         {onSelectLink ? (
           <div className="min-w-0">
-            <LinkSelector selectedLink={props!} onSelect={onSelectLink} />
+            <LinkSelector
+              selectedLink={props!}
+              onSelect={onSelectLink}
+              folderId={folderId}
+            />
           </div>
         ) : (
-          <div className="flex min-w-0 items-center gap-2">
+          <div className="flex min-w-0 items-center gap-2 px-1">
             <LinkLogo
               apexDomain={getApexDomain(debouncedUrl)}
-              className="size-6 shrink-0 sm:size-6 [&>*]:size-3 sm:[&>*]:size-4"
+              className="size-5 shrink-0 sm:size-5 [&>*]:size-3 sm:[&>*]:size-4"
             />
             <h3 className="!mt-0 max-w-sm truncate text-sm font-medium">
               {props ? `Edit ${shortLink}` : "New link"}
@@ -122,10 +178,12 @@ function LinkSelector({
   selectedLink: selectedLinkProp,
   onSelect,
   disabled,
+  folderId,
 }: {
   selectedLink: LinkProps;
   onSelect: (link: LinkProps) => void;
   disabled?: boolean;
+  folderId?: string;
 }) {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
@@ -133,6 +191,7 @@ function LinkSelector({
   const { links } = useLinks(
     {
       search: debouncedSearch,
+      ...(folderId && { folderId }),
     },
     {
       keepPreviousData: false,
