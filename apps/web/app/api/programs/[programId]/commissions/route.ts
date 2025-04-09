@@ -32,7 +32,7 @@ export const GET = withWorkspace(
       programId,
     });
 
-    const sales = await prisma.commission.findMany({
+    const commissions = await prisma.commission.findMany({
       where: {
         earnings: {
           gt: 0,
@@ -56,6 +56,8 @@ export const GET = withWorkspace(
       orderBy: { [sortBy]: sortOrder },
     });
 
-    return NextResponse.json(z.array(CommissionResponseSchema).parse(sales));
+    return NextResponse.json(
+      z.array(CommissionResponseSchema).parse(commissions),
+    );
   },
 );

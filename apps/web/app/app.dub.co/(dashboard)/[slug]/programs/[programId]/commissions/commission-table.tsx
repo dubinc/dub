@@ -89,6 +89,10 @@ const CommissionTableInner = memo(
         {
           header: "Customer",
           cell: ({ row }) => {
+            if (!row.original.customer) {
+              return "-";
+            }
+
             return (
               <div className="flex items-center gap-2">
                 <img
@@ -108,9 +112,12 @@ const CommissionTableInner = memo(
             );
           },
           meta: {
-            filterParams: ({ row }) => ({
-              customerId: row.original.customer.id,
-            }),
+            filterParams: ({ row }) =>
+              row.original.customer
+                ? {
+                    customerId: row.original.customer.id,
+                  }
+                : {},
           },
         },
         {
