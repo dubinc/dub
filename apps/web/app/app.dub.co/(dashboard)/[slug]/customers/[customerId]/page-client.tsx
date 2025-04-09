@@ -5,7 +5,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { CustomerActivityResponse, SaleEvent } from "@/lib/types";
 import DeviceIcon from "@/ui/analytics/device-icon";
 import { CustomerActivityList } from "@/ui/customers/customer-activity-list";
-import { CustomerSalesTable } from "@/ui/customers/customer-earnings-table";
+import { CustomerSalesTable } from "@/ui/customers/customer-sales-table";
 import { BackLink } from "@/ui/shared/back-link";
 import { CopyButton, UTM_PARAMETERS } from "@dub/ui";
 import {

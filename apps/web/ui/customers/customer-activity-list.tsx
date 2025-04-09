@@ -74,7 +74,7 @@ export function CustomerActivityList({
         const { icon: Icon, content } = activityData[event.event];
 
         return (
-          <li className="flex items-start gap-2">
+          <li key={index} className="flex items-start gap-2">
             <div className="relative mr-3 flex-shrink-0">
               <Icon className="mt-0.5 size-4" />
               {!isLast && (
