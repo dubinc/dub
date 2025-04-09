@@ -27,15 +27,16 @@ export const CommissionResponseSchema = CommissionSchema.merge(
 
 export const getCommissionsQuerySchema = z
   .object({
+    type: z.enum(["click", "lead", "sale"]).optional(),
+    customerId: z.string().optional(),
+    payoutId: z.string().optional(),
+    partnerId: z.string().optional(),
     status: z.nativeEnum(CommissionStatus).optional(),
     sortBy: z.enum(["createdAt", "amount"]).default("createdAt"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
     interval: z.enum(intervals).default("all"),
     start: parseDateSchema.optional(),
     end: parseDateSchema.optional(),
-    customerId: z.string().optional(),
-    payoutId: z.string().optional(),
-    partnerId: z.string().optional(),
   })
   .merge(getPaginationQuerySchema({ pageSize: 100 }));
 

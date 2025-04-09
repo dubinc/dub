@@ -9,20 +9,21 @@ import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-// GET /api/programs/[programId]/sales - get all sales for a program
+// GET /api/programs/[programId]/commissions - get all commissions for a program
 export const GET = withWorkspace(
   async ({ workspace, params, searchParams }) => {
     const { programId } = params;
     const parsed = getCommissionsQuerySchema.parse(searchParams);
     const {
-      page,
-      pageSize,
       status,
-      sortBy,
-      sortOrder,
+      type,
       customerId,
       payoutId,
       partnerId,
+      page,
+      pageSize,
+      sortBy,
+      sortOrder,
     } = parsed;
 
     const { startDate, endDate } = getStartEndDates(parsed);
@@ -40,6 +41,7 @@ export const GET = withWorkspace(
         programId,
         partnerId,
         status,
+        type,
         customerId,
         payoutId,
         createdAt: {

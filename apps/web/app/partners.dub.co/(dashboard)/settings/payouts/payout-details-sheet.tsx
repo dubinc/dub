@@ -148,9 +148,9 @@ function PayoutDetailsSheetContent({
     tdClassName: (id) => cn(id === "total" && "text-right", "border-l-0"),
     className: "[&_tr:last-child>td]:border-b-transparent",
     scrollWrapperClassName: "min-h-[40px]",
-    resourceName: (p) => `sale${p ? "s" : ""}`,
+    resourceName: (p) => `commission${p ? "s" : ""}`,
     loading: isLoading,
-    error: error ? "Failed to load sales" : undefined,
+    error: error ? "Failed to load commissions" : undefined,
   } as any);
 
   return (
