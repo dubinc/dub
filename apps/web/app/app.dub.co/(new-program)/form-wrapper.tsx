@@ -12,6 +12,7 @@ export function FormWrapper({ children }: { children: React.ReactNode }) {
     defaultValues: {
       linkType: "short",
       programType: "new",
+      defaultRewardType: "lead",
       type: "flat",
       amount: null,
       partners: [{ email: "", key: "" }],

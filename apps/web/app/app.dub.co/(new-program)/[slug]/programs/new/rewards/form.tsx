@@ -209,6 +209,7 @@ const NewProgramForm = ({ register, watch, setValue }: FormProps) => {
     "maxDuration",
     "defaultRewardType",
   ]);
+
   const [commissionStructure, setCommissionStructure] = useState<
     "one-off" | "recurring"
   >("recurring");
