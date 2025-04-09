@@ -1,35 +1,26 @@
 "use client";
 
-import useSalesCount from "@/lib/swr/use-sales-count";
+import useCommissionsCount from "@/lib/swr/use-commissions-count";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { ProgramStatsFilter } from "@/ui/partners/program-stats-filter";
 import { useRouterStuff } from "@dub/ui";
 import { Users } from "@dub/ui/icons";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 
-export function SaleStats() {
+export function CommissionStats() {
   const { slug, programId } = useParams();
   const { queryParams } = useRouterStuff();
-  const searchParams = useSearchParams();
-  const { salesCount, error } = useSalesCount({
+  const { commissionsCount, error } = useCommissionsCount({
     exclude: ["status"],
   });
-
-  const view = searchParams.get("view") || "sales";
 
   return (
     <div className="xs:grid-cols-4 xs:divide-x xs:divide-y-0 grid divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200">
       <ProgramStatsFilter
         label="All"
-        href={`/${slug}/programs/${programId}/sales`}
-        count={salesCount?.all.count}
-        amount={
-          view === "sales"
-            ? salesCount?.all.amount
-            : view === "commissions"
-              ? salesCount?.all.earnings
-              : undefined
-        }
+        href={`/${slug}/programs/${programId}/commissions`}
+        count={commissionsCount?.all.count}
+        amount={commissionsCount?.all.earnings}
         icon={Users}
         iconClassName="text-neutral-600 bg-neutral-100"
         variant="loose"
@@ -43,14 +34,8 @@ export function SaleStats() {
             getNewPath: true,
           }) as string
         }
-        count={salesCount?.pending.count}
-        amount={
-          view === "sales"
-            ? salesCount?.pending.amount
-            : view === "commissions"
-              ? salesCount?.pending.earnings
-              : undefined
-        }
+        count={commissionsCount?.pending.count}
+        amount={commissionsCount?.pending.earnings}
         icon={CommissionStatusBadges.pending.icon}
         iconClassName={CommissionStatusBadges.pending.className}
         variant="loose"
@@ -64,14 +49,8 @@ export function SaleStats() {
             getNewPath: true,
           }) as string
         }
-        count={salesCount?.processed.count}
-        amount={
-          view === "sales"
-            ? salesCount?.processed.amount
-            : view === "commissions"
-              ? salesCount?.processed.earnings
-              : undefined
-        }
+        count={commissionsCount?.processed.count}
+        amount={commissionsCount?.processed.earnings}
         icon={CommissionStatusBadges.processed.icon}
         iconClassName={CommissionStatusBadges.processed.className}
         variant="loose"
@@ -85,14 +64,8 @@ export function SaleStats() {
             getNewPath: true,
           }) as string
         }
-        count={salesCount?.paid.count}
-        amount={
-          view === "sales"
-            ? salesCount?.paid.amount
-            : view === "commissions"
-              ? salesCount?.paid.earnings
-              : undefined
-        }
+        count={commissionsCount?.paid.count}
+        amount={commissionsCount?.paid.earnings}
         icon={CommissionStatusBadges.paid.icon}
         iconClassName={CommissionStatusBadges.paid.className}
         variant="loose"

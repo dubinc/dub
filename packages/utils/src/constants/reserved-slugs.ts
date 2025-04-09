@@ -52,5 +52,7 @@ export const RESERVED_SLUGS = [
   "programs",
   "partners",
   "payouts",
+  "commissions",
+  "sales",
   "resources",
 ];
