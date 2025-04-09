@@ -186,6 +186,7 @@ export const VALID_ANALYTICS_FILTERS = [
   "tagId",
   "folderId",
   "tagIds",
+  "customerId",
   "qr", // deprecated, but keeping for now for backwards compatibility
   "root",
   "utm_source",

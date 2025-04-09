@@ -2,8 +2,9 @@
 
 import useCustomer from "@/lib/swr/use-customer";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { CustomerActivityResponse } from "@/lib/types";
+import { CustomerActivityResponse, SaleEvent } from "@/lib/types";
 import DeviceIcon from "@/ui/analytics/device-icon";
+import { CustomerEarningsTable } from "@/ui/customers/customer-earnings-table";
 import { BackLink } from "@/ui/shared/back-link";
 import { CopyButton, UTM_PARAMETERS } from "@dub/ui";
 import {
@@ -18,7 +19,7 @@ import {
 } from "@dub/utils";
 import Link from "next/link";
 import { notFound, useParams } from "next/navigation";
-import { Fragment, HTMLProps, useMemo } from "react";
+import { Fragment, HTMLProps, memo, useMemo } from "react";
 import useSWR from "swr";
 
 export function CustomerPageClient() {
@@ -97,8 +98,8 @@ export function CustomerPageClient() {
         {/* Main content */}
         <div className="flex flex-col gap-10">
           <section className="flex flex-col gap-4">
-            <h2 className="text-lg font-semibold text-neutral-900">Sales</h2>
-            <div className="h-64 rounded-lg bg-neutral-100" />
+            <h2 className="text-lg font-semibold text-neutral-900">Earnings</h2>
+            <EarningsTable customerId={customerId} />
           </section>
 
           <section className="flex flex-col gap-4">
@@ -108,7 +109,7 @@ export function CustomerPageClient() {
         </div>
 
         {/* Right side details */}
-        <div className="-order-1 grid grid-cols-2 gap-6 overflow-hidden whitespace-nowrap text-sm text-neutral-900 lg:order-1 lg:grid-cols-1">
+        <div className="-order-1 grid grid-cols-1 gap-6 overflow-hidden whitespace-nowrap text-sm text-neutral-900 min-[320px]:grid-cols-2 lg:order-1 lg:grid-cols-1">
           <div className="flex flex-col gap-2">
             <DetailHeading>Details</DetailHeading>
             {customer.country && (
@@ -238,3 +239,34 @@ const DetailHeading = ({
     {...rest}
   ></h2>
 );
+
+const EarningsTable = memo(({ customerId }: { customerId: string }) => {
+  const { id: workspaceId, slug } = useWorkspace();
+
+  const { data: salesData, isLoading: isSalesLoading } = useSWR<SaleEvent[]>(
+    `/api/events?event=sales&interval=all&limit=8&customerId=${customerId}&workspaceId=${workspaceId}`,
+    fetcher,
+    {
+      keepPreviousData: true,
+    },
+  );
+
+  const { data: totalSales, isLoading: isTotalSalesLoading } = useSWR<{
+    sales: number;
+  }>(
+    `/api/analytics?event=sales&interval=all&groupBy=count&customerId=${customerId}&workspaceId=${workspaceId}`,
+    fetcher,
+    {
+      keepPreviousData: true,
+    },
+  );
+
+  return (
+    <CustomerEarningsTable
+      sales={salesData}
+      totalSales={totalSales?.sales}
+      viewAllHref={`/${slug}/events?event=sales&interval=all&customerId=${customerId}`}
+      isLoading={isSalesLoading || isTotalSalesLoading}
+    />
+  );
+});

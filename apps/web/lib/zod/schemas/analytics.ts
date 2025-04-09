@@ -101,6 +101,10 @@ export const analyticsQuerySchema = z
       .string()
       .optional()
       .describe("The ID of the partner to retrieve analytics for."),
+    customerId: z
+      .string()
+      .optional()
+      .describe("The ID of the customer to retrieve analytics for."),
     interval: z
       .enum(intervals)
       .optional()

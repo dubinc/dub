@@ -90,10 +90,10 @@ SQL >
         timestamp >= {{ DateTime(start, '2024-06-01 00:00:00') }}
         AND timestamp < {{ DateTime(end, '2024-06-07 00:00:00') }}
         {% if defined(linkId) %} AND link_id = {{ String(linkId) }}
-        {% elif defined(customerId) %} AND customer_id = {{ String(customerId) }}
         {% elif defined(workspaceId) or defined(partnerId) or defined(programId) %}
             AND link_id IN (SELECT link_id FROM workspace_links)
         {% end %}
+        {% if defined(customerId) %} AND customer_id = {{ String(customerId) }} {% end %}
         {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
         {% if defined(continent) %} AND continent = {{ continent }} {% end %}
         {% if defined(country) %} AND country = {{ country }} {% end %}
@@ -131,10 +131,10 @@ SQL >
         timestamp >= {{ DateTime(start, '2024-06-01 00:00:00') }}
         AND timestamp < {{ DateTime(end, '2024-06-07 00:00:00') }}
         {% if defined(linkId) %} AND link_id = {{ String(linkId) }}
-        {% elif defined(customerId) %} AND customer_id = {{ String(customerId) }}
         {% elif defined(workspaceId) or defined(partnerId) or defined(programId) %}
             AND link_id IN (SELECT link_id FROM workspace_links)
         {% end %}
+        {% if defined(customerId) %} AND customer_id = {{ String(customerId) }} {% end %}
         {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
         {% if defined(continent) %} AND continent = {{ continent }} {% end %}
         {% if defined(country) %} AND country = {{ country }} {% end %}
