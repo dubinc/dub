@@ -87,14 +87,6 @@ const CommissionTableInner = memo(
           ),
         },
         {
-          id: "type",
-          header: "Type",
-          accessorKey: "type",
-          cell: ({ row }) => (
-            <CommissionTypeBadge type={row.original.type ?? "sale"} />
-          ),
-        },
-        {
           header: "Customer",
           cell: ({ row }) => {
             return (
@@ -149,6 +141,14 @@ const CommissionTableInner = memo(
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             }),
+        },
+        {
+          id: "type",
+          header: "Type",
+          accessorKey: "type",
+          cell: ({ row }) => (
+            <CommissionTypeBadge type={row.original.type ?? "sale"} />
+          ),
         },
         {
           header: "Status",
