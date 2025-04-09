@@ -156,6 +156,11 @@ const CommissionTableInner = memo(
           cell: ({ row }) => (
             <CommissionTypeBadge type={row.original.type ?? "sale"} />
           ),
+          meta: {
+            filterParams: ({ row }) => ({
+              type: row.original.type,
+            }),
+          },
         },
         {
           header: "Status",
@@ -208,8 +213,8 @@ const CommissionTableInner = memo(
       }),
       thClassName: "border-l-0",
       tdClassName: "border-l-0",
-      resourceName: (p) => `sale${p ? "s" : ""}`,
-      rowCount: commissionsCount?.[status || "all"].count ?? 0,
+      resourceName: (p) => `commission${p ? "s" : ""}`,
+      rowCount: commissionsCount?.[searchParamsObj.status || "all"].count ?? 0,
       loading,
       error: error ? "Failed to load commissions" : undefined,
     });

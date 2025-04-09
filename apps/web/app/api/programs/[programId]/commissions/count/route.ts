@@ -17,7 +17,7 @@ export const GET = withWorkspace(
     });
 
     const parsed = getCommissionsCountQuerySchema.parse(searchParams);
-    const { status, partnerId, payoutId, customerId } = parsed;
+    const { status, type, partnerId, payoutId, customerId } = parsed;
 
     const { startDate, endDate } = getStartEndDates(parsed);
 
@@ -30,6 +30,7 @@ export const GET = withWorkspace(
         programId,
         partnerId,
         status,
+        type,
         payoutId,
         customerId,
         createdAt: {
