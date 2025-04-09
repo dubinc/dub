@@ -1,9 +1,14 @@
-import { EnrolledPartnerSchema, EnrolledPartnerSchemaWithExpandedFields } from "@/lib/zod/schemas/partners";
+import {
+  EnrolledPartnerSchema,
+  EnrolledPartnerSchemaWithExpandedFields,
+} from "@/lib/zod/schemas/partners";
 import { getPrettyUrl } from "@dub/utils";
 import { z } from "zod";
 
 export const transformPartner = (
-  partner: z.infer<typeof EnrolledPartnerSchema> | z.infer<typeof EnrolledPartnerSchemaWithExpandedFields>,
+  partner:
+    | z.infer<typeof EnrolledPartnerSchema>
+    | z.infer<typeof EnrolledPartnerSchemaWithExpandedFields>,
 ) => {
   return {
     ...partner,
