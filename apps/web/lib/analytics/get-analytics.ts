@@ -36,8 +36,6 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
 
   const tagIds = combineTagIds(params);
 
-  console.log("!!! GETTING ANALYTICS", { linkId, groupBy, interval });
-
   // get all-time clicks count if:
   // 1. linkId is defined
   // 2. type is count
