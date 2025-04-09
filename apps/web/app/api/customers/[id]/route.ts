@@ -58,12 +58,12 @@ export const GET = withWorkspace(
       : CustomerSchema;
 
     return NextResponse.json(
-      responseSchema.parse({
-        ...transformCustomer({
+      responseSchema.parse(
+        transformCustomer({
           ...customer,
           ...(includeExpandedFields ? { discount } : {}),
         }),
-      }),
+      ),
     );
   },
   {
