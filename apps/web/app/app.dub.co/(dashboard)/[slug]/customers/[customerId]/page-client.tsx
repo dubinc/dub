@@ -115,7 +115,7 @@ export function CustomerPageClient() {
             <h2 className="text-lg font-semibold text-neutral-900">Activity</h2>
             <CustomerActivityList
               activity={customerActivity}
-              isLoading={isCustomerActivityLoading}
+              isLoading={!customer || isCustomerActivityLoading}
             />
           </section>
         </div>
@@ -138,7 +138,7 @@ export function CustomerPageClient() {
                 </span>
               )
             ) : (
-              <div className="h-5 w-24 animate-pulse rounded-md bg-neutral-200" />
+              <div className="h-5 w-24 animate-pulse rounded-md bg-neutral-100" />
             )}
             {click
               ? [
