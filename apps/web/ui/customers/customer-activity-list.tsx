@@ -48,11 +48,12 @@ export function CustomerActivityList({
   activity?: CustomerActivityResponse;
   isLoading: boolean;
 }) {
-  console.log({ activity });
   return isLoading ? (
-    "loading"
+    <div className="flex h-32 w-full animate-pulse rounded-lg border border-transparent bg-neutral-100" />
   ) : !activity?.events.length ? (
-    "no activity"
+    <div className="text-sm text-neutral-500">
+      {activity?.events ? "No activity" : "Failed to load activity"}
+    </div>
   ) : (
     <ul className="flex flex-col gap-5 text-sm">
       {activity.events.map((event, index, events) => {

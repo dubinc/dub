@@ -60,37 +60,46 @@ export function CustomerPageClient() {
     })).filter(({ value }) => value);
   }, [click?.url]);
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error.message}</div>;
-
-  if (!customer) notFound();
+  if (!customer && !isLoading && !error) notFound();
 
   return (
     <div className="mb-10 mt-2">
       <BackLink href={`/${slug}/links`}>Dashboard</BackLink>
       <div className="mt-5 flex items-center gap-4">
-        <img
-          src={customer.avatar || `${DICEBEAR_AVATAR_URL}${customer.name}`}
-          alt={customer.name}
-          className="size-12 rounded-full"
-        />
+        {customer ? (
+          <img
+            src={customer.avatar || `${DICEBEAR_AVATAR_URL}${customer.name}`}
+            alt={customer.name}
+            className="size-12 rounded-full"
+          />
+        ) : (
+          <div className="size-12 animate-pulse rounded-full bg-neutral-200" />
+        )}
         <div className="flex flex-col gap-1">
-          <h1 className="text-base font-semibold leading-tight text-neutral-900">
-            {customer.name}
-          </h1>
+          {customer ? (
+            <h1 className="text-base font-semibold leading-tight text-neutral-900">
+              {customer.name}
+            </h1>
+          ) : (
+            <div className="h-5 w-32 animate-pulse rounded-md bg-neutral-200" />
+          )}
 
-          {customer.email && (
-            <div className="flex items-center gap-1">
-              <span className="text-sm font-medium text-neutral-500">
-                {customer.email}
-              </span>
-              <CopyButton
-                value={customer.email}
-                variant="neutral"
-                className="p-1 [&>*]:h-3 [&>*]:w-3"
-                successMessage="Copied email to clipboard!"
-              />
-            </div>
+          {customer ? (
+            customer.email && (
+              <div className="flex items-center gap-1">
+                <span className="text-sm font-medium text-neutral-500">
+                  {customer.email}
+                </span>
+                <CopyButton
+                  value={customer.email}
+                  variant="neutral"
+                  className="p-1 [&>*]:h-3 [&>*]:w-3"
+                  successMessage="Copied email to clipboard!"
+                />
+              </div>
+            )
+          ) : (
+            <div className="h-5 w-24 animate-pulse rounded-md bg-neutral-200" />
           )}
         </div>
       </div>
@@ -115,15 +124,21 @@ export function CustomerPageClient() {
         <div className="-order-1 grid grid-cols-1 gap-6 overflow-hidden whitespace-nowrap text-sm text-neutral-900 min-[320px]:grid-cols-2 lg:order-1 lg:grid-cols-1">
           <div className="flex flex-col gap-2">
             <DetailHeading>Details</DetailHeading>
-            {customer.country && (
-              <span className="flex items-center gap-2">
-                <img
-                  src={`https://hatscripts.github.io/circle-flags/flags/${customer.country.toLowerCase()}.svg`}
-                  alt=""
-                  className="size-3.5"
-                />
-                <span className="truncate">{COUNTRIES[customer.country]}</span>
-              </span>
+            {customer ? (
+              customer.country && (
+                <span className="flex items-center gap-2">
+                  <img
+                    src={`https://hatscripts.github.io/circle-flags/flags/${customer.country.toLowerCase()}.svg`}
+                    alt=""
+                    className="size-3.5"
+                  />
+                  <span className="truncate">
+                    {COUNTRIES[customer.country]}
+                  </span>
+                </span>
+              )
+            ) : (
+              <div className="h-5 w-24 animate-pulse rounded-md bg-neutral-200" />
             )}
             {click
               ? [
@@ -172,13 +187,17 @@ export function CustomerPageClient() {
 
           <div className="flex flex-col gap-2">
             <DetailHeading>Customer since</DetailHeading>
-            <span>
-              {new Date(customer.createdAt).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })}
-            </span>
+            {customer ? (
+              <span>
+                {new Date(customer.createdAt).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </span>
+            ) : (
+              <div className="h-5 w-12 animate-pulse rounded-md bg-neutral-100" />
+            )}
           </div>
 
           <div className="flex flex-col gap-2">
