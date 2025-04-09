@@ -1,84 +1,63 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { sqlGranularityMap } from "@/lib/planetscale/granularity";
-import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
+import {
+  CommissionResponseSchema,
+  getCommissionsQuerySchema,
+} from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
-import { DateTime } from "luxon";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
-const querySchema = analyticsQuerySchema.pick({
-  start: true,
-  end: true,
-  interval: true,
-  timezone: true,
-});
-
-interface Commission {
-  start: string;
-  earnings: number;
-}
-
-// GET /api/programs/[programId]/commissions - get commissions timeseries for a program
+// GET /api/programs/[programId]/sales - get all sales for a program
 export const GET = withWorkspace(
   async ({ workspace, params, searchParams }) => {
-    const program = await getProgramOrThrow({
+    const { programId } = params;
+    const parsed = getCommissionsQuerySchema.parse(searchParams);
+    const {
+      page,
+      pageSize,
+      status,
+      sortBy,
+      sortOrder,
+      customerId,
+      payoutId,
+      partnerId,
+    } = parsed;
+
+    const { startDate, endDate } = getStartEndDates(parsed);
+
+    await getProgramOrThrow({
       workspaceId: workspace.id,
-      programId: params.programId,
+      programId,
     });
 
-    const { start, end, interval, timezone } = querySchema.parse(searchParams);
-
-    const { startDate, endDate, granularity } = getStartEndDates({
-      interval,
-      start,
-      end,
-    });
-
-    const { dateFormat, dateIncrement, startFunction, formatString } =
-      sqlGranularityMap[granularity];
-
-    const commissions = await prisma.$queryRaw<Commission[]>`
-      SELECT 
-        DATE_FORMAT(CONVERT_TZ(createdAt, "UTC", ${timezone || "UTC"}), ${dateFormat}) AS start, 
-        SUM(earnings) AS earnings
-      FROM Commission
-      WHERE 
-        earnings > 0
-        AND programId = ${program.id}
-        AND createdAt >= ${startDate}
-        AND createdAt < ${endDate}
-      GROUP BY start
-      ORDER BY start ASC;`;
-
-    let currentDate = startFunction(
-      DateTime.fromJSDate(startDate).setZone(timezone || "UTC"),
-    );
-
-    const earningsLookup = Object.fromEntries(
-      commissions.map((item) => [
-        item.start,
-        {
-          earnings: Number(item.earnings),
+    const commissions = await prisma.commission.findMany({
+      where: {
+        earnings: {
+          gt: 0,
         },
-      ]),
+        programId,
+        partnerId,
+        status,
+        customerId,
+        payoutId,
+        createdAt: {
+          gte: startDate.toISOString(),
+          lte: endDate.toISOString(),
+        },
+      },
+      include: {
+        customer: true,
+        partner: true,
+      },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      orderBy: { [sortBy]: sortOrder },
+    });
+
+    return NextResponse.json(
+      z.array(CommissionResponseSchema).parse(commissions),
     );
-
-    const timeseries: Commission[] = [];
-
-    while (currentDate < endDate) {
-      const periodKey = currentDate.toFormat(formatString);
-
-      timeseries.push({
-        start: currentDate.toISO(),
-        ...(earningsLookup[periodKey] || {
-          earnings: 0,
-        }),
-      });
-
-      currentDate = dateIncrement(currentDate);
-    }
-
-    return NextResponse.json(timeseries);
   },
 );
