@@ -6,10 +6,11 @@ import useProgramCustomersCount from "@/lib/swr/use-program-customers-count";
 import { CustomerProps, EnrolledPartnerProps } from "@/lib/types";
 import { CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/customers";
 import { PARTNERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partners";
+import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { CircleDotted, useRouterStuff } from "@dub/ui";
-import { User, Users } from "@dub/ui/icons";
-import { cn, DICEBEAR_AVATAR_URL, nFormatter } from "@dub/utils";
+import { Sliders, User, Users } from "@dub/ui/icons";
+import { capitalize, cn, DICEBEAR_AVATAR_URL, nFormatter } from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
@@ -72,6 +73,16 @@ export function useCommissionFilters() {
           }) ?? null,
       },
       {
+        key: "type",
+        icon: Sliders,
+        label: "Type",
+        options: ["click", "lead", "sale"].map((slug) => ({
+          value: slug,
+          label: capitalize(slug) as string,
+          icon: <CommissionTypeIcon type={slug} />,
+        })),
+      },
+      {
         key: "status",
         icon: CircleDotted,
         label: "Status",
@@ -101,18 +112,20 @@ export function useCommissionFilters() {
   );
 
   const activeFilters = useMemo(() => {
-    const { status, partnerId, customerId, payoutId } = searchParamsObj;
+    const { customerId, partnerId, status, type, payoutId } = searchParamsObj;
 
     return [
-      ...(status ? [{ key: "status", value: status }] : []),
-      ...(partnerId ? [{ key: "partnerId", value: partnerId }] : []),
       ...(customerId ? [{ key: "customerId", value: customerId }] : []),
+      ...(partnerId ? [{ key: "partnerId", value: partnerId }] : []),
+      ...(status ? [{ key: "status", value: status }] : []),
+      ...(type ? [{ key: "type", value: type }] : []),
       ...(payoutId ? [{ key: "payoutId", value: payoutId }] : []),
     ];
   }, [
-    searchParamsObj.status,
-    searchParamsObj.partnerId,
     searchParamsObj.customerId,
+    searchParamsObj.partnerId,
+    searchParamsObj.status,
+    searchParamsObj.type,
     searchParamsObj.payoutId,
   ]);
 

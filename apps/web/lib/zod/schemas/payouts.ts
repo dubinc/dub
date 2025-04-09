@@ -77,8 +77,8 @@ export const PayoutResponseSchema = PayoutSchema.merge(
     user: z
       .object({
         id: z.string(),
-        name: z.string(),
-        image: z.string(),
+        name: z.string().nullable(),
+        image: z.string().nullable(),
       })
       .nullish(),
     _count: z.object({ commissions: z.number() }),

@@ -267,23 +267,12 @@ export const DELETE = withWorkspace(
   async ({ workspace, params }) => {
     const { webhookId } = params;
 
-    const webhook = await prisma.webhook.findUniqueOrThrow({
+    await prisma.webhook.findUniqueOrThrow({
       where: {
         id: webhookId,
         projectId: workspace.id,
       },
-      select: {
-        installationId: true,
-      },
     });
-
-    if (webhook.installationId) {
-      throw new DubApiError({
-        code: "bad_request",
-        message:
-          "This webhook is managed by an integration, hence cannot be deleted manually.",
-      });
-    }
 
     const linkWebhooks = await prisma.linkWebhook.findMany({
       where: {
