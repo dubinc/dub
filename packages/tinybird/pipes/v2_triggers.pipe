@@ -168,4 +168,4 @@ SQL >
         {% else %} trigger_composite
         {% end %}
 
-
+TYPE endpoint

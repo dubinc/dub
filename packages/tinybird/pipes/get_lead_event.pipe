@@ -25,3 +25,5 @@ WHERE
     }}
     {% if defined(eventName) %} AND event_name = {{ eventName }} {% end %}
 ORDER BY timestamp DESC
+
+TYPE endpoint

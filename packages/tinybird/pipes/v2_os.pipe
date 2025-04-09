@@ -165,4 +165,4 @@ SQL >
         {% else %} os_composite
         {% end %}
 
-
+TYPE endpoint

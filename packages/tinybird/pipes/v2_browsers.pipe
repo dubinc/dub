@@ -165,3 +165,4 @@ SQL >
         {% else %} browsers_composite
         {% end %}
 
+TYPE endpoint

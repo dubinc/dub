@@ -173,4 +173,4 @@ SQL >
         {% else %} usage_links
         {% end %}
 
-
+TYPE endpoint

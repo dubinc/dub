@@ -168,4 +168,4 @@ SQL >
         {% else %} click_events
         {% end %}
 
-
+TYPE endpoint

@@ -166,4 +166,4 @@ SQL >
         {% else %} cities_composite
         {% end %}
 
-
+TYPE endpoint
