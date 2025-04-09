@@ -6,6 +6,7 @@ import { CommissionResponse } from "@/lib/types";
 import FilterButton from "@/ui/analytics/events/filter-button";
 import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
+import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
@@ -83,6 +84,19 @@ const CommissionTableInner = memo(
             <p title={formatDateTime(row.original.createdAt)}>
               {formatDateTimeSmart(row.original.createdAt)}
             </p>
+          ),
+        },
+        {
+          id: "type",
+          header: "Type",
+          accessorKey: "type",
+          meta: {
+            filterParams: ({ getValue }) => ({
+              type: getValue(),
+            }),
+          },
+          cell: ({ row }) => (
+            <CommissionTypeBadge type={row.original.type ?? "sale"} />
           ),
         },
         {

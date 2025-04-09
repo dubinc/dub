@@ -8,6 +8,7 @@ import { parseDateSchema } from "./utils";
 
 export const CommissionSchema = z.object({
   id: z.string(),
+  type: z.enum(["click", "lead", "sale"]).optional(),
   amount: z.number(),
   earnings: z.number(),
   currency: z.string(),

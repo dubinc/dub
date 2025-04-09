@@ -40,7 +40,6 @@ export const GET = withWorkspace(
         programId,
         partnerId,
         status,
-        type: "sale",
         customerId,
         payoutId,
         createdAt: {

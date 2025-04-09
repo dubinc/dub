@@ -3,12 +3,12 @@ import {
   intervals,
 } from "@/lib/analytics/constants";
 import { z } from "zod";
-import { LinkSchema } from "./links";
 import {
   CommissionResponseSchema,
   getCommissionsCountQuerySchema,
   getCommissionsQuerySchema,
-} from "./program-sales";
+} from "./commissions";
+import { LinkSchema } from "./links";
 
 export const PartnerEarningsSchema = CommissionResponseSchema.omit({
   partner: true,
