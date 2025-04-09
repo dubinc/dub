@@ -90,11 +90,6 @@ const CommissionTableInner = memo(
           id: "type",
           header: "Type",
           accessorKey: "type",
-          meta: {
-            filterParams: ({ getValue }) => ({
-              type: getValue(),
-            }),
-          },
           cell: ({ row }) => (
             <CommissionTypeBadge type={row.original.type ?? "sale"} />
           ),
