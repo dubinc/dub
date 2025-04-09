@@ -6,8 +6,9 @@ import { getPaginationQuerySchema } from "./misc";
 import { PartnerSchema } from "./partners";
 import { parseDateSchema } from "./utils";
 
-export const ProgramSaleSchema = z.object({
+export const CommissionSchema = z.object({
   id: z.string(),
+  type: z.enum(["click", "lead", "sale"]).optional(),
   amount: z.number(),
   earnings: z.number(),
   currency: z.string(),
@@ -17,14 +18,14 @@ export const ProgramSaleSchema = z.object({
   updatedAt: z.date(),
 });
 
-export const ProgramSaleResponseSchema = ProgramSaleSchema.merge(
+export const CommissionResponseSchema = CommissionSchema.merge(
   z.object({
-    customer: CustomerSchema,
     partner: PartnerSchema,
+    customer: CustomerSchema.nullable(), // customer can be null for click-based commissions
   }),
 );
 
-export const getProgramSalesQuerySchema = z
+export const getCommissionsQuerySchema = z
   .object({
     status: z.nativeEnum(CommissionStatus).optional(),
     sortBy: z.enum(["createdAt", "amount"]).default("createdAt"),
@@ -38,7 +39,7 @@ export const getProgramSalesQuerySchema = z
   })
   .merge(getPaginationQuerySchema({ pageSize: 100 }));
 
-export const getProgramSalesCountQuerySchema = getProgramSalesQuerySchema.omit({
+export const getCommissionsCountQuerySchema = getCommissionsQuerySchema.omit({
   page: true,
   pageSize: true,
   sortOrder: true,
