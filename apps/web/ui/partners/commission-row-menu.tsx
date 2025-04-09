@@ -1,7 +1,7 @@
 import { updateCommissionStatusAction } from "@/lib/actions/partners/update-commission-status";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { SaleResponse } from "@/lib/types";
+import { CommissionResponse } from "@/lib/types";
 import { Button, Icon, Popover, useCopyToClipboard } from "@dub/ui";
 import {
   CircleCheck,
@@ -20,7 +20,7 @@ import { useParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
-export function CommissionRowMenu({ row }: { row: Row<SaleResponse> }) {
+export function CommissionRowMenu({ row }: { row: Row<CommissionResponse> }) {
   const { id: workspaceId } = useWorkspace();
   const { programId } = useParams() as { programId: string };
   const [isOpen, setIsOpen] = useState(false);
@@ -29,7 +29,7 @@ export function CommissionRowMenu({ row }: { row: Row<SaleResponse> }) {
     onSuccess: async () => {
       await mutatePrefix([
         `/api/programs/${programId}/payouts`,
-        `/api/programs/${programId}/sales`,
+        `/api/programs/${programId}/commissions`,
       ]);
     },
   });

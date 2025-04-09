@@ -2,9 +2,9 @@ import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import {
-  getProgramSalesQuerySchema,
-  ProgramSaleResponseSchema,
-} from "@/lib/zod/schemas/program-sales";
+  CommissionResponseSchema,
+  getCommissionsQuerySchema,
+} from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -13,7 +13,7 @@ import { z } from "zod";
 export const GET = withWorkspace(
   async ({ workspace, params, searchParams }) => {
     const { programId } = params;
-    const parsed = getProgramSalesQuerySchema.parse(searchParams);
+    const parsed = getCommissionsQuerySchema.parse(searchParams);
     const {
       page,
       pageSize,
@@ -57,6 +57,6 @@ export const GET = withWorkspace(
       orderBy: { [sortBy]: sortOrder },
     });
 
-    return NextResponse.json(z.array(ProgramSaleResponseSchema).parse(sales));
+    return NextResponse.json(z.array(CommissionResponseSchema).parse(sales));
   },
 );

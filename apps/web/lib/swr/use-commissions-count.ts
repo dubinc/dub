@@ -2,7 +2,7 @@ import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
-import { SalesCount } from "../types";
+import { CommissionsCount } from "../types";
 import useWorkspace from "./use-workspace";
 
 export default function useCommissionsCount(opts?: Record<string, any>) {
@@ -10,7 +10,7 @@ export default function useCommissionsCount(opts?: Record<string, any>) {
   const { id: workspaceId } = useWorkspace() as { id: string };
   const { getQueryString } = useRouterStuff();
 
-  const { data: commissionsCount, error } = useSWR<SalesCount>(
+  const { data: commissionsCount, error } = useSWR<CommissionsCount>(
     `/api/programs/${programId}/commissions/count${getQueryString(
       {
         workspaceId,

@@ -2,7 +2,7 @@
 
 import useCommissionsCount from "@/lib/swr/use-commissions-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { SaleResponse } from "@/lib/types";
+import { CommissionResponse } from "@/lib/types";
 import FilterButton from "@/ui/analytics/events/filter-button";
 import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
@@ -59,7 +59,7 @@ const CommissionTableInner = memo(
     };
 
     const { commissionsCount } = useCommissionsCount();
-    const { data: commissions, error } = useSWR<SaleResponse[]>(
+    const { data: commissions, error } = useSWR<CommissionResponse[]>(
       `/api/programs/${programId}/commissions${getQueryString(
         {
           workspaceId,
@@ -73,7 +73,7 @@ const CommissionTableInner = memo(
 
     const loading = !commissions && !error;
 
-    const table = useTable<SaleResponse>({
+    const table = useTable<CommissionResponse>({
       data: commissions?.slice(0, limit) || [],
       columns: [
         {

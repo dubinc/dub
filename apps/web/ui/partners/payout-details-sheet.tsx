@@ -1,5 +1,5 @@
 import useWorkspace from "@/lib/swr/use-workspace";
-import { PayoutResponse, SaleResponse } from "@/lib/types";
+import { CommissionResponse, PayoutResponse } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
@@ -44,7 +44,7 @@ function PayoutDetailsSheetContent({
     data: sales,
     isLoading,
     error,
-  } = useSWR<SaleResponse[]>(
+  } = useSWR<CommissionResponse[]>(
     payout.type === "sales" &&
       `/api/programs/${programId}/sales?workspaceId=${workspaceId}&payoutId=${payout.id}&interval=all&pageSize=10`,
     fetcher,
