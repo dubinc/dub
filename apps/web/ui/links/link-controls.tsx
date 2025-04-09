@@ -2,11 +2,11 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
 import useFoldersCount from "@/lib/swr/use-folders-count";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { ExpandedLinkProps } from "@/lib/types";
 import { useArchiveLinkModal } from "@/ui/modals/archive-link-modal";
 import { useDeleteLinkModal } from "@/ui/modals/delete-link-modal";
 import {
   Button,
-  CardList,
   IconMenu,
   PenWriting,
   Popover,
@@ -21,30 +21,57 @@ import {
   FolderBookmark,
   QRCode,
 } from "@dub/ui/icons";
-import { cn, isDubDomain, nanoid, punycode } from "@dub/utils";
+import { cn, isDubDomain, nanoid } from "@dub/utils";
 import { CopyPlus, Delete, FolderInput } from "lucide-react";
-import { useParams, useSearchParams } from "next/navigation";
-import { useContext } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useCallback } from "react";
 import { toast } from "sonner";
 import { useLinkBuilder } from "../modals/link-builder";
 import { useLinkQRModal } from "../modals/link-qr-modal";
 import { useMoveLinkToFolderModal } from "../modals/move-link-to-folder-modal";
 import { useTransferLinkModal } from "../modals/transfer-link-modal";
 import { ThreeDots } from "../shared/icons";
-import { LinksListContext, ResponseLink } from "./links-container";
 
-export function LinkControls({ link }: { link: ResponseLink }) {
+const OPTIONS = {
+  edit: "e",
+  qr: "q",
+  duplicate: "d",
+  id: "i",
+  move: "m",
+  archive: "a",
+  transfer: "t",
+  delete: "x",
+  ban: "b",
+};
+
+export function LinkControls({
+  link,
+  openPopover,
+  setOpenPopover,
+  shortcutsEnabled,
+  options = Object.keys(OPTIONS),
+  onMoveSuccess,
+  onTransferSuccess,
+  onDeleteSuccess,
+  className,
+  iconClassName,
+}: {
+  link: ExpandedLinkProps;
+  openPopover: boolean;
+  setOpenPopover: (open: boolean) => void;
+  shortcutsEnabled: boolean;
+  options?: string[];
+  onMoveSuccess?: (folderId: string | null) => void;
+  onTransferSuccess?: () => void;
+  onDeleteSuccess?: () => void;
+  className?: string;
+  iconClassName?: string;
+}) {
   const { flags } = useWorkspace();
+  const router = useRouter();
   const { slug } = useParams() as { slug?: string };
   const { data: foldersCount } = useFoldersCount();
-  const { hovered } = useContext(CardList.Card.Context);
   const searchParams = useSearchParams();
-
-  const { openMenuLinkId, setOpenMenuLinkId } = useContext(LinksListContext);
-  const openPopover = openMenuLinkId === link.id;
-  const setOpenPopover = (open: boolean) => {
-    setOpenMenuLinkId(open ? link.id : null);
-  };
 
   const [copiedLinkId, copyToClipboard] = useCopyToClipboard();
 
@@ -54,23 +81,26 @@ export function LinkControls({ link }: { link: ResponseLink }) {
     });
   };
 
+  const openLinkBuilder = useCallback(() => {
+    router.push(`/${slug}/links/${link.domain}/${link.key}`);
+  }, [router, slug, link.domain, link.key]);
+
   const { setShowArchiveLinkModal, ArchiveLinkModal } = useArchiveLinkModal({
     props: link,
   });
   const { setShowTransferLinkModal, TransferLinkModal } = useTransferLinkModal({
     props: link,
+    onSuccess: onTransferSuccess,
   });
   const { setShowDeleteLinkModal, DeleteLinkModal } = useDeleteLinkModal({
     props: link,
+    onSuccess: onDeleteSuccess,
   });
   const { setShowLinkQRModal, LinkQRModal } = useLinkQRModal({
     props: link,
   });
-  const { setShowLinkBuilder, LinkBuilder } = useLinkBuilder({
-    props: link,
-  });
   const { setShowMoveLinkToFolderModal, MoveLinkToFolderModal } =
-    useMoveLinkToFolderModal({ link });
+    useMoveLinkToFolderModal({ link, onSuccess: onMoveSuccess });
 
   const isRootLink = link.key === "_root";
   const isProgramLink = link.programId !== null;
@@ -92,7 +122,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
     // @ts-expect-error
     duplicateProps: {
       ...propsToDuplicate,
-      key: isRootLink ? nanoid(7) : `${punycode(link.key)}-copy`,
+      key: nanoid(7),
       clicks: 0,
     },
   });
@@ -122,12 +152,12 @@ export function LinkControls({ link }: { link: ResponseLink }) {
   );
 
   useKeyboardShortcut(
-    ["e", "d", "q", "m", "a", "t", "i", "x", "b"],
+    options.map((o) => OPTIONS[o]),
     (e) => {
       setOpenPopover(false);
       switch (e.key) {
         case "e":
-          canManageLink && setShowLinkBuilder(true);
+          canManageLink && openLinkBuilder();
           break;
         case "d":
           canManageLink && setShowDuplicateLinkModal(true);
@@ -161,176 +191,190 @@ export function LinkControls({ link }: { link: ResponseLink }) {
       }
     },
     {
-      enabled: openPopover || (hovered && openMenuLinkId === null),
+      enabled: shortcutsEnabled,
       priority: 1, // Take priority over display options
     },
   );
 
   return (
     <div className="flex justify-end">
-      <LinkQRModal />
-      <LinkBuilder />
-      <DuplicateLinkModal />
-      <ArchiveLinkModal />
-      <TransferLinkModal />
-      <DeleteLinkModal />
-      <MoveLinkToFolderModal />
+      {options.includes("qr") && <LinkQRModal />}
+      {options.includes("duplicate") && <DuplicateLinkModal />}
+      {options.includes("archive") && <ArchiveLinkModal />}
+      {options.includes("transfer") && <TransferLinkModal />}
+      {options.includes("delete") && <DeleteLinkModal />}
+      {options.includes("move") && <MoveLinkToFolderModal />}
       <Popover
         content={
           <div className="w-full sm:w-48">
             <div className="grid gap-px p-2">
-              <Button
-                text="Edit"
-                variant="outline"
-                onClick={() => {
-                  setOpenPopover(false);
-                  setShowLinkBuilder(true);
-                }}
-                icon={<PenWriting className="size-4" />}
-                shortcut="E"
-                className="h-9 px-2 font-medium"
-                disabledTooltip={
-                  !canManageLink
-                    ? "You don't have permission to update this link."
-                    : undefined
-                }
-              />
-              <Button
-                text="QR Code"
-                variant="outline"
-                onClick={() => {
-                  setOpenPopover(false);
-                  setShowLinkQRModal(true);
-                }}
-                icon={<QRCode className="size-4" />}
-                shortcut="Q"
-                className="h-9 px-2 font-medium"
-              />
-              <Button
-                text="Duplicate"
-                variant="outline"
-                onClick={() => {
-                  setOpenPopover(false);
-                  setShowDuplicateLinkModal(true);
-                }}
-                icon={<CopyPlus className="size-4" />}
-                shortcut="D"
-                className="h-9 px-2 font-medium"
-                disabledTooltip={
-                  !canManageLink
-                    ? "You don't have permission to duplicate this link."
-                    : undefined
-                }
-              />
-              <Button
-                text="Copy Link ID"
-                variant="outline"
-                onClick={() => copyLinkId()}
-                icon={
-                  copiedLinkId ? (
-                    <CircleCheck className="size-4" />
-                  ) : (
-                    <Copy className="size-4" />
-                  )
-                }
-                shortcut="I"
-                className="h-9 px-2 font-medium"
-              />
-            </div>
-            <div className="border-t border-neutral-200" />
-            <div className="grid gap-px p-2">
-              {Boolean(flags?.linkFolders && foldersCount) && (
+              {options.includes("edit") && (
                 <Button
-                  text="Move"
+                  text="Edit"
                   variant="outline"
-                  shortcut="M"
-                  className="h-9 px-2 font-medium"
-                  icon={<FolderBookmark className="size-4 text-neutral-600" />}
                   onClick={() => {
                     setOpenPopover(false);
-                    setShowMoveLinkToFolderModal(true);
+                    openLinkBuilder();
                   }}
+                  icon={<PenWriting className="size-4" />}
+                  shortcut="E"
+                  className="h-9 px-2 font-medium"
                   disabledTooltip={
                     !canManageLink
-                      ? "You don't have permission to move this link to another folder."
+                      ? "You don't have permission to update this link."
                       : undefined
                   }
                 />
               )}
-
-              <Button
-                text={link.archived ? "Unarchive" : "Archive"}
-                variant="outline"
-                onClick={() => {
-                  setOpenPopover(false);
-                  setShowArchiveLinkModal(true);
-                }}
-                icon={<BoxArchive className="size-4" />}
-                shortcut="A"
-                className="h-9 px-2 font-medium"
-                disabledTooltip={
-                  !canManageLink
-                    ? "You don't have permission to archive this link."
-                    : undefined
-                }
-              />
-
-              <Button
-                text="Transfer"
-                variant="outline"
-                onClick={() => {
-                  setOpenPopover(false);
-                  setShowTransferLinkModal(true);
-                }}
-                icon={<FolderInput className="size-4" />}
-                shortcut="T"
-                className="h-9 px-2 font-medium"
-                disabledTooltip={
-                  !isDubDomain(link.domain) ? (
-                    <SimpleTooltipContent
-                      title="Since this is a custom domain link, you can only transfer it to another workspace if you transfer the domain as well."
-                      cta="Learn more."
-                      href="https://dub.co/help/article/how-to-transfer-domains"
-                    />
-                  ) : !canManageLink ? (
-                    "You don't have permission to transfer this link."
-                  ) : undefined
-                }
-              />
-
-              <Button
-                text="Delete"
-                variant="danger-outline"
-                onClick={() => {
-                  setOpenPopover(false);
-                  setShowDeleteLinkModal(true);
-                }}
-                icon={<Delete className="size-4" />}
-                shortcut="X"
-                className="h-9 px-2 font-medium"
-                disabled={isRootLink || isProgramLink}
-                disabledTooltip={
-                  !canManageLink
-                    ? "You don't have permission to delete this link."
-                    : isRootLink
-                      ? "You can't delete a custom domain link. You can delete the domain instead."
-                      : isProgramLink
-                        ? "You can't delete a link that's part of a program."
-                        : undefined
-                }
-              />
-
-              {!slug && ( // this is only shown in admin mode (where there's no slug)
-                <button
-                  onClick={() => handleBanLink()}
-                  className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-red-600 transition-all duration-75 hover:bg-red-600 hover:text-white"
-                >
-                  <IconMenu text="Ban" icon={<Delete className="size-4" />} />
-                  <kbd className="hidden rounded bg-red-100 px-2 py-0.5 text-xs font-light text-red-600 transition-all duration-75 group-hover:bg-red-500 group-hover:text-white sm:inline-block">
-                    B
-                  </kbd>
-                </button>
+              {options.includes("qr") && (
+                <Button
+                  text="QR Code"
+                  variant="outline"
+                  onClick={() => {
+                    setOpenPopover(false);
+                    setShowLinkQRModal(true);
+                  }}
+                  icon={<QRCode className="size-4" />}
+                  shortcut="Q"
+                  className="h-9 px-2 font-medium"
+                />
               )}
+              {options.includes("duplicate") && (
+                <Button
+                  text="Duplicate"
+                  variant="outline"
+                  onClick={() => {
+                    setOpenPopover(false);
+                    setShowDuplicateLinkModal(true);
+                  }}
+                  icon={<CopyPlus className="size-4" />}
+                  shortcut="D"
+                  className="h-9 px-2 font-medium"
+                  disabledTooltip={
+                    !canManageLink
+                      ? "You don't have permission to duplicate this link."
+                      : undefined
+                  }
+                />
+              )}
+              {options.includes("id") && (
+                <Button
+                  text="Copy Link ID"
+                  variant="outline"
+                  onClick={() => copyLinkId()}
+                  icon={
+                    copiedLinkId ? (
+                      <CircleCheck className="size-4" />
+                    ) : (
+                      <Copy className="size-4" />
+                    )
+                  }
+                  shortcut="I"
+                  className="h-9 px-2 font-medium"
+                />
+              )}
+            </div>
+            <div className="border-t border-neutral-200" />
+            <div className="grid gap-px p-2">
+              {options.includes("move") &&
+                Boolean(flags?.linkFolders && foldersCount) && (
+                  <Button
+                    text="Move"
+                    variant="outline"
+                    shortcut="M"
+                    className="h-9 px-2 font-medium"
+                    icon={
+                      <FolderBookmark className="size-4 text-neutral-600" />
+                    }
+                    onClick={() => {
+                      setOpenPopover(false);
+                      setShowMoveLinkToFolderModal(true);
+                    }}
+                    disabledTooltip={
+                      !canManageLink
+                        ? "You don't have permission to move this link to another folder."
+                        : undefined
+                    }
+                  />
+                )}
+              {options.includes("archive") && (
+                <Button
+                  text={link.archived ? "Unarchive" : "Archive"}
+                  variant="outline"
+                  onClick={() => {
+                    setOpenPopover(false);
+                    setShowArchiveLinkModal(true);
+                  }}
+                  icon={<BoxArchive className="size-4" />}
+                  shortcut="A"
+                  className="h-9 px-2 font-medium"
+                  disabledTooltip={
+                    !canManageLink
+                      ? "You don't have permission to archive this link."
+                      : undefined
+                  }
+                />
+              )}
+              {options.includes("transfer") && (
+                <Button
+                  text="Transfer"
+                  variant="outline"
+                  onClick={() => {
+                    setOpenPopover(false);
+                    setShowTransferLinkModal(true);
+                  }}
+                  icon={<FolderInput className="size-4" />}
+                  shortcut="T"
+                  className="h-9 px-2 font-medium"
+                  disabledTooltip={
+                    !isDubDomain(link.domain) ? (
+                      <SimpleTooltipContent
+                        title="Since this is a custom domain link, you can only transfer it to another workspace if you transfer the domain as well."
+                        cta="Learn more."
+                        href="https://dub.co/help/article/how-to-transfer-domains"
+                      />
+                    ) : !canManageLink ? (
+                      "You don't have permission to transfer this link."
+                    ) : undefined
+                  }
+                />
+              )}
+              {options.includes("delete") && (
+                <Button
+                  text="Delete"
+                  variant="danger-outline"
+                  onClick={() => {
+                    setOpenPopover(false);
+                    setShowDeleteLinkModal(true);
+                  }}
+                  icon={<Delete className="size-4" />}
+                  shortcut="X"
+                  className="h-9 px-2 font-medium"
+                  disabled={isRootLink || isProgramLink}
+                  disabledTooltip={
+                    !canManageLink
+                      ? "You don't have permission to delete this link."
+                      : isRootLink
+                        ? "You can't delete a custom domain link. You can delete the domain instead."
+                        : isProgramLink
+                          ? "You can't delete a link that's part of a program."
+                          : undefined
+                  }
+                />
+              )}
+
+              {options.includes("ban") &&
+                !slug && ( // this is only shown in admin mode (where there's no slug)
+                  <button
+                    onClick={() => handleBanLink()}
+                    className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-red-600 transition-all duration-75 hover:bg-red-600 hover:text-white"
+                  >
+                    <IconMenu text="Ban" icon={<Delete className="size-4" />} />
+                    <kbd className="hidden rounded bg-red-100 px-2 py-0.5 text-xs font-light text-red-600 transition-all duration-75 group-hover:bg-red-500 group-hover:text-white sm:inline-block">
+                      B
+                    </kbd>
+                  </button>
+                )}
             </div>
           </div>
         }
@@ -343,8 +387,9 @@ export function LinkControls({ link }: { link: ResponseLink }) {
           className={cn(
             "h-8 px-1.5 outline-none transition-all duration-200",
             "border-transparent data-[state=open]:border-neutral-500 sm:group-hover/card:data-[state=closed]:border-neutral-200",
+            className,
           )}
-          icon={<ThreeDots className="h-5 w-5 shrink-0" />}
+          icon={<ThreeDots className={cn("size-5 shrink-0", iconClassName)} />}
           onClick={() => {
             setOpenPopover(!openPopover);
           }}

@@ -75,6 +75,7 @@ export const DUB_DOMAINS = [
             "calendar.app.google",
             "calendar.google.com",
             "chillipiper.com",
+            "fantastical.app",
             "hubspot.com",
             "savvycal.com",
             "tidycal.com",

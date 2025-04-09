@@ -15,6 +15,8 @@ type KeyboardShortcutListener = {
   key: string | string[];
   enabled?: boolean;
   priority?: number;
+  modal?: boolean;
+  sheet?: boolean;
 };
 
 export const KeyboardShortcutContext = createContext<{
@@ -42,9 +44,9 @@ export function KeyboardShortcutProvider({
 export function useKeyboardShortcut(
   key: KeyboardShortcutListener["key"],
   callback: (e: KeyboardEvent) => void,
-  options: { modal?: boolean; sheet?: boolean } & Pick<
+  options: Pick<
     KeyboardShortcutListener,
-    "enabled" | "priority"
+    "enabled" | "priority" | "modal" | "sheet"
   > = {},
 ) {
   const id = useId();
@@ -53,16 +55,16 @@ export function useKeyboardShortcut(
 
   const onKeyDown = useCallback(
     (e: KeyboardEvent) => {
+      if (options.enabled === false) return;
+
       const target = e.target as HTMLElement;
       const existingModalBackdrop = document.getElementById("modal-backdrop");
       const existingSheetBackdrop = document.querySelector(
         "[data-sheet-overlay]",
       );
 
-      // Ignore shortcuts if the user is holding a modifier key, typing in an input or textarea, or in a modal
+      // Ignore shortcuts if the user is typing in an input or textarea, or in a modal
       if (
-        e.metaKey ||
-        e.ctrlKey ||
         target.tagName === "INPUT" ||
         target.tagName === "TEXTAREA" ||
         !!existingModalBackdrop !== !!options.modal ||
@@ -70,14 +72,26 @@ export function useKeyboardShortcut(
       )
         return;
 
+      const pressedKey = [
+        ...(e.metaKey ? ["meta"] : []),
+        ...(e.ctrlKey ? ["ctrl"] : []),
+        ...(e.altKey ? ["alt"] : []),
+        e.key,
+      ].join("+");
+
       // Ignore shortcut if it doesn't match this listener
-      if (Array.isArray(key) ? !key.includes(e.key) : e.key !== key) return;
+      if (Array.isArray(key) ? !key.includes(pressedKey) : pressedKey !== key)
+        return;
 
       // Find enabled listeners that match the key
       const matchingListeners = listeners.filter(
         (l) =>
           l.enabled !== false &&
-          (Array.isArray(l.key) ? l.key.includes(e.key) : l.key === e.key),
+          !!existingModalBackdrop === !!l.modal &&
+          !!existingSheetBackdrop === !!l.sheet &&
+          (Array.isArray(l.key)
+            ? l.key.includes(pressedKey)
+            : l.key === pressedKey),
       );
 
       if (!matchingListeners.length) return;
@@ -94,7 +108,15 @@ export function useKeyboardShortcut(
       e.preventDefault();
       callback(e);
     },
-    [key, listeners, id, callback, options.modal, options.sheet],
+    [
+      key,
+      listeners,
+      id,
+      callback,
+      options.enabled,
+      options.modal,
+      options.sheet,
+    ],
   );
 
   useEffect(() => {

@@ -48,6 +48,7 @@ import { CommentsBadge } from "./comments-badge";
 import { useLinkSelection } from "./link-selection-provider";
 import { ResponseLink } from "./links-container";
 import { LinksDisplayContext } from "./links-display-provider";
+import { TestsBadge } from "./tests-badge";
 
 const quickViewSettings = [
   { label: "Conversion Tracking", icon: SquareChart, key: "trackConversion" },
@@ -87,7 +88,7 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
         ![defaultFolderId, searchParams.get("folderId")].includes(
           link.folderId,
         ) && (
-          <Link href={`/${slug}?folderId=${link.folderId}`}>
+          <Link href={`/${slug}/links?folderId=${link.folderId}`}>
             {folder ? (
               <FolderIcon
                 folder={folder}
@@ -140,6 +141,11 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
               />
               {hasQuickViewSettings && <SettingsBadge link={link} />}
               {link.comments && <CommentsBadge comments={link.comments} />}
+              {link.testVariants &&
+                link.testCompletedAt &&
+                new Date(link.testCompletedAt) > new Date() && (
+                  <TestsBadge link={link} />
+                )}
             </div>
           </div>
           <Details link={link} compact />
