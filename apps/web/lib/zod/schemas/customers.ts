@@ -24,12 +24,6 @@ export const getCustomersQuerySchema = z.object({
     ),
 });
 
-export const getCustomerQuerySchema = getCustomersQuerySchema.extend({
-  includeClickEvent: booleanQuerySchema
-    .optional()
-    .describe("Whether to include the customer's click event."),
-});
-
 export const createCustomerBodySchema = z.object({
   email: z
     .string()

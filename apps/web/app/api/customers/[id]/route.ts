@@ -4,27 +4,22 @@ import { transformCustomer } from "@/lib/api/customers/transform-customer";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { getClickEvent } from "@/lib/tinybird";
-import { clickEventSchema, clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import {
   CustomerEnrichedSchema,
   CustomerSchema,
-  getCustomerQuerySchema,
   getCustomersQuerySchema,
   updateCustomerBodySchema,
 } from "@/lib/zod/schemas/customers";
 import { prisma } from "@dub/prisma";
-import { toCamelCase } from "@dub/utils";
 import { Discount } from "@prisma/client";
 import { NextResponse } from "next/server";
-import { z } from "zod";
 
 // GET /api/customers/:id – Get a customer by ID
 export const GET = withWorkspace(
   async ({ workspace, params, searchParams }) => {
     const { id } = params;
-    const { includeExpandedFields, includeClickEvent } =
-      getCustomerQuerySchema.parse(searchParams);
+    const { includeExpandedFields } =
+      getCustomersQuerySchema.parse(searchParams);
 
     const customer = await getCustomerOrThrow(
       {
@@ -35,12 +30,6 @@ export const GET = withWorkspace(
         includeExpandedFields,
       },
     );
-
-    let clickEvent: z.infer<typeof clickEventSchemaTB> | undefined = undefined;
-    if (includeClickEvent && customer.clickId) {
-      clickEvent = (await getClickEvent({ clickId: customer.clickId }))
-        ?.data[0];
-    }
 
     let discount: Discount | null = null;
 
@@ -64,35 +53,15 @@ export const GET = withWorkspace(
       });
     }
 
-    console.log({ clickEvent });
-    const responseSchema = (
-      includeExpandedFields ? CustomerEnrichedSchema : CustomerSchema
-    ).extend(
-      clickEvent
-        ? {
-            clickEvent: clickEventSchema.nullish(),
-          }
-        : {},
-    );
+    const responseSchema = includeExpandedFields
+      ? CustomerEnrichedSchema
+      : CustomerSchema;
 
     return NextResponse.json(
       responseSchema.parse({
         ...transformCustomer({
           ...customer,
           ...(includeExpandedFields ? { discount } : {}),
-        }),
-
-        ...(clickEvent && {
-          clickEvent: clickEventSchema.parse({
-            ...Object.fromEntries(
-              Object.entries(clickEvent).map(([key, value]) => [
-                toCamelCase(key),
-                value,
-              ]),
-            ),
-            timestamp: new Date(clickEvent.timestamp),
-            id: clickEvent.click_id,
-          }),
         }),
       }),
     );

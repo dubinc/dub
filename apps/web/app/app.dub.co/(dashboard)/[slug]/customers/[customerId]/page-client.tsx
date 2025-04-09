@@ -34,7 +34,6 @@ export function CustomerPageClient() {
   } = useCustomer({
     customerId,
     query: { includeExpandedFields: true },
-    includeClickEvent: true,
   });
 
   let { data: customerActivity, isLoading: isCustomerActivityLoading } =
