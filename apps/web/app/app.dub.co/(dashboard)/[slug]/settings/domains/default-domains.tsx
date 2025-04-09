@@ -135,7 +135,7 @@ export function DefaultDomains() {
                         if (error.message.includes("Upgrade to Pro")) {
                           toast.custom(() => (
                             <UpgradeRequiredToast
-                              title="You've discovered a Pro feature!"
+                              planToUpgradeTo="Pro"
                               message={error.message}
                             />
                           ));

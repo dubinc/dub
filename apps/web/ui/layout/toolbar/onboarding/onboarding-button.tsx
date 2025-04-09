@@ -47,25 +47,30 @@ function OnboardingButtonInner({
         display: "Create a new Dub link",
         cta: `/${slug}`,
         checked: totalLinks === 0 ? false : true,
+        recommended: true,
       },
       {
         display: "Set up your custom domain",
         cta: `/${slug}/settings/domains`,
         checked: domainsCount && domainsCount > 0,
+        recommended: true,
       },
       {
         display: "Invite your teammates",
         cta: `/${slug}/settings/people`,
         checked: (users && users.length > 1) || (invites && invites.length > 0),
+        recommended: false,
       },
     ];
   }, [slug, domainsCount, totalLinks, users, invites]);
 
   const [isOpen, setIsOpen] = useState(false);
 
-  const completedTasks = tasks.filter((task) => task.checked).length;
+  const remainingRecommendedTasks = tasks.filter(
+    (task) => task.recommended && !task.checked,
+  ).length;
 
-  return loading || completedTasks === tasks.length ? null : (
+  return loading || remainingRecommendedTasks === 0 ? null : (
     <Popover
       align="end"
       popoverContentClassName="rounded-xl"
@@ -132,7 +137,8 @@ function OnboardingButtonInner({
       >
         <span>Getting Started</span>
         <span className="text-neutral-400">
-          {Math.round((completedTasks / tasks.length) * 100)}% complete
+          {Math.round((remainingRecommendedTasks / tasks.length) * 100)}%
+          complete
         </span>
       </button>
     </Popover>

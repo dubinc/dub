@@ -1,3 +1,4 @@
+import containerQueries from "@tailwindcss/container-queries";
 import forms from "@tailwindcss/forms";
 import typography from "@tailwindcss/typography";
 import scrollbarHide from "tailwind-scrollbar-hide";
@@ -248,7 +249,14 @@ const config: Config = {
       },
     },
   },
-  plugins: [forms, typography, scrollbarHide, radix],
+  plugins: [
+    forms,
+    typography,
+    scrollbarHide,
+    radix,
+    // TODO: Remove the container queries plugin when we upgrade to Tailwind v4
+    containerQueries,
+  ],
 };
 
 export default config;

@@ -12,7 +12,7 @@ const AUTHENTICATED_PATHS = [
 ];
 
 export default async function PartnersMiddleware(req: NextRequest) {
-  const { path, fullPath } = parse(req);
+  const { path, fullPath, searchParamsObj } = parse(req);
 
   const user = await getUserViaToken(req);
 
@@ -41,7 +41,13 @@ export default async function PartnersMiddleware(req: NextRequest) {
 
     if (!defaultPartnerId && !path.startsWith("/onboarding")) {
       return NextResponse.redirect(new URL("/onboarding", req.url));
-    } else if (path === "/" || path.startsWith("/pn_")) {
+    }
+
+    if (searchParamsObj.next) {
+      return NextResponse.redirect(new URL(searchParamsObj.next, req.url));
+    }
+
+    if (path === "/" || path.startsWith("/pn_")) {
       return NextResponse.redirect(new URL("/programs", req.url));
     } else if (isLoginPath) {
       // if is custom program login or register path, redirect to /programs/:programSlug

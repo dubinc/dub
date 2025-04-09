@@ -2,8 +2,7 @@ import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { createId } from "@/lib/api/create-id";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
-import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
-import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
+import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import {
   getClickEvent,
   getLeadEvent,
@@ -20,7 +19,7 @@ import z from "@/lib/zod";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { prisma } from "@dub/prisma";
-import { Customer, EventType } from "@dub/prisma/client";
+import { Customer } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
@@ -284,37 +283,20 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
 
   // for program links
   if (link && link.programId && link.partnerId) {
-    const reward = await determinePartnerReward({
+    const commission = await createPartnerCommission({
+      event: "sale",
       programId: link.programId,
       partnerId: link.partnerId,
-      event: "sale",
+      linkId: link.id,
+      eventId,
+      customerId: customer.id,
+      amount: saleData.amount,
+      quantity: 1,
+      invoiceId,
+      currency: saleData.currency,
     });
 
-    if (reward) {
-      const earnings = calculateSaleEarnings({
-        reward,
-        sale: {
-          quantity: 1,
-          amount: saleData.amount,
-        },
-      });
-
-      const commission = await prisma.commission.create({
-        data: {
-          id: createId({ prefix: "cm_" }),
-          linkId: link.id,
-          programId: link.programId,
-          partnerId: link.partnerId,
-          customerId: customer.id,
-          eventId,
-          quantity: 1,
-          type: EventType.sale,
-          amount: saleData.amount,
-          earnings,
-          invoiceId,
-        },
-      });
-
+    if (commission) {
       waitUntil(
         notifyPartnerSale({
           link,

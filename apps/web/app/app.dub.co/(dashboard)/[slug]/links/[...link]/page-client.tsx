@@ -5,6 +5,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { ExpandedLinkProps } from "@/lib/types";
 import { LinkAnalyticsBadge } from "@/ui/links/link-analytics-badge";
 import { LinkBuilderDestinationUrlInput } from "@/ui/links/link-builder/controls/link-builder-destination-url-input";
+import { LinkBuilderFolderSelector } from "@/ui/links/link-builder/controls/link-builder-folder-selector";
 import { LinkBuilderShortLinkInput } from "@/ui/links/link-builder/controls/link-builder-short-link-input";
 import { LinkCommentsInput } from "@/ui/links/link-builder/controls/link-comments-input";
 import { ConversionTrackingToggle } from "@/ui/links/link-builder/conversion-tracking-toggle";
@@ -26,11 +27,19 @@ import { TagSelect } from "@/ui/links/link-builder/tag-select";
 import { useLinkBuilderSubmit } from "@/ui/links/link-builder/use-link-builder-submit";
 import { useMetatags } from "@/ui/links/link-builder/use-metatags";
 import { LinkControls } from "@/ui/links/link-controls";
-import { useKeyboardShortcut, useMediaQuery } from "@dub/ui";
+import {
+  Button,
+  Check,
+  Copy,
+  useCopyToClipboard,
+  useKeyboardShortcut,
+  useMediaQuery,
+} from "@dub/ui";
 import { cn } from "@dub/utils";
 import { notFound, useParams, useRouter } from "next/navigation";
 import { memo, useEffect, useRef, useState } from "react";
 import { useFormContext, useFormState } from "react-hook-form";
+import { toast } from "sonner";
 
 export function LinkPageClient() {
   const params = useParams<{ link: string | string[] }>();
@@ -78,7 +87,8 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
   const router = useRouter();
   const workspace = useWorkspace();
 
-  const { isDesktop } = useMediaQuery();
+  const { isDesktop, isMobile } = useMediaQuery();
+  const [copied, copyToClipboard] = useCopyToClipboard();
 
   const { control, handleSubmit, reset, getValues } =
     useFormContext<LinkFormData>();
@@ -140,6 +150,7 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
           }}
           className="p-0"
           foldersEnabled={!!workspace.flags?.linkFolders}
+          linkToFolder={!!workspace.flags?.linkFolders}
         >
           <div
             className={cn(
@@ -151,6 +162,36 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
               ref={draftControlsRef}
               props={link}
               workspaceId={workspace.id!}
+            />
+            <Button
+              icon={
+                <div className="relative size-4">
+                  <div
+                    className={cn(
+                      "absolute inset-0 transition-[transform,opacity]",
+                      copied && "translate-y-1 opacity-0",
+                    )}
+                  >
+                    <Copy className="size-4" />
+                  </div>
+                  <div
+                    className={cn(
+                      "absolute inset-0 transition-[transform,opacity]",
+                      !copied && "translate-y-1 opacity-0",
+                    )}
+                  >
+                    <Check className="size-4" />
+                  </div>
+                </div>
+              }
+              text="Copy link"
+              variant="secondary"
+              className="xs:w-fit h-7 px-2.5"
+              onClick={() => {
+                copyToClipboard(link.shortLink).then(() => {
+                  toast.success("Link copied to clipboard");
+                });
+              }}
             />
             <div className="shrink-0">
               <LinkAnalyticsBadge link={link} />
@@ -196,6 +237,9 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
         <div className="px-4 md:px-6 lg:bg-neutral-50 lg:px-0">
           <div className="mx-auto max-w-xl divide-neutral-200 lg:divide-y">
             <div className="py-4 lg:px-4 lg:py-6">
+              <LinkBuilderFolderSelector />
+            </div>
+            <div className="py-4 lg:px-4 lg:py-6">
               <QRCodePreview />
             </div>
             <div className="py-4 lg:px-4 lg:py-6">
@@ -220,13 +264,13 @@ const Controls = memo(({ link }: { link: ExpandedLinkProps }) => {
   const { setValue, getValues, reset } = useFormContext<LinkFormData>();
 
   return (
-    <div className="">
+    <div>
       <LinkControls
         link={link}
         openPopover={openPopover}
         setOpenPopover={setOpenPopover}
         shortcutsEnabled={openPopover}
-        options={["id", "move", "archive", "transfer", "delete"]}
+        options={["duplicate", "id", "archive", "transfer", "delete"]}
         onMoveSuccess={(folderId) => {
           setValue("folderId", folderId);
           reset(getValues(), { keepValues: true, keepDirty: false });
@@ -243,7 +287,7 @@ const Controls = memo(({ link }: { link: ExpandedLinkProps }) => {
 function LoadingSkeleton() {
   return (
     <div className="flex min-h-[calc(100vh-8px)] flex-col rounded-t-[inherit] bg-white">
-      <div className="flex items-center justify-between gap-4 py-3 pl-4 pr-5">
+      <div className="flex items-center justify-between gap-4 py-2.5 pl-4 pr-5">
         <div className="h-8 w-64 max-w-full animate-pulse rounded-md bg-neutral-100" />
         <div className="h-7 w-32 max-w-full animate-pulse rounded-md bg-neutral-100" />
       </div>
