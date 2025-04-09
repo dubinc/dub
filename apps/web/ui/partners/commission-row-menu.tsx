@@ -102,16 +102,18 @@ export function CommissionRowMenu({ row }: { row: Row<CommissionResponse> }) {
               <>
                 <Command.Separator className="w-full border-t border-neutral-200" />
                 <Command.Group className="p-1.5">
-                  <MenuItem
-                    icon={copiedCustomerId ? CircleCheck : User}
-                    label="Copy customer ID"
-                    onSelect={() => {
-                      copyCustomerIdToClipboard(
-                        row.original.customer.externalId,
-                      );
-                      toast.success("Customer ID copied to clipboard");
-                    }}
-                  />
+                  {row.original.customer?.externalId && (
+                    <MenuItem
+                      icon={copiedCustomerId ? CircleCheck : User}
+                      label="Copy customer ID"
+                      onSelect={() => {
+                        copyCustomerIdToClipboard(
+                          row.original.customer!.externalId!, // can safely assert cause we check for externalId above
+                        );
+                        toast.success("Customer ID copied to clipboard");
+                      }}
+                    />
+                  )}
                   <MenuItem
                     icon={copiedInvoiceId ? CircleCheck : InvoiceDollar}
                     label="Copy invoice ID"
