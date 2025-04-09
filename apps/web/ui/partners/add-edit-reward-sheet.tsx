@@ -241,9 +241,6 @@ function RewardSheetContent({
       maxAmount: data.maxAmount ? data.maxAmount * 100 : null,
     };
 
-    console.log(payload);
-    return;
-
     if (!reward) {
       await createReward(payload);
     } else {
@@ -442,7 +439,7 @@ function RewardSheetContent({
                     height
                     transition={{ ease: "easeInOut", duration: 0.2 }}
                   >
-                    <div className="flex flex-col p-1">
+                    <div className="flex flex-col gap-4 p-1">
                       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
                         {COMMISSION_TYPES.map(
                           ({ label, description, value }) => {
