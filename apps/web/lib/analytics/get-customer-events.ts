@@ -6,8 +6,13 @@ import { transformLink } from "../api/links";
 import { decodeLinkIfCaseSensitive } from "../api/links/case-sensitivity";
 import { generateRandomName } from "../names";
 import z from "../zod";
-import { clickEventSchema } from "../zod/schemas/clicks";
+import {
+  clickEventResponseSchema,
+  clickEventSchema,
+} from "../zod/schemas/clicks";
 import { CustomerSchema } from "../zod/schemas/customers";
+import { leadEventResponseSchema } from "../zod/schemas/leads";
+import { saleEventResponseSchema } from "../zod/schemas/sales";
 import { EventsFilters } from "./types";
 import { getStartEndDates } from "./utils/get-start-end-dates";
 
@@ -86,15 +91,11 @@ export const getCustomerEvents = async (
           : {}),
       };
 
-      // TODO
-      // return z
-      //   .discriminatedUnion("event", [
-      //     clickEventResponseSchema,
-      //     leadEventResponseSchema,
-      //     saleEventResponseSchema,
-      //   ])
-      //   .parse(eventData);
-      return eventData;
+      return {
+        click: clickEventResponseSchema,
+        lead: leadEventResponseSchema.omit({ customer: true }),
+        sale: saleEventResponseSchema.omit({ customer: true }),
+      }[evt.event].parse(eventData);
     })
     .filter((d) => d !== null);
 

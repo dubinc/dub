@@ -4,7 +4,7 @@ import { transformCustomer } from "@/lib/api/customers/transform-customer";
 import { decodeLinkIfCaseSensitive } from "@/lib/api/links/case-sensitivity";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
-import { customerActivityResponseSchema } from "@/lib/zod/schemas/customers";
+import { customerActivityResponseSchema } from "@/lib/zod/schemas/customer-activity";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
@@ -21,7 +21,7 @@ export const GET = withWorkspace(async ({ workspace, params, session }) => {
     return NextResponse.json(
       customerActivityResponseSchema.parse({
         customer,
-        activity: [],
+        events: [],
         ltv: 0,
         timeToLead: null,
         timeToSale: null,
@@ -62,46 +62,10 @@ export const GET = withWorkspace(async ({ workspace, params, session }) => {
     });
   }
 
-  // const leadActivity = leadEvents.map((event: LeadEvent) => {
-  //   return {
-  //     timestamp: new Date(event.timestamp),
-  //     event: EventType.lead,
-  //     eventName: event.eventName,
-  //     metadata: null,
-  //   };
-  // });
-
-  // const saleActivity = saleEvents.map((event: SaleEvent) => {
-  //   return {
-  //     timestamp: new Date(event.timestamp),
-  //     event: EventType.sale,
-  //     eventName: event.eventName,
-  //     eventDetails: currencyFormatter(event.sale.amount / 100, {
-  //       maximumFractionDigits: 2,
-  //     }),
-  //     metadata: {
-  //       amount: event.sale.amount,
-  //       paymentProcessor: event.sale.paymentProcessor,
-  //     },
-  //   };
-  // });
-
-  // const activity: CustomerActivity[] = [...leadActivity, ...saleActivity].sort(
-  //   (a, b) => b.timestamp.getTime() - a.timestamp.getTime(),
-  // );
-
   link = decodeLinkIfCaseSensitive(link);
 
-  // // Add click event to activities
-  // activity.push({
-  //   timestamp: customer.clickedAt!,
-  //   event: "click",
-  //   eventName: "Link click",
-  //   eventDetails: link?.shortLink ? getPrettyUrl(link.shortLink) : null,
-  //   metadata: null,
-  // });
-
   // Find the LTV of the customer
+  // TODO: Calculate this from all events, not limited
   const ltv = events.reduce((acc, event) => {
     if (event.event === "sale" && event.saleAmount) {
       acc += Number(event.saleAmount);
@@ -117,6 +81,7 @@ export const GET = withWorkspace(async ({ workspace, params, session }) => {
       : null;
 
   // Find the time to first sale of the customer
+  // TODO: Calculate this from all events, not limited
   const firstSale = events.filter(({ event }) => event === "sale").pop();
 
   const timeToSale =

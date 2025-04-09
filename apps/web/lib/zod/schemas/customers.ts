@@ -94,35 +94,3 @@ export const customersQuerySchema = z
       .describe("IDs of customers to filter by."),
   })
   .merge(getPaginationQuerySchema({ pageSize: CUSTOMERS_MAX_PAGE_SIZE }));
-
-export const customerActivitySchema = z.object({
-  timestamp: z.date(),
-  event: z.enum(["click", "lead", "sale"]),
-  eventName: z.string(),
-  eventDetails: z.string().nullish(),
-  metadata: z.union([
-    z.null(),
-    z.object({
-      paymentProcessor: z.string(),
-      amount: z.number(),
-    }),
-  ]),
-});
-
-export const customerActivityResponseSchema = z.object({
-  ltv: z.number(),
-  timeToLead: z.number().nullable(),
-  timeToSale: z.number().nullable(),
-  events: z.array(z.any()),
-  customer: CustomerSchema.merge(
-    z.object({
-      country: z.string().nullish(),
-    }),
-  ),
-  link: LinkSchema.pick({
-    id: true,
-    domain: true,
-    key: true,
-    shortLink: true,
-  }).nullish(),
-});
