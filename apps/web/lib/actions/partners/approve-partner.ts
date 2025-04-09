@@ -86,11 +86,11 @@ export const approvePartnerAction = authActionClient
       }),
     ]);
 
-    const { partner, links } = programEnrollment;
+    const { partner, links, ...enrollment } = programEnrollment;
 
     const enrolledPartner = EnrolledPartnerSchema.parse({
       ...partner,
-      ...programEnrollment,
+      ...enrollment,
       id: partner.id,
       links,
     });
