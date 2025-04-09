@@ -7,7 +7,7 @@ import {
 } from "@tanstack/react-table";
 import Link from "next/link";
 
-export function CustomerEarningsTable({
+export function CustomerSalesTable({
   sales,
   totalSales,
   isLoading,

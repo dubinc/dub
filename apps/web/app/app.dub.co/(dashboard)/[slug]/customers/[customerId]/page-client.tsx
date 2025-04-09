@@ -5,7 +5,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { CustomerActivityResponse, SaleEvent } from "@/lib/types";
 import DeviceIcon from "@/ui/analytics/device-icon";
 import { CustomerActivityList } from "@/ui/customers/customer-activity-list";
-import { CustomerEarningsTable } from "@/ui/customers/customer-earnings-table";
+import { CustomerSalesTable } from "@/ui/customers/customer-earnings-table";
 import { BackLink } from "@/ui/shared/back-link";
 import { CopyButton, UTM_PARAMETERS } from "@dub/ui";
 import {
@@ -107,8 +107,8 @@ export function CustomerPageClient() {
         {/* Main content */}
         <div className="flex flex-col gap-10">
           <section className="flex flex-col gap-4">
-            <h2 className="text-lg font-semibold text-neutral-900">Earnings</h2>
-            <EarningsTable customerId={customerId} />
+            <h2 className="text-lg font-semibold text-neutral-900">Sales</h2>
+            <SalesTable customerId={customerId} />
           </section>
 
           <section className="flex flex-col gap-4">
@@ -262,7 +262,7 @@ const DetailHeading = ({
   ></h2>
 );
 
-const EarningsTable = memo(({ customerId }: { customerId: string }) => {
+const SalesTable = memo(({ customerId }: { customerId: string }) => {
   const { id: workspaceId, slug } = useWorkspace();
 
   const { data: salesData, isLoading: isSalesLoading } = useSWR<SaleEvent[]>(
@@ -284,7 +284,7 @@ const EarningsTable = memo(({ customerId }: { customerId: string }) => {
   );
 
   return (
-    <CustomerEarningsTable
+    <CustomerSalesTable
       sales={salesData}
       totalSales={totalSales?.sales}
       viewAllHref={`/${slug}/events?event=sales&interval=all&customerId=${customerId}`}
