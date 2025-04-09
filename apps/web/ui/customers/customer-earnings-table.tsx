@@ -1,5 +1,4 @@
 import { SaleEvent } from "@/lib/types";
-import { Tooltip } from "@dub/ui";
 import { currencyFormatter } from "@dub/utils";
 import {
   flexRender,
@@ -28,27 +27,15 @@ export function CustomerEarningsTable({
         enableHiding: false,
         minSize: 100,
         cell: ({ getValue }) => (
-          <Tooltip
-            content={getValue().toLocaleTimeString("en-US", {
-              year: "numeric",
+          <span>
+            {getValue().toLocaleTimeString("en-US", {
               month: "short",
               day: "numeric",
               hour: "numeric",
               minute: "numeric",
-              second: "numeric",
               hour12: true,
             })}
-          >
-            <div className="w-full truncate">
-              {getValue().toLocaleTimeString("en-US", {
-                month: "short",
-                day: "numeric",
-                hour: "numeric",
-                minute: "numeric",
-                hour12: true,
-              })}
-            </div>
-          </Tooltip>
+          </span>
         ),
       },
       {

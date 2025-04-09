@@ -64,7 +64,8 @@ SQL >
         ip,
         CONCAT(country, '-', region) as region_processed,
         splitByString('?', referer_url)[1] as referer_url_processed,
-        'lead' as event
+        'lead' as event,
+        event_name
     FROM dub_lead_events_mv
     WHERE
         customer_id = {{ String(customerId) }}
@@ -102,6 +103,7 @@ SQL >
         CONCAT(country, '-', region) as region_processed,
         splitByString('?', referer_url)[1] as referer_url_processed,
         'sale' as event,
+        event_name,
         amount as saleAmount
     FROM dub_sale_events_mv
     WHERE
@@ -118,7 +120,7 @@ SQL >
     %
     SELECT * FROM (
       {% if defined(clickId) %}
-    SELECT *, NULL AS saleAmount
+    SELECT *, NULL AS event_name, NULL AS saleAmount
     FROM click_events
     UNION ALL
       {% end %}

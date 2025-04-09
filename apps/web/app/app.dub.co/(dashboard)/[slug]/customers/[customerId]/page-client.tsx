@@ -4,6 +4,7 @@ import useCustomer from "@/lib/swr/use-customer";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CustomerActivityResponse, SaleEvent } from "@/lib/types";
 import DeviceIcon from "@/ui/analytics/device-icon";
+import { CustomerActivityList } from "@/ui/customers/customer-activity-list";
 import { CustomerEarningsTable } from "@/ui/customers/customer-earnings-table";
 import { BackLink } from "@/ui/shared/back-link";
 import { CopyButton, UTM_PARAMETERS } from "@dub/ui";
@@ -104,7 +105,10 @@ export function CustomerPageClient() {
 
           <section className="flex flex-col gap-4">
             <h2 className="text-lg font-semibold text-neutral-900">Activity</h2>
-            <div className="h-64 rounded-lg bg-neutral-100" />
+            <CustomerActivityList
+              activity={customerActivity}
+              isLoading={isCustomerActivityLoading}
+            />
           </section>
         </div>
 
