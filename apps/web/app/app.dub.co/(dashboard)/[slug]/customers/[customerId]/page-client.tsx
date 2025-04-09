@@ -66,7 +66,7 @@ export function CustomerPageClient() {
   if (!customer) notFound();
 
   return (
-    <div className="mt-2">
+    <div className="mb-10 mt-2">
       <BackLink href={`/${slug}/links`}>Dashboard</BackLink>
       <div className="mt-5 flex items-center gap-4">
         <img
