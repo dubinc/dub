@@ -5,8 +5,8 @@ import "dotenv-flow/config";
 async function main() {
   const where: Prisma.LinkWhereInput = {
     projectId: "cm05wnnpo000711ztj05wwdbu",
-    archived: false,
     folderId: "fold_LIZsdjTgFVbQVGYSUmYAi5vT",
+    archived: false,
   };
 
   const links = await prisma.link.findMany({
