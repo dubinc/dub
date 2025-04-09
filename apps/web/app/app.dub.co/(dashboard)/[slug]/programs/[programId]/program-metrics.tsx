@@ -21,7 +21,7 @@ export function ProgramMetrics() {
         icon={Check2}
         label="Sales"
         tab="sales"
-        value={metrics?.salesCount}
+        value={metrics?.commissionsCount}
         error={error}
       />
       <Stat
