@@ -106,8 +106,9 @@ export function CustomerDetailsColumn({
               },
             ]
               .filter(({ value }) => value)
-              .map(({ key, icon, value }, idx) => (
+              .map(({ key, icon, value }) => (
                 <ConditionalLink
+                  key={key}
                   href={
                     workspaceSlug
                       ? `/${workspaceSlug}/analytics?${key}=${encodeURIComponent(value)}`
@@ -116,7 +117,7 @@ export function CustomerDetailsColumn({
                   target="_blank"
                   linkClassName="underline-offset-2 hover:text-neutral-950 hover:underline"
                 >
-                  <span key={key} className="flex items-center gap-2">
+                  <span className="flex items-center gap-2">
                     {icon}
                     <span className="truncate">{value}</span>
                   </span>
