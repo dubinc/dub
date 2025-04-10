@@ -224,7 +224,7 @@ export function CustomerPageClient() {
               <Link
                 href={`/${slug}/links/${link.domain}/${link.key}`}
                 target="_blank"
-                className="min-w-0 overflow-hidden truncate hover:text-neutral-950 hover:underline"
+                className="min-w-0 cursor-alias overflow-hidden truncate decoration-dotted underline-offset-2 hover:text-neutral-950 hover:underline"
               >
                 {getPrettyUrl(link.shortLink)}
               </Link>
