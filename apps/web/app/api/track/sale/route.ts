@@ -94,12 +94,9 @@ export const POST = withWorkspace(
       // if leadEventName is provided, we only check for that specific event
       // otherwise, we check for all cached lead events for that customer
 
-      const cachedLeadEvents = await redis.mget<(LeadEvent | null)[]>([
+      const cachedLeadEvent = await redis.get<LeadEvent>(
         `leadCache:${customer.id}${leadEventName ? `:${leadEventName.toLowerCase().replace(" ", "-")}` : ""}`,
-        `latestLeadEvent:${customer.id}`,
-      ]);
-
-      const cachedLeadEvent = cachedLeadEvents[0] ?? cachedLeadEvents[1];
+      );
 
       if (!cachedLeadEvent) {
         throw new DubApiError({
