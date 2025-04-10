@@ -6,6 +6,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
+import { logConversionEvent } from "@/lib/tinybird/log-conversion-events";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
@@ -26,6 +27,8 @@ type LeadEvent = z.infer<typeof leadEventSchemaTB>;
 // POST /api/track/sale – Track a sale conversion event
 export const POST = withWorkspace(
   async ({ req, workspace }) => {
+    const body = await parseRequestBody(req);
+
     let {
       externalId,
       customerId, // deprecated
@@ -36,7 +39,7 @@ export const POST = withWorkspace(
       metadata,
       eventName,
       leadEventName,
-    } = trackSaleRequestSchema.parse(await parseRequestBody(req));
+    } = trackSaleRequestSchema.parse(body);
 
     if (invoiceId) {
       // Skip if invoice id is already processed
@@ -74,6 +77,15 @@ export const POST = withWorkspace(
     });
 
     if (!customer) {
+      waitUntil(
+        logConversionEvent({
+          workspace_id: workspace.id,
+          path: "/track/sale",
+          body: JSON.stringify(body),
+          error: `Customer not found for externalId: ${customerExternalId}`,
+        }),
+      );
+
       return NextResponse.json({
         eventName,
         customer: null,
@@ -91,14 +103,17 @@ export const POST = withWorkspace(
 
     if (!leadEvent || leadEvent.data.length === 0) {
       // Check cache to see if the lead event exists
+      // if leadEventName is provided, we only check for that specific event
+      // otherwise, we check for all cached lead events for that customer
+
       const cachedLeadEvent = await redis.get<LeadEvent>(
-        `latestLeadEvent:${customer.id}`,
+        `leadCache:${customer.id}${leadEventName ? `:${leadEventName.toLowerCase().replace(" ", "-")}` : ""}`,
       );
 
       if (!cachedLeadEvent) {
         throw new DubApiError({
           code: "not_found",
-          message: `Lead event not found for externalId: ${customerExternalId}`,
+          message: `Lead event not found for externalId: ${customerExternalId} and eventName: ${leadEventName}`,
         });
       }
 
@@ -168,6 +183,13 @@ export const POST = withWorkspace(
                 increment: amount,
               },
             },
+          }),
+
+          logConversionEvent({
+            workspace_id: workspace.id,
+            link_id: clickData.link_id,
+            path: "/track/sale",
+            body: JSON.stringify(body),
           }),
         ]);
 

@@ -2,6 +2,7 @@ import { stripe } from "@/lib/stripe";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
+import { chargeFailed } from "./charge-failed";
 import { chargeSucceeded } from "./charge-succeeded";
 import { checkoutSessionCompleted } from "./checkout-session-completed";
 import { customerSubscriptionDeleted } from "./customer-subscription-deleted";
@@ -10,6 +11,7 @@ import { invoicePaymentFailed } from "./invoice-payment-failed";
 
 const relevantEvents = new Set([
   "charge.succeeded",
+  "charge.failed",
   "checkout.session.completed",
   "customer.subscription.updated",
   "customer.subscription.deleted",
@@ -38,10 +40,14 @@ export const POST = async (req: Request) => {
       status: 200,
     });
   }
+
   try {
     switch (event.type) {
       case "charge.succeeded":
         await chargeSucceeded(event);
+        break;
+      case "charge.failed":
+        await chargeFailed(event);
         break;
       case "checkout.session.completed":
         await checkoutSessionCompleted(event);
