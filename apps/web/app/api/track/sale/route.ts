@@ -103,14 +103,17 @@ export const POST = withWorkspace(
 
     if (!leadEvent || leadEvent.data.length === 0) {
       // Check cache to see if the lead event exists
+      // if leadEventName is provided, we only check for that specific event
+      // otherwise, we check for all cached lead events for that customer
+
       const cachedLeadEvent = await redis.get<LeadEvent>(
-        `latestLeadEvent:${customer.id}`,
+        `leadCache:${customer.id}${leadEventName ? `:${leadEventName.toLowerCase().replace(" ", "-")}` : ""}`,
       );
 
       if (!cachedLeadEvent) {
         throw new DubApiError({
           code: "not_found",
-          message: `Lead event not found for externalId: ${customerExternalId}`,
+          message: `Lead event not found for externalId: ${customerExternalId} and eventName: ${leadEventName}`,
         });
       }
 
