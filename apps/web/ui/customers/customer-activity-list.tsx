@@ -87,12 +87,12 @@ export function CustomerActivityList({
             <div className="relative mr-3 flex-shrink-0">
               <Icon className="mt-0.5 size-4" />
               {!isLast && (
-                <div className="absolute left-1/2 mt-2 h-8 border-l border-neutral-300" />
+                <div className="absolute left-1/2 mt-2 h-8 border-l border-neutral-300 lg:h-3" />
               )}
             </div>
-            <div className="flex min-w-0 flex-col gap-1 whitespace-nowrap text-sm text-neutral-800">
+            <div className="flex min-w-0 flex-col gap-x-4 gap-y-1 whitespace-nowrap text-sm text-neutral-800 lg:grow lg:flex-row lg:justify-between">
               <div className="truncate">{content(event)}</div>
-              <span className="truncate text-sm text-neutral-500">
+              <span className="shrink-0 truncate text-sm text-neutral-500">
                 {month}, {time}
               </span>
             </div>
