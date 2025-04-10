@@ -6,6 +6,7 @@ import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { getClickEvent, recordLead, recordLeadSync } from "@/lib/tinybird";
+import { logConversionEvent } from "@/lib/tinybird/log-conversion-events";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
@@ -26,6 +27,8 @@ type ClickData = z.infer<typeof clickEventSchemaTB>;
 // POST /api/track/lead – Track a lead conversion event
 export const POST = withWorkspace(
   async ({ req, workspace }) => {
+    const body = await parseRequestBody(req);
+
     const {
       clickId,
       eventName,
@@ -37,7 +40,7 @@ export const POST = withWorkspace(
       customerAvatar,
       metadata,
       mode = "async", // Default to async mode if not specified
-    } = trackLeadRequestSchema.parse(await parseRequestBody(req));
+    } = trackLeadRequestSchema.parse(body);
 
     const stringifiedEventName = eventName.toLowerCase().replace(" ", "-");
     const customerExternalId = externalId || customerId;
@@ -215,6 +218,13 @@ export const POST = withWorkspace(
                   increment: eventQuantity ?? 1,
                 },
               },
+            }),
+
+            logConversionEvent({
+              workspace_id: workspace.id,
+              link_id: clickData.link_id,
+              path: "/track/lead",
+              body: JSON.stringify(body),
             }),
           ]);
 
