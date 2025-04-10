@@ -78,12 +78,9 @@ export const POST = withWorkspace(
       }
 
       if (!clickData) {
-        const clickCaches = await redis.mget<(ClickData | null)[]>([
+        const cachedClickData = await redis.get<ClickData>(
           `clickCache:${clickId}`,
-          `click:${clickId}`,
-        ]);
-
-        const cachedClickData = clickCaches[0] ?? clickCaches[1];
+        );
 
         if (cachedClickData) {
           clickData = {
