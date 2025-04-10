@@ -14,7 +14,7 @@ model Invoice {
   fee          Int           @default(0)
   total        Int           @default(0)
   receiptUrl   String?       @db.Text
-  failedReason String?
+  failedReason String?       @db.Text
   createdAt    DateTime      @default(now())
 
   payouts   Payout[]
