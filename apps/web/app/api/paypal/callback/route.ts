@@ -68,6 +68,7 @@ export const GET = async (req: Request) => {
       },
       data: {
         paypalEmail: paypalUser.email,
+        payoutsEnabledAt: new Date(),
       },
     });
   } catch (e: any) {

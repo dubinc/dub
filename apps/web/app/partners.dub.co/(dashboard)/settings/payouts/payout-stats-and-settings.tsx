@@ -54,14 +54,26 @@ export function PayoutStatsAndSettings() {
               currency: "USD",
             }}
           />
-          {bankAccount && Object.keys(bankAccount).length > 0 && (
+
+          {partner.payoutMethod === "stripe" &&
+            bankAccount &&
+            Object.keys(bankAccount).length > 0 && (
+              <div className="text-sm">
+                <p className="text-neutral-600">{bankAccount.bank_name}</p>
+                <div className="flex items-center gap-1.5 font-mono text-neutral-400">
+                  <MatrixLines className="size-3" />
+                  {bankAccount.routing_number}
+                  <MatrixLines className="size-3" />
+                  ••••{bankAccount.last4}
+                </div>
+              </div>
+            )}
+
+          {partner.payoutMethod === "paypal" && (
             <div className="text-sm">
-              <p className="text-neutral-600">{bankAccount.bank_name}</p>
+              <p className="text-neutral-600">PayPal</p>
               <div className="flex items-center gap-1.5 font-mono text-neutral-400">
-                <MatrixLines className="size-3" />
-                {bankAccount.routing_number}
-                <MatrixLines className="size-3" />
-                ••••{bankAccount.last4}
+                {partner.paypalEmail}
               </div>
             </div>
           )}
