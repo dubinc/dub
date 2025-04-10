@@ -31,6 +31,7 @@ export const transformCustomer = (customer: CustomerWithLink) => {
     ...customer,
     name: customer.name || customer.email || generateRandomName(),
     link: customer.link || undefined,
+    programId: programEnrollment?.programId || undefined,
     partner: programEnrollment?.partner || undefined,
   };
 };

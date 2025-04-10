@@ -2,13 +2,20 @@
 
 import useCustomer from "@/lib/swr/use-customer";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { CustomerActivityResponse, SaleEvent } from "@/lib/types";
+import {
+  CommissionResponse,
+  CustomerActivityResponse,
+  CustomerEnriched,
+  SaleEvent,
+} from "@/lib/types";
 import { CustomerActivityList } from "@/ui/customers/customer-activity-list";
 import { CustomerDetailsColumn } from "@/ui/customers/customer-details-column";
+import { CustomerPartnerEarningsTable } from "@/ui/customers/customer-partner-earnings-table";
 import { CustomerSalesTable } from "@/ui/customers/customer-sales-table";
 import { BackLink } from "@/ui/shared/back-link";
-import { CopyButton } from "@dub/ui";
+import { ArrowUpRight, CopyButton } from "@dub/ui";
 import { DICEBEAR_AVATAR_URL, fetcher } from "@dub/utils";
+import Link from "next/link";
 import { notFound, useParams } from "next/navigation";
 import { memo } from "react";
 import useSWR from "swr";
@@ -21,12 +28,12 @@ export function CustomerPageClient() {
     data: customer,
     isLoading,
     error,
-  } = useCustomer({
+  } = useCustomer<CustomerEnriched>({
     customerId,
     query: { includeExpandedFields: true },
   });
 
-  let { data: customerActivity, isLoading: isCustomerActivityLoading } =
+  const { data: customerActivity, isLoading: isCustomerActivityLoading } =
     useSWR<CustomerActivityResponse>(
       customer &&
         `/api/customers/${customer.id}/activity?workspaceId=${workspaceId}`,
@@ -79,18 +86,66 @@ export function CustomerPageClient() {
       <div className="mt-8 grid grid-cols-1 items-start gap-x-16 gap-y-10 lg:grid-cols-[minmax(0,1fr)_240px]">
         {/* Main content */}
         <div className="flex flex-col gap-10">
-          <section className="flex flex-col gap-4">
-            <h2 className="text-lg font-semibold text-neutral-900">Sales</h2>
+          <section className="flex flex-col">
+            <h2 className="py-3 text-lg font-semibold text-neutral-900">
+              Sales
+            </h2>
             <SalesTable customerId={customerId} />
           </section>
 
-          <section className="flex flex-col gap-4">
-            <h2 className="text-lg font-semibold text-neutral-900">Activity</h2>
+          <section className="flex flex-col">
+            <h2 className="py-3 text-lg font-semibold text-neutral-900">
+              Activity
+            </h2>
             <CustomerActivityList
               activity={customerActivity}
               isLoading={!customer || isCustomerActivityLoading}
             />
           </section>
+
+          {customer?.programId && customer.partner && (
+            <section className="flex flex-col">
+              <h2 className="py-3 text-lg font-semibold text-neutral-900">
+                Partner Earnings
+              </h2>
+              <div className="flex flex-col gap-4">
+                <Link
+                  href={`/${slug}/programs/${customer.programId}/partners?partnerId=${customer.partner.id}`}
+                  target="_blank"
+                  className="border-border-subtle group flex items-center justify-between overflow-hidden rounded-lg border bg-neutral-100 px-4 py-3"
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    {
+                      <img
+                        src={
+                          customer.partner.image ||
+                          `${DICEBEAR_AVATAR_URL}${customer.partner.name}`
+                        }
+                        alt={customer.partner.name}
+                        className="size-8 rounded-full"
+                      />
+                    }
+                    <div className="min-w-0">
+                      <span className="block truncate text-base text-xs font-semibold leading-tight text-neutral-900">
+                        {customer.partner.name}
+                      </span>
+
+                      {customer?.partner.email && (
+                        <span className="block min-w-0 truncate text-xs font-medium leading-tight text-neutral-500">
+                          {customer.partner.email}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <ArrowUpRight className="size-3 shrink-0 -translate-x-0.5 translate-y-0.5 opacity-0 transition-[transform,opacity] group-hover:translate-x-0 group-hover:translate-y-0 group-hover:opacity-100" />
+                </Link>
+                <PartnerEarningsTable
+                  programId={customer.programId}
+                  customerId={customerId}
+                />
+              </div>
+            </section>
+          )}
         </div>
 
         {/* Right side details */}
@@ -137,3 +192,31 @@ const SalesTable = memo(({ customerId }: { customerId: string }) => {
     />
   );
 });
+
+const PartnerEarningsTable = memo(
+  ({ programId, customerId }: { programId: string; customerId: string }) => {
+    const { id: workspaceId, slug } = useWorkspace();
+
+    const { data: commissions, isLoading: isComissionsLoading } = useSWR<
+      CommissionResponse[]
+    >(
+      `/api/programs/${programId}/commissions?customerId=${customerId}&workspaceId=${workspaceId}&pageSize=8`,
+      fetcher,
+    );
+
+    const { data: totalCommissions, isLoading: isTotalCommissionsLoading } =
+      useSWR<{ all: { count: number } }>(
+        `/api/programs/${programId}/commissions/count?customerId=${customerId}&workspaceId=${workspaceId}`,
+        fetcher,
+      );
+
+    return (
+      <CustomerPartnerEarningsTable
+        commissions={commissions}
+        totalCommissions={totalCommissions?.all?.count}
+        viewAllHref={`/${slug}/programs/${programId}/commissions?customerId=${customerId}`}
+        isLoading={isComissionsLoading || isTotalCommissionsLoading}
+      />
+    );
+  },
+);

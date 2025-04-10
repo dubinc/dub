@@ -73,6 +73,7 @@ export const CustomerEnrichedSchema = CustomerSchema.extend({
     shortLink: true,
     programId: true,
   }).nullish(),
+  programId: z.string().nullish(),
   partner: PartnerSchema.pick({
     id: true,
     name: true,
