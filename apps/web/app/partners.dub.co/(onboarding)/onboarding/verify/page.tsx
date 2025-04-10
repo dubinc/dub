@@ -1,5 +1,7 @@
+import PaypalConnectButton from "@/ui/partners/paypal-connect-button";
 import StripeConnectButton from "@/ui/partners/stripe-connect-button";
 import Link from "next/link";
+
 export default function OnboardingVerification() {
   return (
     <div className="relative mx-auto my-10 flex w-full max-w-[416px] flex-col items-center md:mt-14">
@@ -28,6 +30,7 @@ export default function OnboardingVerification() {
         </div>
         <div className="mt-10 grid gap-4">
           <StripeConnectButton text="Save and continue" />
+          <PaypalConnectButton text="Connect your PayPal account" />
           <Link
             href="/programs"
             className="text-sm text-neutral-500 transition-colors hover:text-neutral-800"

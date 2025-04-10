@@ -113,6 +113,7 @@
     "rehype-slug": "^5.1.0",
     "remark-gfm": "^4.0.0",
     "shiki": "^1.14.1",
+    "simple-oauth2": "^5.1.0",
     "sonner": "^1.4.41",
     "stripe": "^12.12.0",
     "swr": "^2.1.5",
