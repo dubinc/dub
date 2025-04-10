@@ -16,7 +16,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { CircleDollar } from "@dub/ui/icons";
+import { ChartActivity2, CircleDollar } from "@dub/ui/icons";
 import {
   currencyFormatter,
   fetcher,
@@ -131,6 +131,7 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
               className="flex w-full items-center justify-between gap-2 px-4 py-2.5 transition-colors hover:bg-stone-100"
             >
               {row.original.customer.email}
+              <ChartActivity2 className="size-3.5 shrink-0" />
             </Link>
           ) : (
             "-"

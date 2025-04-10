@@ -1,13 +1,12 @@
 import { generateRandomName } from "@/lib/names";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Customer } from "@/lib/types";
-import { ChartActivity2, useRouterStuff } from "@dub/ui";
+import { ChartActivity2 } from "@dub/ui";
 import Link from "next/link";
 
 export function CustomerRowItem({ customer }: { customer: Customer }) {
   const { slug } = useWorkspace();
   const display = customer.email || customer.name || generateRandomName();
-  const { queryParams } = useRouterStuff();
 
   return (
     <>

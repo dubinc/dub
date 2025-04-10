@@ -110,7 +110,7 @@ export function CustomerSalesTable({
         <div className="flex h-32 w-full animate-pulse rounded-lg border border-transparent bg-neutral-100" />
       ) : !sales?.length ? (
         <div className="border-border-subtle flex h-32 w-full items-center justify-center rounded-lg border text-xs text-neutral-500">
-          {sales?.length === 0 ? "No earnings yet" : "Failed to load earnings"}
+          {sales?.length === 0 ? "No sales yet" : "Failed to load sales"}
         </div>
       ) : (
         <>
