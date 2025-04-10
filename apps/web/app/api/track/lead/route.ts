@@ -78,14 +78,21 @@ export const POST = withWorkspace(
       }
 
       if (!clickData) {
-        clickData = await redis.get<ClickData>(`clickCache:${clickId}`);
+        const clickCaches = await redis.mget<(ClickData | null)[]>([
+          `clickCache:${clickId}`,
+          `click:${clickId}`,
+        ]);
 
-        if (clickData) {
+        const cachedClickData = clickCaches[0] ?? clickCaches[1];
+
+        if (cachedClickData) {
           clickData = {
-            ...clickData,
-            timestamp: clickData.timestamp.replace("T", " ").replace("Z", ""),
-            qr: clickData.qr ? 1 : 0,
-            bot: clickData.bot ? 1 : 0,
+            ...cachedClickData,
+            timestamp: cachedClickData.timestamp
+              .replace("T", " ")
+              .replace("Z", ""),
+            qr: cachedClickData.qr ? 1 : 0,
+            bot: cachedClickData.bot ? 1 : 0,
           };
         }
       }
