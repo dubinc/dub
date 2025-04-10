@@ -89,11 +89,9 @@ export function Form() {
       if (!uploadResponse.ok) throw new Error("Failed to upload to signed URL");
 
       setValue("logo", destinationUrl, { shouldDirty: true });
-      console.log(destinationUrl);
       toast.success(`${file.name} uploaded!`);
     } catch (e) {
       toast.error("Failed to upload logo");
-      console.error(e);
     } finally {
       setIsUploading(false);
     }
