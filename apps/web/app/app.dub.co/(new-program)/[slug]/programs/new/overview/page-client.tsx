@@ -76,7 +76,7 @@ export function PageClient() {
         type: (data.type ?? "flat") as CommissionType,
         amount: data.amount ?? 0,
         maxDuration: data.maxDuration ?? 0,
-        event: "sale" as EventType,
+        event: data.defaultRewardType,
       };
 
   const SECTIONS = [

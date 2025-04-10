@@ -43,6 +43,19 @@ export const PROGRAM_TYPES = [
   },
 ] as const;
 
+const DEFAULT_REWARD_TYPES = [
+  {
+    key: "sale",
+    label: "Sale",
+    description: "For sales and subscriptions",
+  },
+  {
+    key: "lead",
+    label: "Lead",
+    description: "For sign ups and leads",
+  },
+] as const;
+
 const IMPORT_SOURCES = [
   {
     id: "rewardful",
@@ -76,7 +89,6 @@ export function Form() {
       mutate();
     },
     onError: ({ error }) => {
-      console.log(error);
       toast.error(error.serverError);
     },
   });
@@ -89,6 +101,7 @@ export function Form() {
       ...(programType === "new" && {
         rewardful: null,
         apiKeyPrefix: null,
+        amount: data.amount ? data.amount * 100 : null,
       }),
       ...(programType === "import" && {
         type: null,
@@ -191,10 +204,15 @@ export function Form() {
 }
 
 const NewProgramForm = ({ register, watch, setValue }: FormProps) => {
+  const [type, maxDuration, defaultRewardType] = watch([
+    "type",
+    "maxDuration",
+    "defaultRewardType",
+  ]);
+
   const [commissionStructure, setCommissionStructure] = useState<
     "one-off" | "recurring"
   >("recurring");
-  const [type, maxDuration] = watch(["type", "maxDuration"]);
 
   useEffect(() => {
     setCommissionStructure(maxDuration === 0 ? "one-off" : "recurring");
@@ -205,24 +223,24 @@ const NewProgramForm = ({ register, watch, setValue }: FormProps) => {
   }, [maxDuration]);
 
   return (
-    <>
-      <div className="space-y-6">
-        <div className="space-y-1">
+    <div className="flex flex-col gap-10">
+      <div className="grid grid-cols-1 gap-6">
+        <div>
           <h2 className="text-base font-medium text-neutral-900">
-            Commission structure
+            Reward type
           </h2>
-          <p className="text-sm font-normal text-neutral-600">
-            Set how the affiliate will get rewarded
+          <p className="mt-1 text-sm font-normal text-neutral-600">
+            Set the default reward type for all your affiliates
           </p>
         </div>
 
         <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-          {COMMISSION_TYPES.map(({ value, label, description }) => {
-            const isSelected = value === commissionStructure;
+          {DEFAULT_REWARD_TYPES.map(({ key, label, description }) => {
+            const isSelected = key === defaultRewardType;
 
             return (
               <label
-                key={value}
+                key={key}
                 className={cn(
                   "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
                   "transition-all duration-150",
@@ -232,20 +250,15 @@ const NewProgramForm = ({ register, watch, setValue }: FormProps) => {
               >
                 <input
                   type="radio"
-                  value={value}
+                  value={key}
                   className="hidden"
                   checked={isSelected}
                   onChange={() => {
-                    setCommissionStructure(value);
+                    setValue("defaultRewardType", key, { shouldDirty: true });
 
-                    if (value === "one-off") {
-                      setValue("maxDuration", 0, { shouldValidate: true });
-                    }
-
-                    if (value === "recurring") {
-                      setValue("maxDuration", null, {
-                        shouldValidate: true,
-                      });
+                    if (key === "lead") {
+                      setValue("type", "flat", { shouldDirty: true });
+                      setValue("maxDuration", 0, { shouldDirty: true });
                     }
                   }}
                 />
@@ -267,54 +280,125 @@ const NewProgramForm = ({ register, watch, setValue }: FormProps) => {
             );
           })}
         </div>
-
-        {commissionStructure === "recurring" && (
-          <div>
-            <label className="text-sm font-medium text-neutral-800">
-              Duration
-            </label>
-            <select
-              {...register("maxDuration", { valueAsNumber: true })}
-              className="mt-2 block w-full rounded-md border border-neutral-300 bg-white py-2 pl-3 pr-10 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
-            >
-              {RECURRING_MAX_DURATIONS.filter((v) => v !== 0).map(
-                (duration) => (
-                  <option key={duration} value={duration}>
-                    {duration} {duration === 1 ? "month" : "months"}
-                  </option>
-                ),
-              )}
-              <option value={Infinity} selected>
-                Lifetime
-              </option>
-            </select>
-          </div>
-        )}
       </div>
 
-      <div className="space-y-6">
-        <div className="space-y-1">
+      {defaultRewardType === "sale" && (
+        <div className="grid grid-cols-1 gap-6">
+          <div>
+            <h2 className="text-base font-medium text-neutral-900">
+              Commission structure
+            </h2>
+            <p className="mt-1 text-sm font-normal text-neutral-600">
+              Set how the affiliate will get rewarded
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+            {COMMISSION_TYPES.map(({ value, label, description }) => {
+              const isSelected = value === commissionStructure;
+
+              return (
+                <label
+                  key={value}
+                  className={cn(
+                    "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
+                    "transition-all duration-150",
+                    isSelected &&
+                      "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
+                  )}
+                >
+                  <input
+                    type="radio"
+                    value={value}
+                    className="hidden"
+                    checked={isSelected}
+                    onChange={(e) => {
+                      if (value === "one-off") {
+                        setCommissionStructure("one-off");
+                        setValue("maxDuration", 0, { shouldValidate: true });
+                      }
+
+                      if (value === "recurring") {
+                        setCommissionStructure("recurring");
+                        setValue("maxDuration", 3, {
+                          shouldValidate: true,
+                        });
+                      }
+                    }}
+                  />
+                  <div className="flex grow flex-col text-sm">
+                    <span className="text-sm font-semibold text-neutral-900">
+                      {label}
+                    </span>
+                    <span className="text-sm font-normal text-neutral-600">
+                      {description}
+                    </span>
+                  </div>
+                  <CircleCheckFill
+                    className={cn(
+                      "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
+                      isSelected && "scale-100 opacity-100",
+                    )}
+                  />
+                </label>
+              );
+            })}
+          </div>
+
+          {commissionStructure === "recurring" && (
+            <div>
+              <label className="text-sm font-medium text-neutral-800">
+                Duration
+              </label>
+              <select
+                {...register("maxDuration", { valueAsNumber: true })}
+                className="mt-2 block w-full rounded-md border border-neutral-300 bg-white py-2 pl-3 pr-10 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
+              >
+                {RECURRING_MAX_DURATIONS.filter((v) => v !== 0).map(
+                  (duration) => (
+                    <option
+                      key={duration}
+                      value={duration}
+                      selected={duration === 12}
+                    >
+                      {duration} {duration === 1 ? "month" : "months"}
+                    </option>
+                  ),
+                )}
+                <option value="">Lifetime</option>
+              </select>
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 gap-6">
+        <div>
           <h2 className="text-base font-medium text-neutral-900">Payout</h2>
-          <p className="text-sm font-normal text-neutral-600">
+          <p className="mt-1 text-sm font-normal text-neutral-600">
             Set how much the affiliate will get rewarded
           </p>
         </div>
 
-        <div>
-          <label className="text-sm font-medium text-neutral-800">
-            Payout model
-          </label>
-          <select
-            {...register("type")}
-            className="mt-2 block w-full rounded-md border border-neutral-300 bg-white py-2 pl-3 pr-10 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
-          >
-            <option value="flat">Flat</option>
-            <option value="percentage">Percentage</option>
-          </select>
-        </div>
+        {defaultRewardType === "sale" && (
+          <div>
+            <label className="text-sm font-medium text-neutral-800">
+              Payout model
+            </label>
+            <select
+              {...register("type")}
+              className="mt-2 block w-full rounded-md border border-neutral-300 bg-white py-2 pl-3 pr-10 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
+            >
+              <option value="flat">Flat</option>
+              <option value="percentage">Percentage</option>
+            </select>
+          </div>
+        )}
 
         <div>
-          <label className="text-sm font-medium text-neutral-800">Amount</label>
+          <label className="text-sm font-medium text-neutral-800">
+            Amount {defaultRewardType != "sale" ? "per lead" : ""}
+          </label>
           <div className="relative mt-2 rounded-md shadow-sm">
             <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
               {type === "flat" && "$"}
@@ -339,7 +423,7 @@ const NewProgramForm = ({ register, watch, setValue }: FormProps) => {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
