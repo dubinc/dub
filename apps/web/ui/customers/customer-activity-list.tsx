@@ -2,11 +2,14 @@ import { CustomerActivityResponse } from "@/lib/types";
 import { LinkLogo } from "@dub/ui";
 import { CursorRays, MoneyBill2, UserCheck } from "@dub/ui/icons";
 import { getApexDomain, getPrettyUrl } from "@dub/utils";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 
 const activityData = {
   click: {
     icon: CursorRays,
     content: (event) => {
+      const { slug } = useParams();
       const referer =
         !event.click?.referer || event.click.referer === "(direct)"
           ? "direct"
@@ -14,7 +17,10 @@ const activityData = {
       return (
         <span className="flex items-center gap-1.5 [&>*]:min-w-0 [&>*]:truncate">
           Found{" "}
-          <span className="flex items-center gap-2 rounded-md bg-neutral-100 px-1.5 py-1 font-mono text-xs leading-none">
+          <Link
+            href={`/${slug}/links/${getPrettyUrl(event.link.shortLink)}`}
+            className="flex items-center gap-2 rounded-md bg-neutral-100 px-1.5 py-1 font-mono text-xs leading-none"
+          >
             <LinkLogo
               className="size-3 shrink-0 sm:size-3"
               apexDomain={getApexDomain(event.click.url)}
@@ -22,7 +28,7 @@ const activityData = {
             <span className="min-w-0 truncate">
               {getPrettyUrl(event.link.shortLink)}
             </span>
-          </span>
+          </Link>
           via
           <span className="flex items-center gap-2 rounded-md bg-neutral-100 px-1.5 py-1 font-mono text-xs leading-none">
             <LinkLogo
