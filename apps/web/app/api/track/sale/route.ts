@@ -90,22 +90,16 @@ export const POST = withWorkspace(
     let leadEventData: LeadEvent | null = null;
 
     if (!leadEvent || leadEvent.data.length === 0) {
-      let cachedLeadEvent: LeadEvent | null = null;
       // Check cache to see if the lead event exists
       // if leadEventName is provided, we only check for that specific event
       // otherwise, we check for all cached lead events for that customer
 
-      if (leadEventName) {
-        cachedLeadEvent = await redis.get<LeadEvent>(
-          `leadCache:${customer.id}:${leadEventName.toLowerCase().replace(" ", "-")}`,
-        );
-      } else {
-        const cachedLeadEventKeys = await redis.scan(0, {
-          match: `leadCache:${customer.id}:*`,
-        });
+      const cachedLeadEvents = await redis.mget<(LeadEvent | null)[]>([
+        `leadCache:${customer.id}${leadEventName ? `:${leadEventName.toLowerCase().replace(" ", "-")}` : ""}`,
+        `latestLeadEvent:${customer.id}`,
+      ]);
 
-        cachedLeadEvent = await redis.get<LeadEvent>(cachedLeadEventKeys[1][0]);
-      }
+      const cachedLeadEvent = cachedLeadEvents[0] ?? cachedLeadEvents[1];
 
       if (!cachedLeadEvent) {
         throw new DubApiError({

@@ -160,17 +160,22 @@ export const POST = withWorkspace(
         customer = await upsertCustomer();
 
         const leadEventPayload = createLeadEventPayload(customer.id);
+        const cacheLeadEventPayload = Array.isArray(leadEventPayload)
+          ? leadEventPayload[0]
+          : leadEventPayload;
 
         await Promise.all([
           // Use recordLeadSync which waits for the operation to complete
           recordLeadSync(leadEventPayload),
 
           // Cache the latest lead event for 5 minutes because the ingested event is not available immediately on Tinybird
+          // we're setting two keys because we want to support the use case where the customer has multiple lead events
+          redis.set(`leadCache:${customer.id}`, cacheLeadEventPayload, {
+            ex: 60 * 5,
+          }),
           redis.set(
             `leadCache:${customer.id}:${stringifiedEventName}`,
-            Array.isArray(leadEventPayload)
-              ? leadEventPayload[0]
-              : leadEventPayload,
+            cacheLeadEventPayload,
             {
               ex: 60 * 5,
             },
