@@ -1,6 +1,5 @@
 import { getCustomerEvents } from "@/lib/analytics/get-customer-events";
 import { getCustomerOrThrow } from "@/lib/api/customers/get-customer-or-throw";
-import { transformCustomer } from "@/lib/api/customers/transform-customer";
 import { decodeLinkIfCaseSensitive } from "@/lib/api/links/case-sensitivity";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
@@ -94,7 +93,6 @@ export const GET = withWorkspace(async ({ workspace, params, session }) => {
       ltv,
       timeToLead,
       timeToSale,
-      customer: transformCustomer(customer),
       events,
       link,
     }),

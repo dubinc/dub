@@ -26,11 +26,6 @@ export function CustomerDetailsColumn({
   const link = customerActivity?.link;
   const click = customerActivity?.events.find((e) => e.event === "click");
 
-  // TODO: Remove
-  if (click)
-    click.url =
-      "https://dub.co/brand?utm_source=dub&utm_medium=referral&utm_campaign=brand";
-
   const utmParams = useMemo(() => {
     if (!click?.url) return null;
     const allParams = getParamsFromURL(click.url);

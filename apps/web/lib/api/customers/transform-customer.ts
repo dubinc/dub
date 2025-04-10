@@ -13,8 +13,8 @@ export interface CustomerWithLink extends Customer {
         programEnrollment?:
           | (ProgramEnrollment & {
               partner: Partner;
-              discount: Discount | null;
-              program: {
+              discount?: Discount | null;
+              program?: {
                 defaultDiscount: Discount;
               };
             })

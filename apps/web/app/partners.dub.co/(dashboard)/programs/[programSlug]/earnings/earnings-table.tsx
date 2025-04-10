@@ -26,6 +26,8 @@ import {
   getPrettyUrl,
 } from "@dub/utils";
 import { Cell } from "@tanstack/react-table";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import useSWR from "swr";
 
 type ColumnMeta = {
@@ -35,6 +37,7 @@ type ColumnMeta = {
 };
 
 export function EarningsTablePartner({ limit }: { limit?: number }) {
+  const { programSlug } = useParams();
   const { programEnrollment } = useProgramEnrollment();
   const { queryParams, searchParamsObj, getQueryString } = useRouterStuff();
 
@@ -120,16 +123,18 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
         id: "customer",
         header: "Customer",
         accessorKey: "customer",
-        meta: {
-          filterParams: ({ getValue }) =>
-            getValue()
-              ? {
-                  customerId: getValue().id,
-                }
-              : {},
-        },
         cell: ({ row }) =>
-          row.original.customer ? row.original.customer.email : "-",
+          row.original.customer ? (
+            <Link
+              href={`/programs/${programSlug}/customers/${row.original.customer.id}`}
+              scroll={false}
+              className="flex w-full items-center justify-between gap-2 px-4 py-2.5 transition-colors hover:bg-stone-100"
+            >
+              {row.original.customer.email}
+            </Link>
+          ) : (
+            "-"
+          ),
         size: 250,
       },
       {
@@ -202,6 +207,7 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
       enableColumnResizing: true,
     }),
     rowCount: earningsCount?.count || 0,
+    tdClassName: (columnId) => (columnId === "customer" ? "p-0" : ""),
     emptyState: (
       <AnimatedEmptyState
         title="No earnings found"
