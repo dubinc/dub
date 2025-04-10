@@ -24,6 +24,7 @@ import {
   ReactNode,
   SetStateAction,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 import { Button } from "../button";
@@ -297,6 +298,14 @@ export function Table<T>({
   children,
   enableColumnResizing = false,
 }: TableProps<T>) {
+  // Memoize table width calculation
+  const tableWidth = useMemo(() => {
+    if (!enableColumnResizing) return "100%";
+    return table
+      .getVisibleLeafColumns()
+      .reduce((acc, column) => acc + column.getSize(), 0);
+  }, [enableColumnResizing, table.getVisibleLeafColumns()]);
+
   return (
     <div
       className={cn(
@@ -326,11 +335,7 @@ export function Table<T>({
             style={{
               width: "100%",
               tableLayout: enableColumnResizing ? "fixed" : "auto",
-              ...(enableColumnResizing && {
-                minWidth: table
-                  .getVisibleLeafColumns()
-                  .reduce((acc, column) => acc + column.getSize(), 0),
-              }),
+              minWidth: tableWidth,
             }}
           >
             <thead>
@@ -359,13 +364,7 @@ export function Table<T>({
                           enableColumnResizing && "relative",
                         )}
                         style={{
-                          ...(enableColumnResizing
-                            ? { width: header.getSize() }
-                            : {
-                                minWidth: header.column.columnDef.minSize,
-                                maxWidth: header.column.columnDef.maxSize,
-                                width: header.column.columnDef.size || "auto",
-                              }),
+                          width: header.getSize(),
                           ...getCommonPinningStyles(header.column),
                         }}
                       >
@@ -423,7 +422,10 @@ export function Table<T>({
               {table.getRowModel().rows.map((row) =>
                 enableColumnResizing ? (
                   <ResizableTableRow
-                    key={row.id}
+                    key={`${row.id}-${table
+                      .getVisibleLeafColumns()
+                      .map((col) => col.id)
+                      .join(",")}`}
                     row={row}
                     onRowClick={onRowClick}
                     cellRight={cellRight}
@@ -436,7 +438,6 @@ export function Table<T>({
                     className={cn(
                       "group/row",
                       onRowClick && "cursor-pointer select-none",
-                      // hacky fix: if there are more than 8 rows, remove the bottom border from the last row
                       table.getRowModel().rows.length > 8 &&
                         row.index === table.getRowModel().rows.length - 1 &&
                         "[&_td]:border-b-0",
@@ -444,7 +445,6 @@ export function Table<T>({
                     onClick={
                       onRowClick
                         ? (e) => {
-                            // Ignore if click is on an interactive child
                             if (isClickOnInteractiveChild(e)) return;
                             onRowClick(row, e);
                           }
