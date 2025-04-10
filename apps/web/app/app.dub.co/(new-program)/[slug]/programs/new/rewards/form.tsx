@@ -45,14 +45,14 @@ export const PROGRAM_TYPES = [
 
 const DEFAULT_REWARD_TYPES = [
   {
-    key: "lead",
-    label: "Lead",
-    description: "For sign ups and leads",
-  },
-  {
     key: "sale",
     label: "Sale",
     description: "For sales and subscriptions",
+  },
+  {
+    key: "lead",
+    label: "Lead",
+    description: "For sign ups and leads",
   },
 ] as const;
 
@@ -253,7 +253,7 @@ const NewProgramForm = ({ register, watch, setValue }: FormProps) => {
                   value={key}
                   className="hidden"
                   checked={isSelected}
-                  onChange={(e) => {
+                  onChange={() => {
                     setValue("defaultRewardType", key, { shouldDirty: true });
 
                     if (key === "lead") {
