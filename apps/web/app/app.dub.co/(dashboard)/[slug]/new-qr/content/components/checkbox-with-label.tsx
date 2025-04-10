@@ -13,7 +13,7 @@ export const CheckboxWithLabel: FC<ICheckboxWithLabelProps> = ({
   onCheckedChange,
 }) => (
   <div
-    className="border-border-300 flex h-11 w-full basis-1/2 cursor-pointer items-center gap-3 rounded-md border bg-[#F5F5F5] p-3"
+    className="border-border-300 bg-border-400 flex h-11 w-full basis-1/2 cursor-pointer items-center gap-3 rounded-md border p-3"
     onClick={() => onCheckedChange(!checked)}
   >
     <Checkbox

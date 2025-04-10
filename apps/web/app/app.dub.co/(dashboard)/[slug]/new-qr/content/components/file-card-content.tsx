@@ -1,5 +1,6 @@
 import { Button } from "@dub/ui";
 import { Icon } from "@iconify/react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Dispatch, FC, SetStateAction } from "react";
 import {
   EQRType,
@@ -12,11 +13,15 @@ interface IFileCardContentProps {
   qrType: (typeof FILE_QR_TYPES)[number];
   files: File[];
   setFiles: Dispatch<SetStateAction<File[]>>;
+  title?: string;
+  multiple?: boolean;
 }
 export const FileCardContent: FC<IFileCardContentProps> = ({
   qrType,
   files,
   setFiles,
+  title,
+  multiple = true,
 }) => {
   const {
     fileInputRef,
@@ -27,13 +32,15 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
     handleDeleteFile,
     handleUploadClick,
     errorMessage,
-  } = useFilePreview(qrType, files, setFiles);
+  } = useFilePreview(qrType, files, setFiles, multiple);
 
   const isImageOrVideoFile =
     qrType === EQRType.IMAGE || qrType === EQRType.VIDEO;
   const fileTypeLabel =
     qrType === EQRType.IMAGE
-      ? "Image(s)"
+      ? multiple
+        ? "Image(s)"
+        : "Image"
       : qrType === EQRType.VIDEO
         ? "Video(s)"
         : "PDF(s)";
@@ -43,9 +50,10 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
     <div className="flex w-full flex-col gap-4">
       <div className="flex flex-col items-start gap-2">
         <h3 className="text-neutral text-sm font-medium">
-          {isImageOrVideoFile
-            ? `Upload one or more ${qrType}s`
-            : "Add one or more files"}
+          {title ??
+            (isImageOrVideoFile
+              ? `Upload one or more ${qrType}s`
+              : "Add one or more files")}
         </h3>
         <div
           ref={dropzoneRef}
@@ -57,7 +65,7 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
             name="files"
             ref={fileInputRef}
             accept={acceptFileTypes}
-            multiple
+            multiple={multiple}
             type="file"
             className="hidden"
             onChange={handleFileChange}
@@ -80,50 +88,78 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
       </div>
 
       {files.length > 0 && (
-        <div className="mt-4 flex flex-col gap-3">
-          {files.map((file, index) => (
-            <div
-              key={index}
-              className="flex items-center gap-3 rounded-md border px-4 py-3"
-            >
-              {filePreviews.length > index && (
-                <div className="flex flex-wrap gap-4">
-                  <div
-                    key={index}
-                    className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-md"
+        <motion.div
+          layout
+          className="mt-4 flex flex-col gap-3"
+          transition={{ duration: 0.3, ease: "easeInOut" }}
+        >
+          <AnimatePresence mode="popLayout">
+            {files.map((file, index) => {
+              const preview = filePreviews[index];
+              return (
+                <motion.div
+                  key={file.name + index}
+                  layout
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{
+                    opacity: 0,
+                    height: 0,
+                    paddingTop: 0,
+                    paddingBottom: 0,
+                    marginTop: 0,
+                    marginBottom: 0,
+                  }}
+                  transition={{
+                    opacity: { duration: 0.2 },
+                    height: { duration: 0.4, ease: [0.4, 0, 0.2, 1] },
+                    paddingTop: { duration: 0.4 },
+                    paddingBottom: { duration: 0.4 },
+                    marginTop: { duration: 0.4 },
+                    marginBottom: { duration: 0.4 },
+                  }}
+                  className="flex items-center gap-3 overflow-hidden rounded-md border bg-white px-4 py-3"
+                >
+                  <motion.div
+                    layout
+                    className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md"
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
                   >
-                    {filePreviews[index].startsWith("pdf") ? (
-                      <Icon
-                        icon="hugeicons:pdf-02"
-                        className="h-[35px] w-[35px] text-neutral-200"
-                      />
-                    ) : files[index].type.startsWith("video/") ? (
-                      <video
-                        className="h-full w-full object-cover"
-                        src={filePreviews[index]}
-                      />
-                    ) : (
-                      <img
-                        src={filePreviews[index]}
-                        alt={`Preview ${index}`}
-                        className="h-full w-full object-cover"
-                      />
-                    )}
-                  </div>
-                </div>
-              )}
-              <span className="truncate text-sm font-medium text-gray-700">
-                {file.name}
-              </span>
-              <Icon
-                role="button"
-                icon="mage:trash"
-                className="ml-auto shrink-0 cursor-pointer text-[20px] text-gray-500 hover:text-red-500"
-                onClick={() => handleDeleteFile(index)}
-              />
-            </div>
-          ))}
-        </div>
+                    {preview &&
+                      (preview.startsWith("pdf") ? (
+                        <Icon
+                          icon="hugeicons:pdf-02"
+                          className="h-[35px] w-[35px] text-neutral-200"
+                        />
+                      ) : file.type.startsWith("video/") ? (
+                        <video
+                          className="h-full w-full object-cover"
+                          src={preview}
+                        />
+                      ) : (
+                        <img
+                          src={preview}
+                          alt={`Preview ${index}`}
+                          className="h-full w-full object-cover"
+                        />
+                      ))}
+                  </motion.div>
+
+                  <span className="w-40 truncate text-sm font-medium leading-normal text-gray-700">
+                    {file.name}
+                  </span>
+                  <Icon
+                    role="button"
+                    icon="mage:trash"
+                    className="ml-auto shrink-0 cursor-pointer text-[20px] text-gray-500 hover:text-red-500"
+                    onClick={() => handleDeleteFile(index)}
+                  />
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        </motion.div>
       )}
     </div>
   );

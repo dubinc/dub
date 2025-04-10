@@ -1,151 +1,315 @@
 "use client";
 
-import QRCodeStyling, { FileExtension, Options } from "qr-code-styling";
-import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { Button } from "@dub/ui";
+import { StaticImageData } from "next/image";
+import QRCodeStyling, {
+  CornerDotType,
+  CornerSquareType,
+  Options,
+} from "qr-code-styling";
+import { DotType } from "qr-code-styling/lib/types";
+import { useEffect, useRef, useState } from "react";
+import { EQRType } from "../../../../(public)/landing/constants/get-qr-config.ts";
 import { STEPS } from "../constants.ts";
+import { FileCardContent } from "../content/components/file-card-content.tsx";
 import { usePageContext } from "../page-context.tsx";
+import { ColorsSettings } from "./components/colors-settings.tsx";
+import { StylePicker } from "./components/style-picker.tsx";
+import {
+  BORDER_STYLES,
+  CENTER_STYLES,
+  DOTS_STYLES,
+  FRAMES,
+  SUGGESTED_LOGOS,
+} from "./constants.ts";
+import { convertSvgUrlToBase64 } from "./utils.ts";
 
 export default function NewQRCustomization() {
   const { setTitle, setCurrentStep } = usePageContext();
+  const ref = useRef<HTMLDivElement>(null);
+
   const [options, setOptions] = useState<Options>({
     width: 300,
     height: 300,
     type: "svg",
     data: "http://qr-code-styling.com",
-    image:
-      "https://assets.vercel.com/image/upload/front/favicon/vercel/180x180.png",
     margin: 10,
     qrOptions: {
       typeNumber: 0,
       mode: "Byte",
       errorCorrectionLevel: "Q",
     },
-    imageOptions: {
-      hideBackgroundDots: true,
-      imageSize: 0.4,
-      margin: 20,
-      crossOrigin: "anonymous",
-      saveAsBlob: true,
-    },
     dotsOptions: {
+      type: "dots",
       color: "#222222",
     },
     backgroundOptions: {
-      color: "#5FD4F3",
+      color: "#FFFFFF",
     },
     cornersSquareOptions: {
-      type: "square", // 'dot' 'square' 'extra-rounded' 'rounded' 'dots' 'classy' 'classy-rounded'
+      type: "square",
+      color: "#000000",
     },
     cornersDotOptions: {
-      type: "extra-rounded", // 'dot' 'square' 'extra-rounded' 'rounded' 'dots' 'classy' 'classy-rounded'
+      type: "square",
+      color: "#000000",
+    },
+    imageOptions: {
+      imageSize: 0.4,
+      hideBackgroundDots: true,
+      crossOrigin: "anonymous",
     },
   });
-  const [fileExt, setFileExt] = useState<FileExtension>("svg");
-  const [qrCode, setQrCode] = useState<QRCodeStyling>();
-  const ref = useRef<HTMLDivElement>(null);
+  const [qrCode, setQrCode] = useState<QRCodeStyling | null>(null);
+  const [uploadedLogo, setUploadedLogo] = useState<File | null>(null);
+  const [selectedSuggestedLogo, setSelectedSuggestedLogo] =
+    useState<string>("none");
+  const [selectedSuggestedFrame, setSelectedSuggestedFrame] =
+    useState<string>("none");
 
   useEffect(() => {
     setTitle(STEPS.customization.title);
     setCurrentStep(STEPS.customization.step);
 
     const qrCodeStyling = new QRCodeStyling(options);
-
-    const customCornerSquaresExtension = (svg, options) => {
-      const { width, height } = options;
-
-      // Function to create a triangle for the corner square
-      const createTriangle = (x, y, size) => {
-        const triangle = document.createElementNS(
-          "http://www.w3.org/2000/svg",
-          "polygon",
-        );
-        const points = `${x},${y} ${x + size},${y} ${x + size / 2},${y - size}`;
-        triangle.setAttribute("points", points);
-        triangle.setAttribute("fill", "#222222"); // Set color
-        return triangle;
-      };
-
-      // Top-left corner: replace the square with a triangle
-      const topLeftCorner = svg.querySelectorAll(".qr-corner-square")[0]; // Adjust selector if necessary
-      if (topLeftCorner) {
-        const rect = topLeftCorner.getBoundingClientRect();
-        const x = rect.left;
-        const y = rect.top;
-        const triangle = createTriangle(x, y, rect.width);
-        svg.removeChild(topLeftCorner);
-        svg.appendChild(triangle);
-      }
-
-      // Top-right corner: replace the square with a triangle
-      const topRightCorner = svg.querySelectorAll(".qr-corner-square")[1]; // Adjust selector if necessary
-      if (topRightCorner) {
-        const rect = topRightCorner.getBoundingClientRect();
-        const x = rect.left;
-        const y = rect.top;
-        const triangle = createTriangle(x, y, rect.width);
-        svg.removeChild(topRightCorner);
-        svg.appendChild(triangle);
-      }
-
-      // Bottom-left corner: replace the square with a triangle
-      const bottomLeftCorner = svg.querySelectorAll(".qr-corner-square")[2]; // Adjust selector if necessary
-      if (bottomLeftCorner) {
-        const rect = bottomLeftCorner.getBoundingClientRect();
-        const x = rect.left;
-        const y = rect.top;
-        const triangle = createTriangle(x, y, rect.width);
-        svg.removeChild(bottomLeftCorner);
-        svg.appendChild(triangle);
-      }
-    };
-
-    qrCodeStyling.applyExtension(customCornerSquaresExtension);
-
     setQrCode(qrCodeStyling);
   }, []);
 
   useEffect(() => {
-    if (ref.current) {
-      qrCode?.append(ref.current);
+    if (ref.current && qrCode) {
+      qrCode.append(ref.current);
     }
   }, [qrCode, ref]);
 
   useEffect(() => {
     if (!qrCode) return;
-    qrCode?.update(options);
-  }, [qrCode, options]);
+    qrCode.update(options);
 
-  const onDataChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setOptions((options) => ({
-      ...options,
-      data: event.target.value,
+    if (selectedSuggestedFrame !== "none") {
+      const extensionFn = FRAMES[selectedSuggestedFrame];
+      if (extensionFn) qrCode.applyExtension(extensionFn);
+    }
+  }, [selectedSuggestedFrame, options, qrCode]);
+
+  const onBorderStyleChange = (newType: CornerSquareType) => {
+    setOptions((prevOptions) => ({
+      ...prevOptions,
+      cornersSquareOptions: {
+        ...prevOptions.cornersSquareOptions,
+        type: newType,
+      },
     }));
   };
 
-  const onExtensionChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    setFileExt(event.target.value as FileExtension);
+  const onCenterStyleChange = (newType: CornerDotType) => {
+    setOptions((prevOptions) => ({
+      ...prevOptions,
+      cornersDotOptions: {
+        ...prevOptions.cornersDotOptions,
+        type: newType,
+      },
+    }));
   };
 
-  const onDownloadClick = () => {
+  const onBorderColorChange = (color: string) => {
+    setOptions((prevOptions) => ({
+      ...prevOptions,
+      dotsOptions: { ...prevOptions.dotsOptions, color },
+      cornersSquareOptions: { ...prevOptions.cornersSquareOptions, color },
+      cornersDotOptions: { ...prevOptions.cornersDotOptions, color },
+    }));
+  };
+
+  const onDotsStyleChange = (newType: DotType) => {
+    setOptions((prevOptions) => ({
+      ...prevOptions,
+      dotsOptions: {
+        ...prevOptions.dotsOptions,
+        type: newType,
+      },
+    }));
+  };
+
+  const onBackgroundColorChange = (color: string) => {
+    setOptions((prevOptions) => ({
+      ...prevOptions,
+      backgroundOptions: { color },
+    }));
+  };
+
+  const onTransparentBackgroundToggle = (checked: boolean) => {
+    setOptions((prevOptions) => ({
+      ...prevOptions,
+      backgroundOptions: { color: checked ? "transparent" : "#FFFFFF" },
+    }));
+  };
+
+  const onSuggestedLogoSelect = async (logoType: string, logoUrl?: string) => {
+    if (selectedSuggestedLogo === logoType) return;
+
+    setSelectedSuggestedLogo(logoType);
+    setUploadedLogo(null);
+
+    if (!logoUrl || logoType === "none") {
+      setOptions((prevOptions) => ({
+        ...prevOptions,
+        image: undefined,
+      }));
+      return;
+    }
+
+    const base64 = await convertSvgUrlToBase64(logoUrl);
+    setOptions((prevOptions) => ({
+      ...prevOptions,
+      image: base64,
+      imageOptions: {
+        ...prevOptions.imageOptions,
+        crossOrigin: "anonymous",
+      },
+    }));
+  };
+
+  const onSuggestedFrameSelect = (frameId: string) => {
+    setSelectedSuggestedFrame(frameId);
+
     if (!qrCode) return;
-    qrCode.download({
-      extension: fileExt,
-    });
+
+    qrCode.update(options);
+
+    const selected = FRAMES.find((f) => f.type === frameId);
+    if (selected?.extension) {
+      qrCode.applyExtension(selected.extension);
+      setOptions((prevOptions) => ({
+        ...prevOptions,
+        width: 600,
+      }));
+    } else {
+      qrCode.deleteExtension();
+      setOptions((prevOptions) => ({
+        ...prevOptions,
+        width: 300,
+      }));
+    }
   };
 
   return (
-    <>
-      <div ref={ref} />
-      <div>
-        <input value={options.data} onChange={onDataChange} />
-        <select onChange={onExtensionChange} value={fileExt}>
-          <option value="svg">SVG</option>
-          <option value="png">PNG</option>
-          <option value="jpeg">JPEG</option>
-          <option value="webp">WEBP</option>
-        </select>
-        <button onClick={onDownloadClick}>Download</button>
+    <div className="flex flex-col items-start justify-between gap-14 md:flex-row-reverse xl:max-w-[914px]">
+      <Button
+        variant="primary"
+        className="bg-secondary absolute h-[44px] w-[208px] text-base text-white lg:top-[8.5%] xl:top-[9%]"
+        text="Create"
+      />
+      <div className="sticky top-8 self-start">
+        <div
+          ref={ref}
+          className="border-border-100 w-[204px] rounded-lg border p-[22px] [&_svg]:h-[160px] [&_svg]:w-[160px]"
+        />
       </div>
-    </>
+      <div className="text-neutral border-border-100 flex flex-col gap-6 rounded-lg border px-6 py-4 xl:max-w-[656px]">
+        <div className="border-b-border-400 flex flex-col items-start gap-5 border-b-2 pb-6">
+          <h2 className="text-lg font-semibold">Shapes & Forms</h2>
+          <ColorsSettings
+            options={options}
+            onBorderColorChange={onBorderColorChange}
+            onBackgroundColorChange={onBackgroundColorChange}
+            onTransparentBackgroundToggle={onTransparentBackgroundToggle}
+          />
+          <StylePicker
+            label="Border Style"
+            styleOptions={BORDER_STYLES}
+            selectedStyle={options.cornersSquareOptions?.type ?? "square"}
+            onSelect={(type: string) => {
+              onBorderStyleChange(type as CornerSquareType);
+            }}
+            optionsWrapperClassName="gap-2"
+            iconSize={30}
+            styleButtonClassName={"p-3.5"}
+          />
+          <StylePicker
+            label="Center Style"
+            styleOptions={CENTER_STYLES}
+            selectedStyle={options.cornersDotOptions?.type ?? "square"}
+            onSelect={(type: string) =>
+              onCenterStyleChange(type as CornerDotType)
+            }
+            optionsWrapperClassName="gap-2"
+            iconSize={30}
+            styleButtonClassName={"p-3.5"}
+          />
+        </div>
+
+        <div className="border-b-border-400 flex flex-col items-start gap-5 border-b-2 pb-6">
+          <StylePicker
+            label="Frames"
+            styleOptions={FRAMES}
+            selectedStyle={selectedSuggestedFrame}
+            onSelect={(type: string) => onSuggestedFrameSelect(type)}
+            stylePickerWrapperClassName="gap-5"
+            optionsWrapperClassName="gap-2"
+          />
+          <StylePicker
+            label="QR code style"
+            styleOptions={DOTS_STYLES}
+            selectedStyle={options.dotsOptions?.type ?? "square"}
+            onSelect={(type: string) => onDotsStyleChange(type as DotType)}
+            optionsWrapperClassName="gap-2"
+          />
+        </div>
+
+        <div className="flex flex-col items-start gap-5">
+          <h2 className="text-lg font-semibold">Logos</h2>
+          <FileCardContent
+            qrType={EQRType.IMAGE}
+            files={uploadedLogo ? [uploadedLogo] : []}
+            setFiles={(files: File[] | ((prev: File[]) => File[])) => {
+              const incoming: File[] =
+                typeof files === "function" ? files([]) : files;
+
+              const file = incoming[incoming.length - 1] || null;
+
+              setSelectedSuggestedLogo("none");
+
+              setTimeout(() => {
+                setUploadedLogo(file);
+
+                if (!file) {
+                  setOptions((prevOptions) => ({
+                    ...prevOptions,
+                    image: undefined,
+                  }));
+                  return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = () => {
+                  const base64 = reader.result as string;
+                  setOptions((prevOptions) => ({
+                    ...prevOptions,
+                    image: base64,
+                    imageOptions: {
+                      imageSize: 0.4,
+                      crossOrigin: "anonymous",
+                    },
+                  }));
+                };
+                reader.readAsDataURL(file);
+              }, 150);
+
+              return file ? [file] : [];
+            }}
+            title="Upload your logo"
+            multiple={false}
+          />
+          <StylePicker
+            label="Select a logo"
+            styleOptions={SUGGESTED_LOGOS}
+            selectedStyle={selectedSuggestedLogo}
+            onSelect={(type: string, icon?: StaticImageData) =>
+              onSuggestedLogoSelect(type, icon?.src)
+            }
+          />
+        </div>
+      </div>
+    </div>
   );
 }

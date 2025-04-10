@@ -23,6 +23,7 @@ export const useFilePreview = (
   qrType: EQRType,
   files: File[],
   setFiles: Dispatch<SetStateAction<File[]>>,
+  multiple: boolean,
 ) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropzoneRef = useRef<HTMLDivElement>(null);
@@ -41,15 +42,18 @@ export const useFilePreview = (
   }, [qrType]);
 
   const processFiles = (selectedFiles: File[]) => {
-    const uniqueFiles = selectedFiles.filter(
-      (file) => !files.some((existingFile) => existingFile.name === file.name),
-    );
+    const filteredFiles = multiple
+      ? selectedFiles.filter(
+          (file) =>
+            !files.some((existingFile) => existingFile.name === file.name),
+        )
+      : selectedFiles;
 
-    const validFiles = uniqueFiles.filter((file) =>
+    const validFiles = filteredFiles.filter((file) =>
       validateFileSize(file, qrType),
     );
 
-    if (validFiles.length < uniqueFiles.length) {
+    if (validFiles.length < filteredFiles.length) {
       setErrorMessage(
         `The maximum size allowed is ${MAX_FILE_SIZES[qrType] / (1024 * 1024)}MB.`,
       );
@@ -57,7 +61,11 @@ export const useFilePreview = (
       setErrorMessage("");
     }
 
-    setFiles((prevFiles) => [...prevFiles, ...validFiles]);
+    if (multiple) {
+      setFiles((prevFiles) => [...prevFiles, ...validFiles]);
+    } else {
+      setFiles(validFiles);
+    }
 
     const previews = new Array(validFiles.length);
 
@@ -89,7 +97,11 @@ export const useFilePreview = (
 
     Promise.all(validFiles.map((file, index) => processFile(file, index)))
       .then(() => {
-        setFilePreviews((prevPreviews) => [...prevPreviews, ...previews]);
+        if (multiple) {
+          setFilePreviews((prevPreviews) => [...prevPreviews, ...previews]);
+        } else {
+          setFilePreviews(previews);
+        }
       })
       .catch((error) => {
         console.error("Error processing files:", error);
@@ -97,8 +109,11 @@ export const useFilePreview = (
   };
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files) {
-      processFiles(Array.from(event.target.files));
+    const selected = event.target.files;
+
+    if (selected && selected.length > 0) {
+      processFiles(Array.from(selected));
+      event.target.value = "";
     }
   };
 
