@@ -3,24 +3,14 @@
 import useCustomer from "@/lib/swr/use-customer";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CustomerActivityResponse, SaleEvent } from "@/lib/types";
-import DeviceIcon from "@/ui/analytics/device-icon";
 import { CustomerActivityList } from "@/ui/customers/customer-activity-list";
+import { CustomerDetailsColumn } from "@/ui/customers/customer-details-column";
 import { CustomerSalesTable } from "@/ui/customers/customer-sales-table";
 import { BackLink } from "@/ui/shared/back-link";
-import { CopyButton, UTM_PARAMETERS } from "@dub/ui";
-import {
-  capitalize,
-  cn,
-  COUNTRIES,
-  currencyFormatter,
-  DICEBEAR_AVATAR_URL,
-  fetcher,
-  getParamsFromURL,
-  getPrettyUrl,
-} from "@dub/utils";
-import Link from "next/link";
+import { CopyButton } from "@dub/ui";
+import { DICEBEAR_AVATAR_URL, fetcher } from "@dub/utils";
 import { notFound, useParams } from "next/navigation";
-import { Fragment, HTMLProps, memo, useMemo } from "react";
+import { memo } from "react";
 import useSWR from "swr";
 
 export function CustomerPageClient() {
@@ -42,23 +32,6 @@ export function CustomerPageClient() {
         `/api/customers/${customer.id}/activity?workspaceId=${workspaceId}`,
       fetcher,
     );
-
-  const link = customerActivity?.link;
-  const click = customerActivity?.events.find((e) => e.event === "click");
-
-  if (click)
-    click.url =
-      "https://dub.co/brand?utm_source=dub&utm_medium=referral&utm_campaign=brand";
-
-  const utmParams = useMemo(() => {
-    if (!click?.url) return null;
-    const allParams = getParamsFromURL(click.url);
-
-    return UTM_PARAMETERS.map((p) => ({
-      ...p,
-      value: allParams?.[p.key],
-    })).filter(({ value }) => value);
-  }, [click?.url]);
 
   if (!customer && !isLoading && !error) notFound();
 
@@ -121,146 +94,18 @@ export function CustomerPageClient() {
         </div>
 
         {/* Right side details */}
-        <div className="-order-1 grid grid-cols-1 gap-6 overflow-hidden whitespace-nowrap text-sm text-neutral-900 min-[320px]:grid-cols-2 lg:order-1 lg:grid-cols-1">
-          <div className="flex flex-col gap-2">
-            <DetailHeading>Details</DetailHeading>
-            {customer ? (
-              customer.country && (
-                <span className="flex items-center gap-2">
-                  <img
-                    src={`https://hatscripts.github.io/circle-flags/flags/${customer.country.toLowerCase()}.svg`}
-                    alt=""
-                    className="size-3.5"
-                  />
-                  <span className="truncate">
-                    {COUNTRIES[customer.country]}
-                  </span>
-                </span>
-              )
-            ) : (
-              <div className="h-5 w-24 animate-pulse rounded-md bg-neutral-100" />
-            )}
-            {click
-              ? [
-                  {
-                    icon: (
-                      <DeviceIcon
-                        display={capitalize(click.os)!}
-                        tab="os"
-                        className="size-3.5 shrink-0"
-                      />
-                    ),
-                    value: click.os,
-                  },
-                  {
-                    icon: (
-                      <DeviceIcon
-                        display={capitalize(click.device)!}
-                        tab="devices"
-                        className="size-3.5 shrink-0"
-                      />
-                    ),
-                    value: click.device,
-                  },
-                  {
-                    icon: (
-                      <DeviceIcon
-                        display={capitalize(click.browser)!}
-                        tab="browsers"
-                        className="size-3.5 shrink-0"
-                      />
-                    ),
-                    value: click.browser,
-                  },
-                ]
-                  .filter(({ value }) => value)
-                  .map(({ icon, value }, idx) => (
-                    <span className="flex items-center gap-2">
-                      {icon}
-                      <span className="truncate">{value}</span>
-                    </span>
-                  ))
-              : (isCustomerActivityLoading || !customer) && (
-                  <div className="h-5 w-12 animate-pulse rounded-md bg-neutral-100" />
-                )}
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <DetailHeading>Customer since</DetailHeading>
-            {customer ? (
-              <span>
-                {new Date(customer.createdAt).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                })}
-              </span>
-            ) : (
-              <div className="h-5 w-12 animate-pulse rounded-md bg-neutral-100" />
-            )}
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <DetailHeading>Lifetime value</DetailHeading>
-            {!customer || isCustomerActivityLoading ? (
-              <div className="h-5 w-12 animate-pulse rounded-md bg-neutral-100" />
-            ) : (
-              <span>
-                {customerActivity?.ltv !== undefined
-                  ? currencyFormatter(customerActivity.ltv / 100, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })
-                  : "-"}
-              </span>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <DetailHeading>Referral link </DetailHeading>
-            {!customer || isCustomerActivityLoading ? (
-              <div className="h-5 w-12 animate-pulse rounded-md bg-neutral-100" />
-            ) : link ? (
-              <Link
-                href={`/${slug}/links/${link.domain}/${link.key}`}
-                target="_blank"
-                className="min-w-0 cursor-alias overflow-hidden truncate decoration-dotted underline-offset-2 hover:text-neutral-950 hover:underline"
-              >
-                {getPrettyUrl(link.shortLink)}
-              </Link>
-            ) : (
-              <span>-</span>
-            )}
-          </div>
-
-          {utmParams && (
-            <div className="flex flex-col gap-2">
-              <DetailHeading>UTM</DetailHeading>
-              <div className="grid w-full grid-cols-[min-content,minmax(0,1fr)] gap-x-4 gap-y-2 overflow-hidden">
-                {utmParams.map(({ label, value }) => (
-                  <Fragment key={label}>
-                    <span className="truncate">{label}</span>
-                    <span className="truncate text-neutral-500">{value}</span>
-                  </Fragment>
-                ))}
-              </div>
-            </div>
-          )}
+        <div className="-order-1 lg:order-1">
+          <CustomerDetailsColumn
+            customer={customer}
+            customerActivity={customerActivity}
+            isCustomerActivityLoading={!customer || isCustomerActivityLoading}
+            workspaceSlug={slug}
+          />
         </div>
       </div>
     </div>
   );
 }
-
-const DetailHeading = ({
-  className,
-  ...rest
-}: HTMLProps<HTMLHeadingElement>) => (
-  <h2
-    className={cn("font-semibold text-neutral-900", className)}
-    {...rest}
-  ></h2>
-);
 
 const SalesTable = memo(({ customerId }: { customerId: string }) => {
   const { id: workspaceId, slug } = useWorkspace();
