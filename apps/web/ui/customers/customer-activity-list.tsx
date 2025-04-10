@@ -19,7 +19,8 @@ const activityData = {
           Found{" "}
           <Link
             href={`/${slug}/links/${getPrettyUrl(event.link.shortLink)}`}
-            className="flex items-center gap-2 rounded-md bg-neutral-100 px-1.5 py-1 font-mono text-xs leading-none"
+            target="_blank"
+            className="flex items-center gap-2 rounded-md bg-neutral-100 px-1.5 py-1 font-mono text-xs leading-none transition-colors hover:bg-neutral-200/80"
           >
             <LinkLogo
               className="size-3 shrink-0 sm:size-3"
@@ -30,15 +31,17 @@ const activityData = {
             </span>
           </Link>
           via
-          <span className="flex items-center gap-2 rounded-md bg-neutral-100 px-1.5 py-1 font-mono text-xs leading-none">
+          <Link
+            href={`/${slug}/analytics?referer=${referer === "direct" ? "(direct)" : referer}`}
+            target="_blank"
+            className="flex items-center gap-2 rounded-md bg-neutral-100 px-1.5 py-1 font-mono text-xs leading-none transition-colors hover:bg-neutral-200/80"
+          >
             <LinkLogo
               className="size-3 shrink-0 sm:size-3"
-              apexDomain={getApexDomain(referer)}
+              apexDomain={referer === "direct" ? undefined : referer}
             />
-            <span className="min-w-0 truncate">
-              {referer === "direct" ? referer : getPrettyUrl(referer)}
-            </span>
-          </span>
+            <span className="min-w-0 truncate">{referer}</span>
+          </Link>
         </span>
       );
     },
