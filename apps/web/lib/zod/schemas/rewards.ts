@@ -23,17 +23,19 @@ export const RewardSchema = z.object({
   type: z.nativeEnum(CommissionType),
   amount: z.number(),
   maxDuration: z.number().nullish(),
+  maxAmount: z.number().nullish(),
   partnersCount: z.number().nullish(),
 });
 
 export const createOrUpdateRewardSchema = z.object({
+  workspaceId: z.string(),
+  programId: z.string(),
   event: z.nativeEnum(EventType),
   type: z.nativeEnum(CommissionType).default("flat"),
   amount: z.number().min(0),
   maxDuration: maxDurationSchema,
+  maxAmount: z.number().nullish(),
   partnerIds: z.array(z.string()).nullish(),
-  workspaceId: z.string(),
-  programId: z.string(),
 });
 
 export const createRewardSchema = createOrUpdateRewardSchema.superRefine(

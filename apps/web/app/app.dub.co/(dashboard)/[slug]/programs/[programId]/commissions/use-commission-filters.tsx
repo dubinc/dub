@@ -1,20 +1,21 @@
+import useCommissionsCount from "@/lib/swr/use-commissions-count";
 import usePartners from "@/lib/swr/use-partners";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useProgramCustomers from "@/lib/swr/use-program-customers";
 import useProgramCustomersCount from "@/lib/swr/use-program-customers-count";
-import useSalesCount from "@/lib/swr/use-sales-count";
 import { CustomerProps, EnrolledPartnerProps } from "@/lib/types";
 import { CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/customers";
 import { PARTNERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partners";
-import { SaleStatusBadges } from "@/ui/partners/sale-status-badges";
+import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
+import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { CircleDotted, useRouterStuff } from "@dub/ui";
-import { User, Users } from "@dub/ui/icons";
-import { cn, DICEBEAR_AVATAR_URL, nFormatter } from "@dub/utils";
+import { Sliders, User, Users } from "@dub/ui/icons";
+import { capitalize, cn, DICEBEAR_AVATAR_URL, nFormatter } from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
-export function useSaleFilters() {
-  const { salesCount } = useSalesCount();
+export function useCommissionFilters() {
+  const { commissionsCount } = useCommissionsCount();
   const { searchParamsObj, queryParams } = useRouterStuff();
 
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
@@ -72,43 +73,59 @@ export function useSaleFilters() {
           }) ?? null,
       },
       {
+        key: "type",
+        icon: Sliders,
+        label: "Type",
+        options: ["click", "lead", "sale"].map((slug) => ({
+          value: slug,
+          label: capitalize(slug) as string,
+          icon: <CommissionTypeIcon type={slug} />,
+        })),
+      },
+      {
         key: "status",
         icon: CircleDotted,
         label: "Status",
-        options: Object.entries(SaleStatusBadges).map(([value, { label }]) => {
-          const Icon = SaleStatusBadges[value].icon;
-          return {
-            value,
-            label,
-            icon: (
-              <Icon
-                className={cn(
-                  SaleStatusBadges[value].className,
-                  "size-4 bg-transparent",
-                )}
-              />
-            ),
-            right: nFormatter(salesCount?.[value]?.count || 0, { full: true }),
-          };
-        }),
+        options: Object.entries(CommissionStatusBadges).map(
+          ([value, { label }]) => {
+            const Icon = CommissionStatusBadges[value].icon;
+            return {
+              value,
+              label,
+              icon: (
+                <Icon
+                  className={cn(
+                    CommissionStatusBadges[value].className,
+                    "size-4 bg-transparent",
+                  )}
+                />
+              ),
+              right: nFormatter(commissionsCount?.[value]?.count || 0, {
+                full: true,
+              }),
+            };
+          },
+        ),
       },
     ],
-    [salesCount, partners, customers],
+    [commissionsCount, partners, customers],
   );
 
   const activeFilters = useMemo(() => {
-    const { status, partnerId, customerId, payoutId } = searchParamsObj;
+    const { customerId, partnerId, status, type, payoutId } = searchParamsObj;
 
     return [
-      ...(status ? [{ key: "status", value: status }] : []),
-      ...(partnerId ? [{ key: "partnerId", value: partnerId }] : []),
       ...(customerId ? [{ key: "customerId", value: customerId }] : []),
+      ...(partnerId ? [{ key: "partnerId", value: partnerId }] : []),
+      ...(status ? [{ key: "status", value: status }] : []),
+      ...(type ? [{ key: "type", value: type }] : []),
       ...(payoutId ? [{ key: "payoutId", value: payoutId }] : []),
     ];
   }, [
-    searchParamsObj.status,
-    searchParamsObj.partnerId,
     searchParamsObj.customerId,
+    searchParamsObj.partnerId,
+    searchParamsObj.status,
+    searchParamsObj.type,
     searchParamsObj.payoutId,
   ]);
 
@@ -167,11 +184,11 @@ function usePartnerFilterOptions(search: string) {
     partnersCount && partnersCount > PARTNERS_MAX_PAGE_SIZE,
   );
 
-  const { data: partners, loading: partnersLoading } = usePartners({
+  const { partners, loading: partnersLoading } = usePartners({
     query: { search: partnersAsync ? search : "" },
   });
 
-  const { data: selectedPartners } = usePartners({
+  const { partners: selectedPartners } = usePartners({
     query: {
       ids: searchParamsObj.partnerId ? [searchParamsObj.partnerId] : undefined,
     },

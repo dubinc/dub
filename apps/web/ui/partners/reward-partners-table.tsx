@@ -28,7 +28,7 @@ export function RewardPartnersTable({
   >([]);
 
   // Get filtered partners for the combobox
-  const { data: searchPartners } = usePartners({
+  const { partners: searchPartners } = usePartners({
     query: {
       search: debouncedSearch,
     },
@@ -195,7 +195,7 @@ export function RewardPartnersTable({
   });
 
   return (
-    <div className="my-2 flex flex-col gap-3">
+    <div className="flex flex-col gap-3">
       <label className="text-sm font-medium text-neutral-800">
         Eligible partners
       </label>

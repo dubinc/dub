@@ -61,7 +61,7 @@ export const GET = withWorkspace(
 
     const response = ProgramMetricsSchema.parse({
       partnersCount,
-      salesCount: commissions._count._all,
+      commissionsCount: commissions._count._all,
       commissions: commissions._sum.earnings || 0,
       payouts: payouts._sum.amount || 0,
     });

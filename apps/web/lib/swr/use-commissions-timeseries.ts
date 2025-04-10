@@ -10,7 +10,7 @@ interface Commission {
   earnings: number;
 }
 
-export default function useProgramCommissions(
+export default function useCommissionsTimeseries(
   params?: PartnerAnalyticsFilters & { enabled: boolean },
 ) {
   const { programId } = useParams();
@@ -31,7 +31,7 @@ export default function useProgramCommissions(
 
   const { data, error } = useSWR<Commission[]>(
     params?.enabled
-      ? `/api/programs/${programId}/commissions?${searchParams.toString()}`
+      ? `/api/programs/${programId}/commissions/timeseries?${searchParams.toString()}`
       : null,
     fetcher,
     {

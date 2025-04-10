@@ -1,7 +1,7 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { getProgramSalesCountQuerySchema } from "@/lib/zod/schemas/program-sales";
+import { getCommissionsCountQuerySchema } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
 import { CommissionStatus } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
@@ -16,12 +16,12 @@ export const GET = withWorkspace(
       programId,
     });
 
-    const parsed = getProgramSalesCountQuerySchema.parse(searchParams);
-    const { status, partnerId, payoutId, customerId } = parsed;
+    const parsed = getCommissionsCountQuerySchema.parse(searchParams);
+    const { status, type, partnerId, payoutId, customerId } = parsed;
 
     const { startDate, endDate } = getStartEndDates(parsed);
 
-    const salesCount = await prisma.commission.groupBy({
+    const commissionsCount = await prisma.commission.groupBy({
       by: ["status"],
       where: {
         earnings: {
@@ -30,7 +30,7 @@ export const GET = withWorkspace(
         programId,
         partnerId,
         status,
-        type: "sale",
+        type,
         payoutId,
         customerId,
         createdAt: {
@@ -45,7 +45,7 @@ export const GET = withWorkspace(
       },
     });
 
-    const counts = salesCount.reduce(
+    const counts = commissionsCount.reduce(
       (acc, p) => {
         acc[p.status] = {
           count: p._count,
@@ -75,7 +75,7 @@ export const GET = withWorkspace(
       }
     });
 
-    counts.all = salesCount.reduce(
+    counts.all = commissionsCount.reduce(
       (acc, p) => ({
         count: acc.count + p._count,
         amount: acc.amount + (p._sum.amount ?? 0),

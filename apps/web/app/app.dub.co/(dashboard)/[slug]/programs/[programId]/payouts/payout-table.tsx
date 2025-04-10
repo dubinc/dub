@@ -156,7 +156,7 @@ const PayoutTableInner = memo(
                             row.original.user.image ||
                             `${DICEBEAR_AVATAR_URL}${row.original.user.name}`
                           }
-                          alt={row.original.user.name}
+                          alt={row.original.user.name ?? row.original.user.id}
                           className="size-6 shrink-0 rounded-full"
                         />
                         <p className="text-sm font-medium">
@@ -186,7 +186,7 @@ const PayoutTableInner = memo(
                         row.original.user.image ||
                         `${DICEBEAR_AVATAR_URL}${row.original.user.name}`
                       }
-                      alt={row.original.user.name}
+                      alt={row.original.user.name ?? row.original.user.id}
                       className="size-5 shrink-0 rounded-full"
                     />
                   )}

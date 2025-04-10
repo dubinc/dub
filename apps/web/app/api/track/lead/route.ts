@@ -4,8 +4,9 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
-import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
+import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { getClickEvent, recordLead, recordLeadSync } from "@/lib/tinybird";
+import { logConversionEvent } from "@/lib/tinybird/log-conversion-events";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
@@ -26,6 +27,8 @@ type ClickData = z.infer<typeof clickEventSchemaTB>;
 // POST /api/track/lead – Track a lead conversion event
 export const POST = withWorkspace(
   async ({ req, workspace }) => {
+    const body = await parseRequestBody(req);
+
     const {
       clickId,
       eventName,
@@ -37,8 +40,9 @@ export const POST = withWorkspace(
       customerAvatar,
       metadata,
       mode = "async", // Default to async mode if not specified
-    } = trackLeadRequestSchema.parse(await parseRequestBody(req));
+    } = trackLeadRequestSchema.parse(body);
 
+    const stringifiedEventName = eventName.toLowerCase().replace(" ", "-");
     const customerExternalId = externalId || customerId;
     const finalCustomerName =
       customerName || customerEmail || generateRandomName();
@@ -52,7 +56,7 @@ export const POST = withWorkspace(
 
     // deduplicate lead events – only record 1 unique event for the same customer and event name
     const ok = await redis.set(
-      `trackLead:${workspace.id}:${customerExternalId}:${eventName.toLowerCase().replace(" ", "-")}`,
+      `trackLead:${workspace.id}:${customerExternalId}:${stringifiedEventName}`,
       {
         timestamp: Date.now(),
         clickId,
@@ -77,14 +81,18 @@ export const POST = withWorkspace(
       }
 
       if (!clickData) {
-        clickData = await redis.get<ClickData>(`click:${clickId}`);
+        const cachedClickData = await redis.get<ClickData>(
+          `clickCache:${clickId}`,
+        );
 
-        if (clickData) {
+        if (cachedClickData) {
           clickData = {
-            ...clickData,
-            timestamp: clickData.timestamp.replace("T", " ").replace("Z", ""),
-            qr: clickData.qr ? 1 : 0,
-            bot: clickData.bot ? 1 : 0,
+            ...cachedClickData,
+            timestamp: cachedClickData.timestamp
+              .replace("T", " ")
+              .replace("Z", ""),
+            qr: cachedClickData.qr ? 1 : 0,
+            bot: cachedClickData.bot ? 1 : 0,
           };
         }
       }
@@ -152,17 +160,22 @@ export const POST = withWorkspace(
         customer = await upsertCustomer();
 
         const leadEventPayload = createLeadEventPayload(customer.id);
+        const cacheLeadEventPayload = Array.isArray(leadEventPayload)
+          ? leadEventPayload[0]
+          : leadEventPayload;
 
         await Promise.all([
           // Use recordLeadSync which waits for the operation to complete
           recordLeadSync(leadEventPayload),
 
           // Cache the latest lead event for 5 minutes because the ingested event is not available immediately on Tinybird
+          // we're setting two keys because we want to support the use case where the customer has multiple lead events
+          redis.set(`leadCache:${customer.id}`, cacheLeadEventPayload, {
+            ex: 60 * 5,
+          }),
           redis.set(
-            `latestLeadEvent:${customer.id}`,
-            Array.isArray(leadEventPayload)
-              ? leadEventPayload[0]
-              : leadEventPayload,
+            `leadCache:${customer.id}:${stringifiedEventName}`,
+            cacheLeadEventPayload,
             {
               ex: 60 * 5,
             },
@@ -206,33 +219,25 @@ export const POST = withWorkspace(
                 },
               },
             }),
+
+            logConversionEvent({
+              workspace_id: workspace.id,
+              link_id: clickData.link_id,
+              path: "/track/lead",
+              body: JSON.stringify(body),
+            }),
           ]);
 
           if (link.programId && link.partnerId) {
-            const reward = await determinePartnerReward({
+            await createPartnerCommission({
+              event: "lead",
               programId: link.programId,
               partnerId: link.partnerId,
-              event: "lead",
+              linkId: link.id,
+              eventId: leadEventId,
+              customerId: customer?.id,
+              quantity: eventQuantity ?? 1,
             });
-
-            if (reward) {
-              await prisma.commission.create({
-                data: {
-                  id: createId({ prefix: "cm_" }),
-                  programId: link.programId,
-                  linkId: link.id,
-                  partnerId: link.partnerId,
-                  eventId: leadEventId,
-                  customerId: customer?.id,
-                  type: "lead",
-                  amount: 0,
-                  quantity: eventQuantity ?? 1,
-                  earnings: eventQuantity
-                    ? reward.amount * eventQuantity
-                    : reward.amount,
-                },
-              });
-            }
           }
 
           await sendWorkspaceWebhook({
