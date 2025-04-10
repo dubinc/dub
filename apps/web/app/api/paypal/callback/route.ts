@@ -62,15 +62,33 @@ export const GET = async (req: Request) => {
     // TODO:
     // Should we check if the paypal email is verified?
 
+    const { partner } = await prisma.partnerUser.findUniqueOrThrow({
+      where: {
+        userId_partnerId: {
+          userId: session.user.id,
+          partnerId: defaultPartnerId,
+        },
+      },
+      include: {
+        partner: true,
+      },
+    });
+
     await prisma.partner.update({
       where: {
         id: defaultPartnerId,
       },
       data: {
         paypalEmail: paypalUser.email,
-        payoutsEnabledAt: new Date(),
+        ...(!partner.payoutsEnabledAt && {
+          payoutsEnabledAt: new Date(),
+        }),
       },
     });
+
+    // TODO:
+    // Send an email to the partner to inform them that their PayPal account has been connected
+
   } catch (e: any) {
     return handleAndReturnErrorResponse(e);
   }
