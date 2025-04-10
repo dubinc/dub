@@ -56,7 +56,6 @@ export const approvePartnerAction = authActionClient
         },
         include: {
           partner: true,
-          links: true,
         },
       }),
 
@@ -86,13 +85,13 @@ export const approvePartnerAction = authActionClient
       }),
     ]);
 
-    const { partner, links, ...enrollment } = programEnrollment;
+    const { partner, ...enrollment } = programEnrollment;
 
     const enrolledPartner = EnrolledPartnerSchema.parse({
       ...partner,
       ...enrollment,
       id: partner.id,
-      links,
+      links: [updatedLink],
     });
 
     waitUntil(
