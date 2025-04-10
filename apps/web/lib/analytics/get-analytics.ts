@@ -102,12 +102,6 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         : analyticsResponse[groupBy],
   });
 
-  console.log({
-    ...params,
-    groupBy,
-    event,
-  });
-
   const response = await pipe({
     ...params,
     ...(UTM_TAGS_PLURAL_LIST.includes(groupBy)
