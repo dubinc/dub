@@ -1,6 +1,6 @@
 import { PartnerEarningsResponse, SaleEvent } from "@/lib/types";
 import { StatusBadge } from "@dub/ui";
-import { currencyFormatter } from "@dub/utils";
+import { currencyFormatter, formatDateTimeSmart } from "@dub/utils";
 import {
   flexRender,
   getCoreRowModel,
@@ -40,17 +40,7 @@ export function CustomerSalesTable({
           new Date("timestamp" in d ? d.timestamp : d.createdAt),
         enableHiding: false,
         minSize: 100,
-        cell: ({ getValue }) => (
-          <span>
-            {getValue().toLocaleTimeString("en-US", {
-              month: "short",
-              day: "numeric",
-              hour: "numeric",
-              minute: "numeric",
-              hour12: true,
-            })}
-          </span>
-        ),
+        cell: ({ getValue }) => <span>{formatDateTimeSmart(getValue())}</span>,
       },
       ...(sales?.length && "eventName" in sales?.[0]
         ? [

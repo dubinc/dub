@@ -1,6 +1,6 @@
 import { CommissionResponse } from "@/lib/types";
 import { StatusBadge } from "@dub/ui";
-import { currencyFormatter } from "@dub/utils";
+import { currencyFormatter, formatDateTimeSmart } from "@dub/utils";
 import {
   flexRender,
   getCoreRowModel,
@@ -28,17 +28,7 @@ export function CustomerPartnerEarningsTable({
         accessorFn: (d) => new Date(d.createdAt),
         enableHiding: false,
         minSize: 100,
-        cell: ({ getValue }) => (
-          <span>
-            {getValue().toLocaleTimeString("en-US", {
-              month: "short",
-              day: "numeric",
-              hour: "numeric",
-              minute: "numeric",
-              hour12: true,
-            })}
-          </span>
-        ),
+        cell: ({ getValue }) => <span>{formatDateTimeSmart(getValue())}</span>,
       },
       {
         header: "Sale Amount",

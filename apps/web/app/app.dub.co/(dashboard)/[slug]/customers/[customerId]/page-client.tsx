@@ -126,7 +126,7 @@ export function CustomerPageClient() {
                       />
                     }
                     <div className="min-w-0">
-                      <span className="block truncate text-base text-xs font-semibold leading-tight text-neutral-900">
+                      <span className="block truncate text-xs font-semibold leading-tight text-neutral-900">
                         {customer.partner.name}
                       </span>
 
