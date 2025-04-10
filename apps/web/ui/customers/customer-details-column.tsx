@@ -1,5 +1,5 @@
 import { CustomerActivityResponse, CustomerProps } from "@/lib/types";
-import { ArrowUpRight, UTM_PARAMETERS } from "@dub/ui";
+import { ArrowUpRight, CopyButton, UTM_PARAMETERS } from "@dub/ui";
 import {
   capitalize,
   cn,
@@ -175,7 +175,24 @@ export function CustomerDetailsColumn({
         )}
       </div>
 
-      {utmParams && (
+      {customer && (customer?.externalId ?? null) !== null && (
+        <div className="flex flex-col gap-2">
+          <DetailHeading>External ID</DetailHeading>
+          {
+            <div className="flex items-center gap-1">
+              <span className="truncate">{customer.externalId}</span>
+              <CopyButton
+                value={customer.externalId}
+                variant="neutral"
+                className="p-1 [&>*]:h-3 [&>*]:w-3"
+                successMessage="Copied external ID to clipboard!"
+              />
+            </div>
+          }
+        </div>
+      )}
+
+      {utmParams && Boolean(utmParams.length) && (
         <div className="flex flex-col gap-2">
           <DetailHeading>UTM</DetailHeading>
           <div className="grid w-full grid-cols-[min-content,minmax(0,1fr)] gap-x-4 gap-y-2 overflow-hidden">

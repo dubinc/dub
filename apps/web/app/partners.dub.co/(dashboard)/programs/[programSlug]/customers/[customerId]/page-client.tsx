@@ -1,5 +1,6 @@
 "use client";
 
+import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import {
   CustomerActivityResponse,
   CustomerEnriched,
@@ -8,14 +9,16 @@ import {
 import { CustomerActivityList } from "@/ui/customers/customer-activity-list";
 import { CustomerDetailsColumn } from "@/ui/customers/customer-details-column";
 import { CustomerSalesTable } from "@/ui/customers/customer-sales-table";
+import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import { BackLink } from "@/ui/shared/back-link";
-import { User } from "@dub/ui";
+import { MoneyBill2, Tooltip, User } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { notFound, useParams } from "next/navigation";
 import { memo } from "react";
 import useSWR from "swr";
 
 export function ProgramCustomerPageClient() {
+  const { programEnrollment } = useProgramEnrollment();
   const { programSlug, customerId } = useParams<{
     programSlug: string;
     customerId: string;
@@ -63,9 +66,27 @@ export function ProgramCustomerPageClient() {
         {/* Main content */}
         <div className="flex flex-col gap-10">
           <section className="flex flex-col">
-            <h2 className="py-3 text-lg font-semibold text-neutral-900">
-              Earnings
-            </h2>
+            <div className="flex items-center justify-between">
+              <h2 className="py-3 text-lg font-semibold text-neutral-900">
+                Earnings
+              </h2>
+              {programEnrollment?.rewards && (
+                <Tooltip
+                  content={
+                    <div>
+                      <ProgramRewardList
+                        rewards={programEnrollment?.rewards}
+                        className="gap-2 border-none p-3"
+                      />
+                    </div>
+                  }
+                >
+                  <div className="border-border-subtle flex size-8 items-center justify-center rounded-full border hover:bg-neutral-50">
+                    <MoneyBill2 className="size-4 text-neutral-800" />
+                  </div>
+                </Tooltip>
+              )}
+            </div>
             <EarningsTable customerId={customerId} />
           </section>
 
