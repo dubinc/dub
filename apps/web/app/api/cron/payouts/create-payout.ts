@@ -60,6 +60,7 @@ export const createPayout = async ({
         partnerId,
         payoutId: null,
         status: "pending",
+        type,
         // Only process commissions that were created before the holding period
         ...(holdingPeriodDays > 0 && {
           createdAt: {
