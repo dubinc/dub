@@ -39,6 +39,7 @@ export const POST = withWorkspace(
       mode = "async", // Default to async mode if not specified
     } = trackLeadRequestSchema.parse(await parseRequestBody(req));
 
+    const stringifiedEventName = eventName.toLowerCase().replace(" ", "-");
     const customerExternalId = externalId || customerId;
     const finalCustomerName =
       customerName || customerEmail || generateRandomName();
@@ -52,7 +53,7 @@ export const POST = withWorkspace(
 
     // deduplicate lead events – only record 1 unique event for the same customer and event name
     const ok = await redis.set(
-      `trackLead:${workspace.id}:${customerExternalId}:${eventName.toLowerCase().replace(" ", "-")}`,
+      `trackLead:${workspace.id}:${customerExternalId}:${stringifiedEventName}`,
       {
         timestamp: Date.now(),
         clickId,
@@ -77,7 +78,7 @@ export const POST = withWorkspace(
       }
 
       if (!clickData) {
-        clickData = await redis.get<ClickData>(`click:${clickId}`);
+        clickData = await redis.get<ClickData>(`clickCache:${clickId}`);
 
         if (clickData) {
           clickData = {
@@ -159,7 +160,7 @@ export const POST = withWorkspace(
 
           // Cache the latest lead event for 5 minutes because the ingested event is not available immediately on Tinybird
           redis.set(
-            `latestLeadEvent:${customer.id}`,
+            `leadCache:${customer.id}:${stringifiedEventName}`,
             Array.isArray(leadEventPayload)
               ? leadEventPayload[0]
               : leadEventPayload,
