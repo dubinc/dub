@@ -161,7 +161,7 @@ export async function recordClick({
     // cache the click data for 5 mins
     // we're doing this because ingested click events are not available immediately in Tinybird
     trackConversion &&
-      redis.set(`click:${clickId}`, clickData, {
+      redis.set(`clickCache:${clickId}`, clickData, {
         ex: 60 * 5,
       }),
 
