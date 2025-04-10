@@ -22,7 +22,7 @@ const oauth2 = new AuthorizationCode({
     secret: paypalEnv.PAYPAL_CLIENT_SECRET,
   },
   auth: {
-    tokenHost: paypalEnv.PAYPAL_TOKEN_HOST,
+    tokenHost: paypalEnv.PAYPAL_API_HOST,
     tokenPath: "/v1/oauth2/token",
     authorizeHost: paypalEnv.PAYPAL_AUTHORIZE_HOST,
     authorizePath: "/signin/authorize",
@@ -77,7 +77,7 @@ export async function exchangeCodeForToken({ code }: { code: string }) {
 // Fetch the user info
 export async function getUserInfo({ token }: { token: string }) {
   const response = await fetch(
-    `${paypalEnv.PAYPAL_TOKEN_HOST}/v1/identity/openidconnect/userinfo?schema=openid`,
+    `${paypalEnv.PAYPAL_API_HOST}/v1/identity/openidconnect/userinfo?schema=openid`,
     {
       headers: {
         Authorization: `Bearer ${token}`,

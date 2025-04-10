@@ -1,3 +1,4 @@
+import { createPaypalBatchPayouts } from "@/lib/paypal/paypal-batch-payouts";
 import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
 import { PartnerPayoutSent } from "@dub/email/templates/partner-payout-sent";
@@ -50,7 +51,12 @@ export async function chargeSucceeded(event: Stripe.Event) {
     return;
   }
 
-  for (const payout of invoice.payouts) {
+  const stripePayouts = invoice.payouts.filter(
+    (payout) => payout.partner.stripeConnectId,
+  );
+
+  // Send payouts via Stripe
+  for (const payout of stripePayouts) {
     const transfer = await stripe.transfers.create({
       amount: payout.amount,
       currency: "usd",
@@ -103,6 +109,20 @@ export async function chargeSucceeded(event: Stripe.Event) {
           variant: "notifications",
         }),
     ]);
+  }
+
+  // TODO:
+  // Move this to Qstash
+
+  const paypalPayouts = invoice.payouts.filter(
+    (payout) => payout.partner.paypalEmail,
+  );
+
+  if (paypalPayouts.length > 0) {
+    await createPaypalBatchPayouts({
+      invoiceId: invoice.id,
+      payouts: paypalPayouts,
+    });
   }
 
   await prisma.invoice.update({
