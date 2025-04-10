@@ -180,7 +180,7 @@ export function CustomerPageClient() {
                       <span className="truncate">{value}</span>
                     </span>
                   ))
-              : isCustomerActivityLoading && (
+              : (isCustomerActivityLoading || !customer) && (
                   <div className="h-5 w-12 animate-pulse rounded-md bg-neutral-100" />
                 )}
           </div>
@@ -202,7 +202,7 @@ export function CustomerPageClient() {
 
           <div className="flex flex-col gap-2">
             <DetailHeading>Lifetime value</DetailHeading>
-            {isCustomerActivityLoading ? (
+            {!customer || isCustomerActivityLoading ? (
               <div className="h-5 w-12 animate-pulse rounded-md bg-neutral-100" />
             ) : (
               <span>
@@ -218,7 +218,7 @@ export function CustomerPageClient() {
 
           <div className="flex flex-col gap-2">
             <DetailHeading>Referral link </DetailHeading>
-            {isCustomerActivityLoading ? (
+            {!customer || isCustomerActivityLoading ? (
               <div className="h-5 w-12 animate-pulse rounded-md bg-neutral-100" />
             ) : link ? (
               <Link
