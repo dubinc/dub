@@ -37,7 +37,7 @@ export function OnboardingForm({
       | "image"
       | "profileType"
       | "companyName"
-      | "stripeConnectId"
+      | "payoutsEnabledAt"
     >
   > | null;
 }) {
@@ -163,7 +163,7 @@ export function OnboardingForm({
             <CountryCombobox
               {...field}
               disabledTooltip={
-                partner?.stripeConnectId
+                partner?.payoutsEnabledAt
                   ? "Since you've already received payouts, you cannot change your country. Contact support if you need to update your country."
                   : undefined
               }
@@ -214,17 +214,17 @@ export function OnboardingForm({
               ]}
               selected={profileType}
               selectAction={(option: "individual" | "company") => {
-                if (!partner?.stripeConnectId) {
+                if (!partner?.payoutsEnabledAt) {
                   setValue("profileType", option);
                 }
               }}
               className={cn(
                 "flex w-full items-center gap-0.5 rounded-lg border-neutral-300 bg-neutral-100 p-0.5",
-                partner?.stripeConnectId && "cursor-not-allowed opacity-70",
+                partner?.payoutsEnabledAt && "cursor-not-allowed opacity-70",
               )}
               optionClassName={cn(
                 "h-9 flex items-center justify-center rounded-lg flex-1",
-                partner?.stripeConnectId && "pointer-events-none",
+                partner?.payoutsEnabledAt && "pointer-events-none",
               )}
               indicatorClassName="bg-white"
             />
