@@ -153,6 +153,12 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
   image: true,
   description: true,
   country: true,
+  website: true,
+  youtube: true,
+  twitter: true,
+  linkedin: true,
+  instagram: true,
+  tiktok: true,
   payoutsEnabledAt: true,
   createdAt: true,
 })

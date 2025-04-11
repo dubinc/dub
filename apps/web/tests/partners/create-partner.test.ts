@@ -23,6 +23,12 @@ const expectedPartner = {
   saleAmount: 0,
   earnings: 0,
   applicationId: null,
+  website: null,
+  youtube: null,
+  twitter: null,
+  linkedin: null,
+  instagram: null,
+  tiktok: null,
   links: expect.arrayContaining([
     expect.objectContaining({
       id: expect.stringMatching(/^link_/),
