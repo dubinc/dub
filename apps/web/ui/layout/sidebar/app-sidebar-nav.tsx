@@ -62,12 +62,15 @@ const NAV_AREAS: SidebarNavAreas<{
             icon: CursorRays,
             href: `/${slug}/events${pathname === `/${slug}/events` ? "" : queryString}`,
           },
-          {
-            name: "Customers",
-            icon: Users2,
-            href: `/${slug}/customers`,
-            comingSoon: true,
-          },
+          ...(pathname.startsWith(`/${slug}/customers`)
+            ? [
+                {
+                  name: "Customers",
+                  icon: Users2,
+                  href: `/${slug}/customers`,
+                },
+              ]
+            : []),
           {
             name: "Settings",
             icon: Gear,
