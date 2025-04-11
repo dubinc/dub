@@ -2,9 +2,16 @@
 
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { AnalyticsLoadingSpinner } from "@/ui/analytics/analytics-loading-spinner";
+import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import { InvoiceStatus } from "@dub/prisma/client";
-import { Table, usePagination, useRouterStuff, useTable } from "@dub/ui";
+import {
+  StatusBadge,
+  Table,
+  usePagination,
+  useRouterStuff,
+  useTable,
+} from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
 import { cn, currencyFormatter, fetcher, formatDateTime } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
@@ -19,7 +26,8 @@ interface TimeseriesData {
 
 interface InvoiceData {
   date: Date;
-  number: string | null;
+  programName: string;
+  programLogo: string;
   status: InvoiceStatus;
   amount: number;
   fee: number;
@@ -96,23 +104,42 @@ export default function PayoutsPageClient() {
     columns: [
       {
         id: "date",
-        header: "Payment Date",
+        header: "Date",
         accessorKey: "date",
         cell: ({ row }) => formatDateTime(row.original.date),
       },
       {
-        id: "number",
-        header: "Invoice Number",
-        accessorKey: "number",
-        cell: ({ row }) => row.original.number || "-",
+        id: "program",
+        header: "Program",
+        cell: ({ row }) => (
+          <div className="flex items-center gap-1.5">
+            <img
+              src={row.original.programLogo}
+              alt={row.original.programName}
+              width={20}
+              height={20}
+              className="size-4 rounded-full"
+            />
+            <span className="text-sm font-medium">
+              {row.original.programName}
+            </span>
+          </div>
+        ),
       },
       {
         id: "status",
         header: "Status",
-        accessorKey: "status",
-        cell: ({ row }) => (
-          <div className="capitalize">{row.original.status.toLowerCase()}</div>
-        ),
+        cell: ({ row }) => {
+          const badge = PayoutStatusBadges[row.original.status];
+
+          return badge ? (
+            <StatusBadge icon={badge.icon} variant={badge.variant}>
+              {badge.label}
+            </StatusBadge>
+          ) : (
+            "-"
+          );
+        },
       },
       {
         id: "amount",
