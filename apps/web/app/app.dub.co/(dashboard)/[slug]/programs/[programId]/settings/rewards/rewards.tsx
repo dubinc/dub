@@ -21,13 +21,13 @@ import { useState } from "react";
 export function Rewards() {
   return (
     <div className="flex flex-col gap-6">
-      <SaleReward />
+      <DefaultReward />
       <AdditionalRewards />
     </div>
   );
 }
 
-const SaleReward = () => {
+const DefaultReward = () => {
   const { program } = useProgram();
   const { rewards, loading } = useRewards();
 
@@ -36,7 +36,8 @@ const SaleReward = () => {
     rewards?.find((r) => r.id === program.defaultRewardId);
 
   const { RewardSheet, setIsOpen } = useRewardSheet({
-    event: "sale",
+    event: "lead",
+    isDefault: true,
   });
 
   return (
@@ -45,7 +46,7 @@ const SaleReward = () => {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="inline-flex items-center gap-2 text-lg font-semibold text-neutral-900">
-              Sale Reward <Badge variant="gray">Default</Badge>
+              Default Reward
             </h2>
             <p className="mt-1 text-sm text-neutral-600">
               The default reward offered to all partners

@@ -27,7 +27,6 @@ export function ProgramOnboardingHeader() {
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onError: ({ error }) => {
-      console.log(error);
       toast.error(error.serverError);
     },
   });
