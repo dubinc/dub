@@ -1,6 +1,7 @@
 import { paypalEnv } from "@/lib/paypal/env";
 import { prisma } from "@dub/prisma";
 import { Partner, Payout, Program } from "@prisma/client";
+import { createPaypalToken } from "./create-paypal-token";
 import { Payload } from "./utils";
 
 export const dynamic = "force-dynamic";
@@ -52,7 +53,7 @@ export async function sendPaypalPayouts({
     return;
   }
 
-  const token = "";
+  const paypalAccessToken = await createPaypalToken();
 
   const body = {
     sender_batch_header: {
@@ -75,7 +76,7 @@ export async function sendPaypalPayouts({
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${paypalAccessToken}`,
       },
       body: JSON.stringify(body),
     },
