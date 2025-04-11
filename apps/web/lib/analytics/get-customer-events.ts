@@ -1,16 +1,13 @@
 import { tb } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { Link } from "@dub/prisma/client";
-import { DICEBEAR_AVATAR_URL } from "@dub/utils";
 import { transformLink } from "../api/links";
 import { decodeLinkIfCaseSensitive } from "../api/links/case-sensitivity";
-import { generateRandomName } from "../names";
 import z from "../zod";
 import {
   clickEventResponseSchema,
   clickEventSchema,
 } from "../zod/schemas/clicks";
-import { CustomerSchema } from "../zod/schemas/customers";
 import { leadEventResponseSchema } from "../zod/schemas/leads";
 import { saleEventResponseSchema } from "../zod/schemas/sales";
 import { EventsFilters } from "./types";
@@ -117,35 +114,5 @@ const getLinksMap = async (linkIds: string[]) => {
       return acc;
     },
     {} as Record<string, Link>,
-  );
-};
-
-const getCustomersMap = async (customerIds: string[]) => {
-  if (customerIds.length === 0) {
-    return {};
-  }
-
-  const customers = await prisma.customer.findMany({
-    where: {
-      id: {
-        in: customerIds,
-      },
-    },
-  });
-
-  return customers.reduce(
-    (acc, customer) => {
-      acc[customer.id] = CustomerSchema.parse({
-        id: customer.id,
-        externalId: customer.externalId || "",
-        name: customer.name || customer.email || generateRandomName(),
-        email: customer.email || "",
-        avatar: customer.avatar || `${DICEBEAR_AVATAR_URL}${customer.id}`,
-        country: customer.country || "",
-        createdAt: customer.createdAt,
-      });
-      return acc;
-    },
-    {} as Record<string, z.infer<typeof CustomerSchema>>,
   );
 };
