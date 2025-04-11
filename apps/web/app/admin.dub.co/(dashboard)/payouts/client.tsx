@@ -4,7 +4,7 @@ import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
 import { nFormatter } from "@dub/utils";
 import { Fragment } from "react";
 
-export default function RevenueClient({
+export default function PayoutsPageClient({
   data,
 }: {
   data: { date: Date; value: number }[];
