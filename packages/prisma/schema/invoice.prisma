@@ -16,6 +16,7 @@ model Invoice {
   receiptUrl   String?       @db.Text
   failedReason String?       @db.Text
   createdAt    DateTime      @default(now())
+  paidAt       DateTime?
 
   payouts   Payout[]
   program   Program  @relation(fields: [programId], references: [id])
