@@ -14,6 +14,7 @@ export function PageContent({
   // hideReferButton,
   hasNavigation,
   // currentStep,
+  asHeader = false,
   children,
 }: PropsWithChildren<{
   title?: ReactNode;
@@ -23,6 +24,7 @@ export function PageContent({
   hideReferButton?: boolean;
   hasNavigation?: boolean;
   currentStep?: number;
+  asHeader?: boolean;
 }>) {
   const hasTitle = title !== undefined;
   // const hasDescription = description !== undefined;
@@ -30,7 +32,12 @@ export function PageContent({
   return (
     <div>
       {/*<MaxWidthWrapper className="px-0 lg:px-0">*/}
-      <div className="border-b-border-200 flex w-full items-center justify-between gap-4 border-b px-3 py-[6px] md:px-8 md:pb-4 md:pt-8">
+      <div
+        className={cn(
+          "border-b-border-200 flex w-full items-center justify-between gap-4 border-b px-3 py-[6px] md:px-8 md:pb-4 md:pt-8",
+          { "sticky top-0 z-10 bg-white shadow-sm": asHeader },
+        )}
+      >
         <Logo className={cn("md:hidden", hasNavigation && "[&_div]:hidden")} />
         {/*{(hasTitle || hasDescription) && (*/}
         {/*  <>*/}

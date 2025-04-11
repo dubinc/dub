@@ -26,7 +26,7 @@ export function PageTitleProvider({ children }: { children: ReactNode }) {
     <PageContext.Provider
       value={{ title, setTitle, currentStep, setCurrentStep, steps: STEPS }}
     >
-      <PageContent title={title} hasNavigation>
+      <PageContent title={title} hasNavigation asHeader>
         {children}
       </PageContent>
     </PageContext.Provider>

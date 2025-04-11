@@ -62,7 +62,7 @@ export function SidebarNav<T extends Record<any, any>>({
   return (
     <ClientOnly className="scrollbar-hide relative flex h-full w-full flex-col overflow-y-auto overflow-x-hidden">
       <nav className="relative flex grow flex-col text-neutral-500 md:px-4">
-        <div className="border-b-border-200 relative flex items-center justify-between gap-1 border-b px-3 pb-[6px] md:px-0">
+        <div className="border-b-border-200 relative flex min-h-[52px] items-center justify-between gap-1 border-b px-3 pb-4 md:px-0">
           {Object.entries(areas).map(([area, areaConfig]) => {
             const { title, backHref } = areaConfig(data);
 

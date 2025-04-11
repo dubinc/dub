@@ -1,4 +1,5 @@
 import { cn } from "@dub/utils";
+import * as ScrollArea from "@radix-ui/react-scroll-area";
 import { StaticImageData } from "next/image";
 import { FC } from "react";
 import { TStyleOption } from "../constants.ts";
@@ -28,20 +29,40 @@ export const StylePicker: FC<IStylePickerProps> = ({
   return (
     <div className={cn("flex flex-col gap-2", stylePickerWrapperClassName)}>
       <label className="font-medium">{label}</label>
-      <div className={cn("flex flex-wrap gap-3", optionsWrapperClassName)}>
-        {styleOptions.map((styleOption) => (
-          <StyleButton
-            key={styleOption?.id}
-            icon={styleOption.icon}
-            selected={selectedStyle === styleOption.type}
-            onClick={() => {
-              onSelect(styleOption.type, styleOption.icon);
-            }}
-            iconSize={iconSize}
-            className={styleButtonClassName}
-          />
-        ))}
-      </div>
+      <ScrollArea.Root
+        type={"auto"}
+        className="relative w-full overflow-hidden"
+      >
+        <ScrollArea.Viewport className="overflow-x-auto">
+          <div
+            className={cn(
+              "flex flex-nowrap gap-3 md:flex-wrap",
+              optionsWrapperClassName,
+            )}
+          >
+            {styleOptions.map((styleOption) => (
+              <StyleButton
+                key={styleOption?.id}
+                icon={styleOption.icon}
+                selected={selectedStyle === styleOption.type}
+                onClick={() => {
+                  onSelect(styleOption.type, styleOption.icon);
+                }}
+                iconSize={iconSize}
+                className={cn("shrink-0", styleButtonClassName)}
+              />
+            ))}
+          </div>
+        </ScrollArea.Viewport>
+        <div className="mt-2">
+          <ScrollArea.Scrollbar
+            orientation="horizontal"
+            className="bg-border-100 h-1 rounded-[3px]"
+          >
+            <ScrollArea.Thumb className="!bg-primary !h-full rounded-lg" />
+          </ScrollArea.Scrollbar>
+        </div>
+      </ScrollArea.Root>
     </div>
   );
 };

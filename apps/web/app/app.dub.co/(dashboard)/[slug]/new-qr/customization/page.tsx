@@ -16,11 +16,14 @@ import { usePageContext } from "../page-context.tsx";
 import { ColorsSettings } from "./components/colors-settings.tsx";
 import { StylePicker } from "./components/style-picker.tsx";
 import {
+  BLACK_COLOR,
   BORDER_STYLES,
   CENTER_STYLES,
   DOTS_STYLES,
   FRAMES,
   SUGGESTED_LOGOS,
+  TRANSPARENT_COLOR,
+  WHITE_COLOR,
 } from "./constants.ts";
 import { convertSvgUrlToBase64 } from "./utils.ts";
 
@@ -32,7 +35,7 @@ export default function NewQRCustomization() {
     width: 300,
     height: 300,
     type: "svg",
-    data: "http://qr-code-styling.com",
+    data: "https://www.getqr.com/",
     margin: 10,
     qrOptions: {
       typeNumber: 0,
@@ -41,18 +44,18 @@ export default function NewQRCustomization() {
     },
     dotsOptions: {
       type: "dots",
-      color: "#222222",
+      color: "text-neutral",
     },
     backgroundOptions: {
-      color: "#FFFFFF",
+      color: WHITE_COLOR.toUpperCase(),
     },
     cornersSquareOptions: {
       type: "square",
-      color: "#000000",
+      color: BLACK_COLOR,
     },
     cornersDotOptions: {
       type: "square",
-      color: "#000000",
+      color: BLACK_COLOR,
     },
     imageOptions: {
       imageSize: 0.4,
@@ -140,7 +143,7 @@ export default function NewQRCustomization() {
   const onTransparentBackgroundToggle = (checked: boolean) => {
     setOptions((prevOptions) => ({
       ...prevOptions,
-      backgroundOptions: { color: checked ? "transparent" : "#FFFFFF" },
+      backgroundOptions: { color: checked ? TRANSPARENT_COLOR : WHITE_COLOR },
     }));
   };
 
@@ -193,16 +196,16 @@ export default function NewQRCustomization() {
   };
 
   return (
-    <div className="flex flex-col items-start justify-between gap-14 md:flex-row-reverse xl:max-w-[914px]">
-      <Button
-        variant="primary"
-        className="bg-secondary absolute h-[44px] w-[208px] text-base text-white lg:top-[8.5%] xl:top-[9%]"
-        text="Create"
-      />
-      <div className="sticky top-8 self-start">
+    <div className="flex flex-col items-start justify-between gap-14 pb-4 md:flex-row-reverse xl:max-w-[914px]">
+      <div className="sticky top-[102px] hidden flex-col gap-4 self-start md:flex">
         <div
           ref={ref}
           className="border-border-100 w-[204px] rounded-lg border p-[22px] [&_svg]:h-[160px] [&_svg]:w-[160px]"
+        />
+        <Button
+          variant="primary"
+          className="bg-secondary hover:bg-secondary/90 h-[44px] w-[208px] border-none text-base text-white ring-0 ring-offset-0 hover:ring-0"
+          text="Create"
         />
       </div>
       <div className="text-neutral border-border-100 flex flex-col gap-6 rounded-lg border px-6 py-4 xl:max-w-[656px]">

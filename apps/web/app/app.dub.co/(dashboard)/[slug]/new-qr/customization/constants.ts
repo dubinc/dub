@@ -210,9 +210,14 @@ export const FRAMES: TStyleOption[] = [
       text.setAttribute("text-anchor", "middle");
       text.setAttribute("font-size", String(20 * scale));
       text.setAttribute("fill", "#000000");
-      text.textContent = "Scan me";
+      text.textContent = "SCAN ME";
       svg.appendChild(text);
     },
     icon: DummyFrame,
   },
 ];
+
+export const WHITE_COLOR = "#ffffff";
+export const SHORT_WHITE_COLOR = "#fff";
+export const BLACK_COLOR = "#000000";
+export const TRANSPARENT_COLOR = "transparent";
