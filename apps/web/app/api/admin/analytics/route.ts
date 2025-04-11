@@ -3,7 +3,7 @@ import { withAdmin } from "@/lib/auth";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { NextResponse } from "next/server";
 
-// GET /api/analytics/admin – get analytics for admin
+// GET /api/admin/analytics – get analytics for admin
 export const GET = withAdmin(async ({ searchParams }) => {
   const parsedParams = analyticsQuerySchema.parse(searchParams);
 

@@ -22,15 +22,13 @@ import TopLinks from "./top-links";
 
 export default function Analytics({
   adminPage,
-  demoPage,
   dashboardProps,
 }: {
   adminPage?: boolean;
-  demoPage?: boolean;
   dashboardProps?: AnalyticsDashboardProps;
 }) {
   return (
-    <AnalyticsProvider {...{ adminPage, demoPage, dashboardProps }}>
+    <AnalyticsProvider {...{ adminPage, dashboardProps }}>
       <AnalyticsContext.Consumer>
         {({ dashboardProps }) => {
           return (

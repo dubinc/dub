@@ -112,7 +112,6 @@ export default function Toggle({
     key,
     url,
     adminPage,
-    demoPage,
     partnerPage,
     dashboardProps,
     start,
@@ -904,7 +903,7 @@ export default function Toggle({
       <div
         className={cn("py-3 md:py-3", {
           "sticky top-14 z-10 bg-neutral-50": dashboardProps,
-          "sticky top-16 z-10 bg-neutral-50": adminPage || demoPage,
+          "sticky top-16 z-10 bg-neutral-50": adminPage,
           "shadow-md": scrolled && dashboardProps,
         })}
       >
