@@ -11,7 +11,7 @@ export const STEPS = {
     icon: SecondStep,
   },
   customization: {
-    title: "QR Design",
+    title: "Customization",
     step: 3,
     href: "new-qr/customization",
     icon: ThirdStep,

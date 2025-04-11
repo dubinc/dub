@@ -1,8 +1,8 @@
-import { Checkbox } from "@dub/ui";
 import { Options } from "qr-code-styling";
 import { FC, useState } from "react";
 import { BLACK_COLOR, TRANSPARENT_COLOR, WHITE_COLOR } from "../constants.ts";
 import { isValidHex } from "../utils.ts";
+import { BackgroundSettings } from "./background-settings.tsx";
 import { ColorPickerInput } from "./color-picker.tsx";
 
 export interface IColorsSettingsProps {
@@ -10,6 +10,7 @@ export interface IColorsSettingsProps {
   onBorderColorChange: (color: string) => void;
   onBackgroundColorChange: (color: string) => void;
   onTransparentBackgroundToggle: (checked: boolean) => void;
+  isMobile?: boolean;
 }
 
 export const ColorsSettings: FC<IColorsSettingsProps> = ({
@@ -17,6 +18,7 @@ export const ColorsSettings: FC<IColorsSettingsProps> = ({
   onBorderColorChange,
   onBackgroundColorChange,
   onTransparentBackgroundToggle,
+  isMobile,
 }) => {
   const initialBackground = options.backgroundOptions?.color ?? WHITE_COLOR;
   const isInitiallyTransparent = initialBackground === TRANSPARENT_COLOR;
@@ -78,28 +80,30 @@ export const ColorsSettings: FC<IColorsSettingsProps> = ({
           setIsValid={setBorderColorValid}
         />
 
-        <ColorPickerInput
-          label="Background colour"
-          color={backgroundColor}
-          onColorChange={handleBackgroundColorChange}
-          pickerId="backgroundColorPicker"
-          isValid={backgroundColorValid}
-          setIsValid={setBackgroundColorValid}
-          disabled={isTransparent}
-        />
-
-        <div className="border-border-300 bg-border-400 flex h-11 flex-row items-center gap-3 rounded-md border p-3">
-          <Checkbox
-            value={options.backgroundOptions?.color}
-            id="transparent-background"
-            checked={isTransparent}
-            onCheckedChange={handleTransparentToggle}
-            className="data-[state=checked]:bg-secondary border-border-300 h-5 w-5 outline-0 data-[state=checked]:border-none"
+        {isMobile ? (
+          <div className="flex flex-row items-end gap-2">
+            <BackgroundSettings
+              backgroundColor={backgroundColor}
+              isTransparent={isTransparent}
+              optionsBackgroundColor={options.backgroundOptions?.color}
+              onColorChange={handleBackgroundColorChange}
+              onTransparentToggle={handleTransparentToggle}
+              backgroundColorValid={backgroundColorValid}
+              setBackgroundColorValid={setBackgroundColorValid}
+              label="Transparent"
+            />
+          </div>
+        ) : (
+          <BackgroundSettings
+            backgroundColor={backgroundColor}
+            isTransparent={isTransparent}
+            optionsBackgroundColor={options.backgroundOptions?.color}
+            onColorChange={handleBackgroundColorChange}
+            onTransparentToggle={handleTransparentToggle}
+            backgroundColorValid={backgroundColorValid}
+            setBackgroundColorValid={setBackgroundColorValid}
           />
-          <label className="whitespace-nowrap font-normal">
-            Transparent background
-          </label>
-        </div>
+        )}
       </div>
 
       {showError && (
