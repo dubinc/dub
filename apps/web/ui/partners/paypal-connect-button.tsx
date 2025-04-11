@@ -1,6 +1,6 @@
 "use client";
 
-import { startPaypalOauthFlowAction } from "@/lib/actions/partners/start-paypal-oauth-flow";
+import { generatePaypalOAuthUrl } from "@/lib/actions/partners/generate-paypal-oauth-url";
 import { Button, ButtonProps } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
@@ -9,7 +9,7 @@ import { toast } from "sonner";
 export default function PaypalConnectButton(props: ButtonProps) {
   const router = useRouter();
 
-  const { executeAsync, isPending } = useAction(startPaypalOauthFlowAction, {
+  const { executeAsync, isPending } = useAction(generatePaypalOAuthUrl, {
     onSuccess: ({ data }) => {
       if (!data?.url) {
         toast.error("Something went wrong. Please try again.");
