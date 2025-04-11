@@ -46,7 +46,7 @@ model Link {
   project       Project? @relation(fields: [projectId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   projectId     String?
   // Relational reference to the project domain
-  projectDomain Domain?  @relation(fields: [domain], references: [slug], onUpdate: Cascade, onDelete: Cascade)
+  projectDomain Domain?  @relation(fields: [domain], references: [slug], onDelete: Cascade)
   // Program that the link belongs to
   programId     String?
 
@@ -84,8 +84,8 @@ model Link {
   commissions Commission[]
 
   @@unique([domain, key])
-  @@index([projectId, folderId, archived, createdAt(sort: Desc)])
   @@unique([projectId, externalId])
+  @@index([projectId, folderId, archived, createdAt(sort: Desc)])
   @@index([programId, partnerId])
   @@index(folderId) // used in /api/folders
   @@index(userId) // for relation to User table

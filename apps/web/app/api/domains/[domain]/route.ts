@@ -151,10 +151,8 @@ export const PATCH = withWorkspace(
 
             // trigger the queue to rename the redis keys and update the links in Tinybird
             queueDomainUpdate({
-              workspaceId: workspace.id,
               oldDomain: domain,
               newDomain: newDomain,
-              page: 1,
             }),
           ]);
         }

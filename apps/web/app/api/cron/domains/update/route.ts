@@ -11,11 +11,7 @@ export const dynamic = "force-dynamic";
 const schema = z.object({
   newDomain: z.string(),
   oldDomain: z.string(),
-  workspaceId: z.string(),
-  page: z.number(),
 });
-
-const pageSize = 100;
 
 // POST /api/cron/domains/update
 export async function POST(req: Request) {
@@ -23,9 +19,7 @@ export async function POST(req: Request) {
     const rawBody = await req.text();
     await verifyQstashSignature({ req, rawBody });
 
-    const { newDomain, oldDomain, workspaceId, page } = schema.parse(
-      JSON.parse(rawBody),
-    );
+    const { newDomain, oldDomain } = schema.parse(JSON.parse(rawBody));
 
     const newDomainRecord = await prisma.domain.findUnique({
       where: {
@@ -39,7 +33,33 @@ export async function POST(req: Request) {
 
     const links = await prisma.link.findMany({
       where: {
+        domain: oldDomain,
+      },
+      take: 500,
+    });
+
+    if (links.length === 0) {
+      return new Response("No more links to update. Exiting...");
+    }
+
+    const linkIds = links.map((link) => link.id);
+
+    await prisma.link.updateMany({
+      where: {
+        id: {
+          in: linkIds,
+        },
+      },
+      data: {
         domain: newDomain,
+      },
+    });
+
+    const updatedLinks = await prisma.link.findMany({
+      where: {
+        id: {
+          in: linkIds,
+        },
       },
       include: {
         tags: {
@@ -48,31 +68,23 @@ export async function POST(req: Request) {
           },
         },
       },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
     });
-
-    if (links.length === 0) {
-      return new Response("No more links to update. Exiting...");
-    }
 
     await Promise.all([
       // rename redis keys
       linkCache.rename({
-        links,
+        links: updatedLinks,
         oldDomain,
       }),
 
       // update links in Tinybird
-      recordLink(links),
+      recordLink(updatedLinks),
     ]);
 
     await queueDomainUpdate({
-      workspaceId,
-      oldDomain,
       newDomain,
-      page: page + 1,
-      delay: 2,
+      oldDomain,
+      delay: 1,
     });
 
     return new Response("Domain's links updated.");
