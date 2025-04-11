@@ -43,12 +43,11 @@ model Link {
   userId String?
 
   // Project that the link belongs to
-  project       Project? @relation(fields: [projectId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  projectId     String?
-  // Relational reference to the project domain
-  projectDomain Domain?  @relation(fields: [domain], references: [slug], onDelete: Cascade)
+  project   Project? @relation(fields: [projectId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  projectId String?
+
   // Program that the link belongs to
-  programId     String?
+  programId String?
 
   folderId String?
   folder   Folder? @relation(fields: [folderId], references: [id], onUpdate: Cascade, onDelete: SetNull)

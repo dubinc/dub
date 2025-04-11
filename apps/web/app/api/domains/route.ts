@@ -12,7 +12,7 @@ import {
 } from "@/lib/zod/schemas/domains";
 import { prisma } from "@dub/prisma";
 import { combineWords, DEFAULT_LINK_PROPS, nanoid } from "@dub/utils";
-import { Prisma } from "@prisma/client";
+import { Link, Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/domains – get all domains for a workspace
@@ -33,40 +33,46 @@ export const GET = withWorkspace(
       },
       include: {
         registeredDomain: true,
-        ...(includeLink && {
-          links: {
-            where: {
-              key: {
-                in: ["_root", "akoJCU0="],
-              },
-            },
-            include: {
-              tags: {
-                select: {
-                  tag: {
-                    select: {
-                      id: true,
-                      name: true,
-                      color: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
-        }),
       },
       take: pageSize,
       skip: (page - 1) * pageSize,
     });
 
+    const links = includeLink
+      ? await prisma.link.findMany({
+          where: {
+            key: {
+              in: ["_root", "akoJCU0="],
+            },
+            domain: {
+              in: domains.map((domain) => domain.slug),
+            },
+          },
+          include: {
+            tags: {
+              select: {
+                tag: true,
+              },
+            },
+          },
+        })
+      : [];
+
+    const linkMap = links.reduce(
+      (acc, link) => {
+        acc[link.domain] = link;
+        return acc;
+      },
+      {} as Record<string, Link>,
+    );
+
     const response = domains.map((domain) => ({
       ...transformDomain(domain),
       ...(includeLink &&
-        domain.links.length > 0 && {
+        linkMap[domain.slug] && {
           link: transformLink({
-            ...domain.links[0],
-            tags: domain.links[0]["tags"].map((tag) => tag),
+            ...linkMap[domain.slug],
+            tags: linkMap[domain.slug]["tags"].map((tag) => tag),
           }),
         }),
     }));
@@ -126,14 +132,14 @@ export const POST = withWorkspace(
       });
     }
 
-    const vercelResponse = await addDomainToVercel(slug);
+    // const vercelResponse = await addDomainToVercel(slug);
 
-    if (
-      vercelResponse.error &&
-      vercelResponse.error.code !== "domain_already_in_use" // ignore this error
-    ) {
-      return new Response(vercelResponse.error.message, { status: 422 });
-    }
+    // if (
+    //   vercelResponse.error &&
+    //   vercelResponse.error.code !== "domain_already_in_use" // ignore this error
+    // ) {
+    //   return new Response(vercelResponse.error.message, { status: 422 });
+    // }
 
     const domainId = createId({ prefix: "dom_" });
 

@@ -31,55 +31,57 @@ export async function POST(req: Request) {
       return new Response(`Domain ${newDomain} not found. Skipping update...`);
     }
 
-    const links = await prisma.link.findMany({
-      where: {
-        domain: oldDomain,
-      },
-      take: 500,
-    });
-
-    if (links.length === 0) {
-      return new Response("No more links to update. Exiting...");
-    }
-
-    const linkIds = links.map((link) => link.id);
-
-    await prisma.link.updateMany({
-      where: {
-        id: {
-          in: linkIds,
+    for (let i = 0; i < 5; i++) {
+      const links = await prisma.link.findMany({
+        where: {
+          domain: oldDomain,
         },
-      },
-      data: {
-        domain: newDomain,
-      },
-    });
+        take: 500,
+      });
 
-    const updatedLinks = await prisma.link.findMany({
-      where: {
-        id: {
-          in: linkIds,
-        },
-      },
-      include: {
-        tags: {
-          select: {
-            tag: true,
+      if (links.length === 0) {
+        return new Response("No more links to update. Exiting...");
+      }
+
+      const linkIds = links.map((link) => link.id);
+
+      await prisma.link.updateMany({
+        where: {
+          id: {
+            in: linkIds,
           },
         },
-      },
-    });
+        data: {
+          domain: newDomain,
+        },
+      });
 
-    await Promise.all([
-      // rename redis keys
-      linkCache.rename({
-        links: updatedLinks,
-        oldDomain,
-      }),
+      const updatedLinks = await prisma.link.findMany({
+        where: {
+          id: {
+            in: linkIds,
+          },
+        },
+        include: {
+          tags: {
+            select: {
+              tag: true,
+            },
+          },
+        },
+      });
 
-      // update links in Tinybird
-      recordLink(updatedLinks),
-    ]);
+      await Promise.all([
+        // rename redis keys
+        linkCache.rename({
+          links: updatedLinks,
+          oldDomain,
+        }),
+
+        // update links in Tinybird
+        recordLink(updatedLinks),
+      ]);
+    }
 
     await queueDomainUpdate({
       newDomain,
