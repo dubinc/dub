@@ -9,7 +9,7 @@ const activityData = {
   click: {
     icon: CursorRays,
     content: (event) => {
-      const { slug } = useParams();
+      const { slug, programSlug } = useParams();
       const referer =
         !event.click?.referer || event.click.referer === "(direct)"
           ? "direct"
@@ -18,7 +18,11 @@ const activityData = {
         <span className="flex items-center gap-1.5 [&>*]:min-w-0 [&>*]:truncate">
           Found{" "}
           <Link
-            href={`/${slug}/links/${getPrettyUrl(event.link.shortLink)}`}
+            href={
+              programSlug
+                ? `/programs/${programSlug}/analytics?domain=${event.link.domain}&key=${event.link.key}`
+                : `/${slug}/links/${getPrettyUrl(event.link.shortLink)}`
+            }
             target="_blank"
             className="flex items-center gap-2 rounded-md bg-neutral-100 px-1.5 py-1 font-mono text-xs leading-none transition-colors hover:bg-neutral-200/80"
           >
@@ -32,7 +36,11 @@ const activityData = {
           </Link>
           via
           <Link
-            href={`/${slug}/analytics?referer=${referer === "direct" ? "(direct)" : referer}`}
+            href={
+              programSlug
+                ? `/programs/${programSlug}/analytics?referer=${referer === "direct" ? "(direct)" : referer}`
+                : `/${slug}/analytics?referer=${referer === "direct" ? "(direct)" : referer}`
+            }
             target="_blank"
             className="flex items-center gap-2 rounded-md bg-neutral-100 px-1.5 py-1 font-mono text-xs leading-none transition-colors hover:bg-neutral-200/80"
           >

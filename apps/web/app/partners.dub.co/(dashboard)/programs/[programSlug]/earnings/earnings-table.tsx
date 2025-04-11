@@ -130,7 +130,9 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
               scroll={false}
               className="flex w-full items-center justify-between gap-2 px-4 py-2.5 transition-colors hover:bg-stone-100"
             >
-              {row.original.customer.email}
+              <div className="truncate" title={row.original.customer.email}>
+                {row.original.customer.email}
+              </div>
               <ChartActivity2 className="size-3.5 shrink-0" />
             </Link>
           ) : (
