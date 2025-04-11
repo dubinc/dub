@@ -131,6 +131,23 @@ export function CustomerDetailsColumn({
         )}
       </div>
 
+      {customer && (customer?.externalId ?? null) !== null && (
+        <div className="flex flex-col gap-2">
+          <DetailHeading>External ID</DetailHeading>
+          {
+            <div className="flex items-center gap-1">
+              <span className="truncate">{customer.externalId}</span>
+              <CopyButton
+                value={customer.externalId}
+                variant="neutral"
+                className="p-1 [&>*]:h-3 [&>*]:w-3"
+                successMessage="Copied external ID to clipboard!"
+              />
+            </div>
+          }
+        </div>
+      )}
+
       <div className="flex flex-col gap-2">
         <DetailHeading>Lifetime value</DetailHeading>
         {!customer || isCustomerActivityLoading ? (
@@ -168,23 +185,6 @@ export function CustomerDetailsColumn({
           <span>-</span>
         )}
       </div>
-
-      {customer && (customer?.externalId ?? null) !== null && (
-        <div className="flex flex-col gap-2">
-          <DetailHeading>External ID</DetailHeading>
-          {
-            <div className="flex items-center gap-1">
-              <span className="truncate">{customer.externalId}</span>
-              <CopyButton
-                value={customer.externalId}
-                variant="neutral"
-                className="p-1 [&>*]:h-3 [&>*]:w-3"
-                successMessage="Copied external ID to clipboard!"
-              />
-            </div>
-          }
-        </div>
-      )}
 
       {utmParams && Boolean(utmParams.length) && (
         <div className="flex flex-col gap-2">
