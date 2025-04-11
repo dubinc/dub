@@ -154,7 +154,6 @@ export function CustomerPageClient() {
             customer={customer}
             customerActivity={customerActivity}
             isCustomerActivityLoading={!customer || isCustomerActivityLoading}
-            workspaceSlug={slug}
           />
         </div>
       </div>

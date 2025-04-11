@@ -9,6 +9,7 @@ import {
   getPrettyUrl,
 } from "@dub/utils";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { Fragment, HTMLProps, useMemo } from "react";
 import DeviceIcon from "../analytics/device-icon";
 
@@ -16,13 +17,13 @@ export function CustomerDetailsColumn({
   customer,
   customerActivity,
   isCustomerActivityLoading,
-  workspaceSlug,
 }: {
   customer?: CustomerProps;
   customerActivity?: CustomerActivityResponse;
   isCustomerActivityLoading: boolean;
-  workspaceSlug?: string;
 }) {
+  const { slug, programSlug } = useParams();
+
   const link = customerActivity?.link;
   const click = customerActivity?.events.find((e) => e.event === "click");
 
@@ -43,11 +44,7 @@ export function CustomerDetailsColumn({
         {customer ? (
           customer.country && (
             <ConditionalLink
-              href={
-                workspaceSlug
-                  ? `/${workspaceSlug}/analytics?country=${encodeURIComponent(customer.country)}`
-                  : undefined
-              }
+              href={`/${programSlug ? `programs/${programSlug}` : slug}/analytics?country=${encodeURIComponent(customer.country)}`}
               target="_blank"
               linkClassName="underline-offset-2 hover:text-neutral-950 hover:underline"
             >
@@ -104,11 +101,7 @@ export function CustomerDetailsColumn({
               .map(({ key, icon, value }) => (
                 <ConditionalLink
                   key={key}
-                  href={
-                    workspaceSlug
-                      ? `/${workspaceSlug}/analytics?${key}=${encodeURIComponent(value)}`
-                      : undefined
-                  }
+                  href={`/${programSlug ? `programs/${programSlug}` : slug}/analytics?${key}=${encodeURIComponent(value)}`}
                   target="_blank"
                   linkClassName="underline-offset-2 hover:text-neutral-950 hover:underline"
                 >
@@ -161,8 +154,9 @@ export function CustomerDetailsColumn({
         ) : link ? (
           <ConditionalLink
             href={
-              workspaceSlug &&
-              `/${workspaceSlug}/links/${link.domain}/${link.key}`
+              programSlug
+                ? `/programs/${programSlug}/analytics?domain=${link.domain}&key=${link.key}`
+                : `/${slug}/links/${link.domain}/${link.key}`
             }
             target="_blank"
             className="min-w-0 overflow-hidden truncate"
@@ -200,10 +194,7 @@ export function CustomerDetailsColumn({
               <Fragment key={key}>
                 <span className="truncate">{label}</span>
                 <ConditionalLink
-                  href={
-                    workspaceSlug &&
-                    `/${workspaceSlug}/analytics?${key}=${encodeURIComponent(value)}`
-                  }
+                  href={`/${programSlug ? `programs/${programSlug}` : slug}/analytics?${key}=${encodeURIComponent(value)}`}
                   target="_blank"
                   className="truncate text-neutral-500"
                   linkClassName="underline-offset-2 hover:text-neutral-600 hover:underline"
@@ -229,6 +220,7 @@ const DetailHeading = ({
   ></h2>
 );
 
+// technically we don't need the conditional link anymore, but keeping it for now
 const ConditionalLink = ({
   ref: _,
   href,
