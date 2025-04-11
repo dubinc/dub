@@ -38,7 +38,7 @@ export const E2E_CUSTOMER_WITH_DISCOUNT = {
 };
 
 export const E2E_DISCOUNT = {
-  id: "disc_1JNSF8QPX3N964DB7JSCFR4K6",
+  id: "disc_1JRJTFDB885T5TREVKXHTPXXR",
   amount: 20,
   type: "percentage",
   maxDuration: 3,

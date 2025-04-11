@@ -89,10 +89,14 @@ class LinkCache {
       const oldCacheKey = this._createKey({ domain: oldDomain, key });
       const newCacheKey = this._createKey({ domain, key });
 
-      pipeline.renamenx(oldCacheKey, newCacheKey);
+      pipeline.rename(oldCacheKey, newCacheKey);
     });
 
-    return await pipeline.exec();
+    try {
+      return await pipeline.exec();
+    } catch (_error) {
+      return null;
+    }
   }
 
   async expireMany(links: Pick<LinkProps, "domain" | "key">[]) {
