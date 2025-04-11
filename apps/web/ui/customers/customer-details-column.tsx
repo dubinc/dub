@@ -67,17 +67,6 @@ export function CustomerDetailsColumn({
         {click
           ? [
               {
-                key: "os",
-                icon: (
-                  <DeviceIcon
-                    display={capitalize(click.os)!}
-                    tab="os"
-                    className="size-3.5 shrink-0"
-                  />
-                ),
-                value: click.os,
-              },
-              {
                 key: "device",
                 icon: (
                   <DeviceIcon
@@ -98,6 +87,17 @@ export function CustomerDetailsColumn({
                   />
                 ),
                 value: click.browser,
+              },
+              {
+                key: "os",
+                icon: (
+                  <DeviceIcon
+                    display={capitalize(click.os)!}
+                    tab="os"
+                    className="size-3.5 shrink-0"
+                  />
+                ),
+                value: click.os,
               },
             ]
               .filter(({ value }) => value)

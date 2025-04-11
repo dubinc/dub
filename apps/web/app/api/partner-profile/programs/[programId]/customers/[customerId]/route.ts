@@ -6,6 +6,7 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { generateRandomName } from "@/lib/names";
 import {
   CustomerEnrichedSchema,
   CustomerSchema,
@@ -66,6 +67,7 @@ export const GET = withPartnerProfile(
       PartnerProfileCustomerSchema.parse(
         transformCustomer({
           ...customer,
+          email: customer.email || customer.name || generateRandomName(),
           link: customer.link
             ? {
                 ...customer.link,

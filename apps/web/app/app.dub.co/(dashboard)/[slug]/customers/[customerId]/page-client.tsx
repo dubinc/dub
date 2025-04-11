@@ -93,16 +93,6 @@ export function CustomerPageClient() {
             <SalesTable customerId={customerId} />
           </section>
 
-          <section className="flex flex-col">
-            <h2 className="py-3 text-lg font-semibold text-neutral-900">
-              Activity
-            </h2>
-            <CustomerActivityList
-              activity={customerActivity}
-              isLoading={!customer || isCustomerActivityLoading}
-            />
-          </section>
-
           {customer?.programId && customer.partner && (
             <section className="flex flex-col">
               <h2 className="py-3 text-lg font-semibold text-neutral-900">
@@ -146,6 +136,16 @@ export function CustomerPageClient() {
               </div>
             </section>
           )}
+
+          <section className="flex flex-col">
+            <h2 className="py-3 text-lg font-semibold text-neutral-900">
+              Activity
+            </h2>
+            <CustomerActivityList
+              activity={customerActivity}
+              isLoading={!customer || isCustomerActivityLoading}
+            />
+          </section>
         </div>
 
         {/* Right side details */}
