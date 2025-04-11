@@ -21,10 +21,10 @@ export const appRedirect = (path: string) => {
   if (upgradeRegex.test(path))
     return path.replace(upgradeRegex, "/$1/settings/billing/upgrade");
 
-  // Redirect "/[slug]/customers" to "/[slug]/events?event=lead" for now
+  // Redirect "/[slug]/customers" to "/[slug]/events?event=leads" for now
   const customersRegex = /^\/([^\/]+)\/customers$/;
   if (customersRegex.test(path))
-    return path.replace(customersRegex, "/$1/events?event=lead");
+    return path.replace(customersRegex, "/$1/events?event=leads");
 
   // Redirect "programs/[programId]/settings" to "programs/[programId]/settings/rewards" (first tab)
   const programSettingsRegex = /\/programs\/([^\/]+)\/settings$/;
