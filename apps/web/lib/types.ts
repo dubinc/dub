@@ -27,9 +27,8 @@ import {
   CommissionResponseSchema,
   CommissionSchema,
 } from "./zod/schemas/commissions";
+import { customerActivityResponseSchema } from "./zod/schemas/customer-activity";
 import {
-  customerActivityResponseSchema,
-  customerActivitySchema,
   CustomerEnrichedSchema,
   CustomerSchema,
 } from "./zod/schemas/customers";
@@ -428,8 +427,6 @@ export type SegmentIntegrationCredentials = {
   writeKey?: string;
 };
 export type InvoiceProps = z.infer<typeof InvoiceSchema>;
-
-export type CustomerActivity = z.infer<typeof customerActivitySchema>;
 
 export type CustomerActivityResponse = z.infer<
   typeof customerActivityResponseSchema

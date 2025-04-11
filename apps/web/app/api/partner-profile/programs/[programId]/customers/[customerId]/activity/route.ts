@@ -1,20 +1,52 @@
 import { getCustomerEvents } from "@/lib/analytics/get-customer-events";
-import { getCustomerOrThrow } from "@/lib/api/customers/get-customer-or-throw";
+import { DubApiError } from "@/lib/api/errors";
 import { decodeLinkIfCaseSensitive } from "@/lib/api/links/case-sensitivity";
-import { withWorkspace } from "@/lib/auth";
-import { verifyFolderAccess } from "@/lib/folder/permissions";
+import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
+import { withPartnerProfile } from "@/lib/auth/partner";
 import { customerActivityResponseSchema } from "@/lib/zod/schemas/customer-activity";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
-// GET /api/customers/[id]/activity - get a customer's activity
-export const GET = withWorkspace(async ({ workspace, params, session }) => {
-  const { id: customerId } = params;
+// GET /api/partner-profile/programs/:programId/customers/:customerId/activity – Get a customer's activity by ID
+export const GET = withPartnerProfile(async ({ partner, params }) => {
+  const { customerId, programId } = params;
 
-  const customer = await getCustomerOrThrow({
-    workspaceId: workspace.id,
-    id: customerId,
+  const { program } = await getProgramEnrollmentOrThrow({
+    partnerId: partner.id,
+    programId: programId,
   });
+
+  const customer = await prisma.customer.findUnique({
+    where: {
+      id: customerId,
+    },
+    include: {
+      link: {
+        include: {
+          programEnrollment: {
+            include: {
+              partner: true,
+              program: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (
+    !customer ||
+    ![
+      customer?.link?.programEnrollment?.programId,
+      customer?.link?.programEnrollment?.program.slug,
+    ].includes(program.id)
+  ) {
+    throw new DubApiError({
+      code: "not_found",
+      message:
+        "Customer not found. Make sure you're using the correct customer ID (e.g. `cus_3TagGjzRzmsFJdH8od2BNCsc`).",
+    });
+  }
 
   if (!customer.linkId) {
     return NextResponse.json(
@@ -51,15 +83,6 @@ export const GET = withWorkspace(async ({ workspace, params, session }) => {
       },
     }),
   ]);
-
-  if (link.folderId) {
-    await verifyFolderAccess({
-      workspace,
-      userId: session.user.id,
-      folderId: link.folderId,
-      requiredPermission: "folders.read",
-    });
-  }
 
   link = decodeLinkIfCaseSensitive(link);
 
