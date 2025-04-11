@@ -9,6 +9,14 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 import { LinkFormData, useLinkBuilderContext } from "./link-builder-provider";
 
+// Helper to detect Safari
+const isSafari = () => {
+  if (typeof window === "undefined") return false;
+  return (
+    navigator.userAgent.includes("Safari") && !navigator.userAgent.includes("Chrome")
+  );
+};
+
 export function useLinkBuilderSubmit({
   onSuccess,
 }: {
@@ -78,13 +86,50 @@ export function useLinkBuilderSubmit({
           ]);
           posthog.capture(props ? "link_updated" : "link_created", data);
 
-          // copy shortlink to clipboard when adding a new link
           if (!props) {
-            try {
-              await copyToClipboard(data.shortLink);
-              toast.success("Copied short link to clipboard!");
-            } catch (err) {
-              toast.success("Successfully created link!");
+            if (isSafari()) {
+              // Safari-specific UI with simplified design
+              toast.success(
+                <div className="flex flex-row items-center space-x-4">
+                  <p className="text-sm">Link created successfully!</p>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(data.shortLink).then(
+                        () => toast.success("Copied to clipboard!"),
+                        () => {
+                          // Fallback if clipboard API fails
+                          const textArea = document.createElement("textarea");
+                          textArea.value = data.shortLink;
+                          document.body.appendChild(textArea);
+                          textArea.select();
+                          try {
+                            document.execCommand("copy");
+                            toast.success("Copied to clipboard!");
+                          } catch (err) {
+                            toast.error("Failed to copy - please copy manually");
+                          }
+                          document.body.removeChild(textArea);
+                        }
+                      );
+                    }}
+                    className="rounded-md bg-neutral-900 px-3 py-1 text-sm font-medium text-white transition-all hover:bg-neutral-800"
+                  >
+                    Copy link
+                  </button>
+                </div>,
+                {
+                  duration: 5000,
+                }
+              );
+            } else {
+              // Original behavior for other browsers
+              try {
+                await copyToClipboard(data.shortLink);
+                toast.success("Copied short link to clipboard!");
+              } catch (err) {
+                console.error("Failed to copy link to clipboard:", err);
+                toast.error("Failed to copy to clipboard");
+              }
             }
           } else toast.success("Successfully updated short link!");
 
