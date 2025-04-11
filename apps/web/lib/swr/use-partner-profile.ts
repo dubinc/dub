@@ -27,8 +27,17 @@ export default function usePartnerProfile() {
     },
   );
 
+  const payoutMethod = partner?.stripeConnectId
+    ? "stripe"
+    : partner?.paypalEmail
+      ? "paypal"
+      : null;
+
   return {
-    partner,
+    partner: {
+      ...partner,
+      payoutMethod,
+    },
     error,
     loading: status === "loading" || isLoading,
     mutate,

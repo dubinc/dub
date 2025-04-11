@@ -139,6 +139,7 @@ export const PartnerSchema = z
     country: z.string().nullable(),
     status: z.nativeEnum(PartnerStatus),
     stripeConnectId: z.string().nullable(),
+    paypalEmail: z.string().nullable(),
     payoutsEnabledAt: z.date().nullable(),
     createdAt: z.date(),
     updatedAt: z.date(),
@@ -154,6 +155,8 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
   description: true,
   country: true,
   payoutsEnabledAt: true,
+  stripeConnectId: true,
+  paypalEmail: true,
   createdAt: true,
 })
   .merge(
