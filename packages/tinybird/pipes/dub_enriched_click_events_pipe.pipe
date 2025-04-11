@@ -1,0 +1,47 @@
+NODE mv
+SQL >
+
+    SELECT DISTINCT ON (e.click_id)
+        e.timestamp,
+        e.click_id,
+        e.link_id,
+        e.url,
+        e.continent,
+        e.country,
+        e.city,
+        e.region,
+        e.latitude,
+        e.longitude,
+        e.device,
+        e.browser,
+        e.os,
+        e.engine,
+        e.ua,
+        coalesce(e.identity_hash, '') as identity_hash,
+        e.referer,
+        e.referer_url,
+        e.qr,
+        e.ip,
+
+        l.workspace_id,
+        l.folder_id,
+        if(l.tag_ids IS NULL, [], l.tag_ids) as tag_ids,
+        l.domain,
+        l.key,
+        l.program_id,
+        l.tenant_id,
+        l.partner_id,
+    FROM dub_click_events_mv e
+    INNER JOIN (
+        SELECT * 
+        FROM dub_links_metadata_latest FINAL 
+       -- This filters to only link_id values present in the "insertion block" that the materialized view is currently processing
+        PREWHERE link_id IN (
+            SELECT link_id FROM dub_click_events_mv
+            )
+        ) AS l ON e.link_id = l.link_id
+
+TYPE materialized
+DATASOURCE dub_enriched_click_events_mv
+
+
