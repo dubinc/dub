@@ -239,11 +239,22 @@ const mapCsvRowToLink = (
       };
     }
 
-    const [domain, ...keyParts] = linkValue.split("/");
-    const key = keyParts.join("/") || "_root";
-
+    let linkObj: URL;
     try {
-      new URL(urlValue);
+      linkObj = new URL(linkValue);
+    } catch {
+      return {
+        success: false,
+        error: `Invalid link format: ${linkValue}`,
+      };
+    }
+
+    const domain = linkObj.hostname;
+    const key = linkObj.pathname.slice(1) || "_root";
+
+    let urlObj: URL;
+    try {
+      urlObj = new URL(urlValue);
     } catch {
       return {
         success: false,
@@ -254,7 +265,7 @@ const mapCsvRowToLink = (
     const link: MapperResult["data"] = {
       domain,
       key,
-      url: urlValue,
+      url: urlObj.toString(),
     };
 
     if (mapping.title) {
