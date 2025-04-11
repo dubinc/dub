@@ -225,7 +225,7 @@ export function PartnerLinkCard({
           {CHARTS.map((chart) => (
             <Link
               key={chart.key}
-              href={`/programs/${programEnrollment?.program.slug}/links/analytics${getQueryString(
+              href={`/programs/${programEnrollment?.program.slug}/analytics${getQueryString(
                 {
                   domain: link.domain,
                   key: link.key,
