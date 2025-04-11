@@ -37,6 +37,14 @@ export const GET = withAdmin(async ({ searchParams }) => {
         lte: endDate,
       },
     },
+    include: {
+      program: {
+        select: {
+          name: true,
+          logo: true,
+        },
+      },
+    },
     orderBy: {
       paidAt: "desc",
     },
@@ -65,8 +73,9 @@ export const GET = withAdmin(async ({ searchParams }) => {
   `;
 
   const formattedInvoices = invoices.map((invoice) => ({
-    date: invoice.paidAt!,
-    number: invoice.number,
+    date: invoice.paidAt,
+    programName: invoice.program.name,
+    programLogo: invoice.program.logo,
     status: invoice.status,
     amount: invoice.amount,
     fee: invoice.fee,
