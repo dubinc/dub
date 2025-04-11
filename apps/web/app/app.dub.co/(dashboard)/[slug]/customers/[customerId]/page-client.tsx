@@ -44,7 +44,7 @@ export function CustomerPageClient() {
 
   return (
     <div className="mb-10 mt-2">
-      <BackLink href={`/${slug}/events`}>Events</BackLink>
+      <BackLink href={`/${slug}/customers`}>Customers</BackLink>
       <div className="mt-5 flex items-center gap-4">
         {customer ? (
           <img

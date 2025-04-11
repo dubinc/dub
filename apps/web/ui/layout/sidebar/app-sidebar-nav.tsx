@@ -14,6 +14,7 @@ import {
   Key,
   Receipt2,
   ShieldCheck,
+  Users2,
   Users6,
   Webhook,
 } from "@dub/ui/icons";
@@ -60,6 +61,12 @@ const NAV_AREAS: SidebarNavAreas<{
             name: "Events",
             icon: CursorRays,
             href: `/${slug}/events${pathname === `/${slug}/events` ? "" : queryString}`,
+          },
+          {
+            name: "Customers",
+            icon: Users2,
+            href: `/${slug}/customers`,
+            comingSoon: true,
           },
           {
             name: "Settings",
