@@ -39,9 +39,15 @@ export default function PayoutsPageClient() {
   const { data: { invoices, timeseriesData } = {}, isLoading } = useSWR<{
     invoices: InvoiceData[];
     timeseriesData: TimeseriesData[];
-  }>(`/api/admin/payouts${getQueryString()}`, fetcher, {
-    keepPreviousData: true,
-  });
+  }>(
+    `/api/admin/payouts${getQueryString({
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    })}`,
+    fetcher,
+    {
+      keepPreviousData: true,
+    },
+  );
 
   const tabs: Tab[] = [
     {
