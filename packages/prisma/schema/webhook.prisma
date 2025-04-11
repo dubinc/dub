@@ -9,7 +9,7 @@ enum WebhookReceiver {
 model Webhook {
   id                  String          @id @default(cuid())
   projectId           String
-  installationId      String?         @unique // indicates which integration installation added the webhook
+  installationId      String? // indicates which integration installation added the webhook
   receiver            WebhookReceiver @default(user)
   name                String
   url                 String          @db.LongText
@@ -25,7 +25,8 @@ model Webhook {
   installedIntegration InstalledIntegration? @relation(fields: [installationId], references: [id], onDelete: Cascade)
   links                LinkWebhook[]
 
-  @@index([projectId])
+  @@index(projectId)
+  @@index(installationId)
 }
 
 model LinkWebhook {
