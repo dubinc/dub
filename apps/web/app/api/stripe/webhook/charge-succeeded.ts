@@ -1,8 +1,6 @@
-import { createPaypalBatchPayouts } from "@/lib/paypal/paypal-batch-payouts";
-import { stripe } from "@/lib/stripe";
-import { sendEmail } from "@dub/email";
-import { PartnerPayoutSent } from "@dub/email/templates/partner-payout-sent";
+import { qstash } from "@/lib/cron";
 import { prisma } from "@dub/prisma";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import Stripe from "stripe";
 
 export async function chargeSucceeded(event: Stripe.Event) {
@@ -51,87 +49,21 @@ export async function chargeSucceeded(event: Stripe.Event) {
     return;
   }
 
-  const stripePayouts = invoice.payouts.filter(
-    (payout) => payout.partner.stripeConnectId,
-  );
-
-  // Send payouts via Stripe
-  for (const payout of stripePayouts) {
-    const transfer = await stripe.transfers.create({
-      amount: payout.amount,
-      currency: "usd",
-      destination: payout.partner.stripeConnectId!,
-      transfer_group: invoice.id,
-      ...(!charge.payment_method_details?.ach_credit_transfer
-        ? {
-            source_transaction: charge.id,
-          }
-        : {}),
-      description: `Dub Partners payout (${payout.program.name})`,
-    });
-
-    console.log("Transfer created", transfer);
-
-    await Promise.all([
-      prisma.payout.update({
-        where: {
-          id: payout.id,
-        },
-        data: {
-          stripeTransferId: transfer.id,
-          status: "completed",
-          paidAt: new Date(),
-        },
-      }),
-      prisma.commission.updateMany({
-        where: {
-          payoutId: payout.id,
-        },
-        data: {
-          status: "paid",
-        },
-      }),
-      payout.partner.email &&
-        sendEmail({
-          subject: "You've been paid!",
-          email: payout.partner.email,
-          from: "Dub Partners <system@dub.co>",
-          react: PartnerPayoutSent({
-            email: payout.partner.email,
-            program: payout.program,
-            payout: {
-              id: payout.id,
-              amount: payout.amount,
-              startDate: payout.periodStart,
-              endDate: payout.periodEnd,
-            },
-          }),
-          variant: "notifications",
-        }),
-    ]);
-  }
-
-  // TODO:
-  // Move this to Qstash
-
-  const paypalPayouts = invoice.payouts.filter(
-    (payout) => payout.partner.paypalEmail,
-  );
-
-  if (paypalPayouts.length > 0) {
-    await createPaypalBatchPayouts({
+  const qstashResponse = await qstash.publishJSON({
+    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/charge-succeeded`,
+    body: {
+      chargeId,
       invoiceId: invoice.id,
-      payouts: paypalPayouts,
-    });
-  }
-
-  await prisma.invoice.update({
-    where: {
-      id: invoice.id,
-    },
-    data: {
-      status: "completed",
       receiptUrl: receipt_url,
+      achCreditTransfer: Boolean(
+        charge.payment_method_details?.ach_credit_transfer,
+      ),
     },
   });
+
+  if (qstashResponse.messageId) {
+    console.log(`Message sent to Qstash with id ${qstashResponse.messageId}`);
+  } else {
+    console.error("Error sending message to Qstash", qstashResponse);
+  }
 }
