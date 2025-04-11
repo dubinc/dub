@@ -8,6 +8,7 @@ import { toast } from "sonner";
 
 export default function StripeConnectButton(props: ButtonProps) {
   const router = useRouter();
+
   const { executeAsync, isPending } = useAction(createAccountLinkAction, {
     onSuccess: ({ data }) => {
       if (!data?.url) {
