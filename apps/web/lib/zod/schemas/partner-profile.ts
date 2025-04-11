@@ -8,6 +8,7 @@ import {
   getCommissionsCountQuerySchema,
   getCommissionsQuerySchema,
 } from "./commissions";
+import { CustomerEnrichedSchema } from "./customers";
 import { LinkSchema } from "./links";
 
 export const PartnerEarningsSchema = CommissionResponseSchema.omit({
@@ -78,4 +79,15 @@ export const PartnerProfileLinkSchema = LinkSchema.pick({
   comments: true,
 }).extend({
   createdAt: z.string().or(z.date()),
+});
+
+export const PartnerProfileCustomerSchema = CustomerEnrichedSchema.pick({
+  id: true,
+  createdAt: true,
+  country: true,
+  link: true,
+}).extend({
+  email: z
+    .string()
+    .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "********")),
 });

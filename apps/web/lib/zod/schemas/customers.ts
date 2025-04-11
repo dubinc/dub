@@ -73,6 +73,7 @@ export const CustomerEnrichedSchema = CustomerSchema.extend({
     shortLink: true,
     programId: true,
   }).nullish(),
+  programId: z.string().nullish(),
   partner: PartnerSchema.pick({
     id: true,
     name: true,
@@ -94,35 +95,3 @@ export const customersQuerySchema = z
       .describe("IDs of customers to filter by."),
   })
   .merge(getPaginationQuerySchema({ pageSize: CUSTOMERS_MAX_PAGE_SIZE }));
-
-export const customerActivitySchema = z.object({
-  timestamp: z.date(),
-  event: z.enum(["click", "lead", "sale"]),
-  eventName: z.string(),
-  eventDetails: z.string().nullish(),
-  metadata: z.union([
-    z.null(),
-    z.object({
-      paymentProcessor: z.string(),
-      amount: z.number(),
-    }),
-  ]),
-});
-
-export const customerActivityResponseSchema = z.object({
-  ltv: z.number(),
-  timeToLead: z.number().nullable(),
-  timeToSale: z.number().nullable(),
-  activity: z.array(customerActivitySchema),
-  customer: CustomerSchema.merge(
-    z.object({
-      country: z.string().nullish(),
-    }),
-  ),
-  link: LinkSchema.pick({
-    id: true,
-    domain: true,
-    key: true,
-    shortLink: true,
-  }).nullish(),
-});

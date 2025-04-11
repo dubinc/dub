@@ -121,6 +121,8 @@ export default function AnalyticsProvider({
 
   const folderId = searchParams?.get("folderId") ?? undefined;
 
+  const customerId = searchParams?.get("customerId") ?? undefined;
+
   // Default to last 24 hours
   const { start, end } = useMemo(() => {
     const hasRange = searchParams?.has("start") && searchParams?.has("end");
@@ -198,9 +200,9 @@ export default function AnalyticsProvider({
       };
     } else if (partner?.id && programSlug) {
       return {
-        basePath: `/api/partner-profile/programs/${programSlug}/links/analytics`,
+        basePath: `/api/partner-profile/programs/${programSlug}/analytics`,
         baseApiPath: `/api/partner-profile/programs/${programSlug}/analytics`,
-        eventsApiPath: `/api/partner-profile/programs/${programSlug}/links/events`,
+        eventsApiPath: `/api/partner-profile/programs/${programSlug}/events`,
         domain: domainSlug,
       };
     } else if (dashboardId) {
@@ -272,6 +274,7 @@ export default function AnalyticsProvider({
       ...(root && { root: root.toString() }),
       event: selectedTab,
       ...(folderId && { folderId }),
+      ...(customerId && { customerId }),
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     }).toString();
   }, [
@@ -284,6 +287,7 @@ export default function AnalyticsProvider({
     tagIds,
     selectedTab,
     folderId,
+    customerId,
   ]);
 
   // Reset requiresUpgrade when query changes
