@@ -79,7 +79,9 @@ export default function NewQRContent() {
     }
 
     if (qrDataExists && slug) {
-      router.replace(`/${slug}/new-qr/customization?type=${qrType}`);
+      router.replace(
+        `/${slug}/new-qr/customization?type=${qrType}&content=true`,
+      );
     }
   };
 

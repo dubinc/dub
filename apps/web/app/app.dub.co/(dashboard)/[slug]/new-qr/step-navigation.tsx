@@ -7,10 +7,14 @@ import { ChevronDown } from "lucide-react";
 import { useParams, useSearchParams } from "next/navigation";
 import { usePageContext } from "./page-context.tsx";
 
-export function StepNavigation() {
+export const StepNavigation = () => {
   const { isMobile } = useMediaQuery();
   const { currentStep, steps } = usePageContext();
   const { slug } = useParams() as { slug?: string };
+  const searchParams = useSearchParams();
+
+  const type = searchParams.get("type");
+  const contentDone = searchParams.get("content");
 
   return (
     <NavigationMenu.Root className="flex items-center gap-2">
@@ -19,8 +23,16 @@ export function StepNavigation() {
         const isActive = step.step === currentStep;
         const Icon = step.icon;
         const showLabel = isMobile ? isActive : true;
-        const searchParams = useSearchParams();
+
+        const isStepAllowed =
+          step.step === 1 ||
+          (step.step === 2 && !!type) ||
+          (step.step === 3 && !!type && !!contentDone);
+
         const queryString = searchParams.toString();
+        const href = isStepAllowed
+          ? `/${slug}/${step.href}${queryString ? `?${queryString}` : ""}`
+          : "#";
 
         return (
           <NavigationMenu.List
@@ -28,10 +40,7 @@ export function StepNavigation() {
             className="flex items-center gap-1 md:gap-2"
           >
             <NavigationMenu.Item>
-              <Link
-                href={`/${slug}/${step.href}${queryString ? `?${queryString}` : ""}`}
-                isActive={isActive}
-              >
+              <Link href={href} isActive={isActive}>
                 {isPreviousStep ? (
                   <SelectedStep className="text-primary" />
                 ) : (
@@ -44,7 +53,7 @@ export function StepNavigation() {
                     )}
                   />
                 )}
-                {showLabel && <span>{step.title}</span>}{" "}
+                {showLabel && <span>{step.title}</span>}
               </Link>
             </NavigationMenu.Item>
             {step.step < Object.entries(steps).length && (
@@ -57,7 +66,7 @@ export function StepNavigation() {
       })}
     </NavigationMenu.Root>
   );
-}
+};
 
 import SelectedStep from "@/ui/shared/icons/qr-creation-steps/selected-step.tsx";
 import NextLink from "next/link";
