@@ -1,6 +1,6 @@
-import "dotenv-flow/config";
-import { workspaceCache } from "@/lib/api/workspace-cache";
+import { workspaceCache } from "@/lib/api/workspaces/cache";
 import { prisma } from "@dub/prisma";
+import "dotenv-flow/config";
 
 async function main() {
   const workspaces = await prisma.project.findMany({
