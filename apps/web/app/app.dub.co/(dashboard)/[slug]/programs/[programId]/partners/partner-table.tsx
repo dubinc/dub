@@ -74,7 +74,6 @@ export function PartnerTable() {
 
   const { partnersCount, error: countError } = usePartnersCount<number>();
 
-  // TODO: Combine with usePartners
   const {
     data: partners,
     error,

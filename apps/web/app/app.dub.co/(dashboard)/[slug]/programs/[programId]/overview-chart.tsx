@@ -1,7 +1,7 @@
 import { DUB_PARTNERS_ANALYTICS_INTERVAL } from "@/lib/analytics/constants";
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { IntervalOptions } from "@/lib/analytics/types";
-import useProgramCommissions from "@/lib/swr/use-program-commissions";
+import useCommissionsTimeseries from "@/lib/swr/use-commissions-timeseries";
 import useProgramRevenue from "@/lib/swr/use-program-revenue";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import { Combobox, useRouterStuff } from "@dub/ui";
@@ -49,14 +49,15 @@ export function OverviewChart() {
     enabled: viewType === "revenue",
   });
 
-  const { data: commissions, error: commissionsError } = useProgramCommissions({
-    event: "sales",
-    groupBy: "timeseries",
-    interval,
-    start: start ? new Date(start) : undefined,
-    end: end ? new Date(end) : undefined,
-    enabled: viewType === "commissions",
-  });
+  const { data: commissions, error: commissionsError } =
+    useCommissionsTimeseries({
+      event: "sales",
+      groupBy: "timeseries",
+      interval,
+      start: start ? new Date(start) : undefined,
+      end: end ? new Date(end) : undefined,
+      enabled: viewType === "commissions",
+    });
 
   const data = useMemo(() => {
     const sourceData = viewType === "revenue" ? revenue : commissions;

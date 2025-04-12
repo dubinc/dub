@@ -1,0 +1,11 @@
+TAGS "Dub MV Pipes"
+
+NODE mv
+SQL >
+
+    SELECT * FROM dub_links_metadata WHERE domain not in ['buff.ly', 'sms.cal.com']
+
+TYPE materialized
+DATASOURCE dub_regular_links_metadata_latest
+
+

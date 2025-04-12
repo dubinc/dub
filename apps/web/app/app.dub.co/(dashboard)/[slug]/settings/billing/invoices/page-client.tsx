@@ -144,7 +144,10 @@ const InvoiceCard = ({ invoice }: { invoice: InvoiceProps }) => {
             variant="secondary"
             text="View invoice"
             disabled
-            disabledTooltip="Invoice not available. Contact support if you need assistance."
+            disabledTooltip={
+              invoice.failedReason ||
+              "Invoice not available. Contact support if you need assistance."
+            }
           />
         )}
       </div>

@@ -1,14 +1,10 @@
-import { getEvents } from "@/lib/analytics/get-events";
+import { getCustomerEvents } from "@/lib/analytics/get-customer-events";
 import { getCustomerOrThrow } from "@/lib/api/customers/get-customer-or-throw";
-import { transformCustomer } from "@/lib/api/customers/transform-customer";
 import { decodeLinkIfCaseSensitive } from "@/lib/api/links/case-sensitivity";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
-import { CustomerActivity, LeadEvent, SaleEvent } from "@/lib/types";
-import { customerActivityResponseSchema } from "@/lib/zod/schemas/customers";
+import { customerActivityResponseSchema } from "@/lib/zod/schemas/customer-activity";
 import { prisma } from "@dub/prisma";
-import { EventType } from "@dub/prisma/client";
-import { currencyFormatter, getPrettyUrl } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/customers/[id]/activity - get a customer's activity
@@ -24,7 +20,7 @@ export const GET = withWorkspace(async ({ workspace, params, session }) => {
     return NextResponse.json(
       customerActivityResponseSchema.parse({
         customer,
-        activity: [],
+        events: [],
         ltv: 0,
         timeToLead: null,
         timeToSale: null,
@@ -33,26 +29,14 @@ export const GET = withWorkspace(async ({ workspace, params, session }) => {
     );
   }
 
-  let [leadEvents, saleEvents, link] = await Promise.all([
-    getEvents({
-      customerId: customer.id,
-      event: "leads",
-      sortOrder: "desc",
-      sortBy: "timestamp",
-      interval: "1y",
-      page: 1,
-      limit: 50,
-    }),
-
-    getEvents({
-      customerId: customer.id,
-      event: "sales",
-      sortOrder: "desc",
-      sortBy: "timestamp",
-      interval: "1y",
-      page: 1,
-      limit: 50,
-    }),
+  let [events, link] = await Promise.all([
+    getCustomerEvents(
+      { customerId: customer.id, clickId: customer.clickId },
+      {
+        sortOrder: "desc",
+        interval: "1y",
+      },
+    ),
 
     prisma.link.findUniqueOrThrow({
       where: {
@@ -77,49 +61,13 @@ export const GET = withWorkspace(async ({ workspace, params, session }) => {
     });
   }
 
-  const leadActivity = leadEvents.map((event: LeadEvent) => {
-    return {
-      timestamp: new Date(event.timestamp),
-      event: EventType.lead,
-      eventName: event.eventName,
-      metadata: null,
-    };
-  });
-
-  const saleActivity = saleEvents.map((event: SaleEvent) => {
-    return {
-      timestamp: new Date(event.timestamp),
-      event: EventType.sale,
-      eventName: event.eventName,
-      eventDetails: currencyFormatter(event.sale.amount / 100, {
-        maximumFractionDigits: 2,
-      }),
-      metadata: {
-        amount: event.sale.amount,
-        paymentProcessor: event.sale.paymentProcessor,
-      },
-    };
-  });
-
-  const activity: CustomerActivity[] = [...leadActivity, ...saleActivity].sort(
-    (a, b) => b.timestamp.getTime() - a.timestamp.getTime(),
-  );
-
   link = decodeLinkIfCaseSensitive(link);
 
-  // Add click event to activities
-  activity.push({
-    timestamp: customer.clickedAt!,
-    event: "click",
-    eventName: "Link click",
-    eventDetails: link?.shortLink ? getPrettyUrl(link.shortLink) : null,
-    metadata: null,
-  });
-
   // Find the LTV of the customer
-  const ltv = activity.reduce((acc, { event, metadata }) => {
-    if (event === "sale" && metadata) {
-      acc += Number(metadata.amount);
+  // TODO: Calculate this from all events, not limited
+  const ltv = events.reduce((acc, event) => {
+    if (event.event === "sale" && event.saleAmount) {
+      acc += Number(event.saleAmount);
     }
 
     return acc;
@@ -132,7 +80,8 @@ export const GET = withWorkspace(async ({ workspace, params, session }) => {
       : null;
 
   // Find the time to first sale of the customer
-  const firstSale = activity.filter(({ event }) => event === "sale").pop();
+  // TODO: Calculate this from all events, not limited
+  const firstSale = events.filter(({ event }) => event === "sale").pop();
 
   const timeToSale =
     firstSale && customer.createdAt
@@ -144,8 +93,7 @@ export const GET = withWorkspace(async ({ workspace, params, session }) => {
       ltv,
       timeToLead,
       timeToSale,
-      customer: transformCustomer(customer),
-      activity,
+      events,
       link,
     }),
   );

@@ -1,4 +1,7 @@
-import { MOBILE_MORE_ITEMS, TOGGLES } from "@/ui/links/link-builder/constants";
+import {
+  MOBILE_MORE_ITEMS,
+  MORE_ITEMS,
+} from "@/ui/links/link-builder/constants";
 import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
 import { AlertCircleFill, CheckCircleFill, X } from "@/ui/shared/icons";
 import { SimpleTooltipContent, Tooltip, useMediaQuery } from "@dub/ui";
@@ -9,6 +12,8 @@ import { ReactNode, useMemo } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import useSWR from "swr";
 import { useDebounce } from "use-debounce";
+
+const TOGGLES = MORE_ITEMS.filter(({ type }) => type === "boolean");
 
 export function OptionsList() {
   const { isMobile } = useMediaQuery();
@@ -26,9 +31,12 @@ export function OptionsList() {
       ...enabledToggles,
       ...(isMobile
         ? // @ts-ignore - useWatch returns a deep partial, should be fixed in a future react-hook-form release
-          MOBILE_MORE_ITEMS.filter(({ enabled }) => enabled(data)).map(
-            // @ts-ignore - useWatch returns a deep partial, should be fixed in a future react-hook-form release
-            (item) => ({ ...item, label: item.badgeLabel(data) }),
+          MOBILE_MORE_ITEMS.filter(({ enabled }) => enabled?.(data)).map(
+            (item) => ({
+              ...item,
+              // @ts-ignore - useWatch returns a deep partial, should be fixed in a future react-hook-form release
+              label: item.badgeLabel?.(data) || item.label,
+            }),
           )
         : []),
     ],
@@ -53,6 +61,7 @@ export function OptionsList() {
                 {...(item.type === "modal" &&
                   "enabled" in item &&
                   typeof item.enabled === "function" &&
+                  // @ts-ignore - useWatch returns a deep partial, should be fixed in a future react-hook-form release
                   item.enabled(data) && {
                     icon: <item.icon className="size-3.5 text-blue-500" />,
                   })}

@@ -55,22 +55,15 @@ export const determinePartnerRewards = async ({
     (reward) => reward._count.partners > 0,
   );
 
-  const programWideSaleReward = rewards.find(
-    (reward) => reward._count.partners === 0,
+  // programDefaultReward is the program-wide reward that is not overridden by a partner-specific reward
+  const programDefaultReward = rewards.filter(
+    (reward) =>
+      reward._count.partners === 0 &&
+      partnerSpecificRewards.find((r) => r.event === reward.event) ===
+        undefined,
   );
 
-  const partnerSpecificSaleReward = partnerSpecificRewards.find(
-    (reward) => reward.event === EventType.sale,
-  );
-
-  const partnerSaleReward = partnerSpecificSaleReward ?? programWideSaleReward;
-
-  const partnerRewards = [
-    partnerSaleReward,
-    ...partnerSpecificRewards.filter(
-      (reward) => reward.id !== partnerSaleReward?.id,
-    ),
-  ];
+  const partnerRewards = [...partnerSpecificRewards, ...programDefaultReward];
 
   if (partnerRewards.length === 0) {
     return null;

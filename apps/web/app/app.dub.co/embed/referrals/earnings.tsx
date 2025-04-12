@@ -1,6 +1,6 @@
 import { SALES_PAGE_SIZE } from "@/lib/partners/constants";
 import { PartnerEarningsResponse } from "@/lib/types";
-import { SaleStatusBadges } from "@/ui/partners/sale-status-badges";
+import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { Gift, StatusBadge, Table, usePagination, useTable } from "@dub/ui";
 import {
   currencyFormatter,
@@ -66,7 +66,7 @@ export function ReferralsEmbedEarnings({ salesCount }: { salesCount: number }) {
       {
         header: "Status",
         cell: ({ row }) => {
-          const badge = SaleStatusBadges[row.original.status];
+          const badge = CommissionStatusBadges[row.original.status];
 
           return (
             <StatusBadge icon={null} variant={badge.variant}>

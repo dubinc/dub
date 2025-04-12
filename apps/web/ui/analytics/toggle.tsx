@@ -7,6 +7,9 @@ import {
 } from "@/lib/analytics/constants";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
+import useCustomer from "@/lib/swr/use-customer";
+import useCustomers from "@/lib/swr/use-customers";
+import useCustomersCount from "@/lib/swr/use-customers-count";
 import useDomains from "@/lib/swr/use-domains";
 import useDomainsCount from "@/lib/swr/use-domains-count";
 import useFolder from "@/lib/swr/use-folder";
@@ -16,6 +19,7 @@ import useTags from "@/lib/swr/use-tags";
 import useTagsCount from "@/lib/swr/use-tags-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
+import { CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/customers";
 import { DOMAINS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/domains";
 import { FOLDERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/folders";
 import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
@@ -51,6 +55,7 @@ import {
   QRCode,
   ReferredVia,
   Tag,
+  User,
   Window,
 } from "@dub/ui/icons";
 import {
@@ -59,6 +64,7 @@ import {
   cn,
   CONTINENTS,
   COUNTRIES,
+  DICEBEAR_AVATAR_URL,
   DUB_DEMO_LINKS,
   DUB_LOGO,
   getApexDomain,
@@ -101,11 +107,11 @@ export default function Toggle({
     useRouterStuff();
 
   const {
+    selectedTab,
     domain,
     key,
     url,
     adminPage,
-    demoPage,
     partnerPage,
     dashboardProps,
     start,
@@ -115,13 +121,16 @@ export default function Toggle({
 
   const scrolled = useScroll(120);
 
-  // Determine whether tags and domains should be fetched async
+  // Determine whether filters should be fetched async
   const { data: tagsCount } = useTagsCount();
   const { data: domainsCount } = useDomainsCount({ ignoreParams: true });
   const { data: foldersCount } = useFoldersCount();
+  const { data: customersCount } = useCustomersCount();
   const tagsAsync = Boolean(tagsCount && tagsCount > TAGS_MAX_PAGE_SIZE);
   const domainsAsync = domainsCount && domainsCount > DOMAINS_MAX_PAGE_SIZE;
   const foldersAsync = foldersCount && foldersCount > FOLDERS_MAX_PAGE_SIZE;
+  const customersAsync =
+    customersCount && customersCount > CUSTOMERS_MAX_PAGE_SIZE;
 
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -136,6 +145,14 @@ export default function Toggle({
     query: {
       search:
         foldersAsync && selectedFilter === "folderId" ? debouncedSearch : "",
+    },
+  });
+  const { customers, loading: loadingCustomers } = useCustomers({
+    query: {
+      search:
+        customersAsync && selectedFilter === "customerId"
+          ? debouncedSearch
+          : "",
     },
   });
 
@@ -165,6 +182,11 @@ export default function Toggle({
 
   const { folder: selectedFolder } = useFolder({
     folderId: selectedFolderId,
+  });
+
+  const selectedCustomerId = searchParamsObj.customerId;
+  const { data: selectedCustomer } = useCustomer({
+    customerId: selectedCustomerId,
   });
 
   const [requestedFilters, setRequestedFilters] = useState<string[]>([]);
@@ -349,6 +371,30 @@ export default function Toggle({
         : partnerPage
           ? [LinkFilterItem]
           : [
+              ...(["leads", "sales"].includes(selectedTab)
+                ? [
+                    {
+                      key: "customerId",
+                      icon: User,
+                      label: "Customer",
+                      shouldFilter: !customersAsync,
+                      options:
+                        customers?.map(({ id, email, name, avatar }) => {
+                          return {
+                            value: id,
+                            label: email ?? name,
+                            icon: (
+                              <img
+                                src={avatar || `${DICEBEAR_AVATAR_URL}${id}`}
+                                alt={`${email} avatar`}
+                                className="size-4 rounded-full"
+                              />
+                            ),
+                          };
+                        }) ?? null,
+                    },
+                  ]
+                : []),
               ...(flags?.linkFolders
                 ? [
                     {
@@ -670,6 +716,7 @@ export default function Toggle({
       ),
     ],
     [
+      selectedTab,
       dashboardProps,
       partnerPage,
       domains,
@@ -679,6 +726,7 @@ export default function Toggle({
       selectedTags,
       selectedTagIds,
       selectedFolder,
+      selectedCustomerId,
       countries,
       cities,
       devices,
@@ -855,7 +903,7 @@ export default function Toggle({
       <div
         className={cn("py-3 md:py-3", {
           "sticky top-14 z-10 bg-neutral-50": dashboardProps,
-          "sticky top-16 z-10 bg-neutral-50": adminPage || demoPage,
+          "sticky top-16 z-10 bg-neutral-50": adminPage,
           "shadow-md": scrolled && dashboardProps,
         })}
       >

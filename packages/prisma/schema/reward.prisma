@@ -7,7 +7,8 @@ model Reward {
   event       EventType
   type        CommissionType @default(percentage)
   amount      Int            @default(0)
-  maxDuration Int? // in months (0 -> not recurring, null -> infinite)
+  maxDuration Int?  // in months (0 -> not recurring, null -> infinite)
+  maxAmount     Int? // how much a partner can receive payouts (in cents)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

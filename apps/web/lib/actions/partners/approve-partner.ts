@@ -1,6 +1,8 @@
 "use server";
 
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
+import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
+import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { sendEmail } from "@dub/email";
 import { PartnerApplicationApproved } from "@dub/email/templates/partner-application-approved";
@@ -83,7 +85,14 @@ export const approvePartnerAction = authActionClient
       }),
     ]);
 
-    const partner = programEnrollment.partner;
+    const { partner, ...enrollment } = programEnrollment;
+
+    const enrolledPartner = EnrolledPartnerSchema.parse({
+      ...partner,
+      ...enrollment,
+      id: partner.id,
+      links: [updatedLink],
+    });
 
     waitUntil(
       Promise.allSettled([
@@ -110,7 +119,11 @@ export const approvePartnerAction = authActionClient
           }),
         }),
 
-        // TODO: send partner.enrolled webhook
+        sendWorkspaceWebhook({
+          workspace,
+          trigger: "partner.enrolled",
+          data: enrolledPartner,
+        }),
       ]),
     );
 

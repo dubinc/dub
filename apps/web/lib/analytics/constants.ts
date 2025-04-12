@@ -1,4 +1,4 @@
-import { DUB_FOUNDING_DATE } from "@dub/utils";
+import { THE_BEGINNING_OF_TIME } from "@dub/utils";
 
 export const intervals = [
   "24h",
@@ -119,8 +119,7 @@ export const INTERVAL_DATA: Record<
     granularity: "month",
   },
   all: {
-    // Dub.co founding date
-    startDate: DUB_FOUNDING_DATE,
+    startDate: THE_BEGINNING_OF_TIME,
     granularity: "month",
   },
 };
@@ -186,6 +185,7 @@ export const VALID_ANALYTICS_FILTERS = [
   "tagId",
   "folderId",
   "tagIds",
+  "customerId",
   "qr", // deprecated, but keeping for now for backwards compatibility
   "root",
   "utm_source",

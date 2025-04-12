@@ -1,5 +1,5 @@
 import useWorkspace from "@/lib/swr/use-workspace";
-import { PayoutResponse, SaleResponse } from "@/lib/types";
+import { CommissionResponse, PayoutResponse } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
@@ -17,18 +17,16 @@ import {
   currencyFormatter,
   DICEBEAR_AVATAR_URL,
   fetcher,
-} from "@dub/utils";
-import {
   formatDateTime,
-  formatPeriod,
-} from "@dub/utils/src/functions/datetime";
+} from "@dub/utils";
+import { formatPeriod } from "@dub/utils/src/functions/datetime";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Dispatch, Fragment, SetStateAction, useMemo, useState } from "react";
 import useSWR from "swr";
+import { CommissionRowMenu } from "./commission-row-menu";
 import { PayoutStatusBadges } from "./payout-status-badges";
 import { PayoutTypeBadge } from "./payout-type-badge";
-import { SaleRowMenu } from "./sale-row-menu";
 
 type PayoutDetailsSheetProps = {
   payout: PayoutResponse;
@@ -46,9 +44,9 @@ function PayoutDetailsSheetContent({
     data: sales,
     isLoading,
     error,
-  } = useSWR<SaleResponse[]>(
+  } = useSWR<CommissionResponse[]>(
     payout.type === "sales" &&
-      `/api/programs/${programId}/sales?workspaceId=${workspaceId}&payoutId=${payout.id}&interval=all&pageSize=10`,
+      `/api/programs/${programId}/commissions?workspaceId=${workspaceId}&type=sale&payoutId=${payout.id}&interval=all&pageSize=10`,
     fetcher,
   );
 
@@ -152,7 +150,7 @@ function PayoutDetailsSheetContent({
         minSize: 43,
         size: 43,
         maxSize: 43,
-        cell: ({ row }) => <SaleRowMenu row={row} />,
+        cell: ({ row }) => <CommissionRowMenu row={row} />,
       },
     ],
     columnPinning: { right: ["menu"] },
@@ -161,9 +159,9 @@ function PayoutDetailsSheetContent({
     tdClassName: (id) => cn(id === "total" && "text-right", "border-l-0"),
     className: "[&_tr:last-child>td]:border-b-transparent",
     scrollWrapperClassName: "min-h-[40px]",
-    resourceName: (p) => `sale${p ? "s" : ""}`,
+    resourceName: (p) => `commission${p ? "s" : ""}`,
     loading: isLoading,
-    error: error ? "Failed to load sales" : undefined,
+    error: error ? "Failed to load commissions" : undefined,
   } as any);
 
   return (
@@ -202,7 +200,7 @@ function PayoutDetailsSheetContent({
             <Table {...table} />
             <div className="mt-2 flex justify-end">
               <Link
-                href={`/${slug}/programs/${programId}/sales?payoutId=${payout.id}&interval=all`}
+                href={`/${slug}/programs/${programId}/commissions?payoutId=${payout.id}&interval=all`}
                 target="_blank"
                 className={cn(
                   buttonVariants({ variant: "secondary" }),

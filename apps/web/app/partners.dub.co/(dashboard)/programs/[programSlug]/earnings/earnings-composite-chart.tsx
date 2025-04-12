@@ -8,7 +8,7 @@ import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-tim
 import usePartnerLinks from "@/lib/swr/use-partner-links";
 import { LinkIcon } from "@/ui/links/link-icon";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
-import { SaleStatusBadges } from "@/ui/partners/sale-status-badges";
+import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import { Filter, LoadingSpinner, ToggleGroup, useRouterStuff } from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
@@ -317,14 +317,14 @@ function EarningsTableControls() {
         icon: CircleDotted,
         label: "Status",
         options: statuses?.map(({ status, _count }) => {
-          const Icon = SaleStatusBadges[status].icon;
+          const Icon = CommissionStatusBadges[status].icon;
           return {
             value: status,
-            label: SaleStatusBadges[status].label,
+            label: CommissionStatusBadges[status].label,
             icon: (
               <Icon
                 className={cn(
-                  SaleStatusBadges[status].className,
+                  CommissionStatusBadges[status].className,
                   "size-4 bg-transparent",
                 )}
               />
