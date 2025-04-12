@@ -3,7 +3,7 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { clickCache } from "@/lib/api/links/click-cache";
 import { parseRequestBody } from "@/lib/api/utils";
-import { workspaceCache } from "@/lib/api/workspace-cache";
+import { workspaceCache } from "@/lib/api/workspaces/cache";
 import { getLinkWithPartner } from "@/lib/planetscale/get-link-with-partner";
 import { recordClick } from "@/lib/tinybird";
 import { formatRedisLink } from "@/lib/upstash";

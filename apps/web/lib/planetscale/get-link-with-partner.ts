@@ -8,7 +8,6 @@ import { conn } from "./connection";
 import { EdgeLinkProps } from "./types";
 
 interface QueryResult extends EdgeLinkProps {
-  allowedHostnames: string[];
   partner?: {
     id: string;
     name: string;
