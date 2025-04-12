@@ -1,4 +1,4 @@
-import { normalizeWorkspaceId } from "@/lib/api/workspace-id";
+import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { redis } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN, APP_DOMAIN_WITH_NGROK } from "@dub/utils";

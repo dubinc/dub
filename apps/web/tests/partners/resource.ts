@@ -1,4 +1,4 @@
-import { normalizeWorkspaceId } from "@/lib/api/workspace-id";
+import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { expect } from "vitest";
 import {
   E2E_PARTNER,

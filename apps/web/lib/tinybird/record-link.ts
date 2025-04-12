@@ -1,7 +1,7 @@
 import z from "@/lib/zod";
 import { ExpandedLink } from "../api/links";
 import { decodeKeyIfCaseSensitive } from "../api/links/case-sensitivity";
-import { prefixWorkspaceId } from "../api/workspace-id";
+import { prefixWorkspaceId } from "../api/workspaces/workspace-id";
 import { tb } from "./client";
 
 export const dubLinksMetadataSchema = z.object({

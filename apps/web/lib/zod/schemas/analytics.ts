@@ -7,7 +7,7 @@ import {
   eventIntervals,
   intervals,
 } from "@/lib/analytics/constants";
-import { prefixWorkspaceId } from "@/lib/api/workspace-id";
+import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import z from "@/lib/zod";
 import {
   CONTINENT_CODES,

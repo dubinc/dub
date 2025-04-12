@@ -1,4 +1,4 @@
-import { createId } from "./create-id";
+import { createId } from "../create-id";
 
 export const prefixWorkspaceId = (workspaceId: string) => {
   return workspaceId.startsWith("ws_") ? workspaceId : `ws_${workspaceId}`;

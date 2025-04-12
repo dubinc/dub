@@ -9,11 +9,11 @@ import {
   R2_URL,
 } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { qstash } from "../cron";
-import { cancelSubscription } from "../stripe/cancel-subscription";
-import { markDomainAsDeleted } from "./domains";
-import { linkCache } from "./links/cache";
-import { workspaceCache } from "./workspaces/cache";
+import { qstash } from "../../cron";
+import { cancelSubscription } from "../../stripe/cancel-subscription";
+import { markDomainAsDeleted } from "../domains";
+import { linkCache } from "../links/cache";
+import { workspaceCache } from "./cache";
 
 export async function deleteWorkspace(
   workspace: Pick<WorkspaceProps, "id" | "slug" | "logo" | "stripeId">,

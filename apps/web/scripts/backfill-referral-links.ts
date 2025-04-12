@@ -1,4 +1,4 @@
-import { prefixWorkspaceId } from "@/lib/api/workspace-id";
+import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { dub } from "@/lib/dub";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
