@@ -4,7 +4,7 @@ import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import * as NavigationMenu from "@radix-ui/react-navigation-menu";
 import { ChevronDown } from "lucide-react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { usePageContext } from "./page-context.tsx";
 
 export function StepNavigation() {
@@ -19,6 +19,8 @@ export function StepNavigation() {
         const isActive = step.step === currentStep;
         const Icon = step.icon;
         const showLabel = isMobile ? isActive : true;
+        const searchParams = useSearchParams();
+        const queryString = searchParams.toString();
 
         return (
           <NavigationMenu.List
@@ -26,7 +28,10 @@ export function StepNavigation() {
             className="flex items-center gap-1 md:gap-2"
           >
             <NavigationMenu.Item>
-              <Link href={`/${slug}/${step.href}`} isActive={isActive}>
+              <Link
+                href={`/${slug}/${step.href}${queryString ? `?${queryString}` : ""}`}
+                isActive={isActive}
+              >
                 {isPreviousStep ? (
                   <SelectedStep className="text-primary" />
                 ) : (
