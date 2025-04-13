@@ -52,10 +52,18 @@ export const authOptions: NextAuthOptions = {
           console.log(`Login link: ${url}`);
           return;
         } else {
+          console.log('sending login email');
+          console.log(identifier);
           sendEmail({
             email: identifier,
             subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} Login Link`,
             react: LoginLink({ url, email: identifier }),
+          }).then((data) => {
+            console.log('login email sent');
+            console.log(data);
+          }).catch((err) => {
+            console.log('login email err');
+            console.log(err);
           });
         }
       },
@@ -134,6 +142,9 @@ export const authOptions: NextAuthOptions = {
         }
 
         const { code } = credentials;
+
+        console.log('credentials');
+        console.log(credentials);
 
         if (!code) {
           return null;
