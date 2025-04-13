@@ -22,7 +22,7 @@ import {
   usePagination,
   useTable,
 } from "@dub/ui";
-import { cn, DICEBEAR_AVATAR_URL, fetcher, timeAgo } from "@dub/utils";
+import { cn, fetcher, OG_AVATAR_URL, timeAgo } from "@dub/utils";
 import { Command } from "cmdk";
 import { useState } from "react";
 import useSWR from "swr";
@@ -105,7 +105,7 @@ export default function TokensPageClient() {
                     row.original.user.isMachine
                       ? "https://api.dicebear.com/7.x/bottts/svg?seed=Sara"
                       : row.original.user.image ||
-                        `${DICEBEAR_AVATAR_URL}${row.original.user.id}`
+                        `${OG_AVATAR_URL}${row.original.user.id}`
                   }
                   alt={row.original.user.name!}
                   className="size-5 rounded-full"

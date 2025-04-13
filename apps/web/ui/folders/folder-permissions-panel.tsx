@@ -13,7 +13,7 @@ import { Folder, FolderUser } from "@/lib/types";
 import { FolderUserRole } from "@dub/prisma/client";
 import { Avatar, BlurImage, Button, Tooltip, TooltipContent } from "@dub/ui";
 import { Globe, UserCheck } from "@dub/ui/icons";
-import { cn, DICEBEAR_AVATAR_URL, fetcher, nFormatter } from "@dub/utils";
+import { cn, fetcher, nFormatter, OG_AVATAR_URL } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import { useState } from "react";
@@ -192,7 +192,7 @@ const FolderPermissionsPanel = ({
                 <div className="relative mt-3 flex items-center justify-between gap-4">
                   <div className="flex min-w-12 items-center gap-2">
                     <BlurImage
-                      src={logo || `${DICEBEAR_AVATAR_URL}${name}`}
+                      src={logo || `${OG_AVATAR_URL}${name}`}
                       alt={name || "Workspace logo"}
                       className="size-8 shrink-0 overflow-hidden rounded-full"
                       width={32}

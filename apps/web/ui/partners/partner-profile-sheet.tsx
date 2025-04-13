@@ -3,7 +3,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import { Button, Sheet, useRouterStuff } from "@dub/ui";
-import { COUNTRIES, DICEBEAR_AVATAR_URL, fetcher } from "@dub/utils";
+import { COUNTRIES, OG_AVATAR_URL, fetcher } from "@dub/utils";
 import { ProgramApplication } from "@prisma/client";
 import Linkify from "linkify-react";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
@@ -26,7 +26,7 @@ function PartnerProfileSheetContent({
         content: partner.name,
         right: (
           <img
-            src={partner.image || `${DICEBEAR_AVATAR_URL}${partner.name}`}
+            src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
             alt={partner.name}
             className="size-10 rounded-full"
           />

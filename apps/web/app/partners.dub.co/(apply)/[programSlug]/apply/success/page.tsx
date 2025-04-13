@@ -2,7 +2,7 @@ import { getProgram } from "@/lib/fetchers/get-program";
 import { prisma } from "@dub/prisma";
 import { Logo } from "@dub/ui";
 import { BoltFill, CursorRays, LinesY, MoneyBills2 } from "@dub/ui/icons";
-import { DICEBEAR_AVATAR_URL } from "@dub/utils";
+import { OG_AVATAR_URL } from "@dub/utils";
 import { Store } from "lucide-react";
 import { notFound } from "next/navigation";
 import { CSSProperties } from "react";
@@ -132,7 +132,7 @@ export default async function SuccessPage({
               <div className="relative flex items-center gap-2 rounded-full border border-neutral-100 bg-gradient-to-b from-white to-neutral-50 p-2 shadow-[0_8px_28px_0_#00000017]">
                 <img
                   className="size-10 shrink-0 rounded-full"
-                  src={program.logo || `${DICEBEAR_AVATAR_URL}${program.name}`}
+                  src={program.logo || `${OG_AVATAR_URL}${program.name}`}
                   alt={`${program.name} logo`}
                 />
                 <BoltFill className="shrink-0 text-[var(--brand)] opacity-30" />

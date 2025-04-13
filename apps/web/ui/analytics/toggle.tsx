@@ -64,7 +64,6 @@ import {
   cn,
   CONTINENTS,
   COUNTRIES,
-  DICEBEAR_AVATAR_URL,
   DUB_DEMO_LINKS,
   DUB_LOGO,
   getApexDomain,
@@ -72,6 +71,7 @@ import {
   GOOGLE_FAVICON_URL,
   linkConstructor,
   nFormatter,
+  OG_AVATAR_URL,
   REGIONS,
 } from "@dub/utils";
 import { readStreamableValue } from "ai/rsc";
@@ -385,7 +385,7 @@ export default function Toggle({
                             label: email ?? name,
                             icon: (
                               <img
-                                src={avatar || `${DICEBEAR_AVATAR_URL}${id}`}
+                                src={avatar || `${OG_AVATAR_URL}${id}`}
                                 alt={`${email} avatar`}
                                 className="size-4 rounded-full"
                               />

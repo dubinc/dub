@@ -8,7 +8,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { createManualPayoutSchema } from "@/lib/zod/schemas/payouts";
 import { X } from "@/ui/shared/icons";
 import { Button, Combobox, Sheet, useEnterSubmit } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { API_DOMAIN, cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useParams, useRouter } from "next/navigation";
 import { Dispatch, SetStateAction, useMemo, useRef, useState } from "react";
@@ -62,10 +62,7 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
       label: partner.name,
       icon: (
         <img
-          src={
-            partner.image ||
-            `https://api.dicebear.com/9.x/micah/svg?seed=${partner.id}`
-          }
+          src={partner.image || `${API_DOMAIN}/og/avatar?seed=${partner.id}`}
           className="size-4 rounded-full"
         />
       ),
