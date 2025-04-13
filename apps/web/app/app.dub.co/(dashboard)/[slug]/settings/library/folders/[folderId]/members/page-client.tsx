@@ -16,7 +16,7 @@ import { FolderIcon } from "@/ui/folders/folder-icon";
 import { RequestFolderEditAccessButton } from "@/ui/folders/request-edit-button";
 import { FolderUserRole } from "@dub/prisma/client";
 import { Avatar, BlurImage, Globe } from "@dub/ui";
-import { cn, DICEBEAR_AVATAR_URL, fetcher, nFormatter } from "@dub/utils";
+import { cn, fetcher, nFormatter, OG_AVATAR_URL } from "@dub/utils";
 import { ChevronLeft } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
@@ -130,10 +130,7 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
               {canUpdateFolder && !isLoadingPermissions && (
                 <div className="relative flex items-center">
                   <BlurImage
-                    src={
-                      workspace.logo ||
-                      `${DICEBEAR_AVATAR_URL}${workspace.name}`
-                    }
+                    src={workspace.logo || `${OG_AVATAR_URL}${workspace.name}`}
                     alt={workspace.name || "Workspace logo"}
                     className="absolute left-2 size-6 shrink-0 overflow-hidden rounded-full"
                     width={20}

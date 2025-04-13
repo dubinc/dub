@@ -5,9 +5,9 @@ import { prisma } from "@dub/prisma";
 import {
   capitalize,
   currencyFormatter,
-  DICEBEAR_AVATAR_URL,
   DUB_WORDMARK,
   formatDate,
+  OG_AVATAR_URL,
 } from "@dub/utils";
 import {
   Document,
@@ -308,7 +308,7 @@ export const GET = withSession(async ({ session, params }) => {
                 <Image
                   src={
                     payout.partner.image ??
-                    `${DICEBEAR_AVATAR_URL}${payout.partner.name}`
+                    `${OG_AVATAR_URL}${payout.partner.name}`
                   }
                   style={tw("w-5 h-5 rounded-full")}
                 />

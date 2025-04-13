@@ -3,7 +3,7 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { ProgramEnrollmentProps } from "@/lib/types";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { BlurImage, Button, StatusBadge } from "@dub/ui";
-import { DICEBEAR_AVATAR_URL } from "@dub/utils";
+import { OG_AVATAR_URL } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
 
@@ -37,7 +37,7 @@ export function ProgramInviteCard({
         <BlurImage
           width={96}
           height={96}
-          src={program.logo || `${DICEBEAR_AVATAR_URL}${program.name}`}
+          src={program.logo || `${OG_AVATAR_URL}${program.name}`}
           alt={program.name}
           className="size-6 rounded-full"
         />
