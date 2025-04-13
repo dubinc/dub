@@ -20,6 +20,7 @@ export const CommissionSchema = z.object({
 
 export const CommissionResponseSchema = CommissionSchema.merge(
   z.object({
+    quantity: z.number(),
     partner: PartnerSchema,
     customer: CustomerSchema.nullable(), // customer can be null for click-based commissions
   }),
