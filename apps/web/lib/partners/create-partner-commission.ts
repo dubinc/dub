@@ -4,9 +4,11 @@ import { log } from "@dub/utils";
 import { differenceInMonths } from "date-fns";
 import { createId } from "../api/create-id";
 import { calculateSaleEarnings } from "../api/sales/calculate-sale-earnings";
+import { RewardProps } from "../types";
 import { determinePartnerReward } from "./determine-partner-reward";
 
 export const createPartnerCommission = async ({
+  reward,
   event,
   programId,
   partnerId,
@@ -18,6 +20,9 @@ export const createPartnerCommission = async ({
   quantity,
   currency,
 }: {
+  // we optionally let the caller pass in a reward to avoid a db call
+  // (e.g. in aggregate-clicks route)
+  reward?: RewardProps | null;
   event: EventType;
   partnerId: string;
   programId: string;
@@ -29,17 +34,19 @@ export const createPartnerCommission = async ({
   quantity: number;
   currency?: string;
 }) => {
-  const reward = await determinePartnerReward({
-    event,
-    partnerId,
-    programId,
-  });
-
   if (!reward) {
-    console.log(
-      `Partner ${partnerId} has no reward for ${event} event, skipping commission creation...`,
-    );
-    return;
+    reward = await determinePartnerReward({
+      event,
+      partnerId,
+      programId,
+    });
+
+    if (!reward) {
+      console.log(
+        `Partner ${partnerId} has no reward for ${event} event, skipping commission creation...`,
+      );
+      return;
+    }
   }
 
   // handle sale rewards that have a max duration limit

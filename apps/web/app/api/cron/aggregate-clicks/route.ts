@@ -18,6 +18,18 @@ export async function GET(req: Request) {
   try {
     await verifyVercelSignature(req);
 
+    const now = new Date();
+
+    // set 'start' to the beginning of the previous day (00:00:00)
+    const start = new Date(now);
+    start.setDate(start.getDate() - 1);
+    start.setHours(0, 0, 0, 0);
+
+    // set 'end' to the end of the previous day (23:59:59)
+    const end = new Date(now);
+    end.setDate(end.getDate() - 1);
+    end.setHours(23, 59, 59, 999);
+
     const rewards = await prisma.reward.findMany({
       where: {
         event: "click",
@@ -48,7 +60,6 @@ export async function GET(req: Request) {
         ({ programEnrollment }) => programEnrollment.partnerId,
       );
 
-      // get partner links that were clicked on in the last 24 hours
       const links = await prisma.link.findMany({
         where: {
           programId: reward.programId,
@@ -59,7 +70,7 @@ export async function GET(req: Request) {
             gt: 0,
           },
           lastClicked: {
-            gte: new Date(Date.now() - 24 * 60 * 60 * 1000), // links that were clicked in the last 24 hours
+            gte: start, // links that were clicked on before the start of the previous day
           },
         },
         select: {
@@ -77,20 +88,9 @@ export async function GET(req: Request) {
 
       for (const { id: linkId, programId, partnerId } of links) {
         if (!linkId || !programId || !partnerId) {
+          console.log("Invalid link", { linkId, programId, partnerId });
           continue;
         }
-
-        const now = new Date();
-
-        // set 'start' to the beginning of the previous day (00:00:00)
-        const start = new Date(now);
-        start.setDate(start.getDate() - 1);
-        start.setHours(0, 0, 0, 0);
-
-        // set 'end' to the end of the previous day (23:59:59)
-        const end = new Date(now);
-        end.setDate(end.getDate() - 1);
-        end.setHours(23, 59, 59, 999);
 
         const { clicks: quantity } = await getAnalytics({
           linkId,
@@ -101,10 +101,24 @@ export async function GET(req: Request) {
         });
 
         if (!quantity || quantity === 0) {
+          console.log("No clicks found for link", {
+            linkId,
+            programId,
+            partnerId,
+          });
           continue;
         }
 
+        console.log("Creating commission", {
+          reward,
+          event: "click",
+          programId,
+          partnerId,
+          linkId,
+          quantity,
+        });
         await createPartnerCommission({
+          reward,
           event: "click",
           programId,
           partnerId,
