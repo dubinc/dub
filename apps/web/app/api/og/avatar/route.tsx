@@ -33,36 +33,36 @@ export async function GET(req: NextRequest) {
       >
         {/* Head */}
         <div
-          tw="absolute w-[200px] h-[200px] rounded-full"
+          tw="absolute w-[51px] h-[51px] rounded-full"
           style={{
             background: theme.fg,
             display: "flex",
-            top: "110px",
+            top: "28px",
             backgroundImage:
               "linear-gradient(135deg, rgba(255,255,255,0) 0%, rgba(0,0,0,0.2) 100%)",
             boxShadow:
-              "inset 24px -20px 44px rgba(0,0,0,0.13), inset -72px -48px 76px rgba(255,255,255,0.4)",
+              "inset 6px -5px 11px rgba(0,0,0,0.13), inset -18px -12px 19px rgba(255,255,255,0.4)",
           }}
         />
         {/* Shoulders */}
         <div
-          tw="absolute w-[400px] h-[400px] rounded-full"
+          tw="absolute w-[102px] h-[102px] rounded-full"
           style={{
             background: theme.fg,
             display: "flex",
-            top: "350px",
+            top: "90px",
             clipPath: "inset(0 0 50% 0)",
             backgroundImage:
               "linear-gradient(135deg, rgba(255,255,255,0) 0%, rgba(0,0,0,0.2) 100%)",
             boxShadow:
-              "inset 40px -48px 76px rgba(0,0,0,0.4), inset -72px -48px 76px rgba(255,255,255,0.4), inset 8px -2px 44px rgba(0,0,0,0.1)",
+              "inset 10px -12px 19px rgba(0,0,0,0.4), inset -18px -12px 19px rgba(255,255,255,0.4), inset 2px -1px 11px rgba(0,0,0,0.1)",
           }}
         />
       </div>
     ),
     {
-      width: 500,
-      height: 500,
+      width: 128,
+      height: 128,
       headers: corsHeaders,
     },
   );
