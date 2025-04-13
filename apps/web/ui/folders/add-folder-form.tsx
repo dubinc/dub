@@ -9,7 +9,7 @@ import {
   TooltipContent,
   useMediaQuery,
 } from "@dub/ui";
-import { DICEBEAR_AVATAR_URL } from "@dub/utils";
+import { OG_AVATAR_URL } from "@dub/utils";
 import { FormEvent, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -126,7 +126,7 @@ export const AddFolderForm = ({ onSuccess, onCancel }: AddFolderFormProps) => {
                 <div className="mt-2 flex h-10 items-center justify-between rounded-md border border-neutral-300 bg-white">
                   <div className="flex items-center gap-2 pl-2">
                     <BlurImage
-                      src={workspace.logo || `${DICEBEAR_AVATAR_URL}${name}`}
+                      src={workspace.logo || `${OG_AVATAR_URL}${name}`}
                       alt={workspace.name || "Workspace logo"}
                       className="size-5 shrink-0 overflow-hidden rounded-full"
                       width={20}

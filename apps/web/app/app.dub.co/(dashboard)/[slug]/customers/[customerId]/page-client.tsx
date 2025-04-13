@@ -14,7 +14,7 @@ import { CustomerPartnerEarningsTable } from "@/ui/customers/customer-partner-ea
 import { CustomerSalesTable } from "@/ui/customers/customer-sales-table";
 import { BackLink } from "@/ui/shared/back-link";
 import { ArrowUpRight, CopyButton } from "@dub/ui";
-import { DICEBEAR_AVATAR_URL, fetcher } from "@dub/utils";
+import { OG_AVATAR_URL, fetcher } from "@dub/utils";
 import Link from "next/link";
 import { notFound, useParams } from "next/navigation";
 import { memo } from "react";
@@ -48,7 +48,7 @@ export function CustomerPageClient() {
       <div className="mt-5 flex items-center gap-4">
         {customer ? (
           <img
-            src={customer.avatar || `${DICEBEAR_AVATAR_URL}${customer.name}`}
+            src={customer.avatar || `${OG_AVATAR_URL}${customer.name}`}
             alt={customer.name}
             className="size-12 rounded-full"
           />
@@ -109,7 +109,7 @@ export function CustomerPageClient() {
                       <img
                         src={
                           customer.partner.image ||
-                          `${DICEBEAR_AVATAR_URL}${customer.partner.name}`
+                          `${OG_AVATAR_URL}${customer.partner.name}`
                         }
                         alt={customer.partner.name}
                         className="size-8 rounded-full"

@@ -16,7 +16,7 @@ import {
   useTable,
 } from "@dub/ui";
 import { MoneyBill2 } from "@dub/ui/icons";
-import { DICEBEAR_AVATAR_URL, formatPeriod } from "@dub/utils";
+import { OG_AVATAR_URL, formatPeriod } from "@dub/utils";
 import { useEffect, useState } from "react";
 import { PayoutDetailsSheet } from "./payout-details-sheet";
 
@@ -64,7 +64,7 @@ export function PayoutTable() {
             <img
               src={
                 row.original.program.logo ||
-                `${DICEBEAR_AVATAR_URL}${row.original.program.name}`
+                `${OG_AVATAR_URL}${row.original.program.name}`
               }
               alt={row.original.program.name}
               className="size-4 rounded-sm"

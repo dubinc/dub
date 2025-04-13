@@ -22,10 +22,10 @@ import {
 import { MoneyBill2 } from "@dub/ui/icons";
 import {
   currencyFormatter,
-  DICEBEAR_AVATAR_URL,
   fetcher,
   formatDateTime,
   formatDateTimeSmart,
+  OG_AVATAR_URL,
 } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -99,7 +99,7 @@ const CommissionTableInner = memo(
                 <img
                   src={
                     row.original.customer.avatar ||
-                    `${DICEBEAR_AVATAR_URL}${row.original.customer.id}`
+                    `${OG_AVATAR_URL}${row.original.customer.id}`
                   }
                   alt={
                     row.original.customer.email ?? row.original.customer.name

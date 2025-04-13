@@ -1,7 +1,7 @@
 import { PartnerProps } from "@/lib/types";
 import { GreekTemple, Tooltip } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { DICEBEAR_AVATAR_URL } from "@dub/utils/src/constants";
+import { OG_AVATAR_URL } from "@dub/utils/src/constants";
 import { CircleMinus } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -47,7 +47,7 @@ export function PartnerRowItem({
         >
           <div className="relative shrink-0">
             <img
-              src={partner.image || `${DICEBEAR_AVATAR_URL}${partner.name}`}
+              src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
               alt={partner.name}
               className="size-5 rounded-full"
             />
@@ -61,7 +61,7 @@ export function PartnerRowItem({
         </Tooltip>
       ) : (
         <img
-          src={partner.image || `${DICEBEAR_AVATAR_URL}${partner.name}`}
+          src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
           alt={partner.name}
           className="size-5 shrink-0 rounded-full"
         />

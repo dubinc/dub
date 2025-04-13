@@ -15,9 +15,9 @@ import {
   capitalize,
   cn,
   currencyFormatter,
-  DICEBEAR_AVATAR_URL,
   fetcher,
   formatDateTime,
+  OG_AVATAR_URL,
 } from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
 import Link from "next/link";
@@ -62,8 +62,7 @@ function PayoutDetailsSheetContent({
         >
           <img
             src={
-              payout.partner.image ||
-              `${DICEBEAR_AVATAR_URL}${payout.partner.name}`
+              payout.partner.image || `${OG_AVATAR_URL}${payout.partner.name}`
             }
             alt={payout.partner.name}
             className="mr-1.5 size-5 rounded-full"
@@ -118,7 +117,7 @@ function PayoutDetailsSheetContent({
             <img
               src={
                 row.original.customer.avatar ||
-                `${DICEBEAR_AVATAR_URL}${row.original.customer.name}`
+                `${OG_AVATAR_URL}${row.original.customer.name}`
               }
               alt={row.original.customer.name}
               className="size-6 rounded-full"

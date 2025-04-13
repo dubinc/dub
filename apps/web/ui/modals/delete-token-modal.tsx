@@ -1,7 +1,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TokenProps } from "@/lib/types";
 import { Button, Key, Modal, Tooltip, useMediaQuery } from "@dub/ui";
-import { DICEBEAR_AVATAR_URL } from "@dub/utils";
+import { OG_AVATAR_URL } from "@dub/utils";
 import {
   Dispatch,
   SetStateAction,
@@ -79,8 +79,7 @@ function DeleteTokenModal({
                   src={
                     token.user.isMachine
                       ? "https://api.dicebear.com/7.x/bottts/svg?seed=Sara"
-                      : token.user.image ||
-                        `${DICEBEAR_AVATAR_URL}${token.user.id}`
+                      : token.user.image || `${OG_AVATAR_URL}${token.user.id}`
                   }
                   alt={token.user.name!}
                   className="size-5 rounded-full"

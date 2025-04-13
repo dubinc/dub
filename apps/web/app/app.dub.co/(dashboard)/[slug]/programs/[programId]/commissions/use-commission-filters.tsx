@@ -10,7 +10,7 @@ import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { CircleDotted, useRouterStuff } from "@dub/ui";
 import { Sliders, User, Users } from "@dub/ui/icons";
-import { capitalize, cn, DICEBEAR_AVATAR_URL, nFormatter } from "@dub/utils";
+import { capitalize, cn, nFormatter, OG_AVATAR_URL } from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
@@ -44,7 +44,7 @@ export function useCommissionFilters() {
               label: email ?? name,
               icon: (
                 <img
-                  src={avatar || `${DICEBEAR_AVATAR_URL}${id}`}
+                  src={avatar || `${OG_AVATAR_URL}${id}`}
                   alt={`${email} avatar`}
                   className="size-4 rounded-full"
                 />
@@ -64,7 +64,7 @@ export function useCommissionFilters() {
               label: name,
               icon: (
                 <img
-                  src={image || `${DICEBEAR_AVATAR_URL}${name}`}
+                  src={image || `${OG_AVATAR_URL}${name}`}
                   alt={`${name} image`}
                   className="size-4 rounded-full"
                 />

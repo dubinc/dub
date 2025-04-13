@@ -2,12 +2,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutResponse } from "@/lib/types";
 import { usePayoutDetailsSheet } from "@/ui/partners/payout-details-sheet";
 import { buttonVariants } from "@dub/ui";
-import {
-  cn,
-  currencyFormatter,
-  DICEBEAR_AVATAR_URL,
-  fetcher,
-} from "@dub/utils";
+import { cn, currencyFormatter, fetcher, OG_AVATAR_URL } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
@@ -103,8 +98,7 @@ function PayoutRow({ payout }: { payout: PayoutResponse }) {
         <div className="flex items-center gap-2 text-xs">
           <img
             src={
-              payout.partner.image ||
-              `${DICEBEAR_AVATAR_URL}${payout.partner.name}`
+              payout.partner.image || `${OG_AVATAR_URL}${payout.partner.name}`
             }
             alt={payout.partner.name}
             className="size-8 rounded-full"
