@@ -6,14 +6,23 @@ export const runtime = "edge";
 
 export async function GET(req: NextRequest) {
   const origin = req.headers.get("origin");
-  // Validate the origin header and set CORS headers accordingly
+
+  // Set security headers
   const corsHeaders = {
     "Access-Control-Allow-Methods": "GET",
     "Access-Control-Allow-Headers": "Content-Type",
+    "Cross-Origin-Embedder-Policy": "require-corp",
+    "Cross-Origin-Resource-Policy": "same-origin",
+    "Cross-Origin-Opener-Policy": "same-origin",
   };
 
+  // Only allow requests from dub.co domains
   if (origin && origin.endsWith(".dub.co")) {
     corsHeaders["Access-Control-Allow-Origin"] = origin;
+    corsHeaders["Cross-Origin-Resource-Policy"] = "cross-origin";
+  } else {
+    // For non-dub.co domains, explicitly deny access
+    corsHeaders["Access-Control-Allow-Origin"] = "null";
   }
 
   const { searchParams } = new URL(req.url);
