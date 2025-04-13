@@ -70,7 +70,9 @@ export const sendOtpAction = actionClient
       }
     }
 
+    console.log('adawdawdawdawdscd');
     const code = generateOTP();
+    console.log(code);
 
     await prisma.emailVerificationToken.deleteMany({
       where: {
@@ -95,5 +97,11 @@ export const sendOtpAction = actionClient
           code,
         }),
       }),
-    ]);
+    ]).then((data) => {
+      console.log('success');
+      console.log(data);
+    }).catch((err) => {
+      console.log('err');
+      console.log(err);
+    });
   });
