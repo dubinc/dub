@@ -23,10 +23,7 @@ import {
 } from "./folder/constants";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import { clickEventResponseSchema } from "./zod/schemas/clicks";
-import {
-  CommissionResponseSchema,
-  CommissionSchema,
-} from "./zod/schemas/commissions";
+import { CommissionResponseSchema } from "./zod/schemas/commissions";
 import { customerActivityResponseSchema } from "./zod/schemas/customer-activity";
 import {
   CustomerEnrichedSchema,
@@ -367,8 +364,6 @@ export type CustomerEnriched = z.infer<typeof CustomerEnrichedSchema>;
 export type UsageResponse = z.infer<typeof usageResponse>;
 
 export type PartnersCount = Record<ProgramEnrollmentStatus | "all", number>;
-
-export type SaleProps = z.infer<typeof CommissionSchema>;
 
 export type CommissionsCount = Record<
   CommissionStatus | "all",

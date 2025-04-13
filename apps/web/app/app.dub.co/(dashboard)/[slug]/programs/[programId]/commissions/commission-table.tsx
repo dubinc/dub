@@ -25,6 +25,7 @@ import {
   fetcher,
   formatDateTime,
   formatDateTimeSmart,
+  nFormatter,
   OG_AVATAR_URL,
 } from "@dub/utils";
 import Link from "next/link";
@@ -137,24 +138,6 @@ const CommissionTableInner = memo(
           },
         },
         {
-          id: "amount",
-          header: "Amount",
-          accessorFn: (d) =>
-            currencyFormatter(d.amount / 100, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            }),
-        },
-        {
-          id: "commission",
-          header: "Commission",
-          accessorFn: (d) =>
-            currencyFormatter(d.earnings / 100, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            }),
-        },
-        {
           id: "type",
           header: "Type",
           accessorKey: "type",
@@ -166,6 +149,26 @@ const CommissionTableInner = memo(
               type: row.original.type,
             }),
           },
+        },
+        {
+          id: "amount",
+          header: "Amount",
+          accessorFn: (d) =>
+            d.type === "sale"
+              ? currencyFormatter(d.amount / 100, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })
+              : nFormatter(d.quantity),
+        },
+        {
+          id: "commission",
+          header: "Commission",
+          accessorFn: (d) =>
+            currencyFormatter(d.earnings / 100, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }),
         },
         {
           header: "Status",
