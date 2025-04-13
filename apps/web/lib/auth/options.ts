@@ -56,7 +56,7 @@ export const authOptions: NextAuthOptions = {
           sendEmail({
             email: identifier,
             subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} Login Link`,
-            react: LoginLink({ url, email: identifier }),
+            text: url,
           }).then((data) => {
             console.log('login email sent');
             console.log(data);
