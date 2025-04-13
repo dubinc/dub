@@ -5,6 +5,17 @@ import { getTheme } from "./utils";
 export const runtime = "edge";
 
 export async function GET(req: NextRequest) {
+  const origin = req.headers.get("origin");
+  // Validate the origin header and set CORS headers accordingly
+  const corsHeaders = {
+    "Access-Control-Allow-Methods": "GET",
+    "Access-Control-Allow-Headers": "Content-Type",
+  };
+
+  if (origin && origin.endsWith(".dub.co")) {
+    corsHeaders["Access-Control-Allow-Origin"] = origin;
+  }
+
   const { searchParams } = new URL(req.url);
   const seed = searchParams.get("seed");
   const theme = getTheme(seed);
@@ -52,6 +63,7 @@ export async function GET(req: NextRequest) {
     {
       width: 500,
       height: 500,
+      headers: corsHeaders,
     },
   );
 }
