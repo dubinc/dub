@@ -124,6 +124,19 @@ export const PATCH = withWorkspace(
       }
     }
 
+    if (triggers) {
+      const hasPartnersTrigger = triggers.some((trigger) =>
+        ["partner.created", "partner.enrolled"].includes(trigger),
+      );
+
+      if (hasPartnersTrigger && !workspace.partnersEnabled) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: `Partners are not enabled on this workspace to use "partner.enrolled" trigger.`,
+        });
+      }
+    }
+
     const oldLinks = await prisma.linkWebhook.findMany({
       where: {
         webhookId,
@@ -254,23 +267,12 @@ export const DELETE = withWorkspace(
   async ({ workspace, params }) => {
     const { webhookId } = params;
 
-    const webhook = await prisma.webhook.findUniqueOrThrow({
+    await prisma.webhook.findUniqueOrThrow({
       where: {
         id: webhookId,
         projectId: workspace.id,
       },
-      select: {
-        installationId: true,
-      },
     });
-
-    if (webhook.installationId) {
-      throw new DubApiError({
-        code: "bad_request",
-        message:
-          "This webhook is managed by an integration, hence cannot be deleted manually.",
-      });
-    }
 
     const linkWebhooks = await prisma.linkWebhook.findMany({
       where: {

@@ -62,7 +62,6 @@ export const AnalyticsContext = createContext<{
     [key in AnalyticsResponseOptions]: number;
   };
   adminPage?: boolean;
-  demoPage?: boolean;
   partnerPage?: boolean;
   showConversions?: boolean;
   requiresUpgrade?: boolean;
@@ -79,7 +78,6 @@ export const AnalyticsContext = createContext<{
   start: new Date(),
   end: new Date(),
   adminPage: false,
-  demoPage: false,
   partnerPage: false,
   showConversions: false,
   requiresUpgrade: false,
@@ -88,12 +86,10 @@ export const AnalyticsContext = createContext<{
 
 export default function AnalyticsProvider({
   adminPage,
-  demoPage,
   dashboardProps,
   children,
 }: PropsWithChildren<{
   adminPage?: boolean;
-  demoPage?: boolean;
   dashboardProps?: AnalyticsDashboardProps;
 }>) {
   const searchParams = useSearchParams();
@@ -124,6 +120,8 @@ export default function AnalyticsProvider({
   })?.join(",");
 
   const folderId = searchParams?.get("folderId") ?? undefined;
+
+  const customerId = searchParams?.get("customerId") ?? undefined;
 
   // Default to last 24 hours
   const { start, end } = useMemo(() => {
@@ -189,14 +187,8 @@ export default function AnalyticsProvider({
   const { basePath, domain, baseApiPath, eventsApiPath } = useMemo(() => {
     if (adminPage) {
       return {
-        basePath: `/analytics`,
-        baseApiPath: `/api/analytics/admin`,
-        domain: domainSlug,
-      };
-    } else if (demoPage) {
-      return {
-        basePath: `/analytics/demo`,
-        baseApiPath: `/api/analytics/demo`,
+        basePath: "analytics",
+        baseApiPath: "/api/admin/analytics",
         domain: domainSlug,
       };
     } else if (slug) {
@@ -208,9 +200,9 @@ export default function AnalyticsProvider({
       };
     } else if (partner?.id && programSlug) {
       return {
-        basePath: `/api/partner-profile/programs/${programSlug}/links/analytics`,
+        basePath: `/api/partner-profile/programs/${programSlug}/analytics`,
         baseApiPath: `/api/partner-profile/programs/${programSlug}/analytics`,
-        eventsApiPath: `/api/partner-profile/programs/${programSlug}/links/events`,
+        eventsApiPath: `/api/partner-profile/programs/${programSlug}/events`,
         domain: domainSlug,
       };
     } else if (dashboardId) {
@@ -229,7 +221,6 @@ export default function AnalyticsProvider({
     }
   }, [
     adminPage,
-    demoPage,
     slug,
     pathname,
     dashboardProps?.domain,
@@ -283,6 +274,7 @@ export default function AnalyticsProvider({
       ...(root && { root: root.toString() }),
       event: selectedTab,
       ...(folderId && { folderId }),
+      ...(customerId && { customerId }),
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     }).toString();
   }, [
@@ -295,6 +287,7 @@ export default function AnalyticsProvider({
     tagIds,
     selectedTab,
     folderId,
+    customerId,
   ]);
 
   // Reset requiresUpgrade when query changes
@@ -357,7 +350,6 @@ export default function AnalyticsProvider({
         tagIds, // ids of the tags to filter by
         totalEvents, // totalEvents (clicks, leads, sales)
         adminPage, // whether the user is an admin
-        demoPage, // whether the user is viewing demo analytics
         partnerPage, // whether the user is viewing partner analytics
         dashboardProps,
         showConversions, // Whether to show conversions tabs/data

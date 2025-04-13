@@ -48,20 +48,12 @@ export function UpgradeEmail({
               Hey{name && ` ${name}`}!
             </Text>
             <Text className="text-sm leading-6 text-black">
-              My name is Steven, and I'm the founder of Dub. I wanted to
-              personally reach out to thank you for upgrading to{" "}
-              <strong>Dub {plan}</strong>!
+              My name is Steven, and I'm the founder of Dub.
             </Text>
             <Text className="text-sm leading-6 text-black">
-              As you might already know, we are fully{" "}
-              <Link
-                href="https://d.to/github"
-                className="font-medium text-blue-600 no-underline"
-              >
-                open-source
-              </Link>{" "}
-              business. Your support means the world to us and helps us continue
-              to build and improve Dub.
+              I wanted to personally reach out to thank you for upgrading to{" "}
+              <strong>Dub {plan}</strong>! Your support means the world to us
+              and helps us continue to build and improve Dub.
             </Text>
             <Text className="text-sm leading-6 text-black">
               On the {plan} plan, you now have access to:

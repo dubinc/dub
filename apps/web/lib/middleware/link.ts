@@ -1,5 +1,5 @@
 import {
-  createResponseWithCookie,
+  createResponseWithCookies,
   detectBot,
   getFinalUrl,
   isSupportedDeeplinkProtocol,
@@ -31,6 +31,7 @@ import { clickCache } from "../api/links/click-cache";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
 import { hasEmptySearchParams } from "./utils/has-empty-search-params";
+import { resolveABTestURL } from "./utils/resolve-ab-test-url";
 
 export default async function LinkMiddleware(
   req: NextRequest,
@@ -120,7 +121,6 @@ export default async function LinkMiddleware(
 
   const {
     id: linkId,
-    url,
     password,
     trackConversion,
     proxy,
@@ -132,8 +132,17 @@ export default async function LinkMiddleware(
     expiredUrl,
     doIndex,
     webhookIds,
+    testVariants,
+    testCompletedAt,
     projectId: workspaceId,
   } = cachedLink;
+
+  const testUrl = resolveABTestURL({
+    testVariants,
+    testCompletedAt,
+  });
+
+  const url = testUrl || cachedLink.url;
 
   // by default, we only index default dub domain links (e.g. dub.sh)
   // everything else is not indexed by default, unless the user has explicitly set it to be indexed
@@ -207,10 +216,10 @@ export default async function LinkMiddleware(
     }
   }
 
-  const cookieName = `dub_id_${domain}_${key}`;
+  const dubIdCookieName = `dub_id_${domain}_${key}`;
 
   const cookieStore = cookies();
-  let clickId = cookieStore.get(cookieName)?.value;
+  let clickId = cookieStore.get(dubIdCookieName)?.value;
   if (!clickId) {
     // if trackConversion is enabled, check if clickId is cached in Redis
     if (trackConversion) {
@@ -226,9 +235,10 @@ export default async function LinkMiddleware(
   }
 
   const cookieData = {
-    name: cookieName,
-    value: clickId,
     path: `/${originalKey}`,
+    dubIdCookieName,
+    dubIdCookieValue: clickId,
+    dubTestUrlValue: testUrl,
   };
 
   // for root domain links, if there's no destination URL, rewrite to placeholder page
@@ -247,7 +257,7 @@ export default async function LinkMiddleware(
       }),
     );
 
-    return createResponseWithCookie(
+    return createResponseWithCookies(
       NextResponse.rewrite(new URL(`/${domain}`, req.url), {
         headers: {
           ...DUB_HEADERS,
@@ -266,7 +276,7 @@ export default async function LinkMiddleware(
 
   // rewrite to proxy page (/proxy/[domain]/[key]) if it's a bot and proxy is enabled
   if (isBot && proxy) {
-    return createResponseWithCookie(
+    return createResponseWithCookies(
       NextResponse.rewrite(
         new URL(`/proxy/${domain}/${encodeURIComponent(key)}`, req.url),
         {
@@ -295,7 +305,7 @@ export default async function LinkMiddleware(
       }),
     );
 
-    return createResponseWithCookie(
+    return createResponseWithCookies(
       NextResponse.rewrite(
         new URL(
           `/deeplink/${encodeURIComponent(
@@ -332,7 +342,7 @@ export default async function LinkMiddleware(
       }),
     );
 
-    return createResponseWithCookie(
+    return createResponseWithCookies(
       NextResponse.rewrite(
         new URL(
           `/cloaked/${encodeURIComponent(
@@ -371,7 +381,7 @@ export default async function LinkMiddleware(
       }),
     );
 
-    return createResponseWithCookie(
+    return createResponseWithCookies(
       NextResponse.redirect(
         getFinalUrl(ios, {
           req,
@@ -404,7 +414,7 @@ export default async function LinkMiddleware(
       }),
     );
 
-    return createResponseWithCookie(
+    return createResponseWithCookies(
       NextResponse.redirect(
         getFinalUrl(android, {
           req,
@@ -437,7 +447,7 @@ export default async function LinkMiddleware(
       }),
     );
 
-    return createResponseWithCookie(
+    return createResponseWithCookies(
       NextResponse.redirect(
         getFinalUrl(geo[country], {
           req,
@@ -471,19 +481,22 @@ export default async function LinkMiddleware(
     );
 
     if (hasEmptySearchParams(url)) {
-      return NextResponse.rewrite(new URL("/api/patch-redirect", req.url), {
-        request: {
-          headers: new Headers({
-            destination: getFinalUrl(url, {
-              req,
-              clickId: trackConversion ? clickId : undefined,
+      return createResponseWithCookies(
+        NextResponse.rewrite(new URL("/api/patch-redirect", req.url), {
+          request: {
+            headers: new Headers({
+              destination: getFinalUrl(url, {
+                req,
+                clickId: trackConversion ? clickId : undefined,
+              }),
             }),
-          }),
-        },
-      });
+          },
+        }),
+        cookieData,
+      );
     }
 
-    return createResponseWithCookie(
+    return createResponseWithCookies(
       NextResponse.redirect(
         getFinalUrl(url, {
           req,

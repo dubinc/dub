@@ -7,7 +7,7 @@ import { PARTNERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partners";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { useRouterStuff } from "@dub/ui";
 import { CircleDotted, Users } from "@dub/ui/icons";
-import { cn, DICEBEAR_AVATAR_URL, nFormatter } from "@dub/utils";
+import { cn, nFormatter, OG_AVATAR_URL } from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
@@ -41,7 +41,7 @@ export function usePayoutFilters(extraSearchParams: Record<string, string>) {
               label: name,
               icon: (
                 <img
-                  src={image || `${DICEBEAR_AVATAR_URL}${name}`}
+                  src={image || `${OG_AVATAR_URL}${name}`}
                   alt={`${name} image`}
                   className="size-4 rounded-full"
                 />

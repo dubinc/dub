@@ -164,9 +164,9 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
                   { id: "links", label: "Links" },
                   { id: "payouts", label: "Payouts" },
                   {
-                    id: "sales",
-                    label: "Sales",
-                    href: `/${slug}/programs/${program!.id}/sales?partnerId=${partner.id}`,
+                    id: "commissions",
+                    label: "Commissions",
+                    href: `/${slug}/programs/${program!.id}/commissions?partnerId=${partner.id}`,
                   },
                 ]}
                 selected={tab}

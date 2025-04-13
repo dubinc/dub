@@ -26,12 +26,7 @@ import {
   useTable,
 } from "@dub/ui";
 import { CircleCheck, Dots, MoneyBill2, MoneyBills2 } from "@dub/ui/icons";
-import {
-  cn,
-  DICEBEAR_AVATAR_URL,
-  formatDate,
-  formatDateTime,
-} from "@dub/utils";
+import { cn, formatDate, formatDateTime, OG_AVATAR_URL } from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
 import { fetcher } from "@dub/utils/src/functions/fetcher";
 import { Row } from "@tanstack/react-table";
@@ -154,9 +149,9 @@ const PayoutTableInner = memo(
                         <img
                           src={
                             row.original.user.image ||
-                            `${DICEBEAR_AVATAR_URL}${row.original.user.name}`
+                            `${OG_AVATAR_URL}${row.original.user.name}`
                           }
-                          alt={row.original.user.name}
+                          alt={row.original.user.name ?? row.original.user.id}
                           className="size-6 shrink-0 rounded-full"
                         />
                         <p className="text-sm font-medium">
@@ -184,9 +179,9 @@ const PayoutTableInner = memo(
                     <img
                       src={
                         row.original.user.image ||
-                        `${DICEBEAR_AVATAR_URL}${row.original.user.name}`
+                        `${OG_AVATAR_URL}${row.original.user.name}`
                       }
-                      alt={row.original.user.name}
+                      alt={row.original.user.name ?? row.original.user.id}
                       className="size-5 shrink-0 rounded-full"
                     />
                   )}

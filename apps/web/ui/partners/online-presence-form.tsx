@@ -102,11 +102,6 @@ export function OnlinePresenceForm({
 
   const startVerification = useOAuthVerification(variant);
 
-  const enableTikTokVerification =
-    partner?.email === "integrations-testing@tiktok.com";
-
-  console.log({ enableTikTokVerification, partnerEmail: partner?.email });
-
   return (
     <>
       <DomainVerificationModal
@@ -356,9 +351,6 @@ export function OnlinePresenceForm({
                   onClick={() =>
                     startVerification("tiktok", getValues("tiktok"))
                   }
-                  {...(!enableTikTokVerification && {
-                    disabledTooltip: "TikTok verification is coming soon.",
-                  })}
                 />
               }
             />

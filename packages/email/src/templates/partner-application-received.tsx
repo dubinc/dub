@@ -1,4 +1,4 @@
-import { DICEBEAR_AVATAR_URL, DUB_WORDMARK } from "@dub/utils";
+import { DUB_WORDMARK, OG_AVATAR_URL } from "@dub/utils";
 import {
   Body,
   Container,
@@ -92,10 +92,7 @@ export function PartnerApplicationReceived({
                   <div>
                     <div className="relative w-fit">
                       <Img
-                        src={
-                          partner.image ||
-                          `${DICEBEAR_AVATAR_URL}${partner.name}`
-                        }
+                        src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
                         width="48"
                         height="48"
                         alt={partner.name}

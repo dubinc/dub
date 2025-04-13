@@ -5,8 +5,8 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth/workspace";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { redis } from "@/lib/upstash";
+import { CommissionSchema } from "@/lib/zod/schemas/commissions";
 import { updatePartnerSaleSchema } from "@/lib/zod/schemas/partners";
-import { ProgramSaleSchema } from "@/lib/zod/schemas/program-sales";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
@@ -100,6 +100,9 @@ export const PATCH = withWorkspace(
       },
     });
 
+    // TODO:
+    // Check the reward limit
+
     const amountDifference = finalAmount - sale.amount;
     const earningsDifference = finalEarnings - sale.earnings;
 
@@ -136,7 +139,7 @@ export const PATCH = withWorkspace(
       ]);
     }
 
-    return NextResponse.json(ProgramSaleSchema.parse(updatedSale));
+    return NextResponse.json(CommissionSchema.parse(updatedSale));
   },
   {
     requiredPlan: [
