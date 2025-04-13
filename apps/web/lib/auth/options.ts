@@ -53,7 +53,6 @@ export const authOptions: NextAuthOptions = {
           return;
         } else {
           console.log('sending login email');
-          console.log(identifier);
           sendEmail({
             email: identifier,
             subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} Login Link`,
@@ -64,6 +63,8 @@ export const authOptions: NextAuthOptions = {
           }).catch((err) => {
             console.log('login email err');
             console.log(err);
+          }).finally(() => {
+            console.log('sending email finally');
           });
         }
       },

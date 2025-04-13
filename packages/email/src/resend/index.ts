@@ -27,6 +27,7 @@ export const sendEmailViaResend = async ({
     return;
   }
 
+  console.log('here sending email');
   return await resend.emails.send({
     to: email,
     from: 'help@getqr.com',
