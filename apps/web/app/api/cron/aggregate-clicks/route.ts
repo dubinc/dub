@@ -70,7 +70,7 @@ export async function GET(req: Request) {
             gt: 0,
           },
           lastClicked: {
-            gte: start, // links that were clicked on before the start of the previous day
+            gte: start, // links that were clicked on after the start date
           },
         },
         select: {
