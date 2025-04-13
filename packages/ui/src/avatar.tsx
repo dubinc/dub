@@ -1,4 +1,4 @@
-import { cn } from "@dub/utils";
+import { API_DOMAIN, cn } from "@dub/utils";
 import { sha256 } from "js-sha256";
 import { useState } from "react";
 
@@ -12,15 +12,14 @@ type User = {
 export function getUserAvatarUrl(user?: User | null) {
   if (user?.image) return user.image;
 
-  if (!user?.id) return "https://api.dicebear.com/9.x/micah/svg";
+  if (!user?.id) return `${API_DOMAIN}/og/avatar`;
 
-  const dicebear = `https://api.dicebear.com/9.x/micah/svg?seed=${encodeURIComponent(user.id)}`;
-  // Gravatar default doesn't support SVG or query params, so we use PNG and encoded / params
-  const encodedDicebear = `https://api.dicebear.com/9.x/micah/png/${encodeURIComponent(`seed=${encodeURIComponent(user.id)}`)}`;
+  const ogAvatar = `${API_DOMAIN}/og/avatar?seed=${encodeURIComponent(user.id)}`;
+  const encodedOGAvatar = `${API_DOMAIN}/og/avatar${encodeURIComponent(`?seed=${encodeURIComponent(user.id)}`)}`;
 
   return user.email
-    ? `https://www.gravatar.com/avatar/${sha256(user.email)}?d=${encodeURIComponent(encodedDicebear)}`
-    : dicebear;
+    ? `https://www.gravatar.com/avatar/${sha256(user.email)}?d=${encodeURIComponent(encodedOGAvatar)}`
+    : ogAvatar;
 }
 
 export function Avatar({
@@ -54,11 +53,7 @@ export function Avatar({
       )}
       draggable={false}
       onError={() => {
-        setUrl(
-          `https://api.dicebear.com/9.x/micah/svg?seed=${encodeURIComponent(
-            user.id || "",
-          )}`,
-        );
+        setUrl(`${API_DOMAIN}/og/avatar?seed=${user.id}`);
       }}
     />
   );

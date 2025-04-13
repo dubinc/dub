@@ -1,12 +1,7 @@
 import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-timeseries";
 import { ProgramEnrollmentProps, ProgramProps } from "@/lib/types";
 import { BlurImage, MiniAreaChart, StatusBadge } from "@dub/ui";
-import {
-  cn,
-  currencyFormatter,
-  DICEBEAR_AVATAR_URL,
-  formatDate,
-} from "@dub/utils";
+import { cn, currencyFormatter, formatDate, OG_AVATAR_URL } from "@dub/utils";
 import { addDays } from "date-fns";
 import Link from "next/link";
 import { useMemo } from "react";
@@ -52,7 +47,7 @@ export function ProgramCard({
           <BlurImage
             width={96}
             height={96}
-            src={program.logo || `${DICEBEAR_AVATAR_URL}${program.name}`}
+            src={program.logo || `${OG_AVATAR_URL}${program.name}`}
             alt={program.name}
             className="size-6 rounded-full"
           />

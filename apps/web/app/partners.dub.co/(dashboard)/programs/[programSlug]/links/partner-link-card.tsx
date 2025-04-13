@@ -18,12 +18,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis } from "@dub/ui/charts";
-import {
-  cn,
-  DICEBEAR_AVATAR_URL,
-  getApexDomain,
-  getPrettyUrl,
-} from "@dub/utils";
+import { cn, getApexDomain, getPrettyUrl, OG_AVATAR_URL } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
 import { ComponentProps, useMemo, useRef } from "react";
@@ -153,7 +148,7 @@ export function PartnerLinkCard({
               <BlurImage
                 src={
                   programEnrollment.program.logo ||
-                  `${DICEBEAR_AVATAR_URL}${programEnrollment.program.name}`
+                  `${OG_AVATAR_URL}${programEnrollment.program.name}`
                 }
                 width={16}
                 height={16}

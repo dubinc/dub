@@ -3,7 +3,7 @@
 import usePartners from "@/lib/swr/use-partners";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { Button, Combobox, Table, useTable } from "@dub/ui";
-import { cn, DICEBEAR_AVATAR_URL } from "@dub/utils";
+import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
@@ -56,7 +56,7 @@ export function RewardPartnersTable({
         icon: (
           <img
             alt={partner.name}
-            src={partner.image || `${DICEBEAR_AVATAR_URL}${partner.name}`}
+            src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
             className="mr-1.5 size-4 shrink-0 rounded-full"
           />
         ),
@@ -131,10 +131,7 @@ export function RewardPartnersTable({
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
             <img
-              src={
-                row.original.image ||
-                `${DICEBEAR_AVATAR_URL}${row.original.name}`
-              }
+              src={row.original.image || `${OG_AVATAR_URL}${row.original.name}`}
               alt={row.original.name}
               className="size-6 shrink-0 rounded-full"
             />

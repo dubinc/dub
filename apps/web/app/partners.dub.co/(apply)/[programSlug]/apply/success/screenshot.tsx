@@ -1,5 +1,5 @@
 import { ProgramProps } from "@/lib/types";
-import { cn, DICEBEAR_AVATAR_URL, truncate } from "@dub/utils";
+import { cn, OG_AVATAR_URL, truncate } from "@dub/utils";
 import { SVGProps, useId } from "react";
 
 export function Screenshot({
@@ -65,7 +65,7 @@ export function Screenshot({
         <image
           x="18"
           y="70"
-          href={program.logo || `${DICEBEAR_AVATAR_URL}${program.name}`}
+          href={program.logo || `${OG_AVATAR_URL}${program.name}`}
           width="32"
           height="32"
           clipPath="inset(0% round 32px)"
@@ -617,7 +617,7 @@ export function Screenshot({
           <image
             x="1367.5"
             y="217"
-            href={program.logo || `${DICEBEAR_AVATAR_URL}${program.name}`}
+            href={program.logo || `${OG_AVATAR_URL}${program.name}`}
             width="80"
             height="80"
             clipPath="inset(0% round 80px)"
