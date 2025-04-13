@@ -42,8 +42,8 @@ export const createPartnerCommission = async ({
     return;
   }
 
-  // handle rewards with max duration limit
-  if (typeof reward.maxDuration === "number") {
+  // handle sale rewards that have a max duration limit
+  if (reward.event === "sale" && typeof reward.maxDuration === "number") {
     // Get the first commission (earliest sale) for this customer-partner pair
     const firstCommission = await prisma.commission.findFirst({
       where: {
