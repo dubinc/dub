@@ -18,6 +18,7 @@ export const sendEmail = async ({
   marketing?: boolean;
 }) => {
   if (resend) {
+    console.log('here sending email');
     return await sendEmailViaResend({
       email,
       replyTo,
