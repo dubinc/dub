@@ -44,11 +44,13 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
 
   // for App
   if (APP_HOSTNAMES.has(domain)) {
+    console.log('middleware here1');
     return AppMiddleware(req);
   }
 
   // for API
   if (API_HOSTNAMES.has(domain)) {
+    console.log('middleware here2');
     return ApiMiddleware(req);
   }
 
@@ -64,12 +66,16 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
 
   // for Admin
   if (ADMIN_HOSTNAMES.has(domain)) {
+    console.log('middleware here3');
     return AdminMiddleware(req);
   }
 
   if (PARTNERS_HOSTNAMES.has(domain)) {
+    console.log('middleware here4');
     return PartnersMiddleware(req);
   }
+
+  console.log('middleware here5');
 
   if (isValidUrl(fullKey)) {
     return CreateLinkMiddleware(req);
