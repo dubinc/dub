@@ -18,85 +18,100 @@ export async function GET(req: Request) {
   try {
     await verifyVercelSignature(req);
 
-    const programIds = await prisma.reward.findMany({
+    const rewards = await prisma.reward.findMany({
       where: {
         event: "click",
       },
-      select: {
-        programId: true,
+      // click rewards are always partner-specific for now
+      // but in the future we need to account for program-wide click rewards
+      include: {
+        partners: {
+          select: {
+            programEnrollment: {
+              select: {
+                partnerId: true,
+              },
+            },
+          },
+        },
       },
     });
 
-    if (!programIds.length) {
+    if (!rewards.length) {
       return NextResponse.json({
         message: "No programs with click rewards found. Skipping...",
       });
     }
 
-    const links = await prisma.link.findMany({
-      where: {
-        programId: {
-          in: programIds.map(({ programId }) => programId),
-        },
-        partnerId: {
-          not: null,
-        },
-        clicks: {
-          gt: 0,
-        },
-        lastClicked: {
-          gte: new Date(Date.now() - 24 * 60 * 60 * 1000), // links that were clicked in the last 24 hours
-        },
-      },
-      select: {
-        id: true,
-        programId: true,
-        partnerId: true,
-      },
-    });
+    for (const reward of rewards) {
+      const partnerIds = reward.partners.map(
+        ({ programEnrollment }) => programEnrollment.partnerId,
+      );
 
-    if (!links.length) {
-      return NextResponse.json({
-        message: "No links found. Skipping...",
+      // get partner links that were clicked on in the last 24 hours
+      const links = await prisma.link.findMany({
+        where: {
+          programId: reward.programId,
+          partnerId: {
+            in: partnerIds,
+          },
+          clicks: {
+            gt: 0,
+          },
+          lastClicked: {
+            gte: new Date(Date.now() - 24 * 60 * 60 * 1000), // links that were clicked in the last 24 hours
+          },
+        },
+        select: {
+          id: true,
+          programId: true,
+          partnerId: true,
+        },
       });
-    }
 
-    for (const { id: linkId, programId, partnerId } of links) {
-      if (!linkId || !programId || !partnerId) {
-        continue;
+      if (!links.length) {
+        return NextResponse.json({
+          message: "No links found. Skipping...",
+        });
       }
 
-      const now = new Date();
+      for (const { id: linkId, programId, partnerId } of links) {
+        if (!linkId || !programId || !partnerId) {
+          continue;
+        }
 
-      // set 'start' to the beginning of the previous day (00:00:00)
-      const start = new Date(now);
-      start.setDate(start.getDate() - 1);
-      start.setHours(0, 0, 0, 0);
+        const now = new Date();
 
-      // set 'end' to the end of the previous day (23:59:59)
-      const end = new Date(now);
-      end.setDate(end.getDate() - 1);
-      end.setHours(23, 59, 59, 999);
+        // set 'start' to the beginning of the previous day (00:00:00)
+        const start = new Date(now);
+        start.setDate(start.getDate() - 1);
+        start.setHours(0, 0, 0, 0);
 
-      const { clicks: quantity } = await getAnalytics({
-        linkId,
-        start,
-        end,
-        groupBy: "count",
-        event: "clicks",
-      });
+        // set 'end' to the end of the previous day (23:59:59)
+        const end = new Date(now);
+        end.setDate(end.getDate() - 1);
+        end.setHours(23, 59, 59, 999);
 
-      if (!quantity || quantity === 0) {
-        continue;
+        const { clicks: quantity } = await getAnalytics({
+          linkId,
+          start,
+          end,
+          groupBy: "count",
+          event: "clicks",
+        });
+
+        if (!quantity || quantity === 0) {
+          continue;
+        }
+
+        await createPartnerCommission({
+          event: "click",
+          programId,
+          partnerId,
+          linkId,
+          quantity,
+        });
       }
-
-      await createPartnerCommission({
-        event: "click",
-        programId,
-        partnerId,
-        linkId,
-        quantity,
-      });
     }
 
     return NextResponse.json("OK");
