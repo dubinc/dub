@@ -45,7 +45,6 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
 };
 
 export const authOptions: NextAuthOptions = {
-  debug: true,
   providers: [
     EmailProvider({
       sendVerificationRequest({ identifier, url }) {
@@ -328,6 +327,9 @@ export const authOptions: NextAuthOptions = {
         // domain: VERCEL_DEPLOYMENT
         //   ? `.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
         //   : undefined,
+        domain: VERCEL_DEPLOYMENT
+          ? `.getqr.com`
+          : undefined,
         secure: VERCEL_DEPLOYMENT,
       },
     },
