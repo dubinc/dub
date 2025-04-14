@@ -22,7 +22,10 @@ export const useCopyToClipboard = (
   const copyToClipboard = useCallback(
     async (
       value: string | ClipboardItem,
-      { onSuccess }: { onSuccess?: () => void } = {},
+      {
+        onSuccess,
+        throwOnError,
+      }: { onSuccess?: () => void; throwOnError?: boolean } = {},
     ) => {
       clearTimer();
       try {
@@ -40,6 +43,7 @@ export const useCopyToClipboard = (
         }
       } catch (error) {
         console.error("Failed to copy: ", error);
+        if (throwOnError) throw error;
       }
     },
     [timeout],
