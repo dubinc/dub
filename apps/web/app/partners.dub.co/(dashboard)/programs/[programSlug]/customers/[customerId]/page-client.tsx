@@ -44,7 +44,7 @@ export function ProgramCustomerPageClient() {
 
   return (
     <div className="mb-10 mt-2">
-      <BackLink href={`/${programSlug}/earnings`}>Earnings</BackLink>
+      <BackLink href={`/programs/${programSlug}/earnings`}>Earnings</BackLink>
       <div className="mt-5 flex items-center gap-4">
         <div className="border-border-subtle flex size-12 items-center justify-center rounded-full border bg-gradient-to-t from-neutral-50">
           <User className="size-4 text-neutral-700" />
