@@ -4,17 +4,14 @@ import {
 } from "@/lib/analytics/constants";
 import { z } from "zod";
 import {
-  CommissionResponseSchema,
+  CommissionSchema,
   getCommissionsCountQuerySchema,
   getCommissionsQuerySchema,
 } from "./commissions";
 import { CustomerEnrichedSchema } from "./customers";
 import { LinkSchema } from "./links";
 
-export const PartnerEarningsSchema = CommissionResponseSchema.omit({
-  partner: true,
-  customer: true,
-}).merge(
+export const PartnerEarningsSchema = CommissionSchema.merge(
   z.object({
     type: z.string(),
     customer: z
