@@ -13,7 +13,6 @@ import { qstash } from "../cron";
 import { cancelSubscription } from "../stripe/cancel-subscription";
 import { markDomainAsDeleted } from "./domains";
 import { linkCache } from "./links/cache";
-import { workspaceCache } from "./workspaces/cache";
 
 export async function deleteWorkspace(
   workspace: Pick<WorkspaceProps, "id" | "slug" | "logo" | "stripeId">,
@@ -58,8 +57,6 @@ export async function deleteWorkspace(
       queueWorkspaceDeletion({
         workspaceId: workspace.id,
       }),
-
-      workspaceCache.delete(workspace.id),
     ]),
   );
 }

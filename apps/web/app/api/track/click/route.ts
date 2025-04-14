@@ -3,7 +3,7 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { clickCache } from "@/lib/api/links/click-cache";
 import { parseRequestBody } from "@/lib/api/utils";
-import { workspaceCache } from "@/lib/api/workspaces/cache";
+import { getWorkspaceViaEdge } from "@/lib/planetscale";
 import { getLinkWithPartner } from "@/lib/planetscale/get-link-with-partner";
 import { recordClick } from "@/lib/tinybird";
 import { formatRedisLink } from "@/lib/upstash";
@@ -98,18 +98,6 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
       });
     }
 
-    const allowedHostnames = await workspaceCache.get({
-      id: cachedLink.projectId,
-      key: "allowedHostnames",
-    });
-
-    if (allowedHostnames) {
-      verifyAnalyticsAllowedHostnames({
-        allowedHostnames,
-        req,
-      });
-    }
-
     const finalUrl = url
       ? isValidUrl(url)
         ? url
@@ -117,18 +105,30 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
       : cachedLink.url;
 
     waitUntil(
-      recordClick({
-        req,
-        clickId,
-        linkId: cachedLink.id,
-        domain,
-        key,
-        url: finalUrl,
-        workspaceId: cachedLink.projectId,
-        skipRatelimit: true,
-        ...(referrer && { referrer }),
-        trackConversion: cachedLink.trackConversion,
-      }),
+      (async () => {
+        const workspace = await getWorkspaceViaEdge(cachedLink.projectId!);
+        const allowedHostnames = workspace?.allowedHostnames as string[];
+
+        if (
+          verifyAnalyticsAllowedHostnames({
+            allowedHostnames,
+            req,
+          })
+        ) {
+          await recordClick({
+            req,
+            clickId,
+            linkId: cachedLink.id,
+            domain,
+            key,
+            url: finalUrl,
+            workspaceId: cachedLink.projectId,
+            skipRatelimit: true,
+            ...(referrer && { referrer }),
+            trackConversion: cachedLink.trackConversion,
+          });
+        }
+      })(),
     );
 
     const isPartnerLink = Boolean(cachedLink.programId && cachedLink.partnerId);

@@ -3,7 +3,6 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { validateAllowedHostnames } from "@/lib/api/validate-allowed-hostnames";
 import { prefixWorkspaceId } from "@/lib/api/workspace-id";
 import { deleteWorkspace } from "@/lib/api/workspaces";
-import { workspaceCache } from "@/lib/api/workspaces/cache";
 import { withWorkspace } from "@/lib/auth";
 import { getFeatureFlags } from "@/lib/edge-config";
 import { storage } from "@/lib/storage";
@@ -111,22 +110,9 @@ export const PATCH = withWorkspace(
         });
       }
 
-      waitUntil(
-        (async () => {
-          if (logoUploaded && workspace.logo) {
-            await storage.delete(workspace.logo.replace(`${R2_URL}/`, ""));
-          }
-
-          if (validHostnames) {
-            workspaceCache.set({
-              id: workspace.id,
-              data: {
-                allowedHostnames: validHostnames,
-              },
-            });
-          }
-        })(),
-      );
+      if (logoUploaded && workspace.logo) {
+        waitUntil(storage.delete(workspace.logo.replace(`${R2_URL}/`, "")));
+      }
 
       return NextResponse.json(
         WorkspaceSchema.parse({
