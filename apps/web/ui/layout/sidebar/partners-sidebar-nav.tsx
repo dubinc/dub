@@ -13,7 +13,6 @@ import {
   User,
   Users,
 } from "@dub/ui/icons";
-import { Store } from "lucide-react";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
 import { Hyperlink } from "./icons/hyperlink";
@@ -36,15 +35,15 @@ const NAV_AREAS: SidebarNavAreas<{
       {
         items: [
           {
-            name: "Programs",
-            icon: GridIcon,
-            href: "/programs",
+            name: "Overview",
+            icon: Gauge6,
+            href: "/",
             exact: true,
           },
           {
-            name: "Marketplace",
-            icon: Store,
-            href: "/marketplace",
+            name: "Programs",
+            icon: GridIcon,
+            href: "/programs",
           },
           {
             name: "Settings",
