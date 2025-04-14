@@ -5,7 +5,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
-import { isStored, storage } from "@/lib/storage";
+import { storage } from "@/lib/storage";
 import { getClickEvent, recordLead, recordLeadSync } from "@/lib/tinybird";
 import { logConversionEvent } from "@/lib/tinybird/log-conversion-events";
 import { redis } from "@/lib/upstash";
@@ -17,7 +17,7 @@ import {
   trackLeadResponseSchema,
 } from "@/lib/zod/schemas/leads";
 import { prisma } from "@dub/prisma";
-import { nanoid } from "@dub/utils";
+import { nanoid, R2_URL } from "@dub/utils";
 import { Customer } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -35,7 +35,7 @@ export const POST = withWorkspace(
       eventName,
       eventQuantity,
       externalId,
-      customerId, // deprecated (but we'll support it for backwards compatibility)
+      customerId: oldCustomerId, // deprecated (but we'll support it for backwards compatibility)
       customerName,
       customerEmail,
       customerAvatar,
@@ -44,9 +44,13 @@ export const POST = withWorkspace(
     } = trackLeadRequestSchema.parse(body);
 
     const stringifiedEventName = eventName.toLowerCase().replace(" ", "-");
-    const customerExternalId = externalId || customerId;
+    const customerExternalId = externalId || oldCustomerId;
+    const customerId = createId({ prefix: "cus_" });
     const finalCustomerName =
       customerName || customerEmail || generateRandomName();
+    const finalCustomerAvatar = customerAvatar
+      ? `${R2_URL}/customers/${customerId}/avatar_${nanoid(7)}`
+      : null;
 
     if (!customerExternalId) {
       throw new DubApiError({
@@ -117,10 +121,10 @@ export const POST = withWorkspace(
             },
           },
           create: {
-            id: createId({ prefix: "cus_" }),
+            id: customerId,
             name: finalCustomerName,
             email: customerEmail,
-            avatar: customerAvatar,
+            avatar: finalCustomerAvatar,
             externalId: customerExternalId,
             projectId: workspace.id,
             projectConnectId: workspace.stripeConnectId,
@@ -236,30 +240,21 @@ export const POST = withWorkspace(
               partnerId: link.partnerId,
               linkId: link.id,
               eventId: leadEventId,
-              customerId: customer?.id,
+              customerId: customerId,
               quantity: eventQuantity ?? 1,
             });
           }
 
-          if (customerAvatar && !isStored(customerAvatar)) {
+          if (customerAvatar && finalCustomerAvatar) {
             // persist customer avatar to R2
-            const { url: persistedAvatarUrl } = await storage.upload(
-              `customers/${customer?.id}/avatar_${nanoid(7)}`,
+            await storage.upload(
+              `customers/${customerId}/avatar_${nanoid(7)}`,
               customerAvatar,
               {
                 width: 128,
                 height: 128,
               },
             );
-
-            customer = await prisma.customer.update({
-              where: {
-                id: customer?.id,
-              },
-              data: {
-                avatar: persistedAvatarUrl,
-              },
-            });
           }
 
           await sendWorkspaceWebhook({
