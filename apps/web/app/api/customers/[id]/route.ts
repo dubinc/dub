@@ -102,11 +102,11 @@ export const PATCH = withWorkspace(
       },
     );
 
-    // we update the customer avatar if:
-    // 1. it's a new avatar (not stored in R2)
-    // 2. the new avatar is different from the old avatar
-    const updatedCustomerAvatar =
-      avatar && (!isStored(avatar) || avatar !== customer.avatar)
+    // we need to persist the customer avatar to R2 if:
+    // 1. it's different from the old avatar
+    // 2. it's not stored in R2 already
+    const persistAvatar =
+      avatar && avatar !== customer.avatar && !isStored(avatar)
         ? `${R2_URL}/customers/${customer.id}/avatar_${nanoid(7)}`
         : undefined;
 
@@ -118,22 +118,18 @@ export const PATCH = withWorkspace(
         data: {
           name,
           email,
-          avatar: updatedCustomerAvatar,
+          avatar: persistAvatar || avatar,
           externalId,
         },
       });
 
-      if (avatar && updatedCustomerAvatar) {
+      if (avatar && persistAvatar) {
         waitUntil(
           Promise.allSettled([
-            storage.upload(
-              updatedCustomerAvatar.replace(`${R2_URL}/`, ""),
-              avatar,
-              {
-                width: 128,
-                height: 128,
-              },
-            ),
+            storage.upload(persistAvatar.replace(`${R2_URL}/`, ""), avatar, {
+              width: 128,
+              height: 128,
+            }),
             customer.avatar &&
               isStored(customer.avatar) &&
               storage.delete(customer.avatar.replace(`${R2_URL}/`, "")),
