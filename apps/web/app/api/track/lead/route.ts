@@ -5,6 +5,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
+import { isStored, storage } from "@/lib/storage";
 import { getClickEvent, recordLead, recordLeadSync } from "@/lib/tinybird";
 import { logConversionEvent } from "@/lib/tinybird/log-conversion-events";
 import { redis } from "@/lib/upstash";
@@ -237,6 +238,27 @@ export const POST = withWorkspace(
               eventId: leadEventId,
               customerId: customer?.id,
               quantity: eventQuantity ?? 1,
+            });
+          }
+
+          if (customerAvatar && !isStored(customerAvatar)) {
+            // persist customer avatar to R2
+            const { url: persistedAvatarUrl } = await storage.upload(
+              `customers/${customer?.id}/avatar_${nanoid(7)}`,
+              customerAvatar,
+              {
+                width: 128,
+                height: 128,
+              },
+            );
+
+            customer = await prisma.customer.update({
+              where: {
+                id: customer?.id,
+              },
+              data: {
+                avatar: persistedAvatarUrl,
+              },
             });
           }
 

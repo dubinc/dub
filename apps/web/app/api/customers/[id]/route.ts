@@ -4,6 +4,7 @@ import { transformCustomer } from "@/lib/api/customers/transform-customer";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { isStored, storage } from "@/lib/storage";
 import {
   CustomerEnrichedSchema,
   CustomerSchema,
@@ -11,7 +12,9 @@ import {
   updateCustomerBodySchema,
 } from "@/lib/zod/schemas/customers";
 import { prisma } from "@dub/prisma";
+import { nanoid, R2_URL } from "@dub/utils";
 import { Discount } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/customers/:id – Get a customer by ID
@@ -99,6 +102,14 @@ export const PATCH = withWorkspace(
       },
     );
 
+    // we update the customer avatar if:
+    // 1. it's a new avatar (not stored in R2)
+    // 2. the new avatar is different from the old avatar
+    const updatedCustomerAvatar =
+      avatar && (!isStored(avatar) || avatar !== customer.avatar)
+        ? `${R2_URL}/customers/${customer.id}/avatar_${nanoid(7)}`
+        : undefined;
+
     try {
       const updatedCustomer = await prisma.customer.update({
         where: {
@@ -107,10 +118,28 @@ export const PATCH = withWorkspace(
         data: {
           name,
           email,
-          avatar,
+          avatar: updatedCustomerAvatar,
           externalId,
         },
       });
+
+      if (avatar && updatedCustomerAvatar) {
+        waitUntil(
+          Promise.allSettled([
+            storage.upload(
+              updatedCustomerAvatar.replace(`${R2_URL}/`, ""),
+              avatar,
+              {
+                width: 128,
+                height: 128,
+              },
+            ),
+            customer.avatar &&
+              isStored(customer.avatar) &&
+              storage.delete(customer.avatar.replace(`${R2_URL}/`, "")),
+          ]),
+        );
+      }
 
       let discount: Discount | null = null;
 
@@ -188,6 +217,10 @@ export const DELETE = withWorkspace(
         id: customer.id,
       },
     });
+
+    if (customer.avatar && isStored(customer.avatar)) {
+      storage.delete(customer.avatar.replace(`${R2_URL}/`, ""));
+    }
 
     return NextResponse.json({
       id: customer.id,
