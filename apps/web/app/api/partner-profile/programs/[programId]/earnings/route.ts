@@ -47,6 +47,7 @@ export const GET = withPartnerProfile(
         programId: program.id,
         partnerId: partner.id,
         status,
+        type,
         linkId,
         customerId,
         payoutId,
