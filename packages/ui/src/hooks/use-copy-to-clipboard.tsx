@@ -6,7 +6,7 @@ export const useCopyToClipboard = (
   boolean,
   (
     value: string | ClipboardItem,
-    options?: { onSuccess?: () => void },
+    options?: { onSuccess?: () => void; throwOnError?: boolean },
   ) => Promise<void>,
 ] => {
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
