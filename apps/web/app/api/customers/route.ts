@@ -5,7 +5,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
-import { storage } from "@/lib/storage";
+import { isStored, storage } from "@/lib/storage";
 import z from "@/lib/zod";
 import {
   createCustomerBodySchema,
@@ -160,9 +160,10 @@ export const POST = withWorkspace(
 
     const customerId = createId({ prefix: "cus_" });
     const finalCustomerName = name || email || generateRandomName();
-    const finalCustomerAvatar = avatar
-      ? `${R2_URL}/customers/${customerId}/avatar_${nanoid(7)}`
-      : null;
+    const finalCustomerAvatar =
+      avatar && !isStored(avatar)
+        ? `${R2_URL}/customers/${customerId}/avatar_${nanoid(7)}`
+        : avatar;
 
     try {
       const customer = await prisma.customer.create({
@@ -177,7 +178,7 @@ export const POST = withWorkspace(
         },
       });
 
-      if (avatar && finalCustomerAvatar) {
+      if (avatar && !isStored(avatar) && finalCustomerAvatar) {
         waitUntil(
           storage.upload(
             finalCustomerAvatar.replace(`${R2_URL}/`, ""),

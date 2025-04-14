@@ -5,7 +5,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
-import { storage } from "@/lib/storage";
+import { isStored, storage } from "@/lib/storage";
 import { getClickEvent, recordLead, recordLeadSync } from "@/lib/tinybird";
 import { logConversionEvent } from "@/lib/tinybird/log-conversion-events";
 import { redis } from "@/lib/upstash";
@@ -48,9 +48,11 @@ export const POST = withWorkspace(
     const customerId = createId({ prefix: "cus_" });
     const finalCustomerName =
       customerName || customerEmail || generateRandomName();
-    const finalCustomerAvatar = customerAvatar
-      ? `${R2_URL}/customers/${customerId}/avatar_${nanoid(7)}`
-      : null;
+    // this will either be
+    const finalCustomerAvatar =
+      customerAvatar && !isStored(customerAvatar)
+        ? `${R2_URL}/customers/${customerId}/avatar_${nanoid(7)}`
+        : customerAvatar;
 
     if (!customerExternalId) {
       throw new DubApiError({
@@ -245,10 +247,14 @@ export const POST = withWorkspace(
             });
           }
 
-          if (customerAvatar && finalCustomerAvatar) {
+          if (
+            customerAvatar &&
+            !isStored(customerAvatar) &&
+            finalCustomerAvatar
+          ) {
             // persist customer avatar to R2
             await storage.upload(
-              `customers/${customerId}/avatar_${nanoid(7)}`,
+              finalCustomerAvatar.replace(`${R2_URL}/`, ""),
               customerAvatar,
               {
                 width: 128,
@@ -278,7 +284,7 @@ export const POST = withWorkspace(
       customer: {
         name: finalCustomerName,
         email: customerEmail,
-        avatar: customerAvatar,
+        avatar: finalCustomerAvatar,
         externalId: customerExternalId,
       },
     });
@@ -289,7 +295,7 @@ export const POST = withWorkspace(
       clickId,
       customerName: finalCustomerName,
       customerEmail: customerEmail,
-      customerAvatar: customerAvatar,
+      customerAvatar: finalCustomerAvatar,
     });
   },
   {
