@@ -15,7 +15,7 @@ import {
 import { Footer } from "../components/footer";
 
 // Send this email when the payout is confirmed when payment is send using ACH
-export function PartnerPayoutConfirmed({
+export default function PartnerPayoutConfirmed({
   email = "panic@thedis.co",
   program = {
     id: "prog_CYCu7IMAapjkRpTnr8F1azjN",
@@ -38,8 +38,8 @@ export function PartnerPayoutConfirmed({
   payout: {
     id: string;
     amount: number;
-    startDate: Date;
-    endDate: Date;
+    startDate?: Date | null;
+    endDate?: Date | null;
   };
 }) {
   const saleAmountInDollars = currencyFormatter(payout.amount / 100, {
@@ -47,17 +47,21 @@ export function PartnerPayoutConfirmed({
     maximumFractionDigits: 2,
   });
 
-  const startDate = formatDate(payout.startDate, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+  const startDate = payout.startDate
+    ? formatDate(payout.startDate, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      })
+    : null;
 
-  const endDate = formatDate(payout.endDate, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+  const endDate = payout.endDate
+    ? formatDate(payout.endDate, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      })
+    : null;
 
   return (
     <Html>
@@ -81,10 +85,18 @@ export function PartnerPayoutConfirmed({
             <Text className="text-sm leading-6 text-neutral-600">
               <strong className="text-black">{program.name}</strong> has
               initiated a payout of{" "}
-              <strong className="text-black">{saleAmountInDollars}</strong> for
-              affiliate sales made from{" "}
-              <strong className="text-black">{startDate}</strong> to{" "}
-              <strong className="text-black">{endDate}</strong>.
+              <strong className="text-black">{saleAmountInDollars}</strong>
+              {startDate && endDate ? (
+                <>
+                  {" "}
+                  for affiliate sales made from{" "}
+                  <strong className="text-black">{startDate}</strong> to{" "}
+                  <strong className="text-black">{endDate}</strong>
+                </>
+              ) : (
+                ""
+              )}
+              .
             </Text>
             <Text className="text-sm leading-6 text-neutral-600">
               The payout is currently being processed and is expected to be
