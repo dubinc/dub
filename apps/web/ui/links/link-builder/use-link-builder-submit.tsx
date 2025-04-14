@@ -82,9 +82,7 @@ export function useLinkBuilderSubmit({
           if (!props) {
             try {
               await copyToClipboard(data.shortLink, { throwOnError: true });
-              toast.success("Copied short link to clipboard!", {
-                duration: 100000,
-              });
+              toast.success("Copied short link to clipboard!");
             } catch (err) {
               toast.success(
                 <div className="flex grow items-center justify-between gap-4">
@@ -109,7 +107,7 @@ export function useLinkBuilderSubmit({
                   />
                 </div>,
                 {
-                  duration: 100000,
+                  duration: 5000,
                 },
               );
             }
