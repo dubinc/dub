@@ -4,20 +4,32 @@ import { createId } from "@/lib/api/create-id";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { createRewardSchema } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
-import { EventType } from "@dub/prisma/client";
 import { authActionClient } from "../safe-action";
 
 export const createRewardAction = authActionClient
   .schema(createRewardSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { programId, partnerIds, event, amount, type, maxDuration } =
-      parsedInput;
+    const {
+      programId,
+      partnerIds,
+      event,
+      amount,
+      type,
+      maxDuration,
+      maxAmount,
+    } = parsedInput;
 
     const program = await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
     });
+
+    if (maxAmount && maxAmount < amount) {
+      throw new Error(
+        "Max reward amount cannot be less than the reward amount.",
+      );
+    }
 
     let programEnrollments: { id: string }[] = [];
 
@@ -87,6 +99,7 @@ export const createRewardAction = authActionClient
         type,
         amount,
         maxDuration,
+        maxAmount,
         ...(programEnrollments && {
           partners: {
             createMany: {
@@ -99,10 +112,10 @@ export const createRewardAction = authActionClient
       },
     });
 
-    // set the default sale reward if it doesn't exist
+    // set the default reward if it doesn't exist
     if (
-      event === EventType.sale &&
       !program.defaultRewardId &&
+      ["lead", "sale"].includes(event) &&
       (!partnerIds || partnerIds.length === 0)
     ) {
       await prisma.program.update({

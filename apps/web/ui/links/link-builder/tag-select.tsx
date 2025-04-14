@@ -188,6 +188,9 @@ export const TagSelect = memo(() => {
             ),
             { shouldDirty: true },
           );
+          setSuggestedTags((tags) =>
+            tags.filter(({ id }) => !selectedIds.includes(id)),
+          );
         }}
         options={loadingTags ? undefined : options}
         icon={<Tag className="mt-[5px] size-4 text-neutral-500" />}

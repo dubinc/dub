@@ -9,7 +9,7 @@ import {
   LinkLogo,
   Modal,
 } from "@dub/ui";
-import { APP_NAME, DICEBEAR_AVATAR_URL } from "@dub/utils";
+import { APP_NAME, OG_AVATAR_URL } from "@dub/utils";
 import {
   Dispatch,
   SetStateAction,
@@ -91,8 +91,7 @@ function TransferDomainModal({
             items={(workspaces || []).map((workspace) => ({
               id: workspace.id,
               value: workspace.name,
-              image:
-                workspace.logo || `${DICEBEAR_AVATAR_URL}${workspace.name}`,
+              image: workspace.logo || `${OG_AVATAR_URL}${workspace.name}`,
               disabled: workspace.id === currentWorkspace.id,
               label: workspace.id === currentWorkspace.id ? "Current" : "",
             }))}

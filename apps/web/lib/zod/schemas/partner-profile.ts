@@ -3,14 +3,15 @@ import {
   intervals,
 } from "@/lib/analytics/constants";
 import { z } from "zod";
-import { LinkSchema } from "./links";
 import {
-  getProgramSalesCountQuerySchema,
-  getProgramSalesQuerySchema,
-  ProgramSaleResponseSchema,
-} from "./program-sales";
+  CommissionResponseSchema,
+  getCommissionsCountQuerySchema,
+  getCommissionsQuerySchema,
+} from "./commissions";
+import { CustomerEnrichedSchema } from "./customers";
+import { LinkSchema } from "./links";
 
-export const PartnerEarningsSchema = ProgramSaleResponseSchema.omit({
+export const PartnerEarningsSchema = CommissionResponseSchema.omit({
   partner: true,
   customer: true,
 }).merge(
@@ -33,7 +34,7 @@ export const PartnerEarningsSchema = ProgramSaleResponseSchema.omit({
   }),
 );
 
-export const getPartnerEarningsQuerySchema = getProgramSalesQuerySchema
+export const getPartnerEarningsQuerySchema = getCommissionsQuerySchema
   .omit({
     partnerId: true,
     sortBy: true,
@@ -47,19 +48,18 @@ export const getPartnerEarningsQuerySchema = getProgramSalesQuerySchema
     }),
   );
 
-export const getPartnerEarningsCountQuerySchema =
-  getProgramSalesCountQuerySchema
-    .omit({
-      partnerId: true,
-    })
-    .merge(
-      z.object({
-        interval: z.enum(intervals).default(DUB_PARTNERS_ANALYTICS_INTERVAL),
-        type: z.enum(["click", "lead", "sale"]).optional(),
-        linkId: z.string().optional(),
-        groupBy: z.enum(["linkId", "customerId", "status", "type"]).optional(),
-      }),
-    );
+export const getPartnerEarningsCountQuerySchema = getCommissionsCountQuerySchema
+  .omit({
+    partnerId: true,
+  })
+  .merge(
+    z.object({
+      interval: z.enum(intervals).default(DUB_PARTNERS_ANALYTICS_INTERVAL),
+      type: z.enum(["click", "lead", "sale"]).optional(),
+      linkId: z.string().optional(),
+      groupBy: z.enum(["linkId", "customerId", "status", "type"]).optional(),
+    }),
+  );
 
 export const getPartnerEarningsTimeseriesSchema =
   getPartnerEarningsCountQuerySchema.extend({
@@ -79,4 +79,15 @@ export const PartnerProfileLinkSchema = LinkSchema.pick({
   comments: true,
 }).extend({
   createdAt: z.string().or(z.date()),
+});
+
+export const PartnerProfileCustomerSchema = CustomerEnrichedSchema.pick({
+  id: true,
+  createdAt: true,
+  country: true,
+  link: true,
+}).extend({
+  email: z
+    .string()
+    .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "********")),
 });

@@ -62,6 +62,15 @@ export const PUT = withWorkspace(
             ? link.expiresAt.toISOString()
             : link.expiresAt,
         geo: link.geo as NewLinkProps["geo"],
+        testVariants: link.testVariants as NewLinkProps["testVariants"],
+        testCompletedAt:
+          link.testCompletedAt instanceof Date
+            ? link.testCompletedAt.toISOString()
+            : link.testCompletedAt,
+        testStartedAt:
+          link.testStartedAt instanceof Date
+            ? link.testStartedAt.toISOString()
+            : link.testStartedAt,
         ...body,
       };
 

@@ -2,6 +2,7 @@
 
 import { Button } from "@dub/ui";
 import { SessionProvider, signOut, useSession } from "next-auth/react";
+import Link from "next/link";
 import { useState } from "react";
 
 export function NotFoundHint() {
@@ -15,6 +16,14 @@ export function NotFoundHint() {
 function NotFoundHintChild() {
   const { data: session } = useSession();
   const [isLoading, setIsLoading] = useState(false);
+
+  if (!session) {
+    return (
+      <Link href="/">
+        <Button text="Return home" />
+      </Link>
+    );
+  }
 
   return (
     <>

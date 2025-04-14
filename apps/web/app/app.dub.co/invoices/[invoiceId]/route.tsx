@@ -7,6 +7,7 @@ import {
   currencyFormatter,
   DUB_WORDMARK,
   formatDate,
+  OG_AVATAR_URL,
 } from "@dub/utils";
 import {
   Document,
@@ -305,7 +306,10 @@ export const GET = withSession(async ({ session, params }) => {
             >
               <View style={tw("flex-row items-center gap-2 w-2/6 p-3.5")}>
                 <Image
-                  src={payout.partner.image!}
+                  src={
+                    payout.partner.image ??
+                    `${OG_AVATAR_URL}${payout.partner.name}`
+                  }
                   style={tw("w-5 h-5 rounded-full")}
                 />
                 <Text>{payout.partner.name}</Text>

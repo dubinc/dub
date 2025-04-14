@@ -1,6 +1,6 @@
 import { ZodOpenApiOperationObject } from "zod-openapi";
+import { CommissionSchema } from "../../zod/schemas/commissions";
 import { updatePartnerSaleSchema } from "../../zod/schemas/partners";
-import { ProgramSaleSchema } from "../../zod/schemas/program-sales";
 import { openApiErrorResponses } from "../responses";
 
 export const updatePartnerSale: ZodOpenApiOperationObject = {
@@ -21,7 +21,7 @@ export const updatePartnerSale: ZodOpenApiOperationObject = {
       description: "The updated sale.",
       content: {
         "application/json": {
-          schema: ProgramSaleSchema,
+          schema: CommissionSchema,
         },
       },
     },

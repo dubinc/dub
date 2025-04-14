@@ -3,6 +3,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ExpandedLinkProps } from "@/lib/types";
 import { LinkBuilderDestinationUrlInput } from "@/ui/links/link-builder/controls/link-builder-destination-url-input";
+import { LinkBuilderFolderSelector } from "@/ui/links/link-builder/controls/link-builder-folder-selector";
 import { LinkBuilderShortLinkInput } from "@/ui/links/link-builder/controls/link-builder-short-link-input";
 import { LinkCommentsInput } from "@/ui/links/link-builder/controls/link-comments-input";
 import { ConversionTrackingToggle } from "@/ui/links/link-builder/conversion-tracking-toggle";
@@ -35,7 +36,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { cn, isValidUrl } from "@dub/utils";
-import { useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -81,7 +82,7 @@ function LinkBuilderInner({
 }: LinkBuilderModalProps) {
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
-  const { id: workspaceId, flags } = useWorkspace();
+  const { id: workspaceId, slug, flags } = useWorkspace();
 
   const { props, duplicateProps } = useLinkBuilderContext();
 
@@ -116,11 +117,6 @@ function LinkBuilderInner({
     );
   }, [showLinkBuilder, isSubmitting, isSubmitSuccessful, props, isDirty]);
 
-  const keyRef = useRef<HTMLInputElement>(null);
-  useEffect(() => {
-    if (key?.endsWith("-copy")) keyRef.current?.select();
-  }, []);
-
   const { loading, primaryDomain } = useAvailableDomains({
     currentDomain: domain,
   });
@@ -137,12 +133,20 @@ function LinkBuilderInner({
 
   const draftControlsRef = useRef<DraftControlsHandle>(null);
 
+  const { link } = useParams() as { link: string | string[] };
+  const router = useRouter();
+
   const onSubmitSuccess = useCallback((data: LinkFormData) => {
     draftControlsRef.current?.onSubmitSuccessful();
 
-    // Navigate to the link's folder
-    if (data.folderId) queryParams({ set: { folderId: data.folderId } });
-    else queryParams({ del: ["folderId"] });
+    if (link) {
+      // Navigate to the new link
+      router.push(`/${slug}/links/${data.domain}/${data.key}`);
+    } else {
+      // Navigate to the link's folder
+      if (data.folderId) queryParams({ set: { folderId: data.folderId } });
+      else queryParams({ del: ["folderId"] });
+    }
 
     setShowLinkBuilder(false);
   }, []);
@@ -188,15 +192,15 @@ function LinkBuilderInner({
           <div
             className={cn(
               "grid w-full gap-y-6 max-md:overflow-auto md:grid-cols-[2fr_1fr]",
-              "max-md:max-h-[calc(100dvh-200px)] max-md:min-h-[min(510px,_calc(100dvh-200px))]",
-              "md:[&>div]:max-h-[calc(100dvh-200px)] md:[&>div]:min-h-[min(510px,_calc(100dvh-200px))]",
+              "max-md:max-h-[calc(100dvh-200px)] max-md:min-h-[min(566px,_calc(100dvh-200px))]",
+              "md:[&>div]:max-h-[calc(100dvh-200px)] md:[&>div]:min-h-[min(566px,_calc(100dvh-200px))]",
             )}
           >
             <div className="scrollbar-hide px-6 md:overflow-auto">
               <div className="flex min-h-full flex-col gap-6 py-4">
                 <LinkBuilderDestinationUrlInput />
 
-                <LinkBuilderShortLinkInput ref={keyRef} />
+                <LinkBuilderShortLinkInput />
 
                 <TagSelect />
 
@@ -212,7 +216,8 @@ function LinkBuilderInner({
             <div className="scrollbar-hide px-6 md:overflow-auto md:pl-0 md:pr-4">
               <div className="relative">
                 <div className="absolute inset-0 rounded-xl border border-neutral-200 bg-neutral-50 [mask-image:linear-gradient(to_bottom,black,transparent)]"></div>
-                <div className="relative flex flex-col gap-6 p-4">
+                <div className="relative flex flex-col gap-6 px-4 py-3">
+                  <LinkBuilderFolderSelector />
                   <QRCodePreview />
                   <LinkPreview />
                 </div>

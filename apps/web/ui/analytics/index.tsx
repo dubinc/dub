@@ -4,7 +4,7 @@ import { cn } from "@dub/utils";
   This Analytics component lives in several different places:
   1. Workspace analytics page, e.g. app.dub.co/dub/analytics
   2. Public stats page, e.g. app.dub.co/share/dash_6NSA6vNm017MZwfzt8SubNSZ
-  3. Partner program links page, e.g. partners.dub.co/programs/dub/links/analytics
+  3. Partner program links page, e.g. partners.dub.co/programs/dub/analytics
 */
 
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -22,15 +22,13 @@ import TopLinks from "./top-links";
 
 export default function Analytics({
   adminPage,
-  demoPage,
   dashboardProps,
 }: {
   adminPage?: boolean;
-  demoPage?: boolean;
   dashboardProps?: AnalyticsDashboardProps;
 }) {
   return (
-    <AnalyticsProvider {...{ adminPage, demoPage, dashboardProps }}>
+    <AnalyticsProvider {...{ adminPage, dashboardProps }}>
       <AnalyticsContext.Consumer>
         {({ dashboardProps }) => {
           return (

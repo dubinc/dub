@@ -1,23 +1,17 @@
 import { generateRandomName } from "@/lib/names";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { Customer } from "@/lib/types";
-import { ChartActivity2, useRouterStuff } from "@dub/ui";
+import { ChartActivity2 } from "@dub/ui";
 import Link from "next/link";
 
 export function CustomerRowItem({ customer }: { customer: Customer }) {
+  const { slug } = useWorkspace();
   const display = customer.email || customer.name || generateRandomName();
-  const { queryParams } = useRouterStuff();
 
   return (
     <>
       <Link
-        href={
-          queryParams({
-            set: {
-              customerId: customer.id,
-            },
-            getNewPath: true,
-          }) as string
-        }
+        href={`/${slug}/customers/${customer.id}`}
         scroll={false}
         className="flex w-full items-center justify-between gap-2 px-4 py-2.5 transition-colors hover:bg-stone-100"
       >
