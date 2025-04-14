@@ -27,7 +27,35 @@ export const useCopyToClipboard = (
       clearTimer();
       try {
         if (typeof value === "string") {
-          await navigator.clipboard.writeText(value);
+          // Try modern clipboard API first
+          try {
+            await navigator.clipboard.writeText(value);
+          } catch (err) {
+            console.log("Modern clipboard API failed, trying fallback method:", err);
+            // Fallback for browsers that don't support clipboard API
+            const textArea = document.createElement("textarea");
+            textArea.value = value;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-999999px";
+            textArea.style.top = "-999999px";
+            textArea.style.opacity = "0";
+            document.body.appendChild(textArea);
+            
+            try {
+              // Focus and select the text
+              textArea.focus();
+              textArea.select();
+              
+              // Try to copy using the older execCommand method
+              const successful = document.execCommand("copy");
+              if (!successful) {
+                throw new Error("execCommand('copy') failed");
+              }
+            } finally {
+              // Always clean up
+              document.body.removeChild(textArea);
+            }
+          }
         } else if (value instanceof ClipboardItem) {
           await navigator.clipboard.write([value]);
         }
@@ -39,7 +67,8 @@ export const useCopyToClipboard = (
           timer.current = setTimeout(() => setCopied(false), timeout);
         }
       } catch (error) {
-        console.error("Failed to copy: ", error);
+        console.error("Failed to copy to clipboard:", error);
+        throw error; // Re-throw the error so the caller can handle it
       }
     },
     [timeout],
