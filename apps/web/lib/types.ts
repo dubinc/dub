@@ -113,6 +113,10 @@ export interface RedisLinkProps {
   doIndex?: boolean;
   projectId?: string;
   webhookIds?: string[];
+  programId?: string;
+  partnerId?: string;
+  partner?: Pick<PartnerProps, "id" | "name" | "image">;
+  discount?: Pick<DiscountProps, "id" | "amount" | "type" | "maxDuration">;
   testVariants?: z.infer<typeof ABTestVariantsSchema>;
   testCompletedAt?: Date;
 }
