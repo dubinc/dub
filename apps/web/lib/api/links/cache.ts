@@ -51,7 +51,7 @@ class LinkCache {
   }
 
   async get({ domain, key }: Pick<LinkProps, "domain" | "key">) {
-    return await redis.get<RedisLinkProps>(`linkcache:${domain}:${key}`);
+    return await redis.get<RedisLinkProps>(this._createKey({ domain, key }));
   }
 
   async delete({ domain, key }: Pick<LinkProps, "domain" | "key">) {

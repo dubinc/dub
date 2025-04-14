@@ -6,7 +6,8 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { getWorkspaceViaEdge } from "@/lib/planetscale";
 import { getLinkWithPartner } from "@/lib/planetscale/get-link-with-partner";
 import { recordClick } from "@/lib/tinybird";
-import { formatRedisLink } from "@/lib/upstash";
+import { RedisLinkProps } from "@/lib/types";
+import { formatRedisLink, redis } from "@/lib/upstash";
 import { DiscountSchema } from "@/lib/zod/schemas/discount";
 import { PartnerSchema } from "@/lib/zod/schemas/partners";
 import { isValidUrl, LOCALHOST_IP, nanoid } from "@dub/utils";
@@ -54,16 +55,11 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
 
     const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
 
-    let [cachedClickId, cachedLink] = await Promise.all([
-      clickCache.get({
-        domain,
-        key,
-        ip,
-      }),
-      linkCache.get({
-        domain,
-        key,
-      }),
+    let [cachedClickId, cachedLink] = await redis.mget<
+      [string, RedisLinkProps]
+    >([
+      clickCache._createKey({ domain, key, ip }),
+      linkCache._createKey({ domain, key }),
     ]);
 
     // assign a new clickId if there's no cached clickId
