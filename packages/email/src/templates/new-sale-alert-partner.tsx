@@ -47,7 +47,7 @@ export function NewSaleAlertPartner({
     earnings: number;
   };
 }) {
-  const linkToSale = `https://partners.dub.co/programs/${program.slug}/earnings`;
+  const linkToEarnings = `https://partners.dub.co/programs/${program.slug}/earnings`;
 
   const earningsInDollars = currencyFormatter(sale.earnings / 100, {
     minimumFractionDigits: 2,
@@ -78,7 +78,7 @@ export function NewSaleAlertPartner({
             </Section>
 
             <Heading className="mx-0 my-7 p-0 text-lg font-medium text-black">
-              You just made a {earningsInDollars} referral sale!
+              You just made a {earningsInDollars} referral commission!
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
@@ -104,9 +104,9 @@ export function NewSaleAlertPartner({
             <Section className="mb-12 mt-8">
               <Link
                 className="rounded-lg bg-neutral-900 px-4 py-3 text-[12px] font-semibold text-white no-underline"
-                href={linkToSale}
+                href={linkToEarnings}
               >
-                View sale
+                View earnings
               </Link>
             </Section>
             <Footer email={email} />
