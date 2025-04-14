@@ -25,22 +25,20 @@ export const trackLeadRequestSchema = z.object({
     .describe(
       "The numerical value associated with this lead event (e.g., number of provisioned seats in a free trial). If defined as N, the lead event will be tracked N times.",
     ),
+  customerExternalId: z
+    .string()
+    .trim()
+    .max(100)
+    .describe(
+      "This is the unique identifier for the customer in the client's app. This is used to track the customer's journey.",
+    ),
   externalId: z
     .string()
     .trim()
     .max(100)
-    .default("") // Remove this after migrating users from customerId to externalId
-    .describe(
-      "This is the unique identifier for the customer in the client's app. This is used to track the customer's journey.",
-    ),
-  customerId: z
-    .string()
-    .trim()
-    .max(100)
     .nullish()
-    .default(null)
     .describe(
-      "This is the unique identifier for the customer in the client's app. This is used to track the customer's journey.",
+      "[Deprecated]: Use `customerExternalId` instead. This is the unique identifier for the customer in the client's app. This is used to track the customer's journey.",
     )
     .openapi({ deprecated: true }),
   customerName: z

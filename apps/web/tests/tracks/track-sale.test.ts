@@ -8,27 +8,10 @@ import {
 import { expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 
-test("POST /track/sale", async () => {
-  const h = new IntegrationHarness();
-  const { http } = await h.init();
-
-  const sale = {
-    eventName: "Subscription",
-    amount: randomValue([400, 900, 1900]),
-    currency: "usd",
-    invoiceId: `INV_${randomId()}`,
-    paymentProcessor: "stripe",
-  };
-
-  const response = await http.post<TrackSaleResponse>({
-    path: "/track/sale",
-    body: {
-      ...sale,
-      externalId: E2E_CUSTOMER_EXTERNAL_ID,
-    },
-  });
-
-  expect(response.status).toEqual(200);
+const expectSuccessfulSaleResponse = (
+  response: { data: TrackSaleResponse },
+  sale: any,
+) => {
   expect(response.data).toStrictEqual({
     eventName: "Subscription",
     customer: {
@@ -51,13 +34,37 @@ test("POST /track/sale", async () => {
     metadata: null,
     invoiceId: sale.invoiceId,
   });
+};
+
+test("POST /track/sale", async () => {
+  const h = new IntegrationHarness();
+  const { http } = await h.init();
+
+  const sale = {
+    eventName: "Subscription",
+    amount: randomValue([400, 900, 1900]),
+    currency: "usd",
+    invoiceId: `INV_${randomId()}`,
+    paymentProcessor: "stripe",
+  };
+
+  const response = await http.post<TrackSaleResponse>({
+    path: "/track/sale",
+    body: {
+      ...sale,
+      customerExternalId: E2E_CUSTOMER_EXTERNAL_ID,
+    },
+  });
+
+  expect(response.status).toEqual(200);
+  expectSuccessfulSaleResponse(response, sale);
 
   // An invoiceId that is already processed should return null customer and sale
   const response2 = await http.post<TrackSaleResponse>({
     path: "/track/sale",
     body: {
       ...sale,
-      externalId: E2E_CUSTOMER_EXTERNAL_ID,
+      customerExternalId: E2E_CUSTOMER_EXTERNAL_ID,
       invoiceId: sale.invoiceId,
     },
   });
@@ -75,7 +82,7 @@ test("POST /track/sale", async () => {
     body: {
       ...sale,
       invoiceId: `INV_${randomId()}`,
-      externalId: "external-id-that-does-not-exist",
+      customerExternalId: "external-id-that-does-not-exist",
     },
   });
 
@@ -85,4 +92,17 @@ test("POST /track/sale", async () => {
     customer: null,
     sale: null,
   });
+
+  // track a sale with externalId (backward compatibility)
+  const response4 = await http.post<TrackSaleResponse>({
+    path: "/track/sale",
+    body: {
+      ...sale,
+      externalId: E2E_CUSTOMER_EXTERNAL_ID,
+      customerExternalId: E2E_CUSTOMER_EXTERNAL_ID,
+    },
+  });
+
+  expect(response4.status).toEqual(200);
+  expectSuccessfulSaleResponse(response4, sale);
 });

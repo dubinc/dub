@@ -29,23 +29,29 @@ export const POST = withWorkspace(
   async ({ req, workspace }) => {
     const body = await parseRequestBody(req);
 
-    const {
+    let {
       clickId,
       eventName,
       eventQuantity,
       externalId,
-      customerId, // deprecated (but we'll support it for backwards compatibility)
+      customerExternalId,
       customerName,
       customerEmail,
       customerAvatar,
       metadata,
       mode = "async", // Default to async mode if not specified
-    } = trackLeadRequestSchema.parse(body);
+    } = trackLeadRequestSchema
+      .merge(
+        // don't require customerExternalId yet for backwards compatibility
+        z.object({
+          customerExternalId: z.string().nullish(),
+        }),
+      )
+      .parse(body);
 
     const stringifiedEventName = eventName.toLowerCase().replace(" ", "-");
-    const customerExternalId = externalId || customerId;
-    const finalCustomerName =
-      customerName || customerEmail || generateRandomName();
+    customerExternalId = customerExternalId || externalId;
+    customerName = customerName || customerEmail || generateRandomName();
 
     if (!customerExternalId) {
       throw new DubApiError({
@@ -117,7 +123,7 @@ export const POST = withWorkspace(
           },
           create: {
             id: createId({ prefix: "cus_" }),
-            name: finalCustomerName,
+            name: customerName,
             email: customerEmail,
             avatar: customerAvatar,
             externalId: customerExternalId,
@@ -259,7 +265,7 @@ export const POST = withWorkspace(
         id: clickId,
       },
       customer: {
-        name: finalCustomerName,
+        name: customerName,
         email: customerEmail,
         avatar: customerAvatar,
         externalId: customerExternalId,
@@ -270,7 +276,7 @@ export const POST = withWorkspace(
       ...lead,
       // for backwards compatibility – will remove soon
       clickId,
-      customerName: finalCustomerName,
+      customerName: customerName,
       customerEmail: customerEmail,
       customerAvatar: customerAvatar,
     });
