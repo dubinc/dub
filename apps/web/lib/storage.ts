@@ -1,4 +1,4 @@
-import { R2_URL, fetchWithTimeout } from "@dub/utils";
+import { OG_AVATAR_URL, R2_URL, fetchWithTimeout } from "@dub/utils";
 import { AwsClient } from "aws4fetch";
 
 interface imageOptions {
@@ -151,5 +151,5 @@ class StorageClient {
 export const storage = new StorageClient();
 
 export const isStored = (url: string) => {
-  return url.startsWith(R2_URL);
+  return url.startsWith(R2_URL) || url.startsWith(OG_AVATAR_URL);
 };
