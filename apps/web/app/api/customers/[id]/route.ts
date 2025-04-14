@@ -102,13 +102,15 @@ export const PATCH = withWorkspace(
       },
     );
 
+    const oldCustomerAvatar = customer.avatar;
+
     // we need to persist the customer avatar to R2 if:
     // 1. it's different from the old avatar
     // 2. it's not stored in R2 already
-    const persistAvatar =
-      avatar && avatar !== customer.avatar && !isStored(avatar)
+    const finalCustomerAvatar =
+      avatar && avatar !== oldCustomerAvatar && !isStored(avatar)
         ? `${R2_URL}/customers/${customer.id}/avatar_${nanoid(7)}`
-        : undefined;
+        : avatar;
 
     try {
       const updatedCustomer = await prisma.customer.update({
@@ -118,21 +120,25 @@ export const PATCH = withWorkspace(
         data: {
           name,
           email,
-          avatar: persistAvatar || avatar,
+          avatar: finalCustomerAvatar,
           externalId,
         },
       });
 
-      if (avatar && persistAvatar) {
+      if (avatar && !isStored(avatar) && finalCustomerAvatar) {
         waitUntil(
           Promise.allSettled([
-            storage.upload(persistAvatar.replace(`${R2_URL}/`, ""), avatar, {
-              width: 128,
-              height: 128,
-            }),
-            customer.avatar &&
-              isStored(customer.avatar) &&
-              storage.delete(customer.avatar.replace(`${R2_URL}/`, "")),
+            storage.upload(
+              finalCustomerAvatar.replace(`${R2_URL}/`, ""),
+              avatar,
+              {
+                width: 128,
+                height: 128,
+              },
+            ),
+            oldCustomerAvatar &&
+              isStored(oldCustomerAvatar) &&
+              storage.delete(oldCustomerAvatar.replace(`${R2_URL}/`, "")),
           ]),
         );
       }
