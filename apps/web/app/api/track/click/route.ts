@@ -30,7 +30,7 @@ const trackClickSchema = z.object({
   referrer: z.string().nullish(),
 });
 
-const partnerDiscountSchema = z.object({
+const trackClickResponseSchema = z.object({
   clickId: z.string(),
   partner: PartnerSchema.pick({
     id: true,
@@ -54,24 +54,21 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
 
     const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
 
-    let clickId = await clickCache.get({
-      domain,
-      key,
-      ip,
-    });
+    let [cachedClickId, cachedLink] = await Promise.all([
+      clickCache.get({
+        domain,
+        key,
+        ip,
+      }),
+      linkCache.get({
+        domain,
+        key,
+      }),
+    ]);
 
-    // if the clickId is already cached in Redis, return it
-    if (clickId) {
-      return NextResponse.json({ clickId }, { headers: CORS_HEADERS });
-    }
-
-    // Otherwise, track the click event
-    clickId = nanoid(16);
-
-    let cachedLink = await linkCache.get({
-      domain,
-      key,
-    });
+    // assign a new clickId if there's no cached clickId
+    // else, reuse the cached clickId
+    const clickId = cachedClickId ?? nanoid(16);
 
     if (!cachedLink) {
       const link = await getLinkWithPartner({
@@ -104,37 +101,40 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
         : cachedLink.url
       : cachedLink.url;
 
-    waitUntil(
-      (async () => {
-        const workspace = await getWorkspaceViaEdge(cachedLink.projectId!);
-        const allowedHostnames = workspace?.allowedHostnames as string[];
+    // if there's no cached clickId, track the click event
+    if (!cachedClickId) {
+      waitUntil(
+        (async () => {
+          const workspace = await getWorkspaceViaEdge(cachedLink.projectId!);
+          const allowedHostnames = workspace?.allowedHostnames as string[];
 
-        if (
-          verifyAnalyticsAllowedHostnames({
-            allowedHostnames,
-            req,
-          })
-        ) {
-          await recordClick({
-            req,
-            clickId,
-            linkId: cachedLink.id,
-            domain,
-            key,
-            url: finalUrl,
-            workspaceId: cachedLink.projectId,
-            skipRatelimit: true,
-            ...(referrer && { referrer }),
-            trackConversion: cachedLink.trackConversion,
-          });
-        }
-      })(),
-    );
+          if (
+            verifyAnalyticsAllowedHostnames({
+              allowedHostnames,
+              req,
+            })
+          ) {
+            await recordClick({
+              req,
+              clickId,
+              linkId: cachedLink.id,
+              domain,
+              key,
+              url: finalUrl,
+              workspaceId: cachedLink.projectId,
+              skipRatelimit: true,
+              ...(referrer && { referrer }),
+              trackConversion: cachedLink.trackConversion,
+            });
+          }
+        })(),
+      );
+    }
 
     const isPartnerLink = Boolean(cachedLink.programId && cachedLink.partnerId);
     const { partner = null, discount = null } = cachedLink;
 
-    const response = partnerDiscountSchema.parse({
+    const response = trackClickResponseSchema.parse({
       clickId,
       ...(isPartnerLink && {
         partner,
