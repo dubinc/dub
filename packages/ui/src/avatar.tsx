@@ -1,4 +1,4 @@
-import { API_DOMAIN, cn } from "@dub/utils";
+import { cn } from "@dub/utils";
 import { sha256 } from "js-sha256";
 import { useState } from "react";
 
@@ -12,10 +12,10 @@ type User = {
 export function getUserAvatarUrl(user?: User | null) {
   if (user?.image) return user.image;
 
-  if (!user?.id) return `${API_DOMAIN}/og/avatar`;
+  if (!user?.id) return "https://api.dub.co/og/avatar";
 
-  const ogAvatar = `${API_DOMAIN}/og/avatar?seed=${encodeURIComponent(user.id)}`;
-  const encodedOGAvatar = `${API_DOMAIN}/og/avatar${encodeURIComponent(`?seed=${encodeURIComponent(user.id)}`)}`;
+  const ogAvatar = `https://api.dub.co/og/avatar?seed=${encodeURIComponent(user.id)}`;
+  const encodedOGAvatar = `https://api.dub.co/og/avatar${encodeURIComponent(`?seed=${encodeURIComponent(user.id)}`)}`;
 
   return user.email
     ? `https://www.gravatar.com/avatar/${sha256(user.email)}?d=${encodeURIComponent(encodedOGAvatar)}`
@@ -53,7 +53,7 @@ export function Avatar({
       )}
       draggable={false}
       onError={() => {
-        setUrl(`${API_DOMAIN}/og/avatar?seed=${user.id}`);
+        setUrl(`https://api.dub.co/og/avatar?seed=${user.id}`);
       }}
     />
   );
