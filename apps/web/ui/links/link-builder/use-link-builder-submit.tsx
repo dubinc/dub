@@ -89,7 +89,7 @@ export function useLinkBuilderSubmit({
               toast.success(
                 <div className="flex grow items-center justify-between gap-4">
                   <p className="text-[0.8125rem] text-neutral-900">
-                    Link created successfully!
+                    Successfully created link!
                   </p>
                   <Button
                     type="button"
