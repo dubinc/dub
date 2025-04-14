@@ -28,25 +28,32 @@ async function main() {
       }
       const finalCustomerAvatar = `${R2_URL}/customers/${customer.id}/avatar_${nanoid(7)}`;
 
-      await storage.upload(
-        finalCustomerAvatar.replace(`${R2_URL}/`, ""),
-        customer.avatar,
-        {
-          width: 128,
-          height: 128,
-        },
-      );
+      try {
+        await storage.upload(
+          finalCustomerAvatar.replace(`${R2_URL}/`, ""),
+          customer.avatar,
+          {
+            width: 128,
+            height: 128,
+          },
+        );
 
-      const updatedCustomer = await prisma.customer.update({
-        where: { id: customer.id },
-        data: {
-          avatar: finalCustomerAvatar,
-        },
-      });
+        const updatedCustomer = await prisma.customer.update({
+          where: { id: customer.id },
+          data: {
+            avatar: finalCustomerAvatar,
+          },
+        });
 
-      console.log(
-        `Updated customer ${customer.id} to ${updatedCustomer.avatar}`,
-      );
+        console.log(
+          `Updated customer ${customer.id} to ${updatedCustomer.avatar}`,
+        );
+      } catch (error) {
+        console.log(
+          `Error updating customer ${customer.id} with avatar ${customer.avatar}`,
+        );
+        console.error(error);
+      }
     }),
   );
 
