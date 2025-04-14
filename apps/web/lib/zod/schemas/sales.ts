@@ -5,13 +5,22 @@ import { commonDeprecatedEventFields } from "./deprecated";
 import { linkEventSchema } from "./links";
 
 export const trackSaleRequestSchema = z.object({
-  externalId: z
+  customerExternalId: z
     .string()
     .trim()
     .max(100)
     .describe(
       "This is the unique identifier for the customer in the client's app. This is used to track the customer's journey.",
     ),
+  externalId: z
+    .string()
+    .trim()
+    .max(100)
+    .nullish()
+    .describe(
+      "[Deprecated]: Use `customerExternalId` instead. This is the unique identifier for the customer in the client's app. This is used to track the customer's journey.",
+    )
+    .openapi({ deprecated: true }),
   amount: z
     .number({ required_error: "amount is required" })
     .int()

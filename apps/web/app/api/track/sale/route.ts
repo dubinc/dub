@@ -30,7 +30,8 @@ export const POST = withWorkspace(
     const body = await parseRequestBody(req);
 
     let {
-      externalId: customerExternalId,
+      externalId,
+      customerExternalId,
       paymentProcessor,
       invoiceId,
       amount,
@@ -38,7 +39,16 @@ export const POST = withWorkspace(
       metadata,
       eventName,
       leadEventName,
-    } = trackSaleRequestSchema.parse(body);
+    } = trackSaleRequestSchema
+      .merge(
+        // don't require customerExternalId yet for backwards compatibility
+        z.object({
+          customerExternalId: z.string().nullish(),
+        }),
+      )
+      .parse(body);
+
+    customerExternalId = customerExternalId || externalId;
 
     if (invoiceId) {
       // Skip if invoice id is already processed

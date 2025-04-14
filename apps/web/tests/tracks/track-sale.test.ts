@@ -24,7 +24,7 @@ test("POST /track/sale", async () => {
     path: "/track/sale",
     body: {
       ...sale,
-      externalId: E2E_CUSTOMER_EXTERNAL_ID,
+      customerExternalId: E2E_CUSTOMER_EXTERNAL_ID,
     },
   });
 
@@ -57,7 +57,7 @@ test("POST /track/sale", async () => {
     path: "/track/sale",
     body: {
       ...sale,
-      externalId: E2E_CUSTOMER_EXTERNAL_ID,
+      customerExternalId: E2E_CUSTOMER_EXTERNAL_ID,
       invoiceId: sale.invoiceId,
     },
   });
@@ -75,7 +75,7 @@ test("POST /track/sale", async () => {
     body: {
       ...sale,
       invoiceId: `INV_${randomId()}`,
-      externalId: "external-id-that-does-not-exist",
+      customerExternalId: "external-id-that-does-not-exist",
     },
   });
 
@@ -84,5 +84,39 @@ test("POST /track/sale", async () => {
     eventName: "Subscription",
     customer: null,
     sale: null,
+  });
+
+  // track a sale with externalId (backward compatibility)
+  const response4 = await http.post<TrackSaleResponse>({
+    path: "/track/sale",
+    body: {
+      ...sale,
+      externalId: E2E_CUSTOMER_EXTERNAL_ID,
+      customerExternalId: E2E_CUSTOMER_EXTERNAL_ID,
+    },
+  });
+
+  expect(response4.status).toEqual(200);
+  expect(response.data).toStrictEqual({
+    eventName: "Subscription",
+    customer: {
+      id: E2E_CUSTOMER_ID,
+      name: expect.any(String),
+      email: expect.any(String),
+      avatar: expect.any(String),
+      externalId: E2E_CUSTOMER_EXTERNAL_ID,
+    },
+    sale: {
+      amount: sale.amount,
+      currency: sale.currency,
+      paymentProcessor: sale.paymentProcessor,
+      invoiceId: sale.invoiceId,
+      metadata: null,
+    },
+    amount: sale.amount,
+    currency: sale.currency,
+    paymentProcessor: sale.paymentProcessor,
+    metadata: null,
+    invoiceId: sale.invoiceId,
   });
 });
