@@ -3,17 +3,16 @@ import { User } from "next-auth";
 import { cookies } from "next/headers";
 
 export const trackLead = async (user: User) => {
-  const clickId =
-    cookies().get("dub_id")?.value || cookies().get("dclid")?.value;
+  const dubId = cookies().get("dub_id")?.value;
 
-  if (!clickId) {
-    console.log("No clickId cookie found, skipping lead tracking...");
+  if (!dubId) {
+    console.log("No dub_id cookie found, skipping lead tracking...");
     return;
   }
 
   // send the lead event to Dub
   await dub.track.lead({
-    clickId,
+    clickId: dubId,
     eventName: "Sign Up",
     externalId: user.id,
     customerName: user.name,
@@ -21,7 +20,7 @@ export const trackLead = async (user: User) => {
     customerAvatar: user.image,
   });
 
-  // delete the clickId cookie
-  cookies().delete("dclid");
+  // delete the cookies
   cookies().delete("dub_id");
+  cookies().delete("dub_partner_data");
 };
