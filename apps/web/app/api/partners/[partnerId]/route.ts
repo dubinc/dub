@@ -1,10 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
-import { getPartners } from "@/lib/api/partners/get-partners";
+import { getPartnerForProgram } from "@/lib/api/partners/get-partner-for-program";
 import { withWorkspace } from "@/lib/auth";
-import {
-  EnrolledPartnerSchemaWithExpandedFields,
-  partnersQuerySchema,
-} from "@/lib/zod/schemas/partners";
+import { EnrolledPartnerSchemaWithExpandedFields } from "@/lib/zod/schemas/partners";
 import { NextResponse } from "next/server";
 
 // GET /api/partners/:id – Get a partner by ID
@@ -21,24 +18,21 @@ export const GET = withWorkspace(
       });
     }
 
-    const partners = await getPartners({
-      ...partnersQuerySchema.parse({
-        pageSize: 1,
-        ids: [partnerId],
-      }),
-      workspaceId: workspace.id,
+    const partner = await getPartnerForProgram({
       programId,
-      includeExpandedFields: true,
+      partnerId,
     });
 
-    if (!partners.length)
+    if (!partner)
       throw new DubApiError({
         code: "not_found",
         message: "Partner not found.",
       });
 
     return NextResponse.json(
-      EnrolledPartnerSchemaWithExpandedFields.parse(partners[0]),
+      EnrolledPartnerSchemaWithExpandedFields.omit({
+        links: true,
+      }).parse(partner),
     );
   },
   {
