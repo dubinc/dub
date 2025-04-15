@@ -18,7 +18,9 @@ export function PayoutStatsAndSettings() {
   });
 
   const { data: bankAccount } = useSWR<Stripe.BankAccount>(
-    partner && "/api/partner-profile/payouts/settings",
+    partner &&
+      partner.payoutMethod === "stripe" &&
+      "/api/partner-profile/payouts/settings",
     fetcher,
   );
 
@@ -69,11 +71,11 @@ export function PayoutStatsAndSettings() {
               </div>
             )}
 
-          {partner.payoutMethod === "paypal" && (
-            <div className="text-sm">
-              <p className="text-neutral-600">PayPal</p>
-              <div className="flex items-center gap-1.5 font-mono text-neutral-400">
-                {partner.paypalEmail}
+          {partner.payoutMethod === "paypal" && partner.paypalEmail && (
+            <div className="text-sm text-right">
+              <p className="text-neutral-600">PayPal Account</p>
+              <div className="flex items-center justify-end gap-1.5 font-mono text-neutral-400">
+                {partner.paypalEmail.replace(/(?<=^.).+(?=.@)/, "********")}
               </div>
             </div>
           )}
