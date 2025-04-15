@@ -75,6 +75,7 @@ export * from "./download";
 export * from "./duplicate";
 export * from "./earth";
 export * from "./earth-position";
+export * from "./envelope";
 export * from "./envelope-alert";
 export * from "./envelope-arrow-right";
 export * from "./eye";

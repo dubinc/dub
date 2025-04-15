@@ -1,7 +1,13 @@
 import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-timeseries";
 import { ProgramEnrollmentProps, ProgramProps } from "@/lib/types";
-import { BlurImage, MiniAreaChart, StatusBadge } from "@dub/ui";
-import { cn, currencyFormatter, formatDate, OG_AVATAR_URL } from "@dub/utils";
+import { BlurImage, Link4, MiniAreaChart } from "@dub/ui";
+import {
+  cn,
+  formatDate,
+  getPrettyUrl,
+  nFormatter,
+  OG_AVATAR_URL,
+} from "@dub/utils";
 import { addDays } from "date-fns";
 import Link from "next/link";
 import { useMemo } from "react";
@@ -33,36 +39,37 @@ export function ProgramCard({
 }) {
   const { program, status, createdAt } = programEnrollment;
 
+  const defaultLink = programEnrollment.links?.[0];
+
   const card = (
     <div
       className={cn(
-        "block rounded-md border border-neutral-300 bg-white p-4",
+        "block rounded-xl border border-neutral-200 bg-white p-5",
         status === "approved"
           ? "hover:drop-shadow-card-hover transition-[filter]"
           : "",
       )}
     >
-      <div className="flex items-center gap-4">
-        <div className="flex size-10 items-center justify-center rounded-full border border-neutral-200 bg-gradient-to-t from-neutral-100">
-          <BlurImage
-            width={96}
-            height={96}
-            src={program.logo || `${OG_AVATAR_URL}${program.name}`}
-            alt={program.name}
-            className="size-6 rounded-full"
-          />
-        </div>
-        <div className="flex flex-col gap-0.5">
-          <span className="text-base font-medium text-neutral-900">
+      <div className="">
+        <BlurImage
+          width={96}
+          height={96}
+          src={program.logo || `${OG_AVATAR_URL}${program.name}`}
+          alt={program.name}
+          className="size-8 rounded-full border border-black/10"
+        />
+        <div className="mt-3 flex flex-col">
+          <span className="text-base font-semibold text-neutral-800">
             {program.name}
           </span>
-          <StatusBadge
-            variant={ProgramEnrollmentStatusBadges[status].variant}
-            icon={null}
-            className="rounded-full py-0.5"
-          >
-            {ProgramEnrollmentStatusBadges[status].label}
-          </StatusBadge>
+          {defaultLink && (
+            <div className="flex items-center gap-1 text-neutral-500">
+              <Link4 className="size-3" />
+              <span className="text-sm font-medium">
+                {getPrettyUrl(defaultLink.shortLink)}
+              </span>
+            </div>
+          )}
         </div>
       </div>
       {status === "approved" ? (
@@ -107,23 +114,27 @@ function ProgramCardEarnings({ program }: { program: ProgramProps }) {
       })),
     [timeseries],
   );
+
   return (
-    <div className="mt-4 grid h-24 grid-cols-[min-content,minmax(0,1fr)] gap-4 rounded-md border border-neutral-100 bg-neutral-50 p-5">
-      <div>
+    <div className="mt-4 grid grid-cols-[min-content,minmax(0,1fr)] gap-4 rounded-md border border-neutral-200 bg-neutral-50">
+      <div className="py-3 pl-4">
         <div className="whitespace-nowrap text-sm text-neutral-500">
           Earnings
         </div>
         {total !== undefined ? (
-          <div className="mt-1 text-2xl font-medium leading-none text-neutral-800">
-            {currencyFormatter(total / 100 || 0)}
+          <div className="text-xl font-medium text-neutral-800">
+            $
+            {nFormatter((total || 0) / 100, {
+              digits: total < 1000_00 ? 2 : 1,
+            })}
           </div>
         ) : (
           <div className="mt-1 h-6 w-20 animate-pulse rounded-md bg-neutral-200" />
         )}
       </div>
       {chartData && (
-        <div className="relative h-full">
-          <MiniAreaChart data={chartData} />
+        <div className="relative h-full px-3">
+          <MiniAreaChart data={chartData} padding={{ top: 16, bottom: 16 }} />
         </div>
       )}
     </div>
@@ -132,15 +143,13 @@ function ProgramCardEarnings({ program }: { program: ProgramProps }) {
 
 export function ProgramCardSkeleton() {
   return (
-    <div className="rounded-md border border-neutral-300 p-4">
-      <div className="flex items-center gap-4">
-        <div className="size-12 rounded-full bg-neutral-200" />
-        <div className="flex flex-col gap-0.5">
-          <div className="h-6 w-24 min-w-0 rounded-md bg-neutral-200" />
-          <div className="h-3.5 w-20 animate-pulse rounded-md bg-neutral-200" />
-        </div>
+    <div className="rounded-xl border border-neutral-200 p-5">
+      <div className="size-8 rounded-full bg-neutral-200" />
+      <div className="mt-3 flex flex-col">
+        <div className="my-0.5 h-5 w-24 min-w-0 rounded-md bg-neutral-200" />
+        <div className="my-0.5 h-4 w-20 animate-pulse rounded-md bg-neutral-200" />
       </div>
-      <div className="mt-6 grid h-[90px] animate-pulse rounded-md bg-neutral-100" />
+      <div className="mt-4 h-[72px] animate-pulse rounded-md bg-neutral-100" />
     </div>
   );
 }
