@@ -46,7 +46,7 @@ export function ProgramCard({
   const card = (
     <div
       className={cn(
-        "block rounded-xl border border-neutral-200 bg-white p-5",
+        "block flex h-full flex-col justify-between rounded-xl border border-neutral-200 bg-white p-5",
         clickable && "hover:drop-shadow-card-hover transition-[filter]",
       )}
     >
