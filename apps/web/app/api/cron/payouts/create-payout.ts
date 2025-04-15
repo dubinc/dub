@@ -1,15 +1,13 @@
 import { createId } from "@/lib/api/create-id";
 import { prisma } from "@dub/prisma";
-import { EventType, Payout } from "@dub/prisma/client";
+import { Payout } from "@dub/prisma/client";
 
 export const createPayout = async ({
   programId,
   partnerId,
-  type,
 }: {
   programId: string;
   partnerId: string;
-  type: EventType;
 }) => {
   const programEnrollment = await prisma.programEnrollment.findUniqueOrThrow({
     where: {
@@ -60,7 +58,6 @@ export const createPayout = async ({
         partnerId,
         payoutId: null,
         status: "pending",
-        type,
         // Only process commissions that were created before the holding period
         ...(holdingPeriodDays > 0 && {
           createdAt: {
@@ -83,7 +80,6 @@ export const createPayout = async ({
       console.log("No pending commissions found for processing payout.", {
         programId,
         partnerId,
-        type,
         holdingPeriodDays,
       });
 
@@ -112,7 +108,6 @@ export const createPayout = async ({
       console.log("Total amount is 0, skipping payout.", {
         programId,
         partnerId,
-        type,
         totalQuantity,
         totalAmount,
       });
