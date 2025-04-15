@@ -232,26 +232,6 @@ export default function AnalyticsProvider({
     selectedTab,
   ]);
 
-  /*
-    If explicitly set, use the value
-    If not set:
-      - Show root domain links if:
-        - it's filtered by a link, or
-        - the workspace has more than 50 domains
-        - is admin page
-        - is filtered by a folder or tag
-      - Otherwise, hide root domain links
-  */
-  const root = searchParams.get("root")
-    ? searchParams.get("root") === "true"
-    : (domain && key) ||
-        (domains && domains?.length > 50) ||
-        adminPage ||
-        folderId ||
-        tagIds
-      ? undefined
-      : "false";
-
   const queryString = useMemo(() => {
     const availableFilterParams = VALID_ANALYTICS_FILTERS.reduce(
       (acc, filter) => ({
@@ -271,7 +251,6 @@ export default function AnalyticsProvider({
         end && { start: start.toISOString(), end: end.toISOString() }),
       ...(interval && { interval }),
       ...(tagIds && { tagIds }),
-      ...(root && { root: root.toString() }),
       event: selectedTab,
       ...(folderId && { folderId }),
       ...(customerId && { customerId }),
