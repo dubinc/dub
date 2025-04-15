@@ -76,7 +76,17 @@ const LinkCardInner = memo(({ link }: { link: ResponseLink }) => {
     <>
       <CardList.Card
         key={link.id}
-        onClick={!isMobile ? () => router.push(editUrl) : undefined}
+        onClick={
+          !isMobile
+            ? (e) => {
+                if (e.metaKey || e.ctrlKey) window.open(editUrl, "_blank");
+                else router.push(editUrl);
+              }
+            : undefined
+        }
+        onAuxClick={
+          !isMobile ? () => window.open(editUrl, "_blank") : undefined
+        }
         outerClassName="overflow-hidden"
         innerClassName="p-0"
         {...(variant === "loose" &&
