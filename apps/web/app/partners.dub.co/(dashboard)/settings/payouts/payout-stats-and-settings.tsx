@@ -2,11 +2,11 @@
 
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import { PayoutsCount } from "@/lib/types";
-import StripeConnectButton from "@/ui/partners/stripe-connect-button";
+import { PayoutMethod, PayoutsCount } from "@/lib/types";
+import PayoutConnectButton from "@/ui/partners/payout-connect-button";
 import { PayoutStatus } from "@dub/prisma/client";
 import { MatrixLines } from "@dub/ui";
-import { CONNECT_SUPPORTED_COUNTRIES, COUNTRIES, fetcher } from "@dub/utils";
+import { fetcher } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import { Stripe } from "stripe";
 import useSWR from "swr";
@@ -31,17 +31,13 @@ export function PayoutStatsAndSettings() {
           <div className="p-1">
             <div className="text-sm text-neutral-500">Upcoming payouts</div>
           </div>
-          <StripeConnectButton
+          <PayoutConnectButton
+            provider={partner?.payoutMethod as PayoutMethod}
             text={
               partner?.payoutsEnabledAt ? "Payout settings" : "Connect payouts"
             }
             className="h-8 w-fit px-3"
             variant={partner?.payoutsEnabledAt ? "secondary" : "primary"}
-            disabledTooltip={
-              partner?.country &&
-              !CONNECT_SUPPORTED_COUNTRIES.includes(partner.country) &&
-              `We currently do not support payouts for ${COUNTRIES[partner.country]} yet, but we are working on adding support for more countries soon.`
-            }
           />
         </div>
         <div className="flex items-end justify-between gap-5">
@@ -72,7 +68,7 @@ export function PayoutStatsAndSettings() {
             )}
 
           {partner.payoutMethod === "paypal" && partner.paypalEmail && (
-            <div className="text-sm text-right">
+            <div className="text-right text-sm">
               <p className="text-neutral-600">PayPal Account</p>
               <div className="flex items-center justify-end gap-1.5 font-mono text-neutral-400">
                 {partner.paypalEmail.replace(/(?<=^.).+(?=.@)/, "********")}

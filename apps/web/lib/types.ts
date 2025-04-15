@@ -464,3 +464,5 @@ export type CreatePartnerProps = z.infer<typeof createPartnerSchema>;
 export type ProgramData = z.infer<typeof programDataSchema>;
 
 export type ProgramMetrics = z.infer<typeof ProgramMetricsSchema>;
+
+export type PayoutMethod = "stripe" | "paypal";

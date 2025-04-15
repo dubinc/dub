@@ -1,6 +1,5 @@
 import { getSession } from "@/lib/auth";
-import PaypalConnectButton from "@/ui/partners/paypal-connect-button";
-import StripeConnectButton from "@/ui/partners/stripe-connect-button";
+import PayoutConnectButton from "@/ui/partners/payout-connect-button";
 import { prisma } from "@dub/prisma";
 import { CONNECT_SUPPORTED_COUNTRIES } from "@dub/utils/src/constants";
 import Link from "next/link";
@@ -27,16 +26,14 @@ function PayoutProvider({ provider }: { provider: "stripe" | "paypal" }) {
     stripe: {
       label: "Stripe",
       logo: "https://assets.dub.co/misc/stripe-wordmark.svg",
-      Button: StripeConnectButton,
     },
     paypal: {
       label: "Paypal",
       logo: "https://assets.dub.co/misc/paypal-wordmark.svg",
-      Button: PaypalConnectButton,
     },
   }[provider];
 
-  const { label, logo, Button } = providers;
+  const { label, logo } = providers;
 
   return (
     <>
@@ -59,7 +56,7 @@ function PayoutProvider({ provider }: { provider: "stripe" | "paypal" }) {
         </div>
       </div>
       <div className="mt-10 grid gap-4">
-        <Button text="Save and continue" />
+        <PayoutConnectButton text="Save and continue" />
 
         <Link
           href="/programs"

@@ -3,7 +3,7 @@
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PayoutsCount } from "@/lib/types";
-import StripeConnectButton from "@/ui/partners/stripe-connect-button";
+import PayoutConnectButton from "@/ui/partners/payout-connect-button";
 import { AlertCircleFill } from "@/ui/shared/icons";
 import { PayoutStatus } from "@dub/prisma/client";
 import { AnimatedSizeContainer, MoneyBills2, Tooltip } from "@dub/ui";
@@ -11,6 +11,11 @@ import { currencyFormatter } from "@dub/utils";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { memo } from "react";
+
+const PAYOUT_METHOD_LABELS = {
+  stripe: "Stripe",
+  paypal: "PayPal",
+};
 
 export const PayoutStats = memo(() => {
   const { partner } = usePartnerProfile();
@@ -36,7 +41,7 @@ export const PayoutStats = memo(() => {
             <div className="flex items-center gap-2">
               {partner && !partner.payoutsEnabledAt && (
                 <Tooltip
-                  content="You need to set up your Stripe payouts account to be able to receive payouts from the programs you are enrolled in."
+                  content={`You need to set up your ${partner?.supportedPayoutMethod ? PAYOUT_METHOD_LABELS[partner.supportedPayoutMethod] : ""} payouts account to be able to receive payouts from the programs you are enrolled in.`}
                   side="right"
                 >
                   <div>
@@ -81,7 +86,7 @@ export const PayoutStats = memo(() => {
           </div>
         </div>
         {partner && !partner.payoutsEnabledAt && (
-          <StripeConnectButton
+          <PayoutConnectButton
             className="mt-4 h-9 w-full"
             text="Connect payouts"
           />
