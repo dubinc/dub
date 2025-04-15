@@ -2,9 +2,18 @@ import { acceptProgramInviteAction } from "@/lib/actions/partners/accept-program
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { ProgramEnrollmentProps } from "@/lib/types";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
-import { BlurImage, Button, Envelope, Link4, StatusBadge } from "@dub/ui";
+import {
+  BlurImage,
+  Button,
+  buttonVariants,
+  Envelope,
+  Link4,
+  StatusBadge,
+} from "@dub/ui";
 import { OG_AVATAR_URL } from "@dub/utils";
+import { cn } from "@dub/utils/src";
 import { useAction } from "next-safe-action/hooks";
+import Link from "next/link";
 import { toast } from "sonner";
 
 export function ProgramInviteCard({
@@ -56,17 +65,28 @@ export function ProgramInviteCard({
       </p>
 
       <div className="mt-2 flex grow flex-col justify-end">
-        <Button
-          text="Accept invite"
-          className="h-8"
-          loading={isPending}
-          onClick={async () =>
-            await executeAsync({
-              partnerId: programEnrollment.partnerId,
-              programId: programEnrollment.programId,
-            })
-          }
-        />
+        <div className="grid grid-cols-2 gap-2">
+          <Link
+            className={cn(
+              "flex h-8 items-center justify-center whitespace-nowrap rounded-md border px-2 text-sm",
+              buttonVariants({ variant: "secondary" }),
+            )}
+            href={`/programs/${program.slug}/apply`}
+          >
+            Learn more
+          </Link>
+          <Button
+            text="Accept invite"
+            className="h-8"
+            loading={isPending}
+            onClick={async () =>
+              await executeAsync({
+                partnerId: programEnrollment.partnerId,
+                programId: programEnrollment.programId,
+              })
+            }
+          />
+        </div>
       </div>
     </div>
   );

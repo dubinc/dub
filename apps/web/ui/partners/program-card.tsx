@@ -41,13 +41,13 @@ export function ProgramCard({
 
   const defaultLink = programEnrollment.links?.[0];
 
+  const clickable = ["approved", "pending"].includes(status);
+
   const card = (
     <div
       className={cn(
         "block rounded-xl border border-neutral-200 bg-white p-5",
-        status === "approved"
-          ? "hover:drop-shadow-card-hover transition-[filter]"
-          : "",
+        clickable && "hover:drop-shadow-card-hover transition-[filter]",
       )}
     >
       <div>
@@ -62,11 +62,13 @@ export function ProgramCard({
           <span className="text-base font-semibold text-neutral-800">
             {program.name}
           </span>
-          {defaultLink && (
+          {(defaultLink || program.domain) && (
             <div className="flex items-center gap-1 text-neutral-500">
               <Link4 className="size-3" />
               <span className="text-sm font-medium">
-                {getPrettyUrl(defaultLink.shortLink)}
+                {defaultLink?.shortLink
+                  ? getPrettyUrl(defaultLink.shortLink)
+                  : program.domain}
               </span>
             </div>
           )}
@@ -75,7 +77,7 @@ export function ProgramCard({
       {status === "approved" ? (
         <ProgramCardEarnings program={program} />
       ) : (
-        <div className="mt-4 flex h-24 items-center justify-center text-balance rounded-md border border-neutral-100 bg-neutral-50 p-5 text-center text-sm text-neutral-500">
+        <div className="mt-4 flex h-24 items-center justify-center text-balance rounded-md border border-neutral-200 bg-neutral-50 p-5 text-center text-sm text-neutral-500">
           {status === "pending"
             ? `Applied ${formatDate(createdAt)}`
             : status === "banned"
@@ -88,7 +90,7 @@ export function ProgramCard({
     </div>
   );
 
-  return status === "approved" ? (
+  return clickable ? (
     <Link href={`/programs/${program.slug}`}>{card}</Link>
   ) : (
     card
