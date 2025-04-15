@@ -5,6 +5,7 @@ import {
   Button,
   buttonVariants,
   ExpandingArrow,
+  LoadingSpinner,
   Sheet,
   StatusBadge,
   Table,
@@ -25,8 +26,8 @@ import { useParams } from "next/navigation";
 import { Dispatch, Fragment, SetStateAction, useMemo, useState } from "react";
 import useSWR from "swr";
 import { CommissionRowMenu } from "./commission-row-menu";
+import { CommissionTypeBadge } from "./commission-type-badge";
 import { PayoutStatusBadges } from "./payout-status-badges";
-import { PayoutTypeBadge } from "./payout-type-badge";
 
 type PayoutDetailsSheetProps = {
   payout: PayoutResponse;
@@ -41,12 +42,11 @@ function PayoutDetailsSheetContent({
   const { programId } = useParams() as { programId: string };
 
   const {
-    data: sales,
+    data: commissions,
     isLoading,
     error,
   } = useSWR<CommissionResponse[]>(
-    payout.type === "sales" &&
-      `/api/programs/${programId}/commissions?workspaceId=${workspaceId}&type=sale&payoutId=${payout.id}&interval=all&pageSize=10`,
+    `/api/programs/${programId}/commissions?workspaceId=${workspaceId}&payoutId=${payout.id}&interval=all&pageSize=10`,
     fetcher,
   );
 
@@ -74,25 +74,15 @@ function PayoutDetailsSheetContent({
 
       Period: formatPeriod(payout),
 
-      Type: <PayoutTypeBadge type={payout.type} />,
-
       Status: (
         <StatusBadge variant={statusBadge.variant} icon={statusBadge.icon}>
           {statusBadge.label}
         </StatusBadge>
       ),
 
-      ...(payout.quantity && {
-        [capitalize(payout.type) as string]: payout.quantity,
-        [`Reward per ${payout.type.replace(/s$/, "")}`]: currencyFormatter(
-          payout.amount / payout.quantity / 100,
-          {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          },
-        ),
-      }),
-      Amount: currencyFormatter(payout.amount / 100, {
+      Commissions: commissions ? commissions.length : "-",
+
+      Total: currencyFormatter(payout.amount / 100, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }),
@@ -103,28 +93,42 @@ function PayoutDetailsSheetContent({
 
       Description: payout.description || "-",
     };
-  }, [payout]);
+  }, [payout, commissions]);
 
-  const table = useTable({
+  const commissionsTable = useTable({
     data:
-      sales?.filter(({ status }) => !["duplicate", "fraud"].includes(status)) ||
-      [],
+      commissions?.filter(
+        ({ status }) => !["duplicate", "fraud"].includes(status),
+      ) || [],
     columns: [
       {
-        header: "Sale",
+        header: "Customer",
+        minSize: 300,
+        size: 300,
+        maxSize: 400,
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            <img
-              src={
-                row.original.customer.avatar ||
-                `${OG_AVATAR_URL}${row.original.customer.name}`
-              }
-              alt={row.original.customer.name}
-              className="size-6 rounded-full"
-            />
+            {row.original.type === "click" ? (
+              <img
+                src={`${OG_AVATAR_URL}N/A`}
+                alt="N/A"
+                className="size-6 rounded-full"
+              />
+            ) : (
+              <img
+                src={
+                  row.original.customer.avatar ||
+                  `${OG_AVATAR_URL}${row.original.customer.name}`
+                }
+                alt={row.original.customer.name}
+                className="size-6 rounded-full"
+              />
+            )}
             <div className="flex flex-col">
               <span className="text-sm text-neutral-700">
-                {row.original.customer.email || row.original.customer.name}
+                {row.original.type === "click"
+                  ? "N/A"
+                  : row.original.customer.email || row.original.customer.name}
               </span>
               <span className="text-xs text-neutral-500">
                 {formatDateTime(row.original.createdAt)}
@@ -134,8 +138,21 @@ function PayoutDetailsSheetContent({
         ),
       },
       {
+        id: "type",
+        header: "Type",
+        minSize: 100,
+        size: 120,
+        maxSize: 150,
+        cell: ({ row }) => (
+          <CommissionTypeBadge type={row.original.type ?? "sale"} />
+        ),
+      },
+      {
         id: "total",
         header: "Total",
+        minSize: 100,
+        size: 120,
+        maxSize: 150,
         cell: ({ row }) =>
           currencyFormatter(row.original.earnings / 100, {
             minimumFractionDigits: 2,
@@ -194,9 +211,13 @@ function PayoutDetailsSheetContent({
           </div>
         </div>
 
-        {payout.type === "sales" && (
+        {isLoading ? (
+          <div className="flex h-full items-center justify-center">
+            <LoadingSpinner />
+          </div>
+        ) : (
           <div className="p-6 pt-2">
-            <Table {...table} />
+            <Table {...commissionsTable} />
             <div className="mt-2 flex justify-end">
               <Link
                 href={`/${slug}/programs/${programId}/commissions?payoutId=${payout.id}&interval=all`}
@@ -212,6 +233,7 @@ function PayoutDetailsSheetContent({
           </div>
         )}
       </div>
+
       <div className="flex grow flex-col justify-end">
         <div className="flex items-center justify-end gap-2 border-t border-neutral-200 p-5">
           <Button
