@@ -8,13 +8,13 @@ import { ApplyButton } from "app/partners.dub.co/(apply)/[programSlug]/apply-but
 import { notFound } from "next/navigation";
 import { CSSProperties } from "react";
 
-export default async function MarketplaceProgramPage({
-  params: { marketplaceProgramSlug },
+export default async function ProgramDetailsPage({
+  params: { programSlug },
 }: {
-  params: { marketplaceProgramSlug: string };
+  params: { programSlug: string };
 }) {
   const program = await getProgram({
-    slug: marketplaceProgramSlug,
+    slug: programSlug,
     include: ["rewards", "defaultDiscount"],
   });
 

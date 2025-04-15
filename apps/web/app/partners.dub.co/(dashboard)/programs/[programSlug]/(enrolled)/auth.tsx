@@ -2,13 +2,14 @@
 
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import LayoutLoader from "@/ui/layout/layout-loader";
-import { notFound } from "next/navigation";
+import { redirect, useParams } from "next/navigation";
 
 export function ProgramEnrollmentAuth({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { programSlug } = useParams();
   const { error, loading } = useProgramEnrollment();
 
   if (loading) {
@@ -16,7 +17,8 @@ export function ProgramEnrollmentAuth({
   }
 
   if (error && error.status === 404) {
-    notFound();
+    redirect(`/programs/${programSlug}/apply`);
   }
+
   return children;
 }

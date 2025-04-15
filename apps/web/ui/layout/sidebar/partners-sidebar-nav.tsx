@@ -13,6 +13,7 @@ import {
   User,
   Users,
 } from "@dub/ui/icons";
+import { Store } from "lucide-react";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
 import { Hyperlink } from "./icons/hyperlink";
@@ -35,15 +36,14 @@ const NAV_AREAS: SidebarNavAreas<{
       {
         items: [
           {
-            name: "Overview",
-            icon: Gauge6,
-            href: "/",
-            exact: true,
-          },
-          {
             name: "Programs",
             icon: GridIcon,
             href: "/programs",
+          },
+          {
+            name: "Marketplace",
+            icon: Store,
+            href: "/marketplace",
           },
           {
             name: "Settings",
@@ -157,15 +157,19 @@ export function PartnersSidebarNav({
   const pathname = usePathname();
   const { getQueryString } = useRouterStuff();
 
+  const isEnrolledProgramPage =
+    pathname.startsWith(`/programs/${programSlug}`) &&
+    pathname !== `/programs/${programSlug}/apply`;
+
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
       ? "userSettings"
       : pathname.startsWith("/settings")
         ? "partnerSettings"
-        : pathname.startsWith(`/programs/${programSlug}`)
+        : isEnrolledProgramPage
           ? "program"
           : "default";
-  }, [pathname, programSlug]);
+  }, [pathname, programSlug, isEnrolledProgramPage]);
 
   return (
     <SidebarNav
@@ -180,7 +184,7 @@ export function PartnersSidebarNav({
       switcher={<PartnerProgramDropdown />}
       bottom={
         <>
-          {programSlug && <ProgramHelpSupport />}
+          {isEnrolledProgramPage && <ProgramHelpSupport />}
           <PayoutStats />
         </>
       }

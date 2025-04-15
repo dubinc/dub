@@ -1,5 +1,4 @@
 import { parse } from "@/lib/middleware/utils";
-import { prismaEdge } from "@dub/prisma/edge";
 import { NextRequest, NextResponse } from "next/server";
 import { getDefaultPartnerId } from "./utils/get-default-partner";
 import { getUserViaToken } from "./utils/get-user-via-token";
@@ -58,22 +57,6 @@ export default async function PartnersMiddleware(req: NextRequest) {
         return NextResponse.redirect(new URL(`/programs/${match[1]}`, req.url));
       }
       return NextResponse.redirect(new URL("/", req.url)); // Redirect authenticated users to dashboard
-    } else if (path.startsWith("/programs/")) {
-      const programSlug = path.split("/")[2];
-      const programEnrollment = await prismaEdge.programEnrollment.findFirst({
-        where: {
-          partnerId: defaultPartnerId,
-          program: {
-            slug: programSlug,
-          },
-        },
-      });
-
-      if (!programEnrollment) {
-        return NextResponse.rewrite(
-          new URL(`/partners.dub.co/marketplace/${programSlug}`, req.url),
-        );
-      }
     }
   }
 
