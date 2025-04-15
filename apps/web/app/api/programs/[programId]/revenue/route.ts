@@ -27,6 +27,7 @@ export const GET = withWorkspace(
       ...parsedParams,
       workspaceId: workspace.id,
       programId: program.id,
+      dataAvailableFrom: program.createdAt,
     });
 
     const timeseries = response.map((item) => ({

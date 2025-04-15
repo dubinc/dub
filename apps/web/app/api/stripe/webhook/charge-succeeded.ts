@@ -112,6 +112,7 @@ export async function chargeSucceeded(event: Stripe.Event) {
     data: {
       status: "completed",
       receiptUrl: receipt_url,
+      paidAt: new Date(),
     },
   });
 }

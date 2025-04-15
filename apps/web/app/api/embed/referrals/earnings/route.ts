@@ -24,6 +24,7 @@ export const GET = withReferralsEmbedToken(
         id: true,
         type: true,
         amount: true,
+        quantity: true,
         earnings: true,
         currency: true,
         status: true,

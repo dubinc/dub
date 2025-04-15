@@ -21,7 +21,7 @@ import {
   FolderBookmark,
   QRCode,
 } from "@dub/ui/icons";
-import { cn, isDubDomain, nanoid, punycode } from "@dub/utils";
+import { cn, isDubDomain, nanoid } from "@dub/utils";
 import { CopyPlus, Delete, FolderInput } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
@@ -122,7 +122,7 @@ export function LinkControls({
     // @ts-expect-error
     duplicateProps: {
       ...propsToDuplicate,
-      key: isRootLink ? nanoid(7) : `${punycode(link.key)}-copy`,
+      key: nanoid(7),
       clicks: 0,
     },
   });
@@ -239,6 +239,22 @@ export function LinkControls({
                   className="h-9 px-2 font-medium"
                 />
               )}
+              {options.includes("id") && (
+                <Button
+                  text="Copy Link ID"
+                  variant="outline"
+                  onClick={() => copyLinkId()}
+                  icon={
+                    copiedLinkId ? (
+                      <CircleCheck className="size-4" />
+                    ) : (
+                      <Copy className="size-4" />
+                    )
+                  }
+                  shortcut="I"
+                  className="h-9 px-2 font-medium"
+                />
+              )}
               {options.includes("duplicate") && (
                 <Button
                   text="Duplicate"
@@ -255,22 +271,6 @@ export function LinkControls({
                       ? "You don't have permission to duplicate this link."
                       : undefined
                   }
-                />
-              )}
-              {options.includes("id") && (
-                <Button
-                  text="Copy Link ID"
-                  variant="outline"
-                  onClick={() => copyLinkId()}
-                  icon={
-                    copiedLinkId ? (
-                      <CircleCheck className="size-4" />
-                    ) : (
-                      <Copy className="size-4" />
-                    )
-                  }
-                  shortcut="I"
-                  className="h-9 px-2 font-medium"
                 />
               )}
             </div>

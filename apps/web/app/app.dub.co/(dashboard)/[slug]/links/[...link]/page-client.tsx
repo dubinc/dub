@@ -1,10 +1,12 @@
 "use client";
 
 import useLink from "@/lib/swr/use-link";
+import usePartner from "@/lib/swr/use-partner";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ExpandedLinkProps } from "@/lib/types";
 import { LinkAnalyticsBadge } from "@/ui/links/link-analytics-badge";
 import { LinkBuilderDestinationUrlInput } from "@/ui/links/link-builder/controls/link-builder-destination-url-input";
+import { LinkBuilderFolderSelector } from "@/ui/links/link-builder/controls/link-builder-folder-selector";
 import { LinkBuilderShortLinkInput } from "@/ui/links/link-builder/controls/link-builder-short-link-input";
 import { LinkCommentsInput } from "@/ui/links/link-builder/controls/link-comments-input";
 import { ConversionTrackingToggle } from "@/ui/links/link-builder/conversion-tracking-toggle";
@@ -19,6 +21,7 @@ import {
   LinkFormData,
 } from "@/ui/links/link-builder/link-builder-provider";
 import { LinkFeatureButtons } from "@/ui/links/link-builder/link-feature-buttons";
+import { LinkPartnerDetails } from "@/ui/links/link-builder/link-partner-details";
 import { LinkPreview } from "@/ui/links/link-builder/link-preview";
 import { OptionsList } from "@/ui/links/link-builder/options-list";
 import { QRCodePreview } from "@/ui/links/link-builder/qr-code-preview";
@@ -124,6 +127,11 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
     enabled: isDirty,
   });
 
+  const { partner, loading: isLoadingPartner } = usePartner({
+    partnerId: link?.partnerId ?? null,
+    programId: link?.programId ?? null,
+  });
+
   const [isChangingLink, setIsChangingLink] = useState(false);
 
   return (
@@ -149,6 +157,7 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
           }}
           className="p-0"
           foldersEnabled={!!workspace.flags?.linkFolders}
+          linkToFolder={!!workspace.flags?.linkFolders}
         >
           <div
             className={cn(
@@ -223,6 +232,17 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
             )}
 
             <OptionsList />
+
+            {/* Partner details */}
+            {(partner || isLoadingPartner) && (
+              <div className="mt-1 flex flex-col gap-2 border-t border-neutral-200 pt-8">
+                <h2 className="text-base font-semibold text-neutral-800">
+                  Partner Details
+                </h2>
+
+                <LinkPartnerDetails link={link} partner={partner} />
+              </div>
+            )}
           </div>
 
           {isDesktop && (
@@ -234,6 +254,9 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
         </div>
         <div className="px-4 md:px-6 lg:bg-neutral-50 lg:px-0">
           <div className="mx-auto max-w-xl divide-neutral-200 lg:divide-y">
+            <div className="py-4 lg:px-4 lg:py-6">
+              <LinkBuilderFolderSelector />
+            </div>
             <div className="py-4 lg:px-4 lg:py-6">
               <QRCodePreview />
             </div>
@@ -259,13 +282,13 @@ const Controls = memo(({ link }: { link: ExpandedLinkProps }) => {
   const { setValue, getValues, reset } = useFormContext<LinkFormData>();
 
   return (
-    <div className="">
+    <div>
       <LinkControls
         link={link}
         openPopover={openPopover}
         setOpenPopover={setOpenPopover}
         shortcutsEnabled={openPopover}
-        options={["id", "move", "archive", "transfer", "delete"]}
+        options={["duplicate", "id", "archive", "transfer", "delete"]}
         onMoveSuccess={(folderId) => {
           setValue("folderId", folderId);
           reset(getValues(), { keepValues: true, keepDirty: false });
@@ -282,7 +305,7 @@ const Controls = memo(({ link }: { link: ExpandedLinkProps }) => {
 function LoadingSkeleton() {
   return (
     <div className="flex min-h-[calc(100vh-8px)] flex-col rounded-t-[inherit] bg-white">
-      <div className="flex items-center justify-between gap-4 py-3 pl-4 pr-5">
+      <div className="flex items-center justify-between gap-4 py-2.5 pl-4 pr-5">
         <div className="h-8 w-64 max-w-full animate-pulse rounded-md bg-neutral-100" />
         <div className="h-7 w-32 max-w-full animate-pulse rounded-md bg-neutral-100" />
       </div>

@@ -1,13 +1,12 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
-import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
-import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
+import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
+import { logConversionEvent } from "@/lib/tinybird/log-conversion-events";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
@@ -20,7 +19,6 @@ import {
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { differenceInMonths } from "date-fns";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -29,6 +27,8 @@ type LeadEvent = z.infer<typeof leadEventSchemaTB>;
 // POST /api/track/sale – Track a sale conversion event
 export const POST = withWorkspace(
   async ({ req, workspace }) => {
+    const body = await parseRequestBody(req);
+
     let {
       externalId,
       customerId, // deprecated
@@ -39,7 +39,7 @@ export const POST = withWorkspace(
       metadata,
       eventName,
       leadEventName,
-    } = trackSaleRequestSchema.parse(await parseRequestBody(req));
+    } = trackSaleRequestSchema.parse(body);
 
     if (invoiceId) {
       // Skip if invoice id is already processed
@@ -77,6 +77,15 @@ export const POST = withWorkspace(
     });
 
     if (!customer) {
+      waitUntil(
+        logConversionEvent({
+          workspace_id: workspace.id,
+          path: "/track/sale",
+          body: JSON.stringify(body),
+          error: `Customer not found for externalId: ${customerExternalId}`,
+        }),
+      );
+
       return NextResponse.json({
         eventName,
         customer: null,
@@ -94,14 +103,17 @@ export const POST = withWorkspace(
 
     if (!leadEvent || leadEvent.data.length === 0) {
       // Check cache to see if the lead event exists
+      // if leadEventName is provided, we only check for that specific event
+      // otherwise, we check for all cached lead events for that customer
+
       const cachedLeadEvent = await redis.get<LeadEvent>(
-        `latestLeadEvent:${customer.id}`,
+        `leadCache:${customer.id}${leadEventName ? `:${leadEventName.toLowerCase().replace(" ", "-")}` : ""}`,
       );
 
       if (!cachedLeadEvent) {
         throw new DubApiError({
           code: "not_found",
-          message: `Lead event not found for externalId: ${customerExternalId}`,
+          message: `Lead event not found for externalId: ${customerExternalId} and eventName: ${leadEventName}`,
         });
       }
 
@@ -172,81 +184,37 @@ export const POST = withWorkspace(
               },
             },
           }),
+
+          logConversionEvent({
+            workspace_id: workspace.id,
+            link_id: clickData.link_id,
+            path: "/track/sale",
+            body: JSON.stringify(body),
+          }),
         ]);
 
         // for program links
         if (link.programId && link.partnerId) {
-          const reward = await determinePartnerReward({
+          const commission = await createPartnerCommission({
+            event: "sale",
             programId: link.programId,
             partnerId: link.partnerId,
-            event: "sale",
+            linkId: link.id,
+            eventId,
+            customerId: customer.id,
+            amount: saleData.amount,
+            quantity: 1,
+            invoiceId,
+            currency,
           });
 
-          if (reward) {
-            let eligibleForCommission = true;
-
-            if (typeof reward.maxDuration === "number") {
-              // Get the first commission (earliest sale) for this customer-partner pair
-              const firstCommission = await prisma.commission.findFirst({
-                where: {
-                  partnerId: link.partnerId,
-                  customerId: customer.id,
-                  type: "sale",
-                },
-                orderBy: {
-                  createdAt: "asc",
-                },
-              });
-
-              if (firstCommission) {
-                if (reward.maxDuration === 0) {
-                  eligibleForCommission = false;
-                } else {
-                  // Calculate months difference between first commission and now
-                  const monthsDifference = differenceInMonths(
-                    new Date(),
-                    firstCommission.createdAt,
-                  );
-
-                  if (monthsDifference >= reward.maxDuration) {
-                    eligibleForCommission = false;
-                  }
-                }
-              }
-            }
-
-            if (eligibleForCommission) {
-              const earnings = calculateSaleEarnings({
-                reward,
-                sale: {
-                  quantity: 1,
-                  amount: saleData.amount,
-                },
-              });
-
-              const commission = await prisma.commission.create({
-                data: {
-                  id: createId({ prefix: "cm_" }),
-                  programId: link.programId,
-                  linkId: link.id,
-                  partnerId: link.partnerId,
-                  eventId,
-                  customerId: customer.id,
-                  quantity: 1,
-                  type: "sale",
-                  amount: saleData.amount,
-                  earnings,
-                  invoiceId,
-                },
-              });
-
-              waitUntil(
-                notifyPartnerSale({
-                  link,
-                  commission,
-                }),
-              );
-            }
+          if (commission) {
+            waitUntil(
+              notifyPartnerSale({
+                link,
+                commission,
+              }),
+            );
           }
         }
 

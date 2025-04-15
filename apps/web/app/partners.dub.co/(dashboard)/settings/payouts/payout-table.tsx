@@ -6,9 +6,10 @@ import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerPayoutResponse } from "@/lib/types";
 import { AmountRowItem } from "@/ui/partners/amount-row-item";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
-import { PayoutTypeBadge } from "@/ui/partners/payout-type-badge";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import {
+  AnimatedSizeContainer,
+  Filter,
   StatusBadge,
   Table,
   usePagination,
@@ -16,9 +17,10 @@ import {
   useTable,
 } from "@dub/ui";
 import { MoneyBill2 } from "@dub/ui/icons";
-import { DICEBEAR_AVATAR_URL, formatPeriod } from "@dub/utils";
+import { OG_AVATAR_URL, formatPeriod } from "@dub/utils";
 import { useEffect, useState } from "react";
 import { PayoutDetailsSheet } from "./payout-details-sheet";
+import { usePayoutFilters } from "./use-payout-filters";
 
 export function PayoutTable() {
   const { partner } = usePartnerProfile();
@@ -29,6 +31,8 @@ export function PayoutTable() {
 
   const { payouts, error, loading } = usePartnerPayouts();
   const { payoutsCount } = usePartnerPayoutsCount<number>();
+  const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =
+    usePayoutFilters();
 
   const [detailsSheetState, setDetailsSheetState] = useState<
     | { open: false; payout: PartnerPayoutResponse | null }
@@ -64,7 +68,7 @@ export function PayoutTable() {
             <img
               src={
                 row.original.program.logo ||
-                `${DICEBEAR_AVATAR_URL}${row.original.program.name}`
+                `${OG_AVATAR_URL}${row.original.program.name}`
               }
               alt={row.original.program.name}
               className="size-4 rounded-sm"
@@ -72,10 +76,6 @@ export function PayoutTable() {
             <span>{row.original.program.name}</span>
           </div>
         ),
-      },
-      {
-        header: "Type",
-        cell: ({ row }) => <PayoutTypeBadge type={row.original.type} />,
       },
       {
         header: "Status",
@@ -139,6 +139,29 @@ export function PayoutTable() {
         />
       )}
       <div className="flex flex-col gap-3">
+        <div>
+          <Filter.Select
+            className="w-full md:w-fit"
+            filters={filters}
+            activeFilters={activeFilters}
+            onSelect={onSelect}
+            onRemove={onRemove}
+          />
+          <AnimatedSizeContainer height>
+            <div>
+              {activeFilters.length > 0 && (
+                <div className="pt-3">
+                  <Filter.List
+                    filters={filters}
+                    activeFilters={activeFilters}
+                    onRemove={onRemove}
+                    onRemoveAll={onRemoveAll}
+                  />
+                </div>
+              )}
+            </div>
+          </AnimatedSizeContainer>
+        </div>
         {payouts?.length !== 0 ? (
           <Table {...table} />
         ) : (

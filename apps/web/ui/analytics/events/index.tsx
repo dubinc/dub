@@ -13,15 +13,13 @@ export default function AnalyticsEvents({
   staticDomain,
   staticUrl,
   adminPage,
-  demoPage,
 }: {
   staticDomain?: string;
   staticUrl?: string;
   adminPage?: boolean;
-  demoPage?: boolean;
 }) {
   return (
-    <AnalyticsProvider {...{ staticDomain, staticUrl, adminPage, demoPage }}>
+    <AnalyticsProvider {...{ staticDomain, staticUrl, adminPage }}>
       <div className="pb-10">
         <Toggle page="events" />
         <div className="mx-auto flex max-w-screen-xl flex-col gap-3 px-3 lg:px-10">

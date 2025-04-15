@@ -1,10 +1,12 @@
+import { SHEET_MAX_ITEMS } from "@/lib/partners/constants";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { PayoutResponse, SaleResponse } from "@/lib/types";
+import { CommissionResponse, PayoutResponse } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
   buttonVariants,
   ExpandingArrow,
+  LoadingSpinner,
   Sheet,
   StatusBadge,
   Table,
@@ -15,18 +17,20 @@ import {
   capitalize,
   cn,
   currencyFormatter,
-  DICEBEAR_AVATAR_URL,
   fetcher,
   formatDateTime,
+  OG_AVATAR_URL,
+  pluralize,
 } from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Dispatch, Fragment, SetStateAction, useMemo, useState } from "react";
 import useSWR from "swr";
+import { CommissionTypeIcon } from "./comission-type-icon";
+import { CommissionRowMenu } from "./commission-row-menu";
+import { CommissionTypeBadge } from "./commission-type-badge";
 import { PayoutStatusBadges } from "./payout-status-badges";
-import { PayoutTypeBadge } from "./payout-type-badge";
-import { SaleRowMenu } from "./sale-row-menu";
 
 type PayoutDetailsSheetProps = {
   payout: PayoutResponse;
@@ -41,12 +45,11 @@ function PayoutDetailsSheetContent({
   const { programId } = useParams() as { programId: string };
 
   const {
-    data: sales,
+    data: commissions,
     isLoading,
     error,
-  } = useSWR<SaleResponse[]>(
-    payout.type === "sales" &&
-      `/api/programs/${programId}/sales?workspaceId=${workspaceId}&payoutId=${payout.id}&interval=all&pageSize=10`,
+  } = useSWR<CommissionResponse[]>(
+    `/api/programs/${programId}/commissions?workspaceId=${workspaceId}&payoutId=${payout.id}&interval=all&pageSize=${SHEET_MAX_ITEMS}`,
     fetcher,
   );
 
@@ -62,8 +65,7 @@ function PayoutDetailsSheetContent({
         >
           <img
             src={
-              payout.partner.image ||
-              `${DICEBEAR_AVATAR_URL}${payout.partner.name}`
+              payout.partner.image || `${OG_AVATAR_URL}${payout.partner.name}`
             }
             alt={payout.partner.name}
             className="mr-1.5 size-5 rounded-full"
@@ -75,25 +77,13 @@ function PayoutDetailsSheetContent({
 
       Period: formatPeriod(payout),
 
-      Type: <PayoutTypeBadge type={payout.type} />,
-
       Status: (
         <StatusBadge variant={statusBadge.variant} icon={statusBadge.icon}>
           {statusBadge.label}
         </StatusBadge>
       ),
 
-      ...(payout.quantity && {
-        [capitalize(payout.type) as string]: payout.quantity,
-        [`Reward per ${payout.type.replace(/s$/, "")}`]: currencyFormatter(
-          payout.amount / payout.quantity / 100,
-          {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          },
-        ),
-      }),
-      Amount: currencyFormatter(payout.amount / 100, {
+      Total: currencyFormatter(payout.amount / 100, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }),
@@ -106,26 +96,39 @@ function PayoutDetailsSheetContent({
     };
   }, [payout]);
 
-  const table = useTable({
+  const commissionsTable = useTable({
     data:
-      sales?.filter(({ status }) => !["duplicate", "fraud"].includes(status)) ||
-      [],
+      commissions?.filter(
+        ({ status }) => !["duplicate", "fraud"].includes(status),
+      ) || [],
     columns: [
       {
-        header: "Sale",
+        header: "Details",
+        minSize: 240,
+        size: 240,
+        maxSize: 240,
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            <img
-              src={
-                row.original.customer.avatar ||
-                `${DICEBEAR_AVATAR_URL}${row.original.customer.name}`
-              }
-              alt={row.original.customer.name}
-              className="size-6 rounded-full"
-            />
+            {row.original.type === "click" ? (
+              <div className="flex size-6 items-center justify-center rounded-full bg-neutral-100">
+                <CommissionTypeIcon type="click" className="size-4" />
+              </div>
+            ) : (
+              <img
+                src={
+                  row.original.customer.avatar ||
+                  `${OG_AVATAR_URL}${row.original.customer.name}`
+                }
+                alt={row.original.customer.name}
+                className="size-6 rounded-full"
+              />
+            )}
+
             <div className="flex flex-col">
-              <span className="text-sm text-neutral-700">
-                {row.original.customer.email || row.original.customer.name}
+              <span className="w-44 truncate text-sm text-neutral-700">
+                {row.original.type === "click"
+                  ? `${row.original.quantity} ${pluralize("click", row.original.quantity)}`
+                  : row.original.customer.email || row.original.customer.name}
               </span>
               <span className="text-xs text-neutral-500">
                 {formatDateTime(row.original.createdAt)}
@@ -135,8 +138,21 @@ function PayoutDetailsSheetContent({
         ),
       },
       {
+        id: "type",
+        header: "Type",
+        minSize: 100,
+        size: 120,
+        maxSize: 150,
+        cell: ({ row }) => (
+          <CommissionTypeBadge type={row.original.type ?? "sale"} />
+        ),
+      },
+      {
         id: "total",
         header: "Total",
+        minSize: 100,
+        size: 120,
+        maxSize: 150,
         cell: ({ row }) =>
           currencyFormatter(row.original.earnings / 100, {
             minimumFractionDigits: 2,
@@ -150,7 +166,7 @@ function PayoutDetailsSheetContent({
         minSize: 43,
         size: 43,
         maxSize: 43,
-        cell: ({ row }) => <SaleRowMenu row={row} />,
+        cell: ({ row }) => <CommissionRowMenu row={row} />,
       },
     ],
     columnPinning: { right: ["menu"] },
@@ -159,26 +175,26 @@ function PayoutDetailsSheetContent({
     tdClassName: (id) => cn(id === "total" && "text-right", "border-l-0"),
     className: "[&_tr:last-child>td]:border-b-transparent",
     scrollWrapperClassName: "min-h-[40px]",
-    resourceName: (p) => `sale${p ? "s" : ""}`,
+    resourceName: (p) => `commission${p ? "s" : ""}`,
     loading: isLoading,
-    error: error ? "Failed to load sales" : undefined,
+    error: error ? "Failed to load commissions" : undefined,
   } as any);
 
   return (
-    <>
-      <div>
-        <div className="flex items-start justify-between border-b border-neutral-200 p-6">
-          <Sheet.Title className="text-xl font-semibold">
-            {capitalize(payout.status)} payout
-          </Sheet.Title>
-          <Sheet.Close asChild>
-            <Button
-              variant="outline"
-              icon={<X className="size-5" />}
-              className="h-auto w-fit p-1"
-            />
-          </Sheet.Close>
-        </div>
+    <div className="flex h-full flex-col">
+      <div className="sticky top-0 z-10 flex items-start justify-between border-b border-neutral-200 bg-white p-6">
+        <Sheet.Title className="text-xl font-semibold">
+          {capitalize(payout.status)} payout
+        </Sheet.Title>
+        <Sheet.Close asChild>
+          <Button
+            variant="outline"
+            icon={<X className="size-5" />}
+            className="h-auto w-fit p-1"
+          />
+        </Sheet.Close>
+      </div>
+      <div className="flex-1 overflow-y-auto">
         <div className="flex flex-col gap-4 p-6">
           <div className="text-base font-medium text-neutral-900">
             Invoice details
@@ -195,12 +211,18 @@ function PayoutDetailsSheetContent({
           </div>
         </div>
 
-        {payout.type === "sales" && (
-          <div className="p-6 pt-2">
-            <Table {...table} />
-            <div className="mt-2 flex justify-end">
+        {isLoading ? (
+          <div className="flex h-full items-center justify-center">
+            <LoadingSpinner />
+          </div>
+        ) : commissions && commissions.length > 0 ? (
+          <>
+            <div className="p-6 pt-2">
+              <Table {...commissionsTable} />
+            </div>
+            <div className="sticky bottom-0 z-10 flex justify-end border-t border-neutral-200 bg-white px-6 py-4">
               <Link
-                href={`/${slug}/programs/${programId}/sales?payoutId=${payout.id}&interval=all`}
+                href={`/${slug}/programs/${programId}/commissions?payoutId=${payout.id}&interval=all`}
                 target="_blank"
                 className={cn(
                   buttonVariants({ variant: "secondary" }),
@@ -210,21 +232,10 @@ function PayoutDetailsSheetContent({
                 View all
               </Link>
             </div>
-          </div>
-        )}
+          </>
+        ) : null}
       </div>
-      <div className="flex grow flex-col justify-end">
-        <div className="flex items-center justify-end gap-2 border-t border-neutral-200 p-5">
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => setIsOpen(false)}
-            text="Close"
-            className="w-fit"
-          />
-        </div>
-      </div>
-    </>
+    </div>
   );
 }
 

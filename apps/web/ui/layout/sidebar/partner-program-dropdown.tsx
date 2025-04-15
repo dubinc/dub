@@ -5,7 +5,7 @@ import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { PartnerProps, ProgramProps } from "@/lib/types";
 import { BlurImage, Popover, useScrollProgress } from "@dub/ui";
 import { Check2, Gear } from "@dub/ui/icons";
-import { cn, DICEBEAR_AVATAR_URL } from "@dub/utils";
+import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { ChevronsUpDown } from "lucide-react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
@@ -51,8 +51,8 @@ export function PartnerProgramDropdown() {
       ? {
           ...program.program,
           logo:
-            program.program.logo ||
-            `${DICEBEAR_AVATAR_URL}${program.program.name}`,
+            program.program.logo || `${OG_AVATAR_URL}${program.program.name}`,
+          status: program.status,
         }
       : undefined;
   }, [programSlug, programEnrollments]);
@@ -95,7 +95,7 @@ export function PartnerProgramDropdown() {
                 onClick={() => setOpenPopover(false)}
               >
                 <BlurImage
-                  src={partner.image || `${DICEBEAR_AVATAR_URL}${partner.id}`}
+                  src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
                   width={28}
                   height={28}
                   alt={partner.name}
@@ -151,7 +151,7 @@ export function PartnerProgramDropdown() {
               src={
                 selectedProgram?.logo ||
                 partner.image ||
-                `${DICEBEAR_AVATAR_URL}${partner.id}`
+                `${OG_AVATAR_URL}${partner.id}`
               }
               referrerPolicy="no-referrer"
               width={28}
@@ -163,13 +163,15 @@ export function PartnerProgramDropdown() {
               <div className="truncate text-sm font-medium leading-5 text-neutral-900">
                 {selectedProgram?.name || partner.name}
               </div>
-              <div
-                className={cn(
-                  "truncate text-xs capitalize leading-tight text-neutral-600",
-                )}
-              >
-                {selectedProgram ? "Enrolled" : "Partner"}
-              </div>
+              {(!selectedProgram || selectedProgram.status === "approved") && (
+                <div
+                  className={cn(
+                    "truncate text-xs capitalize leading-tight text-neutral-600",
+                  )}
+                >
+                  {selectedProgram ? "Enrolled" : "Partner"}
+                </div>
+              )}
             </div>
           </div>
           <ChevronsUpDown
@@ -257,7 +259,7 @@ function ProgramList({
               onClick={() => setOpenPopover(false)}
             >
               <BlurImage
-                src={logo || `${DICEBEAR_AVATAR_URL}${name}`}
+                src={logo || `${OG_AVATAR_URL}${name}`}
                 width={28}
                 height={28}
                 alt={name}

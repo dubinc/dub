@@ -15,8 +15,8 @@ const tabs = [
     label: "Analytics",
   },
   {
-    href: "/revenue",
-    label: "Revenue",
+    href: "/payouts",
+    label: "Payouts",
   },
   {
     href: "/demo",

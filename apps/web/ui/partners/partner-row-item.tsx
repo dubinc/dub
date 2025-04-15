@@ -1,16 +1,20 @@
 import { PartnerProps } from "@/lib/types";
 import { GreekTemple, Tooltip } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { DICEBEAR_AVATAR_URL } from "@dub/utils/src/constants";
+import { OG_AVATAR_URL } from "@dub/utils/src/constants";
 import { CircleMinus } from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 
 export function PartnerRowItem({
   partner,
   showPayoutsEnabled = true,
 }: {
-  partner: Pick<PartnerProps, "name" | "image" | "payoutsEnabledAt">;
+  partner: Pick<PartnerProps, "id" | "name" | "image" | "payoutsEnabledAt">;
   showPayoutsEnabled?: boolean;
 }) {
+  const { slug, programId } = useParams();
+
   return (
     <div className="flex items-center gap-2">
       {showPayoutsEnabled ? (
@@ -43,7 +47,7 @@ export function PartnerRowItem({
         >
           <div className="relative shrink-0">
             <img
-              src={partner.image || `${DICEBEAR_AVATAR_URL}${partner.name}`}
+              src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
               alt={partner.name}
               className="size-5 rounded-full"
             />
@@ -57,14 +61,19 @@ export function PartnerRowItem({
         </Tooltip>
       ) : (
         <img
-          src={partner.image || `${DICEBEAR_AVATAR_URL}${partner.name}`}
+          src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
           alt={partner.name}
           className="size-5 shrink-0 rounded-full"
         />
       )}
-      <div className="min-w-0 truncate" title={partner.name}>
+      <Link
+        href={`/${slug}/programs/${programId}/partners?partnerId=${partner.id}`}
+        target="_blank"
+        className="min-w-0 cursor-alias truncate decoration-dotted hover:underline"
+        title={partner.name}
+      >
         {partner.name}
-      </div>
+      </Link>
     </div>
   );
 }

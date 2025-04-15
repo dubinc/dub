@@ -9,7 +9,7 @@ import { programDataSchema } from "@/lib/zod/schemas/program-onboarding";
 import { sendEmail } from "@dub/email";
 import { PartnerInvite } from "@dub/email/templates/partner-invite";
 import { prisma } from "@dub/prisma";
-import { nanoid, R2_URL } from "@dub/utils";
+import { generateRandomString, nanoid, R2_URL } from "@dub/utils";
 import { Program, Project, User } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 
@@ -18,7 +18,10 @@ export const createProgram = async ({
   workspace,
   user,
 }: {
-  workspace: Pick<Project, "id" | "slug" | "plan" | "store" | "webhookEnabled">;
+  workspace: Pick<
+    Project,
+    "id" | "slug" | "plan" | "store" | "webhookEnabled" | "invoicePrefix"
+  >;
   user: Pick<User, "id">;
 }) => {
   const store = workspace.store as Record<string, any>;
@@ -30,6 +33,7 @@ export const createProgram = async ({
     name,
     domain,
     url,
+    defaultRewardType,
     type,
     amount,
     maxDuration,
@@ -75,7 +79,7 @@ export const createProgram = async ({
               type,
               amount,
               maxDuration,
-              event: "sale",
+              event: defaultRewardType,
             },
           },
         }),
@@ -134,6 +138,10 @@ export const createProgram = async ({
             ...store,
             programOnboarding: undefined,
           },
+          // if the workspace doesn't have an invoice prefix, generate one
+          ...(!workspace.invoicePrefix && {
+            invoicePrefix: generateRandomString(8),
+          }),
         },
       }),
       prisma.program.update({

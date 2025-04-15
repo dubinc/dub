@@ -200,7 +200,7 @@ const createSaleTemplate = ({ data }: { data: SaleEventWebhookData }) => {
   };
 };
 
-const createPartnerTemplate = ({ data }: { data: PartnerEventDataProps }) => {
+const enrolledPartnerTemplate = ({ data }: { data: PartnerEventDataProps }) => {
   const { name, email, country } = data;
 
   return {
@@ -209,7 +209,7 @@ const createPartnerTemplate = ({ data }: { data: PartnerEventDataProps }) => {
         type: "section",
         text: {
           type: "mrkdwn",
-          text: `*New partner created* :tada:`,
+          text: `*New partner enrolled* :tada:`,
         },
       },
       {
@@ -240,7 +240,7 @@ const slackTemplates: Record<WebhookTrigger, any> = {
   "link.clicked": clickLinkTemplate,
   "lead.created": createLeadTemplate,
   "sale.created": createSaleTemplate,
-  "partner.created": createPartnerTemplate,
+  "partner.enrolled": enrolledPartnerTemplate,
 };
 
 export const formatEventForSlack = (

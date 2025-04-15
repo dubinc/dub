@@ -140,13 +140,12 @@ export const PartnerSchema = z
     status: z.nativeEnum(PartnerStatus),
     stripeConnectId: z.string().nullable(),
     payoutsEnabledAt: z.date().nullable(),
-
     createdAt: z.date(),
     updatedAt: z.date(),
   })
   .merge(PartnerOnlinePresenceSchema);
 
-// Used externally by GET+POST /api/partners and partner.created webhook
+// Used externally by GET+POST /api/partners and partner.enrolled webhook
 export const EnrolledPartnerSchema = PartnerSchema.pick({
   id: true,
   name: true,

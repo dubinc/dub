@@ -5,7 +5,6 @@ async function main() {
   const payouts = await prisma.payout.findMany({
     where: {
       quantity: null,
-      type: "sales",
     },
     select: {
       id: true,

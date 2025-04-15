@@ -1,6 +1,6 @@
 import usePartners from "@/lib/swr/use-partners";
 import { buttonVariants } from "@dub/ui";
-import { cn, currencyFormatter, DICEBEAR_AVATAR_URL } from "@dub/utils";
+import { cn, currencyFormatter, OG_AVATAR_URL } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
@@ -55,9 +55,7 @@ export function TopPartners() {
                 >
                   <div className="flex items-center gap-2 text-xs">
                     <img
-                      src={
-                        partner.image || `${DICEBEAR_AVATAR_URL}${partner.name}`
-                      }
+                      src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
                       alt={partner.name}
                       className="size-8 rounded-full"
                     />

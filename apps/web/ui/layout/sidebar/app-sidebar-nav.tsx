@@ -14,6 +14,7 @@ import {
   Key,
   Receipt2,
   ShieldCheck,
+  Users2,
   Users6,
   Webhook,
 } from "@dub/ui/icons";
@@ -61,6 +62,15 @@ const NAV_AREAS: SidebarNavAreas<{
             icon: CursorRays,
             href: `/${slug}/events${pathname === `/${slug}/events` ? "" : queryString}`,
           },
+          ...(pathname.startsWith(`/${slug}/customers`)
+            ? [
+                {
+                  name: "Customers",
+                  icon: Users2,
+                  href: `/${slug}/customers`,
+                },
+              ]
+            : []),
           {
             name: "Settings",
             icon: Gear,
@@ -88,8 +98,8 @@ const NAV_AREAS: SidebarNavAreas<{
                       href: `/${slug}/programs/${programs[0].id}/partners`,
                     },
                     {
-                      name: "Sales",
-                      href: `/${slug}/programs/${programs[0].id}/sales`,
+                      name: "Commissions",
+                      href: `/${slug}/programs/${programs[0].id}/commissions`,
                     },
                     {
                       name: "Payouts",

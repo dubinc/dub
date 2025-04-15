@@ -23,9 +23,9 @@ import {
 } from "./folder/constants";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import { clickEventResponseSchema } from "./zod/schemas/clicks";
+import { CommissionResponseSchema } from "./zod/schemas/commissions";
+import { customerActivityResponseSchema } from "./zod/schemas/customer-activity";
 import {
-  customerActivityResponseSchema,
-  customerActivitySchema,
   CustomerEnrichedSchema,
   CustomerSchema,
 } from "./zod/schemas/customers";
@@ -38,7 +38,10 @@ import {
   leadEventResponseSchema,
   trackLeadResponseSchema,
 } from "./zod/schemas/leads";
-import { createLinkBodySchema } from "./zod/schemas/links";
+import {
+  ABTestVariantsSchema,
+  createLinkBodySchema,
+} from "./zod/schemas/links";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
 import {
   createPartnerSchema,
@@ -51,10 +54,6 @@ import {
   PayoutSchema,
 } from "./zod/schemas/payouts";
 import { programDataSchema } from "./zod/schemas/program-onboarding";
-import {
-  ProgramSaleResponseSchema,
-  ProgramSaleSchema,
-} from "./zod/schemas/program-sales";
 import {
   PartnerProgramInviteSchema,
   ProgramEnrollmentSchema,
@@ -114,6 +113,12 @@ export interface RedisLinkProps {
   doIndex?: boolean;
   projectId?: string;
   webhookIds?: string[];
+  programId?: string;
+  partnerId?: string;
+  partner?: Pick<PartnerProps, "id" | "name" | "image">;
+  discount?: Pick<DiscountProps, "id" | "amount" | "type" | "maxDuration">;
+  testVariants?: z.infer<typeof ABTestVariantsSchema>;
+  testCompletedAt?: Date;
 }
 
 export interface TagProps {
@@ -133,7 +138,7 @@ export type PlanProps = (typeof plans)[number];
 
 export type RoleProps = (typeof roles)[number];
 
-export type BetaFeatures = "noDubLink" | "linkFolders";
+export type BetaFeatures = "noDubLink" | "linkFolders" | "abTesting";
 
 export interface WorkspaceProps extends Project {
   logo: string | null;
@@ -364,9 +369,7 @@ export type UsageResponse = z.infer<typeof usageResponse>;
 
 export type PartnersCount = Record<ProgramEnrollmentStatus | "all", number>;
 
-export type SaleProps = z.infer<typeof ProgramSaleSchema>;
-
-export type SalesCount = Record<
+export type CommissionsCount = Record<
   CommissionStatus | "all",
   {
     count: number;
@@ -375,7 +378,7 @@ export type SalesCount = Record<
   }
 >;
 
-export type SaleResponse = z.infer<typeof ProgramSaleResponseSchema>;
+export type CommissionResponse = z.infer<typeof CommissionResponseSchema>;
 
 export type PartnerEarningsResponse = z.infer<typeof PartnerEarningsSchema>;
 
@@ -419,8 +422,6 @@ export type SegmentIntegrationCredentials = {
   writeKey?: string;
 };
 export type InvoiceProps = z.infer<typeof InvoiceSchema>;
-
-export type CustomerActivity = z.infer<typeof customerActivitySchema>;
 
 export type CustomerActivityResponse = z.infer<
   typeof customerActivityResponseSchema

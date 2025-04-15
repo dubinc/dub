@@ -1,4 +1,5 @@
 import { qstash } from "@/lib/cron";
+import { getPartnerAndDiscount } from "@/lib/planetscale/get-partner-discount";
 import { isStored, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { ProcessedLinkProps } from "@/lib/types";
@@ -15,6 +16,7 @@ import { linkConstructorSimple } from "@dub/utils/src/functions/link-constructor
 import { waitUntil } from "@vercel/functions";
 import { createId } from "../create-id";
 import { combineTagIds } from "../tags/combine-tag-ids";
+import { scheduleABTestCompletion } from "./ab-test-scheduler";
 import { linkCache } from "./cache";
 import { encodeKeyIfCaseSensitive } from "./case-sensitivity";
 import { includeTags } from "./include-tags";
@@ -32,6 +34,9 @@ export async function createLink(link: ProcessedLinkProps) {
     proxy,
     geo,
     publicStats,
+    testVariants,
+    testStartedAt,
+    testCompletedAt,
   } = link;
 
   const combinedTagIds = combineTagIds(link);
@@ -63,6 +68,10 @@ export async function createLink(link: ProcessedLinkProps) {
       utm_content,
       expiresAt: expiresAt ? new Date(expiresAt) : null,
       geo: geo || Prisma.JsonNull,
+
+      testVariants: testVariants || Prisma.JsonNull,
+      testCompletedAt: testCompletedAt ? new Date(testCompletedAt) : null,
+      testStartedAt: testStartedAt ? new Date(testStartedAt) : null,
 
       // Associate tags by tagNames
       ...(tagNames?.length &&
@@ -129,7 +138,15 @@ export async function createLink(link: ProcessedLinkProps) {
   waitUntil(
     Promise.allSettled([
       // cache link in Redis
-      linkCache.set(response),
+      linkCache.set({
+        ...response,
+        ...(response.programId &&
+          (await getPartnerAndDiscount({
+            programId: response.programId,
+            partnerId: response.partnerId,
+          }))),
+      }),
+
       // record link in Tinybird
       recordLink(response),
       // Upload image to R2 and update the link with the uploaded image URL when
@@ -173,6 +190,8 @@ export async function createLink(link: ProcessedLinkProps) {
         propagateWebhookTriggerChanges({
           webhookIds,
         }),
+
+      testVariants && testCompletedAt && scheduleABTestCompletion(response),
     ]),
   );
 

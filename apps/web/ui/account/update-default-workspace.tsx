@@ -2,7 +2,7 @@
 
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { Button, InputSelect, InputSelectItemProps } from "@dub/ui";
-import { DICEBEAR_AVATAR_URL } from "@dub/utils";
+import { OG_AVATAR_URL } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -16,7 +16,7 @@ export default function UpdateDefaultWorkspace() {
       ? workspaces.map((workspace) => ({
           id: workspace.slug,
           value: workspace.name,
-          image: workspace.logo || `${DICEBEAR_AVATAR_URL}${workspace.name}`,
+          image: workspace.logo || `${OG_AVATAR_URL}${workspace.name}`,
           disabled: workspace.slug === session?.user?.["defaultWorkspace"],
           label:
             workspace.slug === session?.user?.["defaultWorkspace"]

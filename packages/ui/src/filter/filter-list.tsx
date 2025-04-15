@@ -1,6 +1,8 @@
 import { cn, truncate } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import { ReactNode, isValidElement } from "react";
 import { AnimatedSizeContainer } from "../animated-size-container";
 import { useKeyboardShortcut } from "../hooks";
@@ -24,6 +26,7 @@ export function FilterList({
   onRemoveAll,
   className,
 }: FilterListProps) {
+  const { slug } = useParams();
   useKeyboardShortcut("Escape", onRemoveAll, { priority: 1 });
   return (
     <AnimatedSizeContainer
@@ -58,6 +61,11 @@ export function FilterList({
                 );
                 return null;
               }
+
+              const linkPageHref =
+                slug && key === "link"
+                  ? `/${slug}/links/${filterValue}`
+                  : undefined;
 
               return (
                 filter.multiple && Array.isArray(filterValue)
@@ -116,7 +124,17 @@ export function FilterList({
                               <OptionIcon className="h-4 w-4" />
                             )}
                           </span>
-                          {truncate(optionLabel, 30)}
+                          {linkPageHref ? (
+                            <Link
+                              href={linkPageHref}
+                              target="_blank"
+                              className="cursor-alias decoration-dotted underline-offset-2 hover:underline"
+                            >
+                              {truncate(optionLabel, 30)}
+                            </Link>
+                          ) : (
+                            truncate(optionLabel, 30)
+                          )}
                         </>
                       ) : (
                         <div className="h-5 w-12 animate-pulse rounded-md bg-neutral-200" />

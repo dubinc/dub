@@ -1,9 +1,12 @@
 import { verifyAnalyticsAllowedHostnames } from "@/lib/analytics/verify-analytics-allowed-hostnames";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { linkCache } from "@/lib/api/links/cache";
 import { clickCache } from "@/lib/api/links/click-cache";
 import { parseRequestBody } from "@/lib/api/utils";
-import { getLinkWithAllowedHostnames } from "@/lib/planetscale/get-link-with-allowed-hostnames";
+import { getLinkViaEdge, getWorkspaceViaEdge } from "@/lib/planetscale";
 import { recordClick } from "@/lib/tinybird";
+import { RedisLinkProps } from "@/lib/types";
+import { formatRedisLink, redis } from "@/lib/upstash";
 import { isValidUrl, LOCALHOST_IP, nanoid } from "@dub/utils";
 import { ipAddress, waitUntil } from "@vercel/functions";
 import { AxiomRequest, withAxiom } from "next-axiom";
@@ -38,44 +41,65 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
 
     const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
 
-    let clickId = await clickCache.get({ domain, key, ip });
+    let [clickId, cachedLink] = await redis.mget<[string, RedisLinkProps]>([
+      clickCache._createKey({ domain, key, ip }),
+      linkCache._createKey({ domain, key }),
+    ]);
 
-    // only generate + record a new click ID if it's not already cached in Redis
-    if (!clickId) {
-      clickId = nanoid(16);
+    // if the clickId is already cached in Redis, return it
+    if (clickId) {
+      return NextResponse.json({ clickId }, { headers: CORS_HEADERS });
+    }
 
-      let link = await getLinkWithAllowedHostnames(domain, key);
+    // Otherwise, track the visit event
+    clickId = nanoid(16);
+
+    if (!cachedLink) {
+      const link = await getLinkViaEdge({
+        domain,
+        key,
+      });
 
       if (!link) {
-        return NextResponse.json(
-          {
-            clickId: null,
-          },
-          {
-            headers: CORS_HEADERS,
-          },
-        );
+        throw new DubApiError({
+          code: "not_found",
+          message: `Link not found for domain: ${domain} and key: ${key}.`,
+        });
       }
 
-      const allowedHostnames = link.allowedHostnames;
-      verifyAnalyticsAllowedHostnames({ allowedHostnames, req });
+      cachedLink = formatRedisLink(link as any);
 
-      const finalUrl = isValidUrl(url) ? url : link.url;
-
-      waitUntil(
-        recordClick({
-          req,
-          clickId,
-          linkId: link.id,
-          domain,
-          key,
-          url: finalUrl,
-          workspaceId: link.projectId,
-          skipRatelimit: true,
-          ...(referrer && { referrer }),
-        }),
-      );
+      waitUntil(linkCache.set(link as any));
     }
+
+    const finalUrl = isValidUrl(url) ? url : cachedLink.url;
+
+    waitUntil(
+      (async () => {
+        const workspace = await getWorkspaceViaEdge(cachedLink.projectId!);
+        const allowedHostnames = workspace?.allowedHostnames as string[];
+
+        if (
+          verifyAnalyticsAllowedHostnames({
+            allowedHostnames,
+            req,
+          })
+        ) {
+          await recordClick({
+            req,
+            clickId,
+            linkId: cachedLink.id,
+            domain,
+            key,
+            url: finalUrl,
+            workspaceId: cachedLink.projectId,
+            skipRatelimit: true,
+            ...(referrer && { referrer }),
+            trackConversion: cachedLink.trackConversion,
+          });
+        }
+      })(),
+    );
 
     return NextResponse.json(
       {
