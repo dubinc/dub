@@ -41,7 +41,7 @@ export default function usePartnerProfile() {
 
   return {
     partner: {
-      ...partner,
+      ...(partner as PartnerProps),
       payoutMethod: payoutMethod as PayoutMethod | null,
       supportedPayoutMethod: supportedPayoutMethod as PayoutMethod | null,
     },
