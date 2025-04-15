@@ -67,4 +67,4 @@ export * from "./nucleo";
 export type Icon =
   | LucideIcon
   | ComponentType<SVGProps<SVGSVGElement>>
-  | ComponentType<IconifyProps>;
+  | ComponentType<Partial<IconifyProps>>;
