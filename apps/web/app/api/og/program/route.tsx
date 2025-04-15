@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
 
   const program = await getProgramViaEdge({ slug });
 
-  if (!program || !program.landerData)
+  if (!program)
     return new Response(`Program not found`, {
       status: 404,
     });
