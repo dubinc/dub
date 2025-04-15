@@ -6,7 +6,6 @@ import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerPayoutResponse } from "@/lib/types";
 import { AmountRowItem } from "@/ui/partners/amount-row-item";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
-import { PayoutTypeBadge } from "@/ui/partners/payout-type-badge";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import {
   AnimatedSizeContainer,
@@ -77,10 +76,6 @@ export function PayoutTable() {
             <span>{row.original.program.name}</span>
           </div>
         ),
-      },
-      {
-        header: "Type",
-        cell: ({ row }) => <PayoutTypeBadge type={row.original.type} />,
       },
       {
         header: "Status",

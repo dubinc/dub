@@ -1,6 +1,4 @@
-import { intervals } from "@/lib/analytics/constants";
-import { parseDateSchema } from "@/lib/zod/schemas/utils";
-import { PayoutStatus, PayoutType } from "@dub/prisma/client";
+import { PayoutStatus } from "@dub/prisma/client";
 import { z } from "zod";
 import { getPaginationQuerySchema } from "./misc";
 import { PartnerSchema, PAYOUTS_MAX_PAGE_SIZE } from "./partners";
@@ -33,9 +31,6 @@ export const payoutsQuerySchema = z
       .enum(["createdAt", "periodStart", "amount", "paidAt"])
       .default("createdAt"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
-    interval: z.enum(intervals).default("all"),
-    start: parseDateSchema.optional(),
-    end: parseDateSchema.optional(),
   })
   .merge(getPaginationQuerySchema({ pageSize: PAYOUTS_MAX_PAGE_SIZE }));
 
@@ -46,9 +41,6 @@ export const payoutsCountQuerySchema = payoutsQuerySchema
     partnerId: true,
     eligibility: true,
     invoiceId: true,
-    interval: true,
-    start: true,
-    end: true,
   })
   .merge(
     z.object({
@@ -62,7 +54,6 @@ export const PayoutSchema = z.object({
   amount: z.number(),
   currency: z.string(),
   status: z.nativeEnum(PayoutStatus),
-  type: z.nativeEnum(PayoutType),
   description: z.string().nullish(),
   periodStart: z.date().nullable(),
   periodEnd: z.date().nullable(),
