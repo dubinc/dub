@@ -8,6 +8,8 @@ import { AmountRowItem } from "@/ui/partners/amount-row-item";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import {
+  AnimatedSizeContainer,
+  Filter,
   StatusBadge,
   Table,
   usePagination,
@@ -18,6 +20,7 @@ import { MoneyBill2 } from "@dub/ui/icons";
 import { OG_AVATAR_URL, formatPeriod } from "@dub/utils";
 import { useEffect, useState } from "react";
 import { PayoutDetailsSheet } from "./payout-details-sheet";
+import { usePayoutFilters } from "./use-payout-filters";
 
 export function PayoutTable() {
   const { partner } = usePartnerProfile();
@@ -28,6 +31,8 @@ export function PayoutTable() {
 
   const { payouts, error, loading } = usePartnerPayouts();
   const { payoutsCount } = usePartnerPayoutsCount<number>();
+  const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =
+    usePayoutFilters();
 
   const [detailsSheetState, setDetailsSheetState] = useState<
     | { open: false; payout: PartnerPayoutResponse | null }
@@ -134,6 +139,29 @@ export function PayoutTable() {
         />
       )}
       <div className="flex flex-col gap-3">
+        <div>
+          <Filter.Select
+            className="w-full md:w-fit"
+            filters={filters}
+            activeFilters={activeFilters}
+            onSelect={onSelect}
+            onRemove={onRemove}
+          />
+          <AnimatedSizeContainer height>
+            <div>
+              {activeFilters.length > 0 && (
+                <div className="pt-3">
+                  <Filter.List
+                    filters={filters}
+                    activeFilters={activeFilters}
+                    onRemove={onRemove}
+                    onRemoveAll={onRemoveAll}
+                  />
+                </div>
+              )}
+            </div>
+          </AnimatedSizeContainer>
+        </div>
         {payouts?.length !== 0 ? (
           <Table {...table} />
         ) : (

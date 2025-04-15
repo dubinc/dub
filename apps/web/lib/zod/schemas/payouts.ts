@@ -45,6 +45,7 @@ export const payoutsCountQuerySchema = payoutsQuerySchema
     programId: true,
     partnerId: true,
     eligibility: true,
+    invoiceId: true,
     interval: true,
     start: true,
     end: true,
@@ -79,7 +80,6 @@ export const PayoutResponseSchema = PayoutSchema.merge(
         image: z.string().nullable(),
       })
       .nullish(),
-    _count: z.object({ commissions: z.number() }),
   }),
 );
 

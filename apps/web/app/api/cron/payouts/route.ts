@@ -16,7 +16,7 @@ export async function GET(req: Request) {
     const commissions = await prisma.commission.groupBy({
       by: ["programId", "partnerId"],
       where: {
-        amount: {
+        earnings: {
           not: 0,
         },
         status: "pending",
