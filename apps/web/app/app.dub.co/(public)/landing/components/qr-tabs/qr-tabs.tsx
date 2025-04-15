@@ -75,7 +75,7 @@ export const QRTabs = () => {
                           : "[&>g]:stroke-primary [&>path]:stroke-primary"),
                     )}
                   />
-                  <span className="truncate text-sm font-normal">
+                  <span className="truncate text-sm font-normal md:text-xs">
                     {type.label}
                   </span>
                 </Tabs.Trigger>
@@ -103,14 +103,14 @@ export const QRTabs = () => {
               >
                 <div
                   className={cn(
-                    "flex items-center gap-8 rounded-lg bg-white p-4",
+                    "flex items-center gap-8 rounded-lg bg-white p-4 md:min-h-[264px]",
                     isMobile && "w-full p-0",
                   )}
                 >
                   <div className="flex h-full flex-1 flex-col items-start justify-between gap-20">
                     {!isMobile && (
                       <div className="flex flex-col gap-3">
-                        <h3 className="text-neutral text-2xl font-semibold">
+                        <h3 className="text-neutral text-xl font-semibold">
                           {type.label}
                         </h3>
                         <p className="text-sm text-neutral-300">
@@ -132,7 +132,7 @@ export const QRTabs = () => {
                             isMobile && "w-full",
                           )}
                         >
-                          <p className="text-secondary-text text-sm font-medium">
+                          <p className="text-secondary-text text-xs font-medium md:text-sm">
                             Enter your {type.label.toLowerCase()}
                           </p>
                           <Input
@@ -145,7 +145,7 @@ export const QRTabs = () => {
                       <Link
                         href="/register"
                         className={cn(
-                          "bg-secondary hover:bg-secondary/90 flex h-11 w-full items-center justify-center rounded-md px-6 py-3 text-sm font-medium text-white transition-colors",
+                          "bg-secondary hover:bg-secondary/90 flex h-11 w-full items-center justify-center rounded-md px-6 py-3 text-sm font-medium text-white transition-colors md:text-base",
                           firstTab && "basis-2/5",
                         )}
                       >

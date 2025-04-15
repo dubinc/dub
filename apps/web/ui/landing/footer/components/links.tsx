@@ -12,12 +12,12 @@ interface ILinksProps {
 }
 
 export const Links: FC<ILinksProps> = ({ title, links }) => (
-  <ul className="flex flex-col gap-2">
-    <p className="text-neutral-default mb-2 text-lg font-semibold">{title}</p>
+  <ul className="text-neutral flex flex-col gap-2">
+    <p className="mb-2 text-lg font-semibold">{title}</p>
     {links.map((link, index) => (
       <li key={index}>
         <Link
-          className="text-neutral-default text-base font-medium"
+          className="text-base font-medium"
           href={link.href}
           target="_blank"
         >

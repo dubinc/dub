@@ -10,7 +10,7 @@ import {
 
 export const Footer = () => (
   <footer className="mt-auto w-full">
-    <div className="bg-primary-100 mt-10 w-full py-6 md:mt-16 lg:py-12">
+    <div className="bg-primary-100 w-full py-6 lg:py-12">
       <div className="mx-auto flex w-full max-w-7xl flex-col max-[1320px]:px-6 max-md:px-4">
         <div className="flex flex-col items-start justify-end md:flex-row">
           <div className="mr-auto flex flex-col justify-start gap-4">
