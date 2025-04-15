@@ -1,32 +1,11 @@
 import { paypalEnv } from "@/lib/paypal/env";
 import { prisma } from "@dub/prisma";
-import { Partner, Payout, Program } from "@prisma/client";
 import { createPaypalToken } from "./create-paypal-token";
 import { Payload } from "./utils";
 
 export const dynamic = "force-dynamic";
 
-type PaypalPayout = Payout & {
-  partner: Partner;
-  program: Program;
-};
-
-interface PaypalBatchPayoutResponse {
-  batch_header: {
-    payout_batch_id: string;
-    batch_status: string;
-    sender_batch_header: {
-      sender_batch_id: string;
-    };
-  };
-}
-
-export async function sendPaypalPayouts({
-  invoiceId,
-  chargeId,
-  receiptUrl,
-  achCreditTransfer,
-}: Payload) {
+export async function sendPaypalPayouts({ invoiceId }: Payload) {
   const paypalPayouts = await prisma.payout.findMany({
     where: {
       invoiceId,
@@ -62,9 +41,10 @@ export async function sendPaypalPayouts({
     items: paypalPayouts.map((payout) => ({
       recipient_type: "EMAIL",
       receiver: payout.partner.paypalEmail,
+      sender_item_id: payout.id,
       note: `Dub Partners payout (${payout.program.name})`,
       amount: {
-        value: payout.amount.toString(),
+        value: (payout.amount / 100).toString(),
         currency: "USD",
       },
     })),
@@ -86,7 +66,7 @@ export async function sendPaypalPayouts({
 
   if (!response.ok) {
     console.error("Error creating PayPal batch payout", data);
-    return;
+    throw new Error("Error creating PayPal batch payout");
   }
 
   console.log("Paypal batch payout created", data);

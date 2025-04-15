@@ -9,8 +9,8 @@ export const dynamic = "force-dynamic";
 export async function sendStripePayouts({
   invoiceId,
   chargeId,
-  receiptUrl,
   achCreditTransfer,
+  receiptUrl,
 }: Payload) {
   const stripePayouts = await prisma.payout.findMany({
     where: {
@@ -97,4 +97,15 @@ export async function sendStripePayouts({
         }),
     ]);
   }
+
+  await prisma.invoice.update({
+    where: {
+      id: invoiceId,
+    },
+    data: {
+      receiptUrl,
+      paidAt: new Date(),
+      status: "completed",
+    },
+  });
 }

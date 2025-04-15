@@ -8,8 +8,9 @@ import { z } from "zod";
 const schema = z.object({
   event_type: z.string(),
   resource: z.object({
-    sender_batch_id: z.string(),
+    sender_batch_id: z.string(), // Dub invoice id
     payout_item_id: z.string(),
+    sender_item_id: z.string(), // Dub payout id
     payout_item_fee: z.object({
       currency: z.string(),
       value: z.string(),
@@ -28,13 +29,11 @@ export async function payoutStatusChanged(event: any) {
   const invoiceId = body.resource.sender_batch_id;
   const paypalEmail = body.resource.payout_item.receiver;
   const payoutItemId = body.resource.payout_item_id;
+  const payoutId = body.resource.sender_item_id;
 
   const payout = await prisma.payout.findFirst({
     where: {
-      invoiceId,
-      partner: {
-        paypalEmail,
-      },
+      id: payoutId,
     },
     include: {
       partner: true,

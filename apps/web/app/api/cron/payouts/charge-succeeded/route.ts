@@ -54,26 +54,6 @@ export async function POST(req: Request) {
     await sendStripePayouts(body);
     await sendPaypalPayouts(body);
 
-    const notCompletedPayoutsCount = await prisma.payout.count({
-      where: {
-        invoiceId,
-        status: {
-          not: "completed",
-        },
-      },
-    });
-
-    await prisma.invoice.update({
-      where: {
-        id: invoiceId,
-      },
-      data: {
-        receiptUrl,
-        paidAt: new Date(),
-        ...(notCompletedPayoutsCount === 0 && { status: "completed" }),
-      },
-    });
-
     return new Response(`Invoice ${invoiceId} processed.`);
   } catch (error) {
     return handleAndReturnErrorResponse(error);

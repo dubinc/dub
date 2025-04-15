@@ -22,11 +22,17 @@ export async function createPaypalToken() {
     return cachedToken;
   }
 
+  const basicAuth = Buffer.from(
+    `${paypalEnv.PAYPAL_CLIENT_ID}:${paypalEnv.PAYPAL_CLIENT_SECRET}`,
+  ).toString("base64");
+
+  console.log("Basic auth", basicAuth);
+
   const response = await fetch(paypalEnv.PAYPAL_API_HOST + "/v1/oauth2/token", {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
-      Authorization: `Basic ${paypalEnv.PAYPAL_CLIENT_ID}:${paypalEnv.PAYPAL_CLIENT_SECRET}`,
+      Authorization: `Basic ${basicAuth}`,
     },
     body: new URLSearchParams({
       grant_type: "client_credentials",
@@ -36,9 +42,8 @@ export async function createPaypalToken() {
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error("Failed to create PayPal token.", {
-      cause: data,
-    });
+    console.error("Failed to create PayPal token.", data);
+    throw new Error("Failed to create PayPal token.");
   }
 
   const token = data as PaypalTokenResponse;
