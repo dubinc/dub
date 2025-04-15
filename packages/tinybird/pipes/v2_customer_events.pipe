@@ -37,12 +37,13 @@ SQL >
         = {{
             String(
                 clickId,
-                '8bBSF1CbVlXRCMJY',
+                'aVneMglsZ6qkydu0',
                 description="The unique ID for a given click event",
                 required=True,
             )
         }}
-    LIMIT {{ Int32(limit, 100) }}
+    ORDER BY timestamp DESC
+    LIMIT 1
 
 
 
@@ -74,19 +75,20 @@ SQL >
         splitByString('?', referer_url)[1] as referer_url_processed,
         'lead' as event,
         event_id,
-        event_name
-    FROM dub_lead_events_mv
+        event_name,
+        metadata
+    FROM dub_lead_events_mv_new
     WHERE
         customer_id
         = {{
             String(
                 customerId,
-                'cm1a18x7w0001aqhx744lrtxp',
+                'cm1hxwtve0001pgdvwkmjjdrv',
                 description="The unique ID for a given customer",
                 required=True,
             )
         }}
-        AND timestamp >= {{ DateTime(start, '2025-01-01 00:00:00') }}
+        AND timestamp >= {{ DateTime(start, '2024-01-01 00:00:00') }}
         AND timestamp < {{ DateTime(end, '2025-06-30 00:00:00') }}
     ORDER BY timestamp {% if order == 'asc' %} ASC {% else %} DESC {% end %}
     LIMIT {{ Int32(limit, 100) }}
@@ -122,10 +124,11 @@ SQL >
         'sale' as event,
         event_id,
         event_name,
+        metadata,
         amount as saleAmount,
         invoice_id,
         payment_processor
-    FROM dub_sale_events_mv
+    FROM dub_sale_events_mv_new
     WHERE
         customer_id
         = {{
@@ -154,6 +157,7 @@ SQL >
                         *,
                         NULL AS event_id,
                         NULL AS event_name,
+                        NULL AS metadata,
                         NULL AS saleAmount,
                         NULL AS invoice_id,
                         NULL AS payment_processor
