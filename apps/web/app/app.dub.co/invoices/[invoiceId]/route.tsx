@@ -3,7 +3,6 @@ import { withSession } from "@/lib/auth";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
 import {
-  capitalize,
   currencyFormatter,
   DUB_WORDMARK,
   formatDate,
@@ -51,7 +50,6 @@ export const GET = withSession(async ({ session, params }) => {
         select: {
           periodStart: true,
           periodEnd: true,
-          type: true,
           amount: true,
           partner: {
             select: {
@@ -288,11 +286,6 @@ export const GET = withSession(async ({ session, params }) => {
             <Text
               style={tw("w-1/6 p-3.5 text-sm font-medium text-neutral-700")}
             >
-              Type
-            </Text>
-            <Text
-              style={tw("w-1/6 p-3.5 text-sm font-medium text-neutral-700")}
-            >
               Amount
             </Text>
           </View>
@@ -331,7 +324,6 @@ export const GET = withSession(async ({ session, params }) => {
                   "-"
                 )}
               </Text>
-              <Text style={tw("w-1/6 p-3.5")}>{capitalize(payout.type)}</Text>
               <Text style={tw("w-1/6 p-3.5")}>
                 {currencyFormatter(payout.amount / 100, {
                   minimumFractionDigits: 2,
