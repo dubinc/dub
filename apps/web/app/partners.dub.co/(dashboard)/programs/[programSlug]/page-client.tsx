@@ -73,7 +73,7 @@ export default function ProgramPageClient() {
   };
 
   const program = programEnrollment?.program;
-  const masterLink = programEnrollment?.links?.[0];
+  const defaultProgramLink = programEnrollment?.links?.[0];
 
   return (
     <MaxWidthWrapper className="pb-10">
@@ -102,11 +102,11 @@ export default function ProgramPageClient() {
                 Referral link
               </span>
               <div className="xs:flex-row xs:items-center relative mt-3 flex flex-col gap-2 md:max-w-[50%]">
-                {masterLink ? (
+                {defaultProgramLink ? (
                   <input
                     type="text"
                     readOnly
-                    value={getPrettyUrl(masterLink.shortLink)}
+                    value={getPrettyUrl(defaultProgramLink.shortLink)}
                     className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default h-10 min-w-0 shrink grow rounded-md border px-3 text-sm focus:outline-none focus:ring-neutral-500"
                   />
                 ) : (
@@ -135,10 +135,10 @@ export default function ProgramPageClient() {
                   }
                   text={copied ? "Copied link" : "Copy link"}
                   className="xs:w-fit"
-                  disabled={!masterLink}
+                  disabled={!defaultProgramLink}
                   onClick={() => {
-                    if (masterLink) {
-                      copyToClipboard(masterLink.shortLink);
+                    if (defaultProgramLink) {
+                      copyToClipboard(defaultProgramLink.shortLink);
                     }
                   }}
                 />
@@ -367,6 +367,7 @@ function BrandedChart({
 }) {
   const id = useId();
 
+  const { programEnrollment } = useProgramEnrollment();
   const { start, end, interval, color } = useContext(ProgramOverviewContext);
 
   const data = useMemo(() => {
@@ -401,6 +402,7 @@ function BrandedChart({
                     interval,
                     start,
                     end,
+                    dataAvailableFrom: programEnrollment?.program.createdAt,
                   })}
                 </span>
                 <p className="text-right text-neutral-500">

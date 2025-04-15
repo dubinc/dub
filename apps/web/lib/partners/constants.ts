@@ -1,4 +1,4 @@
-export const SHEET_MAX_ITEMS = 6;
+export const SHEET_MAX_ITEMS = 10;
 export const SALES_PAGE_SIZE = 8;
 
 export const PAYOUT_FEES = {

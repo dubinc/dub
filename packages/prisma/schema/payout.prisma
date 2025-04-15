@@ -6,23 +6,15 @@ enum PayoutStatus {
   canceled
 }
 
-enum PayoutType {
-  clicks
-  leads
-  sales
-  custom
-}
-
 model Payout {
   id               String       @id @default(cuid())
   programId        String
   partnerId        String
   invoiceId        String?
-  userId           String?
+  userId           String? // user who made the payout
   amount           Int          @default(0)
   currency         String       @default("USD")
   status           PayoutStatus @default(pending)
-  type             PayoutType   @default(sales)
   description      String?
   periodStart      DateTime?
   periodEnd        DateTime?

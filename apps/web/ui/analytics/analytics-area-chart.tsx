@@ -1,6 +1,7 @@
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { EventType } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
+import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
 import { cn, currencyFormatter, fetcher, nFormatter } from "@dub/utils";
@@ -33,7 +34,10 @@ export default function AnalyticsAreaChart({
   resource: EventType;
   demo?: boolean;
 }) {
-  const { createdAt } = useWorkspace();
+  const { createdAt: workspaceCreatedAt } = useWorkspace();
+  const { programEnrollment } = useProgramEnrollment();
+  const dataAvailableFrom =
+    workspaceCreatedAt ?? programEnrollment?.program.createdAt;
 
   const {
     baseApiPath,
@@ -120,7 +124,7 @@ export default function AnalyticsAreaChart({
                     interval: demo ? "day" : interval,
                     start,
                     end,
-                    dataAvailableFrom: createdAt,
+                    dataAvailableFrom,
                   })}
                 </p>
                 <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-4 py-3 text-sm">
@@ -154,7 +158,7 @@ export default function AnalyticsAreaChart({
                 interval,
                 start,
                 end,
-                dataAvailableFrom: createdAt,
+                dataAvailableFrom,
               })
             }
           />

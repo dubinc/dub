@@ -33,6 +33,7 @@ export const GET = withWorkspace(
       interval,
       start,
       end,
+      dataAvailableFrom: program.createdAt,
     });
 
     const { dateFormat, dateIncrement, startFunction, formatString } =

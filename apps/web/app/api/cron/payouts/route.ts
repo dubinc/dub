@@ -2,13 +2,13 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
-import { createPayout } from "../create-payout";
+import { createPayout } from "./create-payout";
 
 export const dynamic = "force-dynamic";
 
-// This route is used to calculate payouts for clicks.
-// Runs once every day at 00:00 (0 0 * * *)
-// GET /api/cron/payouts/clicks
+// This route is used to calculate payouts for the commissions.
+// Runs once every hour (0 * * * *)
+// GET /api/cron/payouts
 export async function GET(req: Request) {
   try {
     await verifyVercelSignature(req);
@@ -16,28 +16,30 @@ export async function GET(req: Request) {
     const commissions = await prisma.commission.groupBy({
       by: ["programId", "partnerId"],
       where: {
+        earnings: {
+          not: 0,
+        },
         status: "pending",
-        type: "click",
         payoutId: null,
       },
     });
 
     if (!commissions.length) {
       return NextResponse.json({
-        message: "No pending click commissions found. Skipping...",
+        message: "No pending sale commissions found. Skipping...",
       });
     }
 
+    // TODO: Find a batter way to handle this recursively (e.g. /api/cron/usage)
     for (const { programId, partnerId } of commissions) {
       await createPayout({
         programId,
         partnerId,
-        type: "click",
       });
     }
 
     return NextResponse.json({
-      message: "Click commissions payout created.",
+      message: "Sale commissions payout created.",
       commissions,
     });
   } catch (error) {
