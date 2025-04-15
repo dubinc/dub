@@ -3,6 +3,7 @@ import { ProgramEnrollmentProps, ProgramProps } from "@/lib/types";
 import { BlurImage, Link4, MiniAreaChart } from "@dub/ui";
 import {
   cn,
+  currencyFormatter,
   formatDate,
   getPrettyUrl,
   nFormatter,
@@ -104,7 +105,7 @@ function ProgramCardEarnings({ program }: { program: ProgramProps }) {
   });
 
   const total = useMemo(
-    () => timeseries?.reduce((acc, { earnings }) => acc + earnings, 0),
+    () => timeseries?.reduce((acc, { earnings }) => acc + earnings, 0) || 0,
     [timeseries],
   );
 
@@ -125,10 +126,12 @@ function ProgramCardEarnings({ program }: { program: ProgramProps }) {
         </div>
         {total !== undefined ? (
           <div className="text-xl font-medium text-neutral-800">
-            $
-            {nFormatter((total || 0) / 100, {
-              digits: total < 1000_00 ? 2 : 1,
-            })}
+            {total < 1000_00
+              ? currencyFormatter(total / 100, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })
+              : "$" + nFormatter(total / 100)}
           </div>
         ) : (
           <div className="mt-1 h-6 w-20 animate-pulse rounded-md bg-neutral-200" />
