@@ -183,24 +183,20 @@ function PayoutDetailsSheetContent({
           </div>
         </div>
         <div className="p-6 pt-2">
-          {payout.type === "sales" && (
-            <>
-              <Table {...table} />
-              {sales?.length === SHEET_MAX_ITEMS && (
-                <div className="mt-2 flex justify-end">
-                  <Link
-                    href={`/programs/${payout.program.slug}/earnings?interval=all&payoutId=${payout.id}`}
-                    target="_blank"
-                    className={cn(
-                      buttonVariants({ variant: "secondary" }),
-                      "flex h-7 items-center rounded-lg border px-2 text-sm",
-                    )}
-                  >
-                    View all
-                  </Link>
-                </div>
-              )}
-            </>
+          <Table {...table} />
+          {sales?.length === SHEET_MAX_ITEMS && (
+            <div className="mt-2 flex justify-end">
+              <Link
+                href={`/programs/${payout.program.slug}/earnings?interval=all&payoutId=${payout.id}`}
+                target="_blank"
+                className={cn(
+                  buttonVariants({ variant: "secondary" }),
+                  "flex h-7 items-center rounded-lg border px-2 text-sm",
+                )}
+              >
+                View all
+              </Link>
+            </div>
           )}
         </div>
       </div>
