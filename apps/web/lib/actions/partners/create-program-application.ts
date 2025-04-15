@@ -15,7 +15,7 @@ import { cookies } from "next/headers";
 import z from "../../zod";
 import { actionClient } from "../safe-action";
 
-const createProgramApplicationSchema = z.object({
+export const createProgramApplicationSchema = z.object({
   programId: z.string(),
   name: z.string().trim().min(1).max(100),
   email: z.string().trim().email().min(1).max(100),

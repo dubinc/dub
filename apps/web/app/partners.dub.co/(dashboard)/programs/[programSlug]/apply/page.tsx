@@ -24,7 +24,7 @@ export default async function ProgramDetailsPage({
       <BackLink href="/programs">Programs</BackLink>
       <div className="mt-8 grid grid-cols-1 gap-x-16 lg:grid-cols-[300px_minmax(0,600px)]">
         <div>
-          <ProgramSidebar />
+          <ProgramSidebar program={program} />
         </div>
         <div>
           <div
