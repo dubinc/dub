@@ -24,8 +24,6 @@ const schema = z.object({
 export async function payoutStatusChanged(event: any) {
   const body = schema.parse(event);
 
-  console.log(body);
-
   const invoiceId = body.resource.sender_batch_id;
   const paypalEmail = body.resource.payout_item.receiver;
   const payoutItemId = body.resource.payout_item_id;

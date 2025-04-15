@@ -15,8 +15,6 @@ const schema = z.object({
 export const paymentPayoutsBatchSuccess = async (event: any) => {
   const body = schema.parse(event);
 
-  console.log(body);
-
   const invoiceId =
     body.resource.batch_header.sender_batch_header.sender_batch_id;
 

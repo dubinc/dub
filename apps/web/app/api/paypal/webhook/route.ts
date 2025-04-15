@@ -1,6 +1,7 @@
 import { log } from "@dub/utils";
 import { paymentPayoutsBatchSuccess } from "./payment-payouts-batch-success";
 import { payoutStatusChanged } from "./payout-status-changed";
+import { verifySignature } from "./verify-signature";
 
 const relevantEvents = new Set([
   // Individual payout item events
@@ -23,8 +24,15 @@ export const POST = async (req: Request) => {
   const rawBody = await req.text();
   const headers = req.headers;
 
-  // TODO:
-  // Verify the webhook signature
+  const isSignatureValid = await verifySignature({
+    event: rawBody,
+    headers,
+  });
+
+  if (!isSignatureValid) {
+    return new Response("Invalid signature", { status: 400 });
+  }
+
   const body = JSON.parse(rawBody);
 
   if (!relevantEvents.has(body.event_type)) {

@@ -9,4 +9,5 @@ export const paypalEnv = {
   PAYPAL_API_HOST: isLive
     ? "https://api.paypal.com"
     : "https://api-m.sandbox.paypal.com",
+  PAYPAL_WEBHOOK_ID: process.env.PAYPAL_WEBHOOK_ID || "",
 };

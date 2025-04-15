@@ -7,7 +7,7 @@ interface PaypalTokenResponse {
   expires_in: number; // in seconds
 }
 
-const CACHE_KEY = "paypal:token";
+const TOKEN_CACHE_KEY = "paypal:token";
 
 /**
  * Creates and caches a PayPal access token for batch payouts authentication.
@@ -16,7 +16,7 @@ const CACHE_KEY = "paypal:token";
  * The token is cached in Redis with a 5-minute buffer before expiration.
  */
 export async function createPaypalToken() {
-  const cachedToken = await redis.get(CACHE_KEY);
+  const cachedToken = await redis.get(TOKEN_CACHE_KEY);
 
   if (cachedToken) {
     return cachedToken;
@@ -25,8 +25,6 @@ export async function createPaypalToken() {
   const basicAuth = Buffer.from(
     `${paypalEnv.PAYPAL_CLIENT_ID}:${paypalEnv.PAYPAL_CLIENT_SECRET}`,
   ).toString("base64");
-
-  console.log("Basic auth", basicAuth);
 
   const response = await fetch(paypalEnv.PAYPAL_API_HOST + "/v1/oauth2/token", {
     method: "POST",
@@ -48,10 +46,8 @@ export async function createPaypalToken() {
 
   const token = data as PaypalTokenResponse;
 
-  console.log("Token created", token);
-
   waitUntil(
-    redis.set(CACHE_KEY, token.access_token, {
+    redis.set(TOKEN_CACHE_KEY, token.access_token, {
       ex: token.expires_in - 60 * 5, // 5 min buffer
     }),
   );
