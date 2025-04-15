@@ -125,7 +125,6 @@ export const createPayout = async ({
       where: {
         programId,
         partnerId,
-        type: `${type}s`,
         status: "pending",
       },
     });
@@ -159,7 +158,6 @@ export const createPayout = async ({
           amount: totalAmount,
           quantity: totalQuantity,
           description: "Dub Partners payout",
-          type: `${type}s`,
         },
       });
     }

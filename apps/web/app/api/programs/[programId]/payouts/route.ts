@@ -23,7 +23,6 @@ export const GET = withWorkspace(
     const {
       status,
       partnerId,
-      type,
       eligibility,
       invoiceId,
       sortBy,
@@ -54,7 +53,6 @@ export const GET = withWorkspace(
         ],
         ...(status && { status }),
         ...(partnerId && { partnerId }),
-        ...(type && { type }),
         ...(eligibility === "eligible" && {
           amount: {
             gte: minPayoutAmount,
