@@ -12,7 +12,7 @@ import { StaticImageData } from "next/image";
 export enum EQRType {
   WEBSITE = "website",
   PDF = "pdf",
-  IMAGES = "images",
+  IMAGE = "image",
   VIDEO = "video",
   WHATSAPP = "whatsapp",
   SOCIAL = "social",
@@ -47,7 +47,7 @@ export const DEFAULT_QR_TYPES: QRType[] = [
       "Share important documents instantly! Link your PDF to a QR code and give people quick and easy access to menus, guides, brochures, or portfolios—anytime, anywhere.",
   },
   {
-    id: EQRType.IMAGES,
+    id: EQRType.IMAGE,
     label: "Images",
     icon: "hugeicons:ai-image",
     img: QrImagesFull,
@@ -109,8 +109,15 @@ export const ADDITIONAL_QR_TYPES: QRType[] = [
 
 export const QR_TYPES: QRType[] = [...DEFAULT_QR_TYPES, ...ADDITIONAL_QR_TYPES];
 
-export const LINKED_QR_TYPE_LABELS: EQRType[] = [
+export const LINKED_QR_TYPES: EQRType[] = [
   EQRType.WEBSITE,
   EQRType.APP_LINK,
   EQRType.SOCIAL,
+  EQRType.FEEDBACK,
 ];
+
+export const FILE_QR_TYPES: EQRType[] = [
+  EQRType.PDF,
+  EQRType.IMAGE,
+  EQRType.VIDEO,
+] as const;

@@ -47,7 +47,7 @@ export function SidebarNav<T extends Record<any, any>>({
   currentArea,
   data,
   toolContent,
-  newsContent,
+  // newsContent,
   switcher,
   bottom,
 }: {
@@ -62,7 +62,7 @@ export function SidebarNav<T extends Record<any, any>>({
   return (
     <ClientOnly className="scrollbar-hide relative flex h-full w-full flex-col overflow-y-auto overflow-x-hidden">
       <nav className="relative flex grow flex-col text-neutral-500 md:px-4">
-        <div className="border-b-border-200 relative flex items-center justify-between gap-1 border-b px-3 pb-[6px] md:px-0">
+        <div className="border-b-border-200 relative flex min-h-[52px] items-center justify-between gap-1 border-b px-3 pb-4 md:px-0">
           {Object.entries(areas).map(([area, areaConfig]) => {
             const { title, backHref } = areaConfig(data);
 
@@ -236,7 +236,7 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
         onPointerEnter={() => setHovered(true)}
         onPointerLeave={() => setHovered(false)}
         className={cn(
-          "text-neutral hover:bg-primary-300/50 active:bg-primary-300/80 group flex items-center gap-2.5 rounded-lg py-2 text-sm font-normal leading-none transition-[background-color,color,font-weight] duration-75",
+          "text-neutral hover:bg-primary-300/50 active:bg-primary-300/80 group flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-normal leading-none transition-[background-color,color,font-weight] duration-75",
           isActive &&
             !items &&
             "md:bg-primary-300 text-neutral md:hover:bg-primary-300/80 md:active:bg-primary-300 md:font-medium",

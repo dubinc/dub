@@ -1,5 +1,6 @@
 "use client";
 
+import { IconProps as IconifyProps } from "@iconify/react";
 import { LucideIcon } from "lucide-react";
 import { ComponentType, SVGProps } from "react";
 
@@ -63,4 +64,7 @@ export * from "./payout-platforms";
 // Nucleo icons
 export * from "./nucleo";
 
-export type Icon = LucideIcon | ComponentType<SVGProps<SVGSVGElement>>;
+export type Icon =
+  | LucideIcon
+  | ComponentType<SVGProps<SVGSVGElement>>
+  | ComponentType<IconifyProps>;
