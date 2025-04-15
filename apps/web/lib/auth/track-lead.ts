@@ -3,16 +3,16 @@ import { User } from "next-auth";
 import { cookies } from "next/headers";
 
 export const trackLead = async (user: User) => {
-  const dubId = cookies().get("dub_id")?.value;
+  const clickId = cookies().get("dub_id")?.value;
 
-  if (!dubId) {
+  if (!clickId) {
     console.log("No dub_id cookie found, skipping lead tracking...");
     return;
   }
 
   // send the lead event to Dub
   await dub.track.lead({
-    clickId: dubId,
+    clickId,
     eventName: "Sign Up",
     externalId: user.id,
     customerName: user.name,
