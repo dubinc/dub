@@ -111,3 +111,12 @@ export const ProgramMetricsSchema = z.object({
   commissions: z.number(),
   payouts: z.number(),
 });
+
+export const createProgramApplicationSchema = z.object({
+  programId: z.string(),
+  name: z.string().trim().min(1).max(100),
+  email: z.string().trim().email().min(1).max(100),
+  website: z.string().trim().max(100).optional(),
+  proposal: z.string().trim().min(1).max(5000),
+  comments: z.string().trim().max(5000).optional(),
+});

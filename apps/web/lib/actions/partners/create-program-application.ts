@@ -6,6 +6,7 @@ import { getIP } from "@/lib/api/utils";
 import { getSession } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { ratelimit } from "@/lib/upstash";
+import { createProgramApplicationSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
 import { Partner, Program, ProgramEnrollment } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
@@ -14,15 +15,6 @@ import { addDays } from "date-fns";
 import { cookies } from "next/headers";
 import z from "../../zod";
 import { actionClient } from "../safe-action";
-
-export const createProgramApplicationSchema = z.object({
-  programId: z.string(),
-  name: z.string().trim().min(1).max(100),
-  email: z.string().trim().email().min(1).max(100),
-  website: z.string().trim().max(100).optional(),
-  proposal: z.string().trim().min(1).max(5000),
-  comments: z.string().trim().max(5000).optional(),
-});
 
 // Create a program application (or enrollment if a partner is already logged in)
 export const createProgramApplicationAction = actionClient

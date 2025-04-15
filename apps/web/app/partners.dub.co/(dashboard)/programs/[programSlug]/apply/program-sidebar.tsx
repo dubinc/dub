@@ -7,18 +7,23 @@ import { ProgramProps } from "@/lib/types";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { useProgramApplicationSheet } from "@/ui/partners/program-application-sheet";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
-import { BlurImage, Button, Link4, StatusBadge } from "@dub/ui";
-import { capitalize, OG_AVATAR_URL } from "@dub/utils";
+import { BlurImage, Button, CircleCheck, Link4, StatusBadge } from "@dub/ui";
+import { capitalize, cn, OG_AVATAR_URL } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 export function ProgramSidebar({ program }: { program: ProgramProps }) {
   const router = useRouter();
 
   const { programEnrollment, loading: isLoadingProgramEnrollment } =
-    useProgramEnrollment();
+    useProgramEnrollment({
+      swrOpts: {
+        shouldRetryOnError: (err) => err.status !== 404,
+        revalidateOnFocus: false,
+      },
+    });
 
   const statusBadge = programEnrollment
     ? {
@@ -30,7 +35,11 @@ export function ProgramSidebar({ program }: { program: ProgramProps }) {
       }[programEnrollment.status]
     : null;
 
+  const [justApplied, setJustApplied] = useState(false);
+
   const buttonText = useMemo(() => {
+    if (justApplied) return "Applied";
+
     if (!programEnrollment) return "Apply";
 
     switch (programEnrollment.status) {
@@ -43,7 +52,7 @@ export function ProgramSidebar({ program }: { program: ProgramProps }) {
       default:
         return capitalize(programEnrollment.status);
     }
-  }, [programEnrollment]);
+  }, [justApplied, programEnrollment]);
 
   const { executeAsync: executeAcceptInvite, isPending: isAcceptingInvite } =
     useAction(acceptProgramInviteAction, {
@@ -62,6 +71,7 @@ export function ProgramSidebar({ program }: { program: ProgramProps }) {
   const { programApplicationSheet, setIsOpen: setIsApplicationSheetOpen } =
     useProgramApplicationSheet({
       program,
+      onSuccess: () => setJustApplied(true),
     });
 
   return (
@@ -112,9 +122,13 @@ export function ProgramSidebar({ program }: { program: ProgramProps }) {
 
       {!isLoadingProgramEnrollment && (
         <Button
-          className="mt-8"
+          className={cn("mt-8", justApplied && "text-green-600")}
           text={buttonText}
-          disabled={programEnrollment && programEnrollment.status !== "invited"}
+          icon={justApplied ? <CircleCheck className="size-4" /> : undefined}
+          disabled={
+            (programEnrollment && programEnrollment.status !== "invited") ||
+            justApplied
+          }
           onClick={() => {
             if (programEnrollment?.status === "invited") {
               executeAcceptInvite({
