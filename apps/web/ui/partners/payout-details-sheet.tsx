@@ -51,6 +51,12 @@ function PayoutDetailsSheetContent({
     fetcher,
   );
 
+  const commissionsCount = useMemo(() => {
+    return commissions?.filter(
+      ({ status }) => !["duplicate", "fraud"].includes(status),
+    ).length;
+  }, [commissions]);
+
   const invoiceData = useMemo(() => {
     const statusBadge = PayoutStatusBadges[payout.status];
 
@@ -81,7 +87,9 @@ function PayoutDetailsSheetContent({
         </StatusBadge>
       ),
 
-      Commissions: commissions ? commissions.length : "-",
+      ...(commissionsCount && {
+        Commissions: commissionsCount,
+      }),
 
       Total: currencyFormatter(payout.amount / 100, {
         minimumFractionDigits: 2,
@@ -94,7 +102,7 @@ function PayoutDetailsSheetContent({
 
       Description: payout.description || "-",
     };
-  }, [payout, commissions]);
+  }, [payout, commissionsCount]);
 
   const commissionsTable = useTable({
     data:
@@ -215,7 +223,7 @@ function PayoutDetailsSheetContent({
           <div className="flex h-full items-center justify-center">
             <LoadingSpinner />
           </div>
-        ) : (
+        ) : commissionsCount && commissionsCount > 0 ? (
           <div className="p-6 pt-2">
             <Table {...commissionsTable} />
             <div className="mt-2 flex justify-end">
@@ -231,7 +239,7 @@ function PayoutDetailsSheetContent({
               </Link>
             </div>
           </div>
-        )}
+        ) : null}
       </div>
 
       <div className="flex grow flex-col justify-end">
