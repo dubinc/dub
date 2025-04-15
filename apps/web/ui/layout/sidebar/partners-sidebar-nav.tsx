@@ -8,7 +8,6 @@ import {
   Gear,
   Gear2,
   GridIcon,
-  Hyperlink,
   MoneyBills2,
   ShieldCheck,
   User,
@@ -17,6 +16,8 @@ import {
 import { Store } from "lucide-react";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
+import { Hyperlink } from "./icons/hyperlink";
+import { LinesY } from "./icons/lines-y";
 import { PartnerProgramDropdown } from "./partner-program-dropdown";
 import { PayoutStats } from "./payout-stats";
 import { ProgramHelpSupport } from "./program-help-support";
@@ -75,6 +76,11 @@ const NAV_AREAS: SidebarNavAreas<{
             name: "Links",
             icon: Hyperlink,
             href: `/programs/${programSlug}/links`,
+          },
+          {
+            name: "Analytics",
+            icon: LinesY,
+            href: `/programs/${programSlug}/analytics`,
           },
           {
             name: "Resources",

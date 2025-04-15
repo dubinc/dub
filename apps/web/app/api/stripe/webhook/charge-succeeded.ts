@@ -58,6 +58,7 @@ export async function chargeSucceeded(event: Stripe.Event) {
       achCreditTransfer: Boolean(
         charge.payment_method_details?.ach_credit_transfer,
       ),
+      // paidAt: new Date(), // TODO: Fix this 
     },
   });
 

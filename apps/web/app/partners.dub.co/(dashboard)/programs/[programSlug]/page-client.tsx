@@ -331,7 +331,7 @@ function StatCard({
           )}
         </div>
         <ViewMoreButton
-          href={`/programs/${programSlug}/links/analytics?event=${event}${getQueryString()?.replace("?", "&")}`}
+          href={`/programs/${programSlug}/analytics?event=${event}${getQueryString()?.replace("?", "&")}`}
         />
       </div>
       <div className="mt-2 h-44 w-full">

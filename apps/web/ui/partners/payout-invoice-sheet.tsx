@@ -25,7 +25,7 @@ import {
   capitalize,
   cn,
   currencyFormatter,
-  DICEBEAR_AVATAR_URL,
+  OG_AVATAR_URL,
   truncate,
 } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
@@ -264,7 +264,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
             <img
               src={
                 row.original.partner.image ||
-                `${DICEBEAR_AVATAR_URL}${row.original.partner.name}`
+                `${OG_AVATAR_URL}${row.original.partner.name}`
               }
               alt={row.original.partner.name}
               className="size-6 rounded-full"

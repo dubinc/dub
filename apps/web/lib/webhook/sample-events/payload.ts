@@ -14,6 +14,5 @@ export const samplePayload: Record<WebhookTrigger, any> = {
   "link.clicked": linkClicked,
   "lead.created": leadCreated,
   "sale.created": saleCreated,
-  "partner.created": partnerEnrolled,
   "partner.enrolled": partnerEnrolled,
 };

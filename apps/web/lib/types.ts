@@ -23,13 +23,9 @@ import {
 } from "./folder/constants";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import { clickEventResponseSchema } from "./zod/schemas/clicks";
+import { CommissionResponseSchema } from "./zod/schemas/commissions";
+import { customerActivityResponseSchema } from "./zod/schemas/customer-activity";
 import {
-  CommissionResponseSchema,
-  CommissionSchema,
-} from "./zod/schemas/commissions";
-import {
-  customerActivityResponseSchema,
-  customerActivitySchema,
   CustomerEnrichedSchema,
   CustomerSchema,
 } from "./zod/schemas/customers";
@@ -117,6 +113,10 @@ export interface RedisLinkProps {
   doIndex?: boolean;
   projectId?: string;
   webhookIds?: string[];
+  programId?: string;
+  partnerId?: string;
+  partner?: Pick<PartnerProps, "id" | "name" | "image">;
+  discount?: Pick<DiscountProps, "id" | "amount" | "type" | "maxDuration">;
   testVariants?: z.infer<typeof ABTestVariantsSchema>;
   testCompletedAt?: Date;
 }
@@ -369,8 +369,6 @@ export type UsageResponse = z.infer<typeof usageResponse>;
 
 export type PartnersCount = Record<ProgramEnrollmentStatus | "all", number>;
 
-export type SaleProps = z.infer<typeof CommissionSchema>;
-
 export type CommissionsCount = Record<
   CommissionStatus | "all",
   {
@@ -424,8 +422,6 @@ export type SegmentIntegrationCredentials = {
   writeKey?: string;
 };
 export type InvoiceProps = z.infer<typeof InvoiceSchema>;
-
-export type CustomerActivity = z.infer<typeof customerActivitySchema>;
 
 export type CustomerActivityResponse = z.infer<
   typeof customerActivityResponseSchema

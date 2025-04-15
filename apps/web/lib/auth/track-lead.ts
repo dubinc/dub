@@ -3,11 +3,10 @@ import { User } from "next-auth";
 import { cookies } from "next/headers";
 
 export const trackLead = async (user: User) => {
-  const clickId =
-    cookies().get("dub_id")?.value || cookies().get("dclid")?.value;
+  const clickId = cookies().get("dub_id")?.value;
 
   if (!clickId) {
-    console.log("No clickId cookie found, skipping lead tracking...");
+    console.log("No dub_id cookie found, skipping lead tracking...");
     return;
   }
 
@@ -21,7 +20,7 @@ export const trackLead = async (user: User) => {
     customerAvatar: user.image,
   });
 
-  // delete the clickId cookie
-  cookies().delete("dclid");
+  // delete the cookies
   cookies().delete("dub_id");
+  cookies().delete("dub_partner_data");
 };

@@ -7,7 +7,7 @@ import {
   banPartnerSchema,
 } from "@/lib/zod/schemas/partners";
 import { Button, Modal } from "@dub/ui";
-import { cn, DICEBEAR_AVATAR_URL } from "@dub/utils";
+import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useParams } from "next/navigation";
 import {
@@ -94,7 +94,7 @@ function BanPartnerModal({
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-8 sm:px-10">
         <img
-          src={partner.image || `${DICEBEAR_AVATAR_URL}${partner.name}`}
+          src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
           alt={partner.name}
           className="size-12 rounded-full"
         />

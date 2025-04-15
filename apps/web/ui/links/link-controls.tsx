@@ -239,6 +239,22 @@ export function LinkControls({
                   className="h-9 px-2 font-medium"
                 />
               )}
+              {options.includes("id") && (
+                <Button
+                  text="Copy Link ID"
+                  variant="outline"
+                  onClick={() => copyLinkId()}
+                  icon={
+                    copiedLinkId ? (
+                      <CircleCheck className="size-4" />
+                    ) : (
+                      <Copy className="size-4" />
+                    )
+                  }
+                  shortcut="I"
+                  className="h-9 px-2 font-medium"
+                />
+              )}
               {options.includes("duplicate") && (
                 <Button
                   text="Duplicate"
@@ -255,22 +271,6 @@ export function LinkControls({
                       ? "You don't have permission to duplicate this link."
                       : undefined
                   }
-                />
-              )}
-              {options.includes("id") && (
-                <Button
-                  text="Copy Link ID"
-                  variant="outline"
-                  onClick={() => copyLinkId()}
-                  icon={
-                    copiedLinkId ? (
-                      <CircleCheck className="size-4" />
-                    ) : (
-                      <Copy className="size-4" />
-                    )
-                  }
-                  shortcut="I"
-                  className="h-9 px-2 font-medium"
                 />
               )}
             </div>

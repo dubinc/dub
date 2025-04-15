@@ -22,11 +22,13 @@ import {
 import { MoneyBill2 } from "@dub/ui/icons";
 import {
   currencyFormatter,
-  DICEBEAR_AVATAR_URL,
   fetcher,
   formatDateTime,
   formatDateTimeSmart,
+  nFormatter,
+  OG_AVATAR_URL,
 } from "@dub/utils";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { memo } from "react";
 import useSWR from "swr";
@@ -51,7 +53,7 @@ const CommissionTableInner = memo(
     setSelectedFilter,
   }: { limit?: number } & ReturnType<typeof useCommissionFilters>) => {
     const { programId } = useParams();
-    const { id: workspaceId } = useWorkspace();
+    const { id: workspaceId, slug } = useWorkspace();
     const { pagination, setPagination } = usePagination(limit);
     const { queryParams, getQueryString, searchParamsObj } = useRouterStuff();
     const { sortBy, sortOrder } = searchParamsObj as {
@@ -98,16 +100,20 @@ const CommissionTableInner = memo(
                 <img
                   src={
                     row.original.customer.avatar ||
-                    `${DICEBEAR_AVATAR_URL}${row.original.customer.id}`
+                    `${OG_AVATAR_URL}${row.original.customer.id}`
                   }
                   alt={
                     row.original.customer.email ?? row.original.customer.name
                   }
                   className="size-5 rounded-full"
                 />
-                <div>
+                <Link
+                  href={`/${slug}/customers/${row.original.customer.id}`}
+                  target="_blank"
+                  className="cursor-alias truncate decoration-dotted hover:underline"
+                >
                   {row.original.customer.email ?? row.original.customer.name}
-                </div>
+                </Link>
               </div>
             );
           },
@@ -132,24 +138,6 @@ const CommissionTableInner = memo(
           },
         },
         {
-          id: "amount",
-          header: "Amount",
-          accessorFn: (d) =>
-            currencyFormatter(d.amount / 100, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            }),
-        },
-        {
-          id: "commission",
-          header: "Commission",
-          accessorFn: (d) =>
-            currencyFormatter(d.earnings / 100, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            }),
-        },
-        {
           id: "type",
           header: "Type",
           accessorKey: "type",
@@ -161,6 +149,26 @@ const CommissionTableInner = memo(
               type: row.original.type,
             }),
           },
+        },
+        {
+          id: "amount",
+          header: "Amount",
+          accessorFn: (d) =>
+            d.type === "sale"
+              ? currencyFormatter(d.amount / 100, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })
+              : nFormatter(d.quantity),
+        },
+        {
+          id: "commission",
+          header: "Commission",
+          accessorFn: (d) =>
+            currencyFormatter(d.earnings / 100, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }),
         },
         {
           header: "Status",

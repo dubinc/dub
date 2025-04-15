@@ -23,10 +23,7 @@ interface WithPartnerProfileHandler {
   }): Promise<Response>;
 }
 
-export const withPartnerProfile = (
-  handler: WithPartnerProfileHandler,
-  {}: {} = {},
-) => {
+export const withPartnerProfile = (handler: WithPartnerProfileHandler) => {
   return withAxiom(
     async (
       req: AxiomRequest,

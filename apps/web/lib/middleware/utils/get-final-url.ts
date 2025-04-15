@@ -4,7 +4,7 @@ import { NextRequest } from "next/server";
 
 export const getFinalUrl = (
   url: string,
-  { req, clickId }: { req: NextRequest; clickId?: string },
+  { req, clickId, via }: { req: NextRequest; clickId?: string; via?: string },
 ) => {
   // query is the query string (e.g. d.to/github?utm_source=twitter -> ?utm_source=twitter)
   const searchParams = req.nextUrl.searchParams;
@@ -16,6 +16,10 @@ export const getFinalUrl = (
 
   // get the query params of the target url
   const urlObj = redirectionUrl ? new URL(redirectionUrl) : new URL(url);
+
+  if (via) {
+    urlObj.searchParams.set("via", via);
+  }
 
   if (clickId) {
     /*

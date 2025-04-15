@@ -14,6 +14,12 @@ export const POST = withSession(async ({ req, session }) => {
     await req.json(),
   );
 
+  if (!session.user.email) {
+    return NextResponse.json({
+      error: "Invalid user email",
+    });
+  }
+
   let plainCustomerId: string | null = null;
 
   const plainCustomer = await plain.getCustomerByEmail({
@@ -23,7 +29,13 @@ export const POST = withSession(async ({ req, session }) => {
   if (plainCustomer.data) {
     plainCustomerId = plainCustomer.data.id;
   } else {
-    const { data } = await upsertPlainCustomer(session.user);
+    const { data, error } = await upsertPlainCustomer(session.user);
+    if (error) {
+      return NextResponse.json({
+        error: error.message,
+      });
+    }
+
     if (data) {
       plainCustomerId = data.customer.id;
     }
