@@ -14,11 +14,12 @@ export async function POST(req: Request) {
     const rawBody = await req.text();
     await verifyQstashSignature({ req, rawBody });
 
-    const payload = payloadSchema.parse(JSON.parse(rawBody));
+    const body = payloadSchema.parse(JSON.parse(rawBody));
+    const { invoiceId, receiptUrl } = body;
 
     const invoice = await prisma.invoice.findUnique({
       where: {
-        id: payload.invoiceId,
+        id: invoiceId,
       },
       include: {
         payouts: {
@@ -36,7 +37,7 @@ export async function POST(req: Request) {
     });
 
     if (!invoice) {
-      console.log(`Invoice with id ${payload.invoiceId} not found.`);
+      console.log(`Invoice with id ${invoiceId} not found.`);
       return;
     }
 
@@ -50,10 +51,30 @@ export async function POST(req: Request) {
       return;
     }
 
-    await sendStripePayouts(payload);
-    await sendPaypalPayouts(payload);
+    await sendStripePayouts(body);
+    await sendPaypalPayouts(body);
 
-    return new Response(`Invoice ${payload.invoiceId} processed.`);
+    const notCompletedPayoutsCount = await prisma.payout.count({
+      where: {
+        invoiceId,
+        status: {
+          not: "completed",
+        },
+      },
+    });
+
+    await prisma.invoice.update({
+      where: {
+        id: invoiceId,
+      },
+      data: {
+        receiptUrl,
+        paidAt: new Date(),
+        ...(notCompletedPayoutsCount === 0 && { status: "completed" }),
+      },
+    });
+
+    return new Response(`Invoice ${invoiceId} processed.`);
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }

@@ -97,14 +97,4 @@ export async function sendStripePayouts({
         }),
     ]);
   }
-
-  await prisma.invoice.update({
-    where: {
-      id: invoiceId,
-    },
-    data: {
-      status: "completed",
-      receiptUrl,
-    },
-  });
 }

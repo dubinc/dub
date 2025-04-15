@@ -90,14 +90,4 @@ export async function sendPaypalPayouts({
   }
 
   console.log("Paypal batch payout created", data);
-
-  // await prisma.invoice.update({
-  //   where: {
-  //     id: invoiceId,
-  //   },
-  //   data: {
-  //     status: "completed",
-  //     receiptUrl,
-  //   },
-  // });
 }
