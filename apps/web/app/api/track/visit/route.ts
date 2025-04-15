@@ -41,16 +41,18 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
 
     const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
 
-    let [cachedClickId, cachedLink] = await redis.mget<
-      [string, RedisLinkProps]
-    >([
+    let [clickId, cachedLink] = await redis.mget<[string, RedisLinkProps]>([
       clickCache._createKey({ domain, key, ip }),
       linkCache._createKey({ domain, key }),
     ]);
 
-    // assign a new clickId if there's no cached clickId
-    // else, reuse the cached clickId
-    const clickId = cachedClickId ?? nanoid(16);
+    // if the clickId is already cached in Redis, return it
+    if (clickId) {
+      return NextResponse.json({ clickId }, { headers: CORS_HEADERS });
+    }
+
+    // Otherwise, track the visit event
+    clickId = nanoid(16);
 
     if (!cachedLink) {
       const link = await getLinkViaEdge({
