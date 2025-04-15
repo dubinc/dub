@@ -33,7 +33,6 @@ export const payoutsQuerySchema = z
       .enum(["createdAt", "periodStart", "amount", "paidAt"])
       .default("createdAt"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
-    type: z.nativeEnum(PayoutType).optional(),
     interval: z.enum(intervals).default("all"),
     start: parseDateSchema.optional(),
     end: parseDateSchema.optional(),
@@ -46,6 +45,7 @@ export const payoutsCountQuerySchema = payoutsQuerySchema
     programId: true,
     partnerId: true,
     eligibility: true,
+    invoiceId: true,
     interval: true,
     start: true,
     end: true,
@@ -81,7 +81,6 @@ export const PayoutResponseSchema = PayoutSchema.merge(
         image: z.string().nullable(),
       })
       .nullish(),
-    _count: z.object({ commissions: z.number() }),
   }),
 );
 
