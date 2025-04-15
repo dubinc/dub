@@ -4,12 +4,18 @@ import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PayoutMethod, PayoutsCount } from "@/lib/types";
 import PayoutConnectButton from "@/ui/partners/payout-connect-button";
+import { AlertCircleFill } from "@/ui/shared/icons";
 import { PayoutStatus } from "@dub/prisma/client";
-import { MatrixLines } from "@dub/ui";
+import { MatrixLines, Tooltip } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import { Stripe } from "stripe";
 import useSWR from "swr";
+
+const PAYOUT_METHOD_LABELS = {
+  stripe: "Stripe",
+  paypal: "PayPal",
+};
 
 export function PayoutStatsAndSettings() {
   const { partner } = usePartnerProfile();
@@ -41,17 +47,34 @@ export function PayoutStatsAndSettings() {
           />
         </div>
         <div className="flex items-end justify-between gap-5">
-          <NumberFlow
-            className="mt-2 text-2xl text-neutral-800"
-            value={
-              (payoutsCount?.find((p) => p.status === PayoutStatus.pending)
-                ?.amount ?? 0) / 100
-            }
-            format={{
-              style: "currency",
-              currency: "USD",
-            }}
-          />
+          <div className="mt-2 flex items-center gap-2">
+            {!partner.payoutsEnabledAt && (
+              <Tooltip
+                content={`A ${
+                  partner?.supportedPayoutMethod
+                    ? PAYOUT_METHOD_LABELS[partner.supportedPayoutMethod]
+                    : ""
+                } connection is required for payouts.`}
+                side="right"
+              >
+                <div>
+                  <AlertCircleFill className="size-5 text-black" />
+                </div>
+              </Tooltip>
+            )}
+
+            <NumberFlow
+              className="text-2xl text-neutral-800"
+              value={
+                (payoutsCount?.find((p) => p.status === PayoutStatus.pending)
+                  ?.amount ?? 0) / 100
+              }
+              format={{
+                style: "currency",
+                currency: "USD",
+              }}
+            />
+          </div>
 
           {partner.payoutMethod === "stripe" &&
             bankAccount &&
