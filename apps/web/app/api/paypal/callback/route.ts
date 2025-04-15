@@ -88,7 +88,6 @@ export const GET = async (req: Request) => {
 
     // TODO:
     // Send an email to the partner to inform them that their PayPal account has been connected
-
   } catch (e: any) {
     return handleAndReturnErrorResponse(e);
   }
