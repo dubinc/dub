@@ -35,12 +35,14 @@ export function CardListCard({
   innerClassName,
   children,
   onClick,
+  onAuxClick,
   hoverStateEnabled = true,
   banner,
 }: PropsWithChildren<{
   outerClassName?: string;
   innerClassName?: string;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent) => void;
+  onAuxClick?: (e: React.MouseEvent) => void;
   hoverStateEnabled?: boolean;
   banner?: React.ReactNode;
 }>) {
@@ -62,6 +64,18 @@ export function CardListCard({
     return () => clearInterval(interval);
   }, [hovered]);
 
+  const isCardClick = (e: React.MouseEvent) => {
+    const existingModalBackdrop = document.getElementById("modal-backdrop");
+
+    // Don't trigger onClick if there's already an open modal
+    if (existingModalBackdrop) return false;
+
+    // Don't trigger onClick if an interactive child is clicked
+    if (isClickOnInteractiveChild(e)) return false;
+
+    return true;
+  };
+
   return (
     <li
       ref={ref}
@@ -76,18 +90,14 @@ export function CardListCard({
         onClick={
           onClick
             ? (e) => {
-                const existingModalBackdrop =
-                  document.getElementById("modal-backdrop");
-
-                // Don't trigger onClick if there's already an open modal
-                if (existingModalBackdrop) {
-                  return;
-                }
-
-                // Don't trigger onClick if an interactive child is clicked
-                if (isClickOnInteractiveChild(e)) return;
-
-                onClick();
+                if (isCardClick(e)) onClick(e);
+              }
+            : undefined
+        }
+        onAuxClick={
+          onAuxClick
+            ? (e) => {
+                if (isCardClick(e)) onAuxClick(e);
               }
             : undefined
         }
