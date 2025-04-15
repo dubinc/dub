@@ -56,15 +56,7 @@ export const GET = withPartnerProfile(
           lte: endDate.toISOString(),
         },
       },
-      select: {
-        id: true,
-        amount: true,
-        earnings: true,
-        currency: true,
-        status: true,
-        type: true,
-        createdAt: true,
-        updatedAt: true,
+      include: {
         customer: true,
         link: {
           select: {

@@ -9,9 +9,7 @@ import { useMarkAsPaidModal } from "@/ui/partners/mark-as-paid-modal";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PayoutDetailsSheet } from "@/ui/partners/payout-details-sheet";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
-import { PayoutTypeBadge } from "@/ui/partners/payout-type-badge";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   AnimatedSizeContainer,
   Button,
@@ -37,13 +35,7 @@ import useSWR from "swr";
 import { usePayoutFilters } from "./use-payout-filters";
 
 export function PayoutTable() {
-  const { searchParams } = useRouterStuff();
-
-  const sortBy = searchParams.get("sortBy") || "createdAt";
-  const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
-
-  const filters = usePayoutFilters({ sortBy, sortOrder });
-
+  const filters = usePayoutFilters();
   return <PayoutTableInner {...filters} />;
 }
 
@@ -118,10 +110,6 @@ const PayoutTableInner = memo(
           cell: ({ row }) => {
             return <PartnerRowItem partner={row.original.partner} />;
           },
-        },
-        {
-          header: "Type",
-          cell: ({ row }) => <PayoutTypeBadge type={row.original.type} />,
         },
         {
           header: "Status",
@@ -258,18 +246,15 @@ const PayoutTableInner = memo(
         )}
         <div className="flex flex-col gap-3">
           <div>
-            <div className="flex flex-col gap-3 md:flex-row md:items-center">
-              <Filter.Select
-                className="w-full md:w-fit"
-                filters={filters}
-                activeFilters={activeFilters}
-                onSelect={onSelect}
-                onRemove={onRemove}
-                onSearchChange={setSearch}
-                onSelectedFilterChange={setSelectedFilter}
-              />
-              <SimpleDateRangePicker className="w-fit" defaultInterval="all" />
-            </div>
+            <Filter.Select
+              className="w-full md:w-fit"
+              filters={filters}
+              activeFilters={activeFilters}
+              onSelect={onSelect}
+              onRemove={onRemove}
+              onSearchChange={setSearch}
+              onSelectedFilterChange={setSelectedFilter}
+            />
             <AnimatedSizeContainer height>
               <div>
                 {activeFilters.length > 0 && (
@@ -318,10 +303,9 @@ function RowMenuButton({ row }: { row: Row<PayoutResponse> }) {
     payout: row.original,
   });
 
-  const isSales = row.original.type === "sales";
   const isPayable = ["pending", "failed"].includes(row.original.status);
 
-  if (!isSales && !isPayable) return null;
+  if (!isPayable) return null;
 
   return (
     <>
@@ -332,28 +316,14 @@ function RowMenuButton({ row }: { row: Row<PayoutResponse> }) {
         content={
           <Command tabIndex={0} loop className="focus:outline-none">
             <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm sm:w-auto sm:min-w-[140px]">
-              {isSales && (
-                <MenuItem
-                  icon={MoneyBills2}
-                  label="View sales"
-                  onSelect={() => {
-                    router.push(
-                      `/${slug}/programs/${programId}/sales?payoutId=${row.original.id}&interval=all`,
-                    );
-                    setIsOpen(false);
-                  }}
-                />
-              )}
-              {isPayable && (
-                <MenuItem
-                  icon={CircleCheck}
-                  label="Mark as paid"
-                  onSelect={() => {
-                    setShowMarkAsPaidModal(true);
-                    setIsOpen(false);
-                  }}
-                />
-              )}
+              <MenuItem
+                icon={CircleCheck}
+                label="Mark as paid"
+                onSelect={() => {
+                  setShowMarkAsPaidModal(true);
+                  setIsOpen(false);
+                }}
+              />
             </Command.List>
           </Command>
         }

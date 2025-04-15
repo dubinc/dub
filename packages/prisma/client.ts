@@ -12,7 +12,6 @@ export {
   PartnerRole,
   PartnerStatus,
   PayoutStatus,
-  PayoutType,
   Prisma,
   ProgramEnrollmentStatus,
   ProgramType,

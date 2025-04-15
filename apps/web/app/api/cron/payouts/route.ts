@@ -2,13 +2,13 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
-import { createPayout } from "../create-payout";
+import { createPayout } from "./create-payout";
 
 export const dynamic = "force-dynamic";
 
-// This route is used to calculate payouts for sales.
+// This route is used to calculate payouts for the commissions.
 // Runs once every hour (0 * * * *)
-// GET /api/cron/payouts/sales
+// GET /api/cron/payouts
 export async function GET(req: Request) {
   try {
     await verifyVercelSignature(req);
@@ -16,8 +16,7 @@ export async function GET(req: Request) {
     const commissions = await prisma.commission.groupBy({
       by: ["programId", "partnerId"],
       where: {
-        type: "sale",
-        amount: {
+        earnings: {
           not: 0,
         },
         status: "pending",
@@ -36,7 +35,6 @@ export async function GET(req: Request) {
       await createPayout({
         programId,
         partnerId,
-        type: "sale",
       });
     }
 

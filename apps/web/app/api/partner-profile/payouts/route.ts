@@ -20,11 +20,6 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     },
     include: {
       program: true,
-      _count: {
-        select: {
-          commissions: true,
-        },
-      },
     },
     skip: (page - 1) * pageSize,
     take: pageSize,
