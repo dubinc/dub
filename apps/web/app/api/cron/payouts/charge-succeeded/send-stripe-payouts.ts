@@ -2,7 +2,7 @@ import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
 import PartnerPayoutSent from "@dub/email/templates/partner-payout-sent";
 import { prisma } from "@dub/prisma";
-import { Payload } from "./utils";
+import { Payload, Payouts } from "./utils";
 
 export const dynamic = "force-dynamic";
 
@@ -11,34 +11,14 @@ export async function sendStripePayouts({
   chargeId,
   achCreditTransfer,
   receiptUrl,
-}: Payload) {
-  const stripePayouts = await prisma.payout.findMany({
-    where: {
-      invoiceId,
-      status: {
-        not: "completed",
-      },
-      partner: {
-        payoutsEnabledAt: {
-          not: null,
-        },
-        stripeConnectId: {
-          not: null,
-        },
-      },
-    },
-    include: {
-      partner: true,
-      program: true,
-    },
-  });
-
-  if (stripePayouts.length === 0) {
+  payouts,
+}: Payload & { payouts: Payouts[] }) {
+  if (payouts.length === 0) {
     console.log("No payouts for sending via Stripe, skipping...");
     return;
   }
 
-  for (const payout of stripePayouts) {
+  for (const payout of payouts) {
     const transfer = await stripe.transfers.create({
       amount: payout.amount,
       currency: "usd",

@@ -1,3 +1,4 @@
+import { Partner, Payout, Program } from "@dub/prisma/client";
 import { z } from "zod";
 
 export const payloadSchema = z.object({
@@ -6,5 +7,10 @@ export const payloadSchema = z.object({
   receiptUrl: z.string(),
   achCreditTransfer: z.boolean(),
 });
+
+export type Payouts = Payout & {
+  partner: Partner;
+  program: Program;
+};
 
 export type Payload = z.infer<typeof payloadSchema>;

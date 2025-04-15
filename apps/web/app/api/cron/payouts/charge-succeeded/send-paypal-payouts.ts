@@ -1,33 +1,14 @@
 import { paypalEnv } from "@/lib/paypal/env";
-import { prisma } from "@dub/prisma";
 import { createPaypalToken } from "./create-paypal-token";
-import { Payload } from "./utils";
+import { Payload, Payouts } from "./utils";
 
 export const dynamic = "force-dynamic";
 
-export async function sendPaypalPayouts({ invoiceId }: Payload) {
-  const paypalPayouts = await prisma.payout.findMany({
-    where: {
-      invoiceId,
-      status: {
-        not: "completed",
-      },
-      partner: {
-        payoutsEnabledAt: {
-          not: null,
-        },
-        paypalEmail: {
-          not: null,
-        },
-      },
-    },
-    include: {
-      partner: true,
-      program: true,
-    },
-  });
-
-  if (paypalPayouts.length === 0) {
+export async function sendPaypalPayouts({
+  invoiceId,
+  payouts,
+}: Payload & { payouts: Payouts[] }) {
+  if (payouts.length === 0) {
     console.log("No payouts for sending via PayPal, skipping...");
     return;
   }
@@ -38,7 +19,7 @@ export async function sendPaypalPayouts({ invoiceId }: Payload) {
     sender_batch_header: {
       sender_batch_id: invoiceId,
     },
-    items: paypalPayouts.map((payout) => ({
+    items: payouts.map((payout) => ({
       recipient_type: "EMAIL",
       receiver: payout.partner.paypalEmail,
       sender_item_id: payout.id,

@@ -1,4 +1,5 @@
 import { log } from "@dub/utils";
+import { paymentPayoutsBatchSuccess } from "./payment-payouts-batch-success";
 import { payoutStatusChanged } from "./payout-status-changed";
 
 const relevantEvents = new Set([
@@ -12,6 +13,9 @@ const relevantEvents = new Set([
   "PAYMENT.PAYOUTS-ITEM.REFUNDED",
   "PAYMENT.PAYOUTS-ITEM.RETURNED",
   "PAYMENT.PAYOUTS-ITEM.UNCLAIMED",
+
+  // Payout events
+  "PAYMENT.PAYOUTSBATCH.SUCCESS",
 ]);
 
 // POST /api/paypal/webhook – Listen to Paypal webhook events
@@ -42,6 +46,9 @@ export const POST = async (req: Request) => {
       case "PAYMENT.PAYOUTS-ITEM.UNCLAIMED":
         await payoutStatusChanged(body);
         break;
+      case "PAYMENT.PAYOUTSBATCH.SUCCESS":
+        await paymentPayoutsBatchSuccess(body);
+        break;
     }
   } catch (error) {
     await log({
@@ -56,7 +63,3 @@ export const POST = async (req: Request) => {
 
   return new Response("OK");
 };
-
-// const headers = request.headers;
-// const event = request.body;
-// const data = JSON.parse(event)

@@ -28,10 +28,6 @@ export async function POST(req: Request) {
               not: "completed",
             },
           },
-          include: {
-            program: true,
-            partner: true,
-          },
         },
       },
     });
@@ -51,7 +47,39 @@ export async function POST(req: Request) {
       return;
     }
 
-    await Promise.all([sendStripePayouts(body), sendPaypalPayouts(body)]);
+    const payouts = await prisma.payout.findMany({
+      where: {
+        invoiceId,
+        status: {
+          not: "completed",
+        },
+        partner: {
+          payoutsEnabledAt: {
+            not: null,
+          },
+        },
+      },
+      include: {
+        partner: true,
+        program: true,
+      },
+    });
+
+    const stripePayouts = payouts.filter(
+      (payout) => payout.partner.stripeConnectId,
+    );
+
+    const paypalPayouts = payouts.filter(
+      (payout) => payout.partner.paypalEmail,
+    );
+
+    console.log(`Stripe payouts: ${stripePayouts.length}`);
+    console.log(`Paypal payouts: ${paypalPayouts.length}`);
+
+    await Promise.all([
+      sendStripePayouts({ ...body, payouts: stripePayouts }),
+      sendPaypalPayouts({ ...body, payouts: paypalPayouts }),
+    ]);
 
     const payoutsNotCompleted = await prisma.payout.count({
       where: {

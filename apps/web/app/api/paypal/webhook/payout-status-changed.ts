@@ -96,29 +96,6 @@ export async function payoutStatusChanged(event: any) {
         }),
     ]);
 
-    // Check if all payouts are completed
-    // If so, update the invoice status to completed
-    const notCompletedPayoutsCount = await prisma.payout.count({
-      where: {
-        invoiceId,
-        status: {
-          not: "completed",
-        },
-      },
-    });
-
-    if (notCompletedPayoutsCount === 0) {
-      await prisma.invoice.update({
-        where: {
-          id: invoiceId,
-        },
-        data: {
-          paidAt: new Date(),
-          status: "completed",
-        },
-      });
-    }
-
     return;
   }
 
