@@ -1,3 +1,4 @@
+import { SHEET_MAX_ITEMS } from "@/lib/partners/constants";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse, PayoutResponse } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
@@ -48,15 +49,9 @@ function PayoutDetailsSheetContent({
     isLoading,
     error,
   } = useSWR<CommissionResponse[]>(
-    `/api/programs/${programId}/commissions?workspaceId=${workspaceId}&payoutId=${payout.id}&interval=all&pageSize=10`,
+    `/api/programs/${programId}/commissions?workspaceId=${workspaceId}&payoutId=${payout.id}&interval=all&pageSize=${SHEET_MAX_ITEMS}`,
     fetcher,
   );
-
-  const commissionsCount = useMemo(() => {
-    return commissions?.filter(
-      ({ status }) => !["duplicate", "fraud"].includes(status),
-    ).length;
-  }, [commissions]);
 
   const invoiceData = useMemo(() => {
     const statusBadge = PayoutStatusBadges[payout.status];
@@ -88,10 +83,6 @@ function PayoutDetailsSheetContent({
         </StatusBadge>
       ),
 
-      ...(commissionsCount && {
-        Commissions: commissionsCount,
-      }),
-
       Total: currencyFormatter(payout.amount / 100, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
@@ -103,7 +94,7 @@ function PayoutDetailsSheetContent({
 
       Description: payout.description || "-",
     };
-  }, [payout, commissionsCount]);
+  }, [payout]);
 
   const commissionsTable = useTable({
     data:
@@ -112,10 +103,10 @@ function PayoutDetailsSheetContent({
       ) || [],
     columns: [
       {
-        header: "Customer",
-        minSize: 250,
-        size: 250,
-        maxSize: 250,
+        header: "Details",
+        minSize: 240,
+        size: 240,
+        maxSize: 240,
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
             {row.original.type === "click" ? (
@@ -134,7 +125,7 @@ function PayoutDetailsSheetContent({
             )}
 
             <div className="flex flex-col">
-              <span className="text-sm text-neutral-700">
+              <span className="w-44 truncate text-sm text-neutral-700">
                 {row.original.type === "click"
                   ? `${row.original.quantity} ${pluralize("click", row.original.quantity)}`
                   : row.original.customer.email || row.original.customer.name}
@@ -190,20 +181,20 @@ function PayoutDetailsSheetContent({
   } as any);
 
   return (
-    <>
-      <div>
-        <div className="flex items-start justify-between border-b border-neutral-200 p-6">
-          <Sheet.Title className="text-xl font-semibold">
-            {capitalize(payout.status)} payout
-          </Sheet.Title>
-          <Sheet.Close asChild>
-            <Button
-              variant="outline"
-              icon={<X className="size-5" />}
-              className="h-auto w-fit p-1"
-            />
-          </Sheet.Close>
-        </div>
+    <div className="flex h-full flex-col">
+      <div className="sticky top-0 z-10 flex items-start justify-between border-b border-neutral-200 bg-white p-6">
+        <Sheet.Title className="text-xl font-semibold">
+          {capitalize(payout.status)} payout
+        </Sheet.Title>
+        <Sheet.Close asChild>
+          <Button
+            variant="outline"
+            icon={<X className="size-5" />}
+            className="h-auto w-fit p-1"
+          />
+        </Sheet.Close>
+      </div>
+      <div className="flex-1 overflow-y-auto">
         <div className="flex flex-col gap-4 p-6">
           <div className="text-base font-medium text-neutral-900">
             Invoice details
@@ -224,10 +215,12 @@ function PayoutDetailsSheetContent({
           <div className="flex h-full items-center justify-center">
             <LoadingSpinner />
           </div>
-        ) : commissionsCount && commissionsCount > 0 ? (
-          <div className="p-6 pt-2">
-            <Table {...commissionsTable} />
-            <div className="mt-2 flex justify-end">
+        ) : commissions && commissions.length > 0 ? (
+          <>
+            <div className="p-6 pt-2">
+              <Table {...commissionsTable} />
+            </div>
+            <div className="sticky bottom-0 z-10 flex justify-end border-t border-neutral-200 bg-white px-6 py-4">
               <Link
                 href={`/${slug}/programs/${programId}/commissions?payoutId=${payout.id}&interval=all`}
                 target="_blank"
@@ -239,22 +232,10 @@ function PayoutDetailsSheetContent({
                 View all
               </Link>
             </div>
-          </div>
+          </>
         ) : null}
       </div>
-
-      <div className="flex grow flex-col justify-end">
-        <div className="flex items-center justify-end gap-2 border-t border-neutral-200 p-5">
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => setIsOpen(false)}
-            text="Close"
-            className="w-fit"
-          />
-        </div>
-      </div>
-    </>
+    </div>
   );
 }
 

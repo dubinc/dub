@@ -9,6 +9,7 @@ import {
   Button,
   buttonVariants,
   ExpandingArrow,
+  LoadingSpinner,
   Sheet,
   StatusBadge,
   Table,
@@ -33,10 +34,7 @@ type PayoutDetailsSheetProps = {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 };
 
-function PayoutDetailsSheetContent({
-  payout,
-  setIsOpen,
-}: PayoutDetailsSheetProps) {
+function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
   const { partner } = usePartnerProfile();
 
   const {
@@ -80,8 +78,6 @@ function PayoutDetailsSheetContent({
         </StatusBadge>
       ),
 
-      Commissions: earnings?.length || "-",
-
       Amount: (
         <strong>
           {currencyFormatter(payout.amount / 100, {
@@ -102,7 +98,7 @@ function PayoutDetailsSheetContent({
       ) || [],
     columns: [
       {
-        header: "Sale",
+        header: "Details",
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
             {row.original.type === "click" ? (
@@ -165,66 +161,58 @@ function PayoutDetailsSheetContent({
   } as any);
 
   return (
-    <>
-      <div>
-        <div className="flex items-start justify-between border-b border-neutral-200 p-6">
-          <Sheet.Title className="text-xl font-semibold">
-            Payout details
-          </Sheet.Title>
-          <Sheet.Close asChild>
-            <Button
-              variant="outline"
-              icon={<X className="size-5" />}
-              className="h-auto w-fit p-1"
-            />
-          </Sheet.Close>
-        </div>
-        <div className="flex flex-col gap-4 p-6">
-          <div className="text-base font-medium text-neutral-900">
-            Invoice details
-          </div>
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            {Object.entries(invoiceData).map(([key, value]) => (
-              <Fragment key={key}>
-                <div className="flex items-center font-medium text-neutral-500">
-                  {key}
-                </div>
-                <div className="text-neutral-800">{value}</div>
-              </Fragment>
-            ))}
-          </div>
-        </div>
-        <div className="p-6 pt-2">
-          <Table {...table} />
-          {earnings?.length === SHEET_MAX_ITEMS && (
-            <div className="mt-2 flex justify-end">
-              <Link
-                href={`/programs/${payout.program.slug}/earnings?interval=all&payoutId=${payout.id}`}
-                target="_blank"
-                className={cn(
-                  buttonVariants({ variant: "secondary" }),
-                  "flex h-7 items-center rounded-lg border px-2 text-sm",
-                )}
-              >
-                View all
-              </Link>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="flex grow flex-col justify-end">
-        <div className="flex items-center justify-end gap-2 border-t border-neutral-200 p-5">
+    <div>
+      <div className="flex items-start justify-between border-b border-neutral-200 p-6">
+        <Sheet.Title className="text-xl font-semibold">
+          Payout details
+        </Sheet.Title>
+        <Sheet.Close asChild>
           <Button
-            type="button"
-            variant="secondary"
-            onClick={() => setIsOpen(false)}
-            text="Close"
-            className="w-fit"
+            variant="outline"
+            icon={<X className="size-5" />}
+            className="h-auto w-fit p-1"
           />
+        </Sheet.Close>
+      </div>
+      <div className="flex flex-col gap-4 p-6">
+        <div className="text-base font-medium text-neutral-900">
+          Invoice details
+        </div>
+        <div className="grid grid-cols-2 gap-3 text-sm">
+          {Object.entries(invoiceData).map(([key, value]) => (
+            <Fragment key={key}>
+              <div className="flex items-center font-medium text-neutral-500">
+                {key}
+              </div>
+              <div className="text-neutral-800">{value}</div>
+            </Fragment>
+          ))}
         </div>
       </div>
-    </>
+      {isLoading ? (
+        <div className="flex h-full items-center justify-center">
+          <LoadingSpinner />
+        </div>
+      ) : earnings?.length ? (
+        <>
+          <div className="p-6 pt-2">
+            <Table {...table} />
+          </div>
+          <div className="sticky bottom-0 z-10 flex justify-end border-t border-neutral-200 bg-white px-6 py-4">
+            <Link
+              href={`/programs/${payout.program.slug}/earnings?interval=all&payoutId=${payout.id}`}
+              target="_blank"
+              className={cn(
+                buttonVariants({ variant: "secondary" }),
+                "flex h-7 items-center rounded-lg border px-2 text-sm",
+              )}
+            >
+              View all
+            </Link>
+          </div>
+        </>
+      ) : null}
+    </div>
   );
 }
 
