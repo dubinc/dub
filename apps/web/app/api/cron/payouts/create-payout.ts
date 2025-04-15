@@ -29,6 +29,9 @@ export const createPayout = async ({
   if (programEnrollment.status === "banned") {
     await prisma.commission.updateMany({
       where: {
+        earnings: {
+          gt: 0,
+        },
         programId,
         partnerId,
         status: "pending",
@@ -56,8 +59,8 @@ export const createPayout = async ({
         },
         programId,
         partnerId,
-        payoutId: null,
         status: "pending",
+        payoutId: null,
         // Only process commissions that were created before the holding period
         ...(holdingPeriodDays > 0 && {
           createdAt: {
