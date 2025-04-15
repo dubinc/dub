@@ -50,7 +50,7 @@ export function ProgramCard({
           : "",
       )}
     >
-      <div className="">
+      <div>
         <BlurImage
           width={96}
           height={96}

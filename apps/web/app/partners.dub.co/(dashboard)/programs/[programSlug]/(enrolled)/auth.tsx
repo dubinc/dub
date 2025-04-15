@@ -10,13 +10,16 @@ export function ProgramEnrollmentAuth({
   children: React.ReactNode;
 }) {
   const { programSlug } = useParams();
-  const { error, loading } = useProgramEnrollment();
+  const { programEnrollment, error, loading } = useProgramEnrollment();
 
   if (loading) {
     return <LayoutLoader />;
   }
 
-  if (error && error.status === 404) {
+  if (
+    (error && error.status === 404) ||
+    (programEnrollment && programEnrollment.status !== "approved")
+  ) {
     redirect(`/programs/${programSlug}/apply`);
   }
 
