@@ -51,8 +51,28 @@ export async function POST(req: Request) {
       return;
     }
 
-    await sendStripePayouts(body);
-    await sendPaypalPayouts(body);
+    await Promise.all([sendStripePayouts(body), sendPaypalPayouts(body)]);
+
+    const payoutsNotCompleted = await prisma.payout.count({
+      where: {
+        invoiceId,
+        status: {
+          not: "completed",
+        },
+      },
+    });
+
+    if (payoutsNotCompleted === 0) {
+      await prisma.invoice.update({
+        where: {
+          id: invoiceId,
+        },
+        data: {
+          status: "completed",
+          paidAt: new Date(),
+        },
+      });
+    }
 
     return new Response(`Invoice ${invoiceId} processed.`);
   } catch (error) {

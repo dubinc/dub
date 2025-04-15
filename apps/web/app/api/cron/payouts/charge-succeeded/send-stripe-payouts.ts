@@ -105,7 +105,6 @@ export async function sendStripePayouts({
     data: {
       receiptUrl,
       paidAt: new Date(),
-      status: "completed",
     },
   });
 }

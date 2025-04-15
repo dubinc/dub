@@ -10,13 +10,13 @@ const schema = z.object({
   resource: z.object({
     sender_batch_id: z.string(), // Dub invoice id
     payout_item_id: z.string(),
-    sender_item_id: z.string(), // Dub payout id
     payout_item_fee: z.object({
       currency: z.string(),
       value: z.string(),
     }),
     payout_item: z.object({
       receiver: z.string(),
+      sender_item_id: z.string(), // Dub payout id
     }),
   }),
 });
@@ -29,7 +29,7 @@ export async function payoutStatusChanged(event: any) {
   const invoiceId = body.resource.sender_batch_id;
   const paypalEmail = body.resource.payout_item.receiver;
   const payoutItemId = body.resource.payout_item_id;
-  const payoutId = body.resource.sender_item_id;
+  const payoutId = body.resource.payout_item.sender_item_id;
 
   const payout = await prisma.payout.findFirst({
     where: {
