@@ -25,6 +25,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Dispatch, Fragment, SetStateAction, useMemo, useState } from "react";
 import useSWR from "swr";
+import { CommissionTypeIcon } from "./comission-type-icon";
 import { CommissionRowMenu } from "./commission-row-menu";
 import { CommissionTypeBadge } from "./commission-type-badge";
 import { PayoutStatusBadges } from "./payout-status-badges";
@@ -103,17 +104,15 @@ function PayoutDetailsSheetContent({
     columns: [
       {
         header: "Customer",
-        minSize: 300,
-        size: 300,
-        maxSize: 400,
+        minSize: 250,
+        size: 250,
+        maxSize: 250,
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
             {row.original.type === "click" ? (
-              <img
-                src={`${OG_AVATAR_URL}N/A`}
-                alt="N/A"
-                className="size-6 rounded-full"
-              />
+              <div className="flex size-6 items-center justify-center rounded-full bg-neutral-100">
+                <CommissionTypeIcon type="click" className="size-4" />
+              </div>
             ) : (
               <img
                 src={
@@ -124,10 +123,11 @@ function PayoutDetailsSheetContent({
                 className="size-6 rounded-full"
               />
             )}
+
             <div className="flex flex-col">
               <span className="text-sm text-neutral-700">
                 {row.original.type === "click"
-                  ? "N/A"
+                  ? `${row.original.quantity} clicks`
                   : row.original.customer.email || row.original.customer.name}
               </span>
               <span className="text-xs text-neutral-500">
