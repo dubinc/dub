@@ -1,8 +1,9 @@
 import { SHEET_MAX_ITEMS } from "@/lib/partners/constants";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerEarningsResponse, PartnerPayoutResponse } from "@/lib/types";
+import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
+import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
-import { PayoutTypeBadge } from "@/ui/partners/payout-type-badge";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
@@ -15,7 +16,6 @@ import {
   useTable,
 } from "@dub/ui";
 import {
-  capitalize,
   cn,
   currencyFormatter,
   fetcher,
@@ -39,7 +39,7 @@ function PayoutDetailsSheetContent({
   const { partner } = usePartnerProfile();
 
   const {
-    data: sales,
+    data: earnings,
     isLoading,
     error,
   } = useSWR<PartnerEarningsResponse[]>(
@@ -70,25 +70,16 @@ function PayoutDetailsSheetContent({
           <ExpandingArrow className="size-3" />
         </a>
       ),
-      Period: formatPeriod(payout),
 
-      Type: <PayoutTypeBadge type={payout.type} />,
+      Period: formatPeriod(payout),
 
       Status: (
         <StatusBadge variant={statusBadge.variant} icon={statusBadge.icon}>
           {statusBadge.label}
         </StatusBadge>
       ),
-      ...(payout.quantity && {
-        [capitalize(payout.type) as string]: payout.quantity,
-        [`Reward per ${payout.type.replace(/s$/, "")}`]: currencyFormatter(
-          payout.amount / payout.quantity / 100,
-          {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          },
-        ),
-      }),
+
+      Commissions: earnings?.length || "-",
 
       Amount: (
         <strong>
@@ -101,34 +92,54 @@ function PayoutDetailsSheetContent({
 
       Description: payout.description || "-",
     };
-  }, [payout, sales]);
+  }, [payout, earnings]);
 
   const table = useTable({
     data:
-      sales?.filter(({ status }) => !["duplicate", "fraud"].includes(status)) ||
-      [],
+      earnings?.filter(
+        ({ status }) => !["duplicate", "fraud"].includes(status),
+      ) || [],
     columns: [
       {
         header: "Sale",
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            <img
-              src={
-                row.original.customer.avatar ||
-                `${OG_AVATAR_URL}${row.original.customer.name}`
-              }
-              alt={row.original.customer.name}
-              className="size-6 rounded-full"
-            />
+            {row.original.type === "click" ? (
+              <div className="flex size-6 items-center justify-center rounded-full bg-neutral-100">
+                <CommissionTypeIcon type="click" className="size-4" />
+              </div>
+            ) : (
+              <img
+                src={
+                  row.original.customer.avatar ||
+                  `${OG_AVATAR_URL}${row.original.customer.name}`
+                }
+                alt={row.original.customer.name}
+                className="size-6 rounded-full"
+              />
+            )}
+
             <div className="flex flex-col">
               <span className="text-sm text-neutral-700">
-                {row.original.customer.email || row.original.customer.name}
+                {row.original.type === "click"
+                  ? `${row.original.quantity} clicks`
+                  : row.original.customer.email || row.original.customer.name}
               </span>
               <span className="text-xs text-neutral-500">
                 {formatDateTime(row.original.createdAt)}
               </span>
             </div>
           </div>
+        ),
+      },
+      {
+        id: "type",
+        header: "Type",
+        minSize: 100,
+        size: 120,
+        maxSize: 150,
+        cell: ({ row }) => (
+          <CommissionTypeBadge type={row.original.type ?? "sale"} />
         ),
       },
       {
@@ -184,7 +195,7 @@ function PayoutDetailsSheetContent({
         </div>
         <div className="p-6 pt-2">
           <Table {...table} />
-          {sales?.length === SHEET_MAX_ITEMS && (
+          {earnings?.length === SHEET_MAX_ITEMS && (
             <div className="mt-2 flex justify-end">
               <Link
                 href={`/programs/${payout.program.slug}/earnings?interval=all&payoutId=${payout.id}`}
