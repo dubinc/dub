@@ -36,13 +36,7 @@ import useSWR from "swr";
 import { usePayoutFilters } from "./use-payout-filters";
 
 export function PayoutTable() {
-  const { searchParams } = useRouterStuff();
-
-  const sortBy = searchParams.get("sortBy") || "createdAt";
-  const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
-
-  const filters = usePayoutFilters({ sortBy, sortOrder });
-
+  const filters = usePayoutFilters();
   return <PayoutTableInner {...filters} />;
 }
 
