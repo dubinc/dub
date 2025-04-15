@@ -1,7 +1,7 @@
 import z from "@/lib/zod";
 import "dotenv-flow/config";
-import { tb } from "../lib/tinybird/client";
-import { recordSaleWithTimestamp } from "../lib/tinybird/record-sale";
+import { tb } from "../../lib/tinybird/client";
+import { recordSaleWithTimestamp } from "../../lib/tinybird/record-sale";
 
 export const getSaleEvent = tb.buildPipe({
   pipe: "get_sale_event",

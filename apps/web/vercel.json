@@ -22,7 +22,7 @@
     },
     {
       "path": "/api/cron/payouts",
-      "schedule": "0 0,12 * * *"
+      "schedule": "0 * * * *"
     },
     {
       "path": "/api/cron/aggregate-clicks",
