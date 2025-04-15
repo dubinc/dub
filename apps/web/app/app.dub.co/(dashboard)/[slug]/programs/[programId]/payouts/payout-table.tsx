@@ -11,7 +11,6 @@ import { PayoutDetailsSheet } from "@/ui/partners/payout-details-sheet";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { PayoutTypeBadge } from "@/ui/partners/payout-type-badge";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   AnimatedSizeContainer,
   Button,
@@ -37,13 +36,7 @@ import useSWR from "swr";
 import { usePayoutFilters } from "./use-payout-filters";
 
 export function PayoutTable() {
-  const { searchParams } = useRouterStuff();
-
-  const sortBy = searchParams.get("sortBy") || "createdAt";
-  const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
-
-  const filters = usePayoutFilters({ sortBy, sortOrder });
-
+  const filters = usePayoutFilters();
   return <PayoutTableInner {...filters} />;
 }
 
@@ -258,18 +251,15 @@ const PayoutTableInner = memo(
         )}
         <div className="flex flex-col gap-3">
           <div>
-            <div className="flex flex-col gap-3 md:flex-row md:items-center">
-              <Filter.Select
-                className="w-full md:w-fit"
-                filters={filters}
-                activeFilters={activeFilters}
-                onSelect={onSelect}
-                onRemove={onRemove}
-                onSearchChange={setSearch}
-                onSelectedFilterChange={setSelectedFilter}
-              />
-              <SimpleDateRangePicker className="w-fit" defaultInterval="all" />
-            </div>
+            <Filter.Select
+              className="w-full md:w-fit"
+              filters={filters}
+              activeFilters={activeFilters}
+              onSelect={onSelect}
+              onRemove={onRemove}
+              onSearchChange={setSearch}
+              onSelectedFilterChange={setSelectedFilter}
+            />
             <AnimatedSizeContainer height>
               <div>
                 {activeFilters.length > 0 && (
