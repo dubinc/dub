@@ -19,15 +19,16 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
             },
           }
         : true,
+      links: {
+        take: 1,
+        orderBy: {
+          createdAt: "asc",
+        },
+      },
     },
   });
 
   return NextResponse.json(
-    z.array(ProgramEnrollmentSchema).parse(
-      programEnrollments.map((enrollment) => ({
-        ...enrollment,
-        links: null, // hacky way of not having to fetch link
-      })),
-    ),
+    z.array(ProgramEnrollmentSchema).parse(programEnrollments),
   );
 });

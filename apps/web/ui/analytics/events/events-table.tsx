@@ -19,10 +19,10 @@ import {
   COUNTRIES,
   REGIONS,
   capitalize,
+  currencyFormatter,
   fetcher,
   getApexDomain,
   getPrettyUrl,
-  nFormatter,
 } from "@dub/utils";
 import { Cell, ColumnDef } from "@tanstack/react-table";
 import { Link2 } from "lucide-react";
@@ -373,7 +373,7 @@ export default function EventsTable({
           minSize: 120,
           cell: ({ getValue }) => (
             <div className="flex items-center gap-2">
-              <span>${nFormatter(getValue() / 100)}</span>
+              <span>{currencyFormatter(getValue() / 100)}</span>
               <span className="text-neutral-400">USD</span>
             </div>
           ),
