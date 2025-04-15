@@ -19,6 +19,7 @@ import {
   fetcher,
   formatDateTime,
   OG_AVATAR_URL,
+  pluralize,
 } from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
 import Link from "next/link";
@@ -135,7 +136,7 @@ function PayoutDetailsSheetContent({
             <div className="flex flex-col">
               <span className="text-sm text-neutral-700">
                 {row.original.type === "click"
-                  ? `${row.original.quantity} clicks`
+                  ? `${row.original.quantity} ${pluralize("click", row.original.quantity)}`
                   : row.original.customer.email || row.original.customer.name}
               </span>
               <span className="text-xs text-neutral-500">
