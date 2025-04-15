@@ -5,7 +5,8 @@ import { clickCache } from "@/lib/api/links/click-cache";
 import { parseRequestBody } from "@/lib/api/utils";
 import { getLinkViaEdge, getWorkspaceViaEdge } from "@/lib/planetscale";
 import { recordClick } from "@/lib/tinybird";
-import { formatRedisLink } from "@/lib/upstash";
+import { RedisLinkProps } from "@/lib/types";
+import { formatRedisLink, redis } from "@/lib/upstash";
 import { isValidUrl, LOCALHOST_IP, nanoid } from "@dub/utils";
 import { ipAddress, waitUntil } from "@vercel/functions";
 import { AxiomRequest, withAxiom } from "next-axiom";
@@ -40,11 +41,10 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
 
     const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
 
-    let clickId = await clickCache.get({
-      domain,
-      key,
-      ip,
-    });
+    let [clickId, cachedLink] = await redis.mget<[string, RedisLinkProps]>([
+      clickCache._createKey({ domain, key, ip }),
+      linkCache._createKey({ domain, key }),
+    ]);
 
     // if the clickId is already cached in Redis, return it
     if (clickId) {
@@ -53,11 +53,6 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
 
     // Otherwise, track the visit event
     clickId = nanoid(16);
-
-    let cachedLink = await linkCache.get({
-      domain,
-      key,
-    });
 
     if (!cachedLink) {
       const link = await getLinkViaEdge({
