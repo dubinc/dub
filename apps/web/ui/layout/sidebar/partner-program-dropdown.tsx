@@ -297,6 +297,9 @@ function ProgramList({
                     </Link>
                   </Command.Item>
                 ))}
+                <Command.Empty className="p-1 text-xs text-neutral-400">
+                  No programs found
+                </Command.Empty>
               </Command.List>
             </div>
           </AnimatedSizeContainer>
