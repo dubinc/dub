@@ -73,7 +73,7 @@ export function PartnerProgramDropdown() {
     <div>
       <Popover
         content={
-          <ScrollContainer>
+          <div className="w-full sm:w-auto">
             {programEnrollments && programEnrollments.length > 0 && (
               <div className="border-b border-neutral-200">
                 <ProgramList
@@ -129,7 +129,7 @@ export function PartnerProgramDropdown() {
                 ))}
               </div>
             </div>
-          </ScrollContainer>
+          </div>
         }
         align="start"
         openPopover={openPopover}
@@ -199,7 +199,7 @@ function ScrollContainer({ children }: PropsWithChildren) {
       <div
         ref={scrollRef}
         onScroll={updateScrollProgress}
-        className="relative max-h-80 w-full space-y-0.5 overflow-auto rounded-lg bg-white text-base sm:w-64 sm:text-sm"
+        className="relative max-h-[min(260px,calc(100vh-300px))] w-full space-y-0.5 overflow-auto rounded-lg bg-white text-base sm:w-64 sm:text-sm"
       >
         {children}
       </div>
@@ -243,67 +243,69 @@ function ProgramList({
             placeholder="Find program..."
           />
         </label>
-        <div className="p-2">
-          <div className="flex items-center justify-between py-2">
-            <p className="px-1 text-xs font-medium text-neutral-500">
-              Programs
-            </p>
-          </div>
-          <AnimatedSizeContainer
-            height
-            className="rounded-[inherit]"
-            style={{ transform: "translateZ(0)" }} // Fixes overflow on some browsers
-          >
-            <div className="flex flex-col gap-0.5">
-              <Command.List>
-                {programs.map(({ slug, name, logo }) => (
-                  <Command.Item
-                    key={slug}
-                    asChild
-                    value={name}
-                    onSelect={() => {
-                      router.push(href(slug));
-                      setOpenPopover(false);
-                    }}
-                  >
-                    <Link
-                      key={slug}
-                      className={cn(
-                        "relative flex w-full items-center gap-x-2.5 rounded-md px-2 py-2.5 transition-all duration-75",
-                        "active:bg-neutral-200/80 data-[selected=true]:bg-neutral-200/50",
-                        "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
-                      )}
-                      href={href(slug)}
-                      shallow={false}
-                      onClick={() => setOpenPopover(false)}
-                      tabIndex={-1}
-                    >
-                      <BlurImage
-                        src={logo || `${OG_AVATAR_URL}${name}`}
-                        width={40}
-                        height={40}
-                        alt={name}
-                        className="size-5 shrink-0 overflow-hidden rounded-full border border-black/10"
-                      />
-                      <span className="block min-w-0 grow truncate text-sm leading-5 text-neutral-800">
-                        {name}
-                      </span>
-                      {selectedProgram?.slug === slug ? (
-                        <Check2
-                          className="size-4 shrink-0 text-neutral-600"
-                          aria-hidden="true"
-                        />
-                      ) : null}
-                    </Link>
-                  </Command.Item>
-                ))}
-                <Command.Empty className="p-1 text-xs text-neutral-400">
-                  No programs found
-                </Command.Empty>
-              </Command.List>
+        <ScrollContainer>
+          <div className="p-2">
+            <div className="flex items-center justify-between py-2">
+              <p className="px-1 text-xs font-medium text-neutral-500">
+                Programs
+              </p>
             </div>
-          </AnimatedSizeContainer>
-        </div>
+            <AnimatedSizeContainer
+              height
+              className="rounded-[inherit]"
+              style={{ transform: "translateZ(0)" }} // Fixes overflow on some browsers
+            >
+              <div className="flex flex-col gap-0.5">
+                <Command.List>
+                  {programs.map(({ slug, name, logo }) => (
+                    <Command.Item
+                      key={slug}
+                      asChild
+                      value={name}
+                      onSelect={() => {
+                        router.push(href(slug));
+                        setOpenPopover(false);
+                      }}
+                    >
+                      <Link
+                        key={slug}
+                        className={cn(
+                          "relative flex w-full items-center gap-x-2.5 rounded-md px-2 py-2.5 transition-all duration-75",
+                          "active:bg-neutral-200/80 data-[selected=true]:bg-neutral-200/50",
+                          "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
+                        )}
+                        href={href(slug)}
+                        shallow={false}
+                        onClick={() => setOpenPopover(false)}
+                        tabIndex={-1}
+                      >
+                        <BlurImage
+                          src={logo || `${OG_AVATAR_URL}${name}`}
+                          width={40}
+                          height={40}
+                          alt={name}
+                          className="size-5 shrink-0 overflow-hidden rounded-full border border-black/10"
+                        />
+                        <span className="block min-w-0 grow truncate text-sm leading-5 text-neutral-800">
+                          {name}
+                        </span>
+                        {selectedProgram?.slug === slug ? (
+                          <Check2
+                            className="size-4 shrink-0 text-neutral-600"
+                            aria-hidden="true"
+                          />
+                        ) : null}
+                      </Link>
+                    </Command.Item>
+                  ))}
+                  <Command.Empty className="p-1 text-xs text-neutral-400">
+                    No programs found
+                  </Command.Empty>
+                </Command.List>
+              </div>
+            </AnimatedSizeContainer>
+          </div>
+        </ScrollContainer>
       </div>
     </Command>
   );
