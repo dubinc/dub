@@ -233,7 +233,7 @@ function ProgramList({
   );
 
   return (
-    <Command defaultValue={selectedProgram?.name}>
+    <Command defaultValue={selectedProgram?.name} loop>
       <div>
         <label className="flex w-full items-center border-b border-neutral-200 pl-3.5">
           <span className="sr-only">Search</span>
