@@ -22,14 +22,6 @@ export const PUT = withWorkspace(
     const bodyRaw = await parseRequestBody(req);
     const body = createLinkBodySchema.parse(bodyRaw);
 
-    if (workspace.totalLinks > 100000) {
-      throw new DubApiError({
-        code: "forbidden",
-        message:
-          "Link upserts are not recommended for workspaces with more than 100,000 links. Try doing GET `/links/info` + POST `/links` instead.",
-      });
-    }
-
     const link = await prisma.link.findFirst({
       where: {
         projectId: workspace.id,
