@@ -120,6 +120,9 @@ importers:
       '@types/bcryptjs':
         specifier: ^2.4.6
         version: 2.4.6
+      '@types/buffer-crc32':
+        specifier: 0.2.0
+        version: 0.2.0
       '@upstash/qstash':
         specifier: ^2.3.0
         version: 2.3.0
@@ -180,6 +183,9 @@ importers:
       bottleneck:
         specifier: ^2.19.5
         version: 2.19.5
+      buffer-crc32:
+        specifier: 0.2.13
+        version: 0.2.13
       cmdk:
         specifier: ^0.2.0
         version: 0.2.0(@types/react-dom@18.2.14)(@types/react@18.2.48)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -189,9 +195,6 @@ importers:
       concurrently:
         specifier: ^8.0.1
         version: 8.0.1
-      crc-32:
-        specifier: ^1.2.2
-        version: 1.2.2
       csv-parse:
         specifier: ^5.5.6
         version: 5.5.6
@@ -5000,6 +5003,9 @@ packages:
   '@types/bcryptjs@2.4.6':
     resolution: {integrity: sha512-9xlo6R2qDs5uixm0bcIqCeMCE6HiQsIyel9KQySStiyqNl2tnj2mP3DX1Nf56MD6KMenNNlBBsy3LJ7gUEQPXQ==}
 
+  '@types/buffer-crc32@0.2.0':
+    resolution: {integrity: sha512-6lBhJ55o2DKVCxTanyS6ohWRyebCcyivIK7pRHiwZuOYbUhivcByYBrvm2dc9f72LZP12mH5mGxUhG7JQ64lQg==}
+
   '@types/configstore@6.0.2':
     resolution: {integrity: sha512-OS//b51j9uyR3zvwD04Kfs5kHpve2qalQ18JhY/ho3voGYUTPLEG90/ocfKPI48hyHH8T04f7KEEbK6Ue60oZQ==}
 
@@ -5956,6 +5962,9 @@ packages:
     resolution: {integrity: sha512-MTxGsqgYTwfshYWTRdmZRC+M7FnG1b4y7RO7p2k3X24Wq0yv1m77Wsj0BzlPzd/IowgESfsruQCUToa7vbOpPQ==}
     engines: {node: '>=16.20.1'}
 
+  buffer-crc32@0.2.13:
+    resolution: {integrity: sha512-VO9Ht/+p3SN7SKWqcrgEzjGbRSJYTx+Q1pTQC0wrWqHx0vpJraQ6GtHx8tvcg1rlK1byhU5gccxgOgj7B0TDkQ==}
+
   buffer-equal-constant-time@1.0.1:
     resolution: {integrity: sha512-zRpUiDwd/xk6ADqPMATG8vc9VPrkck7T07OIx0gnjmJAnHnTVXNQG3vfvWNuiZIkwu9KrKdA1iJKfsfTVxE6NA==}
 
@@ -6329,11 +6338,6 @@ packages:
   cosmiconfig@5.2.1:
     resolution: {integrity: sha512-H65gsXo1SKjf8zmrJ67eJk8aIRKV5ff2D4uKZIBZShbhGSpEmsQOPW/SKMKYhSTrqR7ufy6RP69rPogdaPh/kA==}
     engines: {node: '>=4'}
-
-  crc-32@1.2.2:
-    resolution: {integrity: sha512-ROmzCKrTnOwybPcJApAA6WBWij23HVfGVNKqqrZpuyZOHqK2CwHSvpGuyt/UNNvaIjEd8X5IFGp4Mh+Ie1IHJQ==}
-    engines: {node: '>=0.8'}
-    hasBin: true
 
   create-require@1.1.1:
     resolution: {integrity: sha512-dcKFX3jn0MpIaXjisoRvexIJVEKzaq7z2rZKxf+MSr9TkdmHmsU4m2lcLojrj/FHl8mk5VxMmYA+ftRkP/3oKQ==}
@@ -17101,6 +17105,10 @@ snapshots:
 
   '@types/bcryptjs@2.4.6': {}
 
+  '@types/buffer-crc32@0.2.0':
+    dependencies:
+      '@types/node': 18.11.9
+
   '@types/configstore@6.0.2': {}
 
   '@types/content-type@1.1.6': {}
@@ -18311,6 +18319,8 @@ snapshots:
 
   bson@6.10.3: {}
 
+  buffer-crc32@0.2.13: {}
+
   buffer-equal-constant-time@1.0.1: {}
 
   buffer-from@1.1.2: {}
@@ -18694,8 +18704,6 @@ snapshots:
       is-directory: 0.3.1
       js-yaml: 3.14.1
       parse-json: 4.0.0
-
-  crc-32@1.2.2: {}
 
   create-require@1.1.1: {}
 

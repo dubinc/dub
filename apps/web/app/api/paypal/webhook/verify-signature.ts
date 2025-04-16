@@ -1,7 +1,7 @@
 import { paypalEnv } from "@/lib/paypal/env";
 import { redis } from "@/lib/upstash/redis";
 import { waitUntil } from "@vercel/functions";
-import crc32 from "crc-32";
+import crc32 from "buffer-crc32";
 import crypto from "crypto";
 
 const CERT_CACHE_KEY = "paypal:cert";
@@ -38,10 +38,6 @@ export async function verifySignature({
     return false;
   }
 
-  const crc = (crc32.str(event) >>> 0).toString(); // Convert to unsigned 32-bit integer
-
-  const message = `${transmissionId}|${timeStamp}|${paypalEnv.PAYPAL_WEBHOOK_ID}|${crc}`;
-
   const certPem = await downloadAndCache(certUrl);
 
   if (!certPem) {
@@ -49,14 +45,12 @@ export async function verifySignature({
     return false;
   }
 
-  try {
-    const signatureBuffer = Buffer.from(transmissionSig, "base64");
-    const verifier = crypto.createVerify("SHA256");
-    verifier.update(message);
+  const crc = parseInt("0x" + crc32(event).toString("hex"));
+  const message = `${transmissionId}|${timeStamp}|${paypalEnv.PAYPAL_WEBHOOK_ID}|${crc}`;
+  const signatureBuffer = Buffer.from(transmissionSig, "base64");
 
-    return verifier.verify(certPem, new Uint8Array(signatureBuffer));
-  } catch (error) {
-    console.error("Signature verification failed", error);
-    return false;
-  }
+  const verifier = crypto.createVerify("SHA256");
+  verifier.update(message);
+
+  return verifier.verify(certPem, new Uint8Array(signatureBuffer));
 }
