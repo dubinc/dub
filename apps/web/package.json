@@ -64,7 +64,7 @@
     "base-x": "^5.0.0",
     "bcryptjs": "^2.4.3",
     "bottleneck": "^2.19.5",
-    "cmdk": "^0.2.0",
+    "cmdk": "^1.1.1",
     "cobe": "^0.6.3",
     "concurrently": "^8.0.1",
     "csv-parse": "^5.5.6",
