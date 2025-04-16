@@ -22,6 +22,7 @@ interface TimeseriesData {
   date: Date;
   payouts: number;
   fees: number;
+  total: number;
 }
 
 interface InvoiceData {
@@ -35,7 +36,7 @@ interface InvoiceData {
 }
 
 type Tab = {
-  id: "payouts" | "fees";
+  id: "payouts" | "fees" | "total";
   label: string;
   colorClassName: string;
 };
@@ -61,24 +62,31 @@ export default function PayoutsPageClient() {
     {
       id: "payouts",
       label: "Payouts",
-      colorClassName: "text-blue-500/50",
+      colorClassName: "text-blue-500/50 bg-blue-500/50 border-blue-500",
     },
     {
       id: "fees",
       label: "Fees",
-      colorClassName: "text-red-500/50",
+      colorClassName: "text-red-500/50 bg-red-500/50 border-red-500",
+    },
+    {
+      id: "total",
+      label: "Total",
+      colorClassName: "text-green-500/50 bg-green-500/50 border-green-500",
     },
   ];
 
-  const [selectedTab, setSelectedTab] = useState<"payouts" | "fees">("payouts");
+  const [selectedTab, setSelectedTab] = useState<"payouts" | "fees" | "total">(
+    "payouts",
+  );
   const tab = tabs.find(({ id }) => id === selectedTab) ?? tabs[0];
 
   // take the last 12 months
   const chartData =
-    timeseriesData?.map(({ date, payouts, fees }) => ({
+    timeseriesData?.map(({ date, ...rest }) => ({
       date: new Date(date),
       values: {
-        value: selectedTab === "payouts" ? payouts : fees,
+        value: rest[selectedTab],
       },
     })) ?? null;
 
@@ -94,6 +102,7 @@ export default function PayoutsPageClient() {
       payouts:
         timeseriesData?.reduce((acc, { payouts }) => acc + payouts, 0) ?? 0,
       fees: timeseriesData?.reduce((acc, { fees }) => acc + fees, 0) ?? 0,
+      total: timeseriesData?.reduce((acc, { total }) => acc + total, 0) ?? 0,
     };
   }, [timeseriesData]);
 
@@ -183,7 +192,7 @@ export default function PayoutsPageClient() {
     <div className="mx-auto flex w-full max-w-screen-xl flex-col space-y-6 p-6">
       <SimpleDateRangePicker defaultInterval="mtd" className="w-fit" />
       <div className="flex flex-col divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white">
-        <div className="scrollbar-hide grid w-full grid-cols-2 divide-x overflow-y-hidden">
+        <div className="scrollbar-hide grid w-full grid-cols-3 divide-x overflow-y-hidden">
           {tabs.map(({ id, label, colorClassName }) => {
             return (
               <button
@@ -223,7 +232,7 @@ export default function PayoutsPageClient() {
                     format={{
                       style: "currency",
                       currency: "USD",
-                      // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
+                      // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
                       trailingZeroDisplay: "stripIfInteger",
                     }}
                   />
@@ -261,7 +270,7 @@ export default function PayoutsPageClient() {
                           <div className="flex items-center gap-2">
                             <div
                               className={cn(
-                                "h-2 w-2 rounded-sm opacity-50 shadow-[inset_0_0_0_1px_#0003]",
+                                "h-2 w-2 rounded-sm shadow-[inset_0_0_0_1px_#0003]",
                                 tab.colorClassName,
                               )}
                             />

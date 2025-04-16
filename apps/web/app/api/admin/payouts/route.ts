@@ -9,6 +9,7 @@ import { NextResponse } from "next/server";
 interface TimeseriesPoint {
   payouts: number;
   fees: number;
+  total: number;
 }
 
 interface FormattedTimeseriesPoint extends TimeseriesPoint {
@@ -55,12 +56,13 @@ export const GET = withAdmin(async ({ searchParams }) => {
 
   // Calculate timeseries data for payouts and fees
   const timeseriesData = await prisma.$queryRaw<
-    { date: Date; payouts: number; fees: number }[]
+    { date: Date; payouts: number; fees: number; total: number }[]
   >`
     SELECT 
       DATE_FORMAT(CONVERT_TZ(paidAt, "UTC", ${timezone}), ${dateFormat}) as date,
       SUM(amount) as payouts,
-      SUM(fee) as fees
+      SUM(fee) as fees,
+      SUM(total) as total
     FROM Invoice
     WHERE 
       workspaceId != ${ACME_WORKSPACE_ID}
@@ -89,6 +91,7 @@ export const GET = withAdmin(async ({ searchParams }) => {
       {
         payouts: Number(item.payouts),
         fees: Number(item.fees),
+        total: Number(item.total),
       },
     ]),
   );
@@ -108,6 +111,7 @@ export const GET = withAdmin(async ({ searchParams }) => {
       ...(timeseriesLookup[periodKey] || {
         payouts: 0,
         fees: 0,
+        total: 0,
       }),
     });
 
