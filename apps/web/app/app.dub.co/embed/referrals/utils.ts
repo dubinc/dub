@@ -29,7 +29,7 @@ export const getReferralsEmbedData = async (token: string) => {
     notFound();
   }
 
-  const [rewards, discount, payouts] = await Promise.all([
+  const [rewards, discount, commissions] = await Promise.all([
     determinePartnerRewards({
       partnerId,
       programId,
@@ -40,12 +40,15 @@ export const getReferralsEmbedData = async (token: string) => {
       partnerId,
     }),
 
-    prisma.payout.groupBy({
+    prisma.commission.groupBy({
       by: ["status"],
       _sum: {
-        amount: true,
+        earnings: true,
       },
       where: {
+        earnings: {
+          gt: 0,
+        },
         programId,
         partnerId,
       },
@@ -59,14 +62,20 @@ export const getReferralsEmbedData = async (token: string) => {
     links,
     rewards: rewards as RewardProps[],
     discount,
-    payouts: payouts.map((payout) => ({
-      status: payout.status,
-      amount: payout._sum.amount ?? 0,
-    })),
+    earnings: {
+      upcoming: commissions.reduce((acc, c) => {
+        if (c.status === "pending" || c.status === "processed") {
+          return acc + (c._sum.earnings ?? 0);
+        }
+        return acc;
+      }, 0),
+      paid: commissions.find((c) => c.status === "paid")?._sum.earnings ?? 0,
+    },
     stats: {
       clicks: links.reduce((acc, link) => acc + link.clicks, 0),
       leads: links.reduce((acc, link) => acc + link.leads, 0),
       sales: links.reduce((acc, link) => acc + link.sales, 0),
+      saleAmount: links.reduce((acc, link) => acc + link.saleAmount, 0),
     },
   };
 };
