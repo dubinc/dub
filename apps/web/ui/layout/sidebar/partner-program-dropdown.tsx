@@ -73,7 +73,7 @@ export function PartnerProgramDropdown() {
     <div>
       <Popover
         content={
-          <div className="w-full sm:w-auto">
+          <div className="w-full sm:w-64">
             {programEnrollments && programEnrollments.length > 0 && (
               <div className="border-b border-neutral-200">
                 <ProgramList
@@ -116,7 +116,7 @@ export function PartnerProgramDropdown() {
                     key={name}
                     href={href}
                     className={cn(
-                      "flex items-center gap-x-2.5 rounded-md px-2.5 py-2 transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80",
+                      "flex items-center gap-x-2.5 rounded-md px-2.5 py-2 text-sm transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80",
                       "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
                     )}
                     onClick={() => setOpenPopover(false)}
@@ -199,7 +199,7 @@ function ScrollContainer({ children }: PropsWithChildren) {
       <div
         ref={scrollRef}
         onScroll={updateScrollProgress}
-        className="relative max-h-[min(260px,calc(100vh-300px))] w-full space-y-0.5 overflow-auto rounded-lg bg-white text-base sm:w-64 sm:text-sm"
+        className="relative max-h-[min(260px,calc(100vh-300px))] space-y-0.5 overflow-auto rounded-lg bg-white"
       >
         {children}
       </div>
