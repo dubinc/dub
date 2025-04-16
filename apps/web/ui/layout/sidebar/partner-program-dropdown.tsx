@@ -2,13 +2,19 @@
 
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
-import { PartnerProps, ProgramProps } from "@/lib/types";
-import { BlurImage, Popover, useScrollProgress } from "@dub/ui";
-import { Check2, Gear } from "@dub/ui/icons";
+import { ProgramProps } from "@/lib/types";
+import {
+  AnimatedSizeContainer,
+  BlurImage,
+  Popover,
+  useScrollProgress,
+} from "@dub/ui";
+import { Check2, Gear, Magnifier } from "@dub/ui/icons";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
+import { Command } from "cmdk";
 import { ChevronsUpDown } from "lucide-react";
 import Link from "next/link";
-import { useParams, usePathname } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import {
   PropsWithChildren,
   useCallback,
@@ -69,9 +75,8 @@ export function PartnerProgramDropdown() {
         content={
           <ScrollContainer>
             {programEnrollments && programEnrollments.length > 0 && (
-              <div className="border-b border-neutral-200 p-2">
+              <div className="border-b border-neutral-200">
                 <ProgramList
-                  partner={partner}
                   selectedProgram={selectedProgram}
                   programs={programEnrollments
                     .filter(
@@ -83,10 +88,10 @@ export function PartnerProgramDropdown() {
                 />
               </div>
             )}
-            <div className="p-2">
+            <div className="p-2.5">
               <Link
                 className={cn(
-                  "relative flex w-full items-center gap-x-2 rounded-md px-2 py-1.5 transition-all duration-75",
+                  "relative flex w-full items-center gap-x-2 rounded-md px-2 py-2 transition-all duration-75",
                   "hover:bg-neutral-200/50 active:bg-neutral-200/80",
                   "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
                 )}
@@ -96,23 +101,14 @@ export function PartnerProgramDropdown() {
               >
                 <BlurImage
                   src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
-                  width={28}
-                  height={28}
+                  width={40}
+                  height={40}
                   alt={partner.name}
-                  className="size-7 shrink-0 overflow-hidden rounded-full"
+                  className="size-5 shrink-0 overflow-hidden rounded-full"
                 />
-                <div>
-                  <span className="block truncate text-sm leading-5 text-neutral-900 sm:max-w-[140px]">
-                    {partner.name}
-                  </span>
-                  <div
-                    className={cn(
-                      "truncate text-xs capitalize leading-tight text-neutral-600",
-                    )}
-                  >
-                    Partner
-                  </div>
-                </div>
+                <span className="block min-w-0 truncate text-sm font-medium leading-5 text-neutral-800">
+                  {partner.name}
+                </span>
               </Link>
               <div className="mt-0.5 flex flex-col gap-0.5">
                 {LINKS.map(({ name, icon: Icon, href }) => (
@@ -217,16 +213,15 @@ function ScrollContainer({ children }: PropsWithChildren) {
 }
 
 function ProgramList({
-  partner,
   programs,
   selectedProgram,
   setOpenPopover,
 }: {
-  partner: PartnerProps;
   programs: ProgramProps[];
   selectedProgram?: ProgramProps;
   setOpenPopover: (open: boolean) => void;
 }) {
+  const router = useRouter();
   const pathname = usePathname();
 
   const href = useCallback(
@@ -238,54 +233,83 @@ function ProgramList({
   );
 
   return (
-    <div>
-      <div className="flex items-center justify-between pb-1">
-        <p className="px-1 text-xs font-medium text-neutral-500">Programs</p>
+    <Command defaultValue={selectedProgram?.name}>
+      <div>
+        <label className="flex w-full items-center border-b border-neutral-200 pl-3.5">
+          <span className="sr-only">Search</span>
+          <Magnifier className="size-[1.125rem] text-neutral-500" />
+          <Command.Input
+            className="h-12 w-full border-0 px-2.5 text-base placeholder:text-neutral-400 focus:outline-none focus:ring-0 sm:text-sm"
+            placeholder="Find program..."
+          />
+        </label>
+        <div className="p-2">
+          <div className="flex items-center justify-between pb-1">
+            <p className="px-1 text-xs font-medium text-neutral-500">
+              Programs
+            </p>
+          </div>
+          <AnimatedSizeContainer
+            height
+            className="rounded-[inherit]"
+            style={{ transform: "translateZ(0)" }} // Fixes overflow on some browsers
+          >
+            <div className="flex flex-col gap-0.5">
+              <Command.List>
+                {programs.map(({ slug, name, logo }) => (
+                  <Command.Item
+                    key={slug}
+                    asChild
+                    value={name}
+                    onSelect={() => {
+                      router.push(href(slug));
+                      setOpenPopover(false);
+                    }}
+                  >
+                    <Link
+                      key={slug}
+                      className={cn(
+                        "relative flex w-full items-center gap-x-2 rounded-md px-2 py-1.5 transition-all duration-75",
+                        "active:bg-neutral-200/80 data-[selected=true]:bg-neutral-200/50",
+                        "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
+                      )}
+                      href={href(slug)}
+                      shallow={false}
+                      onClick={() => setOpenPopover(false)}
+                      tabIndex={-1}
+                    >
+                      <BlurImage
+                        src={logo || `${OG_AVATAR_URL}${name}`}
+                        width={28}
+                        height={28}
+                        alt={name}
+                        className="size-7 shrink-0 overflow-hidden rounded-full"
+                      />
+                      <div>
+                        <span className="block truncate text-sm leading-5 text-neutral-900 sm:max-w-[140px]">
+                          {name}
+                        </span>
+                        <div
+                          className={cn(
+                            "truncate text-xs capitalize leading-tight text-neutral-600",
+                          )}
+                        >
+                          Program
+                        </div>
+                      </div>
+                      {selectedProgram?.slug === slug ? (
+                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-black">
+                          <Check2 className="size-4" aria-hidden="true" />
+                        </span>
+                      ) : null}
+                    </Link>
+                  </Command.Item>
+                ))}
+              </Command.List>
+            </div>
+          </AnimatedSizeContainer>
+        </div>
       </div>
-      <div className="flex flex-col gap-0.5">
-        {programs.map(({ slug, name, logo }) => {
-          const isActive = selectedProgram?.slug === slug;
-          return (
-            <Link
-              key={slug}
-              className={cn(
-                "relative flex w-full items-center gap-x-2 rounded-md px-2 py-1.5 transition-all duration-75",
-                "hover:bg-neutral-200/50 active:bg-neutral-200/80",
-                "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
-                isActive && "bg-neutral-200/50",
-              )}
-              href={href(slug)}
-              shallow={false}
-              onClick={() => setOpenPopover(false)}
-            >
-              <BlurImage
-                src={logo || `${OG_AVATAR_URL}${name}`}
-                width={28}
-                height={28}
-                alt={name}
-                className="size-7 shrink-0 overflow-hidden rounded-full"
-              />
-              <div>
-                <span className="block truncate text-sm leading-5 text-neutral-900 sm:max-w-[140px]">
-                  {name}
-                </span>
-                <div
-                  className={cn(
-                    "truncate text-xs capitalize leading-tight text-neutral-600",
-                  )}
-                >
-                  Program
-                </div>
-              </div>
-              {selectedProgram?.slug === slug ? (
-                <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-black">
-                  <Check2 className="size-4" aria-hidden="true" />
-                </span>
-              ) : null}
-            </Link>
-          );
-        })}
-      </div>
-    </div>
+    </Command>
   );
 }
