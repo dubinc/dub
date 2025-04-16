@@ -88,7 +88,7 @@ export function PartnerProgramDropdown() {
                 />
               </div>
             )}
-            <div className="p-2.5">
+            <div className="p-2">
               <Link
                 className={cn(
                   "relative flex w-full items-center gap-x-2 rounded-md px-2 py-2 transition-all duration-75",
@@ -104,9 +104,9 @@ export function PartnerProgramDropdown() {
                   width={40}
                   height={40}
                   alt={partner.name}
-                  className="size-5 shrink-0 overflow-hidden rounded-full"
+                  className="size-5 shrink-0 overflow-hidden rounded-full border border-black/10"
                 />
-                <span className="block min-w-0 truncate text-sm font-medium leading-5 text-neutral-800">
+                <span className="block min-w-0 truncate text-sm leading-5 text-neutral-800">
                   {partner.name}
                 </span>
               </Link>
@@ -116,13 +116,13 @@ export function PartnerProgramDropdown() {
                     key={name}
                     href={href}
                     className={cn(
-                      "flex items-center gap-x-4 rounded-md px-2.5 py-2 transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80",
+                      "flex items-center gap-x-2.5 rounded-md px-2.5 py-2 transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80",
                       "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
                     )}
                     onClick={() => setOpenPopover(false)}
                   >
                     <Icon className="size-4 text-neutral-500" />
-                    <span className="block truncate text-neutral-600">
+                    <span className="block truncate text-neutral-800">
                       {name}
                     </span>
                   </Link>
@@ -153,7 +153,7 @@ export function PartnerProgramDropdown() {
               width={28}
               height={28}
               alt={selectedProgram?.name || partner.name}
-              className="h-7 w-7 flex-none shrink-0 overflow-hidden rounded-full"
+              className="size-7 flex-none shrink-0 overflow-hidden rounded-full"
             />
             <div className="min-w-0">
               <div className="truncate text-sm font-medium leading-5 text-neutral-900">
@@ -244,7 +244,7 @@ function ProgramList({
           />
         </label>
         <div className="p-2">
-          <div className="flex items-center justify-between pb-1">
+          <div className="flex items-center justify-between py-2">
             <p className="px-1 text-xs font-medium text-neutral-500">
               Programs
             </p>
@@ -269,7 +269,7 @@ function ProgramList({
                     <Link
                       key={slug}
                       className={cn(
-                        "relative flex w-full items-center gap-x-2 rounded-md px-2 py-1.5 transition-all duration-75",
+                        "relative flex w-full items-center gap-x-2.5 rounded-md px-2 py-2.5 transition-all duration-75",
                         "active:bg-neutral-200/80 data-[selected=true]:bg-neutral-200/50",
                         "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
                       )}
@@ -280,27 +280,19 @@ function ProgramList({
                     >
                       <BlurImage
                         src={logo || `${OG_AVATAR_URL}${name}`}
-                        width={28}
-                        height={28}
+                        width={40}
+                        height={40}
                         alt={name}
-                        className="size-7 shrink-0 overflow-hidden rounded-full"
+                        className="size-5 shrink-0 overflow-hidden rounded-full border border-black/10"
                       />
-                      <div>
-                        <span className="block truncate text-sm leading-5 text-neutral-900 sm:max-w-[140px]">
-                          {name}
-                        </span>
-                        <div
-                          className={cn(
-                            "truncate text-xs capitalize leading-tight text-neutral-600",
-                          )}
-                        >
-                          Program
-                        </div>
-                      </div>
+                      <span className="block min-w-0 grow truncate text-sm leading-5 text-neutral-800">
+                        {name}
+                      </span>
                       {selectedProgram?.slug === slug ? (
-                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-black">
-                          <Check2 className="size-4" aria-hidden="true" />
-                        </span>
+                        <Check2
+                          className="size-4 shrink-0 text-neutral-600"
+                          aria-hidden="true"
+                        />
                       ) : null}
                     </Link>
                   </Command.Item>
