@@ -73,9 +73,6 @@ export async function POST(req: Request) {
       (payout) => payout.partner.paypalEmail,
     );
 
-    console.log(`Stripe payouts: ${stripePayouts.length}`);
-    console.log(`Paypal payouts: ${paypalPayouts.length}`);
-
     await Promise.all([
       sendStripePayouts({ ...body, payouts: stripePayouts }),
       sendPaypalPayouts({ ...body, payouts: paypalPayouts }),
