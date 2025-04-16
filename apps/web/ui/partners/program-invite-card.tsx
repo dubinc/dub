@@ -2,9 +2,18 @@ import { acceptProgramInviteAction } from "@/lib/actions/partners/accept-program
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { ProgramEnrollmentProps } from "@/lib/types";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
-import { BlurImage, Button, StatusBadge } from "@dub/ui";
+import {
+  BlurImage,
+  Button,
+  buttonVariants,
+  Envelope,
+  Link4,
+  StatusBadge,
+} from "@dub/ui";
 import { OG_AVATAR_URL } from "@dub/utils";
+import { cn } from "@dub/utils/src";
 import { useAction } from "next-safe-action/hooks";
+import Link from "next/link";
 import { toast } from "sonner";
 
 export function ProgramInviteCard({
@@ -25,45 +34,60 @@ export function ProgramInviteCard({
   });
 
   return (
-    <div className="hover:drop-shadow-card-hover relative flex flex-col items-center justify-center gap-2 rounded-md border border-neutral-300 bg-neutral-50 p-4 transition-[filter]">
-      <StatusBadge
-        variant="new"
-        icon={null}
-        className="absolute left-4 top-4 rounded-full py-0.5"
-      >
-        Invited
-      </StatusBadge>
-      <div className="flex size-10 items-center justify-center rounded-full border border-neutral-200 bg-white">
+    <div className="hover:drop-shadow-card-hover relative flex flex-col rounded-xl border border-neutral-200 bg-neutral-50 p-5 transition-[filter]">
+      <div className="flex justify-between gap-2">
         <BlurImage
-          width={96}
-          height={96}
+          width={64}
+          height={64}
           src={program.logo || `${OG_AVATAR_URL}${program.name}`}
           alt={program.name}
-          className="size-6 rounded-full"
+          className="size-8 rounded-full"
         />
+        <StatusBadge variant="new" icon={Envelope} className="py-0.5">
+          Invited
+        </StatusBadge>
       </div>
-      <div className="grid max-w-xs gap-1 pb-1 text-center">
-        <p className="font-medium text-neutral-900">{program.name}</p>
-        <p className="text-balance text-xs text-neutral-600">
-          <ProgramRewardDescription
-            reward={program.rewards?.[0]}
-            discount={program.discounts?.[0]}
-            amountClassName="font-light"
-            periodClassName="font-light"
-          />
+
+      <p className="mt-3 font-medium text-neutral-900">{program.name}</p>
+      {program.domain && (
+        <p className="flex items-center gap-1 text-neutral-500">
+          <Link4 className="size-3" />
+          <span className="text-sm font-medium">{program.domain}</span>
         </p>
+      )}
+      <p className="mt-2 text-balance text-xs text-neutral-600">
+        <ProgramRewardDescription
+          reward={program.rewards?.[0]}
+          discount={program.discounts?.[0]}
+          amountClassName="font-light"
+          periodClassName="font-light"
+        />
+      </p>
+
+      <div className="mt-2 flex grow flex-col justify-end">
+        <div className="grid grid-cols-2 gap-2">
+          <Link
+            className={cn(
+              "flex h-8 items-center justify-center whitespace-nowrap rounded-md border px-2 text-sm",
+              buttonVariants({ variant: "secondary" }),
+            )}
+            href={`/programs/${program.slug}/apply`}
+          >
+            Learn more
+          </Link>
+          <Button
+            text="Accept invite"
+            className="h-8"
+            loading={isPending}
+            onClick={async () =>
+              await executeAsync({
+                partnerId: programEnrollment.partnerId,
+                programId: programEnrollment.programId,
+              })
+            }
+          />
+        </div>
       </div>
-      <Button
-        text="Accept invite"
-        className="h-8"
-        loading={isPending}
-        onClick={async () =>
-          await executeAsync({
-            partnerId: programEnrollment.partnerId,
-            programId: programEnrollment.programId,
-          })
-        }
-      />
     </div>
   );
 }

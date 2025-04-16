@@ -52,6 +52,7 @@ export function PartnerProgramDropdown() {
           ...program.program,
           logo:
             program.program.logo || `${OG_AVATAR_URL}${program.program.name}`,
+          status: program.status,
         }
       : undefined;
   }, [programSlug, programEnrollments]);
@@ -162,13 +163,15 @@ export function PartnerProgramDropdown() {
               <div className="truncate text-sm font-medium leading-5 text-neutral-900">
                 {selectedProgram?.name || partner.name}
               </div>
-              <div
-                className={cn(
-                  "truncate text-xs capitalize leading-tight text-neutral-600",
-                )}
-              >
-                {selectedProgram ? "Enrolled" : "Partner"}
-              </div>
+              {(!selectedProgram || selectedProgram.status === "approved") && (
+                <div
+                  className={cn(
+                    "truncate text-xs capitalize leading-tight text-neutral-600",
+                  )}
+                >
+                  {selectedProgram ? "Enrolled" : "Partner"}
+                </div>
+              )}
             </div>
           </div>
           <ChevronsUpDown
