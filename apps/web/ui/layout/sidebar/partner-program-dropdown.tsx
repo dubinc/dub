@@ -239,7 +239,7 @@ function ProgramList({
           <span className="sr-only">Search</span>
           <Magnifier className="size-[1.125rem] text-neutral-500" />
           <Command.Input
-            className="h-12 w-full border-0 px-2.5 text-base placeholder:text-neutral-400 focus:outline-none focus:ring-0 sm:text-sm"
+            className="h-12 w-full border-0 bg-transparent px-2.5 text-base placeholder:text-neutral-400 focus:outline-none focus:ring-0 sm:text-sm"
             placeholder="Find program..."
           />
         </label>
