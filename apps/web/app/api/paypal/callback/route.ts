@@ -92,8 +92,5 @@ export const GET = async (req: Request) => {
     return handleAndReturnErrorResponse(e);
   }
 
-  // TODO:
-  // Maybe redirect to /success?method=paypal
-
   redirect("/programs");
 };
