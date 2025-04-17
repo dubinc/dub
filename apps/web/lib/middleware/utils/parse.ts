@@ -9,7 +9,7 @@ export const parse = (req: NextRequest) => {
   // remove www. from domain and convert to lowercase
   domain = domain.replace(/^www./, "").toLowerCase();
   if (domain === "dub.localhost:8888" || domain.endsWith(".vercel.app")) {
-    if (path === "cAsE") {
+    if (path === "/cAsE") {
       // special case for case-sensitive link test
       domain = "dub-internal-test.com";
     } else {
