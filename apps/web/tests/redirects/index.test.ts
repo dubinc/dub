@@ -108,6 +108,30 @@ describe.runIf(env.CI)("Link Redirects", async () => {
     expect(response.status).toBe(302);
   });
 
+  test("with case-sensitive (correct) key", async () => {
+    const response = await fetch(
+      `${h.baseUrl}/cAsE-sensitive-test`,
+      fetchOptions,
+    );
+
+    expect(response.headers.get("location")).toBe(
+      "https://dub.co/changelog/case-insensitive-links",
+    );
+    expect(response.headers.get("x-powered-by")).toBe(poweredBy);
+    expect(response.status).toBe(302);
+  });
+
+  test("with case-sensitive (incorrect) key", async () => {
+    const response = await fetch(
+      `${h.baseUrl}/case-sensitive-test`,
+      fetchOptions,
+    );
+
+    expect(response.headers.get("location")).toBe("https://dub.co/");
+    expect(response.headers.get("x-powered-by")).toBe(poweredBy);
+    expect(response.status).toBe(302);
+  });
+
   test("with password", async () => {
     const response = await fetch(
       `${h.baseUrl}/password/check?pw=dub`,
