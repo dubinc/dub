@@ -109,7 +109,10 @@ describe.runIf(env.CI)("Link Redirects", async () => {
   });
 
   test("with case-sensitive (correct) key", async () => {
-    const response = await fetch(`${h.baseUrl}/cAsE`, fetchOptions);
+    const response = await fetch(
+      `${h.baseUrl}/cAsE-sensitive-test`,
+      fetchOptions,
+    );
 
     expect(response.headers.get("location")).toBe(
       "https://dub.co/changelog/case-insensitive-links",
@@ -119,7 +122,10 @@ describe.runIf(env.CI)("Link Redirects", async () => {
   });
 
   test("with case-sensitive (incorrect) key", async () => {
-    const response = await fetch(`${h.baseUrl}/case`, fetchOptions);
+    const response = await fetch(
+      `${h.baseUrl}/case-sensitive-test`,
+      fetchOptions,
+    );
 
     expect(response.headers.get("location")).toBe("https://dub.co/");
     expect(response.headers.get("x-powered-by")).toBe(poweredBy);
