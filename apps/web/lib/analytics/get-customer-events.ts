@@ -16,11 +16,9 @@ import { getStartEndDates } from "./utils/get-start-end-dates";
 export const getCustomerEvents = async (
   {
     customerId,
-    clickId,
     linkIds,
   }: {
     customerId: string;
-    clickId?: string | null;
     linkIds?: string[];
   },
   params: Pick<
@@ -46,7 +44,6 @@ export const getCustomerEvents = async (
   const response = await pipe({
     ...params,
     customerId,
-    ...(clickId ? { clickId } : {}),
     ...(linkIds ? { linkIds } : {}),
     order: sortOrder,
     start: startDate.toISOString().replace("T", " ").replace("Z", ""),

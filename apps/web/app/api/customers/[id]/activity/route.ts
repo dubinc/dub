@@ -33,7 +33,6 @@ export const GET = withWorkspace(async ({ workspace, params, session }) => {
     getCustomerEvents(
       {
         customerId: customer.id,
-        clickId: customer.clickId,
       },
       {
         sortOrder: "desc",
