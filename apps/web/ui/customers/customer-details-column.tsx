@@ -46,7 +46,6 @@ export function CustomerDetailsColumn({
             <ConditionalLink
               href={`/${programSlug ? `programs/${programSlug}` : slug}/analytics?country=${encodeURIComponent(customer.country)}`}
               target="_blank"
-              linkClassName="underline-offset-2 hover:text-neutral-950 hover:underline"
             >
               <div className="flex items-center gap-2">
                 <img
@@ -103,7 +102,6 @@ export function CustomerDetailsColumn({
                   key={key}
                   href={`/${programSlug ? `programs/${programSlug}` : slug}/analytics?${key}=${encodeURIComponent(value)}`}
                   target="_blank"
-                  linkClassName="underline-offset-2 hover:text-neutral-950 hover:underline"
                 >
                   <span className="flex items-center gap-2">
                     {icon}
@@ -173,7 +171,6 @@ export function CustomerDetailsColumn({
             href={`/${programSlug ? `programs/${programSlug}` : slug}/analytics?domain=${link.domain}&key=${link.key}`}
             target="_blank"
             className="min-w-0 overflow-hidden truncate"
-            linkClassName="underline-offset-2 hover:text-neutral-950 hover:underline"
           >
             {getPrettyUrl(link.shortLink)}
           </ConditionalLink>
@@ -193,7 +190,6 @@ export function CustomerDetailsColumn({
                   href={`/${programSlug ? `programs/${programSlug}` : slug}/analytics?${key}=${encodeURIComponent(value)}`}
                   target="_blank"
                   className="truncate text-neutral-500"
-                  linkClassName="underline-offset-2 hover:text-neutral-600 hover:underline"
                 >
                   {value}
                 </ConditionalLink>
@@ -222,13 +218,15 @@ const ConditionalLink = ({
   href,
   className,
   children,
-  linkClassName,
   ...rest
-}: HTMLProps<HTMLAnchorElement> & { linkClassName?: string }) => {
+}: HTMLProps<HTMLAnchorElement>) => {
   return href ? (
     <Link
       href={href}
-      className={cn("group flex items-center", className, linkClassName)}
+      className={cn(
+        "group flex items-center decoration-dotted underline-offset-2 hover:text-neutral-950 hover:underline",
+        className,
+      )}
       {...rest}
     >
       <div className="min-w-0 truncate">{children}</div>

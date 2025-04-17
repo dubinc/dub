@@ -95,7 +95,7 @@ export const GET = withPartnerProfile(
           return {
             id: customerId,
             email: customer?.email
-              ? customer.email.replace(/(?<=^.).+(?=.@)/, "********")
+              ? customer.email.replace(/(?<=^.).+(?=.@)/, "****")
               : customer?.name || generateRandomName(),
             _count,
           };
