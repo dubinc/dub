@@ -136,15 +136,20 @@ export function CustomerSalesTable({
               ))}
             </tbody>
           </table>
-          {sales?.length && totalSales && viewAllHref && (
-            <div className="mt-2 px-2 text-sm text-neutral-600">
-              {sales.length} of{" "}
-              <Link
-                href={viewAllHref}
-                className="font-medium text-neutral-700 hover:text-neutral-900"
-              >
-                {totalSales} results
-              </Link>
+          {viewAllHref && (
+            <div className="mt-2 flex items-center gap-1 px-2 text-sm text-neutral-600">
+              {sales.length} of
+              {totalSales ? (
+                <Link
+                  href={viewAllHref}
+                  className="font-medium text-neutral-700 hover:text-neutral-900"
+                >
+                  {totalSales}
+                </Link>
+              ) : (
+                <div className="size-3 animate-pulse rounded-md bg-neutral-100" />
+              )}
+              results
             </div>
           )}
         </>

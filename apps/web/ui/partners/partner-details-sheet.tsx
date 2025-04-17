@@ -1,4 +1,4 @@
-import { SHEET_MAX_ITEMS } from "@/lib/partners/constants";
+import { PAYOUTS_SHEET_ITEMS_LIMIT } from "@/lib/partners/constants";
 import usePayouts from "@/lib/swr/use-payouts";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -221,7 +221,7 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
     error: payoutsError,
     loading,
   } = usePayouts({
-    query: { partnerId: partner.id, pageSize: SHEET_MAX_ITEMS },
+    query: { partnerId: partner.id, pageSize: PAYOUTS_SHEET_ITEMS_LIMIT },
   });
 
   const table = useTable({

@@ -1,5 +1,6 @@
 "use client";
 
+import { CUSTOMER_PAGE_EVENTS_LIMIT } from "@/lib/partners/constants";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import {
   CustomerActivityResponse,
@@ -126,7 +127,7 @@ const EarningsTable = memo(({ customerId }: { customerId: string }) => {
   const { data: earningsData, isLoading: isEarningsLoading } = useSWR<
     PartnerEarningsResponse[]
   >(
-    `/api/partner-profile/programs/${programSlug}/earnings?interval=all&pageSize=8&customerId=${customerId}`,
+    `/api/partner-profile/programs/${programSlug}/earnings?interval=all&pageSize=${CUSTOMER_PAGE_EVENTS_LIMIT}&customerId=${customerId}`,
     fetcher,
     {
       keepPreviousData: true,
@@ -136,7 +137,9 @@ const EarningsTable = memo(({ customerId }: { customerId: string }) => {
   const { data: totalEarnings, isLoading: isTotalEarningsLoading } = useSWR<{
     count: number;
   }>(
-    `/api/partner-profile/programs/${programSlug}/earnings/count?interval=all&customerId=${customerId}`,
+    // Only fetch total earnings count if the earnings data is equal to the limit
+    earningsData?.length === CUSTOMER_PAGE_EVENTS_LIMIT &&
+      `/api/partner-profile/programs/${programSlug}/earnings/count?interval=all&customerId=${customerId}`,
     fetcher,
     {
       keepPreviousData: true,
@@ -146,9 +149,13 @@ const EarningsTable = memo(({ customerId }: { customerId: string }) => {
   return (
     <CustomerSalesTable
       sales={earningsData}
-      totalSales={totalEarnings?.count}
+      totalSales={
+        isTotalEarningsLoading
+          ? undefined
+          : totalEarnings?.count ?? earningsData?.length
+      }
       viewAllHref={`/programs/${programSlug}/earnings?interval=all&customerId=${customerId}`}
-      isLoading={isEarningsLoading || isTotalEarningsLoading}
+      isLoading={isEarningsLoading}
     />
   );
 });
