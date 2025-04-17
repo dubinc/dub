@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { Controller } from "react-hook-form";
 import { useCsvContext } from ".";
 
-const MAX_ROWS_LIMIT = 50000;
+const MAX_ROWS_LIMIT = 10000;
 
 export function SelectFile() {
   const { watch, control, fileColumns, setFileColumns, setFirstRows } =
