@@ -87,10 +87,11 @@ export async function POST(req: Request) {
       await redis.incrby(`${redisKey}:processed`, rows.length);
 
       if (rows.length === BATCH_SIZE) {
-        return await qstash.publishJSON({
+        const response = await qstash.publishJSON({
           url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/csv`,
           body: payload,
         });
+        return NextResponse.json(response);
       }
     }
 
