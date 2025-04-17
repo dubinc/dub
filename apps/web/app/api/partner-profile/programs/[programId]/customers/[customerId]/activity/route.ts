@@ -42,16 +42,10 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     );
   }
 
-  const events = await getCustomerEvents(
-    {
-      customerId: customer.id,
-      linkIds: links.map((link) => link.id),
-    },
-    {
-      sortOrder: "desc",
-      interval: "1y",
-    },
-  );
+  const events = await getCustomerEvents({
+    customerId: customer.id,
+    linkIds: links.map((link) => link.id),
+  });
 
   // get the first partner link that this customer interacted with
   const firstLinkId = events[0].link_id;

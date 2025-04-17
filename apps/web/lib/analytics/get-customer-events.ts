@@ -10,31 +10,14 @@ import {
 } from "../zod/schemas/clicks";
 import { leadEventResponseSchema } from "../zod/schemas/leads";
 import { saleEventResponseSchema } from "../zod/schemas/sales";
-import { EventsFilters } from "./types";
-import { getStartEndDates } from "./utils/get-start-end-dates";
 
-export const getCustomerEvents = async (
-  {
-    customerId,
-    linkIds,
-  }: {
-    customerId: string;
-    linkIds?: string[];
-  },
-  params: Pick<
-    EventsFilters,
-    "sortOrder" | "start" | "end" | "dataAvailableFrom" | "interval"
-  >,
-) => {
-  let { sortOrder, start, end, dataAvailableFrom, interval } = params;
-
-  const { startDate, endDate } = getStartEndDates({
-    interval,
-    start,
-    end,
-    dataAvailableFrom,
-  });
-
+export const getCustomerEvents = async ({
+  customerId,
+  linkIds,
+}: {
+  customerId: string;
+  linkIds?: string[];
+}) => {
   const pipe = tb.buildPipe({
     pipe: "v2_customer_events",
     parameters: z.any(), // TODO
@@ -42,12 +25,8 @@ export const getCustomerEvents = async (
   });
 
   const response = await pipe({
-    ...params,
     customerId,
     ...(linkIds ? { linkIds } : {}),
-    order: sortOrder,
-    start: startDate.toISOString().replace("T", " ").replace("Z", ""),
-    end: endDate.toISOString().replace("T", " ").replace("Z", ""),
   });
 
   const linksMap = await getLinksMap(response.data.map((d) => d.link_id));
