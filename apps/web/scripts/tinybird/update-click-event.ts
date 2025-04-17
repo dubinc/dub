@@ -1,23 +1,13 @@
-import z from "@/lib/zod";
 import "dotenv-flow/config";
-import { tb } from "../../lib/tinybird/client";
-import { recordSaleWithTimestamp } from "../../lib/tinybird/record-sale";
-
-const getSaleEvent = tb.buildPipe({
-  pipe: "get_sale_event",
-  parameters: z.object({
-    eventId: z.string(),
-  }),
-  data: z.any(),
-});
+import { getClickEvent } from "../../lib/tinybird/get-click-event";
 
 // update tinybird sale event
 async function main() {
-  const eventId = "nBxldg6VxQNUCCwZ";
-  const columnName = "event_name";
-  const columnValue = "New Subscription Name";
+  const clickId = "liE74JEvfIBXKNmR";
+  const columnName = "link_id";
+  const columnValue = "link_1JRVCZWHWACS7R2KZB9ME6CJR";
 
-  const { data } = await getSaleEvent({ eventId });
+  const { data } = await getClickEvent({ clickId });
   const oldData = data[0];
   if (!oldData) {
     console.log("No data found");
@@ -25,30 +15,35 @@ async function main() {
   }
   const updatedData = {
     ...oldData,
+    alias_link_id: "",
+    vercel_region: "iad1",
     [columnName]: columnValue,
   };
   console.log(updatedData);
 
-  const res = await recordSaleWithTimestamp(updatedData);
+  const res = await fetch(
+    `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_click_events&wait=true`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
+      },
+      body: JSON.stringify(updatedData),
+    },
+  ).then((res) => res.json());
   console.log(res);
 
-  //  delete data from tinybird
+  // delete data from tinybird
   const deleteRes = await Promise.allSettled([
     deleteData({
-      dataSource: "dub_sale_events",
-      eventId,
+      dataSource: "dub_click_events_mv",
+      clickId,
       columnName,
       oldValue: oldData[columnName],
     }),
     deleteData({
-      dataSource: "dub_sale_events_mv",
-      eventId,
-      columnName,
-      oldValue: oldData[columnName],
-    }),
-    deleteData({
-      dataSource: "dub_sale_events_id",
-      eventId,
+      dataSource: "dub_click_events_id",
+      clickId,
       columnName,
       oldValue: oldData[columnName],
     }),
@@ -58,12 +53,12 @@ async function main() {
 
 const deleteData = async ({
   dataSource,
-  eventId,
+  clickId,
   columnName,
   oldValue,
 }: {
   dataSource: string;
-  eventId: string;
+  clickId: string;
   columnName: string;
   oldValue: string;
 }) => {
@@ -75,7 +70,7 @@ const deleteData = async ({
         Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: `delete_condition=event_id='${eventId}' and ${columnName}='${oldValue}'`,
+      body: `delete_condition=click_id='${clickId}' and ${columnName}='${oldValue}'`,
     },
   ).then((res) => res.json());
 };
