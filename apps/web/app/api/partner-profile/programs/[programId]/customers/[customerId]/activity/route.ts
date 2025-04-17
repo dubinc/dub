@@ -29,26 +29,13 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     });
   }
 
-  if (!customer.linkId) {
-    return NextResponse.json(
-      customerActivityResponseSchema.parse({
-        customer,
-        events: [],
-        ltv: 0,
-        timeToLead: null,
-        timeToSale: null,
-        link: null,
-      }),
-    );
-  }
-
   const events = await getCustomerEvents({
     customerId: customer.id,
     linkIds: links.map((link) => link.id),
   });
 
   // get the first partner link that this customer interacted with
-  const firstLinkId = events[0].link_id;
+  const firstLinkId = events[events.length - 1].link_id;
   const link = links.find((link) => link.id === firstLinkId);
 
   // Find the LTV of the customer

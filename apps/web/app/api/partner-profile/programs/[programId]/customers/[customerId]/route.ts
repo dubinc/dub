@@ -20,27 +20,9 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     where: {
       id: customerId,
     },
-    include: {
-      link: {
-        include: {
-          programEnrollment: {
-            include: {
-              partner: true,
-              program: true,
-            },
-          },
-        },
-      },
-    },
   });
 
-  if (
-    !customer ||
-    ![
-      customer?.link?.programEnrollment?.programId,
-      customer?.link?.programEnrollment?.program.slug,
-    ].includes(program.id)
-  ) {
+  if (!customer || customer?.projectId !== program.workspaceId) {
     throw new DubApiError({
       code: "not_found",
       message:
@@ -56,14 +38,6 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       transformCustomer({
         ...customer,
         email: customer.email || customer.name || generateRandomName(),
-        link: customer.link
-          ? {
-              ...customer.link,
-              programEnrollment: customer.link.programEnrollment
-                ? { ...customer.link.programEnrollment, program: undefined }
-                : null,
-            }
-          : null,
       }),
     ),
   );
