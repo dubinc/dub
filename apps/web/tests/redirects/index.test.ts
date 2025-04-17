@@ -121,7 +121,7 @@ describe.runIf(env.CI)("Link Redirects", async () => {
   test("with case-sensitive (incorrect) key", async () => {
     const response = await fetch(`${h.baseUrl}/case`, fetchOptions);
 
-    expect(response.headers.get("location")).toBe("https://dub.co");
+    expect(response.headers.get("location")).toBe("https://dub.co/");
     expect(response.headers.get("x-powered-by")).toBe(poweredBy);
     expect(response.status).toBe(302);
   });
