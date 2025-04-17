@@ -52,7 +52,8 @@ class LinkCache {
 
   async get({ domain, key }: Pick<LinkProps, "domain" | "key">) {
     // here we use linkcache:${domain}:${key} instead of this._createKey({ domain, key })
-    // because the key can either be case-sensitive or case-insensitive depending on the domain
+    // because the key can either be cached as case-sensitive or case-insensitive depending on the domain
+    // so we should get the original key from the cache
     return await redis.get<RedisLinkProps>(`linkcache:${domain}:${key}`);
   }
 

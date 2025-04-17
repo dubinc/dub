@@ -16,6 +16,13 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     programId: programId,
   });
 
+  if (program.slug === "framer") {
+    throw new DubApiError({
+      code: "forbidden",
+      message: "Framer program does not support customer activity",
+    });
+  }
+
   const customer = await prisma.customer.findUnique({
     where: {
       id: customerId,
