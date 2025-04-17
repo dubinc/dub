@@ -51,7 +51,9 @@ class LinkCache {
   }
 
   async get({ domain, key }: Pick<LinkProps, "domain" | "key">) {
-    return await redis.get<RedisLinkProps>(this._createKey({ domain, key }));
+    // here we use linkcache:${domain}:${key} instead of this._createKey({ domain, key })
+    // because the key can either be case-sensitive or case-insensitive depending on the domain
+    return await redis.get<RedisLinkProps>(`linkcache:${domain}:${key}`);
   }
 
   async delete({ domain, key }: Pick<LinkProps, "domain" | "key">) {
