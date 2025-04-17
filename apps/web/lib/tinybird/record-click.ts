@@ -63,6 +63,7 @@ export async function recordClick({
     return null;
   }
 
+  // don't track HEAD requests to avoid non-user traffic from inflating click count
   if (req.method === "HEAD") {
     return null;
   }
