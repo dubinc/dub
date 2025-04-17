@@ -20,7 +20,7 @@ export const PartnerEarningsSchema = CommissionSchema.merge(
         id: z.string(),
         email: z
           .string()
-          .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "********")),
+          .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "****")),
       })
       .nullable(),
     link: LinkSchema.pick({
@@ -86,5 +86,5 @@ export const PartnerProfileCustomerSchema = CustomerEnrichedSchema.pick({
 }).extend({
   email: z
     .string()
-    .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "********")),
+    .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "****")),
 });

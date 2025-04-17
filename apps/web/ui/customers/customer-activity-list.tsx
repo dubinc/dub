@@ -1,5 +1,5 @@
 import { CustomerActivityResponse } from "@/lib/types";
-import { LinkLogo } from "@dub/ui";
+import { DynamicTooltipWrapper, LinkLogo } from "@dub/ui";
 import { CursorRays, MoneyBill2, UserCheck } from "@dub/ui/icons";
 import { formatDateTimeSmart, getApexDomain, getPrettyUrl } from "@dub/utils";
 import Link from "next/link";
@@ -10,17 +10,24 @@ const activityData = {
     icon: CursorRays,
     content: (event) => {
       const { slug, programSlug } = useParams();
+
+      const analyticsBaseUrl = programSlug
+        ? `/programs/${programSlug}/analytics`
+        : `/${slug}/analytics`;
+
       const referer =
         !event.click?.referer || event.click.referer === "(direct)"
           ? "direct"
           : event.click.referer;
+      const refererUrl = event.click.refererUrl;
+
       return (
         <span className="flex items-center gap-1.5 [&>*]:min-w-0 [&>*]:truncate">
           Found{" "}
           <Link
             href={
               programSlug
-                ? `/programs/${programSlug}/analytics?domain=${event.link.domain}&key=${event.link.key}`
+                ? `${analyticsBaseUrl}?domain=${event.link.domain}&key=${event.link.key}`
                 : `/${slug}/links/${getPrettyUrl(event.link.shortLink)}`
             }
             target="_blank"
@@ -35,21 +42,40 @@ const activityData = {
             </span>
           </Link>
           via
-          <Link
-            href={
-              programSlug
-                ? `/programs/${programSlug}/analytics?referer=${referer === "direct" ? "(direct)" : referer}`
-                : `/${slug}/analytics?referer=${referer === "direct" ? "(direct)" : referer}`
+          <DynamicTooltipWrapper
+            tooltipProps={
+              refererUrl && refererUrl != "(direct)"
+                ? {
+                    content: (
+                      <div className="max-w-xs px-4 py-2 text-center text-sm text-neutral-600">
+                        Referrer URL:{" "}
+                        <Link
+                          href={`${analyticsBaseUrl}?refererUrl=${refererUrl}`}
+                          target="_blank"
+                          className="cursor-alias text-neutral-500 decoration-dotted underline-offset-2 transition-colors hover:text-neutral-950 hover:underline"
+                        >
+                          {getPrettyUrl(refererUrl)}
+                        </Link>
+                      </div>
+                    ),
+                  }
+                : undefined
             }
-            target="_blank"
-            className="flex items-center gap-2 rounded-md bg-neutral-100 px-1.5 py-1 font-mono text-xs leading-none transition-colors hover:bg-neutral-200/80"
           >
-            <LinkLogo
-              className="size-3 shrink-0 sm:size-3"
-              apexDomain={referer === "direct" ? undefined : referer}
-            />
-            <span className="min-w-0 truncate">{referer}</span>
-          </Link>
+            <div>
+              <Link
+                href={`${analyticsBaseUrl}?referer=${referer === "direct" ? "(direct)" : referer}`}
+                target="_blank"
+                className="flex items-center gap-2 rounded-md bg-neutral-100 px-1.5 py-1 font-mono text-xs leading-none transition-colors hover:bg-neutral-200/80"
+              >
+                <LinkLogo
+                  className="size-3 shrink-0 sm:size-3"
+                  apexDomain={referer === "direct" ? undefined : referer}
+                />
+                <span className="min-w-0 truncate">{referer}</span>
+              </Link>
+            </div>
+          </DynamicTooltipWrapper>
         </span>
       );
     },
