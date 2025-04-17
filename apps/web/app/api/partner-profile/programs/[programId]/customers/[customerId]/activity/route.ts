@@ -1,6 +1,5 @@
 import { getCustomerEvents } from "@/lib/analytics/get-customer-events";
 import { DubApiError } from "@/lib/api/errors";
-import { decodeLinkIfCaseSensitive } from "@/lib/api/links/case-sensitivity";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { customerActivityResponseSchema } from "@/lib/zod/schemas/customer-activity";
@@ -11,43 +10,18 @@ import { NextResponse } from "next/server";
 export const GET = withPartnerProfile(async ({ partner, params }) => {
   const { customerId, programId } = params;
 
-  const { program } = await getProgramEnrollmentOrThrow({
+  const { program, links } = await getProgramEnrollmentOrThrow({
     partnerId: partner.id,
     programId: programId,
   });
-
-  if (program.slug === "framer") {
-    throw new DubApiError({
-      code: "forbidden",
-      message: "Framer program does not support customer activity",
-    });
-  }
 
   const customer = await prisma.customer.findUnique({
     where: {
       id: customerId,
     },
-    include: {
-      link: {
-        include: {
-          programEnrollment: {
-            include: {
-              partner: true,
-              program: true,
-            },
-          },
-        },
-      },
-    },
   });
 
-  if (
-    !customer ||
-    ![
-      customer?.link?.programEnrollment?.programId,
-      customer?.link?.programEnrollment?.program.slug,
-    ].includes(program.id)
-  ) {
+  if (!customer || customer?.projectId !== program.workspaceId) {
     throw new DubApiError({
       code: "not_found",
       message:
@@ -55,43 +29,14 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     });
   }
 
-  if (!customer.linkId) {
-    return NextResponse.json(
-      customerActivityResponseSchema.parse({
-        customer,
-        events: [],
-        ltv: 0,
-        timeToLead: null,
-        timeToSale: null,
-        link: null,
-      }),
-    );
-  }
+  const events = await getCustomerEvents({
+    customerId: customer.id,
+    linkIds: links.map((link) => link.id),
+  });
 
-  let [events, link] = await Promise.all([
-    getCustomerEvents(
-      { customerId: customer.id, clickId: customer.clickId },
-      {
-        sortOrder: "desc",
-        interval: "1y",
-      },
-    ),
-
-    prisma.link.findUniqueOrThrow({
-      where: {
-        id: customer.linkId!,
-      },
-      select: {
-        id: true,
-        domain: true,
-        key: true,
-        shortLink: true,
-        folderId: true,
-      },
-    }),
-  ]);
-
-  link = decodeLinkIfCaseSensitive(link);
+  // get the first partner link that this customer interacted with
+  const firstLinkId = events[events.length - 1].link_id;
+  const link = links.find((link) => link.id === firstLinkId);
 
   // Find the LTV of the customer
   // TODO: Calculate this from all events, not limited

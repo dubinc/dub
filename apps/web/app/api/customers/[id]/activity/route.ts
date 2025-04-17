@@ -30,13 +30,9 @@ export const GET = withWorkspace(async ({ workspace, params, session }) => {
   }
 
   let [events, link] = await Promise.all([
-    getCustomerEvents(
-      { customerId: customer.id, clickId: customer.clickId },
-      {
-        sortOrder: "desc",
-        interval: "1y",
-      },
-    ),
+    getCustomerEvents({
+      customerId: customer.id,
+    }),
 
     prisma.link.findUniqueOrThrow({
       where: {

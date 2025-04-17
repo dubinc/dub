@@ -82,7 +82,6 @@ export const PartnerProfileCustomerSchema = CustomerEnrichedSchema.pick({
   id: true,
   createdAt: true,
   country: true,
-  link: true,
 }).extend({
   email: z
     .string()
