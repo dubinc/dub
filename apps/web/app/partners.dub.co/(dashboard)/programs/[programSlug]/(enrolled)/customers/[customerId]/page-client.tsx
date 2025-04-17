@@ -11,8 +11,8 @@ import { CustomerDetailsColumn } from "@/ui/customers/customer-details-column";
 import { CustomerSalesTable } from "@/ui/customers/customer-sales-table";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import { BackLink } from "@/ui/shared/back-link";
-import { MoneyBill2, Tooltip, User } from "@dub/ui";
-import { fetcher } from "@dub/utils";
+import { MoneyBill2, Tooltip } from "@dub/ui";
+import { fetcher, OG_AVATAR_URL } from "@dub/utils";
 import { notFound, useParams } from "next/navigation";
 import { memo } from "react";
 import useSWR from "swr";
@@ -46,9 +46,15 @@ export function ProgramCustomerPageClient() {
     <div className="mb-10 mt-2">
       <BackLink href={`/programs/${programSlug}/earnings`}>Earnings</BackLink>
       <div className="mt-5 flex items-center gap-4">
-        <div className="border-border-subtle flex size-12 items-center justify-center rounded-full border bg-gradient-to-t from-neutral-50">
-          <User className="size-4 text-neutral-700" />
-        </div>
+        {customer ? (
+          <img
+            src={`${OG_AVATAR_URL}${customer.id}`}
+            alt={customer.email ?? customer.id}
+            className="size-8 rounded-full"
+          />
+        ) : (
+          <div className="size-8 animate-pulse rounded-full bg-neutral-200" />
+        )}
 
         <div className="flex flex-col gap-1">
           {customer ? (

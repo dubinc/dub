@@ -1,4 +1,4 @@
-import { PartnerEarningsResponse, SaleEvent } from "@/lib/types";
+import { CommissionResponse, SaleEvent } from "@/lib/types";
 import { StatusBadge } from "@dub/ui";
 import { currencyFormatter, formatDateTimeSmart } from "@dub/utils";
 import {
@@ -18,7 +18,7 @@ export function CustomerSalesTable({
   sales?:
     | Pick<SaleEvent, "timestamp" | "eventName" | "saleAmount">[]
     | Pick<
-        PartnerEarningsResponse,
+        CommissionResponse,
         "createdAt" | "amount" | "earnings" | "status"
       >[];
   totalSales?: number;
@@ -27,10 +27,7 @@ export function CustomerSalesTable({
 }) {
   const table = useReactTable<
     | Pick<SaleEvent, "timestamp" | "eventName" | "saleAmount">
-    | Pick<
-        PartnerEarningsResponse,
-        "createdAt" | "amount" | "earnings" | "status"
-      >
+    | Pick<CommissionResponse, "createdAt" | "amount" | "earnings" | "status">
   >({
     data: sales || [],
     columns: [

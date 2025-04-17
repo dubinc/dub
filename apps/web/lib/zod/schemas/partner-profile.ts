@@ -21,7 +21,6 @@ export const PartnerEarningsSchema = CommissionSchema.merge(
         email: z
           .string()
           .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "********")),
-        avatar: z.string().nullable(),
       })
       .nullable(),
     link: LinkSchema.pick({
