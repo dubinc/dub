@@ -11,7 +11,7 @@ import { NextResponse } from "next/server";
 export const GET = withPartnerProfile(async ({ partner, params }) => {
   const { customerId, programId } = params;
 
-  const { program } = await getProgramEnrollmentOrThrow({
+  const { program, links } = await getProgramEnrollmentOrThrow({
     partnerId: partner.id,
     programId: programId,
   });
@@ -70,7 +70,11 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
 
   let [events, link] = await Promise.all([
     getCustomerEvents(
-      { customerId: customer.id, clickId: customer.clickId },
+      {
+        customerId: customer.id,
+        clickId: customer.clickId,
+        linkIds: links.map((link) => link.id),
+      },
       {
         sortOrder: "desc",
         interval: "1y",
@@ -79,14 +83,13 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
 
     prisma.link.findUniqueOrThrow({
       where: {
-        id: customer.linkId!,
+        id: customer.linkId,
       },
       select: {
         id: true,
         domain: true,
         key: true,
         shortLink: true,
-        folderId: true,
       },
     }),
   ]);

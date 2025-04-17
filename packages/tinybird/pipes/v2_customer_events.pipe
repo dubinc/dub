@@ -42,6 +42,7 @@ SQL >
                 required=True,
             )
         }}
+        {% if defined(linkIds) %} AND link_id IN ({{ Array(linkIds, 'link_id') }}) {% end %}
     LIMIT {{ Int32(limit, 100) }}
 
 
@@ -86,6 +87,7 @@ SQL >
                 required=True,
             )
         }}
+        {% if defined(linkIds) %} AND link_id IN ({{ Array(linkIds, 'link_id') }}) {% end %}
         AND timestamp >= {{ DateTime(start, '2025-01-01 00:00:00') }}
         AND timestamp < {{ DateTime(end, '2025-06-30 00:00:00') }}
     ORDER BY timestamp {% if order == 'asc' %} ASC {% else %} DESC {% end %}
@@ -136,6 +138,7 @@ SQL >
                 required=True,
             )
         }}
+        {% if defined(linkIds) %} AND link_id IN ({{ Array(linkIds, 'link_id') }}) {% end %}
         AND timestamp >= {{ DateTime(start, '2025-01-01 00:00:00') }}
         AND timestamp < {{ DateTime(end, '2025-06-30 00:00:00') }}
     LIMIT {{ Int32(limit, 100) }}
