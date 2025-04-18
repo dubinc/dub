@@ -65,7 +65,12 @@ export const trackLeadRequestSchema = z.object({
     .record(z.unknown())
     .nullish()
     .default(null)
-    .describe("Additional metadata to be stored with the lead event"),
+    .refine((val) => !val || JSON.stringify(val).length <= 10000, {
+      message: "Metadata must be less than 10,000 characters when stringified",
+    })
+    .describe(
+      "Additional metadata to be stored with the lead event. Max 10,000 characters.",
+    ),
   mode: z
     .enum(["async", "wait"])
     .default("async")
@@ -129,6 +134,12 @@ export const leadEventResponseSchema = z
     timestamp: z.coerce.string(),
     eventId: z.string(),
     eventName: z.string(),
+    metadata: z
+      .string()
+      .nullish()
+      .transform((val) => (val === "" ? null : val))
+      .default(null)
+      .openapi({ type: "string" }),
     // nested objects
     click: clickEventSchema,
     link: linkEventSchema,

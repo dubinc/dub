@@ -25,11 +25,7 @@ export function CustomerPageClient() {
   const { customerId } = useParams<{ customerId: string }>();
 
   const { id: workspaceId, slug } = useWorkspace();
-  const {
-    data: customer,
-    isLoading,
-    error,
-  } = useCustomer<CustomerEnriched>({
+  const { data: customer, isLoading } = useCustomer<CustomerEnriched>({
     customerId,
     query: { includeExpandedFields: true },
   });
@@ -41,7 +37,7 @@ export function CustomerPageClient() {
       fetcher,
     );
 
-  if (!customer && !isLoading && !error) notFound();
+  if (!customer && !isLoading) notFound();
 
   return (
     <div className="mb-10 mt-2">

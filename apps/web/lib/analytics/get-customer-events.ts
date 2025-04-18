@@ -14,9 +14,11 @@ import { saleEventResponseSchema } from "../zod/schemas/sales";
 export const getCustomerEvents = async ({
   customerId,
   linkIds,
+  hideMetadata = false,
 }: {
   customerId: string;
   linkIds?: string[];
+  hideMetadata?: boolean;
 }) => {
   const pipe = tb.buildPipe({
     pipe: "v2_customer_events",
@@ -60,6 +62,7 @@ export const getCustomerEvents = async ({
           ? {
               eventId: evt.event_id,
               eventName: evt.event_name,
+              metadata: hideMetadata ? null : evt.metadata,
               ...(evt.event === "sale"
                 ? {
                     sale: {

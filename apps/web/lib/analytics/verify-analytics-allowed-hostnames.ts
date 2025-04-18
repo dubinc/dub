@@ -5,7 +5,7 @@ export const verifyAnalyticsAllowedHostnames = ({
   allowedHostnames: string[];
   req: Request;
 }) => {
-  if (allowedHostnames.length > 0) {
+  if (allowedHostnames && allowedHostnames.length > 0) {
     const source = req.headers.get("referer") || req.headers.get("origin");
     const sourceUrl = source ? new URL(source) : null;
     const hostname = sourceUrl?.hostname.replace(/^www\./, "");
