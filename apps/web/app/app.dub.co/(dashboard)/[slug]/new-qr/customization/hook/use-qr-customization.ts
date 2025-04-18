@@ -13,11 +13,15 @@ import {
 } from "../constants.ts";
 import { convertSvgUrlToBase64 } from "../utils.ts";
 
-export function useQrCustomization(data = "https://www.getqr.com/") {
+export function useQrCustomization() {
   const [qrCode, setQrCode] = useState<QRCodeStyling | null>(null);
   const [uploadedLogo, setUploadedLogo] = useState<File | null>(null);
   const [selectedSuggestedLogo, setSelectedSuggestedLogo] = useState("none");
   const [selectedSuggestedFrame, setSelectedSuggestedFrame] = useState("none");
+
+  const qrPlaceholder = "https://www.getqr.com/";
+  const [data, setData] = useState(qrPlaceholder);
+  const isQrDisabled = !data?.trim() || data === qrPlaceholder;
 
   const [options, setOptions] = useState<Options>({
     width: 300,
@@ -58,16 +62,15 @@ export function useQrCustomization(data = "https://www.getqr.com/") {
   }, []);
 
   useEffect(() => {
-    if (!qrCode) return;
-    qrCode.update(options);
-
+    if (!qrCode || isQrDisabled) return;
+    qrCode.update({ ...options, data });
     if (selectedSuggestedFrame !== "none") {
       const extensionFn = FRAMES[selectedSuggestedFrame];
       if (extensionFn) qrCode.applyExtension(extensionFn);
     } else {
       qrCode.deleteExtension?.();
     }
-  }, [options, selectedSuggestedFrame]);
+  }, [qrCode, options, data, selectedSuggestedFrame, isQrDisabled]);
 
   const handlers = {
     onBorderStyleChange: (newType: CornerSquareType) => {
@@ -136,19 +139,19 @@ export function useQrCustomization(data = "https://www.getqr.com/") {
 
       if (!qrCode) return;
 
-      qrCode.update(options);
+      qrCode.update({ ...options, data });
 
       const selected = FRAMES.find((f) => f.type === frameId);
       if (selected?.extension) {
         qrCode.applyExtension(selected.extension);
-        setOptions((prevOptionsOptions) => ({
-          ...prevOptionsOptions,
+        setOptions((prevOptions) => ({
+          ...prevOptions,
           width: 600,
         }));
       } else {
         qrCode.deleteExtension();
-        setOptions((prevOptionsOptions) => ({
-          ...prevOptionsOptions,
+        setOptions((prevOptions) => ({
+          ...prevOptions,
           width: 300,
         }));
       }
@@ -181,6 +184,8 @@ export function useQrCustomization(data = "https://www.getqr.com/") {
   };
 
   return {
+    data,
+    setData,
     options,
     qrCode,
     uploadedLogo,
@@ -188,5 +193,6 @@ export function useQrCustomization(data = "https://www.getqr.com/") {
     selectedSuggestedFrame,
     setOptions,
     handlers,
+    isQrDisabled,
   };
 }

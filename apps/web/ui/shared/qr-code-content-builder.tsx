@@ -48,10 +48,30 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
       [id]: value.trim() === "" ? "Field is required" : "",
     }));
   };
+  //
+  // const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+  //   const { id, value } = e.target;
+  //   validateField(id, value);
+  //   if (minimalFlow) {
+  //     handleContent({ inputValues, files, isHiddenNetwork });
+  //   }
+  // };
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
-    validateField(id, value);
+
+    const updatedValues = { ...inputValues, [id]: value };
+    const updatedErrors = {
+      ...inputErrors,
+      [id]: value.trim() === "" ? "Field is required" : "",
+    };
+
+    setInputValues(updatedValues);
+    setInputErrors(updatedErrors);
+
+    if (minimalFlow) {
+      handleContent({ inputValues: updatedValues, files, isHiddenNetwork });
+    }
   };
 
   const renderedInputs = (): string[] => {

@@ -1,7 +1,7 @@
 "use client";
 
 import { QRCodeContentBuilder } from "@/ui/shared/qr-code-content-builder.tsx";
-import { useMediaQuery } from "@dub/ui";
+import { Button, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Icon } from "@iconify/react";
 import * as Tabs from "@radix-ui/react-tabs";
@@ -56,6 +56,8 @@ export const QRTabs = () => {
     selectedSuggestedLogo,
     selectedSuggestedFrame,
     handlers,
+    setData,
+    isQrDisabled,
   } = useQrCustomization();
 
   return (
@@ -160,7 +162,14 @@ export const QRTabs = () => {
                       <div className="w-full">
                         <QRCodeContentBuilder
                           qrType={type.id}
-                          handleContent={() => {}} // @TODO: handleContent
+                          handleContent={(data) => {
+                            console.log(
+                              "[setData]",
+                              JSON.stringify(data),
+                              data.inputValues["website-website-link"],
+                            );
+                            setData(data.inputValues["website-website-link"]);
+                          }}
                           minimalFlow
                         />
                       </div>
@@ -376,18 +385,41 @@ export const QRTabs = () => {
                           Download your QR
                         </p>
                       </div>
-                      <div className="rounded-lg shadow-lg">
+                      <div
+                        className={cn(
+                          "flex justify-center rounded-lg shadow-lg",
+                          {
+                            "opacity-30": isQrDisabled,
+                          },
+                        )}
+                      >
+                        {/*{isQrDisabled ? (*/}
+                        {/*  <Image*/}
+                        {/*    width={160}*/}
+                        {/*    height={160}*/}
+                        {/*    src={DummyFrame}*/}
+                        {/*    alt="QR code placeholder"*/}
+                        {/*    priority*/}
+                        {/*  />*/}
+                        {/*) : (*/}
+                        {/*  <QRPreview qrCode={qrCode} />*/}
+                        {/*)}*/}
                         <QRPreview qrCode={qrCode} />
                       </div>
-                      <Link
+                      <Button
+                        as={Link}
                         href="/register"
                         className={cn(
                           "bg-secondary hover:bg-secondary/90 flex h-11 w-full items-center justify-center rounded-md px-6 py-3 text-sm font-medium text-white transition-colors md:text-base",
-                          firstTab && "basis-2/5",
+                          {
+                            "basis-2/5": firstTab,
+                            "bg-border-200 text-border-300 border-border-300 hover:bg-border-200 cursor-not-allowed":
+                              isQrDisabled,
+                          },
                         )}
-                      >
-                        Download QR code
-                      </Link>
+                        text={"Download QR code"}
+                        disabled={isQrDisabled}
+                      />
                     </div>
                   </div>
                 </div>
