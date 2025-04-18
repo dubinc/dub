@@ -1,5 +1,5 @@
 import { getSession } from "@/lib/auth";
-import PayoutConnectButton from "@/ui/partners/payout-connect-button";
+import ConnectPayoutButton from "@/ui/partners/connect-payout-button";
 import { prisma } from "@dub/prisma";
 import { CONNECT_SUPPORTED_COUNTRIES } from "@dub/utils/src/constants";
 import Link from "next/link";
@@ -56,7 +56,7 @@ function PayoutProvider({ provider }: { provider: "stripe" | "paypal" }) {
         </div>
       </div>
       <div className="mt-10 grid gap-4">
-        <PayoutConnectButton text="Save and continue" />
+        <ConnectPayoutButton text="Save and continue" />
 
         <Link
           href="/programs"

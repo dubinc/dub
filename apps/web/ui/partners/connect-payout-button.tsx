@@ -5,11 +5,10 @@ import { generatePaypalOAuthUrl } from "@/lib/actions/partners/generate-paypal-o
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { Button, ButtonProps } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
-import { useRouter } from "next/navigation";
+import { useCallback } from "react";
 import { toast } from "sonner";
 
 export default function PayoutConnectButton(props: ButtonProps) {
-  const router = useRouter();
   const { partner } = usePartnerProfile();
 
   const { executeAsync: executeStripeAsync, isPending: isStripePending } =
@@ -42,20 +41,20 @@ export default function PayoutConnectButton(props: ButtonProps) {
       },
     });
 
-  const onClick = async () => {
+  const onClick = useCallback(async () => {
     if (!partner) {
       toast.error("Invalid partner profile. Please log out and log back in.");
       return;
     }
 
-    if (partner.paypalEmail) {
+    if (partner.supportedPayoutMethod === "paypal") {
       await executePaypalAsync();
-    } else if (partner.stripeConnectId) {
+    } else if (partner.supportedPayoutMethod === "stripe") {
       await executeStripeAsync();
     } else {
       toast.error("Unable to connect payout method. Please contact support.");
     }
-  };
+  }, [executePaypalAsync, executeStripeAsync, partner]);
 
   return (
     <Button

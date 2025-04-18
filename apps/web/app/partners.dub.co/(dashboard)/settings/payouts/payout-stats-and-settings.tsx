@@ -3,7 +3,7 @@
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PayoutsCount } from "@/lib/types";
-import PayoutConnectButton from "@/ui/partners/payout-connect-button";
+import ConnectPayoutButton from "@/ui/partners/connect-payout-button";
 import { AlertCircleFill } from "@/ui/shared/icons";
 import { PayoutStatus } from "@dub/prisma/client";
 import { MatrixLines, Tooltip } from "@dub/ui";
@@ -37,7 +37,7 @@ export function PayoutStatsAndSettings() {
           <div className="p-1">
             <div className="text-sm text-neutral-500">Upcoming payouts</div>
           </div>
-          <PayoutConnectButton
+          <ConnectPayoutButton
             text={
               partner?.payoutsEnabledAt ? "Payout settings" : "Connect payouts"
             }
