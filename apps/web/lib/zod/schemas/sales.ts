@@ -164,7 +164,8 @@ export const saleEventResponseSchema = z
       .string()
       .nullish()
       .transform((val) => (val === "" ? null : val))
-      .default(null),
+      .default(null)
+      .openapi({ type: "string" }),
   })
   .merge(commonDeprecatedEventFields)
   .openapi({ ref: "SaleEvent" });

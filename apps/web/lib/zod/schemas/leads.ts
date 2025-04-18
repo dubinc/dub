@@ -133,7 +133,8 @@ export const leadEventResponseSchema = z
       .string()
       .nullish()
       .transform((val) => (val === "" ? null : val))
-      .default(null),
+      .default(null)
+      .openapi({ type: "string" }),
     // nested objects
     click: clickEventSchema,
     link: linkEventSchema,
