@@ -1,6 +1,10 @@
 import { EQRType } from "../../../../(public)/landing/constants/get-qr-config.ts";
 
-export const getMaxSizeLabel = (qrType: EQRType) => {
+export const getMaxSizeLabel = (qrType: EQRType, isLogo = false) => {
+  if (isLogo && qrType === EQRType.IMAGE) {
+    return { size: 2 * 1024 * 1024, label: "2MB" };
+  }
+
   const maxSizes: Partial<Record<EQRType, { size: number; label: string }>> = {
     [EQRType.IMAGE]: { size: 15 * 1024 * 1024, label: "15MB" },
     [EQRType.VIDEO]: { size: 300 * 1024 * 1024, label: "300MB" },

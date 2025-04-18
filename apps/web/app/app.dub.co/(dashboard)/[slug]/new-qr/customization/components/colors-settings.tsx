@@ -9,8 +9,9 @@ export interface IColorsSettingsProps {
   options: Options;
   onBorderColorChange: (color: string) => void;
   onBackgroundColorChange: (color: string) => void;
-  onTransparentBackgroundToggle: (checked: boolean) => void;
+  onTransparentBackgroundToggle?: (checked: boolean) => void;
   isMobile?: boolean;
+  minimalFlow?: boolean;
 }
 
 export const ColorsSettings: FC<IColorsSettingsProps> = ({
@@ -19,6 +20,7 @@ export const ColorsSettings: FC<IColorsSettingsProps> = ({
   onBackgroundColorChange,
   onTransparentBackgroundToggle,
   isMobile,
+  minimalFlow = false,
 }) => {
   const initialBackground = options.backgroundOptions?.color ?? WHITE_COLOR;
   const isInitiallyTransparent = initialBackground === TRANSPARENT_COLOR;
@@ -54,7 +56,7 @@ export const ColorsSettings: FC<IColorsSettingsProps> = ({
 
   const handleTransparentToggle = (checked: boolean) => {
     setIsTransparent(checked);
-    onTransparentBackgroundToggle(checked);
+    onTransparentBackgroundToggle?.(checked);
 
     if (checked) {
       setBackgroundColorValid(true);
@@ -91,6 +93,7 @@ export const ColorsSettings: FC<IColorsSettingsProps> = ({
               backgroundColorValid={backgroundColorValid}
               setBackgroundColorValid={setBackgroundColorValid}
               label="Transparent"
+              minimalFlow={minimalFlow}
             />
           </div>
         ) : (
@@ -102,6 +105,7 @@ export const ColorsSettings: FC<IColorsSettingsProps> = ({
             onTransparentToggle={handleTransparentToggle}
             backgroundColorValid={backgroundColorValid}
             setBackgroundColorValid={setBackgroundColorValid}
+            minimalFlow={minimalFlow}
           />
         )}
       </div>

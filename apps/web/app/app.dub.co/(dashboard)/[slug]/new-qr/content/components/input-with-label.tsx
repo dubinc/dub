@@ -9,6 +9,7 @@ interface IInputWithLabelProps {
   onChange?: ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>;
   isInputOnFocus?: boolean;
   errorMessage?: string;
+  minimalFlow?: boolean;
 }
 
 export const InputWithLabel: FC<IInputWithLabelProps> = ({
@@ -16,6 +17,7 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
   type = "text",
   isInputOnFocus = false,
   errorMessage,
+  minimalFlow = false,
   ...props
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);

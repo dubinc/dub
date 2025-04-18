@@ -10,6 +10,6 @@ export const LEGAL_LINKS = [
 
 export const GENERAL_LINKS = [
   { href: "https://hint.app/help", text: "Help" },
-  { href: "/reviews", text: "Reviews" },
-  { href: "https://hint.app/pricing", text: "Pricing" },
+  // { href: "/reviews", text: "Reviews" },
+  // { href: "https://hint.app/pricing", text: "Pricing" },
 ];

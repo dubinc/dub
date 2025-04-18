@@ -10,7 +10,7 @@ import {
 
 export const Footer = () => (
   <footer className="mt-auto w-full">
-    <div className="bg-primary-100 w-full py-6 lg:py-12">
+    <div className="border-t-border-300 bg-primary-100 w-full border-t py-6 lg:py-12">
       <div className="mx-auto flex w-full max-w-7xl flex-col max-[1320px]:px-6 max-md:px-4">
         <div className="flex flex-col items-start justify-end md:flex-row">
           <div className="mr-auto flex flex-col justify-start gap-4">
@@ -18,7 +18,7 @@ export const Footer = () => (
             <SocialMedia />
           </div>
           <CustomerSupport />
-          <div className="mb-6 flex flex-col gap-4 max-md:mt-6 md:flex-row md:gap-20 lg:mb-12">
+          <div className="flex flex-col gap-4 max-md:mt-6 md:flex-row md:gap-20">
             <div>
               <Links title="Legal" links={LEGAL_LINKS} />
             </div>
@@ -28,9 +28,9 @@ export const Footer = () => (
           </div>
         </div>
         <hr className="my-6 bg-gray-500" />
-        <div className="flex w-full flex-col justify-between gap-4">
+        <div className="flex w-full flex-row-reverse justify-between gap-4">
           <Payments />
-          <div className="flex flex-col gap-2 md:gap-2.5">
+          <div className="flex flex-col">
             <p className="text-left text-sm text-neutral-200">
               © GetQR - 2025. All rights reserved. Create your own QR codes and
               promote your business or idea.
