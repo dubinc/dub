@@ -154,9 +154,9 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
   image: true,
   description: true,
   country: true,
-  payoutsEnabledAt: true,
-  stripeConnectId: true,
   paypalEmail: true,
+  stripeConnectId: true,
+  payoutsEnabledAt: true,
   createdAt: true,
 })
   .merge(
