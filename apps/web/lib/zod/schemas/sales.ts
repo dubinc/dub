@@ -162,7 +162,7 @@ export const saleEventResponseSchema = z
       .describe("Deprecated. Use `sale.paymentProcessor` instead."),
     metadata: z
       .string()
-      .nullable()
+      .nullish()
       .transform((val) => (val === "" ? null : val))
       .default(null),
   })

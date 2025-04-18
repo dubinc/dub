@@ -131,7 +131,7 @@ export const leadEventResponseSchema = z
     eventName: z.string(),
     metadata: z
       .string()
-      .nullable()
+      .nullish()
       .transform((val) => (val === "" ? null : val))
       .default(null),
     // nested objects
