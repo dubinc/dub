@@ -70,6 +70,7 @@ export function CustomerPartnerEarningsTable({
     getCoreRowModel: getCoreRowModel(),
   });
 
+  const As = viewAllHref ? Link : "div";
   return (
     <div className="overflow-x-auto">
       {isLoading ? (
@@ -117,22 +118,18 @@ export function CustomerPartnerEarningsTable({
               ))}
             </tbody>
           </table>
-          {viewAllHref && (
-            <div className="mt-2 flex items-center gap-1 px-2 text-sm text-neutral-600">
-              {commissions.length} of
-              {totalCommissions ? (
-                <Link
-                  href={viewAllHref}
-                  className="font-medium text-neutral-700 hover:text-neutral-900"
-                >
-                  {totalCommissions}
-                </Link>
-              ) : (
+          <div className="mt-2 flex items-center gap-1 px-2 text-sm text-neutral-600">
+            {commissions.length} of
+            <As
+              href={viewAllHref ?? "#"}
+              className="flex items-center gap-1.5 font-medium text-neutral-700 hover:text-neutral-900"
+            >
+              {totalCommissions ?? (
                 <div className="size-3 animate-pulse rounded-md bg-neutral-100" />
-              )}
+              )}{" "}
               results
-            </div>
-          )}
+            </As>
+          </div>
         </>
       )}
     </div>

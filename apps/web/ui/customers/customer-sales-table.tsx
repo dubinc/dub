@@ -91,6 +91,7 @@ export function CustomerSalesTable({
     getCoreRowModel: getCoreRowModel(),
   });
 
+  const As = viewAllHref ? Link : "div";
   return (
     <div className="overflow-x-auto">
       {isLoading ? (
@@ -136,22 +137,18 @@ export function CustomerSalesTable({
               ))}
             </tbody>
           </table>
-          {viewAllHref && (
-            <div className="mt-2 flex items-center gap-1 px-2 text-sm text-neutral-600">
-              {sales.length} of
-              {totalSales ? (
-                <Link
-                  href={viewAllHref}
-                  className="font-medium text-neutral-700 hover:text-neutral-900"
-                >
-                  {totalSales}
-                </Link>
-              ) : (
+          <div className="mt-2 flex items-center gap-1 px-2 text-sm text-neutral-600">
+            {sales.length} of
+            <As
+              href={viewAllHref ?? "#"}
+              className="flex items-center gap-1.5 font-medium text-neutral-700 hover:text-neutral-900"
+            >
+              {totalSales ?? (
                 <div className="size-3 animate-pulse rounded-md bg-neutral-100" />
-              )}
+              )}{" "}
               results
-            </div>
-          )}
+            </As>
+          </div>
         </>
       )}
     </div>
