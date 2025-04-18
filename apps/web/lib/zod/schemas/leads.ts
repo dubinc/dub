@@ -65,7 +65,13 @@ export const trackLeadRequestSchema = z.object({
     .record(z.unknown())
     .nullish()
     .default(null)
-    .describe("Additional metadata to be stored with the lead event"),
+    .transform((val) => (val ? JSON.stringify(val) : null))
+    .refine((val) => !val || val.length <= 1000, {
+      message: "Metadata must be less than 1000 characters when stringified",
+    })
+    .describe(
+      "Additional metadata to be stored with the lead event. Max 1000 characters.",
+    ),
   mode: z
     .enum(["async", "wait"])
     .default("async")

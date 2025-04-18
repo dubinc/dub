@@ -56,7 +56,13 @@ export const trackSaleRequestSchema = z.object({
     .record(z.unknown())
     .nullish()
     .default(null)
-    .describe("Additional metadata to be stored with the sale event."),
+    .transform((val) => (val ? JSON.stringify(val) : null))
+    .refine((val) => !val || val.length <= 1000, {
+      message: "Metadata must be less than 1000 characters when stringified",
+    })
+    .describe(
+      "Additional metadata to be stored with the sale event. Max 1000 characters.",
+    ),
   leadEventName: z
     .string()
     .nullish()
