@@ -67,61 +67,50 @@ const NAV_AREAS: SidebarNavAreas<{
           {
             name: "New QR",
             icon: () => (
-              <Icon
-                icon="solar:add-square-linear"
-                className="h-5 w-5 text-neutral-200"
-              />
+              <Icon icon="solar:add-square-linear" className="h-5 w-5" />
             ),
             href: `/${slug}/new-qr/type`,
             exact: true,
           },
           {
             name: "My QR Codes",
-            icon: () => (
-              <Icon icon="mage:qr-code" className="h-5 w-5 text-neutral-200" />
-            ),
-            href: "/qr-codes", // @TODO: Add my QR codes page
+            icon: () => <Icon icon="mage:qr-code" className="h-5 w-5" />,
+            href: `/${slug}`,
+            exact: true,
+            // href: "/", // @TODO: Add my QR codes page
           },
           {
             name: "Statistics",
-            icon: () => (
-              <Icon
-                icon="streamline:graph"
-                className="h-5 w-5 text-neutral-200"
-              />
-            ),
-            href: "/statistics", // @TODO: Add statistics page`,
+            icon: () => <Icon icon="streamline:graph" className="h-5 w-5" />,
+            // href: "/statistics", // @TODO: Add statistics page`,
+            href: `/${slug}/analytics${pathname === `/${slug}/analytics` ? "" : queryString}`,
           },
           {
             name: "Plans and Payments",
-            icon: () => (
-              <Icon
-                icon="ion:card-outline"
-                className="h-5 w-5 text-neutral-200"
-              />
-            ),
+            icon: () => <Icon icon="ion:card-outline" className="h-5 w-5" />,
             href: "/plans", // @TODO: Add plans and payments page
           },
-          {
-            name: "Account",
-            icon: () => (
-              <Icon
-                className="h-5 w-5 text-neutral-200"
-                icon="iconoir:profile-circle"
-              />
-            ),
-            href: "/account/settings",
-          },
-          {
-            name: "FAQ",
-            icon: () => (
-              <Icon
-                className="h-5 w-5 text-neutral-200"
-                icon="iconoir:question-mark-circle"
-              />
-            ),
-            href: "/faq", // @TODO: Add FAQ page
-          },
+          // {
+          //   name: "Account",
+          //   icon: () => (
+          //     <Icon
+          //       className="h-5 w-5 text-neutral-200"
+          //       icon="iconoir:profile-circle"
+          //     />
+          //   ),
+          //   // href: "/account/settings",
+          //   href: `/${slug}/settings`,
+          // },
+          // {
+          //   name: "FAQ",
+          //   icon: () => (
+          //     <Icon
+          //       className="h-5 w-5 text-neutral-200"
+          //       icon="iconoir:question-mark-circle"
+          //     />
+          //   ),
+          //   href: "/faq", // @TODO: Add FAQ page
+          // },
         ],
       },
       ...(programs?.length
@@ -325,16 +314,16 @@ export function AppSidebarNav({
       newsContent={newsContent}
       switcher={<WorkspaceDropdown />}
       bottom={
-        <>
+        <div className="p-3">
           <Link
-            className="bg-secondary hover:bg-secondary/90 flex h-11 w-full items-center justify-center self-center rounded-lg px-6 py-3 text-sm font-medium text-white md:max-w-[208px] md:text-base"
+            className="text-content-inverted hover:bg-inverted hover:ring-border-subtle flex h-9 items-center justify-center rounded-md border border-black bg-black px-4 text-sm text-white transition-all hover:ring-4 dark:border-white dark:bg-white"
             href={"/upgrade"} // @TODO: Add upgrade page
           >
             Upgrade
           </Link>
           {/*<UserSurveyButton />*/}
           {/*<Usage />*/}
-        </>
+        </div>
       }
     />
   );

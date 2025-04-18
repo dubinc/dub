@@ -1,7 +1,6 @@
-import { Logo } from "@/ui/shared/logo.tsx";
-import { AnimatedSizeContainer, ClientOnly, Icon } from "@dub/ui";
+import { AnimatedSizeContainer, ClientOnly, Icon, NavWordmark } from "@dub/ui";
 import { cn } from "@dub/utils";
-// import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -47,7 +46,7 @@ export function SidebarNav<T extends Record<any, any>>({
   currentArea,
   data,
   toolContent,
-  // newsContent,
+  newsContent,
   switcher,
   bottom,
 }: {
@@ -61,8 +60,8 @@ export function SidebarNav<T extends Record<any, any>>({
 }) {
   return (
     <ClientOnly className="scrollbar-hide relative flex h-full w-full flex-col overflow-y-auto overflow-x-hidden">
-      <nav className="relative flex grow flex-col text-neutral-500 md:px-4">
-        <div className="border-b-border-200 relative flex min-h-[52px] items-center justify-between gap-1 border-b px-3 pb-4 md:px-0">
+      <nav className="relative flex grow flex-col p-3 text-neutral-500">
+        <div className="relative flex items-start justify-between gap-1 pb-3">
           {Object.entries(areas).map(([area, areaConfig]) => {
             const { title, backHref } = areaConfig(data);
 
@@ -86,13 +85,12 @@ export function SidebarNav<T extends Record<any, any>>({
                     {title}
                   </div>
                 ) : (
-                  <Logo className="h-6" />
-                  // <NavWordmark className="h-6" isInApp />
+                  <NavWordmark className="h-6" isInApp />
                 )}
               </Link>
             );
           })}
-          <div className="hidden shrink-0 items-center gap-3 md:flex">
+          <div className="hidden items-center gap-3 md:flex">
             <Suspense fallback={null}>{toolContent}</Suspense>
             <UserDropdown />
           </div>
@@ -111,101 +109,44 @@ export function SidebarNav<T extends Record<any, any>>({
                   <div className="pt-2">{switcher}</div>
                 )}
 
-                <div className="flex flex-col gap-4 px-4 pt-4 md:px-0">
-                  {/*{content.map(({ name, items }, idx) => (*/}
-                  {/*  <div*/}
-                  {/*    key={idx}*/}
-                  {/*    className="border-b-border-200 flex flex-col gap-1 border-b pb-3 md:border-none"*/}
-                  {/*  >*/}
-                  {/*    {name && (*/}
-                  {/*      <div className="mb-2 pl-1 text-sm text-neutral-500">*/}
-                  {/*        {name}*/}
-                  {/*      </div>*/}
-                  {/*    )}*/}
-                  {/*    {items.slice(0, -2).map((item) => (*/}
-                  {/*      <NavItem key={item.name} item={item} />*/}
-                  {/*    ))}*/}
-                  {/*  </div>*/}
-                  {/*))}*/}
-
-                  {/*{content.map(({ name, items }, idx) => (*/}
-                  {/*  <div*/}
-                  {/*    key={`mobile-${idx}`}*/}
-                  {/*    className="flex flex-col gap-1 md:hidden"*/}
-                  {/*  >*/}
-                  {/*    {name && (*/}
-                  {/*      <div className="mb-2 pl-1 text-sm text-neutral-500">*/}
-                  {/*        {name}*/}
-                  {/*      </div>*/}
-                  {/*    )}*/}
-                  {/*    {items.slice(-2).map((item) => (*/}
-                  {/*      <NavItem key={item.name} item={item} />*/}
-                  {/*    ))}*/}
-                  {/*  </div>*/}
-                  {/*))}*/}
-
-                  {content.map(({ name, items }, idx) => {
-                    const splitItems = area === "default" && items?.length > 2;
-
-                    return (
-                      <div key={idx} className="flex flex-col gap-1">
-                        {name && (
-                          <div className="mb-2 pl-1 text-sm text-neutral-500">
-                            {name}
-                          </div>
-                        )}
-
-                        <div
-                          className={
-                            splitItems
-                              ? "border-b-border-200 border-b pb-3 md:border-none"
-                              : ""
-                          }
-                        >
-                          {(splitItems ? items.slice(0, -2) : items).map(
-                            (item) => (
-                              <NavItem key={item.name} item={item} />
-                            ),
-                          )}
+                <div className="flex flex-col gap-4 pt-4">
+                  {content.map(({ name, items }, idx) => (
+                    <div key={idx} className="flex flex-col gap-0.5">
+                      {name && (
+                        <div className="mb-2 pl-1 text-sm text-neutral-500">
+                          {name}
                         </div>
-
-                        {splitItems && (
-                          <div className="md:hidden">
-                            {items.slice(-2).map((item) => (
-                              <NavItem key={item.name} item={item} />
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                      )}
+                      {items.map((item) => (
+                        <NavItem key={item.name} item={item} />
+                      ))}
+                    </div>
+                  ))}
                 </div>
 
-                {/*<AnimatePresence>*/}
-                {/*  {showNews && (*/}
-                {/*    <motion.div*/}
-                {/*      className="-mx-3 flex grow flex-col justify-end"*/}
-                {/*      initial={{ opacity: 0, y: 10 }}*/}
-                {/*      animate={{ opacity: 1, y: 0 }}*/}
-                {/*      exit={{ opacity: 0, y: 10 }}*/}
-                {/*      transition={{*/}
-                {/*        duration: 0.1,*/}
-                {/*        ease: "easeInOut",*/}
-                {/*      }}*/}
-                {/*    >*/}
-                {/*      {newsContent}*/}
-                {/*    </motion.div>*/}
-                {/*  )}*/}
-                {/*</AnimatePresence>*/}
+                <AnimatePresence>
+                  {showNews && (
+                    <motion.div
+                      className="-mx-3 flex grow flex-col justify-end"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      transition={{
+                        duration: 0.1,
+                        ease: "easeInOut",
+                      }}
+                    >
+                      {newsContent}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </Area>
             );
           })}
         </div>
       </nav>
       {bottom && (
-        <div className="relative flex flex-col justify-end px-4 md:px-0">
-          {bottom}
-        </div>
+        <div className="relative flex flex-col justify-end">{bottom}</div>
       )}
     </ClientOnly>
   );
@@ -236,17 +177,18 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
         onPointerEnter={() => setHovered(true)}
         onPointerLeave={() => setHovered(false)}
         className={cn(
-          "text-neutral hover:bg-primary-300/50 active:bg-primary-300/80 group flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-normal leading-none transition-[background-color,color,font-weight] duration-75",
+          "group flex items-center gap-2.5 rounded-md p-2 text-sm leading-none text-neutral-600 transition-[background-color,color,font-weight] duration-75 hover:bg-neutral-200/10 active:bg-neutral-200/20",
+          "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
           isActive &&
             !items &&
-            "md:bg-primary-300 text-neutral md:hover:bg-primary-300/80 md:active:bg-primary-300 md:font-medium",
+            "bg-blue-100/50 font-medium text-blue-600 hover:bg-blue-100/80 active:bg-blue-100",
         )}
       >
         {Icon && (
           <Icon
             className={cn(
-              "size-5 text-neutral-500 transition-colors duration-75",
-              !items && "md:group-data-[active=true]:text-primary",
+              "size-4 text-neutral-500 transition-colors duration-75",
+              isActive && !items && "text-blue-600",
             )}
             data-hovered={hovered}
           />
