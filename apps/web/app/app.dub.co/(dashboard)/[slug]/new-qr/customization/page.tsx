@@ -186,16 +186,8 @@ export default function NewQRCustomization() {
     const selected = FRAMES.find((f) => f.type === frameId);
     if (selected?.extension) {
       qrCode.applyExtension(selected.extension);
-      setOptions((prevOptions) => ({
-        ...prevOptions,
-        width: 300,
-      }));
     } else {
       qrCode.deleteExtension();
-      setOptions((prevOptions) => ({
-        ...prevOptions,
-        width: 300,
-      }));
     }
   };
 

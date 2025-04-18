@@ -144,16 +144,8 @@ export function useQrCustomization() {
       const selected = FRAMES.find((f) => f.type === frameId);
       if (selected?.extension) {
         qrCode.applyExtension(selected.extension);
-        setOptions((prevOptions) => ({
-          ...prevOptions,
-          width: 300,
-        }));
       } else {
         qrCode.deleteExtension();
-        setOptions((prevOptions) => ({
-          ...prevOptions,
-          width: 300,
-        }));
       }
     },
     setUploadedLogoFile: (file: File | null) => {
