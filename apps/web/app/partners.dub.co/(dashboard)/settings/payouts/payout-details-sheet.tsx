@@ -1,4 +1,4 @@
-import { SHEET_MAX_ITEMS } from "@/lib/partners/constants";
+import { PAYOUTS_SHEET_ITEMS_LIMIT } from "@/lib/partners/constants";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerEarningsResponse, PartnerPayoutResponse } from "@/lib/types";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
@@ -43,7 +43,7 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
     error,
   } = useSWR<PartnerEarningsResponse[]>(
     partner
-      ? `/api/partner-profile/programs/${payout.program.id}/earnings?payoutId=${payout.id}&interval=all&pageSize=${SHEET_MAX_ITEMS}`
+      ? `/api/partner-profile/programs/${payout.program.id}/earnings?payoutId=${payout.id}&interval=all&pageSize=${PAYOUTS_SHEET_ITEMS_LIMIT}`
       : undefined,
     fetcher,
   );

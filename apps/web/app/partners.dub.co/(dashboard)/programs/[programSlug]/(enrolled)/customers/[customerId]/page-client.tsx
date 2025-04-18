@@ -1,18 +1,18 @@
 "use client";
 
+import { CUSTOMER_PAGE_EVENTS_LIMIT } from "@/lib/partners/constants";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import {
-  CustomerActivityResponse,
-  CustomerEnriched,
   PartnerEarningsResponse,
+  PartnerProfileCustomerProps,
 } from "@/lib/types";
 import { CustomerActivityList } from "@/ui/customers/customer-activity-list";
 import { CustomerDetailsColumn } from "@/ui/customers/customer-details-column";
 import { CustomerSalesTable } from "@/ui/customers/customer-sales-table";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import { BackLink } from "@/ui/shared/back-link";
-import { MoneyBill2, Tooltip, User } from "@dub/ui";
-import { fetcher } from "@dub/utils";
+import { MoneyBill2, Tooltip } from "@dub/ui";
+import { fetcher, OG_AVATAR_URL } from "@dub/utils";
 import { notFound, useParams } from "next/navigation";
 import { memo } from "react";
 import useSWR from "swr";
@@ -24,31 +24,26 @@ export function ProgramCustomerPageClient() {
     customerId: string;
   }>();
 
-  const {
-    data: customer,
-    isLoading,
-    error,
-  } = useSWR<CustomerEnriched>(
+  const { data: customer, isLoading } = useSWR<PartnerProfileCustomerProps>(
     `/api/partner-profile/programs/${programSlug}/customers/${customerId}`,
     fetcher,
   );
 
-  const { data: customerActivity, isLoading: isCustomerActivityLoading } =
-    useSWR<CustomerActivityResponse>(
-      customer &&
-        `/api/partner-profile/programs/${programSlug}/customers/${customer.id}/activity`,
-      fetcher,
-    );
-
-  if (!customer && !isLoading && !error) notFound();
+  if (!customer && !isLoading) notFound();
 
   return (
     <div className="mb-10 mt-2">
       <BackLink href={`/programs/${programSlug}/earnings`}>Earnings</BackLink>
       <div className="mt-5 flex items-center gap-4">
-        <div className="border-border-subtle flex size-12 items-center justify-center rounded-full border bg-gradient-to-t from-neutral-50">
-          <User className="size-4 text-neutral-700" />
-        </div>
+        {customer ? (
+          <img
+            src={`${OG_AVATAR_URL}${customer.id}`}
+            alt={customer.email ?? customer.id}
+            className="size-8 rounded-full"
+          />
+        ) : (
+          <div className="size-8 animate-pulse rounded-full bg-neutral-200" />
+        )}
 
         <div className="flex flex-col gap-1">
           {customer ? (
@@ -95,8 +90,8 @@ export function ProgramCustomerPageClient() {
               Activity
             </h2>
             <CustomerActivityList
-              activity={customerActivity}
-              isLoading={!customer || isCustomerActivityLoading}
+              activity={customer?.activity}
+              isLoading={!customer}
             />
           </section>
         </div>
@@ -105,8 +100,8 @@ export function ProgramCustomerPageClient() {
         <div className="-order-1 lg:order-1">
           <CustomerDetailsColumn
             customer={customer}
-            customerActivity={customerActivity}
-            isCustomerActivityLoading={!customer || isCustomerActivityLoading}
+            customerActivity={customer?.activity}
+            isCustomerActivityLoading={!customer}
           />
         </div>
       </div>
@@ -120,7 +115,7 @@ const EarningsTable = memo(({ customerId }: { customerId: string }) => {
   const { data: earningsData, isLoading: isEarningsLoading } = useSWR<
     PartnerEarningsResponse[]
   >(
-    `/api/partner-profile/programs/${programSlug}/earnings?interval=all&pageSize=8&customerId=${customerId}`,
+    `/api/partner-profile/programs/${programSlug}/earnings?interval=all&pageSize=${CUSTOMER_PAGE_EVENTS_LIMIT}&customerId=${customerId}`,
     fetcher,
     {
       keepPreviousData: true,
@@ -130,7 +125,9 @@ const EarningsTable = memo(({ customerId }: { customerId: string }) => {
   const { data: totalEarnings, isLoading: isTotalEarningsLoading } = useSWR<{
     count: number;
   }>(
-    `/api/partner-profile/programs/${programSlug}/earnings/count?interval=all&customerId=${customerId}`,
+    // Only fetch total earnings count if the earnings data is equal to the limit
+    earningsData?.length === CUSTOMER_PAGE_EVENTS_LIMIT &&
+      `/api/partner-profile/programs/${programSlug}/earnings/count?interval=all&customerId=${customerId}`,
     fetcher,
     {
       keepPreviousData: true,
@@ -140,9 +137,13 @@ const EarningsTable = memo(({ customerId }: { customerId: string }) => {
   return (
     <CustomerSalesTable
       sales={earningsData}
-      totalSales={totalEarnings?.count}
+      totalSales={
+        isTotalEarningsLoading
+          ? undefined
+          : totalEarnings?.count ?? earningsData?.length
+      }
       viewAllHref={`/programs/${programSlug}/earnings?interval=all&customerId=${customerId}`}
-      isLoading={isEarningsLoading || isTotalEarningsLoading}
+      isLoading={isEarningsLoading}
     />
   );
 });

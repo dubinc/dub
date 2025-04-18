@@ -8,6 +8,7 @@ import {
   getCommissionsCountQuerySchema,
   getCommissionsQuerySchema,
 } from "./commissions";
+import { customerActivityResponseSchema } from "./customer-activity";
 import { CustomerEnrichedSchema } from "./customers";
 import { LinkSchema } from "./links";
 
@@ -20,8 +21,7 @@ export const PartnerEarningsSchema = CommissionSchema.merge(
         id: z.string(),
         email: z
           .string()
-          .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "********")),
-        avatar: z.string().nullable(),
+          .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "****")),
       })
       .nullable(),
     link: LinkSchema.pick({
@@ -81,11 +81,11 @@ export const PartnerProfileLinkSchema = LinkSchema.pick({
 
 export const PartnerProfileCustomerSchema = CustomerEnrichedSchema.pick({
   id: true,
-  createdAt: true,
   country: true,
-  link: true,
+  createdAt: true,
 }).extend({
   email: z
     .string()
-    .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "********")),
+    .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "****")),
+  activity: customerActivityResponseSchema,
 });

@@ -6,7 +6,7 @@ import { programResourcesSchema } from "@/lib/zod/schemas/program-resources";
 import { HeroBackground } from "@/ui/partners/hero-background";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import { ThreeDots } from "@/ui/shared/icons";
-import { Link, PayoutStatus, Program } from "@dub/prisma/client";
+import { Link, Program } from "@dub/prisma/client";
 import {
   Button,
   Check,
@@ -23,9 +23,9 @@ import { AnimatePresence } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { ReferralsEmbedActivity } from "./activity";
 import { ReferralsEmbedEarnings } from "./earnings";
+import { ReferralsEmbedEarningsSummary } from "./earnings-summary";
 import { ReferralsEmbedFAQ } from "./faq";
 import { ReferralsEmbedLeaderboard } from "./leaderboard";
-import { ReferralsEmbedPayouts } from "./payouts";
 import { ReferralsEmbedQuickstart } from "./quickstart";
 import { ReferralsEmbedResources } from "./resources";
 import { ThemeOptions } from "./theme-options";
@@ -36,7 +36,7 @@ export function ReferralsEmbedPageClient({
   links,
   rewards,
   discount,
-  payouts,
+  earnings,
   stats,
   themeOptions,
 }: {
@@ -44,14 +44,15 @@ export function ReferralsEmbedPageClient({
   links: Link[];
   rewards: RewardProps[];
   discount?: DiscountProps | null;
-  payouts: {
-    status: PayoutStatus;
-    amount: number;
-  }[];
+  earnings: {
+    upcoming: number;
+    paid: number;
+  };
   stats: {
     clicks: number;
     leads: number;
     sales: number;
+    saleAmount: number;
   };
   themeOptions: ThemeOptions;
 }) {
@@ -176,12 +177,11 @@ export function ReferralsEmbedPageClient({
           </div>
         </div>
         <div className="mt-4 grid gap-2 sm:h-32 sm:grid-cols-3">
-          <ReferralsEmbedActivity
-            clicks={stats.clicks}
-            leads={stats.leads}
-            sales={stats.sales}
+          <ReferralsEmbedActivity {...stats} />
+          <ReferralsEmbedEarningsSummary
+            earnings={earnings}
+            programSlug={program.slug}
           />
-          <ReferralsEmbedPayouts payouts={payouts} programSlug={program.slug} />
         </div>
         <div className="mt-4">
           <div className="border-border-subtle flex items-center border-b">

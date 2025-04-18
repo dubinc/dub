@@ -23,7 +23,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { CircleCheck, Dots, MoneyBill2, MoneyBills2 } from "@dub/ui/icons";
+import { CircleCheck, Dots, MoneyBill2 } from "@dub/ui/icons";
 import { cn, formatDate, formatDateTime, OG_AVATAR_URL } from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
 import { fetcher } from "@dub/utils/src/functions/fetcher";
@@ -54,7 +54,7 @@ const PayoutTableInner = memo(
     const { id: workspaceId } = useWorkspace();
     const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
-    const sortBy = searchParams.get("sortBy") || "createdAt";
+    const sortBy = searchParams.get("sortBy") || "amount";
     const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
     const { payoutsCount, error: countError } = usePayoutsCount<number>();

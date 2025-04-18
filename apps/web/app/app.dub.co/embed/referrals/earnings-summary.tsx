@@ -1,20 +1,19 @@
-import { PayoutStatus } from "@dub/prisma/client";
 import { Button, InfoTooltip } from "@dub/ui";
 import { currencyFormatter } from "@dub/utils";
 
-export function ReferralsEmbedPayouts({
-  payouts,
+export function ReferralsEmbedEarningsSummary({
+  earnings,
   programSlug,
 }: {
-  payouts: { status: PayoutStatus; amount: number }[];
+  earnings: { upcoming: number; paid: number };
   programSlug: string;
 }) {
   return (
     <div className="border-border-subtle bg-bg-default flex flex-col justify-between gap-4 rounded-lg border p-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1">
-          <p className="text-content-subtle text-sm">Payouts</p>
-          <InfoTooltip content="Payouts are processed at the start of each month. Your earnings are automatically transferred to your bank account." />
+          <p className="text-content-subtle text-sm">Earnings</p>
+          <InfoTooltip content="Summary of your commission earnings from your referrals." />
         </div>
         <a
           href={`https://partners.dub.co/${programSlug}/register`}
@@ -31,15 +30,11 @@ export function ReferralsEmbedPayouts({
         {[
           {
             label: "Upcoming",
-            value:
-              payouts.find((payout) => payout.status === PayoutStatus.pending)
-                ?.amount ?? 0,
+            value: earnings.upcoming,
           },
           {
             label: "Paid",
-            value:
-              payouts.find((payout) => payout.status === PayoutStatus.completed)
-                ?.amount ?? 0,
+            value: earnings.paid,
           },
         ].map(({ label, value }) => (
           <div key={label} className="flex justify-between text-sm">

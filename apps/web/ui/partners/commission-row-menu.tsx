@@ -59,12 +59,8 @@ export function CommissionRowMenu({ row }: { row: Row<CommissionResponse> }) {
       openPopover={isOpen}
       setOpenPopover={setIsOpen}
       content={
-        <Command
-          tabIndex={0}
-          loop
-          className="pointer-events-auto focus:outline-none"
-        >
-          <Command.List className="flex w-screen flex-col gap-1 text-sm sm:w-auto sm:min-w-[180px]">
+        <Command tabIndex={0} loop className="pointer-events-auto">
+          <Command.List className="flex w-screen flex-col gap-1 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[180px]">
             <Command.Group className="p-1.5">
               {["duplicate", "fraud"].includes(row.original.status) ? (
                 <MenuItem

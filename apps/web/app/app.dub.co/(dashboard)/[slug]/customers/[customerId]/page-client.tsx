@@ -1,5 +1,6 @@
 "use client";
 
+import { CUSTOMER_PAGE_EVENTS_LIMIT } from "@/lib/partners/constants";
 import useCustomer from "@/lib/swr/use-customer";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
@@ -165,7 +166,7 @@ const SalesTable = memo(({ customerId }: { customerId: string }) => {
   const { id: workspaceId, slug } = useWorkspace();
 
   const { data: salesData, isLoading: isSalesLoading } = useSWR<SaleEvent[]>(
-    `/api/events?event=sales&interval=all&limit=8&customerId=${customerId}&workspaceId=${workspaceId}`,
+    `/api/events?event=sales&interval=all&limit=${CUSTOMER_PAGE_EVENTS_LIMIT}&customerId=${customerId}&workspaceId=${workspaceId}`,
     fetcher,
     {
       keepPreviousData: true,
@@ -175,7 +176,9 @@ const SalesTable = memo(({ customerId }: { customerId: string }) => {
   const { data: totalSales, isLoading: isTotalSalesLoading } = useSWR<{
     sales: number;
   }>(
-    `/api/analytics?event=sales&interval=all&groupBy=count&customerId=${customerId}&workspaceId=${workspaceId}`,
+    // Only fetch total sales count if the sales data is equal to the limit
+    salesData?.length === CUSTOMER_PAGE_EVENTS_LIMIT &&
+      `/api/analytics?event=sales&interval=all&groupBy=count&customerId=${customerId}&workspaceId=${workspaceId}`,
     fetcher,
     {
       keepPreviousData: true,
@@ -185,9 +188,11 @@ const SalesTable = memo(({ customerId }: { customerId: string }) => {
   return (
     <CustomerSalesTable
       sales={salesData}
-      totalSales={totalSales?.sales}
+      totalSales={
+        isTotalSalesLoading ? undefined : totalSales?.sales ?? salesData?.length
+      }
       viewAllHref={`/${slug}/events?event=sales&interval=all&customerId=${customerId}`}
-      isLoading={isSalesLoading || isTotalSalesLoading}
+      isLoading={isSalesLoading}
     />
   );
 });
@@ -199,22 +204,28 @@ const PartnerEarningsTable = memo(
     const { data: commissions, isLoading: isComissionsLoading } = useSWR<
       CommissionResponse[]
     >(
-      `/api/programs/${programId}/commissions?customerId=${customerId}&workspaceId=${workspaceId}&pageSize=8`,
+      `/api/programs/${programId}/commissions?customerId=${customerId}&workspaceId=${workspaceId}&pageSize=${CUSTOMER_PAGE_EVENTS_LIMIT}`,
       fetcher,
     );
 
     const { data: totalCommissions, isLoading: isTotalCommissionsLoading } =
       useSWR<{ all: { count: number } }>(
-        `/api/programs/${programId}/commissions/count?customerId=${customerId}&workspaceId=${workspaceId}`,
+        // Only fetch total earnings count if the earnings data is equal to the limit
+        commissions?.length === CUSTOMER_PAGE_EVENTS_LIMIT &&
+          `/api/programs/${programId}/commissions/count?customerId=${customerId}&workspaceId=${workspaceId}`,
         fetcher,
       );
 
     return (
       <CustomerPartnerEarningsTable
         commissions={commissions}
-        totalCommissions={totalCommissions?.all?.count}
+        totalCommissions={
+          isTotalCommissionsLoading
+            ? undefined
+            : totalCommissions?.all?.count ?? commissions?.length
+        }
         viewAllHref={`/${slug}/programs/${programId}/commissions?customerId=${customerId}`}
-        isLoading={isComissionsLoading || isTotalCommissionsLoading}
+        isLoading={isComissionsLoading}
       />
     );
   },

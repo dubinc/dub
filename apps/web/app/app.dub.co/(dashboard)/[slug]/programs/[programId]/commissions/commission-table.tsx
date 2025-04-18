@@ -90,12 +90,8 @@ const CommissionTableInner = memo(
         },
         {
           header: "Customer",
-          cell: ({ row }) => {
-            if (!row.original.customer) {
-              return "-";
-            }
-
-            return (
+          cell: ({ row }) =>
+            row.original.customer ? (
               <div className="flex items-center gap-2">
                 <img
                   src={
@@ -115,8 +111,9 @@ const CommissionTableInner = memo(
                   {row.original.customer.email ?? row.original.customer.name}
                 </Link>
               </div>
-            );
-          },
+            ) : (
+              "-"
+            ),
           meta: {
             filterParams: ({ row }) =>
               row.original.customer

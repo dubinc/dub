@@ -24,6 +24,7 @@ import {
   formatDateTimeSmart,
   getApexDomain,
   getPrettyUrl,
+  OG_AVATAR_URL,
 } from "@dub/utils";
 import { Cell } from "@tanstack/react-table";
 import Link from "next/link";
@@ -130,8 +131,15 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
               scroll={false}
               className="flex w-full items-center justify-between gap-2 px-4 py-2.5 transition-colors hover:bg-stone-100"
             >
-              <div className="truncate" title={row.original.customer.email}>
-                {row.original.customer.email}
+              <div className="flex items-center gap-2">
+                <img
+                  src={`${OG_AVATAR_URL}${row.original.customer.id}`}
+                  alt={row.original.customer.email}
+                  className="size-5 rounded-full"
+                />
+                <div className="truncate" title={row.original.customer.email}>
+                  {row.original.customer.email}
+                </div>
               </div>
               <ChartActivity2 className="size-3.5 shrink-0" />
             </Link>
