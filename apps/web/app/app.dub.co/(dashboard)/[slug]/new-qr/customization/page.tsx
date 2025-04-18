@@ -188,7 +188,7 @@ export default function NewQRCustomization() {
       qrCode.applyExtension(selected.extension);
       setOptions((prevOptions) => ({
         ...prevOptions,
-        width: 600,
+        width: 300,
       }));
     } else {
       qrCode.deleteExtension();

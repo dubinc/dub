@@ -226,23 +226,13 @@ export const FRAMES: TStyleOption[] = [
       try {
         const res = await fetch(src);
         const svgText = await res.text();
-        const parsed = new DOMParser().parseFromString(
+        const frame = new DOMParser().parseFromString(
           svgText,
           "image/svg+xml",
         ).documentElement;
 
-        parsed.setAttribute("width", String(options.width));
-        parsed.setAttribute("height", String(options.height));
-        parsed.setAttribute("overflow", "visible");
-
-        const scooterGroup = parsed.querySelector("g#scooter");
-        if (scooterGroup) {
-          scooterGroup.setAttribute(
-            "transform",
-            "scale(2.5) translate(-100, -122)",
-          );
-          scooterGroup.setAttribute("overflow", "visible");
-        }
+        frame.setAttribute("width", String(options.width));
+        frame.setAttribute("height", String(options.height));
 
         const qrGroup = document.createElementNS(
           "http://www.w3.org/2000/svg",
@@ -253,10 +243,10 @@ export const FRAMES: TStyleOption[] = [
           qrGroup.appendChild(svg.firstChild);
         }
 
-        qrGroup.setAttribute("transform", "translate(-135, -120)");
+        qrGroup.setAttribute("transform", "scale(0.38) translate(110, 115)");
         svg.appendChild(qrGroup);
 
-        svg.appendChild(parsed);
+        svg.appendChild(frame);
       } catch (err) {
         console.error("Failed to load or parse scooter SVG:", err);
       }
