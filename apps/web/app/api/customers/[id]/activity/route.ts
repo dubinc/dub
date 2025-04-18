@@ -7,7 +7,7 @@ import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/customers/[id]/activity - get a customer's activity
-export const GET = withWorkspace(async ({ workspace, params, session }) => {
+export const GET = withWorkspace(async ({ workspace, params }) => {
   const { id: customerId } = params;
 
   const customer = await getCustomerOrThrow({

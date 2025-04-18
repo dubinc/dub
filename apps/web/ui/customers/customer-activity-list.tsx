@@ -1,5 +1,10 @@
 import { CustomerActivityResponse } from "@/lib/types";
-import { DynamicTooltipWrapper, LinkLogo } from "@dub/ui";
+import {
+  Button,
+  DynamicTooltipWrapper,
+  LinkLogo,
+  useCopyToClipboard,
+} from "@dub/ui";
 import { CursorRays, MoneyBill2, UserCheck } from "@dub/ui/icons";
 import { formatDateTimeSmart, getApexDomain, getPrettyUrl } from "@dub/utils";
 import Link from "next/link";
@@ -80,9 +85,70 @@ const activityData = {
       );
     },
   },
-  lead: { icon: UserCheck, content: (event) => event.eventName || "New lead" },
-  sale: { icon: MoneyBill2, content: (event) => event.eventName || "New sale" },
+
+  lead: {
+    icon: UserCheck,
+    content: (event) => {
+      const metadata = event.metadata ? JSON.parse(event.metadata) : null;
+
+      return (
+        <div className="flex flex-col gap-1">
+          <span>{event.eventName || "New lead"}</span>
+          {metadata && <MetadataViewer metadata={metadata} />}
+        </div>
+      );
+    },
+  },
+
+  sale: {
+    icon: MoneyBill2,
+    content: (event) => {
+      const metadata = event.metadata ? JSON.parse(event.metadata) : null;
+
+      return (
+        <div className="flex flex-col gap-1">
+          <span>{event.eventName || "New sale"}</span>
+          {metadata && <MetadataViewer metadata={metadata} />}
+        </div>
+      );
+    },
+  },
 };
+
+// Display the event metadata
+function MetadataViewer({ metadata }: { metadata: Record<string, any> }) {
+  const [copied, copyToClipboard] = useCopyToClipboard();
+
+  return (
+    <DynamicTooltipWrapper
+      tooltipProps={{
+        content: (
+          <div className="flex flex-col gap-4 overflow-hidden rounded-md border border-neutral-200 bg-white p-4">
+            <div className="flex h-[300px] w-[350px] overflow-hidden rounded-md border border-neutral-200 bg-white">
+              <div className="w-full overflow-auto">
+                <pre className="p-2 text-xs text-neutral-600">
+                  {JSON.stringify(metadata, null, 1)}
+                </pre>
+              </div>
+            </div>
+
+            <Button
+              text={copied ? "Copied!" : "Copy metadata"}
+              onClick={() => copyToClipboard(JSON.stringify(metadata, null, 1))}
+            />
+          </div>
+        ),
+      }}
+    >
+      <button
+        type="button"
+        className="inline-flex items-center gap-1 rounded-md border border-neutral-200 px-1.5 py-0.5 text-xs text-neutral-600 transition-colors hover:bg-neutral-50"
+      >
+        View metadata
+      </button>
+    </DynamicTooltipWrapper>
+  );
+}
 
 export function CustomerActivityList({
   activity,

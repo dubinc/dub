@@ -129,6 +129,11 @@ export const leadEventResponseSchema = z
     timestamp: z.coerce.string(),
     eventId: z.string(),
     eventName: z.string(),
+    metadata: z
+      .string()
+      .nullable()
+      .transform((val) => (val === "" ? null : val))
+      .default(null),
     // nested objects
     click: clickEventSchema,
     link: linkEventSchema,
