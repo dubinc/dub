@@ -2,6 +2,7 @@ import z from "@/lib/zod";
 import { metaTagsSchema } from "@/lib/zod/schemas/metatags";
 import {
   PartnerEarningsSchema,
+  PartnerProfileCustomerSchema,
   PartnerProfileLinkSchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
@@ -387,6 +388,10 @@ export type CustomerProps = z.infer<typeof CustomerSchema>;
 export type PartnerProps = z.infer<typeof PartnerSchema>;
 
 export type ProgramPartnerLinkProps = z.infer<typeof ProgramPartnerLinkSchema>;
+
+export type PartnerProfileCustomerProps = z.infer<
+  typeof PartnerProfileCustomerSchema
+>;
 
 export type PartnerProfileLinkProps = z.infer<typeof PartnerProfileLinkSchema>;
 

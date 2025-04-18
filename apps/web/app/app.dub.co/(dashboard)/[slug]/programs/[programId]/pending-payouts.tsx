@@ -12,11 +12,9 @@ export function PendingPayouts() {
   const { id: workspaceId } = useWorkspace();
 
   const searchParams = new URLSearchParams({
-    status: "pending",
-    sortBy: "periodStart",
-    order: "desc",
-    pageSize: "5",
     workspaceId: workspaceId!,
+    status: "pending",
+    pageSize: "5",
   });
 
   const { data: payouts, error } = useSWR<PayoutResponse[]>(

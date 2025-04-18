@@ -1,23 +1,23 @@
 import z from "@/lib/zod";
 import "dotenv-flow/config";
 import { tb } from "../../lib/tinybird/client";
-import { recordSaleWithTimestamp } from "../../lib/tinybird/record-sale";
+import { recordLeadWithTimestamp } from "../../lib/tinybird/record-lead";
 
-const getSaleEvent = tb.buildPipe({
-  pipe: "get_sale_event",
+const getLeadEvent = tb.buildPipe({
+  pipe: "get_lead_event_by_id",
   parameters: z.object({
     eventId: z.string(),
   }),
   data: z.any(),
 });
 
-// update tinybird sale event
+// update tinybird lead event
 async function main() {
-  const eventId = "nBxldg6VxQNUCCwZ";
-  const columnName = "event_name";
-  const columnValue = "New Subscription Name";
+  const eventId = "nLvob3FdmsYuI1BI";
+  const columnName = "link_id";
+  const columnValue = "link_1JRVCZWHWACS7R2KZB9ME6CJR";
 
-  const { data } = await getSaleEvent({ eventId });
+  const { data } = await getLeadEvent({ eventId });
   const oldData = data[0];
   if (!oldData) {
     console.log("No data found");
@@ -29,25 +29,19 @@ async function main() {
   };
   console.log(updatedData);
 
-  const res = await recordSaleWithTimestamp(updatedData);
+  const res = await recordLeadWithTimestamp(updatedData);
   console.log(res);
 
   //  delete data from tinybird
   const deleteRes = await Promise.allSettled([
     deleteData({
-      dataSource: "dub_sale_events",
+      dataSource: "dub_lead_events",
       eventId,
       columnName,
       oldValue: oldData[columnName],
     }),
     deleteData({
-      dataSource: "dub_sale_events_mv",
-      eventId,
-      columnName,
-      oldValue: oldData[columnName],
-    }),
-    deleteData({
-      dataSource: "dub_sale_events_id",
+      dataSource: "dub_lead_events_mv",
       eventId,
       columnName,
       oldValue: oldData[columnName],

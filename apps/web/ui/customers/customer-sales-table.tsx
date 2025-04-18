@@ -1,4 +1,4 @@
-import { PartnerEarningsResponse, SaleEvent } from "@/lib/types";
+import { CommissionResponse, SaleEvent } from "@/lib/types";
 import { StatusBadge } from "@dub/ui";
 import { currencyFormatter, formatDateTimeSmart } from "@dub/utils";
 import {
@@ -18,7 +18,7 @@ export function CustomerSalesTable({
   sales?:
     | Pick<SaleEvent, "timestamp" | "eventName" | "saleAmount">[]
     | Pick<
-        PartnerEarningsResponse,
+        CommissionResponse,
         "createdAt" | "amount" | "earnings" | "status"
       >[];
   totalSales?: number;
@@ -27,10 +27,7 @@ export function CustomerSalesTable({
 }) {
   const table = useReactTable<
     | Pick<SaleEvent, "timestamp" | "eventName" | "saleAmount">
-    | Pick<
-        PartnerEarningsResponse,
-        "createdAt" | "amount" | "earnings" | "status"
-      >
+    | Pick<CommissionResponse, "createdAt" | "amount" | "earnings" | "status">
   >({
     data: sales || [],
     columns: [
@@ -94,6 +91,7 @@ export function CustomerSalesTable({
     getCoreRowModel: getCoreRowModel(),
   });
 
+  const As = viewAllHref ? Link : "div";
   return (
     <div className="overflow-x-auto">
       {isLoading ? (
@@ -139,17 +137,18 @@ export function CustomerSalesTable({
               ))}
             </tbody>
           </table>
-          {sales?.length && totalSales && viewAllHref && (
-            <div className="mt-2 px-2 text-sm text-neutral-600">
-              {sales.length} of{" "}
-              <Link
-                href={viewAllHref}
-                className="font-medium text-neutral-700 hover:text-neutral-900"
-              >
-                {totalSales} results
-              </Link>
-            </div>
-          )}
+          <div className="mt-2 flex items-center gap-1 px-2 text-sm text-neutral-600">
+            {sales.length} of
+            <As
+              href={viewAllHref ?? "#"}
+              className="flex items-center gap-1.5 font-medium text-neutral-700 hover:text-neutral-900"
+            >
+              {totalSales ?? (
+                <div className="size-3 animate-pulse rounded-md bg-neutral-100" />
+              )}{" "}
+              results
+            </As>
+          </div>
         </>
       )}
     </div>

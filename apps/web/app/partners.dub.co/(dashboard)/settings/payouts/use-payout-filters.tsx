@@ -96,7 +96,7 @@ export function usePayoutFilters() {
   const onRemoveAll = useCallback(
     () =>
       queryParams({
-        del: ["status", "search", "partnerId"],
+        del: ["status", "programId"],
       }),
     [queryParams],
   );
