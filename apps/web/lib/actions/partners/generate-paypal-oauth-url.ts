@@ -1,6 +1,6 @@
 "use server";
 
-import { getAuthorizationUrl } from "@/lib/paypal/oauth";
+import { paypalOAuth } from "@/lib/paypal/oauth";
 import { CONNECT_SUPPORTED_COUNTRIES, COUNTRIES } from "@dub/utils";
 import { authPartnerActionClient } from "../safe-action";
 
@@ -24,7 +24,7 @@ export const generatePaypalOAuthUrl = authPartnerActionClient.action(
       );
     }
 
-    const url = await getAuthorizationUrl({
+    const url = await paypalOAuth.getAuthorizationUrl({
       dubUserId: user.id,
     });
 

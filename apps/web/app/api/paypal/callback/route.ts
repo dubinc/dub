@@ -1,10 +1,6 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { getSession } from "@/lib/auth";
-import {
-  exchangeCodeForToken,
-  getUserInfo,
-  verifyState,
-} from "@/lib/paypal/oauth";
+import { paypalOAuth } from "@/lib/paypal/oauth";
 import { prisma } from "@dub/prisma";
 import { getSearchParams } from "@dub/utils";
 import { redirect } from "next/navigation";
@@ -39,7 +35,7 @@ export const GET = async (req: Request) => {
 
     const { code, state } = oAuthCallbackSchema.parse(getSearchParams(req.url));
 
-    const isStateValid = await verifyState({
+    const isStateValid = await paypalOAuth.verifyState({
       state,
       dubUserId: session.user.id,
     });
@@ -51,11 +47,11 @@ export const GET = async (req: Request) => {
       });
     }
 
-    const accessToken = await exchangeCodeForToken({
+    const accessToken = await paypalOAuth.exchangeCodeForToken({
       code,
     });
 
-    const paypalUser = await getUserInfo({
+    const paypalUser = await paypalOAuth.getUserInfo({
       token: accessToken,
     });
 
