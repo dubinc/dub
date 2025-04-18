@@ -51,13 +51,13 @@ export class GoogleOAuth {
   }
 
   async getAuthorizationUrl({
-    dubUserId,
+    workspaceId,
   }: {
-    dubUserId: string;
+    workspaceId: string;
   }): Promise<string> {
     const state = uuidv4();
 
-    await redis.set(`${STATE_CACHE_PREFIX}${state}`, dubUserId, {
+    await redis.set(`${STATE_CACHE_PREFIX}${state}`, workspaceId, {
       ex: 60 * 2, // 2 minutes
     });
 
@@ -74,14 +74,18 @@ export class GoogleOAuth {
     });
   }
 
+  async getState({ state }: { state: string }) {
+    return await redis.get<string>(`${STATE_CACHE_PREFIX}${state}`);
+  }
+
   async verifyState({
     state,
-    dubUserId,
+    workspaceId,
   }: {
     state: string;
-    dubUserId: string;
+    workspaceId: string;
   }) {
-    return (await redis.get(`${STATE_CACHE_PREFIX}${state}`)) === dubUserId;
+    return (await redis.get(`${STATE_CACHE_PREFIX}${state}`)) === workspaceId;
   }
 
   async exchangeCodeForToken({ code }: { code: string }) {
@@ -90,10 +94,12 @@ export class GoogleOAuth {
       redirect_uri: REDIRECT_URI,
     });
 
+    const token = accessToken.token;
+
     return {
-      accessToken: accessToken.token.access_token,
-      refreshToken: accessToken.token.refresh_token,
-      expiresIn: accessToken.token.expires_in,
+      accessToken: token.access_token,
+      refreshToken: token.refresh_token,
+      expiresIn: token.expires_in,
     };
   }
 

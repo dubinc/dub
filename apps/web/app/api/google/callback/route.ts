@@ -1,9 +1,12 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { getSession } from "@/lib/auth";
+import { googleOAuth } from "@/lib/google-ads/oauth";
+import { installIntegration } from "@/lib/integrations/install";
 import { getSlackEnv } from "@/lib/integrations/slack/env";
 import z from "@/lib/zod";
+import { prisma } from "@dub/prisma";
 import { Project } from "@dub/prisma/client";
-import { getSearchParams } from "@dub/utils";
+import { getSearchParams, GOOGLE_ADS_INTEGRATION_ID } from "@dub/utils";
 import { redirect } from "next/navigation";
 
 const schema = z.object({
@@ -32,81 +35,52 @@ export const GET = async (req: Request) => {
 
     const { code, state } = schema.parse(getSearchParams(req.url));
 
-    console.log("code", code);
-    console.log("state", state);
+    const workspaceId = await googleOAuth.getState({
+      state,
+    });
 
-    // // Find workspace that initiated the Stripe app install
-    // const workspaceId = await redis.get<string>(`slack:install:state:${state}`);
+    if (!workspaceId) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Unknown state.",
+      });
+    }
 
-    // if (!workspaceId) {
-    //   throw new DubApiError({
-    //     code: "bad_request",
-    //     message: "Unknown state",
-    //   });
-    // }
+    workspace = await prisma.project.findUniqueOrThrow({
+      where: {
+        id: workspaceId,
+      },
+      select: {
+        id: true,
+        slug: true,
+        plan: true,
+        conversionEnabled: true,
+      },
+    });
 
-    // workspace = await prisma.project.findUniqueOrThrow({
-    //   where: {
-    //     id: workspaceId,
-    //   },
-    //   select: {
-    //     id: true,
-    //     slug: true,
-    //     plan: true,
-    //     partnersEnabled: true,
-    //   },
-    // });
+    if (!workspace.conversionEnabled) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "This integration can only be used with a workspace that has conversion tracking enabled.",
+      });
+    }
 
-    // const formData = new FormData();
-    // formData.append("code", code);
-    // formData.append("client_id", env.SLACK_CLIENT_ID);
-    // formData.append("client_secret", env.SLACK_CLIENT_SECRET);
-    // formData.append(
-    //   "redirect_uri",
-    //   `${APP_DOMAIN_WITH_NGROK}/api/slack/callback`,
-    // );
+    const credentials = await googleOAuth.exchangeCodeForToken({
+      code,
+    });
 
-    // const response = await fetch("https://slack.com/api/oauth.v2.access", {
-    //   method: "POST",
-    //   body: formData,
-    // });
-
-    // const data = await response.json();
-
-    // const credentials: SlackCredential = {
-    //   appId: data.app_id,
-    //   botUserId: data.bot_user_id,
-    //   scope: data.scope,
-    //   accessToken: data.access_token,
-    //   tokenType: data.token_type,
-    //   authUser: data.authed_user,
-    //   team: data.team,
-    //   incomingWebhook: {
-    //     channel: data.incoming_webhook.channel,
-    //     channelId: data.incoming_webhook.channel_id,
-    //   },
-    // };
-
-    // const installation = await installIntegration({
-    //   integrationId: SLACK_INTEGRATION_ID,
-    //   userId: session.user.id,
-    //   workspaceId,
-    //   credentials,
-    // });
-
-    // await createWebhook({
-    //   name: "Slack",
-    //   url: data.incoming_webhook.url,
-    //   receiver: WebhookReceiver.slack,
-    //   triggers: [],
-    //   workspace,
-    //   installationId: installation.id,
-    // });
+    await installIntegration({
+      integrationId: GOOGLE_ADS_INTEGRATION_ID,
+      userId: session.user.id,
+      workspaceId,
+      credentials: {
+        // store the credentials in the database
+      },
+    });
   } catch (e: any) {
     return handleAndReturnErrorResponse(e);
   }
 
-  // TODO: Fix this
-  // redirect to the correct workspace slug
-  redirect(`/settings/integrations/google-ads`);
+  redirect(`${workspace?.slug}/settings/integrations/google-ads`);
 };
