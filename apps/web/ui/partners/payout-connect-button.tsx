@@ -20,7 +20,7 @@ export default function PayoutConnectButton(props: ButtonProps) {
           return;
         }
 
-        router.push(data.url);
+        window.open(data.url, "_blank");
       },
       onError: ({ error }) => {
         toast.error(error.serverError);
@@ -35,7 +35,7 @@ export default function PayoutConnectButton(props: ButtonProps) {
           return;
         }
 
-        router.push(data.url);
+        window.open(data.url, "_blank");
       },
       onError: ({ error }) => {
         toast.error(error.serverError);
@@ -43,10 +43,17 @@ export default function PayoutConnectButton(props: ButtonProps) {
     });
 
   const onClick = async () => {
-    if (partner.supportedPayoutMethod === "stripe") {
+    if (!partner) {
+      toast.error("Invalid partner profile. Please log out and log back in.");
+      return;
+    }
+
+    if (partner.paypalEmail) {
+      await executePaypalAsync();
+    } else if (partner.stripeConnectId) {
       await executeStripeAsync();
     } else {
-      await executePaypalAsync();
+      toast.error("Unable to connect payout method. Please contact support.");
     }
   };
 

@@ -1,5 +1,6 @@
 "use server";
 
+import { paypalEnv } from "@/lib/paypal/env";
 import { paypalOAuth } from "@/lib/paypal/oauth";
 import { CONNECT_SUPPORTED_COUNTRIES, COUNTRIES } from "@dub/utils";
 import { authPartnerActionClient } from "../safe-action";
@@ -9,7 +10,9 @@ export const generatePaypalOAuthUrl = authPartnerActionClient.action(
     let { partner, user } = ctx;
 
     if (partner.paypalEmail) {
-      throw new Error("You have already connected your PayPal account.");
+      return {
+        url: `${paypalEnv.PAYPAL_AUTHORIZE_HOST}/myaccount/summary`,
+      };
     }
 
     if (!partner.country) {

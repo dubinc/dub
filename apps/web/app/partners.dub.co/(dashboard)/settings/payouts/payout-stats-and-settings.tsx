@@ -2,7 +2,7 @@
 
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import { PayoutMethod, PayoutsCount } from "@/lib/types";
+import { PayoutsCount } from "@/lib/types";
 import PayoutConnectButton from "@/ui/partners/payout-connect-button";
 import { AlertCircleFill } from "@/ui/shared/icons";
 import { PayoutStatus } from "@dub/prisma/client";
@@ -25,7 +25,7 @@ export function PayoutStatsAndSettings() {
 
   const { data: bankAccount } = useSWR<Stripe.BankAccount>(
     partner &&
-      partner.payoutMethod === "stripe" &&
+      partner.stripeConnectId &&
       "/api/partner-profile/payouts/settings",
     fetcher,
   );
@@ -38,7 +38,6 @@ export function PayoutStatsAndSettings() {
             <div className="text-sm text-neutral-500">Upcoming payouts</div>
           </div>
           <PayoutConnectButton
-            provider={partner?.payoutMethod as PayoutMethod}
             text={
               partner?.payoutsEnabledAt ? "Payout settings" : "Connect payouts"
             }
@@ -48,12 +47,10 @@ export function PayoutStatsAndSettings() {
         </div>
         <div className="flex items-end justify-between gap-5">
           <div className="mt-2 flex items-center gap-2">
-            {!partner.payoutsEnabledAt && (
+            {partner && !partner.payoutsEnabledAt && (
               <Tooltip
-                content={`A ${
-                  partner?.supportedPayoutMethod
-                    ? PAYOUT_METHOD_LABELS[partner.supportedPayoutMethod]
-                    : ""
+                content={`A valid ${
+                  partner.stripeConnectId ? "Stripe" : "PayPal"
                 } connection is required for payouts.`}
                 side="right"
               >
@@ -76,7 +73,7 @@ export function PayoutStatsAndSettings() {
             />
           </div>
 
-          {partner.payoutMethod === "stripe" &&
+          {partner?.stripeConnectId &&
             bankAccount &&
             Object.keys(bankAccount).length > 0 && (
               <div className="text-sm">
@@ -90,7 +87,7 @@ export function PayoutStatsAndSettings() {
               </div>
             )}
 
-          {partner.payoutMethod === "paypal" && partner.paypalEmail && (
+          {partner?.paypalEmail && (
             <div className="text-right text-sm">
               <p className="text-neutral-600">PayPal Account</p>
               <div className="flex items-center justify-end gap-1.5 font-mono text-neutral-400">

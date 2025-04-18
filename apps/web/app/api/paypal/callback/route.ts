@@ -14,6 +14,17 @@ const oAuthCallbackSchema = z.object({
 // GET /api/paypal/callback - callback from PayPal
 export const GET = async (req: Request) => {
   const session = await getSession();
+  const { searchParams } = new URL(req.url);
+
+  // Local development redirect since the callback might be coming through ngrok
+  if (
+    process.env.NODE_ENV === "development" &&
+    !req.headers.get("host")?.includes("localhost")
+  ) {
+    return redirect(
+      `http://partners.localhost:8888/api/paypal/callback?${searchParams.toString()}`,
+    );
+  }
 
   try {
     if (!session?.user.id) {

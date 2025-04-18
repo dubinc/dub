@@ -41,7 +41,9 @@ export const PayoutStats = memo(() => {
             <div className="flex items-center gap-2">
               {partner && !partner.payoutsEnabledAt && (
                 <Tooltip
-                  content={`You need to set up your ${partner?.supportedPayoutMethod ? PAYOUT_METHOD_LABELS[partner.supportedPayoutMethod] : ""} payouts account to be able to receive payouts from the programs you are enrolled in.`}
+                  content={`You need to set up your ${
+                    partner.stripeConnectId ? "Stripe" : "PayPal"
+                  } payouts account to be able to receive payouts from the programs you are enrolled in.`}
                   side="right"
                 >
                   <div>

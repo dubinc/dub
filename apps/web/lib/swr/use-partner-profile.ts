@@ -1,8 +1,8 @@
-import { CONNECT_SUPPORTED_COUNTRIES, fetcher } from "@dub/utils";
+import { fetcher } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
-import { PartnerProps, PayoutMethod } from "../types";
+import { PartnerProps } from "../types";
 
 export default function usePartnerProfile() {
   const { data: session, status } = useSession();
@@ -27,24 +27,8 @@ export default function usePartnerProfile() {
     },
   );
 
-  const payoutMethod = partner?.stripeConnectId
-    ? "stripe"
-    : partner?.paypalEmail
-      ? "paypal"
-      : null;
-
-  const supportedPayoutMethod = partner?.country
-    ? CONNECT_SUPPORTED_COUNTRIES.includes(partner.country)
-      ? "stripe"
-      : "paypal"
-    : null;
-
   return {
-    partner: {
-      ...(partner as PartnerProps),
-      payoutMethod: payoutMethod as PayoutMethod | null,
-      supportedPayoutMethod: supportedPayoutMethod as PayoutMethod | null,
-    },
+    partner,
     error,
     loading: status === "loading" || isLoading,
     mutate,
