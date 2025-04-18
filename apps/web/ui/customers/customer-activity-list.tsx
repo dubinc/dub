@@ -124,7 +124,7 @@ function MetadataViewer({ metadata }: { metadata: Record<string, any> }) {
       tooltipProps={{
         content: (
           <div className="flex flex-col gap-4 overflow-hidden rounded-md border border-neutral-200 bg-white p-4">
-            <div className="flex h-[300px] w-[350px] overflow-hidden rounded-md border border-neutral-200 bg-white">
+            <div className="flex h-[200px] w-[280px] overflow-hidden rounded-md border border-neutral-200 bg-white sm:h-[300px] sm:w-[350px]">
               <div className="w-full overflow-auto">
                 <pre className="p-2 text-xs text-neutral-600">
                   {JSON.stringify(metadata, null, 1)}
@@ -138,11 +138,12 @@ function MetadataViewer({ metadata }: { metadata: Record<string, any> }) {
             />
           </div>
         ),
+        align: "start",
       }}
     >
       <button
         type="button"
-        className="inline-flex items-center gap-1 rounded-md border border-neutral-200 px-1.5 py-0.5 text-xs text-neutral-600 transition-colors hover:bg-neutral-50"
+        className="hidden items-center gap-1 rounded-md border border-neutral-200 px-1.5 py-0.5 text-xs text-neutral-600 transition-colors hover:bg-neutral-50 sm:inline-flex"
       >
         View metadata
       </button>
