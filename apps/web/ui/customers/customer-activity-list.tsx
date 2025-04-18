@@ -4,6 +4,7 @@ import { CursorRays, MoneyBill2, UserCheck } from "@dub/ui/icons";
 import { formatDateTimeSmart, getApexDomain, getPrettyUrl } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { MetadataViewer } from "../analytics/events/metadata-viewer";
 
 const activityData = {
   click: {
@@ -80,8 +81,46 @@ const activityData = {
       );
     },
   },
-  lead: { icon: UserCheck, content: (event) => event.eventName || "New lead" },
-  sale: { icon: MoneyBill2, content: (event) => event.eventName || "New sale" },
+
+  lead: {
+    icon: UserCheck,
+    content: (event) => {
+      let metadata = null;
+
+      try {
+        metadata = event.metadata ? JSON.parse(event.metadata) : null;
+      } catch (e) {
+        //
+      }
+
+      return (
+        <div className="flex flex-col gap-1">
+          <span>{event.eventName || "New lead"}</span>
+          {metadata && <MetadataViewer metadata={metadata} />}
+        </div>
+      );
+    },
+  },
+
+  sale: {
+    icon: MoneyBill2,
+    content: (event) => {
+      let metadata = null;
+
+      try {
+        metadata = event.metadata ? JSON.parse(event.metadata) : null;
+      } catch (e) {
+        //
+      }
+
+      return (
+        <div className="flex flex-col gap-1">
+          <span>{event.eventName || "New sale"}</span>
+          {metadata && <MetadataViewer metadata={metadata} />}
+        </div>
+      );
+    },
+  },
 };
 
 export function CustomerActivityList({
