@@ -19,6 +19,12 @@ interface UserInfo {
   picture: string;
 }
 
+interface AccessibleCustomer {
+  resourceName: string;
+  id: string;
+  name?: string;
+}
+
 const REDIRECT_URI = `${APP_DOMAIN_WITH_NGROK}/api/google/callback`;
 const STATE_CACHE_PREFIX = "google:oauth:state:";
 
@@ -111,6 +117,35 @@ export class GoogleOAuth {
 
     return data;
   }
-}
 
+  async getAccessibleCustomers({
+    token,
+  }: {
+    token: string;
+  }): Promise<AccessibleCustomer[]> {
+    const response = await fetch(
+      "https://googleads.googleapis.com/v17/customers:listAccessibleCustomers",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "developer-token": googleEnv.GOOGLE_DEVELOPER_TOKEN,
+        },
+      },
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch accessible customers from Google Ads.", {
+        cause: data,
+      });
+    }
+
+    // Extract customer IDs from resource names
+    return data.resourceNames.map((resourceName: string) => ({
+      resourceName,
+      id: resourceName.split("/")[1],
+    }));
+  }
+}
 export const googleOAuth = new GoogleOAuth();
