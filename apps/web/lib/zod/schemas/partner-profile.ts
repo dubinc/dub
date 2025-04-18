@@ -8,6 +8,7 @@ import {
   getCommissionsCountQuerySchema,
   getCommissionsQuerySchema,
 } from "./commissions";
+import { customerActivityResponseSchema } from "./customer-activity";
 import { CustomerEnrichedSchema } from "./customers";
 import { LinkSchema } from "./links";
 
@@ -80,10 +81,11 @@ export const PartnerProfileLinkSchema = LinkSchema.pick({
 
 export const PartnerProfileCustomerSchema = CustomerEnrichedSchema.pick({
   id: true,
-  createdAt: true,
   country: true,
+  createdAt: true,
 }).extend({
   email: z
     .string()
     .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "****")),
+  activity: customerActivityResponseSchema,
 });

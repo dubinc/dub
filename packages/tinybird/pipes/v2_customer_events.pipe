@@ -158,6 +158,7 @@ SQL >
             SELECT *
             FROM sale_events
         )
-    ORDER BY timestamp {% if order == 'asc' %} ASC {% else %} DESC {% end %}
+    ORDER BY
+        timestamp DESC, CASE event WHEN 'click' THEN 1 WHEN 'lead' THEN 2 WHEN 'sale' THEN 3 END DESC
 
 

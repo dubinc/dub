@@ -3,9 +3,8 @@
 import { CUSTOMER_PAGE_EVENTS_LIMIT } from "@/lib/partners/constants";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import {
-  CustomerActivityResponse,
-  CustomerEnriched,
   PartnerEarningsResponse,
+  PartnerProfileCustomerProps,
 } from "@/lib/types";
 import { CustomerActivityList } from "@/ui/customers/customer-activity-list";
 import { CustomerDetailsColumn } from "@/ui/customers/customer-details-column";
@@ -25,23 +24,12 @@ export function ProgramCustomerPageClient() {
     customerId: string;
   }>();
 
-  const {
-    data: customer,
-    isLoading,
-    error,
-  } = useSWR<CustomerEnriched>(
+  const { data: customer, isLoading } = useSWR<PartnerProfileCustomerProps>(
     `/api/partner-profile/programs/${programSlug}/customers/${customerId}`,
     fetcher,
   );
 
-  const { data: customerActivity, isLoading: isCustomerActivityLoading } =
-    useSWR<CustomerActivityResponse>(
-      customer &&
-        `/api/partner-profile/programs/${programSlug}/customers/${customer.id}/activity`,
-      fetcher,
-    );
-
-  if (!customer && !isLoading && !error) notFound();
+  if (!customer && !isLoading) notFound();
 
   return (
     <div className="mb-10 mt-2">
@@ -102,8 +90,8 @@ export function ProgramCustomerPageClient() {
               Activity
             </h2>
             <CustomerActivityList
-              activity={customerActivity}
-              isLoading={!customer || isCustomerActivityLoading}
+              activity={customer?.activity}
+              isLoading={!customer}
             />
           </section>
         </div>
@@ -112,8 +100,8 @@ export function ProgramCustomerPageClient() {
         <div className="-order-1 lg:order-1">
           <CustomerDetailsColumn
             customer={customer}
-            customerActivity={customerActivity}
-            isCustomerActivityLoading={!customer || isCustomerActivityLoading}
+            customerActivity={customer?.activity}
+            isCustomerActivityLoading={!customer}
           />
         </div>
       </div>

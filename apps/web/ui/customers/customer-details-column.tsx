@@ -18,7 +18,10 @@ export function CustomerDetailsColumn({
   customerActivity,
   isCustomerActivityLoading,
 }: {
-  customer?: CustomerProps;
+  customer?: Omit<CustomerProps, "name" | "externalId"> & {
+    name?: string;
+    externalId?: string;
+  };
   customerActivity?: CustomerActivityResponse;
   isCustomerActivityLoading: boolean;
 }) {
@@ -129,7 +132,7 @@ export function CustomerDetailsColumn({
         )}
       </div>
 
-      {customer && (customer?.externalId ?? null) !== null && (
+      {customer?.externalId && (
         <div className="flex flex-col gap-2">
           <DetailHeading>External ID</DetailHeading>
           {
