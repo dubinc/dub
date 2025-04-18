@@ -10,7 +10,6 @@ export async function sendStripePayouts({
   invoiceId,
   chargeId,
   achCreditTransfer,
-  receiptUrl,
   payouts,
 }: Payload & { payouts: Payouts[] }) {
   if (payouts.length === 0) {
@@ -77,14 +76,4 @@ export async function sendStripePayouts({
         }),
     ]);
   }
-
-  await prisma.invoice.update({
-    where: {
-      id: invoiceId,
-    },
-    data: {
-      receiptUrl,
-      paidAt: new Date(),
-    },
-  });
 }
