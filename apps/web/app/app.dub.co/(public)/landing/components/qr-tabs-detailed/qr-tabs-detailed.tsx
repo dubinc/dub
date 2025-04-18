@@ -45,9 +45,9 @@ export const QrTabsDetailed = () => {
                     key={type.id}
                     value={type.id}
                     className={cn(
-                      "bg-primary-200 text-neutral flex h-24 w-24 flex-col items-center justify-around gap-2 rounded-lg border border-transparent px-2 py-3 transition-colors md:h-[104px] md:w-[116px] md:gap-3",
-                      "hover:bg-primary-300 hover:text-neutral",
-                      "data-[state=active]:bg-primary-300 data-[state=active]:border-primary data-[state=active]:text-neutral data-[state=active]:border",
+                      "bg-primary-200 text-neutral group flex h-24 w-24 flex-col items-center justify-around gap-2 rounded-lg border border-transparent px-2 py-3 transition-colors md:h-[104px] md:w-[116px] md:gap-3",
+                      "hover:bg-secondary-100 hover:text-secondary",
+                      "data-[state=active]:bg-secondary-100 data-[state=active]:text-secondary",
                     )}
                   >
                     <Icon
@@ -55,12 +55,12 @@ export const QrTabsDetailed = () => {
                       className={cn(
                         "h-7 w-7 flex-none",
                         idx === 4
-                          ? "[&>path]:fill-neutral-200"
-                          : "[&>g]:stroke-neutral-200 [&>path]:stroke-neutral-200",
+                          ? "group-hover:[&>path]:fill-secondary [&>path]:fill-neutral-200"
+                          : "group-hover:[&>g]:stroke-secondary group-hover:[&>path]:stroke-secondary [&>g]:stroke-neutral-200 [&>path]:stroke-neutral-200",
                         activeTab === type.id &&
                           (idx === 4
-                            ? "[&>path]:fill-primary"
-                            : "[&>g]:stroke-primary [&>path]:stroke-primary"),
+                            ? "[&>path]:fill-secondary group-hover:[&>path]:fill-secondary"
+                            : "[&>g]:stroke-secondary group-hover:[&>g]:stroke-secondary [&>path]:stroke-secondary group-hover:[&>path]:stroke-secondary"),
                       )}
                     />
                     <span className="text-wrap text-xs font-normal">
@@ -96,17 +96,17 @@ export const QrTabsDetailed = () => {
                   </div>
                   <div className="flex max-w-[520px] flex-col items-start justify-start gap-3 md:gap-[18px]">
                     <div className="flex flex-col items-start justify-start gap-2 md:gap-3">
-                      <h3 className="text-neutral text-left text-base font-semibold md:text-xl">
+                      <h3 className="text-neutral text-left text-base font-semibold md:text-lg">
                         {type.label}
                       </h3>
-                      <p className="text-left text-sm text-neutral-300">
+                      <p className="text-left text-sm text-neutral-300 md:text-base">
                         {type.content}
                       </p>
                     </div>
                     <Link
                       href="/register"
                       type="button"
-                      className="bg-secondary hover:bg-secondary/90 flex h-11 w-full max-w-none basis-1/4 flex-row items-center justify-center gap-2 rounded-md px-6 py-3 text-sm font-medium text-white transition-colors md:max-w-[201px]"
+                      className="bg-secondary hover:bg-secondary/90 flex h-11 w-full max-w-none basis-1/4 flex-row items-center justify-center gap-2 rounded-md px-6 py-3 text-sm font-medium text-white transition-colors md:max-w-[201px] md:text-base"
                     >
                       Create QR code
                       <Image width={20} src={QrCodeIcon} alt="QR Code" />

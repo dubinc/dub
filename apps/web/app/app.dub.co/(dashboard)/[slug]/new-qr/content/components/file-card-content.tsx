@@ -1,4 +1,5 @@
 import { Button } from "@dub/ui";
+import { cn } from "@dub/utils";
 import { Icon } from "@iconify/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Dispatch, FC, SetStateAction } from "react";
@@ -15,6 +16,8 @@ interface IFileCardContentProps {
   setFiles: Dispatch<SetStateAction<File[]>>;
   title?: string;
   multiple?: boolean;
+  minimumFlow?: boolean;
+  isLogo?: boolean;
 }
 export const FileCardContent: FC<IFileCardContentProps> = ({
   qrType,
@@ -22,6 +25,8 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
   setFiles,
   title,
   multiple = true,
+  minimumFlow = false,
+  isLogo = false,
 }) => {
   const {
     fileInputRef,
@@ -44,7 +49,7 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
       : qrType === EQRType.VIDEO
         ? "Video(s)"
         : "PDF(s)";
-  const { label } = getMaxSizeLabel(qrType);
+  const { label } = getMaxSizeLabel(qrType, isLogo);
 
   return (
     <div className="flex w-full flex-col gap-4">
@@ -58,7 +63,14 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
         <div
           ref={dropzoneRef}
           role="button"
-          className="border-secondary flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed p-6 md:min-h-[128px]"
+          className={cn(
+            "border-secondary flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed p-6 md:min-h-[128px]",
+            {
+              "h-[50px] flex-row-reverse justify-start px-1 md:min-h-[50px]":
+                minimumFlow,
+              "justify-between pl-3 pr-0": isLogo,
+            },
+          )}
           onClick={handleUploadClick}
         >
           <input
@@ -72,11 +84,19 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
           />
           <Button
             variant="primary"
-            className="bg-secondary hover:bg-secondary/90 h-9 max-w-[140px] rounded-md border-none px-6 py-[6px] text-xs font-medium text-white hover:ring-0 md:max-w-[160px] md:py-2 md:text-sm"
-            text={`Upload ${fileTypeLabel}`}
+            className={cn(
+              "bg-secondary hover:bg-secondary/90 h-9 max-w-[140px] rounded-md border-none px-6 py-[6px] text-xs font-medium text-white hover:ring-0 md:max-w-[160px] md:py-2 md:text-sm",
+              {
+                "bg-secondary-100 text-secondary hover:bg-secondary-100/90 h-[48px] w-[100px] rounded-l-none":
+                  isLogo,
+              },
+            )}
+            text={isLogo ? "Browse" : `Upload ${fileTypeLabel}`}
           />
           <p className="text-xs font-normal text-neutral-200 md:text-sm">
-            Maximum size: {label}
+            {minimumFlow
+              ? `Drag and drop or click to upload a logo (${label} max)`
+              : `Maximum size: ${label}`}
           </p>
 
           {errorMessage && (

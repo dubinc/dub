@@ -14,6 +14,7 @@ interface IStylePickerProps {
   optionsWrapperClassName?: string;
   iconSize?: number;
   styleButtonClassName?: string;
+  minimalFlow?: boolean;
 }
 
 export const StylePicker: FC<IStylePickerProps> = ({
@@ -25,12 +26,13 @@ export const StylePicker: FC<IStylePickerProps> = ({
   optionsWrapperClassName,
   iconSize,
   styleButtonClassName,
+  minimalFlow = false,
 }) => {
   return (
     <div className={cn("flex flex-col gap-2", stylePickerWrapperClassName)}>
-      <label className="font-medium">{label}</label>
+      {!minimalFlow && <label className="font-medium">{label}</label>}
       <ScrollArea.Root
-        type={"auto"}
+        type={minimalFlow ? "scroll" : "auto"}
         className="relative w-full overflow-hidden"
       >
         <ScrollArea.Viewport className="overflow-x-auto">
