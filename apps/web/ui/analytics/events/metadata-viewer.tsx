@@ -1,5 +1,6 @@
 import { Button, Tooltip, useCopyToClipboard } from "@dub/ui";
-import { truncate } from "@dub/utils";
+import { cn, truncate } from "@dub/utils";
+import { Check, Copy } from "lucide-react";
 import { Fragment } from "react";
 
 // Display the event metadata
@@ -59,7 +60,28 @@ export function MetadataViewer({
               </div>
             </div>
             <Button
-              text={copied ? "Copied!" : "Copy metadata"}
+              icon={
+                <div className="relative size-4">
+                  <div
+                    className={cn(
+                      "absolute inset-0 transition-[transform,opacity]",
+                      copied && "translate-y-1 opacity-0",
+                    )}
+                  >
+                    <Copy className="size-4" />
+                  </div>
+                  <div
+                    className={cn(
+                      "absolute inset-0 transition-[transform,opacity]",
+                      !copied && "translate-y-1 opacity-0",
+                    )}
+                  >
+                    <Check className="size-4" />
+                  </div>
+                </div>
+              }
+              className="h-9"
+              text={copied ? "Copied metadata" : "Copy metadata"}
               onClick={() => copyToClipboard(JSON.stringify(metadata, null, 2))}
             />
           </div>
