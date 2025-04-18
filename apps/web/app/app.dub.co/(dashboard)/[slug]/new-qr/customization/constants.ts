@@ -220,41 +220,52 @@ export const FRAMES: TStyleOption[] = [
   {
     id: "frame-scooter",
     type: "scooter",
-    extension: async (svg, options) => {
-      const { src } = Scooter;
-
-      try {
-        const res = await fetch(src);
-        const svgText = await res.text();
-        const frame = new DOMParser().parseFromString(
-          svgText,
-          "image/svg+xml",
-        ).documentElement;
-
-        frame.setAttribute("width", String(options.width));
-        frame.setAttribute("height", String(options.height));
-
-        const qrGroup = document.createElementNS(
-          "http://www.w3.org/2000/svg",
-          "g",
-        );
-
-        while (svg.firstChild) {
-          qrGroup.appendChild(svg.firstChild);
-        }
-
-        qrGroup.setAttribute("transform", "scale(0.38) translate(110, 115)");
-        svg.appendChild(qrGroup);
-
-        svg.appendChild(frame);
-      } catch (err) {
-        console.error("Failed to load or parse scooter SVG:", err);
-      }
+    extension: async (qr, options) => {
+      await embedQRIntoFrame(qr, options, Scooter, 0.38, 110, 115);
     },
 
     icon: ScooterPreview,
   },
 ];
+
+async function embedQRIntoFrame(
+  svg: SVGSVGElement,
+  options: { width: number; height: number },
+  frame: StaticImageData,
+  qrScale: number,
+  qrTranslateX: number,
+  qrTranslateY: number,
+) {
+  const { src } = frame;
+
+  try {
+    const res = await fetch(src);
+    const svgText = await res.text();
+    const frame = new DOMParser().parseFromString(
+      svgText,
+      "image/svg+xml",
+    ).documentElement;
+
+    frame.setAttribute("width", String(options.width));
+    frame.setAttribute("height", String(options.height));
+
+    const qrGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+
+    while (svg.firstChild) {
+      qrGroup.appendChild(svg.firstChild);
+    }
+
+    qrGroup.setAttribute(
+      "transform",
+      `scale(${qrScale}) translate(${qrTranslateX}, ${qrTranslateY})`,
+    );
+    svg.appendChild(qrGroup);
+
+    svg.appendChild(frame);
+  } catch (err) {
+    console.error("Failed to load or parse scooter SVG:", err);
+  }
+}
 
 export const WHITE_COLOR = "#ffffff";
 export const SHORT_WHITE_COLOR = "#fff";
