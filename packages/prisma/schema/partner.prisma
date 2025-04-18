@@ -25,9 +25,9 @@ model Partner {
   country           String?
   status            PartnerStatus      @default(default)
   stripeConnectId   String?            @unique
+  paypalEmail       String?            @unique
   payoutsEnabledAt  DateTime?
   connectPayoutsLastRemindedAt DateTime?
-  paypalEmail       String?
   showOnLeaderboard Boolean            @default(true)
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
