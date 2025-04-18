@@ -7,6 +7,8 @@ import SquareBorderIcon from "./icons/border/square.svg";
 import CircleCenterIcon from "./icons/center/circle.svg";
 import SquareCenterIcon from "./icons/center/square.svg";
 import DummyFrame from "./icons/dummy-frame.svg";
+import ScooterPreview from "./icons/frames/scooter-preview.svg";
+import Scooter from "./icons/frames/scooter.svg";
 import LinkLogoIcon from "./icons/logos/link.svg";
 import WhatsAppLogoIcon from "./icons/logos/whatsapp.svg";
 import WifiLogoIcon from "./icons/logos/wifi.svg";
@@ -214,6 +216,53 @@ export const FRAMES: TStyleOption[] = [
       svg.appendChild(text);
     },
     icon: DummyFrame,
+  },
+  {
+    id: "frame-scooter",
+    type: "scooter",
+    extension: async (svg, options) => {
+      const { src } = Scooter;
+
+      try {
+        const res = await fetch(src);
+        const svgText = await res.text();
+        const parsed = new DOMParser().parseFromString(
+          svgText,
+          "image/svg+xml",
+        ).documentElement;
+
+        parsed.setAttribute("width", String(options.width));
+        parsed.setAttribute("height", String(options.height));
+        parsed.setAttribute("overflow", "visible");
+
+        const scooterGroup = parsed.querySelector("g#scooter");
+        if (scooterGroup) {
+          scooterGroup.setAttribute(
+            "transform",
+            "scale(2.5) translate(-100, -122)",
+          );
+          scooterGroup.setAttribute("overflow", "visible");
+        }
+
+        const qrGroup = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "g",
+        );
+
+        while (svg.firstChild) {
+          qrGroup.appendChild(svg.firstChild);
+        }
+
+        qrGroup.setAttribute("transform", "translate(-135, -120)");
+        svg.appendChild(qrGroup);
+
+        svg.appendChild(parsed);
+      } catch (err) {
+        console.error("Failed to load or parse scooter SVG:", err);
+      }
+    },
+
+    icon: ScooterPreview,
   },
 ];
 
