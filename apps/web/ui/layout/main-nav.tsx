@@ -88,7 +88,7 @@ export function MainNav({
         </div>
       </div>
       <div className="bg-neutral-100 md:pt-1.5">
-        <div className="relative min-h-full bg-neutral-100 pt-px md:rounded-tl-2xl md:border md:border-b-0 md:border-r-0 md:border-neutral-200/80 md:bg-white">
+        <div className="relative min-h-full overflow-hidden bg-neutral-100 pt-px md:rounded-tl-2xl md:border md:border-b-0 md:border-r-0 md:border-neutral-200/20 md:bg-white">
           <SideNavContext.Provider value={{ isOpen, setIsOpen }}>
             {children}
           </SideNavContext.Provider>
