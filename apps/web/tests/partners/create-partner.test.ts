@@ -13,6 +13,8 @@ const expectedPartner = {
   image: null,
   description: null,
   country: null,
+  paypalEmail: null,
+  stripeConnectId: null,
   payoutsEnabledAt: null,
   createdAt: expect.any(String),
   status: "approved",
