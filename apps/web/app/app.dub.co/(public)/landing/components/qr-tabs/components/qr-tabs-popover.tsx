@@ -43,9 +43,9 @@ export const QRTabsPopover: FC<IQRTabsPopoverProps> = ({
                   key={option.id}
                   onClick={() => handlePopoverItemClick(option.id)}
                   className={cn(
-                    "hover:bg-primary-300 hover:text-neutral flex min-h-11 w-full items-center gap-2 rounded-lg px-2 py-2 text-sm text-neutral-600",
+                    "hover:bg-secondary-100 hover:text-secondary group flex min-h-11 w-full items-center gap-2 rounded-lg px-2 py-2 text-sm text-neutral-600",
                     selectedQrType?.id === option.id &&
-                      "bg-primary-300 text-neutral",
+                      "bg-secondary-100 text-secondary",
                   )}
                 >
                   <Icon
@@ -53,12 +53,12 @@ export const QRTabsPopover: FC<IQRTabsPopoverProps> = ({
                     className={cn(
                       "h-5 w-5",
                       idx === 4
-                        ? "[&>path]:fill-neutral-200"
-                        : "[&>g]:stroke-neutral-200 [&>path]:stroke-neutral-200",
+                        ? "group-hover:[&>path]:fill-secondary [&>path]:fill-neutral-200"
+                        : "group-hover:[&>g]:stroke-secondary group-hover:[&>path]:stroke-secondary [&>g]:stroke-neutral-200 [&>path]:stroke-neutral-200",
                       selectedQrType?.id === option.id &&
                         (idx === 4
-                          ? "[&>path]:fill-primary"
-                          : "[&>g]:stroke-primary [&>path]:stroke-primary"),
+                          ? "[&>path]:fill-secondary"
+                          : "[&>g]:stroke-secondary [&>path]:stroke-secondary"),
                     )}
                   />
                   {option.label}

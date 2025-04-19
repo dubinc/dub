@@ -30,9 +30,9 @@ export const GetQRInfoCardsSection: FC = () => {
             content={card.content}
             img={
               <Image
-                className="w-full md:max-h-[140px] md:max-w-[342px]"
-                height={140}
-                width={342}
+                className="w-full self-center md:max-h-[138px] md:max-w-[122px]"
+                height={138}
+                width={122}
                 src={GET_QR_CARDS_IMGS[idx]}
                 alt="Get QR Info Card"
               />
