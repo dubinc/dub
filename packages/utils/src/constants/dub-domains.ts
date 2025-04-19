@@ -12,6 +12,17 @@ export const DUB_DOMAINS = [
     description: "The default domain for all new accounts.",
     projectId: DUB_WORKSPACE_ID,
   },
+  {
+    id: "clh29t3kf01b0rbsz2d3o8jue",
+    slug: "link-dev.getqr.com",
+    verified: true,
+    primary: false,
+    archived: false,
+    placeholder: "https://dev.getqr.com",
+    allowedHostnames: [],
+    description: "Development short domain for self-hosted instance.",
+    projectId: DUB_WORKSPACE_ID,
+  },
   ...(process.env.NEXT_PUBLIC_IS_DUB
     ? [
         {
