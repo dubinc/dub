@@ -40,29 +40,7 @@ export const withPartnerProfile = (handler: WithPartnerProfileHandler) => {
         }
 
         const searchParams = getSearchParams(req.url);
-        let { defaultPartnerId, id: userId } = session.user;
-
-        // During the partner onboarding process, the defaultPartnerId is not set in the partner object,
-        if (!defaultPartnerId) {
-          const partnerUser = await prisma.user.findUnique({
-            where: {
-              id: userId,
-            },
-            select: {
-              defaultPartnerId: true,
-              partners: {
-                select: {
-                  partnerId: true,
-                },
-                take: 1,
-              },
-            },
-          });
-
-          defaultPartnerId =
-            partnerUser?.defaultPartnerId ||
-            partnerUser?.partners[0]?.partnerId;
-        }
+        const { defaultPartnerId, id: userId } = session.user;
 
         if (!defaultPartnerId) {
           throw new DubApiError({

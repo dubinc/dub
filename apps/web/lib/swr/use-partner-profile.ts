@@ -6,6 +6,8 @@ import { PartnerProps } from "../types";
 
 export default function usePartnerProfile() {
   const { data: session, status } = useSession();
+  const partnerId = session?.user?.["defaultPartnerId"];
+
   const [isPartnerPage, setIsPartnerPage] = useState(false);
 
   useEffect(() => {
@@ -18,7 +20,7 @@ export default function usePartnerProfile() {
     isLoading,
     mutate,
   } = useSWR<PartnerProps>(
-    isPartnerPage && session?.user && "/api/partner-profile",
+    isPartnerPage && partnerId && "/api/partner-profile",
     fetcher,
     {
       dedupingInterval: 60000,
