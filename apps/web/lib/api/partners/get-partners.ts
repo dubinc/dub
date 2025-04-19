@@ -36,6 +36,7 @@ export async function getPartners(filters: PartnerFilters) {
     status,
     country,
     rewardId,
+    discountId,
     search,
     tenantId,
     ids,
@@ -141,6 +142,7 @@ export async function getPartners(filters: PartnerFilters) {
       ${status ? Prisma.sql`AND pe.status = ${status}` : Prisma.sql`AND pe.status NOT IN ('rejected', 'banned')`}
       ${tenantId ? Prisma.sql`AND pe.tenantId = ${tenantId}` : Prisma.sql``}
       ${country ? Prisma.sql`AND p.country = ${country}` : Prisma.sql``}
+      ${discountId ? Prisma.sql`AND pe.discountId = ${discountId}` : Prisma.sql``}
       ${rewardId ? Prisma.sql`AND EXISTS (SELECT 1 FROM PartnerReward pr WHERE pr.programEnrollmentId = pe.id AND pr.rewardId = ${rewardId})` : Prisma.sql``}
       ${
         search
