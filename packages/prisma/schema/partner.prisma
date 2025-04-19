@@ -24,6 +24,7 @@ model Partner {
   description       String?            @db.Text
   country           String?
   status            PartnerStatus      @default(default)
+  paypalEmail       String?            @unique
   stripeConnectId   String?            @unique
   payoutsEnabledAt  DateTime?
   connectPayoutsLastRemindedAt DateTime?
