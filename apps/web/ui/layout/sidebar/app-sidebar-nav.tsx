@@ -103,7 +103,7 @@ const NAV_AREAS: SidebarNavAreas<{
                     },
                     {
                       name: "Payouts",
-                      href: `/${slug}/programs/${programs[0].id}/payouts`,
+                      href: `/${slug}/programs/${programs[0].id}/payouts?status=pending`,
                     },
                     {
                       name: "Resources",

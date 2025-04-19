@@ -2,13 +2,12 @@ import { getCustomerEvents } from "@/lib/analytics/get-customer-events";
 import { getCustomerOrThrow } from "@/lib/api/customers/get-customer-or-throw";
 import { decodeLinkIfCaseSensitive } from "@/lib/api/links/case-sensitivity";
 import { withWorkspace } from "@/lib/auth";
-import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { customerActivityResponseSchema } from "@/lib/zod/schemas/customer-activity";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/customers/[id]/activity - get a customer's activity
-export const GET = withWorkspace(async ({ workspace, params, session }) => {
+export const GET = withWorkspace(async ({ workspace, params }) => {
   const { id: customerId } = params;
 
   const customer = await getCustomerOrThrow({
@@ -16,50 +15,24 @@ export const GET = withWorkspace(async ({ workspace, params, session }) => {
     id: customerId,
   });
 
-  if (!customer.linkId) {
-    return NextResponse.json(
-      customerActivityResponseSchema.parse({
-        customer,
-        events: [],
-        ltv: 0,
-        timeToLead: null,
-        timeToSale: null,
-        link: null,
-      }),
-    );
-  }
+  const events = await getCustomerEvents({
+    customerId: customer.id,
+  });
 
-  let [events, link] = await Promise.all([
-    getCustomerEvents(
-      { customerId: customer.id, clickId: customer.clickId },
-      {
-        sortOrder: "desc",
-        interval: "1y",
-      },
-    ),
+  // get the first partner link that this customer interacted with
+  const firstLinkId = events[events.length - 1].link_id;
 
-    prisma.link.findUniqueOrThrow({
-      where: {
-        id: customer.linkId!,
-      },
-      select: {
-        id: true,
-        domain: true,
-        key: true,
-        shortLink: true,
-        folderId: true,
-      },
-    }),
-  ]);
-
-  if (link.folderId) {
-    await verifyFolderAccess({
-      workspace,
-      userId: session.user.id,
-      folderId: link.folderId,
-      requiredPermission: "folders.read",
-    });
-  }
+  let link = await prisma.link.findUniqueOrThrow({
+    where: {
+      id: firstLinkId,
+    },
+    select: {
+      id: true,
+      domain: true,
+      key: true,
+      shortLink: true,
+    },
+  });
 
   link = decodeLinkIfCaseSensitive(link);
 

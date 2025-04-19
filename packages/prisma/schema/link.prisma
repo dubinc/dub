@@ -84,6 +84,7 @@ model Link {
   commissions Commission[]
 
   @@unique([domain, key])
+  @@index([projectId, url(length: 500)])
   @@index([projectId, folderId, archived, createdAt(sort: Desc)])
   @@unique([projectId, externalId])
   @@index([programId, partnerId])
