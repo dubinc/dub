@@ -3,12 +3,12 @@
 import useDomain from "@/lib/swr/use-domain";
 import useFolders from "@/lib/swr/use-folders";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { QRCode } from "@/ui/shared/qr-code.tsx";
 import {
   ArrowTurnRight2,
   Avatar,
   CardList,
   CopyButton,
-  LinkLogo,
   Switch,
   Tooltip,
   TooltipContent,
@@ -30,7 +30,6 @@ import {
 import {
   cn,
   formatDateTime,
-  getApexDomain,
   getPrettyUrl,
   isDubDomain,
   linkConstructor,
@@ -93,34 +92,36 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
             )}
           </Link>
         )}
-      <div
-        className={cn(
-          "relative hidden shrink-0 items-center justify-center",
-          displayProperties.includes("icon") && "sm:flex",
-        )}
-      >
-        {/* Link logo background circle */}
-        <div className="absolute inset-0 shrink-0 rounded-full border border-neutral-200 opacity-0 transition-opacity group-data-[variant=loose]/card-list:sm:opacity-100">
-          <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-neutral-100" />
-        </div>
-        <div className="relative pr-0.5 transition-[padding] group-data-[variant=loose]/card-list:sm:p-2">
-          {link.archived ? (
-            <Tooltip content="Archived">
-              <div>
-                <BoxArchive className="size-4 shrink-0 p-0.5 text-neutral-600 transition-[width,height] sm:h-6 sm:w-6 group-data-[variant=loose]/card-list:sm:h-5 group-data-[variant=loose]/card-list:sm:w-5" />
-              </div>
-            </Tooltip>
-          ) : (
-            <LinkLogo
-              apexDomain={getApexDomain(url)}
-              className="size-4 shrink-0 transition-[width,height] sm:h-6 sm:w-6 group-data-[variant=loose]/card-list:sm:h-5 group-data-[variant=loose]/card-list:sm:w-5"
-              imageProps={{
-                loading: "lazy",
-              }}
-            />
+      {link.archived && (
+        <div
+          className={cn(
+            "relative hidden shrink-0 items-center justify-center",
+            displayProperties.includes("icon") && "sm:flex",
           )}
+        >
+          {/* Link logo background circle */}
+          <div className="absolute inset-0 shrink-0 rounded-full border border-neutral-200 opacity-0 transition-opacity group-data-[variant=loose]/card-list:sm:opacity-100">
+            <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-neutral-100" />
+          </div>
+          <div className="relative pr-0.5 transition-[padding] group-data-[variant=loose]/card-list:sm:p-2">
+            {link.archived ? (
+              <Tooltip content="Archived">
+                <div>
+                  <BoxArchive className="size-4 shrink-0 p-0.5 text-neutral-600 transition-[width,height] sm:h-6 sm:w-6 group-data-[variant=loose]/card-list:sm:h-5 group-data-[variant=loose]/card-list:sm:w-5" />
+                </div>
+              </Tooltip>
+            ) : // <LinkLogo
+            //   apexDomain={getApexDomain(url)}
+            //   className="size-4 shrink-0 transition-[width,height] sm:h-6 sm:w-6 group-data-[variant=loose]/card-list:sm:h-5 group-data-[variant=loose]/card-list:sm:w-5"
+            //   imageProps={{
+            //     loading: "lazy",
+            //   }}
+            // />
+            null}
+          </div>
         </div>
-      </div>
+      )}
+      <QRCode url={link.shortLink} scale={0.4} />
       <div className="h-[24px] min-w-0 overflow-hidden transition-[height] group-data-[variant=loose]/card-list:h-[46px]">
         <div className="flex items-center gap-2">
           <div className="min-w-0 shrink grow-0 text-neutral-950">
