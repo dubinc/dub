@@ -3,17 +3,10 @@
 import { createAccountLinkAction } from "@/lib/actions/partners/create-account-link";
 import { generatePaypalOAuthUrl } from "@/lib/actions/partners/generate-paypal-oauth-url";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import { PayoutMethod } from "@/lib/types";
 import { Button, ButtonProps } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import { useCallback } from "react";
 import { toast } from "sonner";
-
-interface PayoutConnectButtonProps extends ButtonProps {
-  partner: {
-    supportedPayoutMethod: PayoutMethod;
-  };
-}
 
 export function ConnectPayoutButton(props: ButtonProps) {
   const { partner } = usePartnerProfile();
