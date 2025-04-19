@@ -29,7 +29,7 @@ export async function payoutStatusChanged(event: any) {
   const payoutItemId = body.resource.payout_item_id;
   const payoutId = body.resource.payout_item.sender_item_id;
 
-  const payout = await prisma.payout.findFirst({
+  const payout = await prisma.payout.findUnique({
     where: {
       id: payoutId,
     },
