@@ -17,6 +17,7 @@ import { DubApiError } from "../errors";
 import { linkCache } from "../links/cache";
 import { includeTags } from "../links/include-tags";
 import { backfillLinkCommissions } from "./backfill-link-commissions";
+import { transformPartner } from "./transform-partner";
 
 export const createAndEnrollPartner = async ({
   program,
@@ -132,12 +133,14 @@ export const createAndEnrollPartner = async ({
     },
   });
 
-  const enrolledPartner = EnrolledPartnerSchema.parse({
+  let enrolledPartner = EnrolledPartnerSchema.parse({
     ...upsertedPartner,
     ...upsertedPartner.programs[0],
     id: upsertedPartner.id,
     links: [link],
   });
+
+  enrolledPartner = transformPartner(enrolledPartner);
 
   waitUntil(
     Promise.all([
