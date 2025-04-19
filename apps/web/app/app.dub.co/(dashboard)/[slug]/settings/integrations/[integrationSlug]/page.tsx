@@ -34,7 +34,7 @@ export default async function IntegrationPage({
               image: true,
             },
           },
-          webhook: {
+          webhooks: {
             select: {
               id: true,
             },
@@ -62,8 +62,10 @@ export default async function IntegrationPage({
     ? integration.installations[0]?.credentials
     : undefined;
 
+  // TODO:
+  // Fix this, we only displaying the first webhook only
   const webhookId = installed
-    ? integration.installations[0]?.webhook?.id
+    ? integration.installations[0]?.webhooks[0]?.id
     : undefined;
 
   return (
