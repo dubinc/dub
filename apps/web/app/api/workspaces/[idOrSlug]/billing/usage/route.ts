@@ -10,7 +10,7 @@ export const GET = withWorkspace(async ({ searchParams, workspace }) => {
     usageQuerySchema.parse(searchParams);
 
   const pipe = tb.buildPipe({
-    pipe: "v2_usage",
+    pipe: "v3_usage",
     // we extend this here since we don't need to include all the additional parameters
     // in the actual request query schema
     parameters: usageQuerySchema.extend({
