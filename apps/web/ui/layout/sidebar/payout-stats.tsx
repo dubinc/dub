@@ -3,7 +3,7 @@
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PayoutsCount } from "@/lib/types";
-import ConnectPayoutButton from "@/ui/partners/connect-payout-button";
+import { ConnectPayoutButton } from "@/ui/partners/connect-payout-button";
 import { AlertCircleFill } from "@/ui/shared/icons";
 import { PayoutStatus } from "@dub/prisma/client";
 import { AnimatedSizeContainer, MoneyBills2, Tooltip } from "@dub/ui";
@@ -11,11 +11,6 @@ import { currencyFormatter } from "@dub/utils";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { memo } from "react";
-
-const PAYOUT_METHOD_LABELS = {
-  stripe: "Stripe",
-  paypal: "PayPal",
-};
 
 export const PayoutStats = memo(() => {
   const { partner } = usePartnerProfile();

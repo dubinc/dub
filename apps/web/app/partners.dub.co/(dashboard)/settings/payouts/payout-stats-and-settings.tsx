@@ -3,7 +3,7 @@
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PayoutsCount } from "@/lib/types";
-import ConnectPayoutButton from "@/ui/partners/connect-payout-button";
+import { ConnectPayoutButton } from "@/ui/partners/connect-payout-button";
 import { AlertCircleFill } from "@/ui/shared/icons";
 import { PayoutStatus } from "@dub/prisma/client";
 import { MatrixLines, Tooltip } from "@dub/ui";
@@ -11,11 +11,6 @@ import { fetcher } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import { Stripe } from "stripe";
 import useSWR from "swr";
-
-const PAYOUT_METHOD_LABELS = {
-  stripe: "Stripe",
-  paypal: "PayPal",
-};
 
 export function PayoutStatsAndSettings() {
   const { partner } = usePartnerProfile();

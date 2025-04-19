@@ -1,5 +1,5 @@
 import { getSession } from "@/lib/auth";
-import ConnectPayoutButton from "@/ui/partners/connect-payout-button";
+import { ConnectPayoutButton } from "@/ui/partners/connect-payout-button";
 import { prisma } from "@dub/prisma";
 import { CONNECT_SUPPORTED_COUNTRIES } from "@dub/utils/src/constants";
 import Link from "next/link";
