@@ -25,7 +25,7 @@ export default async function PartnersMiddleware(req: NextRequest) {
   );
 
   if (!user && isAuthenticatedPath) {
-    if (path.startsWith(`/programs/`)) {
+    if (path.startsWith("/programs/")) {
       const programSlug = path.split("/")[2];
       return NextResponse.redirect(new URL(`/${programSlug}/login`, req.url));
     }
