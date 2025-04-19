@@ -17,7 +17,7 @@ import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
@@ -42,8 +42,9 @@ export function OnboardingForm({
   > | null;
 }) {
   const router = useRouter();
-  const { data: session } = useSession();
   const { isMobile } = useMediaQuery();
+  const [accountCreated, setAccountCreated] = useState(false);
+  const { data: session, update: refreshSession } = useSession();
 
   const {
     register,
@@ -73,8 +74,16 @@ export function OnboardingForm({
     }
   }, [session?.user, name, image]);
 
+  // refresh the session after the Partner account is created
+  useEffect(() => {
+    if (accountCreated) {
+      refreshSession();
+    }
+  }, [accountCreated, refreshSession]);
+
   const { executeAsync, isPending } = useAction(onboardPartnerAction, {
     onSuccess: () => {
+      setAccountCreated(true);
       router.push("/onboarding/online-presence");
     },
     onError: ({ error, input }) => {
