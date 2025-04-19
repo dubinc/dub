@@ -48,13 +48,14 @@ const navigation = {
     { name: "Affiliate management", href: "/partners" },
   ],
   resources: [
-    { name: "About", href: "/about" },
-    { name: "Blog", href: "/blog" },
-    { name: "Changelog", href: "/changelog" },
-    { name: "Customers", href: "/customers" },
     { name: "Docs", href: "/docs/introduction" },
     { name: "Help Center", href: "/help" },
+    { name: "Changelog", href: "/changelog" },
+    { name: "Blog", href: "/blog" },
+    { name: "Customers", href: "/customers" },
+    { name: "About", href: "/about" },
     { name: "Brand", href: "/brand" },
+    { name: "Contact", href: "/contact" },
   ],
   compare: COMPARE_PAGES.map(({ name, slug }) => ({
     name,
