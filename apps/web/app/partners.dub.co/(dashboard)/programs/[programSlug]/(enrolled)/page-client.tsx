@@ -25,7 +25,13 @@ import {
   XAxis,
 } from "@dub/ui/charts";
 import { Check, Copy, LoadingSpinner } from "@dub/ui/icons";
-import { cn, currencyFormatter, getPrettyUrl, nFormatter } from "@dub/utils";
+import {
+  cn,
+  currencyFormatter,
+  getDomainWithoutWWW,
+  getPrettyUrl,
+  nFormatter,
+} from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import { LinearGradient } from "@visx/gradient";
 import { AnimatePresence, motion } from "framer-motion";
@@ -75,6 +81,13 @@ export default function ProgramPageClient() {
   const program = programEnrollment?.program;
   const defaultProgramLink = programEnrollment?.links?.[0];
 
+  let partnerLink: string | null = null;
+  if (program?.url && program.linkStructure === "query" && defaultProgramLink) {
+    partnerLink = `${getDomainWithoutWWW(program.url)}?via=${defaultProgramLink.key}`;
+  } else {
+    partnerLink = getPrettyUrl(defaultProgramLink?.shortLink);
+  }
+
   return (
     <MaxWidthWrapper className="pb-10">
       <AnimatePresence mode="wait" initial={false}>
@@ -98,15 +111,16 @@ export default function ProgramPageClient() {
                   color={program.brandColor}
                 />
               )}
+
               <span className="text-base font-semibold text-neutral-800">
                 Referral link
               </span>
               <div className="xs:flex-row xs:items-center relative mt-3 flex flex-col gap-2 md:max-w-[50%]">
-                {defaultProgramLink ? (
+                {partnerLink ? (
                   <input
                     type="text"
                     readOnly
-                    value={getPrettyUrl(defaultProgramLink.shortLink)}
+                    value={partnerLink}
                     className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default h-10 min-w-0 shrink grow rounded-md border px-3 text-sm focus:outline-none focus:ring-neutral-500"
                   />
                 ) : (
@@ -135,14 +149,23 @@ export default function ProgramPageClient() {
                   }
                   text={copied ? "Copied link" : "Copy link"}
                   className="xs:w-fit"
-                  disabled={!defaultProgramLink}
+                  disabled={!partnerLink}
                   onClick={() => {
-                    if (defaultProgramLink) {
-                      copyToClipboard(defaultProgramLink.shortLink);
+                    if (partnerLink) {
+                      copyToClipboard(partnerLink);
                     }
                   }}
                 />
               </div>
+
+              {program?.url &&
+                program.linkStructure === "query" &&
+                defaultProgramLink && (
+                  <p className="mt-1.5 text-sm text-neutral-500">
+                    {`Link to any page on ${getDomainWithoutWWW(program.url)} by adding ?via=${defaultProgramLink.key} to the URL`}
+                  </p>
+                )}
+
               <span className="mt-12 text-base font-semibold text-neutral-800">
                 Rewards
               </span>
