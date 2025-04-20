@@ -269,7 +269,7 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
                     {tab === "sales"
                       ? currencyFormatter(value / 100)
                       : nFormatter(value)}
-                    {stats.length === 1 && " clicks"}
+                    {stats.length === 1 && " scans"}
                   </span>
                 </div>
               ),
