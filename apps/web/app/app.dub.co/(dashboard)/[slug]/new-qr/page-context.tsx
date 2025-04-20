@@ -23,13 +23,16 @@ export function PageTitleProvider({ children }: { children: ReactNode }) {
   const [currentStep, setCurrentStep] = useState<number>(STEPS.newQR.step);
 
   return (
-    <PageContext.Provider
-      value={{ title, setTitle, currentStep, setCurrentStep, steps: STEPS }}
+    // <PageContext.Provider
+    //   value={{ title, setTitle, currentStep, setCurrentStep, steps: STEPS }}
+    // >
+    <PageContent
+      title={title}
+      // hasNavigation asHeader
     >
-      <PageContent title={title} hasNavigation asHeader>
-        {children}
-      </PageContent>
-    </PageContext.Provider>
+      {children}
+    </PageContent>
+    // </PageContext.Provider>
   );
 }
 
