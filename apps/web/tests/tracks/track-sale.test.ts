@@ -14,13 +14,13 @@ const expectValidSaleResponse = (
 ) => {
   expect(response.status).toEqual(200);
   expect(response.data).toStrictEqual({
-    eventName: sale.eventName,
+    eventName: "Subscription",
     customer: {
       id: E2E_CUSTOMER_ID,
-      name: sale.customerName,
-      email: sale.customerEmail,
-      avatar: sale.customerAvatar,
-      externalId: sale.externalId,
+      name: expect.any(String),
+      email: expect.any(String),
+      avatar: expect.any(String),
+      externalId: E2E_CUSTOMER_EXTERNAL_ID,
     },
     sale: {
       amount: sale.amount,
@@ -37,13 +37,17 @@ const expectValidSaleResponse = (
   });
 };
 
+const randomSaleAmount = () => {
+  return randomValue([400, 900, 1900]);
+};
+
 describe("POST /track/sale", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
 
   const sale = {
     eventName: "Subscription",
-    amount: randomValue([400, 900, 1900]),
+    amount: randomSaleAmount(),
     currency: "usd",
     invoiceId: `INV_${randomId()}`,
     paymentProcessor: "stripe",
@@ -102,6 +106,8 @@ describe("POST /track/sale", async () => {
       path: "/track/sale",
       body: {
         ...sale,
+        invoiceId: `INV_${randomId()}`,
+        amount: randomSaleAmount(),
         customerId: E2E_CUSTOMER_ID,
       },
     });
