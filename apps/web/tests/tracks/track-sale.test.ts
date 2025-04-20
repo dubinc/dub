@@ -108,7 +108,7 @@ describe("POST /track/sale", async () => {
         ...sale,
         invoiceId: `INV_${randomId()}`,
         amount: randomSaleAmount(),
-        customerId: E2E_CUSTOMER_ID,
+        customerId: E2E_CUSTOMER_EXTERNAL_ID,
       },
     });
 
