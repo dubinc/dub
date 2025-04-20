@@ -70,7 +70,9 @@ export function ProgramLinksPageClient() {
           defaultInterval={DUB_PARTNERS_ANALYTICS_INTERVAL}
         />
         {/* TODO: Add this to Program table */}
-        {["dub", "acme", "tella", "testimonial"].includes(programSlug) && (
+        {["dub", "acme", "tella", "testimonial", "firecrawl"].includes(
+          programSlug,
+        ) && (
           <Button
             text="Create Link"
             className="w-fit"
