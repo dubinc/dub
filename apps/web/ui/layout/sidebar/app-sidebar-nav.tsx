@@ -316,7 +316,7 @@ export function AppSidebarNav({
       bottom={
         <div className="p-3">
           <Link
-            className="text-content-inverted hover:bg-inverted hover:ring-border-subtle flex h-9 items-center justify-center rounded-md border border-black bg-black px-4 text-sm text-white transition-all hover:ring-4 dark:border-white dark:bg-white"
+            className="text-content-inverted hover:bg-inverted hover:ring-border-subtle bordbg-secondary bg-secondary flex h-9 items-center justify-center rounded-md border px-4 text-sm text-white transition-all hover:ring-4 dark:border-white dark:bg-white"
             href={"/upgrade"} // @TODO: Add upgrade page
           >
             Upgrade
