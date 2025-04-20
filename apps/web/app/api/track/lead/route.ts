@@ -41,14 +41,19 @@ export const POST = withWorkspace(
       customerAvatar,
       metadata,
       mode = "async", // Default to async mode if not specified
-    } = trackLeadRequestSchema.parse(body);
+    } = trackLeadRequestSchema
+      .extend({
+        // add backwards compatibility
+        externalId: z.string().optional(),
+        customerId: z.string().optional(),
+      })
+      .parse(body);
 
     const stringifiedEventName = eventName.toLowerCase().replace(" ", "-");
     const customerExternalId = externalId || oldCustomerId;
     const customerId = createId({ prefix: "cus_" });
     const finalCustomerName =
       customerName || customerEmail || generateRandomName();
-    // this will either be
     const finalCustomerAvatar =
       customerAvatar && !isStored(customerAvatar)
         ? `${R2_URL}/customers/${customerId}/avatar_${nanoid(7)}`
@@ -74,6 +79,7 @@ export const POST = withWorkspace(
         customerAvatar,
       },
       {
+        ex: 60 * 60 * 24 * 7, // cache for 1 week
         nx: true,
       },
     );

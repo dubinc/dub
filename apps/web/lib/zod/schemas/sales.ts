@@ -9,25 +9,14 @@ export const trackSaleRequestSchema = z.object({
     .string()
     .trim()
     .max(100)
-    .default("") // Remove this after migrating users from customerId to externalId
     .describe(
-      "This is the unique identifier for the customer in the client's app. This is used to track the customer's journey.",
+      "The unique ID of the customer in your system. Will be used to identify and attribute all future events to this customer.",
     ),
-  customerId: z
-    .string()
-    .trim()
-    .max(100)
-    .nullish()
-    .default(null)
-    .describe(
-      "This is the unique identifier for the customer in the client's app. This is used to track the customer's journey.",
-    )
-    .openapi({ deprecated: true }),
   amount: z
     .number({ required_error: "amount is required" })
     .int()
     .min(0, "amount cannot be negative")
-    .describe("The amount of the sale. Should be passed in cents."),
+    .describe("The amount of the sale in cents."),
   paymentProcessor: z
     .enum(["stripe", "shopify", "polar", "paddle", "custom"])
     .describe("The payment processor via which the sale was made."),
@@ -36,10 +25,8 @@ export const trackSaleRequestSchema = z.object({
     .max(255)
     .optional()
     .default("Purchase")
-    .describe(
-      "The name of the sale event. It can be used to track different types of event for example 'Purchase', 'Upgrade', 'Payment', etc.",
-    )
-    .openapi({ example: "Purchase" }),
+    .describe("The name of the sale event.")
+    .openapi({ examples: ["Purchase", "Upgrade", "Payment"] }),
   invoiceId: z
     .string()
     .nullish()
@@ -52,6 +39,14 @@ export const trackSaleRequestSchema = z.object({
     .default("usd")
     .transform((val) => val.toLowerCase())
     .describe("The currency of the sale. Accepts ISO 4217 currency codes."),
+  leadEventName: z
+    .string()
+    .nullish()
+    .default(null)
+    .describe(
+      "The name of the lead event that occurred before the sale (case-sensitive). This is used to associate the sale event with a particular lead event (instead of the latest lead event, which is the default behavior).",
+    )
+    .openapi({ example: "Cloned template 1481267" }),
   metadata: z
     .record(z.unknown())
     .nullish()
@@ -62,14 +57,6 @@ export const trackSaleRequestSchema = z.object({
     .describe(
       "Additional metadata to be stored with the sale event. Max 10,000 characters.",
     ),
-  leadEventName: z
-    .string()
-    .nullish()
-    .default(null)
-    .describe(
-      "The name of the lead event that occurred before the sale (case-sensitive). This is used to associate the sale event with a particular lead event (instead of the latest lead event, which is the default behavior).",
-    )
-    .openapi({ example: "Cloned template 1481267" }),
 });
 
 export const trackSaleResponseSchema = z.object({
