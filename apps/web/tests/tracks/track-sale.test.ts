@@ -5,7 +5,7 @@ import {
   E2E_CUSTOMER_EXTERNAL_ID,
   E2E_CUSTOMER_ID,
 } from "tests/utils/resource";
-import { expect, test } from "vitest";
+import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 
 const expectValidSaleResponse = (
