@@ -102,16 +102,20 @@ describe("POST /track/sale", async () => {
   });
 
   test("track a sale with `customerId` (backward compatibility)", async () => {
+    const newSale = {
+      ...sale,
+      invoiceId: `INV_${randomId()}`,
+      amount: randomSaleAmount(),
+    };
+
     const response4 = await http.post<TrackSaleResponse>({
       path: "/track/sale",
       body: {
-        ...sale,
-        invoiceId: `INV_${randomId()}`,
-        amount: randomSaleAmount(),
+        ...newSale,
         customerId: E2E_CUSTOMER_EXTERNAL_ID,
       },
     });
 
-    expectValidSaleResponse(response4, sale);
+    expectValidSaleResponse(response4, newSale);
   });
 });
