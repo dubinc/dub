@@ -2,6 +2,7 @@
 
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
+import { getClickEvent } from "@/lib/tinybird";
 import { recordClick } from "@/lib/tinybird/record-click";
 import { recordLeadWithTimestamp } from "@/lib/tinybird/record-lead";
 import { recordSaleWithTimestamp } from "@/lib/tinybird/record-sale";
@@ -22,14 +23,14 @@ export const createCommissionAction = authActionClient
       programId,
       partnerId,
       linkId,
-      saleDate,
-      saleAmount,
       invoiceId,
       customerId,
+      saleDate,
+      saleAmount,
       leadDate,
     } = parsedInput;
 
-    const [program, link, programEnrollment, customer] = await Promise.all([
+    const [_, link, programEnrollment, customer] = await Promise.all([
       getProgramOrThrow({
         workspaceId: workspace.id,
         programId,
@@ -102,10 +103,20 @@ export const createCommissionAction = authActionClient
         key: link.key,
         workspaceId: workspace.id,
         skipRatelimit: true,
-        timestamp: leadDate
-          ? new Date(leadDate).toISOString()
-          : new Date().toISOString(),
+        timestamp: new Date().toISOString(),
       });
+    }
+
+    if (!clickData && customer.clickId) {
+      const clickEvent = await getClickEvent({
+        clickId: customer.clickId,
+      });
+
+      if (!clickEvent || clickEvent.data.length === 0) {
+        throw new Error(`Click event with ID ${customer.clickId} not found.`);
+      }
+
+      clickData = clickEvent.data[0];
     }
 
     if (shouldRecordLead) {
