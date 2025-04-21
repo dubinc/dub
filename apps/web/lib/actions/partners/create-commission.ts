@@ -83,6 +83,7 @@ export const createCommissionAction = authActionClient
     const shouldRecordSale = saleAmount && saleDate;
     let clickData: any;
 
+    // Record click
     if (shouldRecordClick) {
       const dummyRequest = new Request(link.url, {
         headers: new Headers({
@@ -119,6 +120,7 @@ export const createCommissionAction = authActionClient
       clickData = clickEvent.data[0];
     }
 
+    // Record lead
     if (shouldRecordLead) {
       const clickEvent = clickEventSchemaTB.parse({
         ...clickData,
@@ -160,6 +162,7 @@ export const createCommissionAction = authActionClient
       });
     }
 
+    // Record sale
     if (shouldRecordSale) {
       const clickEvent = clickEventSchemaTB.parse({
         ...clickData,
