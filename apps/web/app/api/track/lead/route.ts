@@ -44,8 +44,8 @@ export const POST = withWorkspace(
     } = trackLeadRequestSchema
       .extend({
         // add backwards compatibility
-        externalId: z.string().optional(),
-        customerId: z.string().optional(),
+        externalId: z.string().nullish(),
+        customerId: z.string().nullish(),
       })
       .parse(body);
 
