@@ -5,13 +5,36 @@ import he from "he";
 import { parse } from "node-html-parser";
 
 export const getHtml = async (url: string) => {
-  return await fetchWithTimeout(url, {
-    headers: {
-      "User-Agent": "Dub.co Metatags API (https://api.dub.co/metatags)",
-    },
-  })
-    .then((r) => r.text())
-    .catch(() => null);
+  try {
+    const response = await fetchWithTimeout(url);
+
+    if (!response.ok) {
+      // If we get a 406 or other error, check if it's a Cloudflare-protected site
+      const isCloudflare = response.headers.get("server") === "cloudflare";
+      if (isCloudflare) {
+        console.warn(`Cloudflare-protected site detected: ${url}`);
+        return null;
+      }
+      console.error(`HTTP error! status: ${response.status} for URL: ${url}`);
+      return null;
+    }
+
+    const text = await response.text();
+
+    // Check if the response contains Cloudflare's challenge page
+    if (
+      text.includes("challenge-platform") ||
+      text.includes("cf-browser-verification")
+    ) {
+      console.warn(`Cloudflare challenge page detected for: ${url}`);
+      return null;
+    }
+
+    return text;
+  } catch (error) {
+    console.error(`Error fetching ${url}:`, error);
+    return null;
+  }
 };
 
 export const getHeadChildNodes = (html) => {
@@ -47,15 +70,42 @@ export const getRelativeUrl = (url: string, imageUrl: string) => {
   return new URL(imageUrl, baseURL).toString();
 };
 
-export const getMetaTags = async (url: string) => {
-  const html = await getHtml(url);
-  if (!html) {
+const generateFallbackMetadata = (url: string) => {
+  try {
+    const parsedUrl = new URL(url);
+    const hostname = parsedUrl.hostname;
+    const path = parsedUrl.pathname;
+
+    // Clean up the path for title
+    const pathParts = path.split("/").filter(Boolean);
+    const lastPathPart = pathParts[pathParts.length - 1] || "";
+    const formattedPath = lastPathPart
+      .split("-")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+
+    return {
+      title: formattedPath || hostname.replace(/^www\./, ""),
+      description: `Visit ${hostname}${path}`,
+      image: null,
+    };
+  } catch (e) {
     return {
       title: url,
-      description: "No description",
+      description: "No description available",
       image: null,
     };
   }
+};
+
+export const getMetaTags = async (url: string) => {
+  const html = await getHtml(url);
+  if (!html) {
+    // If we couldn't fetch the HTML (e.g., due to Cloudflare protection),
+    // generate fallback metadata from the URL
+    return generateFallbackMetadata(url);
+  }
+
   const { metaTags, title: titleTag, linkTags } = getHeadChildNodes(html);
 
   let object = {};
