@@ -22,7 +22,7 @@ function SignUp() {
     <>
       <div className="w-full max-w-md overflow-hidden border-y border-neutral-200 sm:rounded-2xl sm:border sm:shadow-sm">
         <div className="border-b border-neutral-200 bg-white pb-6 pt-8 text-center">
-          <h3 className="text-lg font-semibold">Get started with Dub</h3>
+          <h3 className="text-lg font-semibold">Get started with GetQR</h3>
         </div>
         <div className="bg-neutral-50 px-4 py-8 sm:px-16">
           <SignUpForm />

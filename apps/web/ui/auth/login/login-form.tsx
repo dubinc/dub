@@ -13,13 +13,12 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { EmailSignIn } from "./email-sign-in";
-import { GitHubButton } from "./github-button";
 import { GoogleButton } from "./google-button";
 import { SSOSignIn } from "./sso-sign-in";
 
 export const authMethods = [
   "google",
-  "github",
+  // "github",
   "email",
   "saml",
   "password",
@@ -113,10 +112,10 @@ export default function LoginForm({
       method: "google",
       component: GoogleButton,
     },
-    {
-      method: "github",
-      component: GitHubButton,
-    },
+    // {
+    //   method: "github",
+    //   component: GitHubButton,
+    // },
     {
       method: "email",
       component: EmailSignIn,
