@@ -1,4 +1,5 @@
 import { createCommissionAction } from "@/lib/actions/partners/create-commission";
+import { handleMoneyInputChange } from "@/lib/form-utils";
 import usePartners from "@/lib/swr/use-partners";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -39,7 +40,12 @@ function CreateCommissionSheetContent({
     formState: { errors },
   } = useForm<FormData>();
 
-  const [partnerId, linkId] = watch(["partnerId", "linkId"]);
+  const [partnerId, linkId, saleDate, saleAmount] = watch([
+    "partnerId",
+    "linkId",
+    "saleDate",
+    "saleAmount",
+  ]);
 
   const partnerOptions = useMemo(() => {
     return partners?.map((partner) => ({
@@ -71,8 +77,6 @@ function CreateCommissionSheetContent({
       toast.error("Please fill all required fields.");
       return;
     }
-
-    console.log(data);
 
     await executeAsync({
       ...data,
@@ -149,6 +153,57 @@ function CreateCommissionSheetContent({
                     setValue("linkId", id, { shouldDirty: true });
                   }}
                 />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="saleDate" className="flex items-center space-x-2">
+                <h2 className="text-sm font-medium text-neutral-900">
+                  Sale date
+                </h2>
+              </label>
+              <div className="mt-2">
+                <input
+                  type="date"
+                  className={cn(
+                    "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                    errors.saleDate &&
+                      "border-red-600 focus:border-red-500 focus:ring-red-600",
+                  )}
+                  {...register("saleDate")}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label
+                htmlFor="saleAmount"
+                className="flex items-center space-x-2"
+              >
+                <h2 className="text-sm font-medium text-neutral-900">
+                  Sale amount
+                </h2>
+              </label>
+              <div className="relative mt-2 rounded-md shadow-sm">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
+                  $
+                </span>
+                <input
+                  className={cn(
+                    "block w-full rounded-md border-neutral-300 pl-6 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                    errors.saleAmount &&
+                      "border-red-600 focus:border-red-500 focus:ring-red-600",
+                  )}
+                  {...register("saleAmount", {
+                    valueAsNumber: true,
+                    min: 0,
+                    onChange: handleMoneyInputChange,
+                  })}
+                  placeholder="0.00"
+                />
+                <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
+                  USD
+                </span>
               </div>
             </div>
           </div>
