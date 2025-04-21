@@ -115,6 +115,7 @@ export const createPartnerCommission = async ({
         earnings: true,
       },
     });
+
     const totalEarnings = totalRewards._sum.earnings || 0;
     if (totalEarnings >= reward.maxAmount) {
       console.log(
@@ -122,6 +123,7 @@ export const createPartnerCommission = async ({
       );
       return;
     }
+
     const remainingRewardAmount = reward.maxAmount - totalEarnings;
     earnings = Math.max(0, Math.min(earnings, remainingRewardAmount));
   }

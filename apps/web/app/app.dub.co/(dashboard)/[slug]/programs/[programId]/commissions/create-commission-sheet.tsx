@@ -13,11 +13,10 @@ import {
   Combobox,
   Sheet,
   Switch,
-  useMediaQuery,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, SetStateAction, useMemo, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -33,26 +32,31 @@ function CreateCommissionSheetContent({
 }: CreateCommissionSheetProps) {
   const { program } = useProgram();
   const { partners } = usePartners();
-  const { isMobile } = useMediaQuery();
   const { id: workspaceId } = useWorkspace();
-  const [differentCreationDate, setDifferentCreationDate] = useState(false);
+  const [isNewCustomer, setIsNewCustomer] = useState(false);
+  const [hasDifferentCreationDate, setHasDifferentCreationDate] =
+    useState(false);
 
   const {
     register,
     handleSubmit,
     watch,
     setValue,
-    clearErrors,
     formState: { errors },
   } = useForm<FormData>();
 
-  const [partnerId, linkId, saleDate, saleAmount, customerId] = watch([
+  const [partnerId, linkId, customerId, saleDate] = watch([
     "partnerId",
     "linkId",
-    "saleDate",
-    "saleAmount",
     "customerId",
+    "saleDate",
   ]);
+
+  useEffect(() => {
+    if (!hasDifferentCreationDate) {
+      setValue("leadDate", null);
+    }
+  }, [hasDifferentCreationDate, setValue]);
 
   const partnerOptions = useMemo(() => {
     return partners?.map((partner) => ({
@@ -75,6 +79,7 @@ function CreateCommissionSheetContent({
       setIsOpen(false);
     },
     onError({ error }) {
+      console.log(error);
       toast.error(error.serverError);
     },
   });
@@ -87,13 +92,11 @@ function CreateCommissionSheetContent({
 
     await executeAsync({
       ...data,
-      saleDate: data.saleDate ? new Date(data.saleDate).toISOString() : null,
-      leadDate:
-        differentCreationDate && data.leadDate
-          ? new Date(data.leadDate).toISOString()
-          : null,
       workspaceId,
       programId: program.id,
+      saleDate: data.saleDate ? new Date(data.saleDate).toISOString() : null,
+      leadDate: data.leadDate ? new Date(data.leadDate).toISOString() : null,
+      saleAmount: data.saleAmount ? data.saleAmount * 100 : null,
     });
   };
 
@@ -240,6 +243,7 @@ function CreateCommissionSheetContent({
                   setSelectedCustomerId={(id) => {
                     setValue("customerId", id, { shouldDirty: true });
                   }}
+                  setIsNewCustomer={setIsNewCustomer}
                 />
               </div>
             </div>
@@ -248,16 +252,15 @@ function CreateCommissionSheetContent({
               height
               transition={{ ease: "easeInOut", duration: 0.2 }}
             >
-              {customerId && (
+              {isNewCustomer && (
                 <div className="flex flex-col gap-6">
                   <div className="flex items-center gap-4">
                     <Switch
-                      fn={setDifferentCreationDate}
-                      checked={differentCreationDate}
+                      fn={setHasDifferentCreationDate}
+                      checked={hasDifferentCreationDate}
                       trackDimensions="w-8 h-4"
                       thumbDimensions="w-3 h-3"
                       thumbTranslate="translate-x-4"
-                      color="neutral"
                     />
                     <div className="flex flex-col gap-1">
                       <h3 className="text-sm font-medium text-neutral-700">
@@ -266,7 +269,7 @@ function CreateCommissionSheetContent({
                     </div>
                   </div>
 
-                  {differentCreationDate && (
+                  {hasDifferentCreationDate && (
                     <div>
                       <label
                         htmlFor="leadDate"
