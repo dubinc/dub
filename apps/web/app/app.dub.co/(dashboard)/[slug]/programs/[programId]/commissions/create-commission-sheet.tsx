@@ -33,10 +33,10 @@ function CreateCommissionSheetContent({
   const { program } = useProgram();
   const { partners } = usePartners();
   const { id: workspaceId } = useWorkspace();
+  const [hasInvoiceId, setHasInvoiceId] = useState(false);
   const [isNewCustomer, setIsNewCustomer] = useState(false);
   const [hasDifferentCreationDate, setHasDifferentCreationDate] =
     useState(false);
-  const [hasInvoiceId, setHasInvoiceId] = useState(false);
 
   const {
     register,
@@ -59,6 +59,12 @@ function CreateCommissionSheetContent({
       setValue("leadDate", null);
     }
   }, [hasDifferentCreationDate, setValue]);
+
+  useEffect(() => {
+    if (customerId) {
+      setValue("customerId", customerId, { shouldValidate: true });
+    }
+  }, [customerId, setValue]);
 
   const partnerOptions = useMemo(() => {
     return partners?.map((partner) => ({
@@ -201,7 +207,9 @@ function CreateCommissionSheetContent({
                       errors.saleDate &&
                         "border-red-600 focus:border-red-500 focus:ring-red-600",
                     )}
-                    {...register("saleDate")}
+                    {...register("saleDate", {
+                      required: programDefaultReward?.event === "sale",
+                    })}
                     value={
                       saleDate
                         ? new Date(saleDate).toISOString().split("T")[0]
@@ -242,6 +250,7 @@ function CreateCommissionSheetContent({
                       min: 0,
                       onChange: handleMoneyInputChange,
                       setValueAs: (value) => (value === "" ? null : value),
+                      required: programDefaultReward?.event === "sale",
                     })}
                     placeholder="0.00"
                   />
@@ -434,7 +443,7 @@ function CreateCommissionSheetContent({
             text="Create commission"
             className="w-fit"
             loading={isPending}
-            disabled={!partnerId || !linkId}
+            disabled={!partnerId || !linkId || !customerId}
           />
         </div>
       </div>
