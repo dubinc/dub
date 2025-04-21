@@ -7,7 +7,14 @@ import { createCommissionSchema } from "@/lib/zod/schemas/commissions";
 import { CustomerSelector } from "@/ui/customers/customer-selector";
 import { PartnerLinkSelector } from "@/ui/partners/partner-link-selector";
 import { X } from "@/ui/shared/icons";
-import { Button, Combobox, Sheet, useMediaQuery } from "@dub/ui";
+import {
+  AnimatedSizeContainer,
+  Button,
+  Combobox,
+  Sheet,
+  Switch,
+  useMediaQuery,
+} from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
@@ -28,9 +35,7 @@ function CreateCommissionSheetContent({
   const { partners } = usePartners();
   const { isMobile } = useMediaQuery();
   const { id: workspaceId } = useWorkspace();
-
-  // TODO:
-  // use useLinks to fetch the links for the partner when the partnerId changes
+  const [differentCreationDate, setDifferentCreationDate] = useState(false);
 
   const {
     register,
@@ -83,7 +88,10 @@ function CreateCommissionSheetContent({
     await executeAsync({
       ...data,
       saleDate: data.saleDate ? new Date(data.saleDate).toISOString() : null,
-      leadDate: data.leadDate ? new Date(data.leadDate).toISOString() : null,
+      leadDate:
+        differentCreationDate && data.leadDate
+          ? new Date(data.leadDate).toISOString()
+          : null,
       workspaceId,
       programId: program.id,
     });
@@ -235,6 +243,61 @@ function CreateCommissionSheetContent({
                 />
               </div>
             </div>
+
+            <AnimatedSizeContainer
+              height
+              transition={{ ease: "easeInOut", duration: 0.2 }}
+            >
+              {customerId && (
+                <div className="flex flex-col gap-6">
+                  <div className="flex items-center gap-4">
+                    <Switch
+                      fn={setDifferentCreationDate}
+                      checked={differentCreationDate}
+                      trackDimensions="w-8 h-4"
+                      thumbDimensions="w-3 h-3"
+                      thumbTranslate="translate-x-4"
+                      color="neutral"
+                    />
+                    <div className="flex flex-col gap-1">
+                      <h3 className="text-sm font-medium text-neutral-700">
+                        Customer creation date is different than the sale date
+                      </h3>
+                    </div>
+                  </div>
+
+                  {differentCreationDate && (
+                    <div>
+                      <label
+                        htmlFor="leadDate"
+                        className="flex items-center space-x-2"
+                      >
+                        <h2 className="text-sm font-medium text-neutral-900">
+                          Customer creation date
+                        </h2>
+                      </label>
+                      <div className="mt-2">
+                        <input
+                          type="date"
+                          id="leadDate"
+                          className={cn(
+                            "block w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                            errors.leadDate &&
+                              "border-red-600 focus:border-red-500 focus:ring-red-600",
+                          )}
+                          {...register("leadDate")}
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              setValue("leadDate", new Date(e.target.value));
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </AnimatedSizeContainer>
           </div>
         </div>
       </div>

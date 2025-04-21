@@ -65,6 +65,7 @@ export function CustomerSelector({
           setSelectedCustomerId(option.value);
         }}
         selected={selectedOption}
+        icon={selectedOption?.icon}
         caret={true}
         placeholder="Select customer"
         searchPlaceholder="Search customer..."

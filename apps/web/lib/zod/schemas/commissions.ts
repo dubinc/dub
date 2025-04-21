@@ -61,5 +61,5 @@ export const createCommissionSchema = z.object({
 
   // Lead commission
   customerId: z.string(),
-  leadDate: parseDateSchema.nullable(),
+  leadDate: parseDateSchema.nullable(), // customer creation date
 });
