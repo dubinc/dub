@@ -165,12 +165,23 @@ function CreateCommissionSheetContent({
               <div className="mt-2">
                 <input
                   type="date"
+                  id="saleDate"
                   className={cn(
-                    "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                    "block w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                     errors.saleDate &&
                       "border-red-600 focus:border-red-500 focus:ring-red-600",
                   )}
                   {...register("saleDate")}
+                  value={
+                    saleDate
+                      ? new Date(saleDate).toISOString().split("T")[0]
+                      : ""
+                  }
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      setValue("saleDate", new Date(e.target.value));
+                    }
+                  }}
                 />
               </div>
             </div>
