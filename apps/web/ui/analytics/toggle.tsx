@@ -497,30 +497,28 @@ export default function Toggle({
                           ]),
                     ],
               },
-              ...(["leads", "sales"].includes(selectedTab)
-                ? [
-                    {
-                      key: "customerId",
-                      icon: User,
-                      label: "Customer",
-                      shouldFilter: !customersAsync,
-                      options:
-                        customers?.map(({ id, email, name, avatar }) => {
-                          return {
-                            value: id,
-                            label: email ?? name,
-                            icon: (
-                              <img
-                                src={avatar || `${OG_AVATAR_URL}${id}`}
-                                alt={`${email} avatar`}
-                                className="size-4 rounded-full"
-                              />
-                            ),
-                          };
-                        }) ?? null,
-                    },
-                  ]
-                : []),
+
+              {
+                key: "customerId",
+                icon: User,
+                label: "Customer",
+                shouldFilter: !customersAsync,
+                options:
+                  customers?.map(({ id, email, name, avatar }) => {
+                    return {
+                      value: id,
+                      label: email ?? name,
+                      icon: (
+                        <img
+                          src={avatar || `${OG_AVATAR_URL}${id}`}
+                          alt={`${email} avatar`}
+                          className="size-4 rounded-full"
+                        />
+                      ),
+                    };
+                  }) ?? null,
+              },
+
               LinkFilterItem,
               {
                 key: "root",

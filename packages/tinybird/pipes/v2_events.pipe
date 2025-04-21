@@ -49,6 +49,13 @@ SQL >
         {% elif defined(workspaceId) or defined(partnerId) or defined(programId) %}
             AND link_id IN (SELECT link_id FROM workspace_links)
         {% end %}
+        {% if defined(customerId) %} 
+            AND click_id IN (
+                SELECT DISTINCT click_id 
+                FROM lead_events 
+                WHERE customer_id = {{ String(customerId) }}
+            )
+        {% end %}
         {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
         {% if defined(continent) %} AND continent = {{ continent }} {% end %}
         {% if defined(country) %} AND country = {{ country }} {% end %}
