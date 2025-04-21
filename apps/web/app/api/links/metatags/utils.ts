@@ -5,26 +5,8 @@ import he from "he";
 import { parse } from "node-html-parser";
 
 export const getHtml = async (url: string) => {
-  const parsedUrl = new URL(url);
   try {
-    const response = await fetchWithTimeout(url, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 Version H1cbA69",
-        Accept:
-          "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.5",
-        "Accept-Encoding": "gzip, deflate, br",
-        Connection: "keep-alive",
-        "Upgrade-Insecure-Requests": "1",
-        "Sec-Fetch-Dest": "document",
-        "Sec-Fetch-Mode": "navigate",
-        "Sec-Fetch-Site": "none",
-        "Sec-Fetch-User": "?1",
-        "Cache-Control": "max-age=0",
-        Referer: `${parsedUrl.protocol}//${parsedUrl.hostname}`,
-      },
-    });
+    const response = await fetchWithTimeout(url);
 
     if (!response.ok) {
       // If we get a 406 or other error, check if it's a Cloudflare-protected site

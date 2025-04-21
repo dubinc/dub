@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     const origin = req.headers.get("origin");
     // Validate the origin header and set CORS headers accordingly
     const corsHeaders = {
-      "Access-Control-Allow-Methods": "GET, OPTIONS",
+      "Access-Control-Allow-Methods": "GET",
       "Access-Control-Allow-Headers": "Content-Type",
     };
 
