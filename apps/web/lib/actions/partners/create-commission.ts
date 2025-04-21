@@ -146,8 +146,6 @@ export const createCommissionAction = authActionClient
         customerId,
         amount: 0,
         quantity: 1,
-        invoiceId,
-        currency: "usd",
       });
     }
 
