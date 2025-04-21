@@ -370,8 +370,8 @@ importers:
         specifier: ^1.5.0
         version: 1.5.0
       zod-openapi:
-        specifier: ^2.19.0
-        version: 2.19.0(zod@3.22.4)
+        specifier: ^4.2.4
+        version: 4.2.4(zod@3.22.4)
     devDependencies:
       '@types/he':
         specifier: ^1.2.3
@@ -11951,9 +11951,9 @@ packages:
   zod-error@1.5.0:
     resolution: {integrity: sha512-zzopKZ/skI9iXpqCEPj+iLCKl9b88E43ehcU+sbRoHuwGd9F1IDVGQ70TyO6kmfiRL1g4IXkjsXK+g1gLYl4WQ==}
 
-  zod-openapi@2.19.0:
-    resolution: {integrity: sha512-OUAAyBDPPwZ9u61i4k/LieXUzP2re8kFjqdNh2AvHjsyi/aRNz9leDAtMGcSoSzUT5xUeQoACJufBI6FzzZyxA==}
-    engines: {node: '>=16.11'}
+  zod-openapi@4.2.4:
+    resolution: {integrity: sha512-tsrQpbpqFCXqVXUzi3TPwFhuMtLN3oNZobOtYnK6/5VkXsNdnIgyNr4r8no4wmYluaxzN3F7iS+8xCW8BmMQ8g==}
+    engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.21.4
 
@@ -25820,7 +25820,7 @@ snapshots:
     dependencies:
       zod: 3.22.4
 
-  zod-openapi@2.19.0(zod@3.22.4):
+  zod-openapi@4.2.4(zod@3.22.4):
     dependencies:
       zod: 3.22.4
 

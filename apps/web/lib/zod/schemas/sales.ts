@@ -26,7 +26,7 @@ export const trackSaleRequestSchema = z.object({
     .optional()
     .default("Purchase")
     .describe("The name of the sale event.")
-    .openapi({ examples: ["Purchase", "Upgrade", "Payment"] }),
+    .openapi({ example: "Invoice paid" }),
   invoiceId: z
     .string()
     .nullish()
