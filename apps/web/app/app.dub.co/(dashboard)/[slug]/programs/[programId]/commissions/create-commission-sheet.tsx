@@ -4,6 +4,7 @@ import usePartners from "@/lib/swr/use-partners";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { createCommissionSchema } from "@/lib/zod/schemas/commissions";
+import { CustomerSelector } from "@/ui/customers/customer-selector";
 import { PartnerLinkSelector } from "@/ui/partners/partner-link-selector";
 import { X } from "@/ui/shared/icons";
 import { Button, Combobox, Sheet, useMediaQuery } from "@dub/ui";
@@ -40,11 +41,12 @@ function CreateCommissionSheetContent({
     formState: { errors },
   } = useForm<FormData>();
 
-  const [partnerId, linkId, saleDate, saleAmount] = watch([
+  const [partnerId, linkId, saleDate, saleAmount, customerId] = watch([
     "partnerId",
     "linkId",
     "saleDate",
     "saleAmount",
+    "customerId",
   ]);
 
   const partnerOptions = useMemo(() => {
@@ -215,6 +217,22 @@ function CreateCommissionSheetContent({
                 <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
                   USD
                 </span>
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="name" className="flex items-center space-x-2">
+                <h2 className="text-sm font-medium text-neutral-900">
+                  Customer
+                </h2>
+              </label>
+              <div className="mt-2">
+                <CustomerSelector
+                  selectedCustomerId={customerId}
+                  setSelectedCustomerId={(id) => {
+                    setValue("customerId", id, { shouldDirty: true });
+                  }}
+                />
               </div>
             </div>
           </div>
