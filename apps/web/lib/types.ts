@@ -1,5 +1,4 @@
 import z from "@/lib/zod";
-import { metaTagsSchema } from "@/lib/zod/schemas/metatags";
 import {
   PartnerEarningsSchema,
   PartnerProfileCustomerSchema,
@@ -277,8 +276,6 @@ export const tagColors = [
 ] as const;
 
 export type DashboardProps = z.infer<typeof dashboardSchema>;
-
-export type MetaTag = z.infer<typeof metaTagsSchema>;
 
 export type TokenProps = z.infer<typeof tokenSchema>;
 

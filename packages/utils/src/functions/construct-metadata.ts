@@ -1,5 +1,4 @@
 import { Metadata } from "next";
-import { HOME_DOMAIN } from "../constants";
 
 export function constructMetadata({
   title,
@@ -73,7 +72,7 @@ export function constructMetadata({
       creator: "@dubdotco",
     },
     icons,
-    metadataBase: new URL(HOME_DOMAIN),
+    metadataBase: new URL("https://dub.co"),
     ...((url || canonicalUrl) && {
       alternates: {
         canonical: url || canonicalUrl,
