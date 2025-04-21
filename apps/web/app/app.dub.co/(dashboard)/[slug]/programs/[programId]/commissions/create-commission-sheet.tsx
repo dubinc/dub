@@ -46,11 +46,12 @@ function CreateCommissionSheetContent({
     formState: { errors },
   } = useForm<FormData>();
 
-  const [partnerId, linkId, customerId, saleDate] = watch([
+  const [partnerId, linkId, customerId, saleDate, leadDate] = watch([
     "partnerId",
     "linkId",
     "customerId",
     "saleDate",
+    "leadDate",
   ]);
 
   useEffect(() => {
@@ -106,6 +107,9 @@ function CreateCommissionSheetContent({
       saleAmount: data.saleAmount ? data.saleAmount * 100 : null,
     });
   };
+
+  const displayCustomerCreationDate =
+    customerId && !isNewCustomer && programDefaultReward?.event === "sale";
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
@@ -178,73 +182,116 @@ function CreateCommissionSheetContent({
           </div>
 
           <div className="grid grid-cols-1 gap-6 rounded-xl border border-neutral-200 px-4 py-5">
-            <div>
-              <label htmlFor="saleDate" className="flex items-center space-x-2">
-                <h2 className="text-sm font-medium text-neutral-900">
-                  Sale date
-                </h2>
-              </label>
-              <div className="mt-2">
-                <input
-                  type="date"
-                  id="saleDate"
-                  className={cn(
-                    "block w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                    errors.saleDate &&
-                      "border-red-600 focus:border-red-500 focus:ring-red-600",
-                  )}
-                  {...register("saleDate")}
-                  value={
-                    saleDate
-                      ? new Date(saleDate).toISOString().split("T")[0]
-                      : ""
-                  }
-                  onChange={(e) => {
-                    if (e.target.value) {
-                      setValue("saleDate", new Date(e.target.value));
+            {programDefaultReward?.event === "sale" && (
+              <div>
+                <label
+                  htmlFor="saleDate"
+                  className="flex items-center space-x-2"
+                >
+                  <h2 className="text-sm font-medium text-neutral-900">
+                    Sale date
+                  </h2>
+                </label>
+                <div className="mt-2">
+                  <input
+                    type="date"
+                    id="saleDate"
+                    className={cn(
+                      "block w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                      errors.saleDate &&
+                        "border-red-600 focus:border-red-500 focus:ring-red-600",
+                    )}
+                    {...register("saleDate")}
+                    value={
+                      saleDate
+                        ? new Date(saleDate).toISOString().split("T")[0]
+                        : ""
                     }
-                  }}
-                />
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        setValue("saleDate", new Date(e.target.value));
+                      }
+                    }}
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
-            <div>
-              <label
-                htmlFor="saleAmount"
-                className="flex items-center space-x-2"
-              >
-                <h2 className="text-sm font-medium text-neutral-900">
-                  Sale amount
-                </h2>
-              </label>
-              <div className="relative mt-2 rounded-md shadow-sm">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
-                  $
-                </span>
-                <input
-                  className={cn(
-                    "block w-full rounded-md border-neutral-300 pl-6 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                    errors.saleAmount &&
-                      "border-red-600 focus:border-red-500 focus:ring-red-600",
-                  )}
-                  {...register("saleAmount", {
-                    valueAsNumber: true,
-                    min: 0,
-                    onChange: handleMoneyInputChange,
-                    setValueAs: (value) => (value === "" ? null : value),
-                  })}
-                  placeholder="0.00"
-                />
-                <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
-                  USD
-                </span>
+            {programDefaultReward?.event === "sale" && (
+              <div>
+                <label
+                  htmlFor="saleAmount"
+                  className="flex items-center space-x-2"
+                >
+                  <h2 className="text-sm font-medium text-neutral-900">
+                    Sale amount
+                  </h2>
+                </label>
+                <div className="relative mt-2 rounded-md shadow-sm">
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
+                    $
+                  </span>
+                  <input
+                    className={cn(
+                      "block w-full rounded-md border-neutral-300 pl-6 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                      errors.saleAmount &&
+                        "border-red-600 focus:border-red-500 focus:ring-red-600",
+                    )}
+                    {...register("saleAmount", {
+                      valueAsNumber: true,
+                      min: 0,
+                      onChange: handleMoneyInputChange,
+                      setValueAs: (value) => (value === "" ? null : value),
+                    })}
+                    placeholder="0.00"
+                  />
+                  <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
+                    USD
+                  </span>
+                </div>
               </div>
-            </div>
+            )}
+
+            {programDefaultReward?.event === "lead" && (
+              <div>
+                <label
+                  htmlFor="saleDate"
+                  className="flex items-center space-x-2"
+                >
+                  <h2 className="text-sm font-medium text-neutral-900">
+                    Lead date
+                  </h2>
+                </label>
+                <div className="mt-2">
+                  <input
+                    type="date"
+                    id="leadDate"
+                    className={cn(
+                      "block w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                      errors.leadDate &&
+                        "border-red-600 focus:border-red-500 focus:ring-red-600",
+                    )}
+                    {...register("leadDate")}
+                    value={
+                      leadDate
+                        ? new Date(leadDate).toISOString().split("T")[0]
+                        : ""
+                    }
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        setValue("leadDate", new Date(e.target.value));
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+            )}
 
             <AnimatedSizeContainer
               height
               transition={{ ease: "easeInOut", duration: 0.2 }}
               className={!hasInvoiceId ? "hidden" : ""}
+              style={{ display: !hasInvoiceId ? "none" : "block" }}
             >
               <div className="flex items-center gap-4">
                 <Switch
@@ -309,12 +356,15 @@ function CreateCommissionSheetContent({
               </div>
             </div>
 
-            <AnimatedSizeContainer
-              height
-              transition={{ ease: "easeInOut", duration: 0.2 }}
-              className={!isNewCustomer ? "hidden" : ""}
-            >
-              {!isNewCustomer && (
+            {displayCustomerCreationDate && (
+              <AnimatedSizeContainer
+                height
+                transition={{ ease: "easeInOut", duration: 0.2 }}
+                style={{
+                  height: hasDifferentCreationDate ? "auto" : "0px",
+                  overflow: "hidden",
+                }}
+              >
                 <div className="flex flex-col gap-6">
                   <div className="flex items-center gap-4">
                     <Switch
@@ -361,8 +411,8 @@ function CreateCommissionSheetContent({
                     </div>
                   )}
                 </div>
-              )}
-            </AnimatedSizeContainer>
+              </AnimatedSizeContainer>
+            )}
           </div>
         </div>
       </div>

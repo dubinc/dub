@@ -1,7 +1,7 @@
 import useCustomers from "@/lib/swr/use-customers";
 import { CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/customers";
 import { Button, Combobox } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { useEffect, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 import { useAddCustomerModal } from "../modals/add-customer-modal";
@@ -45,10 +45,7 @@ export function CustomerSelector({
       label: customer.name || customer.email || customer.externalId,
       icon: (
         <img
-          src={
-            customer.avatar ||
-            `https://api.dub.co/og/avatar?seed=${customer.id}`
-          }
+          src={customer.avatar || `${OG_AVATAR_URL}${customer.id}`}
           className="size-4 rounded-full"
         />
       ),
