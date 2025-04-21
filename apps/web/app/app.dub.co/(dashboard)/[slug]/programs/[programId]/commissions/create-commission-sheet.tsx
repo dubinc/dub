@@ -208,7 +208,7 @@ function CreateCommissionSheetContent({
                 </label>
                 <div className="mt-2">
                   <input
-                    type="date"
+                    type="datetime-local"
                     id="saleDate"
                     className={cn(
                       "block w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
@@ -220,7 +220,7 @@ function CreateCommissionSheetContent({
                     })}
                     value={
                       saleDate
-                        ? new Date(saleDate).toISOString().split("T")[0]
+                        ? new Date(saleDate).toISOString().slice(0, 16)
                         : ""
                     }
                     onChange={(e) => {
@@ -281,7 +281,7 @@ function CreateCommissionSheetContent({
                 </label>
                 <div className="mt-2">
                   <input
-                    type="date"
+                    type="datetime-local"
                     id="leadDate"
                     className={cn(
                       "block w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
@@ -291,7 +291,7 @@ function CreateCommissionSheetContent({
                     {...register("leadDate")}
                     value={
                       leadDate
-                        ? new Date(leadDate).toISOString().split("T")[0]
+                        ? new Date(leadDate).toISOString().slice(0, 16)
                         : ""
                     }
                     onChange={(e) => {
@@ -410,7 +410,7 @@ function CreateCommissionSheetContent({
                       </label>
                       <div className="mt-2">
                         <input
-                          type="date"
+                          type="datetime-local"
                           id="leadDate"
                           className={cn(
                             "block w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
@@ -420,7 +420,7 @@ function CreateCommissionSheetContent({
                           {...register("leadDate")}
                           value={
                             leadDate
-                              ? new Date(leadDate).toISOString().split("T")[0]
+                              ? new Date(leadDate).toISOString().slice(0, 16)
                               : ""
                           }
                           onChange={(e) => {
