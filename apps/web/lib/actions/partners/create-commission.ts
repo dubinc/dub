@@ -2,7 +2,6 @@
 
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
-import { getClickEvent } from "@/lib/tinybird";
 import { recordClick } from "@/lib/tinybird/record-click";
 import { recordLeadWithTimestamp } from "@/lib/tinybird/record-lead";
 import { recordSaleWithTimestamp } from "@/lib/tinybird/record-sale";
@@ -25,8 +24,8 @@ export const createCommissionAction = authActionClient
       linkId,
       invoiceId,
       customerId,
-      saleDate,
       saleAmount,
+      saleDate,
       leadDate,
     } = parsedInput;
 
@@ -78,91 +77,65 @@ export const createCommissionAction = authActionClient
       }
     }
 
-    const shouldRecordClick = !customer.clickId;
-    const shouldRecordLead = !customer.linkId;
-    const shouldRecordSale = saleAmount && saleDate;
-    let clickData: any;
-
     // Record click
-    if (shouldRecordClick) {
-      const dummyRequest = new Request(link.url, {
-        headers: new Headers({
-          "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
-          "x-forwarded-for": "127.0.0.1",
-          "x-vercel-ip-country": "US",
-          "x-vercel-ip-country-region": "CA",
-          "x-vercel-ip-continent": "NA",
-        }),
-      });
+    const dummyRequest = new Request(link.url, {
+      headers: new Headers({
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+        "x-forwarded-for": "127.0.0.1",
+        "x-vercel-ip-country": "US",
+        "x-vercel-ip-country-region": "CA",
+        "x-vercel-ip-continent": "NA",
+      }),
+    });
 
-      clickData = await recordClick({
-        req: dummyRequest,
-        linkId,
-        clickId: nanoid(16),
-        url: link.url,
-        domain: link.domain,
-        key: link.key,
-        workspaceId: workspace.id,
-        skipRatelimit: true,
-        timestamp: new Date().toISOString(),
-      });
-    }
-
-    if (!clickData && customer.clickId) {
-      const clickEvent = await getClickEvent({
-        clickId: customer.clickId,
-      });
-
-      if (!clickEvent || clickEvent.data.length === 0) {
-        throw new Error(`Click event with ID ${customer.clickId} not found.`);
-      }
-
-      clickData = clickEvent.data[0];
-    }
+    const clickData = await recordClick({
+      req: dummyRequest,
+      linkId,
+      clickId: nanoid(16),
+      url: link.url,
+      domain: link.domain,
+      key: link.key,
+      workspaceId: workspace.id,
+      skipRatelimit: true,
+      timestamp: new Date().toISOString(),
+    });
 
     // Record lead
-    if (shouldRecordLead) {
-      const clickEvent = clickEventSchemaTB.parse({
-        ...clickData,
-        bot: 0,
-        qr: 0,
-      });
+    const clickEvent = clickEventSchemaTB.parse({
+      ...clickData,
+      bot: 0,
+      qr: 0,
+    });
 
-      const eventId = nanoid(16);
+    const eventId = nanoid(16);
 
-      await recordLeadWithTimestamp({
-        ...clickEvent,
-        event_id: eventId,
-        event_name: "Sign up",
-        customer_id: customerId,
-        timestamp: leadDate
-          ? new Date(leadDate).toISOString()
-          : new Date().toISOString(),
-      });
+    await recordLeadWithTimestamp({
+      ...clickEvent,
+      event_id: eventId,
+      event_name: "Sign up",
+      customer_id: customerId,
+      timestamp: leadDate
+        ? new Date(leadDate).toISOString()
+        : new Date().toISOString(),
+    });
 
-      await prisma.customer.update({
-        where: {
-          id: customerId,
-        },
-        data: {
-          linkId,
-          ...(clickData && { clickId: clickData.clickId }),
-        },
-      });
+    // TODO:
+    // Should we update the linkId, clickId, and clickedAt? for the customer?
 
-      await createPartnerCommission({
-        event: "lead",
-        programId,
-        partnerId,
-        linkId,
-        eventId,
-        customerId,
-        amount: 0,
-        quantity: 1,
-      });
-    }
+    await createPartnerCommission({
+      event: "lead",
+      programId,
+      partnerId,
+      linkId,
+      eventId,
+      customerId,
+      amount: 0,
+      quantity: 1,
+    });
 
     // Record sale
+    const shouldRecordSale = saleAmount && saleDate;
+
     if (shouldRecordSale) {
       const clickEvent = clickEventSchemaTB.parse({
         ...clickData,
@@ -175,7 +148,7 @@ export const createCommissionAction = authActionClient
       await recordSaleWithTimestamp({
         ...clickEvent,
         event_id: eventId,
-        event_name: "Invoice paid",
+        event_name: "Purchase",
         amount: saleAmount,
         customer_id: customerId,
         payment_processor: "custom",
