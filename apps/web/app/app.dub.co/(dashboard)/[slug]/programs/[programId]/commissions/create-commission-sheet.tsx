@@ -74,6 +74,12 @@ function CreateCommissionSheetContent({
     }));
   }, [partners]);
 
+  const programDefaultReward = useMemo(() => {
+    return program?.rewards?.find(
+      (reward) => reward.id === program?.defaultRewardId,
+    );
+  }, [program]);
+
   const { executeAsync, isPending } = useAction(createCommissionAction, {
     onSuccess: async () => {
       toast.success("A commission has been created for the partner!");
@@ -98,7 +104,6 @@ function CreateCommissionSheetContent({
       saleDate: data.saleDate ? new Date(data.saleDate).toISOString() : null,
       leadDate: data.leadDate ? new Date(data.leadDate).toISOString() : null,
       saleAmount: data.saleAmount ? data.saleAmount * 100 : null,
-      invoiceId: data.invoiceId || null,
     });
   };
 
@@ -226,6 +231,7 @@ function CreateCommissionSheetContent({
                     valueAsNumber: true,
                     min: 0,
                     onChange: handleMoneyInputChange,
+                    setValueAs: (value) => (value === "" ? null : value),
                   })}
                   placeholder="0.00"
                 />
@@ -277,6 +283,7 @@ function CreateCommissionSheetContent({
                       )}
                       {...register("invoiceId", {
                         required: hasInvoiceId,
+                        setValueAs: (value) => (value === "" ? null : value),
                       })}
                       placeholder="Enter invoice ID"
                     />
@@ -307,7 +314,7 @@ function CreateCommissionSheetContent({
               transition={{ ease: "easeInOut", duration: 0.2 }}
               className={!isNewCustomer ? "hidden" : ""}
             >
-              {isNewCustomer && (
+              {!isNewCustomer && (
                 <div className="flex flex-col gap-6">
                   <div className="flex items-center gap-4">
                     <Switch
