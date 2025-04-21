@@ -1,5 +1,6 @@
 import { createCommissionAction } from "@/lib/actions/partners/create-commission";
 import { handleMoneyInputChange } from "@/lib/form-utils";
+import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartners from "@/lib/swr/use-partners";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -91,6 +92,7 @@ function CreateCommissionSheetContent({
     onSuccess: async () => {
       toast.success("A commission has been created for the partner!");
       setIsOpen(false);
+      await mutatePrefix(`/api/programs/${program?.id}/commissions`);
     },
     onError({ error }) {
       console.log(error);
