@@ -107,11 +107,11 @@ export const createCommissionAction = authActionClient
       qr: 0,
     });
 
-    const eventId = nanoid(16);
+    const leadEventId = nanoid(16);
 
     await recordLeadWithTimestamp({
       ...clickEvent,
-      event_id: eventId,
+      event_id: leadEventId,
       event_name: "Sign up",
       customer_id: customerId,
       timestamp: leadDate
@@ -127,7 +127,7 @@ export const createCommissionAction = authActionClient
       programId,
       partnerId,
       linkId,
-      eventId,
+      eventId: leadEventId,
       customerId,
       amount: 0,
       quantity: 1,
@@ -143,11 +143,11 @@ export const createCommissionAction = authActionClient
         qr: 0,
       });
 
-      const eventId = nanoid(16);
+      const saleEventId = nanoid(16);
 
       await recordSaleWithTimestamp({
         ...clickEvent,
-        event_id: eventId,
+        event_id: saleEventId,
         event_name: "Purchase",
         amount: saleAmount,
         customer_id: customerId,
@@ -161,7 +161,7 @@ export const createCommissionAction = authActionClient
         programId,
         partnerId,
         linkId,
-        eventId,
+        eventId: saleEventId,
         customerId,
         amount: saleAmount,
         quantity: 1,
