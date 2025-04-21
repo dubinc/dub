@@ -187,6 +187,7 @@ function CreateCommissionSheetContent({
               <div className="mt-2">
                 <PartnerLinkSelector
                   selectedLinkId={linkId}
+                  showDestinationUrl={false}
                   partnerId={partnerId}
                   setSelectedLinkId={(id) => {
                     setValue("linkId", id, { shouldDirty: true });
