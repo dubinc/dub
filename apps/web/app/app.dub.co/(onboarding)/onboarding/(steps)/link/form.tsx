@@ -73,7 +73,7 @@ export function Form() {
           // If url is valid, continue to generate metatags, else return null
           new URL(debouncedUrl);
           setLoadingPreviewImage(true);
-          const res = await fetch(`/api/metatags?url=${debouncedUrl}`);
+          const res = await fetch(`/api/links/metatags?url=${debouncedUrl}`);
           if (res.ok) {
             const results = await res.json();
             setPreviewImage(results.image);

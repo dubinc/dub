@@ -373,7 +373,13 @@ export default function EventsTable({
           minSize: 120,
           cell: ({ getValue }) => (
             <div className="flex items-center gap-2">
-              <span>{currencyFormatter(getValue() / 100)}</span>
+              <span>
+                {currencyFormatter(getValue() / 100, {
+                  maximumFractionDigits: undefined,
+                  // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
+                  trailingZeroDisplay: "stripIfInteger",
+                })}
+              </span>
               <span className="text-neutral-400">USD</span>
             </div>
           ),

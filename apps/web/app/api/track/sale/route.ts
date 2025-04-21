@@ -39,7 +39,13 @@ export const POST = withWorkspace(
       metadata,
       eventName,
       leadEventName,
-    } = trackSaleRequestSchema.parse(body);
+    } = trackSaleRequestSchema
+      .extend({
+        // add backwards compatibility
+        externalId: z.string().nullish(),
+        customerId: z.string().nullish(),
+      })
+      .parse(body);
 
     if (invoiceId) {
       // Skip if invoice id is already processed
