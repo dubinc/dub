@@ -130,7 +130,7 @@ export const FRAMES: TStyleOption[] = [
     id: "frame-coffee-cup",
     type: "coffee-cup",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, CoffeeCup, 0.53, 113, 126);
+      await embedQRIntoFrame(qr, options, CoffeeCup, 0.47, 150, 160);
     },
 
     icon: CoffeeCupPreview,
@@ -139,7 +139,7 @@ export const FRAMES: TStyleOption[] = [
     id: "frame-scooter",
     type: "scooter",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, Scooter, 0.38, 110, 115);
+      await embedQRIntoFrame(qr, options, Scooter, 0.35, 130, 135);
     },
 
     icon: ScooterPreview,

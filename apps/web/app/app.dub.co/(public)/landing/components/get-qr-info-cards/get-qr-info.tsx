@@ -1,3 +1,4 @@
+import { Heading } from "@radix-ui/themes";
 import Image from "next/image";
 import { FC } from "react";
 import GetQEInfoCardOne from "../../../../../../ui/landing/assets/png/get-qr-info-card-1.png";
@@ -14,14 +15,19 @@ const GET_QR_CARDS_IMGS = [
 
 export const GetQRInfoCardsSection: FC = () => {
   return (
-    <section className="mx-auto flex max-w-[1172px] flex-col items-center justify-between gap-4 px-3 py-6 lg:gap-8 lg:py-[42px]">
-      <h2 className="text-neutral max-w-[250px] text-center text-xl font-bold leading-[120%] md:max-w-none md:text-[28px]">
+    <section className="mx-auto flex max-w-[1172px] flex-col items-center justify-between gap-4 px-3 py-6 lg:gap-8 lg:py-12">
+      <Heading
+        as="h2"
+        weight="bold"
+        size="8"
+        className="text-neutral max-w-[250px] text-center md:max-w-none"
+      >
         Create your{" "}
         <span className="bg-qr-gradient inline-block bg-clip-text text-transparent">
           QR Code
         </span>{" "}
         in three simple steps
-      </h2>
+      </Heading>
       <div className="gap flex flex-col items-stretch justify-center gap-4 md:flex-row md:gap-6">
         {GET_QR_CARDS.map((card, idx) => (
           <InfoCard

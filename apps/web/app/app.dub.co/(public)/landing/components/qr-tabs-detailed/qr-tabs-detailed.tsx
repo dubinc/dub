@@ -6,6 +6,7 @@ import { cn } from "@dub/utils";
 import { Icon } from "@iconify/react";
 import * as ScrollArea from "@radix-ui/react-scroll-area";
 import * as Tabs from "@radix-ui/react-tabs";
+import { Button, Text } from "@radix-ui/themes";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -19,15 +20,19 @@ export const QrTabsDetailed = () => {
   const [activeTab, setActiveTab] = useState<string>("website");
 
   return (
-    <section className="bg-primary-100 w-full px-3 py-6 md:py-[42px]">
+    <section className="bg-primary-100 w-full px-3 py-6 md:py-12">
       <div className="mx-auto flex max-w-[1172px] flex-col items-center justify-center gap-4 md:gap-8">
-        <div className="flex flex-col items-center justify-center gap-3 md:gap-4">
+        <div className="flex flex-col items-center justify-center gap-4 md:gap-6">
           <QrTabsDetailedTitle />
-          <p className="text-left text-sm text-neutral-300 md:text-center md:text-lg">
+          <Text
+            align={{ sm: "left", md: "center" }}
+            size="5"
+            className="text-neutral-300"
+          >
             From websites and social media to PDFs, business cards, and Wi-Fi
             access—there’s no limit to <br /> what you can create a QR code for.
             GetQR offers every type of QR code you need, all in one place.
-          </p>
+          </Text>
         </div>
         <Tabs.Root
           value={activeTab}
@@ -86,8 +91,8 @@ export const QrTabsDetailed = () => {
                 className={cn("w-full focus:outline-none md:mt-0")}
               >
                 <div className="flex w-full flex-col items-center justify-start gap-[14px] rounded-lg md:flex-row md:gap-8">
-                  <div className="bg-primary-300 relative h-[413px] w-full max-w-[534px] flex-shrink-0 overflow-hidden rounded-lg">
-                    <div className="to-primary absolute bottom-[23px] left-1/2 h-[328px] w-[314px] -translate-x-1/2 rounded-[99px] bg-gradient-to-b from-white opacity-50 blur-[80px]"></div>
+                  <div className="bg-border-100 relative h-[413px] w-full max-w-[534px] flex-shrink-0 overflow-hidden rounded-lg">
+                    <div className="to-border-300 from-border-100 absolute bottom-[23px] left-1/2 h-[328px] w-[314px] -translate-x-1/2 rounded-[99px] bg-gradient-to-b opacity-50 blur-[80px]"></div>
                     <QrTabsDetailedImage
                       imgSrc={type.img}
                       {...(!isMobile && { width: 270, height: 420 })}
@@ -103,14 +108,20 @@ export const QrTabsDetailed = () => {
                         {type.content}
                       </p>
                     </div>
-                    <Link
-                      href="/register"
-                      type="button"
-                      className="bg-secondary hover:bg-secondary/90 flex h-11 w-full max-w-none basis-1/4 flex-row items-center justify-center gap-2 rounded-md px-6 py-3 text-sm font-medium text-white transition-colors md:max-w-[201px] md:text-base"
-                    >
-                      Create QR code
-                      <Image width={20} src={QrCodeIcon} alt="QR Code" />
-                    </Link>
+                    <Button size={"3"} color={"blue"} variant="solid">
+                      <Link
+                        href="/register"
+                        className="flex flex-row items-center justify-center gap-2"
+                      >
+                        Create QR code
+                        <Image
+                          width={20}
+                          src={QrCodeIcon}
+                          alt="QR Code"
+                          priority
+                        />
+                      </Link>
+                    </Button>
                   </div>
                 </div>
               </Tabs.Content>

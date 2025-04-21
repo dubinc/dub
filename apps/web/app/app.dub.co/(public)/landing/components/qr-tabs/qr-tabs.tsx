@@ -1,10 +1,11 @@
 "use client";
 
 import { QRCodeContentBuilder } from "@/ui/shared/qr-code-content-builder.tsx";
-import { Button, useMediaQuery } from "@dub/ui";
+import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Icon } from "@iconify/react";
 import * as Tabs from "@radix-ui/react-tabs";
+import { Button } from "@radix-ui/themes";
 import { StaticImageData } from "next/image";
 import Link from "next/link";
 import { CornerDotType, CornerSquareType } from "qr-code-styling";
@@ -23,16 +24,13 @@ import {
 } from "../../../../(dashboard)/[slug]/new-qr/customization/constants.ts";
 import { useQrCustomization } from "../../../../(dashboard)/[slug]/new-qr/customization/hook/use-qr-customization.ts";
 import {
-  ADDITIONAL_QR_TYPES,
-  DEFAULT_QR_TYPES,
   EQRType,
-  LINKED_QR_TYPES,
+  FILE_QR_TYPES,
   QR_STYLES_OPTIONS,
   QR_TYPES,
 } from "../../constants/get-qr-config.ts";
 import { Rating } from "../rating-info/components/rating.tsx";
 import { LogoScrollingBanner } from "./components/logo-scrolling-banner.tsx";
-import { QrTabsImage } from "./components/qr-tabs-image.tsx";
 import { QRTabsPopover } from "./components/qr-tabs-popover.tsx";
 import { QrTabsTitle } from "./components/qr-tabs-title.tsx";
 
@@ -60,72 +58,65 @@ export const QRTabs = () => {
     isQrDisabled,
   } = useQrCustomization();
 
+  const nonFileQrTypes = QR_TYPES.filter(
+    (qrType) => !FILE_QR_TYPES.includes(qrType.id),
+  );
+
   return (
-    <section className="bg-primary-100 w-full px-3 pb-6 md:pb-[42px]">
-      <div className="mx-auto flex max-w-[992px] flex-col items-center justify-center gap-4 md:gap-[42px]">
+    <section className="bg-primary-100 w-full px-3 pb-6 md:pb-12">
+      <div className="mx-auto flex max-w-[992px] flex-col items-center justify-center gap-4 md:gap-12">
         <QrTabsTitle />
         <Tabs.Root
           value={activeTab}
           onValueChange={setActiveTab}
           className="mx-auto flex w-full flex-col items-center justify-center gap-[18px] rounded-lg bg-white p-4 md:rounded-none md:bg-transparent"
         >
-          {isMobile && <QrTabsImage width={320} />}
-
           {isMobile ? (
             <QRTabsPopover
-              qrTypes={QR_TYPES}
+              qrTypes={nonFileQrTypes}
               setOpenPopover={setOpenPopover}
               openPopover={openPopover}
               handlePopoverItemClick={handlePopoverItemClick}
               isMobile={isMobile}
               showButtonContent
-              selectedQrType={QR_TYPES.find((type) => type.id === activeTab)}
+              selectedQrType={nonFileQrTypes.find(
+                (type) => type.id === activeTab,
+              )}
             />
           ) : (
-            <Tabs.List className="flex w-full items-center gap-0.5 overflow-x-auto rounded-lg bg-white p-3">
-              {DEFAULT_QR_TYPES.map((type, idx) => (
+            <Tabs.List className="flex w-full items-center justify-between gap-0.5 overflow-x-auto rounded-lg bg-white p-3">
+              {nonFileQrTypes.map((type, idx) => (
                 <Tabs.Trigger
                   key={type.id}
                   value={type.id}
                   className={cn(
-                    "text-neutral group flex w-32 items-center justify-center gap-2 rounded-md px-4 py-3.5 transition-colors",
-                    "hover:bg-secondary-100 hover:text-secondary",
-                    "data-[state=active]:bg-secondary-100 data-[state=active]:text-secondary",
+                    "text-neutral group flex min-w-32 items-center justify-center gap-2 rounded-md px-4 py-3.5 font-medium transition-colors",
+                    "hover:bg-border-100 hover:text-neutral",
+                    "data-[state=active]:bg-secondary-100 data-[state=active]:border-secondary data-[state=active]:text-secondary",
                   )}
                 >
                   <Icon
                     icon={type.icon}
                     className={cn(
                       "h-5 w-5 flex-none",
-                      idx === 4
-                        ? "group-hover:[&>path]:fill-secondary [&>path]:fill-neutral-200"
-                        : "group-hover:[&>g]:stroke-secondary group-hover:[&>path]:stroke-secondary [&>g]:stroke-neutral-200 [&>path]:stroke-neutral-200",
+                      idx === 1
+                        ? "group-hover:[&>path]:fill-neutral [&>path]:fill-neutral-200"
+                        : "group-hover:[&>g]:stroke-neutral group-hover:[&>path]:stroke-neutral [&>g]:stroke-neutral-200 [&>path]:stroke-neutral-200",
                       activeTab === type.id &&
-                        (idx === 4
+                        (idx === 1
                           ? "[&>path]:fill-secondary group-hover:[&>path]:fill-secondary"
                           : "[&>g]:stroke-secondary group-hover:[&>g]:stroke-secondary [&>path]:stroke-secondary group-hover:[&>path]:stroke-secondary"),
                     )}
                   />
-                  <span className="truncate text-sm font-normal md:text-xs">
+                  <span className="whitespace-nowrap text-base font-normal md:text-xs">
                     {type.label}
                   </span>
                 </Tabs.Trigger>
               ))}
-              <QRTabsPopover
-                qrTypes={ADDITIONAL_QR_TYPES}
-                setOpenPopover={setOpenPopover}
-                openPopover={openPopover}
-                handlePopoverItemClick={handlePopoverItemClick}
-                isMobile={isMobile}
-                selectedQrType={QR_TYPES.find((type) => type.id === activeTab)}
-              />
             </Tabs.List>
           )}
 
-          {QR_TYPES.map((type, idx) => {
-            const firstTab = idx === 0;
-            const showWebsiteInput = LINKED_QR_TYPES.includes(type.id);
-
+          {nonFileQrTypes.map((type) => {
             return (
               <Tabs.Content
                 key={type.id}
@@ -207,7 +198,7 @@ export const QRTabs = () => {
                               value={tab.label}
                               className={cn(
                                 "text-neutral flex items-center justify-center gap-2 rounded-md px-3.5 py-2 transition-colors",
-                                "hover:bg-secondary-100 hover:text-secondary",
+                                "hover:bg-border-100 hover:text-neutral",
                                 "data-[state=active]:bg-secondary-100 data-[state=active]:text-secondary",
                               )}
                             >
@@ -228,11 +219,17 @@ export const QRTabs = () => {
                                 label="Frames"
                                 styleOptions={FRAMES}
                                 selectedStyle={selectedSuggestedFrame}
-                                onSelect={(type: string) =>
-                                  handlers.onSuggestedFrameSelect(type)
-                                }
+                                onSelect={(type: string) => {
+                                  if (isQrDisabled) {
+                                    return;
+                                  }
+                                  handlers.onSuggestedFrameSelect(type);
+                                }}
                                 stylePickerWrapperClassName="border border-border-100 p-3 rounded-lg gap-5"
-                                optionsWrapperClassName="gap-2"
+                                optionsWrapperClassName={cn("gap-2", {
+                                  "pointer-events-none cursor-not-allowed":
+                                    isQrDisabled,
+                                })}
                                 styleButtonClassName={
                                   "[&_img]:h-8 [&_img]:w-8 p-3.5"
                                 }
@@ -324,12 +321,19 @@ export const QRTabs = () => {
                                   onSelect={(
                                     type: string,
                                     icon?: StaticImageData,
-                                  ) =>
+                                  ) => {
+                                    if (isQrDisabled) {
+                                      return;
+                                    }
                                     handlers.onSuggestedLogoSelect(
                                       type,
                                       icon?.src,
-                                    )
-                                  }
+                                    );
+                                  }}
+                                  optionsWrapperClassName={cn("", {
+                                    "pointer-events-none cursor-not-allowed":
+                                      isQrDisabled,
+                                  })}
                                   stylePickerWrapperClassName="[&_label]:text-sm"
                                   styleButtonClassName={
                                     "[&_img]:h-5 [&_img]:w-5 p-3.5"
@@ -393,33 +397,25 @@ export const QRTabs = () => {
                           },
                         )}
                       >
-                        {/*{isQrDisabled ? (*/}
-                        {/*  <Image*/}
-                        {/*    width={160}*/}
-                        {/*    height={160}*/}
-                        {/*    src={DummyFrame}*/}
-                        {/*    alt="QR code placeholder"*/}
-                        {/*    priority*/}
-                        {/*  />*/}
-                        {/*) : (*/}
-                        {/*  <QRPreview qrCode={qrCode} />*/}
-                        {/*)}*/}
                         <QRPreview qrCode={qrCode} />
                       </div>
                       <Button
-                        as={Link}
-                        href="/register"
-                        className={cn(
-                          "bg-secondary hover:bg-secondary/90 flex h-11 w-full items-center justify-center rounded-md px-6 py-3 text-sm font-medium text-white transition-colors md:text-base",
-                          {
-                            "basis-2/5": firstTab,
-                            "bg-border-200 text-border-300 border-border-300 hover:bg-border-200 cursor-not-allowed":
-                              isQrDisabled,
-                          },
-                        )}
-                        text={"Download QR code"}
+                        size={"3"}
+                        color={"blue"}
+                        variant="solid"
                         disabled={isQrDisabled}
-                      />
+                      >
+                        <Link
+                          className={cn(
+                            "",
+                            isQrDisabled &&
+                              "pointer-events-none cursor-not-allowed",
+                          )}
+                          href={"/register"}
+                        >
+                          Download QR code
+                        </Link>
+                      </Button>
                     </div>
                   </div>
                 </div>

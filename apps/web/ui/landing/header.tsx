@@ -1,4 +1,5 @@
 import { Logo } from "@/ui/shared/logo";
+import { Button, Text } from "@radix-ui/themes";
 import Link from "next/link";
 
 export const Header = () => {
@@ -10,19 +11,20 @@ export const Header = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <Link
-            href="/login"
-            className="text-neutral hover:text-neutral/80 flex h-10 items-center justify-center px-4 text-base font-medium"
-          >
-            Log In
-          </Link>
+          <Button className="!hover:bg-red" variant="ghost">
+            <Link href="/login" className="text-neutral">
+              <Text size="3" weight="medium">
+                Log In
+              </Text>
+            </Link>
+          </Button>
 
-          <Link
-            href="/register"
-            className="bg-secondary hover:bg-secondary/90 hidden h-10 items-center justify-center rounded-md px-4 text-white md:flex"
-          >
-            Registration
-          </Link>
+          {/*<Link*/}
+          {/*  href="/register"*/}
+          {/*  className="bg-secondary hover:bg-secondary/90 hidden h-10 items-center justify-center rounded-md px-4 text-white md:flex"*/}
+          {/*>*/}
+          {/*  Registration*/}
+          {/*</Link>*/}
         </div>
       </nav>
     </header>

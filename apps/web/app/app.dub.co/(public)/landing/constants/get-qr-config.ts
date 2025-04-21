@@ -29,7 +29,7 @@ export type QRType = {
   content: string;
 };
 
-export const DEFAULT_QR_TYPES: QRType[] = [
+export const QR_TYPES: QRType[] = [
   {
     id: EQRType.WEBSITE,
     label: "Website",
@@ -86,9 +86,6 @@ export const DEFAULT_QR_TYPES: QRType[] = [
     content:
       "Instant Wi-Fi access—no typing required! Use a QR code to let guests connect to your network effortlessly by scanning, making it perfect for homes, cafés, offices, and events.",
   },
-];
-
-export const ADDITIONAL_QR_TYPES: QRType[] = [
   {
     id: EQRType.APP_LINK,
     label: "App Link",
@@ -106,8 +103,6 @@ export const ADDITIONAL_QR_TYPES: QRType[] = [
       "Get valuable feedback in seconds! Use a QR code to collect customer insights instantly—helping you improve your business and enhance the customer experience.",
   },
 ];
-
-export const QR_TYPES: QRType[] = [...DEFAULT_QR_TYPES, ...ADDITIONAL_QR_TYPES];
 
 export const LINKED_QR_TYPES: EQRType[] = [
   EQRType.WEBSITE,

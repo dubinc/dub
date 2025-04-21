@@ -1,3 +1,4 @@
+import { Box, Card, Flex, Heading, Text } from "@radix-ui/themes";
 import { FC, ReactNode } from "react";
 
 interface IGetInfoCardProps {
@@ -13,32 +14,47 @@ export const InfoCard: FC<IGetInfoCardProps> = ({
   cardNumber,
 }) => {
   return (
-    <div className="border-border-100 flex flex-col items-center gap-3 rounded-lg border p-3 shadow-md md:gap-4 md:p-4">
-      <div className="bg-border-100 relative flex h-[140px] w-full max-w-[342px] flex-shrink-0 justify-center overflow-hidden rounded-lg [&>img]:w-[140px] [&>img]:self-end">
-        <div className="to-border-300 from-border-100 absolute bottom-0 left-1/2 h-[140px] w-[342px] -translate-x-1/2 rounded-[99px] bg-gradient-to-b opacity-50 blur-[80px]"></div>
-        {img}
-      </div>
-      <div className="flex w-full flex-row items-center gap-2">
-        <div className="relative flex h-7 w-7 items-center justify-center rounded-full md:h-8 md:w-8">
-          <div
-            className="absolute inset-0 -m-[2px] rounded-full"
-            style={{
-              background:
-                "linear-gradient(90deg, #115740 20.53%, #25BD8B 37.79%)",
-              padding: "2px",
-            }}
+    <Card className="border-border-100 rounded-lg border">
+      <Flex direction="column" gap={{ sm: "3", lg: "4" }} align="center">
+        <Flex
+          justify="center"
+          className="bg-border-100 relative h-[140px] w-full max-w-[342px] flex-shrink-0 overflow-hidden rounded-lg [&>img]:w-[140px] [&>img]:self-end"
+        >
+          <Box className="to-border-300 from-border-100 absolute bottom-0 left-1/2 h-[140px] w-[342px] -translate-x-1/2 rounded-[99px] bg-gradient-to-b opacity-50 blur-[80px]"></Box>
+          {img}
+        </Flex>
+        <Flex gap="2" align="center" className="w-full flex-row">
+          <Flex
+            align="center"
+            justify="center"
+            className="relative h-7 w-7 rounded-full md:h-8 md:w-8"
           >
-            <div className="text-neutral flex h-full w-full items-center justify-center rounded-full bg-white text-xs font-semibold md:text-sm">
-              {cardNumber}
-            </div>
-          </div>
-        </div>
+            <Box
+              className="absolute inset-0 -m-[2px] rounded-full"
+              style={{
+                background:
+                  "linear-gradient(90deg, #115740 20.53%, #25BD8B 37.79%)",
+                padding: "2px",
+              }}
+            >
+              <Flex
+                align="center"
+                justify="center"
+                className="text-neutral h-full w-full rounded-full bg-white text-xs font-semibold md:text-sm"
+              >
+                {cardNumber}
+              </Flex>
+            </Box>
+          </Flex>
 
-        <h3 className="text-neutral text-base font-semibold md:text-lg">
-          {title}
-        </h3>
-      </div>
-      <p className="text-left text-sm text-neutral-300">{content}</p>
-    </div>
+          <Heading as="h3" size={"3"} weight={"bold"} className="text-neutral">
+            {title}
+          </Heading>
+        </Flex>
+        <Text as="div" size="2" className="text-neutral-300">
+          {content}
+        </Text>
+      </Flex>
+    </Card>
   );
 };

@@ -39,3 +39,44 @@ code .line::before {
   background-color: #d1d5db;
   border-radius: 10px;
 }
+
+.radix-themes[data-accent-color="indigo"] {
+  --custom-indigo: #F0F2F5;
+
+  --accent-3: var(--custom-indigo);
+  --accent-a3: var(--custom-indigo);
+}
+
+
+.radix-themes {
+  --blue-1: #fcfdfe;
+  --blue-2: #f6faff;
+  --blue-3: #eaf3fe;
+  --blue-4: #dcebff;
+  --blue-5: #cae2ff;
+  --blue-6: #b6d5fe;
+  --blue-7: #9dc3f6;
+  --blue-8: #78abee;
+  --blue-9: #06c;
+  --blue-10: #0057bc;
+  --blue-11: #0769cf;
+  --blue-12: #0e325e;
+
+  --blue-a1: #0055aa03;
+  --blue-a2: #0072ff09;
+  --blue-a3: #006ef315;
+  --blue-a4: #006eff23;
+  --blue-a5: #0074ff35;
+  --blue-a6: #006dfc49;
+  --blue-a7: #0063e862;
+  --blue-a8: #0061df87;
+  --blue-a9: #0066cc;
+  --blue-a10: #0057bc;
+  --blue-a11: #0065cef8;
+  --blue-a12: #002655f1;
+
+  --blue-contrast: #fff;
+  --blue-surface: #f4f9ffcc;
+  --blue-indicator: #06c;
+  --blue-track: #06c;
+}
