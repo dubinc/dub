@@ -95,7 +95,6 @@ function CreateCommissionSheetContent({
       await mutatePrefix(`/api/programs/${program?.id}/commissions`);
     },
     onError({ error }) {
-      console.log(error);
       toast.error(error.serverError);
     },
   });
@@ -306,57 +305,61 @@ function CreateCommissionSheetContent({
               </div>
             )}
 
-            <AnimatedSizeContainer
-              height
-              transition={{ ease: "easeInOut", duration: 0.2 }}
-              className={!hasInvoiceId ? "hidden" : ""}
-              style={{ display: !hasInvoiceId ? "none" : "block" }}
-            >
-              <div className="flex items-center gap-4">
-                <Switch
-                  fn={setHasInvoiceId}
-                  checked={hasInvoiceId}
-                  trackDimensions="w-8 h-4"
-                  thumbDimensions="w-3 h-3"
-                  thumbTranslate="translate-x-4"
-                />
-                <div className="flex gap-1">
-                  <h3 className="text-sm font-medium text-neutral-700">Add </h3>
-                  <span className="rounded-md border border-neutral-200 bg-neutral-100 px-1 py-0.5 text-xs">
-                    invoiceID
-                  </span>
-                </div>
-              </div>
-
-              {hasInvoiceId && (
-                <div className="mt-4">
-                  <label
-                    htmlFor="invoiceId"
-                    className="flex items-center space-x-2"
-                  >
-                    <h2 className="text-sm font-medium text-neutral-900">
-                      Invoice ID
-                    </h2>
-                  </label>
-                  <div className="mt-2">
-                    <input
-                      type="text"
-                      id="invoiceId"
-                      className={cn(
-                        "block w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                        errors.invoiceId &&
-                          "border-red-600 focus:border-red-500 focus:ring-red-600",
-                      )}
-                      {...register("invoiceId", {
-                        required: hasInvoiceId,
-                        setValueAs: (value) => (value === "" ? null : value),
-                      })}
-                      placeholder="Enter invoice ID"
-                    />
+            {programDefaultReward?.event !== "lead" && (
+              <AnimatedSizeContainer
+                height
+                transition={{ ease: "easeInOut", duration: 0.2 }}
+                className={!hasInvoiceId ? "hidden" : ""}
+                style={{ display: !hasInvoiceId ? "none" : "block" }}
+              >
+                <div className="flex items-center gap-4">
+                  <Switch
+                    fn={setHasInvoiceId}
+                    checked={hasInvoiceId}
+                    trackDimensions="w-8 h-4"
+                    thumbDimensions="w-3 h-3"
+                    thumbTranslate="translate-x-4"
+                  />
+                  <div className="flex gap-1">
+                    <h3 className="text-sm font-medium text-neutral-700">
+                      Add{" "}
+                    </h3>
+                    <span className="rounded-md border border-neutral-200 bg-neutral-100 px-1 py-0.5 text-xs">
+                      invoiceID
+                    </span>
                   </div>
                 </div>
-              )}
-            </AnimatedSizeContainer>
+
+                {hasInvoiceId && (
+                  <div className="mt-4">
+                    <label
+                      htmlFor="invoiceId"
+                      className="flex items-center space-x-2"
+                    >
+                      <h2 className="text-sm font-medium text-neutral-900">
+                        Invoice ID
+                      </h2>
+                    </label>
+                    <div className="mt-2">
+                      <input
+                        type="text"
+                        id="invoiceId"
+                        className={cn(
+                          "block w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                          errors.invoiceId &&
+                            "border-red-600 focus:border-red-500 focus:ring-red-600",
+                        )}
+                        {...register("invoiceId", {
+                          required: hasInvoiceId,
+                          setValueAs: (value) => (value === "" ? null : value),
+                        })}
+                        placeholder="Enter invoice ID"
+                      />
+                    </div>
+                  </div>
+                )}
+              </AnimatedSizeContainer>
+            )}
 
             <div>
               <label htmlFor="name" className="flex items-center space-x-2">
