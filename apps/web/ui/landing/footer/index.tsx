@@ -28,8 +28,7 @@ export const Footer = () => (
           </div>
         </div>
         <hr className="my-6 bg-gray-500" />
-        <div className="flex w-full flex-row-reverse justify-between gap-4">
-          <Payments />
+        <div className="flex w-full flex-col justify-between gap-4">
           <div className="flex flex-col">
             <p className="text-left text-sm text-neutral-200">
               © GetQR - 2025. All rights reserved. Create your own QR codes and
@@ -39,6 +38,7 @@ export const Footer = () => (
               30 N Gould St Ste R Sheridan, WY 82801 USA
             </p>
           </div>
+          <Payments />
         </div>
       </div>
     </div>

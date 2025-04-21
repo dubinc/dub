@@ -9,7 +9,7 @@ import { RatingInfoSection } from "./components/rating-info/rating-info-section.
 
 export default function LandingPage() {
   return (
-    <main className="relative mx-auto min-h-screen w-full py-6 md:py-[42px]">
+    <main className="relative mx-auto min-h-screen w-full py-6 md:py-12">
       <QRTabs />
       <GetQRInfoCardsSection />
       <RatingInfoSection />

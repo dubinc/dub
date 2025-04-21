@@ -1,5 +1,6 @@
 import RatingStars from "@/ui/landing/assets/svg/stars.svg";
 import { cn } from "@dub/utils";
+import { Text } from "@radix-ui/themes";
 import Image from "next/image";
 import { FC } from "react";
 
@@ -16,14 +17,24 @@ export const Rating: FC<IRatingProps> = ({ alignItems = "center" }) => {
       )}
     >
       <div className="flex flex-row gap-1">
-        <span className="text-secondary-textMuted text-base font-normal">
+        <Text
+          as="span"
+          size="3"
+          weight="regular"
+          className="text-secondary-textMuted"
+        >
           Excellent user reviews
-        </span>
+        </Text>
         <Image width={95} height={17} src={RatingStars} alt="Rating" />
       </div>
-      <span className="text-secondary-textMuted text-base">
+      <Text
+        as="span"
+        size="3"
+        weight="regular"
+        className="text-secondary-textMuted"
+      >
         <strong>3.318</strong> GetQR taken today!
-      </span>
+      </Text>
     </div>
   );
 };

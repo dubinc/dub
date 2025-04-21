@@ -1,13 +1,18 @@
+import { Heading } from "@radix-ui/themes";
 import { FC } from "react";
 
 export const QrTabsTitle: FC = () => {
   return (
-    <h1 className="text-neutral text-center text-[28px] font-bold leading-[120%] md:text-[32px]">
-      The Ultimate{" "}
+    <Heading
+      as="h1"
+      weight="bold"
+      size="9"
+      className="text-neutral text-center"
+    >
+      Create Your{" "}
       <span className="bg-qr-gradient inline-block bg-clip-text text-transparent">
-        QR Solution
-      </span>{" "}
-      for Your Needs
-    </h1>
+        QR Code
+      </span>
+    </Heading>
   );
 };
