@@ -104,12 +104,20 @@ function CreateCommissionSheetContent({
       return;
     }
 
+    const saleDate = data.saleDate
+      ? new Date(data.saleDate).toISOString()
+      : null;
+
+    const leadDate = data.leadDate
+      ? new Date(data.leadDate).toISOString()
+      : null;
+
     await executeAsync({
       ...data,
       workspaceId,
       programId: program.id,
-      saleDate: data.saleDate ? new Date(data.saleDate).toISOString() : null,
-      leadDate: data.leadDate ? new Date(data.leadDate).toISOString() : null,
+      saleDate,
+      leadDate: leadDate || saleDate,
       saleAmount: data.saleAmount ? data.saleAmount * 100 : null,
     });
   };
@@ -410,6 +418,11 @@ function CreateCommissionSheetContent({
                               "border-red-600 focus:border-red-500 focus:ring-red-600",
                           )}
                           {...register("leadDate")}
+                          value={
+                            leadDate
+                              ? new Date(leadDate).toISOString().split("T")[0]
+                              : ""
+                          }
                           onChange={(e) => {
                             if (e.target.value) {
                               setValue("leadDate", new Date(e.target.value));
