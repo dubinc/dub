@@ -55,7 +55,11 @@ export const createProgramSchema = z.object({
   minPayoutAmount: z.coerce
     .number()
     .nullish()
-    .transform((val) => (val ? val * 100 : DUB_MIN_PAYOUT_AMOUNT_CENTS))
+    .transform((val) =>
+      val && val < DUB_MIN_PAYOUT_AMOUNT_CENTS
+        ? val * 100
+        : DUB_MIN_PAYOUT_AMOUNT_CENTS,
+    )
     .refine((val) => val >= DUB_MIN_PAYOUT_AMOUNT_CENTS, {
       message: "Minimum payout amount must be at least $100",
     }),
