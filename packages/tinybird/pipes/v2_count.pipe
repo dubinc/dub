@@ -46,8 +46,8 @@ SQL >
         true
         {% if defined(linkId) %} AND link_id = {{ String(linkId) }} {% end %}
         {% if defined(customerId) %} 
-            AND click_id IN (
-                SELECT DISTINCT click_id 
+            AND link_id IN (
+                SELECT DISTINCT link_id 
                 FROM dub_lead_events_mv 
                 WHERE customer_id = {{ String(customerId) }}
             )
