@@ -25,12 +25,14 @@ const getLinkOption = (link: LinkProps) => ({
 export function PartnerLinkSelector({
   selectedLinkId,
   setSelectedLinkId,
+  partnerId,
   showDestinationUrl = true,
   onCreate,
   error,
 }: {
   selectedLinkId: string | null;
   setSelectedLinkId: (id: string) => void;
+  partnerId?: string | null;
   showDestinationUrl?: boolean;
   onCreate?: (search: string) => Promise<boolean>;
   error?: boolean;
@@ -44,6 +46,10 @@ export function PartnerLinkSelector({
       domain: program?.domain ?? undefined,
       search: debouncedSearch,
       sort: "clicks", // need to specify this to avoid the ?sort= param in the URL overriding the default
+      ...(partnerId && { partnerId }),
+      includeDashboard: false,
+      includeWebhooks: false,
+      includeUser: false,
     },
     {
       keepPreviousData: false,
