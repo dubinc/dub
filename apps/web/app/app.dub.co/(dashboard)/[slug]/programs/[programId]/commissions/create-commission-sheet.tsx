@@ -120,8 +120,8 @@ function CreateCommissionSheetContent({
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        <div className="p-6">
-          <div className="grid grid-cols-1 gap-6">
+        <div className="space-y-6 p-6">
+          <div className="grid grid-cols-1 gap-6 rounded-xl border border-neutral-200 px-4 py-5">
             <div>
               <label htmlFor="name" className="flex items-center space-x-2">
                 <h2 className="text-sm font-medium text-neutral-900">
@@ -170,7 +170,9 @@ function CreateCommissionSheetContent({
                 />
               </div>
             </div>
+          </div>
 
+          <div className="grid grid-cols-1 gap-6 rounded-xl border border-neutral-200 px-4 py-5">
             <div>
               <label htmlFor="saleDate" className="flex items-center space-x-2">
                 <h2 className="text-sm font-medium text-neutral-900">
@@ -236,6 +238,7 @@ function CreateCommissionSheetContent({
             <AnimatedSizeContainer
               height
               transition={{ ease: "easeInOut", duration: 0.2 }}
+              className={!hasInvoiceId ? "hidden" : ""}
             >
               <div className="flex items-center gap-4">
                 <Switch
@@ -302,6 +305,7 @@ function CreateCommissionSheetContent({
             <AnimatedSizeContainer
               height
               transition={{ ease: "easeInOut", duration: 0.2 }}
+              className={!isNewCustomer ? "hidden" : ""}
             >
               {isNewCustomer && (
                 <div className="flex flex-col gap-6">
