@@ -166,30 +166,6 @@ module.exports = withAxiom({
         ),
       ),
       {
-        source: "/metatags",
-        has: [
-          {
-            type: "host",
-            value: "dub.sh",
-          },
-        ],
-        destination: "https://dub.co/tools/metatags",
-        permanent: true,
-        statusCode: 301,
-      },
-      {
-        source: "/metatags",
-        has: [
-          {
-            type: "host",
-            value: "dub.co",
-          },
-        ],
-        destination: "/tools/metatags",
-        permanent: true,
-        statusCode: 301,
-      },
-      {
         source: "/",
         has: [
           {

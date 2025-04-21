@@ -1,7 +1,6 @@
 export const UA_BOTS = [
   "bot", // most bots
   "crawler", // most crawlers
-  "metatags", // Dub.co Metatags API (https://api.dub.co/metatags)
   "chatgpt", // ChatGPT
   "bluesky", // Bluesky crawler
   "facebookexternalhit", // Facebook crawler
@@ -18,6 +17,7 @@ export const UA_BOTS = [
   "MetaInspector", // metatags.io
   "Go-http-client", // Go-http-client/1.1 is a bot: https://user-agents.net/string/go-http-client-1-1
   "iframely", // https://iframely.com/docs/about (used by Notion, Linear)
+  "H1cbA69", // internal links/metatags API
 
   // new
   "ia_archiver",

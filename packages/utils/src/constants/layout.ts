@@ -8,6 +8,5 @@ export const ALL_TOOLS = [
   { name: "Google Link Shortener", slug: "google-link-shortener" },
   { name: "Amazon Link Shortener", slug: "amazon-link-shortener" },
   { name: "Figma Link Shortener", slug: "figma-link-shortener" },
-  { name: "Metatags API", slug: "metatags" },
   { name: "Link Inspector", slug: "inspector" },
 ];

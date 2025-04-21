@@ -5,7 +5,7 @@ import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
 import EmptyState from "@/ui/shared/empty-state";
 import { BlurImage, Logo } from "@dub/ui";
 import { CircleWarning, CubeSettings } from "@dub/ui/icons";
-import { HOME_DOMAIN, constructMetadata } from "@dub/utils";
+import { constructMetadata } from "@dub/utils";
 import { ArrowLeftRight } from "lucide-react";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
@@ -62,7 +62,7 @@ export default async function Authorize({
             )}
           </a>
           <ArrowLeftRight className="size-5 text-neutral-500" />
-          <a href={HOME_DOMAIN} target="_blank" rel="noreferrer">
+          <a href="https://dub.co" target="_blank" rel="noreferrer">
             <Logo className="size-12" />
           </a>
         </div>

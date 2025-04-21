@@ -42,7 +42,7 @@ export function useMetatags({ enabled = true }: { enabled?: boolean } = {}) {
         // if url is valid, continue to generate metatags, else throw error and return null
         new URL(debouncedUrl);
         setGeneratingMetatags(true);
-        fetch(`/api/metatags?url=${debouncedUrl}`).then(async (res) => {
+        fetch(`/api/links/metatags?url=${debouncedUrl}`).then(async (res) => {
           if (res.status === 200) {
             const results = await res.json();
             const truncatedTitle = truncate(results.title, 120);
