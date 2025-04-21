@@ -17,6 +17,12 @@ export const getCustomersQuerySchema = z.object({
     .describe(
       "A case-sensitive filter on the list based on the customer's `externalId` field. The value must be a string.",
     ),
+  search: z
+    .string()
+    .optional()
+    .describe(
+      "A search query to filter customers by name or email or externalId.",
+    ),
   includeExpandedFields: booleanQuerySchema
     .optional()
     .describe(

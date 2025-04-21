@@ -24,4 +24,5 @@ model Customer {
   @@unique([projectConnectId, externalId])
   @@index(externalId)
   @@index(linkId)
+  @@index(email)
 }

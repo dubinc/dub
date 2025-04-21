@@ -42,7 +42,7 @@ interface CustomerResponse extends Customer {
 // GET /api/customers – Get all customers
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
-    const { email, externalId, includeExpandedFields } =
+    const { email, externalId, search, includeExpandedFields } =
       getCustomersQuerySchema.parse(searchParams);
 
     const customers = (await prisma.customer.findMany({
@@ -50,6 +50,15 @@ export const GET = withWorkspace(
         projectId: workspace.id,
         ...(email ? { email } : {}),
         ...(externalId ? { externalId } : {}),
+        ...(search
+          ? {
+              OR: [
+                { email: { contains: search } },
+                { name: { contains: search } },
+                { externalId: { contains: search } },
+              ],
+            }
+          : {}),
       },
       take: 100,
       orderBy: {
