@@ -45,7 +45,13 @@ SQL >
     WHERE
         true
         {% if defined(linkId) %} AND link_id = {{ String(linkId) }} {% end %}
-        {% if defined(customerId) %} AND customer_id = {{ String(customerId) }} {% end %}
+        {% if defined(customerId) %} 
+            AND click_id IN (
+                SELECT DISTINCT click_id 
+                FROM dub_lead_events_mv 
+                WHERE customer_id = {{ String(customerId) }}
+            )
+        {% end %}
         {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
         {% if defined(continent) %} AND continent = {{ continent }} {% end %}
         {% if defined(country) %} AND country = {{ country }} {% end %}
