@@ -2,7 +2,7 @@
 
 import { fetcher, getDomainWithoutWWW, getUrlFromString } from "@dub/utils";
 import { Link2 } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef } from "react";
 import useSWR from "swr";
 import { useDebounce } from "use-debounce";
@@ -10,7 +10,6 @@ import { useMediaQuery } from "./hooks";
 import { LoadingCircle, Photo } from "./icons";
 
 export function LinkPreview({ defaultUrl }: { defaultUrl?: string }) {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const url =
     defaultUrl || searchParams?.get("url") || "https://github.com/dubinc/dub";
@@ -24,7 +23,8 @@ export function LinkPreview({ defaultUrl }: { defaultUrl?: string }) {
     description: string | null;
     image: string | null;
   }>(
-    debouncedUrl && `/api/metatags?url=${encodeURIComponent(debouncedUrl)}`,
+    debouncedUrl &&
+      `/api/links/metatags?url=${encodeURIComponent(debouncedUrl)}`,
     fetcher,
     {
       revalidateOnFocus: false,
@@ -56,13 +56,6 @@ export function LinkPreview({ defaultUrl }: { defaultUrl?: string }) {
             className="block w-full rounded-md border-neutral-200 pl-10 text-sm text-neutral-900 placeholder-neutral-400 shadow-lg focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
             placeholder="Enter your URL"
             defaultValue={url}
-            onChange={(e) =>
-              router.replace(
-                `/tools/metatags${
-                  e.target.value.length > 0 ? `?url=${e.target.value}` : ""
-                }`,
-              )
-            }
             aria-invalid="true"
           />
         </div>

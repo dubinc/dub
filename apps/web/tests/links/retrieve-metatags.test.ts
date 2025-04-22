@@ -1,13 +1,12 @@
-import { MetaTag } from "@/lib/types";
 import { expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 
-test("GET /metatags", async (ctx) => {
+test("GET /links/metatags", async (ctx) => {
   const h = new IntegrationHarness(ctx);
   const { http } = await h.init();
 
-  const { status, data: metatags } = await http.get<MetaTag>({
-    path: `/metatags`,
+  const { status, data: metatags } = await http.get({
+    path: "/links/metatags",
     query: {
       url: "https://dub.co",
     },

@@ -1,8 +1,8 @@
 "use client";
 
 import {
+  DATE_RANGE_INTERVAL_PRESETS,
   DUB_PARTNERS_ANALYTICS_INTERVAL,
-  intervals,
 } from "@/lib/analytics/constants";
 import { IntervalOptions } from "@/lib/analytics/types";
 import usePartnerLinks from "@/lib/swr/use-partner-links";
@@ -18,7 +18,7 @@ import { PartnerLinkCard } from "./partner-link-card";
 const PartnerLinksContext = createContext<{
   start?: Date;
   end?: Date;
-  interval: (typeof intervals)[number];
+  interval: (typeof DATE_RANGE_INTERVAL_PRESETS)[number];
 } | null>(null);
 
 export function usePartnerLinksContext() {
@@ -70,7 +70,9 @@ export function ProgramLinksPageClient() {
           defaultInterval={DUB_PARTNERS_ANALYTICS_INTERVAL}
         />
         {/* TODO: Add this to Program table */}
-        {["dub", "acme", "tella", "testimonial"].includes(programSlug) && (
+        {["dub", "acme", "tella", "testimonial", "firecrawl"].includes(
+          programSlug,
+        ) && (
           <Button
             text="Create Link"
             className="w-fit"

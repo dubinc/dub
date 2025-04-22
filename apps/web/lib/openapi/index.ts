@@ -13,7 +13,6 @@ import { embedTokensPaths } from "./embed-tokens";
 import { eventsPath } from "./events";
 import { foldersPaths } from "./folders";
 import { linksPaths } from "./links";
-import { metatagsPath } from "./metatags";
 import { partnersPaths } from "./partners";
 import { qrCodePaths } from "./qr";
 import { tagsPaths } from "./tags";
@@ -56,7 +55,6 @@ export const document = createDocument({
     ...workspacesPaths,
     ...embedTokensPaths,
     ...qrCodePaths,
-    ...metatagsPath,
   },
   components: {
     schemas: {
