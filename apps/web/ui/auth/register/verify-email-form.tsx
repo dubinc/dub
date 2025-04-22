@@ -3,6 +3,7 @@
 import { createUserAccountAction } from "@/lib/actions/create-user-account";
 import { AnimatedSizeContainer, Button, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
+import slugify from "@sindresorhus/slugify";
 import { OTPInput } from "input-otp";
 import { signIn } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
@@ -32,7 +33,8 @@ export const VerifyEmailForm = () => {
       });
 
       if (response?.ok) {
-        router.push("/onboarding");
+        // router.push("/onboarding");
+        router.push(`/${slugify(email)}?onboarded=true`);
       } else {
         toast.error(
           "Failed to sign in with credentials. Please try again or contact support.",

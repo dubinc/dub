@@ -82,8 +82,8 @@ function WelcomeModal({
                 )}
               >
                 {plan
-                  ? `Dub ${plan.name} looks good on you!`
-                  : "Welcome to Dub!"}
+                  ? `GetQR ${plan.name} looks good on you!`
+                  : "Welcome to GetQR!"}
               </h1>
               <p
                 className={cn(

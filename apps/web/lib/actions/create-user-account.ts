@@ -1,7 +1,10 @@
 "use server";
 
-import { ratelimit } from "@/lib/upstash";
+import { ratelimit, redis } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
+import { generateRandomString } from "@dub/utils/src";
+import slugify from "@sindresorhus/slugify";
+import { nanoid } from "nanoid";
 import { flattenValidationErrors } from "next-safe-action";
 import { createId, getIP } from "../api/utils";
 import { hashPassword } from "../auth/password";
@@ -58,13 +61,65 @@ export const createUserAccountAction = actionClient
     });
 
     if (!user) {
+      const generatedUserId = createId({ prefix: "user_" });
+
       await prisma.user.create({
         data: {
-          id: createId({ prefix: "user_" }),
+          id: generatedUserId,
           email,
           passwordHash: await hashPassword(password),
           emailVerified: new Date(),
         },
       });
+
+      // @CUSTOM_FEATURE: creation of a workspace immediately after registration to skip onboarding
+      const workspaceResponse = await prisma.project.create({
+        data: {
+          name: email,
+          slug: slugify(email),
+          users: {
+            create: {
+              userId: generatedUserId,
+              role: "owner",
+              notificationPreference: {
+                create: {},
+              },
+            },
+          },
+          billingCycleStart: new Date().getDate(),
+          invoicePrefix: generateRandomString(8),
+          inviteCode: nanoid(24),
+          defaultDomains: {
+            create: {},
+          },
+        },
+        include: {
+          users: {
+            where: {
+              userId: generatedUserId,
+            },
+            select: {
+              role: true,
+            },
+          },
+          domains: {
+            select: {
+              slug: true,
+              primary: true,
+            },
+          },
+        },
+      });
+
+      await prisma.user.update({
+        where: {
+          id: generatedUserId,
+        },
+        data: {
+          defaultWorkspace: workspaceResponse.slug,
+        },
+      });
+
+      await redis.set(`onboarding-step:${generatedUserId}`, "completed");
     }
   });
