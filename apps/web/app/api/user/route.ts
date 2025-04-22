@@ -2,6 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { hashToken, withSession } from "@/lib/auth";
 import { storage } from "@/lib/storage";
 import { ratelimit, redis } from "@/lib/upstash";
+import { base64ImageSchema } from "@/lib/zod/schemas/misc";
 import { sendEmail } from "@dub/email";
 import { unsubscribe } from "@dub/email/resend/unsubscribe";
 import ConfirmEmailChange from "@dub/email/templates/confirm-email-change";
@@ -15,7 +16,7 @@ import { z } from "zod";
 const updateUserSchema = z.object({
   name: z.preprocess(trim, z.string().min(1).max(64)).optional(),
   email: z.preprocess(trim, z.string().email()).optional(),
-  image: z.string().url().optional(),
+  image: base64ImageSchema.nullish(),
   source: z.preprocess(trim, z.string().min(1).max(32)).optional(),
   defaultWorkspace: z.preprocess(trim, z.string().min(1)).optional(),
 });
