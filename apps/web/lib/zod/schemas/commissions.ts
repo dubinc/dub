@@ -55,7 +55,7 @@ export const createCommissionSchema = z.object({
   linkId: z.string(),
   customerId: z.string(),
   saleDate: parseDateSchema.nullish(),
-  saleAmount: z.number().nullish(),
+  saleAmount: z.number().min(0).nullish(),
   invoiceId: z.string().nullish(),
-  leadDate: parseDateSchema,
+  leadDate: parseDateSchema.nullish(),
 });

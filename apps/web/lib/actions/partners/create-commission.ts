@@ -103,7 +103,7 @@ export const createCommissionAction = authActionClient
       workspaceId: workspace.id,
       skipRatelimit: true,
       timestamp: new Date(
-        new Date(leadDate).getTime() - 5 * 60 * 1000,
+        new Date(leadDate!).getTime() - 5 * 60 * 1000,
       ).toISOString(),
     });
 
@@ -121,7 +121,7 @@ export const createCommissionAction = authActionClient
       event_id: leadEventId,
       event_name: "Sign up",
       customer_id: customerId,
-      timestamp: new Date(leadDate).toISOString(),
+      timestamp: new Date(leadDate!).toISOString(),
     });
 
     // TODO:
