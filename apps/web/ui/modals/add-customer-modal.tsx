@@ -1,7 +1,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CustomerProps } from "@/lib/types";
 import { createCustomerBodySchema } from "@/lib/zod/schemas/customers";
-import { Button, Modal } from "@dub/ui";
+import { Button, Modal, useMediaQuery } from "@dub/ui";
 import { useCallback, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -22,6 +22,7 @@ const AddCustomerModal = ({
   onSuccess,
 }: AddCustomerModalProps) => {
   const { id: workspaceId } = useWorkspace();
+  const { isMobile } = useMediaQuery();
 
   const {
     register,
@@ -84,55 +85,50 @@ const AddCustomerModal = ({
           <div className="flex flex-col gap-4 px-4 py-6 text-left sm:px-6">
             <div>
               <label className="text-sm font-normal text-neutral-500">
+                External ID (Required)
+              </label>
+              <input
+                type="text"
+                required
+                autoComplete="off"
+                className="mt-2 block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                placeholder="cus_GWGrkftJdYlZD2mq"
+                autoFocus={!isMobile}
+                {...register("externalId", { required: true })}
+              />
+              <p className="mt-2 text-xs text-neutral-500">
+                This is the customer's unique database ID (or email if no ID)
+              </p>
+            </div>
+
+            <div>
+              <label className="text-sm font-normal text-neutral-500">
                 Name
               </label>
-              <div className="mt-2 flex rounded-md border border-neutral-300 bg-white">
-                <input
-                  type="text"
-                  autoComplete="off"
-                  className="block w-full rounded-md border-0 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-0 sm:text-sm"
-                  placeholder="John Doe"
-                  {...register("name", {
-                    setValueAs: (value) => (value === "" ? null : value),
-                  })}
-                />
-              </div>
+              <input
+                type="text"
+                autoComplete="off"
+                className="mt-2 block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                placeholder="John Doe"
+                {...register("name", {
+                  setValueAs: (value) => (value === "" ? null : value),
+                })}
+              />
             </div>
 
             <div>
               <label className="text-sm font-normal text-neutral-500">
                 Email
               </label>
-              <div className="mt-2 flex rounded-md border border-neutral-300 bg-white">
-                <input
-                  type="email"
-                  autoComplete="off"
-                  className="block w-full rounded-md border-0 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-0 sm:text-sm"
-                  placeholder="john@example.com"
-                  {...register("email", {
-                    setValueAs: (value) => (value === "" ? null : value),
-                  })}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="text-sm font-normal text-neutral-500">
-                External ID (Required)
-              </label>
-              <div className="mt-2 flex rounded-md border border-neutral-300 bg-white">
-                <input
-                  type="text"
-                  required
-                  autoComplete="off"
-                  className="block w-full rounded-md border-0 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-0 sm:text-sm"
-                  placeholder="cust_GWGrkftJdYlZD2mq"
-                  {...register("externalId", { required: true })}
-                />
-              </div>
-              <p className="mt-2 text-xs text-neutral-500">
-                This is the customer's unique database ID (or email if no ID)
-              </p>
+              <input
+                type="email"
+                autoComplete="off"
+                className="mt-2 block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                placeholder="john@example.com"
+                {...register("email", {
+                  setValueAs: (value) => (value === "" ? null : value),
+                })}
+              />
             </div>
           </div>
 
