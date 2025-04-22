@@ -33,7 +33,5 @@ export function FormWrapper({ children }: { children: React.ReactNode }) {
       : undefined,
   });
 
-  console.log("programOnboarding", programOnboarding);
-
   return <FormProvider {...methods}>{children}</FormProvider>;
 }
