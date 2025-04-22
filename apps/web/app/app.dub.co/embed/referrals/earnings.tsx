@@ -1,4 +1,5 @@
 import { REFERRALS_EMBED_EARNINGS_LIMIT } from "@/lib/partners/constants";
+import { useEmbedToken } from "@/lib/swr/use-embed-token";
 import { PartnerEarningsResponse } from "@/lib/types";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { Gift, StatusBadge, Table, usePagination, useTable } from "@dub/ui";
@@ -13,11 +14,13 @@ import { motion } from "framer-motion";
 import useSWR from "swr";
 
 export function ReferralsEmbedEarnings({ salesCount }: { salesCount: number }) {
+  const token = useEmbedToken();
+
   const { pagination, setPagination } = usePagination(
     REFERRALS_EMBED_EARNINGS_LIMIT,
   );
   const { data: earnings, isLoading } = useSWR<PartnerEarningsResponse[]>(
-    `/api/embed/referrals/earnings?page=${pagination.pageIndex}`,
+    `/api/embed/referrals/earnings?page=${pagination.pageIndex}&token=${token}`,
     fetcher,
     {
       keepPreviousData: true,

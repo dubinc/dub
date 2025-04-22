@@ -1,3 +1,4 @@
+import { useEmbedToken } from "@/lib/swr/use-embed-token";
 import z from "@/lib/zod";
 import { LeaderboardPartnerSchema } from "@/lib/zod/schemas/partners";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -12,9 +13,11 @@ import { motion } from "framer-motion";
 import useSWR from "swr";
 
 export function ReferralsEmbedLeaderboard() {
+  const token = useEmbedToken();
+
   const { data: partners, isLoading } = useSWR<
     z.infer<typeof LeaderboardPartnerSchema>[]
-  >("/api/embed/referrals/leaderboard", fetcher, {
+  >(`/api/embed/referrals/leaderboard?token=${token}`, fetcher, {
     keepPreviousData: true,
   });
 

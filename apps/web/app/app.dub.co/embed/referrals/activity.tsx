@@ -1,3 +1,4 @@
+import { useEmbedToken } from "@/lib/swr/use-embed-token";
 import { CursorRays } from "@/ui/layout/sidebar/icons/cursor-rays";
 import { InfoTooltip, MiniAreaChart } from "@dub/ui";
 import { cn, currencyFormatter, nFormatter } from "@dub/utils";
@@ -17,9 +18,11 @@ export function ReferralsEmbedActivity({
   sales: number;
   saleAmount: number;
 }) {
+  const token = useEmbedToken();
+
   const isEmpty = clicks === 0 && leads === 0 && sales === 0;
   const { data: analytics } = useSWR<AnalyticsTimeseries[]>(
-    !isEmpty && "/api/embed/referrals/analytics",
+    !isEmpty && `/api/embed/referrals/analytics?token=${token}`,
     fetcher,
     {
       keepPreviousData: true,

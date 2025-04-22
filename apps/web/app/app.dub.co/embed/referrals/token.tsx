@@ -1,12 +1,15 @@
 "use client";
 
+import { useEmbedToken } from "@/lib/swr/use-embed-token";
 import { fetcher } from "@dub/utils";
 import { useEffect } from "react";
 import useSWR from "swr";
 
 export const ReferralsReferralsEmbedToken = () => {
+  const token = useEmbedToken();
+
   const { error } = useSWR<{ token: number }>(
-    "/api/embed/referrals/token",
+    `/api/embed/referrals/token?token=${token}`,
     fetcher,
     {
       revalidateOnFocus: true,
