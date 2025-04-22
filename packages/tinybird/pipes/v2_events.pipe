@@ -41,11 +41,17 @@ SQL >
         splitByString('?', referer_url)[1] as referer_url_processed,
         CONCAT(country, '-', region) as region_processed,
         'click' as event
-    FROM dub_click_events_mv
+    FROM {% if defined(customerId) %} dub_click_events_id {% else %} dub_click_events_mv {% end %}
     WHERE
         timestamp >= {{ DateTime(start, '2024-06-01 00:00:00') }}
         AND timestamp < {{ DateTime(end, '2024-06-07 00:00:00') }}
-        {% if defined(linkId) %} AND link_id = {{ String(linkId) }}
+        {% if defined(customerId) %}
+            AND click_id IN (
+                SELECT DISTINCT click_id
+                FROM dub_lead_events_mv
+                WHERE customer_id = {{ String(customerId) }}
+            )
+        {% elif defined(linkId) %} AND link_id = {{ String(linkId) }}
         {% elif defined(workspaceId) or defined(partnerId) or defined(programId) %}
             AND link_id IN (SELECT link_id FROM workspace_links)
         {% end %}
@@ -59,11 +65,22 @@ SQL >
         {% if defined(os) %} AND os = {{ os }} {% end %}
         {% if defined(referer) %} AND referer = {{ referer }} {% end %}
         {% if defined(refererUrl) %} AND splitByString('?', referer_url)[1] = {{ refererUrl }} {% end %}
-        {% if defined(utm_source) %} AND url LIKE concat('%utm_source=', encodeURLFormComponent({{ String(utm_source) }}), '%') {% end %}
-        {% if defined(utm_medium) %} AND url LIKE concat('%utm_medium=', encodeURLFormComponent({{ String(utm_medium) }}), '%') {% end %}
-        {% if defined(utm_campaign) %} AND url LIKE concat('%utm_campaign=', encodeURLFormComponent({{ String(utm_campaign) }}), '%') {% end %}
-        {% if defined(utm_term) %} AND url LIKE concat('%utm_term=', encodeURLFormComponent({{ String(utm_term) }}), '%') {% end %}
-        {% if defined(utm_content) %} AND url LIKE concat('%utm_content=', encodeURLFormComponent({{ String(utm_content) }}), '%') {% end %}
+        {% if defined(utm_source) %}
+            AND url LIKE concat('%utm_source=', encodeURLFormComponent({{ String(utm_source) }}), '%')
+        {% end %}
+        {% if defined(utm_medium) %}
+            AND url LIKE concat('%utm_medium=', encodeURLFormComponent({{ String(utm_medium) }}), '%')
+        {% end %}
+        {% if defined(utm_campaign) %}
+            AND url
+            LIKE concat('%utm_campaign=', encodeURLFormComponent({{ String(utm_campaign) }}), '%')
+        {% end %}
+        {% if defined(utm_term) %}
+            AND url LIKE concat('%utm_term=', encodeURLFormComponent({{ String(utm_term) }}), '%')
+        {% end %}
+        {% if defined(utm_content) %}
+            AND url LIKE concat('%utm_content=', encodeURLFormComponent({{ String(utm_content) }}), '%')
+        {% end %}
         {% if defined(url) %} AND url = {{ url }} {% end %}
     ORDER BY timestamp {% if order == 'asc' %} ASC {% else %} DESC {% end %}
     LIMIT {{ Int32(limit, 100) }}
@@ -80,7 +97,7 @@ SQL >
         splitByString('?', referer_url)[1] as referer_url_processed,
         CONCAT(country, '-', region) as region_processed,
         'lead' as event
-    FROM dub_lead_events_mv_new
+    FROM dub_lead_events_mv
     WHERE
         timestamp >= {{ DateTime(start, '2024-01-01 00:00:00') }}
         AND timestamp < {{ DateTime(end, '2025-12-31 00:00:00') }}
@@ -132,7 +149,7 @@ SQL >
         CONCAT(country, '-', region) as region_processed,
         splitByString('?', referer_url)[1] as referer_url_processed,
         'sale' as event
-    FROM dub_sale_events_mv_new
+    FROM dub_sale_events_mv
     WHERE
         timestamp >= {{ DateTime(start, '2024-06-01 00:00:00') }}
         AND timestamp < {{ DateTime(end, '2024-06-07 00:00:00') }}
