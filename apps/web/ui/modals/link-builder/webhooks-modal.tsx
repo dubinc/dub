@@ -2,7 +2,15 @@ import useWebhooks from "@/lib/swr/use-webhooks";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
 import { useLinkBuilderKeyboardShortcut } from "@/ui/links/link-builder/use-link-builder-keyboard-shortcut";
-import { Button, Combobox, Modal, Tooltip, Webhook } from "@dub/ui";
+import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
+import {
+  Button,
+  Combobox,
+  Modal,
+  SimpleTooltipContent,
+  Tooltip,
+  Webhook,
+} from "@dub/ui";
 import { cn } from "@dub/utils";
 import { ChevronsUpDown } from "lucide-react";
 import {
@@ -72,6 +80,15 @@ function WebhooksModalInner({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <h3 className="text-lg font-medium">Link Webhooks</h3>
+          <ProBadgeTooltip
+            content={
+              <SimpleTooltipContent
+                title="Add webhooks to receive a click event when someone clicks your link."
+                cta="Learn more."
+                href="https://dub.co/docs/concepts/webhooks/introduction"
+              />
+            }
+          />
         </div>
         <div className="max-md:hidden">
           <Tooltip
@@ -181,16 +198,15 @@ export function WebhookSelect({
         label: webhook.name,
         value: webhook.id,
         icon: <Webhook className="size-3.5" />,
-      })),
+      })) || [],
     [availableWebhooks],
   );
 
   const selectedWebhooks = useMemo(
     () =>
       webhookIds
-        .map((id) => options?.find(({ value }) => value === id)!)
+        .map((id) => options.find(({ value }) => value === id)!)
         .filter(Boolean),
-
     [webhookIds, options],
   );
 
