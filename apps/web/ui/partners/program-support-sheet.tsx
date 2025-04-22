@@ -1,5 +1,13 @@
+import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { X } from "@/ui/shared/icons";
-import { Button, Sheet } from "@dub/ui";
+import {
+  ArrowUpRight,
+  BookOpen,
+  Button,
+  EnvelopeArrowRight,
+  Page2,
+  Sheet,
+} from "@dub/ui";
 
 interface ProgramSupportSheetProps {
   isOpen: boolean;
@@ -36,9 +44,11 @@ export function ProgramSupportSheet({
           </div>
         </div>
 
-        {articles.length > 0 && (
-          <div className="flex grow flex-col">
-            <div className="grow overflow-y-auto p-6">
+        <div className="flex grow flex-col">
+          <div className="grow overflow-y-auto p-6">
+            <ProgramSupportSection />
+
+            {articles.length > 0 && (
               <div className="space-y-6">
                 <div>
                   <h2 className="text-sm font-semibold text-neutral-900">
@@ -66,10 +76,95 @@ export function ProgramSupportSheet({
                   </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </Sheet>
+  );
+}
+
+function ProgramSupportSection() {
+  const { programEnrollment } = useProgramEnrollment();
+
+  if (!programEnrollment) {
+    return null;
+  }
+
+  const { program } = programEnrollment;
+
+  const supportItems = [
+    ...(program.supportEmail
+      ? [
+          {
+            icon: EnvelopeArrowRight,
+            label: "Email support",
+            href: `mailto:${program.supportEmail}`,
+          },
+        ]
+      : []),
+    ...(program.helpUrl
+      ? [
+          {
+            icon: BookOpen,
+            label: "Help center",
+            href: program.helpUrl,
+          },
+        ]
+      : []),
+    ...(program.termsUrl
+      ? [
+          {
+            icon: Page2,
+            label: "Terms of service",
+            href: program.termsUrl,
+          },
+        ]
+      : []),
+  ];
+
+  if (supportItems.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="rounded-xl bg-neutral-100 p-4">
+      <div className="mb-4 flex items-center gap-2">
+        {program.logo && (
+          <img
+            src={program.logo}
+            alt={program.name}
+            width={24}
+            height={24}
+            className="size-6 rounded-full"
+          />
+        )}
+        <h2 className="text-sm font-semibold text-neutral-900">
+          {program.name} Support
+        </h2>
+      </div>
+
+      <div className="space-y-2">
+        {supportItems.map((item) => (
+          <a
+            key={item.label}
+            href={item.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-between rounded-lg border border-neutral-200 bg-white p-4 transition-all hover:bg-neutral-50"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-neutral-100">
+                <item.icon className="size-5 text-neutral-800" />
+              </div>
+              <span className="text-sm font-medium text-neutral-800">
+                {item.label}
+              </span>
+            </div>
+            <ArrowUpRight className="size-4 text-neutral-500" />
+          </a>
+        ))}
+      </div>
+    </div>
   );
 }

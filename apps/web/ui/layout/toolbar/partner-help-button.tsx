@@ -2,12 +2,18 @@
 
 import { ProgramSupportSheet } from "@/ui/partners/program-support-sheet";
 import { Popover } from "@dub/ui";
+import { usePathname } from "next/navigation";
 import posthog from "posthog-js";
 import { useState } from "react";
 import { HelpContext } from "../help";
 
 export function PartnerHelpButton() {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+
+  if (pathname === "/programs") {
+    return null;
+  }
 
   return (
     <HelpContext.Provider
@@ -26,7 +32,7 @@ export function PartnerHelpButton() {
           <button
             type="button"
             onClick={() => {
-              posthog.capture("help_portal_opened");
+              posthog.capture("partner_help_portal_opened");
               setIsOpen(true);
             }}
             className="animate-fade-in font-lg relative h-12 w-12 overflow-hidden rounded-full border border-neutral-200 bg-white shadow-md active:bg-neutral-50"
