@@ -19,6 +19,7 @@ export const createPartnerCommission = async ({
   amount = 0,
   quantity,
   currency,
+  createdAt,
 }: {
   // we optionally let the caller pass in a reward to avoid a db call
   // (e.g. in aggregate-clicks route)
@@ -33,6 +34,7 @@ export const createPartnerCommission = async ({
   amount?: number;
   quantity: number;
   currency?: string;
+  createdAt?: Date;
 }) => {
   if (!reward) {
     reward = await determinePartnerReward({
@@ -143,6 +145,7 @@ export const createPartnerCommission = async ({
         type: event,
         currency,
         earnings,
+        createdAt,
       },
     });
 

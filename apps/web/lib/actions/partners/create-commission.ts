@@ -177,6 +177,7 @@ export const createCommissionAction = authActionClient
         quantity: 1,
         invoiceId,
         currency: "usd",
+        createdAt: saleDate,
       });
     }
   });
