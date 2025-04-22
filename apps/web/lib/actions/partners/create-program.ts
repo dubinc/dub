@@ -44,8 +44,15 @@ export const createProgram = async ({
 
   await getDomainOrThrow({ workspace, domain });
 
-  const programFolder = await prisma.folder.create({
-    data: {
+  const programFolder = await prisma.folder.upsert({
+    where: {
+      name_projectId: {
+        name: "Partner Links",
+        projectId: workspace.id,
+      },
+    },
+    update: {},
+    create: {
       id: createId({ prefix: "fold_" }),
       name: "Partner Links",
       projectId: workspace.id,
