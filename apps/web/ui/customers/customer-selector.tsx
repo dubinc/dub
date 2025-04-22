@@ -26,11 +26,12 @@ export function CustomerSelector({
     query: useAsync ? { search: debouncedSearch } : undefined,
   });
 
-  const { customers: selectedCustomers } = useCustomers({
-    query: selectedCustomerId
-      ? { customerIds: [selectedCustomerId] }
-      : undefined,
-  });
+  const { customers: selectedCustomers, loading: selectedCustomersLoading } =
+    useCustomers({
+      query: selectedCustomerId
+        ? { customerIds: [selectedCustomerId] }
+        : undefined,
+    });
 
   useEffect(() => {
     if (customers && !useAsync && customers.length >= CUSTOMERS_MAX_PAGE_SIZE) {
@@ -89,9 +90,9 @@ export function CustomerSelector({
           setIsNewCustomer(false);
         }}
         selected={selectedOption}
-        icon={selectedOption?.icon}
+        icon={selectedCustomersLoading ? null : selectedOption?.icon}
         caret={true}
-        placeholder="Select customer"
+        placeholder={selectedCustomersLoading ? "" : "Select customer"}
         searchPlaceholder="Search customer..."
         onSearchChange={setSearch}
         shouldFilter={!useAsync}
@@ -120,7 +121,11 @@ export function CustomerSelector({
           </div>
         }
       >
-        {selectedOption?.label}
+        {selectedCustomersLoading ? (
+          <div className="my-0.5 h-5 w-1/3 animate-pulse rounded bg-neutral-200" />
+        ) : (
+          selectedOption?.label
+        )}
       </Combobox>
     </>
   );
