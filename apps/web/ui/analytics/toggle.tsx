@@ -503,6 +503,18 @@ export default function Toggle({
                 icon: User,
                 label: "Customer",
                 shouldFilter: !customersAsync,
+                getOptionIcon: (value) => {
+                  return selectedCustomer ? (
+                    <img
+                      src={
+                        selectedCustomer.avatar ||
+                        `${OG_AVATAR_URL}${selectedCustomer.id}`
+                      }
+                      alt={`${selectedCustomer.email} avatar`}
+                      className="size-4 rounded-full"
+                    />
+                  ) : null;
+                },
                 options:
                   customers?.map(({ id, email, name, avatar }) => {
                     return {
@@ -546,7 +558,7 @@ export default function Toggle({
         getOptionIcon: (value) => (
           <img
             alt={value}
-            src={`https://flag.vercel.app/m/${value}.svg`}
+            src={`https://hatscripts.github.io/circle-flags/flags/${value.toLowerCase()}.svg`}
             className="h-2.5 w-4"
           />
         ),
