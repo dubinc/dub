@@ -1,5 +1,6 @@
 import { parse } from "@/lib/middleware/utils";
 import { NextRequest, NextResponse } from "next/server";
+import EmbedMiddleware from "./embed";
 import NewLinkMiddleware from "./new-link";
 import { appRedirect } from "./utils/app-redirect";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";
@@ -10,6 +11,10 @@ import WorkspacesMiddleware from "./workspaces";
 
 export default async function AppMiddleware(req: NextRequest) {
   const { path, fullPath, searchParamsString } = parse(req);
+
+  if (path.startsWith("/embed")) {
+    return EmbedMiddleware(req);
+  }
 
   const user = await getUserViaToken(req);
   const isWorkspaceInvite =
