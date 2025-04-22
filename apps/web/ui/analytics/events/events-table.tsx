@@ -156,6 +156,11 @@ export default function EventsTable({
           size: 250,
           maxSize: 400,
           cell: ({ getValue }) => <CustomerRowItem customer={getValue()} />,
+          meta: {
+            filterParams: ({ getValue }) => ({
+              customerId: getValue().id,
+            }),
+          },
         },
         {
           id: "country",

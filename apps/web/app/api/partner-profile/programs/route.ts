@@ -14,8 +14,51 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
       program: searchParams.includeRewardsDiscounts
         ? {
             include: {
-              rewards: true,
-              discounts: true,
+              rewards: {
+                where: {
+                  OR: [
+                    // program-wide rewards
+                    {
+                      partners: {
+                        none: {},
+                      },
+                    },
+
+                    // partner-specific rewards
+                    {
+                      partners: {
+                        some: {
+                          programEnrollment: {
+                            partnerId: partner.id,
+                          },
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+
+              discounts: {
+                where: {
+                  OR: [
+                    // program-wide discounts
+                    {
+                      programEnrollments: {
+                        none: {},
+                      },
+                    },
+
+                    // partner-specific discounts
+                    {
+                      programEnrollments: {
+                        some: {
+                          partnerId: partner.id,
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
             },
           }
         : true,

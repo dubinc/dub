@@ -1,18 +1,6 @@
 import { THE_BEGINNING_OF_TIME } from "@dub/utils";
 
-export const intervals = [
-  "24h",
-  "7d",
-  "30d",
-  "90d",
-  "1y",
-  "mtd",
-  "qtd",
-  "ytd",
-  "all",
-] as const;
-
-export const eventIntervals = [
+export const DATE_RANGE_INTERVAL_PRESETS = [
   "24h",
   "7d",
   "30d",

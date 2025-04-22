@@ -14,16 +14,14 @@ export default function useCustomer<
 >({
   customerId,
   query,
-  enabled = true,
 }: {
   customerId: T["id"];
   query?: z.infer<typeof partialQuerySchema>;
-  enabled?: boolean;
 }) {
   const { id: workspaceId } = useWorkspace();
 
   const { data, error, isLoading } = useSWR<T>(
-    enabled && workspaceId
+    customerId && workspaceId
       ? `/api/customers/${customerId}?${new URLSearchParams({
           workspaceId: workspaceId,
           ...query,
