@@ -341,7 +341,7 @@ function CreateCommissionSheetContent({
                         Invoice ID
                       </h2>
                     </label>
-                    <div className="mt-2">
+                    <div className="mt-2 p-px">
                       <input
                         type="text"
                         id="invoiceId"
