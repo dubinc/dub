@@ -119,8 +119,11 @@ export function Form() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
       <div>
         <label className="block text-sm font-medium text-neutral-800">
-          Program name
+          Company name
         </label>
+        <p className="mb-4 mt-1 text-sm text-neutral-600">
+          The name of the company you're setting up the program for
+        </p>
         <Input
           {...register("name", { required: true })}
           placeholder="Acme"
