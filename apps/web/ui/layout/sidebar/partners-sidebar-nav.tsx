@@ -20,7 +20,6 @@ import { Hyperlink } from "./icons/hyperlink";
 import { LinesY } from "./icons/lines-y";
 import { PartnerProgramDropdown } from "./partner-program-dropdown";
 import { PayoutStats } from "./payout-stats";
-import { ProgramHelpSupport } from "./program-help-support";
 import { SidebarNav, SidebarNavAreas } from "./sidebar-nav";
 
 const NAV_AREAS: SidebarNavAreas<{
@@ -182,12 +181,7 @@ export function PartnersSidebarNav({
       toolContent={toolContent}
       newsContent={newsContent}
       switcher={<PartnerProgramDropdown />}
-      bottom={
-        <>
-          {isEnrolledProgramPage && <ProgramHelpSupport />}
-          <PayoutStats />
-        </>
-      }
+      bottom={<PayoutStats />}
     />
   );
 }
