@@ -23,9 +23,12 @@ export const createCommissionAction = authActionClient
       invoiceId,
       customerId,
       saleAmount,
-      saleDate,
-      leadDate,
+      saleEventDate,
+      leadEventDate,
+      leadEventName,
     } = parsedInput;
+
+    const finalLeadEventDate = leadEventDate ?? saleEventDate ?? new Date();
 
     const [programEnrollment, customer] = await Promise.all([
       getProgramEnrollmentOrThrow({
@@ -77,7 +80,7 @@ export const createCommissionAction = authActionClient
       }
     }
 
-    const shouldRecordSale = saleAmount && saleDate;
+    const shouldRecordSale = saleAmount && saleEventDate;
 
     // Record click
     const dummyRequest = new Request(link.url, {
@@ -100,7 +103,7 @@ export const createCommissionAction = authActionClient
       workspaceId: workspace.id,
       skipRatelimit: true,
       timestamp: new Date(
-        new Date(leadDate!).getTime() - 5 * 60 * 1000,
+        new Date(finalLeadEventDate).getTime() - 5 * 60 * 1000,
       ).toISOString(),
     });
 
@@ -116,9 +119,9 @@ export const createCommissionAction = authActionClient
     await recordLeadWithTimestamp({
       ...clickEvent,
       event_id: leadEventId,
-      event_name: "Sign up",
+      event_name: leadEventName || "Sign up",
       customer_id: customerId,
-      timestamp: new Date(leadDate!).toISOString(),
+      timestamp: new Date(finalLeadEventDate).toISOString(),
     });
 
     if (!customer.linkId && clickData) {
@@ -143,6 +146,7 @@ export const createCommissionAction = authActionClient
       customerId,
       amount: 0,
       quantity: 1,
+      createdAt: finalLeadEventDate,
     });
 
     // Record sale
@@ -163,7 +167,7 @@ export const createCommissionAction = authActionClient
         customer_id: customerId,
         payment_processor: "custom",
         currency: "usd",
-        timestamp: new Date(saleDate).toISOString(),
+        timestamp: new Date(saleEventDate).toISOString(),
       });
 
       await createPartnerCommission({
@@ -177,7 +181,7 @@ export const createCommissionAction = authActionClient
         quantity: 1,
         invoiceId,
         currency: "usd",
-        createdAt: saleDate,
+        createdAt: saleEventDate,
       });
     }
   });

@@ -39,6 +39,8 @@ function CreateCommissionSheetContent({
   const [isNewCustomer, setIsNewCustomer] = useState(false);
   const [hasDifferentCreationDate, setHasDifferentCreationDate] =
     useState(false);
+  const [hasDifferentLeadEventName, setHasDifferentLeadEventName] =
+    useState(false);
 
   const {
     register,
@@ -48,17 +50,17 @@ function CreateCommissionSheetContent({
     formState: { errors },
   } = useForm<FormData>();
 
-  const [partnerId, linkId, customerId, saleDate, leadDate] = watch([
+  const [partnerId, linkId, customerId, saleEventDate, leadEventDate] = watch([
     "partnerId",
     "linkId",
     "customerId",
-    "saleDate",
-    "leadDate",
+    "saleEventDate",
+    "leadEventDate",
   ]);
 
   useEffect(() => {
     if (!hasDifferentCreationDate) {
-      setValue("leadDate", null);
+      setValue("leadEventDate", null);
     }
   }, [hasDifferentCreationDate, setValue]);
 
@@ -106,25 +108,25 @@ function CreateCommissionSheetContent({
       return;
     }
 
-    const saleDate = data.saleDate
-      ? new Date(data.saleDate).toISOString()
+    const saleEventDate = data.saleEventDate
+      ? new Date(data.saleEventDate).toISOString()
       : null;
 
-    const leadDate = data.leadDate
-      ? new Date(data.leadDate).toISOString()
+    const leadEventDate = data.leadEventDate
+      ? new Date(data.leadEventDate).toISOString()
       : null;
 
     await executeAsync({
       ...data,
       workspaceId,
       programId: program.id,
-      saleDate,
-      leadDate: leadDate || saleDate,
       saleAmount: data.saleAmount ? data.saleAmount * 100 : null,
+      saleEventDate,
+      leadEventDate,
     });
   };
 
-  const displayCustomerCreationDate =
+  const displayLeadEventDate =
     customerId && !isNewCustomer && programDefaultReward?.event === "sale";
 
   return (
@@ -201,9 +203,9 @@ function CreateCommissionSheetContent({
           <div className="grid grid-cols-1 gap-6 rounded-xl border border-neutral-200 px-4 py-5">
             {programDefaultReward?.event === "sale" && (
               <SmartDateTimePicker
-                value={saleDate}
+                value={saleEventDate}
                 onChange={(date) => {
-                  setValue("saleDate", date, { shouldDirty: true });
+                  setValue("saleEventDate", date, { shouldDirty: true });
                 }}
                 label="Sale date"
                 required={programDefaultReward?.event === "sale"}
@@ -249,9 +251,9 @@ function CreateCommissionSheetContent({
 
             {programDefaultReward?.event === "lead" && (
               <SmartDateTimePicker
-                value={leadDate}
+                value={leadEventDate}
                 onChange={(date) => {
-                  setValue("leadDate", date, { shouldDirty: true });
+                  setValue("leadEventDate", date, { shouldDirty: true });
                 }}
                 label="Lead date"
                 placeholder='E.g. "2024-03-01", "Last Thursday", "2 hours ago"'
@@ -331,7 +333,7 @@ function CreateCommissionSheetContent({
               </div>
             </div>
 
-            {displayCustomerCreationDate && (
+            {displayLeadEventDate && (
               <AnimatedSizeContainer
                 height
                 transition={{ ease: "easeInOut", duration: 0.2 }}
@@ -351,7 +353,7 @@ function CreateCommissionSheetContent({
                     />
                     <div className="flex flex-col gap-1">
                       <h3 className="text-sm font-medium text-neutral-700">
-                        Customer creation date is different than the sale date
+                        Set a custom lead event date
                       </h3>
                     </div>
                   </div>
@@ -359,12 +361,59 @@ function CreateCommissionSheetContent({
                   {hasDifferentCreationDate && (
                     <div className="p-px">
                       <SmartDateTimePicker
-                        value={leadDate}
+                        value={leadEventDate}
                         onChange={(date) => {
-                          setValue("leadDate", date, { shouldDirty: true });
+                          setValue("leadEventDate", date, {
+                            shouldDirty: true,
+                          });
                         }}
-                        label="Customer creation date"
+                        label="Lead event date"
                         placeholder='E.g. "2024-03-01", "Last Thursday", "2 hours ago"'
+                      />
+                    </div>
+                  )}
+                </div>
+              </AnimatedSizeContainer>
+            )}
+
+            {displayLeadEventDate && (
+              <AnimatedSizeContainer
+                height
+                transition={{ ease: "easeInOut", duration: 0.2 }}
+                style={{
+                  height: hasDifferentLeadEventName ? "auto" : "0px",
+                  overflow: "hidden",
+                }}
+              >
+                <div className="flex flex-col gap-6">
+                  <div className="flex items-center gap-4">
+                    <Switch
+                      fn={setHasDifferentLeadEventName}
+                      checked={hasDifferentLeadEventName}
+                      trackDimensions="w-8 h-4"
+                      thumbDimensions="w-3 h-3"
+                      thumbTranslate="translate-x-4"
+                    />
+                    <div className="flex flex-col gap-1">
+                      <h3 className="text-sm font-medium text-neutral-700">
+                        Set a custom lead event name
+                      </h3>
+                    </div>
+                  </div>
+
+                  {hasDifferentLeadEventName && (
+                    <div className="p-px">
+                      <input
+                        type="text"
+                        className={cn(
+                          "block w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                          errors.leadEventName &&
+                            "border-red-600 focus:border-red-500 focus:ring-red-600",
+                        )}
+                        {...register("leadEventName", {
+                          setValueAs: (value) => (value === "" ? null : value),
+                        })}
+                        placeholder="Enter lead event name"
                       />
                     </div>
                   )}
