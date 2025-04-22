@@ -2,7 +2,7 @@ import z from "@/lib/zod";
 import { DEFAULT_REDIRECTS, RESERVED_SLUGS, validSlugRegex } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { DomainSchema } from "./domains";
-import { planSchema, roleSchema } from "./misc";
+import { base64ImageSchema, planSchema, roleSchema } from "./misc";
 
 export const workspaceIdSchema = z.object({
   workspaceId: z
@@ -139,7 +139,7 @@ export const createWorkspaceSchema = z.object({
         message: "Cannot use reserved slugs",
       },
     ),
-  logo: z.string().optional(),
+  logo: base64ImageSchema.nullish(),
   conversionEnabled: z.boolean().optional(),
 });
 
