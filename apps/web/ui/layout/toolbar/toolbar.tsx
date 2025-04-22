@@ -39,14 +39,13 @@ async function ToolbarRSC({ show = ["onboarding", "help"] }: ToolbarProps) {
           <OnboardingButton />
         </div>
       )}
-      {show.includes("help") && (
-        <div className="shrink-0">
-          <HelpButton
-            popularHelpArticles={popularHelpArticles}
-            allHelpArticles={allHelpArticles}
-          />
-        </div>
-      )}
+
+      <div className="shrink-0">
+        <HelpButton
+          popularHelpArticles={popularHelpArticles}
+          allHelpArticles={allHelpArticles}
+        />
+      </div>
     </div>
   );
 }
