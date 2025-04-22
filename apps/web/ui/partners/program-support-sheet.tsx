@@ -20,8 +20,6 @@ interface SupportArticle {
   description: string;
 }
 
-const articles: SupportArticle[] = [];
-
 export function ProgramSupportSheet({
   isOpen,
   setIsOpen,
@@ -46,37 +44,8 @@ export function ProgramSupportSheet({
 
         <div className="flex grow flex-col">
           <div className="grow overflow-y-auto p-6">
-            <ProgramSupportSection />
-
-            {articles.length > 0 && (
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-sm font-semibold text-neutral-900">
-                    Partner setup
-                  </h2>
-                  <div className="mt-4 space-y-3">
-                    {articles.map((article) => (
-                      <button
-                        key={article.title}
-                        className="flex w-full items-start gap-3 rounded-lg border border-neutral-200 bg-white p-2 text-left transition-all hover:border-neutral-300"
-                      >
-                        <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-neutral-100">
-                          <article.icon className="size-4 text-neutral-800" />
-                        </div>
-                        <div>
-                          <h3 className="text-sm font-medium text-neutral-800">
-                            {article.title}
-                          </h3>
-                          <p className="mt-0.5 text-xs text-neutral-600">
-                            {article.description}
-                          </p>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
+            <ProgramSupportLinks />
+            <ProgramSupportArticles />
           </div>
         </div>
       </div>
@@ -84,7 +53,45 @@ export function ProgramSupportSheet({
   );
 }
 
-function ProgramSupportSection() {
+function ProgramSupportArticles() {
+  const articles: SupportArticle[] = [];
+
+  if (articles.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-sm font-semibold text-neutral-900">
+          Partner setup
+        </h2>
+        <div className="mt-4 space-y-3">
+          {articles.map((article) => (
+            <button
+              key={article.title}
+              className="flex w-full items-start gap-3 rounded-lg border border-neutral-200 bg-white p-2 text-left transition-all hover:border-neutral-300"
+            >
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-neutral-100">
+                <article.icon className="size-4 text-neutral-800" />
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-neutral-800">
+                  {article.title}
+                </h3>
+                <p className="mt-0.5 text-xs text-neutral-600">
+                  {article.description}
+                </p>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProgramSupportLinks() {
   const { programEnrollment } = useProgramEnrollment();
 
   if (!programEnrollment) {
