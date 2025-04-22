@@ -64,11 +64,11 @@ export function ReferralsEmbedActivity({
                 </span>
                 <span className="text-content-default text-base font-medium leading-none">
                   {nFormatter(value, { full: true })}{" "}
-                  {subValue && (
+                  {subValue || subValue === 0 ? (
                     <span className="text-content-subtle text-xs">
                       ({currencyFormatter(subValue / 100)})
                     </span>
-                  )}
+                  ) : null}
                 </span>
               </div>
               <div className="xs:block hidden h-12">
