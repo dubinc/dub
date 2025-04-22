@@ -13,6 +13,7 @@ import posthog from "posthog-js";
 import React, { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { HelpContext } from "./index";
+import { ContactForm } from "./contact-form";
 
 interface HelpSupportSheetProps {
   isOpen: boolean;
@@ -21,6 +22,7 @@ interface HelpSupportSheetProps {
 
 function HelpSupportSheet({ isOpen, setIsOpen }: HelpSupportSheetProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [screen, setScreen] = useState<"main" | "contact">("main");
   const debouncedTrackSearch = useDebouncedCallback((query: string) => {
     posthog.capture("help_articles_searched", {
       query,
@@ -46,37 +48,41 @@ function HelpSupportSheet({ isOpen, setIsOpen }: HelpSupportSheetProps) {
         </div>
 
         <div className="flex grow flex-col">
-          <div className="grow space-y-6 overflow-y-auto p-6">
-            <div className="relative h-[48px]">
-              <div className="pointer-events-none absolute inset-y-0 left-4 flex items-center">
-                <Search className="size-5 text-neutral-500" />
+          {screen === "main" ? (
+            <div className="grow space-y-6 overflow-y-auto p-6">
+              <div className="relative h-[48px]">
+                <div className="pointer-events-none absolute inset-y-0 left-4 flex items-center">
+                  <Search className="size-5 text-neutral-500" />
+                </div>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    debouncedTrackSearch(e.target.value);
+                  }}
+                  placeholder="Search articles, guides, and more..."
+                  className="h-full w-full rounded-lg border border-neutral-300 bg-white px-4 pl-10 text-sm shadow-sm shadow-black/[0.08] placeholder:text-neutral-500 focus:outline-none focus:ring-0"
+                  style={{
+                    boxShadow:
+                      "0px 1px 2px rgba(0, 0, 0, 0.06), 0px 1px 3px rgba(0, 0, 0, 0.1)",
+                  }}
+                />
               </div>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  debouncedTrackSearch(e.target.value);
-                }}
-                placeholder="Search articles, guides, and more..."
-                className="h-full w-full rounded-lg border border-neutral-300 bg-white px-4 pl-10 text-sm shadow-sm shadow-black/[0.08] placeholder:text-neutral-500 focus:outline-none focus:ring-0"
-                style={{
-                  boxShadow:
-                    "0px 1px 2px rgba(0, 0, 0, 0.06), 0px 1px 3px rgba(0, 0, 0, 0.1)",
-                }}
-              />
+              <PopularArticles searchQuery={searchQuery} setScreen={setScreen} />
+              <ProductGuides searchQuery={searchQuery} />
+              <DubTopics searchQuery={searchQuery} />
             </div>
-            <PopularArticles searchQuery={searchQuery} />
-            <ProductGuides searchQuery={searchQuery} />
-            <DubTopics searchQuery={searchQuery} />
-          </div>
+          ) : (
+            <ContactForm setScreen={setScreen} />
+          )}
         </div>
       </div>
     </Sheet>
   );
 }
 
-function PopularArticles({ searchQuery }: { searchQuery: string }) {
+function PopularArticles({ searchQuery, setScreen }: { searchQuery: string; setScreen: (screen: "main" | "contact") => void }) {
   const { popularHelpArticles } = React.useContext(HelpContext);
 
   const fuse = useMemo(
@@ -137,24 +143,28 @@ function PopularArticles({ searchQuery }: { searchQuery: string }) {
               </button>
             ))
           ) : (
-            <div className="flex flex-col items-center justify-center rounded-lg border border-neutral-200 bg-white p-8">
-              <div className="flex size-12 items-center justify-center rounded-lg border border-neutral-200 bg-neutral-50">
-                <Search className="size-5 text-neutral-800" />
+            <div className="min-h-[300px] space-y-4">
+              {/* Loading skeleton card */}
+              <div className="flex items-start gap-3 rounded-lg border border-neutral-200 bg-white p-4 shadow-[0_1px_3px_0_rgba(0,0,0,0.1)]">
+                <div className="size-10 rounded-lg bg-neutral-100" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-2 w-3/4 rounded bg-neutral-100" />
+                  <div className="h-2 w-1/2 rounded bg-neutral-100" />
+                </div>
               </div>
-              <p className="mt-4 text-center text-sm font-medium text-neutral-800">
-                No articles found
-              </p>
-              <p className="mt-1 text-center text-sm text-neutral-500">
-                No articles have been written about "{searchQuery}" yet
-              </p>
-              <a
-                href="https://dub.co/help"
-                className="mt-4 text-sm font-medium text-neutral-600 underline underline-offset-2 hover:text-neutral-800"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Reach out to us if you still need help
-              </a>
+              
+              {/* Empty state text */}
+              <div className="flex flex-col items-center justify-center text-center">
+                <p className="text-base text-neutral-900">
+                  No articles have been written about "{searchQuery}" yet
+                </p>
+                <button
+                  onClick={() => setScreen("contact")}
+                  className="mt-2 text-base text-neutral-900 underline underline-offset-4"
+                >
+                  Reach out to us if you still need help
+                </button>
+              </div>
             </div>
           )}
         </div>
