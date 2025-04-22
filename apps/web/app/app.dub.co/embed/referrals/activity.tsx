@@ -1,8 +1,8 @@
-import { useEmbedToken } from "@/lib/swr/use-embed-token";
 import { CursorRays } from "@/ui/layout/sidebar/icons/cursor-rays";
 import { InfoTooltip, MiniAreaChart } from "@dub/ui";
 import { cn, currencyFormatter, nFormatter } from "@dub/utils";
 import { fetcher } from "@dub/utils/src/functions";
+import { useEmbedToken } from "app/app.dub.co/embed/use-embed-token";
 import { AnalyticsTimeseries } from "dub/models/components";
 import { SVGProps, useId } from "react";
 import useSWR from "swr";

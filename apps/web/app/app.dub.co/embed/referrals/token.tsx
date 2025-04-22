@@ -1,7 +1,7 @@
 "use client";
 
-import { useEmbedToken } from "@/lib/swr/use-embed-token";
 import { fetcher } from "@dub/utils";
+import { useEmbedToken } from "app/app.dub.co/embed/use-embed-token";
 import { useEffect } from "react";
 import useSWR from "swr";
 
