@@ -44,6 +44,12 @@ export const getCustomersQuerySchemaExtended = getCustomersQuerySchema.merge(
   }),
 );
 
+export const getCustomersCountQuerySchema = getCustomersQuerySchema.omit({
+  includeExpandedFields: true,
+  page: true,
+  pageSize: true,
+});
+
 export const createCustomerBodySchema = z.object({
   email: z
     .string()
