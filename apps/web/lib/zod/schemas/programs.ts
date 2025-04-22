@@ -1,6 +1,6 @@
 import {
+  DATE_RANGE_INTERVAL_PRESETS,
   DUB_PARTNERS_ANALYTICS_INTERVAL,
-  intervals,
 } from "@/lib/analytics/constants";
 import { DUB_MIN_PAYOUT_AMOUNT_CENTS } from "@/lib/partners/constants";
 import { ProgramEnrollmentStatus, ProgramType } from "@dub/prisma/client";
@@ -97,7 +97,9 @@ export const ProgramInviteSchema = z.object({
 });
 
 export const getProgramMetricsQuerySchema = z.object({
-  interval: z.enum(intervals).default(DUB_PARTNERS_ANALYTICS_INTERVAL),
+  interval: z
+    .enum(DATE_RANGE_INTERVAL_PRESETS)
+    .default(DUB_PARTNERS_ANALYTICS_INTERVAL),
   start: parseDateSchema.optional(),
   end: parseDateSchema.optional(),
 });
