@@ -10,7 +10,7 @@ import { StaticImageData } from "next/image";
 import Link from "next/link";
 import { CornerDotType, CornerSquareType } from "qr-code-styling";
 import { DotType } from "qr-code-styling/lib/types";
-import { useState } from "react";
+import { forwardRef, useState } from "react";
 import { FileCardContent } from "../../../../(dashboard)/[slug]/new-qr/content/components/file-card-content.tsx";
 import { ColorsSettings } from "../../../../(dashboard)/[slug]/new-qr/customization/components/colors-settings.tsx";
 import { QRPreview } from "../../../../(dashboard)/[slug]/new-qr/customization/components/qr-review.tsx";
@@ -34,7 +34,7 @@ import { LogoScrollingBanner } from "./components/logo-scrolling-banner.tsx";
 import { QRTabsPopover } from "./components/qr-tabs-popover.tsx";
 import { QrTabsTitle } from "./components/qr-tabs-title.tsx";
 
-export const QRTabs = () => {
+export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
   const { isMobile } = useMediaQuery();
 
   const [openPopover, setOpenPopover] = useState<boolean>(false);
@@ -67,6 +67,7 @@ export const QRTabs = () => {
       <div className="mx-auto flex max-w-[992px] flex-col items-center justify-center gap-4 md:gap-12">
         <QrTabsTitle />
         <Tabs.Root
+          ref={ref}
           value={activeTab}
           onValueChange={setActiveTab}
           className="mx-auto flex w-full flex-col items-center justify-center gap-[18px] rounded-lg bg-white p-4 md:rounded-none md:bg-transparent"
@@ -430,4 +431,4 @@ export const QRTabs = () => {
       </div>
     </section>
   );
-};
+});

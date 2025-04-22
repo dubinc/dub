@@ -1,5 +1,3 @@
-"use client";
-
 import QrCodeIcon from "@/ui/landing/assets/svg/qr-code.svg";
 import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -8,13 +6,18 @@ import * as ScrollArea from "@radix-ui/react-scroll-area";
 import * as Tabs from "@radix-ui/react-tabs";
 import { Button, Text } from "@radix-ui/themes";
 import Image from "next/image";
-import Link from "next/link";
-import { useState } from "react";
+import { FC, useState } from "react";
 import { QR_TYPES } from "../../constants/get-qr-config.ts";
 import { QrTabsDetailedImage } from "./components/qr-tabs-detailed-image.tsx";
 import { QrTabsDetailedTitle } from "./components/qr-tabs-detailed-title.tsx";
 
-export const QrTabsDetailed = () => {
+interface IQrTabsDetailedProps {
+  scrollToQRGenerationBlock: () => void;
+}
+
+export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
+  scrollToQRGenerationBlock,
+}) => {
   const { isMobile } = useMediaQuery();
 
   const [activeTab, setActiveTab] = useState<string>("website");
@@ -108,19 +111,20 @@ export const QrTabsDetailed = () => {
                         {type.content}
                       </p>
                     </div>
-                    <Button size={"3"} color={"blue"} variant="solid">
-                      <Link
-                        href="/register"
-                        className="flex flex-row items-center justify-center gap-2"
-                      >
-                        Create QR code
-                        <Image
-                          width={20}
-                          src={QrCodeIcon}
-                          alt="QR Code"
-                          priority
-                        />
-                      </Link>
+                    <Button
+                      className="flex flex-row items-center justify-center gap-2"
+                      size={"3"}
+                      color={"blue"}
+                      variant="solid"
+                      onClick={scrollToQRGenerationBlock}
+                    >
+                      <Text>Create QR code</Text>
+                      <Image
+                        width={20}
+                        src={QrCodeIcon}
+                        alt="QR Code"
+                        priority
+                      />
                     </Button>
                   </div>
                 </div>
