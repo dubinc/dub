@@ -9,8 +9,6 @@ import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { createCommissionSchema } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
-import { getLinkOrThrow } from "../../api/links/get-link-or-throw";
-import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
 import { authActionClient } from "../safe-action";
 
 export const createCommissionAction = authActionClient
@@ -29,22 +27,11 @@ export const createCommissionAction = authActionClient
       leadDate,
     } = parsedInput;
 
-    const [_, link, programEnrollment, customer] = await Promise.all([
-      getProgramOrThrow({
-        workspaceId: workspace.id,
-        programId,
-      }),
-
-      getLinkOrThrow({
-        workspaceId: workspace.id,
-        linkId,
-      }),
-
+    const [programEnrollment, customer] = await Promise.all([
       getProgramEnrollmentOrThrow({
         programId,
         partnerId,
       }),
-
       prisma.customer.findUniqueOrThrow({
         where: {
           id: customerId,
@@ -52,12 +39,22 @@ export const createCommissionAction = authActionClient
       }),
     ]);
 
-    if (programEnrollment.program.workspaceId !== workspace.id) {
+    const { program, partner, links } = programEnrollment;
+
+    if (program.workspaceId !== workspace.id) {
       throw new Error(`Program ${programId} not found.`);
     }
 
     if (customer.projectId !== workspace.id) {
       throw new Error(`Customer ${customerId} not found.`);
+    }
+
+    const link = links.find((l) => l.id === linkId);
+
+    if (!link) {
+      throw new Error(
+        `Link ${linkId} does not belong to partner ${partner.email} (${partnerId}).`,
+      );
     }
 
     if (invoiceId) {
