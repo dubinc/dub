@@ -26,6 +26,12 @@ export function CustomerSelector({
     query: useAsync ? { search: debouncedSearch } : undefined,
   });
 
+  const { customers: selectedCustomers } = useCustomers({
+    query: selectedCustomerId
+      ? { customerIds: [selectedCustomerId] }
+      : undefined,
+  });
+
   useEffect(() => {
     if (customers && !useAsync && customers.length >= CUSTOMERS_MAX_PAGE_SIZE) {
       setUseAsync(true);
@@ -53,8 +59,25 @@ export function CustomerSelector({
   }, [customers]);
 
   const selectedOption = useMemo(() => {
-    return customerOptions?.find((o) => o.value === selectedCustomerId) || null;
-  }, [customerOptions, selectedCustomerId]);
+    if (!selectedCustomerId) return null;
+
+    const customer = [...(customers || []), ...(selectedCustomers || [])].find(
+      (c) => c.id === selectedCustomerId,
+    );
+
+    if (!customer) return null;
+
+    return {
+      value: customer.id,
+      label: customer.name || customer.email || customer.externalId,
+      icon: (
+        <img
+          src={customer.avatar || `${OG_AVATAR_URL}${customer.id}`}
+          className="size-4 rounded-full"
+        />
+      ),
+    };
+  }, [customers, selectedCustomers, selectedCustomerId]);
 
   return (
     <>
