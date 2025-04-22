@@ -1,14 +1,17 @@
-import { X } from "@/ui/shared/icons";
+import { Search, X } from "@/ui/shared/icons";
 import { Button, Sheet } from "@dub/ui";
 import {
   Cube,
   CursorRays,
   Globe2,
   Hyperlink,
-  User,
   ShieldCheck,
+  User,
 } from "@dub/ui/icons";
-import React, { Dispatch, SetStateAction, useState } from "react";
+import Fuse from "fuse.js";
+import posthog from "posthog-js";
+import React, { Dispatch, SetStateAction, useMemo, useState } from "react";
+import { useDebouncedCallback } from "use-debounce";
 import { HelpContext } from "./index";
 
 interface HelpSupportSheetProps {
@@ -17,6 +20,13 @@ interface HelpSupportSheetProps {
 }
 
 function HelpSupportSheet({ isOpen, setIsOpen }: HelpSupportSheetProps) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const debouncedTrackSearch = useDebouncedCallback((query: string) => {
+    posthog.capture("help_articles_searched", {
+      query,
+    });
+  }, 1000);
+
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <div className="flex h-full flex-col">
@@ -37,9 +47,28 @@ function HelpSupportSheet({ isOpen, setIsOpen }: HelpSupportSheetProps) {
 
         <div className="flex grow flex-col">
           <div className="grow space-y-6 overflow-y-auto p-6">
-            <PopularArticles />
-            <ProductGuides />
-            <DubTopics />
+            <div className="relative h-[48px]">
+              <div className="pointer-events-none absolute inset-y-0 left-4 flex items-center">
+                <Search className="size-5 text-neutral-500" />
+              </div>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  debouncedTrackSearch(e.target.value);
+                }}
+                placeholder="Search articles, guides, and more..."
+                className="h-full w-full rounded-lg border border-neutral-300 bg-white px-4 pl-10 text-sm shadow-sm shadow-black/[0.08] placeholder:text-neutral-500 focus:outline-none focus:ring-0"
+                style={{
+                  boxShadow:
+                    "0px 1px 2px rgba(0, 0, 0, 0.06), 0px 1px 3px rgba(0, 0, 0, 0.1)",
+                }}
+              />
+            </div>
+            <PopularArticles searchQuery={searchQuery} />
+            <ProductGuides searchQuery={searchQuery} />
+            <DubTopics searchQuery={searchQuery} />
           </div>
         </div>
       </div>
@@ -47,8 +76,23 @@ function HelpSupportSheet({ isOpen, setIsOpen }: HelpSupportSheetProps) {
   );
 }
 
-function PopularArticles() {
+function PopularArticles({ searchQuery }: { searchQuery: string }) {
   const { popularHelpArticles } = React.useContext(HelpContext);
+
+  const fuse = useMemo(
+    () =>
+      new Fuse(popularHelpArticles, {
+        keys: ["title", "summary"],
+      }),
+    [popularHelpArticles],
+  );
+
+  const filteredArticles = useMemo(() => {
+    if (searchQuery.length === 0) {
+      return popularHelpArticles.slice(0, 4);
+    }
+    return fuse.search(searchQuery).map((r) => r.item);
+  }, [searchQuery, popularHelpArticles, fuse]);
 
   return (
     <div className="space-y-6">
@@ -69,28 +113,57 @@ function PopularArticles() {
         </div>
 
         <div className="mt-4 space-y-3">
-          {popularHelpArticles.slice(0, 4).map((article) => (
-            <button
-              key={article.title}
-              className="flex w-full items-start gap-3 rounded-lg border border-neutral-200 bg-white p-2 text-left transition-all hover:border-neutral-300"
-            >
-              <div className="min-w-0 flex-1">
-                <h3 className="text-sm font-medium text-neutral-800">
-                  {article.title}
-                </h3>
-                <p className="mt-0.5 truncate text-xs text-neutral-600">
-                  {article.summary}
-                </p>
+          {filteredArticles.length > 0 ? (
+            filteredArticles.map((article) => (
+              <button
+                key={article.title}
+                className="flex w-full items-start gap-3 rounded-lg border border-neutral-200 bg-white p-2 text-left transition-all hover:border-neutral-300"
+                onClick={() => {
+                  posthog.capture("help_article_selected", {
+                    query: searchQuery,
+                    slug: article.slug,
+                  });
+                  window.open(`https://dub.co/help/article/${article.slug}`);
+                }}
+              >
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-sm font-medium text-neutral-800">
+                    {article.title}
+                  </h3>
+                  <p className="mt-0.5 truncate text-xs text-neutral-600">
+                    {article.summary}
+                  </p>
+                </div>
+              </button>
+            ))
+          ) : (
+            <div className="flex flex-col items-center justify-center rounded-lg border border-neutral-200 bg-white p-8">
+              <div className="flex size-12 items-center justify-center rounded-lg border border-neutral-200 bg-neutral-50">
+                <Search className="size-5 text-neutral-800" />
               </div>
-            </button>
-          ))}
+              <p className="mt-4 text-center text-sm font-medium text-neutral-800">
+                No articles found
+              </p>
+              <p className="mt-1 text-center text-sm text-neutral-500">
+                No articles have been written about "{searchQuery}" yet
+              </p>
+              <a
+                href="https://dub.co/help"
+                className="mt-4 text-sm font-medium text-neutral-600 underline underline-offset-2 hover:text-neutral-800"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Reach out to us if you still need help
+              </a>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-function ProductGuides() {
+function ProductGuides({ searchQuery }: { searchQuery: string }) {
   const guides = [
     {
       name: "Dub Short Links",
@@ -192,7 +265,7 @@ function ProductGuides() {
   );
 }
 
-function DubTopics() {
+function DubTopics({ searchQuery }: { searchQuery: string }) {
   const topics = [
     {
       name: "Topic 1",
