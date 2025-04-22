@@ -124,8 +124,18 @@ export const createCommissionAction = authActionClient
       timestamp: new Date(leadDate!).toISOString(),
     });
 
-    // TODO:
-    // Should we update the linkId, clickId, and clickedAt? for the customer?
+    if (!customer.linkId && clickData) {
+      await prisma.customer.update({
+        where: {
+          id: customerId,
+        },
+        data: {
+          linkId,
+          clickId: clickData.click_id,
+          clickedAt: clickData.timestamp,
+        },
+      });
+    }
 
     await createPartnerCommission({
       event: "lead",
