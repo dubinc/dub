@@ -51,7 +51,7 @@ export const ColorPickerInput: FC<IColorPickerInputProps> = ({
           value={color}
           onChange={handleInputChange}
           className={cn(
-            "max-w-[126px] basis-3/4 border-none p-0 text-sm focus:ring-0",
+            "w-full max-w-[126px] basis-3/4 border-none p-0 text-sm focus:ring-0",
             {
               "text-red-600": !isValid,
               "bg-border-200 text-neutral-200": disabled,
@@ -62,7 +62,7 @@ export const ColorPickerInput: FC<IColorPickerInputProps> = ({
         />
         <button
           type="button"
-          className={cn("h-5 w-5 basis-1/4 rounded", {
+          className={cn("h-5 max-h-5 w-5 max-w-5 basis-1/4 rounded", {
             "border-border-300 border": showBorder || !isValid,
             "cursor-not-allowed": disabled,
           })}

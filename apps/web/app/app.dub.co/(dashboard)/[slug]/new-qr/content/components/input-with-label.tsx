@@ -30,9 +30,7 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
 
   return (
     <div className="flex w-full flex-col gap-2">
-      <label className="text-neutral text-xs font-medium md:text-sm">
-        {label}
-      </label>
+      <label className="text-neutral text-sm font-medium">{label}</label>
       {type === "textarea" ? (
         <textarea
           className="border-border-300 focus:border-secondary h-32 w-full rounded-md border p-3 text-xs md:text-sm"

@@ -72,15 +72,18 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
               <QRPreview qrCode={qrCode} />
             </div>
 
-            <Tabs.List className="flex w-full gap-3 p-3">
+            <Tabs.List className="border-border-100 flex w-full rounded-md border">
               {QR_GENERATION_STEPS.map((step, idx) => (
                 <Tabs.Trigger
                   key={step.id}
                   value={step.id}
                   className={cn(
-                    "text-neutral border-border-300 group flex basis-1/2 items-center justify-start gap-2 rounded-md border px-3 py-2.5 font-medium transition-colors",
+                    "text-neutral border-border-100 group flex basis-1/2 items-center justify-start gap-2 border px-3 py-2.5 font-medium",
+                    "transition-all duration-300 ease-in-out",
                     "hover:bg-border-100 hover:text-neutral",
                     "data-[state=active]:bg-secondary-100 data-[state=active]:border-secondary data-[state=active]:text-secondary",
+                    idx === 0 && "rounded-l-md",
+                    idx === QR_GENERATION_STEPS.length - 1 && "rounded-r-md",
                   )}
                 >
                   <QrTabsStepTitle title={step.label} stepNumber={idx + 1} />
@@ -88,37 +91,42 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
               ))}
             </Tabs.List>
 
-            <Tabs.Content
-              value={QR_GENERATION_STEPS[0].id}
-              className="align-center border-border-100 flex w-full flex-col justify-center gap-6 rounded-md border p-3"
-            >
-              <QRTabsPopover
-                qrTypes={nonFileQrTypes}
-                setOpenPopover={setOpenPopover}
-                openPopover={openPopover}
-                handlePopoverItemClick={handlePopoverItemClick}
-                isMobile={isMobile}
-                showButtonContent
-                selectedQrType={nonFileQrTypes.find(
-                  (type) => type.id === activeTab,
-                )}
-              />
+            {stepActiveTab === "content" && (
+              <Tabs.Content
+                value={QR_GENERATION_STEPS[0].id}
+                className="align-center border-border-100 flex w-full flex-col justify-center gap-6 rounded-md border p-3"
+              >
+                <QRTabsPopover
+                  qrTypes={nonFileQrTypes}
+                  setOpenPopover={setOpenPopover}
+                  openPopover={openPopover}
+                  handlePopoverItemClick={handlePopoverItemClick}
+                  isMobile={isMobile}
+                  showButtonContent
+                  selectedQrType={nonFileQrTypes.find(
+                    (type) => type.id === activeTab,
+                  )}
+                />
 
-              <QRCodeContentBuilder
-                qrType={activeTab}
-                handleContent={(data) => {
-                  console.log(
-                    "[setData]",
-                    JSON.stringify(data),
-                    data.inputValues["website-website-link"],
-                  );
-                  setData(data.inputValues["website-website-link"]);
-                }}
-                minimalFlow
-              />
-            </Tabs.Content>
-            <Tabs.Content value={QR_GENERATION_STEPS[1].id}>
-              <div className="flex flex-col items-start justify-start gap-4 pt-4">
+                <QRCodeContentBuilder
+                  qrType={activeTab}
+                  handleContent={(data) => {
+                    console.log(
+                      "[setData]",
+                      JSON.stringify(data),
+                      data.inputValues["website-website-link"],
+                    );
+                    setData(data.inputValues["website-website-link"]);
+                  }}
+                  minimalFlow
+                />
+              </Tabs.Content>
+            )}
+            {stepActiveTab === "design" && (
+              <Tabs.Content
+                className="flex w-full flex-col items-start justify-start gap-4"
+                value={QR_GENERATION_STEPS[1].id}
+              >
                 <QrTabsCustomization
                   styleOptionActiveTab={styleOptionActiveTab}
                   setStyleOptionActiveActiveTab={setStyleOptionActiveActiveTab}
@@ -130,8 +138,8 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
                   options={options}
                   handlers={handlers}
                 />
-              </div>
-            </Tabs.Content>
+              </Tabs.Content>
+            )}
 
             {isMobile && <QrTabsDownloadButton isQrDisabled={isQrDisabled} />}
           </Tabs.Root>
