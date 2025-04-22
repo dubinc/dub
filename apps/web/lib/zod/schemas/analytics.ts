@@ -1,11 +1,10 @@
 import {
+  DATE_RANGE_INTERVAL_PRESETS,
   EVENT_TYPES,
   OLD_ANALYTICS_ENDPOINTS,
   OLD_TO_NEW_ANALYTICS_ENDPOINTS,
   TRIGGER_TYPES,
   VALID_ANALYTICS_ENDPOINTS,
-  eventIntervals,
-  intervals,
 } from "@/lib/analytics/constants";
 import { prefixWorkspaceId } from "@/lib/api/workspace-id";
 import z from "@/lib/zod";
@@ -106,7 +105,7 @@ export const analyticsQuerySchema = z
       .optional()
       .describe("The ID of the customer to retrieve analytics for."),
     interval: z
-      .enum(intervals)
+      .enum(DATE_RANGE_INTERVAL_PRESETS)
       .optional()
       .describe(
         "The interval to retrieve analytics for. If undefined, defaults to 24h.",
@@ -117,12 +116,12 @@ export const analyticsQuerySchema = z
       })
       .optional()
       .describe(
-        "The start date and time when to retrieve analytics from. Takes precedence over `interval`.",
+        "The start date and time when to retrieve analytics from. If set, takes precedence over `interval`.",
       ),
     end: parseDateSchema
       .optional()
       .describe(
-        "The end date and time when to retrieve analytics from. If not provided, defaults to the current date. Takes precedence over `interval`.",
+        "The end date and time when to retrieve analytics from. If not provided, defaults to the current date. If set along with `start`, takes precedence over `interval`.",
       ),
     timezone: z
       .string()
@@ -299,12 +298,6 @@ export const eventsQuerySchema = analyticsQuerySchema
       .default("clicks")
       .describe(
         "The type of event to retrieve analytics for. Defaults to 'clicks'.",
-      ),
-    interval: z
-      .enum(eventIntervals)
-      .default("24h")
-      .describe(
-        "The interval to retrieve events for. Takes precedence over start and end. If undefined, defaults to 24h.",
       ),
     page: z.coerce.number().default(1),
     limit: z.coerce.number().default(PAGINATION_LIMIT),
