@@ -2,7 +2,7 @@ import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { withAdmin } from "@/lib/auth";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
 import { prisma } from "@dub/prisma";
-import { ACME_WORKSPACE_ID } from "@dub/utils";
+import { ACME_PROGRAM_ID } from "@dub/utils";
 import { DateTime } from "luxon";
 import { NextResponse } from "next/server";
 
@@ -28,8 +28,8 @@ export const GET = withAdmin(async ({ searchParams }) => {
   // Fetch invoices
   const invoices = await prisma.invoice.findMany({
     where: {
-      workspaceId: {
-        not: ACME_WORKSPACE_ID,
+      programId: {
+        not: ACME_PROGRAM_ID,
       },
       status: "completed",
       paidAt: {
@@ -65,7 +65,7 @@ export const GET = withAdmin(async ({ searchParams }) => {
       SUM(total) as total
     FROM Invoice
     WHERE 
-      workspaceId != ${ACME_WORKSPACE_ID}
+      programId != ${ACME_PROGRAM_ID}
       AND status = 'completed'
       AND paidAt IS NOT NULL
       AND paidAt >= ${startDate}

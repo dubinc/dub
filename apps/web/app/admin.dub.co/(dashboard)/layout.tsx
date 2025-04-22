@@ -15,12 +15,12 @@ const tabs = [
     label: "Analytics",
   },
   {
-    href: "/payouts",
-    label: "Payouts",
+    href: "/commissions",
+    label: "Commissions",
   },
   {
-    href: "/demo",
-    label: "Demo",
+    href: "/payouts",
+    label: "Payouts",
   },
 ];
 
