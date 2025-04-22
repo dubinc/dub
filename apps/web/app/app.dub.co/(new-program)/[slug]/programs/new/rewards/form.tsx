@@ -77,11 +77,22 @@ export function Form() {
     formState: { isSubmitting },
   } = useFormContext<ProgramData>();
 
-  const [programType, rewardful, amount] = watch([
+  const [programType, rewardful, amount, maxDuration] = watch([
     "programType",
     "rewardful",
     "amount",
+    "maxDuration",
   ]);
+
+  useEffect(() => {
+    if (programType === "new") {
+      setValue("rewardful", null);
+    } else if (programType === "import") {
+      setValue("type", null);
+      setValue("amount", null);
+      setValue("maxDuration", null);
+    }
+  }, [programType]);
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
@@ -94,30 +105,15 @@ export function Form() {
   });
 
   const onSubmit = async (data: ProgramData) => {
-    if (!workspaceId) return;
-
-    const programData = {
-      ...data,
-      ...(programType === "new" && {
-        rewardful: null,
-        apiKeyPrefix: null,
-        amount: data.amount ? data.amount * 100 : null,
-      }),
-      ...(programType === "import" && {
-        type: null,
-        amount: null,
-        maxDuration: null,
-      }),
-    };
+    if (!workspaceId) {
+      return;
+    }
 
     setHasSubmitted(true);
+
     await executeAsync({
-      ...programData,
+      ...data,
       workspaceId,
-      maxDuration:
-        Infinity === Number(programData.maxDuration)
-          ? null
-          : programData.maxDuration,
       step: "configure-reward",
     });
   };
@@ -216,10 +212,6 @@ const NewProgramForm = ({ register, watch, setValue }: FormProps) => {
 
   useEffect(() => {
     setCommissionStructure(maxDuration === 0 ? "one-off" : "recurring");
-
-    if (maxDuration === null) {
-      setValue("maxDuration", Infinity);
-    }
   }, [maxDuration]);
 
   return (
@@ -320,7 +312,7 @@ const NewProgramForm = ({ register, watch, setValue }: FormProps) => {
 
                       if (value === "recurring") {
                         setCommissionStructure("recurring");
-                        setValue("maxDuration", 3, {
+                        setValue("maxDuration", 12, {
                           shouldValidate: true,
                         });
                       }
@@ -351,7 +343,15 @@ const NewProgramForm = ({ register, watch, setValue }: FormProps) => {
                 Duration
               </label>
               <select
-                {...register("maxDuration", { valueAsNumber: true })}
+                {...register("maxDuration", {
+                  setValueAs: (v) => {
+                    if (v === "" || v === null) {
+                      return null;
+                    }
+
+                    return parseInt(v);
+                  },
+                })}
                 className="mt-2 block w-full rounded-md border border-neutral-300 bg-white py-2 pl-3 pr-10 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
               >
                 {RECURRING_MAX_DURATIONS.filter((v) => v !== 0).map(

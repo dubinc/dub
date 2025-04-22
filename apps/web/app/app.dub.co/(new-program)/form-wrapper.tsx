@@ -15,6 +15,7 @@ export function FormWrapper({ children }: { children: React.ReactNode }) {
       defaultRewardType: "sale",
       type: "percentage",
       amount: null,
+      maxDuration: 12,
       partners: [{ email: "", key: "" }],
     },
     values: programOnboarding
