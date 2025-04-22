@@ -214,12 +214,29 @@ export default function Toggle({
       ...(root ? [{ key: "root", value: root === "true" }] : []),
       // Handle folderId special case
       ...(folderId ? [{ key: "folderId", value: folderId }] : []),
+      // Handle customerId special case
+      ...(selectedCustomerId && selectedCustomer
+        ? [
+            {
+              key: "customerId",
+              value:
+                selectedCustomer.email ||
+                selectedCustomer.name ||
+                selectedCustomer.externalId,
+            },
+          ]
+        : []),
     ];
 
     // Handle all other filters dynamically
     VALID_ANALYTICS_FILTERS.forEach((filter) => {
       // Skip special cases we handled above
-      if (["domain", "key", "tagId", "tagIds", "root"].includes(filter)) return;
+      if (
+        ["domain", "key", "tagId", "tagIds", "root", "customerId"].includes(
+          filter,
+        )
+      )
+        return;
       // also skip date range filters and qr
       if (["interval", "start", "end", "qr"].includes(filter)) return;
 
@@ -230,7 +247,7 @@ export default function Toggle({
     });
 
     return filters;
-  }, [searchParamsObj, selectedTagIds]);
+  }, [searchParamsObj, selectedTagIds, selectedCustomerId, selectedCustomer]);
 
   const isRequested = useCallback(
     (key: string) =>
@@ -371,30 +388,6 @@ export default function Toggle({
         : partnerPage
           ? [LinkFilterItem]
           : [
-              ...(["leads", "sales"].includes(selectedTab)
-                ? [
-                    {
-                      key: "customerId",
-                      icon: User,
-                      label: "Customer",
-                      shouldFilter: !customersAsync,
-                      options:
-                        customers?.map(({ id, email, name, avatar }) => {
-                          return {
-                            value: id,
-                            label: email ?? name,
-                            icon: (
-                              <img
-                                src={avatar || `${OG_AVATAR_URL}${id}`}
-                                alt={`${email} avatar`}
-                                className="size-4 rounded-full"
-                              />
-                            ),
-                          };
-                        }) ?? null,
-                    },
-                  ]
-                : []),
               ...(flags?.linkFolders
                 ? [
                     {
@@ -504,6 +497,40 @@ export default function Toggle({
                           ]),
                     ],
               },
+
+              {
+                key: "customerId",
+                icon: User,
+                label: "Customer",
+                shouldFilter: !customersAsync,
+                getOptionIcon: (value) => {
+                  return selectedCustomer ? (
+                    <img
+                      src={
+                        selectedCustomer.avatar ||
+                        `${OG_AVATAR_URL}${selectedCustomer.id}`
+                      }
+                      alt={`${selectedCustomer.email} avatar`}
+                      className="size-4 rounded-full"
+                    />
+                  ) : null;
+                },
+                options:
+                  customers?.map(({ id, email, name, avatar }) => {
+                    return {
+                      value: id,
+                      label: email ?? name,
+                      icon: (
+                        <img
+                          src={avatar || `${OG_AVATAR_URL}${id}`}
+                          alt={`${email} avatar`}
+                          className="size-4 rounded-full"
+                        />
+                      ),
+                    };
+                  }) ?? null,
+              },
+
               LinkFilterItem,
               {
                 key: "root",
@@ -531,7 +558,7 @@ export default function Toggle({
         getOptionIcon: (value) => (
           <img
             alt={value}
-            src={`https://flag.vercel.app/m/${value}.svg`}
+            src={`https://hatscripts.github.io/circle-flags/flags/${value.toLowerCase()}.svg`}
             className="h-2.5 w-4"
           />
         ),

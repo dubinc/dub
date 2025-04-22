@@ -1,4 +1,4 @@
-import { intervals } from "@/lib/analytics/constants";
+import { DATE_RANGE_INTERVAL_PRESETS } from "@/lib/analytics/constants";
 import { CommissionStatus } from "@dub/prisma/client";
 import { z } from "zod";
 import { CustomerSchema } from "./customers";
@@ -35,7 +35,7 @@ export const getCommissionsQuerySchema = z
     status: z.nativeEnum(CommissionStatus).optional(),
     sortBy: z.enum(["createdAt", "amount"]).default("createdAt"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
-    interval: z.enum(intervals).default("all"),
+    interval: z.enum(DATE_RANGE_INTERVAL_PRESETS).default("all"),
     start: parseDateSchema.optional(),
     end: parseDateSchema.optional(),
   })

@@ -2,8 +2,6 @@ DESCRIPTION >
 	Timeseries data
 
 
-TOKEN "v2_timeseries_endpoint_read_8675" READ
-
 TAGS "Dub Endpoints"
 
 NODE month_intervals
@@ -49,7 +47,7 @@ SQL >
         arrayJoin(
             arrayMap(
                 x -> toDateTime64(toStartOfDay(toDateTime64(x, 3), {{ String(timezone, 'UTC') }}), 3),
-                range(toUInt32(start + 86400), toUInt32(end + 86400),
+                range(toUInt32(start), toUInt32(end + 86400),
                 86400
             )
         )
@@ -73,7 +71,7 @@ SQL >
     end
     SELECT
         arrayJoin(
-            arrayMap(x -> toDateTime64(x, 3), range(toUInt32(start + 3600), toUInt32(end + 3600), 3600)
+            arrayMap(x -> toDateTime64(x, 3), range(toUInt32(start), toUInt32(end + 3600), 3600)
         )
     ) as interval
 
@@ -84,16 +82,23 @@ SQL >
 
     %
     SELECT link_id
-    from dub_links_metadata_latest FINAL
+    FROM
+        {% if defined(isMegaFolder) and Boolean(isMegaFolder) == 1 %} dub_links_metadata_latest
+        {% else %} dub_regular_links_metadata_latest
+        {% end %} FINAL
     WHERE
         deleted == 0
         {% if defined(workspaceId) %} AND workspace_id = {{ workspaceId }} {% end %}
         {% if defined(programId) %} AND program_id = {{ programId }} {% end %}
         {% if defined(partnerId) %} AND partner_id = {{ partnerId }} {% end %}
         {% if defined(tenantId) %} AND tenant_id = {{ tenantId }} {% end %}
-        {% if defined(folderId) %} AND folder_id = {{ folderId }} {% end %}
+        {% if defined(folderIds) %} AND folder_id IN {{ Array(folderIds, 'String') }}
+        {% elif defined(folderId) %} AND folder_id = {{ folderId }}
+        {% end %}
         {% if defined(domain) %} AND domain IN {{ Array(domain, 'String') }} {% end %}
-        {% if defined(tagIds) %} AND arrayIntersect(tag_ids, {{ Array(tagIds, 'String') }}) != [] {% end %}
+        {% if defined(tagIds) %}
+            AND arrayIntersect(tag_ids, {{ Array(tagIds, 'String') }}) != []
+        {% end %}
         {% if defined(root) %}
             {% if Boolean(root) == 1 %} AND key = '_root' {% else %} AND key != '_root' {% end %}
         {% end %}
@@ -114,11 +119,20 @@ SQL >
             )
         {% else %} toDateTime64(toStartOfDay(timestamp, {{ String(timezone, 'UTC') }}), 3)
         {% end %} AS interval,
-        uniq(*) as clicks
+        uniq(click_id) as clicks
     FROM
-        dub_click_events_mv
-        {% if not defined(linkId) and (defined(workspaceId) or defined(partnerId) or defined(programId)) %}
-            PREWHERE link_id in (SELECT link_id from workspace_links)
+        {% if defined(customerId) %} dub_click_events_id
+        {% else %} dub_click_events_mv
+        {% end %}
+        {% if defined(customerId) %}
+            PREWHERE click_id IN (
+                SELECT DISTINCT click_id
+                FROM dub_lead_events_mv
+                WHERE customer_id = {{ String(customerId) }}
+            )
+        {% elif not defined(linkId) and (
+            defined(workspaceId) or defined(partnerId) or defined(programId)
+        ) %} PREWHERE link_id in (SELECT link_id from workspace_links)
         {% end %}
     WHERE
         true
@@ -133,11 +147,22 @@ SQL >
         {% if defined(os) %} AND os = {{ os }} {% end %}
         {% if defined(referer) %} AND referer = {{ referer }} {% end %}
         {% if defined(refererUrl) %} AND splitByString('?', referer_url)[1] = {{ refererUrl }} {% end %}
-        {% if defined(utm_source) %} AND url LIKE concat('%utm_source=', {{ String(utm_source) }}, '%') {% end %}
-        {% if defined(utm_medium) %} AND url LIKE concat('%utm_medium=', {{ String(utm_medium) }}, '%') {% end %}
-        {% if defined(utm_campaign) %} AND url LIKE concat('%utm_campaign=', {{ String(utm_campaign) }}, '%') {% end %}
-        {% if defined(utm_term) %} AND url LIKE concat('%utm_term=', {{ String(utm_term) }}, '%') {% end %}
-        {% if defined(utm_content) %} AND url LIKE concat('%utm_content=', {{ String(utm_content) }}, '%') {% end %}
+        {% if defined(utm_source) %}
+            AND url LIKE concat('%utm_source=', encodeURLFormComponent({{ String(utm_source) }}), '%')
+        {% end %}
+        {% if defined(utm_medium) %}
+            AND url LIKE concat('%utm_medium=', encodeURLFormComponent({{ String(utm_medium) }}), '%')
+        {% end %}
+        {% if defined(utm_campaign) %}
+            AND url
+            LIKE concat('%utm_campaign=', encodeURLFormComponent({{ String(utm_campaign) }}), '%')
+        {% end %}
+        {% if defined(utm_term) %}
+            AND url LIKE concat('%utm_term=', encodeURLFormComponent({{ String(utm_term) }}), '%')
+        {% end %}
+        {% if defined(utm_content) %}
+            AND url LIKE concat('%utm_content=', encodeURLFormComponent({{ String(utm_content) }}), '%')
+        {% end %}
         {% if defined(url) %} AND url = {{ url }} {% end %}
         AND timestamp >= {{ DateTime(start, '2024-04-25 00:00:00') }}
         AND timestamp < {{ DateTime(end, '2024-05-23 00:00:00') }}
@@ -184,6 +209,7 @@ SQL >
     WHERE
         true
         {% if defined(linkId) %} AND link_id = {{ String(linkId) }} {% end %}
+        {% if defined(customerId) %} AND customer_id = {{ String(customerId) }} {% end %}
         {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
         {% if defined(continent) %} AND continent = {{ continent }} {% end %}
         {% if defined(country) %} AND country = {{ country }} {% end %}
@@ -194,11 +220,11 @@ SQL >
         {% if defined(os) %} AND os = {{ os }} {% end %}
         {% if defined(referer) %} AND referer = {{ referer }} {% end %}
         {% if defined(refererUrl) %} AND splitByString('?', referer_url)[1] = {{ refererUrl }} {% end %}
-        {% if defined(utm_source) %} AND url LIKE concat('%utm_source=', {{ String(utm_source) }}, '%') {% end %}
-        {% if defined(utm_medium) %} AND url LIKE concat('%utm_medium=', {{ String(utm_medium) }}, '%') {% end %}
-        {% if defined(utm_campaign) %} AND url LIKE concat('%utm_campaign=', {{ String(utm_campaign) }}, '%') {% end %}
-        {% if defined(utm_term) %} AND url LIKE concat('%utm_term=', {{ String(utm_term) }}, '%') {% end %}
-        {% if defined(utm_content) %} AND url LIKE concat('%utm_content=', {{ String(utm_content) }}, '%') {% end %}
+        {% if defined(utm_source) %} AND url LIKE concat('%utm_source=', encodeURLFormComponent({{ String(utm_source) }}), '%') {% end %}
+        {% if defined(utm_medium) %} AND url LIKE concat('%utm_medium=', encodeURLFormComponent({{ String(utm_medium) }}), '%') {% end %}
+        {% if defined(utm_campaign) %} AND url LIKE concat('%utm_campaign=', encodeURLFormComponent({{ String(utm_campaign) }}), '%') {% end %}
+        {% if defined(utm_term) %} AND url LIKE concat('%utm_term=', encodeURLFormComponent({{ String(utm_term) }}), '%') {% end %}
+        {% if defined(utm_content) %} AND url LIKE concat('%utm_content=', encodeURLFormComponent({{ String(utm_content) }}), '%') {% end %}
         {% if defined(url) %} AND url = {{ url }} {% end %}
         AND timestamp >= {{ DateTime(start, '2024-04-25 00:00:00') }}
         AND timestamp < {{ DateTime(end, '2024-05-23 00:00:00') }}
@@ -249,6 +275,7 @@ SQL >
     WHERE
         true
         {% if defined(linkId) %} AND link_id = {{ String(linkId) }} {% end %}
+        {% if defined(customerId) %} AND customer_id = {{ String(customerId) }} {% end %}
         {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
         {% if defined(continent) %} AND continent = {{ continent }} {% end %}
         {% if defined(country) %} AND country = {{ country }} {% end %}
@@ -259,11 +286,11 @@ SQL >
         {% if defined(os) %} AND os = {{ os }} {% end %}
         {% if defined(referer) %} AND referer = {{ referer }} {% end %}
         {% if defined(refererUrl) %} AND splitByString('?', referer_url)[1] = {{ refererUrl }} {% end %}
-        {% if defined(utm_source) %} AND url LIKE concat('%utm_source=', {{ String(utm_source) }}, '%') {% end %}
-        {% if defined(utm_medium) %} AND url LIKE concat('%utm_medium=', {{ String(utm_medium) }}, '%') {% end %}
-        {% if defined(utm_campaign) %} AND url LIKE concat('%utm_campaign=', {{ String(utm_campaign) }}, '%') {% end %}
-        {% if defined(utm_term) %} AND url LIKE concat('%utm_term=', {{ String(utm_term) }}, '%') {% end %}
-        {% if defined(utm_content) %} AND url LIKE concat('%utm_content=', {{ String(utm_content) }}, '%') {% end %}
+        {% if defined(utm_source) %} AND url LIKE concat('%utm_source=', encodeURLFormComponent({{ String(utm_source) }}), '%') {% end %}
+        {% if defined(utm_medium) %} AND url LIKE concat('%utm_medium=', encodeURLFormComponent({{ String(utm_medium) }}), '%') {% end %}
+        {% if defined(utm_campaign) %} AND url LIKE concat('%utm_campaign=', encodeURLFormComponent({{ String(utm_campaign) }}), '%') {% end %}
+        {% if defined(utm_term) %} AND url LIKE concat('%utm_term=', encodeURLFormComponent({{ String(utm_term) }}), '%') {% end %}
+        {% if defined(utm_content) %} AND url LIKE concat('%utm_content=', encodeURLFormComponent({{ String(utm_content) }}), '%') {% end %}
         {% if defined(url) %} AND url = {{ url }} {% end %}
         AND timestamp >= {{ DateTime(start, '2024-04-25 00:00:00') }}
         AND timestamp < {{ DateTime(end, '2024-05-23 00:00:00') }}
