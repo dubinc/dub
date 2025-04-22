@@ -100,7 +100,6 @@ export function Form() {
       mutate();
     },
     onError: ({ error }) => {
-      console.log("error", error);
       toast.error(error.serverError);
     },
   });
