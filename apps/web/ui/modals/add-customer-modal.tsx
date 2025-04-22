@@ -75,7 +75,12 @@ const AddCustomerModal = ({
       </div>
 
       <div className="bg-neutral-50">
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form
+          onSubmit={(e) => {
+            e.stopPropagation();
+            return handleSubmit(onSubmit)(e);
+          }}
+        >
           <div className="flex flex-col gap-4 px-4 py-6 text-left sm:px-6">
             <div>
               <label className="text-sm font-normal text-neutral-500">
