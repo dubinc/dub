@@ -142,15 +142,19 @@ export const createProgram = async ({
           }),
         },
       }),
+
       prisma.program.update({
         where: {
           id: program.id,
         },
         data: {
           ...(logoUrl && { logo: logoUrl }),
-          ...(program.rewards && { defaultRewardId: program.rewards[0].id }),
+          ...(program.rewards?.[0]?.id && {
+            defaultRewardId: program.rewards[0].id,
+          }),
         },
       }),
+
       uploadedLogo &&
         isStored(uploadedLogo) &&
         storage.delete(uploadedLogo.replace(`${R2_URL}/`, "")),
