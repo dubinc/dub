@@ -12,8 +12,7 @@ export function CustomerRowItem({ customer }: { customer: Customer }) {
     <>
       <Link
         href={`/${slug}/customers/${customer.id}`}
-        scroll={false}
-        className="flex w-full items-center justify-between gap-2 px-4 py-2.5 transition-colors hover:bg-stone-100"
+        className="group flex cursor-alias items-center justify-between gap-2 px-4 py-2.5 decoration-dotted hover:underline"
       >
         <div className="flex items-center gap-3 truncate" title={display}>
           <img
@@ -23,7 +22,7 @@ export function CustomerRowItem({ customer }: { customer: Customer }) {
           />
           <span className="truncate">{display}</span>
         </div>
-        <ChartActivity2 className="size-3.5 shrink-0" />
+        <ChartActivity2 className="size-3.5 shrink-0 transition-all group-hover:-translate-x-3 group-hover:opacity-0" />
       </Link>
     </>
   );
