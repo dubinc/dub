@@ -8,10 +8,11 @@ import {
   Page2,
   Sheet,
 } from "@dub/ui";
+import { Dispatch, SetStateAction, useState } from "react";
 
 interface ProgramSupportSheetProps {
   isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
+  setIsOpen: Dispatch<SetStateAction<boolean>>;
 }
 
 interface SupportArticle {
@@ -20,10 +21,7 @@ interface SupportArticle {
   description: string;
 }
 
-export function ProgramSupportSheet({
-  isOpen,
-  setIsOpen,
-}: ProgramSupportSheetProps) {
+function ProgramSupportSheet({ isOpen, setIsOpen }: ProgramSupportSheetProps) {
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <div className="flex h-full flex-col">
@@ -174,4 +172,16 @@ function ProgramSupportLinks() {
       </div>
     </div>
   );
+}
+
+export function useProgramSupportSheet() {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return {
+    ProgramSupportSheet: (
+      <ProgramSupportSheet setIsOpen={setIsOpen} isOpen={isOpen} />
+    ),
+    setIsOpen,
+    isOpen,
+  };
 }
