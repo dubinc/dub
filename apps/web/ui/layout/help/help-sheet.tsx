@@ -1,5 +1,13 @@
 import { X } from "@/ui/shared/icons";
 import { Button, Sheet } from "@dub/ui";
+import {
+  Cube,
+  CursorRays,
+  Globe2,
+  Hyperlink,
+  User,
+  ShieldCheck,
+} from "@dub/ui/icons";
 import React, { Dispatch, SetStateAction, useState } from "react";
 import { HelpContext } from "./index";
 
@@ -31,6 +39,7 @@ function HelpSupportSheet({ isOpen, setIsOpen }: HelpSupportSheetProps) {
           <div className="grow space-y-6 overflow-y-auto p-6">
             <PopularArticles />
             <ProductGuides />
+            <DubTopics />
           </div>
         </div>
       </div>
@@ -176,6 +185,67 @@ function ProductGuides() {
             <span className="text-base font-medium text-neutral-900">
               {guide.name}
             </span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function DubTopics() {
+  const topics = [
+    {
+      name: "Topic 1",
+      description: "Learn the basics of Dub and how to get started",
+      icon: Hyperlink,
+    },
+    {
+      name: "Topic 2",
+      description: "Learn the basics of Dub and how to get started",
+      icon: Cube,
+    },
+    {
+      name: "Topic 3",
+      description: "Learn the basics of Dub and how to get started",
+      icon: Globe2,
+    },
+    {
+      name: "Topic 4",
+      description: "Learn the basics of Dub and how to get started",
+      icon: CursorRays,
+    },
+    {
+      name: "Topic 5",
+      description: "Learn the basics of Dub and how to get started",
+      icon: User,
+    },
+    {
+      name: "Topic 6",
+      description: "Learn the basics of Dub and how to get started",
+      icon: ShieldCheck,
+    },
+  ];
+
+  return (
+    <div>
+      <h2 className="text-sm font-semibold text-neutral-900">Dub Topics</h2>
+      <div className="mt-4 space-y-3">
+        {topics.map((topic) => (
+          <button
+            key={topic.name}
+            className="flex w-full items-center gap-3 rounded-lg border border-neutral-200 bg-white p-4 text-left transition-all hover:bg-neutral-50"
+          >
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-neutral-100">
+              <topic.icon className="size-5 text-neutral-600" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-base font-medium text-neutral-900">
+                {topic.name}
+              </h3>
+              <p className="mt-0.5 text-sm text-neutral-600">
+                {topic.description}
+              </p>
+            </div>
           </button>
         ))}
       </div>
