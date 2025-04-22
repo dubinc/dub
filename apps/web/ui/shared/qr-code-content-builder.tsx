@@ -174,7 +174,7 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
   };
 
   return (
-    <div className="flex h-full flex-col items-center justify-between gap-4 md:items-start">
+    <div className="flex h-full w-full flex-col items-center justify-between gap-4 md:items-start">
       <div
         className={cn(
           "flex h-fit w-full flex-col items-center justify-center gap-6 p-0 md:max-w-[654px] md:p-0",

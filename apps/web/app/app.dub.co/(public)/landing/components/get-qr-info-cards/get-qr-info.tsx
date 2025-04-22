@@ -19,7 +19,7 @@ export const GetQRInfoCardsSection: FC = () => {
       <Heading
         as="h2"
         weight="bold"
-        size="8"
+        size={{ initial: "6", md: "8" }}
         className="text-neutral max-w-[250px] text-center md:max-w-none"
       >
         Create your{" "}

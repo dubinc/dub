@@ -32,10 +32,7 @@ export const QRTabsPopover: FC<IQRTabsPopoverProps> = ({
     <Popover
       align="end"
       content={
-        <ScrollArea.Root
-          type={isMobile ? "always" : undefined}
-          className="w-full px-3 md:p-0"
-        >
+        <ScrollArea.Root type={"auto"} className="w-full px-3 md:p-0">
           <ScrollArea.Viewport className="overflow-y-scroll">
             <div className="flex max-h-[274px] w-[95%] flex-col gap-0.5 text-sm md:w-80 md:max-w-[200px] md:p-3">
               {qrTypes.map((option, idx) => (
@@ -52,11 +49,11 @@ export const QRTabsPopover: FC<IQRTabsPopoverProps> = ({
                     icon={option.icon}
                     className={cn(
                       "h-5 w-5",
-                      idx === 4
+                      idx === 1
                         ? "group-hover:[&>path]:fill-secondary [&>path]:fill-neutral-200"
                         : "group-hover:[&>g]:stroke-secondary group-hover:[&>path]:stroke-secondary [&>g]:stroke-neutral-200 [&>path]:stroke-neutral-200",
                       selectedQrType?.id === option.id &&
-                        (idx === 4
+                        (idx === 1
                           ? "[&>path]:fill-secondary"
                           : "[&>g]:stroke-secondary [&>path]:stroke-secondary"),
                     )}
@@ -84,21 +81,21 @@ export const QRTabsPopover: FC<IQRTabsPopoverProps> = ({
           "h-12 w-12",
           isMobile && "w-full",
           "border-100 rounded-md border bg-white",
-          "bg-primary-300 md:bg-transparent",
+          "bg-secondary-100 md:bg-transparent",
           "transition-colors hover:bg-white",
           "[&>div]:w-full",
         )}
         text={
           <div className="flex w-full flex-row items-center justify-between gap-2">
             {showButtonContent && selectedQrType && (
-              <div className="text-neutral flex flex-row items-center gap-2">
+              <div className="text-secondary flex flex-row items-center gap-2">
                 <Icon
                   icon={selectedQrType.icon}
                   className={cn(
                     "h-4 w-4",
-                    selectedQrType && selectedQrTypeIndex === 4
-                      ? "[&>path]:fill-primary"
-                      : "[&>g]:stroke-primary [&>path]:stroke-primary",
+                    selectedQrType && selectedQrTypeIndex === 1
+                      ? "[&>path]:fill-secondary"
+                      : "[&>g]:stroke-secondary [&>path]:stroke-secondary",
                   )}
                 />
                 {selectedQrType.label}
