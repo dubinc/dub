@@ -68,6 +68,9 @@ export const createCommissionAction = authActionClient
             invoiceId,
           },
         },
+        select: {
+          id: true,
+        },
       });
 
       if (commission) {
@@ -76,6 +79,8 @@ export const createCommissionAction = authActionClient
         );
       }
     }
+
+    const shouldRecordSale = saleAmount && saleDate;
 
     // Record click
     const dummyRequest = new Request(link.url, {
@@ -97,7 +102,9 @@ export const createCommissionAction = authActionClient
       key: link.key,
       workspaceId: workspace.id,
       skipRatelimit: true,
-      timestamp: new Date().toISOString(),
+      timestamp: new Date(
+        new Date(leadDate).getTime() - 5 * 60 * 1000,
+      ).toISOString(),
     });
 
     // Record lead
@@ -114,9 +121,7 @@ export const createCommissionAction = authActionClient
       event_id: leadEventId,
       event_name: "Sign up",
       customer_id: customerId,
-      timestamp: leadDate
-        ? new Date(leadDate).toISOString()
-        : new Date().toISOString(),
+      timestamp: new Date(leadDate).toISOString(),
     });
 
     // TODO:
@@ -134,8 +139,6 @@ export const createCommissionAction = authActionClient
     });
 
     // Record sale
-    const shouldRecordSale = saleAmount && saleDate;
-
     if (shouldRecordSale) {
       const clickEvent = clickEventSchemaTB.parse({
         ...clickData,
