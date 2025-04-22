@@ -23,6 +23,8 @@ import { toast } from "sonner";
 export function Form() {
   const router = useRouter();
   const { isMobile } = useMediaQuery();
+  const [isUploading, setIsUploading] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
   const { activeWorkspaceDomains, loading } = useDomains();
   const { id: workspaceId, slug: workspaceSlug, mutate } = useWorkspace();
 
@@ -34,8 +36,6 @@ export function Form() {
     setValue,
     formState: { isSubmitting },
   } = useFormContext<ProgramData>();
-
-  const [hasSubmitted, setHasSubmitted] = useState(false);
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
@@ -58,8 +58,6 @@ export function Form() {
       step: "get-started",
     });
   };
-
-  const [isUploading, setIsUploading] = useState(false);
 
   // Handle logo upload
   const handleUpload = async (file: File) => {
