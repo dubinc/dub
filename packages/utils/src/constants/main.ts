@@ -74,4 +74,4 @@ export const ACME_PROGRAM_ID = "prog_CYCu7IMAapjkRpTnr8F1azjN";
 export const LEGAL_WORKSPACE_ID = "clrflia0j0000vs7sqfhz9c7q";
 export const LEGAL_USER_ID = "clqei1lgc0000vsnzi01pbf47";
 
-export const R2_URL = process.env.STORAGE_BASE_URL as string;
+export const R2_URL = "https://dubassets.com";
