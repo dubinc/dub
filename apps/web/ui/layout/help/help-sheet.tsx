@@ -188,10 +188,7 @@ function HelpSupportSheet({ isOpen, setIsOpen }: HelpSupportSheetProps) {
                   }}
                 />
               </div>
-              <PopularArticles
-                searchQuery={searchQuery}
-                setScreen={setScreen}
-              />
+              <Articles searchQuery={searchQuery} setScreen={setScreen} />
               <ProductGuides searchQuery={searchQuery} />
               <DubTopics searchQuery={searchQuery} />
             </div>
@@ -223,27 +220,33 @@ function HelpCard({ icon, title, description, onClick }: HelpCardProps) {
   );
 }
 
-function PopularArticles({
+function Articles({
   searchQuery,
   setScreen,
 }: {
   searchQuery: string;
   setScreen: (screen: "main" | "contact") => void;
 }) {
-  const { popularHelpArticles } = React.useContext(HelpContext);
+  const { popularHelpArticles, allHelpArticles } =
+    React.useContext(HelpContext);
 
-  const fuse = useMemo(
-    () =>
-      new Fuse(popularHelpArticles, {
+  const fuse = useMemo(() => {
+    if (searchQuery.length === 0) {
+      return new Fuse(popularHelpArticles, {
         keys: ["title", "summary"],
-      }),
-    [popularHelpArticles],
-  );
+      });
+    }
+
+    return new Fuse(Array.from(allHelpArticles.values()), {
+      keys: ["title", "summary"],
+    });
+  }, [popularHelpArticles, allHelpArticles, searchQuery]);
 
   const filteredArticles = useMemo(() => {
     if (searchQuery.length === 0) {
-      return popularHelpArticles.slice(0, 4);
+      return popularHelpArticles;
     }
+
     return fuse.search(searchQuery).map((r) => r.item);
   }, [searchQuery, popularHelpArticles, fuse]);
 
@@ -256,7 +259,7 @@ function PopularArticles({
       <div>
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold text-neutral-900">
-            Popular Articles
+            {searchQuery.length === 0 ? "Popular Articles" : "Articles"}
           </h2>
 
           <a
@@ -271,7 +274,7 @@ function PopularArticles({
 
         <div className="mt-4 space-y-3">
           {filteredArticles.length > 0 ? (
-            filteredArticles.map((article) => (
+            filteredArticles.slice(0, 5).map((article) => (
               <HelpCard
                 key={article.title}
                 icon={<div className="size-5" />}
@@ -288,7 +291,6 @@ function PopularArticles({
             ))
           ) : (
             <div className="min-h-[300px] space-y-4">
-              {/* Loading skeleton card */}
               <div className="flex items-start gap-3 rounded-lg border border-neutral-200 bg-white p-4 shadow-[0_1px_3px_0_rgba(0,0,0,0.1)]">
                 <div className="size-10 rounded-lg bg-neutral-100" />
                 <div className="flex-1 space-y-2">
@@ -297,7 +299,6 @@ function PopularArticles({
                 </div>
               </div>
 
-              {/* Empty state text */}
               <div className="flex flex-col items-center justify-center text-center">
                 <p className="text-base text-neutral-900">
                   No articles have been written about "{searchQuery}" yet
