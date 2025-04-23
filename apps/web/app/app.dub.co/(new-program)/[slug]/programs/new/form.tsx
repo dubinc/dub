@@ -159,13 +159,13 @@ export function Form() {
             Referral link
           </h2>
           <p className="text-sm font-normal text-neutral-600">
-            Set the default referral link domain and destination URL
+            Set the custom domain and destination URL for your referral links
           </p>
         </div>
 
         <div>
           <label className="block text-sm font-medium text-neutral-800">
-            Default domain
+            Custom domain
           </label>
           {loading ? (
             <div className="mt-2 h-10 w-full animate-pulse rounded-md bg-neutral-100" />

@@ -449,7 +449,7 @@ export const invitePartnerSchema = z.object({
   programId: z.string(),
   name: z.string().trim().min(1).max(100),
   email: z.string().trim().email().min(1).max(100),
-  linkId: z.string(),
+  linkId: z.string().optional(),
   rewardId: z.string().optional(),
   discountId: z.string().optional(),
 });
@@ -464,6 +464,13 @@ export const banPartnerSchema = z.object({
       ...PartnerBannedReason[],
     ],
   ),
+});
+
+export const approvePartnerSchema = z.object({
+  workspaceId: z.string(),
+  programId: z.string(),
+  partnerId: z.string(),
+  linkId: z.string().nullable(),
 });
 
 export const retrievePartnerLinksSchema = z
