@@ -446,7 +446,7 @@ export const invitePartnerSchema = z.object({
   programId: z.string(),
   name: z.string().trim().min(1).max(100),
   email: z.string().trim().email().min(1).max(100),
-  linkId: z.string(),
+  linkId: z.string().optional(),
   rewardId: z.string().optional(),
   discountId: z.string().optional(),
 });
