@@ -1,13 +1,11 @@
 "use client";
 
 import useDomain from "@/lib/swr/use-domain";
-import useFolders from "@/lib/swr/use-folders";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { QRCode } from "@/ui/shared/qr-code.tsx";
 import {
   ArrowTurnRight2,
   Avatar,
-  CardList,
   CopyButton,
   Switch,
   Tooltip,
@@ -18,7 +16,6 @@ import {
   Apple,
   ArrowRight,
   Bolt,
-  BoxArchive,
   Cards,
   CircleHalfDottedClock,
   EarthPosition,
@@ -35,14 +32,11 @@ import {
   linkConstructor,
   timeAgo,
 } from "@dub/utils";
+import { Icon } from "@iconify/react";
 import * as HoverCard from "@radix-ui/react-hover-card";
 import { Mail } from "lucide-react";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { memo, PropsWithChildren, useContext, useRef, useState } from "react";
-import { FolderIcon } from "../folders/folder-icon";
 import { useLinkBuilder } from "../modals/link-builder";
-import { CommentsBadge } from "./comments-badge";
 import { ResponseLink } from "./links-container";
 import { LinksDisplayContext } from "./links-display-provider";
 
@@ -60,82 +54,94 @@ const quickViewSettings = [
 export function LinkTitleColumn({ link }: { link: ResponseLink }) {
   const { url, domain, key } = link;
 
-  const { variant } = useContext(CardList.Context);
-  const { displayProperties } = useContext(LinksDisplayContext);
+  // const { variant } = useContext(CardList.Context);
+  // @USEFUL_FEATURE: display config of link table
+  // const { displayProperties } = useContext(LinksDisplayContext);
 
   const ref = useRef<HTMLDivElement>(null);
 
   const hasQuickViewSettings = quickViewSettings.some(({ key }) => link?.[key]);
 
-  const searchParams = useSearchParams();
-  const { slug } = useWorkspace();
-  const { folders } = useFolders();
-  const folder = folders?.find((folder) => folder.id === link.folderId);
+  // const searchParams = useSearchParams();
+  // const { slug } = useWorkspace();
+  // const { folders } = useFolders();
+  // const folder = folders?.find((folder) => folder.id === link.folderId);
 
   return (
     <div
       ref={ref}
       className="flex h-[32px] items-center gap-3 transition-[height] group-data-[variant=loose]/card-list:h-[60px]"
     >
-      {variant === "compact" &&
-        link.folderId &&
-        searchParams.get("folderId") !== link.folderId && (
-          <Link href={`/${slug}?folderId=${link.folderId}`}>
-            {folder ? (
-              <FolderIcon
-                folder={folder}
-                shape="square"
-                innerClassName="p-1.5"
-              />
-            ) : (
-              <div className="size-4 rounded-md bg-neutral-200" />
-            )}
-          </Link>
+      {/*{variant === "compact" &&*/}
+      {/*  link.folderId &&*/}
+      {/*  searchParams.get("folderId") !== link.folderId && (*/}
+      {/*    <Link href={`/${slug}?folderId=${link.folderId}`}>*/}
+      {/*      {folder ? (*/}
+      {/*        <FolderIcon*/}
+      {/*          folder={folder}*/}
+      {/*          shape="square"*/}
+      {/*          innerClassName="p-1.5"*/}
+      {/*        />*/}
+      {/*      ) : (*/}
+      {/*        <div className="size-4 rounded-md bg-neutral-200" />*/}
+      {/*      )}*/}
+      {/*    </Link>*/}
+      {/*  )}*/}
+
+      <div
+        className={cn(
+          "relative hidden shrink-0 items-center justify-center",
+          // displayProperties.includes("icon") && "sm:flex",
+          "sm:flex",
         )}
-      {link.archived && (
-        <div
-          className={cn(
-            "relative hidden shrink-0 items-center justify-center",
-            displayProperties.includes("icon") && "sm:flex",
-          )}
-        >
-          {/* Link logo background circle */}
-          <div className="absolute inset-0 shrink-0 rounded-full border border-neutral-200 opacity-0 transition-opacity group-data-[variant=loose]/card-list:sm:opacity-100">
-            <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-neutral-100" />
-          </div>
-          <div className="relative pr-0.5 transition-[padding] group-data-[variant=loose]/card-list:sm:p-2">
-            {link.archived ? (
-              <Tooltip content="Archived">
-                <div>
-                  <BoxArchive className="size-4 shrink-0 p-0.5 text-neutral-600 transition-[width,height] sm:h-6 sm:w-6 group-data-[variant=loose]/card-list:sm:h-5 group-data-[variant=loose]/card-list:sm:w-5" />
-                </div>
-              </Tooltip>
-            ) : // <LinkLogo
+      >
+        {/* Link logo background circle */}
+        <div className="absolute inset-0 shrink-0 rounded-full border border-neutral-200 opacity-0 transition-opacity group-data-[variant=loose]/card-list:sm:opacity-100">
+          <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-neutral-100" />
+        </div>
+        <div className="relative pr-0.5 transition-[padding] group-data-[variant=loose]/card-list:sm:p-2">
+          {link.archived ? (
+            <Tooltip content="Paused">
+              <div>
+                <Icon icon="solar:pause-bold" className="text-red-500" />
+                {/*<BoxArchive className="size-4 shrink-0 p-0.5 text-neutral-600 transition-[width,height] sm:h-6 sm:w-6 group-data-[variant=loose]/card-list:sm:h-5 group-data-[variant=loose]/card-list:sm:w-5" />*/}
+              </div>
+            </Tooltip>
+          ) : (
+            // <LinkLogo
             //   apexDomain={getApexDomain(url)}
             //   className="size-4 shrink-0 transition-[width,height] sm:h-6 sm:w-6 group-data-[variant=loose]/card-list:sm:h-5 group-data-[variant=loose]/card-list:sm:w-5"
             //   imageProps={{
             //     loading: "lazy",
             //   }}
             // />
-            null}
-          </div>
+            <Tooltip content="Active">
+              <div>
+                <Icon icon="solar:play-bold" className="text-secondary" />
+                {/*<BoxArchive className="size-4 shrink-0 p-0.5 text-neutral-600 transition-[width,height] sm:h-6 sm:w-6 group-data-[variant=loose]/card-list:sm:h-5 group-data-[variant=loose]/card-list:sm:w-5" />*/}
+              </div>
+            </Tooltip>
+          )}
         </div>
-      )}
-      <QRCode url={link.shortLink} scale={0.4} />
-      <div className="h-[24px] min-w-0 overflow-hidden transition-[height] group-data-[variant=loose]/card-list:h-[46px]">
+      </div>
+
+      <QRCode url={link.shortLink} scale={0.5} />
+      <div className="min-w-0 overflow-hidden">
         <div className="flex items-center gap-2">
           <div className="min-w-0 shrink grow-0 text-neutral-950">
-            <div className="flex items-center gap-2">
-              {displayProperties.includes("title") && link.title ? (
-                <span
-                  className={cn(
-                    "truncate font-semibold leading-6 text-neutral-800",
-                    link.archived && "text-neutral-600",
-                  )}
-                >
-                  {link.title}
-                </span>
-              ) : (
+            <div className="flex flex-col">
+              {/*{displayProperties.includes("title") && link.title ? (*/}
+
+              <span
+                className={cn(
+                  "text- truncate text-sm font-semibold text-neutral-800",
+                  link.archived && "text-neutral-600",
+                )}
+              >
+                {link.title}
+              </span>
+
+              <div className="flex items-center gap-2">
                 <UnverifiedTooltip domain={domain} _key={key}>
                   <a
                     href={linkConstructor({ domain, key })}
@@ -143,31 +149,37 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
                     rel="noopener noreferrer"
                     title={linkConstructor({ domain, key, pretty: true })}
                     className={cn(
-                      "truncate font-semibold leading-6 text-neutral-800 transition-colors hover:text-black",
+                      "truncate text-xs font-semibold text-neutral-800 transition-colors hover:text-black",
                       link.archived && "text-neutral-600",
                     )}
                   >
                     {linkConstructor({ domain, key, pretty: true })}
                   </a>
                 </UnverifiedTooltip>
-              )}
-              <CopyButton
-                value={linkConstructor({
-                  domain,
-                  key,
-                  pretty: false,
-                })}
-                variant="neutral"
-                className="p-1.5"
-              />
-              {hasQuickViewSettings && <SettingsBadge link={link} />}
-              {link.comments && <CommentsBadge comments={link.comments} />}
+
+                <CopyButton
+                  value={linkConstructor({
+                    domain,
+                    key,
+                    pretty: false,
+                  })}
+                  variant="neutral"
+                  className="p-1"
+                />
+              </div>
+              {/*{hasQuickViewSettings && <SettingsBadge link={link} />}*/}
+              {/*{link.comments && <CommentsBadge comments={link.comments} />}*/}
             </div>
           </div>
           <Details link={link} compact />
         </div>
 
         <Details link={link} />
+      </div>
+
+      <div className="bg-secondary-100 text-secondary ml-4 flex items-center gap-2 rounded-md p-2">
+        <Icon icon="basil:whatsapp-outline" className="text-xl" />
+        <span className="text-xs">Whatsapp</span>
       </div>
     </div>
   );
@@ -290,7 +302,7 @@ const Details = memo(
                 target="_blank"
                 rel="noopener noreferrer"
                 title={url}
-                className="truncate text-neutral-500 transition-colors hover:text-neutral-700 hover:underline hover:underline-offset-2"
+                className="truncate text-xs text-neutral-500 transition-colors hover:text-neutral-700 hover:underline hover:underline-offset-2"
               >
                 {getPrettyUrl(url)}
               </a>
