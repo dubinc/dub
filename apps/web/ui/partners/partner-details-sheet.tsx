@@ -167,6 +167,7 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
                     id: "commissions",
                     label: "Commissions",
                     href: `/${slug}/programs/${program!.id}/commissions?partnerId=${partner.id}`,
+                    target: "_blank",
                   },
                 ]}
                 selected={tab}
