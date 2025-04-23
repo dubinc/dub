@@ -49,7 +49,13 @@ function PayoutDetailsSheetContent({
     isLoading,
     error,
   } = useSWR<CommissionResponse[]>(
-    `/api/programs/${programId}/commissions?workspaceId=${workspaceId}&payoutId=${payout.id}&interval=all&pageSize=${PAYOUTS_SHEET_ITEMS_LIMIT}`,
+    `/api/commissions?${new URLSearchParams({
+      workspaceId: workspaceId!,
+      programId: programId,
+      payoutId: payout.id,
+      interval: "all",
+      pageSize: PAYOUTS_SHEET_ITEMS_LIMIT.toString(),
+    })}`,
     fetcher,
   );
 
