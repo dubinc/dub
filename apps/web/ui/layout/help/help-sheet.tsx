@@ -139,6 +139,33 @@ const topics = [
   },
 ];
 
+function useSearchableContent<
+  T extends {
+    title?: string;
+    name?: string;
+    summary?: string;
+    description?: string;
+  },
+>(items: T[], searchQuery: string, keys: string[]) {
+  const fuse = useMemo(
+    () =>
+      new Fuse(items, {
+        keys,
+        threshold: 0.3,
+        includeScore: true,
+      }),
+    [items, keys],
+  );
+
+  return useMemo(() => {
+    if (!searchQuery.trim()) {
+      return items;
+    }
+
+    return fuse.search(searchQuery).map((r) => r.item);
+  }, [searchQuery, items, fuse]);
+}
+
 function HelpSupportSheet({ isOpen, setIsOpen }: HelpSupportSheetProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [screen, setScreen] = useState<"main" | "contact">("main");
@@ -147,6 +174,28 @@ function HelpSupportSheet({ isOpen, setIsOpen }: HelpSupportSheetProps) {
       query,
     });
   }, 1000);
+
+  const { popularHelpArticles, allHelpArticles } =
+    React.useContext(HelpContext);
+
+  const filteredArticles = useSearchableContent(
+    searchQuery ? Array.from(allHelpArticles.values()) : popularHelpArticles,
+    searchQuery,
+    ["title", "summary"],
+  );
+
+  const filteredGuides = useSearchableContent(guides, searchQuery, ["name"]);
+
+  const filteredTopics = useSearchableContent(topics, searchQuery, [
+    "name",
+    "description",
+  ]);
+
+  const hasNoResults =
+    searchQuery.length > 0 &&
+    filteredArticles.length === 0 &&
+    filteredGuides.length === 0 &&
+    filteredTopics.length === 0;
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -188,9 +237,18 @@ function HelpSupportSheet({ isOpen, setIsOpen }: HelpSupportSheetProps) {
                   }}
                 />
               </div>
-              <Articles searchQuery={searchQuery} setScreen={setScreen} />
-              <Guides searchQuery={searchQuery} />
-              <Topics searchQuery={searchQuery} />
+              {hasNoResults ? (
+                <EmptyState searchQuery={searchQuery} setScreen={setScreen} />
+              ) : (
+                <>
+                  <Articles
+                    articles={filteredArticles}
+                    searchQuery={searchQuery}
+                  />
+                  <Guides guides={filteredGuides} />
+                  <Topics topics={filteredTopics} />
+                </>
+              )}
             </div>
           ) : (
             <ContactForm setScreen={setScreen} />
@@ -221,36 +279,13 @@ function HelpCard({ icon, title, description, onClick }: HelpCardProps) {
 }
 
 function Articles({
+  articles,
   searchQuery,
-  setScreen,
 }: {
+  articles: any[];
   searchQuery: string;
-  setScreen: (screen: "main" | "contact") => void;
 }) {
-  const { popularHelpArticles, allHelpArticles } =
-    React.useContext(HelpContext);
-
-  const fuse = useMemo(() => {
-    if (searchQuery.length === 0) {
-      return new Fuse(popularHelpArticles, {
-        keys: ["title", "summary"],
-      });
-    }
-
-    return new Fuse(Array.from(allHelpArticles.values()), {
-      keys: ["title", "summary"],
-    });
-  }, [popularHelpArticles, allHelpArticles, searchQuery]);
-
-  const filteredArticles = useMemo(() => {
-    if (searchQuery.length === 0) {
-      return popularHelpArticles;
-    }
-
-    return fuse.search(searchQuery).map((r) => r.item);
-  }, [searchQuery, popularHelpArticles, fuse]);
-
-  if (filteredArticles.length === 0) {
+  if (articles.length === 0) {
     return null;
   }
 
@@ -273,68 +308,29 @@ function Articles({
         </div>
 
         <div className="mt-4 space-y-3">
-          {filteredArticles.length > 0 ? (
-            filteredArticles.slice(0, 5).map((article) => (
-              <HelpCard
-                key={article.title}
-                icon={<div className="size-5" />}
-                title={article.title}
-                description={article.summary}
-                onClick={() => {
-                  posthog.capture("help_article_selected", {
-                    query: searchQuery,
-                    slug: article.slug,
-                  });
-                  window.open(`https://dub.co/help/article/${article.slug}`);
-                }}
-              />
-            ))
-          ) : (
-            <div className="min-h-[300px] space-y-4">
-              <div className="flex items-start gap-3 rounded-lg border border-neutral-200 bg-white p-4 shadow-[0_1px_3px_0_rgba(0,0,0,0.1)]">
-                <div className="size-10 rounded-lg bg-neutral-100" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-2 w-3/4 rounded bg-neutral-100" />
-                  <div className="h-2 w-1/2 rounded bg-neutral-100" />
-                </div>
-              </div>
-
-              <div className="flex flex-col items-center justify-center text-center">
-                <p className="text-base text-neutral-900">
-                  No articles have been written about "{searchQuery}" yet
-                </p>
-                <button
-                  onClick={() => setScreen("contact")}
-                  className="mt-2 text-base text-neutral-900 underline underline-offset-4"
-                >
-                  Reach out to us if you still need help
-                </button>
-              </div>
-            </div>
-          )}
+          {articles.slice(0, 5).map((article) => (
+            <HelpCard
+              key={article.title}
+              icon={<div className="size-5" />}
+              title={article.title}
+              description={article.summary}
+              onClick={() => {
+                posthog.capture("help_article_selected", {
+                  query: searchQuery,
+                  slug: article.slug,
+                });
+                window.open(`https://dub.co/help/article/${article.slug}`);
+              }}
+            />
+          ))}
         </div>
       </div>
     </div>
   );
 }
 
-function Guides({ searchQuery }: { searchQuery: string }) {
-  const fuse = useMemo(
-    () =>
-      new Fuse(guides, {
-        keys: ["name"],
-      }),
-    [guides],
-  );
-
-  const filteredGuides = useMemo(() => {
-    if (searchQuery.length === 0) {
-      return guides;
-    }
-    return fuse.search(searchQuery).map((r) => r.item);
-  }, [searchQuery, guides, fuse]);
-
-  if (filteredGuides.length === 0) {
+function Guides({ guides }: { guides: any[] }) {
+  if (guides.length === 0) {
     return null;
   }
 
@@ -342,7 +338,7 @@ function Guides({ searchQuery }: { searchQuery: string }) {
     <div>
       <h2 className="text-sm font-semibold text-neutral-900">Product Guides</h2>
       <div className="mt-4 space-y-3">
-        {filteredGuides.map((guide) => (
+        {guides.map((guide) => (
           <HelpCard key={guide.name} icon={guide.icon} title={guide.name} />
         ))}
       </div>
@@ -350,23 +346,8 @@ function Guides({ searchQuery }: { searchQuery: string }) {
   );
 }
 
-function Topics({ searchQuery }: { searchQuery: string }) {
-  const fuse = useMemo(
-    () =>
-      new Fuse(topics, {
-        keys: ["name", "description"],
-      }),
-    [topics],
-  );
-
-  const filteredTopics = useMemo(() => {
-    if (searchQuery.length === 0) {
-      return topics;
-    }
-    return fuse.search(searchQuery).map((r) => r.item);
-  }, [searchQuery, topics, fuse]);
-
-  if (filteredTopics.length === 0) {
+function Topics({ topics }: { topics: any[] }) {
+  if (topics.length === 0) {
     return null;
   }
 
@@ -374,7 +355,7 @@ function Topics({ searchQuery }: { searchQuery: string }) {
     <div>
       <h2 className="text-sm font-semibold text-neutral-900">Dub Topics</h2>
       <div className="mt-4 space-y-3">
-        {filteredTopics.map((topic) => (
+        {topics.map((topic) => (
           <HelpCard
             key={topic.name}
             icon={<topic.icon className="size-5 text-neutral-600" />}
@@ -382,6 +363,40 @@ function Topics({ searchQuery }: { searchQuery: string }) {
             description={topic.description}
           />
         ))}
+      </div>
+    </div>
+  );
+}
+
+function EmptyState({
+  searchQuery,
+  setScreen,
+}: {
+  searchQuery: string;
+  setScreen?: (screen: "main" | "contact") => void;
+}) {
+  return (
+    <div className="min-h-[300px] space-y-4">
+      <div className="flex items-start gap-3 rounded-lg border border-neutral-200 bg-white p-4 shadow-[0_1px_3px_0_rgba(0,0,0,0.1)]">
+        <div className="size-10 rounded-lg bg-neutral-100" />
+        <div className="flex-1 space-y-2">
+          <div className="h-2 w-3/4 rounded bg-neutral-100" />
+          <div className="h-2 w-1/2 rounded bg-neutral-100" />
+        </div>
+      </div>
+
+      <div className="flex flex-col items-center justify-center text-center">
+        <p className="text-base text-neutral-900">
+          No results found for "{searchQuery}"
+        </p>
+        {setScreen && (
+          <button
+            onClick={() => setScreen("contact")}
+            className="mt-2 text-base text-neutral-900 underline underline-offset-4"
+          >
+            Reach out to us if you still need help
+          </button>
+        )}
       </div>
     </div>
   );
