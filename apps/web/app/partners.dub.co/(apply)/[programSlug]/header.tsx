@@ -38,7 +38,7 @@ export function Header({
       <Link href={`/${program.slug}`} className="animate-fade-in my-0.5 block">
         {program.wordmark || program.logo ? (
           <img
-            className="h-full max-h-7 w-full max-w-32"
+            className="max-h-7 max-w-32"
             src={(program.wordmark ?? program.logo) as string}
           />
         ) : (

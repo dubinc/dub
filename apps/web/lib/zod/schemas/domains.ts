@@ -1,6 +1,10 @@
 import { normalizeWorkspaceId } from "@/lib/api/workspace-id";
 import z from "@/lib/zod";
-import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
+import {
+  base64ImageSchema,
+  booleanQuerySchema,
+  getPaginationQuerySchema,
+} from "./misc";
 import { parseUrlSchemaAllowEmpty } from "./utils";
 
 export const RegisteredDomainSchema = z.object({
@@ -140,12 +144,7 @@ export const createDomainBodySchema = z.object({
       "Provide context to your teammates in the link creation modal by showing them an example of a link to be shortened.",
     )
     .openapi({ example: "https://dub.co/help/article/what-is-dub" }),
-  logo: z
-    .string()
-    .trim()
-    .nullish()
-    .transform((v) => v || null)
-    .describe("The logo of the domain."),
+  logo: base64ImageSchema.nullish().describe("The logo of the domain."),
   assetLinks: z
     .string()
     .nullish()
