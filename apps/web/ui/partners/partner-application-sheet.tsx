@@ -271,6 +271,7 @@ function PartnerApproval({
                 return false;
               }}
               error={linkError}
+              optional
             />
           </div>
         </div>

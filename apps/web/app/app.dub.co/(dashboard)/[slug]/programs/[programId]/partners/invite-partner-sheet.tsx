@@ -221,6 +221,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                       return false;
                     }}
                     error={!!errors.linkId}
+                    optional
                   />
 
                   {errors.linkId && (
