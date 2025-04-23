@@ -25,7 +25,7 @@ export const approvePartnerAction = authActionClient
     const { workspace, user } = ctx;
     const { programId, partnerId, linkId } = parsedInput;
 
-    let [program, link] = await Promise.all([
+    const [program, link] = await Promise.all([
       getProgramOrThrow({
         workspaceId: workspace.id,
         programId,

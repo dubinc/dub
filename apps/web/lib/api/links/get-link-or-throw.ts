@@ -80,5 +80,5 @@ export const getLinkOrThrow = async (params: GetLinkParams) => {
     });
   }
 
-  return decodeLinkIfCaseSensitive(link) as Link;
+  return decodeLinkIfCaseSensitive(link);
 };
