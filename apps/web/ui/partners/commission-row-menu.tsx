@@ -28,8 +28,8 @@ export function CommissionRowMenu({ row }: { row: Row<CommissionResponse> }) {
   const { executeAsync } = useAction(updateCommissionStatusAction, {
     onSuccess: async () => {
       await mutatePrefix([
+        "/api/commissions",
         `/api/programs/${programId}/payouts`,
-        `/api/programs/${programId}/commissions`,
       ]);
     },
   });
