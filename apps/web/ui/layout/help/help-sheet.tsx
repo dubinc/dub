@@ -1,7 +1,15 @@
 import { Search, X } from "@/ui/shared/icons";
 import { Button, Sheet } from "@dub/ui";
-import { Cube, Globe2, Hyperlink } from "@dub/ui/icons";
+import {
+  BookOpen,
+  Calendar6,
+  Code,
+  Cube,
+  Globe2,
+  Hyperlink,
+} from "@dub/ui/icons";
 import Fuse from "fuse.js";
+import { Activity, Mail } from "lucide-react";
 import posthog from "posthog-js";
 import React, { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
@@ -19,6 +27,13 @@ interface HelpCardProps {
   description?: string;
   onClick?: () => void;
   url?: string;
+}
+
+interface FooterItem {
+  title: string;
+  url?: string;
+  icon: React.ReactNode;
+  onClick?: () => void;
 }
 
 const guides = [
@@ -121,6 +136,33 @@ const topics = [
     description: "Learn the basics of Dub and how to get started",
     icon: Globe2,
     url: "https://dub.co/help/category/custom-domains",
+  },
+];
+
+const footerItems: FooterItem[] = [
+  {
+    title: "Help documentation",
+    url: "https://dub.co/help",
+    icon: <BookOpen className="size-4 text-neutral-600" />,
+  },
+  {
+    title: "Contact support",
+    icon: <Mail className="size-4 text-neutral-600" />,
+  },
+  {
+    title: "Platform documentation",
+    url: "https://dub.co/docs",
+    icon: <Code className="size-4 text-neutral-600" />,
+  },
+  {
+    title: "Status",
+    url: "http://status.dub.co/",
+    icon: <Activity className="size-4 text-neutral-600" />,
+  },
+  {
+    title: "Changelog",
+    url: "https://dub.co/changelog",
+    icon: <Calendar6 className="size-4 text-neutral-600" />,
   },
 ];
 
@@ -239,6 +281,8 @@ function HelpSupportSheet({ isOpen, setIsOpen }: HelpSupportSheetProps) {
             <ContactForm setScreen={setScreen} />
           )}
         </div>
+
+        <Footer setScreen={setScreen} />
       </div>
     </Sheet>
   );
@@ -412,6 +456,36 @@ function NoResults({
             </button>
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+function Footer({
+  setScreen,
+}: {
+  setScreen: (screen: "main" | "contact") => void;
+}) {
+  return (
+    <div className="sticky bottom-0 border-t border-neutral-200 bg-white">
+      <div className="flex flex-col p-2">
+        {footerItems.map((item) => (
+          <button
+            key={item.title}
+            onClick={() => {
+              if (item.title === "Contact support") {
+                setScreen("contact");
+              } else if (item.url) {
+                window.open(item.url, "_blank");
+              }
+              item.onClick?.();
+            }}
+            className="flex w-full items-center gap-2 px-2.5 py-1.5 text-sm text-neutral-600 transition-colors hover:rounded-md hover:bg-neutral-50"
+          >
+            {item.icon}
+            {item.title}
+          </button>
+        ))}
       </div>
     </div>
   );
