@@ -42,7 +42,7 @@ export default function LibraryHeader() {
           {
             id: "utm",
             label: "UTM Templates",
-            href: `/${slug}/settings/library/utm-templates`,
+            href: `/${slug}/settings/library/utm`,
           },
         ]}
         selected={page}
