@@ -169,6 +169,7 @@ function PartnerApproval({
   partner: EnrolledPartnerProps;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }) {
+  const { queryParams } = useRouterStuff();
   const { id: workspaceId } = useWorkspace();
   const { program } = useProgram();
 
@@ -182,10 +183,10 @@ function PartnerApproval({
 
   const { executeAsync, isPending } = useAction(approvePartnerAction, {
     onSuccess: async () => {
-      await mutatePrefix("/api/partners");
-
-      toast.success("Approved the partner successfully.");
+      queryParams({ del: "partnerId" });
       setIsOpen(false);
+      await mutatePrefix("/api/partners");
+      toast.success("Approved the partner successfully.");
     },
     onError({ error }) {
       toast.error(error.serverError || "Failed to approve partner.");
