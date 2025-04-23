@@ -9,13 +9,11 @@ import { useAddCustomerModal } from "../modals/add-customer-modal";
 interface CustomerSelectorProps {
   selectedCustomerId: string;
   setSelectedCustomerId: (customerId: string) => void;
-  setIsNewCustomer: (isNewCustomer: boolean) => void;
 }
 
 export function CustomerSelector({
   selectedCustomerId,
   setSelectedCustomerId,
-  setIsNewCustomer,
 }: CustomerSelectorProps) {
   const [search, setSearch] = useState("");
   const [useAsync, setUseAsync] = useState(false);
@@ -42,7 +40,6 @@ export function CustomerSelector({
   const { AddCustomerModal, setShowAddCustomerModal } = useAddCustomerModal({
     onSuccess: (customer) => {
       setSelectedCustomerId(customer.id);
-      setIsNewCustomer(true);
     },
   });
 
@@ -87,7 +84,6 @@ export function CustomerSelector({
         options={loading ? undefined : customerOptions}
         setSelected={(option) => {
           setSelectedCustomerId(option.value);
-          setIsNewCustomer(false);
         }}
         selected={selectedOption}
         icon={selectedCustomersLoading ? null : selectedOption?.icon}

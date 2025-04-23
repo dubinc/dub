@@ -43,9 +43,9 @@ export function PartnerLinkSelector({
 
   const { links } = useLinks(
     {
+      folderId: program?.defaultFolderId ?? undefined,
       domain: program?.domain ?? undefined,
       search: debouncedSearch,
-      sort: "clicks", // need to specify this to avoid the ?sort= param in the URL overriding the default
       ...(partnerId && { partnerId }),
       includeDashboard: false,
       includeWebhooks: false,

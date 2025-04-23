@@ -80,8 +80,6 @@ export const createCommissionAction = authActionClient
       }
     }
 
-    const shouldRecordSale = saleAmount && saleEventDate;
-
     // Record click
     const dummyRequest = new Request(link.url, {
       headers: new Headers({
@@ -150,7 +148,7 @@ export const createCommissionAction = authActionClient
     });
 
     // Record sale
-    if (shouldRecordSale) {
+    if (saleAmount && saleEventDate) {
       const clickEvent = clickEventSchemaTB.parse({
         ...clickData,
         bot: 0,
