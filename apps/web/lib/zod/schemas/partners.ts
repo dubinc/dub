@@ -463,6 +463,13 @@ export const banPartnerSchema = z.object({
   ),
 });
 
+export const approvePartnerSchema = z.object({
+  workspaceId: z.string(),
+  programId: z.string(),
+  partnerId: z.string(),
+  linkId: z.string().nullable(),
+});
+
 export const retrievePartnerLinksSchema = z
   .object({
     programId: z.string(),
