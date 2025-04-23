@@ -189,8 +189,8 @@ function HelpSupportSheet({ isOpen, setIsOpen }: HelpSupportSheetProps) {
                 />
               </div>
               <Articles searchQuery={searchQuery} setScreen={setScreen} />
-              <ProductGuides searchQuery={searchQuery} />
-              <DubTopics searchQuery={searchQuery} />
+              <Guides searchQuery={searchQuery} />
+              <Topics searchQuery={searchQuery} />
             </div>
           ) : (
             <ContactForm setScreen={setScreen} />
@@ -318,7 +318,7 @@ function Articles({
   );
 }
 
-function ProductGuides({ searchQuery }: { searchQuery: string }) {
+function Guides({ searchQuery }: { searchQuery: string }) {
   const fuse = useMemo(
     () =>
       new Fuse(guides, {
@@ -350,7 +350,7 @@ function ProductGuides({ searchQuery }: { searchQuery: string }) {
   );
 }
 
-function DubTopics({ searchQuery }: { searchQuery: string }) {
+function Topics({ searchQuery }: { searchQuery: string }) {
   const fuse = useMemo(
     () =>
       new Fuse(topics, {
