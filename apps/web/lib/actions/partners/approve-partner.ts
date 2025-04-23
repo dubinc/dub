@@ -101,6 +101,7 @@ export const approvePartnerAction = authActionClient
           email: partner.email!,
         },
         userId: user.id,
+        partnerId,
       });
     }
 
