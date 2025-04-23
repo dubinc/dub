@@ -27,7 +27,7 @@ export const ProgramSchema = z.object({
   holdingPeriodDays: z.number(),
   minPayoutAmount: z.number(),
   linkStructure: z.nativeEnum(LinkStructure),
-  linkParameter: z.string().nullable(),
+  linkParameter: z.string().nullish(),
 
   // Discounts (for dual-sided incentives)
   discounts: z.array(DiscountSchema).nullish(),
