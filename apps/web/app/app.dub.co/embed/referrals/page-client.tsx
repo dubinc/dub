@@ -1,5 +1,7 @@
 "use client";
 
+import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
+import { QueryLinkStructureHelpText } from "@/lib/partners/query-link-structure-help-text";
 import { DiscountProps, RewardProps } from "@/lib/types";
 import { programEmbedSchema } from "@/lib/zod/schemas/program-embed";
 import { programResourcesSchema } from "@/lib/zod/schemas/program-resources";
@@ -92,6 +94,11 @@ export function ReferralsEmbedPageClient({
     if (!tabs.includes(selectedTab)) setSelectedTab(tabs[0]);
   }, [tabs, selectedTab]);
 
+  const partnerLink = constructPartnerLink({
+    program,
+    linkKey: links[0].key,
+  });
+
   return (
     <div
       style={
@@ -115,7 +122,7 @@ export function ReferralsEmbedPageClient({
             <input
               type="text"
               readOnly
-              value={getPrettyUrl(links[0].shortLink)}
+              value={getPrettyUrl(partnerLink)}
               className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default h-10 min-w-0 shrink grow rounded-md border px-3 text-sm focus:outline-none focus:ring-neutral-500"
             />
             <Button
@@ -141,9 +148,20 @@ export function ReferralsEmbedPageClient({
               }
               text={copied ? "Copied link" : "Copy link"}
               className="xs:w-fit"
-              onClick={() => copyToClipboard(links[0].shortLink)}
+              onClick={() => {
+                if (partnerLink) {
+                  copyToClipboard(partnerLink);
+                }
+              }}
             />
           </div>
+          {program.linkStructure === "query" && (
+            <QueryLinkStructureHelpText
+              program={program}
+              linkKey={links[0].key}
+            />
+          )}
+
           <div className="mt-12 sm:max-w-[50%]">
             <div className="flex items-end justify-between">
               <span className="text-content-emphasis text-base font-semibold leading-none">

@@ -1,8 +1,8 @@
 import useCommissionsCount from "@/lib/swr/use-commissions-count";
+import useCustomers from "@/lib/swr/use-customers";
+import useCustomersCount from "@/lib/swr/use-customers-count";
 import usePartners from "@/lib/swr/use-partners";
 import usePartnersCount from "@/lib/swr/use-partners-count";
-import useProgramCustomers from "@/lib/swr/use-program-customers";
-import useProgramCustomersCount from "@/lib/swr/use-program-customers-count";
 import { CustomerProps, EnrolledPartnerProps } from "@/lib/types";
 import { CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/customers";
 import { PARTNERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partners";
@@ -218,18 +218,18 @@ function usePartnerFilterOptions(search: string) {
 function useCustomerFilterOptions(search: string) {
   const { searchParamsObj } = useRouterStuff();
 
-  const { customersCount } = useProgramCustomersCount();
+  const { data: customersCount } = useCustomersCount();
   const customersAsync = Boolean(
     customersCount && customersCount > CUSTOMERS_MAX_PAGE_SIZE,
   );
 
-  const { data: customers, loading: customersLoading } = useProgramCustomers({
+  const { customers, loading: customersLoading } = useCustomers({
     query: { search: customersAsync ? search : "" },
   });
 
-  const { data: selectedCustomers } = useProgramCustomers({
+  const { customers: selectedCustomers } = useCustomers({
     query: {
-      ids: searchParamsObj.customerId
+      customerIds: searchParamsObj.customerId
         ? [searchParamsObj.customerId]
         : undefined,
     },

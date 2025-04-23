@@ -1,6 +1,7 @@
 "use client";
 
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
+import { getLinkStructureOptions } from "@/lib/partners/get-link-structure-options";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramData } from "@/lib/types";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
@@ -93,7 +94,10 @@ export function PageClient() {
     },
     {
       title: "Referral link type",
-      content: `${data.domain}/steven`,
+      content: getLinkStructureOptions({
+        domain: data.domain,
+        url: data.url,
+      }).find(({ id }) => id === data.linkStructure)?.example,
       href: `/${workspaceSlug}/programs/new`,
     },
     {

@@ -1,6 +1,7 @@
 "use client";
 
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
+import { getLinkStructureOptions } from "@/lib/partners/get-link-structure-options";
 import useDomains from "@/lib/swr/use-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramData } from "@/lib/types";
@@ -12,7 +13,7 @@ import {
   Input,
   useMediaQuery,
 } from "@dub/ui";
-import { cn, getDomainWithoutWWW } from "@dub/utils";
+import { cn } from "@dub/utils";
 import { Plus } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
@@ -71,7 +72,9 @@ export function Form() {
         },
       );
 
-      if (!response.ok) throw new Error("Failed to get signed URL for upload.");
+      if (!response.ok) {
+        throw new Error("Failed to get signed URL for upload.");
+      }
 
       const { signedUrl, destinationUrl } = await response.json();
 
@@ -84,7 +87,9 @@ export function Form() {
         },
       });
 
-      if (!uploadResponse.ok) throw new Error("Failed to upload to signed URL");
+      if (!uploadResponse.ok) {
+        throw new Error("Failed to upload to signed URL");
+      }
 
       setValue("logo", destinationUrl, { shouldDirty: true });
       toast.success(`${file.name} uploaded!`);
@@ -100,27 +105,15 @@ export function Form() {
   const buttonDisabled =
     isSubmitting || isPending || !name || !url || !domain || !logo;
 
-  const LINK_TYPES = [
-    {
-      id: "short",
-      label: "Short link",
-      example: `${domain || "refer.dub.co"}/steven`,
-      comingSoon: false,
-    },
-    {
-      id: "dynamic",
-      label: "Dynamic path",
-      example: `${(url && getDomainWithoutWWW(url)) || "dub.co"}/refer/steven`,
-      comingSoon: true,
-    },
-  ];
-
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
       <div>
         <label className="block text-sm font-medium text-neutral-800">
-          Program name
+          Company name
         </label>
+        <p className="mb-4 mt-1 text-sm text-neutral-600">
+          The name of the company you're setting up the program for
+        </p>
         <Input
           {...register("name", { required: true })}
           placeholder="Acme"
@@ -212,8 +205,11 @@ export function Form() {
         </div>
 
         <div className="flex flex-col gap-3">
-          {LINK_TYPES.map((type) => {
-            const isSelected = watch("linkType") === type.id;
+          {getLinkStructureOptions({
+            domain,
+            url,
+          }).map((type) => {
+            const isSelected = watch("linkStructure") === type.id;
 
             return (
               <label
@@ -228,7 +224,7 @@ export function Form() {
               >
                 <input
                   type="radio"
-                  {...register("linkType")}
+                  {...register("linkStructure")}
                   value={type.id}
                   className="hidden"
                   disabled={type.comingSoon}

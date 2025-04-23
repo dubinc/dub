@@ -53,6 +53,11 @@ const navigation = {
     { name: "Changelog", href: "/changelog" },
     { name: "Blog", href: "/blog" },
     { name: "Customers", href: "/customers" },
+    {
+      name: "Affiliates",
+      href: "https://partners.dub.co/dub",
+      target: "_blank",
+    },
     { name: "About", href: "/about" },
     { name: "Brand", href: "/brand" },
     { name: "Contact", href: "/contact" },
@@ -72,9 +77,9 @@ const navigation = {
 };
 
 const linkListHeaderClassName = "text-sm font-medium text-neutral-900";
-const linkListClassName = "flex flex-col mt-2.5 gap-2.5";
+const linkListClassName = "flex flex-col mt-2.5 gap-3.5";
 const linkListItemClassName =
-  "text-sm text-neutral-500 hover:text-neutral-700 transition-colors duration-75";
+  "flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-700 transition-colors duration-75";
 
 export function Footer({
   staticDomain,
@@ -185,9 +190,11 @@ export function Footer({
                           utm_campaign: domain,
                           utm_content: item.name,
                         })}
+                        target={item.target}
                         className={linkListItemClassName}
                       >
                         {item.name}
+                        {item.target && <ReferredVia className="size-3.5" />}
                       </Link>
                     </li>
                   ))}
@@ -239,10 +246,7 @@ export function Footer({
                         href="https://security.dub.co"
                         target="_blank"
                         rel="noreferrer"
-                        className={cn(
-                          linkListItemClassName,
-                          "flex items-center gap-1",
-                        )}
+                        className={linkListItemClassName}
                       >
                         Trust Center <ReferredVia className="size-3.5" />
                       </a>

@@ -107,8 +107,6 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
     });
   };
 
-  const selectedPartner = partners?.find((p) => p.id === partnerId);
-
   const buttonDisabled = isPending || !partnerId;
 
   return (
