@@ -60,7 +60,7 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
 
   const ref = useRef<HTMLDivElement>(null);
 
-  const hasQuickViewSettings = quickViewSettings.some(({ key }) => link?.[key]);
+  // const hasQuickViewSettings = quickViewSettings.some(({ key }) => link?.[key]);
 
   // const searchParams = useSearchParams();
   // const { slug } = useWorkspace();
@@ -88,45 +88,9 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
       {/*    </Link>*/}
       {/*  )}*/}
 
-      <div
-        className={cn(
-          "relative hidden shrink-0 items-center justify-center",
-          // displayProperties.includes("icon") && "sm:flex",
-          "sm:flex",
-        )}
-      >
-        {/* Link logo background circle */}
-        <div className="absolute inset-0 shrink-0 rounded-full border border-neutral-200 opacity-0 transition-opacity group-data-[variant=loose]/card-list:sm:opacity-100">
-          <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-neutral-100" />
-        </div>
-        <div className="relative pr-0.5 transition-[padding] group-data-[variant=loose]/card-list:sm:p-2">
-          {link.archived ? (
-            <Tooltip content="Paused">
-              <div>
-                <Icon icon="solar:pause-bold" className="text-red-500" />
-                {/*<BoxArchive className="size-4 shrink-0 p-0.5 text-neutral-600 transition-[width,height] sm:h-6 sm:w-6 group-data-[variant=loose]/card-list:sm:h-5 group-data-[variant=loose]/card-list:sm:w-5" />*/}
-              </div>
-            </Tooltip>
-          ) : (
-            // <LinkLogo
-            //   apexDomain={getApexDomain(url)}
-            //   className="size-4 shrink-0 transition-[width,height] sm:h-6 sm:w-6 group-data-[variant=loose]/card-list:sm:h-5 group-data-[variant=loose]/card-list:sm:w-5"
-            //   imageProps={{
-            //     loading: "lazy",
-            //   }}
-            // />
-            <Tooltip content="Active">
-              <div>
-                <Icon icon="solar:play-bold" className="text-secondary" />
-                {/*<BoxArchive className="size-4 shrink-0 p-0.5 text-neutral-600 transition-[width,height] sm:h-6 sm:w-6 group-data-[variant=loose]/card-list:sm:h-5 group-data-[variant=loose]/card-list:sm:w-5" />*/}
-              </div>
-            </Tooltip>
-          )}
-        </div>
-      </div>
-
       <QRCode url={link.shortLink} scale={0.5} />
-      <div className="min-w-0 overflow-hidden">
+
+      <div className="w-[200px] min-w-0 overflow-hidden">
         <div className="flex items-center gap-2">
           <div className="min-w-0 shrink grow-0 text-neutral-950">
             <div className="flex flex-col">
@@ -134,7 +98,7 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
 
               <span
                 className={cn(
-                  "text- truncate text-sm font-semibold text-neutral-800",
+                  "truncate text-sm font-semibold text-neutral-800",
                   link.archived && "text-neutral-600",
                 )}
               >
@@ -177,9 +141,9 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
         <Details link={link} />
       </div>
 
-      <div className="bg-secondary-100 text-secondary ml-4 flex items-center gap-2 rounded-md p-2">
-        <Icon icon="basil:whatsapp-outline" className="text-xl" />
-        <span className="text-xs">Whatsapp</span>
+      <div className="ml-2 flex items-center gap-0.5 overflow-hidden rounded-md border border-neutral-200/10 bg-neutral-50 px-1 py-0.5 text-sm text-neutral-600 transition-colors hover:bg-neutral-100">
+        <Icon icon="basil:whatsapp-outline" className="text-md" />
+        <span>Whatsapp</span>
       </div>
     </div>
   );
@@ -317,14 +281,15 @@ const Details = memo(
             </span>
           )}
         </div>
-        <div
-          className={cn(
-            "hidden shrink-0",
-            displayProperties.includes("user") && "sm:block",
-          )}
-        >
-          <UserAvatar link={link} />
-        </div>
+        {/* @USEFUL_FEATURE: display user avatar */}
+        {/*<div*/}
+        {/*  className={cn(*/}
+        {/*    "hidden shrink-0",*/}
+        {/*    displayProperties.includes("user") && "sm:block",*/}
+        {/*  )}*/}
+        {/*>*/}
+        {/*  <UserAvatar link={link} />*/}
+        {/*</div>*/}
         <div
           className={cn(
             "hidden shrink-0",
