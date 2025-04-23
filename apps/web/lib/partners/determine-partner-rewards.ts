@@ -15,6 +15,7 @@ export const determinePartnerRewards = async ({
   const rewards = await prisma.reward.findMany({
     where: {
       programId,
+      ...(event && { event }),
       OR: [
         // program-wide
         {
@@ -22,6 +23,7 @@ export const determinePartnerRewards = async ({
             none: {},
           },
         },
+
         // partner-specific
         {
           partners: {
@@ -48,7 +50,7 @@ export const determinePartnerRewards = async ({
   });
 
   if (rewards.length === 0) {
-    return null;
+    return [];
   }
 
   const partnerSpecificRewards = rewards.filter(
@@ -66,7 +68,7 @@ export const determinePartnerRewards = async ({
   const partnerRewards = [...partnerSpecificRewards, ...programDefaultReward];
 
   if (partnerRewards.length === 0) {
-    return null;
+    return [];
   }
 
   return partnerRewards.map((reward) => RewardSchema.parse(reward));

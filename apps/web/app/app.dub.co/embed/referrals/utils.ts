@@ -60,7 +60,7 @@ export const getReferralsEmbedData = async (token: string) => {
   return {
     program,
     links,
-    rewards: rewards as RewardProps[],
+    rewards,
     discount,
     earnings: {
       upcoming: commissions.reduce((acc, c) => {

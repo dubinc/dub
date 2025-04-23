@@ -1,6 +1,7 @@
 "use server";
 
-import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
+import { determinePartnerDiscount } from "@/lib/partners/determine-partner-discount";
+import { determinePartnerRewards } from "@/lib/partners/determine-partner-rewards";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
@@ -43,7 +44,7 @@ export const approvePartnerAction = authActionClient
       throw new Error("Link is already associated with another partner.");
     }
 
-    const [programEnrollment, updatedLink, reward] = await Promise.all([
+    const [programEnrollment, updatedLink] = await Promise.all([
       prisma.programEnrollment.update({
         where: {
           partnerId_programId: {
@@ -77,57 +78,63 @@ export const approvePartnerAction = authActionClient
           },
         },
       }),
-
-      determinePartnerReward({
-        programId,
-        partnerId,
-        event: "sale",
-      }),
     ]);
 
-    const { partner, ...enrollment } = programEnrollment;
-
-    const enrolledPartner = EnrolledPartnerSchema.parse({
-      ...partner,
-      ...enrollment,
-      id: partner.id,
-      links: [updatedLink],
-    });
-
     waitUntil(
-      Promise.allSettled([
-        recordLink(updatedLink),
+      (async () => {
+        const { partner, ...enrollment } = programEnrollment;
 
-        sendEmail({
-          subject: `Your application to join ${program.name} partner program has been approved!`,
-          email: partner.email!,
-          react: PartnerApplicationApproved({
-            program: {
-              name: program.name,
-              logo: program.logo,
-              slug: program.slug,
-              supportEmail: program.supportEmail,
-            },
-            partner: {
-              name: partner.name,
-              email: partner.email!,
-              payoutsEnabled: Boolean(partner.payoutsEnabledAt),
-            },
-            rewardDescription: ProgramRewardDescription({
-              reward,
+        const [rewards, discount] = await Promise.all([
+          determinePartnerRewards({
+            programId,
+            partnerId,
+          }),
+
+          determinePartnerDiscount({
+            programId,
+            partnerId,
+          }),
+        ]);
+
+        const enrolledPartner = EnrolledPartnerSchema.parse({
+          ...partner,
+          ...enrollment,
+          id: partner.id,
+          links: [updatedLink],
+          rewards,
+          discount,
+        });
+
+        await Promise.all([
+          recordLink(updatedLink),
+
+          sendEmail({
+            subject: `Your application to join ${program.name} partner program has been approved!`,
+            email: partner.email!,
+            react: PartnerApplicationApproved({
+              program: {
+                name: program.name,
+                logo: program.logo,
+                slug: program.slug,
+                supportEmail: program.supportEmail,
+              },
+              partner: {
+                name: partner.name,
+                email: partner.email!,
+                payoutsEnabled: Boolean(partner.payoutsEnabledAt),
+              },
+              rewardDescription: ProgramRewardDescription({
+                reward: rewards?.[0],
+              }),
             }),
           }),
-        }),
 
-        sendWorkspaceWebhook({
-          workspace,
-          trigger: "partner.enrolled",
-          data: enrolledPartner,
-        }),
-      ]),
+          sendWorkspaceWebhook({
+            workspace,
+            trigger: "partner.enrolled",
+            data: enrolledPartner,
+          }),
+        ]);
+      })(),
     );
-
-    return {
-      ok: true,
-    };
   });

@@ -1,6 +1,8 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
+import { determinePartnerDiscount } from "@/lib/partners/determine-partner-discount";
+import { determinePartnerRewards } from "@/lib/partners/determine-partner-rewards";
 import { recordLink } from "@/lib/tinybird";
 import {
   CreatePartnerProps,
@@ -140,45 +142,58 @@ export const createAndEnrollPartner = async ({
   });
 
   waitUntil(
-    Promise.all([
-      // update and record link
-      prisma.link
-        .update({
-          where: {
+    (async () => {
+      const updatedLink = await prisma.link.update({
+        where: {
+          id: link.id,
+        },
+        data: {
+          programId: program.id,
+          partnerId: upsertedPartner.id,
+          folderId: program.defaultFolderId,
+          trackConversion: true,
+        },
+        include: includeTags,
+      });
+
+      const [rewards, discount] = await Promise.all([
+        determinePartnerRewards({
+          programId: program.id,
+          partnerId: enrolledPartner.id,
+        }),
+
+        determinePartnerDiscount({
+          programId: program.id,
+          partnerId: enrolledPartner.id,
+        }),
+      ]);
+
+      await Promise.allSettled([
+        linkCache.delete({
+          domain: updatedLink.domain,
+          key: updatedLink.key,
+        }),
+
+        recordLink(updatedLink),
+
+        updatedLink.saleAmount > 0 &&
+          backfillLinkCommissions({
             id: link.id,
-          },
-          data: {
-            programId: program.id,
             partnerId: upsertedPartner.id,
-            folderId: program.defaultFolderId,
-            trackConversion: true,
+            programId: program.id,
+          }),
+
+        sendWorkspaceWebhook({
+          workspace,
+          trigger: "partner.enrolled",
+          data: {
+            ...enrolledPartner,
+            rewards,
+            discount,
           },
-          include: includeTags,
-        })
-        .then((link) =>
-          Promise.allSettled([
-            linkCache.delete({
-              domain: link.domain,
-              key: link.key,
-            }),
-
-            recordLink(link),
-
-            link.saleAmount > 0 &&
-              backfillLinkCommissions({
-                id: link.id,
-                partnerId: upsertedPartner.id,
-                programId: program.id,
-              }),
-          ]),
-        ),
-
-      sendWorkspaceWebhook({
-        workspace,
-        trigger: "partner.enrolled",
-        data: enrolledPartner,
-      }),
-    ]),
+        }),
+      ]);
+    })(),
   );
 
   return enrolledPartner;
