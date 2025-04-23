@@ -20,21 +20,31 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
   });
 
   // get the first partner link that this customer interacted with
-  const firstLinkId = events[events.length - 1].link_id;
+  const firstLinkId =
+    events.length > 0 ? events[events.length - 1].link_id : customer.linkId;
 
-  let link = await prisma.link.findUniqueOrThrow({
-    where: {
-      id: firstLinkId,
-    },
-    select: {
-      id: true,
-      domain: true,
-      key: true,
-      shortLink: true,
-    },
-  });
+  let link: {
+    id: string;
+    domain: string;
+    key: string;
+    shortLink: string;
+  } | null = null;
 
-  link = decodeLinkIfCaseSensitive(link);
+  if (firstLinkId) {
+    link = await prisma.link.findUniqueOrThrow({
+      where: {
+        id: firstLinkId,
+      },
+      select: {
+        id: true,
+        domain: true,
+        key: true,
+        shortLink: true,
+      },
+    });
+
+    link = decodeLinkIfCaseSensitive(link);
+  }
 
   // Find the LTV of the customer
   // TODO: Calculate this from all events, not limited

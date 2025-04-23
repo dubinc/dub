@@ -29,6 +29,7 @@ export function PartnerLinkSelector({
   showDestinationUrl = true,
   onCreate,
   error,
+  optional = false,
 }: {
   selectedLinkId: string | null;
   setSelectedLinkId: (id: string) => void;
@@ -36,6 +37,7 @@ export function PartnerLinkSelector({
   showDestinationUrl?: boolean;
   onCreate?: (search: string) => Promise<boolean>;
   error?: boolean;
+  optional?: boolean;
 }) {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
@@ -81,7 +83,9 @@ export function PartnerLinkSelector({
           selectedLinkId && !selectedLink ? (
             <div className="h-4 w-32 animate-pulse rounded bg-neutral-200" />
           ) : (
-            `Select${onCreate ? " or create" : ""} referral link`
+            `Select${onCreate ? " or create" : ""} referral link${
+              optional ? " (optional)" : ""
+            }`
           )
         }
         searchPlaceholder={onCreate ? "Search or create link..." : "Search..."}

@@ -94,7 +94,7 @@ function LinksSettingsForm({ program }: { program: ProgramProps }) {
                 htmlFor="domain"
                 className="text-sm font-medium text-neutral-800"
               >
-                Default domain
+                Custom domain
               </label>
               <div className="relative mt-2 rounded-md shadow-sm">
                 <select
