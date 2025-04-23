@@ -1,13 +1,6 @@
 import { Search, X } from "@/ui/shared/icons";
 import { Button, Sheet } from "@dub/ui";
-import {
-  Cube,
-  CursorRays,
-  Globe2,
-  Hyperlink,
-  ShieldCheck,
-  User,
-} from "@dub/ui/icons";
+import { Cube, Globe2, Hyperlink } from "@dub/ui/icons";
 import Fuse from "fuse.js";
 import posthog from "posthog-js";
 import React, { Dispatch, SetStateAction, useMemo, useState } from "react";
@@ -25,11 +18,13 @@ interface HelpCardProps {
   title: string;
   description?: string;
   onClick?: () => void;
+  url?: string;
 }
 
 const guides = [
   {
     name: "Dub Short Links",
+    url: "https://dub.co/help/category/link-management",
     icon: (
       <svg
         width="24"
@@ -62,6 +57,7 @@ const guides = [
   },
   {
     name: "Dub Analytics",
+    url: "https://dub.co/help/category/analytics",
     icon: (
       <svg
         width="24"
@@ -87,7 +83,8 @@ const guides = [
     ),
   },
   {
-    name: "Dub Programs",
+    name: "Custom Domains",
+    url: "https://dub.co/help/category/custom-domains",
     icon: (
       <svg
         width="24"
@@ -111,31 +108,19 @@ const topics = [
     name: "Topic 1",
     description: "Learn the basics of Dub and how to get started",
     icon: Hyperlink,
+    url: "https://dub.co/help/category/link-management",
   },
   {
     name: "Topic 2",
     description: "Learn the basics of Dub and how to get started",
     icon: Cube,
+    url: "https://dub.co/help/category/custom-domains",
   },
   {
     name: "Topic 3",
     description: "Learn the basics of Dub and how to get started",
     icon: Globe2,
-  },
-  {
-    name: "Topic 4",
-    description: "Learn the basics of Dub and how to get started",
-    icon: CursorRays,
-  },
-  {
-    name: "Topic 5",
-    description: "Learn the basics of Dub and how to get started",
-    icon: User,
-  },
-  {
-    name: "Topic 6",
-    description: "Learn the basics of Dub and how to get started",
-    icon: ShieldCheck,
+    url: "https://dub.co/help/category/custom-domains",
   },
 ];
 
@@ -238,7 +223,7 @@ function HelpSupportSheet({ isOpen, setIsOpen }: HelpSupportSheetProps) {
                 />
               </div>
               {hasNoResults ? (
-                <EmptyState searchQuery={searchQuery} setScreen={setScreen} />
+                <NoResults searchQuery={searchQuery} setScreen={setScreen} />
               ) : (
                 <>
                   <Articles
@@ -259,10 +244,16 @@ function HelpSupportSheet({ isOpen, setIsOpen }: HelpSupportSheetProps) {
   );
 }
 
-function HelpCard({ icon, title, description, onClick }: HelpCardProps) {
+function HelpCard({ icon, title, description, url, onClick }: HelpCardProps) {
   return (
     <button
-      onClick={onClick}
+      onClick={() => {
+        if (url) {
+          window.open(url, "_blank");
+        } else {
+          onClick?.();
+        }
+      }}
       className="flex w-full items-center gap-3 rounded-lg border border-neutral-200 bg-white p-2 text-left transition-all hover:border-neutral-300"
     >
       <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-neutral-100">
@@ -319,6 +310,7 @@ function Articles({
                   query: searchQuery,
                   slug: article.slug,
                 });
+
                 window.open(`https://dub.co/help/article/${article.slug}`);
               }}
             />
@@ -339,7 +331,12 @@ function Guides({ guides }: { guides: any[] }) {
       <h2 className="text-sm font-semibold text-neutral-900">Product Guides</h2>
       <div className="mt-4 space-y-3">
         {guides.map((guide) => (
-          <HelpCard key={guide.name} icon={guide.icon} title={guide.name} />
+          <HelpCard
+            key={guide.name}
+            icon={guide.icon}
+            title={guide.name}
+            url={guide.url}
+          />
         ))}
       </div>
     </div>
@@ -361,6 +358,7 @@ function Topics({ topics }: { topics: any[] }) {
             icon={<topic.icon className="size-5 text-neutral-600" />}
             title={topic.name}
             description={topic.description}
+            url={topic.url}
           />
         ))}
       </div>
@@ -368,7 +366,7 @@ function Topics({ topics }: { topics: any[] }) {
   );
 }
 
-function EmptyState({
+function NoResults({
   searchQuery,
   setScreen,
 }: {
@@ -376,27 +374,44 @@ function EmptyState({
   setScreen?: (screen: "main" | "contact") => void;
 }) {
   return (
-    <div className="min-h-[300px] space-y-4">
-      <div className="flex items-start gap-3 rounded-lg border border-neutral-200 bg-white p-4 shadow-[0_1px_3px_0_rgba(0,0,0,0.1)]">
-        <div className="size-10 rounded-lg bg-neutral-100" />
-        <div className="flex-1 space-y-2">
-          <div className="h-2 w-3/4 rounded bg-neutral-100" />
-          <div className="h-2 w-1/2 rounded bg-neutral-100" />
-        </div>
-      </div>
+    <div className="flex h-full items-center justify-center">
+      <div className="space-y-10">
+        <div className="relative pt-4">
+          <div className="absolute left-2 top-6 w-full">
+            <div className="flex w-full items-center gap-3 rounded-lg border border-neutral-200 bg-white/80 p-2 text-left">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-neutral-100" />
+              <div className="flex flex-col space-y-1">
+                <div className="h-2 w-48 rounded bg-neutral-100" />
+                <div className="h-2 w-32 rounded bg-neutral-100" />
+              </div>
+            </div>
+          </div>
 
-      <div className="flex flex-col items-center justify-center text-center">
-        <p className="text-base text-neutral-900">
-          No results found for "{searchQuery}"
-        </p>
-        {setScreen && (
-          <button
-            onClick={() => setScreen("contact")}
-            className="mt-2 text-base text-neutral-900 underline underline-offset-4"
-          >
-            Reach out to us if you still need help
-          </button>
-        )}
+          <div className="relative w-full">
+            <div className="flex w-full items-center gap-3 rounded-lg border border-neutral-200 bg-white p-2 text-left shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-neutral-100" />
+              <div className="flex flex-col space-y-1">
+                <div className="h-2 w-48 rounded bg-neutral-100" />
+                <div className="h-2 w-32 rounded bg-neutral-100" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col items-center justify-center gap-2 text-center">
+          <p className="text-sm font-normal text-neutral-700">
+            No articles have been written about "{searchQuery}" yet
+          </p>
+
+          {setScreen && (
+            <button
+              onClick={() => setScreen("contact")}
+              className="text-xs font-medium text-neutral-600 underline underline-offset-4"
+            >
+              Reach out to us if you still need help
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
