@@ -12,13 +12,125 @@ import Fuse from "fuse.js";
 import posthog from "posthog-js";
 import React, { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
-import { HelpContext } from "./index";
 import { ContactForm } from "./contact-form";
+import { HelpContext } from "./index";
 
 interface HelpSupportSheetProps {
   isOpen: boolean;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }
+
+const guides = [
+  {
+    name: "Dub Short Links",
+    icon: (
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <rect width="24" height="24" rx="6" fill="#FF8904" />
+        <path
+          d="M12 13V7"
+          stroke="#7E2A0C"
+          stroke-width="5"
+          stroke-linecap="round"
+        />
+        <path
+          d="M12 13L7 16"
+          stroke="#7E2A0C"
+          stroke-width="5"
+          stroke-linecap="round"
+        />
+        <path
+          d="M12 13L17 16"
+          stroke="#7E2A0C"
+          stroke-width="5"
+          stroke-linecap="round"
+        />
+      </svg>
+    ),
+  },
+  {
+    name: "Dub Analytics",
+    icon: (
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <rect width="24" height="24" rx="6" fill="#05DF72" />
+        <path
+          d="M8 14L8 17"
+          stroke="#0D542B"
+          stroke-width="5"
+          stroke-linecap="round"
+        />
+        <path
+          d="M16 7V17"
+          stroke="#0D542B"
+          stroke-width="5"
+          stroke-linecap="round"
+        />
+      </svg>
+    ),
+  },
+  {
+    name: "Dub Programs",
+    icon: (
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <rect width="24" height="24" rx="6" fill="#A684FF" />
+        <circle cx="17.5" cy="12" r="2.5" fill="#4D179A" />
+        <circle cx="6.5" cy="12" r="2.5" fill="#4D179A" />
+        <circle cx="12" cy="17.5" r="2.5" fill="#4D179A" />
+        <circle cx="12" cy="6.5" r="2.5" fill="#4D179A" />
+      </svg>
+    ),
+  },
+];
+
+const topics = [
+  {
+    name: "Topic 1",
+    description: "Learn the basics of Dub and how to get started",
+    icon: Hyperlink,
+  },
+  {
+    name: "Topic 2",
+    description: "Learn the basics of Dub and how to get started",
+    icon: Cube,
+  },
+  {
+    name: "Topic 3",
+    description: "Learn the basics of Dub and how to get started",
+    icon: Globe2,
+  },
+  {
+    name: "Topic 4",
+    description: "Learn the basics of Dub and how to get started",
+    icon: CursorRays,
+  },
+  {
+    name: "Topic 5",
+    description: "Learn the basics of Dub and how to get started",
+    icon: User,
+  },
+  {
+    name: "Topic 6",
+    description: "Learn the basics of Dub and how to get started",
+    icon: ShieldCheck,
+  },
+];
 
 function HelpSupportSheet({ isOpen, setIsOpen }: HelpSupportSheetProps) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -69,7 +181,10 @@ function HelpSupportSheet({ isOpen, setIsOpen }: HelpSupportSheetProps) {
                   }}
                 />
               </div>
-              <PopularArticles searchQuery={searchQuery} setScreen={setScreen} />
+              <PopularArticles
+                searchQuery={searchQuery}
+                setScreen={setScreen}
+              />
               <ProductGuides searchQuery={searchQuery} />
               <DubTopics searchQuery={searchQuery} />
             </div>
@@ -82,7 +197,13 @@ function HelpSupportSheet({ isOpen, setIsOpen }: HelpSupportSheetProps) {
   );
 }
 
-function PopularArticles({ searchQuery, setScreen }: { searchQuery: string; setScreen: (screen: "main" | "contact") => void }) {
+function PopularArticles({
+  searchQuery,
+  setScreen,
+}: {
+  searchQuery: string;
+  setScreen: (screen: "main" | "contact") => void;
+}) {
   const { popularHelpArticles } = React.useContext(HelpContext);
 
   const fuse = useMemo(
@@ -152,7 +273,7 @@ function PopularArticles({ searchQuery, setScreen }: { searchQuery: string; setS
                   <div className="h-2 w-1/2 rounded bg-neutral-100" />
                 </div>
               </div>
-              
+
               {/* Empty state text */}
               <div className="flex flex-col items-center justify-center text-center">
                 <p className="text-base text-neutral-900">
@@ -174,90 +295,30 @@ function PopularArticles({ searchQuery, setScreen }: { searchQuery: string; setS
 }
 
 function ProductGuides({ searchQuery }: { searchQuery: string }) {
-  const guides = [
-    {
-      name: "Dub Short Links",
-      icon: (
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <rect width="24" height="24" rx="6" fill="#FF8904" />
-          <path
-            d="M12 13V7"
-            stroke="#7E2A0C"
-            stroke-width="5"
-            stroke-linecap="round"
-          />
-          <path
-            d="M12 13L7 16"
-            stroke="#7E2A0C"
-            stroke-width="5"
-            stroke-linecap="round"
-          />
-          <path
-            d="M12 13L17 16"
-            stroke="#7E2A0C"
-            stroke-width="5"
-            stroke-linecap="round"
-          />
-        </svg>
-      ),
-    },
-    {
-      name: "Dub Analytics",
-      icon: (
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <rect width="24" height="24" rx="6" fill="#05DF72" />
-          <path
-            d="M8 14L8 17"
-            stroke="#0D542B"
-            stroke-width="5"
-            stroke-linecap="round"
-          />
-          <path
-            d="M16 7V17"
-            stroke="#0D542B"
-            stroke-width="5"
-            stroke-linecap="round"
-          />
-        </svg>
-      ),
-    },
-    {
-      name: "Dub Programs",
-      icon: (
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <rect width="24" height="24" rx="6" fill="#A684FF" />
-          <circle cx="17.5" cy="12" r="2.5" fill="#4D179A" />
-          <circle cx="6.5" cy="12" r="2.5" fill="#4D179A" />
-          <circle cx="12" cy="17.5" r="2.5" fill="#4D179A" />
-          <circle cx="12" cy="6.5" r="2.5" fill="#4D179A" />
-        </svg>
-      ),
-    },
-  ];
+  const fuse = useMemo(
+    () =>
+      new Fuse(guides, {
+        keys: ["name"],
+      }),
+    [guides],
+  );
+
+  const filteredGuides = useMemo(() => {
+    if (searchQuery.length === 0) {
+      return guides;
+    }
+    return fuse.search(searchQuery).map((r) => r.item);
+  }, [searchQuery, guides, fuse]);
+
+  if (filteredGuides.length === 0) {
+    return null;
+  }
 
   return (
     <div>
       <h2 className="text-sm font-semibold text-neutral-900">Product Guides</h2>
       <div className="mt-4 space-y-3">
-        {guides.map((guide) => (
+        {filteredGuides.map((guide) => (
           <button
             key={guide.name}
             className="flex w-full items-center gap-3 rounded-lg border border-neutral-200 bg-white p-4 text-left transition-all hover:bg-neutral-50"
@@ -276,44 +337,30 @@ function ProductGuides({ searchQuery }: { searchQuery: string }) {
 }
 
 function DubTopics({ searchQuery }: { searchQuery: string }) {
-  const topics = [
-    {
-      name: "Topic 1",
-      description: "Learn the basics of Dub and how to get started",
-      icon: Hyperlink,
-    },
-    {
-      name: "Topic 2",
-      description: "Learn the basics of Dub and how to get started",
-      icon: Cube,
-    },
-    {
-      name: "Topic 3",
-      description: "Learn the basics of Dub and how to get started",
-      icon: Globe2,
-    },
-    {
-      name: "Topic 4",
-      description: "Learn the basics of Dub and how to get started",
-      icon: CursorRays,
-    },
-    {
-      name: "Topic 5",
-      description: "Learn the basics of Dub and how to get started",
-      icon: User,
-    },
-    {
-      name: "Topic 6",
-      description: "Learn the basics of Dub and how to get started",
-      icon: ShieldCheck,
-    },
-  ];
+  const fuse = useMemo(
+    () =>
+      new Fuse(topics, {
+        keys: ["name", "description"],
+      }),
+    [topics],
+  );
+
+  const filteredTopics = useMemo(() => {
+    if (searchQuery.length === 0) {
+      return topics;
+    }
+    return fuse.search(searchQuery).map((r) => r.item);
+  }, [searchQuery, topics, fuse]);
+
+  if (filteredTopics.length === 0) {
+    return null;
+  }
 
   return (
     <div>
       <h2 className="text-sm font-semibold text-neutral-900">Dub Topics</h2>
       <div className="mt-4 space-y-3">
-        {topics.map((topic) => (
+        {filteredTopics.map((topic) => (
           <button
             key={topic.name}
             className="flex w-full items-center gap-3 rounded-lg border border-neutral-200 bg-white p-4 text-left transition-all hover:bg-neutral-50"
