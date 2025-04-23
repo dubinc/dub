@@ -8,13 +8,16 @@ import {
   TAB_ITEM_ANIMATION_SETTINGS,
 } from "@dub/utils";
 import { cn } from "@dub/utils/src/functions";
+import { useEmbedToken } from "app/app.dub.co/embed/use-embed-token";
 import { motion } from "framer-motion";
 import useSWR from "swr";
 
 export function ReferralsEmbedLeaderboard() {
+  const token = useEmbedToken();
+
   const { data: partners, isLoading } = useSWR<
     z.infer<typeof LeaderboardPartnerSchema>[]
-  >("/api/embed/referrals/leaderboard", fetcher, {
+  >(`/api/embed/referrals/leaderboard?token=${token}`, fetcher, {
     keepPreviousData: true,
   });
 

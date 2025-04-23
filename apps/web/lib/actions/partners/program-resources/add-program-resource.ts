@@ -2,6 +2,7 @@
 
 import { createId } from "@/lib/api/create-id";
 import { storage } from "@/lib/storage";
+import { base64ImageSchema } from "@/lib/zod/schemas/misc";
 import {
   programResourceColorSchema,
   programResourceFileSchema,
@@ -19,10 +20,17 @@ const baseResourceSchema = z.object({
   name: z.string().min(1, "Name is required"),
 });
 
-// Schema for file-based resources (logos and files)
+// Schema for logo resources
+const logoResourceSchema = baseResourceSchema.extend({
+  resourceType: z.literal("logo"),
+  file: base64ImageSchema,
+  extension: z.string().nullish(),
+});
+
+// Schema for file resources
 const fileResourceSchema = baseResourceSchema.extend({
-  resourceType: z.enum(["logo", "file"]),
-  file: z.string(), // Base64 encoded file
+  resourceType: z.literal("file"),
+  file: z.string(),
   extension: z.string().nullish(),
 });
 
@@ -34,6 +42,7 @@ const colorResourceSchema = baseResourceSchema.extend({
 
 // Combined schema that can handle any resource type
 const addResourceSchema = z.discriminatedUnion("resourceType", [
+  logoResourceSchema,
   fileResourceSchema,
   colorResourceSchema,
 ]);
@@ -68,6 +77,10 @@ export const addProgramResourceAction = authActionClient
 
     if (resourceType === "logo" || resourceType === "file") {
       const { file, extension } = parsedInput;
+
+      if (!file) {
+        throw new Error("File is required.");
+      }
 
       // Upload the file to storage
       const fileKey = `programs/${program.id}/${resourceType}s/${slugify(name || resourceType)}-${nanoid(4)}${extension ? `.${extension}` : ""}`;
@@ -136,8 +149,4 @@ export const addProgramResourceAction = authActionClient
         resources: updatedResources,
       },
     });
-
-    return {
-      success: true,
-    };
   });

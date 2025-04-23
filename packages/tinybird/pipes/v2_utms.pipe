@@ -1,20 +1,25 @@
-TOKEN "v2_utms_endpoint_read_8196" READ
-
 NODE workspace_links
 SQL >
 
     %
     SELECT link_id
-    from dub_links_metadata_latest FINAL
+    FROM
+        {% if defined(isMegaFolder) and Boolean(isMegaFolder) == 1 %} dub_links_metadata_latest
+        {% else %} dub_regular_links_metadata_latest
+        {% end %} FINAL
     WHERE
         deleted == 0
         {% if defined(workspaceId) %} AND workspace_id = {{ workspaceId }} {% end %}
         {% if defined(programId) %} AND program_id = {{ programId }} {% end %}
         {% if defined(partnerId) %} AND partner_id = {{ partnerId }} {% end %}
         {% if defined(tenantId) %} AND tenant_id = {{ tenantId }} {% end %}
-        {% if defined(folderId) %} AND folder_id = {{ folderId }} {% end %}
+        {% if defined(folderIds) %} AND folder_id IN {{ Array(folderIds, 'String') }}
+        {% elif defined(folderId) %} AND folder_id = {{ folderId }}
+        {% end %}
         {% if defined(domain) %} AND domain IN {{ Array(domain, 'String') }} {% end %}
-        {% if defined(tagIds) %} AND arrayIntersect(tag_ids, {{ Array(tagIds, 'String') }}) != [] {% end %}
+        {% if defined(tagIds) %}
+            AND arrayIntersect(tag_ids, {{ Array(tagIds, 'String') }}) != []
+        {% end %}
         {% if defined(root) %}
             {% if Boolean(root) == 1 %} AND key = '_root' {% else %} AND key != '_root' {% end %}
         {% end %}
@@ -27,7 +32,7 @@ SQL >
     %
     WITH
         extractURLParameter(
-            url,
+            decodeURLFormComponent(url),
             {{
                 String(
                     groupByUtmTag,
@@ -39,9 +44,18 @@ SQL >
         ) as utm
     SELECT utm, count(*) as clicks
     FROM
-        dub_click_events_mv
-        {% if not defined(linkId) and (defined(workspaceId) or defined(partnerId) or defined(programId)) %}
-            PREWHERE link_id in (SELECT link_id from workspace_links)
+        {% if defined(customerId) %} dub_click_events_id
+        {% else %} dub_click_events_mv
+        {% end %}
+        {% if defined(customerId) %}
+            PREWHERE click_id IN (
+                SELECT DISTINCT click_id
+                FROM dub_lead_events_mv
+                WHERE customer_id = {{ String(customerId) }}
+            )
+        {% elif not defined(linkId) and (
+            defined(workspaceId) or defined(partnerId) or defined(programId)
+        ) %} PREWHERE link_id in (SELECT link_id from workspace_links)
         {% end %}
     WHERE
         url != ''
@@ -56,11 +70,22 @@ SQL >
         {% if defined(os) %} AND os = {{ os }} {% end %}
         {% if defined(referer) %} AND referer = {{ referer }} {% end %}
         {% if defined(refererUrl) %} AND splitByString('?', referer_url)[1] = {{ refererUrl }} {% end %}
-        {% if defined(utm_source) %} AND url LIKE concat('%utm_source=', {{ String(utm_source) }}, '%') {% end %}
-        {% if defined(utm_medium) %} AND url LIKE concat('%utm_medium=', {{ String(utm_medium) }}, '%') {% end %}
-        {% if defined(utm_campaign) %} AND url LIKE concat('%utm_campaign=', {{ String(utm_campaign) }}, '%') {% end %}
-        {% if defined(utm_term) %} AND url LIKE concat('%utm_term=', {{ String(utm_term) }}, '%') {% end %}
-        {% if defined(utm_content) %} AND url LIKE concat('%utm_content=', {{ String(utm_content) }}, '%') {% end %}
+        {% if defined(utm_source) %}
+            AND url LIKE concat('%utm_source=', encodeURLFormComponent({{ String(utm_source) }}), '%')
+        {% end %}
+        {% if defined(utm_medium) %}
+            AND url LIKE concat('%utm_medium=', encodeURLFormComponent({{ String(utm_medium) }}), '%')
+        {% end %}
+        {% if defined(utm_campaign) %}
+            AND url
+            LIKE concat('%utm_campaign=', encodeURLFormComponent({{ String(utm_campaign) }}), '%')
+        {% end %}
+        {% if defined(utm_term) %}
+            AND url LIKE concat('%utm_term=', encodeURLFormComponent({{ String(utm_term) }}), '%')
+        {% end %}
+        {% if defined(utm_content) %}
+            AND url LIKE concat('%utm_content=', encodeURLFormComponent({{ String(utm_content) }}), '%')
+        {% end %}
         {% if defined(url) %} AND url = {{ url }} {% end %}
         {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
         {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
@@ -76,7 +101,7 @@ SQL >
     %
     WITH
         extractURLParameter(
-            url,
+            decodeURLFormComponent(url),
             {{
                 String(
                     groupByUtmTag,
@@ -95,6 +120,7 @@ SQL >
     WHERE
         url != ''
         {% if defined(linkId) %} AND link_id = {{ String(linkId) }} {% end %}
+        {% if defined(customerId) %} AND customer_id = {{ String(customerId) }} {% end %}
         {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
         {% if defined(continent) %} AND continent = {{ continent }} {% end %}
         {% if defined(country) %} AND country = {{ country }} {% end %}
@@ -105,11 +131,11 @@ SQL >
         {% if defined(os) %} AND os = {{ os }} {% end %}
         {% if defined(referer) %} AND referer = {{ referer }} {% end %}
         {% if defined(refererUrl) %} AND splitByString('?', referer_url)[1] = {{ refererUrl }} {% end %}
-        {% if defined(utm_source) %} AND url LIKE concat('%utm_source=', {{ String(utm_source) }}, '%') {% end %}
-        {% if defined(utm_medium) %} AND url LIKE concat('%utm_medium=', {{ String(utm_medium) }}, '%') {% end %}
-        {% if defined(utm_campaign) %} AND url LIKE concat('%utm_campaign=', {{ String(utm_campaign) }}, '%') {% end %}
-        {% if defined(utm_term) %} AND url LIKE concat('%utm_term=', {{ String(utm_term) }}, '%') {% end %}
-        {% if defined(utm_content) %} AND url LIKE concat('%utm_content=', {{ String(utm_content) }}, '%') {% end %}
+        {% if defined(utm_source) %} AND url LIKE concat('%utm_source=', encodeURLFormComponent({{ String(utm_source) }}), '%') {% end %}
+        {% if defined(utm_medium) %} AND url LIKE concat('%utm_medium=', encodeURLFormComponent({{ String(utm_medium) }}), '%') {% end %}
+        {% if defined(utm_campaign) %} AND url LIKE concat('%utm_campaign=', encodeURLFormComponent({{ String(utm_campaign) }}), '%') {% end %}
+        {% if defined(utm_term) %} AND url LIKE concat('%utm_term=', encodeURLFormComponent({{ String(utm_term) }}), '%') {% end %}
+        {% if defined(utm_content) %} AND url LIKE concat('%utm_content=', encodeURLFormComponent({{ String(utm_content) }}), '%') {% end %}
         {% if defined(url) %} AND url = {{ url }} {% end %}
         {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
         {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
@@ -125,7 +151,7 @@ SQL >
     %
     WITH
         extractURLParameter(
-            url,
+            decodeURLFormComponent(url),
             {{
                 String(
                     groupByUtmTag,
@@ -144,6 +170,7 @@ SQL >
     WHERE
         url != ''
         {% if defined(linkId) %} AND link_id = {{ String(linkId) }} {% end %}
+        {% if defined(customerId) %} AND customer_id = {{ String(customerId) }} {% end %}
         {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
         {% if defined(continent) %} AND continent = {{ continent }} {% end %}
         {% if defined(country) %} AND country = {{ country }} {% end %}
@@ -154,11 +181,11 @@ SQL >
         {% if defined(os) %} AND os = {{ os }} {% end %}
         {% if defined(referer) %} AND referer = {{ referer }} {% end %}
         {% if defined(refererUrl) %} AND splitByString('?', referer_url)[1] = {{ refererUrl }} {% end %}
-        {% if defined(utm_source) %} AND url LIKE concat('%utm_source=', {{ String(utm_source) }}, '%') {% end %}
-        {% if defined(utm_medium) %} AND url LIKE concat('%utm_medium=', {{ String(utm_medium) }}, '%') {% end %}
-        {% if defined(utm_campaign) %} AND url LIKE concat('%utm_campaign=', {{ String(utm_campaign) }}, '%') {% end %}
-        {% if defined(utm_term) %} AND url LIKE concat('%utm_term=', {{ String(utm_term) }}, '%') {% end %}
-        {% if defined(utm_content) %} AND url LIKE concat('%utm_content=', {{ String(utm_content) }}, '%') {% end %}
+        {% if defined(utm_source) %} AND url LIKE concat('%utm_source=', encodeURLFormComponent({{ String(utm_source) }}), '%') {% end %}
+        {% if defined(utm_medium) %} AND url LIKE concat('%utm_medium=', encodeURLFormComponent({{ String(utm_medium) }}), '%') {% end %}
+        {% if defined(utm_campaign) %} AND url LIKE concat('%utm_campaign=', encodeURLFormComponent({{ String(utm_campaign) }}), '%') {% end %}
+        {% if defined(utm_term) %} AND url LIKE concat('%utm_term=', encodeURLFormComponent({{ String(utm_term) }}), '%') {% end %}
+        {% if defined(utm_content) %} AND url LIKE concat('%utm_content=', encodeURLFormComponent({{ String(utm_content) }}), '%') {% end %}
         {% if defined(url) %} AND url = {{ url }} {% end %}
         {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
         {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}

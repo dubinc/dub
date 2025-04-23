@@ -7,12 +7,12 @@ import { getPartnerEarningsTimeseriesSchema } from "../zod/schemas/partner-profi
 import {
   ANALYTICS_SALE_UNIT,
   ANALYTICS_VIEWS,
+  DATE_RANGE_INTERVAL_PRESETS,
   EVENT_TYPES,
   VALID_ANALYTICS_ENDPOINTS,
-  intervals,
 } from "./constants";
 
-export type IntervalOptions = (typeof intervals)[number];
+export type IntervalOptions = (typeof DATE_RANGE_INTERVAL_PRESETS)[number];
 
 export type AnalyticsGroupByOptions =
   (typeof VALID_ANALYTICS_ENDPOINTS)[number];

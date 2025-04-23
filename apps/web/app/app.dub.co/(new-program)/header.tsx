@@ -18,7 +18,6 @@ export function ProgramOnboardingHeader() {
   const { isMobile } = useMediaQuery();
   const { getValues } = useFormContext();
   const { isOpen, setIsOpen } = useSidebar();
-
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
   useEffect(() => {

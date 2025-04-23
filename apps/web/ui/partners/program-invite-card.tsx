@@ -33,6 +33,18 @@ export function ProgramInviteCard({
     },
   });
 
+  const reward =
+    program.rewards && program.rewards.length > 0
+      ? program.rewards.find((r) => r.id !== program.defaultRewardId) ||
+        program.rewards[0]
+      : null;
+
+  const discount =
+    program.discounts && program.discounts.length > 0
+      ? program.discounts.find((d) => d.id !== program.defaultDiscountId) ||
+        program.discounts[0]
+      : null;
+
   return (
     <div className="hover:drop-shadow-card-hover relative flex flex-col rounded-xl border border-neutral-200 bg-neutral-50 p-5 transition-[filter]">
       <div className="flex justify-between gap-2">
@@ -57,8 +69,8 @@ export function ProgramInviteCard({
       )}
       <p className="mt-2 text-balance text-xs text-neutral-600">
         <ProgramRewardDescription
-          reward={program.rewards?.[0]}
-          discount={program.discounts?.[0]}
+          reward={reward}
+          discount={discount}
           amountClassName="font-light"
           periodClassName="font-light"
         />

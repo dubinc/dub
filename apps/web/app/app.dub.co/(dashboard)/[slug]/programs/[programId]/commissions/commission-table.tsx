@@ -128,6 +128,7 @@ const CommissionTableInner = memo(
           cell: ({ row }) => {
             return <PartnerRowItem partner={row.original.partner} />;
           },
+          size: 200,
           meta: {
             filterParams: ({ row }) => ({
               partnerId: row.original.partner.id,
