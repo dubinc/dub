@@ -1,8 +1,3 @@
-enum ProgramType {
-  affiliate
-  referral
-}
-
 enum CommissionType {
   percentage
   flat
@@ -29,7 +24,7 @@ enum PartnerBannedReason {
 enum LinkStructure {
   short
   query
-  dynamic
+  path
 }
 
 model Program {
@@ -43,7 +38,6 @@ model Program {
   brandColor        String?
   domain            String?
   url               String?
-  type              ProgramType    @default(affiliate)
   cookieLength      Int            @default(90)
   holdingPeriodDays Int            @default(0) // number of days to wait before earnings are added to a payout
   minPayoutAmount   Int            @default(10000) // Default minimum payout amount of $100
@@ -56,7 +50,8 @@ model Program {
   helpUrl           String?        @db.Text
   supportEmail      String?
   ageVerification   Int?
-  linkStructure     LinkStructure? @default(short)
+  linkStructure     LinkStructure  @default(short)
+  linkParameter     String?        // null for SHORT, "via" for QUERY, "refer" for PATH
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

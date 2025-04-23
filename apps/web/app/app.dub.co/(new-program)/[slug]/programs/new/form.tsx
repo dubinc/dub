@@ -1,7 +1,7 @@
 "use client";
 
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
-import { linkStructures } from "@/lib/link-structures";
+import { getLinkStructureOptions } from "@/lib/partners/get-link-structure-options";
 import useDomains from "@/lib/swr/use-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramData } from "@/lib/types";
@@ -205,7 +205,7 @@ export function Form() {
         </div>
 
         <div className="flex flex-col gap-3">
-          {linkStructures({
+          {getLinkStructureOptions({
             domain,
             url,
           }).map((type) => {

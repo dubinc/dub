@@ -10,6 +10,7 @@ export const programInfoSchema = z.object({
   domain: z.string(),
   url: parseUrlSchema.nullable(),
   linkStructure: z.nativeEnum(LinkStructure).default("short"),
+  linkParameter: z.string().nullable(),
 });
 
 // Configure rewards

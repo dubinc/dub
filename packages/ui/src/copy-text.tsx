@@ -28,7 +28,7 @@ export function CopyText({
       }}
       type="button"
       className={cn(
-        "cursor-copy text-sm text-neutral-700 decoration-dotted hover:underline",
+        "cursor-copy text-sm text-neutral-700 decoration-dotted underline-offset-2 hover:underline",
         copied && "cursor-default",
         className,
       )}

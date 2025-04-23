@@ -4,6 +4,7 @@ import { DUB_PARTNERS_ANALYTICS_INTERVAL } from "@/lib/analytics/constants";
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { IntervalOptions } from "@/lib/analytics/types";
 import { useSyncedLocalStorage } from "@/lib/hooks/use-synced-local-storage";
+import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-timeseries";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
@@ -13,6 +14,7 @@ import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   Button,
   buttonVariants,
+  CopyText,
   MaxWidthWrapper,
   useCopyToClipboard,
   useRouterStuff,
@@ -81,12 +83,14 @@ export default function ProgramPageClient() {
   const program = programEnrollment?.program;
   const defaultProgramLink = programEnrollment?.links?.[0];
 
-  let partnerLink: string | null = null;
-  if (program?.url && program.linkStructure === "query" && defaultProgramLink) {
-    partnerLink = `${getDomainWithoutWWW(program.url)}?via=${defaultProgramLink.key}`;
-  } else {
-    partnerLink = getPrettyUrl(defaultProgramLink?.shortLink);
+  if (!program || !defaultProgramLink) {
+    return null;
   }
+
+  const partnerLink = constructPartnerLink({
+    program,
+    linkKey: defaultProgramLink.key,
+  });
 
   return (
     <MaxWidthWrapper className="pb-10">
@@ -120,7 +124,7 @@ export default function ProgramPageClient() {
                   <input
                     type="text"
                     readOnly
-                    value={partnerLink}
+                    value={getPrettyUrl(partnerLink)}
                     className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default h-10 min-w-0 shrink grow rounded-md border px-3 text-sm focus:outline-none focus:ring-neutral-500"
                   />
                 ) : (
@@ -149,7 +153,6 @@ export default function ProgramPageClient() {
                   }
                   text={copied ? "Copied link" : "Copy link"}
                   className="xs:w-fit"
-                  disabled={!partnerLink}
                   onClick={() => {
                     if (partnerLink) {
                       copyToClipboard(partnerLink);
@@ -158,13 +161,30 @@ export default function ProgramPageClient() {
                 />
               </div>
 
-              {program?.url &&
+              {program.url &&
                 program.linkStructure === "query" &&
-                defaultProgramLink && (
-                  <p className="mt-1.5 text-sm text-neutral-500">
-                    {`Link to any page on ${getDomainWithoutWWW(program.url)} by adding ?via=${defaultProgramLink.key} to the URL`}
-                  </p>
-                )}
+                (() => {
+                  const appendValue = `?${program.linkParameter ?? "via"}=${defaultProgramLink.key}`;
+                  return (
+                    <p className="mt-1.5 text-sm text-neutral-500">
+                      Link to any page on{" "}
+                      <a
+                        href={program.url}
+                        className="cursor-alias text-neutral-700 decoration-dotted underline-offset-2 hover:underline"
+                      >
+                        {getDomainWithoutWWW(program.url)}
+                      </a>{" "}
+                      by adding{" "}
+                      <CopyText
+                        value={appendValue}
+                        className="font-mono text-neutral-700"
+                      >
+                        {appendValue}
+                      </CopyText>{" "}
+                      to the URL
+                    </p>
+                  );
+                })()}
 
               <span className="mt-12 text-base font-semibold text-neutral-800">
                 Rewards
