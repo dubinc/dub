@@ -20,6 +20,13 @@ interface HelpSupportSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }
 
+interface HelpCardProps {
+  icon: React.ReactNode;
+  title: string;
+  description?: string;
+  onClick?: () => void;
+}
+
 const guides = [
   {
     name: "Dub Short Links",
@@ -197,6 +204,25 @@ function HelpSupportSheet({ isOpen, setIsOpen }: HelpSupportSheetProps) {
   );
 }
 
+function HelpCard({ icon, title, description, onClick }: HelpCardProps) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex w-full items-center gap-3 rounded-lg border border-neutral-200 bg-white p-2 text-left transition-all hover:border-neutral-300"
+    >
+      <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-neutral-100">
+        {icon}
+      </div>
+      <div className="flex flex-col truncate">
+        <h3 className="text-sm font-medium text-neutral-800">{title}</h3>
+        {description && (
+          <p className="text-xs text-neutral-600">{description}</p>
+        )}
+      </div>
+    </button>
+  );
+}
+
 function PopularArticles({
   searchQuery,
   setScreen,
@@ -221,6 +247,10 @@ function PopularArticles({
     return fuse.search(searchQuery).map((r) => r.item);
   }, [searchQuery, popularHelpArticles, fuse]);
 
+  if (filteredArticles.length === 0) {
+    return null;
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -242,9 +272,11 @@ function PopularArticles({
         <div className="mt-4 space-y-3">
           {filteredArticles.length > 0 ? (
             filteredArticles.map((article) => (
-              <button
+              <HelpCard
                 key={article.title}
-                className="flex w-full items-start gap-3 rounded-lg border border-neutral-200 bg-white p-2 text-left transition-all hover:border-neutral-300"
+                icon={<div className="size-5" />}
+                title={article.title}
+                description={article.summary}
                 onClick={() => {
                   posthog.capture("help_article_selected", {
                     query: searchQuery,
@@ -252,16 +284,7 @@ function PopularArticles({
                   });
                   window.open(`https://dub.co/help/article/${article.slug}`);
                 }}
-              >
-                <div className="min-w-0 flex-1">
-                  <h3 className="text-sm font-medium text-neutral-800">
-                    {article.title}
-                  </h3>
-                  <p className="mt-0.5 truncate text-xs text-neutral-600">
-                    {article.summary}
-                  </p>
-                </div>
-              </button>
+              />
             ))
           ) : (
             <div className="min-h-[300px] space-y-4">
@@ -319,17 +342,7 @@ function ProductGuides({ searchQuery }: { searchQuery: string }) {
       <h2 className="text-sm font-semibold text-neutral-900">Product Guides</h2>
       <div className="mt-4 space-y-3">
         {filteredGuides.map((guide) => (
-          <button
-            key={guide.name}
-            className="flex w-full items-center gap-3 rounded-lg border border-neutral-200 bg-white p-4 text-left transition-all hover:bg-neutral-50"
-          >
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-neutral-100">
-              {guide.icon}
-            </div>
-            <span className="text-base font-medium text-neutral-900">
-              {guide.name}
-            </span>
-          </button>
+          <HelpCard key={guide.name} icon={guide.icon} title={guide.name} />
         ))}
       </div>
     </div>
@@ -361,22 +374,12 @@ function DubTopics({ searchQuery }: { searchQuery: string }) {
       <h2 className="text-sm font-semibold text-neutral-900">Dub Topics</h2>
       <div className="mt-4 space-y-3">
         {filteredTopics.map((topic) => (
-          <button
+          <HelpCard
             key={topic.name}
-            className="flex w-full items-center gap-3 rounded-lg border border-neutral-200 bg-white p-4 text-left transition-all hover:bg-neutral-50"
-          >
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-neutral-100">
-              <topic.icon className="size-5 text-neutral-600" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <h3 className="text-base font-medium text-neutral-900">
-                {topic.name}
-              </h3>
-              <p className="mt-0.5 text-sm text-neutral-600">
-                {topic.description}
-              </p>
-            </div>
-          </button>
+            icon={<topic.icon className="size-5 text-neutral-600" />}
+            title={topic.name}
+            description={topic.description}
+          />
         ))}
       </div>
     </div>
