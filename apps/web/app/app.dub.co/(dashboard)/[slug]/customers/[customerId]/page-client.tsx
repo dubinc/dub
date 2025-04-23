@@ -200,7 +200,7 @@ const PartnerEarningsTable = memo(
     const { data: commissions, isLoading: isComissionsLoading } = useSWR<
       CommissionResponse[]
     >(
-      `/api/programs/${programId}/commissions?customerId=${customerId}&workspaceId=${workspaceId}&pageSize=${CUSTOMER_PAGE_EVENTS_LIMIT}`,
+      `/api/commissions?customerId=${customerId}&workspaceId=${workspaceId}&programId=${programId}&pageSize=${CUSTOMER_PAGE_EVENTS_LIMIT}`,
       fetcher,
     );
 
@@ -208,7 +208,7 @@ const PartnerEarningsTable = memo(
       useSWR<{ all: { count: number } }>(
         // Only fetch total earnings count if the earnings data is equal to the limit
         commissions?.length === CUSTOMER_PAGE_EVENTS_LIMIT &&
-          `/api/programs/${programId}/commissions/count?customerId=${customerId}&workspaceId=${workspaceId}`,
+          `/api/commissions/count?customerId=${customerId}&workspaceId=${workspaceId}&programId=${programId}`,
         fetcher,
       );
 
