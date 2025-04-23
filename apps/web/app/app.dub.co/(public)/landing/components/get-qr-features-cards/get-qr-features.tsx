@@ -10,7 +10,7 @@ export const GetQRFeaturesCardsSection: FC = () => {
       <Heading
         as="h2"
         weight="bold"
-        size={{ initial: "6", md: "8" }}
+        size={{ initial: "7", md: "8" }}
         align="center"
         className="text-neutral"
       >

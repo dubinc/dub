@@ -19,8 +19,8 @@ export const GetQRInfoCardsSection: FC = () => {
       <Heading
         as="h2"
         weight="bold"
-        size={{ initial: "6", md: "8" }}
-        className="text-neutral max-w-[250px] text-center md:max-w-none"
+        size={{ initial: "7", md: "8" }}
+        className="text-neutral max-w-[280px] text-center md:max-w-none"
       >
         Create your{" "}
         <span className="bg-qr-gradient inline-block bg-clip-text text-transparent">

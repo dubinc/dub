@@ -40,7 +40,7 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
         <Input
           type={type}
           ref={inputRef}
-          className="border-border-300 focus:border-secondary h-11 w-full max-w-2xl rounded-md border p-3 text-xs md:text-sm"
+          className="border-border-300 focus:border-secondary h-11 w-full max-w-2xl rounded-md border p-3 text-sm"
           {...props}
         />
       )}

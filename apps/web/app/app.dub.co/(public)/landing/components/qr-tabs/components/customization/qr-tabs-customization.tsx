@@ -103,6 +103,7 @@ export const QrTabsCustomization: FC<QrTabsCustomizationProps> = ({
               isQrDisabled={isQrDisabled}
               onSuggestedLogoSelect={handlers.onSuggestedLogoSelect}
               onUploadLogo={handlers.setUploadedLogoFile}
+              isMobile={isMobile}
             />
           )}
         </Tabs.Content>

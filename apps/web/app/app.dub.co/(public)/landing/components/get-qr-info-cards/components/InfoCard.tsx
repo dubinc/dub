@@ -15,7 +15,7 @@ export const InfoCard: FC<IGetInfoCardProps> = ({
 }) => {
   return (
     <Card className="border-border-100 rounded-lg border">
-      <Flex direction="column" gap={{ sm: "3", lg: "4" }} align="center">
+      <Flex direction="column" gap={{ initial: "3", lg: "4" }} align="center">
         <Flex
           justify="center"
           className="bg-border-100 relative h-[140px] w-full max-w-[342px] flex-shrink-0 overflow-hidden rounded-lg [&>img]:w-[140px] [&>img]:self-end"

@@ -17,7 +17,7 @@ export const FeaturesCard: FC<IGetInfoCardProps> = ({
         direction="column"
         align="start"
         justify="start"
-        gap={{ sm: "3", md: "4" }}
+        gap={{ initial: "3", md: "4" }}
       >
         <Box className="[&_svg>path]:fill-primary [&_svg>g]:stroke-primary [&_svg]:h-8 [&_svg]:w-8">
           {img}

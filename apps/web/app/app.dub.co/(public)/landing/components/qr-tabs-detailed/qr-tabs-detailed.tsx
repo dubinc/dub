@@ -4,7 +4,7 @@ import { cn } from "@dub/utils";
 import { Icon } from "@iconify/react";
 import * as ScrollArea from "@radix-ui/react-scroll-area";
 import * as Tabs from "@radix-ui/react-tabs";
-import { Button, Text } from "@radix-ui/themes";
+import { Button, Heading, Text } from "@radix-ui/themes";
 import Image from "next/image";
 import { FC, useState } from "react";
 import { QR_TYPES } from "../../constants/get-qr-config.ts";
@@ -28,8 +28,8 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
         <div className="flex flex-col items-center justify-center gap-4 md:gap-6">
           <QrTabsDetailedTitle />
           <Text
-            align={{ sm: "left", md: "center" }}
-            size="5"
+            align={{ initial: "left", md: "center" }}
+            size={{ initial: "4", md: "5" }}
             className="text-neutral-300"
           >
             From websites and social media to PDFs, business cards, and Wi-Fi
@@ -102,23 +102,31 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
                       className={idx === 1 ? "top-[61.5%] md:top-[57%]" : ""}
                     />
                   </div>
-                  <div className="flex max-w-[520px] flex-col items-start justify-start gap-3 md:gap-[18px]">
+                  <div className="flex max-w-[520px] flex-col items-start justify-start gap-3 md:gap-4">
                     <div className="flex flex-col items-start justify-start gap-2 md:gap-3">
-                      <h3 className="text-neutral text-left text-base font-semibold md:text-lg">
+                      <Heading
+                        as="h3"
+                        size="4"
+                        align="left"
+                        weight="medium"
+                        className="text-neutral"
+                      >
                         {type.label}
-                      </h3>
-                      <p className="text-left text-sm text-neutral-300 md:text-base">
+                      </Heading>
+                      <Text size="3" align="left" className="text-neutral-300">
                         {type.content}
-                      </p>
+                      </Text>
                     </div>
                     <Button
-                      className="flex flex-row items-center justify-center gap-2"
-                      size={"3"}
+                      className="flex w-full flex-row items-center justify-center gap-2"
+                      size={{ initial: "4", md: "3" }}
                       color={"blue"}
                       variant="solid"
                       onClick={scrollToQRGenerationBlock}
                     >
-                      <Text>Create QR code</Text>
+                      <Text size={{ initial: "3", md: "4" }}>
+                        Create QR code
+                      </Text>
                       <Image
                         width={20}
                         src={QrCodeIcon}

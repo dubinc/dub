@@ -42,7 +42,7 @@ export const QRTabsPopover: FC<IQRTabsPopoverProps> = ({
                   className={cn(
                     "hover:bg-secondary-100 hover:text-secondary group flex min-h-11 w-full items-center gap-2 rounded-lg px-2 py-2 text-sm text-neutral-600",
                     selectedQrType?.id === option.id &&
-                      "bg-secondary-100 text-secondary",
+                      "bg-secondary-100 text-secondary border-secondary-100",
                   )}
                 >
                   <Icon
@@ -80,7 +80,7 @@ export const QRTabsPopover: FC<IQRTabsPopoverProps> = ({
           "box-border flex items-center justify-center gap-8",
           "h-12 w-12",
           isMobile && "w-full",
-          "border-100 rounded-md border bg-white",
+          "border-border-100 rounded-md border bg-white",
           "bg-secondary-100 md:bg-transparent",
           "transition-colors hover:bg-white",
           "[&>div]:w-full",

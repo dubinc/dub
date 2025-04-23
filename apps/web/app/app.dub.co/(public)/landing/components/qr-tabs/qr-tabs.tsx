@@ -72,7 +72,7 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
               <QRPreview qrCode={qrCode} />
             </div>
 
-            <Tabs.List className="border-border-100 flex w-full rounded-md border">
+            <Tabs.List className="flex w-full rounded-md">
               {QR_GENERATION_STEPS.map((step, idx) => (
                 <Tabs.Trigger
                   key={step.id}
@@ -81,7 +81,7 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
                     "text-neutral border-border-100 group flex basis-1/2 items-center justify-start gap-2 border px-3 py-2.5 font-medium",
                     "transition-all duration-300 ease-in-out",
                     "hover:bg-border-100 hover:text-neutral",
-                    "data-[state=active]:bg-secondary-100 data-[state=active]:border-secondary data-[state=active]:text-secondary",
+                    "data-[state=active]:bg-secondary-100 data-[state=active]:border-secondary-100 data-[state=active]:text-secondary",
                     idx === 0 && "rounded-l-md",
                     idx === QR_GENERATION_STEPS.length - 1 && "rounded-r-md",
                   )}

@@ -10,6 +10,7 @@ interface ILogoSelectorProps {
   uploadedLogo: File | null;
   onSuggestedLogoSelect: (type: string, iconSrc?: string) => void;
   onUploadLogo: (file: File | null) => void;
+  isMobile: boolean;
 }
 
 export const LogoSelector: FC<ILogoSelectorProps> = ({
@@ -18,6 +19,7 @@ export const LogoSelector: FC<ILogoSelectorProps> = ({
   uploadedLogo,
   onSuggestedLogoSelect,
   onUploadLogo,
+  isMobile,
 }) => {
   return (
     <div className="border-border-100 flex max-w-[680px] flex-col gap-4 rounded-lg border p-3">
@@ -49,6 +51,7 @@ export const LogoSelector: FC<ILogoSelectorProps> = ({
         multiple={false}
         minimumFlow
         isLogo
+        isMobile={isMobile}
       />
     </div>
   );
