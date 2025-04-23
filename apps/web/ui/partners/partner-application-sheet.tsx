@@ -282,18 +282,13 @@ function PartnerApproval({
             text="Approve"
             loading={isPending}
             onClick={async () => {
+              if (!program || !workspaceId) {
+                return;
+              }
+
               if (!isApproving) {
                 setIsApproving(true);
                 setLinkError(false);
-                return;
-              }
-
-              if (!selectedLinkId) {
-                setLinkError(true);
-                return;
-              }
-
-              if (!program) {
                 return;
               }
 
