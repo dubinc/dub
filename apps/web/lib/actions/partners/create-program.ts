@@ -39,6 +39,7 @@ export const createProgram = async ({
     maxDuration,
     partners,
     rewardful,
+    linkStructure,
     logo: uploadedLogo,
   } = programDataSchema.parse(store.programOnboarding);
 
@@ -76,6 +77,7 @@ export const createProgram = async ({
       domain,
       url,
       defaultFolderId: programFolder.id,
+      linkStructure,
       ...(type &&
         amount && {
           rewards: {

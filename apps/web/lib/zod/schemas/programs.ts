@@ -3,7 +3,7 @@ import {
   DUB_PARTNERS_ANALYTICS_INTERVAL,
 } from "@/lib/analytics/constants";
 import { DUB_MIN_PAYOUT_AMOUNT_CENTS } from "@/lib/partners/constants";
-import { ProgramEnrollmentStatus, ProgramType } from "@dub/prisma/client";
+import { LinkStructure, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { z } from "zod";
 import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
@@ -20,13 +20,14 @@ export const ProgramSchema = z.object({
   brandColor: z.string().nullable(),
   domain: z.string().nullable(),
   url: z.string().nullable(),
-  type: z.nativeEnum(ProgramType),
   cookieLength: z.number(),
   defaultRewardId: z.string().nullable(),
   defaultDiscountId: z.string().nullable(),
   rewards: z.array(RewardSchema).nullish(),
   holdingPeriodDays: z.number(),
   minPayoutAmount: z.number(),
+  linkStructure: z.nativeEnum(LinkStructure),
+  linkParameter: z.string().nullish(),
 
   // Discounts (for dual-sided incentives)
   discounts: z.array(DiscountSchema).nullish(),
@@ -63,6 +64,7 @@ export const createProgramSchema = z.object({
     .refine((val) => val >= DUB_MIN_PAYOUT_AMOUNT_CENTS, {
       message: "Minimum payout amount must be at least $100",
     }),
+  linkStructure: z.nativeEnum(LinkStructure),
 });
 
 export const ProgramPartnerLinkSchema = LinkSchema.pick({

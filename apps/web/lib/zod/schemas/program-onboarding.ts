@@ -1,4 +1,4 @@
-import { CommissionType } from "@prisma/client";
+import { CommissionType, LinkStructure } from "@dub/prisma/client";
 import { z } from "zod";
 import { maxDurationSchema } from "./misc";
 import { parseUrlSchema } from "./utils";
@@ -9,7 +9,8 @@ export const programInfoSchema = z.object({
   logo: z.string(),
   domain: z.string(),
   url: parseUrlSchema.nullable(),
-  linkType: z.enum(["short", "query", "dynamic"]).default("short"),
+  linkStructure: z.nativeEnum(LinkStructure).default("short"),
+  linkParameter: z.string().nullish(),
 });
 
 // Configure rewards
