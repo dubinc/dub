@@ -34,16 +34,18 @@ export default function LibraryHeader() {
                 {
                   id: "folders",
                   label: "Folders",
+                  href: `/${slug}/settings/library/folders`,
                 },
               ]
             : []),
-          { id: "tags", label: "Tags" },
-          { id: "utm", label: "UTM Templates" },
+          { id: "tags", label: "Tags", href: `/${slug}/settings/library/tags` },
+          {
+            id: "utm",
+            label: "UTM Templates",
+            href: `/${slug}/settings/library/utm-templates`,
+          },
         ]}
         selected={page}
-        onSelect={(id) => {
-          router.push(`/${slug}/settings/library/${id}`);
-        }}
       />
     </div>
   );
