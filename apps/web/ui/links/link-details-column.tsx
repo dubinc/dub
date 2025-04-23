@@ -34,7 +34,6 @@ import {
 import { useShareDashboardModal } from "../modals/share-dashboard-modal";
 import { LinkControls } from "./link-controls";
 import { ResponseLink } from "./links-container";
-import { LinksDisplayContext } from "./links-display-provider";
 import TagBadge from "./tag-badge";
 
 function useOrganizedTags(tags: ResponseLink["tags"]) {
@@ -65,22 +64,22 @@ function useOrganizedTags(tags: ResponseLink["tags"]) {
 export function LinkDetailsColumn({ link }: { link: ResponseLink }) {
   const { tags } = link;
 
-  const { displayProperties } = useContext(LinksDisplayContext);
+  // const { displayProperties } = useContext(LinksDisplayContext);
 
   const ref = useRef<HTMLDivElement>(null);
 
-  const { primaryTag, additionalTags } = useOrganizedTags(tags);
+  // const { primaryTag, additionalTags } = useOrganizedTags(tags);
 
   return (
-    <div ref={ref} className="flex items-center justify-end gap-2 sm:gap-5">
-      {displayProperties.includes("tags") && primaryTag && (
-        <TagsTooltip additionalTags={additionalTags}>
-          <TagButton tag={primaryTag} plus={additionalTags.length} />
-        </TagsTooltip>
-      )}
-      {displayProperties.includes("analytics") && (
-        <AnalyticsBadge link={link} />
-      )}
+    <div ref={ref} className="flex items-center justify-end gap-2">
+      {/*{displayProperties.includes("tags") && primaryTag && (*/}
+      {/*  <TagsTooltip additionalTags={additionalTags}>*/}
+      {/*    <TagButton tag={primaryTag} plus={additionalTags.length} />*/}
+      {/*  </TagsTooltip>*/}
+      {/*)}*/}
+      {/*{displayProperties.includes("analytics") && (*/}
+      <AnalyticsBadge link={link} />
+      {/*)}*/}
       <LinkControls link={link} />
     </div>
   );
@@ -188,13 +187,13 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
   );
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-2">
       <div
         className={cn(
           "ml-2 flex w-[58px] justify-center overflow-hidden rounded-md border border-neutral-200/10",
           "bg-neutral-50 p-0.5 px-1 text-sm text-neutral-600 transition-colors hover:bg-neutral-100",
           link.archived
-            ? "bg-red-100 text-neutral-600"
+            ? "bg-red-100 text-red-600"
             : "bg-green-100 text-neutral-600",
         )}
       >
@@ -210,7 +209,7 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
         </Link>
       ) : (
         <>
-          {/*<ShareDashboardModal />*/}
+          <ShareDashboardModal />
           <Tooltip
             key={modalShowCount}
             side="top"
