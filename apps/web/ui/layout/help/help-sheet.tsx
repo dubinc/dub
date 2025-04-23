@@ -308,7 +308,7 @@ function HelpCard({ icon, title, description, url, onClick }: HelpCardProps) {
       <div className="flex flex-col truncate">
         <h3 className="text-sm font-medium text-neutral-800">{title}</h3>
         {description && (
-          <p className="text-xs text-neutral-600">{description}</p>
+          <p className="truncate text-xs text-neutral-600">{description}</p>
         )}
       </div>
     </button>
