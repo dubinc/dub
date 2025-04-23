@@ -133,82 +133,82 @@ export function ContactForm({
             initial={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
           >
-            <label>
-              <span className="text-sm font-medium text-neutral-700">
-                Describe the issue
-              </span>
-              <TextareaAutosize
-                name="message"
-                required
-                placeholder="E.g. My custom domain is not working."
-                minRows={8}
-                autoFocus={!isMobile}
-                autoComplete="off"
-                value={data.message}
-                onChange={(e) =>
-                  setData((prev) => ({ ...prev, message: e.target.value }))
-                }
-                onKeyDown={handleKeyDown}
-                className={`${
-                  false
-                    ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                    : "border-neutral-300 text-neutral-900 placeholder-neutral-300 focus:border-neutral-500 focus:ring-neutral-500"
-                } mt-1 block w-full resize-none rounded-md focus:outline-none sm:text-sm`}
-              />
-            </label>
+            <div className="space-y-4">
+              <label>
+                <span className="text-sm font-medium text-neutral-700">
+                  Describe the issue
+                </span>
+                <TextareaAutosize
+                  name="message"
+                  required
+                  placeholder="E.g. My custom domain is not working."
+                  minRows={8}
+                  autoFocus={!isMobile}
+                  autoComplete="off"
+                  value={data.message}
+                  onChange={(e) =>
+                    setData((prev) => ({ ...prev, message: e.target.value }))
+                  }
+                  onKeyDown={handleKeyDown}
+                  className={`${
+                    false
+                      ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                      : "border-neutral-300 text-neutral-900 placeholder-neutral-300 focus:border-neutral-500 focus:ring-neutral-500"
+                  } mt-1 block w-full resize-none rounded-md focus:outline-none sm:text-sm`}
+                />
+              </label>
 
-            <div className="grid w-full gap-2">
-              {uploads.map((upload) => (
-                <div
-                  key={upload.attachmentId}
-                  className="flex w-full items-center justify-between rounded-md border border-neutral-200"
-                >
-                  <div className="flex flex-1 items-center space-x-2 p-2">
-                    {upload.uploading ? (
-                      <LoadingSpinner className="h-4 w-4" />
-                    ) : (
-                      <Paperclip className="h-4 w-4 text-neutral-500" />
-                    )}
-                    <p className="text-center text-sm text-neutral-500">
-                      {upload.file.name}
-                    </p>
-                  </div>
-                  <button
-                    className="h-full rounded-r-md border-l border-neutral-200 p-2"
-                    onClick={() => {
-                      setUploads((prev) =>
-                        prev.filter((i) => i.file.name !== upload.file.name),
-                      );
-                      setData((prev) => ({
-                        ...prev,
-                        attachmentIds: prev.attachmentIds.filter(
-                          (id) => id !== upload.attachmentId,
-                        ),
-                      }));
-                    }}
+              <div className="grid w-full gap-2">
+                {uploads.map((upload) => (
+                  <div
+                    key={upload.attachmentId}
+                    className="flex w-full items-center justify-between rounded-md border border-neutral-200"
                   >
-                    <Trash2 className="h-4 w-4 text-neutral-500" />
-                  </button>
-                </div>
-              ))}
-            </div>
-            <FileUpload
-              accept="any"
-              className="aspect-[5/1] w-full rounded-md border border-dashed border-neutral-300"
-              iconClassName="w-5 h-5"
-              variant="plain"
-              onChange={async ({ file }) => await handleUpload(file)}
-              content="Drag and drop or click to upload."
-            />
-
-            <div className="fixed bottom-0 left-0 z-10 flex h-16 w-full items-center justify-center rounded-b-lg bg-white px-3 sm:px-6">
-              <Button
-                className="h-9"
-                disabled={!data.message}
-                loading={formStatus === "loading"}
-                text="Send message"
+                    <div className="flex flex-1 items-center space-x-2 p-2">
+                      {upload.uploading ? (
+                        <LoadingSpinner className="h-4 w-4" />
+                      ) : (
+                        <Paperclip className="h-4 w-4 text-neutral-500" />
+                      )}
+                      <p className="text-center text-sm text-neutral-500">
+                        {upload.file.name}
+                      </p>
+                    </div>
+                    <button
+                      className="h-full rounded-r-md border-l border-neutral-200 p-2"
+                      onClick={() => {
+                        setUploads((prev) =>
+                          prev.filter((i) => i.file.name !== upload.file.name),
+                        );
+                        setData((prev) => ({
+                          ...prev,
+                          attachmentIds: prev.attachmentIds.filter(
+                            (id) => id !== upload.attachmentId,
+                          ),
+                        }));
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4 text-neutral-500" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <FileUpload
+                accept="any"
+                className="aspect-[5/1] w-full rounded-md border border-dashed border-neutral-300"
+                iconClassName="w-5 h-5"
+                variant="plain"
+                onChange={async ({ file }) => await handleUpload(file)}
+                content="Drag and drop or click to upload."
               />
             </div>
+
+            <Button
+              className="mt-4 w-full"
+              disabled={!data.message}
+              loading={formStatus === "loading"}
+              text="Send message"
+            />
           </motion.form>
         )}
       </AnimatePresence>

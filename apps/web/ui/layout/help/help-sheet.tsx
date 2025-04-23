@@ -242,7 +242,7 @@ function HelpSupportSheet({ isOpen, setIsOpen }: HelpSupportSheetProps) {
           </div>
         </div>
 
-        <div className="flex grow flex-col">
+        <div className="flex min-h-0 grow flex-col">
           {screen === "main" ? (
             <div className="grow space-y-6 overflow-y-auto p-6">
               <div className="relative h-[48px]">
@@ -278,7 +278,9 @@ function HelpSupportSheet({ isOpen, setIsOpen }: HelpSupportSheetProps) {
               )}
             </div>
           ) : (
-            <ContactForm setScreen={setScreen} />
+            <div className="flex grow flex-col overflow-y-auto">
+              <ContactForm setScreen={setScreen} />
+            </div>
           )}
         </div>
 
