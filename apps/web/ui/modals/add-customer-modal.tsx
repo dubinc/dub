@@ -97,7 +97,8 @@ const AddCustomerModal = ({
                 {...register("externalId", { required: true })}
               />
               <p className="mt-2 text-xs text-neutral-500">
-                This is the customer's unique database ID (or email if no ID)
+                The customer's unique ID in your database (can also be their
+                email)
               </p>
             </div>
 

@@ -1,24 +1,23 @@
 import { createCommissionAction } from "@/lib/actions/partners/create-commission";
 import { handleMoneyInputChange } from "@/lib/form-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
-import usePartners from "@/lib/swr/use-partners";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { createCommissionSchema } from "@/lib/zod/schemas/commissions";
 import { CustomerSelector } from "@/ui/customers/customer-selector";
 import { PartnerLinkSelector } from "@/ui/partners/partner-link-selector";
+import { PartnerSelector } from "@/ui/partners/partner-selector";
 import { X } from "@/ui/shared/icons";
 import {
   AnimatedSizeContainer,
   Button,
-  Combobox,
   Sheet,
   SmartDateTimePicker,
   Switch,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -33,7 +32,6 @@ function CreateCommissionSheetContent({
   setIsOpen,
 }: CreateCommissionSheetProps) {
   const { program } = useProgram();
-  const { partners } = usePartners();
   const { id: workspaceId } = useWorkspace();
   const [hasInvoiceId, setHasInvoiceId] = useState(false);
   const [hasCustomLeadEventDate, setHasCustomLeadEventDate] = useState(false);
@@ -60,21 +58,6 @@ function CreateCommissionSheetContent({
       setValue("leadEventDate", null);
     }
   }, [hasCustomLeadEventDate, setValue]);
-
-  const partnerOptions = useMemo(() => {
-    return partners?.map((partner) => ({
-      value: partner.id,
-      label: partner.name,
-      icon: (
-        <img
-          src={
-            partner.image || `https://api.dub.co/og/avatar?seed=${partner.id}`
-          }
-          className="size-4 rounded-full"
-        />
-      ),
-    }));
-  }, [partners]);
 
   const { executeAsync, isPending } = useAction(createCommissionAction, {
     onSuccess: async () => {
@@ -138,26 +121,10 @@ function CreateCommissionSheetContent({
                 </h2>
               </label>
               <div className="relative mt-2 rounded-md shadow-sm">
-                <Combobox
-                  selected={
-                    partnerOptions?.find((o) => o.value === partnerId) ?? null
-                  }
-                  setSelected={(option) => {
-                    if (option) {
-                      setValue("partnerId", option.value);
-                    }
-                  }}
-                  options={partnerOptions}
-                  caret={true}
-                  placeholder="Select partner"
-                  searchPlaceholder="Search partner..."
-                  matchTriggerWidth
-                  buttonProps={{
-                    className: cn(
-                      "w-full justify-start border-neutral-300 px-3",
-                      "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
-                      "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
-                    ),
+                <PartnerSelector
+                  selectedPartnerId={partnerId}
+                  setSelectedPartnerId={(id) => {
+                    setValue("partnerId", id);
                   }}
                 />
               </div>
