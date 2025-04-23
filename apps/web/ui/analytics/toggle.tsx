@@ -147,7 +147,7 @@ export default function Toggle({
         foldersAsync && selectedFilter === "folderId" ? debouncedSearch : "",
     },
   });
-  const { customers, loading: loadingCustomers } = useCustomers({
+  const { customers } = useCustomers({
     query: {
       search:
         customersAsync && selectedFilter === "customerId"

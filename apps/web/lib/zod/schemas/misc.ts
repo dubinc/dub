@@ -49,3 +49,29 @@ export const maxDurationSchema = z.coerce
     message: `Max duration must be ${RECURRING_MAX_DURATIONS.join(", ")}`,
   })
   .nullish();
+
+// Base64 encoded image
+export const base64ImageSchema = z
+  .string()
+  .regex(/^data:image\/(png|jpeg|jpg|gif|webp);base64,/, {
+    message:
+      "Invalid image format. Must be a base64 encoded image with valid image type (png, jpeg, jpg, gif, webp).",
+  })
+  .refine(
+    (str) => {
+      const base64Data = str.split(",")[1];
+
+      if (!base64Data) {
+        return false;
+      }
+
+      return /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(
+        base64Data,
+      );
+    },
+    {
+      message:
+        "Invalid base64 content. The image data is not properly base64 encoded.",
+    },
+  )
+  .transform((v) => v || null);

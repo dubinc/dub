@@ -24,6 +24,8 @@ import { toast } from "sonner";
 export function Form() {
   const router = useRouter();
   const { isMobile } = useMediaQuery();
+  const [isUploading, setIsUploading] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
   const { activeWorkspaceDomains, loading } = useDomains();
   const { id: workspaceId, slug: workspaceSlug, mutate } = useWorkspace();
 
@@ -35,8 +37,6 @@ export function Form() {
     setValue,
     formState: { isSubmitting },
   } = useFormContext<ProgramData>();
-
-  const [hasSubmitted, setHasSubmitted] = useState(false);
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
@@ -59,8 +59,6 @@ export function Form() {
       step: "get-started",
     });
   };
-
-  const [isUploading, setIsUploading] = useState(false);
 
   // Handle logo upload
   const handleUpload = async (file: File) => {
@@ -111,8 +109,11 @@ export function Form() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
       <div>
         <label className="block text-sm font-medium text-neutral-800">
-          Program name
+          Company name
         </label>
+        <p className="mb-4 mt-1 text-sm text-neutral-600">
+          The name of the company you're setting up the program for
+        </p>
         <Input
           {...register("name", { required: true })}
           placeholder="Acme"

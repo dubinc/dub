@@ -47,3 +47,16 @@ export const getCommissionsCountQuerySchema = getCommissionsQuerySchema.omit({
   sortOrder: true,
   sortBy: true,
 });
+
+export const createCommissionSchema = z.object({
+  workspaceId: z.string(),
+  programId: z.string(),
+  partnerId: z.string(),
+  linkId: z.string(),
+  customerId: z.string(),
+  saleEventDate: parseDateSchema.nullish(),
+  saleAmount: z.number().min(0).nullish(),
+  invoiceId: z.string().nullish(),
+  leadEventDate: parseDateSchema.nullish(),
+  leadEventName: z.string().nullish(),
+});
