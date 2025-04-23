@@ -19,6 +19,7 @@ export const createPartnerCommission = async ({
   amount = 0,
   quantity,
   currency,
+  createdAt,
 }: {
   // we optionally let the caller pass in a reward to avoid a db call
   // (e.g. in aggregate-clicks route)
@@ -33,6 +34,7 @@ export const createPartnerCommission = async ({
   amount?: number;
   quantity: number;
   currency?: string;
+  createdAt?: Date;
 }) => {
   if (!reward) {
     reward = await determinePartnerReward({
@@ -115,6 +117,7 @@ export const createPartnerCommission = async ({
         earnings: true,
       },
     });
+
     const totalEarnings = totalRewards._sum.earnings || 0;
     if (totalEarnings >= reward.maxAmount) {
       console.log(
@@ -122,6 +125,7 @@ export const createPartnerCommission = async ({
       );
       return;
     }
+
     const remainingRewardAmount = reward.maxAmount - totalEarnings;
     earnings = Math.max(0, Math.min(earnings, remainingRewardAmount));
   }
@@ -141,6 +145,7 @@ export const createPartnerCommission = async ({
         type: event,
         currency,
         earnings,
+        createdAt,
       },
     });
 
