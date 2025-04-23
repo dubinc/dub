@@ -23,7 +23,6 @@ export function FormWrapper({ children }: { children: React.ReactNode }) {
           ...programOnboarding,
           linkStructure: programOnboarding.linkStructure ?? "short",
           defaultRewardType: programOnboarding.defaultRewardType ?? "sale",
-          linkType: programOnboarding.linkType ?? "short",
           programType: programOnboarding.programType ?? "new",
           type: programOnboarding.type ?? "percentage",
           amount: programOnboarding.amount ?? null,

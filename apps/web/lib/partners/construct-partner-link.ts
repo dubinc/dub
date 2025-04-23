@@ -12,10 +12,6 @@ export function constructPartnerLink({
 }) {
   const { domain, url, linkStructure, linkParameter } = program;
 
-  if (linkStructure === "short") {
-    return `${domain}/${linkKey}`;
-  }
-
   if (linkStructure === "query") {
     return `${url}?${linkParameter ?? "via"}=${linkKey}`;
   }
@@ -24,5 +20,5 @@ export function constructPartnerLink({
     return `${url}/${linkParameter ?? "refer"}/${linkKey}`;
   }
 
-  return null;
+  return `https://${domain}/${linkKey}`;
 }

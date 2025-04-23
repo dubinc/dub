@@ -5,6 +5,7 @@ import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { IntervalOptions } from "@/lib/analytics/types";
 import { useSyncedLocalStorage } from "@/lib/hooks/use-synced-local-storage";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
+import { QueryLinkStructureHelpText } from "@/lib/partners/query-link-structure-help-text";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-timeseries";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
@@ -14,7 +15,6 @@ import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   Button,
   buttonVariants,
-  CopyText,
   MaxWidthWrapper,
   useCopyToClipboard,
   useRouterStuff,
@@ -27,13 +27,7 @@ import {
   XAxis,
 } from "@dub/ui/charts";
 import { Check, Copy, LoadingSpinner } from "@dub/ui/icons";
-import {
-  cn,
-  currencyFormatter,
-  getDomainWithoutWWW,
-  getPrettyUrl,
-  nFormatter,
-} from "@dub/utils";
+import { cn, currencyFormatter, getPrettyUrl, nFormatter } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import { LinearGradient } from "@visx/gradient";
 import { AnimatePresence, motion } from "framer-motion";
@@ -161,30 +155,12 @@ export default function ProgramPageClient() {
                 />
               </div>
 
-              {program.url &&
-                program.linkStructure === "query" &&
-                (() => {
-                  const appendValue = `?${program.linkParameter ?? "via"}=${defaultProgramLink.key}`;
-                  return (
-                    <p className="mt-1.5 text-sm text-neutral-500">
-                      Link to any page on{" "}
-                      <a
-                        href={program.url}
-                        className="cursor-alias text-neutral-700 decoration-dotted underline-offset-2 hover:underline"
-                      >
-                        {getDomainWithoutWWW(program.url)}
-                      </a>{" "}
-                      by adding{" "}
-                      <CopyText
-                        value={appendValue}
-                        className="font-mono text-neutral-700"
-                      >
-                        {appendValue}
-                      </CopyText>{" "}
-                      to the URL
-                    </p>
-                  );
-                })()}
+              {program.linkStructure === "query" && (
+                <QueryLinkStructureHelpText
+                  program={program}
+                  linkKey={defaultProgramLink.key}
+                />
+              )}
 
               <span className="mt-12 text-base font-semibold text-neutral-800">
                 Rewards
