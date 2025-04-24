@@ -32,13 +32,17 @@ export function PayoutStatsAndSettings() {
           <div className="p-1">
             <div className="text-sm text-neutral-500">Upcoming payouts</div>
           </div>
-          <ConnectPayoutButton
-            text={
-              partner?.payoutsEnabledAt ? "Payout settings" : "Connect payouts"
-            }
-            className="h-8 w-fit px-3"
-            variant={partner?.payoutsEnabledAt ? "secondary" : "primary"}
-          />
+          {partner && !partner.payoutsEnabledAt && (
+            <ConnectPayoutButton
+              text={`Connect ${
+                partner?.supportedPayoutMethod === "stripe"
+                  ? "Stripe"
+                  : "PayPal"
+              }`}
+              className="h-8 w-fit px-3"
+              variant="primary"
+            />
+          )}
         </div>
         <div className="flex items-end justify-between gap-5">
           <div className="mt-2 flex items-center gap-2">

@@ -31,7 +31,7 @@ export const GET = async (req: Request) => {
       throw new DubApiError({
         code: "unauthorized",
         message:
-          "Unauthorized. You must be logged in https://partners.dub.co/ to continue.",
+          "Unauthorized. You must be logged in https://partners.dub.co to continue.",
       });
     }
 
@@ -99,5 +99,5 @@ export const GET = async (req: Request) => {
     return handleAndReturnErrorResponse(e);
   }
 
-  redirect("/programs");
+  redirect("/settings/payouts");
 };

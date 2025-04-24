@@ -85,7 +85,7 @@ export const PayoutStats = memo(() => {
         {partner && !partner.payoutsEnabledAt && (
           <ConnectPayoutButton
             className="mt-4 h-9 w-full"
-            text="Connect payouts"
+            text={`Connect ${partner.supportedPayoutMethod === "stripe" ? "Stripe" : "PayPal"}`}
           />
         )}
       </div>
