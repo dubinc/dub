@@ -44,6 +44,9 @@ const config: Pick<Config, "presets"> = {
               300: "#C0C0C0",
               400: "#F5F5F5",
             },
+            background: {
+              DEFAULT: "#FAFAFA",
+            },
           },
           backgroundImage: {
             "qr-gradient":

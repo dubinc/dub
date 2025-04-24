@@ -1,7 +1,7 @@
 import { StylePicker } from "app/app.dub.co/(dashboard)/[slug]/new-qr/customization/components/style-picker";
-import { SUGGESTED_LOGOS } from "app/app.dub.co/(dashboard)/[slug]/new-qr/customization/constants";
 import { FC } from "react";
 import { FileCardContent } from "../../../../../../../(dashboard)/[slug]/new-qr/content/components/file-card-content.tsx";
+import { SUGGESTED_LOGOS } from "../../../../../../../(dashboard)/[slug]/new-qr/customization/constants/logos.ts";
 import { EQRType } from "../../../../../constants/get-qr-config.ts";
 
 interface ILogoSelectorProps {
@@ -36,7 +36,7 @@ export const LogoSelector: FC<ILogoSelectorProps> = ({
           isQrDisabled ? "pointer-events-none cursor-not-allowed" : ""
         }`}
         stylePickerWrapperClassName="[&_label]:text-sm"
-        styleButtonClassName="[&_img]:h-5 [&_img]:w-5 p-3.5"
+        styleButtonClassName="[&_img]:h-10 [&_img]:w-10 p-2"
       />
       <FileCardContent
         qrType={EQRType.IMAGE}

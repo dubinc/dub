@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { StylePicker } from "../../../../../../../(dashboard)/[slug]/new-qr/customization/components/style-picker.tsx";
-import { FRAMES } from "../../../../../../../(dashboard)/[slug]/new-qr/customization/constants.ts";
+import { FRAMES } from "../../../../../../../(dashboard)/[slug]/new-qr/customization/constants/frames.ts";
 
 interface IFrameSelectorProps {
   selectedSuggestedFrame: string;

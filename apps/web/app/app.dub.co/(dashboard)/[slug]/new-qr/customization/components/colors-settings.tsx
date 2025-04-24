@@ -1,6 +1,10 @@
 import { Options } from "qr-code-styling";
 import { FC, useState } from "react";
-import { BLACK_COLOR, TRANSPARENT_COLOR, WHITE_COLOR } from "../constants.ts";
+import {
+  BLACK_COLOR,
+  TRANSPARENT_COLOR,
+  WHITE_COLOR,
+} from "../constants/colors.ts";
 import { isValidHex } from "../utils.ts";
 import { BackgroundSettings } from "./background-settings.tsx";
 import { ColorPickerInput } from "./color-picker.tsx";

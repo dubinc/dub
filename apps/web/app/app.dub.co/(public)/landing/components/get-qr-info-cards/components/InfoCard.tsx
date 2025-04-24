@@ -20,7 +20,6 @@ export const InfoCard: FC<IGetInfoCardProps> = ({
           justify="center"
           className="bg-border-100 relative h-[140px] w-full max-w-[342px] flex-shrink-0 overflow-hidden rounded-lg [&>img]:w-[140px] [&>img]:self-end"
         >
-          <Box className="to-border-300 from-border-100 absolute bottom-0 left-1/2 h-[140px] w-[342px] -translate-x-1/2 rounded-[99px] bg-gradient-to-b opacity-50 blur-[80px]"></Box>
           {img}
         </Flex>
         <Flex gap="2" align="center" className="w-full flex-row">

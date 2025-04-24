@@ -4,7 +4,7 @@ import { StylePicker } from "../../../../../../../(dashboard)/[slug]/new-qr/cust
 import {
   BORDER_STYLES,
   CENTER_STYLES,
-} from "../../../../../../../(dashboard)/[slug]/new-qr/customization/constants.ts";
+} from "../../../../../../../(dashboard)/[slug]/new-qr/customization/constants/styles.ts";
 
 interface IShapeSelectorProps {
   options: Options;
