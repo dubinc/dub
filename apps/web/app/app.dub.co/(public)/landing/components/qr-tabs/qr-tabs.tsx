@@ -91,6 +91,7 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
 
             {stepActiveTab === "content" && (
               <Tabs.Content
+                key={QR_GENERATION_STEPS[0].id}
                 value={QR_GENERATION_STEPS[0].id}
                 className="align-center flex w-full flex-col justify-center gap-6"
               >
@@ -122,6 +123,7 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
             )}
             {stepActiveTab === "design" && (
               <Tabs.Content
+                key={QR_GENERATION_STEPS[1].id}
                 className="flex w-full flex-col items-start justify-start gap-4"
                 value={QR_GENERATION_STEPS[1].id}
               >
@@ -146,9 +148,9 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
             ref={ref}
             value={activeTab}
             onValueChange={setActiveTab as (value: string) => void}
-            className="mx-auto flex w-full flex-col items-center justify-center gap-[18px] rounded-lg bg-white p-4 md:rounded-none md:bg-transparent"
+            className="border-border-500 mx-auto flex w-full flex-col items-center justify-center gap-[18px] rounded-lg border bg-white"
           >
-            <Tabs.List className="flex w-full items-center justify-between gap-0.5 overflow-x-auto rounded-lg bg-white p-3">
+            <Tabs.List className="border-b-border-500 flex w-full items-center justify-between gap-0.5 overflow-x-auto border-b p-3">
               {nonFileQrTypes.map((type, idx) => (
                 <Tabs.Trigger
                   key={type.id}
@@ -188,7 +190,7 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
                 >
                   <div
                     className={cn(
-                      "flex h-full w-full flex-row items-stretch justify-between gap-8 rounded-lg bg-white p-4",
+                      "flex h-full w-full flex-row items-stretch justify-between gap-8 p-4",
                     )}
                   >
                     <div className="flex basis-3/5 flex-col justify-start gap-2">
