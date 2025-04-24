@@ -1,20 +1,23 @@
-"use client";
-
 import QrCodeIcon from "@/ui/landing/assets/svg/qr-code.svg";
 import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Icon } from "@iconify/react";
 import * as ScrollArea from "@radix-ui/react-scroll-area";
 import * as Tabs from "@radix-ui/react-tabs";
-import { Button, Text } from "@radix-ui/themes";
+import { Button, Heading, Text } from "@radix-ui/themes";
 import Image from "next/image";
-import Link from "next/link";
-import { useState } from "react";
+import { FC, useState } from "react";
 import { QR_TYPES } from "../../constants/get-qr-config.ts";
 import { QrTabsDetailedImage } from "./components/qr-tabs-detailed-image.tsx";
 import { QrTabsDetailedTitle } from "./components/qr-tabs-detailed-title.tsx";
 
-export const QrTabsDetailed = () => {
+interface IQrTabsDetailedProps {
+  scrollToQRGenerationBlock: () => void;
+}
+
+export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
+  scrollToQRGenerationBlock,
+}) => {
   const { isMobile } = useMediaQuery();
 
   const [activeTab, setActiveTab] = useState<string>("website");
@@ -25,8 +28,8 @@ export const QrTabsDetailed = () => {
         <div className="flex flex-col items-center justify-center gap-4 md:gap-6">
           <QrTabsDetailedTitle />
           <Text
-            align={{ sm: "left", md: "center" }}
-            size="5"
+            align={{ initial: "left", md: "center" }}
+            size={{ initial: "4", md: "5" }}
             className="text-neutral-300"
           >
             From websites and social media to PDFs, business cards, and Wi-Fi
@@ -92,35 +95,43 @@ export const QrTabsDetailed = () => {
               >
                 <div className="flex w-full flex-col items-center justify-start gap-[14px] rounded-lg md:flex-row md:gap-8">
                   <div className="bg-border-100 relative h-[413px] w-full max-w-[534px] flex-shrink-0 overflow-hidden rounded-lg">
-                    <div className="to-border-300 from-border-100 absolute bottom-[23px] left-1/2 h-[328px] w-[314px] -translate-x-1/2 rounded-[99px] bg-gradient-to-b opacity-50 blur-[80px]"></div>
                     <QrTabsDetailedImage
                       imgSrc={type.img}
                       {...(!isMobile && { width: 270, height: 420 })}
                       className={idx === 1 ? "top-[61.5%] md:top-[57%]" : ""}
                     />
                   </div>
-                  <div className="flex max-w-[520px] flex-col items-start justify-start gap-3 md:gap-[18px]">
+                  <div className="flex max-w-[520px] flex-col items-start justify-start gap-3 md:gap-4">
                     <div className="flex flex-col items-start justify-start gap-2 md:gap-3">
-                      <h3 className="text-neutral text-left text-base font-semibold md:text-lg">
-                        {type.label}
-                      </h3>
-                      <p className="text-left text-sm text-neutral-300 md:text-base">
-                        {type.content}
-                      </p>
-                    </div>
-                    <Button size={"3"} color={"blue"} variant="solid">
-                      <Link
-                        href="/register"
-                        className="flex flex-row items-center justify-center gap-2"
+                      <Heading
+                        as="h3"
+                        size="4"
+                        align="left"
+                        weight="medium"
+                        className="text-neutral"
                       >
+                        {type.label}
+                      </Heading>
+                      <Text size="3" align="left" className="text-neutral-300">
+                        {type.content}
+                      </Text>
+                    </div>
+                    <Button
+                      className="flex w-full flex-row items-center justify-center gap-2"
+                      size={{ initial: "4", md: "3" }}
+                      color={"blue"}
+                      variant="solid"
+                      onClick={scrollToQRGenerationBlock}
+                    >
+                      <Text size={{ initial: "3", md: "4" }}>
                         Create QR code
-                        <Image
-                          width={20}
-                          src={QrCodeIcon}
-                          alt="QR Code"
-                          priority
-                        />
-                      </Link>
+                      </Text>
+                      <Image
+                        width={20}
+                        src={QrCodeIcon}
+                        alt="QR Code"
+                        priority
+                      />
                     </Button>
                   </div>
                 </div>

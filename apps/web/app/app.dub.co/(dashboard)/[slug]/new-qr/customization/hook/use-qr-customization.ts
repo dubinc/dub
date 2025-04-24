@@ -7,10 +7,10 @@ import { DotType } from "qr-code-styling/lib/types";
 import { useEffect, useState } from "react";
 import {
   BLACK_COLOR,
-  FRAMES,
   TRANSPARENT_COLOR,
   WHITE_COLOR,
-} from "../constants.ts";
+} from "../constants/colors.ts";
+import { FRAMES } from "../constants/frames.ts";
 import { convertSvgUrlToBase64 } from "../utils.ts";
 
 export function useQrCustomization() {

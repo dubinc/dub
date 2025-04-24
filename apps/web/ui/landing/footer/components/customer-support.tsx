@@ -12,12 +12,13 @@ export const CustomerSupport = () => (
       How to Cancel
     </Link>
     <Link
-      className="mt-3 flex h-[44px] w-full items-center justify-center gap-2.5 rounded-full border border-black px-6 py-2.5 text-base font-medium"
+      className="my-3 flex h-[44px] w-full items-center justify-center gap-3 rounded-full border border-black px-4 py-2 text-sm font-medium"
       href="https://hint.app/help"
       target="_blank"
     >
       <HelpPhone className="h-6 w-6" />
-      Customer Support
+      Customer Support <br />
+      24/7/365
     </Link>
   </div>
 );

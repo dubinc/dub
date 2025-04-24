@@ -19,14 +19,16 @@ import { QRPreview } from "./components/qr-review.tsx";
 import { StylePicker } from "./components/style-picker.tsx";
 import {
   BLACK_COLOR,
+  TRANSPARENT_COLOR,
+  WHITE_COLOR,
+} from "./constants/colors.ts";
+import { FRAMES } from "./constants/frames.ts";
+import { SUGGESTED_LOGOS } from "./constants/logos.ts";
+import {
   BORDER_STYLES,
   CENTER_STYLES,
   DOTS_STYLES,
-  FRAMES,
-  SUGGESTED_LOGOS,
-  TRANSPARENT_COLOR,
-  WHITE_COLOR,
-} from "./constants.ts";
+} from "./constants/styles.ts";
 import { convertSvgUrlToBase64 } from "./utils.ts";
 
 export default function NewQRCustomization() {

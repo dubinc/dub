@@ -135,3 +135,14 @@ export const QR_STYLES_OPTIONS = [
     label: "Logo",
   },
 ];
+
+export const QR_GENERATION_STEPS = [
+  {
+    id: "content",
+    label: "Content",
+  },
+  {
+    id: "design",
+    label: "Design",
+  },
+];

@@ -1,4 +1,4 @@
-import { SHORT_WHITE_COLOR, WHITE_COLOR } from "./constants.ts";
+import { SHORT_WHITE_COLOR, WHITE_COLOR } from "./constants/colors.ts";
 
 export const convertSvgUrlToBase64 = async (url: string): Promise<string> => {
   const response = await fetch(url);
