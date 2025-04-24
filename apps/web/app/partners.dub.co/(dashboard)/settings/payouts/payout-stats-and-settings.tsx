@@ -3,10 +3,8 @@
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PayoutsCount } from "@/lib/types";
-import {
-  ConnectPayoutButton,
-  PayoutMethodsDropdown,
-} from "@/ui/partners/connect-payout-button";
+import { ConnectPayoutButton } from "@/ui/partners/connect-payout-button";
+import { PayoutMethodsDropdown } from "@/ui/partners/payout-methods-dropdown";
 import { AlertCircleFill } from "@/ui/shared/icons";
 import { PayoutStatus } from "@dub/prisma/client";
 import { Tooltip } from "@dub/ui";
