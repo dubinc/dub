@@ -29,7 +29,12 @@ type Tab = {
 
 export default function CommissionsPageClient() {
   const { queryParams, getQueryString, searchParamsObj } = useRouterStuff();
-  const { tab: selectedTab, interval, start, end } = searchParamsObj;
+  const {
+    tab: selectedTab = "commissions",
+    interval,
+    start,
+    end,
+  } = searchParamsObj;
 
   const { data: { programs, timeseries } = {}, isLoading } = useSWR<{
     programs: {
