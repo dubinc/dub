@@ -9,11 +9,14 @@ import { useParams } from "next/navigation";
 export function PartnerRowItem({
   partner,
   showPayoutsEnabled = true,
+  showPermalink = true,
 }: {
   partner: Pick<PartnerProps, "id" | "name" | "image" | "payoutsEnabledAt">;
   showPayoutsEnabled?: boolean;
+  showPermalink?: boolean;
 }) {
   const { slug, programId } = useParams();
+  const As = showPermalink ? Link : "div";
 
   return (
     <div className="flex items-center gap-2">
@@ -66,14 +69,17 @@ export function PartnerRowItem({
           className="size-5 shrink-0 rounded-full"
         />
       )}
-      <Link
+      <As
         href={`/${slug}/programs/${programId}/partners?partnerId=${partner.id}`}
-        target="_blank"
-        className="min-w-0 cursor-alias truncate decoration-dotted hover:underline"
+        {...(showPermalink && { target: "_blank" })}
+        className={cn(
+          "min-w-0 truncate",
+          showPermalink && "cursor-alias decoration-dotted hover:underline",
+        )}
         title={partner.name}
       >
         {partner.name}
-      </Link>
+      </As>
     </div>
   );
 }
