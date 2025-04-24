@@ -1,21 +1,20 @@
 "use client";
 
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
-import { getLinkStructureOptions } from "@/lib/partners/get-link-structure-options";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramData } from "@/lib/types";
 import { DomainSelector } from "@/ui/domains/domain-selector";
 import {
-  Badge,
   Button,
-  CircleCheckFill,
   FileUpload,
   InfoTooltip,
   Input,
+  LinkLogo,
   SimpleTooltipContent,
   useMediaQuery,
 } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { ArrowTurnRight2 } from "@dub/ui/icons";
+import { getApexDomain } from "@dub/utils";
 import { Plus } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
@@ -208,14 +207,42 @@ export function Form() {
       </div>
 
       <div className="space-y-6">
-        <div className="space-y-1">
-          <h2 className="text-base font-medium text-neutral-900">Link type</h2>
-          <p className="text-sm font-normal text-neutral-600">
-            Set how the link shows up in the partner portal
-          </p>
+        <h2 className="text-base font-medium text-neutral-900">
+          Partner preview
+        </h2>
+
+        <div className="rounded-2xl bg-neutral-50 p-2">
+          <div className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-white p-4">
+            <div className="relative flex shrink-0 items-center">
+              <div className="absolute inset-0 rounded-full border border-neutral-200">
+                <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-neutral-100" />
+              </div>
+              <div className="relative z-10 p-2">
+                <LinkLogo
+                  apexDomain={getApexDomain(url || "https://dub.co")}
+                  className="size-4"
+                  imageProps={{
+                    loading: "lazy",
+                  }}
+                />
+              </div>
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-sm font-medium text-neutral-700">
+                {domain
+                  ? `${domain}/${name?.toLowerCase().replace(/\s/g, "")}`
+                  : "refer.acme.co/steven"}
+              </div>
+              <div className="flex items-center gap-1 text-sm text-neutral-500">
+                <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-neutral-400" />
+                <span className="truncate">{url || "acme.co"}</span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="flex flex-col gap-3">
+        {/* <div className="flex flex-col gap-3">
           {getLinkStructureOptions({
             domain,
             url,
@@ -268,7 +295,7 @@ export function Form() {
               </label>
             );
           })}
-        </div>
+        </div> */}
       </div>
 
       <Button
