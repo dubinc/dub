@@ -9,7 +9,6 @@ import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { createCommissionSchema } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
-import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
 export const createCommissionAction = authActionClient
@@ -191,27 +190,22 @@ export const createCommissionAction = authActionClient
     }
 
     // Update link stats
-    waitUntil(
-      prisma.link.update({
-        where: {
-          id: linkId,
+    await prisma.link.update({
+      where: {
+        id: linkId,
+      },
+      data: {
+        leads: {
+          increment: 1,
         },
-        data: {
-          clicks: {
+        ...(shouldRecordSale && {
+          sales: {
             increment: 1,
           },
-          leads: {
-            increment: 1,
+          saleAmount: {
+            increment: saleAmount,
           },
-          ...(shouldRecordSale && {
-            sales: {
-              increment: 1,
-            },
-            saleAmount: {
-              increment: saleAmount,
-            },
-          }),
-        },
-      }),
-    );
+        }),
+      },
+    });
   });
