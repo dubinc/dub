@@ -22,7 +22,7 @@ export const LogoSelector: FC<ILogoSelectorProps> = ({
   isMobile,
 }) => {
   return (
-    <div className="border-border-500 flex max-w-[680px] flex-col gap-4 rounded-lg border p-3">
+    <div className="border-border-500 flex max-w-[540px] flex-col gap-4 rounded-lg border p-3">
       <StylePicker
         label="Select a logo"
         styleOptions={SUGGESTED_LOGOS}
