@@ -1,10 +1,10 @@
 import { Suspense } from "react";
-import PayoutsPageClient from "./client";
+import CommissionsPageClient from "./client";
 
-export default async function PayoutsPage() {
+export default async function CommissionsPage() {
   return (
     <Suspense>
-      <PayoutsPageClient />
+      <CommissionsPageClient />
     </Suspense>
   );
 }
