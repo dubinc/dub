@@ -6,7 +6,7 @@ export const CustomerSupport = () => (
     <p className="mb-4 text-lg font-semibold">Customer Support</p>
     <Link
       className="text-neutral text-base font-medium"
-      href={`/cancel-my-subscription`}
+      href="/help/cancel-my-subscription"
       target="_blank"
     >
       How to Cancel
