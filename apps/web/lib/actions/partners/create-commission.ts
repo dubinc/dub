@@ -9,6 +9,7 @@ import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { createCommissionSchema } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
 export const createCommissionAction = authActionClient
@@ -113,43 +114,46 @@ export const createCommissionAction = authActionClient
     });
 
     const leadEventId = nanoid(16);
+    const shouldUpdateCustomer = !customer.linkId && clickData;
 
-    await recordLeadWithTimestamp({
-      ...clickEvent,
-      event_id: leadEventId,
-      event_name: leadEventName || "Sign up",
-      customer_id: customerId,
-      timestamp: new Date(finalLeadEventDate).toISOString(),
-    });
+    await Promise.all([
+      recordLeadWithTimestamp({
+        ...clickEvent,
+        event_id: leadEventId,
+        event_name: leadEventName || "Sign up",
+        customer_id: customerId,
+        timestamp: new Date(finalLeadEventDate).toISOString(),
+      }),
 
-    if (!customer.linkId && clickData) {
-      await prisma.customer.update({
-        where: {
-          id: customerId,
-        },
-        data: {
-          linkId,
-          clickId: clickData.click_id,
-          clickedAt: clickData.timestamp,
-        },
-      });
-    }
+      createPartnerCommission({
+        event: "lead",
+        programId,
+        partnerId,
+        linkId,
+        eventId: leadEventId,
+        customerId,
+        amount: 0,
+        quantity: 1,
+        createdAt: finalLeadEventDate,
+      }),
 
-    await createPartnerCommission({
-      event: "lead",
-      programId,
-      partnerId,
-      linkId,
-      eventId: leadEventId,
-      customerId,
-      amount: 0,
-      quantity: 1,
-      createdAt: finalLeadEventDate,
-    });
+      shouldUpdateCustomer &&
+        prisma.customer.update({
+          where: {
+            id: customerId,
+          },
+          data: {
+            linkId,
+            clickId: clickData.click_id,
+            clickedAt: clickData.timestamp,
+          },
+        }),
+    ]);
 
     // Record sale
-    const toRecordSale = saleAmount && saleEventDate;
-    if (toRecordSale) {
+    const shouldRecordSale = saleAmount && saleEventDate;
+
+    if (shouldRecordSale) {
       const clickEvent = clickEventSchemaTB.parse({
         ...clickData,
         bot: 0,
@@ -158,52 +162,56 @@ export const createCommissionAction = authActionClient
 
       const saleEventId = nanoid(16);
 
-      await recordSaleWithTimestamp({
-        ...clickEvent,
-        event_id: saleEventId,
-        event_name: "Purchase",
-        amount: saleAmount,
-        customer_id: customerId,
-        payment_processor: "custom",
-        currency: "usd",
-        timestamp: new Date(saleEventDate).toISOString(),
-      });
+      await Promise.all([
+        recordSaleWithTimestamp({
+          ...clickEvent,
+          event_id: saleEventId,
+          event_name: "Purchase",
+          amount: saleAmount,
+          customer_id: customerId,
+          payment_processor: "custom",
+          currency: "usd",
+          timestamp: new Date(saleEventDate).toISOString(),
+        }),
 
-      await createPartnerCommission({
-        event: "sale",
-        programId,
-        partnerId,
-        linkId,
-        eventId: saleEventId,
-        customerId,
-        amount: saleAmount,
-        quantity: 1,
-        invoiceId,
-        currency: "usd",
-        createdAt: saleEventDate,
-      });
+        createPartnerCommission({
+          event: "sale",
+          programId,
+          partnerId,
+          linkId,
+          eventId: saleEventId,
+          customerId,
+          amount: saleAmount,
+          quantity: 1,
+          invoiceId,
+          currency: "usd",
+          createdAt: saleEventDate,
+        }),
+      ]);
     }
 
     // Update link stats
-    await prisma.link.update({
-      where: {
-        id: linkId,
-      },
-      data: {
-        clicks: {
-          increment: 1,
+    waitUntil(
+      prisma.link.update({
+        where: {
+          id: linkId,
         },
-        leads: {
-          increment: 1,
-        },
-        ...(toRecordSale && {
-          sales: {
+        data: {
+          clicks: {
             increment: 1,
           },
-          saleAmount: {
-            increment: saleAmount,
+          leads: {
+            increment: 1,
           },
-        }),
-      },
-    });
+          ...(shouldRecordSale && {
+            sales: {
+              increment: 1,
+            },
+            saleAmount: {
+              increment: saleAmount,
+            },
+          }),
+        },
+      }),
+    );
   });
