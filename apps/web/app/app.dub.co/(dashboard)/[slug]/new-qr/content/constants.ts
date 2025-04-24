@@ -16,14 +16,15 @@ export const QR_CONTENT_CONFIG: Record<
 > = {
   [EQRType.WEBSITE]: [
     {
-      id: `${EQRType.WEBSITE}-qr-name`,
+      id: `qrName`,
       label: "Enter Name of your QR Code",
       type: "text",
       isInputOnFocus: true,
       placeholder: "Name of your QR Code",
+      isNotRequired: true,
     },
     {
-      id: `${EQRType.WEBSITE}-website-link`,
+      id: `websiteLink`,
       label: "Enter your website",
       type: "url",
       placeholder: "https://www.getqr.com/",
@@ -31,14 +32,15 @@ export const QR_CONTENT_CONFIG: Record<
   ],
   [EQRType.APP_LINK]: [
     {
-      id: `${EQRType.APP_LINK}-qr-name`,
+      id: `qrName`,
       label: "Enter Name of your QR Code",
       type: "text",
       isInputOnFocus: true,
       placeholder: "Name of your QR Code",
+      isNotRequired: true,
     },
     {
-      id: `${EQRType.APP_LINK}-store-link`,
+      id: `storeLink`,
       label: "Store Link",
       type: "url",
       placeholder: "https://www.getqr.com/",
@@ -46,14 +48,15 @@ export const QR_CONTENT_CONFIG: Record<
   ],
   [EQRType.SOCIAL]: [
     {
-      id: `${EQRType.SOCIAL}-qr-name`,
+      id: `qrName`,
       label: "Enter Name of your QR Code",
       type: "text",
       isInputOnFocus: true,
       placeholder: "Name of your QR Code",
+      isNotRequired: true,
     },
     {
-      id: `${EQRType.SOCIAL}-social-link`,
+      id: `socialLink`,
       label: "Enter your Social Media Link",
       type: "url",
       placeholder: "https://www.getqr.com/",
@@ -61,14 +64,14 @@ export const QR_CONTENT_CONFIG: Record<
   ],
   [EQRType.FEEDBACK]: [
     {
-      id: `${EQRType.FEEDBACK}-link`,
+      id: `link`,
       label: "Link",
       type: "url",
       isInputOnFocus: true,
       placeholder: "Your QR Code",
     },
     {
-      id: `${EQRType.FEEDBACK}-store-link`,
+      id: `storeLink`,
       label: "Store Link",
       type: "url",
       placeholder: "https://www.getqr.com/",
@@ -76,14 +79,14 @@ export const QR_CONTENT_CONFIG: Record<
   ],
   [EQRType.WHATSAPP]: [
     {
-      id: `${EQRType.WHATSAPP}-number`,
+      id: `number`,
       label: "Your number",
       type: "tel",
       isInputOnFocus: true,
       placeholder: "Type your number",
     },
     {
-      id: `${EQRType.WHATSAPP}-message`,
+      id: `message`,
       label: "Message",
       type: "textarea",
       placeholder: "Type a welcome text...",
@@ -92,24 +95,31 @@ export const QR_CONTENT_CONFIG: Record<
   ],
   [EQRType.WIFI]: [
     {
-      id: `${EQRType.WIFI}-network-name`,
+      id: `networkName`,
       label: "Network name (SSID)",
       type: "text",
       isInputOnFocus: true,
       placeholder: "Enter network name",
     },
     {
-      id: `${EQRType.WIFI}-network-password`,
+      id: `networkPassword`,
       label: "Network password",
-      type: "password",
+      type: "text",
       placeholder: "Enter password",
     },
   ],
 };
 
+// export const ENCRYPTION_TYPES = [
+//   { id: "wep", label: "WEP" },
+//   { id: "wpa", label: "WPA" },
+//   { id: "wpa2-eap", label: "WPA2-EAP" },
+//   { id: "nopass", label: "none" },
+// ];
 export const ENCRYPTION_TYPES = [
-  { id: "wep", label: "WEP" },
-  { id: "wpa", label: "WPA" },
-  { id: "wpa2-eap", label: "WPA2-EAP" },
-  { id: "nopass", label: "nopass" },
+  { id: "WEP", label: "WEP" },
+  { id: "WPA", label: "WPA/WPA2" },
+  { id: "none", label: "none" },
 ];
+
+export const DEFAULT_ENCRYPTION = "WEP";

@@ -3,17 +3,18 @@ import { Icon } from "@iconify/react";
 import { useEffect, useRef, useState } from "react";
 import { TEncryptionOption } from "../types.ts";
 
-interface ISelectOption {
+export interface ISelectOption {
   id: string;
   label: string;
 }
 
 interface ISelectProps {
   options: TEncryptionOption[];
+  onChange?: (option: ISelectOption) => void;
 }
 
 // Custom select because Select component from Radix is not working and from the design, it's not the same as used in dub.co
-export const Select = ({ options }: ISelectProps) => {
+export const Select = ({ options, onChange }: ISelectProps) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [selectedOption, setSelectedOption] = useState<string>(
     options[0]?.label || "",
@@ -23,6 +24,8 @@ export const Select = ({ options }: ISelectProps) => {
 
   const handleSelect = (option: ISelectOption) => {
     setSelectedOption(option.label);
+    onChange?.(option);
+    setIsOpen(false);
   };
 
   useEffect(() => {

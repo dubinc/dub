@@ -5,7 +5,7 @@ import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Icon } from "@iconify/react";
 import * as Tabs from "@radix-ui/react-tabs";
-import { forwardRef, useState } from "react";
+import { forwardRef, useCallback, useState } from "react";
 import { QRPreview } from "../../../../(dashboard)/[slug]/new-qr/customization/components/qr-review.tsx";
 import { useQrCustomization } from "../../../../(dashboard)/[slug]/new-qr/customization/hook/use-qr-customization.ts";
 import {
@@ -21,6 +21,7 @@ import { QrTabsDownloadButton } from "./components/qr-tabs-download-button.tsx";
 import { QRTabsPopover } from "./components/qr-tabs-popover.tsx";
 import { QrTabsStepTitle } from "./components/qr-tabs-step-title.tsx";
 import { QrTabsTitle } from "./components/qr-tabs-title.tsx";
+import { dataHandlers } from 'app/app.dub.co/(dashboard)/[slug]/new-qr/content/utils.ts';
 
 export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
   const { isMobile } = useMediaQuery();
@@ -48,6 +49,15 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
     setData,
     isQrDisabled,
   } = useQrCustomization();
+
+  const handleContent = useCallback(({ inputValues, isHiddenNetwork, qrType }: {
+    inputValues: Record<string, string>;
+    files: File[];
+    isHiddenNetwork: boolean;
+    qrType: EQRType;
+  }) => {
+    setData(dataHandlers[qrType](inputValues, isHiddenNetwork));
+  }, []);
 
   const nonFileQrTypes = QR_TYPES.filter(
     (qrType) => !FILE_QR_TYPES.includes(qrType.id),
@@ -110,14 +120,7 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
 
                 <QRCodeContentBuilder
                   qrType={activeTab}
-                  handleContent={(data) => {
-                    console.log(
-                      "[setData]",
-                      JSON.stringify(data),
-                      data.inputValues["website-website-link"],
-                    );
-                    setData(data.inputValues["website-website-link"]);
-                  }}
+                  handleContent={handleContent}
                   minimalFlow
                 />
               </Tabs.Content>
@@ -202,14 +205,7 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
                         <div className="w-full">
                           <QRCodeContentBuilder
                             qrType={type.id}
-                            handleContent={(data) => {
-                              console.log(
-                                "[setData]",
-                                JSON.stringify(data),
-                                data.inputValues["website-website-link"],
-                              );
-                              setData(data.inputValues["website-website-link"]);
-                            }}
+                            handleContent={handleContent}
                             minimalFlow
                           />
                         </div>
