@@ -3,10 +3,13 @@
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PayoutsCount } from "@/lib/types";
-import { ConnectPayoutButton } from "@/ui/partners/connect-payout-button";
+import {
+  ConnectPayoutButton,
+  PayoutMethodsDropdown,
+} from "@/ui/partners/connect-payout-button";
 import { AlertCircleFill } from "@/ui/shared/icons";
 import { PayoutStatus } from "@dub/prisma/client";
-import { MatrixLines, Tooltip } from "@dub/ui";
+import { Tooltip } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import { Stripe } from "stripe";
@@ -34,11 +37,11 @@ export function PayoutStatsAndSettings() {
           </div>
           {partner && !partner.payoutsEnabledAt && (
             <ConnectPayoutButton
-              text={`Connect ${
+              text={
                 partner?.supportedPayoutMethod === "stripe"
-                  ? "Stripe"
-                  : "PayPal"
-              }`}
+                  ? "Connect Bank Account"
+                  : "Connect PayPal"
+              }
               className="h-8 w-fit px-3"
               variant="primary"
             />
@@ -72,7 +75,9 @@ export function PayoutStatsAndSettings() {
             />
           </div>
 
-          {partner?.stripeConnectId &&
+          {partner?.payoutsEnabledAt && <PayoutMethodsDropdown />}
+
+          {/* {partner?.stripeConnectId &&
             bankAccount &&
             Object.keys(bankAccount).length > 0 && (
               <div className="text-sm">
@@ -93,7 +98,7 @@ export function PayoutStatsAndSettings() {
                 {partner.paypalEmail.replace(/(?<=^.).+(?=.@)/, "********")}
               </div>
             </div>
-          )}
+          )} */}
         </div>
       </div>
 
