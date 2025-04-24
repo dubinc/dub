@@ -20,8 +20,8 @@ import type { Stripe } from "stripe";
 import useSWR from "swr";
 
 export function PayoutMethodsDropdown() {
-  const { partner, loading: isPartnerLoading } = usePartnerProfile();
   const [openPopover, setOpenPopover] = useState(false);
+  const { partner, loading: isPartnerLoading } = usePartnerProfile();
 
   const { data: bankAccount, isLoading: isBankAccountLoading } =
     useSWR<Stripe.BankAccount>(
@@ -99,7 +99,7 @@ export function PayoutMethodsDropdown() {
     },
   ];
 
-  const handlePayoutMethodSelect = async (method: string) => {
+  const connectPayout = async (method: string) => {
     if (!partner) {
       return;
     }
@@ -176,7 +176,7 @@ export function PayoutMethodsDropdown() {
                         <Button
                           variant={isConnected(id) ? "ghost" : "primary"}
                           text={isConnected(id) ? "Manage" : "Connect"}
-                          onClick={() => handlePayoutMethodSelect(id)}
+                          onClick={() => connectPayout(id)}
                           loading={isStripePending || isPaypalPending}
                           className="h-7 w-fit text-xs"
                         />
