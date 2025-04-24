@@ -1,6 +1,6 @@
 import useDomains from "@/lib/swr/use-domains";
-import { Button, Combobox, StatusBadge } from "@dub/ui";
-import { cn, OG_AVATAR_URL } from "@dub/utils";
+import { Button, Combobox, Globe, StatusBadge } from "@dub/ui";
+import { cn } from "@dub/utils";
 import { useMemo, useState } from "react";
 import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";
 
@@ -34,12 +34,7 @@ export function DomainSelector({
           </StatusBadge>
         </div>
       ),
-      icon: (
-        <img
-          src={domain.logo || `${OG_AVATAR_URL}${domain.id}`} // TODO: fix logo
-          className="size-4 rounded-full"
-        />
-      ),
+      icon: <Globe className="size-4 rounded-full" />,
     }));
   }, [allWorkspaceDomains]);
 
@@ -66,12 +61,7 @@ export function DomainSelector({
           </StatusBadge>
         </div>
       ),
-      icon: (
-        <img
-          src={domain.logo || `${OG_AVATAR_URL}${domain.id}`} // TODO: fix logo
-          className="size-4 rounded-full"
-        />
-      ),
+      icon: <Globe className="size-4 rounded-full" />,
     };
   }, [allWorkspaceDomains, selectedDomain]);
 
