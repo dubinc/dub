@@ -1,6 +1,7 @@
 "use client";
 
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
+import { getLinkStructureOptions } from "@/lib/partners/get-link-structure-options";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramData } from "@/lib/types";
 import { DomainSelector } from "@/ui/domains/domain-selector";
@@ -104,6 +105,11 @@ export function Form() {
 
   const buttonDisabled =
     isSubmitting || isPending || !name || !url || !domain || !logo;
+
+  const linkStructureOptions = getLinkStructureOptions({
+    domain,
+    url,
+  });
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
@@ -214,88 +220,42 @@ export function Form() {
         <div className="rounded-2xl bg-neutral-50 p-2">
           <div className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-white p-4">
             <div className="relative flex shrink-0 items-center">
-              <div className="absolute inset-0 h-8 w-8 sm:h-10 sm:w-10 rounded-full border border-neutral-200">
+              <div className="absolute inset-0 h-8 w-8 rounded-full border border-neutral-200 sm:h-10 sm:w-10">
                 <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-neutral-100" />
               </div>
               <div className="relative z-10 p-2">
-                <LinkLogo
-                  apexDomain={getApexDomain(url || "https://dub.co")}
-                  className="size-4 sm:size-6"
-                  imageProps={{
-                    loading: "lazy",
-                  }}
-                />
+                {url ? (
+                  <LinkLogo
+                    apexDomain={getApexDomain(url)}
+                    className="size-4 sm:size-6"
+                    imageProps={{
+                      loading: "lazy",
+                    }}
+                  />
+                ) : (
+                  <div className="size-4 rounded-full bg-neutral-200 sm:size-6" />
+                )}
               </div>
             </div>
 
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0 flex-1 space-y-0.5">
               <div className="truncate text-sm font-medium text-neutral-700">
-                {domain
-                  ? `${domain}/${name?.toLowerCase().replace(/\s/g, "")}`
-                  : "refer.acme.co/steven"}
+                {linkStructureOptions?.[0].example}
               </div>
-              <div className="flex items-center gap-1 text-sm text-neutral-500">
-                <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-neutral-400" />
-                <span className="truncate">{url || "acme.co"}</span>
+
+              <div className="flex min-h-[20px] items-center gap-1 text-sm text-neutral-500">
+                {url ? (
+                  <>
+                    <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-neutral-400" />
+                    <span className="truncate">{url}</span>
+                  </>
+                ) : (
+                  <div className="h-3 w-1/2 rounded-md bg-neutral-200" />
+                )}
               </div>
             </div>
           </div>
         </div>
-
-        {/* <div className="flex flex-col gap-3">
-          {getLinkStructureOptions({
-            domain,
-            url,
-          }).map((type) => {
-            const isSelected = watch("linkStructure") === type.id;
-
-            return (
-              <label
-                key={type.id}
-                className={cn(
-                  "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
-                  "transition-all duration-150",
-                  isSelected &&
-                    "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
-                  type.comingSoon && "cursor-not-allowed hover:bg-white",
-                )}
-              >
-                <input
-                  type="radio"
-                  {...register("linkStructure")}
-                  value={type.id}
-                  className="hidden"
-                  disabled={type.comingSoon}
-                />
-
-                <div className="flex grow flex-col text-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold text-neutral-900">
-                      {type.label}
-                    </span>
-                    {type.comingSoon && (
-                      <Badge variant="blueGradient" size="sm">
-                        Coming soon
-                      </Badge>
-                    )}
-                  </div>
-                  <span className="text-sm font-normal text-neutral-900">
-                    {type.example}
-                  </span>
-                </div>
-
-                {!type.comingSoon && (
-                  <CircleCheckFill
-                    className={cn(
-                      "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
-                      isSelected && "scale-100 opacity-100",
-                    )}
-                  />
-                )}
-              </label>
-            );
-          })}
-        </div> */}
       </div>
 
       <Button
