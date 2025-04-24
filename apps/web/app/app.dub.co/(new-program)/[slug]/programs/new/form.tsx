@@ -212,7 +212,7 @@ export function Form() {
         </div>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-2">
         <h2 className="text-base font-medium text-neutral-900">
           Partner preview
         </h2>
