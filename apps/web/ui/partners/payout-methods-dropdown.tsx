@@ -177,7 +177,8 @@ export function PayoutMethodsDropdown() {
                           variant={isConnected(id) ? "ghost" : "primary"}
                           text={isConnected(id) ? "Manage" : "Connect"}
                           onClick={() => handlePayoutMethodSelect(id)}
-                          className="h-7 w-fit"
+                          loading={isStripePending || isPaypalPending}
+                          className="h-7 w-fit text-xs"
                         />
                       </div>
                     );
