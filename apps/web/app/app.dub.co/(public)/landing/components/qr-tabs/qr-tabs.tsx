@@ -73,7 +73,7 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
             </div>
 
             <Tabs.List className="flex w-full rounded-md">
-              {QR_GENERATION_STEPS.map((step, idx) => (
+              {QR_GENERATION_STEPS.map((step) => (
                 <Tabs.Trigger
                   key={step.id}
                   value={step.id}
