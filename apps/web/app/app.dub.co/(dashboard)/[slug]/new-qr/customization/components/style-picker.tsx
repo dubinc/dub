@@ -31,16 +31,10 @@ export const StylePicker: FC<IStylePickerProps> = ({
   return (
     <div className={cn("flex flex-col gap-2", stylePickerWrapperClassName)}>
       {!minimalFlow && <label className="font-medium">{label}</label>}
-      <ScrollArea.Root
-        type={minimalFlow ? "scroll" : "auto"}
-        className="relative w-full overflow-hidden"
-      >
+      <ScrollArea.Root type="auto" className="relative w-full overflow-hidden">
         <ScrollArea.Viewport className="overflow-x-auto">
           <div
-            className={cn(
-              "flex flex-nowrap gap-3 md:flex-wrap",
-              optionsWrapperClassName,
-            )}
+            className={cn("flex flex-nowrap gap-3", optionsWrapperClassName)}
           >
             {styleOptions.map((styleOption) => (
               <StyleButton
