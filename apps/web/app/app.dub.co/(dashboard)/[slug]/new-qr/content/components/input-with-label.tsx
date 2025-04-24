@@ -33,14 +33,14 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
       <label className="text-neutral text-sm font-medium">{label}</label>
       {type === "textarea" ? (
         <textarea
-          className="border-border-500 focus:border-secondary h-32 w-full rounded-md border p-3 text-xs md:text-sm"
+          className="border-border-500 focus:border-secondary h-32 w-full rounded-md border p-3 text-base"
           {...props}
         />
       ) : (
         <Input
           type={type}
           ref={inputRef}
-          className="border-border-500 focus:border-secondary h-11 w-full max-w-2xl rounded-md border p-3 text-sm"
+          className="border-border-500 focus:border-secondary h-11 w-full max-w-2xl rounded-md border p-3 text-base"
           {...props}
         />
       )}

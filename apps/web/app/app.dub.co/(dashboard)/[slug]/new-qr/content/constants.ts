@@ -92,7 +92,7 @@ export const QR_CONTENT_CONFIG: Record<
   ],
   [EQRType.WIFI]: [
     {
-      id: `${EQRType.WIFI}-network-name`,
+      id: `${EQRType.WIFI}-network`,
       label: "Network name (SSID)",
       type: "text",
       isInputOnFocus: true,

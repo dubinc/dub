@@ -19,6 +19,7 @@ export default function StyleIcon({
       width={size}
       height={size}
       className={cn("object-contain", className)}
+      priority
     />
   );
 }
