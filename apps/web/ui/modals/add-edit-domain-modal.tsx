@@ -16,14 +16,16 @@ function AddEditDomainModal({
   showAddEditDomainModal,
   setShowAddEditDomainModal,
   props,
+  onSuccess,
 }: {
   showAddEditDomainModal: boolean;
   setShowAddEditDomainModal: Dispatch<SetStateAction<boolean>>;
   props?: DomainProps;
+  onSuccess?: (domain: DomainProps) => void;
 }) {
   return (
     <Modal
-      showModal={showAddEditDomainModal} // TODO change back to showAddEditDomainModal
+      showModal={showAddEditDomainModal}
       setShowModal={setShowAddEditDomainModal}
       drawerRootProps={{ repositionInputs: false }}
       className="max-h-[90vh] max-w-lg"
@@ -34,8 +36,9 @@ function AddEditDomainModal({
       <div className="flex-1 overflow-auto bg-neutral-50">
         <AddEditDomainForm
           props={props}
-          onSuccess={() => {
+          onSuccess={(domain) => {
             setShowAddEditDomainModal(false);
+            onSuccess?.(domain);
           }}
           className="p-8"
         />
@@ -83,7 +86,12 @@ function AddDomainButton({
 export function useAddEditDomainModal({
   props,
   buttonProps,
-}: { props?: DomainProps; buttonProps?: Partial<ButtonProps> } = {}) {
+  onSuccess,
+}: {
+  props?: DomainProps;
+  buttonProps?: Partial<ButtonProps>;
+  onSuccess?: (domain: DomainProps) => void;
+} = {}) {
   const [showAddEditDomainModal, setShowAddEditDomainModal] = useState(false);
 
   const AddEditDomainModalCallback = useCallback(() => {
@@ -92,9 +100,10 @@ export function useAddEditDomainModal({
         showAddEditDomainModal={showAddEditDomainModal}
         setShowAddEditDomainModal={setShowAddEditDomainModal}
         props={props}
+        onSuccess={onSuccess}
       />
     );
-  }, [showAddEditDomainModal, setShowAddEditDomainModal]);
+  }, [showAddEditDomainModal, setShowAddEditDomainModal, props, onSuccess]);
 
   const AddDomainButtonCallback = useCallback(() => {
     return (

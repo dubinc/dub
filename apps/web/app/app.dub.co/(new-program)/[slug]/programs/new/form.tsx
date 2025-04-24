@@ -2,15 +2,17 @@
 
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
 import { getLinkStructureOptions } from "@/lib/partners/get-link-structure-options";
-import useDomains from "@/lib/swr/use-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramData } from "@/lib/types";
+import { DomainSelector } from "@/ui/domains/domain-selector";
 import {
   Badge,
   Button,
   CircleCheckFill,
   FileUpload,
+  InfoTooltip,
   Input,
+  SimpleTooltipContent,
   useMediaQuery,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -26,7 +28,6 @@ export function Form() {
   const { isMobile } = useMediaQuery();
   const [isUploading, setIsUploading] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
-  const { activeWorkspaceDomains, loading } = useDomains();
   const { id: workspaceId, slug: workspaceSlug, mutate } = useWorkspace();
 
   const {
@@ -163,27 +164,34 @@ export function Form() {
           </p>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-neutral-800">
-            Custom domain
-          </label>
-          {loading ? (
-            <div className="mt-2 h-10 w-full animate-pulse rounded-md bg-neutral-100" />
-          ) : (
-            <select
-              {...register("domain", { required: true })}
-              className="mt-2 block w-full rounded-md border border-neutral-300 bg-white py-2 pl-3 pr-10 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
-            >
-              {activeWorkspaceDomains?.map(({ slug }) => (
-                <option value={slug} key={slug}>
-                  {slug}
-                </option>
-              ))}
-            </select>
-          )}
+        <div className="space-y-2">
+          <div className="flex items-center gap-x-2">
+            <label className="block text-sm font-medium text-neutral-800">
+              Custom domain
+            </label>
+
+            <InfoTooltip
+              content={
+                <SimpleTooltipContent
+                  title="A connected domain or sub-domain is required to create a program."
+                  cta="Learn more"
+                  href="https://dub.co/help/article/choosing-a-custom-domain"
+                />
+              }
+            />
+          </div>
+
+          <DomainSelector
+            selectedDomain={domain}
+            setSelectedDomain={(domain) => setValue("domain", domain)}
+          />
+
+          <p className="text-xs font-normal text-neutral-500">
+            Your custom domain dedicated to shortlink use on Dub
+          </p>
         </div>
 
-        <div>
+        <div className="space-y-2">
           <label className="block text-sm font-medium text-neutral-800">
             Destination URL
           </label>
@@ -191,8 +199,11 @@ export function Form() {
             {...register("url", { required: true })}
             type="url"
             placeholder="https://dub.co"
-            className={"mt-2 max-w-full"}
+            className="max-w-full"
           />
+          <p className="text-xs font-normal text-neutral-500">
+            Where you're sending people when they click the partner link above
+          </p>
         </div>
       </div>
 
