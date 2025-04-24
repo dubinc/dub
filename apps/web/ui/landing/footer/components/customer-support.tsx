@@ -13,7 +13,7 @@ export const CustomerSupport = () => (
     </Link>
     <Link
       className="my-3 flex h-[44px] w-full items-center justify-center gap-3 rounded-full border border-black px-4 py-2 text-sm font-medium"
-      href="https://hint.app/help"
+      href="/help"
       target="_blank"
     >
       <HelpPhone className="h-6 w-6" />
