@@ -7,15 +7,11 @@ async function main() {
   //  delete data from tinybird
   const deleteRes = await Promise.allSettled([
     deleteData({
-      dataSource: "dub_sale_events",
+      dataSource: "dub_lead_events",
       deleteCondition,
     }),
     deleteData({
-      dataSource: "dub_sale_events_mv",
-      deleteCondition,
-    }),
-    deleteData({
-      dataSource: "dub_sale_events_id",
+      dataSource: "dub_lead_events_mv",
       deleteCondition,
     }),
   ]);

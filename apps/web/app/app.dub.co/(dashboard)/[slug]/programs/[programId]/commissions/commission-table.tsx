@@ -63,9 +63,10 @@ const CommissionTableInner = memo(
 
     const { commissionsCount } = useCommissionsCount();
     const { data: commissions, error } = useSWR<CommissionResponse[]>(
-      `/api/programs/${programId}/commissions${getQueryString(
+      `/api/commissions${getQueryString(
         {
           workspaceId,
+          programId,
         },
         {
           exclude: ["view"],

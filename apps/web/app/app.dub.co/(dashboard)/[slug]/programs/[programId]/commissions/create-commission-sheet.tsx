@@ -63,7 +63,9 @@ function CreateCommissionSheetContent({
     onSuccess: async () => {
       toast.success("A commission has been created for the partner!");
       setIsOpen(false);
-      await mutatePrefix(`/api/programs/${program?.id}/commissions`);
+      await mutatePrefix(
+        `/api/commissions?workspaceId=${workspaceId}&programId=${program?.id}`,
+      );
     },
     onError({ error }) {
       toast.error(error.serverError);
