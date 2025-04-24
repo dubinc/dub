@@ -4,7 +4,13 @@ import { createAccountLinkAction } from "@/lib/actions/partners/create-account-l
 import { generatePaypalOAuthUrl } from "@/lib/actions/partners/generate-paypal-oauth-url";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerProps } from "@/lib/types";
-import { Button, Paypal, Popover, Stripe as StripeIcon } from "@dub/ui";
+import {
+  Button,
+  MatrixLines,
+  Paypal,
+  Popover,
+  Stripe as StripeIcon,
+} from "@dub/ui";
 import { cn, fetcher } from "@dub/utils";
 import { ChevronsUpDown } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
@@ -21,6 +27,16 @@ export function PayoutMethodsDropdown() {
     partner?.stripeConnectId ? "/api/partner-profile/payouts/settings" : null,
     fetcher,
   );
+
+  // bank_name
+  // :
+  // "STRIPE TEST BANK"
+  // last4
+  // :
+  // "6789"
+  // routing_number
+  // :
+  // "110000000"
 
   const { executeAsync: executeStripeAsync, isPending: isStripePending } =
     useAction(createAccountLinkAction, {
@@ -77,7 +93,14 @@ export function PayoutMethodsDropdown() {
           return "Not connected";
         }
 
-        return `${bankAccount.bank_name} •••• ${bankAccount.last4}`;
+        return (
+          <div className="flex items-center gap-1.5 font-mono text-neutral-400">
+            <MatrixLines className="size-3" />
+            {bankAccount.routing_number}
+            <MatrixLines className="size-3" />
+            ••••{bankAccount.last4}
+          </div>
+        );
       },
       isVisible: (partner: Pick<PartnerProps, "country" | "stripeConnectId">) =>
         partner?.country === "US" ||
