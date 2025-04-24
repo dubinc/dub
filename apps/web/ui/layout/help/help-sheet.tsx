@@ -1,13 +1,7 @@
 import { Search, X } from "@/ui/shared/icons";
 import { Button, Sheet } from "@dub/ui";
-import {
-  BookOpen,
-  Calendar6,
-  Code,
-  Cube,
-  Globe2,
-  Hyperlink,
-} from "@dub/ui/icons";
+import { BookOpen, Calendar6, Code } from "@dub/ui/icons";
+import { AnimatePresence, motion } from "framer-motion";
 import Fuse from "fuse.js";
 import { Activity, Mail } from "lucide-react";
 import posthog from "posthog-js";
@@ -22,23 +16,22 @@ interface HelpSupportSheetProps {
 }
 
 interface HelpCardProps {
-  icon: React.ReactNode;
+  icon: React.ReactElement;
   title: string;
   description?: string;
   onClick?: () => void;
-  url?: string;
+  href?: string;
 }
 
 interface FooterItem {
   title: string;
-  url?: string;
-  icon: React.ReactNode;
-  onClick?: () => void;
+  icon: React.ElementType;
+  href?: string;
 }
 
 const guides = [
   {
-    name: "Dub Short Links",
+    name: "Short Links",
     url: "https://dub.co/help/category/link-management",
     icon: (
       <svg
@@ -71,7 +64,7 @@ const guides = [
     ),
   },
   {
-    name: "Dub Analytics",
+    name: "Analytics",
     url: "https://dub.co/help/category/analytics",
     icon: (
       <svg
@@ -118,51 +111,30 @@ const guides = [
   },
 ];
 
-const topics = [
-  {
-    name: "Topic 1",
-    description: "Learn the basics of Dub and how to get started",
-    icon: Hyperlink,
-    url: "https://dub.co/help/category/link-management",
-  },
-  {
-    name: "Topic 2",
-    description: "Learn the basics of Dub and how to get started",
-    icon: Cube,
-    url: "https://dub.co/help/category/custom-domains",
-  },
-  {
-    name: "Topic 3",
-    description: "Learn the basics of Dub and how to get started",
-    icon: Globe2,
-    url: "https://dub.co/help/category/custom-domains",
-  },
-];
-
 const footerItems: FooterItem[] = [
   {
-    title: "Help documentation",
-    url: "https://dub.co/help",
-    icon: <BookOpen className="size-4 text-neutral-600" />,
+    title: "Help center",
+    href: "https://dub.co/help",
+    icon: BookOpen,
+  },
+  {
+    title: "Docs",
+    href: "https://dub.co/docs",
+    icon: Code,
   },
   {
     title: "Contact support",
-    icon: <Mail className="size-4 text-neutral-600" />,
-  },
-  {
-    title: "Platform documentation",
-    url: "https://dub.co/docs",
-    icon: <Code className="size-4 text-neutral-600" />,
+    icon: Mail,
   },
   {
     title: "Status",
-    url: "http://status.dub.co/",
-    icon: <Activity className="size-4 text-neutral-600" />,
+    href: "http://status.dub.co/",
+    icon: Activity,
   },
   {
     title: "Changelog",
-    url: "https://dub.co/changelog",
-    icon: <Calendar6 className="size-4 text-neutral-600" />,
+    href: "https://dub.co/changelog",
+    icon: Calendar6,
   },
 ];
 
@@ -213,16 +185,10 @@ function HelpSupportSheet({ isOpen, setIsOpen }: HelpSupportSheetProps) {
 
   const filteredGuides = useSearchableContent(guides, searchQuery, ["name"]);
 
-  const filteredTopics = useSearchableContent(topics, searchQuery, [
-    "name",
-    "description",
-  ]);
-
   const hasNoResults =
     searchQuery.length > 0 &&
     filteredArticles.length === 0 &&
-    filteredGuides.length === 0 &&
-    filteredTopics.length === 0;
+    filteredGuides.length === 0;
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -243,63 +209,75 @@ function HelpSupportSheet({ isOpen, setIsOpen }: HelpSupportSheetProps) {
         </div>
 
         <div className="flex min-h-0 grow flex-col">
-          {screen === "main" ? (
-            <div className="grow space-y-6 overflow-y-auto p-6">
-              <div className="relative h-[48px]">
-                <div className="pointer-events-none absolute inset-y-0 left-4 flex items-center">
-                  <Search className="size-5 text-neutral-500" />
-                </div>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    debouncedTrackSearch(e.target.value);
-                  }}
-                  placeholder="Search articles, guides, and more..."
-                  className="h-full w-full rounded-lg border border-neutral-300 bg-white px-4 pl-10 text-sm shadow-sm shadow-black/[0.08] placeholder:text-neutral-500 focus:outline-none focus:ring-0"
-                  style={{
-                    boxShadow:
-                      "0px 1px 2px rgba(0, 0, 0, 0.06), 0px 1px 3px rgba(0, 0, 0, 0.1)",
-                  }}
-                />
-              </div>
-              {hasNoResults ? (
-                <NoResults searchQuery={searchQuery} setScreen={setScreen} />
-              ) : (
-                <>
-                  <Articles
-                    articles={filteredArticles}
-                    searchQuery={searchQuery}
+          <AnimatePresence mode="wait">
+            {screen === "main" ? (
+              <motion.div
+                key="main"
+                initial={{ x: -100, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: -100, opacity: 0 }}
+                transition={{ duration: 0.1 }}
+                className="grow space-y-6 overflow-y-auto p-6"
+              >
+                <div className="relative h-[48px]">
+                  <div className="pointer-events-none absolute inset-y-0 left-4 flex items-center">
+                    <Search className="size-5 text-neutral-500" />
+                  </div>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      debouncedTrackSearch(e.target.value);
+                    }}
+                    placeholder="Search articles, guides, and more..."
+                    className="h-full w-full rounded-lg border border-neutral-300 bg-white px-4 pl-10 text-sm shadow-sm shadow-black/[0.08] placeholder:text-neutral-500 focus:outline-none focus:ring-0"
+                    style={{
+                      boxShadow:
+                        "0px 1px 2px rgba(0, 0, 0, 0.06), 0px 1px 3px rgba(0, 0, 0, 0.1)",
+                    }}
                   />
-                  <Guides guides={filteredGuides} />
-                  <Topics topics={filteredTopics} />
-                </>
-              )}
-            </div>
-          ) : (
-            <div className="flex grow flex-col overflow-y-auto">
-              <ContactForm setScreen={setScreen} />
-            </div>
-          )}
+                </div>
+                {hasNoResults ? (
+                  <NoResults searchQuery={searchQuery} setScreen={setScreen} />
+                ) : (
+                  <>
+                    <Articles
+                      articles={filteredArticles}
+                      searchQuery={searchQuery}
+                    />
+                    <Guides guides={filteredGuides} />
+                  </>
+                )}
+              </motion.div>
+            ) : (
+              <motion.div
+                key="contact"
+                initial={{ x: 100, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: 100, opacity: 0 }}
+                transition={{ duration: 0.1 }}
+                className="flex grow flex-col overflow-y-auto"
+              >
+                <ContactForm setScreen={setScreen} />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
-
         <Footer setScreen={setScreen} />
       </div>
     </Sheet>
   );
 }
 
-function HelpCard({ icon, title, description, url, onClick }: HelpCardProps) {
+function HelpCard({ icon, title, description, href, onClick }: HelpCardProps) {
+  const As = href ? "a" : "button";
+
   return (
-    <button
-      onClick={() => {
-        if (url) {
-          window.open(url, "_blank");
-        } else {
-          onClick?.();
-        }
-      }}
+    <As
+      href={href}
+      target={href ? "_blank" : undefined}
+      onClick={onClick}
       className="flex w-full items-center gap-3 rounded-lg border border-neutral-200 bg-white p-2 text-left transition-all hover:border-neutral-300"
     >
       <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-neutral-100">
@@ -311,7 +289,7 @@ function HelpCard({ icon, title, description, url, onClick }: HelpCardProps) {
           <p className="truncate text-xs text-neutral-600">{description}</p>
         )}
       </div>
-    </button>
+    </As>
   );
 }
 
@@ -338,7 +316,6 @@ function Articles({
             href="https://dub.co/help"
             className="text-sm font-medium text-neutral-600"
             target="_blank"
-            rel="noopener noreferrer"
           >
             View all
           </a>
@@ -346,20 +323,29 @@ function Articles({
 
         <div className="mt-4 space-y-3">
           {articles.slice(0, 5).map((article) => (
-            <HelpCard
+            <a
               key={article.title}
-              icon={<div className="size-5" />}
-              title={article.title}
-              description={article.summary}
+              href={`https://dub.co/help/article/${article.slug}`}
+              target="_blank"
               onClick={() => {
                 posthog.capture("help_article_selected", {
                   query: searchQuery,
                   slug: article.slug,
                 });
-
-                window.open(`https://dub.co/help/article/${article.slug}`);
               }}
-            />
+              className="flex w-full items-center gap-3 rounded-lg border border-neutral-200 bg-white p-3 text-left transition-all hover:border-neutral-300"
+            >
+              <div className="flex flex-col truncate">
+                <h3 className="text-sm font-medium text-neutral-800">
+                  {article.title}
+                </h3>
+                {article.summary && (
+                  <p className="truncate text-xs text-neutral-600">
+                    {article.summary}
+                  </p>
+                )}
+              </div>
+            </a>
           ))}
         </div>
       </div>
@@ -381,30 +367,7 @@ function Guides({ guides }: { guides: any[] }) {
             key={guide.name}
             icon={guide.icon}
             title={guide.name}
-            url={guide.url}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function Topics({ topics }: { topics: any[] }) {
-  if (topics.length === 0) {
-    return null;
-  }
-
-  return (
-    <div>
-      <h2 className="text-sm font-semibold text-neutral-900">Dub Topics</h2>
-      <div className="mt-4 space-y-3">
-        {topics.map((topic) => (
-          <HelpCard
-            key={topic.name}
-            icon={<topic.icon className="size-5 text-neutral-600" />}
-            title={topic.name}
-            description={topic.description}
-            url={topic.url}
+            href={guide.url}
           />
         ))}
       </div>
@@ -471,23 +434,28 @@ function Footer({
   return (
     <div className="sticky bottom-0 border-t border-neutral-200 bg-white">
       <div className="flex flex-col p-2">
-        {footerItems.map((item) => (
-          <button
-            key={item.title}
-            onClick={() => {
-              if (item.title === "Contact support") {
-                setScreen("contact");
-              } else if (item.url) {
-                window.open(item.url, "_blank");
-              }
-              item.onClick?.();
-            }}
-            className="flex w-full items-center gap-2 px-2.5 py-1.5 text-sm text-neutral-600 transition-colors hover:rounded-md hover:bg-neutral-50"
-          >
-            {item.icon}
-            {item.title}
-          </button>
-        ))}
+        {footerItems.map(({ title, href, icon: Icon }) => {
+          const As = href ? "a" : "button";
+
+          return (
+            <As
+              key={title}
+              {...(href
+                ? { href, target: "_blank" }
+                : {
+                    onClick: () => {
+                      if (title === "Contact support") {
+                        setScreen("contact");
+                      }
+                    },
+                  })}
+              className="flex w-full items-center gap-2 px-2.5 py-1.5 text-sm text-neutral-600 transition-colors hover:rounded-md hover:bg-neutral-50"
+            >
+              <Icon className="size-4 text-neutral-600" />
+              {title}
+            </As>
+          );
+        })}
       </div>
     </div>
   );
