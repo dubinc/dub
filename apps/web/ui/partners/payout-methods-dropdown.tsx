@@ -142,7 +142,7 @@ export function PayoutMethodsDropdown() {
       <Popover
         content={
           <div className="relative w-[350px]">
-            <div className="w-full space-y-0.5 rounded-lg bg-white p-2 text-sm">
+            <div className="w-full space-y-0.5 rounded-lg bg-white p-1 text-sm">
               <div className="flex flex-col gap-2">
                 {payoutMethods
                   .filter(({ isVisible }) => isVisible(partner))
@@ -151,7 +151,7 @@ export function PayoutMethodsDropdown() {
                       <div
                         key={id}
                         className={cn(
-                          "relative flex w-full cursor-pointer items-center justify-between rounded-md px-2 py-2 transition-all duration-75",
+                          "relative flex w-full cursor-pointer items-center justify-between rounded-md px-2 py-1.5 transition-all duration-75",
                         )}
                       >
                         <div className="flex items-center gap-x-2">
