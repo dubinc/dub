@@ -23,11 +23,11 @@ export const FrameSelector: FC<IFrameSelectorProps> = ({
           onFrameSelect(type);
         }
       }}
-      stylePickerWrapperClassName="border border-border-100 p-3 rounded-lg gap-5"
+      stylePickerWrapperClassName="border h-full border-border-500 p-3 rounded-lg gap-5"
       optionsWrapperClassName={`gap-2 ${
         isQrDisabled ? "pointer-events-none cursor-not-allowed" : ""
       }`}
-      styleButtonClassName="[&_img]:h-8 [&_img]:w-8 p-3.5"
+      styleButtonClassName="[&_img]:h-10 [&_img]:w-10 p-2 [&_img]:object-cover"
       minimalFlow
     />
   );

@@ -43,6 +43,7 @@ const config: Pick<Config, "presets"> = {
               200: "#E2E2E3",
               300: "#C0C0C0",
               400: "#F5F5F5",
+              500: "#E5E5E5",
             },
             background: {
               DEFAULT: "#FAFAFA",

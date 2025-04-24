@@ -27,11 +27,11 @@ export const StyleSelector: FC<IStyleSelectorProps> = ({
         styleOptions={DOTS_STYLES}
         selectedStyle={options.dotsOptions?.type ?? "square"}
         onSelect={(type) => onDotsStyleChange(type as DotType)}
-        stylePickerWrapperClassName="border border-border-100 p-3 rounded-lg [&_label]:text-sm"
+        stylePickerWrapperClassName="border border-border-500 p-3 rounded-lg [&_label]:text-sm"
         optionsWrapperClassName="gap-2 md:flex-nowrap"
         styleButtonClassName="[&_img]:h-12 [&_img]:w-12 p-3.5"
       />
-      <div className="border-border-100 rounded-lg border p-3 [&>div>div:first-child]:!flex-row">
+      <div className="border-border-500 rounded-lg border p-3 [&>div>div:first-child]:!flex-row">
         <ColorsSettings
           options={options}
           onBorderColorChange={onBorderColorChange}

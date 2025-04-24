@@ -2,7 +2,7 @@ import { cn } from "@dub/utils";
 import * as ScrollArea from "@radix-ui/react-scroll-area";
 import { StaticImageData } from "next/image";
 import { FC } from "react";
-import { TStyleOption } from "../constants/constants.ts";
+import { TStyleOption } from "../constants/styles.ts";
 import { StyleButton } from "./style-button.tsx";
 
 interface IStylePickerProps {
