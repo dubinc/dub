@@ -31,8 +31,6 @@ export const dataHandlers = {
     return `https://wa.me/${values.number}?text=${encodeURIComponent(values.message)}`;
   },
   [EQRType.WIFI]: (values: Record<string, string>, isHiddenNetwork: boolean) => {
-    const string = `WIFI:T:${values.networkEncryption};S:${values.networkName};P:${values.networkPassword};H:${isHiddenNetwork};`;
-    console.log(string);
-    return string;
+    return `WIFI:T:${values.networkEncryption};S:${values.networkName};P:${values.networkPassword};H:${isHiddenNetwork};`;
   },
 };
