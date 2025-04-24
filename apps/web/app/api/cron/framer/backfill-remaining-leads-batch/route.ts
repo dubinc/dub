@@ -14,7 +14,6 @@ import { parseDateSchema } from "@/lib/zod/schemas/utils";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { linkConstructorSimple, nanoid } from "@dub/utils";
-import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 const schema = z.array(
@@ -36,7 +35,7 @@ type PayloadItem = {
 
 const FRAMER_WORKSPACE_ID = "clsvopiw0000ejy0grp821me0";
 // TODO: delete when migration is complete
-const CACHE_KEY = "framerMigratedExternalIdEventNames";
+const CACHE_KEY = "framerRemainingMigratedExternalIdEventNames";
 const DOMAIN = "framer.link";
 
 // POST /api/cron/framer/backfill-leads-batch
@@ -275,56 +274,6 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
         ),
       ),
     ]);
-
-    waitUntil(
-      (async () => {
-        // Update link stats
-        const linkCount = validEntries.reduce(
-          (acc, p) => {
-            acc[p.via] = (acc[p.via] || 0) + 1;
-            return acc;
-          },
-          {} as Record<string, number>,
-        );
-
-        // Group the links by the number of times they appear in the payload
-        const groupedLinks = Object.entries(linkCount).reduce(
-          (acc, [key, value]) => {
-            acc[value] = (acc[value] || []).concat(key);
-            return acc;
-          },
-          {} as Record<number, string[]>,
-        );
-
-        await Promise.all(
-          Object.entries(groupedLinks).map(([count, linkKeys]) =>
-            prisma.link.updateMany({
-              where: {
-                shortLink: {
-                  in: linkKeys.map((key) =>
-                    linkConstructorSimple({
-                      domain: DOMAIN,
-                      key,
-                    }),
-                  ),
-                },
-              },
-              data: {
-                clicks: {
-                  increment: parseInt(count),
-                },
-                leads: {
-                  increment: parseInt(count),
-                },
-                sales: {
-                  increment: parseInt(count),
-                },
-              },
-            }),
-          ),
-        );
-      })(),
-    );
 
     return NextResponse.json({
       success: dataArray.map((d) => ({
