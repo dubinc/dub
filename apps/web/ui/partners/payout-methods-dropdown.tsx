@@ -3,6 +3,7 @@
 import { createAccountLinkAction } from "@/lib/actions/partners/create-account-link";
 import { generatePaypalOAuthUrl } from "@/lib/actions/partners/generate-paypal-oauth-url";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import { PartnerProps } from "@/lib/types";
 import { Button, Paypal, Popover, Stripe } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { ChevronsUpDown } from "lucide-react";
@@ -16,16 +17,17 @@ const payoutMethods = [
     label: "PayPal",
     color: "bg-blue-100",
     icon: <Paypal />,
-    getAccountDetails: (partner) =>
-      `Account ${partner?.paypalEmail || "Not connected"}`,
-    isVisible: (partner) => partner?.country !== "US",
+    getAccountDetails: (partner: Pick<PartnerProps, "paypalEmail">) =>
+      `Account ${partner?.paypalEmail}` || "Not connected",
+    isVisible: (partner: Pick<PartnerProps, "country">) =>
+      partner?.country !== "US",
   },
   {
     id: "stripe",
     label: "Stripe Test Bank",
     color: "bg-purple-100",
     icon: <Stripe />,
-    getAccountDetails: (partner) =>
+    getAccountDetails: (partner: Pick<PartnerProps, "stripeConnectId">) =>
       partner?.stripeConnectId
         ? `${partner.stripeConnectId} •••• 5290`
         : "Not connected",
@@ -65,9 +67,12 @@ export function PayoutMethodsDropdown() {
       },
     });
 
+  if (!partner) {
+    return null;
+  }
+
   const handlePayoutMethodSelect = async (method: string) => {
     if (!partner) {
-      toast.error("Invalid partner profile. Please log out and log back in.");
       return;
     }
 
@@ -76,16 +81,37 @@ export function PayoutMethodsDropdown() {
     } else if (method === "stripe") {
       await executeStripeAsync();
     }
+
     setOpenPopover(false);
   };
 
-  const selectedMethod =
-    payoutMethods.find(({ id }) => partner?.supportedPayoutMethod === id) ||
-    payoutMethods[0];
+  const selectedMethod = (() => {
+    // For US users, always show Stripe
+    if (partner?.country === "US") {
+      return payoutMethods.find(({ id }) => id === "stripe")!;
+    }
+
+    // For non-US users
+    // If PayPal is connected, show PayPal
+    if (partner?.paypalEmail) {
+      return payoutMethods.find(({ id }) => id === "paypal");
+    }
+
+    // If Stripe is connected, show Stripe
+    if (partner?.stripeConnectId) {
+      return payoutMethods.find(({ id }) => id === "stripe");
+    }
+  })();
 
   const isConnected = (method: string) => {
-    if (method === "paypal") return !!partner?.paypalEmail;
-    if (method === "stripe") return !!partner?.stripeConnectId;
+    if (method === "paypal") {
+      return !!partner?.paypalEmail;
+    }
+
+    if (method === "stripe") {
+      return !!partner?.stripeConnectId;
+    }
+
     return false;
   };
 
@@ -127,7 +153,7 @@ export function PayoutMethodsDropdown() {
                         </div>
 
                         <Button
-                          variant={isConnected(id) ? "ghost" : "default"}
+                          variant={isConnected(id) ? "ghost" : "primary"}
                           text={isConnected(id) ? "Manage" : "Connect"}
                           onClick={() => handlePayoutMethodSelect(id)}
                           className="h-7 w-fit"
@@ -152,14 +178,14 @@ export function PayoutMethodsDropdown() {
         >
           <div className="flex min-w-0 items-center gap-x-2.5 pr-2">
             <div className="size-8 shrink-0 rounded-md bg-neutral-100 p-1">
-              {selectedMethod.icon}
+              {selectedMethod?.icon}
             </div>
             <div className="min-w-0">
               <div className="truncate text-sm font-medium leading-5 text-neutral-900">
-                {selectedMethod.label}
+                {selectedMethod?.label}
               </div>
               <div className="truncate text-xs text-neutral-500">
-                {selectedMethod.getAccountDetails(partner)}
+                {selectedMethod?.getAccountDetails(partner)}
               </div>
             </div>
           </div>
@@ -171,4 +197,4 @@ export function PayoutMethodsDropdown() {
       </Popover>
     </div>
   );
-} 
+}
