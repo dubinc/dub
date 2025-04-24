@@ -18,6 +18,7 @@ interface IFileCardContentProps {
   multiple?: boolean;
   minimumFlow?: boolean;
   isLogo?: boolean;
+  isMobile?: boolean;
 }
 export const FileCardContent: FC<IFileCardContentProps> = ({
   qrType,
@@ -27,6 +28,7 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
   multiple = true,
   minimumFlow = false,
   isLogo = false,
+  isMobile = false,
 }) => {
   const {
     fileInputRef,
@@ -91,11 +93,19 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
                   isLogo,
               },
             )}
-            text={isLogo ? "Browse" : `Upload ${fileTypeLabel}`}
+            text={
+              isLogo
+                ? isMobile
+                  ? "Upload"
+                  : "Browse"
+                : `Upload ${fileTypeLabel}`
+            }
           />
           <p className="text-xs font-normal text-neutral-200 md:text-sm">
             {minimumFlow
-              ? `Drag and drop or click to upload a logo (${label} max)`
+              ? isMobile
+                ? `Upload a logo (JPG, JPEG, or PNG / ${label} max)`
+                : `Drag and drop or click to upload a logo (${label} max)`
               : `Maximum size: ${label}`}
           </p>
 

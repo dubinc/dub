@@ -19,7 +19,7 @@ export const Rating: FC<IRatingProps> = ({ alignItems = "center" }) => {
       <div className="flex flex-row gap-1">
         <Text
           as="span"
-          size="3"
+          size={{ initial: "4", md: "3" }}
           weight="regular"
           className="text-secondary-textMuted"
         >
@@ -29,7 +29,7 @@ export const Rating: FC<IRatingProps> = ({ alignItems = "center" }) => {
       </div>
       <Text
         as="span"
-        size="3"
+        size={{ initial: "4", md: "3" }}
         weight="regular"
         className="text-secondary-textMuted"
       >

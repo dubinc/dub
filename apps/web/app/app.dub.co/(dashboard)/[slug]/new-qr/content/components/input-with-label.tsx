@@ -30,19 +30,17 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
 
   return (
     <div className="flex w-full flex-col gap-2">
-      <label className="text-neutral text-xs font-medium md:text-sm">
-        {label}
-      </label>
+      <label className="text-neutral text-sm font-medium">{label}</label>
       {type === "textarea" ? (
         <textarea
-          className="border-border-300 focus:border-secondary h-32 w-full rounded-md border p-3 text-xs md:text-sm"
+          className="border-border-500 focus:border-secondary h-32 w-full rounded-md border p-3 text-xs md:text-sm"
           {...props}
         />
       ) : (
         <Input
           type={type}
           ref={inputRef}
-          className="border-border-300 focus:border-secondary h-11 w-full max-w-2xl rounded-md border p-3 text-xs md:text-sm"
+          className="border-border-500 focus:border-secondary h-11 w-full max-w-2xl rounded-md border p-3 text-sm"
           {...props}
         />
       )}

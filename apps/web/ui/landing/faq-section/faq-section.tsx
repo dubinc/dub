@@ -21,7 +21,7 @@ export const FAQSection = () => {
       <Heading
         as="h2"
         weight="bold"
-        size="8"
+        size={{ initial: "7", md: "8" }}
         className="text-neutral mb-4 text-center lg:max-w-64 lg:text-left"
       >
         {isMobile ? "FAQ" : "Frequently Asked Questions"}
@@ -37,12 +37,18 @@ export const FAQSection = () => {
                   "rotate-[-90deg] group-data-[state=open]:rotate-0",
                 )}
               />
-              <h3 className="text-neutral text-left text-sm font-semibold md:text-lg">
+              <Heading
+                as="h3"
+                align="left"
+                size="4"
+                weight="medium"
+                className="text-neutral"
+              >
                 {item.title}
-              </h3>
+              </Heading>
             </AccordionTrigger>
             <AccordionContent>
-              <BlockMarkdown className="py-2 text-left text-xs text-neutral-300 lg:text-base">
+              <BlockMarkdown className="py-2 text-left text-base text-neutral-300">
                 {item.content}
               </BlockMarkdown>
             </AccordionContent>
