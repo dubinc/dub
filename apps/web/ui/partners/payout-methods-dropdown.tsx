@@ -4,40 +4,50 @@ import { createAccountLinkAction } from "@/lib/actions/partners/create-account-l
 import { generatePaypalOAuthUrl } from "@/lib/actions/partners/generate-paypal-oauth-url";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerProps } from "@/lib/types";
-import { Button, Paypal, Popover, Stripe } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { Button, Paypal, Popover, Stripe as StripeIcon } from "@dub/ui";
+import { cn, fetcher } from "@dub/utils";
 import { ChevronsUpDown } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useState } from "react";
 import { toast } from "sonner";
-
-const payoutMethods = [
-  {
-    id: "paypal",
-    label: "PayPal",
-    color: "bg-blue-100",
-    icon: <Paypal />,
-    getAccountDetails: (partner: Pick<PartnerProps, "paypalEmail">) =>
-      `Account ${partner?.paypalEmail}` || "Not connected",
-    isVisible: (partner: Pick<PartnerProps, "country">) =>
-      partner?.country !== "US",
-  },
-  {
-    id: "stripe",
-    label: "Stripe Test Bank",
-    color: "bg-purple-100",
-    icon: <Stripe />,
-    getAccountDetails: (partner: Pick<PartnerProps, "stripeConnectId">) =>
-      partner?.stripeConnectId
-        ? `${partner.stripeConnectId} •••• 5290`
-        : "Not connected",
-    isVisible: () => true,
-  },
-];
+import type { Stripe } from "stripe";
+import useSWR from "swr";
 
 export function PayoutMethodsDropdown() {
   const { partner } = usePartnerProfile();
   const [openPopover, setOpenPopover] = useState(false);
+
+  const { data: bankAccount } = useSWR<Stripe.BankAccount>(
+    partner?.stripeConnectId ? "/api/partner-profile/payouts/settings" : null,
+    fetcher,
+  );
+
+  const payoutMethods = [
+    {
+      id: "paypal",
+      label: "PayPal",
+      color: "bg-blue-100",
+      icon: <Paypal />,
+      getAccountDetails: (partner: Pick<PartnerProps, "paypalEmail">) =>
+        `Account ${partner?.paypalEmail}` || "Not connected",
+      isVisible: (partner: Pick<PartnerProps, "country">) =>
+        partner?.country !== "US",
+    },
+    {
+      id: "stripe",
+      label: "Stripe Test Bank",
+      color: "bg-purple-100",
+      icon: <StripeIcon />,
+      getAccountDetails: (partner: Pick<PartnerProps, "stripeConnectId">) => {
+        if (!partner?.stripeConnectId || !bankAccount) {
+          return "Not connected";
+        }
+
+        return `${bankAccount.bank_name} •••• ${bankAccount.last4}`;
+      },
+      isVisible: () => true,
+    },
+  ];
 
   const { executeAsync: executeStripeAsync, isPending: isStripePending } =
     useAction(createAccountLinkAction, {
@@ -119,7 +129,7 @@ export function PayoutMethodsDropdown() {
     <div>
       <Popover
         content={
-          <div className="relative w-full">
+          <div className="relative w-[350px]">
             <div className="w-full space-y-0.5 rounded-lg bg-white p-2 text-sm">
               <div className="flex flex-col gap-2">
                 {payoutMethods
