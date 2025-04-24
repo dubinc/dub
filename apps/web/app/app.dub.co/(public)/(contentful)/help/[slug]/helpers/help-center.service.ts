@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 
 export const getHelpCenterArticlesData = async (slug: string) => {
   const markdownData = await contentfulClient.getEntries({
-    content_type: "helpCenterArticles",
+    content_type: "getQrHelpCenterArticles",
     "fields.pageSlug": slug,
   });
 

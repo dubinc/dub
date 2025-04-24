@@ -17,7 +17,7 @@ export const generateMetadata = async ({
   const { title } = await getHelpCenterArticlesData(slug);
 
   return {
-    title: { absolute: `Hint: ${title}` },
+    title: { absolute: `GetQR: ${title}` },
   };
 };
 
