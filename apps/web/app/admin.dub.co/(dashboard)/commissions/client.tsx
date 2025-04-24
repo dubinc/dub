@@ -18,7 +18,7 @@ import {
   THE_BEGINNING_OF_TIME,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useMemo } from "react";
 import useSWR from "swr";
 
 type Tab = {
@@ -27,20 +27,27 @@ type Tab = {
   colorClassName: string;
 };
 
-export default function PayoutsPageClient() {
+export default function CommissionsPageClient() {
   const { queryParams, getQueryString, searchParamsObj } = useRouterStuff();
-  const { interval, start, end } = searchParamsObj;
+  const {
+    tab: selectedTab = "commissions",
+    interval,
+    start,
+    end,
+  } = searchParamsObj;
 
   const { data: { programs, timeseries } = {}, isLoading } = useSWR<{
     programs: {
       id: string;
       name: string;
       logo: string;
-      earnings: number;
+      commissions: number;
+      revenue: number;
     }[];
     timeseries: {
       start: Date;
-      earnings: number;
+      commissions: number;
+      revenue: number;
     }[];
   }>(
     `/api/admin/commissions${getQueryString({
@@ -58,23 +65,32 @@ export default function PayoutsPageClient() {
       label: "Commissions",
       colorClassName: "text-teal-500 bg-teal-500/50 border-teal-500",
     },
+    {
+      id: "revenue",
+      label: "Revenue",
+      colorClassName: "text-purple-500 bg-purple-500/50 border-purple-500",
+    },
   ];
 
-  const [selectedTab, setSelectedTab] = useState<Tab["id"]>("commissions");
   const tab = tabs.find(({ id }) => id === selectedTab) ?? tabs[0];
 
   const chartData =
-    timeseries?.map(({ start, earnings }) => ({
+    timeseries?.map(({ start, commissions, revenue }) => ({
       date: start ? new Date(start) : new Date(),
       values: {
-        value: earnings || 0,
+        commissions: commissions || 0,
+        revenue: revenue || 0,
       },
     })) ?? null;
 
   const totals = useMemo(() => {
     return {
       commissions: timeseries?.reduce(
-        (acc, { earnings }) => acc + (earnings || 0),
+        (acc, { commissions }) => acc + (commissions || 0),
+        0,
+      ),
+      revenue: timeseries?.reduce(
+        (acc, { revenue }) => acc + (revenue || 0),
         0,
       ),
     };
@@ -127,9 +143,19 @@ export default function PayoutsPageClient() {
       {
         id: "commissions",
         header: "Commissions",
-        accessorKey: "earnings",
+        accessorKey: "commissions",
         cell: ({ row }) =>
-          currencyFormatter(row.original.earnings / 100, {
+          currencyFormatter(row.original.commissions / 100, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }),
+      },
+      {
+        id: "revenue",
+        header: "Revenue",
+        accessorKey: "revenue",
+        cell: ({ row }) =>
+          currencyFormatter(row.original.revenue / 100, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           }),
@@ -152,7 +178,6 @@ export default function PayoutsPageClient() {
               <button
                 key={id}
                 onClick={() => {
-                  setSelectedTab(id);
                   queryParams({
                     set: { tab: id },
                   });
@@ -207,9 +232,15 @@ export default function PayoutsPageClient() {
                   data={chartData}
                   series={[
                     {
-                      id: "value",
-                      valueAccessor: (d) => d.values.value,
-                      isActive: true,
+                      id: "commissions",
+                      valueAccessor: (d) => d.values.commissions,
+                      isActive: selectedTab === "commissions",
+                      colorClassName: tab.colorClassName,
+                    },
+                    {
+                      id: "revenue",
+                      valueAccessor: (d) => d.values.revenue,
+                      isActive: selectedTab === "revenue",
                       colorClassName: tab.colorClassName,
                     },
                   ]}
@@ -237,7 +268,7 @@ export default function PayoutsPageClient() {
                             </p>
                           </div>
                           <p className="text-right font-medium text-neutral-900">
-                            {currencyFormatter(d.values.value / 100)}
+                            {currencyFormatter(d.values[tab.id] / 100)}
                           </p>
                         </Fragment>
                       </div>
