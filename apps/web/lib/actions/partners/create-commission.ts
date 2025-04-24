@@ -148,7 +148,8 @@ export const createCommissionAction = authActionClient
     });
 
     // Record sale
-    if (saleAmount && saleEventDate) {
+    const toRecordSale = saleAmount && saleEventDate;
+    if (toRecordSale) {
       const clickEvent = clickEventSchemaTB.parse({
         ...clickData,
         bot: 0,
@@ -182,4 +183,27 @@ export const createCommissionAction = authActionClient
         createdAt: saleEventDate,
       });
     }
+
+    // Update link stats
+    await prisma.link.update({
+      where: {
+        id: linkId,
+      },
+      data: {
+        clicks: {
+          increment: 1,
+        },
+        leads: {
+          increment: 1,
+        },
+        ...(toRecordSale && {
+          sales: {
+            increment: 1,
+          },
+          saleAmount: {
+            increment: saleAmount,
+          },
+        }),
+      },
+    });
   });
