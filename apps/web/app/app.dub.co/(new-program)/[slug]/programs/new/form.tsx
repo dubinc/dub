@@ -214,13 +214,13 @@ export function Form() {
         <div className="rounded-2xl bg-neutral-50 p-2">
           <div className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-white p-4">
             <div className="relative flex shrink-0 items-center">
-              <div className="absolute inset-0 rounded-full border border-neutral-200">
+              <div className="absolute inset-0 h-8 w-8 sm:h-10 sm:w-10 rounded-full border border-neutral-200">
                 <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-neutral-100" />
               </div>
               <div className="relative z-10 p-2">
                 <LinkLogo
                   apexDomain={getApexDomain(url || "https://dub.co")}
-                  className="size-4"
+                  className="size-4 sm:size-6"
                   imageProps={{
                     loading: "lazy",
                   }}
