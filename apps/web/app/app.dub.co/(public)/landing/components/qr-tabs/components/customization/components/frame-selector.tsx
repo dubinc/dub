@@ -1,6 +1,9 @@
-import { FC } from "react";
+import { FC, useEffect } from "react";
 import { StylePicker } from "../../../../../../../(dashboard)/[slug]/new-qr/customization/components/style-picker.tsx";
-import { FRAMES } from "../../../../../../../(dashboard)/[slug]/new-qr/customization/constants/frames.ts";
+import {
+  FRAMES,
+  preloadAllFrames,
+} from "../../../../../../../(dashboard)/[slug]/new-qr/customization/constants/frames.ts";
 
 interface IFrameSelectorProps {
   selectedSuggestedFrame: string;
@@ -13,6 +16,10 @@ export const FrameSelector: FC<IFrameSelectorProps> = ({
   isQrDisabled,
   onFrameSelect,
 }) => {
+  useEffect(() => {
+    preloadAllFrames();
+  }, []);
+
   return (
     <StylePicker
       label="Frames"
