@@ -1,5 +1,5 @@
 import useDomains from "@/lib/swr/use-domains";
-import { Button, Combobox } from "@dub/ui";
+import { Button, Combobox, StatusBadge } from "@dub/ui";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { useMemo, useState } from "react";
 import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";
@@ -26,7 +26,14 @@ export function DomainSelector({
   const domainOptions = useMemo(() => {
     return allWorkspaceDomains?.map((domain) => ({
       value: domain.slug,
-      label: domain.slug,
+      label: (
+        <div className="flex items-center justify-between gap-2">
+          {domain.slug}
+          <StatusBadge variant={domain.verified ? "success" : "error"}>
+            {domain.verified ? "Verified" : "Pending"}
+          </StatusBadge>
+        </div>
+      ),
       icon: (
         <img
           src={domain.logo || `${OG_AVATAR_URL}${domain.id}`} // TODO: fix logo
@@ -51,7 +58,14 @@ export function DomainSelector({
 
     return {
       value: domain.slug,
-      label: domain.slug,
+      label: (
+        <div className="flex items-center justify-between gap-2">
+          {domain.slug}
+          <StatusBadge variant={domain.verified ? "success" : "error"}>
+            {domain.verified ? "Verified" : "Pending"}
+          </StatusBadge>
+        </div>
+      ),
       icon: (
         <img
           src={domain.logo || `${OG_AVATAR_URL}${domain.id}`} // TODO: fix logo
