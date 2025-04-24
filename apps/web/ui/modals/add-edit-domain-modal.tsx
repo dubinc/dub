@@ -103,7 +103,7 @@ export function useAddEditDomainModal({
         onSuccess={onSuccess}
       />
     );
-  }, [showAddEditDomainModal, setShowAddEditDomainModal, props, onSuccess]);
+  }, [showAddEditDomainModal, setShowAddEditDomainModal]);
 
   const AddDomainButtonCallback = useCallback(() => {
     return (
