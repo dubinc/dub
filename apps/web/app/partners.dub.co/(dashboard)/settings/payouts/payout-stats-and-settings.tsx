@@ -27,7 +27,7 @@ export function PayoutStatsAndSettings() {
   );
 
   return (
-    <div className="grid grid-cols-1 divide-neutral-200 rounded-lg border border-neutral-200 bg-neutral-50 max-sm:divide-y sm:grid-cols-2 sm:divide-x">
+    <div className="grid grid-cols-1 divide-neutral-200 rounded-lg border border-neutral-200 max-sm:divide-y sm:grid-cols-2 sm:divide-x">
       <div className="flex flex-col gap-1.5 p-4">
         <div className="flex justify-between gap-5">
           <div className="p-1">
@@ -74,29 +74,6 @@ export function PayoutStatsAndSettings() {
           </div>
 
           {partner?.payoutsEnabledAt && <PayoutMethodsDropdown />}
-
-          {/* {partner?.stripeConnectId &&
-            bankAccount &&
-            Object.keys(bankAccount).length > 0 && (
-              <div className="text-sm">
-                <p className="text-neutral-600">{bankAccount.bank_name}</p>
-                <div className="flex items-center gap-1.5 font-mono text-neutral-400">
-                  <MatrixLines className="size-3" />
-                  {bankAccount.routing_number}
-                  <MatrixLines className="size-3" />
-                  ••••{bankAccount.last4}
-                </div>
-              </div>
-            )}
-
-          {partner?.paypalEmail && (
-            <div className="text-right text-sm">
-              <p className="text-neutral-600">PayPal Account</p>
-              <div className="flex items-center justify-end gap-1.5 font-mono text-neutral-400">
-                {partner.paypalEmail.replace(/(?<=^.).+(?=.@)/, "********")}
-              </div>
-            </div>
-          )} */}
         </div>
       </div>
 

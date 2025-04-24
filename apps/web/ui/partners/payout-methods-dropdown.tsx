@@ -182,12 +182,17 @@ export function PayoutMethodsDropdown() {
         <button
           onClick={() => setOpenPopover(!openPopover)}
           className={cn(
-            "flex w-full items-center justify-between rounded-lg p-1.5 text-left text-sm transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80 data-[state=open]:bg-neutral-200/80",
-            "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
+            "flex w-full items-center justify-between rounded-lg p-1.5 text-left text-sm transition-all duration-75",
+            "border border-neutral-200 outline-none focus-visible:ring-2 focus-visible:ring-black/50",
           )}
         >
           <div className="flex min-w-0 items-center gap-x-2.5 pr-2">
-            <div className="size-8 shrink-0 rounded-md bg-neutral-100 p-1">
+            <div
+              className={cn(
+                "size-8 shrink-0 rounded-lg p-2",
+                selectedMethod?.color,
+              )}
+            >
               {selectedMethod?.icon}
             </div>
             <div className="min-w-0">
