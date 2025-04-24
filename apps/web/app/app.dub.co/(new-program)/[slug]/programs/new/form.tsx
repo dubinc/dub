@@ -3,10 +3,12 @@
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
 import { getLinkStructureOptions } from "@/lib/partners/get-link-structure-options";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ProgramData } from "@/lib/types";
+import { DomainVerificationStatusProps, ProgramData } from "@/lib/types";
+import DomainConfiguration from "@/ui/domains/domain-configuration";
 import { DomainSelector } from "@/ui/domains/domain-selector";
 import {
   Button,
+  CircleCheck,
   FileUpload,
   InfoTooltip,
   Input,
@@ -15,13 +17,16 @@ import {
   useMediaQuery,
 } from "@dub/ui";
 import { ArrowTurnRight2 } from "@dub/ui/icons";
-import { getApexDomain } from "@dub/utils";
+import { fetcher, getApexDomain } from "@dub/utils";
+import { motion } from "framer-motion";
 import { Plus } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
+import useSWRImmutable from "swr/immutable";
 
 export function Form() {
   const router = useRouter();
@@ -38,6 +43,18 @@ export function Form() {
     setValue,
     formState: { isSubmitting },
   } = useFormContext<ProgramData>();
+
+  const [name, url, domain, logo] = watch(["name", "url", "domain", "logo"]);
+
+  const { data: verificationData } = useSWRImmutable<{
+    status: DomainVerificationStatusProps;
+    response: any;
+  }>(
+    workspaceId && domain
+      ? `/api/domains/${domain}/verify?workspaceId=${workspaceId}`
+      : null,
+    fetcher,
+  );
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
@@ -100,8 +117,6 @@ export function Form() {
       setIsUploading(false);
     }
   };
-
-  const [name, url, domain, logo] = watch(["name", "url", "domain", "logo"]);
 
   const buttonDisabled =
     isSubmitting || isPending || !name || !url || !domain || !logo;
@@ -195,6 +210,35 @@ export function Form() {
             Your custom domain dedicated to shortlink use on Dub
           </p>
         </div>
+
+        {domain && verificationData && (
+          <motion.div
+            initial={false}
+            animate={{ height: "auto" }}
+            className="mt-6 overflow-hidden rounded-md border border-neutral-200 bg-neutral-50 px-5 pb-5"
+          >
+            {verificationData.status === "Valid Configuration" ? (
+              <div className="mt-4 flex items-center gap-2 text-pretty rounded-lg bg-green-100/80 p-3 text-sm text-green-600">
+                <CircleCheck className="h-5 w-5 shrink-0" />
+                <div>
+                  Good news! Your DNS records are set up correctly, but it can
+                  take some time for them to propagate globally.{" "}
+                  <Link
+                    href="https://dub.co/help/article/how-to-add-custom-domain#how-long-do-i-have-to-wait-for-my-domain-to-work"
+                    target="_blank"
+                    className="underline transition-colors hover:text-green-800"
+                  >
+                    Learn more.
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-4">
+                <DomainConfiguration data={verificationData} />
+              </div>
+            )}
+          </motion.div>
+        )}
 
         <div className="space-y-2">
           <label className="block text-sm font-medium text-neutral-800">
