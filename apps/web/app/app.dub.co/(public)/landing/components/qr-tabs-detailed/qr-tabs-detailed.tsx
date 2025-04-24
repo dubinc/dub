@@ -117,7 +117,7 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
                       </Text>
                     </div>
                     <Button
-                      className="flex w-full flex-row items-center justify-center gap-2"
+                      className="flex w-full flex-row items-center justify-center gap-2 md:max-w-[201px]"
                       size={{ initial: "4", md: "3" }}
                       color={"blue"}
                       variant="solid"

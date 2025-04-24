@@ -54,7 +54,7 @@ export const QrTabsCustomization: FC<QrTabsCustomizationProps> = ({
             key={tab.id}
             value={tab.label}
             className={cn(
-              "text-neutral flex h-[48px] items-center justify-center gap-2 rounded-md px-3.5 py-2 transition-colors",
+              "text-neutral flex h-12 items-center justify-center gap-2 rounded-md px-3.5 py-2 transition-colors md:h-9",
               "hover:bg-border-100 hover:text-neutral",
               "data-[state=active]:bg-secondary-100 data-[state=active]:text-secondary",
             )}
