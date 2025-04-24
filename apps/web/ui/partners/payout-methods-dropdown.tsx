@@ -22,33 +22,6 @@ export function PayoutMethodsDropdown() {
     fetcher,
   );
 
-  const payoutMethods = [
-    {
-      id: "paypal",
-      label: "PayPal",
-      color: "bg-blue-100",
-      icon: <Paypal />,
-      getAccountDetails: (partner: Pick<PartnerProps, "paypalEmail">) =>
-        `Account ${partner?.paypalEmail}` || "Not connected",
-      isVisible: (partner: Pick<PartnerProps, "country">) =>
-        partner?.country !== "US",
-    },
-    {
-      id: "stripe",
-      label: "Stripe Test Bank",
-      color: "bg-purple-100",
-      icon: <StripeIcon />,
-      getAccountDetails: (partner: Pick<PartnerProps, "stripeConnectId">) => {
-        if (!partner?.stripeConnectId || !bankAccount) {
-          return "Not connected";
-        }
-
-        return `${bankAccount.bank_name} •••• ${bankAccount.last4}`;
-      },
-      isVisible: () => true,
-    },
-  ];
-
   const { executeAsync: executeStripeAsync, isPending: isStripePending } =
     useAction(createAccountLinkAction, {
       onSuccess: ({ data }) => {
@@ -81,6 +54,37 @@ export function PayoutMethodsDropdown() {
     return null;
   }
 
+  const payoutMethods = [
+    {
+      id: "paypal",
+      label: "PayPal",
+      color: "bg-blue-100",
+      icon: <Paypal />,
+      getAccountDetails: (partner: Pick<PartnerProps, "paypalEmail">) =>
+        partner?.paypalEmail
+          ? `Account ${partner.paypalEmail}`
+          : "Not connected",
+      isVisible: (partner: Pick<PartnerProps, "country">) =>
+        partner?.country !== "US",
+    },
+    {
+      id: "stripe",
+      label: bankAccount?.bank_name || "Stripe",
+      color: "bg-purple-100",
+      icon: <StripeIcon />,
+      getAccountDetails: (partner: Pick<PartnerProps, "stripeConnectId">) => {
+        if (!partner?.stripeConnectId || !bankAccount) {
+          return "Not connected";
+        }
+
+        return `${bankAccount.bank_name} •••• ${bankAccount.last4}`;
+      },
+      isVisible: (partner: Pick<PartnerProps, "country" | "stripeConnectId">) =>
+        partner?.country === "US" ||
+        (partner?.country !== "US" && partner?.stripeConnectId),
+    },
+  ];
+
   const handlePayoutMethodSelect = async (method: string) => {
     if (!partner) {
       return;
@@ -96,21 +100,15 @@ export function PayoutMethodsDropdown() {
   };
 
   const selectedMethod = (() => {
-    // For US users, always show Stripe
     if (partner?.country === "US") {
       return payoutMethods.find(({ id }) => id === "stripe")!;
     }
 
-    // For non-US users
-    // If PayPal is connected, show PayPal
-    if (partner?.paypalEmail) {
-      return payoutMethods.find(({ id }) => id === "paypal");
-    }
-
-    // If Stripe is connected, show Stripe
     if (partner?.stripeConnectId) {
       return payoutMethods.find(({ id }) => id === "stripe");
     }
+
+    return payoutMethods.find(({ id }) => id === "paypal");
   })();
 
   const isConnected = (method: string) => {
@@ -140,7 +138,6 @@ export function PayoutMethodsDropdown() {
                         key={id}
                         className={cn(
                           "relative flex w-full cursor-pointer items-center justify-between rounded-md px-2 py-2 transition-all duration-75",
-                          "hover:bg-neutral-100",
                         )}
                       >
                         <div className="flex items-center gap-x-2">
@@ -156,7 +153,7 @@ export function PayoutMethodsDropdown() {
                             <span className="block text-xs font-medium text-neutral-900">
                               {label}
                             </span>
-                            <span className="block text-xs text-neutral-500">
+                            <span className="block w-44 truncate text-xs text-neutral-500">
                               {getAccountDetails(partner)}
                             </span>
                           </div>
@@ -199,7 +196,7 @@ export function PayoutMethodsDropdown() {
               <div className="truncate text-sm font-medium leading-5 text-neutral-900">
                 {selectedMethod?.label}
               </div>
-              <div className="truncate text-xs text-neutral-500">
+              <div className="w-52 truncate text-xs text-neutral-500">
                 {selectedMethod?.getAccountDetails(partner)}
               </div>
             </div>
