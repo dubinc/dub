@@ -20,23 +20,14 @@ import type { Stripe } from "stripe";
 import useSWR from "swr";
 
 export function PayoutMethodsDropdown() {
-  const { partner } = usePartnerProfile();
+  const { partner, loading: isPartnerLoading } = usePartnerProfile();
   const [openPopover, setOpenPopover] = useState(false);
 
-  const { data: bankAccount } = useSWR<Stripe.BankAccount>(
-    partner?.stripeConnectId ? "/api/partner-profile/payouts/settings" : null,
-    fetcher,
-  );
-
-  // bank_name
-  // :
-  // "STRIPE TEST BANK"
-  // last4
-  // :
-  // "6789"
-  // routing_number
-  // :
-  // "110000000"
+  const { data: bankAccount, isLoading: isBankAccountLoading } =
+    useSWR<Stripe.BankAccount>(
+      partner?.stripeConnectId ? "/api/partner-profile/payouts/settings" : null,
+      fetcher,
+    );
 
   const { executeAsync: executeStripeAsync, isPending: isStripePending } =
     useAction(createAccountLinkAction, {
@@ -94,7 +85,7 @@ export function PayoutMethodsDropdown() {
         }
 
         return (
-          <div className="flex items-center gap-1.5 font-mono text-neutral-400">
+          <div className="flex items-center gap-1.5">
             <MatrixLines className="size-3" />
             {bankAccount.routing_number}
             <MatrixLines className="size-3" />
@@ -199,37 +190,58 @@ export function PayoutMethodsDropdown() {
         openPopover={openPopover}
         setOpenPopover={setOpenPopover}
       >
-        <button
-          onClick={() => setOpenPopover(!openPopover)}
-          className={cn(
-            "flex w-full items-center justify-between rounded-lg p-1.5 text-left text-sm transition-all duration-75",
-            "border border-neutral-200 outline-none focus-visible:ring-2 focus-visible:ring-black/50",
-          )}
-        >
-          <div className="flex min-w-0 items-center gap-x-2.5 pr-2">
-            <div
-              className={cn(
-                "size-8 shrink-0 rounded-lg p-2",
-                selectedMethod?.color,
-              )}
-            >
-              {selectedMethod?.icon}
-            </div>
-            <div className="min-w-0">
-              <div className="truncate text-sm font-medium leading-5 text-neutral-900">
-                {selectedMethod?.label}
-              </div>
-              <div className="w-52 truncate text-xs text-neutral-500">
-                {selectedMethod?.getAccountDetails(partner)}
-              </div>
-            </div>
+        {isBankAccountLoading || isPartnerLoading ? (
+          <div className="rounded-lg border border-neutral-200">
+            <PayoutMethodSkeleton />
           </div>
-          <ChevronsUpDown
-            className="size-4 shrink-0 text-neutral-400"
-            aria-hidden="true"
-          />
-        </button>
+        ) : (
+          <button
+            onClick={() => setOpenPopover(!openPopover)}
+            className={cn(
+              "flex w-full items-center justify-between rounded-lg p-1.5 text-left text-sm transition-all duration-75",
+              "border border-neutral-200 outline-none focus-visible:ring-2 focus-visible:ring-black/50",
+            )}
+          >
+            <div className="flex min-w-0 items-center gap-x-2.5 pr-2">
+              <div
+                className={cn(
+                  "size-8 shrink-0 rounded-lg p-2",
+                  selectedMethod?.color,
+                )}
+              >
+                {selectedMethod?.icon}
+              </div>
+              <div className="min-w-0">
+                <span className="block text-xs font-medium text-neutral-900">
+                  {selectedMethod?.label}
+                </span>
+                <span className="block w-44 truncate text-xs text-neutral-500">
+                  {selectedMethod?.getAccountDetails(partner)}
+                </span>
+              </div>
+            </div>
+            <ChevronsUpDown
+              className="size-4 shrink-0 text-neutral-400"
+              aria-hidden="true"
+            />
+          </button>
+        )}
       </Popover>
+    </div>
+  );
+}
+
+function PayoutMethodSkeleton() {
+  return (
+    <div className="flex w-full items-center justify-between rounded-lg p-1.5">
+      <div className="flex min-w-0 items-center gap-x-2.5 pr-2">
+        <div className="size-8 shrink-0 animate-pulse rounded-lg bg-neutral-200" />
+        <div className="min-w-0 flex-1">
+          <div className="h-3 w-24 animate-pulse rounded bg-neutral-200" />
+          <div className="mt-1 h-3 w-44 animate-pulse rounded bg-neutral-200" />
+        </div>
+      </div>
+      <div className="size-4 shrink-0 animate-pulse rounded bg-neutral-200" />
     </div>
   );
 }
