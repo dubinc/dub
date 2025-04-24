@@ -1,11 +1,14 @@
+import { cn } from "@dub/utils";
+
 export function Stripe({ className }: { className?: string }) {
   return (
     <svg
-      width="12"
-      height="16"
-      viewBox="0 0 12 16"
+      width="14"
+      height="17"
+      viewBox="0 0 14 17"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      className={cn("h-full w-full", className)}
     >
       <path
         fillRule="evenodd"
