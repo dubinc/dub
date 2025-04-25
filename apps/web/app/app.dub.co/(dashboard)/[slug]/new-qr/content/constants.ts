@@ -9,7 +9,6 @@ export const QR_CONTENT_CONFIG: Record<
     id: string;
     label: string;
     type: string;
-    isInputOnFocus?: boolean;
     placeholder?: string;
     maxLength?: number;
   }[]
@@ -19,7 +18,6 @@ export const QR_CONTENT_CONFIG: Record<
       id: `qrName`,
       label: "Enter Name of your QR Code",
       type: "text",
-      isInputOnFocus: true,
       placeholder: "Name of your QR Code",
       isNotRequired: true,
     },
@@ -35,7 +33,6 @@ export const QR_CONTENT_CONFIG: Record<
       id: `qrName`,
       label: "Enter Name of your QR Code",
       type: "text",
-      isInputOnFocus: true,
       placeholder: "Name of your QR Code",
       isNotRequired: true,
     },
@@ -51,7 +48,6 @@ export const QR_CONTENT_CONFIG: Record<
       id: `qrName`,
       label: "Enter Name of your QR Code",
       type: "text",
-      isInputOnFocus: true,
       placeholder: "Name of your QR Code",
       isNotRequired: true,
     },
@@ -67,7 +63,6 @@ export const QR_CONTENT_CONFIG: Record<
       id: `link`,
       label: "Link",
       type: "url",
-      isInputOnFocus: true,
       placeholder: "https://www.getqr.com/",
     },
   ],
@@ -76,7 +71,6 @@ export const QR_CONTENT_CONFIG: Record<
       id: `number`,
       label: "Your number",
       type: "tel",
-      isInputOnFocus: true,
       placeholder: "Type your number",
     },
     {
@@ -92,7 +86,6 @@ export const QR_CONTENT_CONFIG: Record<
       id: `networkName`,
       label: "Network name (SSID)",
       type: "text",
-      isInputOnFocus: true,
       placeholder: "Enter network name",
     },
     {

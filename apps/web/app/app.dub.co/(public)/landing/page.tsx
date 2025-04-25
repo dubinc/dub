@@ -10,7 +10,6 @@ import { RatingInfoSection } from "./components/rating-info/rating-info-section.
 
 export default function LandingPage() {
   const qrGenerationBlockRef = useRef<HTMLDivElement>(null);
-
   const scrollToQRGenerationBlock = () => {
     qrGenerationBlockRef.current?.scrollIntoView({
       behavior: "smooth",

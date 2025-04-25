@@ -34,7 +34,6 @@ import {
 import { useShareDashboardModal } from "../modals/share-dashboard-modal";
 import { LinkControls } from "./link-controls";
 import { ResponseLink } from "./links-container";
-import { LinksDisplayContext } from "./links-display-provider";
 import TagBadge from "./tag-badge";
 
 function useOrganizedTags(tags: ResponseLink["tags"]) {
@@ -65,22 +64,22 @@ function useOrganizedTags(tags: ResponseLink["tags"]) {
 export function LinkDetailsColumn({ link }: { link: ResponseLink }) {
   const { tags } = link;
 
-  const { displayProperties } = useContext(LinksDisplayContext);
+  // const { displayProperties } = useContext(LinksDisplayContext);
 
   const ref = useRef<HTMLDivElement>(null);
 
-  const { primaryTag, additionalTags } = useOrganizedTags(tags);
+  // const { primaryTag, additionalTags } = useOrganizedTags(tags);
 
   return (
-    <div ref={ref} className="flex items-center justify-end gap-2 sm:gap-5">
-      {displayProperties.includes("tags") && primaryTag && (
-        <TagsTooltip additionalTags={additionalTags}>
-          <TagButton tag={primaryTag} plus={additionalTags.length} />
-        </TagsTooltip>
-      )}
-      {displayProperties.includes("analytics") && (
-        <AnalyticsBadge link={link} />
-      )}
+    <div ref={ref} className="flex items-center justify-end gap-2">
+      {/*{displayProperties.includes("tags") && primaryTag && (*/}
+      {/*  <TagsTooltip additionalTags={additionalTags}>*/}
+      {/*    <TagButton tag={primaryTag} plus={additionalTags.length} />*/}
+      {/*  </TagsTooltip>*/}
+      {/*)}*/}
+      {/*{displayProperties.includes("analytics") && (*/}
+      <AnalyticsBadge link={link} />
+      {/*)}*/}
       <LinkControls link={link} />
     </div>
   );
@@ -187,101 +186,122 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
     "folders.links.write",
   );
 
-  return isMobile ? (
-    <Link
-      href={`/${slug}/analytics?domain=${domain}&key=${key}&interval=${plan === "free" ? "30d" : plan === "pro" ? "1y" : "all"}`}
-      className="flex items-center gap-1 rounded-md border border-neutral-200 bg-neutral-50 px-2 py-0.5 text-sm text-neutral-800"
-    >
-      <CursorRays className="h-4 w-4 text-neutral-600" />
-      {nFormatter(link.clicks)}
-    </Link>
-  ) : (
-    <>
-      <ShareDashboardModal />
-      <Tooltip
-        key={modalShowCount}
-        side="top"
-        content={
-          <div className="flex flex-col gap-2.5 whitespace-nowrap p-3 text-neutral-600">
-            {stats.map(({ id: tab, value }) => (
-              <div key={tab} className="text-sm leading-none">
-                <span className="font-medium text-neutral-950">
-                  {tab === "sales"
-                    ? currencyFormatter(value / 100)
-                    : nFormatter(value, { full: value < INFINITY_NUMBER })}
-                </span>{" "}
-                {tab === "sales" ? "total " : ""}
-                {pluralize(tab.slice(0, -1), value)}
-              </div>
-            ))}
-            <p className="text-xs leading-none text-neutral-400">
-              {link.lastClicked
-                ? `Last clicked ${timeAgo(link.lastClicked, {
-                    withAgo: true,
-                  })}`
-                : "No clicks yet"}
-            </p>
-
-            <div className="inline-flex items-start justify-start gap-2">
-              <Button
-                text={link.dashboardId ? "Edit sharing" : "Share dashboard"}
-                className="h-7 w-full px-2"
-                onClick={() => {
-                  setShowShareDashboardModal(true);
-                  setModalShowCount((c) => c + 1);
-                }}
-                disabled={!canManageLink}
-              />
-
-              {link.dashboardId && (
-                <CopyButton
-                  value={`${APP_DOMAIN}/share/${link.dashboardId}`}
-                  variant="neutral"
-                  className="h-7 items-center justify-center rounded-md border border-neutral-300 bg-white p-1.5 hover:bg-neutral-50 active:bg-neutral-100"
-                />
-              )}
-            </div>
-          </div>
-        }
+  return (
+    <div className="flex items-center gap-2">
+      <div
+        className={cn(
+          "ml-2 flex w-[58px] justify-center overflow-hidden rounded-md border border-neutral-200/10",
+          "bg-neutral-50 p-0.5 px-1 text-sm text-neutral-600 transition-colors hover:bg-neutral-100",
+          link.archived
+            ? "bg-red-100 text-red-600"
+            : "bg-green-100 text-neutral-600",
+        )}
       >
+        {link.archived ? "Paused" : "Active"}
+      </div>
+      {isMobile ? (
         <Link
           href={`/${slug}/analytics?domain=${domain}&key=${key}&interval=${plan === "free" ? "30d" : plan === "pro" ? "1y" : "all"}`}
-          className={cn(
-            "overflow-hidden rounded-md border border-neutral-200 bg-neutral-50 p-0.5 text-sm text-neutral-600 transition-colors",
-            variant === "loose" ? "hover:bg-neutral-100" : "hover:bg-white",
-          )}
+          className="flex items-center gap-1 rounded-md border border-neutral-200/10 bg-neutral-50 px-2 py-0.5 text-sm text-neutral-800"
         >
-          <div className="hidden items-center gap-0.5 sm:flex">
-            {stats.map(
-              ({ id: tab, icon: Icon, value, className, iconClassName }) => (
-                <div
-                  key={tab}
-                  className={cn(
-                    "flex items-center gap-1 whitespace-nowrap rounded-md px-1 py-px transition-colors",
-                    className,
-                  )}
-                >
-                  <Icon
-                    data-active={value > 0}
-                    className={cn("h-4 w-4 shrink-0", iconClassName)}
-                  />
-                  <span>
-                    {tab === "sales"
-                      ? currencyFormatter(value / 100)
-                      : nFormatter(value)}
-                    {stats.length === 1 && " scans"}
-                  </span>
-                </div>
-              ),
-            )}
-            {link.dashboardId && (
-              <div className="border-l border-neutral-200 px-1.5">
-                <ReferredVia className="h-4 w-4 shrink-0 text-neutral-600" />
-              </div>
-            )}
-          </div>
+          <CursorRays className="h-4 w-4 text-neutral-600" />
+          {nFormatter(link.clicks)}
         </Link>
-      </Tooltip>
-    </>
+      ) : (
+        <>
+          <ShareDashboardModal />
+          <Tooltip
+            key={modalShowCount}
+            side="top"
+            content={
+              <div className="flex flex-col gap-2.5 whitespace-nowrap p-3 text-neutral-600">
+                {stats.map(({ id: tab, value }) => (
+                  <div key={tab} className="text-sm leading-none">
+                    <span className="font-medium text-neutral-950">
+                      {tab === "sales"
+                        ? currencyFormatter(value / 100)
+                        : nFormatter(value, { full: value < INFINITY_NUMBER })}
+                    </span>{" "}
+                    {tab === "sales" ? "total " : ""}
+                    {pluralize(tab.slice(0, -1), value)}
+                  </div>
+                ))}
+                <p className="text-xs leading-none text-neutral-400">
+                  {link.lastClicked
+                    ? `Last clicked ${timeAgo(link.lastClicked, {
+                        withAgo: true,
+                      })}`
+                    : "No clicks yet"}
+                </p>
+
+                <div className="inline-flex items-start justify-start gap-2">
+                  <Button
+                    text={link.dashboardId ? "Edit sharing" : "Share dashboard"}
+                    className="h-7 w-full px-2"
+                    onClick={() => {
+                      setShowShareDashboardModal(true);
+                      setModalShowCount((c) => c + 1);
+                    }}
+                    disabled={!canManageLink}
+                  />
+
+                  {link.dashboardId && (
+                    <CopyButton
+                      value={`${APP_DOMAIN}/share/${link.dashboardId}`}
+                      variant="neutral"
+                      className="h-7 items-center justify-center rounded-md border border-neutral-300 bg-white p-1.5 hover:bg-neutral-50 active:bg-neutral-100"
+                    />
+                  )}
+                </div>
+              </div>
+            }
+          >
+            <Link
+              href={`/${slug}/analytics?domain=${domain}&key=${key}&interval=${plan === "free" ? "30d" : plan === "pro" ? "1y" : "all"}`}
+              className={cn(
+                "overflow-hidden rounded-md border border-neutral-200/10 bg-neutral-50 p-0.5 text-sm text-neutral-600 transition-colors",
+                variant === "loose" ? "hover:bg-neutral-100" : "hover:bg-white",
+              )}
+            >
+              <div className="hidden items-center gap-0.5 sm:flex">
+                {stats.map(
+                  ({
+                    id: tab,
+                    // icon: Icon,
+                    value,
+                    className,
+                    iconClassName,
+                  }) => (
+                    <div
+                      key={tab}
+                      className={cn(
+                        "flex items-center gap-1 whitespace-nowrap rounded-md px-1 py-px transition-colors",
+                        className,
+                      )}
+                    >
+                      {/*<Icon*/}
+                      {/*  data-active={value > 0}*/}
+                      {/*  className={cn("h-4 w-4 shrink-0", iconClassName)}*/}
+                      {/*/>*/}
+                      <span>
+                        {tab === "sales"
+                          ? currencyFormatter(value / 100)
+                          : nFormatter(value)}
+                        {stats.length === 1 && " scans"}
+                      </span>
+                    </div>
+                  ),
+                )}
+                {link.dashboardId && (
+                  <div className="border-l border-neutral-200/10 px-1.5">
+                    <ReferredVia className="h-4 w-4 shrink-0 text-neutral-600" />
+                  </div>
+                )}
+              </div>
+            </Link>
+          </Tooltip>
+        </>
+      )}
+    </div>
   );
 }

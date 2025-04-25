@@ -2,8 +2,8 @@ import { Options } from "qr-code-styling";
 import { DotType } from "qr-code-styling/lib/types";
 import { FC } from "react";
 import { ColorsSettings } from "../../../../../../../(dashboard)/[slug]/new-qr/customization/components/colors-settings.tsx";
-import { StylePicker } from "../../../../../../../(dashboard)/[slug]/new-qr/customization/components/style-picker.tsx"; // adjust if needed
-import { DOTS_STYLES } from "../../../../../../../(dashboard)/[slug]/new-qr/customization/constants.ts";
+import { StylePicker } from "../../../../../../../(dashboard)/[slug]/new-qr/customization/components/style-picker.tsx";
+import { DOTS_STYLES } from "../../../../../../../(dashboard)/[slug]/new-qr/customization/constants/styles.ts";
 
 interface IStyleSelectorProps {
   options: Options;
@@ -27,11 +27,11 @@ export const StyleSelector: FC<IStyleSelectorProps> = ({
         styleOptions={DOTS_STYLES}
         selectedStyle={options.dotsOptions?.type ?? "square"}
         onSelect={(type) => onDotsStyleChange(type as DotType)}
-        stylePickerWrapperClassName="border border-border-100 p-3 rounded-lg [&_label]:text-sm"
+        stylePickerWrapperClassName="border border-border-500 p-3 rounded-lg [&_label]:text-sm"
         optionsWrapperClassName="gap-2 md:flex-nowrap"
-        styleButtonClassName="[&_img]:h-5 [&_img]:w-5 p-3.5"
+        styleButtonClassName="[&_img]:h-12 [&_img]:w-12 p-3.5"
       />
-      <div className="border-border-100 rounded-lg border p-3 [&>div>div:first-child]:!flex-row">
+      <div className="border-border-500 rounded-lg border p-3 [&>div>div:first-child]:!flex-row">
         <ColorsSettings
           options={options}
           onBorderColorChange={onBorderColorChange}

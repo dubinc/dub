@@ -1,6 +1,9 @@
-import { FC } from "react";
+import { FC, useEffect } from "react";
 import { StylePicker } from "../../../../../../../(dashboard)/[slug]/new-qr/customization/components/style-picker.tsx";
-import { FRAMES } from "../../../../../../../(dashboard)/[slug]/new-qr/customization/constants.ts";
+import {
+  FRAMES,
+  preloadAllFrames,
+} from "../../../../../../../(dashboard)/[slug]/new-qr/customization/constants/frames.ts";
 
 interface IFrameSelectorProps {
   selectedSuggestedFrame: string;
@@ -13,6 +16,10 @@ export const FrameSelector: FC<IFrameSelectorProps> = ({
   isQrDisabled,
   onFrameSelect,
 }) => {
+  useEffect(() => {
+    preloadAllFrames();
+  }, []);
+
   return (
     <StylePicker
       label="Frames"
@@ -23,11 +30,11 @@ export const FrameSelector: FC<IFrameSelectorProps> = ({
           onFrameSelect(type);
         }
       }}
-      stylePickerWrapperClassName="border border-border-100 p-3 rounded-lg gap-5"
+      stylePickerWrapperClassName="border h-full border-border-500 p-3 rounded-lg gap-5"
       optionsWrapperClassName={`gap-2 ${
         isQrDisabled ? "pointer-events-none cursor-not-allowed" : ""
       }`}
-      styleButtonClassName="[&_img]:h-8 [&_img]:w-8 p-3.5"
+      styleButtonClassName="[&_img]:h-12 [&_img]:w-12 p-2"
       minimalFlow
     />
   );

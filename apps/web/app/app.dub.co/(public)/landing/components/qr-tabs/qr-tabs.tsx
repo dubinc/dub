@@ -5,7 +5,7 @@ import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Icon } from "@iconify/react";
 import * as Tabs from "@radix-ui/react-tabs";
-import { forwardRef, useCallback, useState } from "react";
+import { forwardRef, useCallback, useEffect, useState } from "react";
 import { QRPreview } from "../../../../(dashboard)/[slug]/new-qr/customization/components/qr-review.tsx";
 import { useQrCustomization } from "../../../../(dashboard)/[slug]/new-qr/customization/hook/use-qr-customization.ts";
 import {
@@ -33,6 +33,32 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
   const [stepActiveTab, setStepActiveTab] = useState<string>(
     QR_GENERATION_STEPS[0].id,
   );
+
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const handleFocusOut = (e: Event) => {
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      ) {
+        setTimeout(() => {
+          if (
+            !document.activeElement ||
+            document.activeElement === document.body
+          ) {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }
+        }, 150);
+      }
+    };
+
+    document.body.addEventListener("focusout", handleFocusOut);
+
+    return () => {
+      document.body.removeEventListener("focusout", handleFocusOut);
+    };
+  }, []);
 
   const handlePopoverItemClick = (tabId: EQRType) => {
     setActiveTab(tabId);
@@ -72,7 +98,7 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
             ref={ref}
             value={stepActiveTab}
             onValueChange={setStepActiveTab}
-            className="mx-auto flex w-full flex-col items-center justify-center gap-4 rounded-lg bg-white p-4"
+            className="bg-background border-border-500 mx-auto flex w-full flex-col items-center justify-center gap-4 rounded-lg border p-4"
           >
             <div
               className={cn("flex justify-center rounded-lg shadow-lg", {
@@ -83,28 +109,27 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
             </div>
 
             <Tabs.List className="flex w-full rounded-md">
-              {QR_GENERATION_STEPS.map((step, idx) => (
+              {QR_GENERATION_STEPS.map((step) => (
                 <Tabs.Trigger
                   key={step.id}
                   value={step.id}
                   className={cn(
-                    "text-neutral border-border-100 group flex basis-1/2 items-center justify-start gap-2 border px-3 py-2.5 font-medium",
+                    "text-neutral border-b-border-300 group flex basis-1/2 items-center justify-center gap-2 border-b-2 px-3 py-2.5 font-medium",
                     "transition-all duration-300 ease-in-out",
                     "hover:bg-border-100 hover:text-neutral",
-                    "data-[state=active]:bg-secondary-100 data-[state=active]:border-secondary-100 data-[state=active]:text-secondary",
-                    idx === 0 && "rounded-l-md",
-                    idx === QR_GENERATION_STEPS.length - 1 && "rounded-r-md",
+                    "data-[state=active]:border-b-secondary data-[state=active]:text-secondary",
                   )}
                 >
-                  <QrTabsStepTitle title={step.label} stepNumber={idx + 1} />
+                  <QrTabsStepTitle title={step.label} isMobile={isMobile} />
                 </Tabs.Trigger>
               ))}
             </Tabs.List>
 
             {stepActiveTab === "content" && (
               <Tabs.Content
+                key={QR_GENERATION_STEPS[0].id}
                 value={QR_GENERATION_STEPS[0].id}
-                className="align-center border-border-100 flex w-full flex-col justify-center gap-6 rounded-md border p-3"
+                className="align-center flex w-full flex-col justify-center gap-6"
               >
                 <QRTabsPopover
                   qrTypes={nonFileQrTypes}
@@ -127,6 +152,7 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
             )}
             {stepActiveTab === "design" && (
               <Tabs.Content
+                key={QR_GENERATION_STEPS[1].id}
                 className="flex w-full flex-col items-start justify-start gap-4"
                 value={QR_GENERATION_STEPS[1].id}
               >
@@ -144,16 +170,16 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
               </Tabs.Content>
             )}
 
-            {isMobile && <QrTabsDownloadButton isQrDisabled={isQrDisabled} />}
+            <QrTabsDownloadButton isQrDisabled={isQrDisabled} />
           </Tabs.Root>
         ) : (
           <Tabs.Root
             ref={ref}
             value={activeTab}
             onValueChange={setActiveTab as (value: string) => void}
-            className="mx-auto flex w-full flex-col items-center justify-center gap-[18px] rounded-lg bg-white p-4 md:rounded-none md:bg-transparent"
+            className="border-border-500 mx-auto flex w-full flex-col items-center justify-center gap-[18px] rounded-lg border bg-white"
           >
-            <Tabs.List className="flex w-full items-center justify-between gap-0.5 overflow-x-auto rounded-lg bg-white p-3">
+            <Tabs.List className="border-b-border-500 flex w-full items-center justify-between gap-0.5 overflow-x-auto border-b p-3">
               {nonFileQrTypes.map((type, idx) => (
                 <Tabs.Trigger
                   key={type.id}
@@ -193,7 +219,7 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
                 >
                   <div
                     className={cn(
-                      "flex h-full w-full flex-row items-stretch justify-between gap-8 rounded-lg bg-white p-4",
+                      "flex h-full w-full flex-row items-stretch justify-between gap-8 p-4",
                     )}
                   >
                     <div className="flex basis-3/5 flex-col justify-start gap-2">
@@ -232,7 +258,7 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
                       </div>
                     </div>
 
-                    <div className="bg-primary-100 relative flex h-auto shrink-0 basis-2/5 items-start justify-center rounded-lg p-6">
+                    <div className="bg-background relative flex h-auto shrink-0 basis-2/5 items-start justify-center rounded-lg p-6">
                       <div className="sticky top-8 flex flex-col gap-6">
                         <QrTabsStepTitle
                           stepNumber={3}
@@ -255,8 +281,6 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
                 </Tabs.Content>
               );
             })}
-
-            {isMobile && <QrTabsDownloadButton isQrDisabled={isQrDisabled} />}
           </Tabs.Root>
         )}
 

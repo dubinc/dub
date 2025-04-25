@@ -52,10 +52,11 @@ export const EmailSignIn = ({ redirectTo }: { redirectTo?: string }) => {
 
             const { accountExists, hasPassword } = result.data;
 
-            if (accountExists && hasPassword) {
-              setShowPasswordField(true);
-              return;
-            }
+            // @USEFUL_FEATURE: display password field to login
+            // if (accountExists && hasPassword) {
+            //   setShowPasswordField(true);
+            //   return;
+            // }
 
             if (!accountExists) {
               setClickedMethod(undefined);

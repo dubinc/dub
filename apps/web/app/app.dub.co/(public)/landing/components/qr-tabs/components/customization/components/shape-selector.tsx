@@ -4,7 +4,7 @@ import { StylePicker } from "../../../../../../../(dashboard)/[slug]/new-qr/cust
 import {
   BORDER_STYLES,
   CENTER_STYLES,
-} from "../../../../../../../(dashboard)/[slug]/new-qr/customization/constants.ts";
+} from "../../../../../../../(dashboard)/[slug]/new-qr/customization/constants/styles.ts";
 
 interface IShapeSelectorProps {
   options: Options;
@@ -19,7 +19,7 @@ export const ShapeSelector: FC<IShapeSelectorProps> = ({
 }) => {
   return (
     <div className="flex max-w-[680px] flex-col gap-4">
-      <div className="border-border-100 rounded-lg border p-3">
+      <div className="border-border-500 rounded-lg border p-3">
         <StylePicker
           label="Border Style"
           styleOptions={BORDER_STYLES}

@@ -1,11 +1,9 @@
-import QrCodeIcon from "@/ui/landing/assets/svg/qr-code.svg";
 import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Icon } from "@iconify/react";
 import * as ScrollArea from "@radix-ui/react-scroll-area";
 import * as Tabs from "@radix-ui/react-tabs";
 import { Button, Heading, Text } from "@radix-ui/themes";
-import Image from "next/image";
 import { FC, useState } from "react";
 import { QR_TYPES } from "../../constants/get-qr-config.ts";
 import { QrTabsDetailedImage } from "./components/qr-tabs-detailed-image.tsx";
@@ -95,7 +93,6 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
               >
                 <div className="flex w-full flex-col items-center justify-start gap-[14px] rounded-lg md:flex-row md:gap-8">
                   <div className="bg-border-100 relative h-[413px] w-full max-w-[534px] flex-shrink-0 overflow-hidden rounded-lg">
-                    <div className="to-border-300 from-border-100 absolute bottom-[23px] left-1/2 h-[328px] w-[314px] -translate-x-1/2 rounded-[99px] bg-gradient-to-b opacity-50 blur-[80px]"></div>
                     <QrTabsDetailedImage
                       imgSrc={type.img}
                       {...(!isMobile && { width: 270, height: 420 })}
@@ -118,7 +115,7 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
                       </Text>
                     </div>
                     <Button
-                      className="flex w-full flex-row items-center justify-center gap-2"
+                      className="flex w-full flex-row items-center justify-center gap-2 md:max-w-[201px]"
                       size={{ initial: "4", md: "3" }}
                       color={"blue"}
                       variant="solid"
@@ -127,12 +124,6 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
                       <Text size={{ initial: "3", md: "4" }}>
                         Create QR code
                       </Text>
-                      <Image
-                        width={20}
-                        src={QrCodeIcon}
-                        alt="QR Code"
-                        priority
-                      />
                     </Button>
                   </div>
                 </div>
