@@ -1,7 +1,4 @@
-import { getSession } from "@/lib/auth";
 import { ConnectPayoutButton } from "@/ui/partners/connect-payout-button";
-import { prisma } from "@dub/prisma";
-import { CONNECT_SUPPORTED_COUNTRIES } from "@dub/utils/src/constants";
 import Link from "next/link";
 import { Suspense } from "react";
 
@@ -97,19 +94,14 @@ function PayoutSkeleton() {
 }
 
 async function PayoutRSC() {
-  const { user } = await getSession();
-
-  const partner = await prisma.partner.findUnique({
-    where: {
-      email: user.email,
-    },
-  });
-
-  const provider = CONNECT_SUPPORTED_COUNTRIES.includes(
-    partner?.country || "US",
-  )
-    ? "stripe"
-    : "paypal";
-
+  // TODO: Remove this once PayPal connection is ready
+  // const { user } = await getSession();
+  // const partner = await prisma.partner.findUnique({
+  //   where: {
+  //     email: user.email,
+  //   },
+  // });
+  // const provider = partner?.country === "US" ? "stripe" : "paypal";
+  const provider = "stripe";
   return <PayoutProvider provider={provider} />;
 }
