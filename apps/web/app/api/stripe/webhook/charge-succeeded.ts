@@ -49,12 +49,22 @@ export async function chargeSucceeded(event: Stripe.Event) {
     return;
   }
 
+  await prisma.invoice.update({
+    where: {
+      id: invoice.id,
+    },
+    data: {
+      receiptUrl: receipt_url,
+      status: "completed",
+      paidAt: new Date(),
+    },
+  });
+
   const qstashResponse = await qstash.publishJSON({
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/charge-succeeded`,
     body: {
       chargeId,
       invoiceId: invoice.id,
-      receiptUrl: receipt_url,
       achCreditTransfer: Boolean(
         charge.payment_method_details?.ach_credit_transfer,
       ),

@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     await verifyQstashSignature({ req, rawBody });
 
     const body = payloadSchema.parse(JSON.parse(rawBody));
-    const { invoiceId, receiptUrl } = body;
+    const { invoiceId } = body;
 
     const invoice = await prisma.invoice.findUnique({
       where: {
@@ -83,17 +83,6 @@ export async function POST(req: Request) {
       sendStripePayouts({ ...body, payouts: stripePayouts }),
       sendPaypalPayouts({ ...body, payouts: paypalPayouts }),
     ]);
-
-    await prisma.invoice.update({
-      where: {
-        id: invoiceId,
-      },
-      data: {
-        receiptUrl,
-        status: "completed",
-        paidAt: new Date(),
-      },
-    });
 
     return new Response(`Invoice ${invoiceId} processed.`);
   } catch (error) {
