@@ -1,0 +1,17 @@
+model Qr {
+  id              String    @id @default(cuid())
+  data            String    @db.LongText
+  archived        Boolean   @default(false) // whether the link is archived or not
+
+  title           String?   // OG title for the link (e.g. Dub.co - Open-Source Link Management Infrastructure)
+  description     String?   @db.VarChar(280) // OG description for the link (e.g. An open-source link management tool for modern marketing teams to create, share, and track short links.)
+
+  styles          Json?
+
+  linkId          String?
+  link            Link?      @relation(fields: [linkId], references: [id])
+
+  // User who created the qr
+  userId          String?
+  user            User?      @relation(fields: [userId], references: [id])
+}
