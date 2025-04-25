@@ -42,11 +42,6 @@ export async function POST(req: Request) {
       return new Response(`Invoice with id ${invoiceId} not found.`);
     }
 
-    if (invoice.status === "completed") {
-      console.log("Invoice already completed, skipping...");
-      return new Response(`Invoice with id ${invoiceId} already completed.`);
-    }
-
     if (invoice._count.payouts === 0) {
       console.log("No payouts found with status not completed, skipping...");
       return new Response(
@@ -81,8 +76,15 @@ export async function POST(req: Request) {
     );
 
     await Promise.allSettled([
-      sendStripePayouts({ ...body, payouts: stripePayouts }),
-      sendPaypalPayouts({ ...body, payouts: paypalPayouts }),
+      sendStripePayouts({
+        payload: body,
+        payouts: stripePayouts,
+      }),
+
+      sendPaypalPayouts({
+        payload: body,
+        payouts: paypalPayouts,
+      }),
     ]);
 
     return new Response(`Invoice ${invoiceId} processed.`);

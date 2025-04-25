@@ -1,17 +1,23 @@
+import { qstash } from "@/lib/cron";
 import { createPaypalToken } from "@/lib/paypal/create-paypal-token";
 import { paypalEnv } from "@/lib/paypal/env";
 import { prisma } from "@dub/prisma";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { Payload, Payouts } from "./utils";
 
 export async function sendPaypalPayouts({
-  invoiceId,
+  payload,
   payouts,
-}: Payload & { payouts: Payouts[] }) {
+}: {
+  payload: Payload;
+  payouts: Payouts[];
+}) {
   if (payouts.length === 0) {
     console.log("No payouts for sending via PayPal, skipping...");
     return;
   }
 
+  const { invoiceId } = payload;
   const paypalAccessToken = await createPaypalToken();
 
   const body = {
@@ -58,6 +64,13 @@ export async function sendPaypalPayouts({
         status: "pending",
         invoiceId: null,
       },
+    });
+
+    // schedule a retry after 24 hours (TBD)
+    await qstash.publishJSON({
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/charge-succeeded`,
+      body: payload,
+      delay: 24 * 60 * 60 * 1000,
     });
 
     throw new Error(data.message);

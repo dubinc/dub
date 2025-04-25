@@ -5,15 +5,18 @@ import { prisma } from "@dub/prisma";
 import { Payload, Payouts } from "./utils";
 
 export async function sendStripePayouts({
-  invoiceId,
-  chargeId,
-  achCreditTransfer,
+  payload,
   payouts,
-}: Payload & { payouts: Payouts[] }) {
+}: {
+  payload: Payload;
+  payouts: Payouts[];
+}) {
   if (payouts.length === 0) {
     console.log("No payouts for sending via Stripe, skipping...");
     return;
   }
+
+  const { invoiceId, chargeId, achCreditTransfer } = payload;
 
   for (const payout of payouts) {
     const transfer = await stripe.transfers.create({
