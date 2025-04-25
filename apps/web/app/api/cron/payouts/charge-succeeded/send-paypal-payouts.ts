@@ -1,6 +1,6 @@
+import { createPaypalToken } from "@/lib/paypal/create-paypal-token";
 import { paypalEnv } from "@/lib/paypal/env";
 import { prisma } from "@dub/prisma";
-import { createPaypalToken } from "./create-paypal-token";
 import { Payload, Payouts } from "./utils";
 
 export async function sendPaypalPayouts({
