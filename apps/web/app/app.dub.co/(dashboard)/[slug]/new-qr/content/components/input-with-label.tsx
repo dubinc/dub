@@ -1,5 +1,5 @@
 import { Input } from "@dub/ui";
-import { ChangeEventHandler, FC, useEffect, useRef } from "react";
+import { ChangeEventHandler, FC } from "react";
 
 interface IInputWithLabelProps {
   label: string;
@@ -7,7 +7,6 @@ interface IInputWithLabelProps {
   placeholder: string;
   value?: string;
   onChange?: ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>;
-  isInputOnFocus?: boolean;
   errorMessage?: string;
   minimalFlow?: boolean;
 }
@@ -15,19 +14,10 @@ interface IInputWithLabelProps {
 export const InputWithLabel: FC<IInputWithLabelProps> = ({
   label,
   type = "text",
-  isInputOnFocus = false,
   errorMessage,
   minimalFlow = false,
   ...props
 }) => {
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (isInputOnFocus && inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [isInputOnFocus]);
-
   return (
     <div className="flex w-full flex-col gap-2">
       <label className="text-neutral text-sm font-medium">{label}</label>
@@ -39,7 +29,6 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
       ) : (
         <Input
           type={type}
-          ref={inputRef}
           className="border-border-500 focus:border-secondary h-11 w-full max-w-2xl rounded-md border p-3 text-base"
           {...props}
         />
