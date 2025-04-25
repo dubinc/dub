@@ -94,7 +94,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
 
   // Create a Tinybird pipe
   const pipe = tb.buildPipe({
-    pipe: `v2_${UTM_TAGS_PLURAL_LIST.includes(groupBy) ? "utms" : groupBy}${groupBy === "cities" ? "_new" : ""}`,
+    pipe: `v2_${UTM_TAGS_PLURAL_LIST.includes(groupBy) ? "utms" : groupBy}`,
     parameters: analyticsFilterTB,
     data:
       groupBy === "top_links" || UTM_TAGS_PLURAL_LIST.includes(groupBy)
