@@ -5,7 +5,7 @@ import { ButtonsWrapper } from "../../app/app.dub.co/(dashboard)/[slug]/new-qr/c
 import { CheckboxWithLabel } from "../../app/app.dub.co/(dashboard)/[slug]/new-qr/content/components/checkbox-with-label.tsx";
 import { FileCardContent } from "../../app/app.dub.co/(dashboard)/[slug]/new-qr/content/components/file-card-content.tsx";
 import { InputWithLabel } from "../../app/app.dub.co/(dashboard)/[slug]/new-qr/content/components/input-with-label.tsx";
-import { Select } from "../../app/app.dub.co/(dashboard)/[slug]/new-qr/content/components/select.tsx";
+import { ISelectOption, Select } from "../../app/app.dub.co/(dashboard)/[slug]/new-qr/content/components/select.tsx";
 import {
   ENCRYPTION_TYPES,
   QR_CONTENT_CONFIG,
@@ -22,6 +22,7 @@ interface IQRContentBuilderProps {
     inputValues: Record<string, string>;
     files: File[];
     isHiddenNetwork: boolean;
+    qrType: EQRType;
   }) => void;
   minimalFlow?: boolean;
 }
@@ -53,7 +54,7 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
   //   const { id, value } = e.target;
   //   validateField(id, value);
   //   if (minimalFlow) {
-  //     handleContent({ inputValues, files, isHiddenNetwork });
+  //     handleContent({ inputValues, files, isHiddenNetwork, qrType });
   //   }
   // };
 
@@ -66,18 +67,36 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
       [id]: value.trim() === "" ? "Field is required" : "",
     };
 
-    setInputValues(updatedValues);
+    setInputValues(updatedValues); 
     setInputErrors(updatedErrors);
 
     if (minimalFlow) {
-      handleContent({ inputValues: updatedValues, files, isHiddenNetwork });
+      handleContent({ inputValues: updatedValues, files, isHiddenNetwork, qrType });
+    }
+  };
+
+  const handleEncryptionSelectChange = (option: ISelectOption) => {
+    const updatedValues = { ...inputValues, networkEncryption: option.id === "none" ? "" : option.id };
+
+    setInputValues(updatedValues);
+
+    if (minimalFlow) {
+      handleContent({ inputValues: updatedValues, files, isHiddenNetwork, qrType });
+    }
+  };
+
+  const handleSetIsHiddenNetwork = (isChecked: boolean) => {
+    setIsHiddenNetwork(isChecked);
+
+    if (minimalFlow) {
+      handleContent({ inputValues, files, isHiddenNetwork: isChecked, qrType });
     }
   };
 
   const renderedInputs = (): string[] => {
     const fields = QR_CONTENT_CONFIG[qrType] || [];
     const filteredFields = minimalFlow
-      ? fields.filter((field) => !field.id.includes("name"))
+      ? fields.filter((field) => !field.isNotRequired)
       : fields;
     return filteredFields.map((field) => field.id);
   };
@@ -96,7 +115,7 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
     }
 
     if (isValid) {
-      handleContent({ inputValues, files, isHiddenNetwork });
+      handleContent({ inputValues, files, isHiddenNetwork, qrType });
     }
   };
 
@@ -106,7 +125,7 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
     const getFilteredFields = () => {
       const fields = QR_CONTENT_CONFIG[qrType] || [];
       return minimalFlow
-        ? fields.filter((field) => !field.id.includes("name"))
+        ? fields.filter((field) => !field.isNotRequired)
         : fields;
     };
 
@@ -140,12 +159,12 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
               <label className="text-neutral text-sm font-medium">
                 Type of encryption
               </label>
-              <Select options={ENCRYPTION_TYPES} />
+              <Select options={ENCRYPTION_TYPES} onChange={handleEncryptionSelectChange} />
             </div>
             <CheckboxWithLabel
               label="Hidden Network option"
               checked={isHiddenNetwork}
-              onCheckedChange={setIsHiddenNetwork}
+              onCheckedChange={handleSetIsHiddenNetwork}
             />
           </div>
         </>

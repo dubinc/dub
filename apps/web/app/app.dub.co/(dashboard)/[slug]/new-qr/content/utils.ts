@@ -13,3 +13,24 @@ export const getMaxSizeLabel = (qrType: EQRType, isLogo = false) => {
 
   return maxSizes[qrType] || { size: 0, label: "Unsupported size" };
 };
+
+export const dataHandlers = {
+  [EQRType.WEBSITE]: (values: Record<string, string>, isHiddenNetwork: boolean) => {
+    return values.websiteLink;
+  },
+  [EQRType.APP_LINK]: (values: Record<string, string>, isHiddenNetwork: boolean) => {
+    return values.storeLink;
+  },
+  [EQRType.SOCIAL]: (values: Record<string, string>, isHiddenNetwork: boolean) => {
+    return values.socialLink;
+  },
+  [EQRType.FEEDBACK]: (values: Record<string, string>, isHiddenNetwork: boolean) => {
+    return values.link;
+  },
+  [EQRType.WHATSAPP]: (values: Record<string, string>, isHiddenNetwork: boolean) => {
+    return `https://wa.me/${values.number}?text=${encodeURIComponent(values.message)}`;
+  },
+  [EQRType.WIFI]: (values: Record<string, string>, isHiddenNetwork: boolean) => {
+    return `WIFI:T:${values.networkEncryption};S:${values.networkName};P:${values.networkPassword};H:${isHiddenNetwork};`;
+  },
+};
