@@ -81,11 +81,13 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
 
   return (
     <section className="bg-primary-100 w-full px-3 pb-6 md:pb-12">
-      <div className="mx-auto flex max-w-[992px] flex-col items-center justify-center gap-4 md:gap-12">
+      <div
+        className="mx-auto flex max-w-[992px] flex-col items-center justify-center gap-4 md:gap-12"
+        ref={ref}
+      >
         <QrTabsTitle />
         {isMobile ? (
           <Tabs.Root
-            ref={ref}
             value={stepActiveTab}
             onValueChange={setStepActiveTab}
             className="bg-background border-border-500 mx-auto flex w-full flex-col items-center justify-center gap-4 rounded-lg border p-4"
@@ -104,7 +106,7 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
                   key={step.id}
                   value={step.id}
                   className={cn(
-                    "text-neutral border-b-border-300 group flex basis-1/2 items-center justify-center gap-2 border-b-2 px-3 py-2.5 font-medium",
+                    "text-neutral border-b-border-300 group flex basis-1/2 items-center justify-center gap-2 border-b-[3px] px-3 py-2.5 font-medium",
                     "transition-all duration-300 ease-in-out",
                     "hover:bg-border-100 hover:text-neutral",
                     "data-[state=active]:border-b-secondary data-[state=active]:text-secondary",
