@@ -49,8 +49,7 @@ export default function Analytics({
 }
 
 function StatsGrid() {
-  const { dashboardProps, partnerPage, selectedTab, view } =
-    useContext(AnalyticsContext);
+  const { dashboardProps, selectedTab, view } = useContext(AnalyticsContext);
   const { plan } = useWorkspace();
 
   const hide =
