@@ -2,8 +2,10 @@ import { getEvents } from "@/lib/analytics/get-events";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
+import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 // GET /api/partner-profile/programs/[programId]/events – get events for a program enrollment link
 export const GET = withPartnerProfile(
@@ -40,7 +42,7 @@ export const GET = withPartnerProfile(
       linkId = link.id;
     }
 
-    const response = await getEvents({
+    const events = await getEvents({
       programId: program.id,
       partnerId: partner.id,
       linkId,
@@ -48,10 +50,24 @@ export const GET = withPartnerProfile(
       dataAvailableFrom: program.createdAt,
     });
 
-    // TODO:
-    // Customer email should be masked
-
-    console.log(response);
+    const response = events.map((event) => {
+      return {
+        ...event,
+        link: PartnerProfileLinkSchema.parse(event.link),
+        // @ts-expect-error - customer is not always present
+        ...(event?.customer && {
+          customer: z
+            .object({
+              id: z.string(),
+              email: z
+                .string()
+                .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "****")),
+            })
+            // @ts-expect-error - customer is not always present
+            .parse(event.customer),
+        }),
+      };
+    });
 
     return NextResponse.json(response);
   },
