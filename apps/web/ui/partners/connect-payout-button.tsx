@@ -4,6 +4,7 @@ import { createAccountLinkAction } from "@/lib/actions/partners/create-account-l
 import { generatePaypalOAuthUrl } from "@/lib/actions/partners/generate-paypal-oauth-url";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { Button, ButtonProps } from "@dub/ui";
+import { CONNECT_SUPPORTED_COUNTRIES, COUNTRIES } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useCallback } from "react";
 import { toast } from "sonner";
@@ -47,7 +48,7 @@ export function ConnectPayoutButton(props: ButtonProps) {
       return;
     }
 
-    // TODO: Add this when PayPal connection is ready
+    // TODO: Remove this once PayPal connection is ready
     // if (partner.supportedPayoutMethod === "paypal") {
     //   await executePaypalAsync();
     // } else if (partner.supportedPayoutMethod === "stripe") {
@@ -56,12 +57,18 @@ export function ConnectPayoutButton(props: ButtonProps) {
     //   toast.error("Unable to connect payout method. Please contact support.");
     // }
     await executeStripeAsync();
-  }, [executePaypalAsync, partner]);
+  }, [executeStripeAsync, partner]);
 
   return (
     <Button
       onClick={onClick}
       loading={isStripePending || isPaypalPending}
+      // TODO: Remove this once PayPal connection is ready
+      disabledTooltip={
+        partner?.country &&
+        !CONNECT_SUPPORTED_COUNTRIES.includes(partner.country) &&
+        `We currently do not support payouts for ${COUNTRIES[partner.country]} yet, but we are working on adding support via PayPal soon.`
+      }
       {...props}
     />
   );
