@@ -25,7 +25,7 @@ export const dataHandlers = {
     return values.socialLink;
   },
   [EQRType.FEEDBACK]: (values: Record<string, string>, isHiddenNetwork: boolean) => {
-    return values.storeLink;
+    return values.link;
   },
   [EQRType.WHATSAPP]: (values: Record<string, string>, isHiddenNetwork: boolean) => {
     return `https://wa.me/${values.number}?text=${encodeURIComponent(values.message)}`;

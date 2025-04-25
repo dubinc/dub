@@ -68,12 +68,6 @@ export const QR_CONTENT_CONFIG: Record<
       label: "Link",
       type: "url",
       isInputOnFocus: true,
-      placeholder: "Your QR Code",
-    },
-    {
-      id: `storeLink`,
-      label: "Store Link",
-      type: "url",
       placeholder: "https://www.getqr.com/",
     },
   ],
