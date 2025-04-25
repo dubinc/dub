@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   User,
   Users,
+  CursorRays,
 } from "@dub/ui/icons";
 import { Store } from "lucide-react";
 import { useParams, usePathname } from "next/navigation";
@@ -80,6 +81,11 @@ const NAV_AREAS: SidebarNavAreas<{
             name: "Analytics",
             icon: LinesY,
             href: `/programs/${programSlug}/analytics`,
+          },
+          {
+            name: "Events",
+            icon: CursorRays,
+            href: `/programs/${programSlug}/events`,
           },
           {
             name: "Resources",
