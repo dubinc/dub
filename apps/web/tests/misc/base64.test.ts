@@ -23,7 +23,7 @@ describe("base64ImageSchema", () => {
   it("should reject malformed base64 data", async () => {
     const malformedBase64 = "data:image/png;base64,invalid-base64-data";
     await expect(base64ImageSchema.parseAsync(malformedBase64)).rejects.toThrow(
-      "Invalid image content. The file must be a valid image",
+      "Invalid image format, supports only png, jpeg, jpg, gif, webp.",
     );
   });
 
