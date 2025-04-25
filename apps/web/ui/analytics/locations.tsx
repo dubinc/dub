@@ -22,7 +22,7 @@ export default function Locations() {
   const dataKey = selectedTab === "sales" ? saleUnit : "count";
 
   const [tab, setTab] = useState<
-    "countries" | "cities" | "continents" | "regions"
+    "countries" | "cities" | "regions" | "continents"
   >("countries");
 
   const { data } = useAnalyticsFilterOption(tab);
@@ -67,9 +67,7 @@ export default function Locations() {
                         ? CONTINENTS[d.continent]
                         : tab === "countries"
                           ? COUNTRIES[d.country]
-                          : tab === "regions"
-                            ? REGIONS[d.region] || d.region.split("-")[1]
-                            : d.city,
+                          : `${tab === "cities" ? `${d.city}, ` : ""}${REGIONS[d.region] || d.region.split("-")[1]}`,
                     href: queryParams({
                       ...(searchParams.has(singularTabName)
                         ? { del: singularTabName }
