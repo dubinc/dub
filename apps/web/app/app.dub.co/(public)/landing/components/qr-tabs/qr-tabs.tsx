@@ -5,7 +5,7 @@ import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Icon } from "@iconify/react";
 import * as Tabs from "@radix-ui/react-tabs";
-import { forwardRef, useState } from "react";
+import { forwardRef, useEffect, useState } from "react";
 import { QRPreview } from "../../../../(dashboard)/[slug]/new-qr/customization/components/qr-review.tsx";
 import { useQrCustomization } from "../../../../(dashboard)/[slug]/new-qr/customization/hook/use-qr-customization.ts";
 import {
@@ -32,6 +32,17 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
   const [stepActiveTab, setStepActiveTab] = useState<string>(
     QR_GENERATION_STEPS[0].id,
   );
+
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const handleResize = () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [isMobile]);
 
   const handlePopoverItemClick = (tabId: EQRType) => {
     setActiveTab(tabId);
@@ -62,7 +73,7 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
             ref={ref}
             value={stepActiveTab}
             onValueChange={setStepActiveTab}
-            className="bg-background mx-auto flex w-full flex-col items-center justify-center gap-4 rounded-lg border border-[#e5e5e5] p-4"
+            className="bg-background border-border-500 mx-auto flex w-full flex-col items-center justify-center gap-4 rounded-lg border p-4"
           >
             <div
               className={cn("flex justify-center rounded-lg shadow-lg", {
@@ -78,7 +89,7 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
                   key={step.id}
                   value={step.id}
                   className={cn(
-                    "text-neutral border-b-border-300 group flex basis-1/2 items-center justify-center gap-2 border-b px-3 py-2.5 font-medium",
+                    "text-neutral border-b-border-300 group flex basis-1/2 items-center justify-center gap-2 border-b-2 px-3 py-2.5 font-medium",
                     "transition-all duration-300 ease-in-out",
                     "hover:bg-border-100 hover:text-neutral",
                     "data-[state=active]:border-b-secondary data-[state=active]:text-secondary",
@@ -141,7 +152,7 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
               </Tabs.Content>
             )}
 
-            {isMobile && <QrTabsDownloadButton isQrDisabled={isQrDisabled} />}
+            <QrTabsDownloadButton isQrDisabled={isQrDisabled} />
           </Tabs.Root>
         ) : (
           <Tabs.Root
@@ -259,8 +270,6 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
                 </Tabs.Content>
               );
             })}
-
-            {isMobile && <QrTabsDownloadButton isQrDisabled={isQrDisabled} />}
           </Tabs.Root>
         )}
 

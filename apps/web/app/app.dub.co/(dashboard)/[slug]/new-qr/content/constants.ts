@@ -9,7 +9,6 @@ export const QR_CONTENT_CONFIG: Record<
     id: string;
     label: string;
     type: string;
-    isInputOnFocus?: boolean;
     placeholder?: string;
     maxLength?: number;
   }[]
@@ -19,7 +18,6 @@ export const QR_CONTENT_CONFIG: Record<
       id: `${EQRType.WEBSITE}-qr-name`,
       label: "Enter Name of your QR Code",
       type: "text",
-      isInputOnFocus: true,
       placeholder: "Name of your QR Code",
     },
     {
@@ -34,7 +32,6 @@ export const QR_CONTENT_CONFIG: Record<
       id: `${EQRType.APP_LINK}-qr-name`,
       label: "Enter Name of your QR Code",
       type: "text",
-      isInputOnFocus: true,
       placeholder: "Name of your QR Code",
     },
     {
@@ -49,7 +46,6 @@ export const QR_CONTENT_CONFIG: Record<
       id: `${EQRType.SOCIAL}-qr-name`,
       label: "Enter Name of your QR Code",
       type: "text",
-      isInputOnFocus: true,
       placeholder: "Name of your QR Code",
     },
     {
@@ -64,7 +60,6 @@ export const QR_CONTENT_CONFIG: Record<
       id: `${EQRType.FEEDBACK}-link`,
       label: "Link",
       type: "url",
-      isInputOnFocus: true,
       placeholder: "Your QR Code",
     },
     {
@@ -79,7 +74,6 @@ export const QR_CONTENT_CONFIG: Record<
       id: `${EQRType.WHATSAPP}-number`,
       label: "Your number",
       type: "tel",
-      isInputOnFocus: true,
       placeholder: "Type your number",
     },
     {
@@ -95,7 +89,6 @@ export const QR_CONTENT_CONFIG: Record<
       id: `${EQRType.WIFI}-network`,
       label: "Network name (SSID)",
       type: "text",
-      isInputOnFocus: true,
       placeholder: "Enter network name",
     },
     {
