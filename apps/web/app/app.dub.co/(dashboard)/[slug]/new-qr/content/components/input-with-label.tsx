@@ -18,6 +18,20 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
   minimalFlow = false,
   ...props
 }) => {
+  let autoCompleteValue: "on" | "tel" | "url";
+
+  switch (type) {
+    case "tel":
+      autoCompleteValue = "tel";
+      break;
+    case "url":
+      autoCompleteValue = "url";
+      break;
+    default:
+      autoCompleteValue = "on";
+      break;
+  }
+
   return (
     <div className="flex w-full flex-col gap-2">
       <label className="text-neutral text-sm font-medium">{label}</label>
@@ -30,6 +44,7 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
         <Input
           type={type}
           className="border-border-500 focus:border-secondary h-11 w-full max-w-2xl rounded-md border p-3 text-base"
+          autoComplete={autoCompleteValue}
           {...props}
         />
       )}
