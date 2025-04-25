@@ -189,7 +189,7 @@ export function PayoutMethodsDropdown() {
                           onClick={() => connectPayout(id)}
                           loading={isStripePending || isPaypalPending}
                           disabledTooltip={
-                            id === "paypal"
+                            id === "paypal" && !isConnected(id)
                               ? "PayPal payouts are coming soon."
                               : undefined
                           }
