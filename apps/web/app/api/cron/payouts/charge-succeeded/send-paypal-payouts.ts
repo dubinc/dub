@@ -1,8 +1,7 @@
 import { paypalEnv } from "@/lib/paypal/env";
+import { prisma } from "@dub/prisma";
 import { createPaypalToken } from "./create-paypal-token";
 import { Payload, Payouts } from "./utils";
-
-export const dynamic = "force-dynamic";
 
 export async function sendPaypalPayouts({
   invoiceId,
@@ -47,6 +46,18 @@ export async function sendPaypalPayouts({
 
   if (!response.ok) {
     console.error("Error creating PayPal batch payout", data);
+    console.log("Resetting payout status to pending");
+    await prisma.payout.updateMany({
+      where: {
+        id: {
+          in: payouts.map((payout) => payout.id),
+        },
+      },
+      data: {
+        status: "pending",
+        invoiceId: null,
+      },
+    });
     throw new Error("Error creating PayPal batch payout");
   }
 

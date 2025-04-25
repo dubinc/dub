@@ -22,10 +22,14 @@ export async function POST(req: Request) {
         id: invoiceId,
       },
       include: {
-        payouts: {
-          where: {
-            status: {
-              not: "completed",
+        _count: {
+          select: {
+            payouts: {
+              where: {
+                status: {
+                  not: "completed",
+                },
+              },
             },
           },
         },
@@ -34,17 +38,19 @@ export async function POST(req: Request) {
 
     if (!invoice) {
       console.log(`Invoice with id ${invoiceId} not found.`);
-      return;
+      return new Response(`Invoice with id ${invoiceId} not found.`);
     }
 
     if (invoice.status === "completed") {
       console.log("Invoice already completed, skipping...");
-      return;
+      return new Response(`Invoice with id ${invoiceId} already completed.`);
     }
 
-    if (invoice.payouts.length === 0) {
+    if (invoice._count.payouts === 0) {
       console.log("No payouts found with status not completed, skipping...");
-      return;
+      return new Response(
+        `No payouts found with status not completed for invoice ${invoiceId}`,
+      );
     }
 
     const payouts = await prisma.payout.findMany({
@@ -73,7 +79,7 @@ export async function POST(req: Request) {
       (payout) => payout.partner.paypalEmail,
     );
 
-    await Promise.all([
+    await Promise.allSettled([
       sendStripePayouts({ ...body, payouts: stripePayouts }),
       sendPaypalPayouts({ ...body, payouts: paypalPayouts }),
     ]);

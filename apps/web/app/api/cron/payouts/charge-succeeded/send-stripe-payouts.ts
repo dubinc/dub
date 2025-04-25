@@ -4,8 +4,6 @@ import PartnerPayoutSent from "@dub/email/templates/partner-payout-sent";
 import { prisma } from "@dub/prisma";
 import { Payload, Payouts } from "./utils";
 
-export const dynamic = "force-dynamic";
-
 export async function sendStripePayouts({
   invoiceId,
   chargeId,
