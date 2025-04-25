@@ -1,6 +1,7 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@dub/prisma";
+import { log } from "@dub/utils";
 import { sendPaypalPayouts } from "./send-paypal-payouts";
 import { sendStripePayouts } from "./send-stripe-payouts";
 import { payloadSchema } from "./utils";
@@ -86,6 +87,11 @@ export async function POST(req: Request) {
 
     return new Response(`Invoice ${invoiceId} processed.`);
   } catch (error) {
+    await log({
+      message: `Error sending payouts for invoice: ${error.message}`,
+      type: "cron",
+    });
+
     return handleAndReturnErrorResponse(error);
   }
 }

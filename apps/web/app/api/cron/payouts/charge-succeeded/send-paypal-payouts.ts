@@ -47,6 +47,7 @@ export async function sendPaypalPayouts({
   if (!response.ok) {
     console.error("Error creating PayPal batch payout", data);
     console.log("Resetting payout status to pending");
+
     await prisma.payout.updateMany({
       where: {
         id: {
@@ -58,7 +59,8 @@ export async function sendPaypalPayouts({
         invoiceId: null,
       },
     });
-    throw new Error("Error creating PayPal batch payout");
+
+    throw new Error(data.message);
   }
 
   console.log("Paypal batch payout created", data);
