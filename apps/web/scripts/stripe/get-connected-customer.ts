@@ -3,9 +3,9 @@ import { stripeAppClient } from "../../lib/stripe";
 
 async function main() {
   const connectedCustomer = await stripeAppClient.customers.retrieve(
-    "cus_SCCWOFWpb9aU5v",
+    "cus_xxx",
     {
-      stripeAccount: "acct_1QmcXXKojVEYZPlX",
+      stripeAccount: "acct_xxx",
     },
   );
 
