@@ -70,7 +70,7 @@ export async function sendPaypalPayouts({
     await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/charge-succeeded`,
       body: payload,
-      delay: 24 * 60 * 60 * 1000,
+      delay: 24 * 60 * 60,
     });
 
     throw new Error(data.message);
