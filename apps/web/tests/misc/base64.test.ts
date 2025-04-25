@@ -15,7 +15,9 @@ describe("base64ImageSchema", () => {
       "data:image/invalid;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
     await expect(
       base64ImageSchema.parseAsync(invalidImageType),
-    ).rejects.toThrow("Invalid image format");
+    ).rejects.toThrow(
+      "Invalid image format, supports only png, jpeg, jpg, gif, webp.",
+    );
   });
 
   it("should reject malformed base64 data", async () => {
@@ -29,7 +31,7 @@ describe("base64ImageSchema", () => {
     const noPrefix =
       "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
     await expect(base64ImageSchema.parseAsync(noPrefix)).rejects.toThrow(
-      "Invalid image format",
+      "Invalid image format, supports only png, jpeg, jpg, gif, webp.",
     );
   });
 
@@ -39,7 +41,7 @@ describe("base64ImageSchema", () => {
       "data:image/png;base64," +
       Buffer.from("This is not an image").toString("base64");
     await expect(base64ImageSchema.parseAsync(textContent)).rejects.toThrow(
-      "Invalid image content. The file must be a valid image",
+      "Invalid image format, supports only png, jpeg, jpg, gif, webp.",
     );
   });
 
@@ -68,7 +70,7 @@ describe("base64ImageSchema", () => {
         ).toString("base64");
 
       await expect(base64ImageSchema.parseAsync(xssPayload)).rejects.toThrow(
-        "Invalid image content. The file must be a valid image",
+        "Invalid image format, supports only png, jpeg, jpg, gif, webp.",
       );
     });
 
@@ -99,7 +101,7 @@ describe("base64ImageSchema", () => {
       await expect(
         base64ImageSchema.parseAsync(phishingPayload),
       ).rejects.toThrow(
-        "Invalid image content. The file must be a valid image",
+        "Invalid image format, supports only png, jpeg, jpg, gif, webp.",
       );
     });
   });
