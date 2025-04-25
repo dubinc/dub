@@ -184,10 +184,10 @@ SQL >
 NODE cities_composite
 SQL >
 
-    SELECT dce.city AS city, dce.country AS country, clicks, leads, sales, amount, saleAmount
-    FROM (SELECT city, country, clicks FROM cities_clicks) AS dce
-    LEFT JOIN (SELECT * FROM cities_leads) AS dle ON dce.city = dle.city
-    LEFT JOIN (SELECT * FROM cities_sales) AS dse ON dce.city = dse.city
+    SELECT dce.city AS city, dce.region AS region, dce.country AS country, clicks, leads, sales, amount, saleAmount
+    FROM (SELECT city, region, country, clicks FROM cities_clicks) AS dce
+    LEFT JOIN (SELECT * FROM cities_leads) AS dle ON dce.city = dle.city AND dce.region = dle.region
+    LEFT JOIN (SELECT * FROM cities_sales) AS dse ON dce.city = dse.city AND dce.region = dse.region
     ORDER BY clicks DESC
 
 
