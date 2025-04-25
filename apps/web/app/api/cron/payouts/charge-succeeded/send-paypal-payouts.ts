@@ -1,7 +1,6 @@
 import { qstash } from "@/lib/cron";
 import { createPaypalToken } from "@/lib/paypal/create-paypal-token";
 import { paypalEnv } from "@/lib/paypal/env";
-import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { Payload, Payouts } from "./utils";
 
@@ -52,19 +51,6 @@ export async function sendPaypalPayouts({
 
   if (!response.ok) {
     console.error("Error creating PayPal batch payout", data);
-    console.log("Resetting payout status to pending");
-
-    await prisma.payout.updateMany({
-      where: {
-        id: {
-          in: payouts.map((payout) => payout.id),
-        },
-      },
-      data: {
-        status: "pending",
-        invoiceId: null,
-      },
-    });
 
     // schedule a retry after 24 hours (TBD)
     await qstash.publishJSON({
