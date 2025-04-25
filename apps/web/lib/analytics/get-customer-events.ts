@@ -10,14 +10,17 @@ import {
 } from "../zod/schemas/clicks";
 import { leadEventResponseSchema } from "../zod/schemas/leads";
 import { saleEventResponseSchema } from "../zod/schemas/sales";
+import { EventType } from "./types";
 
 export const getCustomerEvents = async ({
   customerId,
   linkIds,
+  eventType,
   hideMetadata = false,
 }: {
   customerId: string;
   linkIds?: string[];
+  eventType?: EventType;
   hideMetadata?: boolean;
 }) => {
   const pipe = tb.buildPipe({
@@ -28,6 +31,7 @@ export const getCustomerEvents = async ({
 
   const response = await pipe({
     customerId,
+    ...(eventType ? { eventType } : {}),
     ...(linkIds ? { linkIds } : {}),
   });
 

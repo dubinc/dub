@@ -14,6 +14,7 @@ import { LinkSchema } from "./links";
 
 export const PartnerEarningsSchema = CommissionSchema.merge(
   z.object({
+    id: z.string().nullable(), // id will be null for ineligible sales
     type: z.string(),
     quantity: z.number().nullable(),
     customer: z
