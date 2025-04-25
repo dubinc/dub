@@ -67,12 +67,16 @@ export async function POST(req: Request) {
       },
     });
 
-    const stripePayouts = payouts.filter(
-      (payout) => payout.partner.stripeConnectId,
-    );
-
+    // we default to paypal if it's connected
     const paypalPayouts = payouts.filter(
       (payout) => payout.partner.paypalEmail,
+    );
+
+    // if paypal is not connected, we use stripe
+    const stripePayouts = payouts.filter(
+      (payout) =>
+        payout.partner.stripeConnectId &&
+        !paypalPayouts.some((p) => p.id === payout.id),
     );
 
     await Promise.allSettled([
