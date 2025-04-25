@@ -47,14 +47,16 @@ export function ConnectPayoutButton(props: ButtonProps) {
       return;
     }
 
-    if (partner.supportedPayoutMethod === "paypal") {
-      await executePaypalAsync();
-    } else if (partner.supportedPayoutMethod === "stripe") {
-      await executeStripeAsync();
-    } else {
-      toast.error("Unable to connect payout method. Please contact support.");
-    }
-  }, [executePaypalAsync, executeStripeAsync, partner]);
+    // TODO: Add this when PayPal connection is ready
+    // if (partner.supportedPayoutMethod === "paypal") {
+    //   await executePaypalAsync();
+    // } else if (partner.supportedPayoutMethod === "stripe") {
+    //   await executeStripeAsync();
+    // } else {
+    //   toast.error("Unable to connect payout method. Please contact support.");
+    // }
+    await executeStripeAsync();
+  }, [executePaypalAsync, partner]);
 
   return (
     <Button

@@ -9,6 +9,7 @@ import {
   MatrixLines,
   Paypal,
   Popover,
+  StatusBadge,
   Stripe as StripeIcon,
 } from "@dub/ui";
 import { cn, fetcher } from "@dub/utils";
@@ -164,8 +165,17 @@ export function PayoutMethodsDropdown() {
                             {icon}
                           </div>
                           <div>
-                            <span className="block text-xs font-medium text-neutral-900">
-                              {label}
+                            <span className="flex items-center gap-1 text-xs font-medium text-neutral-900">
+                              {label}{" "}
+                              {id === "paypal" && (
+                                <StatusBadge
+                                  variant={isConnected(id) ? "neutral" : "new"}
+                                  icon={null}
+                                  className="px-1.5 py-0.5"
+                                >
+                                  {isConnected(id) ? "Default" : "Recommended"}
+                                </StatusBadge>
+                              )}
                             </span>
                             <span className="block w-44 truncate text-xs text-neutral-500">
                               {getAccountDetails(partner)}
@@ -174,10 +184,15 @@ export function PayoutMethodsDropdown() {
                         </div>
 
                         <Button
-                          variant={isConnected(id) ? "ghost" : "primary"}
+                          variant={isConnected(id) ? "secondary" : "primary"}
                           text={isConnected(id) ? "Manage" : "Connect"}
                           onClick={() => connectPayout(id)}
                           loading={isStripePending || isPaypalPending}
+                          disabledTooltip={
+                            id === "paypal"
+                              ? "PayPal payouts are coming soon."
+                              : undefined
+                          }
                           className="h-7 w-fit text-xs"
                         />
                       </div>

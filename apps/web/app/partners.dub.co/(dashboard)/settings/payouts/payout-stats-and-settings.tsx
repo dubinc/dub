@@ -8,23 +8,13 @@ import { PayoutMethodsDropdown } from "@/ui/partners/payout-methods-dropdown";
 import { AlertCircleFill } from "@/ui/shared/icons";
 import { PayoutStatus } from "@dub/prisma/client";
 import { Tooltip } from "@dub/ui";
-import { fetcher } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
-import { Stripe } from "stripe";
-import useSWR from "swr";
 
 export function PayoutStatsAndSettings() {
   const { partner } = usePartnerProfile();
   const { payoutsCount } = usePartnerPayoutsCount<PayoutsCount[]>({
     groupBy: "status",
   });
-
-  const { data: bankAccount } = useSWR<Stripe.BankAccount>(
-    partner &&
-      partner.stripeConnectId &&
-      "/api/partner-profile/payouts/settings",
-    fetcher,
-  );
 
   return (
     <div className="grid grid-cols-1 divide-neutral-200 rounded-lg border border-neutral-200 max-sm:divide-y sm:grid-cols-2 sm:divide-x">
