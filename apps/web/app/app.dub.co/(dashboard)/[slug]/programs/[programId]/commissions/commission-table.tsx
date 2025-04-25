@@ -4,6 +4,7 @@ import useCommissionsCount from "@/lib/swr/use-commissions-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse } from "@/lib/types";
 import FilterButton from "@/ui/analytics/events/filter-button";
+import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
@@ -26,9 +27,7 @@ import {
   formatDateTime,
   formatDateTimeSmart,
   nFormatter,
-  OG_AVATAR_URL,
 } from "@dub/utils";
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import { memo } from "react";
 import useSWR from "swr";
@@ -90,28 +89,14 @@ const CommissionTableInner = memo(
           ),
         },
         {
+          id: "customer",
           header: "Customer",
           cell: ({ row }) =>
             row.original.customer ? (
-              <div className="flex items-center gap-2">
-                <img
-                  src={
-                    row.original.customer.avatar ||
-                    `${OG_AVATAR_URL}${row.original.customer.id}`
-                  }
-                  alt={
-                    row.original.customer.email ?? row.original.customer.name
-                  }
-                  className="size-5 rounded-full"
-                />
-                <Link
-                  href={`/${slug}/customers/${row.original.customer.id}`}
-                  target="_blank"
-                  className="cursor-alias truncate decoration-dotted hover:underline"
-                >
-                  {row.original.customer.email ?? row.original.customer.name}
-                </Link>
-              </div>
+              <CustomerRowItem
+                customer={row.original.customer}
+                href={`/${slug}/customers/${row.original.customer.id}`}
+              />
             ) : (
               "-"
             ),

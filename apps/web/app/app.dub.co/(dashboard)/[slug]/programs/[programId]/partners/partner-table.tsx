@@ -120,7 +120,9 @@ export function PartnerTable() {
         enableHiding: false,
         minSize: 250,
         cell: ({ row }) => {
-          return <PartnerRowItem partner={row.original} />;
+          return (
+            <PartnerRowItem partner={row.original} showPermalink={false} />
+          );
         },
       },
       {
