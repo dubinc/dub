@@ -152,7 +152,7 @@ export function PayoutMethodsDropdown() {
                       <div
                         key={id}
                         className={cn(
-                          "relative flex w-full cursor-pointer items-center justify-between rounded-md px-2 py-1.5 transition-all duration-75",
+                          "flex w-full items-center justify-between rounded-md px-2 py-1.5 transition-all duration-75",
                         )}
                       >
                         <div className="flex items-center gap-x-2">
