@@ -67,7 +67,7 @@ export function ConnectPayoutButton(props: ButtonProps) {
       disabledTooltip={
         partner?.country &&
         !CONNECT_SUPPORTED_COUNTRIES.includes(partner.country) &&
-        `We currently do not support payouts for ${COUNTRIES[partner.country]} yet, but we are working on adding support via PayPal soon.`
+        `We currently do not support payouts for ${COUNTRIES[partner.country]} yet, but we are working on adding payouts support via PayPal soon.`
       }
       {...props}
     />
