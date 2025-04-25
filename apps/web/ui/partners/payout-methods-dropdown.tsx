@@ -165,8 +165,8 @@ export function PayoutMethodsDropdown() {
                             {icon}
                           </div>
                           <div>
-                            <span className="flex items-center gap-1 text-xs font-medium text-neutral-900">
-                              {label}{" "}
+                            <span className="flex items-center gap-1.5 text-xs font-medium text-neutral-900">
+                              {label}
                               {id === "paypal" && (
                                 <StatusBadge
                                   variant={isConnected(id) ? "neutral" : "new"}
