@@ -34,7 +34,7 @@ export const FrameSelector: FC<IFrameSelectorProps> = ({
       optionsWrapperClassName={`gap-2 ${
         isQrDisabled ? "pointer-events-none cursor-not-allowed" : ""
       }`}
-      styleButtonClassName="[&_img]:h-10 [&_img]:w-10 p-2 [&_img]:object-cover"
+      styleButtonClassName="[&_img]:h-12 [&_img]:w-12 p-2"
       minimalFlow
     />
   );

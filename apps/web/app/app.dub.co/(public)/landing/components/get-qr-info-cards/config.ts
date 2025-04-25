@@ -12,6 +12,6 @@ export const GET_QR_CARDS = [
   {
     title: "Download & Share",
     content:
-      "Save your QR code in high-quality formats (PNG, SVG, PDF) and use it anywhere—print, display, or share digitally!",
+      "Save your QR code in high-quality formats (PNG, SVG, JPEG) and use it anywhere—print, display, or share digitally!",
   },
 ];

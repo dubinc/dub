@@ -1,9 +1,9 @@
 import { Heading } from "@radix-ui/themes";
 import Image from "next/image";
 import { FC } from "react";
-import GetQEInfoCardOne from "../../../../../../ui/landing/assets/png/get-qr-info-card-1.png";
-import GetQEInfoCardTwo from "../../../../../../ui/landing/assets/png/get-qr-info-card-2.png";
-import GetQEInfoCardThree from "../../../../../../ui/landing/assets/png/get-qr-info-card-3.png";
+import GetQEInfoCardOne from "../../../../../../ui/landing/assets/svg/get-qr-info-card-1.svg";
+import GetQEInfoCardTwo from "../../../../../../ui/landing/assets/svg/get-qr-info-card-2.svg";
+import GetQEInfoCardThree from "../../../../../../ui/landing/assets/svg/get-qr-info-card-3.svg";
 import { InfoCard } from "./components/InfoCard.tsx";
 import { GET_QR_CARDS } from "./config.ts";
 
@@ -36,7 +36,7 @@ export const GetQRInfoCardsSection: FC = () => {
             content={card.content}
             img={
               <Image
-                className="w-full self-center md:max-h-[138px] md:max-w-[122px]"
+                className="w-full self-center"
                 height={138}
                 width={122}
                 src={GET_QR_CARDS_IMGS[idx]}

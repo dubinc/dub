@@ -1,3 +1,4 @@
+import { cn } from "@dub/utils/src";
 import { Box, Card, Flex, Heading, Text } from "@radix-ui/themes";
 import { FC, ReactNode } from "react";
 
@@ -18,7 +19,10 @@ export const InfoCard: FC<IGetInfoCardProps> = ({
       <Flex direction="column" gap={{ initial: "3", lg: "4" }} align="center">
         <Flex
           justify="center"
-          className="bg-border-100 relative h-[140px] w-full max-w-[342px] flex-shrink-0 overflow-hidden rounded-lg [&>img]:w-[140px] [&>img]:self-end"
+          className={cn(
+            "bg-border-100 relative h-[140px] max-h-none w-full max-w-[342px] shrink-0 overflow-hidden rounded-lg [&>img]:self-end",
+            cardNumber === 2 ? "[&>img]:w-[302px]" : "[&>img]:w-[140px]",
+          )}
         >
           {img}
         </Flex>

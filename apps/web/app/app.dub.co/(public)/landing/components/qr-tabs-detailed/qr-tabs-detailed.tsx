@@ -1,11 +1,9 @@
-import QrCodeIcon from "@/ui/landing/assets/svg/qr-code.svg";
 import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Icon } from "@iconify/react";
 import * as ScrollArea from "@radix-ui/react-scroll-area";
 import * as Tabs from "@radix-ui/react-tabs";
 import { Button, Heading, Text } from "@radix-ui/themes";
-import Image from "next/image";
 import { FC, useState } from "react";
 import { QR_TYPES } from "../../constants/get-qr-config.ts";
 import { QrTabsDetailedImage } from "./components/qr-tabs-detailed-image.tsx";
@@ -126,12 +124,6 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
                       <Text size={{ initial: "3", md: "4" }}>
                         Create QR code
                       </Text>
-                      <Image
-                        width={20}
-                        src={QrCodeIcon}
-                        alt="QR Code"
-                        priority
-                      />
                     </Button>
                   </div>
                 </div>
