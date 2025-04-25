@@ -36,13 +36,28 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
   useEffect(() => {
     if (!isMobile) return;
 
-    const handleResize = () => {
-      window.scrollTo({ top: 0, behavior: "smooth" });
+    const handleFocusOut = (e: Event) => {
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      ) {
+        setTimeout(() => {
+          if (
+            !document.activeElement ||
+            document.activeElement === document.body
+          ) {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }
+        }, 150);
+      }
     };
 
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, [isMobile]);
+    document.body.addEventListener("focusout", handleFocusOut);
+
+    return () => {
+      document.body.removeEventListener("focusout", handleFocusOut);
+    };
+  }, []);
 
   const handlePopoverItemClick = (tabId: EQRType) => {
     setActiveTab(tabId);
