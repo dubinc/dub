@@ -78,7 +78,7 @@ export function ProgramCard({
       {status === "approved" ? (
         <ProgramCardEarnings program={program} />
       ) : (
-        <div className="mt-4 flex h-24 items-center justify-center text-balance rounded-md border border-neutral-200 bg-neutral-50 p-5 text-center text-sm text-neutral-500">
+        <div className="mt-4 flex h-20 items-center justify-center text-balance rounded-md border border-neutral-200 bg-neutral-50 p-5 text-center text-sm text-neutral-500">
           {status === "pending"
             ? `Applied ${formatDate(createdAt)}`
             : status === "banned"

@@ -14,6 +14,7 @@ export async function getTopProgramsByCommissions({
     by: ["programId"],
     _sum: {
       earnings: true,
+      amount: true,
     },
     where: {
       earnings: {
@@ -45,7 +46,8 @@ export async function getTopProgramsByCommissions({
   const topProgramsWithCommissions = programCommissions.map(
     ({ programId, _sum }) => ({
       ...topPrograms.find((program) => program.id === programId),
-      earnings: _sum.earnings || 0,
+      commissions: _sum.earnings || 0,
+      revenue: _sum.amount || 0,
     }),
   );
 
@@ -54,7 +56,8 @@ export async function getTopProgramsByCommissions({
 
 interface Commission {
   start: string;
-  earnings: number;
+  commissions: number;
+  revenue: number;
 }
 
 export async function getCommissionsTimeseries({
@@ -74,7 +77,8 @@ export async function getCommissionsTimeseries({
   const commissions = await prisma.$queryRaw<Commission[]>`
         SELECT 
           DATE_FORMAT(CONVERT_TZ(createdAt, "UTC", ${timezone || "UTC"}), ${dateFormat}) AS start, 
-          SUM(earnings) AS earnings
+          SUM(earnings) AS commissions,
+          SUM(amount) AS revenue
         FROM Commission
         WHERE 
           earnings > 0
@@ -88,11 +92,12 @@ export async function getCommissionsTimeseries({
     DateTime.fromJSDate(startDate).setZone(timezone || "UTC"),
   );
 
-  const earningsLookup = Object.fromEntries(
+  const commissionsLookup = Object.fromEntries(
     commissions.map((item) => [
       item.start,
       {
-        earnings: Number(item.earnings),
+        commissions: Number(item.commissions),
+        revenue: Number(item.revenue),
       },
     ]),
   );
@@ -104,8 +109,9 @@ export async function getCommissionsTimeseries({
 
     timeseries.push({
       start: currentDate.toISO(),
-      ...(earningsLookup[periodKey] || {
-        earnings: 0,
+      ...(commissionsLookup[periodKey] || {
+        commissions: 0,
+        revenue: 0,
       }),
     });
 

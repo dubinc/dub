@@ -69,6 +69,9 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
         },
       },
     },
+    orderBy: {
+      createdAt: "asc",
+    },
   });
 
   return NextResponse.json(
