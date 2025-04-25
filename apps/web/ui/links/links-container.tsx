@@ -27,10 +27,12 @@ export default function LinksContainer({
 }: {
   CreateLinkButton: () => JSX.Element;
 }) {
-  const { viewMode, sortBy, showArchived } = useContext(LinksDisplayContext);
+  const { viewMode, sortBy, 
+    // showArchived
+   } = useContext(LinksDisplayContext);
 
-  const { links, isValidating } = useLinks({ sortBy, showArchived });
-  const { data: count } = useLinksCount<number>({ showArchived });
+  const { links, isValidating } = useLinks({ sortBy, showArchived: true });
+  const { data: count } = useLinksCount<number>({ showArchived: true });
 
   return (
     <MaxWidthWrapper className="grid gap-y-2">

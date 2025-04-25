@@ -14,14 +14,13 @@ import {
 import { toast } from "sonner";
 import { EmailSignIn } from "./email-sign-in";
 import { GoogleButton } from "./google-button";
-import { SSOSignIn } from "./sso-sign-in";
 
 export const authMethods = [
   "google",
   // "github",
   "email",
-  "saml",
-  "password",
+  // "saml",
+  // "password",
 ] as const;
 
 export type AuthMethod = (typeof authMethods)[number];
@@ -121,10 +120,10 @@ export default function LoginForm({
       component: EmailSignIn,
       props: { redirectTo },
     },
-    {
-      method: "saml",
-      component: SSOSignIn,
-    },
+    // {
+    //   method: "saml",
+    //   component: SSOSignIn,
+    // },
   ];
 
   const currentAuthProvider = authProviders.find(

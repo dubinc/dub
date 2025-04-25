@@ -11,7 +11,7 @@ import WorkspacesMiddleware from "./workspaces";
 
 export default async function AppMiddleware(req: NextRequest) {
   const { path, fullPath } = parse(req);
-  console.log('here1');
+  console.log("here1");
   console.log(path, fullPath);
 
   if (path.startsWith("/embed")) {
@@ -30,6 +30,13 @@ export default async function AppMiddleware(req: NextRequest) {
     path !== "/forgot-password" &&
     path !== "/register" &&
     path !== "/auth/saml" &&
+    // helps, terms and policy
+    path !== "/cookie-policy" &&
+    path !== "/eula" &&
+    path !== "/privacy-policy" &&
+    !path.startsWith("/help") &&
+    // helps, terms and policy
+
     !path.startsWith("/auth/reset-password/") &&
     !path.startsWith("/share/")
   ) {

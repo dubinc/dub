@@ -181,7 +181,7 @@ export function LinksDisplayProvider({ children }: PropsWithChildren) {
   } = useLinksDisplayOption<boolean>(
     "show-archived",
     parseShowArchived,
-    false,
+    true,
     showArchivedRaw ? showArchivedRaw === "true" : undefined,
   );
 

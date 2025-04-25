@@ -1,40 +1,44 @@
+import { getQRAsCanvas, getQRAsSVGDataUri, getQRData } from "@/lib/qr";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
 import useFolders from "@/lib/swr/use-folders";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { QRLinkProps } from "@/lib/types.ts";
 import { useArchiveLinkModal } from "@/ui/modals/archive-link-modal";
 import { useDeleteLinkModal } from "@/ui/modals/delete-link-modal";
+import { Download } from "@/ui/shared/icons";
 import {
   Button,
   CardList,
   IconMenu,
   PenWriting,
+  Photo,
   Popover,
-  SimpleTooltipContent,
   useCopyToClipboard,
   useKeyboardShortcut,
+  useLocalStorage,
 } from "@dub/ui";
-import {
-  BoxArchive,
-  CircleCheck,
-  Copy,
-  FolderBookmark,
-  QRCode,
-} from "@dub/ui/icons";
+import { BoxArchive, FolderBookmark, QRCode } from "@dub/ui/icons";
 import { cn, isDubDomain, nanoid, punycode } from "@dub/utils";
-import { CopyPlus, Delete, FolderInput } from "lucide-react";
+import { Delete } from "lucide-react";
 import { useParams, useSearchParams } from "next/navigation";
-import { useContext } from "react";
+import {
+  PropsWithChildren,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { toast } from "sonner";
 import { useLinkBuilder } from "../modals/link-builder";
-import { useLinkQRModal } from "../modals/link-qr-modal";
+import { QRCodeDesign, useLinkQRModal } from "../modals/link-qr-modal";
 import { useMoveLinkToFolderModal } from "../modals/move-link-to-folder-modal";
 import { useTransferLinkModal } from "../modals/transfer-link-modal";
 import { ThreeDots } from "../shared/icons";
 import { LinksListContext, ResponseLink } from "./links-container";
 
 export function LinkControls({ link }: { link: ResponseLink }) {
-  const { flags } = useWorkspace();
+  const { flags, id: workspaceId } = useWorkspace();
   const { slug } = useParams() as { slug?: string };
   const { folders } = useFolders();
   const { hovered } = useContext(CardList.Card.Context);
@@ -75,6 +79,25 @@ export function LinkControls({ link }: { link: ResponseLink }) {
   const isRootLink = link.key === "_root";
   const isProgramLink = link.programId !== null;
   const folderId = link.folderId || searchParams.get("folderId");
+
+  const [dataPersisted] = useLocalStorage<QRCodeDesign>(
+    `qr-code-design-${workspaceId}`,
+    {
+      fgColor: "#000000",
+      hideLogo: false,
+    },
+  );
+  const [data, setData] = useState(dataPersisted);
+  const qrData = useMemo(
+    () =>
+      link.shortLink
+        ? getQRData({
+            url: link.shortLink,
+            fgColor: data.fgColor,
+          })
+        : null,
+    [link, data],
+  );
 
   // Duplicate link Modal
   const {
@@ -166,14 +189,27 @@ export function LinkControls({ link }: { link: ResponseLink }) {
   );
 
   return (
-    <div className="flex justify-end">
+    <div className="flex justify-end gap-2">
       <LinkQRModal />
       <LinkBuilder />
-      <DuplicateLinkModal />
+      {/*<DuplicateLinkModal />*/}
       <ArchiveLinkModal />
-      <TransferLinkModal />
+      {/*<TransferLinkModal />*/}
       <DeleteLinkModal />
-      <MoveLinkToFolderModal />
+      {/*<MoveLinkToFolderModal />*/}
+      <DownloadPopover
+        qrData={qrData!}
+        props={{ key: link.key, domain: link.domain, url: link.url }}
+      >
+        <Button
+          variant="secondary"
+          className={cn(
+            "h-8 px-1.5 outline-none transition-all duration-200",
+            "border-transparent data-[state=open]:border-neutral-200/40 data-[state=open]:ring-neutral-200/40 sm:group-hover/card:data-[state=closed]:border-neutral-200/10",
+          )}
+          icon={<Download className="h-5 w-5 shrink-0" />}
+        />
+      </DownloadPopover>
       <Popover
         content={
           <div className="w-full sm:w-48">
@@ -205,38 +241,38 @@ export function LinkControls({ link }: { link: ResponseLink }) {
                 shortcut="Q"
                 className="h-9 px-2 font-medium"
               />
-              <Button
-                text="Duplicate"
-                variant="outline"
-                onClick={() => {
-                  setOpenPopover(false);
-                  setShowDuplicateLinkModal(true);
-                }}
-                icon={<CopyPlus className="size-4" />}
-                shortcut="D"
-                className="h-9 px-2 font-medium"
-                disabledTooltip={
-                  !canManageLink
-                    ? "You don't have permission to duplicate this link."
-                    : undefined
-                }
-              />
-              <Button
-                text="Copy Link ID"
-                variant="outline"
-                onClick={() => copyLinkId()}
-                icon={
-                  copiedLinkId ? (
-                    <CircleCheck className="size-4" />
-                  ) : (
-                    <Copy className="size-4" />
-                  )
-                }
-                shortcut="I"
-                className="h-9 px-2 font-medium"
-              />
+              {/*<Button*/}
+              {/*  text="Duplicate"*/}
+              {/*  variant="outline"*/}
+              {/*  onClick={() => {*/}
+              {/*    setOpenPopover(false);*/}
+              {/*    setShowDuplicateLinkModal(true);*/}
+              {/*  }}*/}
+              {/*  icon={<CopyPlus className="size-4" />}*/}
+              {/*  shortcut="D"*/}
+              {/*  className="h-9 px-2 font-medium"*/}
+              {/*  disabledTooltip={*/}
+              {/*    !canManageLink*/}
+              {/*      ? "You don't have permission to duplicate this link."*/}
+              {/*      : undefined*/}
+              {/*  }*/}
+              {/*/>*/}
+              {/*<Button*/}
+              {/*  text="Copy Link ID"*/}
+              {/*  variant="outline"*/}
+              {/*  onClick={() => copyLinkId()}*/}
+              {/*  icon={*/}
+              {/*    copiedLinkId ? (*/}
+              {/*      <CircleCheck className="size-4" />*/}
+              {/*    ) : (*/}
+              {/*      <Copy className="size-4" />*/}
+              {/*    )*/}
+              {/*  }*/}
+              {/*  shortcut="I"*/}
+              {/*  className="h-9 px-2 font-medium"*/}
+              {/*/>*/}
             </div>
-            <div className="border-t border-neutral-200" />
+            <div className="border-t border-neutral-200/10" />
             <div className="grid gap-px p-2">
               {flags?.linkFolders && folders && folders.length > 0 && (
                 <Button
@@ -258,7 +294,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
               )}
 
               <Button
-                text={link.archived ? "Unarchive" : "Archive"}
+                text={link.archived ? "Unpause" : "Pause"}
                 variant="outline"
                 onClick={() => {
                   setOpenPopover(false);
@@ -274,28 +310,28 @@ export function LinkControls({ link }: { link: ResponseLink }) {
                 }
               />
 
-              <Button
-                text="Transfer"
-                variant="outline"
-                onClick={() => {
-                  setOpenPopover(false);
-                  setShowTransferLinkModal(true);
-                }}
-                icon={<FolderInput className="size-4" />}
-                shortcut="T"
-                className="h-9 px-2 font-medium"
-                disabledTooltip={
-                  !isDubDomain(link.domain) ? (
-                    <SimpleTooltipContent
-                      title="Since this is a custom domain link, you can only transfer it to another workspace if you transfer the domain as well."
-                      cta="Learn more."
-                      href="https://dub.co/help/article/how-to-transfer-domains"
-                    />
-                  ) : !canManageLink ? (
-                    "You don't have permission to transfer this link."
-                  ) : undefined
-                }
-              />
+              {/*<Button*/}
+              {/*  text="Transfer"*/}
+              {/*  variant="outline"*/}
+              {/*  onClick={() => {*/}
+              {/*    setOpenPopover(false);*/}
+              {/*    setShowTransferLinkModal(true);*/}
+              {/*  }}*/}
+              {/*  icon={<FolderInput className="size-4" />}*/}
+              {/*  shortcut="T"*/}
+              {/*  className="h-9 px-2 font-medium"*/}
+              {/*  disabledTooltip={*/}
+              {/*    !isDubDomain(link.domain) ? (*/}
+              {/*      <SimpleTooltipContent*/}
+              {/*        title="Since this is a custom domain link, you can only transfer it to another workspace if you transfer the domain as well."*/}
+              {/*        cta="Learn more."*/}
+              {/*        href="https://dub.co/help/article/how-to-transfer-domains"*/}
+              {/*      />*/}
+              {/*    ) : !canManageLink ? (*/}
+              {/*      "You don't have permission to transfer this link."*/}
+              {/*    ) : undefined*/}
+              {/*  }*/}
+              {/*/>*/}
 
               <Button
                 text="Delete"
@@ -341,7 +377,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
           variant="secondary"
           className={cn(
             "h-8 px-1.5 outline-none transition-all duration-200",
-            "border-transparent data-[state=open]:border-neutral-500 sm:group-hover/card:data-[state=closed]:border-neutral-200",
+            "border-transparent data-[state=open]:border-neutral-200/40 data-[state=open]:ring-neutral-200/40 sm:group-hover/card:data-[state=closed]:border-neutral-200/10",
           )}
           icon={<ThreeDots className="h-5 w-5 shrink-0" />}
           onClick={() => {
@@ -349,6 +385,91 @@ export function LinkControls({ link }: { link: ResponseLink }) {
           }}
         />
       </Popover>
+    </div>
+  );
+}
+
+// @USEFUL_FEATURE: copy of qr download implementation from link-qr-modal.tsx
+function DownloadPopover({
+  qrData,
+  props,
+  children,
+}: PropsWithChildren<{
+  qrData: ReturnType<typeof getQRData>;
+  props: QRLinkProps;
+}>) {
+  const anchorRef = useRef<HTMLAnchorElement>(null);
+
+  function download(url: string, extension: string) {
+    if (!anchorRef.current) return;
+    anchorRef.current.href = url;
+    anchorRef.current.download = `${props.key}-qrcode.${extension}`;
+    anchorRef.current.click();
+    setOpenPopover(false);
+  }
+
+  const [openPopover, setOpenPopover] = useState(false);
+
+  return (
+    <div>
+      <Popover
+        content={
+          <div className="grid p-1 sm:min-w-48">
+            <button
+              type="button"
+              onClick={async () => {
+                download(await getQRAsSVGDataUri(qrData), "svg");
+              }}
+              className="rounded-md p-2 text-left text-sm font-medium text-neutral-500 transition-all duration-75 hover:bg-neutral-100"
+            >
+              <IconMenu
+                text="Download SVG"
+                icon={<Photo className="h-4 w-4" />}
+              />
+            </button>
+            <button
+              type="button"
+              onClick={async () => {
+                download(
+                  (await getQRAsCanvas(qrData, "image/png")) as string,
+                  "png",
+                );
+              }}
+              className="rounded-md p-2 text-left text-sm font-medium text-neutral-500 transition-all duration-75 hover:bg-neutral-100"
+            >
+              <IconMenu
+                text="Download PNG"
+                icon={<Photo className="h-4 w-4" />}
+              />
+            </button>
+            <button
+              type="button"
+              onClick={async () => {
+                download(
+                  (await getQRAsCanvas(qrData, "image/jpeg")) as string,
+                  "jpg",
+                );
+              }}
+              className="rounded-md p-2 text-left text-sm font-medium text-neutral-500 transition-all duration-75 hover:bg-neutral-100"
+            >
+              <IconMenu
+                text="Download JPEG"
+                icon={<Photo className="h-4 w-4" />}
+              />
+            </button>
+          </div>
+        }
+        openPopover={openPopover}
+        setOpenPopover={setOpenPopover}
+      >
+        {children}
+      </Popover>
+      {/* This will be used to prompt downloads. */}
+      <a
+        className="hidden"
+        download={`${props.key}-qrcode.svg`}
+        ref={anchorRef}
+      />
     </div>
   );
 }

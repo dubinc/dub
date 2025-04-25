@@ -45,22 +45,23 @@ export default function Main() {
           colorClassName: "text-blue-500/50",
           conversions: false,
         },
-        ...(showConversions
-          ? [
-              {
-                id: "leads",
-                label: "Leads",
-                colorClassName: "text-violet-600/50",
-                conversions: true,
-              },
-              {
-                id: "sales",
-                label: "Sales",
-                colorClassName: "text-teal-400/50",
-                conversions: true,
-              },
-            ]
-          : []),
+        //   @USEFUL_FEATURE: hide leads and sales tabs in analytics
+        // ...(showConversions
+        //   ? [
+        //       {
+        //         id: "leads",
+        //         label: "Leads",
+        //         colorClassName: "text-violet-600/50",
+        //         conversions: true,
+        //       },
+        //       {
+        //         id: "sales",
+        //         label: "Sales",
+        //         colorClassName: "text-teal-400/50",
+        //         conversions: true,
+        //       },
+        //     ]
+        //   : []),
       ] as Tab[],
     [showConversions],
   );
@@ -77,7 +78,7 @@ export default function Main() {
         <NumberFlowGroup>
           {tabs.map(({ id, label, colorClassName, conversions }, idx) => {
             return (
-              <div key={id} className="relative z-0">
+              <div key={id} className="relative z-0 col-span-3">
                 {idx > 0 && (
                   <div className="absolute left-0 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 rounded-full border border-neutral-200 bg-white p-1.5">
                     <ChevronRight

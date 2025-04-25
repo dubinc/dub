@@ -79,6 +79,8 @@ model Link {
   customers Customer[]
   commissions Commission[]
 
+  qrs       Qr[]
+
   @@index([projectId, archived, folderId, createdAt(sort: Desc)])
   @@index([programId, partnerId])
   @@unique([domain, key])

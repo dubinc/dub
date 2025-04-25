@@ -11,7 +11,7 @@ import {
 import { CardListContext } from "./card-list";
 
 const cardListCardVariants = cva(
-  "w-full group/card border-neutral-200 bg-white",
+  "w-full group/card border-neutral-200/10 bg-white",
   {
     variants: {
       variant: {

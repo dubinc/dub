@@ -4,22 +4,24 @@ import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { useState } from "react";
 import { TEncryptionOption } from "../types.ts";
 
-interface ISelectOption {
+export interface ISelectOption {
   id: string;
   label: string;
 }
 
 interface ISelectProps {
   options: TEncryptionOption[];
+  onChange?: (option: ISelectOption) => void;
 }
 
-export const Select = ({ options }: ISelectProps) => {
+export const Select = ({ options, onChange }: ISelectProps) => {
   const [selectedOption, setSelectedOption] = useState<string>(
     options[0]?.label || "",
   );
 
   const handleSelect = (option: ISelectOption) => {
     setSelectedOption(option.label);
+    onChange?.(option);
   };
 
   return (
