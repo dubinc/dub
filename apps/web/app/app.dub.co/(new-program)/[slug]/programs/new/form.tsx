@@ -205,7 +205,7 @@ export function Form() {
           />
 
           <p className="text-xs font-normal text-neutral-500">
-            Your custom domain dedicated to shortlink use on Dub
+            Custom domain that will be used for your program's referral links
           </p>
         </div>
 
@@ -237,7 +237,8 @@ export function Form() {
             className="max-w-full"
           />
           <p className="text-xs font-normal text-neutral-500">
-            Where you're sending people when they click the partner link above
+            Where people will be redirected to when they click on your program's
+            referral links
           </p>
         </div>
       </div>
@@ -245,7 +246,7 @@ export function Form() {
       <AnimatePresence>
         {domain && (
           <motion.div
-            key="partner-preview"
+            key="referral-link-preview"
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
@@ -253,7 +254,7 @@ export function Form() {
             className="space-y-2"
           >
             <h2 className="text-base font-medium text-neutral-900">
-              Partner link preview
+              Referral link preview
             </h2>
 
             <div className="rounded-2xl bg-neutral-50 p-2">
