@@ -60,21 +60,23 @@ const CommissionTableInner = memo(
       sortOrder: "asc" | "desc";
     };
 
-    const { commissionsCount } = useCommissionsCount();
-    const { data: commissions, error } = useSWR<CommissionResponse[]>(
-      `/api/commissions${getQueryString(
-        {
-          workspaceId,
-          programId,
-        },
-        {
-          exclude: ["view"],
-        },
-      )}`,
+    const {
+      data: commissions,
+      error,
+      isLoading,
+    } = useSWR<CommissionResponse[]>(
+      `/api/commissions${getQueryString({
+        workspaceId,
+        programId,
+      })}`,
       fetcher,
+      {
+        keepPreviousData: true,
+      },
     );
-
-    const loading = !commissions && !error;
+    const { commissionsCount } = useCommissionsCount({
+      exclude: ["status", "page"],
+    });
 
     const table = useTable<CommissionResponse>({
       data: commissions?.slice(0, limit) || [],
@@ -207,7 +209,7 @@ const CommissionTableInner = memo(
       tdClassName: "border-l-0",
       resourceName: (p) => `commission${p ? "s" : ""}`,
       rowCount: commissionsCount?.[searchParamsObj.status || "all"].count ?? 0,
-      loading,
+      loading: isLoading,
       error: error ? "Failed to load commissions" : undefined,
     });
 
@@ -254,7 +256,7 @@ const CommissionTableInner = memo(
             </AnimatedSizeContainer>
           </div>
         )}
-        {commissions?.length !== 0 ? (
+        {commissions?.length !== 0 || isLoading ? (
           <Table {...table} />
         ) : (
           <AnimatedEmptyState
