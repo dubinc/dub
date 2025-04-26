@@ -35,7 +35,6 @@ async function main() {
     },
     select: {
       id: true,
-      quantity: true,
       amount: true,
     },
   });
@@ -48,17 +47,13 @@ async function main() {
       console.log(`Payout ${payout.id} not found in payoutsStats`);
       continue;
     }
-    if (
-      payoutStats._count !== payout.quantity ||
-      payoutStats._sum.earnings !== payout.amount
-    ) {
+    if (payoutStats._sum.earnings !== payout.amount) {
       console.log(
         `Payout ${payout.id} has a mismatch, updating payout and commissions`,
       );
       await prisma.payout.update({
         where: { id: payout.id },
         data: {
-          quantity: payoutStats._count,
           amount: payoutStats._sum.earnings ?? 0,
         },
       });
