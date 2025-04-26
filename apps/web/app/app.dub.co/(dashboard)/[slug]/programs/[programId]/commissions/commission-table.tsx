@@ -203,6 +203,8 @@ const CommissionTableInner = memo(
               ...(sortBy && { sortBy }),
               ...(sortOrder && { sortOrder }),
             },
+            del: "page",
+            scroll: false,
           }),
       }),
       thClassName: "border-l-0",
