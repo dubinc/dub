@@ -18,10 +18,13 @@ export default function useCommissionsCount(opts?: Record<string, any>) {
       },
       {
         ...opts,
-        exclude: ["view", ...(opts?.exclude || [])],
+        exclude: opts?.exclude || [],
       },
     )}`,
     fetcher,
+    {
+      keepPreviousData: true,
+    },
   );
 
   return {
