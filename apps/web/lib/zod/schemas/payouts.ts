@@ -57,7 +57,6 @@ export const PayoutSchema = z.object({
   description: z.string().nullish(),
   periodStart: z.date().nullable(),
   periodEnd: z.date().nullable(),
-  quantity: z.number().nullable(),
   createdAt: z.date(),
   paidAt: z.date().nullable(),
 });
