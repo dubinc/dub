@@ -36,10 +36,15 @@ export const navItems = [
     segments: ["/solutions", "/sdks"],
   },
   {
+    name: "Customers",
+    href: "/customers",
+    segments: ["/customers"],
+  },
+  {
     name: "Resources",
     content: ResourcesContent,
     childItems: RESOURCES,
-    segments: ["/docs", "/help", "/brand", "/blog", "/changelog", "/customers"],
+    segments: ["/docs", "/help", "/brand", "/blog", "/changelog"],
   },
   {
     name: "Enterprise",
