@@ -49,7 +49,7 @@ export async function invoicePaid(event: Stripe.Event) {
           },
         });
       } catch (error) {
-        console.error(error);
+        console.log(error);
         return `Customer with dubCustomerId ${dubCustomerId} not found, skipping...`;
       }
     }
