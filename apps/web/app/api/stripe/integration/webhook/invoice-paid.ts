@@ -31,6 +31,7 @@ export async function invoicePaid(event: Stripe.Event) {
     const connectedCustomer = await getConnectedCustomer({
       stripeCustomerId,
       stripeAccountId,
+      livemode: event.livemode,
     });
     const dubCustomerId = connectedCustomer?.metadata.dubCustomerId;
 

@@ -151,6 +151,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       const connectedCustomer = await getConnectedCustomer({
         stripeCustomerId,
         stripeAccountId,
+        livemode: event.livemode,
       });
 
       if (!connectedCustomer || !connectedCustomer.metadata.dubCustomerId) {
