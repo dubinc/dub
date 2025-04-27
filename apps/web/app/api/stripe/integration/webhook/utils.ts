@@ -130,9 +130,14 @@ export async function getConnectedCustomer({
   stripeCustomerId,
   stripeAccountId,
 }: {
-  stripeCustomerId: string;
-  stripeAccountId: string;
+  stripeCustomerId?: string | null;
+  stripeAccountId?: string | null;
 }) {
+  // if stripeCustomerId or stripeAccountId is not provided, return null
+  if (!stripeCustomerId || !stripeAccountId) {
+    return null;
+  }
+
   const connectedCustomer = await stripeAppClient.customers.retrieve(
     stripeCustomerId,
     {
