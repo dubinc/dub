@@ -6,7 +6,9 @@ export const QRPreview = ({ qrCode }: { qrCode: QRCodeStyling | null }) => {
 
   useEffect(() => {
     if (!qrCode || !ref.current) return;
+
     qrCode.append(ref.current);
+
     return () => {
       ref.current?.replaceChildren();
     };

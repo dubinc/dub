@@ -63,7 +63,9 @@ export function useQrCustomization() {
 
   useEffect(() => {
     if (!qrCode || isQrDisabled) return;
+
     qrCode.update({ ...options, data });
+
     if (selectedSuggestedFrame !== "none") {
       const extensionFn = FRAMES[selectedSuggestedFrame];
       if (extensionFn) qrCode.applyExtension(extensionFn);

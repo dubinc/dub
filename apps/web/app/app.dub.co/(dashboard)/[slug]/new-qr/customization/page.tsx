@@ -15,7 +15,7 @@ import { STEPS } from "../constants.ts";
 import { FileCardContent } from "../content/components/file-card-content.tsx";
 import { usePageContext } from "../page-context.tsx";
 import { ColorsSettings } from "./components/colors-settings.tsx";
-import { QRPreview } from "./components/qr-review.tsx";
+import { QRPreview } from "./components/qr-preview.tsx";
 import { StylePicker } from "./components/style-picker.tsx";
 import {
   BLACK_COLOR,
