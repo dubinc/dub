@@ -1,12 +1,27 @@
+enum QRType {
+  website
+  whatsapp
+  social
+  wifi
+  app
+  pdf
+  image
+  video
+  feedback
+  email
+}
+
 model Qr {
   id              String    @id @default(cuid())
   data            String    @db.LongText
-  archived        Boolean   @default(false) // whether the link is archived or not
 
-  title           String?   // OG title for the link (e.g. Dub.co - Open-Source Link Management Infrastructure)
-  description     String?   @db.VarChar(280) // OG description for the link (e.g. An open-source link management tool for modern marketing teams to create, share, and track short links.)
+  qrType          QRType
 
-  styles          Json?
+  title           String?
+  description     String?   @db.VarChar(280)
+
+  styles          Json?     // styles of the qr
+  frameOptions    Json?
 
   linkId          String?
   link            Link?      @relation(fields: [linkId], references: [id])
