@@ -4,7 +4,7 @@ import { Icon } from "@iconify/react";
 import * as Tabs from "@radix-ui/react-tabs";
 import { dataHandlers } from "app/app.dub.co/(dashboard)/[slug]/new-qr/content/utils.ts";
 import { Dispatch, SetStateAction, useCallback, useState } from "react";
-import { QRPreview } from "../../../../(dashboard)/[slug]/new-qr/customization/components/qr-preview.tsx";
+import { QRCanvas } from "../../../../(dashboard)/[slug]/new-qr/customization/components/qr-canvas.tsx";
 import { EQRType, QRType } from "../../constants/get-qr-config.ts";
 import { QrTabsCustomization } from "./components/customization/qr-tabs-customization.tsx";
 import { QrTabsDownloadButton } from "./components/qr-tabs-download-button.tsx";
@@ -145,7 +145,8 @@ export const QrTypeTabs = ({
                       "opacity-30": isQrDisabled,
                     })}
                   >
-                    <QRPreview qrCode={qrCode} />
+                    <QRCanvas qrCode={qrCode} />
+                    {/*<QRPreview qrCode={qrCode} />*/}
                   </div>
                   <QrTabsDownloadButton isQrDisabled={isQrDisabled} />
                 </div>
