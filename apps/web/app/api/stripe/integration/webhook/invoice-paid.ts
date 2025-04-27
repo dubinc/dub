@@ -26,7 +26,7 @@ export async function invoicePaid(event: Stripe.Event) {
     },
   });
 
-  // if customer is not found, we try to find it on the connected customer
+  // if customer is not found, we check if the connected customer has a dubCustomerId
   if (!customer) {
     const connectedCustomer = await getConnectedCustomer({
       stripeCustomerId,
@@ -47,7 +47,7 @@ export async function invoicePaid(event: Stripe.Event) {
 
   // if customer is still not found, we skip the event
   if (!customer) {
-    return `Customer with stripeCustomerId ${stripeCustomerId} not found on Dub (nor is it available on the connected customer ${stripeCustomerId}), skipping...`;
+    return `Customer with stripeCustomerId ${stripeCustomerId} not found on Dub (nor does the connected customer ${stripeCustomerId} have a valid dubCustomerId), skipping...`;
   }
 
   // Skip if invoice id is already processed
@@ -184,6 +184,18 @@ export async function invoicePaid(event: Stripe.Event) {
         link: linkUpdated,
         customer,
       }),
+    }),
+  );
+
+  // update customer with stripeCustomerId for future events
+  waitUntil(
+    prisma.customer.update({
+      where: {
+        id: customer.id,
+      },
+      data: {
+        stripeCustomerId,
+      },
     }),
   );
 

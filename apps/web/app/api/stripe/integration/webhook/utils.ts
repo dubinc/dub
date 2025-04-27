@@ -133,21 +133,16 @@ export async function getConnectedCustomer({
   stripeCustomerId: string;
   stripeAccountId: string;
 }) {
-  try {
-    const connectedCustomer = await stripeAppClient.customers.retrieve(
-      stripeCustomerId,
-      {
-        stripeAccount: stripeAccountId,
-      },
-    );
+  const connectedCustomer = await stripeAppClient.customers.retrieve(
+    stripeCustomerId,
+    {
+      stripeAccount: stripeAccountId,
+    },
+  );
 
-    if (connectedCustomer.deleted) {
-      return null;
-    }
-
-    return connectedCustomer;
-  } catch (error) {
-    console.error(error);
+  if (connectedCustomer.deleted) {
     return null;
   }
+
+  return connectedCustomer;
 }

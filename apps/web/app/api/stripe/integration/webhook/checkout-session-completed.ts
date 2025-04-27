@@ -154,7 +154,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       });
 
       if (!connectedCustomer || !connectedCustomer.metadata.dubCustomerId) {
-        return `Customer ID not found in Stripe checkout session metadata (nor is it available on the connected customer ${stripeCustomerId}) and client_reference_id is not a dub_id, skipping...`;
+        return `dubCustomerId not found in Stripe checkout session metadata (nor is it available on the connected customer ${stripeCustomerId}) and client_reference_id is not a dub_id, skipping...`;
       }
 
       dubCustomerId = connectedCustomer.metadata.dubCustomerId;
