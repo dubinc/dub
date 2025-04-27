@@ -32,16 +32,26 @@ export async function invoicePaid(event: Stripe.Event) {
       stripeCustomerId,
       stripeAccountId,
     });
+    const dubCustomerId = connectedCustomer?.metadata.dubCustomerId;
 
-    if (connectedCustomer?.metadata.dubCustomerId) {
-      customer = await prisma.customer.findUnique({
-        where: {
-          projectConnectId_externalId: {
-            projectConnectId: stripeAccountId,
-            externalId: connectedCustomer.metadata.dubCustomerId,
+    if (dubCustomerId) {
+      try {
+        // Update customer with stripeCustomerId if exists – for future events
+        customer = await prisma.customer.update({
+          where: {
+            projectConnectId_externalId: {
+              projectConnectId: stripeAccountId,
+              externalId: dubCustomerId,
+            },
           },
-        },
-      });
+          data: {
+            stripeCustomerId,
+          },
+        });
+      } catch (error) {
+        console.error(error);
+        return `Customer with dubCustomerId ${dubCustomerId} not found, skipping...`;
+      }
     }
   }
 
@@ -184,18 +194,6 @@ export async function invoicePaid(event: Stripe.Event) {
         link: linkUpdated,
         customer,
       }),
-    }),
-  );
-
-  // update customer with stripeCustomerId for future events
-  waitUntil(
-    prisma.customer.update({
-      where: {
-        id: customer.id,
-      },
-      data: {
-        stripeCustomerId,
-      },
     }),
   );
 

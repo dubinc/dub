@@ -161,7 +161,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     }
 
     try {
-      // Update customer with stripe customerId if exists
+      // Update customer with stripeCustomerId if exists – for future events
       customer = await prisma.customer.update({
         where: {
           projectConnectId_externalId: {
