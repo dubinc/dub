@@ -72,13 +72,11 @@ export async function POST(req: Request) {
       });
 
       await Promise.all([
-        // rename redis keys
         linkCache.rename({
           links: updatedLinks,
           oldDomain,
         }),
 
-        // update links in Tinybird
         recordLink(updatedLinks),
       ]);
     }
