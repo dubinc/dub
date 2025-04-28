@@ -1,7 +1,7 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
+import { partnerProfileAnalyticsQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
@@ -13,15 +13,8 @@ export const GET = withPartnerProfile(
       programId: params.programId,
     });
 
-    const parsedParams = analyticsQuerySchema
-      .omit({
-        workspaceId: true,
-        externalId: true,
-        tenantId: true,
-      })
-      .parse(searchParams);
-
-    let { linkId, domain, key, ...rest } = parsedParams;
+    let { linkId, domain, key, ...rest } =
+      partnerProfileAnalyticsQuerySchema.parse(searchParams);
 
     if (!linkId && domain && key) {
       const link = await prisma.link.findUnique({
@@ -41,10 +34,10 @@ export const GET = withPartnerProfile(
     }
 
     const response = await getAnalytics({
+      ...rest,
+      linkId,
       programId: program.id,
       partnerId: partner.id,
-      linkId,
-      ...rest,
       dataAvailableFrom: program.createdAt,
     });
 

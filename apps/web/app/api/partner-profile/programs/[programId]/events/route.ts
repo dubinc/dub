@@ -1,8 +1,11 @@
 import { getEvents } from "@/lib/analytics/get-events";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
-import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
+import {
+  PartnerProfileLinkSchema,
+  partnerProfileEventsQuerySchema,
+} from "@/lib/zod/schemas/partner-profile";
+
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -15,15 +18,8 @@ export const GET = withPartnerProfile(
       programId: params.programId,
     });
 
-    const parsedParams = eventsQuerySchema
-      .omit({
-        workspaceId: true,
-        externalId: true,
-        tenantId: true,
-      })
-      .parse(searchParams);
-
-    let { linkId, domain, key, ...rest } = parsedParams;
+    let { linkId, domain, key, ...rest } =
+      partnerProfileEventsQuerySchema.parse(searchParams);
 
     if (!linkId && domain && key) {
       const link = await prisma.link.findUnique({
@@ -43,10 +39,10 @@ export const GET = withPartnerProfile(
     }
 
     const events = await getEvents({
+      ...rest,
+      linkId,
       programId: program.id,
       partnerId: partner.id,
-      linkId,
-      ...rest,
       dataAvailableFrom: program.createdAt,
     });
 
@@ -68,6 +64,8 @@ export const GET = withPartnerProfile(
         }),
       };
     });
+
+    console.log(response);
 
     return NextResponse.json(response);
   },
