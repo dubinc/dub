@@ -58,11 +58,11 @@ export function AnalyticsGraphic({ className }: { className?: string }) {
         {/* Data */}
         <div className="border-border-default bg-bg-default w-[172px] rounded-lg border p-0">
           <div className="p-1.5">
-            <div className="bg-bg-subtle border-border-subtle hidden items-center gap-2 rounded border p-2 text-xs font-medium leading-none text-neutral-600 sm:flex">
+            <div className="bg-bg-subtle border-border-subtle text-content-default hidden items-center gap-2 rounded border p-2 text-xs font-medium leading-none sm:flex">
               <Link2 className="size-3 rotate-90" />
               d.to/try
             </div>
-            <div className="mt-1 px-1.5 pb-0.5 text-[0.8125rem] font-medium text-neutral-600 sm:mt-2">
+            <div className="text-content-default mt-1 px-1.5 pb-0.5 text-[0.8125rem] font-medium sm:mt-2">
               Apr 2025
             </div>
           </div>
@@ -106,7 +106,7 @@ export function AnalyticsGraphic({ className }: { className?: string }) {
                 />
                 <div className="flex flex-col items-end gap-1">
                   <div className="bg-bg-default border-border-subtle flex items-center gap-1.5 rounded-full border px-1.5 py-0.5 text-xs text-neutral-700">
-                    <CursorRays className="size-3.5 text-neutral-600" />
+                    <CursorRays className="text-content-default size-3.5" />
                     {CUSTOMER.origin}
                   </div>
                   <div className="bg-bg-default border-border-subtle flex items-center gap-1.5 rounded-full border px-1.5 py-0.5 text-xs text-neutral-700">
@@ -135,7 +135,7 @@ export function AnalyticsGraphic({ className }: { className?: string }) {
                     <span className="truncate font-medium text-neutral-400">
                       {key}
                     </span>
-                    <span className="text-neutral-600">{value}</span>
+                    <span className="text-content-default">{value}</span>
                   </div>
                 ),
               )}
