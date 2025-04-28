@@ -5,11 +5,10 @@ import useWorkspaces from "@/lib/swr/use-workspaces";
 import z from "@/lib/zod";
 import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
 import { useAddWorkspaceModal } from "@/ui/modals/add-workspace-modal";
-import { Button, InputSelect, InputSelectItemProps } from "@dub/ui";
-import { OfficeBuilding } from "@dub/ui/icons";
-import { OG_AVATAR_URL } from "@dub/utils";
+import { WorkspaceSelector } from "@/ui/workspaces/workspace-selector";
+import { Button } from "@dub/ui";
 import { useSession } from "next-auth/react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 interface AuthorizeFormProps extends z.infer<typeof authorizeRequestSchema> {
@@ -30,29 +29,16 @@ export const AuthorizeForm = ({
   const { AddWorkspaceModal, setShowAddWorkspaceModal } =
     useAddWorkspaceModal();
   const [submitting, setSubmitting] = useState(false);
-  const [selectedWorkspace, setSelectedWorkspace] =
-    useState<InputSelectItemProps | null>(null);
+  const [selectedWorkspace, setSelectedWorkspace] = useState<string | null>(
+    null,
+  );
 
   // missing scopes for the user's role on the workspace selected
   const [missingScopes, setMissingScopes] = useState<string[]>([]);
 
-  const selectOptions = useMemo(() => {
-    return workspaces
-      ? workspaces.map((workspace) => ({
-          id: workspace.slug,
-          value: workspace.name,
-          image: workspace.logo || `${OG_AVATAR_URL}${workspace.name}`,
-        }))
-      : [];
-  }, [workspaces]);
-
   useEffect(() => {
-    setSelectedWorkspace(
-      selectOptions.find(
-        (option) => option.id === session?.user?.["defaultWorkspace"],
-      ) || null,
-    );
-  }, [selectOptions, session]);
+    setSelectedWorkspace(session?.user?.["defaultWorkspace"] || null);
+  }, [session]);
 
   // Check if the user has the required scopes for the workspace selected
   useEffect(() => {
@@ -61,7 +47,7 @@ export const AuthorizeForm = ({
     }
 
     const workspace = workspaces?.find(
-      (workspace) => workspace.slug === selectedWorkspace.id,
+      (workspace) => workspace.slug === selectedWorkspace,
     );
 
     if (!workspace) {
@@ -99,7 +85,7 @@ export const AuthorizeForm = ({
     setSubmitting(true);
 
     const workspaceId = workspaces?.find(
-      (workspace) => workspace.slug === selectedWorkspace.id,
+      (workspace) => workspace.slug === selectedWorkspace,
     )?.id;
 
     const response = await fetch(
@@ -144,21 +130,9 @@ export const AuthorizeForm = ({
           Select a workspace to grant API access to
         </p>
         <div className="max-w-md py-2">
-          <InputSelect
-            items={selectOptions}
-            selectedItem={selectedWorkspace}
-            setSelectedItem={setSelectedWorkspace}
-            adjustForMobile
-            disabled={submitting}
-            noItemsElement={
-              <Button
-                icon={<OfficeBuilding className="size-4" />}
-                text="Create new workspace"
-                variant="outline"
-                onClick={() => setShowAddWorkspaceModal(true)}
-                className="justify-start text-neutral-700"
-              />
-            }
+          <WorkspaceSelector
+            selectedWorkspace={selectedWorkspace || ""}
+            setSelectedWorkspace={setSelectedWorkspace}
           />
         </div>
         <div className="mt-4 flex justify-between gap-4">
