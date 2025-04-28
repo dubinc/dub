@@ -5,6 +5,7 @@ import { PARTNER_LINKS_LIMIT } from "@/lib/embed/constants";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
+import { prisma } from "@dub/prisma";
 import { getApexDomain } from "@dub/utils";
 import { NextResponse } from "next/server";
 
@@ -14,9 +15,6 @@ export const GET = withReferralsEmbedToken(async ({ links }) => {
 
   return NextResponse.json(partnerLinks);
 });
-
-// TODO:
-// Under which workspace user the link should be created?
 
 // POST /api/embed/referrals/links – create links for a partner
 export const POST = withReferralsEmbedToken(
@@ -54,6 +52,16 @@ export const POST = withReferralsEmbedToken(
       });
     }
 
+    const workspaceOwner = await prisma.projectUsers.findFirst({
+      where: {
+        projectId: program.workspaceId,
+        role: "owner",
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
     const { link, error, code } = await processLink({
       payload: {
         key: key || undefined,
@@ -69,7 +77,7 @@ export const POST = withReferralsEmbedToken(
         id: program.workspaceId,
         plan: "business",
       },
-      //  userId: session.user.id,
+      userId: workspaceOwner?.userId,
       skipFolderChecks: true, // can't be changed by the partner
       skipProgramChecks: true, // can't be changed by the partner
       skipExternalIdChecks: true, // can't be changed by the partner
