@@ -6,6 +6,7 @@ import { fetcher, getPrettyUrl, TAB_ITEM_ANIMATION_SETTINGS } from "@dub/utils";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
+import { useEmbedToken } from "../use-embed-token";
 import { ReferralsEmbedLink } from "./types";
 
 interface Props {
@@ -19,10 +20,11 @@ export function ReferralsEmbedLinksList({
   onCreateLink,
   onEditLink,
 }: Props) {
+  const token = useEmbedToken();
   const [partnerLinks, setPartnerLinks] = useState<ReferralsEmbedLink[]>(links);
 
   const { data: refreshedLinks, isLoading } = useSWR<ReferralsEmbedLink[]>(
-    "/api/embed/referrals/links",
+    `/api/embed/referrals/links?token=${token}`,
     fetcher,
     {
       keepPreviousData: true,
