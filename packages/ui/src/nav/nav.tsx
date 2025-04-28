@@ -27,7 +27,14 @@ export const navItems = [
     name: "Product",
     content: ProductContent,
     childItems: FEATURES_LIST,
-    segments: ["/home", "/analytics", "/features", "/compare", "/integrations"],
+    segments: [
+      "/home",
+      "/partners",
+      "/analytics",
+      "/features",
+      "/compare",
+      "/integrations",
+    ],
   },
   {
     name: "Solutions",

@@ -190,5 +190,3 @@ SQL >
         {% elif eventType == 'sales' %} sale_events
         {% else %} click_events
         {% end %}
-
-

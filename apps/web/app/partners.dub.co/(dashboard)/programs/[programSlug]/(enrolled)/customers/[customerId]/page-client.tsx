@@ -1,18 +1,17 @@
 "use client";
 
 import { CUSTOMER_PAGE_EVENTS_LIMIT } from "@/lib/partners/constants";
+import usePartnerCustomer from "@/lib/swr/use-partner-customer";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import {
-  PartnerEarningsResponse,
-  PartnerProfileCustomerProps,
-} from "@/lib/types";
+import { PartnerEarningsResponse } from "@/lib/types";
 import { CustomerActivityList } from "@/ui/customers/customer-activity-list";
 import { CustomerDetailsColumn } from "@/ui/customers/customer-details-column";
 import { CustomerSalesTable } from "@/ui/customers/customer-sales-table";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import { BackLink } from "@/ui/shared/back-link";
-import { MoneyBill2, Tooltip } from "@dub/ui";
+import { Button, MoneyBill2, Tooltip } from "@dub/ui";
 import { fetcher, OG_AVATAR_URL } from "@dub/utils";
+import Link from "next/link";
 import { notFound, useParams } from "next/navigation";
 import { memo } from "react";
 import useSWR from "swr";
@@ -24,10 +23,9 @@ export function ProgramCustomerPageClient() {
     customerId: string;
   }>();
 
-  const { data: customer, isLoading } = useSWR<PartnerProfileCustomerProps>(
-    `/api/partner-profile/programs/${programSlug}/customers/${customerId}`,
-    fetcher,
-  );
+  const { data: customer, isLoading } = usePartnerCustomer({
+    customerId,
+  });
 
   if (!customer && !isLoading) notFound();
 
@@ -86,9 +84,20 @@ export function ProgramCustomerPageClient() {
           </section>
 
           <section className="flex flex-col">
-            <h2 className="py-3 text-lg font-semibold text-neutral-900">
-              Activity
-            </h2>
+            <div className="flex items-center justify-between">
+              <h2 className="py-3 text-lg font-semibold text-neutral-900">
+                Activity
+              </h2>
+              <Link
+                href={`/programs/${programSlug}/events?interval=all&customerId=${customerId}`}
+              >
+                <Button
+                  variant="secondary"
+                  text="View all"
+                  className="h-7 px-2"
+                />
+              </Link>
+            </div>
             <CustomerActivityList
               activity={customer?.activity}
               isLoading={!customer}

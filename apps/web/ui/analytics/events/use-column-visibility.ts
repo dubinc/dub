@@ -19,7 +19,7 @@ export const eventColumns = {
       "ip",
       "timestamp",
     ],
-    defaultVisible: ["trigger", "link", "country", "device", "timestamp"],
+    defaultVisible: ["timestamp", "link", "referer", "country", "device"],
   },
   leads: {
     all: [
@@ -38,14 +38,7 @@ export const eventColumns = {
       "ip",
       "timestamp",
     ],
-    defaultVisible: [
-      "event",
-      "link",
-      "customer",
-      "country",
-      "device",
-      "timestamp",
-    ],
+    defaultVisible: ["timestamp", "event", "link", "customer", "referer"],
   },
   sales: {
     all: [
@@ -67,12 +60,12 @@ export const eventColumns = {
       "saleAmount",
     ],
     defaultVisible: [
-      "event",
-      "link",
-      "customer",
-      "country",
-      "saleAmount",
       "timestamp",
+      "saleAmount",
+      "event",
+      "customer",
+      "referer",
+      "link",
     ],
   },
 };
