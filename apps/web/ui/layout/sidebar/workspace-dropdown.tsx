@@ -10,7 +10,7 @@ import {
   useScrollProgress,
 } from "@dub/ui";
 import { Book2, Check2, Plus } from "@dub/ui/icons";
-import { cn, DICEBEAR_AVATAR_URL } from "@dub/utils";
+import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { ChevronsUpDown, HelpCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -47,8 +47,7 @@ export function WorkspaceDropdown() {
       return {
         ...selectedWorkspace,
         image:
-          selectedWorkspace.logo ||
-          `${DICEBEAR_AVATAR_URL}${selectedWorkspace.name}`,
+          selectedWorkspace.logo || `${OG_AVATAR_URL}${selectedWorkspace.name}`,
       };
 
       // return personal account selector if there's no workspace or error (user doesn't have access to workspace)
@@ -242,7 +241,7 @@ function WorkspaceList({
                   onClick={() => setOpenPopover(false)}
                 >
                   <BlurImage
-                    src={logo || `${DICEBEAR_AVATAR_URL}${name}`}
+                    src={logo || `${OG_AVATAR_URL}${name}`}
                     width={28}
                     height={28}
                     alt={id}

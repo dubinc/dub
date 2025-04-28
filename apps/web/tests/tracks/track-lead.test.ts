@@ -106,4 +106,21 @@ describe("POST /track/lead", async () => {
 
     expect(saleResponse.status).toEqual(200);
   });
+
+  test("track a lead with `customerId` (backward compatibility)", async () => {
+    const customer4 = randomCustomer();
+    const response = await http.post<TrackLeadResponse>({
+      path: "/track/lead",
+      body: {
+        clickId: E2E_CLICK_ID,
+        customerId: customer4.externalId,
+        eventName: "Signup",
+        customerName: customer4.name,
+        customerEmail: customer4.email,
+        customerAvatar: customer4.avatar,
+      },
+    });
+
+    expectValidLeadResponse(response, customer4);
+  });
 });

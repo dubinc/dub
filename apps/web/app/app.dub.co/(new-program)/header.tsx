@@ -18,7 +18,6 @@ export function ProgramOnboardingHeader() {
   const { isMobile } = useMediaQuery();
   const { getValues } = useFormContext();
   const { isOpen, setIsOpen } = useSidebar();
-
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
   useEffect(() => {
@@ -27,7 +26,6 @@ export function ProgramOnboardingHeader() {
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onError: ({ error }) => {
-      console.log(error);
       toast.error(error.serverError);
     },
   });

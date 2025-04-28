@@ -6,16 +6,12 @@ import {
   InfoTooltip,
   Modal,
   SimpleTooltipContent,
+  SmartDateTimePicker,
   Tooltip,
   useMediaQuery,
 } from "@dub/ui";
 import { CircleHalfDottedClock } from "@dub/ui/icons";
-import {
-  cn,
-  formatDateTime,
-  getDateTimeLocal,
-  parseDateTime,
-} from "@dub/utils";
+import { cn, formatDateTime } from "@dub/utils";
 import {
   Dispatch,
   SetStateAction,
@@ -126,61 +122,14 @@ function ExpirationModal({
 
         {/* Expiration Date */}
         <div className="mt-6">
-          <div className="flex items-center gap-2">
-            <label
-              htmlFor={`${id}-expiresAt`}
-              className="block text-sm font-medium text-neutral-700"
-            >
-              Date and Time
-            </label>
-          </div>
-          <div className="mt-2 flex w-full items-center justify-between rounded-md border border-neutral-300 bg-white shadow-sm transition-all focus-within:border-neutral-800 focus-within:outline-none focus-within:ring-1 focus-within:ring-neutral-500">
-            <input
-              ref={inputRef}
-              id={`${id}-expiresAt`}
-              type="text"
-              placeholder='E.g. "tomorrow at 5pm" or "in 2 hours"'
-              defaultValue={expiresAt ? formatDateTime(expiresAt) : ""}
-              onBlur={(e) => {
-                if (e.target.value.length > 0) {
-                  const parsedDateTime = parseDateTime(e.target.value);
-                  if (parsedDateTime) {
-                    setValue("expiresAt", parsedDateTime, {
-                      shouldDirty: true,
-                    });
-                    e.target.value = formatDateTime(parsedDateTime);
-                  }
-                }
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && inputRef.current) {
-                  e.preventDefault();
-                  const parsedDateTime = parseDateTime(inputRef.current.value);
-                  if (parsedDateTime) {
-                    setValue("expiresAt", parsedDateTime, {
-                      shouldDirty: true,
-                    });
-                    inputRef.current.value = formatDateTime(parsedDateTime);
-                  }
-                }
-              }}
-              className="flex-1 border-none bg-transparent text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-0 sm:text-sm"
-            />
-            <input
-              type="datetime-local"
-              id="expiresAt"
-              name="expiresAt"
-              value={expiresAt ? getDateTimeLocal(expiresAt) : ""}
-              onChange={(e) => {
-                const expiryDate = new Date(e.target.value);
-                setValue("expiresAt", expiryDate, { shouldDirty: true });
-                if (inputRef.current) {
-                  inputRef.current.value = formatDateTime(expiryDate);
-                }
-              }}
-              className="w-[40px] border-none bg-transparent text-neutral-500 focus:outline-none focus:ring-0 sm:text-sm"
-            />
-          </div>
+          <SmartDateTimePicker
+            value={expiresAt}
+            onChange={(date) => {
+              setValue("expiresAt", date, { shouldDirty: true });
+            }}
+            label="Date and Time"
+            autoFocus={!isMobile}
+          />
         </div>
 
         {/* Expiration URL */}

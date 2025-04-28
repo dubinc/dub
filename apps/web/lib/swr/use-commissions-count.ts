@@ -11,16 +11,20 @@ export default function useCommissionsCount(opts?: Record<string, any>) {
   const { getQueryString } = useRouterStuff();
 
   const { data: commissionsCount, error } = useSWR<CommissionsCount>(
-    `/api/programs/${programId}/commissions/count${getQueryString(
+    `/api/commissions/count${getQueryString(
       {
         workspaceId,
+        programId,
       },
       {
         ...opts,
-        exclude: ["view", ...(opts?.exclude || [])],
+        exclude: opts?.exclude || [],
       },
     )}`,
     fetcher,
+    {
+      keepPreviousData: true,
+    },
   );
 
   return {

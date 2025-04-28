@@ -1,4 +1,3 @@
-import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import {
@@ -23,7 +22,6 @@ export const GET = withWorkspace(
     const {
       status,
       partnerId,
-      type,
       eligibility,
       invoiceId,
       sortBy,
@@ -32,29 +30,11 @@ export const GET = withWorkspace(
       pageSize,
     } = parsed;
 
-    const { startDate, endDate } = getStartEndDates(parsed);
-
     const payouts = await prisma.payout.findMany({
       where: {
         programId,
-        OR: [
-          {
-            paidAt: {
-              gte: startDate.toISOString(),
-              lte: endDate.toISOString(),
-            },
-          },
-          {
-            paidAt: null,
-            createdAt: {
-              gte: startDate.toISOString(),
-              lte: endDate.toISOString(),
-            },
-          },
-        ],
         ...(status && { status }),
         ...(partnerId && { partnerId }),
-        ...(type && { type }),
         ...(eligibility === "eligible" && {
           amount: {
             gte: minPayoutAmount,
@@ -70,11 +50,6 @@ export const GET = withWorkspace(
       include: {
         partner: true,
         user: true,
-        _count: {
-          select: {
-            commissions: true,
-          },
-        },
       },
       skip: (page - 1) * pageSize,
       take: pageSize,

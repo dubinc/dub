@@ -1,5 +1,6 @@
 import { R2_URL } from "@dub/utils";
 import { z } from "zod";
+import { uploadedImageSchema } from "./misc";
 
 export const integrationSchema = z.object({
   id: z.string(),
@@ -37,12 +38,7 @@ export const createIntegrationSchema = z.object({
       message: "installUrl must be a valid URL",
     })
     .nullish(),
-  logo: z
-    .string()
-    .url({
-      message: "Please provide a valid URL for the logo",
-    })
-    .nullish(),
+  logo: uploadedImageSchema.nullish().describe("The logo of the integration."),
   description: z
     .string()
     .max(120, {

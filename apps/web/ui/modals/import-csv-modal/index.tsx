@@ -188,37 +188,13 @@ function ImportCsvModal({
                     "Adding links to import queue...",
                   );
                   try {
-                    // Get signed upload URL
-                    const uploadRes = await fetch(
-                      `/api/workspaces/${workspaceId}/import/csv/upload-url`,
-                      {
-                        method: "POST",
-                      },
-                    );
-
-                    if (!uploadRes.ok || !data.file) {
-                      toast.error("Error getting signed upload URL");
-                      return;
-                    }
-
-                    const { id, signedUrl } = await uploadRes.json();
-
-                    // Upload the file
-                    await fetch(signedUrl, {
-                      method: "PUT",
-                      body: data.file,
-                      headers: {
-                        "Content-Type": "multipart/form-data",
-                      },
-                    });
-
                     const formData = new FormData();
+                    formData.append("file", data.file!);
                     for (const key in data) {
                       if (key !== "file" && data[key] !== null) {
                         formData.append(key, data[key]);
                       }
                     }
-                    formData.append("id", id);
                     if (folderId) formData.append("folderId", folderId);
 
                     const res = await fetch(
@@ -240,7 +216,7 @@ function ImportCsvModal({
                     ]);
 
                     toast.success(
-                      "Successfully added links to import queue! You can now safely navigate from this tab – we will send you an email when your links have been fully imported.",
+                      "Successfully added links to import queue! You can now safely navigate from this tab – we will send you an email when your links have been fully imported.",
                     );
                   } catch (error) {
                     toast.error("Error adding links to import queue");

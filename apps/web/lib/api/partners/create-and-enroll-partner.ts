@@ -14,6 +14,7 @@ import { prisma } from "@dub/prisma";
 import { Prisma, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
+import { linkCache } from "../links/cache";
 import { includeTags } from "../links/include-tags";
 import { backfillLinkCommissions } from "./backfill-link-commissions";
 import { transformPartner } from "./transform-partner";
@@ -159,7 +160,13 @@ export const createAndEnrollPartner = async ({
         })
         .then((link) =>
           Promise.allSettled([
+            linkCache.delete({
+              domain: link.domain,
+              key: link.key,
+            }),
+
             recordLink(link),
+
             link.saleAmount > 0 &&
               backfillLinkCommissions({
                 id: link.id,
@@ -168,13 +175,6 @@ export const createAndEnrollPartner = async ({
               }),
           ]),
         ),
-
-      // Deprecated and will be removed soon
-      sendWorkspaceWebhook({
-        workspace,
-        trigger: "partner.created",
-        data: enrolledPartner,
-      }),
 
       sendWorkspaceWebhook({
         workspace,

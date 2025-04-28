@@ -133,7 +133,6 @@ export function ProgramApplicationForm({
       <label>
         <span className="text-sm font-medium text-neutral-800">
           Website / Social media channel
-          <span className="font-normal text-neutral-500"> (optional)</span>
         </span>
         <input
           type="text"
@@ -144,7 +143,9 @@ export function ProgramApplicationForm({
               : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-[var(--brand)] focus:ring-[var(--brand)]",
           )}
           placeholder="https://example.com"
-          {...register("website")}
+          {...register("website", {
+            required: true,
+          })}
         />
       </label>
 

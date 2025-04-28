@@ -1,8 +1,4 @@
-import {
-  currencyFormatter,
-  DICEBEAR_AVATAR_URL,
-  DUB_WORDMARK,
-} from "@dub/utils";
+import { currencyFormatter, DUB_WORDMARK, OG_AVATAR_URL } from "@dub/utils";
 import {
   Body,
   Column,
@@ -80,8 +76,7 @@ export default function ConnectPayoutReminder({
                       <Column width="32">
                         <Img
                           src={
-                            program.logo ||
-                            `${DICEBEAR_AVATAR_URL}${program.name}`
+                            program.logo || `${OG_AVATAR_URL}${program.name}`
                           }
                           width="20"
                           height="20"

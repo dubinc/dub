@@ -20,15 +20,28 @@ export function ProgramSettingsHeader({
       <TabSelect
         variant="accent"
         options={[
-          { id: "rewards", label: "Rewards" },
-          { id: "discounts", label: "Discounts" },
-          { id: "links", label: "Links" },
-          { id: "branding", label: "Branding" },
+          {
+            id: "rewards",
+            label: "Rewards",
+            href: `/${slug}/programs/${programId}/settings/rewards`,
+          },
+          {
+            id: "discounts",
+            label: "Discounts",
+            href: `/${slug}/programs/${programId}/settings/discounts`,
+          },
+          {
+            id: "links",
+            label: "Links",
+            href: `/${slug}/programs/${programId}/settings/links`,
+          },
+          {
+            id: "branding",
+            label: "Branding",
+            href: `/${slug}/programs/${programId}/settings/branding`,
+          },
         ]}
         selected={page}
-        onSelect={(id) => {
-          router.push(`/${slug}/programs/${programId}/settings/${id}`);
-        }}
       />
     </div>
   );

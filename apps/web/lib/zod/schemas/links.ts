@@ -2,7 +2,7 @@ import { ErrorCode } from "@/lib/api/errors";
 import z from "@/lib/zod";
 import {
   COUNTRY_CODES,
-  DUB_FOUNDING_DATE,
+  THE_BEGINNING_OF_TIME,
   formatDate,
   validDomainRegex,
 } from "@dub/utils";
@@ -174,8 +174,8 @@ export const linksExportQuerySchema = getLinksQuerySchemaBase
         .transform((v) => v.split(","))
         .describe("The columns to export."),
       start: parseDateSchema
-        .refine((value: Date) => value >= DUB_FOUNDING_DATE, {
-          message: `The start date cannot be earlier than ${formatDate(DUB_FOUNDING_DATE)}.`,
+        .refine((value: Date) => value >= THE_BEGINNING_OF_TIME, {
+          message: `The start date cannot be earlier than ${formatDate(THE_BEGINNING_OF_TIME)}.`,
         })
         .optional()
         .describe("The start date of creation to retrieve links from."),
@@ -538,19 +538,19 @@ export const LinkSchema = z
       .string()
       .nullable()
       .describe(
-        "The title of the short link generated via `api.dub.co/metatags`. Will be used for Custom Social Media Cards if `proxy` is true.",
+        "The title of the short link. Will be used for Custom Social Media Cards if `proxy` is true.",
       ),
     description: z
       .string()
       .nullable()
       .describe(
-        "The description of the short link generated via `api.dub.co/metatags`. Will be used for Custom Social Media Cards if `proxy` is true.",
+        "The description of the short link. Will be used for Custom Social Media Cards if `proxy` is true.",
       ),
     image: z
       .string()
       .nullable()
       .describe(
-        "The image of the short link generated via `api.dub.co/metatags`. Will be used for Custom Social Media Cards if `proxy` is true.",
+        "The image of the short link. Will be used for Custom Social Media Cards if `proxy` is true.",
       ),
     video: z
       .string()

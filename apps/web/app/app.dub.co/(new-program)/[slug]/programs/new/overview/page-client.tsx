@@ -1,6 +1,7 @@
 "use client";
 
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
+import { getLinkStructureOptions } from "@/lib/partners/get-link-structure-options";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramData } from "@/lib/types";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
@@ -12,17 +13,25 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
+import { mutate } from "swr";
 
 export function PageClient() {
   const {
     getValues,
     formState: { isSubmitting, isSubmitSuccessful },
   } = useFormContext<ProgramData>();
-  const { id: workspaceId, slug: workspaceSlug, mutate } = useWorkspace();
+  const {
+    id: workspaceId,
+    slug: workspaceSlug,
+    mutate: mutateWorkspace,
+  } = useWorkspace();
 
   const data = getValues();
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
+    onSuccess: async () => {
+      await mutate(`/api/programs?workspaceId=${workspaceId}`);
+    },
     onError: ({ error }) => {
       toast.error(error.serverError);
     },
@@ -36,8 +45,6 @@ export function PageClient() {
       workspaceId,
       step: "create-program",
     });
-
-    mutate();
   };
 
   const isValid = useMemo(() => {
@@ -76,7 +83,7 @@ export function PageClient() {
         type: (data.type ?? "flat") as CommissionType,
         amount: data.amount ?? 0,
         maxDuration: data.maxDuration ?? 0,
-        event: "sale" as EventType,
+        event: data.defaultRewardType,
       };
 
   const SECTIONS = [
@@ -87,7 +94,10 @@ export function PageClient() {
     },
     {
       title: "Referral link type",
-      content: `${data.domain}/steven`,
+      content: getLinkStructureOptions({
+        domain: data.domain,
+        url: data.url,
+      }).find(({ id }) => id === data.linkStructure)?.example,
       href: `/${workspaceSlug}/programs/new`,
     },
     {

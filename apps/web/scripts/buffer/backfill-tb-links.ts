@@ -9,7 +9,7 @@ async function main() {
     archived: false,
     createdAt: {
       // lte: new Date("2025-04-09T04:25:34Z"),
-      gt: new Date("2025-03-11T00:00:00Z"),
+      gte: new Date("2025-03-01T00:00:00Z"),
     },
   };
 

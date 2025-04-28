@@ -217,13 +217,18 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
         <div className="-ml-1.5 border-b border-neutral-200">
           <TabSelect
             options={[
-              { id: "", label: "Event Logs" },
-              { id: "edit", label: "Configuration" },
+              {
+                id: "",
+                label: "Event Logs",
+                href: `/${slug}/settings/webhooks/${webhookId}`,
+              },
+              {
+                id: "edit",
+                label: "Configuration",
+                href: `/${slug}/settings/webhooks/${webhookId}/edit`,
+              },
             ]}
             selected={page}
-            onSelect={(id: "" | "edit") => {
-              router.push(`/${slug}/settings/webhooks/${webhookId}/${id}`);
-            }}
             className="gap-2"
           />
         </div>

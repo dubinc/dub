@@ -110,13 +110,9 @@ export const PATCH = withWorkspace(
         });
       }
 
-      waitUntil(
-        (async () => {
-          if (logoUploaded && workspace.logo) {
-            await storage.delete(workspace.logo.replace(`${R2_URL}/`, ""));
-          }
-        })(),
-      );
+      if (logoUploaded && workspace.logo) {
+        waitUntil(storage.delete(workspace.logo.replace(`${R2_URL}/`, "")));
+      }
 
       return NextResponse.json(
         WorkspaceSchema.parse({

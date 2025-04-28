@@ -2,8 +2,8 @@
 
 import { editQueryString } from "@/lib/analytics/utils";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ClickEvent, Customer, LeadEvent, SaleEvent } from "@/lib/types";
-import { CustomerDetailsSheet } from "@/ui/partners/customer-details-sheet";
+import { ClickEvent, LeadEvent, SaleEvent } from "@/lib/types";
+import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import EmptyState from "@/ui/shared/empty-state";
 import {
   CopyText,
@@ -20,20 +20,19 @@ import {
   COUNTRIES,
   REGIONS,
   capitalize,
+  currencyFormatter,
   fetcher,
   getApexDomain,
   getPrettyUrl,
-  nFormatter,
 } from "@dub/utils";
 import { Cell, ColumnDef } from "@tanstack/react-table";
 import { Link2 } from "lucide-react";
 import Link from "next/link";
-import { ReactNode, useContext, useEffect, useMemo, useState } from "react";
+import { ReactNode, useContext, useEffect, useMemo } from "react";
 import useSWR from "swr";
 import { AnalyticsContext } from "../analytics-provider";
 import ContinentIcon from "../continent-icon";
 import DeviceIcon from "../device-icon";
-import { CustomerRowItem } from "./customer-row-item";
 import EditColumnsButton from "./edit-columns-button";
 import { EventsContext } from "./events-provider";
 import { EXAMPLE_EVENTS_DATA } from "./example-data";
@@ -153,10 +152,21 @@ export default function EventsTable({
           id: "customer",
           header: "Customer",
           accessorKey: "customer",
-          minSize: 250,
-          size: 250,
+          minSize: 300,
+          size: 300,
           maxSize: 400,
-          cell: ({ getValue }) => <CustomerRowItem customer={getValue()} />,
+          cell: ({ getValue }) => (
+            <CustomerRowItem
+              customer={getValue()}
+              href={`/${slug}/customers/${getValue().id}`}
+              className="px-4 py-2.5"
+            />
+          ),
+          meta: {
+            filterParams: ({ getValue }) => ({
+              customerId: getValue().id,
+            }),
+          },
         },
         {
           id: "country",
@@ -374,7 +384,13 @@ export default function EventsTable({
           minSize: 120,
           cell: ({ getValue }) => (
             <div className="flex items-center gap-2">
-              <span>${nFormatter(getValue() / 100)}</span>
+              <span>
+                {currencyFormatter(getValue() / 100, {
+                  maximumFractionDigits: undefined,
+                  // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
+                  trailingZeroDisplay: "stripIfInteger",
+                })}
+              </span>
               <span className="text-neutral-400">USD</span>
             </div>
           ),
@@ -526,38 +542,8 @@ export default function EventsTable({
     resourceName: (plural) => `event${plural ? "s" : ""}`,
   });
 
-  const [customerDetailsSheet, setCustomerDetailsSheet] = useState<
-    | { open: false; customer: Customer | null }
-    | { open: true; customer: Customer }
-  >({ open: false, customer: null });
-
-  useEffect(() => {
-    const customerId = searchParams.get("customerId");
-    if (!data || data.every((d) => !("customer" in d))) return;
-    if (customerId) {
-      const customerEvent = data.find(
-        (d) => "customer" in d && d.customer?.id === customerId,
-      );
-      if (customerEvent && "customer" in customerEvent) {
-        setCustomerDetailsSheet({
-          open: true,
-          customer: customerEvent.customer,
-        });
-      }
-    }
-  }, [searchParams, data]);
-
   return (
     <>
-      {customerDetailsSheet.customer && (
-        <CustomerDetailsSheet
-          isOpen={customerDetailsSheet.open}
-          setIsOpen={(open) =>
-            setCustomerDetailsSheet((s) => ({ ...s, open }) as any)
-          }
-          customer={customerDetailsSheet.customer}
-        />
-      )}
       <Table
         {...tableProps}
         table={table}
