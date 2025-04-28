@@ -94,7 +94,7 @@ export default function AnalyticsProvider({
 }>) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const { id: workspaceId, slug, domains } = useWorkspace();
+  const { id: workspaceId, slug } = useWorkspace();
 
   const [requiresUpgrade, setRequiresUpgrade] = useState(false);
 
