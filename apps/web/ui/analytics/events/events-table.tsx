@@ -20,6 +20,7 @@ import {
   COUNTRIES,
   REGIONS,
   capitalize,
+  cn,
   currencyFormatter,
   fetcher,
   getApexDomain,
@@ -28,6 +29,7 @@ import {
 import { Cell, ColumnDef } from "@tanstack/react-table";
 import { Link2 } from "lucide-react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { ReactNode, useContext, useEffect, useMemo } from "react";
 import useSWR from "swr";
 import { AnalyticsContext } from "../analytics-provider";
@@ -63,8 +65,10 @@ export default function EventsTable({
     queryString: originalQueryString,
     eventsApiPath,
     totalEvents,
+    partnerPage,
   } = useContext(AnalyticsContext);
 
+  const { programSlug } = useParams<{ programSlug: string }>();
   const { columnVisibility, setColumnVisibility } = useColumnVisibility();
 
   const sortBy = searchParams.get("sortBy") || "timestamp";
@@ -132,21 +136,36 @@ export default function EventsTable({
               key: getValue().key,
             }),
           },
-          cell: ({ getValue }) => (
-            <Link
-              href={`/${slug}/links/${getValue().domain}/${getValue().key}`}
-              target="_blank"
-              className="flex cursor-alias items-center gap-3 decoration-dotted hover:underline"
-            >
-              <LinkLogo
-                apexDomain={getApexDomain(getValue().url)}
-                className="size-4 shrink-0 sm:size-4"
-              />
-              <span className="truncate" title={getValue().shortLink}>
-                {getPrettyUrl(getValue().shortLink)}
-              </span>
-            </Link>
-          ),
+          cell: ({ getValue }) => {
+            const content = (
+              <div
+                className={cn(
+                  "flex items-center gap-3",
+                  !partnerPage &&
+                    "cursor-alias decoration-dotted hover:underline",
+                )}
+              >
+                <LinkLogo
+                  apexDomain={getApexDomain(getValue().url)}
+                  className="size-4 shrink-0 sm:size-4"
+                />
+                <span className="truncate" title={getValue().shortLink}>
+                  {getPrettyUrl(getValue().shortLink)}
+                </span>
+              </div>
+            );
+
+            return partnerPage ? (
+              content
+            ) : (
+              <Link
+                href={`/${slug}/links/${getValue().domain}/${getValue().key}`}
+                target="_blank"
+              >
+                {content}
+              </Link>
+            );
+          },
         },
         {
           id: "customer",
@@ -158,7 +177,11 @@ export default function EventsTable({
           cell: ({ getValue }) => (
             <CustomerRowItem
               customer={getValue()}
-              href={`/${slug}/customers/${getValue().id}`}
+              href={
+                partnerPage
+                  ? `/programs/${programSlug}/customers/${getValue().id}`
+                  : `/${slug}/customers/${getValue().id}`
+              }
               className="px-4 py-2.5"
             />
           ),
@@ -460,7 +483,7 @@ export default function EventsTable({
           minSize: col.minSize || 100,
           maxSize: col.maxSize || 1000,
         })),
-    [tab],
+    [tab, partnerPage],
   );
 
   const { pagination, setPagination } = usePagination();
