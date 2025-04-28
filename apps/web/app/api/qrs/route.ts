@@ -81,7 +81,7 @@ export const POST = withWorkspace(
   },
 );
 
-// GET /api/links – get all links for a workspace
+// GET /api/qrs – get all qrs for a workspace
 export const GET = withWorkspace(
   async ({ headers, searchParams, workspace, session }) => {
     const params = getLinksQuerySchemaBase.parse(searchParams);
