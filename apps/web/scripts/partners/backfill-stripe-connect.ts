@@ -1,6 +1,6 @@
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
-import { stripe } from "../lib/stripe";
+import { stripeConnectClient } from "./stripe";
 
 async function main() {
   const partners = await prisma.partner.findMany({
@@ -19,7 +19,7 @@ async function main() {
   await Promise.allSettled(
     partners.map(async (partner) => {
       const [firstName, lastName] = partner.name.split(" ");
-      const res = await stripe.accounts.create({
+      const res = await stripeConnectClient.accounts.create({
         type: "express",
         business_type: "individual",
         email: partner.email!,
