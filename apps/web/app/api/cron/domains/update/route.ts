@@ -33,57 +33,55 @@ export async function POST(req: Request) {
       return new Response(`Domain ${newDomain} not found. Skipping update...`);
     }
 
-    for (let i = 0; i < 5; i++) {
-      const links = await prisma.link.findMany({
-        where: {
-          domain: oldDomain,
-        },
-        take: 100,
-      });
+    const links = await prisma.link.findMany({
+      where: {
+        domain: oldDomain,
+      },
+      take: 100,
+    });
 
-      if (links.length === 0) {
-        return new Response("No more links to update. Exiting...");
-      }
-
-      const linkIds = links.map((link) => link.id);
-
-      await prisma.link.updateMany({
-        where: {
-          id: {
-            in: linkIds,
-          },
-        },
-        data: {
-          domain: newDomain,
-        },
-      });
-
-      const updatedLinks = await prisma.link.findMany({
-        where: {
-          id: {
-            in: linkIds,
-          },
-        },
-        include: {
-          tags: {
-            select: {
-              tag: true,
-            },
-          },
-        },
-      });
-
-      await Promise.all([
-        linkCache.rename({
-          links: updatedLinks,
-          oldDomain,
-        }),
-
-        recordLink(updatedLinks),
-
-        updateShortLinks(updatedLinks),
-      ]);
+    if (links.length === 0) {
+      return new Response("No more links to update. Exiting...");
     }
+
+    const linkIds = links.map((link) => link.id);
+
+    await prisma.link.updateMany({
+      where: {
+        id: {
+          in: linkIds,
+        },
+      },
+      data: {
+        domain: newDomain,
+      },
+    });
+
+    const updatedLinks = await prisma.link.findMany({
+      where: {
+        id: {
+          in: linkIds,
+        },
+      },
+      include: {
+        tags: {
+          select: {
+            tag: true,
+          },
+        },
+      },
+    });
+
+    await Promise.all([
+      linkCache.rename({
+        links: updatedLinks,
+        oldDomain,
+      }),
+
+      recordLink(updatedLinks),
+
+      updateShortLinks(updatedLinks),
+    ]);
 
     await queueDomainUpdate({
       newDomain,
@@ -105,19 +103,17 @@ const updateShortLinks = async (
     return new Response("No links found.");
   }
 
-  await Promise.all(
-    links.map((link) =>
-      prisma.link.update({
-        where: {
-          id: link.id,
-        },
-        data: {
-          shortLink: linkConstructorSimple({
-            domain: link.domain,
-            key: link.key,
-          }),
-        },
-      }),
-    ),
-  );
+  for (const link of links) {
+    await prisma.link.update({
+      where: {
+        id: link.id,
+      },
+      data: {
+        shortLink: linkConstructorSimple({
+          domain: link.domain,
+          key: link.key,
+        }),
+      },
+    });
+  }
 };
