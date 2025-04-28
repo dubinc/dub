@@ -77,11 +77,11 @@ export function AnalyticsGraphic({ className }: { className?: string }) {
                     className="size-2 rounded-sm border border-black/20 bg-current opacity-70"
                     style={{ color: data[key].color }}
                   />
-                  <div className="text-xs font-medium leading-none text-neutral-500">
+                  <div className="text-content-subtle text-xs font-medium leading-none">
                     {capitalize(key)}
                   </div>
                 </div>
-                <span className="text-xs leading-none text-neutral-900">
+                <span className="text-content-emphasis text-xs leading-none">
                   {key === "sales" ? "$" : ""}
                   {data[key].value}
                 </span>
@@ -105,11 +105,11 @@ export function AnalyticsGraphic({ className }: { className?: string }) {
                   }}
                 />
                 <div className="flex flex-col items-end gap-1">
-                  <div className="bg-bg-default border-border-subtle flex items-center gap-1.5 rounded-full border px-1.5 py-0.5 text-xs text-neutral-700">
+                  <div className="bg-bg-default border-border-subtle text-content-default flex items-center gap-1.5 rounded-full border px-1.5 py-0.5 text-xs">
                     <CursorRays className="text-content-default size-3.5" />
                     {CUSTOMER.origin}
                   </div>
-                  <div className="bg-bg-default border-border-subtle flex items-center gap-1.5 rounded-full border px-1.5 py-0.5 text-xs text-neutral-700">
+                  <div className="bg-bg-default border-border-subtle text-content-default flex items-center gap-1.5 rounded-full border px-1.5 py-0.5 text-xs">
                     <img
                       src={`https://flag.vercel.app/m/${CUSTOMER.country}.svg`}
                       className="relative h-2.5 w-3 rounded-sm"
@@ -118,10 +118,10 @@ export function AnalyticsGraphic({ className }: { className?: string }) {
                   </div>
                 </div>
               </div>
-              <div className="mt-4 text-[0.8125rem] font-medium text-neutral-900">
+              <div className="text-content-emphasis mt-4 text-[0.8125rem] font-medium">
                 {CUSTOMER.name}
               </div>
-              <div className="mt-px text-xs text-neutral-500">
+              <div className="text-content-subtle mt-px text-xs">
                 {CUSTOMER.email}
               </div>
             </div>
@@ -132,7 +132,7 @@ export function AnalyticsGraphic({ className }: { className?: string }) {
                     key={key}
                     className="relative flex items-center justify-between gap-2 text-xs leading-none"
                   >
-                    <span className="truncate font-medium text-neutral-400">
+                    <span className="text-content-muted truncate font-medium">
                       {key}
                     </span>
                     <span className="text-content-default">{value}</span>
