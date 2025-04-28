@@ -10,6 +10,13 @@ import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+const CustomerSchema = z.object({
+  id: z.string(),
+  email: z
+    .string()
+    .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "****")),
+});
+
 // GET /api/partner-profile/programs/[programId]/events – get events for a program enrollment link
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
@@ -49,23 +56,15 @@ export const GET = withPartnerProfile(
     const response = events.map((event) => {
       return {
         ...event,
-        link: PartnerProfileLinkSchema.parse(event.link),
+        link: event?.link ? PartnerProfileLinkSchema.parse(event.link) : null,
         // @ts-expect-error - customer is not always present
         ...(event?.customer && {
-          customer: z
-            .object({
-              id: z.string(),
-              email: z
-                .string()
-                .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "****")),
-            })
+          customer: CustomerSchema
             // @ts-expect-error - customer is not always present
             .parse(event.customer),
         }),
       };
     });
-
-    console.log(response);
 
     return NextResponse.json(response);
   },
