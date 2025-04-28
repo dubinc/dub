@@ -11,6 +11,7 @@ import { cn, linkConstructor, TAB_ITEM_ANIMATION_SETTINGS } from "@dub/utils";
 import { motion } from "framer-motion";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
+import { useEmbedToken } from "../use-embed-token";
 import { ReferralsEmbedLink } from "./types";
 
 interface Props {
@@ -31,6 +32,7 @@ export function ReferralsEmbedCreateUpdateLink({
   link,
   onCancel,
 }: Props) {
+  const token = useEmbedToken();
   const { isMobile } = useMediaQuery();
   const [, copyToClipboard] = useCopyToClipboard();
   const [lockKey, setLockKey] = useState(Boolean(link));
@@ -46,7 +48,9 @@ export function ReferralsEmbedCreateUpdateLink({
   } = useForm<FormData>({
     defaultValues: link
       ? {
-          url: link.url.replace(`https://${destinationDomain}/`, ""),
+          url: link.url
+            .replace(`https://${destinationDomain}`, "")
+            .replace(/^\/+/, ""),
           key: link.key,
         }
       : undefined,
@@ -60,8 +64,8 @@ export function ReferralsEmbedCreateUpdateLink({
 
     try {
       const endpoint = !link
-        ? "/api/embed/referrals/links"
-        : `/api/embed/referrals/links/${link.id}`;
+        ? `/api/embed/referrals/links?token=${token}`
+        : `/api/embed/referrals/links/${link.id}?token=${token}`;
 
       const response = await fetch(endpoint, {
         method: !link ? "POST" : "PATCH",
