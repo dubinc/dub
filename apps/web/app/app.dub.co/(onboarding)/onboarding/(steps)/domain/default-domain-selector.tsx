@@ -11,7 +11,7 @@ import { ReactNode, useEffect, useState } from "react";
 import { LaterButton } from "../../later-button";
 import { useOnboardingProgress } from "../../use-onboarding-progress";
 
-export function DomainSelector() {
+export function DefaultDomainSelector() {
   const { loading: isWorkspaceLoading } = useWorkspace();
   const { continueTo, isLoading, isSuccessful } = useOnboardingProgress();
 

@@ -60,7 +60,6 @@ async function main() {
     await prisma.payout.update({
       where: { id: payout.payoutId },
       data: {
-        quantity: remainingCommissions.length,
         amount: remainingCommissions.reduce(
           (acc, commission) => acc + commission.earnings,
           0,
