@@ -5,9 +5,12 @@ interface SWRError extends Error {
 
 export async function fetcher<JSON = any>(
   input: RequestInfo,
-  init?: RequestInit,
+  init?: RequestInit & { headers?: Record<string, string> },
 ): Promise<JSON> {
-  const res = await fetch(input, init);
+  const res = await fetch(input, {
+    ...init,
+    ...(init?.headers && { headers: init.headers }),
+  });
 
   if (!res.ok) {
     const message =

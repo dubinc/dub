@@ -24,8 +24,13 @@ export function ReferralsEmbedLinksList({
   const [partnerLinks, setPartnerLinks] = useState<ReferralsEmbedLink[]>(links);
 
   const { data: refreshedLinks, isLoading } = useSWR<ReferralsEmbedLink[]>(
-    `/api/embed/referrals/links?token=${token}`,
-    fetcher,
+    `/api/embed/referrals/links`,
+    (url) =>
+      fetcher(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }),
     {
       keepPreviousData: true,
     },

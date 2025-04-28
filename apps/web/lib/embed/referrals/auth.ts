@@ -39,7 +39,7 @@ export const withReferralsEmbedToken = (
       try {
         const rateLimit = 60;
         const searchParams = getSearchParams(req.url);
-        const embedToken = searchParams.token;
+        const embedToken = req.headers.get("Authorization")?.split(" ")[1];
 
         if (!embedToken) {
           throw new DubApiError({

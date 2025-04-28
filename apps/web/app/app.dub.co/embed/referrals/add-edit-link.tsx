@@ -64,13 +64,14 @@ export function ReferralsEmbedCreateUpdateLink({
 
     try {
       const endpoint = !link
-        ? `/api/embed/referrals/links?token=${token}`
-        : `/api/embed/referrals/links/${link.id}?token=${token}`;
+        ? `/api/embed/referrals/links`
+        : `/api/embed/referrals/links/${link.id}`;
 
       const response = await fetch(endpoint, {
         method: !link ? "POST" : "PATCH",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           ...data,

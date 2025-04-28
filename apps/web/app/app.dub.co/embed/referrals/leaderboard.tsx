@@ -17,9 +17,18 @@ export function ReferralsEmbedLeaderboard() {
 
   const { data: partners, isLoading } = useSWR<
     z.infer<typeof LeaderboardPartnerSchema>[]
-  >(`/api/embed/referrals/leaderboard?token=${token}`, fetcher, {
-    keepPreviousData: true,
-  });
+  >(
+    `/api/embed/referrals/leaderboard`,
+    (url) =>
+      fetcher(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }),
+    {
+      keepPreviousData: true,
+    },
+  );
 
   const { table, ...tableProps } = useTable({
     data: partners || [],
