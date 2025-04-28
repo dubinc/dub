@@ -1,23 +1,37 @@
 import { generateRandomName } from "@/lib/names";
-import useWorkspace from "@/lib/swr/use-workspace";
-import { Customer } from "@/lib/types";
 import { ChartActivity2 } from "@dub/ui";
+import { cn, OG_AVATAR_URL } from "@dub/utils";
 import Link from "next/link";
 
-export function CustomerRowItem({ customer }: { customer: Customer }) {
-  const { slug } = useWorkspace();
+export function CustomerRowItem({
+  customer,
+  href,
+  className,
+}: {
+  customer: {
+    id: string;
+    email?: string | null;
+    name?: string | null;
+    avatar?: string | null;
+  };
+  href: string;
+  className?: string;
+}) {
   const display = customer.email || customer.name || generateRandomName();
 
   return (
     <Link
-      href={`/${slug}/customers/${customer.id}`}
+      href={href}
       target="_blank"
-      className="group flex cursor-alias items-center justify-between gap-2 px-4 py-2.5 decoration-dotted hover:underline"
+      className={cn(
+        "group flex cursor-alias items-center justify-between gap-2 decoration-dotted hover:underline",
+        className,
+      )}
     >
       <div className="flex items-center gap-3 truncate" title={display}>
         <img
           alt={display}
-          src={customer.avatar || ""}
+          src={customer.avatar || `${OG_AVATAR_URL}${customer.id}`}
           className="size-4 shrink-0 rounded-full border border-neutral-200"
         />
         <span className="truncate">{display}</span>

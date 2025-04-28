@@ -1,9 +1,9 @@
 import { normalizeWorkspaceId } from "@/lib/api/workspace-id";
 import z from "@/lib/zod";
 import {
-  base64ImageSchema,
   booleanQuerySchema,
   getPaginationQuerySchema,
+  uploadedImageSchema,
 } from "./misc";
 import { parseUrlSchemaAllowEmpty } from "./utils";
 
@@ -144,7 +144,7 @@ export const createDomainBodySchema = z.object({
       "Provide context to your teammates in the link creation modal by showing them an example of a link to be shortened.",
     )
     .openapi({ example: "https://dub.co/help/article/what-is-dub" }),
-  logo: base64ImageSchema.nullish().describe("The logo of the domain."),
+  logo: uploadedImageSchema.nullish().describe("The logo of the domain."),
   assetLinks: z
     .string()
     .nullish()

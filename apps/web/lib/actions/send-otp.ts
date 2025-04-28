@@ -70,6 +70,18 @@ export const sendOtpAction = actionClient
       }
     }
 
+    const isExistingUser = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    if (isExistingUser) {
+      throw new Error(
+        "User already exists. Please login instead of requesting a new OTP.",
+      );
+    }
+
     const code = generateOTP();
 
     await prisma.emailVerificationToken.deleteMany({

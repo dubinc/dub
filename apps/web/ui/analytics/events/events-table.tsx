@@ -3,6 +3,7 @@
 import { editQueryString } from "@/lib/analytics/utils";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ClickEvent, LeadEvent, SaleEvent } from "@/lib/types";
+import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import EmptyState from "@/ui/shared/empty-state";
 import {
   CopyText,
@@ -32,7 +33,6 @@ import useSWR from "swr";
 import { AnalyticsContext } from "../analytics-provider";
 import ContinentIcon from "../continent-icon";
 import DeviceIcon from "../device-icon";
-import { CustomerRowItem } from "./customer-row-item";
 import EditColumnsButton from "./edit-columns-button";
 import { EventsContext } from "./events-provider";
 import { EXAMPLE_EVENTS_DATA } from "./example-data";
@@ -152,10 +152,16 @@ export default function EventsTable({
           id: "customer",
           header: "Customer",
           accessorKey: "customer",
-          minSize: 250,
-          size: 250,
+          minSize: 300,
+          size: 300,
           maxSize: 400,
-          cell: ({ getValue }) => <CustomerRowItem customer={getValue()} />,
+          cell: ({ getValue }) => (
+            <CustomerRowItem
+              customer={getValue()}
+              href={`/${slug}/customers/${getValue().id}`}
+              className="px-4 py-2.5"
+            />
+          ),
           meta: {
             filterParams: ({ getValue }) => ({
               customerId: getValue().id,

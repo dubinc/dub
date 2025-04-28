@@ -4,6 +4,7 @@ import useCommissionsCount from "@/lib/swr/use-commissions-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse } from "@/lib/types";
 import FilterButton from "@/ui/analytics/events/filter-button";
+import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
@@ -26,9 +27,7 @@ import {
   formatDateTime,
   formatDateTimeSmart,
   nFormatter,
-  OG_AVATAR_URL,
 } from "@dub/utils";
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import { memo } from "react";
 import useSWR from "swr";
@@ -61,21 +60,23 @@ const CommissionTableInner = memo(
       sortOrder: "asc" | "desc";
     };
 
-    const { commissionsCount } = useCommissionsCount();
-    const { data: commissions, error } = useSWR<CommissionResponse[]>(
-      `/api/commissions${getQueryString(
-        {
-          workspaceId,
-          programId,
-        },
-        {
-          exclude: ["view"],
-        },
-      )}`,
+    const {
+      data: commissions,
+      error,
+      isLoading,
+    } = useSWR<CommissionResponse[]>(
+      `/api/commissions${getQueryString({
+        workspaceId,
+        programId,
+      })}`,
       fetcher,
+      {
+        keepPreviousData: true,
+      },
     );
-
-    const loading = !commissions && !error;
+    const { commissionsCount } = useCommissionsCount({
+      exclude: ["status", "page"],
+    });
 
     const table = useTable<CommissionResponse>({
       data: commissions?.slice(0, limit) || [],
@@ -90,28 +91,14 @@ const CommissionTableInner = memo(
           ),
         },
         {
+          id: "customer",
           header: "Customer",
           cell: ({ row }) =>
             row.original.customer ? (
-              <div className="flex items-center gap-2">
-                <img
-                  src={
-                    row.original.customer.avatar ||
-                    `${OG_AVATAR_URL}${row.original.customer.id}`
-                  }
-                  alt={
-                    row.original.customer.email ?? row.original.customer.name
-                  }
-                  className="size-5 rounded-full"
-                />
-                <Link
-                  href={`/${slug}/customers/${row.original.customer.id}`}
-                  target="_blank"
-                  className="cursor-alias truncate decoration-dotted hover:underline"
-                >
-                  {row.original.customer.email ?? row.original.customer.name}
-                </Link>
-              </div>
+              <CustomerRowItem
+                customer={row.original.customer}
+                href={`/${slug}/customers/${row.original.customer.id}`}
+              />
             ) : (
               "-"
             ),
@@ -216,13 +203,15 @@ const CommissionTableInner = memo(
               ...(sortBy && { sortBy }),
               ...(sortOrder && { sortOrder }),
             },
+            del: "page",
+            scroll: false,
           }),
       }),
       thClassName: "border-l-0",
       tdClassName: "border-l-0",
       resourceName: (p) => `commission${p ? "s" : ""}`,
       rowCount: commissionsCount?.[searchParamsObj.status || "all"].count ?? 0,
-      loading,
+      loading: isLoading,
       error: error ? "Failed to load commissions" : undefined,
     });
 
@@ -269,7 +258,7 @@ const CommissionTableInner = memo(
             </AnimatedSizeContainer>
           </div>
         )}
-        {commissions?.length !== 0 ? (
+        {commissions?.length !== 0 || isLoading ? (
           <Table {...table} />
         ) : (
           <AnimatedEmptyState

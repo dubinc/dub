@@ -103,11 +103,21 @@ export async function completeProgramApplications(userId: string) {
       const program = programApplication.program;
       const application = programApplication;
 
-      await notifyPartnerApplication({
-        partner,
-        program,
-        application,
-      });
+      await Promise.allSettled([
+        notifyPartnerApplication({
+          partner,
+          program,
+          application,
+        }),
+        // if the application has a website but the partner doesn't have a website (maybe they forgot to add during onboarding)
+        // update the partner to use the website they applied with
+        application.website &&
+          !partner.website &&
+          prisma.partner.update({
+            where: { id: partner.id },
+            data: { website: application.website },
+          }),
+      ]);
     }
 
     cookieStore.delete("programApplicationIds");

@@ -4,6 +4,7 @@ import usePartnerEarningsCount from "@/lib/swr/use-partner-earnings-count";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerEarningsResponse } from "@/lib/types";
 import FilterButton from "@/ui/analytics/events/filter-button";
+import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -16,7 +17,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { ChartActivity2, CircleDollar } from "@dub/ui/icons";
+import { CircleDollar } from "@dub/ui/icons";
 import {
   currencyFormatter,
   fetcher,
@@ -24,10 +25,8 @@ import {
   formatDateTimeSmart,
   getApexDomain,
   getPrettyUrl,
-  OG_AVATAR_URL,
 } from "@dub/utils";
 import { Cell } from "@tanstack/react-table";
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
 
@@ -123,30 +122,25 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
       {
         id: "customer",
         header: "Customer",
-        accessorKey: "customer",
+        minSize: 250,
         cell: ({ row }) =>
           row.original.customer ? (
-            <Link
+            <CustomerRowItem
+              customer={row.original.customer}
               href={`/programs/${programSlug}/customers/${row.original.customer.id}`}
-              scroll={false}
-              className="flex w-full items-center justify-between gap-2 px-4 py-2.5 transition-colors hover:bg-stone-100"
-            >
-              <div className="flex items-center gap-2">
-                <img
-                  src={`${OG_AVATAR_URL}${row.original.customer.id}`}
-                  alt={row.original.customer.email}
-                  className="size-5 rounded-full"
-                />
-                <div className="truncate" title={row.original.customer.email}>
-                  {row.original.customer.email}
-                </div>
-              </div>
-              <ChartActivity2 className="size-3.5 shrink-0" />
-            </Link>
+              className="px-4 py-2.5"
+            />
           ) : (
             "-"
           ),
-        size: 250,
+        meta: {
+          filterParams: ({ row }) =>
+            row.original.customer
+              ? {
+                  customerId: row.original.customer.id,
+                }
+              : {},
+        },
       },
       {
         id: "amount",
