@@ -50,7 +50,7 @@ export function PartnersGraphic({ className }: { className?: string }) {
     >
       <div className="absolute left-0 top-0 grid grid-cols-[repeat(2,180px)]">
         {PARTNERS.map((partner, idx) => (
-          <div className="h-[60px] w-[180px] p-[3px]">
+          <div key={idx} className="h-[60px] w-[180px] p-[3px]">
             <div className="border-border-subtle bg-bg-default flex size-full select-none overflow-hidden rounded border">
               {partner && (
                 <>

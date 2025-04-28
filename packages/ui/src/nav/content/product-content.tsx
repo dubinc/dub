@@ -95,7 +95,7 @@ export function ProductContent({ domain }: { domain: string }) {
             graphicsContainerClassName,
             graphic,
           }) => (
-            <NavigationMenuLink asChild>
+            <NavigationMenuLink asChild key={title}>
               <Link
                 href={createHref(
                   href,
