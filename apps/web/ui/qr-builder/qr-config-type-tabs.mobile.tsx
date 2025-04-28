@@ -24,6 +24,9 @@ interface QrConfigTypeTabsMobileProps {
   setData: Dispatch<SetStateAction<any>>;
   isQrDisabled: boolean;
   nonFileQrTypes: QRType[];
+  homepageDemo?: boolean;
+  qrTypeActiveTab: QRType["id"];
+  setQRTypeActiveTab: Dispatch<SetStateAction<QRType["id"]>>;
 }
 
 export const QrConfigTypeTabsMobile = ({
@@ -36,11 +39,12 @@ export const QrConfigTypeTabsMobile = ({
   setData,
   isQrDisabled,
   nonFileQrTypes,
+  homepageDemo,
+  qrTypeActiveTab,
+  setQRTypeActiveTab,
 }: QrConfigTypeTabsMobileProps) => {
   const [openPopover, setOpenPopover] = useState<boolean>(false);
-  const [qrTypeActiveTab, setQRTypeActiveTab] = useState<EQRType>(
-    EQRType.WEBSITE,
-  );
+
   const [styleOptionActiveTab, setStyleOptionActiveActiveTab] =
     useState<string>("Frame");
   const [mobileStepActiveTab, setMobileStepActiveTab] = useState<string>(
@@ -144,7 +148,7 @@ export const QrConfigTypeTabsMobile = ({
         </Tabs.Content>
       )}
 
-      <QrTabsDownloadButton isQrDisabled={isQrDisabled} />
+      {homepageDemo && <QrTabsDownloadButton isQrDisabled={isQrDisabled} />}
     </Tabs.Root>
   );
 };

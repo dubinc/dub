@@ -4,6 +4,7 @@ import {
   WHITE_COLOR,
 } from "@/ui/qr-builder/constants/customization/colors.ts";
 import { FRAMES } from "@/ui/qr-builder/constants/customization/frames.ts";
+import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import QRCodeStyling, {
   CornerDotType,
   CornerSquareType,
@@ -18,6 +19,10 @@ export function useQrCustomization() {
   const [uploadedLogo, setUploadedLogo] = useState<File | null>(null);
   const [selectedSuggestedLogo, setSelectedSuggestedLogo] = useState("none");
   const [selectedSuggestedFrame, setSelectedSuggestedFrame] = useState("none");
+
+  const [selectedQRType, setSelectedQRType] = useState<EQRType>(
+    EQRType.WEBSITE,
+  );
 
   const qrPlaceholder = "https://www.getqr.com/";
   const [data, setData] = useState(qrPlaceholder);
@@ -188,5 +193,7 @@ export function useQrCustomization() {
     setOptions,
     handlers,
     isQrDisabled,
+    selectedQRType,
+    setSelectedQRType,
   };
 }
