@@ -3,6 +3,7 @@ import {
   DUB_PARTNERS_ANALYTICS_INTERVAL,
 } from "@/lib/analytics/constants";
 import { z } from "zod";
+import { analyticsQuerySchema, eventsQuerySchema } from "./analytics";
 import {
   CommissionSchema,
   getCommissionsCountQuerySchema,
@@ -92,4 +93,26 @@ export const PartnerProfileCustomerSchema = CustomerEnrichedSchema.pick({
     .string()
     .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "****")),
   activity: customerActivityResponseSchema,
+});
+
+export const partnerProfileAnalyticsQuerySchema = analyticsQuerySchema.omit({
+  workspaceId: true,
+  externalId: true,
+  tenantId: true,
+  programId: true,
+  partnerId: true,
+  tagId: true,
+  tagIds: true,
+  folderId: true,
+});
+
+export const partnerProfileEventsQuerySchema = eventsQuerySchema.omit({
+  workspaceId: true,
+  externalId: true,
+  tenantId: true,
+  programId: true,
+  partnerId: true,
+  tagId: true,
+  tagIds: true,
+  folderId: true,
 });

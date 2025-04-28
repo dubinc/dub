@@ -1,4 +1,5 @@
 import useUsage from "@/lib/swr/use-usage";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { EmptyState, LoadingSpinner } from "@dub/ui";
 import { Bars, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
 import { CircleDollar, CursorRays, Hyperlink } from "@dub/ui/icons";
@@ -32,8 +33,17 @@ const resourceEmptyStates: Record<
 
 export function UsageChart() {
   const searchParams = useSearchParams();
+  const { totalLinks } = useWorkspace();
+
+  const defaultActiveTab = useMemo(() => {
+    if (totalLinks && totalLinks > 100_000) {
+      return "links";
+    }
+    return "events";
+  }, [totalLinks]);
+
   const resource =
-    RESOURCES.find((r) => r === searchParams.get("tab")) ?? "events";
+    RESOURCES.find((r) => r === searchParams.get("tab")) ?? defaultActiveTab;
 
   const { usage, loading } = useUsage({ resource });
 

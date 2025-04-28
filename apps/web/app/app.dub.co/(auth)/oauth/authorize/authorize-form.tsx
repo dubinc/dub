@@ -4,7 +4,6 @@ import { consolidateScopes, getScopesForRole } from "@/lib/api/tokens/scopes";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import z from "@/lib/zod";
 import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
-import { useAddWorkspaceModal } from "@/ui/modals/add-workspace-modal";
 import { WorkspaceSelector } from "@/ui/workspaces/workspace-selector";
 import { Button } from "@dub/ui";
 import { useSession } from "next-auth/react";
@@ -26,8 +25,6 @@ export const AuthorizeForm = ({
 }: AuthorizeFormProps) => {
   const { data: session } = useSession();
   const { workspaces } = useWorkspaces();
-  const { AddWorkspaceModal, setShowAddWorkspaceModal } =
-    useAddWorkspaceModal();
   const [submitting, setSubmitting] = useState(false);
   const [selectedWorkspace, setSelectedWorkspace] = useState<string | null>(
     null,
@@ -108,56 +105,53 @@ export const AuthorizeForm = ({
   };
 
   return (
-    <>
-      <AddWorkspaceModal />
-      <form onSubmit={onAuthorize}>
-        <input type="hidden" name="client_id" value={client_id} />
-        <input type="hidden" name="redirect_uri" value={redirect_uri} />
-        <input type="hidden" name="response_type" value={response_type} />
-        <input type="hidden" name="scope" value={scope.join(",")} />
-        {state && <input type="hidden" name="state" value={state} />}
-        {code_challenge && (
-          <input type="hidden" name="code_challenge" value={code_challenge} />
-        )}
-        {code_challenge_method && (
-          <input
-            type="hidden"
-            name="code_challenge_method"
-            value={code_challenge_method}
-          />
-        )}
-        <p className="text-sm text-neutral-500">
-          Select a workspace to grant API access to
-        </p>
-        <div className="max-w-md py-2">
-          <WorkspaceSelector
-            selectedWorkspace={selectedWorkspace || ""}
-            setSelectedWorkspace={setSelectedWorkspace}
-          />
-        </div>
-        <div className="mt-4 flex justify-between gap-4">
-          <Button
-            text="Decline"
-            type="button"
-            onClick={onDecline}
-            variant="secondary"
-            disabled={submitting}
-          />
-          <Button
-            text="Authorize"
-            type="submit"
-            loading={submitting}
-            disabled={!selectedWorkspace}
-            disabledTooltip={
-              !selectedWorkspace
-                ? "Please select a workspace to continue"
-                : missingScopes.length > 0
-                  ? "You don't have the permission to install this integration"
-                  : undefined
-            }
-          />
-        </div>
-      </form>
-    </>
+    <form onSubmit={onAuthorize}>
+      <input type="hidden" name="client_id" value={client_id} />
+      <input type="hidden" name="redirect_uri" value={redirect_uri} />
+      <input type="hidden" name="response_type" value={response_type} />
+      <input type="hidden" name="scope" value={scope.join(",")} />
+      {state && <input type="hidden" name="state" value={state} />}
+      {code_challenge && (
+        <input type="hidden" name="code_challenge" value={code_challenge} />
+      )}
+      {code_challenge_method && (
+        <input
+          type="hidden"
+          name="code_challenge_method"
+          value={code_challenge_method}
+        />
+      )}
+      <p className="text-sm text-neutral-500">
+        Select a workspace to grant API access to
+      </p>
+      <div className="max-w-md py-2">
+        <WorkspaceSelector
+          selectedWorkspace={selectedWorkspace || ""}
+          setSelectedWorkspace={setSelectedWorkspace}
+        />
+      </div>
+      <div className="mt-4 flex justify-between gap-4">
+        <Button
+          text="Decline"
+          type="button"
+          onClick={onDecline}
+          variant="secondary"
+          disabled={submitting}
+        />
+        <Button
+          text="Authorize"
+          type="submit"
+          loading={submitting}
+          disabled={!selectedWorkspace}
+          disabledTooltip={
+            !selectedWorkspace
+              ? "Please select a workspace to continue"
+              : missingScopes.length > 0
+                ? "You don't have the permission to install this integration"
+                : undefined
+          }
+        />
+      </div>
+    </form>
   );
 };

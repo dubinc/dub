@@ -6,7 +6,7 @@ export default function useCustomersCount() {
   const { id: workspaceId } = useWorkspace();
 
   const { data, error } = useSWR<number>(
-    `/api/customers/count?workspaceId=${workspaceId}`,
+    workspaceId && `/api/customers/count?workspaceId=${workspaceId}`,
     fetcher,
   );
 

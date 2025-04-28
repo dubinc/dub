@@ -7,6 +7,7 @@ import { ComponentType, SVGProps } from "react";
 export { default as Copy } from "./copy";
 export * from "./crown-small";
 export * from "./dub-analytics";
+export * from "./dub-api";
 export * from "./dub-crafted-shield";
 export * from "./dub-links";
 export * from "./dub-partners";
