@@ -75,6 +75,8 @@ import {
   REGIONS,
 } from "@dub/utils";
 import { readStreamableValue } from "ai/rsc";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import posthog from "posthog-js";
 import {
   ComponentProps,
@@ -101,7 +103,8 @@ export default function Toggle({
 }: {
   page?: "analytics" | "events";
 }) {
-  const { slug, plan, flags, createdAt } = useWorkspace();
+  const { slug, programSlug } = useParams();
+  const { plan, flags, createdAt } = useWorkspace();
 
   const { router, queryParams, searchParamsObj, getQueryString } =
     useRouterStuff();
@@ -994,42 +997,43 @@ export default function Toggle({
                 {isMobile ? filterSelect : dateRangePicker}
                 {!dashboardProps && (
                   <div className="flex grow justify-end gap-2">
-                    {page === "analytics" && !partnerPage && (
+                    {page === "analytics" && (
                       <>
                         {domain && key && <ShareButton />}
-                        <Button
-                          variant="secondary"
-                          className="w-fit"
-                          icon={
-                            <SquareLayoutGrid6 className="h-4 w-4 text-neutral-600" />
+                        <Link
+                          href={
+                            dashboardProps
+                              ? "https://d.to/events"
+                              : `/${partnerPage ? `programs/${programSlug}` : slug}/events${getQueryString()}`
                           }
-                          text={isMobile ? undefined : "Switch to Events"}
-                          onClick={() => {
-                            if (dashboardProps) {
-                              window.open("https://d.to/events");
-                            } else {
-                              router.push(
-                                `/${slug}/events${getQueryString({}, { exclude: ["view"] })}`,
-                              );
+                          {...(dashboardProps ? { target: "_blank" } : {})}
+                        >
+                          <Button
+                            variant="secondary"
+                            className="w-fit"
+                            icon={
+                              <SquareLayoutGrid6 className="h-4 w-4 text-neutral-600" />
                             }
-                          }}
-                        />
+                            text={isMobile ? undefined : "Switch to Events"}
+                          />
+                        </Link>
                         <AnalyticsOptions />
                       </>
                     )}
-                    {page === "events" && !partnerPage && (
+                    {page === "events" && (
                       <>
-                        <Button
-                          variant="secondary"
-                          className="w-fit"
-                          icon={
-                            <ChartLine className="h-4 w-4 text-neutral-600" />
-                          }
-                          text={isMobile ? undefined : "Switch to Analytics"}
-                          onClick={() =>
-                            router.push(`/${slug}/analytics${getQueryString()}`)
-                          }
-                        />
+                        <Link
+                          href={`/${partnerPage ? `programs/${programSlug}` : slug}/analytics${getQueryString()}`}
+                        >
+                          <Button
+                            variant="secondary"
+                            className="w-fit"
+                            icon={
+                              <ChartLine className="h-4 w-4 text-neutral-600" />
+                            }
+                            text={isMobile ? undefined : "Switch to Analytics"}
+                          />
+                        </Link>
                         <EventsOptions />
                       </>
                     )}
