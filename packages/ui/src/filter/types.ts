@@ -10,9 +10,10 @@ export type Filter = {
   key: string;
   icon: FilterIcon;
   label: string;
+  options: FilterOption[] | null;
+  hideInFilterDropdown?: boolean;
   shouldFilter?: boolean;
   separatorAfter?: boolean;
-  options: FilterOption[] | null;
   multiple?: boolean;
   getOptionIcon?: (
     value: FilterOption["value"],
@@ -22,6 +23,7 @@ export type Filter = {
     value: FilterOption["value"],
     props: { key: Filter["key"]; option?: FilterOption },
   ) => string | null;
+  getOptionPermalink?: (value: FilterOption["value"]) => string | null;
 };
 
 export type FilterOption = {
@@ -31,4 +33,5 @@ export type FilterOption = {
   icon?: FilterIcon;
   hideDuringSearch?: boolean;
   data?: Record<string, any>;
+  permalink?: string;
 };

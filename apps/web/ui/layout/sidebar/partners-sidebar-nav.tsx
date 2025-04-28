@@ -16,6 +16,7 @@ import {
 import { Store } from "lucide-react";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
+import { CursorRays } from "./icons/cursor-rays";
 import { Hyperlink } from "./icons/hyperlink";
 import { LinesY } from "./icons/lines-y";
 import { PartnerProgramDropdown } from "./partner-program-dropdown";
@@ -80,6 +81,11 @@ const NAV_AREAS: SidebarNavAreas<{
             name: "Analytics",
             icon: LinesY,
             href: `/programs/${programSlug}/analytics`,
+          },
+          {
+            name: "Events",
+            icon: CursorRays,
+            href: `/programs/${programSlug}/events`,
           },
           {
             name: "Resources",
