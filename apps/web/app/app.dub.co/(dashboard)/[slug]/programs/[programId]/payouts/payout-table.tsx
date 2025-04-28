@@ -216,6 +216,7 @@ const PayoutTableInner = memo(
             ...(sortBy && { sortBy }),
             ...(sortOrder && { sortOrder }),
           },
+          del: "page",
           scroll: false,
         }),
       onRowClick: (row) => {

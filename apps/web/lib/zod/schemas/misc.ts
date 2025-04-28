@@ -87,3 +87,16 @@ export const base64ImageSchema = z
     },
   )
   .transform((v) => v || null);
+
+// Base64 encoded image or dubassets.com URL
+export const uploadedImageSchema = z
+  .union([
+    base64ImageSchema,
+    z
+      .string()
+      .url()
+      .refine((url) => url.startsWith("https://dubassets.com"), {
+        message: "URL must start with https://dubassets.com",
+      }),
+  ])
+  .transform((v) => v || null);

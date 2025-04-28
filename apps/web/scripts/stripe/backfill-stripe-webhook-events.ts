@@ -1,19 +1,6 @@
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
-import Stripe from "stripe";
-
-/*
-  One time script to backfill webhook events for connected customers
-  that don't have a stripe customer id
-*/
-
-export const stripe = new Stripe(`${process.env.STRIPE_APP_SECRET_KEY}`, {
-  apiVersion: "2022-11-15",
-  appInfo: {
-    name: "Dub.co",
-    version: "0.1.0",
-  },
-});
+import { stripeAppClient } from "../../lib/stripe";
 
 const stripeAccountId = "xxx";
 
@@ -39,7 +26,9 @@ async function main() {
       if (!customer.email) return;
       if (customer.stripeCustomerId) return;
 
-      const stripeCustomer = await stripe.customers.list(
+      const stripeCustomer = await stripeAppClient({
+        livemode: false,
+      }).customers.list(
         {
           email: customer.email,
         },
