@@ -4,12 +4,41 @@ import { APP_DOMAIN, cn, createHref, fetcher } from "@dub/utils";
 import { ChevronDown, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ComponentProps, useEffect, useState } from "react";
+import { ComponentProps, ReactNode, useEffect, useState } from "react";
 import useSWR from "swr";
 import { AnimatedSizeContainer } from "../animated-size-container";
 import { ButtonProps, buttonVariants } from "../button";
 import { NavItemChild, NavItemChildren } from "../content";
+import {
+  DubAnalyticsIcon,
+  DubApiIcon,
+  DubLinksIcon,
+  DubPartnersIcon,
+} from "../icons";
 import { navItems, type NavTheme } from "./nav";
+
+const specialIcons: Record<string, ReactNode> = {
+  "Dub Links": (
+    <div className="flex size-5 items-center justify-center rounded bg-orange-400">
+      <DubLinksIcon className="size-3 text-orange-900" />
+    </div>
+  ),
+  "Dub Partners": (
+    <div className="flex size-5 items-center justify-center rounded bg-violet-400">
+      <DubPartnersIcon className="size-3 text-violet-900" />
+    </div>
+  ),
+  "Dub Analytics": (
+    <div className="flex size-5 items-center justify-center rounded bg-green-400">
+      <DubAnalyticsIcon className="size-3 text-green-900" />
+    </div>
+  ),
+  "Dub API": (
+    <div className="flex size-5 items-center justify-center rounded bg-neutral-400">
+      <DubApiIcon className="size-3 text-neutral-900" />
+    </div>
+  ),
+};
 
 export function NavMobile({
   theme = "light",
@@ -218,6 +247,8 @@ const ChildItem = ({
 }) => {
   const { domain = "dub.co" } = useParams() as { domain: string };
 
+  const SpecialIcon = specialIcons?.[title];
+
   return (
     <Link
       href={createHref(href, domain, {
@@ -235,12 +266,14 @@ const ChildItem = ({
           size === "small" && "size-8",
         )}
       >
-        <Icon
-          className={cn(
-            "size-5 text-neutral-700 grayscale",
-            size === "small" && "size-4",
-          )}
-        />
+        {SpecialIcon ?? (
+          <Icon
+            className={cn(
+              "size-5 text-neutral-700 grayscale",
+              size === "small" && "size-4",
+            )}
+          />
+        )}
       </div>
       <div>
         <div className="flex items-center gap-2">
