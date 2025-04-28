@@ -86,8 +86,6 @@ export const PATCH = withReferralsEmbedToken(
       updatedLink: processedLink,
     });
 
-    const updatedLink = ReferralsEmbedLinkSchema.parse(partnerLink);
-
-    return NextResponse.json(updatedLink);
+    return NextResponse.json(ReferralsEmbedLinkSchema.parse(partnerLink));
   },
 );
