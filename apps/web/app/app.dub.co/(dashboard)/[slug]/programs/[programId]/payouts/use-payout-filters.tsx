@@ -1,19 +1,17 @@
 import usePartners from "@/lib/swr/use-partners";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps, PayoutsCount } from "@/lib/types";
 import { PARTNERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partners";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { useRouterStuff } from "@dub/ui";
 import { CircleDotted, Users } from "@dub/ui/icons";
-import { cn, DICEBEAR_AVATAR_URL, nFormatter } from "@dub/utils";
+import { cn, nFormatter, OG_AVATAR_URL } from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
-export function usePayoutFilters(extraSearchParams: Record<string, string>) {
+export function usePayoutFilters() {
   const { searchParamsObj, queryParams } = useRouterStuff();
-  const { id: workspaceId } = useWorkspace();
 
   const { payoutsCount } = usePayoutsCount<PayoutsCount[]>({
     groupBy: "status",
@@ -41,7 +39,7 @@ export function usePayoutFilters(extraSearchParams: Record<string, string>) {
               label: name,
               icon: (
                 <img
-                  src={image || `${DICEBEAR_AVATAR_URL}${name}`}
+                  src={image || `${OG_AVATAR_URL}${name}`}
                   alt={`${name} image`}
                   className="size-4 rounded-full"
                 />
@@ -113,18 +111,6 @@ export function usePayoutFilters(extraSearchParams: Record<string, string>) {
     [queryParams],
   );
 
-  const searchQuery = useMemo(
-    () =>
-      new URLSearchParams({
-        ...Object.fromEntries(
-          activeFilters.map(({ key, value }) => [key, value]),
-        ),
-        workspaceId: workspaceId || "",
-        ...extraSearchParams,
-      }).toString(),
-    [activeFilters, workspaceId, extraSearchParams],
-  );
-
   const isFiltered = useMemo(() => activeFilters.length > 0, [activeFilters]);
 
   return {
@@ -133,7 +119,6 @@ export function usePayoutFilters(extraSearchParams: Record<string, string>) {
     onSelect,
     onRemove,
     onRemoveAll,
-    searchQuery,
     isFiltered,
     setSearch,
     setSelectedFilter,
@@ -151,11 +136,11 @@ function usePartnerFilterOptions(search: string) {
     partnersCount && partnersCount > PARTNERS_MAX_PAGE_SIZE,
   );
 
-  const { data: partners, loading: partnersLoading } = usePartners({
+  const { partners, loading: partnersLoading } = usePartners({
     query: { search: partnersAsync ? search : "" },
   });
 
-  const { data: selectedPartners } = usePartners({
+  const { partners: selectedPartners } = usePartners({
     query: {
       ids: searchParamsObj.partnerId ? [searchParamsObj.partnerId] : undefined,
     },
@@ -176,7 +161,7 @@ function usePartnerFilterOptions(search: string) {
           ...(selectedPartners
             ?.filter((st) => !partners?.some((t) => t.id === st.id))
             ?.map((st) => ({ ...st, hideDuringSearch: true })) ?? []),
-        ] as (EnrolledPartnerProps & { hideDuringSearch?: boolean })[]) ?? null;
+        ] as (EnrolledPartnerProps & { hideDuringSearch?: boolean })[]);
   }, [partnersLoading, partners, selectedPartners, searchParamsObj.partnerId]);
 
   return { partners: result, partnersAsync };

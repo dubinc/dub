@@ -108,6 +108,7 @@ export const PATCH = withWorkspace(
           ? link.expiresAt.toISOString()
           : link.expiresAt,
       geo: link.geo as NewLinkProps["geo"],
+
       ...body,
       // for UTM tags, we only pass them to processLink if they have changed from their previous value
       // or else they will override any changes to the UTM params in the destination URL

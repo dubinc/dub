@@ -6,10 +6,9 @@ import { LinkFormData } from "./link-builder-provider";
 
 export function LinkActionBar({ children }: PropsWithChildren) {
   const { control, reset } = useFormContext<LinkFormData>();
-  const { isDirty, isSubmitting, isSubmitSuccessful, dirtyFields } =
-    useFormState({
-      control,
-    });
+  const { isDirty, isSubmitting, isSubmitSuccessful } = useFormState({
+    control,
+  });
 
   const showActionBar = isDirty || isSubmitting;
 

@@ -11,14 +11,7 @@ import { Button, Combobox, Sheet, useEnterSubmit } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useParams, useRouter } from "next/navigation";
-import {
-  Dispatch,
-  SetStateAction,
-  useId,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { Dispatch, SetStateAction, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -40,9 +33,8 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
   const { setIsOpen } = props;
 
   const router = useRouter();
-  const dateRangePickerId = useId();
   const { program } = useProgram();
-  const { data: partners } = usePartners();
+  const { partners } = usePartners();
   const { id: workspaceId } = useWorkspace();
   const { slug, programId } = useParams();
 
@@ -71,8 +63,7 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
       icon: (
         <img
           src={
-            partner.image ||
-            `https://api.dicebear.com/9.x/micah/svg?seed=${partner.id}`
+            partner.image || `https://api.dub.co/og/avatar?seed=${partner.id}`
           }
           className="size-4 rounded-full"
         />
@@ -113,8 +104,6 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
       partnerId,
     });
   };
-
-  const selectedPartner = partners?.find((p) => p.id === partnerId);
 
   const buttonDisabled = isPending || !partnerId;
 

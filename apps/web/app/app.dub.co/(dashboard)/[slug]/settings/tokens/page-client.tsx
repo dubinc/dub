@@ -22,7 +22,7 @@ import {
   usePagination,
   useTable,
 } from "@dub/ui";
-import { cn, DICEBEAR_AVATAR_URL, fetcher, timeAgo } from "@dub/utils";
+import { cn, fetcher, OG_AVATAR_URL, timeAgo } from "@dub/utils";
 import { Command } from "cmdk";
 import { useState } from "react";
 import useSWR from "swr";
@@ -105,7 +105,7 @@ export default function TokensPageClient() {
                     row.original.user.isMachine
                       ? "https://api.dicebear.com/7.x/bottts/svg?seed=Sara"
                       : row.original.user.image ||
-                        `${DICEBEAR_AVATAR_URL}${row.original.user.id}`
+                        `${OG_AVATAR_URL}${row.original.user.id}`
                   }
                   alt={row.original.user.name!}
                   className="size-5 rounded-full"
@@ -245,8 +245,8 @@ function RowMenuButton({
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
         content={
-          <Command tabIndex={0} loop className="focus:outline-none">
-            <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm sm:w-auto sm:min-w-[130px]">
+          <Command tabIndex={0} loop>
+            <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[130px]">
               <MenuItem icon={PenWriting} label="Edit" onSelect={onEdit} />
 
               <MenuItem

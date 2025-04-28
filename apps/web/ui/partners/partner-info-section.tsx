@@ -6,7 +6,7 @@ import {
   StatusBadge,
   Tooltip,
 } from "@dub/ui";
-import { COUNTRIES, DICEBEAR_AVATAR_URL, formatDate } from "@dub/utils";
+import { COUNTRIES, OG_AVATAR_URL, formatDate } from "@dub/utils";
 import { PropsWithChildren } from "react";
 import { PartnerStatusBadges } from "./partner-status-badges";
 
@@ -23,7 +23,7 @@ export function PartnerInfoSection({
       <div>
         <div className="relative w-fit">
           <img
-            src={partner.image || `${DICEBEAR_AVATAR_URL}${partner.name}`}
+            src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
             alt={partner.name}
             className="size-12 rounded-full"
           />

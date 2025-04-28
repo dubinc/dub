@@ -1,26 +1,13 @@
-import useWorkspace from "@/lib/swr/use-workspace";
-import { EnrolledPartnerProps } from "@/lib/types";
+import usePartners from "@/lib/swr/use-partners";
 import { buttonVariants } from "@dub/ui";
-import {
-  cn,
-  currencyFormatter,
-  DICEBEAR_AVATAR_URL,
-  fetcher,
-} from "@dub/utils";
+import { cn, currencyFormatter, OG_AVATAR_URL } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import useSWR from "swr";
 
 export function TopPartners() {
   const { slug, programId } = useParams();
-  const { id: workspaceId } = useWorkspace();
 
-  const { data: partners, error } = useSWR<EnrolledPartnerProps[]>(
-    `/api/partners?workspaceId=${workspaceId}&programId=${programId}`,
-    fetcher,
-  );
-
-  const isLoading = !partners && !error;
+  const { partners, loading } = usePartners();
 
   return (
     <div className="rounded-md border border-neutral-200">
@@ -41,7 +28,7 @@ export function TopPartners() {
       </div>
       <div className="p-3">
         <div className="h-px min-h-64">
-          {isLoading ? (
+          {loading ? (
             <div className="grid grid-cols-1 gap-1">
               {[...Array(5)].map((_, i) => (
                 <div
@@ -68,9 +55,7 @@ export function TopPartners() {
                 >
                   <div className="flex items-center gap-2 text-xs">
                     <img
-                      src={
-                        partner.image || `${DICEBEAR_AVATAR_URL}${partner.name}`
-                      }
+                      src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
                       alt={partner.name}
                       className="size-8 rounded-full"
                     />

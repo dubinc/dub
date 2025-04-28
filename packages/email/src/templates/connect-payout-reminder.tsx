@@ -1,8 +1,4 @@
-import {
-  currencyFormatter,
-  DICEBEAR_AVATAR_URL,
-  DUB_WORDMARK,
-} from "@dub/utils";
+import { currencyFormatter, DUB_WORDMARK, OG_AVATAR_URL } from "@dub/utils";
 import {
   Body,
   Column,
@@ -80,8 +76,7 @@ export default function ConnectPayoutReminder({
                       <Column width="32">
                         <Img
                           src={
-                            program.logo ||
-                            `${DICEBEAR_AVATAR_URL}${program.name}`
+                            program.logo || `${OG_AVATAR_URL}${program.name}`
                           }
                           width="20"
                           height="20"
@@ -106,7 +101,7 @@ export default function ConnectPayoutReminder({
 
             <Section className="mt-8 text-center">
               <Link
-                href="https://partners.dub.co/settings/payouts"
+                href="https://partners.dub.co/register?next=/settings/payouts"
                 className="box-border block w-full rounded-md bg-black px-0 py-4 text-center text-sm font-medium leading-none text-white no-underline"
               >
                 Connect payout details

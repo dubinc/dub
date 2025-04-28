@@ -15,7 +15,7 @@ import {
   ToggleGroup,
   useEnterSubmit,
 } from "@dub/ui";
-import { cn, DICEBEAR_AVATAR_URL } from "@dub/utils";
+import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { PartnerProfileType } from "@prisma/client";
 import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
 import { useAction } from "next-safe-action/hooks";
@@ -146,7 +146,12 @@ function ProfileForm({ partner }: { partner: PartnerProps }) {
     <form
       ref={formRef}
       onSubmit={handleSubmit(async (data) => {
-        await executeAsync(data);
+        const imageChanged = data.image !== partner.image;
+
+        await executeAsync({
+          ...data,
+          image: imageChanged ? data.image : null,
+        });
       })}
     >
       <div className="px-5">
@@ -168,7 +173,7 @@ function ProfileForm({ partner }: { partner: PartnerProps }) {
                       previewClassName="size-14 rounded-full"
                       variant="plain"
                       imageSrc={
-                        field.value || `${DICEBEAR_AVATAR_URL}${partner?.name}`
+                        field.value || `${OG_AVATAR_URL}${partner?.name}`
                       }
                       readFile
                       onChange={({ src }) => field.onChange(src)}

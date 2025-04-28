@@ -1,6 +1,6 @@
-import { SALES_PAGE_SIZE } from "@/lib/partners/constants";
+import { REFERRALS_EMBED_EARNINGS_LIMIT } from "@/lib/partners/constants";
 import { PartnerEarningsResponse } from "@/lib/types";
-import { SaleStatusBadges } from "@/ui/partners/sale-status-badges";
+import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { Gift, StatusBadge, Table, usePagination, useTable } from "@dub/ui";
 import {
   currencyFormatter,
@@ -9,13 +9,18 @@ import {
   formatDateTime,
   TAB_ITEM_ANIMATION_SETTINGS,
 } from "@dub/utils";
+import { useEmbedToken } from "app/app.dub.co/embed/use-embed-token";
 import { motion } from "framer-motion";
 import useSWR from "swr";
 
 export function ReferralsEmbedEarnings({ salesCount }: { salesCount: number }) {
-  const { pagination, setPagination } = usePagination(SALES_PAGE_SIZE);
+  const token = useEmbedToken();
+
+  const { pagination, setPagination } = usePagination(
+    REFERRALS_EMBED_EARNINGS_LIMIT,
+  );
   const { data: earnings, isLoading } = useSWR<PartnerEarningsResponse[]>(
-    `/api/embed/referrals/earnings?page=${pagination.pageIndex}`,
+    `/api/embed/referrals/earnings?page=${pagination.pageIndex}&token=${token}`,
     fetcher,
     {
       keepPreviousData: true,
@@ -66,7 +71,7 @@ export function ReferralsEmbedEarnings({ salesCount }: { salesCount: number }) {
       {
         header: "Status",
         cell: ({ row }) => {
-          const badge = SaleStatusBadges[row.original.status];
+          const badge = CommissionStatusBadges[row.original.status];
 
           return (
             <StatusBadge icon={null} variant={badge.variant}>

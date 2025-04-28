@@ -2,8 +2,11 @@
 
 import { createId } from "@/lib/api/create-id";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
+import { qstash } from "@/lib/cron";
 import { createDiscountSchema } from "@/lib/zod/schemas/discount";
 import { prisma } from "@dub/prisma";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
 export const createDiscountAction = authActionClient
@@ -96,4 +99,16 @@ export const createDiscountAction = authActionClient
         },
       });
     }
+
+    waitUntil(
+      qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
+        body: {
+          programId,
+          discountId: discount.id,
+          isDefault,
+          action: "discount-created",
+        },
+      }),
+    );
   });

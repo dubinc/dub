@@ -1,5 +1,7 @@
+import { z } from "zod";
 import { ExpandedLink } from "../api/links/utils/transform-link";
 import { RedisLinkProps } from "../types";
+import { ABTestVariantsSchema } from "../zod/schemas/links";
 
 export function formatRedisLink(link: ExpandedLink): RedisLinkProps {
   const {
@@ -17,6 +19,12 @@ export function formatRedisLink(link: ExpandedLink): RedisLinkProps {
     doIndex,
     projectId,
     webhooks,
+    programId,
+    partnerId,
+    partner,
+    discount,
+    testVariants,
+    testCompletedAt,
   } = link;
 
   const webhookIds = webhooks?.map(({ webhookId }) => webhookId) ?? [];
@@ -39,5 +47,28 @@ export function formatRedisLink(link: ExpandedLink): RedisLinkProps {
     ...(projectId && { projectId }), // projectId can be undefined for anonymous links
     ...(doIndex && { doIndex: true }),
     ...(webhookIds.length > 0 && { webhookIds }),
+    ...(programId && { programId }),
+    ...(partnerId && { partnerId }),
+    ...(partner && {
+      partner: {
+        id: partner.id,
+        name: partner.name,
+        image: partner.image,
+      },
+    }),
+    ...(discount && {
+      discount: {
+        id: discount.id,
+        amount: discount.amount,
+        type: discount.type,
+        maxDuration: discount.maxDuration,
+      },
+    }),
+    ...(Boolean(
+      testVariants && testCompletedAt && new Date(testCompletedAt) > new Date(),
+    ) && {
+      testVariants: testVariants as z.infer<typeof ABTestVariantsSchema>,
+      testCompletedAt: new Date(testCompletedAt!),
+    }),
   };
 }

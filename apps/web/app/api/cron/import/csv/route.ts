@@ -4,7 +4,6 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkCreateLinks, createLink, processLink } from "@/lib/api/links";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { storage } from "@/lib/storage";
 import { ProcessedLinkProps, WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { linkMappingSchema } from "@/lib/zod/schemas/import-csv";
@@ -20,22 +19,19 @@ import {
   normalizeString,
   parseDateTime,
 } from "@dub/utils";
+import { getUrlObjFromString } from "@dub/utils/src";
 import { NextResponse } from "next/server";
-import Papa from "papaparse";
-import { Readable } from "stream";
 import { z } from "zod";
 import { sendCsvImportEmails } from "./utils";
 
 export const dynamic = "force-dynamic";
 
 const payloadSchema = z.object({
-  id: z.string(),
   workspaceId: z.string(),
   userId: z.string(),
+  id: z.string(),
   folderId: z.string().nullable(),
-  url: z.string(),
   mapping: linkMappingSchema,
-  action: z.enum(["queue-links", "process-links"]).default("queue-links"),
 });
 
 interface MapperResult {
@@ -69,17 +65,61 @@ export async function POST(req: Request) {
     });
 
     const payload = payloadSchema.parse(JSON.parse(rawBody));
-    const { action } = payload;
+    const { workspaceId, id } = payload;
+    const redisKey = `import:csv:${workspaceId}:${id}`;
+    const BATCH_SIZE = 100; // Process 500 links at a time
 
-    console.time("import:csv");
+    const rows = await redis.lpop<Record<string, string>[]>(
+      `${redisKey}:rows`,
+      BATCH_SIZE,
+    );
 
-    if (action === "queue-links") {
-      await prepareRows(payload); // add rows to Redis
-    } else if (action === "process-links") {
-      await processRows(payload); // process rows in Redis
+    if (rows && rows.length > 0) {
+      const mappedLinks: MapperResult[] = rows.map((row) =>
+        mapCsvRowToLink(row, payload.mapping),
+      );
+
+      await processMappedLinks({
+        mappedLinks,
+        payload,
+      });
+
+      await redis.incrby(`${redisKey}:processed`, rows.length);
+
+      if (rows.length === BATCH_SIZE) {
+        const response = await qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/csv`,
+          body: payload,
+        });
+        return NextResponse.json(response);
+      }
     }
 
-    console.timeEnd("import:csv");
+    // Finished processing all rows
+    const errorLinks = await redis.lrange<ErrorLink>(
+      `${redisKey}:failed`,
+      0,
+      -1,
+    );
+    const createdCount = parseInt(
+      (await redis.get(`${redisKey}:created`)) || "0",
+    );
+    const domains = await redis.smembers(`${redisKey}:domains`);
+
+    await sendCsvImportEmails({
+      workspaceId,
+      count: createdCount,
+      domains,
+      errorLinks,
+    });
+
+    await Promise.allSettled([
+      redis.del(`${redisKey}:created`),
+      redis.del(`${redisKey}:failed`),
+      redis.del(`${redisKey}:domains`),
+      redis.del(`${redisKey}:rows`),
+      redis.del(`${redisKey}:processed`),
+    ]);
 
     return NextResponse.json("OK");
   } catch (error) {
@@ -91,121 +131,6 @@ export async function POST(req: Request) {
     return handleAndReturnErrorResponse(error);
   }
 }
-
-// Add rows to Redis
-const prepareRows = async (payload: z.infer<typeof payloadSchema>) => {
-  const { id, url, workspaceId } = payload;
-
-  if (!id || !url) {
-    throw new Error("Missing ID or URL for the import file.");
-  }
-
-  const response = await storage.fetch(url);
-  if (!response || !response.body) {
-    throw new Error("CSV import file not found.");
-  }
-
-  const BATCH_SIZE = 1000; // Push 1000 rows to Redis at a time
-  const redisKey = `import:csv:${workspaceId}:${id}:rows`;
-  let rows: Record<string, string>[] = [];
-
-  await new Promise((resolve, reject) => {
-    Papa.parse(Readable.fromWeb(response.body as any), {
-      header: true,
-      skipEmptyLines: true,
-      worker: false,
-      complete: (results) => {
-        resolve(results);
-      },
-      error: reject,
-      step: async (results: { data: Record<string, string> }, parser) => {
-        parser.pause();
-        rows.push(results.data);
-
-        if (rows.length >= BATCH_SIZE) {
-          await redis.lpush(redisKey, ...rows);
-          rows = [];
-        }
-
-        parser.resume();
-      },
-    });
-  });
-
-  // Add any remaining rows to Redis
-  if (rows.length > 0) {
-    await redis.lpush(redisKey, ...rows);
-  }
-
-  await qstash.publishJSON({
-    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/csv`,
-    body: {
-      ...payload,
-      action: "process-links",
-    },
-  });
-};
-
-// Process rows in Redis
-const processRows = async (payload: z.infer<typeof payloadSchema>) => {
-  const { id, workspaceId, mapping } = payload;
-  const redisKey = `import:csv:${workspaceId}:${id}`;
-  const BATCH_SIZE = 500; // Process 500 links at a time
-
-  const rows = await redis.lpop<Record<string, string>[]>(
-    `${redisKey}:rows`,
-    BATCH_SIZE,
-  );
-
-  if (rows && rows.length > 0) {
-    const mappedLinks: MapperResult[] = rows.map((row) =>
-      mapCsvRowToLink(row, mapping),
-    );
-
-    await processMappedLinks({
-      mappedLinks,
-      payload,
-    });
-
-    await redis.incrby(`${redisKey}:processed`, rows.length);
-
-    if (rows.length === BATCH_SIZE) {
-      return await qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/csv`,
-        body: {
-          ...payload,
-          action: "process-links",
-        },
-      });
-    }
-  }
-
-  // Finished processing all rows
-  const errorLinks = await redis.lrange<ErrorLink>(`${redisKey}:failed`, 0, -1);
-
-  const createdCount = parseInt(
-    (await redis.get(`${redisKey}:created`)) || "0",
-  );
-
-  const domains = await redis.smembers(`${redisKey}:domains`);
-
-  await sendCsvImportEmails({
-    workspaceId,
-    count: createdCount,
-    domains,
-    errorLinks,
-  });
-
-  await Promise.allSettled([
-    redis.del(`${redisKey}:cursor`),
-    redis.del(`${redisKey}:created`),
-    redis.del(`${redisKey}:failed`),
-    redis.del(`${redisKey}:domains`),
-    redis.del(`${redisKey}:rows`),
-    redis.del(`${redisKey}:processed`),
-    storage.delete(payload.url),
-  ]);
-};
 
 // Map a CSV row to a link
 const mapCsvRowToLink = (
@@ -239,11 +164,20 @@ const mapCsvRowToLink = (
       };
     }
 
-    const [domain, ...keyParts] = linkValue.split("/");
-    const key = keyParts.join("/") || "_root";
+    const linkObj = getUrlObjFromString(linkValue);
 
+    if (!linkObj) {
+      return {
+        success: false,
+        error: `Invalid link format: ${linkValue}`,
+      };
+    }
+    const domain = linkObj.hostname;
+    const key = linkObj.pathname.slice(1) || "_root";
+
+    let urlObj: URL;
     try {
-      new URL(urlValue);
+      urlObj = new URL(urlValue);
     } catch {
       return {
         success: false,
@@ -254,7 +188,7 @@ const mapCsvRowToLink = (
     const link: MapperResult["data"] = {
       domain,
       key,
-      url: urlValue,
+      url: urlObj.toString(),
     };
 
     if (mapping.title) {
@@ -317,8 +251,8 @@ const processMappedLinks = async ({
   mappedLinks: MapperResult[];
   payload: z.infer<typeof payloadSchema>;
 }) => {
-  const { id, workspaceId, userId, folderId } = payload;
-  const redisKey = `import:csv:${workspaceId}:${id}`;
+  const { workspaceId, userId, folderId } = payload;
+  const redisKey = `import:csv:${workspaceId}:${payload.id}`;
 
   if (mappedLinks.length === 0) {
     console.log("No links to process.");

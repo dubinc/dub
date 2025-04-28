@@ -1,5 +1,3 @@
-import { DubApiError } from "../api/errors";
-
 export const verifyAnalyticsAllowedHostnames = ({
   allowedHostnames,
   req,
@@ -12,17 +10,8 @@ export const verifyAnalyticsAllowedHostnames = ({
     const sourceUrl = source ? new URL(source) : null;
     const hostname = sourceUrl?.hostname.replace(/^www\./, "");
 
-    if (!hostname || !allowedHostnames.includes(hostname)) {
-      console.error("Hostname not allowed.", {
-        hostname,
-        allowedHostnames,
-      });
-      throw new DubApiError({
-        code: "forbidden",
-        message: `Hostname ${hostname} not included in allowed hostnames (${allowedHostnames.join(
-          ", ",
-        )}).`,
-      });
-    }
+    return hostname && allowedHostnames.includes(hostname);
   }
+
+  return true;
 };

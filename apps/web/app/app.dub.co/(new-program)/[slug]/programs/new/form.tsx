@@ -1,29 +1,36 @@
 "use client";
 
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
-import useDomains from "@/lib/swr/use-domains";
+import { getLinkStructureOptions } from "@/lib/partners/get-link-structure-options";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ProgramData } from "@/lib/types";
+import { DomainVerificationStatusProps, ProgramData } from "@/lib/types";
+import DomainConfiguration from "@/ui/domains/domain-configuration";
+import { DomainSelector } from "@/ui/domains/domain-selector";
 import {
-  Badge,
   Button,
-  CircleCheckFill,
   FileUpload,
+  InfoTooltip,
   Input,
+  LinkLogo,
+  SimpleTooltipContent,
   useMediaQuery,
 } from "@dub/ui";
-import { cn, getDomainWithoutWWW } from "@dub/utils";
+import { ArrowTurnRight2 } from "@dub/ui/icons";
+import { fetcher, getApexDomain, getPrettyUrl } from "@dub/utils";
+import { AnimatePresence, motion } from "framer-motion";
 import { Plus } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
+import useSWRImmutable from "swr/immutable";
 
 export function Form() {
   const router = useRouter();
   const { isMobile } = useMediaQuery();
-  const { activeWorkspaceDomains, loading } = useDomains();
+  const [isUploading, setIsUploading] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
   const { id: workspaceId, slug: workspaceSlug, mutate } = useWorkspace();
 
   const {
@@ -35,7 +42,17 @@ export function Form() {
     formState: { isSubmitting },
   } = useFormContext<ProgramData>();
 
-  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [name, url, domain, logo] = watch(["name", "url", "domain", "logo"]);
+
+  const { data: verificationData } = useSWRImmutable<{
+    status: DomainVerificationStatusProps;
+    response: any;
+  }>(
+    workspaceId && domain
+      ? `/api/domains/${domain}/verify?workspaceId=${workspaceId}`
+      : null,
+    fetcher,
+  );
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
@@ -59,8 +76,6 @@ export function Form() {
     });
   };
 
-  const [isUploading, setIsUploading] = useState(false);
-
   // Handle logo upload
   const handleUpload = async (file: File) => {
     setIsUploading(true);
@@ -73,7 +88,9 @@ export function Form() {
         },
       );
 
-      if (!response.ok) throw new Error("Failed to get signed URL for upload.");
+      if (!response.ok) {
+        throw new Error("Failed to get signed URL for upload.");
+      }
 
       const { signedUrl, destinationUrl } = await response.json();
 
@@ -86,45 +103,36 @@ export function Form() {
         },
       });
 
-      if (!uploadResponse.ok) throw new Error("Failed to upload to signed URL");
+      if (!uploadResponse.ok) {
+        throw new Error("Failed to upload to signed URL");
+      }
 
       setValue("logo", destinationUrl, { shouldDirty: true });
-      console.log(destinationUrl);
       toast.success(`${file.name} uploaded!`);
     } catch (e) {
       toast.error("Failed to upload logo");
-      console.error(e);
     } finally {
       setIsUploading(false);
     }
   };
 
-  const [name, url, domain, logo] = watch(["name", "url", "domain", "logo"]);
-
   const buttonDisabled =
     isSubmitting || isPending || !name || !url || !domain || !logo;
 
-  const LINK_TYPES = [
-    {
-      id: "short",
-      label: "Short link",
-      example: `${domain || "refer.dub.co"}/steven`,
-      comingSoon: false,
-    },
-    {
-      id: "dynamic",
-      label: "Dynamic path",
-      example: `${(url && getDomainWithoutWWW(url)) || "dub.co"}/refer/steven`,
-      comingSoon: true,
-    },
-  ];
+  const linkStructureOptions = getLinkStructureOptions({
+    domain,
+    url,
+  });
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
       <div>
         <label className="block text-sm font-medium text-neutral-800">
-          Program name
+          Company name
         </label>
+        <p className="mb-4 mt-1 text-sm text-neutral-600">
+          The name of the company you're setting up the program for
+        </p>
         <Input
           {...register("name", { required: true })}
           placeholder="Acme"
@@ -170,31 +178,55 @@ export function Form() {
             Referral link
           </h2>
           <p className="text-sm font-normal text-neutral-600">
-            Set the default referral link domain and destination URL
+            Set the custom domain and destination URL for your referral links
           </p>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-neutral-800">
-            Default domain
-          </label>
-          {loading ? (
-            <div className="mt-2 h-10 w-full animate-pulse rounded-md bg-neutral-100" />
-          ) : (
-            <select
-              {...register("domain", { required: true })}
-              className="mt-2 block w-full rounded-md border border-neutral-300 bg-white py-2 pl-3 pr-10 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
-            >
-              {activeWorkspaceDomains?.map(({ slug }) => (
-                <option value={slug} key={slug}>
-                  {slug}
-                </option>
-              ))}
-            </select>
-          )}
+        <div className="space-y-2">
+          <div className="flex items-center gap-x-2">
+            <label className="block text-sm font-medium text-neutral-800">
+              Custom domain
+            </label>
+
+            <InfoTooltip
+              content={
+                <SimpleTooltipContent
+                  title="A connected domain or sub-domain is required to create a program."
+                  cta="Learn more"
+                  href="https://dub.co/help/article/choosing-a-custom-domain"
+                />
+              }
+            />
+          </div>
+
+          <DomainSelector
+            selectedDomain={domain}
+            setSelectedDomain={(domain) => setValue("domain", domain)}
+          />
+
+          <p className="text-xs font-normal text-neutral-500">
+            Custom domain that will be used for your program's referral links
+          </p>
         </div>
 
-        <div>
+        <AnimatePresence>
+          {domain &&
+            verificationData &&
+            verificationData.status !== "Valid Configuration" && (
+              <motion.div
+                key="domain-verification"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="mt-6 overflow-hidden rounded-md border border-neutral-200 bg-neutral-50 px-5 pb-5"
+              >
+                <DomainConfiguration data={verificationData} />
+              </motion.div>
+            )}
+        </AnimatePresence>
+
+        <div className="space-y-2">
           <label className="block text-sm font-medium text-neutral-800">
             Destination URL
           </label>
@@ -202,71 +234,71 @@ export function Form() {
             {...register("url", { required: true })}
             type="url"
             placeholder="https://dub.co"
-            className={"mt-2 max-w-full"}
+            className="max-w-full"
           />
-        </div>
-      </div>
-
-      <div className="space-y-6">
-        <div className="space-y-1">
-          <h2 className="text-base font-medium text-neutral-900">Link type</h2>
-          <p className="text-sm font-normal text-neutral-600">
-            Set how the link shows up in the partner portal
+          <p className="text-xs font-normal text-neutral-500">
+            Where people will be redirected to when they click on your program's
+            referral links
           </p>
         </div>
+      </div>
 
-        <div className="flex flex-col gap-3">
-          {LINK_TYPES.map((type) => {
-            const isSelected = watch("linkType") === type.id;
+      <AnimatePresence>
+        {domain && (
+          <motion.div
+            key="referral-link-preview"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-2"
+          >
+            <h2 className="text-base font-medium text-neutral-900">
+              Referral link preview
+            </h2>
 
-            return (
-              <label
-                key={type.id}
-                className={cn(
-                  "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
-                  "transition-all duration-150",
-                  isSelected &&
-                    "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
-                  type.comingSoon && "cursor-not-allowed hover:bg-white",
-                )}
-              >
-                <input
-                  type="radio"
-                  {...register("linkType")}
-                  value={type.id}
-                  className="hidden"
-                  disabled={type.comingSoon}
-                />
-
-                <div className="flex grow flex-col text-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold text-neutral-900">
-                      {type.label}
-                    </span>
-                    {type.comingSoon && (
-                      <Badge variant="blueGradient" size="sm">
-                        Coming soon
-                      </Badge>
+            <div className="rounded-2xl bg-neutral-50 p-2">
+              <div className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-white p-4">
+                <div className="relative flex shrink-0 items-center">
+                  <div className="absolute inset-0 h-8 w-8 rounded-full border border-neutral-200 sm:h-10 sm:w-10">
+                    <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-neutral-100" />
+                  </div>
+                  <div className="relative z-10 p-2">
+                    {url ? (
+                      <LinkLogo
+                        apexDomain={getApexDomain(url)}
+                        className="size-4 sm:size-6"
+                        imageProps={{
+                          loading: "lazy",
+                        }}
+                      />
+                    ) : (
+                      <div className="size-4 rounded-full bg-neutral-200 sm:size-6" />
                     )}
                   </div>
-                  <span className="text-sm font-normal text-neutral-900">
-                    {type.example}
-                  </span>
                 </div>
 
-                {!type.comingSoon && (
-                  <CircleCheckFill
-                    className={cn(
-                      "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
-                      isSelected && "scale-100 opacity-100",
+                <div className="min-w-0 flex-1 space-y-0.5">
+                  <div className="truncate text-sm font-medium text-neutral-700">
+                    {linkStructureOptions?.[0].example}
+                  </div>
+
+                  <div className="flex min-h-[20px] items-center gap-1 text-sm text-neutral-500">
+                    {url ? (
+                      <>
+                        <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-neutral-400" />
+                        <span className="truncate">{getPrettyUrl(url)}</span>
+                      </>
+                    ) : (
+                      <div className="h-3 w-1/2 rounded-md bg-neutral-200" />
                     )}
-                  />
-                )}
-              </label>
-            );
-          })}
-        </div>
-      </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <Button
         text="Continue"

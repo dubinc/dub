@@ -1,4 +1,4 @@
-import { SHEET_MAX_ITEMS } from "@/lib/partners/constants";
+import { PAYOUTS_SHEET_ITEMS_LIMIT } from "@/lib/partners/constants";
 import usePayouts from "@/lib/swr/use-payouts";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -164,9 +164,10 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
                   { id: "links", label: "Links" },
                   { id: "payouts", label: "Payouts" },
                   {
-                    id: "sales",
-                    label: "Sales",
-                    href: `/${slug}/programs/${program!.id}/sales?partnerId=${partner.id}`,
+                    id: "commissions",
+                    label: "Commissions",
+                    href: `/${slug}/programs/${program!.id}/commissions?partnerId=${partner.id}`,
+                    target: "_blank",
                   },
                 ]}
                 selected={tab}
@@ -221,7 +222,7 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
     error: payoutsError,
     loading,
   } = usePayouts({
-    query: { partnerId: partner.id, pageSize: SHEET_MAX_ITEMS },
+    query: { partnerId: partner.id, pageSize: PAYOUTS_SHEET_ITEMS_LIMIT },
   });
 
   const table = useTable({

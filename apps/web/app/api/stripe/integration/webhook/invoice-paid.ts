@@ -1,9 +1,7 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
-import { createId } from "@/lib/api/create-id";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
-import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
-import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
+import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -11,24 +9,56 @@ import { transformSaleEventData } from "@/lib/webhook/transform";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { differenceInMonths } from "date-fns";
 import type Stripe from "stripe";
+import { getConnectedCustomer } from "./utils";
 
 // Handle event "invoice.paid"
 export async function invoicePaid(event: Stripe.Event) {
   const invoice = event.data.object as Stripe.Invoice;
+  const stripeAccountId = event.account as string;
   const stripeCustomerId = invoice.customer as string;
   const invoiceId = invoice.id;
 
   // Find customer using projectConnectId and stripeCustomerId
-  const customer = await prisma.customer.findUnique({
+  let customer = await prisma.customer.findUnique({
     where: {
       stripeCustomerId,
     },
   });
 
+  // if customer is not found, we check if the connected customer has a dubCustomerId
   if (!customer) {
-    return `Customer with stripeCustomerId ${stripeCustomerId} not found, skipping...`;
+    const connectedCustomer = await getConnectedCustomer({
+      stripeCustomerId,
+      stripeAccountId,
+      livemode: event.livemode,
+    });
+    const dubCustomerId = connectedCustomer?.metadata.dubCustomerId;
+
+    if (dubCustomerId) {
+      try {
+        // Update customer with stripeCustomerId if exists – for future events
+        customer = await prisma.customer.update({
+          where: {
+            projectConnectId_externalId: {
+              projectConnectId: stripeAccountId,
+              externalId: dubCustomerId,
+            },
+          },
+          data: {
+            stripeCustomerId,
+          },
+        });
+      } catch (error) {
+        console.log(error);
+        return `Customer with dubCustomerId ${dubCustomerId} not found, skipping...`;
+      }
+    }
+  }
+
+  // if customer is still not found, we skip the event
+  if (!customer) {
+    return `Customer with stripeCustomerId ${stripeCustomerId} not found on Dub (nor does the connected customer ${stripeCustomerId} have a valid dubCustomerId), skipping...`;
   }
 
   // Skip if invoice id is already processed
@@ -131,77 +161,26 @@ export async function invoicePaid(event: Stripe.Event) {
 
   // for program links
   if (link.programId && link.partnerId) {
-    const reward = await determinePartnerReward({
+    const commission = await createPartnerCommission({
+      event: "sale",
       programId: link.programId,
       partnerId: link.partnerId,
-      event: "sale",
+      linkId: link.id,
+      eventId,
+      customerId: customer.id,
+      amount: saleData.amount,
+      quantity: 1,
+      invoiceId,
+      currency: saleData.currency,
     });
 
-    if (reward) {
-      let eligibleForCommission = true;
-
-      if (typeof reward.maxDuration === "number") {
-        // Get the first commission (earliest sale) for this customer-partner pair
-        const firstCommission = await prisma.commission.findFirst({
-          where: {
-            partnerId: link.partnerId,
-            customerId: customer.id,
-            type: "sale",
-          },
-          orderBy: {
-            createdAt: "asc",
-          },
-        });
-
-        if (firstCommission) {
-          if (reward.maxDuration === 0) {
-            eligibleForCommission = false;
-          } else {
-            // Calculate months difference between first commission and now
-            const monthsDifference = differenceInMonths(
-              new Date(),
-              firstCommission.createdAt,
-            );
-
-            if (monthsDifference >= reward.maxDuration) {
-              eligibleForCommission = false;
-            }
-          }
-        }
-      }
-
-      if (eligibleForCommission) {
-        const earnings = calculateSaleEarnings({
-          reward,
-          sale: {
-            quantity: 1,
-            amount: saleData.amount,
-          },
-        });
-
-        const commission = await prisma.commission.create({
-          data: {
-            id: createId({ prefix: "cm_" }),
-            programId: link.programId,
-            linkId: link.id,
-            partnerId: link.partnerId,
-            eventId,
-            customerId: customer.id,
-            quantity: 1,
-            type: "sale",
-            amount: saleData.amount,
-            earnings,
-            invoiceId,
-          },
-        });
-
-        waitUntil(
-          notifyPartnerSale({
-            link,
-            commission,
-          }),
-        );
-      }
+    if (commission) {
+      waitUntil(
+        notifyPartnerSale({
+          link,
+          commission,
+        }),
+      );
     }
   }
 

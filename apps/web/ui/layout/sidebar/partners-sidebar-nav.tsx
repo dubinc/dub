@@ -8,7 +8,6 @@ import {
   Gear,
   Gear2,
   GridIcon,
-  Hyperlink,
   MoneyBills2,
   ShieldCheck,
   User,
@@ -17,6 +16,8 @@ import {
 import { Store } from "lucide-react";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
+import { Hyperlink } from "./icons/hyperlink";
+import { LinesY } from "./icons/lines-y";
 import { PartnerProgramDropdown } from "./partner-program-dropdown";
 import { PayoutStats } from "./payout-stats";
 import { ProgramHelpSupport } from "./program-help-support";
@@ -38,7 +39,6 @@ const NAV_AREAS: SidebarNavAreas<{
             name: "Programs",
             icon: GridIcon,
             href: "/programs",
-            exact: true,
           },
           {
             name: "Marketplace",
@@ -75,6 +75,11 @@ const NAV_AREAS: SidebarNavAreas<{
             name: "Links",
             icon: Hyperlink,
             href: `/programs/${programSlug}/links`,
+          },
+          {
+            name: "Analytics",
+            icon: LinesY,
+            href: `/programs/${programSlug}/analytics`,
           },
           {
             name: "Resources",
@@ -152,15 +157,19 @@ export function PartnersSidebarNav({
   const pathname = usePathname();
   const { getQueryString } = useRouterStuff();
 
+  const isEnrolledProgramPage =
+    pathname.startsWith(`/programs/${programSlug}`) &&
+    pathname !== `/programs/${programSlug}/apply`;
+
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
       ? "userSettings"
       : pathname.startsWith("/settings")
         ? "partnerSettings"
-        : pathname.startsWith(`/programs/${programSlug}`)
+        : isEnrolledProgramPage
           ? "program"
           : "default";
-  }, [pathname, programSlug]);
+  }, [pathname, programSlug, isEnrolledProgramPage]);
 
   return (
     <SidebarNav
@@ -175,7 +184,7 @@ export function PartnersSidebarNav({
       switcher={<PartnerProgramDropdown />}
       bottom={
         <>
-          {programSlug && <ProgramHelpSupport />}
+          {isEnrolledProgramPage && <ProgramHelpSupport />}
           <PayoutStats />
         </>
       }

@@ -173,7 +173,7 @@ export async function POST(req: NextRequest) {
                       plan === "enterprise"
                         ? "RED"
                         : plan === "advanced"
-                          ? "ORANGE"
+                          ? "YELLOW"
                           : plan.startsWith("business")
                             ? "GREEN"
                             : plan === "pro"

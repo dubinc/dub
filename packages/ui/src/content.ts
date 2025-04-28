@@ -63,7 +63,7 @@ export const FEATURES_LIST = [
     title: "Dub Integrations",
     description: "Connect Dub with your favorite tools",
     icon: ConnectedDotsFill,
-    href: "/docs/integrations",
+    href: "/integrations",
   },
 ];
 
@@ -166,6 +166,12 @@ export const RESOURCES = [
     href: "/help",
   },
   {
+    icon: HeartFill,
+    title: "About",
+    description: "Company, values, and team",
+    href: "/about",
+  },
+  {
     icon: FeatherFill,
     title: "Blog",
     description: "Insights and stories",
@@ -176,12 +182,6 @@ export const RESOURCES = [
     title: "Changelog",
     description: "Releases and updates",
     href: "/changelog",
-  },
-  {
-    icon: HeartFill,
-    title: "Customers",
-    description: "Success stories and use cases",
-    href: "/customers",
   },
   {
     icon: HexadecagonStar,

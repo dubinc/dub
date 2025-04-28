@@ -1,3 +1,4 @@
+import { DiscountProps, PartnerProps } from "@/lib/types";
 import { Dashboard, Link, Tag } from "@dub/prisma/client";
 import { prefixWorkspaceId } from "../../workspace-id";
 import { decodeLinkIfCaseSensitive } from "../case-sensitivity";
@@ -8,6 +9,11 @@ export type ExpandedLink = Link & {
   tags?: { tag: Pick<Tag, "id" | "name" | "color"> }[];
   webhooks?: { webhookId: string }[];
   dashboard?: Dashboard | null;
+  partner?: Pick<PartnerProps, "id" | "name" | "image"> | null;
+  discount?: Pick<
+    DiscountProps,
+    "id" | "amount" | "type" | "maxDuration"
+  > | null;
 };
 
 // Transform link with additional properties
@@ -23,15 +29,7 @@ export const transformLink = (
   }
 
   // remove webhooks array, dashboard from link
-  const {
-    webhooks,
-    dashboard,
-    // TODO: Add these back for PR #2173
-    testCompletedAt,
-    testStartedAt,
-    testVariants,
-    ...rest
-  } = link;
+  const { webhooks, dashboard, ...rest } = link;
 
   return {
     ...rest,

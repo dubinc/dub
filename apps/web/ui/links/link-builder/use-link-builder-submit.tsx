@@ -1,6 +1,6 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
-import { useCopyToClipboard } from "@dub/ui";
+import { Button, useCopyToClipboard } from "@dub/ui";
 import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import { useCallback } from "react";
@@ -81,10 +81,35 @@ export function useLinkBuilderSubmit({
           // copy shortlink to clipboard when adding a new link
           if (!props) {
             try {
-              await copyToClipboard(data.shortLink);
+              await copyToClipboard(data.shortLink, { throwOnError: true });
               toast.success("Copied short link to clipboard!");
             } catch (err) {
-              toast.success("Successfully created link!");
+              toast.success(
+                <div className="flex grow items-center justify-between gap-4">
+                  <p className="text-[0.8125rem] text-neutral-900">
+                    Successfully created link!
+                  </p>
+                  <Button
+                    type="button"
+                    className="-my-1 h-7 w-fit"
+                    text="Copy link"
+                    onClick={async () => {
+                      try {
+                        await copyToClipboard(data.shortLink, {
+                          throwOnError: true,
+                        });
+                        toast.success("Copied short link to clipboard!");
+                      } catch (e) {
+                        toast.error("Failed to copy short link to clipboard.");
+                        console.error("Failed to copy with manual button", e);
+                      }
+                    }}
+                  />
+                </div>,
+                {
+                  duration: 5000,
+                },
+              );
             }
           } else toast.success("Successfully updated short link!");
 

@@ -1,6 +1,6 @@
-import { CommissionType } from "@prisma/client";
+import { CommissionType, LinkStructure } from "@dub/prisma/client";
 import { z } from "zod";
-import { RECURRING_MAX_DURATIONS } from "./misc";
+import { maxDurationSchema } from "./misc";
 import { parseUrlSchema } from "./utils";
 
 // Getting started
@@ -9,7 +9,8 @@ export const programInfoSchema = z.object({
   logo: z.string(),
   domain: z.string(),
   url: parseUrlSchema.nullable(),
-  linkType: z.enum(["short", "query", "dynamic"]).default("short"),
+  linkStructure: z.nativeEnum(LinkStructure).default("short"),
+  linkParameter: z.string().nullish(),
 });
 
 // Configure rewards
@@ -30,14 +31,10 @@ export const programRewardSchema = z
   })
   .merge(
     z.object({
+      defaultRewardType: z.enum(["lead", "sale"]).default("lead"),
       type: z.nativeEnum(CommissionType).nullish(),
       amount: z.number().min(0).nullish(),
-      maxDuration: z.coerce
-        .number()
-        .refine((val) => RECURRING_MAX_DURATIONS.includes(val), {
-          message: `Max duration must be ${RECURRING_MAX_DURATIONS.join(", ")}`,
-        })
-        .nullish(),
+      maxDuration: maxDurationSchema,
     }),
   );
 

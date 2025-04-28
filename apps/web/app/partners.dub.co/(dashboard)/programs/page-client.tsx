@@ -38,7 +38,7 @@ export function PartnersDashboardPageClient() {
           learnMoreHref="https://d.to/conversions"
         />
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-3.5 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {isLoading ? (
             Array.from({ length: 3 }).map((_, idx) => (
               <ProgramCardSkeleton key={idx} />

@@ -1,5 +1,5 @@
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
-import { SALES_PAGE_SIZE } from "@/lib/partners/constants";
+import { REFERRALS_EMBED_EARNINGS_LIMIT } from "@/lib/partners/constants";
 import z from "@/lib/zod";
 import { PartnerEarningsSchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
@@ -24,6 +24,7 @@ export const GET = withReferralsEmbedToken(
         id: true,
         type: true,
         amount: true,
+        quantity: true,
         earnings: true,
         currency: true,
         status: true,
@@ -44,8 +45,8 @@ export const GET = withReferralsEmbedToken(
           },
         },
       },
-      take: SALES_PAGE_SIZE,
-      skip: (page - 1) * SALES_PAGE_SIZE,
+      take: REFERRALS_EMBED_EARNINGS_LIMIT,
+      skip: (page - 1) * REFERRALS_EMBED_EARNINGS_LIMIT,
       orderBy: {
         createdAt: "desc",
       },

@@ -1,18 +1,21 @@
+import { createId } from "@/lib/api/create-id";
 import { determineCustomerDiscount } from "@/lib/api/customers/determine-customer-discount";
 import { transformCustomer } from "@/lib/api/customers/transform-customer";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
+import { isStored, storage } from "@/lib/storage";
 import z from "@/lib/zod";
 import {
   createCustomerBodySchema,
   CustomerEnrichedSchema,
   CustomerSchema,
-  getCustomersQuerySchema,
+  getCustomersQuerySchemaExtended,
 } from "@/lib/zod/schemas/customers";
 import { DiscountSchemaWithDeprecatedFields } from "@/lib/zod/schemas/discount";
 import { prisma } from "@dub/prisma";
+import { nanoid, R2_URL } from "@dub/utils";
 import {
   Customer,
   Discount,
@@ -21,6 +24,7 @@ import {
   Program,
   ProgramEnrollment,
 } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 interface CustomerResponse extends Customer {
@@ -38,19 +42,43 @@ interface CustomerResponse extends Customer {
 // GET /api/customers – Get all customers
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
-    const { email, externalId, includeExpandedFields } =
-      getCustomersQuerySchema.parse(searchParams);
+    const {
+      email,
+      externalId,
+      search,
+      includeExpandedFields,
+      page,
+      pageSize,
+      customerIds,
+    } = getCustomersQuerySchemaExtended.parse(searchParams);
 
     const customers = (await prisma.customer.findMany({
       where: {
+        ...(customerIds
+          ? {
+              id: { in: customerIds },
+            }
+          : {}),
         projectId: workspace.id,
-        ...(email ? { email } : {}),
-        ...(externalId ? { externalId } : {}),
+        ...(email
+          ? { email }
+          : externalId
+            ? { externalId }
+            : search
+              ? {
+                  OR: [
+                    { email: { startsWith: search } },
+                    { externalId: { startsWith: search } },
+                    { name: { startsWith: search } },
+                  ],
+                }
+              : {}),
       },
-      take: 100,
       orderBy: {
         createdAt: "desc",
       },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
       ...(includeExpandedFields
         ? {
             include: {
@@ -154,19 +182,38 @@ export const POST = withWorkspace(
       await parseRequestBody(req),
     );
 
+    const customerId = createId({ prefix: "cus_" });
     const finalCustomerName = name || email || generateRandomName();
+    const finalCustomerAvatar =
+      avatar && !isStored(avatar)
+        ? `${R2_URL}/customers/${customerId}/avatar_${nanoid(7)}`
+        : avatar;
 
     try {
       const customer = await prisma.customer.create({
         data: {
+          id: customerId,
           name: finalCustomerName,
           email,
-          avatar,
+          avatar: finalCustomerAvatar,
           externalId,
           projectId: workspace.id,
           projectConnectId: workspace.stripeConnectId,
         },
       });
+
+      if (avatar && !isStored(avatar) && finalCustomerAvatar) {
+        waitUntil(
+          storage.upload(
+            finalCustomerAvatar.replace(`${R2_URL}/`, ""),
+            avatar,
+            {
+              width: 128,
+              height: 128,
+            },
+          ),
+        );
+      }
 
       return NextResponse.json(
         CustomerSchema.parse(transformCustomer(customer)),

@@ -118,6 +118,16 @@ export default function AddEditWebhookForm({
     triggers.includes(trigger),
   );
 
+  const workspaceLevelTriggers = WORKSPACE_LEVEL_WEBHOOK_TRIGGERS.filter(
+    (trigger) => {
+      if (trigger === "partner.enrolled") {
+        return partnersEnabled;
+      }
+
+      return true;
+    },
+  );
+
   return (
     <>
       <form
@@ -196,10 +206,7 @@ export default function AddEditWebhookForm({
             </span>
           </label>
           <div className="mt-3 flex flex-col gap-2">
-            {WORKSPACE_LEVEL_WEBHOOK_TRIGGERS.filter(
-              // if partners are not enabled, don't show partner.created
-              (trigger) => partnersEnabled || trigger !== "partner.created",
-            ).map((trigger) => (
+            {workspaceLevelTriggers.map((trigger) => (
               <div key={trigger} className="group flex gap-2">
                 <Checkbox
                   value={trigger}

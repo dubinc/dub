@@ -6,10 +6,10 @@ import { buttonVariants, Grid, useRouterStuff } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import { redirect, useParams } from "next/navigation";
+import { CommissionTable } from "./commissions/commission-table";
 import { OverviewChart } from "./overview-chart";
 import { PendingPayouts } from "./pending-payouts";
 import { ProgramMetrics } from "./program-metrics";
-import { SaleTableBusiness } from "./sales/sale-table";
 import { TopPartners } from "./top-partners";
 
 export default function ProgramOverviewPageClient() {
@@ -73,11 +73,11 @@ export default function ProgramOverviewPageClient() {
       <div className="mt-6">
         <div className="flex items-center justify-between pb-3">
           <h2 className="text-base font-semibold text-neutral-900">
-            Recent sales
+            Recent commissions
           </h2>
 
           <Link
-            href={`/${slug}/programs/${programId}/sales${getQueryString()}`}
+            href={`/${slug}/programs/${programId}/commissions${getQueryString()}`}
             className={cn(
               buttonVariants({ variant: "secondary" }),
               "flex h-8 items-center rounded-lg border px-2 text-sm",
@@ -86,7 +86,7 @@ export default function ProgramOverviewPageClient() {
             View all
           </Link>
         </div>
-        <SaleTableBusiness limit={10} />
+        <CommissionTable limit={10} />
       </div>
     </div>
   );

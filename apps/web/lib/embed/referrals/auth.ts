@@ -4,8 +4,6 @@ import { prisma } from "@dub/prisma";
 import { Link, Program, ProgramEnrollment } from "@dub/prisma/client";
 import { getSearchParams } from "@dub/utils";
 import { AxiomRequest, withAxiom } from "next-axiom";
-import { cookies } from "next/headers";
-import { REFERRALS_EMBED_PUBLIC_TOKEN_COOKIE_NAME } from "../constants";
 import { referralsEmbedToken } from "./token-class";
 
 interface WithReferralsEmbedTokenHandler {
@@ -41,13 +39,9 @@ export const withReferralsEmbedToken = (
       try {
         const rateLimit = 60;
         const searchParams = getSearchParams(req.url);
+        const embedToken = searchParams.token;
 
-        const cookieStore = cookies();
-        const tokenFromCookie = cookieStore.get(
-          REFERRALS_EMBED_PUBLIC_TOKEN_COOKIE_NAME,
-        )?.value;
-
-        if (!tokenFromCookie) {
+        if (!embedToken) {
           throw new DubApiError({
             code: "unauthorized",
             message: "Embed public token not found in the request.",
@@ -55,7 +49,7 @@ export const withReferralsEmbedToken = (
         }
 
         const { programId, partnerId } =
-          (await referralsEmbedToken.get(tokenFromCookie)) ?? {};
+          (await referralsEmbedToken.get(embedToken)) ?? {};
 
         if (!programId || !partnerId) {
           throw new DubApiError({
@@ -67,7 +61,7 @@ export const withReferralsEmbedToken = (
         const { success, limit, reset, remaining } = await ratelimit(
           rateLimit,
           "1 m",
-        ).limit(tokenFromCookie);
+        ).limit(embedToken);
 
         headers = {
           "Retry-After": reset.toString(),
@@ -101,7 +95,7 @@ export const withReferralsEmbedToken = (
           program,
           programEnrollment,
           links,
-          embedToken: tokenFromCookie,
+          embedToken,
         });
       } catch (error) {
         req.log.error(error);
