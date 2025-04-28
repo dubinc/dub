@@ -49,8 +49,7 @@ export default function Analytics({
 }
 
 function StatsGrid() {
-  const { dashboardProps, partnerPage, selectedTab, view } =
-    useContext(AnalyticsContext);
+  const { dashboardProps, selectedTab, view } = useContext(AnalyticsContext);
   const { plan } = useWorkspace();
 
   const hide =
@@ -60,9 +59,9 @@ function StatsGrid() {
   return hide ? null : (
     <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
       {!dashboardProps && <TopLinks />}
+      <Referer />
       <Locations />
       <Devices />
-      <Referer />
       {/* <Feedback /> */}
     </div>
   );
