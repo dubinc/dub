@@ -414,20 +414,21 @@ export default function Toggle({
           ? `/${slug}/customers/${selectedCustomerId}`
           : undefined;
     },
-    options:
-      customers?.map(({ id, email, name, avatar }) => {
-        return {
-          value: id,
-          label: email ?? name,
-          icon: (
-            <img
-              src={avatar || `${OG_AVATAR_URL}${id}`}
-              alt={`${email} avatar`}
-              className="size-4 rounded-full"
-            />
-          ),
-        };
-      }) ?? null,
+    options: customers?.map(({ id, email, name, avatar }) => {
+      return {
+        value: id,
+        label: email ?? name,
+        icon: (
+          <img
+            src={avatar || `${OG_AVATAR_URL}${id}`}
+            alt={`${email} avatar`}
+            className="size-4 rounded-full"
+          />
+        ),
+      };
+    }) ?? [
+      { value: selectedCustomerId, label: selectedCustomerId, icon: User },
+    ],
   };
 
   const filters: ComponentProps<typeof Filter.Select>["filters"] = useMemo(
