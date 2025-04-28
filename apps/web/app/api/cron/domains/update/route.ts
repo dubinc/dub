@@ -1,11 +1,11 @@
 import { queueDomainUpdate } from "@/lib/api/domains/queue";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
-import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { Link } from "@dub/prisma/client";
+import { linkConstructorSimple } from "@dub/utils";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -81,13 +81,7 @@ export async function POST(req: Request) {
 
         recordLink(updatedLinks),
 
-        // Trigger a new cron job to update the link.shortLink column for those links
-        qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/update-shortlinks`,
-          body: {
-            linkIds,
-          },
-        }),
+        updateShortLinks(updatedLinks),
       ]);
     }
 
@@ -102,3 +96,28 @@ export async function POST(req: Request) {
     return handleAndReturnErrorResponse(error);
   }
 }
+
+// Update the shortLink column for a list of links
+const updateShortLinks = async (
+  links: Pick<Link, "id" | "domain" | "key">[],
+) => {
+  if (!links || links.length === 0) {
+    return new Response("No links found.");
+  }
+
+  await Promise.all(
+    links.map((link) =>
+      prisma.link.update({
+        where: {
+          id: link.id,
+        },
+        data: {
+          shortLink: linkConstructorSimple({
+            domain: link.domain,
+            key: link.key,
+          }),
+        },
+      }),
+    ),
+  );
+};
