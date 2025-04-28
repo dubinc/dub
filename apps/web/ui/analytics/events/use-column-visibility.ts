@@ -19,7 +19,7 @@ export const eventColumns = {
       "ip",
       "timestamp",
     ],
-    defaultVisible: ["timestamp", "trigger", "link", "referer", "country"],
+    defaultVisible: ["timestamp", "link", "referer", "country", "device"],
   },
   leads: {
     all: [
