@@ -83,7 +83,7 @@ export default function EventsTable({
           header: "Date",
           accessorFn: (d: { timestamp: string }) => new Date(d.timestamp),
           enableHiding: false,
-          minSize: 100,
+          size: 160,
           cell: ({ getValue }) => (
             <Tooltip
               content={getValue().toLocaleTimeString("en-US", {
@@ -106,6 +106,25 @@ export default function EventsTable({
                 })}
               </div>
             </Tooltip>
+          ),
+        },
+        // Sale amount
+        {
+          id: "saleAmount",
+          header: "Amount",
+          accessorKey: "sale.amount",
+          size: 120,
+          cell: ({ getValue }) => (
+            <div className="flex items-center gap-2">
+              <span>
+                {currencyFormatter(getValue() / 100, {
+                  maximumFractionDigits: undefined,
+                  // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
+                  trailingZeroDisplay: "stripIfInteger",
+                })}
+              </span>
+              <span className="text-neutral-400">USD</span>
+            </div>
           ),
         },
         // Click trigger
@@ -153,6 +172,30 @@ export default function EventsTable({
             ),
         },
         {
+          id: "customer",
+          header: "Customer",
+          accessorKey: "customer",
+          minSize: 300,
+          size: 300,
+          maxSize: 400,
+          cell: ({ getValue }) => (
+            <CustomerRowItem
+              customer={getValue()}
+              href={
+                partnerPage
+                  ? `/programs/${programSlug}/customers/${getValue().id}`
+                  : `/${slug}/customers/${getValue().id}`
+              }
+              className="px-4 py-2.5"
+            />
+          ),
+          meta: {
+            filterParams: ({ getValue }) => ({
+              customerId: getValue().id,
+            }),
+          },
+        },
+        {
           id: "link",
           header: "Link",
           accessorKey: "link",
@@ -197,28 +240,53 @@ export default function EventsTable({
           },
         },
         {
-          id: "customer",
-          header: "Customer",
-          accessorKey: "customer",
-          minSize: 300,
-          size: 300,
-          maxSize: 400,
-          cell: ({ getValue }) => (
-            <CustomerRowItem
-              customer={getValue()}
-              href={
-                partnerPage
-                  ? `/programs/${programSlug}/customers/${getValue().id}`
-                  : `/${slug}/customers/${getValue().id}`
-              }
-              className="px-4 py-2.5"
-            />
-          ),
+          id: "referer",
+          header: "Referer",
+          accessorKey: "click.referer",
           meta: {
-            filterParams: ({ getValue }) => ({
-              customerId: getValue().id,
-            }),
+            filterParams: ({ getValue }) => ({ referer: getValue() }),
           },
+          cell: ({ getValue }) => (
+            <div className="flex items-center gap-3" title={getValue()}>
+              {getValue() === "(direct)" ? (
+                <Link2 className="h-4 w-4" />
+              ) : (
+                <LinkLogo
+                  apexDomain={getValue()}
+                  className="size-4 shrink-0 sm:size-4"
+                />
+              )}
+              <span className="truncate">{getValue()}</span>
+            </div>
+          ),
+        },
+        {
+          id: "refererUrl",
+          header: "Referrer URL",
+          accessorKey: "click.refererUrl",
+          meta: {
+            filterParams: ({ getValue }) => ({ refererUrl: getValue() }),
+          },
+          cell: ({ getValue }) => (
+            <div className="flex items-center gap-3">
+              {getValue() === "(direct)" ? (
+                <Link2 className="h-4 w-4" />
+              ) : (
+                <LinkLogo
+                  apexDomain={getApexDomain(getValue())}
+                  className="size-4 shrink-0 sm:size-4"
+                />
+              )}
+              <CopyText
+                value={getValue()}
+                successMessage="Copied referrer URL to clipboard!"
+              >
+                <span className="truncate" title={getValue()}>
+                  {getPrettyUrl(getValue())}
+                </span>
+              </CopyText>
+            </div>
+          ),
         },
         {
           id: "country",
@@ -363,55 +431,6 @@ export default function EventsTable({
           ),
         },
         {
-          id: "referer",
-          header: "Referer",
-          accessorKey: "click.referer",
-          meta: {
-            filterParams: ({ getValue }) => ({ referer: getValue() }),
-          },
-          cell: ({ getValue }) => (
-            <div className="flex items-center gap-3" title={getValue()}>
-              {getValue() === "(direct)" ? (
-                <Link2 className="h-4 w-4" />
-              ) : (
-                <LinkLogo
-                  apexDomain={getValue()}
-                  className="size-4 shrink-0 sm:size-4"
-                />
-              )}
-              <span className="truncate">{getValue()}</span>
-            </div>
-          ),
-        },
-        {
-          id: "refererUrl",
-          header: "Referrer URL",
-          accessorKey: "click.refererUrl",
-          meta: {
-            filterParams: ({ getValue }) => ({ refererUrl: getValue() }),
-          },
-          cell: ({ getValue }) => (
-            <div className="flex items-center gap-3">
-              {getValue() === "(direct)" ? (
-                <Link2 className="h-4 w-4" />
-              ) : (
-                <LinkLogo
-                  apexDomain={getApexDomain(getValue())}
-                  className="size-4 shrink-0 sm:size-4"
-                />
-              )}
-              <CopyText
-                value={getValue()}
-                successMessage="Copied referrer URL to clipboard!"
-              >
-                <span className="truncate" title={getValue()}>
-                  {getPrettyUrl(getValue())}
-                </span>
-              </CopyText>
-            </div>
-          ),
-        },
-        {
           id: "ip",
           header: "IP Address",
           accessorKey: "click.ip",
@@ -427,25 +446,6 @@ export default function EventsTable({
                 </span>
               </Tooltip>
             ),
-        },
-        // Sale amount
-        {
-          id: "saleAmount",
-          header: "Sale Amount",
-          accessorKey: "sale.amount",
-          minSize: 120,
-          cell: ({ getValue }) => (
-            <div className="flex items-center gap-2">
-              <span>
-                {currencyFormatter(getValue() / 100, {
-                  maximumFractionDigits: undefined,
-                  // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
-                  trailingZeroDisplay: "stripIfInteger",
-                })}
-              </span>
-              <span className="text-neutral-400">USD</span>
-            </div>
-          ),
         },
         // Sale invoice ID
         {
