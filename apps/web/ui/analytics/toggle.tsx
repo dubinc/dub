@@ -412,7 +412,7 @@ export default function Toggle({
         ? `/programs/${programSlug}/customers/${selectedCustomerId}`
         : slug
           ? `/${slug}/customers/${selectedCustomerId}`
-          : undefined;
+          : null;
     },
     options: customers?.map(({ id, email, name, avatar }) => {
       return {

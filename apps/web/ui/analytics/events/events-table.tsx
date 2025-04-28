@@ -77,12 +77,42 @@ export default function EventsTable({
   const columns = useMemo<ColumnDef<EventDatum, any>[]>(
     () =>
       [
+        // Date
+        {
+          id: "timestamp",
+          header: "Date",
+          accessorFn: (d: { timestamp: string }) => new Date(d.timestamp),
+          enableHiding: false,
+          minSize: 100,
+          cell: ({ getValue }) => (
+            <Tooltip
+              content={getValue().toLocaleTimeString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                hour: "numeric",
+                minute: "numeric",
+                second: "numeric",
+                hour12: true,
+              })}
+            >
+              <div className="w-full truncate">
+                {getValue().toLocaleTimeString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  hour: "numeric",
+                  minute: "numeric",
+                  hour12: true,
+                })}
+              </div>
+            </Tooltip>
+          ),
+        },
         // Click trigger
         {
           id: "trigger",
           header: "Event",
           accessorKey: "qr",
-          enableHiding: false,
           meta: {
             filterParams: ({ getValue }) => ({
               qr: !!getValue(),
@@ -113,7 +143,6 @@ export default function EventsTable({
           id: "event",
           header: "Event",
           accessorKey: "eventName",
-          enableHiding: false,
           cell: ({ getValue }) =>
             getValue() ? (
               <span className="truncate" title={getValue()}>
@@ -432,37 +461,6 @@ export default function EventsTable({
             ) : (
               <span className="text-neutral-400">-</span>
             ),
-        },
-        // Date
-        {
-          id: "timestamp",
-          header: "Date",
-          accessorFn: (d: { timestamp: string }) => new Date(d.timestamp),
-          enableHiding: false,
-          minSize: 100,
-          cell: ({ getValue }) => (
-            <Tooltip
-              content={getValue().toLocaleTimeString("en-US", {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-                hour: "numeric",
-                minute: "numeric",
-                second: "numeric",
-                hour12: true,
-              })}
-            >
-              <div className="w-full truncate">
-                {getValue().toLocaleTimeString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  hour: "numeric",
-                  minute: "numeric",
-                  hour12: true,
-                })}
-              </div>
-            </Tooltip>
-          ),
         },
         // Menu
         {
