@@ -26,19 +26,6 @@ const products = [
   },
   {
     icon: (
-      <div className="flex size-4 items-center justify-center rounded bg-violet-400">
-        <DubPartnersIcon className="size-2.5 text-violet-900" />
-      </div>
-    ),
-    title: "Dub Partners",
-    description: "Grow your revenue on auto-pilot with partnerships.",
-    href: "/partners",
-    color: "#818cf8",
-    graphicsContainerClassName: "pl-2",
-    graphic: <PartnersGraphic />,
-  },
-  {
-    icon: (
       <div className="flex size-4 items-center justify-center rounded bg-green-400">
         <DubAnalyticsIcon className="size-2.5 text-green-900" />
       </div>
@@ -51,6 +38,19 @@ const products = [
     graphic: (
       <AnalyticsGraphic className="absolute bottom-0 left-0 size-full" />
     ),
+  },
+  {
+    icon: (
+      <div className="flex size-4 items-center justify-center rounded bg-violet-400">
+        <DubPartnersIcon className="size-2.5 text-violet-900" />
+      </div>
+    ),
+    title: "Dub Partners",
+    description: "Grow your revenue on auto-pilot with partnerships.",
+    href: "/partners",
+    color: "#818cf8",
+    graphicsContainerClassName: "pl-2",
+    graphic: <PartnersGraphic />,
   },
 ];
 
