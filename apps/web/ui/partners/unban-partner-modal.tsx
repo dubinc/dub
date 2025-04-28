@@ -3,7 +3,7 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerProps } from "@/lib/types";
 import { Button, Modal } from "@dub/ui";
-import { cn, DICEBEAR_AVATAR_URL } from "@dub/utils";
+import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useParams } from "next/navigation";
 import {
@@ -84,7 +84,7 @@ function UnbanPartnerModal({
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-8 sm:px-10">
         <img
-          src={partner.image || `${DICEBEAR_AVATAR_URL}${partner.name}`}
+          src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
           alt={partner.name}
           className="size-12 rounded-full"
         />

@@ -5,6 +5,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
+import { isStored, storage } from "@/lib/storage";
 import { getClickEvent, recordLead, recordLeadSync } from "@/lib/tinybird";
 import { logConversionEvent } from "@/lib/tinybird/log-conversion-events";
 import { redis } from "@/lib/upstash";
@@ -16,7 +17,7 @@ import {
   trackLeadResponseSchema,
 } from "@/lib/zod/schemas/leads";
 import { prisma } from "@dub/prisma";
-import { nanoid } from "@dub/utils";
+import { nanoid, R2_URL } from "@dub/utils";
 import { Customer } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -34,18 +35,29 @@ export const POST = withWorkspace(
       eventName,
       eventQuantity,
       externalId,
-      customerId, // deprecated (but we'll support it for backwards compatibility)
+      customerId: oldCustomerId, // deprecated (but we'll support it for backwards compatibility)
       customerName,
       customerEmail,
       customerAvatar,
       metadata,
       mode = "async", // Default to async mode if not specified
-    } = trackLeadRequestSchema.parse(body);
+    } = trackLeadRequestSchema
+      .extend({
+        // add backwards compatibility
+        externalId: z.string().nullish(),
+        customerId: z.string().nullish(),
+      })
+      .parse(body);
 
     const stringifiedEventName = eventName.toLowerCase().replace(" ", "-");
-    const customerExternalId = externalId || customerId;
+    const customerExternalId = externalId || oldCustomerId;
+    const customerId = createId({ prefix: "cus_" });
     const finalCustomerName =
       customerName || customerEmail || generateRandomName();
+    const finalCustomerAvatar =
+      customerAvatar && !isStored(customerAvatar)
+        ? `${R2_URL}/customers/${customerId}/avatar_${nanoid(7)}`
+        : customerAvatar;
 
     if (!customerExternalId) {
       throw new DubApiError({
@@ -67,6 +79,7 @@ export const POST = withWorkspace(
         customerAvatar,
       },
       {
+        ex: 60 * 60 * 24 * 7, // cache for 1 week
         nx: true,
       },
     );
@@ -116,10 +129,10 @@ export const POST = withWorkspace(
             },
           },
           create: {
-            id: createId({ prefix: "cus_" }),
+            id: customerId,
             name: finalCustomerName,
             email: customerEmail,
-            avatar: customerAvatar,
+            avatar: finalCustomerAvatar,
             externalId: customerExternalId,
             projectId: workspace.id,
             projectConnectId: workspace.stripeConnectId,
@@ -235,9 +248,25 @@ export const POST = withWorkspace(
               partnerId: link.partnerId,
               linkId: link.id,
               eventId: leadEventId,
-              customerId: customer?.id,
+              customerId: customerId,
               quantity: eventQuantity ?? 1,
             });
+          }
+
+          if (
+            customerAvatar &&
+            !isStored(customerAvatar) &&
+            finalCustomerAvatar
+          ) {
+            // persist customer avatar to R2
+            await storage.upload(
+              finalCustomerAvatar.replace(`${R2_URL}/`, ""),
+              customerAvatar,
+              {
+                width: 128,
+                height: 128,
+              },
+            );
           }
 
           await sendWorkspaceWebhook({
@@ -261,7 +290,7 @@ export const POST = withWorkspace(
       customer: {
         name: finalCustomerName,
         email: customerEmail,
-        avatar: customerAvatar,
+        avatar: finalCustomerAvatar,
         externalId: customerExternalId,
       },
     });
@@ -272,7 +301,7 @@ export const POST = withWorkspace(
       clickId,
       customerName: finalCustomerName,
       customerEmail: customerEmail,
-      customerAvatar: customerAvatar,
+      customerAvatar: finalCustomerAvatar,
     });
   },
   {

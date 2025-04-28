@@ -63,8 +63,7 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
       icon: (
         <img
           src={
-            partner.image ||
-            `https://api.dicebear.com/9.x/micah/svg?seed=${partner.id}`
+            partner.image || `https://api.dub.co/og/avatar?seed=${partner.id}`
           }
           className="size-4 rounded-full"
         />
@@ -105,8 +104,6 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
       partnerId,
     });
   };
-
-  const selectedPartner = partners?.find((p) => p.id === partnerId);
 
   const buttonDisabled = isPending || !partnerId;
 

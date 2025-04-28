@@ -14,20 +14,67 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
       program: searchParams.includeRewardsDiscounts
         ? {
             include: {
-              rewards: true,
-              discounts: true,
+              rewards: {
+                where: {
+                  OR: [
+                    // program-wide rewards
+                    {
+                      partners: {
+                        none: {},
+                      },
+                    },
+
+                    // partner-specific rewards
+                    {
+                      partners: {
+                        some: {
+                          programEnrollment: {
+                            partnerId: partner.id,
+                          },
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+
+              discounts: {
+                where: {
+                  OR: [
+                    // program-wide discounts
+                    {
+                      programEnrollments: {
+                        none: {},
+                      },
+                    },
+
+                    // partner-specific discounts
+                    {
+                      programEnrollments: {
+                        some: {
+                          partnerId: partner.id,
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
             },
           }
         : true,
+      links: {
+        take: 1,
+        orderBy: {
+          createdAt: "asc",
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "asc",
     },
   });
 
   return NextResponse.json(
-    z.array(ProgramEnrollmentSchema).parse(
-      programEnrollments.map((enrollment) => ({
-        ...enrollment,
-        links: null, // hacky way of not having to fetch link
-      })),
-    ),
+    z.array(ProgramEnrollmentSchema).parse(programEnrollments),
   );
 });

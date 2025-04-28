@@ -120,7 +120,9 @@ export function PartnerTable() {
         enableHiding: false,
         minSize: 250,
         cell: ({ row }) => {
-          return <PartnerRowItem partner={row.original} />;
+          return (
+            <PartnerRowItem partner={row.original} showPermalink={false} />
+          );
         },
       },
       {
@@ -255,6 +257,7 @@ export function PartnerTable() {
           ...(sortBy && { sortBy }),
           ...(sortOrder && { sortOrder }),
         },
+        del: "page",
         scroll: false,
       }),
     thClassName: "border-l-0",
@@ -390,7 +393,7 @@ function RowMenuButton({
         setOpenPopover={setIsOpen}
         content={
           <Command tabIndex={0} loop className="focus:outline-none">
-            <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm sm:w-auto sm:min-w-[130px]">
+            <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[130px]">
               {row.original.status === "invited" ? (
                 <>
                   <MenuItem

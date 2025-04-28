@@ -38,8 +38,8 @@ export const E2E_CUSTOMER_WITH_DISCOUNT = {
 };
 
 export const E2E_DISCOUNT = {
-  id: "disc_1JRJTFDB885T5TREVKXHTPXXR",
-  amount: 20,
+  id: "disc_1JRV14K5X36ZP81VDYWY75JXY",
+  amount: 30,
   type: "percentage",
   maxDuration: 3,
   couponId: "XZuejd0Q",

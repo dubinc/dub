@@ -7,7 +7,7 @@ export const GET = withSession(async ({ session }) => {
     programId: "prog_d8pl69xXCv4AoHNT281pHQdo",
     tenantId: session.user.id,
     partner: {
-      name: session.user.name,
+      name: session.user.name || session.user.email,
       email: session.user.email,
       image: session.user.image || null,
       tenantId: session.user.id,

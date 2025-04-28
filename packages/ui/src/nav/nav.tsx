@@ -27,19 +27,24 @@ export const navItems = [
     name: "Product",
     content: ProductContent,
     childItems: FEATURES_LIST,
-    segments: ["/home", "/analytics", "/features", "/compare"],
+    segments: ["/home", "/analytics", "/features", "/compare", "/integrations"],
   },
   {
     name: "Solutions",
     content: SolutionsContent,
     childItems: SOLUTIONS,
-    segments: ["/solutions"],
+    segments: ["/solutions", "/sdks"],
+  },
+  {
+    name: "Customers",
+    href: "/customers",
+    segments: ["/customers"],
   },
   {
     name: "Resources",
     content: ResourcesContent,
     childItems: RESOURCES,
-    segments: ["/docs", "/help", "/brand", "/blog", "/changelog", "/customers"],
+    segments: ["/docs", "/help", "/brand", "/blog", "/changelog"],
   },
   {
     name: "Enterprise",

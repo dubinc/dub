@@ -39,13 +39,21 @@ export const createProgram = async ({
     maxDuration,
     partners,
     rewardful,
+    linkStructure,
     logo: uploadedLogo,
   } = programDataSchema.parse(store.programOnboarding);
 
   await getDomainOrThrow({ workspace, domain });
 
-  const programFolder = await prisma.folder.create({
-    data: {
+  const programFolder = await prisma.folder.upsert({
+    where: {
+      name_projectId: {
+        name: "Partner Links",
+        projectId: workspace.id,
+      },
+    },
+    update: {},
+    create: {
       id: createId({ prefix: "fold_" }),
       name: "Partner Links",
       projectId: workspace.id,
@@ -69,6 +77,7 @@ export const createProgram = async ({
       domain,
       url,
       defaultFolderId: programFolder.id,
+      linkStructure,
       ...(type &&
         amount && {
           rewards: {
@@ -142,15 +151,19 @@ export const createProgram = async ({
           }),
         },
       }),
+
       prisma.program.update({
         where: {
           id: program.id,
         },
         data: {
           ...(logoUrl && { logo: logoUrl }),
-          ...(program.rewards && { defaultRewardId: program.rewards[0].id }),
+          ...(program.rewards?.[0]?.id && {
+            defaultRewardId: program.rewards[0].id,
+          }),
         },
       }),
+
       uploadedLogo &&
         isStored(uploadedLogo) &&
         storage.delete(uploadedLogo.replace(`${R2_URL}/`, "")),

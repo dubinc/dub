@@ -3,7 +3,7 @@ import {
   constructMetadata,
   getApexDomain,
 } from "@dub/utils";
-import { getMetaTags } from "app/api/metatags/utils";
+import { getMetaTags } from "app/api/links/metatags/utils";
 
 export const runtime = "edge";
 export const fetchCache = "force-no-store";

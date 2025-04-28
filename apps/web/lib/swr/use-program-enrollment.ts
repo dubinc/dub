@@ -1,10 +1,14 @@
 import { fetcher } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
-import useSWR from "swr";
+import useSWR, { SWRConfiguration } from "swr";
 import { ProgramEnrollmentProps } from "../types";
 
-export default function useProgramEnrollment() {
+export default function useProgramEnrollment({
+  swrOpts,
+}: {
+  swrOpts?: SWRConfiguration;
+} = {}) {
   const { data: session, status } = useSession();
   const { programSlug } = useParams();
 
@@ -21,6 +25,7 @@ export default function useProgramEnrollment() {
     fetcher,
     {
       dedupingInterval: 60000,
+      ...swrOpts,
     },
   );
 

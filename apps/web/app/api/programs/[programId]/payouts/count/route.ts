@@ -1,4 +1,3 @@
-import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { payoutsCountQuerySchema } from "@/lib/zod/schemas/payouts";
@@ -17,27 +16,10 @@ export const GET = withWorkspace(
       programId,
     });
 
-    const { partnerId, groupBy, eligibility, status } = parsed;
-
-    const { startDate, endDate } = getStartEndDates(parsed);
+    const { partnerId, groupBy, eligibility, status, invoiceId } = parsed;
 
     const where: Prisma.PayoutWhereInput = {
       programId,
-      OR: [
-        {
-          paidAt: {
-            gte: startDate.toISOString(),
-            lte: endDate.toISOString(),
-          },
-        },
-        {
-          paidAt: null,
-          createdAt: {
-            gte: startDate.toISOString(),
-            lte: endDate.toISOString(),
-          },
-        },
-      ],
       ...(partnerId && { partnerId }),
       ...(eligibility === "eligible" && {
         amount: {
@@ -49,6 +31,7 @@ export const GET = withWorkspace(
           },
         },
       }),
+      ...(invoiceId && { invoiceId }),
     };
 
     // Get payout count by status

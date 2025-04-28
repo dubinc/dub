@@ -30,6 +30,7 @@ import { isCaseSensitiveDomain } from "../api/links/case-sensitivity";
 import { clickCache } from "../api/links/click-cache";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
+import { getPartnerAndDiscount } from "../planetscale/get-partner-discount";
 import { hasEmptySearchParams } from "./utils/has-empty-search-params";
 import { resolveABTestURL } from "./utils/resolve-ab-test-url";
 
@@ -79,6 +80,7 @@ export default async function LinkMiddleware(
   }
 
   let cachedLink = await linkCache.get({ domain, key });
+  let isPartnerLink = Boolean(cachedLink?.programId && cachedLink?.partnerId);
 
   if (!cachedLink) {
     let linkData = await getLinkViaEdge({
@@ -113,10 +115,31 @@ export default async function LinkMiddleware(
       }
     }
 
+    isPartnerLink = Boolean(linkData.programId && linkData.partnerId);
+
     // format link to fit the RedisLinkProps interface
     cachedLink = formatRedisLink(linkData as any);
-    // cache in Redis
-    ev.waitUntil(linkCache.set(linkData as any));
+
+    ev.waitUntil(
+      (async () => {
+        if (!isPartnerLink) {
+          linkCache.set(linkData as any);
+          return;
+        }
+
+        const { partner, discount } = await getPartnerAndDiscount({
+          programId: linkData.programId,
+          partnerId: linkData.partnerId,
+        });
+
+        // we'll use this data on /track/click
+        linkCache.set({
+          ...(linkData as any),
+          ...(partner && { partner }),
+          ...(discount && { discount }),
+        });
+      })(),
+    );
   }
 
   const {
@@ -143,6 +166,11 @@ export default async function LinkMiddleware(
   });
 
   const url = testUrl || cachedLink.url;
+
+  // we only pass the clickId if:
+  // - trackConversion is enabled
+  // - it's a partner link
+  const shouldPassClickId = trackConversion || isPartnerLink;
 
   // by default, we only index default dub domain links (e.g. dub.sh)
   // everything else is not indexed by default, unless the user has explicitly set it to be indexed
@@ -221,8 +249,8 @@ export default async function LinkMiddleware(
   const cookieStore = cookies();
   let clickId = cookieStore.get(dubIdCookieName)?.value;
   if (!clickId) {
-    // if trackConversion is enabled, check if clickId is cached in Redis
-    if (trackConversion) {
+    // if we need to pass the clickId, check if clickId is cached in Redis
+    if (shouldPassClickId) {
       const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
 
       clickId = (await clickCache.get({ domain, key, ip })) || undefined;
@@ -253,7 +281,7 @@ export default async function LinkMiddleware(
         url,
         webhookIds,
         workspaceId,
-        trackConversion,
+        shouldPassClickId,
       }),
     );
 
@@ -301,7 +329,7 @@ export default async function LinkMiddleware(
         url,
         webhookIds,
         workspaceId,
-        trackConversion,
+        shouldPassClickId,
       }),
     );
 
@@ -311,7 +339,8 @@ export default async function LinkMiddleware(
           `/deeplink/${encodeURIComponent(
             getFinalUrl(url, {
               req,
-              clickId: trackConversion ? clickId : undefined,
+              ...(shouldPassClickId && { clickId }),
+              ...(isPartnerLink && { via: key }),
             }),
           )}`,
           req.url,
@@ -338,7 +367,7 @@ export default async function LinkMiddleware(
         url,
         webhookIds,
         workspaceId,
-        trackConversion,
+        shouldPassClickId,
       }),
     );
 
@@ -348,7 +377,8 @@ export default async function LinkMiddleware(
           `/cloaked/${encodeURIComponent(
             getFinalUrl(url, {
               req,
-              clickId: trackConversion ? clickId : undefined,
+              ...(shouldPassClickId && { clickId }),
+              ...(isPartnerLink && { via: key }),
             }),
           )}`,
           req.url,
@@ -377,7 +407,7 @@ export default async function LinkMiddleware(
         url: ios,
         webhookIds,
         workspaceId,
-        trackConversion,
+        shouldPassClickId,
       }),
     );
 
@@ -385,7 +415,8 @@ export default async function LinkMiddleware(
       NextResponse.redirect(
         getFinalUrl(ios, {
           req,
-          clickId: trackConversion ? clickId : undefined,
+          ...(shouldPassClickId && { clickId }),
+          ...(isPartnerLink && { via: key }),
         }),
         {
           headers: {
@@ -410,7 +441,7 @@ export default async function LinkMiddleware(
         url: android,
         webhookIds,
         workspaceId,
-        trackConversion,
+        shouldPassClickId,
       }),
     );
 
@@ -418,7 +449,8 @@ export default async function LinkMiddleware(
       NextResponse.redirect(
         getFinalUrl(android, {
           req,
-          clickId: trackConversion ? clickId : undefined,
+          ...(shouldPassClickId && { clickId }),
+          ...(isPartnerLink && { via: key }),
         }),
         {
           headers: {
@@ -443,7 +475,7 @@ export default async function LinkMiddleware(
         url: geo[country],
         webhookIds,
         workspaceId,
-        trackConversion,
+        shouldPassClickId,
       }),
     );
 
@@ -451,7 +483,8 @@ export default async function LinkMiddleware(
       NextResponse.redirect(
         getFinalUrl(geo[country], {
           req,
-          clickId: trackConversion ? clickId : undefined,
+          ...(shouldPassClickId && { clickId }),
+          ...(isPartnerLink && { via: key }),
         }),
         {
           headers: {
@@ -476,7 +509,7 @@ export default async function LinkMiddleware(
         url,
         webhookIds,
         workspaceId,
-        trackConversion,
+        shouldPassClickId,
       }),
     );
 
@@ -487,7 +520,7 @@ export default async function LinkMiddleware(
             headers: new Headers({
               destination: getFinalUrl(url, {
                 req,
-                clickId: trackConversion ? clickId : undefined,
+                clickId: shouldPassClickId ? clickId : undefined,
               }),
             }),
           },
@@ -500,7 +533,8 @@ export default async function LinkMiddleware(
       NextResponse.redirect(
         getFinalUrl(url, {
           req,
-          clickId: trackConversion ? clickId : undefined,
+          ...(shouldPassClickId && { clickId }),
+          ...(isPartnerLink && { via: key }),
         }),
         {
           headers: {

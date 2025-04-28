@@ -7,6 +7,9 @@ import {
 } from "@/lib/analytics/constants";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
+import useCustomer from "@/lib/swr/use-customer";
+import useCustomers from "@/lib/swr/use-customers";
+import useCustomersCount from "@/lib/swr/use-customers-count";
 import useDomains from "@/lib/swr/use-domains";
 import useDomainsCount from "@/lib/swr/use-domains-count";
 import useFolder from "@/lib/swr/use-folder";
@@ -16,6 +19,7 @@ import useTags from "@/lib/swr/use-tags";
 import useTagsCount from "@/lib/swr/use-tags-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
+import { CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/customers";
 import { DOMAINS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/domains";
 import { FOLDERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/folders";
 import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
@@ -51,6 +55,7 @@ import {
   QRCode,
   ReferredVia,
   Tag,
+  User,
   Window,
 } from "@dub/ui/icons";
 import {
@@ -66,6 +71,7 @@ import {
   GOOGLE_FAVICON_URL,
   linkConstructor,
   nFormatter,
+  OG_AVATAR_URL,
   REGIONS,
 } from "@dub/utils";
 import { readStreamableValue } from "ai/rsc";
@@ -101,11 +107,11 @@ export default function Toggle({
     useRouterStuff();
 
   const {
+    selectedTab,
     domain,
     key,
     url,
     adminPage,
-    demoPage,
     partnerPage,
     dashboardProps,
     start,
@@ -115,13 +121,16 @@ export default function Toggle({
 
   const scrolled = useScroll(120);
 
-  // Determine whether tags and domains should be fetched async
+  // Determine whether filters should be fetched async
   const { data: tagsCount } = useTagsCount();
   const { data: domainsCount } = useDomainsCount({ ignoreParams: true });
   const { data: foldersCount } = useFoldersCount();
+  const { data: customersCount } = useCustomersCount();
   const tagsAsync = Boolean(tagsCount && tagsCount > TAGS_MAX_PAGE_SIZE);
   const domainsAsync = domainsCount && domainsCount > DOMAINS_MAX_PAGE_SIZE;
   const foldersAsync = foldersCount && foldersCount > FOLDERS_MAX_PAGE_SIZE;
+  const customersAsync =
+    customersCount && customersCount > CUSTOMERS_MAX_PAGE_SIZE;
 
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -136,6 +145,14 @@ export default function Toggle({
     query: {
       search:
         foldersAsync && selectedFilter === "folderId" ? debouncedSearch : "",
+    },
+  });
+  const { customers } = useCustomers({
+    query: {
+      search:
+        customersAsync && selectedFilter === "customerId"
+          ? debouncedSearch
+          : "",
     },
   });
 
@@ -167,6 +184,11 @@ export default function Toggle({
     folderId: selectedFolderId,
   });
 
+  const selectedCustomerId = searchParamsObj.customerId;
+  const { data: selectedCustomer } = useCustomer({
+    customerId: selectedCustomerId,
+  });
+
   const [requestedFilters, setRequestedFilters] = useState<string[]>([]);
 
   const activeFilters = useMemo(() => {
@@ -192,12 +214,29 @@ export default function Toggle({
       ...(root ? [{ key: "root", value: root === "true" }] : []),
       // Handle folderId special case
       ...(folderId ? [{ key: "folderId", value: folderId }] : []),
+      // Handle customerId special case
+      ...(selectedCustomerId && selectedCustomer
+        ? [
+            {
+              key: "customerId",
+              value:
+                selectedCustomer.email ||
+                selectedCustomer.name ||
+                selectedCustomer.externalId,
+            },
+          ]
+        : []),
     ];
 
     // Handle all other filters dynamically
     VALID_ANALYTICS_FILTERS.forEach((filter) => {
       // Skip special cases we handled above
-      if (["domain", "key", "tagId", "tagIds", "root"].includes(filter)) return;
+      if (
+        ["domain", "key", "tagId", "tagIds", "root", "customerId"].includes(
+          filter,
+        )
+      )
+        return;
       // also skip date range filters and qr
       if (["interval", "start", "end", "qr"].includes(filter)) return;
 
@@ -208,7 +247,7 @@ export default function Toggle({
     });
 
     return filters;
-  }, [searchParamsObj, selectedTagIds]);
+  }, [searchParamsObj, selectedTagIds, selectedCustomerId, selectedCustomer]);
 
   const isRequested = useCallback(
     (key: string) =>
@@ -458,6 +497,40 @@ export default function Toggle({
                           ]),
                     ],
               },
+
+              {
+                key: "customerId",
+                icon: User,
+                label: "Customer",
+                shouldFilter: !customersAsync,
+                getOptionIcon: (value) => {
+                  return selectedCustomer ? (
+                    <img
+                      src={
+                        selectedCustomer.avatar ||
+                        `${OG_AVATAR_URL}${selectedCustomer.id}`
+                      }
+                      alt={`${selectedCustomer.email} avatar`}
+                      className="size-4 rounded-full"
+                    />
+                  ) : null;
+                },
+                options:
+                  customers?.map(({ id, email, name, avatar }) => {
+                    return {
+                      value: id,
+                      label: email ?? name,
+                      icon: (
+                        <img
+                          src={avatar || `${OG_AVATAR_URL}${id}`}
+                          alt={`${email} avatar`}
+                          className="size-4 rounded-full"
+                        />
+                      ),
+                    };
+                  }) ?? null,
+              },
+
               LinkFilterItem,
               {
                 key: "root",
@@ -485,7 +558,7 @@ export default function Toggle({
         getOptionIcon: (value) => (
           <img
             alt={value}
-            src={`https://flag.vercel.app/m/${value}.svg`}
+            src={`https://hatscripts.github.io/circle-flags/flags/${value.toLowerCase()}.svg`}
             className="h-2.5 w-4"
           />
         ),
@@ -670,6 +743,7 @@ export default function Toggle({
       ),
     ],
     [
+      selectedTab,
       dashboardProps,
       partnerPage,
       domains,
@@ -679,6 +753,7 @@ export default function Toggle({
       selectedTags,
       selectedTagIds,
       selectedFolder,
+      selectedCustomerId,
       countries,
       cities,
       devices,
@@ -855,7 +930,7 @@ export default function Toggle({
       <div
         className={cn("py-3 md:py-3", {
           "sticky top-14 z-10 bg-neutral-50": dashboardProps,
-          "sticky top-16 z-10 bg-neutral-50": adminPage || demoPage,
+          "sticky top-16 z-10 bg-neutral-50": adminPage,
           "shadow-md": scrolled && dashboardProps,
         })}
       >

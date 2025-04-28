@@ -1,5 +1,6 @@
-export const SHEET_MAX_ITEMS = 6;
-export const SALES_PAGE_SIZE = 8;
+export const PAYOUTS_SHEET_ITEMS_LIMIT = 10;
+export const REFERRALS_EMBED_EARNINGS_LIMIT = 8;
+export const CUSTOMER_PAGE_EVENTS_LIMIT = 8;
 
 export const PAYOUT_FEES = {
   business: {

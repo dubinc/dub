@@ -15,6 +15,7 @@ import {
   Button,
   Eye,
   EyeSlash,
+  InfoTooltip,
   Sheet,
   useLocalStorage,
   useMediaQuery,
@@ -50,7 +51,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
     formState: { errors },
   } = useForm<InvitePartnerFormData>();
 
-  const selectedLinkId = watch("linkId");
+  const [name, email, linkId] = watch(["name", "email", "linkId"]);
 
   const { executeAsync, isPending } = useAction(invitePartnerAction, {
     onSuccess: async () => {
@@ -116,13 +117,6 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
     });
   };
 
-  const buttonDisabled =
-    isPending ||
-    !!errors.name ||
-    !!errors.email ||
-    !!errors.linkId ||
-    !selectedLinkId;
-
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
       <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
@@ -144,9 +138,13 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
         <div className="p-6">
           <div className="grid grid-cols-1 gap-6">
             <div>
-              <label htmlFor="name" className="flex items-center space-x-2">
-                <h2 className="text-sm font-medium text-neutral-900">Name</h2>
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-neutral-900"
+              >
+                Name
               </label>
+
               <div className="relative mt-2 rounded-md shadow-sm">
                 <input
                   {...register("name", { required: true })}
@@ -160,9 +158,13 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
             </div>
 
             <div>
-              <label htmlFor="email" className="flex items-center space-x-2">
-                <h2 className="text-sm font-medium text-neutral-900">Email</h2>
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-neutral-900"
+              >
+                Email
               </label>
+
               <div className="relative mt-2 rounded-md shadow-sm">
                 <input
                   {...register("email", { required: true })}
@@ -176,9 +178,18 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
 
             <div>
               <div className="flex items-center justify-between">
-                <h2 className="text-sm font-medium text-neutral-900">
-                  Referral link
-                </h2>
+                <div className="flex items-center gap-2">
+                  <label
+                    htmlFor="linkId"
+                    className="block text-sm font-medium text-neutral-900"
+                  >
+                    Referral link{" "}
+                    <span className="text-neutral-500">(optional)</span>
+                  </label>
+
+                  <InfoTooltip content="Choose a referral link for this partner. If left empty, a unique referral link will be created for them automatically." />
+                </div>
+
                 <a
                   href={`/${slug}/programs/${program?.id}/settings/links`}
                   target="_blank"
@@ -195,7 +206,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
               >
                 <div className="p-1">
                   <PartnerLinkSelector
-                    selectedLinkId={selectedLinkId}
+                    selectedLinkId={linkId || null}
                     setSelectedLinkId={(id) => {
                       clearErrors("linkId");
                       setValue("linkId", id, { shouldDirty: true });
@@ -210,7 +221,9 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                       return false;
                     }}
                     error={!!errors.linkId}
+                    optional
                   />
+
                   {errors.linkId && (
                     <p className="mt-2 text-xs text-red-600">
                       {errors.linkId.message}
@@ -243,13 +256,12 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                     <div>
                       <label
                         htmlFor="rewardId"
-                        className="flex items-center space-x-2"
+                        className="block text-sm font-medium text-neutral-900"
                       >
-                        <h2 className="text-sm font-medium text-neutral-900">
-                          Reward{" "}
-                          <span className="text-neutral-500">(optional)</span>
-                        </h2>
+                        Reward{" "}
+                        <span className="text-neutral-500">(optional)</span>
                       </label>
+
                       <div className="relative mt-2 rounded-md shadow-sm">
                         <select
                           className={cn(
@@ -274,13 +286,12 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                     <div>
                       <label
                         htmlFor="discountId"
-                        className="flex items-center space-x-2"
+                        className="block text-sm font-medium text-neutral-900"
                       >
-                        <h2 className="text-sm font-medium text-neutral-900">
-                          Discount{" "}
-                          <span className="text-neutral-500">(optional)</span>
-                        </h2>
+                        Discount{" "}
+                        <span className="text-neutral-500">(optional)</span>
                       </label>
+
                       <div className="relative mt-2 rounded-md shadow-sm">
                         <select
                           className={cn(
@@ -326,7 +337,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
             text="Send invite"
             className="w-fit"
             loading={isPending}
-            disabled={buttonDisabled}
+            disabled={isPending || !name || !email}
           />
         </div>
       </div>

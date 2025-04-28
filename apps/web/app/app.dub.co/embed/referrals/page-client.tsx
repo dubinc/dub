@@ -1,12 +1,14 @@
 "use client";
 
+import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
+import { QueryLinkStructureHelpText } from "@/lib/partners/query-link-structure-help-text";
 import { DiscountProps, RewardProps } from "@/lib/types";
 import { programEmbedSchema } from "@/lib/zod/schemas/program-embed";
 import { programResourcesSchema } from "@/lib/zod/schemas/program-resources";
 import { HeroBackground } from "@/ui/partners/hero-background";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import { ThreeDots } from "@/ui/shared/icons";
-import { Link, PayoutStatus, Program } from "@dub/prisma/client";
+import { Link, Program } from "@dub/prisma/client";
 import {
   Button,
   Check,
@@ -23,9 +25,9 @@ import { AnimatePresence } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { ReferralsEmbedActivity } from "./activity";
 import { ReferralsEmbedEarnings } from "./earnings";
+import { ReferralsEmbedEarningsSummary } from "./earnings-summary";
 import { ReferralsEmbedFAQ } from "./faq";
 import { ReferralsEmbedLeaderboard } from "./leaderboard";
-import { ReferralsEmbedPayouts } from "./payouts";
 import { ReferralsEmbedQuickstart } from "./quickstart";
 import { ReferralsEmbedResources } from "./resources";
 import { ThemeOptions } from "./theme-options";
@@ -36,7 +38,7 @@ export function ReferralsEmbedPageClient({
   links,
   rewards,
   discount,
-  payouts,
+  earnings,
   stats,
   themeOptions,
 }: {
@@ -44,14 +46,15 @@ export function ReferralsEmbedPageClient({
   links: Link[];
   rewards: RewardProps[];
   discount?: DiscountProps | null;
-  payouts: {
-    status: PayoutStatus;
-    amount: number;
-  }[];
+  earnings: {
+    upcoming: number;
+    paid: number;
+  };
   stats: {
     clicks: number;
     leads: number;
     sales: number;
+    saleAmount: number;
   };
   themeOptions: ThemeOptions;
 }) {
@@ -91,6 +94,11 @@ export function ReferralsEmbedPageClient({
     if (!tabs.includes(selectedTab)) setSelectedTab(tabs[0]);
   }, [tabs, selectedTab]);
 
+  const partnerLink = constructPartnerLink({
+    program,
+    linkKey: links[0].key,
+  });
+
   return (
     <div
       style={
@@ -114,7 +122,7 @@ export function ReferralsEmbedPageClient({
             <input
               type="text"
               readOnly
-              value={getPrettyUrl(links[0].shortLink)}
+              value={getPrettyUrl(partnerLink)}
               className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default h-10 min-w-0 shrink grow rounded-md border px-3 text-sm focus:outline-none focus:ring-neutral-500"
             />
             <Button
@@ -140,9 +148,20 @@ export function ReferralsEmbedPageClient({
               }
               text={copied ? "Copied link" : "Copy link"}
               className="xs:w-fit"
-              onClick={() => copyToClipboard(links[0].shortLink)}
+              onClick={() => {
+                if (partnerLink) {
+                  copyToClipboard(partnerLink);
+                }
+              }}
             />
           </div>
+          {program.linkStructure === "query" && (
+            <QueryLinkStructureHelpText
+              program={program}
+              linkKey={links[0].key}
+            />
+          )}
+
           <div className="mt-12 sm:max-w-[50%]">
             <div className="flex items-end justify-between">
               <span className="text-content-emphasis text-base font-semibold leading-none">
@@ -176,12 +195,11 @@ export function ReferralsEmbedPageClient({
           </div>
         </div>
         <div className="mt-4 grid gap-2 sm:h-32 sm:grid-cols-3">
-          <ReferralsEmbedActivity
-            clicks={stats.clicks}
-            leads={stats.leads}
-            sales={stats.sales}
+          <ReferralsEmbedActivity {...stats} />
+          <ReferralsEmbedEarningsSummary
+            earnings={earnings}
+            programSlug={program.slug}
           />
-          <ReferralsEmbedPayouts payouts={payouts} programSlug={program.slug} />
         </div>
         <div className="mt-4">
           <div className="border-border-subtle flex items-center border-b">

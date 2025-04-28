@@ -4,24 +4,50 @@ import { LinkSchema } from "./links";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { PartnerSchema } from "./partners";
 
-export const getCustomersQuerySchema = z.object({
-  email: z
-    .string()
-    .optional()
-    .describe(
-      "A case-sensitive filter on the list based on the customer's `email` field. The value must be a string.",
-    ),
-  externalId: z
-    .string()
-    .optional()
-    .describe(
-      "A case-sensitive filter on the list based on the customer's `externalId` field. The value must be a string.",
-    ),
-  includeExpandedFields: booleanQuerySchema
-    .optional()
-    .describe(
-      "Whether to include expanded fields on the customer (`link`, `partner`, `discount`).",
-    ),
+export const CUSTOMERS_MAX_PAGE_SIZE = 100;
+
+export const getCustomersQuerySchema = z
+  .object({
+    email: z
+      .string()
+      .optional()
+      .describe(
+        "A case-sensitive filter on the list based on the customer's `email` field. The value must be a string. Takes precedence over `externalId`.",
+      ),
+    externalId: z
+      .string()
+      .optional()
+      .describe(
+        "A case-sensitive filter on the list based on the customer's `externalId` field. The value must be a string. Takes precedence over `search`.",
+      ),
+    search: z
+      .string()
+      .optional()
+      .describe(
+        "A search query to filter customers by email, externalId, or name. If `email` or `externalId` is provided, this will be ignored.",
+      ),
+    includeExpandedFields: booleanQuerySchema
+      .optional()
+      .describe(
+        "Whether to include expanded fields on the customer (`link`, `partner`, `discount`).",
+      ),
+  })
+  .merge(getPaginationQuerySchema({ pageSize: CUSTOMERS_MAX_PAGE_SIZE }));
+
+export const getCustomersQuerySchemaExtended = getCustomersQuerySchema.merge(
+  z.object({
+    customerIds: z
+      .union([z.string(), z.array(z.string())])
+      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+      .nullish()
+      .describe("Customer IDs to filter by."),
+  }),
+);
+
+export const getCustomersCountQuerySchema = getCustomersQuerySchema.omit({
+  includeExpandedFields: true,
+  page: true,
+  pageSize: true,
 });
 
 export const createCustomerBodySchema = z.object({
@@ -73,6 +99,7 @@ export const CustomerEnrichedSchema = CustomerSchema.extend({
     shortLink: true,
     programId: true,
   }).nullish(),
+  programId: z.string().nullish(),
   partner: PartnerSchema.pick({
     id: true,
     name: true,
@@ -80,49 +107,4 @@ export const CustomerEnrichedSchema = CustomerSchema.extend({
     image: true,
   }).nullish(),
   discount: DiscountSchema.nullish(),
-});
-
-export const CUSTOMERS_MAX_PAGE_SIZE = 100;
-
-export const customersQuerySchema = z
-  .object({
-    search: z.string().optional(),
-    ids: z
-      .union([z.string(), z.array(z.string())])
-      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
-      .optional()
-      .describe("IDs of customers to filter by."),
-  })
-  .merge(getPaginationQuerySchema({ pageSize: CUSTOMERS_MAX_PAGE_SIZE }));
-
-export const customerActivitySchema = z.object({
-  timestamp: z.date(),
-  event: z.enum(["click", "lead", "sale"]),
-  eventName: z.string(),
-  eventDetails: z.string().nullish(),
-  metadata: z.union([
-    z.null(),
-    z.object({
-      paymentProcessor: z.string(),
-      amount: z.number(),
-    }),
-  ]),
-});
-
-export const customerActivityResponseSchema = z.object({
-  ltv: z.number(),
-  timeToLead: z.number().nullable(),
-  timeToSale: z.number().nullable(),
-  activity: z.array(customerActivitySchema),
-  customer: CustomerSchema.merge(
-    z.object({
-      country: z.string().nullish(),
-    }),
-  ),
-  link: LinkSchema.pick({
-    id: true,
-    domain: true,
-    key: true,
-    shortLink: true,
-  }).nullish(),
 });

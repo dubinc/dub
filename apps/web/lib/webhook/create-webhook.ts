@@ -29,11 +29,7 @@ export async function createWebhook({
     return;
   }
 
-  const hasPartnersTrigger = triggers.some((trigger) =>
-    ["partner.created", "partner.enrolled"].includes(trigger),
-  );
-
-  if (hasPartnersTrigger && !workspace.partnersEnabled) {
+  if (triggers.includes("partner.enrolled") && !workspace.partnersEnabled) {
     return;
   }
 

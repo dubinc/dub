@@ -8,7 +8,7 @@ import { ExpandedLink } from "./utils/transform-link";
  * Caveat: we don't set expiration for links with webhooks since it's expensive
  * to fetch and set on-demand inside link middleware.
  */
-const CACHE_EXPIRATION = 60 * 60 * 24;
+export const CACHE_EXPIRATION = 60 * 60 * 24;
 
 class LinkCache {
   async mset(links: ExpandedLink[]) {
@@ -51,6 +51,9 @@ class LinkCache {
   }
 
   async get({ domain, key }: Pick<LinkProps, "domain" | "key">) {
+    // here we use linkcache:${domain}:${key} instead of this._createKey({ domain, key })
+    // because the key can either be cached as case-sensitive or case-insensitive depending on the domain
+    // so we should get the original key from the cache
     return await redis.get<RedisLinkProps>(`linkcache:${domain}:${key}`);
   }
 

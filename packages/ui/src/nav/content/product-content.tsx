@@ -23,7 +23,7 @@ const largeLinks = [
     title: "Dub Integrations",
     description: "Connect Dub with your favorite tools",
     icon: ConnectedDotsFill,
-    href: "/docs/integrations",
+    href: "/integrations",
   },
 ];
 

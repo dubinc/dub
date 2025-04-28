@@ -31,7 +31,7 @@ export const POST = withWorkspace(
 
     let {
       externalId,
-      customerId, // deprecated
+      customerId: oldCustomerId, // deprecated
       paymentProcessor,
       invoiceId,
       amount,
@@ -39,7 +39,13 @@ export const POST = withWorkspace(
       metadata,
       eventName,
       leadEventName,
-    } = trackSaleRequestSchema.parse(body);
+    } = trackSaleRequestSchema
+      .extend({
+        // add backwards compatibility
+        externalId: z.string().nullish(),
+        customerId: z.string().nullish(),
+      })
+      .parse(body);
 
     if (invoiceId) {
       // Skip if invoice id is already processed
@@ -57,7 +63,7 @@ export const POST = withWorkspace(
       }
     }
 
-    const customerExternalId = customerId || externalId;
+    const customerExternalId = externalId || oldCustomerId;
 
     if (!customerExternalId) {
       throw new DubApiError({

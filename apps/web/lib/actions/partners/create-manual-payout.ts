@@ -4,13 +4,10 @@ import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { createManualPayoutSchema } from "@/lib/zod/schemas/payouts";
 import { prisma } from "@dub/prisma";
-import { PayoutType } from "@prisma/client";
 import { authActionClient } from "../safe-action";
 
-const schema = createManualPayoutSchema;
-
 export const createManualPayoutAction = authActionClient
-  .schema(schema)
+  .schema(createManualPayoutSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
     const { programId, partnerId, amount, description } = parsedInput;
@@ -45,7 +42,6 @@ export const createManualPayoutAction = authActionClient
         id: createId({ prefix: "po_" }),
         programId,
         partnerId,
-        type: PayoutType.custom,
         amount: amountInCents,
         description,
       },

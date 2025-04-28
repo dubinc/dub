@@ -12,8 +12,8 @@ export default function EditColumnsButton({ table }: { table: Table<any> }) {
       openPopover={isOpen}
       setOpenPopover={setIsOpen}
       content={
-        <Command tabIndex={0} loop className="focus:outline-none">
-          <Command.List className="flex w-screen flex-col gap-1 p-1 text-sm sm:w-auto sm:min-w-[130px]">
+        <Command tabIndex={0} loop>
+          <Command.List className="flex w-screen flex-col gap-1 p-1 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[130px]">
             {table
               .getAllColumns()
               .filter((c) => c.getCanHide())

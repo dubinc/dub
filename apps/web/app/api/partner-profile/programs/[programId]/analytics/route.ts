@@ -45,6 +45,7 @@ export const GET = withPartnerProfile(
       partnerId: partner.id,
       linkId,
       ...rest,
+      dataAvailableFrom: program.createdAt,
     });
 
     return NextResponse.json(response);
