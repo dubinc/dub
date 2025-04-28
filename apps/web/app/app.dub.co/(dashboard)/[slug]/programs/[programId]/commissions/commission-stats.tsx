@@ -11,7 +11,7 @@ export function CommissionStats() {
   const { slug, programId } = useParams();
   const { queryParams } = useRouterStuff();
   const { commissionsCount, error } = useCommissionsCount({
-    exclude: ["status"],
+    exclude: ["status", "page"],
   });
 
   return (

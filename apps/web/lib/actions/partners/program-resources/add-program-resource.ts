@@ -2,7 +2,7 @@
 
 import { createId } from "@/lib/api/create-id";
 import { storage } from "@/lib/storage";
-import { base64ImageSchema } from "@/lib/zod/schemas/misc";
+import { uploadedImageSchema } from "@/lib/zod/schemas/misc";
 import {
   programResourceColorSchema,
   programResourceFileSchema,
@@ -23,7 +23,7 @@ const baseResourceSchema = z.object({
 // Schema for logo resources
 const logoResourceSchema = baseResourceSchema.extend({
   resourceType: z.literal("logo"),
-  file: base64ImageSchema,
+  file: uploadedImageSchema,
   extension: z.string().nullish(),
 });
 
