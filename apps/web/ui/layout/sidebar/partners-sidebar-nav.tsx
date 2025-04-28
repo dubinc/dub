@@ -12,11 +12,11 @@ import {
   ShieldCheck,
   User,
   Users,
-  CursorRays,
 } from "@dub/ui/icons";
 import { Store } from "lucide-react";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
+import { CursorRays } from "./icons/cursor-rays";
 import { Hyperlink } from "./icons/hyperlink";
 import { LinesY } from "./icons/lines-y";
 import { PartnerProgramDropdown } from "./partner-program-dropdown";
