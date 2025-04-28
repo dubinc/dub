@@ -16,7 +16,7 @@ export const GET = withReferralsEmbedToken(async ({ links }) => {
 });
 
 // TODO:
-// Under which workspace user the link should be created? 
+// Under which workspace user the link should be created?
 
 // POST /api/embed/referrals/links – create links for a partner
 export const POST = withReferralsEmbedToken(
@@ -83,8 +83,9 @@ export const POST = withReferralsEmbedToken(
     }
 
     const partnerLink = await createLink(link);
-    const createdLink = ReferralsEmbedLinkSchema.parse(partnerLink);
 
-    return NextResponse.json(createdLink, { status: 201 });
+    return NextResponse.json(ReferralsEmbedLinkSchema.parse(partnerLink), {
+      status: 201,
+    });
   },
 );
