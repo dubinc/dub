@@ -28,5 +28,26 @@
       "sales": 25,
       "saleAmount": 2500
     }
-  ]
+  ],
+  "rewards": [
+    {
+      "id": "rw_1JSHK62A9HR6XWV8XYZ3QP1NY",
+      "event": "sale",
+      "name": null,
+      "description": null,
+      "type": "percentage",
+      "amount": 30,
+      "maxDuration": 12,
+      "maxAmount": null
+    }
+  ],
+  "discount": {
+    "id": "disc_1JSHKF3717Z39RDE6NGVEWYYX",
+    "amount": 30,
+    "type": "percentage",
+    "maxDuration": 12,
+    "description": null,
+    "couponId": "WELCOME",
+    "couponTestId": "WELCOME-TEST"
+  }
 }

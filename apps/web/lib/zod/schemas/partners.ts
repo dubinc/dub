@@ -8,9 +8,11 @@ import { COUNTRY_CODES } from "@dub/utils";
 import { z } from "zod";
 import { analyticsQuerySchema } from "./analytics";
 import { analyticsResponse } from "./analytics-response";
+import { DiscountSchema } from "./discount";
 import { createLinkBodySchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 import { ProgramEnrollmentSchema } from "./programs";
+import { RewardSchema } from "./rewards";
 import { parseUrlSchema } from "./utils";
 
 export const PARTNERS_MAX_PAGE_SIZE = 100;
@@ -170,9 +172,9 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
     sales: z.number().default(0),
     saleAmount: z.number().default(0),
     earnings: z.number().default(0),
-  })
-  .extend({
     applicationId: z.string().nullish(),
+    rewards: RewardSchema.array().nullish(), // only available via Webhook
+    discount: DiscountSchema.nullish(), // only available via Webhook
   });
 
 // Used internally in the Dub dashboard for partners table

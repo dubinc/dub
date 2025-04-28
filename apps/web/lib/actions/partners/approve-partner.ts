@@ -1,7 +1,8 @@
 "use server";
 
 import { createPartnerLink } from "@/lib/api/partners/create-partner-link";
-import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
+import { determinePartnerDiscount } from "@/lib/partners/determine-partner-discount";
+import { determinePartnerRewards } from "@/lib/partners/determine-partner-rewards";
 import { ProgramPartnerLinkProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
@@ -43,7 +44,7 @@ export const approvePartnerAction = authActionClient
       throw new Error("Link is already associated with another partner.");
     }
 
-    const [programEnrollment, updatedLink, reward] = await Promise.all([
+    const [programEnrollment, updatedLink] = await Promise.all([
       prisma.programEnrollment.update({
         where: {
           partnerId_programId: {
@@ -79,20 +80,15 @@ export const approvePartnerAction = authActionClient
             },
           })
         : null,
-
-      determinePartnerReward({
-        programId,
-        partnerId,
-        event: "sale",
-      }),
     ]);
 
     let partnerLink: ProgramPartnerLinkProps;
-    const { partner, ...enrollment } = programEnrollment;
 
     if (updatedLink) {
       partnerLink = updatedLink;
     } else {
+      const { partner } = programEnrollment;
+
       partnerLink = await createPartnerLink({
         workspace,
         program,
@@ -105,43 +101,61 @@ export const approvePartnerAction = authActionClient
       });
     }
 
-    const enrolledPartner = EnrolledPartnerSchema.parse({
-      ...partner,
-      ...enrollment,
-      id: partner.id,
-      links: [partnerLink],
-    });
-
     waitUntil(
-      Promise.allSettled([
-        updatedLink ? recordLink(updatedLink) : null,
+      (async () => {
+        const { partner, ...enrollment } = programEnrollment;
 
-        sendEmail({
-          subject: `Your application to join ${program.name} partner program has been approved!`,
-          email: partner.email!,
-          react: PartnerApplicationApproved({
-            program: {
-              name: program.name,
-              logo: program.logo,
-              slug: program.slug,
-              supportEmail: program.supportEmail,
-            },
-            partner: {
-              name: partner.name,
-              email: partner.email!,
-              payoutsEnabled: Boolean(partner.payoutsEnabledAt),
-            },
-            rewardDescription: ProgramRewardDescription({
-              reward,
+        const [rewards, discount] = await Promise.all([
+          determinePartnerRewards({
+            programId,
+            partnerId,
+          }),
+
+          determinePartnerDiscount({
+            programId,
+            partnerId,
+          }),
+        ]);
+
+        const enrolledPartner = EnrolledPartnerSchema.parse({
+          ...partner,
+          ...enrollment,
+          id: partner.id,
+          links: [partnerLink],
+          rewards,
+          discount,
+        });
+
+        await Promise.all([
+          updatedLink ? recordLink(updatedLink) : null,
+
+          sendEmail({
+            subject: `Your application to join ${program.name} partner program has been approved!`,
+            email: partner.email!,
+            react: PartnerApplicationApproved({
+              program: {
+                name: program.name,
+                logo: program.logo,
+                slug: program.slug,
+                supportEmail: program.supportEmail,
+              },
+              partner: {
+                name: partner.name,
+                email: partner.email!,
+                payoutsEnabled: Boolean(partner.payoutsEnabledAt),
+              },
+              rewardDescription: ProgramRewardDescription({
+                reward: rewards?.[0],
+              }),
             }),
           }),
-        }),
 
-        sendWorkspaceWebhook({
-          workspace,
-          trigger: "partner.enrolled",
-          data: enrolledPartner,
-        }),
-      ]),
+          sendWorkspaceWebhook({
+            workspace,
+            trigger: "partner.enrolled",
+            data: enrolledPartner,
+          }),
+        ]);
+      })(),
     );
   });

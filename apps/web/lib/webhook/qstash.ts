@@ -52,6 +52,13 @@ const publishWebhookEventToQStash = async ({
   const finalPayload = transformPayload({ payload, receiver });
   const signature = await createWebhookSignature(webhook.secret, finalPayload);
 
+  if (process.env.NODE_ENV === "development") {
+    console.log(
+      `Sending webhook to ${webhook.url}`,
+      JSON.stringify(finalPayload, null, 2),
+    );
+  }
+
   const response = await qstash.publishJSON({
     url: webhook.url,
     body: finalPayload,
