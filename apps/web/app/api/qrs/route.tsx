@@ -2,11 +2,13 @@ import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, processLink } from "@/lib/api/links";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { createQr } from '@/lib/api/qrs/create-qr';
+import { getQrs } from '@/lib/api/qrs/get-qrs';
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { ratelimit } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
+  getLinksQuerySchemaBase,
   linkEventSchema,
 } from "@/lib/zod/schemas/links";
 import { createQrBodySchema } from '@/lib/zod/schemas/qrs';
@@ -76,5 +78,21 @@ export const POST = withWorkspace(
   },
   {
     requiredPermissions: ["links.write"],
+  },
+);
+
+// GET /api/links – get all links for a workspace
+export const GET = withWorkspace(
+  async ({ headers, searchParams, workspace, session }) => {
+    const params = getLinksQuerySchemaBase.parse(searchParams);
+
+    const response = await getQrs(params);
+
+    return NextResponse.json(response, {
+      headers,
+    });
+  },
+  {
+    requiredPermissions: ["links.read"],
   },
 );
