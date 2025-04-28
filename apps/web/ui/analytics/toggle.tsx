@@ -15,6 +15,7 @@ import useDomainsCount from "@/lib/swr/use-domains-count";
 import useFolder from "@/lib/swr/use-folder";
 import useFolders from "@/lib/swr/use-folders";
 import useFoldersCount from "@/lib/swr/use-folders-count";
+import usePartnerCustomer from "@/lib/swr/use-partner-customer";
 import useTags from "@/lib/swr/use-tags";
 import useTagsCount from "@/lib/swr/use-tags-count";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -188,9 +189,15 @@ export default function Toggle({
   });
 
   const selectedCustomerId = searchParamsObj.customerId;
-  const { data: selectedCustomer } = useCustomer({
+
+  const { data: selectedCustomerWorkspace } = useCustomer({
     customerId: selectedCustomerId,
   });
+  const { data: selectedCustomerPartner } = usePartnerCustomer({
+    customerId: selectedCustomerId,
+  });
+
+  const selectedCustomer = selectedCustomerPartner || selectedCustomerWorkspace;
 
   const [requestedFilters, setRequestedFilters] = useState<string[]>([]);
 
@@ -218,14 +225,14 @@ export default function Toggle({
       // Handle folderId special case
       ...(folderId ? [{ key: "folderId", value: folderId }] : []),
       // Handle customerId special case
-      ...(selectedCustomerId && selectedCustomer
+      ...(selectedCustomer
         ? [
             {
               key: "customerId",
               value:
                 selectedCustomer.email ||
-                selectedCustomer.name ||
-                selectedCustomer.externalId,
+                selectedCustomer["name"] ||
+                selectedCustomer["externalId"],
             },
           ]
         : []),
@@ -250,7 +257,13 @@ export default function Toggle({
     });
 
     return filters;
-  }, [searchParamsObj, selectedTagIds, selectedCustomerId, selectedCustomer]);
+  }, [
+    searchParamsObj,
+    selectedTagIds,
+    partnerPage,
+    selectedCustomerId,
+    selectedCustomer,
+  ]);
 
   const isRequested = useCallback(
     (key: string) =>
@@ -372,6 +385,41 @@ export default function Toggle({
       ) ?? null,
   };
 
+  const CustomerFilterItem = {
+    key: "customerId",
+    icon: User,
+    label: "Customer",
+    hideInFilterDropdown: partnerPage,
+    shouldFilter: !customersAsync,
+    getOptionIcon: () => {
+      return selectedCustomer ? (
+        <img
+          src={
+            selectedCustomer["avatar"] ||
+            `${OG_AVATAR_URL}${selectedCustomer.id}`
+          }
+          alt={`${selectedCustomer.email} avatar`}
+          className="size-4 rounded-full"
+        />
+      ) : null;
+    },
+    options: customers?.map(({ id, email, name, avatar }) => {
+      return {
+        value: id,
+        label: email ?? name,
+        icon: (
+          <img
+            src={avatar || `${OG_AVATAR_URL}${id}`}
+            alt={`${email} avatar`}
+            className="size-4 rounded-full"
+          />
+        ),
+      };
+    }) ?? [
+      { value: selectedCustomerId, label: selectedCustomerId, icon: User },
+    ],
+  };
+
   const filters: ComponentProps<typeof Filter.Select>["filters"] = useMemo(
     () => [
       {
@@ -389,8 +437,9 @@ export default function Toggle({
       ...(dashboardProps
         ? []
         : partnerPage
-          ? [LinkFilterItem]
+          ? [LinkFilterItem, CustomerFilterItem]
           : [
+              CustomerFilterItem,
               ...(flags?.linkFolders
                 ? [
                     {
@@ -500,40 +549,6 @@ export default function Toggle({
                           ]),
                     ],
               },
-
-              {
-                key: "customerId",
-                icon: User,
-                label: "Customer",
-                shouldFilter: !customersAsync,
-                getOptionIcon: (value) => {
-                  return selectedCustomer ? (
-                    <img
-                      src={
-                        selectedCustomer.avatar ||
-                        `${OG_AVATAR_URL}${selectedCustomer.id}`
-                      }
-                      alt={`${selectedCustomer.email} avatar`}
-                      className="size-4 rounded-full"
-                    />
-                  ) : null;
-                },
-                options:
-                  customers?.map(({ id, email, name, avatar }) => {
-                    return {
-                      value: id,
-                      label: email ?? name,
-                      icon: (
-                        <img
-                          src={avatar || `${OG_AVATAR_URL}${id}`}
-                          alt={`${email} avatar`}
-                          className="size-4 rounded-full"
-                        />
-                      ),
-                    };
-                  }) ?? null,
-              },
-
               LinkFilterItem,
               {
                 key: "root",

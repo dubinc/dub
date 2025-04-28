@@ -10,9 +10,10 @@ export type Filter = {
   key: string;
   icon: FilterIcon;
   label: string;
+  options: FilterOption[] | null;
+  hideInFilterDropdown?: boolean;
   shouldFilter?: boolean;
   separatorAfter?: boolean;
-  options: FilterOption[] | null;
   multiple?: boolean;
   getOptionIcon?: (
     value: FilterOption["value"],
