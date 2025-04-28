@@ -381,6 +381,10 @@ export default function Toggle({
           label: linkConstructor({ domain, key, pretty: true }),
           right: nFormatter(count, { full: true }),
           data: { url },
+          permalink:
+            slug && !partnerPage
+              ? `/${slug}/links/${linkConstructor({ domain, key, pretty: true })}`
+              : undefined,
         }),
       ) ?? null,
   };
@@ -403,21 +407,27 @@ export default function Toggle({
         />
       ) : null;
     },
-    options: customers?.map(({ id, email, name, avatar }) => {
-      return {
-        value: id,
-        label: email ?? name,
-        icon: (
-          <img
-            src={avatar || `${OG_AVATAR_URL}${id}`}
-            alt={`${email} avatar`}
-            className="size-4 rounded-full"
-          />
-        ),
-      };
-    }) ?? [
-      { value: selectedCustomerId, label: selectedCustomerId, icon: User },
-    ],
+    getOptionPermalink: () => {
+      return programSlug
+        ? `/programs/${programSlug}/customers/${selectedCustomerId}`
+        : slug
+          ? `/${slug}/customers/${selectedCustomerId}`
+          : undefined;
+    },
+    options:
+      customers?.map(({ id, email, name, avatar }) => {
+        return {
+          value: id,
+          label: email ?? name,
+          icon: (
+            <img
+              src={avatar || `${OG_AVATAR_URL}${id}`}
+              alt={`${email} avatar`}
+              className="size-4 rounded-full"
+            />
+          ),
+        };
+      }) ?? null,
   };
 
   const filters: ComponentProps<typeof Filter.Select>["filters"] = useMemo(

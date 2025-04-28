@@ -23,6 +23,7 @@ export type Filter = {
     value: FilterOption["value"],
     props: { key: Filter["key"]; option?: FilterOption },
   ) => string | null;
+  getOptionPermalink?: (value: FilterOption["value"]) => string | null;
 };
 
 export type FilterOption = {
@@ -32,4 +33,5 @@ export type FilterOption = {
   icon?: FilterIcon;
   hideDuringSearch?: boolean;
   data?: Record<string, any>;
+  permalink?: string;
 };
