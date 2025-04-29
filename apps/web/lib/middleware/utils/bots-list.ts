@@ -90,3 +90,5 @@ export const IP_BOTS = [
   "34.105.67.76", // The Dalles
   "154.28.229.7", // Ashburn
 ];
+
+export const IP_RANGES_BOTS = ["159.148.128.0/24"];
