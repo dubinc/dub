@@ -1,4 +1,5 @@
 import { QRBuilderData } from "@/ui/modals/qr-builder";
+import { NewResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
 import { ArrowTurnLeft, Button, useMediaQuery } from "@dub/ui";
 import { FC, forwardRef, Ref } from "react";
 import { FILE_QR_TYPES, QR_TYPES } from "./constants/get-qr-config.ts";
@@ -7,6 +8,7 @@ import { QrConfigTypeTabsMobile } from "./qr-config-type-tabs.mobile.tsx";
 import { QrTypeTabs } from "./qr-type-tabs.tsx";
 
 interface IQRBuilderProps {
+  props?: NewResponseQrCode;
   homepageDemo?: boolean;
   handleSaveQR?: (data: QRBuilderData) => void;
 }

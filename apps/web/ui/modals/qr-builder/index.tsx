@@ -4,6 +4,7 @@ import { Button, useKeyboardShortcut } from "@dub/ui";
 
 import { EQRType } from "@/ui/qr-builder/constants/get-qr-config";
 import { QrBuilder } from "@/ui/qr-builder/qr-builder";
+import { NewResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
 import { X } from "@/ui/shared/icons";
 import QRIcon from "@/ui/shared/icons/qr.tsx";
 import { Modal } from "@dub/ui";
@@ -25,7 +26,7 @@ export type QRBuilderData = {
 };
 
 type QRBuilderModalProps = {
-  isEdit: boolean;
+  props?: NewResponseQrCode;
   qrBuilderStepIdx: number;
   showQRBuilderModal: boolean;
   setShowQRBuilderModal: Dispatch<SetStateAction<boolean>>;
@@ -53,7 +54,9 @@ export function QRBuilderModal(props: QRBuilderModalProps) {
           <div className="flex items-center gap-2">
             <QRIcon className="text-primary h-5 w-5" />
             <h3 className="!mt-0 max-w-sm truncate text-lg font-medium">
-              {props.isEdit ? `Edit` : "New QR"}
+              {props.props
+                ? `Edit QR - ${props.props.title ?? props.props.id}`
+                : "New QR"}
             </h3>
           </div>
           <button
@@ -67,7 +70,7 @@ export function QRBuilderModal(props: QRBuilderModalProps) {
           </button>
         </div>
 
-        <QrBuilder handleSaveQR={handleSaveQR} />
+        <QrBuilder props={props?.props} handleSaveQR={handleSaveQR} />
       </div>
     </Modal>
   );
@@ -91,14 +94,16 @@ export function CreateQRButton(props: CreateQRButtonProps) {
   );
 }
 
-export function useQRBuilderWizard() {
+export function useQRBuilder(data: { props?: NewResponseQrCode }) {
+  const { props } = data ?? {};
+
   const [showQRBuilderModal, setShowQRBuilderModal] = useState(false);
   const [qrBuilderStepIdx, setQRBuilderStepIdx] = useState(0);
 
   const QRBuilderModalCallback = useCallback(() => {
     return (
       <QRBuilderModal
-        isEdit={false}
+        props={props}
         showQRBuilderModal={showQRBuilderModal}
         qrBuilderStepIdx={qrBuilderStepIdx}
         setShowQRBuilderModal={setShowQRBuilderModal}
@@ -120,7 +125,8 @@ export function useQRBuilderWizard() {
     () => ({
       CreateQRButton: CreateQRButtonCallback,
       QRBuilderModal: QRBuilderModalCallback,
+      setShowQRBuilderModal,
     }),
-    [CreateQRButtonCallback, QRBuilderModalCallback],
+    [CreateQRButtonCallback, QRBuilderModalCallback, setShowQRBuilderModal],
   );
 }

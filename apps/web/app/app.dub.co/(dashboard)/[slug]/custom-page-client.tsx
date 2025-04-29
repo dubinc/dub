@@ -7,11 +7,11 @@ import {
 import useLinks from "@/lib/swr/use-links";
 import useWorkspace from "@/lib/swr/use-workspace";
 import LinkSort from "@/ui/links/link-sort.tsx";
-import LinksContainer from "@/ui/links/links-container";
 import { LinksDisplayProvider } from "@/ui/links/links-display-provider";
 import { useLinkFilters } from "@/ui/links/use-link-filters";
 import { useExportLinksModal } from "@/ui/modals/export-links-modal";
-import { useQRBuilderWizard } from "@/ui/modals/qr-builder";
+import { useQRBuilder } from "@/ui/modals/qr-builder";
+import QrCodesContainer from "@/ui/qr-code/qr-codes-container.tsx";
 import { ThreeDots } from "@/ui/shared/icons";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
@@ -68,7 +68,7 @@ function WorkspaceLinks() {
     "folders.links.write",
   );
 
-  const { CreateQRButton, QRBuilderModal } = useQRBuilderWizard();
+  const { CreateQRButton, QRBuilderModal } = useQRBuilder();
 
   return (
     <>
@@ -187,8 +187,8 @@ function WorkspaceLinks() {
       </div>
 
       <div className="mt-3">
-        <LinksContainer
-          CreateLinkButton={canCreateLinks ? CreateQRButton : () => <></>}
+        <QrCodesContainer
+          CreateQrCodeButton={canCreateLinks ? CreateQRButton : () => <></>}
         />
       </div>
     </>
