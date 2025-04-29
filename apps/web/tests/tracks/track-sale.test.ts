@@ -118,4 +118,27 @@ describe("POST /track/sale", async () => {
 
     expectValidSaleResponse(response4, newSale);
   });
+
+  test("track a sale with JPY currency (zero decimal currency)", async () => {
+    const jpySale = {
+      ...sale,
+      invoiceId: `INV_${randomId()}`,
+      amount: 65,
+      currency: "jpy",
+    };
+
+    const response = await http.post<TrackSaleResponse>({
+      path: "/track/sale",
+      body: {
+        ...jpySale,
+        externalId: E2E_CUSTOMER_EXTERNAL_ID,
+      },
+    });
+
+    expectValidSaleResponse(response, {
+      ...jpySale,
+      // amount: 6500,
+      currency: "usd",
+    });
+  });
 });
