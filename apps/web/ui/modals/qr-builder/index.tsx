@@ -81,10 +81,14 @@ export function QRBuilderModal({
         body: JSON.stringify({
           ...data,
           data: data.styles.data,
-          link: {
-            url: data.styles.data,
-            domain: SHORT_DOMAIN,
-          },
+          ...(props
+            ? {}
+            : {
+                link: {
+                  url: data.styles.data,
+                  domain: SHORT_DOMAIN,
+                },
+              }),
         }),
       });
 
@@ -95,12 +99,11 @@ export function QRBuilderModal({
           `/api/workspaces/${slug}`,
         ]);
 
-        const data = await res.json();
-        console.log(data);
+        // const data = await res.json();
 
         if (!props) {
-          toast.success("Successfully created link!");
-        } else toast.success("Successfully updated short link!");
+          toast.success("Successfully created QR!");
+        } else toast.success("Successfully updated QR!");
 
         setShowQRBuilderModal(false);
       }

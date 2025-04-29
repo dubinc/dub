@@ -2,8 +2,7 @@
 
 import useDomain from "@/lib/swr/use-domain";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
-import { QrCodesDisplayContext } from "@/ui/qr-code/qr-codes-display-provider.tsx";
+import { AnalyticsBadge } from "@/ui/qr-code/qr-code-details-column.tsx";
 import { QRCode } from "@/ui/shared/qr-code.tsx";
 import {
   ArrowTurnRight2,
@@ -11,18 +10,9 @@ import {
   Tooltip,
   TooltipContent,
   useInViewport,
+  useMediaQuery,
 } from "@dub/ui";
-import {
-  Apple,
-  ArrowRight,
-  Cards,
-  CircleHalfDottedClock,
-  EarthPosition,
-  Incognito,
-  InputPassword,
-  Robot,
-  SquareChart,
-} from "@dub/ui/icons";
+import { ArrowRight } from "@dub/ui/icons";
 import {
   cn,
   formatDateTime,
@@ -32,81 +22,110 @@ import {
   timeAgo,
 } from "@dub/utils";
 import { Icon } from "@iconify/react";
+import { Flex, Text } from "@radix-ui/themes";
 import { memo, PropsWithChildren, useContext, useRef } from "react";
-
-const quickViewSettings = [
-  { label: "Conversion Tracking", icon: SquareChart, key: "trackConversion" },
-  { label: "Custom Link Preview", icon: Cards, key: "proxy" },
-  { label: "Link Cloaking", icon: Incognito, key: "rewrite" },
-  { label: "Password Protection", icon: InputPassword, key: "password" },
-  { label: "Link Expiration", icon: CircleHalfDottedClock, key: "expiresAt" },
-  { label: "iOS Targeting", icon: Apple, key: "ios" },
-  { label: "Android Targeting", icon: Robot, key: "android" },
-  { label: "Geo Targeting", icon: EarthPosition, key: "geo" },
-];
+import { ResponseQrCode } from "./qr-codes-container";
+import { QrCodesDisplayContext } from "./qr-codes-display-provider";
 
 export function QrCodeTitleColumn({ qrCode }: { qrCode: ResponseQrCode }) {
-  const { domain, key, shortLink, archived } = qrCode?.link ?? {};
+  const { domain, key, createdAt, shortLink, archived, title } =
+    qrCode?.link ?? {};
+  const { isMobile } = useMediaQuery();
 
   const ref = useRef<HTMLDivElement>(null);
 
   return (
     <div
       ref={ref}
-      className="flex h-[32px] items-center gap-3 transition-[height] group-data-[variant=loose]/card-list:h-[60px]"
+      className="flex h-full flex-row items-start transition-[height] md:items-center md:gap-6 xl:gap-12"
     >
-      <QRCode url={shortLink} scale={0.5} />
+      <div className="flex h-full flex-row items-center justify-center gap-1">
+        <div className="flex flex-col items-center justify-center gap-1.5">
+          <QRCode url={shortLink} scale={isMobile ? 0.8 : 0.6} />
+          {archived ? (
+            <div
+              className={cn(
+                "flex w-full justify-center overflow-hidden rounded-md border border-neutral-200/10 md:hidden",
+                "bg-neutral-50 p-0.5 px-1 text-sm text-neutral-600 transition-colors hover:bg-neutral-100",
+                "bg-red-100 text-red-600",
+              )}
+            >
+              Deactivated
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2 md:hidden">
+              <AnalyticsBadge qrCode={qrCode} />
+            </div>
+          )}
+        </div>
 
-      <div className="w-[200px] min-w-0 overflow-hidden">
-        <div className="flex items-center gap-2">
-          <div className="min-w-0 shrink grow-0 text-neutral-950">
-            <div className="flex flex-col">
+        <div className="flex h-full min-h-[75px] w-[200px] min-w-0 flex-col items-start justify-between overflow-hidden md:justify-center md:gap-2">
+          <Flex
+            direction="column"
+            gap="1"
+            align="start"
+            justify="start"
+            className="pt-1"
+          >
+            <Flex direction="row" gap="1" align="center" justify="center">
+              <Icon
+                icon="basil:whatsapp-outline"
+                className="text-secondary text-lg"
+              />
+              <Text as="span" size="2" weight="bold" className="text-secondary">
+                Whatsapp
+              </Text>
+            </Flex>
+            {title ? (
               <span
                 className={cn(
-                  "truncate text-sm font-semibold text-neutral-800",
+                  "max-w-[180px] truncate text-sm font-semibold text-neutral-800",
                   archived && "text-neutral-600",
                 )}
               >
-                {qrCode.title}
+                {title}
               </span>
-
-              <div className="flex items-center gap-2">
-                <UnverifiedTooltip domain={domain} _key={key}>
-                  <a
-                    href={linkConstructor({ domain, key })}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title={linkConstructor({ domain, key, pretty: true })}
-                    className={cn(
-                      "truncate text-xs font-semibold text-neutral-800 transition-colors hover:text-black",
-                      archived && "text-neutral-600",
-                    )}
-                  >
-                    {linkConstructor({ domain, key, pretty: true })}
-                  </a>
-                </UnverifiedTooltip>
-
-                <CopyButton
-                  value={linkConstructor({
-                    domain,
-                    key,
-                    pretty: false,
-                  })}
-                  variant="neutral"
-                  className="p-1"
-                />
-              </div>
+            ) : (
+              <ShortLinkWrapper
+                domain={domain}
+                linkKey={key}
+                link={qrCode.link}
+                linkClassname="max-w-[180px] text-sm font-semibold text-neutral-800 truncate"
+              />
+            )}
+            <Tooltip
+              className="block md:hidden"
+              content={formatDateTime(createdAt)}
+              delayDuration={150}
+            >
+              <span className="inline-flex text-xs text-neutral-500 md:hidden">
+                {timeAgo(createdAt)}
+              </span>
+            </Tooltip>
+            <div className="flex flex-col gap-1 md:hidden [&_a]:max-w-[200px]">
+              <Details link={qrCode.link} hideIcon />
             </div>
-          </div>
-          <Details qrCode={qrCode} compact />
+          </Flex>
         </div>
-
-        <Details qrCode={qrCode} />
       </div>
 
-      <div className="ml-2 flex items-center gap-0.5 overflow-hidden rounded-md border border-neutral-200/10 bg-neutral-50 px-1 py-0.5 text-sm text-neutral-600 transition-colors hover:bg-neutral-100">
-        <Icon icon="basil:whatsapp-outline" className="text-md" />
-        <span>{qrCode.qrType}</span>
+      <div className="hidden flex-col gap-1 xl:flex">
+        <Text as="span" size="2" weight="bold">
+          Your Link
+        </Text>
+        <Details link={qrCode.link} hideIcon />
+      </div>
+      <div
+        className={cn(
+          "hidden shrink-0 flex-col items-start justify-center gap-1 pl-6 md:flex",
+        )}
+      >
+        <Text as="span" size="2" weight="bold" className="text-neutral-800">
+          Created
+        </Text>
+        <Tooltip content={formatDateTime(createdAt)} delayDuration={150}>
+          <span className="text-neutral-500">{timeAgo(createdAt)}</span>
+        </Tooltip>
       </div>
     </div>
   );
@@ -148,8 +167,16 @@ function UnverifiedTooltip({
 }
 
 const Details = memo(
-  ({ qrCode, compact }: { qrCode: ResponseQrCode; compact?: boolean }) => {
-    const { url, createdAt } = qrCode?.link ?? {};
+  ({
+    link,
+    compact,
+    hideIcon,
+  }: {
+    link: ResponseQrCode["link"];
+    compact?: boolean;
+    hideIcon?: boolean;
+  }) => {
+    const { url } = link;
 
     const { displayProperties } = useContext(QrCodesDisplayContext);
 
@@ -167,6 +194,7 @@ const Details = memo(
       >
         <div className="flex min-w-0 items-center gap-1">
           {displayProperties.includes("url") &&
+            !hideIcon &&
             (compact ? (
               <ArrowRight className="mr-1 h-3 w-3 shrink-0 text-neutral-400" />
             ) : (
@@ -179,7 +207,7 @@ const Details = memo(
                 target="_blank"
                 rel="noopener noreferrer"
                 title={url}
-                className="truncate text-xs text-neutral-500 transition-colors hover:text-neutral-700 hover:underline hover:underline-offset-2"
+                className="max-w-[180px] truncate text-xs text-neutral-600 transition-colors hover:text-neutral-700 hover:underline hover:underline-offset-2 md:min-w-[180px]"
               >
                 {getPrettyUrl(url)}
               </a>
@@ -190,22 +218,53 @@ const Details = memo(
             )
           ) : (
             <span className="truncate text-neutral-500">
-              {qrCode.description}
+              {link.description}
             </span>
           )}
-        </div>
-
-        <div
-          className={cn(
-            "hidden shrink-0",
-            displayProperties.includes("createdAt") && "sm:block",
-          )}
-        >
-          <Tooltip content={formatDateTime(createdAt)} delayDuration={150}>
-            <span className="text-neutral-400">{timeAgo(createdAt)}</span>
-          </Tooltip>
         </div>
       </div>
     );
   },
 );
+
+function ShortLinkWrapper({
+  domain,
+  linkKey,
+  link,
+  linkClassname,
+}: PropsWithChildren<{
+  domain: string;
+  linkKey: string;
+  link: ResponseQrCode["link"];
+  linkClassname?: string;
+}>) {
+  return (
+    <div className="flex items-center gap-2">
+      <UnverifiedTooltip domain={domain} _key={linkKey}>
+        <a
+          href={linkConstructor({ domain, key: linkKey })}
+          target="_blank"
+          rel="noopener noreferrer"
+          title={linkConstructor({ domain, key: linkKey, pretty: true })}
+          className={cn(
+            "truncate text-sm font-semibold text-neutral-800 transition-colors hover:text-black",
+            link.archived && "text-neutral-600",
+            linkClassname,
+          )}
+        >
+          {linkConstructor({ domain, key: linkKey, pretty: true })}
+        </a>
+      </UnverifiedTooltip>
+
+      <CopyButton
+        value={linkConstructor({
+          domain,
+          key: linkKey,
+          pretty: false,
+        })}
+        variant="neutral"
+        className="p-1"
+      />
+    </div>
+  );
+}

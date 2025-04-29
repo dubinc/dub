@@ -5,7 +5,7 @@ import { ExpandedLinkProps, QRProps, UserProps } from "@/lib/types";
 import QrCodeCardPlaceholder from "@/ui/qr-code/qr-code-card-placeholder.tsx";
 import { QrCodesDisplayContext } from "@/ui/qr-code/qr-codes-display-provider.tsx";
 import { CardList, MaxWidthWrapper } from "@dub/ui";
-import { CursorRays, Hyperlink } from "@dub/ui/icons";
+import { CursorRays, QRCode as QRCodeIcon } from "@dub/ui/icons";
 import { useSearchParams } from "next/navigation";
 import {
   Dispatch,
@@ -116,7 +116,7 @@ function QrCodesList({
           }
           cardContent={
             <>
-              <Hyperlink className="size-4 text-neutral-700" />
+              <QRCodeIcon className="size-4 text-neutral-700" />
               <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
               <div className="xs:flex hidden grow items-center justify-end gap-1.5 text-neutral-500">
                 <CursorRays className="size-3.5" />

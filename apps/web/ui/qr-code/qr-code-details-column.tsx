@@ -1,25 +1,18 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { QrCodeControls } from "@/ui/qr-code/qr-code-controls.tsx";
 import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
-import { CardList, CursorRays, Tooltip, useMediaQuery } from "@dub/ui";
-import { ReferredVia } from "@dub/ui/icons";
-import {
-  cn,
-  currencyFormatter,
-  INFINITY_NUMBER,
-  nFormatter,
-  pluralize,
-  timeAgo,
-} from "@dub/utils";
+import { CardList, CursorRays, useMediaQuery } from "@dub/ui";
+import { cn, currencyFormatter, nFormatter } from "@dub/utils";
+import { Icon } from "@iconify/react";
 import Link from "next/link";
-import { useContext, useMemo, useRef, useState } from "react";
+import { useContext, useMemo, useRef } from "react";
 import { useShareDashboardModal } from "../modals/share-dashboard-modal";
 
 export function QrCodeDetailsColumn({ qrCode }: { qrCode: ResponseQrCode }) {
   const ref = useRef<HTMLDivElement>(null);
 
   return (
-    <div ref={ref} className="flex items-center justify-end gap-2">
+    <div ref={ref} className="flex items-center justify-end gap-6">
       <AnalyticsBadge qrCode={qrCode} />
 
       <QrCodeControls qrCode={qrCode} />
@@ -27,7 +20,7 @@ export function QrCodeDetailsColumn({ qrCode }: { qrCode: ResponseQrCode }) {
   );
 }
 
-function AnalyticsBadge({ qrCode }: { qrCode: ResponseQrCode }) {
+export function AnalyticsBadge({ qrCode }: { qrCode: ResponseQrCode }) {
   const { slug, plan } = useWorkspace();
   const { domain, key, clicks } = qrCode.link;
 
@@ -42,6 +35,27 @@ function AnalyticsBadge({ qrCode }: { qrCode: ResponseQrCode }) {
         value: clicks,
         iconClassName: "data-[active=true]:text-blue-500",
       },
+      // show leads and sales if:
+      // 1. link has trackConversion enabled
+      // 2. link has leads or sales
+      // ...(trackConversion || leads > 0 || saleAmount > 0
+      //   ? [
+      //       {
+      //         id: "leads",
+      //         icon: UserCheck,
+      //         value: leads,
+      //         className: "hidden sm:flex",
+      //         iconClassName: "data-[active=true]:text-purple-500",
+      //       },
+      //       {
+      //         id: "sales",
+      //         icon: InvoiceDollar,
+      //         value: saleAmount,
+      //         className: "hidden sm:flex",
+      //         iconClassName: "data-[active=true]:text-teal-500",
+      //       },
+      //     ]
+      //   : []),
     ],
     [qrCode.link],
   );
@@ -49,88 +63,66 @@ function AnalyticsBadge({ qrCode }: { qrCode: ResponseQrCode }) {
   const { ShareDashboardModal, setShowShareDashboardModal } =
     useShareDashboardModal({ domain, _key: key });
 
-  // Hacky fix for making sure the tooltip closes (by rerendering) when the modal opens
-  const [modalShowCount, setModalShowCount] = useState(0);
-
   return (
-    <div className="flex items-center gap-2">
-      <div
-        className={cn(
-          "ml-2 flex w-[58px] justify-center overflow-hidden rounded-md border border-neutral-200/10",
-          "bg-neutral-50 p-0.5 px-1 text-sm text-neutral-600 transition-colors hover:bg-neutral-100",
-          qrCode.link.archived
-            ? "bg-red-100 text-red-600"
-            : "bg-green-100 text-neutral-600",
-        )}
-      >
-        {qrCode.link.archived ? "Paused" : "Active"}
-      </div>
+    <div className="flex flex-col items-center gap-3 md:flex-row lg:gap-4 xl:gap-6">
+      {!isMobile && (
+        <div
+          className={cn(
+            "flex w-fit min-w-[58px] justify-center overflow-hidden rounded-md border border-neutral-200/10",
+            "bg-neutral-50 p-0.5 px-1 text-sm text-neutral-600 transition-colors hover:bg-neutral-100",
+            qrCode.link.archived
+              ? "bg-red-100 text-red-600"
+              : "bg-green-100 text-neutral-600",
+          )}
+        >
+          {qrCode.link.archived ? "Deactivated" : "Active"}
+        </div>
+      )}
       {isMobile ? (
         <Link
           href={`/${slug}/analytics?domain=${domain}&key=${key}&interval=${plan === "free" ? "30d" : plan === "pro" ? "1y" : "all"}`}
-          className="flex items-center gap-1 rounded-md border border-neutral-200/10 bg-neutral-50 px-2 py-0.5 text-sm text-neutral-800"
+          className="bg-secondary-100 text-secondary flex h-[26px] w-full min-w-[91.5px] items-center justify-center gap-2 rounded-md border px-2 py-0.5 text-sm md:h-full md:gap-1"
         >
-          <CursorRays className="h-4 w-4 text-neutral-600" />
-          {nFormatter(qrCode.link.clicks)}
+          {/*<CursorRays className="h-4 w-4 text-neutral-600" />*/}
+          <Icon
+            icon="streamline:graph"
+            className="text-secondary h-[14px] w-[14px]"
+          />
+          {nFormatter(qrCode.link.clicks)} scans
         </Link>
       ) : (
         <>
           <ShareDashboardModal />
-          <Tooltip
-            key={modalShowCount}
-            side="top"
-            content={
-              <div className="flex flex-col gap-2.5 whitespace-nowrap p-3 text-neutral-600">
-                {stats.map(({ id: tab, value }) => (
-                  <div key={tab} className="text-sm leading-none">
-                    <span className="font-medium text-neutral-950">
-                      {tab === "sales"
-                        ? currencyFormatter(value / 100)
-                        : nFormatter(value, { full: value < INFINITY_NUMBER })}
-                    </span>{" "}
-                    {tab === "sales" ? "total " : ""}
-                    {pluralize(tab.slice(0, -1), value)}
-                  </div>
-                ))}
-                <p className="text-xs leading-none text-neutral-400">
-                  {qrCode.link.lastClicked
-                    ? `Last clicked ${timeAgo(qrCode.link.lastClicked, {
-                        withAgo: true,
-                      })}`
-                    : "No scans yet"}
-                </p>
-              </div>
-            }
+
+          <Link
+            href={`/${slug}/analytics?domain=${domain}&key=${key}&interval=${plan === "free" ? "30d" : plan === "pro" ? "1y" : "all"}`}
+            className={cn(
+              "bg-secondary-100 text-secondary w-fit overflow-hidden rounded-md border border-neutral-200/10 p-0.5 text-sm transition-colors",
+              variant === "loose" ? "hover:bg-neutral-100" : "hover:bg-white",
+            )}
           >
-            <Link
-              href={`/${slug}/analytics?domain=${domain}&key=${key}&interval=${plan === "free" ? "30d" : plan === "pro" ? "1y" : "all"}`}
-              className={cn(
-                "overflow-hidden rounded-md border border-neutral-200/10 bg-neutral-50 p-0.5 text-sm text-neutral-600 transition-colors",
-                variant === "loose" ? "hover:bg-neutral-100" : "hover:bg-white",
-              )}
-            >
-              <div className="hidden items-center gap-0.5 sm:flex">
-                {stats.map(({ id: tab, value }) => (
-                  <div
-                    key={tab}
-                    className="flex items-center gap-1 whitespace-nowrap rounded-md px-1 py-px transition-colors"
-                  >
-                    <span>
-                      {tab === "sales"
-                        ? currencyFormatter(value / 100)
-                        : nFormatter(value)}
-                      {stats.length === 1 && " scans"}
-                    </span>
-                  </div>
-                ))}
-                {qrCode.link.dashboardId && (
-                  <div className="border-l border-neutral-200/10 px-1.5">
-                    <ReferredVia className="h-4 w-4 shrink-0 text-neutral-600" />
-                  </div>
-                )}
-              </div>
-            </Link>
-          </Tooltip>
+            <div className="hidden items-center gap-0.5 sm:flex">
+              {stats.map(({ id: tab, value }) => (
+                <div
+                  key={tab}
+                  className={cn(
+                    "flex items-center gap-2 whitespace-nowrap rounded-md px-1 py-px transition-colors",
+                  )}
+                >
+                  <Icon
+                    icon="streamline:graph"
+                    className="text-secondary h-[14px] w-[14px]"
+                  />
+                  <span>
+                    {tab === "sales"
+                      ? currencyFormatter(value / 100)
+                      : nFormatter(value)}
+                    {stats.length === 1 && " scans"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </Link>
         </>
       )}
     </div>

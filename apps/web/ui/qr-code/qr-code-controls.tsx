@@ -91,6 +91,7 @@ export function QrCodeControls({ qrCode }: { qrCode: ResponseQrCode }) {
       {/*    className={cn(*/}
       {/*      "h-8 px-1.5 outline-none transition-all duration-200",*/}
       {/*      "border-transparent data-[state=open]:border-neutral-200/40 data-[state=open]:ring-neutral-200/40 sm:group-hover/card:data-[state=closed]:border-neutral-200/10",*/}
+      {/*  "border-border-500 border md:border-none",*/}
       {/*    )}*/}
       {/*    icon={<Download className="h-5 w-5 shrink-0" />}*/}
       {/*  />*/}
@@ -158,6 +159,7 @@ export function QrCodeControls({ qrCode }: { qrCode: ResponseQrCode }) {
           className={cn(
             "h-8 px-1.5 outline-none transition-all duration-200",
             "border-transparent data-[state=open]:border-neutral-200/40 data-[state=open]:ring-neutral-200/40 sm:group-hover/card:data-[state=closed]:border-neutral-200/10",
+            "border-border-500 border md:border-none",
           )}
           icon={<ThreeDots className="h-5 w-5 shrink-0" />}
           onClick={() => {

@@ -23,7 +23,7 @@ export const sortOptions = [
     slug: "clicks",
   },
   {
-    display: "Last scan",
+    display: "Last scanned",
     slug: "lastClicked",
   },
 ] as const;

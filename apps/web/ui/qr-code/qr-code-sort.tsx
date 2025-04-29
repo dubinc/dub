@@ -31,14 +31,14 @@ export default function QrCodeSort() {
                 });
                 setOpenPopover(false);
               }}
-              className="flex w-full items-center justify-between space-x-2 rounded-md px-1 py-2 hover:bg-neutral-100 active:bg-neutral-200/40"
+              className="hover:bg-border-100 active:bg-secondary-100 flex w-full items-center justify-between space-x-2 rounded-md px-1 py-2"
             >
               <IconMenu
                 text={display}
                 icon={<SortDesc className="h-4 w-4" />}
               />
               {sortBy === slug && (
-                <Tick className="h-4 w-4" aria-hidden="true" />
+                <Tick className="text-secondary h-4 w-4" aria-hidden="true" />
               )}
             </button>
           ))}
