@@ -14,10 +14,10 @@ test("GET /links/metatags", async (ctx) => {
 
   expect(status).toEqual(200);
   expect(metatags).toStrictEqual({
-    title: "Dub – The Modern Link Attribution Platform",
+    title: "Dub - The Modern Link Attribution Platform",
     description:
       "Dub is the modern link attribution platform for short links, conversion tracking, and affiliate programs.",
     image: "https://assets.dub.co/thumbnail.jpg",
-    poweredBy: "Dub – The Modern Link Attribution Platform",
+    poweredBy: "Dub - The Modern Link Attribution Platform",
   });
 });
