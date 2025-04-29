@@ -17,32 +17,39 @@ export function ProgramSettingsHeader({
 
   return (
     <div className="border-b border-gray-200">
-      <TabSelect
-        variant="accent"
-        options={[
-          {
-            id: "rewards",
-            label: "Rewards",
-            href: `/${slug}/programs/${programId}/settings/rewards`,
-          },
-          {
-            id: "discounts",
-            label: "Discounts",
-            href: `/${slug}/programs/${programId}/settings/discounts`,
-          },
-          {
-            id: "links",
-            label: "Links",
-            href: `/${slug}/programs/${programId}/settings/links`,
-          },
-          {
-            id: "branding",
-            label: "Branding",
-            href: `/${slug}/programs/${programId}/settings/branding`,
-          },
-        ]}
-        selected={page}
-      />
+      <div className="scrollbar-hide overflow-x-auto">
+        <TabSelect
+          variant="accent"
+          options={[
+            {
+              id: "rewards",
+              label: "Rewards",
+              href: `/${slug}/programs/${programId}/settings/rewards`,
+            },
+            {
+              id: "discounts",
+              label: "Discounts",
+              href: `/${slug}/programs/${programId}/settings/discounts`,
+            },
+            {
+              id: "links",
+              label: "Links",
+              href: `/${slug}/programs/${programId}/settings/links`,
+            },
+            {
+              id: "branding",
+              label: "Branding",
+              href: `/${slug}/programs/${programId}/settings/branding`,
+            },
+            {
+              id: "communication",
+              label: "Communication",
+              href: `/${slug}/programs/${programId}/settings/communication`,
+            },
+          ]}
+          selected={page}
+        />
+      </div>
     </div>
   );
 }
