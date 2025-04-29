@@ -9,7 +9,7 @@ export const ReferralsReferralsEmbedToken = () => {
   const token = useEmbedToken();
 
   const { error } = useSWR<{ token: number }>(
-    `/api/embed/referrals/token`,
+    "/api/embed/referrals/token",
     (url) =>
       fetcher(url, {
         headers: {

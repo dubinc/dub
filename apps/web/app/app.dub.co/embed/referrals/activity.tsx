@@ -21,7 +21,7 @@ export function ReferralsEmbedActivity({
 
   const isEmpty = clicks === 0 && leads === 0 && sales === 0;
   const { data: analytics } = useSWR<AnalyticsTimeseries[]>(
-    !isEmpty && `/api/embed/referrals/analytics`,
+    !isEmpty && "/api/embed/referrals/analytics",
     (url) =>
       fetcher(url, {
         headers: {

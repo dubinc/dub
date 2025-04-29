@@ -18,7 +18,7 @@ export function ReferralsEmbedLeaderboard() {
   const { data: partners, isLoading } = useSWR<
     z.infer<typeof LeaderboardPartnerSchema>[]
   >(
-    `/api/embed/referrals/leaderboard`,
+    "/api/embed/referrals/leaderboard",
     (url) =>
       fetcher(url, {
         headers: {
