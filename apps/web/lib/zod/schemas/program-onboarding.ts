@@ -1,6 +1,7 @@
 import { CommissionType, LinkStructure } from "@dub/prisma/client";
 import { z } from "zod";
 import { maxDurationSchema } from "./misc";
+import { updateProgramSchema } from "./programs";
 import { parseUrlSchema } from "./utils";
 
 // Getting started
@@ -57,17 +58,26 @@ export const programInvitePartnersSchema = z.object({
     ),
 });
 
+// Help and support
+export const programSupportSchema = updateProgramSchema.pick({
+  supportEmail: true,
+  helpUrl: true,
+  termsUrl: true,
+});
+
 export const onboardingStepSchema = z.enum([
   "get-started",
   "configure-reward",
   "invite-partners",
   "connect",
+  "help-and-support",
   "create-program",
 ]);
 
 export const programDataSchema = programInfoSchema
   .merge(programRewardSchema)
   .merge(programInvitePartnersSchema)
+  .merge(programSupportSchema)
   .merge(
     z.object({
       lastCompletedStep: onboardingStepSchema.nullish(), // The last step that was completed
@@ -101,6 +111,13 @@ export const onboardProgramSchema = z.discriminatedUnion("step", [
     step: z.literal("connect"),
     workspaceId: z.string(),
   }),
+
+  programSupportSchema.merge(
+    z.object({
+      step: z.literal("help-and-support"),
+      workspaceId: z.string(),
+    }),
+  ),
 
   z.object({
     step: z.literal("create-program"),
@@ -142,6 +159,12 @@ export const PROGRAM_ONBOARDING_STEPS = [
   },
   {
     stepNumber: 5,
+    label: "Help and Support",
+    href: "/programs/new/support",
+    step: "help-and-support",
+  },
+  {
+    stepNumber: 6,
     label: "Overview",
     href: "/programs/new/overview",
     step: "create-program",

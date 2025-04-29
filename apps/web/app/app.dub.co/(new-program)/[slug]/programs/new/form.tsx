@@ -137,7 +137,7 @@ export function Form() {
           {...register("name", { required: true })}
           placeholder="Acme"
           autoFocus={!isMobile}
-          className={"mt-2 max-w-full"}
+          className="mt-2 max-w-full"
         />
       </div>
 
