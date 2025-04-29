@@ -8,7 +8,12 @@ import Link from "next/link";
 import { useContext, useMemo, useRef } from "react";
 import { useShareDashboardModal } from "../modals/share-dashboard-modal";
 
-export function QrCodeDetailsColumn({ qrCode }: { qrCode: ResponseQrCode }) {
+interface QrCodeDetailsColumnProps {
+  qrCode: ResponseQrCode;
+  canvasRef: React.RefObject<HTMLCanvasElement>;
+}
+
+export function QrCodeDetailsColumn({ qrCode, canvasRef }: QrCodeDetailsColumnProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   return (
@@ -20,7 +25,7 @@ export function QrCodeDetailsColumn({ qrCode }: { qrCode: ResponseQrCode }) {
         <AnalyticsBadge qrCode={qrCode} />
       </div>
 
-      <QrCodeControls qrCode={qrCode} />
+      <QrCodeControls qrCode={qrCode} canvasRef={canvasRef} />
     </div>
   );
 }

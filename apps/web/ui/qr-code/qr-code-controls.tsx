@@ -4,10 +4,12 @@ import { QRLinkProps } from "@/lib/types.ts";
 import { useArchiveLinkModal } from "@/ui/modals/archive-link-modal";
 import { useDeleteLinkModal } from "@/ui/modals/delete-link-modal";
 import { useQRBuilder } from "@/ui/modals/qr-builder";
+import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization";
 import {
   QrCodesListContext,
   ResponseQrCode,
 } from "@/ui/qr-code/qr-codes-container.tsx";
+import { useQrDownload } from "@/ui/qr-code/use-qr-download";
 import {
   Button,
   CardList,
@@ -17,14 +19,19 @@ import {
   Popover,
   useKeyboardShortcut,
 } from "@dub/ui";
-import { BoxArchive } from "@dub/ui/icons";
+import { BoxArchive, Download } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Delete } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { PropsWithChildren, useContext, useRef, useState } from "react";
 import { ThreeDots } from "../shared/icons";
 
-export function QrCodeControls({ qrCode }: { qrCode: ResponseQrCode }) {
+interface QrCodeControlsProps {
+  qrCode: ResponseQrCode;
+  canvasRef?: React.RefObject<HTMLCanvasElement>;
+}
+
+export function QrCodeControls({ qrCode, canvasRef }: QrCodeControlsProps) {
   const { hovered } = useContext(CardList.Card.Context);
   const searchParams = useSearchParams();
 
@@ -35,11 +42,9 @@ export function QrCodeControls({ qrCode }: { qrCode: ResponseQrCode }) {
     setOpenMenuQrCodeId(open ? qrCode.id : null);
   };
 
-  // TODO: RELEASE change useArchiveLinkModal to useArchiveQrModal
   const { setShowArchiveLinkModal, ArchiveLinkModal } = useArchiveLinkModal({
     props: qrCode.link,
   });
-  // TODO: RELEASE change useDeleteLinkModal to useDeleteQrModal
   const { setShowDeleteLinkModal, DeleteLinkModal } = useDeleteLinkModal({
     props: qrCode.link,
   });
@@ -81,21 +86,19 @@ export function QrCodeControls({ qrCode }: { qrCode: ResponseQrCode }) {
       <QRBuilderModal />
       <ArchiveLinkModal />
       <DeleteLinkModal />
-      {/* TODO: RELEASE add download popover */}
-      {/*<DownloadPopover*/}
-      {/*  qrData={qrData!}*/}
-      {/*  props={{ key: link.key, domain: link.domain, url: link.url }}*/}
-      {/*>*/}
-      {/*  <Button*/}
-      {/*    variant="secondary"*/}
-      {/*    className={cn(*/}
-      {/*      "h-8 px-1.5 outline-none transition-all duration-200",*/}
-      {/*      "border-transparent data-[state=open]:border-neutral-200/40 data-[state=open]:ring-neutral-200/40 sm:group-hover/card:data-[state=closed]:border-neutral-200/10",*/}
-      {/*  "border-border-500 border md:border-none",*/}
-      {/*    )}*/}
-      {/*    icon={<Download className="h-5 w-5 shrink-0" />}*/}
-      {/*  />*/}
-      {/*</DownloadPopover>*/}
+      {canvasRef && (
+        <DownloadPopover qrCode={qrCode} canvasRef={canvasRef}>
+          <Button
+            variant="secondary"
+            className={cn(
+              "h-8 px-1.5 outline-none transition-all duration-200",
+              "border-transparent data-[state=open]:border-neutral-200/40 data-[state=open]:ring-neutral-200/40 sm:group-hover/card:data-[state=closed]:border-neutral-200/10",
+              "border-border-500 border md:border-none",
+            )}
+            icon={<Download className="h-5 w-5 shrink-0" />}
+          />
+        </DownloadPopover>
+      )}
       <Popover
         content={
           <div className="w-full sm:w-48">
@@ -171,87 +174,58 @@ export function QrCodeControls({ qrCode }: { qrCode: ResponseQrCode }) {
   );
 }
 
-// @USEFUL_FEATURE: copy of qr download implementation from link-qr-modal.tsx
 function DownloadPopover({
-  qrData,
-  props,
+  qrCode,
+  canvasRef,
   children,
 }: PropsWithChildren<{
-  qrData: ReturnType<typeof getQRData>;
-  props: QRLinkProps;
+  qrCode: ResponseQrCode;
+  canvasRef: React.RefObject<HTMLCanvasElement>;
 }>) {
-  const anchorRef = useRef<HTMLAnchorElement>(null);
-
-  function download(url: string, extension: string) {
-    if (!anchorRef.current) return;
-    anchorRef.current.href = url;
-    anchorRef.current.download = `${props.key}-qrcode.${extension}`;
-    anchorRef.current.click();
-    setOpenPopover(false);
-  }
-
   const [openPopover, setOpenPopover] = useState(false);
+  const { qrCode: qrCodeObject } = useQrCustomization(qrCode);
+  const { downloadQrCode } = useQrDownload(qrCodeObject, canvasRef);
 
   return (
-    <div>
-      <Popover
-        content={
-          <div className="grid p-1 sm:min-w-48">
-            <button
-              type="button"
-              onClick={async () => {
-                download(await getQRAsSVGDataUri(qrData), "svg");
-              }}
-              className="rounded-md p-2 text-left text-sm font-medium text-neutral-500 transition-all duration-75 hover:bg-neutral-100"
-            >
-              <IconMenu
-                text="Download SVG"
-                icon={<Photo className="h-4 w-4" />}
-              />
-            </button>
-            <button
-              type="button"
-              onClick={async () => {
-                download(
-                  (await getQRAsCanvas(qrData, "image/png")) as string,
-                  "png",
-                );
-              }}
-              className="rounded-md p-2 text-left text-sm font-medium text-neutral-500 transition-all duration-75 hover:bg-neutral-100"
-            >
-              <IconMenu
-                text="Download PNG"
-                icon={<Photo className="h-4 w-4" />}
-              />
-            </button>
-            <button
-              type="button"
-              onClick={async () => {
-                download(
-                  (await getQRAsCanvas(qrData, "image/jpeg")) as string,
-                  "jpg",
-                );
-              }}
-              className="rounded-md p-2 text-left text-sm font-medium text-neutral-500 transition-all duration-75 hover:bg-neutral-100"
-            >
-              <IconMenu
-                text="Download JPEG"
-                icon={<Photo className="h-4 w-4" />}
-              />
-            </button>
-          </div>
-        }
-        openPopover={openPopover}
-        setOpenPopover={setOpenPopover}
-      >
-        {children}
-      </Popover>
-      {/* This will be used to prompt downloads. */}
-      <a
-        className="hidden"
-        download={`${props.key}-qrcode.svg`}
-        ref={anchorRef}
-      />
-    </div>
+    <Popover
+      content={
+        <div className="grid p-1 sm:min-w-48">
+          <button
+            className="flex items-center gap-2 rounded-md p-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100"
+            onClick={() => {
+              downloadQrCode("svg");
+              setOpenPopover(false);
+            }}
+          >
+            <Photo className="h-4 w-4" />
+            <span>Download SVG</span>
+          </button>
+          <button
+            className="flex items-center gap-2 rounded-md p-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100"
+            onClick={() => {
+              downloadQrCode("png");
+              setOpenPopover(false);
+            }}
+          >
+            <Photo className="h-4 w-4" />
+            <span>Download PNG</span>
+          </button>
+          <button
+            className="flex items-center gap-2 rounded-md p-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100"
+            onClick={() => {
+              downloadQrCode("jpg");
+              setOpenPopover(false);
+            }}
+          >
+            <Photo className="h-4 w-4" />
+            <span>Download JPG</span>
+          </button>
+        </div>
+      }
+      openPopover={openPopover}
+      setOpenPopover={setOpenPopover}
+    >
+      {children}
+    </Popover>
   );
 }

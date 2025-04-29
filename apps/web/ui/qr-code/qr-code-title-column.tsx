@@ -3,8 +3,9 @@
 import useDomain from "@/lib/swr/use-domain";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { QR_TYPES } from "@/ui/qr-builder/constants/get-qr-config.ts";
+import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization.ts";
+import { QRCanvas } from "@/ui/qr-builder/qr-canvas.tsx";
 import { AnalyticsBadge } from "@/ui/qr-code/qr-code-details-column.tsx";
-import { QRCode } from "@/ui/shared/qr-code.tsx";
 import {
   ArrowTurnRight2,
   CopyButton,
@@ -28,23 +29,36 @@ import { memo, PropsWithChildren, useContext, useRef } from "react";
 import { ResponseQrCode } from "./qr-codes-container";
 import { QrCodesDisplayContext } from "./qr-codes-display-provider";
 
-export function QrCodeTitleColumn({ qrCode }: { qrCode: ResponseQrCode }) {
+interface QrCodeTitleColumnProps {
+  qrCode: ResponseQrCode;
+  canvasRef: React.RefObject<HTMLCanvasElement>;
+}
+
+export function QrCodeTitleColumn({ qrCode, canvasRef }: QrCodeTitleColumnProps) {
   const { domain, key, createdAt, shortLink, archived, title } =
     qrCode?.link ?? {};
   const { isMobile } = useMediaQuery();
 
-  const ref = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const currentQrType = QR_TYPES.find((item) => item.id === qrCode.qrType);
+  const { qrCode: qrCodeObject, selectedQRType } = useQrCustomization(qrCode);
+
+  const currentQrType = QR_TYPES.find((item) => item.id === selectedQRType);
 
   return (
     <div
-      ref={ref}
+      ref={containerRef}
       className="flex h-full flex-row items-start transition-[height] md:items-center md:gap-6 xl:gap-12"
     >
       <div className="flex h-full flex-row items-center justify-center gap-1">
         <div className="flex flex-col items-center justify-center gap-1.5">
-          <QRCode url={shortLink} scale={isMobile ? 0.8 : 0.6} />
+          <QRCanvas
+            ref={canvasRef}
+            qrCode={qrCodeObject}
+            width={isMobile ? 102 : 64}
+            height={isMobile ? 102 : 64}
+          />
+
           {archived ? (
             <div
               className={cn(
