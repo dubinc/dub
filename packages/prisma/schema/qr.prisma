@@ -20,8 +20,12 @@ model Qr {
   title           String?
   description     String?    @db.VarChar(280)
 
+  archived        Boolean    @default(false)
+
   styles          Json?      // styles of the qr
   frameOptions    Json?
+
+  workspaceId     String?
 
   linkId          String?
   link            Link?      @relation(fields: [linkId], references: [id])

@@ -1,6 +1,14 @@
+import { DubApiError } from '@/lib/api/errors';
 import { getQr } from '@/lib/api/qrs/get-qr';
+import { parseRequestBody } from '@/lib/api/utils';
 import { withWorkspace } from "@/lib/auth";
+import { sendWorkspaceWebhook } from '@/lib/webhook/publish';
+import { linkEventSchema } from '@/lib/zod/schemas/links';
+import { updateQrBodySchema } from '@/lib/zod/schemas/qrs';
+import { waitUntil } from '@vercel/functions/wait-until';
 import { NextResponse } from "next/server";
+import { prisma } from "@dub/prisma";
+import { updateQr } from '@/lib/api/qrs/update-qr';
 
 // GET /api/qrs/[qrId] – get a qr
 export const GET = withWorkspace(
@@ -16,141 +24,53 @@ export const GET = withWorkspace(
   },
 );
 
-// // PATCH /api/links/[linkId] – update a link
-// export const PATCH = withWorkspace(
-//   async ({ req, headers, workspace, params, session }) => {
-//     const link = await getLinkOrThrow({
-//       workspaceId: workspace.id,
-//       linkId: params.linkId,
-//     });
+// PATCH /api/qrs/[qrId] – update a qr
+export const PATCH = withWorkspace(
+  async ({ req, headers, workspace, params, session }) => {
+    const qr = await getQr({
+      qrId: params.qrId,
+    });
 
-//     const body = updateLinkBodySchema.parse(await parseRequestBody(req)) || {};
+    const body = updateQrBodySchema.parse(await parseRequestBody(req)) || {};
 
-//     await Promise.all([
-//       ...(link.folderId
-//         ? [
-//             verifyFolderAccess({
-//               workspace,
-//               userId: session.user.id,
-//               folderId: link.folderId,
-//               requiredPermission: "folders.links.write",
-//             }),
-//           ]
-//         : []),
+    try {
+      const response = await prisma.link.update({
+        where: {
+          id: qr.link!.id,
+        },
+        data: {
+          url: body.link!.url,
+          archived: body.archived || false,
+        },
+      });
 
-//       ...(body.folderId
-//         ? [
-//             verifyFolderAccess({
-//               workspace,
-//               userId: session.user.id,
-//               folderId: body.folderId,
-//               requiredPermission: "folders.links.write",
-//             }),
-//           ]
-//         : []),
-//     ]);
+      waitUntil(
+        sendWorkspaceWebhook({
+          trigger: "link.updated",
+          workspace,
+          data: linkEventSchema.parse(response),
+        }),
+      );
 
-//     // Add body onto existing link but maintain NewLinkProps form for processLink
-//     const updatedLink = {
-//       ...link,
-//       expiresAt:
-//         link.expiresAt instanceof Date
-//           ? link.expiresAt.toISOString()
-//           : link.expiresAt,
-//       geo: link.geo as NewLinkProps["geo"],
-//       ...body,
-//       // for UTM tags, we only pass them to processLink if they have changed from their previous value
-//       // or else they will override any changes to the UTM params in the destination URL
-//       ...Object.fromEntries(
-//         UTMTags.map((tag) => [
-//           tag,
-//           body[tag] === link[tag] ? undefined : body[tag],
-//         ]),
-//       ),
+      const updatedQr = await updateQr(params.qrId, body);
 
-//       // When root domain
-//       ...(link.key === "_root" && {
-//         domain: link.domain,
-//         key: link.key,
-//       }),
-//     };
+      return NextResponse.json(updatedQr, {
+        headers,
+      });
+    } catch (error) {
+      throw new DubApiError({
+        code: "unprocessable_entity",
+        message: error.message,
+      });
+    }
+  },
+  {
+    requiredPermissions: ["links.write"],
+  },
+);
 
-//     // if link and updatedLink are identical, return the link
-//     if (deepEqual(link, updatedLink)) {
-//       return NextResponse.json(link, { headers });
-//     }
-
-//     if (updatedLink.projectId !== link?.projectId) {
-//       throw new DubApiError({
-//         code: "forbidden",
-//         message:
-//           "Transferring links to another workspace is only allowed via the /links/[linkId]/transfer endpoint.",
-//       });
-//     }
-
-//     // if domain and key are the same, we don't need to check if the key exists
-//     const skipKeyChecks =
-//       link.domain === updatedLink.domain &&
-//       link.key.toLowerCase() === updatedLink.key?.toLowerCase();
-
-//     // if externalId is the same, we don't need to check if it exists
-//     const skipExternalIdChecks =
-//       link.externalId?.toLowerCase() === updatedLink.externalId?.toLowerCase();
-
-//     const {
-//       link: processedLink,
-//       error,
-//       code,
-//     } = await processLink({
-//       payload: updatedLink,
-//       workspace,
-//       skipKeyChecks,
-//       skipExternalIdChecks,
-//       skipFolderChecks: true,
-//     });
-
-//     if (error) {
-//       throw new DubApiError({
-//         code: code as ErrorCodes,
-//         message: error,
-//       });
-//     }
-
-//     try {
-//       const response = await updateLink({
-//         oldLink: {
-//           domain: link.domain,
-//           key: link.key,
-//           image: link.image,
-//         },
-//         updatedLink: processedLink,
-//       });
-
-//       waitUntil(
-//         sendWorkspaceWebhook({
-//           trigger: "link.updated",
-//           workspace,
-//           data: linkEventSchema.parse(response),
-//         }),
-//       );
-
-//       return NextResponse.json(response, {
-//         headers,
-//       });
-//     } catch (error) {
-//       throw new DubApiError({
-//         code: "unprocessable_entity",
-//         message: error.message,
-//       });
-//     }
-//   },
-//   {
-//     requiredPermissions: ["links.write"],
-//   },
-// );
-
-// // backwards compatibility
-// export const PUT = PATCH;
+// backwards compatibility
+export const PUT = PATCH;
 
 // // DELETE /api/links/[linkId] – delete a link
 // export const DELETE = withWorkspace(
