@@ -35,11 +35,23 @@ export const GET = withWorkspace(
             email: true,
             image: true,
             isMachine: true,
+            restrictedTokens: {
+              select: {
+                name: true,
+                lastUsed: true,
+              },
+              where: {
+                lastUsed: {
+                  not: null,
+                },
+              },
+            },
           },
         },
         createdAt: true,
       },
     });
+
     return NextResponse.json(
       users.map((u) => ({
         ...u.user,
