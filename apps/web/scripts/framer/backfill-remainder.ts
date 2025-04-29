@@ -128,9 +128,29 @@ async function main() {
     fs.readFileSync("framer_links_with_sales_to_backfill.json", "utf-8"),
   );
 
-  for (const linkToBackfill of linksWithSales) {
-    await processFramerData(linkToBackfill);
+  if (linksWithSales.length === 0) {
+    console.log("No more links to process!");
+    return;
   }
+
+  // Get the first link to process
+  const linkToProcess = linksWithSales[0];
+  console.log(
+    `Processing link: ${linkToProcess.via} (${linkToProcess.linkId})`,
+  );
+
+  await processFramerData(linkToProcess);
+
+  // Remove the processed link from the array
+  linksWithSales.shift();
+
+  // Write the updated array back to the file
+  fs.writeFileSync(
+    "framer_links_with_sales_to_backfill.json",
+    JSON.stringify(linksWithSales, null, 2),
+  );
+
+  console.log(`Remaining links to process: ${linksWithSales.length}`);
 }
 
 main();
