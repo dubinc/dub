@@ -125,7 +125,7 @@ export function ReferralsEmbedCreateUpdateLink({
               text="Cancel"
               variant="secondary"
               type="button"
-              className="h-9"
+              className="h-8 px-3"
               onClick={onCancel}
             />
             <Button
@@ -133,7 +133,7 @@ export function ReferralsEmbedCreateUpdateLink({
               variant="primary"
               loading={isSubmitting}
               disabled={saveDisabled}
-              className="h-9"
+              className="h-8 px-3"
             />
           </div>
         </div>
