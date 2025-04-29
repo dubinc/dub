@@ -121,9 +121,9 @@ function RemoveTeammateModal({
             </h3>
 
             <p className="text-sm font-normal text-amber-900">
-              This user has {user.restrictedTokens.length} active tokens used in
-              the last 30 days. Removing this user will invalidate these tokens
-              and may disrupt the integration.
+              This user has {user.restrictedTokens.length} active tokens.
+              Removing this user will invalidate these tokens and may disrupt
+              the integration.
             </p>
 
             <div>
