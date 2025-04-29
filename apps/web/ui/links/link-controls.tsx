@@ -17,6 +17,7 @@ import {
   useCopyToClipboard,
   useKeyboardShortcut,
   useLocalStorage,
+  useMediaQuery,
 } from "@dub/ui";
 import { BoxArchive, FolderBookmark, QRCode } from "@dub/ui/icons";
 import { cn, isDubDomain, nanoid, punycode } from "@dub/utils";
@@ -43,6 +44,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
   const { folders } = useFolders();
   const { hovered } = useContext(CardList.Card.Context);
   const searchParams = useSearchParams();
+  const { isMobile } = useMediaQuery();
 
   const { openMenuLinkId, setOpenMenuLinkId } = useContext(LinksListContext);
   const openPopover = openMenuLinkId === link.id;
@@ -206,6 +208,9 @@ export function LinkControls({ link }: { link: ResponseLink }) {
           className={cn(
             "h-8 px-1.5 outline-none transition-all duration-200",
             "border-transparent data-[state=open]:border-neutral-200/40 data-[state=open]:ring-neutral-200/40 sm:group-hover/card:data-[state=closed]:border-neutral-200/10",
+            {
+              "border-border-500 border": isMobile,
+            },
           )}
           icon={<Download className="h-5 w-5 shrink-0" />}
         />
@@ -378,6 +383,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
           className={cn(
             "h-8 px-1.5 outline-none transition-all duration-200",
             "border-transparent data-[state=open]:border-neutral-200/40 data-[state=open]:ring-neutral-200/40 sm:group-hover/card:data-[state=closed]:border-neutral-200/10",
+            "border-border-500 border md:border-none",
           )}
           icon={<ThreeDots className="h-5 w-5 shrink-0" />}
           onClick={() => {

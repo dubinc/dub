@@ -2,6 +2,7 @@
 
 import useDomain from "@/lib/swr/use-domain";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { AnalyticsBadge } from "@/ui/links/link-details-column.tsx";
 import { QRCode } from "@/ui/shared/qr-code.tsx";
 import {
   ArrowTurnRight2,
@@ -11,6 +12,7 @@ import {
   Tooltip,
   TooltipContent,
   useInViewport,
+  useMediaQuery,
 } from "@dub/ui";
 import {
   Apple,
@@ -34,6 +36,7 @@ import {
 } from "@dub/utils";
 import { Icon } from "@iconify/react";
 import * as HoverCard from "@radix-ui/react-hover-card";
+import { Flex, Text } from "@radix-ui/themes";
 import { Mail } from "lucide-react";
 import { memo, PropsWithChildren, useContext, useRef, useState } from "react";
 import { useLinkBuilder } from "../modals/link-builder";
@@ -52,7 +55,8 @@ const quickViewSettings = [
 ];
 
 export function LinkTitleColumn({ link }: { link: ResponseLink }) {
-  const { url, domain, key } = link;
+  const { url, domain, key, createdAt } = link;
+  const { isMobile } = useMediaQuery();
 
   // const { variant } = useContext(CardList.Context);
   // @USEFUL_FEATURE: display config of link table
@@ -70,7 +74,7 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
   return (
     <div
       ref={ref}
-      className="flex h-[32px] items-center gap-3 transition-[height] group-data-[variant=loose]/card-list:h-[60px]"
+      className="flex h-full flex-row items-start transition-[height] md:items-center md:gap-6 xl:gap-12"
     >
       {/*{variant === "compact" &&*/}
       {/*  link.folderId &&*/}
@@ -88,62 +92,95 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
       {/*    </Link>*/}
       {/*  )}*/}
 
-      <QRCode url={link.shortLink} scale={0.5} />
+      <div className="flex h-full flex-row items-center justify-center gap-1">
+        <div className="flex flex-col items-center justify-center gap-1.5">
+          <QRCode url={link.shortLink} scale={isMobile ? 0.8 : 0.6} />
+          {link.archived ? (
+            <div
+              className={cn(
+                "flex w-full justify-center overflow-hidden rounded-md border border-neutral-200/10 md:hidden",
+                "bg-neutral-50 p-0.5 px-1 text-sm text-neutral-600 transition-colors hover:bg-neutral-100",
+                "bg-red-100 text-red-600",
+              )}
+            >
+              Deactivated
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2 md:hidden">
+              <AnalyticsBadge link={link} />
+            </div>
+          )}
+        </div>
 
-      <div className="w-[200px] min-w-0 overflow-hidden">
-        <div className="flex items-center gap-2">
-          <div className="min-w-0 shrink grow-0 text-neutral-950">
-            <div className="flex flex-col">
-              {/*{displayProperties.includes("title") && link.title ? (*/}
-
+        <div className="flex h-full min-h-[75px] w-[200px] min-w-0 flex-col items-start justify-between overflow-hidden md:justify-center md:gap-2">
+          <Flex
+            direction="column"
+            gap="2"
+            align="start"
+            justify="start"
+            className="pt-1"
+          >
+            <Flex direction="row" gap="1" align="center" justify="center">
+              <Icon
+                icon="basil:whatsapp-outline"
+                className="text-secondary text-lg"
+              />
+              <Text as="span" size="2" weight="bold" className="text-secondary">
+                Whatsapp
+              </Text>
+            </Flex>
+            {link.title ? (
               <span
                 className={cn(
-                  "truncate text-sm font-semibold text-neutral-800",
+                  "max-w-[180px] truncate text-sm font-semibold text-neutral-800",
                   link.archived && "text-neutral-600",
                 )}
               >
                 {link.title}
               </span>
-
-              <div className="flex items-center gap-2">
-                <UnverifiedTooltip domain={domain} _key={key}>
-                  <a
-                    href={linkConstructor({ domain, key })}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title={linkConstructor({ domain, key, pretty: true })}
-                    className={cn(
-                      "truncate text-xs font-semibold text-neutral-800 transition-colors hover:text-black",
-                      link.archived && "text-neutral-600",
-                    )}
-                  >
-                    {linkConstructor({ domain, key, pretty: true })}
-                  </a>
-                </UnverifiedTooltip>
-
-                <CopyButton
-                  value={linkConstructor({
-                    domain,
-                    key,
-                    pretty: false,
-                  })}
-                  variant="neutral"
-                  className="p-1"
-                />
-              </div>
-              {/*{hasQuickViewSettings && <SettingsBadge link={link} />}*/}
-              {/*{link.comments && <CommentsBadge comments={link.comments} />}*/}
+            ) : isMobile ? (
+              <ShortLinkWrapper
+                domain={domain}
+                linkKey={key}
+                link={link}
+                linkClassname="font-normal"
+              />
+            ) : null}
+            <Tooltip
+              className="block md:hidden"
+              content={formatDateTime(createdAt)}
+              delayDuration={150}
+            >
+              <span className="inline-flex text-xs text-neutral-500 md:hidden">
+                {timeAgo(createdAt)}
+              </span>
+            </Tooltip>
+            <div className="flex flex-col gap-1 md:hidden [&_a]:max-w-[200px]">
+              <Details link={link} hideIcon />
             </div>
-          </div>
-          <Details link={link} compact />
-        </div>
+          </Flex>
 
-        <Details link={link} />
+          {/*{hasQuickViewSettings && <SettingsBadge link={link} />}*/}
+          {/*{link.comments && <CommentsBadge comments={link.comments} />}*/}
+          {/*</div>*/}
+        </div>
       </div>
 
-      <div className="ml-2 flex items-center gap-0.5 overflow-hidden rounded-md border border-neutral-200/10 bg-neutral-50 px-1 py-0.5 text-sm text-neutral-600 transition-colors hover:bg-neutral-100">
-        <Icon icon="basil:whatsapp-outline" className="text-md" />
-        <span>Whatsapp</span>
+      <div className="hidden flex-col gap-1 xl:flex">
+        <ShortLinkWrapper domain={domain} linkKey={key} link={link} />
+        <Details link={link} />
+      </div>
+      <div
+        className={cn(
+          "hidden shrink-0 flex-col items-start justify-center gap-1 pl-6 md:flex",
+        )}
+      >
+        <Text as="span" size="2" weight="bold" className="text-neutral-800">
+          Created
+        </Text>
+        <Tooltip content={formatDateTime(createdAt)} delayDuration={150}>
+          <span className="text-neutral-500">{timeAgo(createdAt)}</span>
+        </Tooltip>
       </div>
     </div>
   );
@@ -235,7 +272,15 @@ function SettingsBadge({ link }: { link: ResponseLink }) {
 }
 
 const Details = memo(
-  ({ link, compact }: { link: ResponseLink; compact?: boolean }) => {
+  ({
+    link,
+    compact,
+    hideIcon,
+  }: {
+    link: ResponseLink;
+    compact?: boolean;
+    hideIcon?: boolean;
+  }) => {
     const { url, createdAt } = link;
 
     const { displayProperties } = useContext(LinksDisplayContext);
@@ -254,6 +299,7 @@ const Details = memo(
       >
         <div className="flex min-w-0 items-center gap-1">
           {displayProperties.includes("url") &&
+            !hideIcon &&
             (compact ? (
               <ArrowRight className="mr-1 h-3 w-3 shrink-0 text-neutral-400" />
             ) : (
@@ -266,7 +312,7 @@ const Details = memo(
                 target="_blank"
                 rel="noopener noreferrer"
                 title={url}
-                className="truncate text-xs text-neutral-500 transition-colors hover:text-neutral-700 hover:underline hover:underline-offset-2"
+                className="max-w-[180px] truncate text-xs text-neutral-600 transition-colors hover:text-neutral-700 hover:underline hover:underline-offset-2 md:min-w-[152px] md:min-w-[180px]"
               >
                 {getPrettyUrl(url)}
               </a>
@@ -290,16 +336,16 @@ const Details = memo(
         {/*>*/}
         {/*  <UserAvatar link={link} />*/}
         {/*</div>*/}
-        <div
-          className={cn(
-            "hidden shrink-0",
-            displayProperties.includes("createdAt") && "sm:block",
-          )}
-        >
-          <Tooltip content={formatDateTime(createdAt)} delayDuration={150}>
-            <span className="text-neutral-400">{timeAgo(createdAt)}</span>
-          </Tooltip>
-        </div>
+        {/*<div*/}
+        {/*  className={cn(*/}
+        {/*    "hidden shrink-0",*/}
+        {/*    displayProperties.includes("createdAt") && "sm:block",*/}
+        {/*  )}*/}
+        {/*>*/}
+        {/*  <Tooltip content={formatDateTime(createdAt)} delayDuration={150}>*/}
+        {/*    <span className="text-neutral-400">{timeAgo(createdAt)}</span>*/}
+        {/*  </Tooltip>*/}
+        {/*</div>*/}
       </div>
     );
   },
@@ -338,5 +384,47 @@ function UserAvatar({ link }: { link: ResponseLink }) {
         <Avatar user={user} className="size-4" />
       </div>
     </Tooltip>
+  );
+}
+
+function ShortLinkWrapper({
+  domain,
+  linkKey,
+  link,
+  linkClassname,
+}: PropsWithChildren<{
+  domain: string;
+  linkKey: string;
+  link: ResponseLink;
+  linkClassname?: string;
+}>) {
+  return (
+    <div className="flex items-center gap-2">
+      <UnverifiedTooltip domain={domain} _key={linkKey}>
+        <a
+          href={linkConstructor({ domain, key: linkKey })}
+          target="_blank"
+          rel="noopener noreferrer"
+          title={linkConstructor({ domain, key: linkKey, pretty: true })}
+          className={cn(
+            "truncate text-sm font-semibold text-neutral-800 transition-colors hover:text-black",
+            link.archived && "text-neutral-600",
+            linkClassname,
+          )}
+        >
+          {linkConstructor({ domain, key: linkKey, pretty: true })}
+        </a>
+      </UnverifiedTooltip>
+
+      <CopyButton
+        value={linkConstructor({
+          domain,
+          key: linkKey,
+          pretty: false,
+        })}
+        variant="neutral"
+        className="p-1"
+      />
+    </div>
   );
 }

@@ -1,5 +1,6 @@
 import useFolders from "@/lib/swr/use-folders";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { LinkControls } from "@/ui/links/link-controls.tsx";
 import { CardList, useMediaQuery } from "@dub/ui";
 import { useSearchParams } from "next/navigation";
 import { useContext } from "react";
@@ -27,7 +28,7 @@ export function LinkCard({ link }: { link: ResponseLink }) {
       <CardList.Card
         key={link.id}
         onClick={isMobile ? undefined : () => setShowLinkBuilder(true)}
-        innerClassName="flex items-center gap-5 sm:gap-8 md:gap-12 text-sm"
+        innerClassName="h-full flex items-center gap-5 sm:gap-8 md:gap-12 text-sm"
       >
         {/*{...(variant === "loose" &&*/}
         {/*  link.folderId &&*/}
@@ -64,10 +65,15 @@ export function LinkCard({ link }: { link: ResponseLink }) {
         {/*      </Link>*/}
         {/*    ),*/}
         {/*  })}*/}
-        <div className="min-w-0 grow">
+        <div className="h-full min-w-0 grow">
           <LinkTitleColumn link={link} />
         </div>
-        <LinkDetailsColumn link={link} />
+        <div className="flex h-full justify-start md:hidden">
+          <LinkControls link={link} />
+        </div>
+        <div className={"hidden md:block"}>
+          <LinkDetailsColumn link={link} />
+        </div>
       </CardList.Card>
     </>
   );

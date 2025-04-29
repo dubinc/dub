@@ -2,9 +2,7 @@ import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TagProps } from "@/lib/types";
 import {
-  Button,
   CardList,
-  CopyButton,
   CursorRays,
   InvoiceDollar,
   Tooltip,
@@ -12,16 +10,8 @@ import {
   UserCheck,
   useRouterStuff,
 } from "@dub/ui";
-import { ReferredVia } from "@dub/ui/icons";
-import {
-  APP_DOMAIN,
-  cn,
-  currencyFormatter,
-  INFINITY_NUMBER,
-  nFormatter,
-  pluralize,
-  timeAgo,
-} from "@dub/utils";
+import { cn, currencyFormatter, nFormatter } from "@dub/utils";
+import { Icon } from "@iconify/react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
@@ -71,7 +61,7 @@ export function LinkDetailsColumn({ link }: { link: ResponseLink }) {
   // const { primaryTag, additionalTags } = useOrganizedTags(tags);
 
   return (
-    <div ref={ref} className="flex items-center justify-end gap-2">
+    <div ref={ref} className="flex items-center justify-end gap-6">
       {/*{displayProperties.includes("tags") && primaryTag && (*/}
       {/*  <TagsTooltip additionalTags={additionalTags}>*/}
       {/*    <TagButton tag={primaryTag} plus={additionalTags.length} />*/}
@@ -135,7 +125,7 @@ function TagButton({ tag, plus }: { tag: TagProps; plus?: number }) {
   );
 }
 
-function AnalyticsBadge({ link }: { link: ResponseLink }) {
+export function AnalyticsBadge({ link }: { link: ResponseLink }) {
   const { slug, plan } = useWorkspace();
   const { domain, key, trackConversion, clicks, leads, saleAmount } = link;
 
@@ -187,119 +177,125 @@ function AnalyticsBadge({ link }: { link: ResponseLink }) {
   );
 
   return (
-    <div className="flex items-center gap-2">
-      <div
-        className={cn(
-          "ml-2 flex w-[58px] justify-center overflow-hidden rounded-md border border-neutral-200/10",
-          "bg-neutral-50 p-0.5 px-1 text-sm text-neutral-600 transition-colors hover:bg-neutral-100",
-          link.archived
-            ? "bg-red-100 text-red-600"
-            : "bg-green-100 text-neutral-600",
-        )}
-      >
-        {link.archived ? "Paused" : "Active"}
-      </div>
+    <div className="flex flex-col items-center gap-3 md:flex-row lg:gap-4 xl:gap-6">
+      {!isMobile && (
+        <div
+          className={cn(
+            "flex w-fit min-w-[58px] justify-center overflow-hidden rounded-md border border-neutral-200/10",
+            "bg-neutral-50 p-0.5 px-1 text-sm text-neutral-600 transition-colors hover:bg-neutral-100",
+            link.archived
+              ? "bg-red-100 text-red-600"
+              : "bg-green-100 text-neutral-600",
+          )}
+        >
+          {link.archived ? "Deactivated" : "Active"}
+        </div>
+      )}
       {isMobile ? (
         <Link
           href={`/${slug}/analytics?domain=${domain}&key=${key}&interval=${plan === "free" ? "30d" : plan === "pro" ? "1y" : "all"}`}
-          className="flex items-center gap-1 rounded-md border border-neutral-200/10 bg-neutral-50 px-2 py-0.5 text-sm text-neutral-800"
+          className="bg-secondary-100 text-secondary flex h-[26px] w-full min-w-[91.5px] items-center justify-center gap-2 rounded-md border px-2 py-0.5 text-sm md:h-full md:gap-1"
         >
-          <CursorRays className="h-4 w-4 text-neutral-600" />
-          {nFormatter(link.clicks)}
+          {/*<CursorRays className="h-4 w-4 text-neutral-600" />*/}
+          <Icon
+            icon="streamline:graph"
+            className="text-secondary h-[14px] w-[14px]"
+          />
+          {nFormatter(link.clicks)} scans
         </Link>
       ) : (
         <>
           <ShareDashboardModal />
-          <Tooltip
-            key={modalShowCount}
-            side="top"
-            content={
-              <div className="flex flex-col gap-2.5 whitespace-nowrap p-3 text-neutral-600">
-                {stats.map(({ id: tab, value }) => (
-                  <div key={tab} className="text-sm leading-none">
-                    <span className="font-medium text-neutral-950">
+          {/*<Tooltip*/}
+          {/*  key={modalShowCount}*/}
+          {/*  side="top"*/}
+          {/*  content={*/}
+          {/*    <div className="flex flex-col gap-2.5 whitespace-nowrap p-3 text-neutral-600">*/}
+          {/*      {stats.map(({ id: tab, value }) => (*/}
+          {/*        <div key={tab} className="text-sm leading-none">*/}
+          {/*          <span className="font-medium text-neutral-950">*/}
+          {/*            {tab === "sales"*/}
+          {/*              ? currencyFormatter(value / 100)*/}
+          {/*              : nFormatter(value, { full: value < INFINITY_NUMBER })}*/}
+          {/*          </span>{" "}*/}
+          {/*          {tab === "sales" ? "total " : ""}*/}
+          {/*          {pluralize(tab.slice(0, -1), value)}*/}
+          {/*        </div>*/}
+          {/*      ))}*/}
+          {/*      <p className="text-xs leading-none text-neutral-400">*/}
+          {/*        {link.lastClicked*/}
+          {/*          ? `Last clicked ${timeAgo(link.lastClicked, {*/}
+          {/*              withAgo: true,*/}
+          {/*            })}`*/}
+          {/*          : "No clicks yet"}*/}
+          {/*      </p>*/}
+
+          {/*      <div className="inline-flex items-start justify-start gap-2">*/}
+          {/*        <Button*/}
+          {/*          text={link.dashboardId ? "Edit sharing" : "Share dashboard"}*/}
+          {/*          className="h-7 w-full px-2"*/}
+          {/*          onClick={() => {*/}
+          {/*            setShowShareDashboardModal(true);*/}
+          {/*            setModalShowCount((c) => c + 1);*/}
+          {/*          }}*/}
+          {/*          disabled={!canManageLink}*/}
+          {/*        />*/}
+
+          {/*        {link.dashboardId && (*/}
+          {/*          <CopyButton*/}
+          {/*            value={`${APP_DOMAIN}/share/${link.dashboardId}`}*/}
+          {/*            variant="neutral"*/}
+          {/*            className="h-7 items-center justify-center rounded-md border border-neutral-300 bg-white p-1.5 hover:bg-neutral-50 active:bg-neutral-100"*/}
+          {/*          />*/}
+          {/*        )}*/}
+          {/*      </div>*/}
+          {/*    </div>*/}
+          {/*  }*/}
+          {/*>*/}
+          <Link
+            href={`/${slug}/analytics?domain=${domain}&key=${key}&interval=${plan === "free" ? "30d" : plan === "pro" ? "1y" : "all"}`}
+            className={cn(
+              "bg-secondary-100 text-secondary w-fit overflow-hidden rounded-md border border-neutral-200/10 p-0.5 text-sm transition-colors",
+              variant === "loose" ? "hover:bg-neutral-100" : "hover:bg-white",
+            )}
+          >
+            <div className="hidden items-center gap-0.5 sm:flex">
+              {stats.map(
+                ({
+                  id: tab,
+                  // icon: Icon,
+                  value,
+                  className,
+                  iconClassName,
+                }) => (
+                  <div
+                    key={tab}
+                    className={cn(
+                      "flex items-center gap-1 whitespace-nowrap rounded-md px-1 py-px transition-colors",
+                      className,
+                    )}
+                  >
+                    {/*<Icon*/}
+                    {/*  data-active={value > 0}*/}
+                    {/*  className={cn("h-4 w-4 shrink-0", iconClassName)}*/}
+                    {/*/>*/}
+                    <span>
                       {tab === "sales"
                         ? currencyFormatter(value / 100)
-                        : nFormatter(value, { full: value < INFINITY_NUMBER })}
-                    </span>{" "}
-                    {tab === "sales" ? "total " : ""}
-                    {pluralize(tab.slice(0, -1), value)}
+                        : nFormatter(value)}
+                      {stats.length === 1 && " scans"}
+                    </span>
                   </div>
-                ))}
-                <p className="text-xs leading-none text-neutral-400">
-                  {link.lastClicked
-                    ? `Last clicked ${timeAgo(link.lastClicked, {
-                        withAgo: true,
-                      })}`
-                    : "No clicks yet"}
-                </p>
-
-                <div className="inline-flex items-start justify-start gap-2">
-                  <Button
-                    text={link.dashboardId ? "Edit sharing" : "Share dashboard"}
-                    className="h-7 w-full px-2"
-                    onClick={() => {
-                      setShowShareDashboardModal(true);
-                      setModalShowCount((c) => c + 1);
-                    }}
-                    disabled={!canManageLink}
-                  />
-
-                  {link.dashboardId && (
-                    <CopyButton
-                      value={`${APP_DOMAIN}/share/${link.dashboardId}`}
-                      variant="neutral"
-                      className="h-7 items-center justify-center rounded-md border border-neutral-300 bg-white p-1.5 hover:bg-neutral-50 active:bg-neutral-100"
-                    />
-                  )}
-                </div>
-              </div>
-            }
-          >
-            <Link
-              href={`/${slug}/analytics?domain=${domain}&key=${key}&interval=${plan === "free" ? "30d" : plan === "pro" ? "1y" : "all"}`}
-              className={cn(
-                "overflow-hidden rounded-md border border-neutral-200/10 bg-neutral-50 p-0.5 text-sm text-neutral-600 transition-colors",
-                variant === "loose" ? "hover:bg-neutral-100" : "hover:bg-white",
+                ),
               )}
-            >
-              <div className="hidden items-center gap-0.5 sm:flex">
-                {stats.map(
-                  ({
-                    id: tab,
-                    // icon: Icon,
-                    value,
-                    className,
-                    iconClassName,
-                  }) => (
-                    <div
-                      key={tab}
-                      className={cn(
-                        "flex items-center gap-1 whitespace-nowrap rounded-md px-1 py-px transition-colors",
-                        className,
-                      )}
-                    >
-                      {/*<Icon*/}
-                      {/*  data-active={value > 0}*/}
-                      {/*  className={cn("h-4 w-4 shrink-0", iconClassName)}*/}
-                      {/*/>*/}
-                      <span>
-                        {tab === "sales"
-                          ? currencyFormatter(value / 100)
-                          : nFormatter(value)}
-                        {stats.length === 1 && " scans"}
-                      </span>
-                    </div>
-                  ),
-                )}
-                {link.dashboardId && (
-                  <div className="border-l border-neutral-200/10 px-1.5">
-                    <ReferredVia className="h-4 w-4 shrink-0 text-neutral-600" />
-                  </div>
-                )}
-              </div>
-            </Link>
-          </Tooltip>
+              {/*{link.dashboardId && (*/}
+              {/*  <div className="border-l border-neutral-200/10 px-1.5">*/}
+              {/*    <ReferredVia className="h-4 w-4 shrink-0 text-neutral-600" />*/}
+              {/*  </div>*/}
+              {/*)}*/}
+            </div>
+          </Link>
+          {/*</Tooltip>*/}
         </>
       )}
     </div>
