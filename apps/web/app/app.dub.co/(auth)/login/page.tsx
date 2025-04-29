@@ -13,7 +13,9 @@ export default function LoginPage() {
     <AuthLayout>
       <div className="w-full max-w-md overflow-hidden border-y border-neutral-200 sm:rounded-2xl sm:border sm:shadow-sm">
         <div className="border-b border-neutral-200 bg-white pb-6 pt-8 text-center">
-          <h3 className="text-lg font-semibold">Sign in to your Dub account</h3>
+          <h3 className="text-lg font-semibold">
+            Sign in to your GetQR account
+          </h3>
         </div>
         <div className="bg-neutral-50 px-4 py-8 sm:px-16">
           <LoginForm />

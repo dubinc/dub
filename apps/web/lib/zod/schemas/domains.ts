@@ -26,7 +26,9 @@ export const DomainSchema = z.object({
     .describe(
       "Provide context to your teammates in the link creation modal by showing them an example of a link to be shortened.",
     )
-    .openapi({ example: "https://dub.co/help/article/what-is-dub" }),
+    .openapi({
+      example: "https://dub.co/help/article/what-is-dub",
+    }),
   expiredUrl: z
     .string()
     .nullable()
@@ -122,7 +124,9 @@ export const createDomainBodySchema = z.object({
     .describe(
       "Provide context to your teammates in the link creation modal by showing them an example of a link to be shortened.",
     )
-    .openapi({ example: "https://dub.co/help/article/what-is-dub" }),
+    .openapi({
+      example: "https://dub.co/help/article/what-is-dub",
+    }),
   logo: z
     .string()
     .trim()

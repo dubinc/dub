@@ -217,6 +217,98 @@ function LinkBuilderInner({
 
   const [, copyToClipboard] = useCopyToClipboard();
 
+  const handleSubmitForm = handleSubmit(async (data) => {
+    // @ts-ignore – exclude extra attributes from `data` object before sending to API
+    const { user, tags, tagId, folderId, ...rest } = data;
+    const bodyData = {
+      ...rest,
+
+      // Map tags to tagIds
+      tagIds: tags.map(({ id }) => id),
+
+      // Replace "unsorted" folder ID w/ null
+      folderId: folderId === "unsorted" ? null : folderId,
+
+      // Manually reset empty strings to null
+      expiredUrl: rest.expiredUrl || null,
+      ios: rest.ios || null,
+      android: rest.android || null,
+    };
+
+    try {
+      const res = await fetch(endpoint.url, {
+        method: endpoint.method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(bodyData),
+      });
+
+      if (res.status === 200) {
+        await mutatePrefix([
+          "/api/links",
+          // if updating root domain link, mutate domains as well
+          ...(key === "_root" ? ["/api/domains"] : []),
+        ]);
+        const data = await res.json();
+        posthog.capture(
+          props ? "link_updated" : "link_created",
+          data,
+        );
+
+        // copy shortlink to clipboard when adding a new link
+        if (!props) {
+          try {
+            await copyToClipboard(data.shortLink);
+            toast.success("Copied short link to clipboard!");
+          } catch (err) {
+            toast.success("Successfully created link!");
+          }
+        } else toast.success("Successfully updated short link!");
+
+        draftControlsRef.current?.onSubmitSuccessful();
+        setShowLinkBuilder(false);
+
+        // Mutate workspace to update usage stats
+        mutate(`/api/workspaces/${slug}`);
+
+        // Navigate to the link's folder
+        if (data.folderId)
+          queryParams({ set: { folderId: data.folderId } });
+        else queryParams({ del: ["folderId"] });
+      } else {
+        const { error } = await res.json();
+
+        if (error) {
+          if (error.message.includes("Upgrade to")) {
+            toast.custom(() => (
+              <UpgradeRequiredToast
+                title={`You've discovered a ${nextPlan.name} feature!`}
+                message={error.message}
+              />
+            ));
+          } else {
+            toast.error(error.message);
+          }
+          const message = error.message.toLowerCase();
+
+          if (message.includes("key"))
+            setError("key", { message: error.message });
+          else if (message.includes("url"))
+            setError("url", { message: error.message });
+          else setError("root", { message: "Failed to save link" });
+        } else {
+          setError("root", { message: "Failed to save link" });
+          toast.error("Failed to save link");
+        }
+      }
+    } catch (e) {
+      setError("root", { message: "Failed to save link" });
+      console.error("Failed to save link", e);
+      toast.error("Failed to save link");
+    }
+  });
+
   return (
     <>
       <PasswordModal />
@@ -245,97 +337,7 @@ function LinkBuilderInner({
         >
           <form
             ref={formRef}
-            onSubmit={handleSubmit(async (data) => {
-              // @ts-ignore – exclude extra attributes from `data` object before sending to API
-              const { user, tags, tagId, folderId, ...rest } = data;
-              const bodyData = {
-                ...rest,
-
-                // Map tags to tagIds
-                tagIds: tags.map(({ id }) => id),
-
-                // Replace "unsorted" folder ID w/ null
-                folderId: folderId === "unsorted" ? null : folderId,
-
-                // Manually reset empty strings to null
-                expiredUrl: rest.expiredUrl || null,
-                ios: rest.ios || null,
-                android: rest.android || null,
-              };
-
-              try {
-                const res = await fetch(endpoint.url, {
-                  method: endpoint.method,
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify(bodyData),
-                });
-
-                if (res.status === 200) {
-                  await mutatePrefix([
-                    "/api/links",
-                    // if updating root domain link, mutate domains as well
-                    ...(key === "_root" ? ["/api/domains"] : []),
-                  ]);
-                  const data = await res.json();
-                  posthog.capture(
-                    props ? "link_updated" : "link_created",
-                    data,
-                  );
-
-                  // copy shortlink to clipboard when adding a new link
-                  if (!props) {
-                    try {
-                      await copyToClipboard(data.shortLink);
-                      toast.success("Copied short link to clipboard!");
-                    } catch (err) {
-                      toast.success("Successfully created link!");
-                    }
-                  } else toast.success("Successfully updated short link!");
-
-                  draftControlsRef.current?.onSubmitSuccessful();
-                  setShowLinkBuilder(false);
-
-                  // Mutate workspace to update usage stats
-                  mutate(`/api/workspaces/${slug}`);
-
-                  // Navigate to the link's folder
-                  if (data.folderId)
-                    queryParams({ set: { folderId: data.folderId } });
-                  else queryParams({ del: ["folderId"] });
-                } else {
-                  const { error } = await res.json();
-
-                  if (error) {
-                    if (error.message.includes("Upgrade to")) {
-                      toast.custom(() => (
-                        <UpgradeRequiredToast
-                          title={`You've discovered a ${nextPlan.name} feature!`}
-                          message={error.message}
-                        />
-                      ));
-                    } else {
-                      toast.error(error.message);
-                    }
-                    const message = error.message.toLowerCase();
-
-                    if (message.includes("key"))
-                      setError("key", { message: error.message });
-                    else if (message.includes("url"))
-                      setError("url", { message: error.message });
-                    else setError("root", { message: "Failed to save link" });
-                  } else {
-                    setError("root", { message: "Failed to save link" });
-                    toast.error("Failed to save link");
-                  }
-                }
-              } catch (e) {
-                setError("root", { message: "Failed to save link" });
-                console.error("Failed to save link", e);
-                toast.error("Failed to save link");
-              }
-            })}
+            onSubmit={handleSubmitForm}
           >
             <div className="flex flex-col items-start gap-2 px-6 py-4 md:flex-row md:items-center md:justify-between">
               {flags?.linkFolders && (
@@ -596,8 +598,8 @@ export function CreateLinkButton({
 
   return (
     <Button
-      text="Create link"
-      shortcut="C"
+      text="Create QR code"
+      // shortcut="C"
       disabledTooltip={
         exceededLinks ? (
           <TooltipContent

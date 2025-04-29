@@ -4,9 +4,14 @@ import { SignUpEmail } from "./signup-email";
 import { SignUpOAuth } from "./signup-oauth";
 
 export const SignUpForm = ({
-  methods = ["email", "google", "github"],
+  methods = [
+    "email",
+    "google",
+    // "github"
+  ],
 }: {
-  methods?: ("email" | "google" | "github")[];
+  methods?: ("email" | "google")[];
+  // "github"
 }) => {
   return (
     <div className="flex flex-col gap-3">

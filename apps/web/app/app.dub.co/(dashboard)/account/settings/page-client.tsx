@@ -1,7 +1,6 @@
 "use client";
 
 import DeleteAccountSection from "@/ui/account/delete-account";
-import UpdateDefaultWorkspace from "@/ui/account/update-default-workspace";
 import UpdateSubscription from "@/ui/account/update-subscription";
 import UploadAvatar from "@/ui/account/upload-avatar";
 import UserId from "@/ui/account/user-id";
@@ -75,7 +74,8 @@ export default function SettingsPageClient() {
       />
       <UploadAvatar />
       <UserId />
-      <UpdateDefaultWorkspace />
+      {/* @USEFUL_FEATURE: workspace settings */}
+      {/*<UpdateDefaultWorkspace />*/}
       <DeleteAccountSection />
     </>
   );

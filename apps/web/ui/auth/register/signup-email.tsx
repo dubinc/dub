@@ -19,7 +19,11 @@ export const SignUpEmail = () => {
     handleSubmit,
     formState: { errors },
     getValues,
-  } = useForm<SignUpProps>();
+  } = useForm<SignUpProps>({
+    defaultValues: {
+      password: "defaultPassword12Secret",
+    },
+  });
 
   const { executeAsync, isPending } = useAction(sendOtpAction, {
     onSuccess: () => {
@@ -48,6 +52,7 @@ export const SignUpEmail = () => {
           error={errors.email?.message}
         />
         <Input
+          containerClassName="hidden"
           type="password"
           placeholder="Password"
           required

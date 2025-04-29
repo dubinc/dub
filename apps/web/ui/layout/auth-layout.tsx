@@ -1,24 +1,33 @@
+import barchart from "@/ui/landing/assets/svg/barchart.svg";
+import benzinga from "@/ui/landing/assets/svg/benzinga.svg";
+import fox from "@/ui/landing/assets/svg/fox.svg";
+import globeAndMail from "@/ui/landing/assets/svg/globe-and-mail.svg";
+import msn from "@/ui/landing/assets/svg/msn.svg";
+import yahoo from "@/ui/landing/assets/svg/yahoo.svg";
+import { ScrollingBanner } from "@/ui/landing/scrolling-banner.tsx";
 import { BlurImage, ClientOnly } from "@dub/ui";
 import { Suspense } from "react";
 
-const logos = [
-  "vercel",
-  "perplexity",
-  "prisma",
-  "tinybird",
-  "hashnode",
-  "cal",
-  "vercel",
-  "perplexity",
-  "prisma",
-  "tinybird",
-  "hashnode",
-  "cal",
-];
+// const logos = [
+//   "vercel",
+//   "perplexity",
+//   "prisma",
+//   "tinybird",
+//   "hashnode",
+//   "cal",
+//   "vercel",
+//   "perplexity",
+//   "prisma",
+//   "tinybird",
+//   "hashnode",
+//   "cal",
+// ];
 
 interface AuthLayoutProps {
   children: React.ReactNode;
 }
+
+const news = [fox, globeAndMail, yahoo, barchart, benzinga, msn];
 
 export const AuthLayout = ({ children }: AuthLayoutProps) => {
   return (
@@ -32,7 +41,7 @@ export const AuthLayout = ({ children }: AuthLayoutProps) => {
 
         <div className="grid gap-2 pb-8 pt-4">
           <p className="text-xs text-neutral-600">
-            © {new Date().getFullYear()} Dub Technologies, Inc.
+            © {new Date().getFullYear()} GetQR Technologies, Inc.
           </p>
           <div className="flex gap-3 text-center text-xs text-neutral-500 underline underline-offset-2">
             <a
@@ -63,22 +72,24 @@ export const AuthLayout = ({ children }: AuthLayoutProps) => {
             className="aspect-[2400/1260] h-full rounded-lg border border-neutral-200 object-cover object-left-top"
           />
         </div>
-        <a
-          href="https://dub.co/customers"
-          target="_blank"
-          className="animate-infinite-scroll flex items-center space-x-4"
-        >
-          {logos.map((logo, idx) => (
-            <BlurImage
-              alt={`${logo} logo`}
-              key={idx}
-              src={`https://assets.dub.co/clients/${logo}.svg`}
-              width={520}
-              height={182}
-              className="h-12 grayscale transition-all hover:grayscale-0"
-            />
-          ))}
-        </a>
+        {/*<a*/}
+        {/*  href="https://dub.co/customers"*/}
+        {/*  target="_blank"*/}
+        {/*  className="animate-infinite-scroll flex items-center space-x-4"*/}
+        {/*>*/}
+        {/*  {logos.map((logo, idx) => (*/}
+        {/*    <BlurImage*/}
+        {/*      alt={`${logo} logo`}*/}
+        {/*      key={idx}*/}
+        {/*      src={`https://assets.dub.co/clients/${logo}.svg`}*/}
+        {/*      width={520}*/}
+        {/*      height={182}*/}
+        {/*      className="h-12 grayscale transition-all hover:grayscale-0"*/}
+        {/*    />*/}
+        {/*  ))}*/}
+        {/*</a>*/}
+
+        <ScrollingBanner data={news} />
       </div>
     </div>
   );

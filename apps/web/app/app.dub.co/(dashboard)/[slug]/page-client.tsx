@@ -7,7 +7,7 @@ import {
 import useLinks from "@/lib/swr/use-links";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { RequestFolderEditAccessButton } from "@/ui/folders/request-edit-button";
-import LinkDisplay from "@/ui/links/link-display";
+import LinkSort from "@/ui/links/link-sort.tsx";
 import LinksContainer from "@/ui/links/links-container";
 import { LinksDisplayProvider } from "@/ui/links/links-display-provider";
 import { useLinkFilters } from "@/ui/links/use-link-filters";
@@ -25,7 +25,7 @@ import {
   Tooltip,
   TooltipContent,
 } from "@dub/ui";
-import { Download, Globe, TableIcon, Tag } from "@dub/ui/icons";
+import { Download, TableIcon } from "@dub/ui/icons";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
@@ -90,63 +90,68 @@ function WorkspaceLinks() {
         <MaxWidthWrapper className="flex flex-col gap-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2 lg:flex-nowrap">
             <div className="flex w-full grow gap-2 md:w-auto">
+              {/* @USEFUL_FEATURE: links table filters */}
+              {/*<div className="grow basis-0 md:grow-0">*/}
+              {/*  <Filter.Select*/}
+              {/*    filters={filters}*/}
+              {/*    activeFilters={activeFilters}*/}
+              {/*    onSelect={onSelect}*/}
+              {/*    onRemove={onRemove}*/}
+              {/*    onSearchChange={setSearch}*/}
+              {/*    onSelectedFilterChange={setSelectedFilter}*/}
+              {/*    className="w-full"*/}
+              {/*    emptyState={{*/}
+              {/*      tagIds: (*/}
+              {/*        <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">*/}
+              {/*          <div className="flex items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50 p-3">*/}
+              {/*            <Tag className="size-6 text-neutral-700" />*/}
+              {/*          </div>*/}
+              {/*          <p className="mt-2 font-medium text-neutral-950">*/}
+              {/*            No tags found*/}
+              {/*          </p>*/}
+              {/*          <p className="mx-auto mt-1 w-full max-w-[180px] text-neutral-700">*/}
+              {/*            Add tags to organize your links*/}
+              {/*          </p>*/}
+              {/*          <div>*/}
+              {/*            <Button*/}
+              {/*              className="mt-1 h-8"*/}
+              {/*              onClick={() => setShowAddEditTagModal(true)}*/}
+              {/*              text="Add tag"*/}
+              {/*            />*/}
+              {/*          </div>*/}
+              {/*        </div>*/}
+              {/*      ),*/}
+              {/*      domain: (*/}
+              {/*        <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">*/}
+              {/*          <div className="flex items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50 p-3">*/}
+              {/*            <Globe className="size-6 text-neutral-700" />*/}
+              {/*          </div>*/}
+              {/*          <p className="mt-2 font-medium text-neutral-950">*/}
+              {/*            No domains found*/}
+              {/*          </p>*/}
+              {/*          <p className="mx-auto mt-1 w-full max-w-[180px] text-neutral-700">*/}
+              {/*            Add a custom domain to match your brand*/}
+              {/*          </p>*/}
+              {/*          <div>*/}
+              {/*            <Button*/}
+              {/*              className="mt-1 h-8"*/}
+              {/*              onClick={() =>*/}
+              {/*                router.push(`/${slug}/settings/domains`)*/}
+              {/*              }*/}
+              {/*              text="Add domain"*/}
+              {/*            />*/}
+              {/*          </div>*/}
+              {/*        </div>*/}
+              {/*      ),*/}
+              {/*    }}*/}
+              {/*  />*/}
+              {/*</div>*/}
+              {/* @USEFUL_FEATURE: link table display settings */}
+              {/*<div className="grow basis-0 md:grow-0">*/}
+              {/*  <LinkDisplay />*/}
+              {/*</div>*/}
               <div className="grow basis-0 md:grow-0">
-                <Filter.Select
-                  filters={filters}
-                  activeFilters={activeFilters}
-                  onSelect={onSelect}
-                  onRemove={onRemove}
-                  onSearchChange={setSearch}
-                  onSelectedFilterChange={setSelectedFilter}
-                  className="w-full"
-                  emptyState={{
-                    tagIds: (
-                      <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">
-                        <div className="flex items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
-                          <Tag className="size-6 text-neutral-700" />
-                        </div>
-                        <p className="mt-2 font-medium text-neutral-950">
-                          No tags found
-                        </p>
-                        <p className="mx-auto mt-1 w-full max-w-[180px] text-neutral-700">
-                          Add tags to organize your links
-                        </p>
-                        <div>
-                          <Button
-                            className="mt-1 h-8"
-                            onClick={() => setShowAddEditTagModal(true)}
-                            text="Add tag"
-                          />
-                        </div>
-                      </div>
-                    ),
-                    domain: (
-                      <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">
-                        <div className="flex items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
-                          <Globe className="size-6 text-neutral-700" />
-                        </div>
-                        <p className="mt-2 font-medium text-neutral-950">
-                          No domains found
-                        </p>
-                        <p className="mx-auto mt-1 w-full max-w-[180px] text-neutral-700">
-                          Add a custom domain to match your brand
-                        </p>
-                        <div>
-                          <Button
-                            className="mt-1 h-8"
-                            onClick={() =>
-                              router.push(`/${slug}/settings/domains`)
-                            }
-                            text="Add domain"
-                          />
-                        </div>
-                      </div>
-                    ),
-                  }}
-                />
-              </div>
-              <div className="grow basis-0 md:grow-0">
-                <LinkDisplay />
+                <LinkSort />
               </div>
             </div>
             <div className="flex gap-x-2 max-md:w-full">
@@ -167,7 +172,8 @@ function WorkspaceLinks() {
                   <div className="grow-0">
                     <CreateLinkButton />
                   </div>
-                  <MoreLinkOptions />
+                  {/* @USEFUL_FEATURE: more links next to Create QR button */}
+                  {/*<MoreLinkOptions />*/}
                 </>
               ) : (
                 <div className="w-fit">

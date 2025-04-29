@@ -8,7 +8,7 @@ export const buttonVariants = cva("transition-all", {
   variants: {
     variant: {
       primary:
-        "border-black bg-black text-white hover:bg-neutral-800 hover:ring-4 hover:ring-neutral-200",
+        "border-secondary bg-secondary text-white hover:ring-4 hover:ring-secondary-200/40",
       secondary: cn(
         "border-neutral-200 bg-white text-neutral-900 hover:bg-neutral-50 focus-visible:border-neutral-500 outline-none",
         "data-[state=open]:border-neutral-500 data-[state=open]:ring-4 data-[state=open]:ring-neutral-200",
@@ -132,7 +132,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
                   variant === "primary",
                 "bg-neutral-200 text-neutral-400 group-hover:bg-neutral-100 group-hover:text-neutral-500":
                   variant === "secondary",
-                "bg-neutral-100 text-neutral-500 group-hover:bg-neutral-200":
+                "bg-neutral-100 text-neutral-500 group-hover:bg-neutral-200 group-hover:text-white":
                   variant === "outline",
                 "bg-red-100 text-red-600 group-hover:bg-red-500 group-hover:text-white":
                   variant === "danger-outline",

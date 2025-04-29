@@ -1,0 +1,39 @@
+enum QRType {
+  website
+  whatsapp
+  social
+  wifi
+  app
+  pdf
+  image
+  video
+  feedback
+  email
+}
+
+model Qr {
+  id              String     @id @default(cuid())
+  data            String     @db.LongText
+
+  qrType          QRType
+
+  title           String?
+  description     String?    @db.VarChar(280)
+
+  archived        Boolean    @default(false)
+
+  styles          Json?      // styles of the qr
+  frameOptions    Json?
+
+  workspaceId     String?
+
+  linkId          String?
+  link            Link?      @relation(fields: [linkId], references: [id])
+
+  // User who created the qr
+  userId          String?
+  user            User?      @relation(fields: [userId], references: [id])
+
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+}

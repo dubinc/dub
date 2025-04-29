@@ -11,5 +11,8 @@ export async function getUserViaToken(req: NextRequest) {
     user?: UserProps;
   };
 
+  console.log('session');
+  console.log(session);
+
   return session?.user;
 }

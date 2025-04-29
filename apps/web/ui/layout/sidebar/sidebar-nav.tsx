@@ -1,4 +1,5 @@
-import { AnimatedSizeContainer, ClientOnly, Icon, NavWordmark } from "@dub/ui";
+import { Logo } from "@/ui/shared/logo.tsx";
+import { AnimatedSizeContainer, ClientOnly, Icon } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, ChevronLeft } from "lucide-react";
@@ -85,7 +86,8 @@ export function SidebarNav<T extends Record<any, any>>({
                     {title}
                   </div>
                 ) : (
-                  <NavWordmark className="h-6" isInApp />
+                  // <NavWordmark className="h-6" isInApp />
+                  <Logo />
                 )}
               </Link>
             );
@@ -123,6 +125,7 @@ export function SidebarNav<T extends Record<any, any>>({
                     </div>
                   ))}
                 </div>
+
                 <AnimatePresence>
                   {showNews && (
                     <motion.div
@@ -176,7 +179,7 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
         onPointerEnter={() => setHovered(true)}
         onPointerLeave={() => setHovered(false)}
         className={cn(
-          "group flex items-center gap-2.5 rounded-md p-2 text-sm leading-none text-neutral-600 transition-[background-color,color,font-weight] duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80",
+          "group flex items-center gap-2.5 rounded-md p-2 text-sm leading-none text-neutral-600 transition-[background-color,color,font-weight] duration-75 hover:bg-neutral-200/10 active:bg-neutral-200/20",
           "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
           isActive &&
             !items &&
@@ -187,7 +190,7 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
           <Icon
             className={cn(
               "size-4 text-neutral-500 transition-colors duration-75",
-              !items && "group-data-[active=true]:text-blue-600",
+              isActive && !items && "text-blue-600",
             )}
             data-hovered={hovered}
           />

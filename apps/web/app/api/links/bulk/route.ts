@@ -289,7 +289,9 @@ export const PATCH = withWorkspace(
           })),
       );
 
+    // @ts-ignore
     let { tagNames, expiresAt } = data;
+    // @ts-ignore
     const tagIds = combineTagIds(data);
     // tag checks
     if (tagIds && tagIds.length > 0) {
@@ -325,10 +327,12 @@ export const PATCH = withWorkspace(
       }
     }
 
+    //@ts-ignore
     if (data.folderId) {
       await verifyFolderAccess({
         workspace,
         userId: session.user.id,
+        //@ts-ignore
         folderId: data.folderId,
         requiredPermission: "folders.links.write",
       });

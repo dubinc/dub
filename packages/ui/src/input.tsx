@@ -6,10 +6,11 @@ import { Eye, EyeSlash } from "./icons";
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
   error?: string;
+  containerClassName?: string;
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, ...props }, ref) => {
+  ({ className, containerClassName, type, ...props }, ref) => {
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
     const toggleIsPasswordVisible = useCallback(
@@ -18,7 +19,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     );
 
     return (
-      <div>
+      <div className={containerClassName}>
         <div className="relative flex">
           <input
             type={isPasswordVisible ? "text" : type}

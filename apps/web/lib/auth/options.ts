@@ -52,10 +52,20 @@ export const authOptions: NextAuthOptions = {
           console.log(`Login link: ${url}`);
           return;
         } else {
+          console.log('sending login email');
           sendEmail({
             email: identifier,
             subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} Login Link`,
-            react: LoginLink({ url, email: identifier }),
+            // react: LoginLink({ url, email: identifier }),
+            text: url,
+          }).then((data) => {
+            console.log('login email sent');
+            console.log(data);
+          }).catch((err) => {
+            console.log('login email err');
+            console.log(err);
+          }).finally(() => {
+            console.log('sending email finally');
           });
         }
       },
@@ -134,6 +144,9 @@ export const authOptions: NextAuthOptions = {
         }
 
         const { code } = credentials;
+
+        console.log('credentials');
+        console.log(credentials);
 
         if (!code) {
           return null;
@@ -311,8 +324,11 @@ export const authOptions: NextAuthOptions = {
         sameSite: "lax",
         path: "/",
         // When working on localhost, the cookie domain must be omitted entirely (https://stackoverflow.com/a/1188145)
+        // domain: VERCEL_DEPLOYMENT
+        //   ? `.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
+        //   : undefined,
         domain: VERCEL_DEPLOYMENT
-          ? `.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
+          ? `.getqr.com`
           : undefined,
         secure: VERCEL_DEPLOYMENT,
       },

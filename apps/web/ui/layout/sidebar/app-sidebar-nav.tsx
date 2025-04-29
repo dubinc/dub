@@ -17,17 +17,14 @@ import {
   Users6,
   Webhook,
 } from "@dub/ui/icons";
+import { Icon } from "@iconify/react";
 import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
-import UserSurveyButton from "../user-survey";
-import { CursorRays } from "./icons/cursor-rays";
-import { Gear } from "./icons/gear";
-import { Hyperlink } from "./icons/hyperlink";
 import { LinesY } from "./icons/lines-y";
 import { SidebarNav, SidebarNavAreas } from "./sidebar-nav";
-import { Usage } from "./usage";
 import { WorkspaceDropdown } from "./workspace-dropdown";
 
 const NAV_AREAS: SidebarNavAreas<{
@@ -40,33 +37,72 @@ const NAV_AREAS: SidebarNavAreas<{
 }> = {
   // Top-level
   default: ({ slug, pathname, queryString, programs, showNews }) => ({
-    showSwitcher: true,
+    showSwitcher: false,
     showNews,
     direction: "left",
     content: [
       {
         items: [
+          // {
+          //   name: "Links",
+          //   icon: Hyperlink,
+          //   href: `/${slug}${pathname === `/${slug}` ? "" : queryString}`,
+          //   exact: true,
+          // },
+          // {
+          //   name: "Analytics",
+          //   icon: LinesY,
+          //   href: `/${slug}/analytics${pathname === `/${slug}/analytics` ? "" : queryString}`,
+          // },
+          // {
+          //   name: "Events",
+          //   icon: CursorRays,
+          //   href: `/${slug}/events${pathname === `/${slug}/events` ? "" : queryString}`,
+          // },
+          // {
+          //   name: "Settings",
+          //   icon: Gear,
+          //   href: `/${slug}/settings`,
+          // },
           {
-            name: "Links",
-            icon: Hyperlink,
-            href: `/${slug}${pathname === `/${slug}` ? "" : queryString}`,
+            name: "My QR Codes",
+            icon: () => <Icon icon="mage:qr-code" className="h-5 w-5" />,
+            href: `/${slug}`,
             exact: true,
+            // href: "/", // @TODO: Add my QR codes page
           },
           {
-            name: "Analytics",
-            icon: LinesY,
+            name: "Statistics",
+            icon: () => <Icon icon="streamline:graph" className="h-5 w-5" />,
+            // href: "/statistics", // @TODO: Add statistics page`,
             href: `/${slug}/analytics${pathname === `/${slug}/analytics` ? "" : queryString}`,
           },
           {
-            name: "Events",
-            icon: CursorRays,
-            href: `/${slug}/events${pathname === `/${slug}/events` ? "" : queryString}`,
+            name: "Plans and Payments",
+            icon: () => <Icon icon="ion:card-outline" className="h-5 w-5" />,
+            href: "/plans", // @TODO: Add plans and payments page
           },
-          {
-            name: "Settings",
-            icon: Gear,
-            href: `/${slug}/settings`,
-          },
+          // {
+          //   name: "Account",
+          //   icon: () => (
+          //     <Icon
+          //       className="h-5 w-5 text-neutral-200"
+          //       icon="iconoir:profile-circle"
+          //     />
+          //   ),
+          //   // href: "/account/settings",
+          //   href: `/${slug}/settings`,
+          // },
+          // {
+          //   name: "FAQ",
+          //   icon: () => (
+          //     <Icon
+          //       className="h-5 w-5 text-neutral-200"
+          //       icon="iconoir:question-mark-circle"
+          //     />
+          //   ),
+          //   href: "/faq", // @TODO: Add FAQ page
+          // },
         ],
       },
       ...(programs?.length
@@ -270,10 +306,16 @@ export function AppSidebarNav({
       newsContent={newsContent}
       switcher={<WorkspaceDropdown />}
       bottom={
-        <>
-          <UserSurveyButton />
-          <Usage />
-        </>
+        <div className="p-3">
+          <Link
+            className="text-content-inverted hover:bg-inverted hover:ring-border-subtle bordbg-secondary bg-secondary flex h-9 items-center justify-center rounded-md border px-4 text-sm text-white transition-all hover:ring-4 dark:border-white dark:bg-white"
+            href={"/upgrade"} // @TODO: Add upgrade page
+          >
+            Upgrade
+          </Link>
+          {/*<UserSurveyButton />*/}
+          {/*<Usage />*/}
+        </div>
       }
     />
   );
