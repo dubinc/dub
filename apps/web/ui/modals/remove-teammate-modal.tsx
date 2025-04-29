@@ -1,8 +1,8 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { UserProps } from "@/lib/types";
-import { Avatar, BlurImage, Button, Logo, Modal, useMediaQuery } from "@dub/ui";
+import { Button, Key, Modal, useMediaQuery } from "@dub/ui";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/router";
 import {
   Dispatch,
   SetStateAction,
@@ -25,29 +25,62 @@ function RemoveTeammateModal({
   invite?: boolean;
 }) {
   const router = useRouter();
+  const { isMobile } = useMediaQuery();
+  const { data: session } = useSession();
   const [removing, setRemoving] = useState(false);
   const { id: workspaceId, name: workspaceName, logo } = useWorkspace();
-  const { data: session } = useSession();
+
   const { id, name, email } = user;
-  const { isMobile } = useMediaQuery();
+
+  const removeTeammate = async () => {
+    setRemoving(true);
+
+    const response = await fetch(
+      `/api/workspaces/${workspaceId}/${
+        invite
+          ? `invites?email=${encodeURIComponent(email)}`
+          : `users?userId=${id}`
+      }`,
+      {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+
+    if (response.status === 200) {
+      await mutate(
+        `/api/workspaces/${workspaceId}/${invite ? "invites" : "users"}`,
+      );
+
+      if (session?.user?.email === email) {
+        await mutate("/api/workspaces");
+        router.push("/");
+      } else {
+        setShowRemoveTeammateModal(false);
+      }
+
+      toast.success(
+        session?.user?.email === email
+          ? "You have left the workspace!"
+          : invite
+            ? "Successfully revoked invitation!"
+            : "Successfully removed teammate!",
+      );
+    } else {
+      const { error } = await response.json();
+      toast.error(error.message);
+    }
+
+    setRemoving(false);
+  };
 
   return (
     <Modal
       showModal={showRemoveTeammateModal}
       setShowModal={setShowRemoveTeammateModal}
+      className="max-w-md"
     >
-      <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-4 pt-8 sm:px-16">
-        {logo ? (
-          <BlurImage
-            src={logo}
-            alt="Workspace logo"
-            className="h-10 w-10 rounded-full"
-            width={20}
-            height={20}
-          />
-        ) : (
-          <Logo />
-        )}
+      <div className="space-y-2 border-b border-neutral-200 px-4 py-4 sm:px-6">
         <h3 className="text-lg font-medium">
           {invite
             ? "Revoke Invitation"
@@ -55,7 +88,7 @@ function RemoveTeammateModal({
               ? "Leave Workspace"
               : "Remove Teammate"}
         </h3>
-        <p className="text-center text-sm text-neutral-500">
+        <p className="text-sm text-neutral-500">
           {invite
             ? "This will revoke "
             : session?.user?.email === email
@@ -73,56 +106,51 @@ function RemoveTeammateModal({
         </p>
       </div>
 
-      <div className="flex flex-col space-y-4 bg-neutral-50 px-4 py-8 text-left sm:px-16">
-        <div className="flex items-center space-x-3 rounded-md border border-neutral-300 bg-white p-3">
-          <Avatar user={user} />
-          <div className="flex flex-col">
-            <h3 className="text-sm font-medium">{name || email}</h3>
-            <p className="text-xs text-neutral-500">{email}</p>
-          </div>
+      <div className="flex flex-col space-y-4 bg-neutral-50 px-4 py-4 sm:px-6">
+        <div className="relative flex items-center gap-2 space-x-3 rounded-md border border-neutral-300 bg-white px-4 py-2">
+          <Key className="size-5 text-neutral-500" />
+
+          {/* <div className="flex flex-1 flex-col gap-0.5">
+            <h3 className="line-clamp-1 text-sm font-medium text-neutral-600">
+              {token.name}
+            </h3>
+            <p
+              className="text-xs font-medium text-neutral-500"
+              suppressHydrationWarning
+            >
+              {token.partialKey}
+            </p>
+          </div> */}
+
+          {/* <div className="flex items-center gap-2">
+            {token.user && (
+              <Tooltip content={token.user.name}>
+                <img
+                  src={
+                    token.user.isMachine
+                      ? "https://api.dicebear.com/7.x/bottts/svg?seed=Sara"
+                      : token.user.image || `${OG_AVATAR_URL}${token.user.id}`
+                  }
+                  alt={token.user.name!}
+                  className="size-5 rounded-full"
+                />
+              </Tooltip>
+            )}
+            <p className="text-xs text-neutral-500">
+              {new Date(token.createdAt).toLocaleDateString("en-us", {
+                month: "short",
+                day: "numeric",
+              })}
+            </p>
+          </div> */}
         </div>
+
         <Button
-          text="Confirm"
+          text="Delete"
           variant="danger"
           autoFocus={!isMobile}
           loading={removing}
-          onClick={() => {
-            setRemoving(true);
-            fetch(
-              `/api/workspaces/${workspaceId}/${
-                invite
-                  ? `invites?email=${encodeURIComponent(email)}`
-                  : `users?userId=${id}`
-              }`,
-              {
-                method: "DELETE",
-                headers: { "Content-Type": "application/json" },
-              },
-            ).then(async (res) => {
-              if (res.status === 200) {
-                await mutate(
-                  `/api/workspaces/${workspaceId}/${invite ? "invites" : "users"}`,
-                );
-                if (session?.user?.email === email) {
-                  await mutate("/api/workspaces");
-                  router.push("/");
-                } else {
-                  setShowRemoveTeammateModal(false);
-                }
-                toast.success(
-                  session?.user?.email === email
-                    ? "You have left the workspace!"
-                    : invite
-                      ? "Successfully revoked invitation!"
-                      : "Successfully removed teammate!",
-                );
-              } else {
-                const { error } = await res.json();
-                toast.error(error.message);
-              }
-              setRemoving(false);
-            });
-          }}
+          onClick={removeTeammate}
         />
       </div>
     </Modal>
