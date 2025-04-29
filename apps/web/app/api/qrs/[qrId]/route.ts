@@ -22,7 +22,7 @@ export const GET = withWorkspace(
   },
 );
 
-// PATCH /api/qrs/[qrId] – update a qr
+// PATCH /api/qrs/[qrId] – update a qr
 export const PATCH = withWorkspace(
   async ({ req, headers, workspace, params, session }) => {
     const qr = await getQr({
@@ -67,10 +67,47 @@ export const PATCH = withWorkspace(
   },
 );
 
-// backwards compatibility
-export const PUT = PATCH;
+// PUT /api/links/[qrId] – archive a qr
+export const PUT = withWorkspace(
+  async ({ req, headers, params, workspace, session }) => {
+    const qr = await getQr({
+      qrId: params.qrId,
+    });
 
-// DELETE /api/links/[qrId] – delete a link
+    if (session.user.id !== qr.userId) {
+      throw new DubApiError({
+        code: "unprocessable_entity",
+        message: "Access denied",
+      });
+    }
+
+    const body = (await parseRequestBody(req)) || {};
+
+    const updatedLink = await prisma.link.update({
+      where: {
+        id: qr.link!.id!,
+      },
+      data: {
+        archived: body.archived || false,
+      },
+    });
+
+    return NextResponse.json(
+      {
+        qr: {
+          ...qr,
+          link: updatedLink,
+        },
+      },
+      { headers },
+    );
+  },
+  {
+    requiredPermissions: ["links.write"],
+  },
+);
+
+// DELETE /api/links/[qrId] –delete a qr
 export const DELETE = withWorkspace(
   async ({ headers, params, workspace, session }) => {
     const qr = await getQr({

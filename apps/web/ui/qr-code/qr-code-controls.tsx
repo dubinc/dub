@@ -1,5 +1,5 @@
 import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
-import { useArchiveLinkModal } from "@/ui/modals/archive-link-modal";
+import { useArchiveQRModal } from "@/ui/modals/archive-qr-modal.tsx";
 import { useDeleteQRModal } from "@/ui/modals/delete-qr-modal.tsx";
 import { useQRBuilder } from "@/ui/modals/qr-builder";
 import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization";
@@ -39,8 +39,8 @@ export function QrCodeControls({ qrCode, canvasRef }: QrCodeControlsProps) {
     setOpenMenuQrCodeId(open ? qrCode.id : null);
   };
 
-  const { setShowArchiveLinkModal, ArchiveLinkModal } = useArchiveLinkModal({
-    props: qrCode.link,
+  const { setShowArchiveQRModal, ArchiveQRModal } = useArchiveQRModal({
+    props: qrCode,
   });
   const { setShowDeleteQRModal, DeleteLinkModal } = useDeleteQRModal({
     props: qrCode,
@@ -66,7 +66,7 @@ export function QrCodeControls({ qrCode, canvasRef }: QrCodeControlsProps) {
           canManageLink && setShowQRBuilderModal(true);
           break;
         case "a":
-          canManageLink && setShowArchiveLinkModal(true);
+          canManageLink && setShowArchiveQRModal(true);
           break;
         case "x":
           canManageLink && setShowDeleteQRModal(true);
@@ -81,7 +81,7 @@ export function QrCodeControls({ qrCode, canvasRef }: QrCodeControlsProps) {
   return (
     <div className="flex justify-end gap-2">
       <QRBuilderModal />
-      <ArchiveLinkModal />
+      <ArchiveQRModal />
       <DeleteLinkModal />
       {canvasRef && (
         <DownloadPopover qrCode={qrCode} canvasRef={canvasRef}>
@@ -124,7 +124,7 @@ export function QrCodeControls({ qrCode, canvasRef }: QrCodeControlsProps) {
                 variant="outline"
                 onClick={() => {
                   setOpenPopover(false);
-                  setShowArchiveLinkModal(true);
+                  setShowArchiveQRModal(true);
                 }}
                 icon={<BoxArchive className="size-4" />}
                 shortcut="A"
