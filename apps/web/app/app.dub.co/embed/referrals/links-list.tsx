@@ -2,7 +2,13 @@ import { PARTNER_LINKS_LIMIT } from "@/lib/embed/constants";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { Button, CopyButton, Table, Users, useTable } from "@dub/ui";
 import { Pen2, Plus2 } from "@dub/ui/icons";
-import { fetcher, getPrettyUrl, TAB_ITEM_ANIMATION_SETTINGS } from "@dub/utils";
+import {
+  currencyFormatter,
+  fetcher,
+  getPrettyUrl,
+  nFormatter,
+  TAB_ITEM_ANIMATION_SETTINGS,
+} from "@dub/utils";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
@@ -67,21 +73,21 @@ export function ReferralsEmbedLinksList({
         header: "Clicks",
         minSize: 80,
         maxSize: 100,
-        cell: ({ row }) => row.original.clicks,
+        cell: ({ row }) => nFormatter(row.original.clicks),
       },
       {
         id: "leads",
         header: "Leads",
         minSize: 80,
         maxSize: 100,
-        cell: ({ row }) => row.original.leads,
+        cell: ({ row }) => nFormatter(row.original.leads),
       },
       {
         id: "sales",
         header: "Sales",
         minSize: 80,
         maxSize: 100,
-        cell: ({ row }) => row.original.sales,
+        cell: ({ row }) => currencyFormatter(row.original.saleAmount / 100),
       },
       {
         id: "actions",
