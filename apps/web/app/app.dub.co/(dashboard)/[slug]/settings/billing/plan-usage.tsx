@@ -43,6 +43,7 @@ export default function PlanUsage() {
     salesLimit,
     linksUsage,
     linksLimit,
+    totalLinks,
     domains,
     domainsLimit,
     foldersUsage,
@@ -83,6 +84,52 @@ export default function PlanUsage() {
     }
     return [];
   }, [billingCycleStart]);
+
+  const usageTabs = useMemo(() => {
+    const tabs = [
+      {
+        id: "events",
+        icon: CursorRays,
+        title: "Events tracked",
+        usage: usage,
+        limit: usageLimit,
+      },
+      {
+        id: "links",
+        icon: Hyperlink,
+        title: "Links created",
+        usage: linksUsage,
+        limit: linksLimit,
+      },
+      {
+        id: "revenue",
+        icon: CircleDollar,
+        title: "Revenue tracked",
+        usage: salesUsage,
+        limit: salesLimit,
+        unit: "$",
+        requiresUpgrade: plan === "free" || plan === "pro",
+      },
+    ];
+    if (totalLinks && totalLinks > 100_000) {
+      // Find the links tab and move it to the first position
+      const linksTabIndex = tabs.findIndex((tab) => tab.id === "links");
+      if (linksTabIndex !== -1) {
+        const linksTab = tabs.splice(linksTabIndex, 1)[0];
+        tabs.unshift(linksTab);
+      }
+    }
+    return tabs;
+  }, [
+    plan,
+    usage,
+    usageLimit,
+    linksUsage,
+    linksLimit,
+    totalLinks,
+    salesUsage,
+    salesLimit,
+  ]);
 
   return (
     <div className="rounded-lg border border-neutral-200 bg-white">
@@ -127,29 +174,9 @@ export default function PlanUsage() {
       <div className="grid grid-cols-[minmax(0,1fr)] divide-y divide-neutral-200 border-t border-neutral-200">
         <div>
           <div className="grid gap-4 p-6 sm:grid-cols-3 md:p-8 lg:gap-6">
-            <UsageTabCard
-              id="events"
-              icon={CursorRays}
-              title="Events tracked"
-              usage={usage}
-              limit={usageLimit}
-            />
-            <UsageTabCard
-              id="links"
-              icon={Hyperlink}
-              title="Links created"
-              usage={linksUsage}
-              limit={linksLimit}
-            />
-            <UsageTabCard
-              id="revenue"
-              icon={CircleDollar}
-              title="Revenue tracked"
-              usage={salesUsage}
-              limit={salesLimit}
-              unit="$"
-              requiresUpgrade={plan === "free" || plan === "pro"}
-            />
+            {usageTabs.map((tab) => (
+              <UsageTabCard key={tab.id} {...tab} />
+            ))}
           </div>
           <div className="w-full px-2 pb-8 md:px-8">
             <UsageChart />
@@ -244,11 +271,22 @@ function UsageTabCard({
   requiresUpgrade?: boolean;
 }) {
   const { searchParams, queryParams } = useRouterStuff();
-  const { slug } = useWorkspace();
+  const { slug, totalLinks } = useWorkspace();
 
-  const isActive =
-    searchParams.get("tab") === id ||
-    (!searchParams.get("tab") && id === "events");
+  const defaultActiveTab = useMemo(() => {
+    if (totalLinks && totalLinks > 100_000) {
+      return "links";
+    }
+    return "events";
+  }, [totalLinks]);
+
+  const isActive = useMemo(() => {
+    if (searchParams.get("tab")) {
+      return searchParams.get("tab") === id;
+    } else {
+      return id === defaultActiveTab;
+    }
+  }, [searchParams, id, defaultActiveTab]);
 
   const [usage, limit] =
     unit === "$" && usageProp !== undefined && limitProp !== undefined

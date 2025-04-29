@@ -1,7 +1,7 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
-import { Link, Program } from "@dub/prisma/client";
+import { Link, Program, ProgramEnrollment } from "@dub/prisma/client";
 import { getSearchParams } from "@dub/utils";
 import { AxiomRequest, withAxiom } from "next-axiom";
 import { referralsEmbedToken } from "./token-class";
@@ -12,8 +12,7 @@ interface WithReferralsEmbedTokenHandler {
     params,
     searchParams,
     program,
-    programId,
-    partnerId,
+    programEnrollment,
     links,
     embedToken,
   }: {
@@ -21,8 +20,7 @@ interface WithReferralsEmbedTokenHandler {
     params: Record<string, string>;
     searchParams: Record<string, string>;
     program: Program;
-    programId: string;
-    partnerId: string;
+    programEnrollment: ProgramEnrollment;
     links: Link[];
     embedToken: string;
   }): Promise<Response>;
@@ -41,7 +39,7 @@ export const withReferralsEmbedToken = (
       try {
         const rateLimit = 60;
         const searchParams = getSearchParams(req.url);
-        const embedToken = searchParams.token;
+        const embedToken = req.headers.get("Authorization")?.split(" ")[1];
 
         if (!embedToken) {
           throw new DubApiError({
@@ -79,13 +77,25 @@ export const withReferralsEmbedToken = (
           });
         }
 
-        const programEnrollment =
+        const { program, links, ...programEnrollment } =
           await prisma.programEnrollment.findUniqueOrThrow({
             where: {
               partnerId_programId: { partnerId, programId },
             },
             include: {
-              links: true,
+              links: {
+                orderBy: [
+                  {
+                    saleAmount: "desc",
+                  },
+                  {
+                    leads: "desc",
+                  },
+                  {
+                    clicks: "desc",
+                  },
+                ],
+              },
               program: true,
             },
           });
@@ -94,10 +104,9 @@ export const withReferralsEmbedToken = (
           req,
           params,
           searchParams,
-          program: programEnrollment.program,
-          programId,
-          partnerId: programEnrollment.partnerId,
-          links: programEnrollment.links,
+          program,
+          programEnrollment,
+          links,
           embedToken,
         });
       } catch (error) {
