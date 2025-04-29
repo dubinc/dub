@@ -2,6 +2,7 @@
 
 import { LoadingSpinner } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { SHORT_DOMAIN } from "@dub/utils/src";
 import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
 
@@ -11,7 +12,7 @@ export default function BanLink() {
       <form
         action={async (data) =>
           await fetch(
-            `/api/admin/links/ban?domain=dub.sh&key=${data.get("key")}`,
+            `/api/admin/links/ban?domain=${SHORT_DOMAIN}&key=${data.get("key")}`,
             {
               method: "DELETE",
             },
@@ -38,7 +39,7 @@ const Form = () => {
   return (
     <div className="relative flex w-full rounded-md shadow-sm">
       <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-5 text-neutral-500 sm:text-sm">
-        dub.sh
+        {SHORT_DOMAIN}
       </span>
       <input
         name="key"
@@ -58,12 +59,12 @@ const Form = () => {
           // if pasting in https://dub.sh/xxx or dub.sh/xxx, extract xxx
           const text = e.clipboardData.getData("text/plain");
           if (
-            text.startsWith("https://dub.sh/") ||
-            text.startsWith("dub.sh/")
+            text.startsWith(`https://${SHORT_DOMAIN}/`) ||
+            text.startsWith(`${SHORT_DOMAIN}/`)
           ) {
             e.currentTarget.value = text
-              .replace("https://dub.sh/", "")
-              .replace("dub.sh/", "");
+              .replace(`https://${SHORT_DOMAIN}/`, "")
+              .replace(`${SHORT_DOMAIN}/`, "");
           } else {
             e.currentTarget.value = text;
           }

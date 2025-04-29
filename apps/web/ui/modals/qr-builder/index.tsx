@@ -6,10 +6,11 @@ import { mutatePrefix } from "@/lib/swr/mutate.ts";
 import useWorkspace from "@/lib/swr/use-workspace.ts";
 import { EQRType } from "@/ui/qr-builder/constants/get-qr-config";
 import { QrBuilder } from "@/ui/qr-builder/qr-builder";
-import { NewResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
+import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
 import { X } from "@/ui/shared/icons";
 import QRIcon from "@/ui/shared/icons/qr.tsx";
 import { Modal } from "@dub/ui";
+import { SHORT_DOMAIN } from "@dub/utils/src";
 import { useParams } from "next/navigation";
 import { Options } from "qr-code-styling";
 import {
@@ -30,7 +31,7 @@ export type QRBuilderData = {
 };
 
 type QRBuilderModalProps = {
-  props?: NewResponseQrCode;
+  props?: ResponseQrCode;
   showQRBuilderModal: boolean;
   setShowQRBuilderModal: Dispatch<SetStateAction<boolean>>;
   isProcessing: boolean;
@@ -65,6 +66,7 @@ export function QRBuilderModal({
 
   const handleSaveQR = async (data: QRBuilderData) => {
     setIsProcessing(true);
+
     if (data.styles.data === "https://www.getqr.com/") {
       setIsProcessing(false);
       toast.error("Data of QR Code not found.");
@@ -81,6 +83,7 @@ export function QRBuilderModal({
           data: data.styles.data,
           link: {
             url: data.styles.data,
+            domain: SHORT_DOMAIN,
           },
         }),
       });
@@ -129,8 +132,8 @@ export function QRBuilderModal({
       // }
     } catch (e) {
       // setError("root", { message: "Failed to save link" });
-      console.error("Failed to save link", e);
-      toast.error("Failed to save link");
+      console.error("Failed to save QR", e);
+      toast.error("Failed to save QR");
     }
   };
 
@@ -162,6 +165,7 @@ export function QRBuilderModal({
         </div>
 
         <QrBuilder
+          isEdit={!!props}
           isProcessing={isProcessing}
           props={props}
           handleSaveQR={handleSaveQR}
@@ -189,7 +193,7 @@ export function CreateQRButton(props: CreateQRButtonProps) {
   );
 }
 
-export function useQRBuilder(data?: { props?: NewResponseQrCode }) {
+export function useQRBuilder(data?: { props?: ResponseQrCode }) {
   const { props } = data ?? {};
 
   const [isProcessing, setIsProcessing] = useState(false);
@@ -206,6 +210,7 @@ export function useQRBuilder(data?: { props?: NewResponseQrCode }) {
       />
     );
   }, [
+    props,
     showQRBuilderModal,
     setShowQRBuilderModal,
     isProcessing,

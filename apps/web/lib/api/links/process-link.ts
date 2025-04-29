@@ -17,8 +17,8 @@ import {
   isValidUrl,
   log,
   parseDateTime,
-  pluralize,
 } from "@dub/utils";
+import { SHORT_DOMAIN } from "@dub/utils/src";
 import { combineTagIds } from "../tags/combine-tag-ids";
 import { keyChecks, processKey } from "./utils";
 
@@ -159,7 +159,7 @@ export async function processLink<T extends Record<string, any>>({
 
   // if domain is not defined, set it to the workspace's primary domain
   if (!domain) {
-    domain = domains?.find((d) => d.primary)?.slug || "dub.sh";
+    domain = domains?.find((d) => d.primary)?.slug || SHORT_DOMAIN;
   }
 
   // checks for dub.sh and dub.link links

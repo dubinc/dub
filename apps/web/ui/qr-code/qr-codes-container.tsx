@@ -17,12 +17,7 @@ import {
 import { AnimatedEmptyState } from "../shared/animated-empty-state";
 import { QrCodeCard } from "./qr-code-card.tsx";
 
-// TODO: RELEASE create real ResponseQrCode
-export type ResponseQrCode = ExpandedLinkProps & {
-  user: UserProps;
-};
-
-export type NewResponseQrCode = QRProps & {
+export type ResponseQrCode = QRProps & {
   user: UserProps;
   link: ExpandedLinkProps;
 };
@@ -68,7 +63,7 @@ function QrCodesList({
   compact,
 }: {
   CreateQrCodeButton: () => JSX.Element;
-  qrCodes?: NewResponseQrCode[];
+  qrCodes?: ResponseQrCode[];
   count?: number;
   loading?: boolean;
   compact: boolean;

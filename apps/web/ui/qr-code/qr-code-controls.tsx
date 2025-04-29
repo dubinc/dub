@@ -5,8 +5,8 @@ import { useArchiveLinkModal } from "@/ui/modals/archive-link-modal";
 import { useDeleteLinkModal } from "@/ui/modals/delete-link-modal";
 import { useQRBuilder } from "@/ui/modals/qr-builder";
 import {
-  NewResponseQrCode,
   QrCodesListContext,
+  ResponseQrCode,
 } from "@/ui/qr-code/qr-codes-container.tsx";
 import {
   Button,
@@ -24,7 +24,7 @@ import { useSearchParams } from "next/navigation";
 import { PropsWithChildren, useContext, useRef, useState } from "react";
 import { ThreeDots } from "../shared/icons";
 
-export function QrCodeControls({ qrCode }: { qrCode: NewResponseQrCode }) {
+export function QrCodeControls({ qrCode }: { qrCode: ResponseQrCode }) {
   const { hovered } = useContext(CardList.Card.Context);
   const searchParams = useSearchParams();
 
@@ -43,7 +43,7 @@ export function QrCodeControls({ qrCode }: { qrCode: NewResponseQrCode }) {
   const { setShowDeleteLinkModal, DeleteLinkModal } = useDeleteLinkModal({
     props: qrCode.link,
   });
-  // TODO: RELEASE add qr props to edit him
+
   const { setShowQRBuilderModal, QRBuilderModal } = useQRBuilder({
     props: qrCode,
   });

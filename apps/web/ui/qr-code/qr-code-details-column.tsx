@@ -1,6 +1,6 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { QrCodeControls } from "@/ui/qr-code/qr-code-controls.tsx";
-import { NewResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
+import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
 import { CardList, CursorRays, Tooltip, useMediaQuery } from "@dub/ui";
 import { ReferredVia } from "@dub/ui/icons";
 import {
@@ -15,7 +15,7 @@ import Link from "next/link";
 import { useContext, useMemo, useRef, useState } from "react";
 import { useShareDashboardModal } from "../modals/share-dashboard-modal";
 
-export function QrCodeDetailsColumn({ qrCode }: { qrCode: NewResponseQrCode }) {
+export function QrCodeDetailsColumn({ qrCode }: { qrCode: ResponseQrCode }) {
   const ref = useRef<HTMLDivElement>(null);
 
   return (
@@ -27,7 +27,7 @@ export function QrCodeDetailsColumn({ qrCode }: { qrCode: NewResponseQrCode }) {
   );
 }
 
-function AnalyticsBadge({ qrCode }: { qrCode: NewResponseQrCode }) {
+function AnalyticsBadge({ qrCode }: { qrCode: ResponseQrCode }) {
   const { slug, plan } = useWorkspace();
   const { domain, key, clicks } = qrCode.link;
 
@@ -97,7 +97,7 @@ function AnalyticsBadge({ qrCode }: { qrCode: NewResponseQrCode }) {
                     ? `Last clicked ${timeAgo(qrCode.link.lastClicked, {
                         withAgo: true,
                       })}`
-                    : "No clicks yet"}
+                    : "No scans yet"}
                 </p>
               </div>
             }

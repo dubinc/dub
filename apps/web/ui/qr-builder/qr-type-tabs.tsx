@@ -23,6 +23,7 @@ interface QrTypeTabsProps {
   homepageDemo?: boolean;
   qrTypeActiveTab: QRType["id"];
   setQRTypeActiveTab: Dispatch<SetStateAction<QRType["id"]>>;
+  initialInputValues?: Record<string, string>;
 }
 
 export const QrTypeTabs = ({
@@ -38,6 +39,7 @@ export const QrTypeTabs = ({
   homepageDemo,
   qrTypeActiveTab,
   setQRTypeActiveTab,
+  initialInputValues = {},
 }: QrTypeTabsProps) => {
   const [styleOptionActiveTab, setStyleOptionActiveActiveTab] =
     useState<string>("Frame");
@@ -121,6 +123,7 @@ export const QrTypeTabs = ({
                       qrType={type.id}
                       handleContent={handleContent}
                       minimalFlow
+                      initialInputValues={initialInputValues}
                     />
                   </div>
                 </div>

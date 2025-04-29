@@ -1,14 +1,15 @@
 import { useQRBuilder } from "@/ui/modals/qr-builder";
-import { NewResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
+import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
 import { CardList, useMediaQuery } from "@dub/ui";
 import { QrCodeDetailsColumn } from "./qr-code-details-column.tsx";
 import { QrCodeTitleColumn } from "./qr-code-title-column.tsx";
 
-export function QrCodeCard({ qrCode }: { qrCode: NewResponseQrCode }) {
+export function QrCodeCard({ qrCode }: { qrCode: ResponseQrCode }) {
   const { isMobile } = useMediaQuery();
 
-  // TODO: RELEASE add qr props to edit him
-  const { setShowQRBuilderModal, QRBuilderModal } = useQRBuilder();
+  const { setShowQRBuilderModal, QRBuilderModal } = useQRBuilder({
+    props: qrCode,
+  });
 
   return (
     <>

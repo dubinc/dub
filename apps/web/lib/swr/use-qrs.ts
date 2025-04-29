@@ -1,4 +1,4 @@
-import { NewResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
+import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { useSession } from "next-auth/react";
@@ -33,7 +33,7 @@ export default function useQrs(
     data: qrs,
     isValidating,
     error,
-  } = useSWR<NewResponseQrCode[]>(
+  } = useSWR<ResponseQrCode[]>(
     workspaceId
       ? `/api/qrs${getQueryString(
           {

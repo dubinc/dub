@@ -27,6 +27,7 @@ interface QrConfigTypeTabsMobileProps {
   homepageDemo?: boolean;
   qrTypeActiveTab: QRType["id"];
   setQRTypeActiveTab: Dispatch<SetStateAction<QRType["id"]>>;
+  initialInputValues?: Record<string, string>;
 }
 
 export const QrConfigTypeTabsMobile = ({
@@ -42,6 +43,7 @@ export const QrConfigTypeTabsMobile = ({
   homepageDemo,
   qrTypeActiveTab,
   setQRTypeActiveTab,
+  initialInputValues = {},
 }: QrConfigTypeTabsMobileProps) => {
   const [openPopover, setOpenPopover] = useState<boolean>(false);
 
@@ -125,6 +127,7 @@ export const QrConfigTypeTabsMobile = ({
             qrType={qrTypeActiveTab}
             handleContent={handleContent}
             minimalFlow
+            initialInputValues={initialInputValues}
           />
         </Tabs.Content>
       )}

@@ -2,7 +2,7 @@
 
 import useDomain from "@/lib/swr/use-domain";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { NewResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
+import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
 import { QrCodesDisplayContext } from "@/ui/qr-code/qr-codes-display-provider.tsx";
 import { QRCode } from "@/ui/shared/qr-code.tsx";
 import {
@@ -45,8 +45,8 @@ const quickViewSettings = [
   { label: "Geo Targeting", icon: EarthPosition, key: "geo" },
 ];
 
-export function QrCodeTitleColumn({ qrCode }: { qrCode: NewResponseQrCode }) {
-  const { domain, key } = qrCode.link;
+export function QrCodeTitleColumn({ qrCode }: { qrCode: ResponseQrCode }) {
+  const { domain, key, shortLink, archived } = qrCode?.link ?? {};
 
   const ref = useRef<HTMLDivElement>(null);
 
@@ -55,7 +55,7 @@ export function QrCodeTitleColumn({ qrCode }: { qrCode: NewResponseQrCode }) {
       ref={ref}
       className="flex h-[32px] items-center gap-3 transition-[height] group-data-[variant=loose]/card-list:h-[60px]"
     >
-      <QRCode url={qrCode.link.shortLink} scale={0.5} />
+      <QRCode url={shortLink} scale={0.5} />
 
       <div className="w-[200px] min-w-0 overflow-hidden">
         <div className="flex items-center gap-2">
@@ -64,7 +64,7 @@ export function QrCodeTitleColumn({ qrCode }: { qrCode: NewResponseQrCode }) {
               <span
                 className={cn(
                   "truncate text-sm font-semibold text-neutral-800",
-                  qrCode.link.archived && "text-neutral-600",
+                  archived && "text-neutral-600",
                 )}
               >
                 {qrCode.title}
@@ -79,7 +79,7 @@ export function QrCodeTitleColumn({ qrCode }: { qrCode: NewResponseQrCode }) {
                     title={linkConstructor({ domain, key, pretty: true })}
                     className={cn(
                       "truncate text-xs font-semibold text-neutral-800 transition-colors hover:text-black",
-                      qrCode.link.archived && "text-neutral-600",
+                      archived && "text-neutral-600",
                     )}
                   >
                     {linkConstructor({ domain, key, pretty: true })}
@@ -148,8 +148,8 @@ function UnverifiedTooltip({
 }
 
 const Details = memo(
-  ({ qrCode, compact }: { qrCode: NewResponseQrCode; compact?: boolean }) => {
-    const { url, createdAt } = qrCode.link;
+  ({ qrCode, compact }: { qrCode: ResponseQrCode; compact?: boolean }) => {
+    const { url, createdAt } = qrCode?.link ?? {};
 
     const { displayProperties } = useContext(QrCodesDisplayContext);
 
