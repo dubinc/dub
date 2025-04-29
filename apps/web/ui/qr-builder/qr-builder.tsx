@@ -40,39 +40,41 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
 
       return (
         <>
-          {isMobile ? (
-            <QrConfigTypeTabsMobile
-              options={options}
-              qrCode={qrCode}
-              uploadedLogo={uploadedLogo}
-              selectedSuggestedLogo={selectedSuggestedLogo}
-              selectedSuggestedFrame={selectedSuggestedFrame}
-              handlers={handlers}
-              setData={setData}
-              isQrDisabled={isQrDisabled}
-              nonFileQrTypes={nonFileQrTypes}
-              homepageDemo={homepageDemo}
-              qrTypeActiveTab={qrTypeActiveTab}
-              setQRTypeActiveTab={setQRTypeActiveTab}
-              initialInputValues={initialInputValues}
-            />
-          ) : (
-            <QrTypeTabs
-              options={options}
-              qrCode={qrCode}
-              uploadedLogo={uploadedLogo}
-              selectedSuggestedLogo={selectedSuggestedLogo}
-              selectedSuggestedFrame={selectedSuggestedFrame}
-              handlers={handlers}
-              setData={setData}
-              isQrDisabled={isQrDisabled}
-              nonFileQrTypes={nonFileQrTypes}
-              homepageDemo={homepageDemo}
-              qrTypeActiveTab={qrTypeActiveTab}
-              setQRTypeActiveTab={setQRTypeActiveTab}
-              initialInputValues={initialInputValues}
-            />
-          )}
+          <div className="h-full transition-[height] duration-[300ms] md:max-h-[600px] md:overflow-y-scroll">
+            {isMobile ? (
+              <QrConfigTypeTabsMobile
+                options={options}
+                qrCode={qrCode}
+                uploadedLogo={uploadedLogo}
+                selectedSuggestedLogo={selectedSuggestedLogo}
+                selectedSuggestedFrame={selectedSuggestedFrame}
+                handlers={handlers}
+                setData={setData}
+                isQrDisabled={isQrDisabled}
+                nonFileQrTypes={nonFileQrTypes}
+                homepageDemo={homepageDemo}
+                qrTypeActiveTab={qrTypeActiveTab}
+                setQRTypeActiveTab={setQRTypeActiveTab}
+                initialInputValues={initialInputValues}
+              />
+            ) : (
+              <QrTypeTabs
+                options={options}
+                qrCode={qrCode}
+                uploadedLogo={uploadedLogo}
+                selectedSuggestedLogo={selectedSuggestedLogo}
+                selectedSuggestedFrame={selectedSuggestedFrame}
+                handlers={handlers}
+                setData={setData}
+                isQrDisabled={isQrDisabled}
+                nonFileQrTypes={nonFileQrTypes}
+                homepageDemo={homepageDemo}
+                qrTypeActiveTab={qrTypeActiveTab}
+                setQRTypeActiveTab={setQRTypeActiveTab}
+                initialInputValues={initialInputValues}
+              />
+            )}
+          </div>
           {!homepageDemo && (
             <div className="-mt-2 flex items-center justify-end gap-2 border-t border-neutral-100 bg-neutral-50 p-4">
               <Button
