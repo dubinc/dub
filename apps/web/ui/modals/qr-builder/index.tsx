@@ -94,7 +94,7 @@ export function CreateQRButton(props: CreateQRButtonProps) {
   );
 }
 
-export function useQRBuilder(data: { props?: NewResponseQrCode }) {
+export function useQRBuilder(data?: { props?: NewResponseQrCode }) {
   const { props } = data ?? {};
 
   const [showQRBuilderModal, setShowQRBuilderModal] = useState(false);

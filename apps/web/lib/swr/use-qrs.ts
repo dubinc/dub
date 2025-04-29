@@ -1,6 +1,7 @@
 import { NewResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
+import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import useSWR, { SWRConfiguration } from "swr";
 import { z } from "zod";
@@ -13,6 +14,11 @@ export default function useQrs(
   opts: z.infer<typeof partialQuerySchema> = {},
   swrOpts: SWRConfiguration = {},
 ) {
+  const { data: session } = useSession() as
+    | {
+        data: { user: { id: string } };
+      }
+    | { data: null };
   const { id: workspaceId } = useWorkspace();
   const { getQueryString } = useRouterStuff();
 
@@ -35,6 +41,7 @@ export default function useQrs(
             includeUser: "true",
             includeWebhooks: "true",
             includeDashboard: "true",
+            userId: session!.user.id,
             ...opts,
           },
           {
