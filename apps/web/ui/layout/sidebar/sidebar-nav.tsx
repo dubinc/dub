@@ -8,6 +8,7 @@ import {
   PropsWithChildren,
   ReactNode,
   Suspense,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -157,12 +158,10 @@ export function SidebarNav<T extends Record<any, any>>({
 
 function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
   const { name, href, exact } = item;
-
-  const Icon = "icon" in item ? item.icon : undefined;
+  const IconComponent = "icon" in item ? item.icon : undefined;
   const items = "items" in item ? item.items : undefined;
-
   const [hovered, setHovered] = useState(false);
-
+  const [isSubMenuOpen, setIsSubMenuOpen] = useState(false);
   const pathname = usePathname();
 
   const isActive = useMemo(() => {
@@ -172,11 +171,16 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
       : pathname.startsWith(hrefWithoutQuery);
   }, [pathname, href, exact]);
 
+  const toggleSubMenu = () => {
+    setIsSubMenuOpen(!isSubMenuOpen);
+  };
+
   return (
     <div>
       <Link
         href={href}
         data-active={isActive}
+        onClick={items ? toggleSubMenu : undefined}
         onPointerEnter={() => setHovered(true)}
         onPointerLeave={() => setHovered(false)}
         className={cn(
@@ -187,8 +191,8 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
             "bg-blue-100/50 font-medium text-blue-600 hover:bg-blue-100/80 active:bg-blue-100",
         )}
       >
-        {Icon && (
-          <Icon
+        {IconComponent && (
+          <IconComponent
             className={cn(
               "size-4 text-neutral-500 transition-colors duration-75",
               !items && "group-data-[active=true]:text-blue-600",
@@ -199,9 +203,12 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
         {name}
         {items && (
           <div className="flex grow justify-end">
-            {items ? (
-              <ChevronDown className="size-3.5 text-neutral-500 transition-transform duration-75 group-data-[active=true]:rotate-180" />
-            ) : null}
+            <ChevronDown
+              className={cn(
+                "size-3.5 text-neutral-500 transition-transform duration-75",
+                isSubMenuOpen && "rotate-180",
+              )}
+            />
           </div>
         )}
       </Link>
@@ -212,16 +219,16 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
         >
           <div
             className={cn(
-              "transition-opacity duration-200",
-              isActive ? "h-auto" : "h-0 opacity-0",
+              "overflow-hidden transition-opacity duration-200",
+              isSubMenuOpen ? "h-auto opacity-100" : "h-0 opacity-0",
             )}
-            aria-hidden={!isActive}
+            aria-hidden={!isSubMenuOpen}
           >
             <div className="pl-px pt-1">
               <div className="pl-3.5">
                 <div className="flex flex-col gap-0.5 border-l border-neutral-200 pl-2">
-                  {items.map((item) => (
-                    <NavItem key={item.name} item={item} />
+                  {items.map((subItem) => (
+                    <NavItem key={subItem.name} item={subItem} />
                   ))}
                 </div>
               </div>
