@@ -271,7 +271,7 @@ export function AnalyticsBadge({ link }: { link: ResponseLink }) {
                   <div
                     key={tab}
                     className={cn(
-                      "flex items-center gap-1 whitespace-nowrap rounded-md px-1 py-px transition-colors",
+                      "flex items-center gap-2 whitespace-nowrap rounded-md px-1 py-px transition-colors",
                       className,
                     )}
                   >
@@ -279,6 +279,10 @@ export function AnalyticsBadge({ link }: { link: ResponseLink }) {
                     {/*  data-active={value > 0}*/}
                     {/*  className={cn("h-4 w-4 shrink-0", iconClassName)}*/}
                     {/*/>*/}
+                    <Icon
+                      icon="streamline:graph"
+                      className="text-secondary h-[14px] w-[14px]"
+                    />
                     <span>
                       {tab === "sales"
                         ? currencyFormatter(value / 100)

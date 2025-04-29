@@ -23,7 +23,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(
       {
         ...metatags,
-        poweredBy: "Dub.co - Link management for modern marketing teams",
+        poweredBy:
+          "GetQR | Create Custom QR Codes with Logo, Colors & Tracking",
       },
       {
         headers: CORS_HEADERS,

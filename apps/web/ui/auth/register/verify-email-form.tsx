@@ -79,7 +79,7 @@ export const VerifyEmailForm = () => {
                       key={idx}
                       className={cn(
                         "relative flex h-14 w-10 items-center justify-center text-xl",
-                        "border-y border-r border-neutral-200 bg-white first:rounded-l-lg first:border-l last:rounded-r-lg",
+                        "border-border-500 border-y border-r bg-white first:rounded-l-lg first:border-l last:rounded-r-lg",
                         "ring-0 transition-all",
                         isActive &&
                           "z-10 border border-neutral-500 ring-2 ring-neutral-200",
@@ -89,7 +89,7 @@ export const VerifyEmailForm = () => {
                       {char}
                       {hasFakeCaret && (
                         <div className="animate-caret-blink pointer-events-none absolute inset-0 flex items-center justify-center">
-                          <div className="h-5 w-px bg-black" />
+                          <div className="bg-neutral h-5 w-px" />
                         </div>
                       )}
                     </div>
@@ -107,7 +107,7 @@ export const VerifyEmailForm = () => {
             )}
 
             <Button
-              className="mt-8"
+              className="border-border-500 mt-8"
               text={isPending ? "Verifying..." : "Continue"}
               type="submit"
               loading={isPending || isRedirecting}

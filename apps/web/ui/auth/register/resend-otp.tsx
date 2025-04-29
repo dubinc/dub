@@ -53,7 +53,7 @@ export const ResendOtp = ({ email }: { email: string }) => {
             <button
               onClick={() => executeAsync({ email })}
               className={cn(
-                "font-semibold text-neutral-500 underline underline-offset-2 transition-colors hover:text-black",
+                "hover:text-neutral font-semibold text-neutral-500 underline underline-offset-2 transition-colors",
                 isPending && "pointer-events-none",
               )}
             >

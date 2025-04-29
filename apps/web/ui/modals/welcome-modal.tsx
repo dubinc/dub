@@ -12,7 +12,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { ModalHero } from "../shared/modal-hero";
 import { PlanFeatures } from "../workspaces/plan-features";
 
 function WelcomeModal({
@@ -65,9 +64,10 @@ function WelcomeModal({
           del: ["onboarded", "upgraded", "plan", "period"],
         })
       }
+      className="border-border-500"
     >
       <div className="flex flex-col">
-        <ModalHero />
+        {/*<ModalHero />*/}
         <div className="px-6 py-8 sm:px-12">
           <div className="relative">
             <div
@@ -93,7 +93,7 @@ function WelcomeModal({
               >
                 {upgraded
                   ? `Thank you for upgrading to the ${plan?.name} plan! You now have access to more powerful features and higher limits.`
-                  : "Thanks for signing up – your account is ready to go! Now you have one central, organized place to build and manage all your short links."}
+                  : "Thanks for signing up – your account is ready to go! Now you have one central, organized place to build and manage all your QR codes."}
               </p>
               {plan && (
                 <>

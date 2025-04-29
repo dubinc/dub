@@ -138,14 +138,14 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
               >
                 {link.title}
               </span>
-            ) : isMobile ? (
+            ) : (
               <ShortLinkWrapper
                 domain={domain}
                 linkKey={key}
                 link={link}
-                linkClassname="font-normal"
+                linkClassname="max-w-[180px] text-sm font-semibold text-neutral-800 truncate"
               />
-            ) : null}
+            )}
             <Tooltip
               className="block md:hidden"
               content={formatDateTime(createdAt)}
@@ -167,8 +167,11 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
       </div>
 
       <div className="hidden flex-col gap-1 xl:flex">
-        <ShortLinkWrapper domain={domain} linkKey={key} link={link} />
-        <Details link={link} />
+        {/*<ShortLinkWrapper domain={domain} linkKey={key} link={link} />*/}
+        <Text as="span" size="2" weight="bold">
+          Your Link
+        </Text>
+        <Details link={link} hideIcon />
       </div>
       <div
         className={cn(
@@ -312,7 +315,7 @@ const Details = memo(
                 target="_blank"
                 rel="noopener noreferrer"
                 title={url}
-                className="max-w-[180px] truncate text-xs text-neutral-600 transition-colors hover:text-neutral-700 hover:underline hover:underline-offset-2 md:min-w-[152px] md:min-w-[180px]"
+                className="max-w-[180px] truncate text-xs text-neutral-600 transition-colors hover:text-neutral-700 hover:underline hover:underline-offset-2 md:min-w-[180px]"
               >
                 {getPrettyUrl(url)}
               </a>
