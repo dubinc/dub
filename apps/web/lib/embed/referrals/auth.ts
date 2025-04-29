@@ -83,7 +83,19 @@ export const withReferralsEmbedToken = (
               partnerId_programId: { partnerId, programId },
             },
             include: {
-              links: true,
+              links: {
+                orderBy: [
+                  {
+                    saleAmount: "desc",
+                  },
+                  {
+                    leads: "desc",
+                  },
+                  {
+                    clicks: "desc",
+                  },
+                ],
+              },
               program: true,
             },
           });
