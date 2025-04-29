@@ -10,6 +10,7 @@ import {
   OG_AVATAR_URL,
 } from "@dub/utils";
 import { addDays } from "date-fns";
+import Linkify from "linkify-react";
 import Link from "next/link";
 import { useMemo } from "react";
 
@@ -79,13 +80,28 @@ export function ProgramCard({
         <ProgramCardEarnings program={program} />
       ) : (
         <div className="mt-4 flex h-20 items-center justify-center text-balance rounded-md border border-neutral-200 bg-neutral-50 p-5 text-center text-sm text-neutral-500">
-          {status === "pending"
-            ? `Applied ${formatDate(createdAt)}`
-            : status === "banned"
-              ? `You're banned from this program`
-              : `You will be able to apply again after ${formatDate(
-                  addDays(createdAt, 30),
-                )}`}
+          {status === "pending" ? (
+            `Applied ${formatDate(createdAt)}`
+          ) : status === "banned" ? (
+            <Linkify
+              as="p"
+              options={{
+                target: "_blank",
+                rel: "noopener noreferrer nofollow",
+                className:
+                  "underline underline-offset-2 decoration-dotted text-neutral-400 hover:text-neutral-700",
+              }}
+            >
+              You're banned from this program.
+              {program.supportEmail
+                ? ` Contact ${program.supportEmail} to appeal.`
+                : ""}
+            </Linkify>
+          ) : (
+            `You will be able to apply again after ${formatDate(
+              addDays(createdAt, 30),
+            )}`
+          )}
         </div>
       )}
     </div>
