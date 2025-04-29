@@ -95,7 +95,7 @@ export function ReferralsEmbedLinksList({
           <Button
             variant="primary"
             className="h-7 w-7 p-1.5"
-            icon={<Plus2 className="text-white" />}
+            icon={<Plus2 />}
             onClick={onCreateLink}
             disabled={linksLimitReached}
             disabledTooltip={
