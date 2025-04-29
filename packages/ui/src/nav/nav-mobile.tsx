@@ -62,7 +62,7 @@ export function NavMobile({
     }
   }, [open]);
 
-  const { data: session } = useSWR(
+  const { data: session, isLoading } = useSWR(
     domain.endsWith("dub.co") && "/api/auth/session",
     fetcher,
     {
@@ -81,7 +81,7 @@ export function NavMobile({
         <AuthButton href={APP_DOMAIN} className="max-[280px]:hidden">
           Dashboard
         </AuthButton>
-      ) : (
+      ) : !isLoading ? (
         <div className="flex gap-2 max-[280px]:hidden">
           <AuthButton variant="secondary" href={`${APP_DOMAIN}/login`}>
             Log in
@@ -89,7 +89,7 @@ export function NavMobile({
 
           <AuthButton href={`${APP_DOMAIN}/register`}>Sign Up</AuthButton>
         </div>
-      )}
+      ) : null}
       <button
         onClick={() => setOpen(!open)}
         className={cn(
