@@ -14,7 +14,7 @@ export const DEFAULT_REDIRECTS = {
 };
 
 export const DUB_HEADERS = {
-  "x-powered-by": "Dub.co - Link management for modern marketing teams",
+  "x-powered-by": "Dub - The Modern Link Attribution Platform",
 };
 
 export const REDIRECTION_QUERY_PARAM = "redir_url";

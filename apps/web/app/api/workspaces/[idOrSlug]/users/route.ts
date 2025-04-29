@@ -41,6 +41,7 @@ export const GET = withWorkspace(
                 lastUsed: true,
               },
               where: {
+                projectId: workspace.id,
                 lastUsed: {
                   not: null,
                 },

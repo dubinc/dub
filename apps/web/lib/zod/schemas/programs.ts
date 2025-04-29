@@ -42,7 +42,7 @@ export const ProgramSchema = z.object({
   termsUrl: z.string().nullish(),
 });
 
-export const createProgramSchema = z.object({
+export const updateProgramSchema = z.object({
   name: z.string(),
   cookieLength: z.number().min(1).max(180),
   domain: z.string().nullable(),
@@ -65,6 +65,11 @@ export const createProgramSchema = z.object({
       message: "Minimum payout amount must be at least $100",
     }),
   linkStructure: z.nativeEnum(LinkStructure),
+
+  // Help & Support
+  supportEmail: z.string().email().max(255).nullish(),
+  helpUrl: z.string().url().max(500).nullish(),
+  termsUrl: z.string().url().max(500).nullish(),
 });
 
 export const ProgramPartnerLinkSchema = LinkSchema.pick({
