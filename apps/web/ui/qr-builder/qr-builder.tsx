@@ -1,6 +1,7 @@
 import { QRBuilderData } from "@/ui/modals/qr-builder";
 import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
 import { ArrowTurnLeft, Button, useMediaQuery } from "@dub/ui";
+import { cn } from "@dub/utils";
 import { FC, forwardRef, Ref } from "react";
 import { FILE_QR_TYPES, QR_TYPES } from "./constants/get-qr-config.ts";
 import { useQrCustomization } from "./hooks/use-qr-customization.ts";
@@ -40,7 +41,11 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
 
       return (
         <>
-          <div className="h-full transition-[height] duration-[300ms] md:max-h-[600px] md:overflow-y-scroll">
+          <div
+            className={cn("h-full transition-[height] duration-[300ms]", {
+              "md:max-h-[600px] md:overflow-y-scroll": !homepageDemo,
+            })}
+          >
             {isMobile ? (
               <QrConfigTypeTabsMobile
                 options={options}
