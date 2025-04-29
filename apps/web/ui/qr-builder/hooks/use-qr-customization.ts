@@ -69,7 +69,10 @@ export function useQrCustomization() {
   useEffect(() => {
     if (!qrCode || isQrDisabled) return;
 
-    qrCode.update({ ...options, data });
+    setOptions(prevOptions => ({
+      ...prevOptions,
+      data
+    }));
 
     if (selectedSuggestedFrame !== "none") {
       const extensionFn = FRAMES[selectedSuggestedFrame];
@@ -77,7 +80,12 @@ export function useQrCustomization() {
     } else {
       qrCode.deleteExtension?.();
     }
-  }, [qrCode, options, data, selectedSuggestedFrame, isQrDisabled]);
+  }, [qrCode, data, selectedSuggestedFrame, isQrDisabled]);
+
+  useEffect(() => {
+    if (!qrCode || isQrDisabled) return;
+    qrCode.update(options);
+  }, [qrCode, options, isQrDisabled]);
 
   const handlers = {
     onBorderStyleChange: (newType: CornerSquareType) => {

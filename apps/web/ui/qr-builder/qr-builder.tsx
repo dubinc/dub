@@ -11,10 +11,11 @@ interface IQRBuilderProps {
   props?: NewResponseQrCode;
   homepageDemo?: boolean;
   handleSaveQR?: (data: QRBuilderData) => void;
+  isProcessing?: boolean;
 }
 
 export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
-  forwardRef(({ homepageDemo, handleSaveQR }, ref) => {
+  forwardRef(({ homepageDemo, handleSaveQR, isProcessing }, ref) => {
     const { isMobile } = useMediaQuery();
 
     const {
@@ -70,8 +71,8 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
         {!homepageDemo && (
           <div className="-mt-2 flex items-center justify-end gap-2 border-t border-neutral-100 bg-neutral-50 p-4">
             <Button
-              // disabled={saveDisabled}
-              // loading={isSubmitting || isSubmitSuccessful}
+              disabled={isProcessing}
+              loading={isProcessing}
               text={
                 <span className="flex items-center gap-2">
                   Create QR
@@ -83,11 +84,11 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
               className="h-8 w-fit pl-2.5 pr-1.5"
               onClick={() =>
                 handleSaveQR?.({
-                  options,
+                  styles: options,
                   frameOptions: {
                     id: selectedSuggestedFrame,
                   },
-                  getQRType: qrTypeActiveTab,
+                  qrType: qrTypeActiveTab,
                 })
               }
             />

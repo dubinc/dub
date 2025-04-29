@@ -19,12 +19,14 @@ import { NextResponse } from "next/server";
 // POST /api/qrs – create a new qr
 export const POST = withWorkspace(
   async ({ req, headers, session, workspace }) => {
+    console.log("POST /api/qrs мы же тут?");
     if (workspace) {
       throwIfLinksUsageExceeded(workspace);
     }
+    console.log("POST /api/qrs прошли проверку воркспейса?");
 
     const body = createQrBodySchema.parse(await parseRequestBody(req));
-
+    console.log("POST /api/qrs body:", body);
     if (!session) {
       const ip = req.headers.get("x-forwarded-for") || LOCALHOST_IP;
       const { success } = await ratelimit(10, "1 d").limit(ip);

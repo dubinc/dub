@@ -2,12 +2,15 @@
 
 import { Button, useKeyboardShortcut } from "@dub/ui";
 
+import { mutatePrefix } from "@/lib/swr/mutate.ts";
+import useWorkspace from "@/lib/swr/use-workspace.ts";
 import { EQRType } from "@/ui/qr-builder/constants/get-qr-config";
 import { QrBuilder } from "@/ui/qr-builder/qr-builder";
 import { NewResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
 import { X } from "@/ui/shared/icons";
 import QRIcon from "@/ui/shared/icons/qr.tsx";
 import { Modal } from "@dub/ui";
+import { useParams } from "next/navigation";
 import { Options } from "qr-code-styling";
 import {
   Dispatch,
@@ -16,36 +19,125 @@ import {
   useMemo,
   useState,
 } from "react";
+import { toast } from "sonner";
 
 export type QRBuilderData = {
-  options: Options;
+  styles: Options;
   frameOptions: {
     id: string;
   };
-  getQRType: EQRType;
+  qrType: EQRType;
 };
 
 type QRBuilderModalProps = {
   props?: NewResponseQrCode;
-  qrBuilderStepIdx: number;
   showQRBuilderModal: boolean;
   setShowQRBuilderModal: Dispatch<SetStateAction<boolean>>;
-  setQRBuilderStepIdx: Dispatch<SetStateAction<number>>;
+  isProcessing: boolean;
+  setIsProcessing: Dispatch<SetStateAction<boolean>>;
 };
 
-export function QRBuilderModal(props: QRBuilderModalProps) {
-  const handleSaveQR = (data: QRBuilderData) => {
-    console.log(data);
+export function QRBuilderModal({
+  props,
+  showQRBuilderModal,
+  setShowQRBuilderModal,
+  isProcessing,
+  setIsProcessing,
+}: QRBuilderModalProps) {
+  const params = useParams() as { slug?: string };
+  const { slug } = params;
 
-    setTimeout(() => {
-      props.setShowQRBuilderModal(false);
-    }, 1000);
+  const { id: workspaceId } = useWorkspace();
+
+  const endpoint = useMemo(
+    () =>
+      props
+        ? {
+            method: "PATCH",
+            url: `/api/qrs/${props.id}?workspaceId=${workspaceId}`,
+          }
+        : {
+            method: "POST",
+            url: `/api/qrs?workspaceId=${workspaceId}`,
+          },
+    [props, workspaceId],
+  );
+
+  const handleSaveQR = async (data: QRBuilderData) => {
+    setIsProcessing(true);
+    if (data.styles.data === "https://www.getqr.com/") {
+      setIsProcessing(false);
+      toast.error("Data of QR Code not found.");
+    }
+
+    try {
+      const res = await fetch(endpoint.url, {
+        method: endpoint.method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...data,
+          data: data.styles.data,
+          link: {
+            url: data.styles.data,
+          },
+        }),
+      });
+
+      if (res.status === 200) {
+        await mutatePrefix([
+          "/api/qrs",
+          "/api/links",
+          `/api/workspaces/${slug}`,
+        ]);
+
+        const data = await res.json();
+        console.log(data);
+
+        if (!props) {
+          toast.success("Successfully created link!");
+        } else toast.success("Successfully updated short link!");
+
+        setShowQRBuilderModal(false);
+      }
+      // else {
+      //   const { error } = await res.json();
+      //
+      //   if (error) {
+      //     if (error.message.includes("Upgrade to")) {
+      //       toast.custom(() => (
+      //           <UpgradeRequiredToast
+      //               title={`You've discovered a ${nextPlan.name} feature!`}
+      //               message={error.message}
+      //           />
+      //       ));
+      //     } else {
+      //       toast.error(error.message);
+      //     }
+      //     const message = error.message.toLowerCase();
+      //
+      //     if (message.includes("key"))
+      //       setError("key", { message: error.message });
+      //     else if (message.includes("url"))
+      //       setError("url", { message: error.message });
+      //     else setError("root", { message: "Failed to save link" });
+      //   } else {
+      //     setError("root", { message: "Failed to save link" });
+      //     toast.error("Failed to save link");
+      //   }
+      // }
+    } catch (e) {
+      // setError("root", { message: "Failed to save link" });
+      console.error("Failed to save link", e);
+      toast.error("Failed to save link");
+    }
   };
 
   return (
     <Modal
-      showModal={props.showQRBuilderModal}
-      setShowModal={props.setShowQRBuilderModal}
+      showModal={showQRBuilderModal}
+      setShowModal={setShowQRBuilderModal}
       className="max-w-screen-lg"
     >
       <div className="flex flex-col gap-2">
@@ -54,15 +146,14 @@ export function QRBuilderModal(props: QRBuilderModalProps) {
           <div className="flex items-center gap-2">
             <QRIcon className="text-primary h-5 w-5" />
             <h3 className="!mt-0 max-w-sm truncate text-lg font-medium">
-              {props.props
-                ? `Edit QR - ${props.props.title ?? props.props.id}`
-                : "New QR"}
+              {props ? `Edit QR - ${props.title ?? props.id}` : "New QR"}
             </h3>
           </div>
           <button
+            disabled={isProcessing}
             type="button"
             onClick={() => {
-              props.setShowQRBuilderModal(false);
+              setShowQRBuilderModal(false);
             }}
             className="group relative -right-2 rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none active:bg-neutral-200 md:right-0 md:block"
           >
@@ -70,7 +161,11 @@ export function QRBuilderModal(props: QRBuilderModalProps) {
           </button>
         </div>
 
-        <QrBuilder props={props?.props} handleSaveQR={handleSaveQR} />
+        <QrBuilder
+          isProcessing={isProcessing}
+          props={props}
+          handleSaveQR={handleSaveQR}
+        />
       </div>
     </Modal>
   );
@@ -97,24 +192,24 @@ export function CreateQRButton(props: CreateQRButtonProps) {
 export function useQRBuilder(data?: { props?: NewResponseQrCode }) {
   const { props } = data ?? {};
 
+  const [isProcessing, setIsProcessing] = useState(false);
   const [showQRBuilderModal, setShowQRBuilderModal] = useState(false);
-  const [qrBuilderStepIdx, setQRBuilderStepIdx] = useState(0);
 
   const QRBuilderModalCallback = useCallback(() => {
     return (
       <QRBuilderModal
         props={props}
         showQRBuilderModal={showQRBuilderModal}
-        qrBuilderStepIdx={qrBuilderStepIdx}
         setShowQRBuilderModal={setShowQRBuilderModal}
-        setQRBuilderStepIdx={setQRBuilderStepIdx}
+        isProcessing={isProcessing}
+        setIsProcessing={setIsProcessing}
       />
     );
   }, [
     showQRBuilderModal,
-    qrBuilderStepIdx,
     setShowQRBuilderModal,
-    setQRBuilderStepIdx,
+    isProcessing,
+    setIsProcessing,
   ]);
 
   const CreateQRButtonCallback = useCallback(() => {
@@ -126,7 +221,13 @@ export function useQRBuilder(data?: { props?: NewResponseQrCode }) {
       CreateQRButton: CreateQRButtonCallback,
       QRBuilderModal: QRBuilderModalCallback,
       setShowQRBuilderModal,
+      isProcessing,
     }),
-    [CreateQRButtonCallback, QRBuilderModalCallback, setShowQRBuilderModal],
+    [
+      CreateQRButtonCallback,
+      QRBuilderModalCallback,
+      setShowQRBuilderModal,
+      isProcessing,
+    ],
   );
 }
