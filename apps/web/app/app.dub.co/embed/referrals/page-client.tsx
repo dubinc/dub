@@ -217,7 +217,6 @@ export function ReferralsEmbedPageClient({
               }))}
               selected={selectedTab}
               onSelect={(option) => {
-                console.log("onSelect", option);
                 setSelectedTab(option);
               }}
               className="scrollbar-hide min-w-0 grow overflow-x-auto"
