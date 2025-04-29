@@ -98,5 +98,4 @@ export const IP_RANGES_BOTS = [
   // Expanse (Palo Alto Networks)
   "198.235.24.0/24",
   "205.210.31.0/24",
-  "205.210.31.0/24",
 ];
