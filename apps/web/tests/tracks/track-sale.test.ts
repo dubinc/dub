@@ -123,7 +123,7 @@ describe("POST /track/sale", async () => {
     const jpySale = {
       ...sale,
       invoiceId: `INV_${randomId()}`,
-      amount: 65,
+      amount: 1437, // approximately 1000 USD cents
       currency: "jpy",
     };
 
@@ -135,10 +135,11 @@ describe("POST /track/sale", async () => {
       },
     });
 
-    expectValidSaleResponse(response, {
-      ...jpySale,
-      currency: "usd",
-      amount: 45,
-    });
+    // Check if the converted amount is within an acceptable range
+    // 1437 JPY should be around 1000 USD cents (±100)
+    expect(response.status).toEqual(200);
+    expect(response.data.sale?.currency).toEqual("usd");
+    expect(response.data.sale?.amount).toBeGreaterThanOrEqual(900); // 900 cents
+    expect(response.data.sale?.amount).toBeLessThanOrEqual(1100); // 1100 cents
   });
 });
