@@ -115,7 +115,7 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
         <div className="flex h-full min-h-[75px] w-[200px] min-w-0 flex-col items-start justify-between overflow-hidden md:justify-center md:gap-2">
           <Flex
             direction="column"
-            gap="2"
+            gap="1"
             align="start"
             justify="start"
             className="pt-1"

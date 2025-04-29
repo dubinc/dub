@@ -42,7 +42,7 @@ export const ForgotPasswordForm = () => {
               value={email}
               placeholder="panic@thedis.co"
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1"
+              className="border-border-500 focus:border-secondary mt-1"
             />
           </label>
           <Button
@@ -50,6 +50,7 @@ export const ForgotPasswordForm = () => {
             text={isPending ? "Sending..." : "Send reset link"}
             loading={isPending}
             disabled={email.length < 3}
+            className="border-border-500"
           />
         </div>
       </form>
