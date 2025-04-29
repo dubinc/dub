@@ -19,16 +19,12 @@ export const sortOptions = [
     slug: "createdAt",
   },
   {
-    display: "Total clicks",
+    display: "Total scans",
     slug: "clicks",
   },
   {
-    display: "Last clicked",
+    display: "Last scan",
     slug: "lastClicked",
-  },
-  {
-    display: "Total sales",
-    slug: "saleAmount",
   },
 ] as const;
 
