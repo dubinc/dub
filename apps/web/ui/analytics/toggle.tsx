@@ -885,7 +885,7 @@ export default function Toggle({
                         {domain && key && <ShareButton />}
                         <Button
                           variant="secondary"
-                          className="w-fit"
+                          className="border-border-500 w-fit"
                           icon={
                             <SquareLayoutGrid6 className="h-4 w-4 text-neutral-600" />
                           }

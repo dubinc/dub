@@ -3,8 +3,6 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import {
   BlurImage,
   buttonVariants,
-  ChartLine,
-  Filter2,
   ToggleGroup,
   useRouterStuff,
 } from "@dub/ui";
@@ -41,8 +39,8 @@ export default function Main() {
       [
         {
           id: "clicks",
-          label: "Clicks",
-          colorClassName: "text-blue-500/50",
+          label: "Scans",
+          colorClassName: "text-secondary",
           conversions: false,
         },
         //   @USEFUL_FEATURE: hide leads and sales tabs in analytics
@@ -74,7 +72,7 @@ export default function Main() {
 
   return (
     <div className="w-full overflow-hidden bg-white">
-      <div className="scrollbar-hide grid w-full grid-cols-3 divide-x overflow-y-hidden border border-neutral-200 sm:rounded-t-xl">
+      <div className="scrollbar-hide border-border-500 grid w-full grid-cols-3 divide-x overflow-y-hidden border sm:rounded-t-xl">
         <NumberFlowGroup>
           {tabs.map(({ id, label, colorClassName, conversions }, idx) => {
             return (
@@ -129,7 +127,7 @@ export default function Main() {
                   {/* Active tab indicator */}
                   <div
                     className={cn(
-                      "absolute bottom-0 left-0 h-0.5 w-full bg-black transition-transform duration-100",
+                      "bg-border-500 absolute bottom-0 left-0 h-0.5 w-full transition-transform duration-100",
                       tab.id !== id && "translate-y-[3px]", // Translate an extra pixel to avoid sub-pixel issues
                     )}
                   />
@@ -188,7 +186,7 @@ export default function Main() {
       <div className="relative">
         <div
           className={cn(
-            "relative overflow-hidden border-x border-b border-neutral-200 sm:rounded-b-xl",
+            "border-border-500 relative overflow-hidden border-x border-b sm:rounded-b-xl",
             showPaywall &&
               "pointer-events-none [mask-image:linear-gradient(#0006,#0006_25%,transparent_40%)]",
           )}
@@ -200,27 +198,27 @@ export default function Main() {
           )}
           {view === "funnel" && <AnalyticsFunnelChart demo={showPaywall} />}
         </div>
-        <ToggleGroup
-          className="absolute right-3 top-3 flex w-fit shrink-0 items-center gap-1 border-neutral-100 bg-neutral-100"
-          optionClassName="size-8 p-0 flex items-center justify-center"
-          indicatorClassName="border border-neutral-200 bg-white"
-          options={[
-            {
-              label: <ChartLine className="size-4 text-neutral-600" />,
-              value: "timeseries",
-            },
-            {
-              label: <Filter2 className="size-4 -rotate-90 text-neutral-600" />,
-              value: "funnel",
-            },
-          ]}
-          selected={view}
-          selectAction={(option) => {
-            queryParams({
-              set: { view: option },
-            });
-          }}
-        />
+        {/*<ToggleGroup*/}
+        {/*  className="absolute right-3 top-3 flex w-fit shrink-0 items-center gap-1 border-neutral-100 bg-neutral-100"*/}
+        {/*  optionClassName="size-8 p-0 flex items-center justify-center"*/}
+        {/*  indicatorClassName="border border-neutral-200 bg-white"*/}
+        {/*  options={[*/}
+        {/*    {*/}
+        {/*      label: <ChartLine className="size-4 text-neutral-600" />,*/}
+        {/*      value: "timeseries",*/}
+        {/*    },*/}
+        {/*    {*/}
+        {/*      label: <Filter2 className="size-4 -rotate-90 text-neutral-600" />,*/}
+        {/*      value: "funnel",*/}
+        {/*    },*/}
+        {/*  ]}*/}
+        {/*  selected={view}*/}
+        {/*  selectAction={(option) => {*/}
+        {/*    queryParams({*/}
+        {/*      set: { view: option },*/}
+        {/*    });*/}
+        {/*  }}*/}
+        {/*/>*/}
         {showPaywall && <ConversionTrackingPaywall />}
       </div>
     </div>
