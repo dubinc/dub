@@ -7,6 +7,7 @@ import {
 } from "@/lib/analytics/constants";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useCustomer from "@/lib/swr/use-customer";
 import useCustomers from "@/lib/swr/use-customers";
 import useCustomersCount from "@/lib/swr/use-customers-count";
@@ -159,6 +160,7 @@ export default function Toggle({
           : "",
     },
   });
+  const { canManageCustomers } = getPlanCapabilities(plan);
 
   const {
     allDomains: domains,
@@ -414,21 +416,20 @@ export default function Toggle({
           ? `/${slug}/customers/${selectedCustomerId}`
           : null;
     },
-    options: customers?.map(({ id, email, name, avatar }) => {
-      return {
-        value: id,
-        label: email ?? name,
-        icon: (
-          <img
-            src={avatar || `${OG_AVATAR_URL}${id}`}
-            alt={`${email} avatar`}
-            className="size-4 rounded-full"
-          />
-        ),
-      };
-    }) ?? [
-      { value: selectedCustomerId, label: selectedCustomerId, icon: User },
-    ],
+    options:
+      customers?.map(({ id, email, name, avatar }) => {
+        return {
+          value: id,
+          label: email ?? name,
+          icon: (
+            <img
+              src={avatar || `${OG_AVATAR_URL}${id}`}
+              alt={`${email} avatar`}
+              className="size-4 rounded-full"
+            />
+          ),
+        };
+      }) ?? null,
   };
 
   const filters: ComponentProps<typeof Filter.Select>["filters"] = useMemo(
@@ -450,7 +451,7 @@ export default function Toggle({
         : partnerPage
           ? [LinkFilterItem, CustomerFilterItem]
           : [
-              CustomerFilterItem,
+              ...(canManageCustomers ? [CustomerFilterItem] : []),
               ...(flags?.linkFolders
                 ? [
                     {
