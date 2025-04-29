@@ -75,6 +75,8 @@ function RemoveTeammateModal({
     setRemoving(false);
   };
 
+  const self = session?.user?.email === user.email;
+
   return (
     <Modal
       showModal={showRemoveTeammateModal}
@@ -85,24 +87,22 @@ function RemoveTeammateModal({
         <h3 className="text-lg font-medium">
           {invite
             ? "Revoke Invitation"
-            : session?.user?.email === user.email
+            : self
               ? "Leave Workspace"
               : "Remove Teammate"}
         </h3>
         <p className="text-sm text-neutral-500">
           {invite
             ? "This will revoke "
-            : session?.user?.email === user.email
+            : self
               ? "You're about to leave "
               : "This will remove "}
           <span className="font-semibold text-black">
-            {session?.user?.email === user.email
-              ? workspaceName
-              : user.name || user.email}
+            {self ? workspaceName : user.name || user.email}
           </span>
           {invite
             ? "'s invitation to join your workspace. "
-            : session?.user?.email === user.email
+            : self
               ? ". You will lose all access to this workspace. "
               : " from your workspace. "}
           Are you sure you want to continue?
@@ -121,9 +121,10 @@ function RemoveTeammateModal({
             </h3>
 
             <p className="text-sm font-normal text-amber-900">
-              This user has {user.restrictedTokens.length} active tokens.
-              Removing this user will invalidate these tokens and may disrupt
-              the integration.
+              {self ? "You have" : "This user has"}{" "}
+              {user.restrictedTokens.length} active tokens.{" "}
+              {self ? "Leaving" : "Removing this user"} will invalidate these
+              tokens and may disrupt the integration.
             </p>
 
             <div>
@@ -156,7 +157,7 @@ function RemoveTeammateModal({
         </div>
 
         <Button
-          text="Delete"
+          text={self ? "Leave" : "Remove"}
           variant="danger"
           autoFocus={!isMobile}
           loading={removing}
