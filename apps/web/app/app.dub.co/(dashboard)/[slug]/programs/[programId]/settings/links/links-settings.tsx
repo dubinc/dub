@@ -67,7 +67,6 @@ function LinksSettingsForm({ program }: { program: ProgramProps }) {
       mutate(`/api/programs/${program.id}?workspaceId=${workspaceId}`);
     },
     onError({ error }) {
-      console.error(error);
       toast.error("Failed to update program.");
     },
   });
@@ -249,7 +248,7 @@ function LinksSettingsForm({ program }: { program: ProgramProps }) {
                     loadingFolders && "opacity-50",
                   )}
                   {...register("defaultFolderId", {
-                    required: true,
+                    // required: true,
                   })}
                   disabled={loadingFolders}
                 >

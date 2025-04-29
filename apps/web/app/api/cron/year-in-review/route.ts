@@ -68,7 +68,7 @@ export async function POST() {
             return {
               workspaceId: workspace.id,
               email: {
-                from: "Steven from Dub.co <steven@ship.dub.co>",
+                from: "Steven from Dub <steven@ship.dub.co>",
                 to: user.email,
                 reply_to: "steven.tey@dub.co",
                 subject: "Dub Year in Review 🎊",

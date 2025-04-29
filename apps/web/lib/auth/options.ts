@@ -528,7 +528,7 @@ export const authOptions: NextAuthOptions = {
               sendEmail({
                 email,
                 replyTo: "steven.tey@dub.co",
-                subject: "Welcome to Dub.co!",
+                subject: "Welcome to Dub!",
                 react: WelcomeEmail({
                   email,
                   name: user.name || null,
