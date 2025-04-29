@@ -321,9 +321,7 @@ function PartnerRejectButton({
 
   const { executeAsync, isPending } = useAction(rejectPartnerAction, {
     onSuccess: async () => {
-      await mutatePrefix(
-        `/api/partners?workspaceId=${workspaceId}&programId=${program!.id}`,
-      );
+      await mutatePrefix("/api/partners");
 
       toast.success("Partner rejected successfully.");
       setIsOpen(false);
