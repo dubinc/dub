@@ -1,3 +1,4 @@
+import { QR_TYPES } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Icon } from "@iconify/react";
@@ -5,7 +6,6 @@ import * as ScrollArea from "@radix-ui/react-scroll-area";
 import * as Tabs from "@radix-ui/react-tabs";
 import { Button, Heading, Text } from "@radix-ui/themes";
 import { FC, useState } from "react";
-import { QR_TYPES } from "../../constants/get-qr-config.ts";
 import { QrTabsDetailedImage } from "./components/qr-tabs-detailed-image.tsx";
 import { QrTabsDetailedTitle } from "./components/qr-tabs-detailed-title.tsx";
 

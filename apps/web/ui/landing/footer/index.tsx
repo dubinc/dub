@@ -31,8 +31,8 @@ export const Footer = () => (
         <div className="flex w-full flex-col justify-between gap-4">
           <div className="flex flex-col">
             <p className="text-left text-sm text-neutral-200">
-              © GetQR - 2025. All rights reserved. Create your own QR codes and
-              promote your business or idea.
+              © GetQR - {new Date().getFullYear()}. All rights reserved. Create
+              your own QR codes and promote your business or idea.
             </p>
             <p className="text-left text-sm text-neutral-200">
               30 N Gould St Ste R Sheridan, WY 82801 USA

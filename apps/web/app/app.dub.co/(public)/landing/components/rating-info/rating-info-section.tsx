@@ -1,7 +1,7 @@
+import { Rating } from "@/ui/qr-rating/rating.tsx";
 import { useMediaQuery } from "@dub/ui";
 import { Button, Text } from "@radix-ui/themes";
 import { FC } from "react";
-import { Rating } from "./components/rating.tsx";
 
 interface IRatingInfoSection {
   scrollToQRGenerationBlock: () => void;

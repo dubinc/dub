@@ -65,14 +65,6 @@ const NAV_AREAS: SidebarNavAreas<{
           //   href: `/${slug}/settings`,
           // },
           {
-            name: "New QR",
-            icon: () => (
-              <Icon icon="solar:add-square-linear" className="h-5 w-5" />
-            ),
-            href: `/${slug}/new-qr/type`,
-            exact: true,
-          },
-          {
             name: "My QR Codes",
             icon: () => <Icon icon="mage:qr-code" className="h-5 w-5" />,
             href: `/${slug}`,
