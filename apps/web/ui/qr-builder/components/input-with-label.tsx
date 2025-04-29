@@ -16,6 +16,9 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
   type = "text",
   errorMessage,
   minimalFlow = false,
+  value = "",
+  onChange,
+  placeholder,
   ...props
 }) => {
   let autoCompleteValue: "on" | "tel" | "url";
@@ -38,6 +41,9 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
       {type === "textarea" ? (
         <textarea
           className="border-border-500 focus:border-secondary h-32 w-full rounded-md border p-3 text-base"
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
           {...props}
         />
       ) : (
@@ -45,6 +51,9 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
           type={type}
           className="border-border-500 focus:border-secondary h-11 w-full max-w-2xl rounded-md border p-3 text-base"
           autoComplete={autoCompleteValue}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
           {...props}
         />
       )}

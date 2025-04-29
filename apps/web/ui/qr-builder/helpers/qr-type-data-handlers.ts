@@ -29,7 +29,8 @@ export const qrTypeDataHandlers = {
     values: Record<string, string>,
     isHiddenNetwork: boolean,
   ) => {
-    return `https://wa.me/${values.number}?text=${encodeURIComponent(values.message)}`;
+    const { number, message } = values;
+    return message ? `https://wa.me/${number}?text=${encodeURIComponent(message)}` : `https://wa.me/${number}`;
   },
   [EQRType.WIFI]: (
     values: Record<string, string>,

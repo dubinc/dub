@@ -1,6 +1,6 @@
 import { PageContent } from "@/ui/layout/page-content";
+import WorkspaceLinksClient from "./custom-page-client";
 import { LinksTitle } from "./links-title";
-import WorkspaceLinksClient from "./page-client";
 
 export default function WorkspaceLinks() {
   return (

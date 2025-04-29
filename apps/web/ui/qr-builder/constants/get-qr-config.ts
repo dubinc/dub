@@ -17,7 +17,7 @@ export enum EQRType {
   WHATSAPP = "whatsapp",
   SOCIAL = "social",
   WIFI = "wifi",
-  APP_LINK = "app-link",
+  APP_LINK = "app",
   FEEDBACK = "feedback",
 }
 

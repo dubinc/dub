@@ -1,4 +1,5 @@
 import { getDefaultWorkspace } from "@/lib/fetchers";
+import { SHORT_DOMAIN } from "@dub/utils/src";
 import { redirect } from "next/navigation";
 
 export default async function OldLinksStatsPage({
@@ -13,6 +14,6 @@ export default async function OldLinksStatsPage({
     redirect("/");
   }
   redirect(
-    `/${defaultWorkspace.slug}/analytics?domain=dub.sh&key=${params.key}`,
+    `/${defaultWorkspace.slug}/analytics?domain=${SHORT_DOMAIN}&key=${params.key}`,
   );
 }

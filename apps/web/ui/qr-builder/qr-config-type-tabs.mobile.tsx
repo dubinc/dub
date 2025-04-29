@@ -1,3 +1,4 @@
+import { QRCanvas } from "@/ui/qr-builder/qr-canvas.tsx";
 import { QRCodeContentBuilder } from "@/ui/qr-builder/qr-code-content-builder.tsx";
 import { QrTabsCustomization } from "@/ui/qr-builder/qr-tabs-customization.tsx";
 import { cn } from "@dub/utils/src";
@@ -9,7 +10,6 @@ import {
   QR_GENERATION_STEPS,
 } from "./constants/get-qr-config.ts";
 import { qrTypeDataHandlers } from "./helpers/qr-type-data-handlers.ts";
-import { QRPreview } from "./qr-preview.tsx";
 import { QrTabsDownloadButton } from "./qr-tabs-download-button.tsx";
 import { QRTabsPopover } from "./qr-tabs-popover.tsx";
 import { QrTabsStepTitle } from "./qr-tabs-step-title.tsx";
@@ -24,6 +24,10 @@ interface QrConfigTypeTabsMobileProps {
   setData: Dispatch<SetStateAction<any>>;
   isQrDisabled: boolean;
   nonFileQrTypes: QRType[];
+  homepageDemo?: boolean;
+  qrTypeActiveTab: QRType["id"];
+  setQRTypeActiveTab: Dispatch<SetStateAction<QRType["id"]>>;
+  initialInputValues?: Record<string, string>;
 }
 
 export const QrConfigTypeTabsMobile = ({
@@ -36,11 +40,13 @@ export const QrConfigTypeTabsMobile = ({
   setData,
   isQrDisabled,
   nonFileQrTypes,
+  homepageDemo,
+  qrTypeActiveTab,
+  setQRTypeActiveTab,
+  initialInputValues = {},
 }: QrConfigTypeTabsMobileProps) => {
   const [openPopover, setOpenPopover] = useState<boolean>(false);
-  const [qrTypeActiveTab, setQRTypeActiveTab] = useState<EQRType>(
-    EQRType.WEBSITE,
-  );
+
   const [styleOptionActiveTab, setStyleOptionActiveActiveTab] =
     useState<string>("Frame");
   const [mobileStepActiveTab, setMobileStepActiveTab] = useState<string>(
@@ -79,7 +85,7 @@ export const QrConfigTypeTabsMobile = ({
           "opacity-30": isQrDisabled,
         })}
       >
-        <QRPreview qrCode={qrCode} />
+        <QRCanvas qrCode={qrCode} />
       </div>
 
       <Tabs.List className="flex w-full rounded-md">
@@ -121,6 +127,7 @@ export const QrConfigTypeTabsMobile = ({
             qrType={qrTypeActiveTab}
             handleContent={handleContent}
             minimalFlow
+            initialInputValues={initialInputValues}
           />
         </Tabs.Content>
       )}
@@ -144,7 +151,7 @@ export const QrConfigTypeTabsMobile = ({
         </Tabs.Content>
       )}
 
-      <QrTabsDownloadButton isQrDisabled={isQrDisabled} />
+      {homepageDemo && <QrTabsDownloadButton isQrDisabled={isQrDisabled} />}
     </Tabs.Root>
   );
 };

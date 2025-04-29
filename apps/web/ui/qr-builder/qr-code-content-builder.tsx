@@ -1,7 +1,7 @@
 import { QR_TYPE_INPUTS_CONFIG } from "@/ui/qr-builder/constants/qr-type-inputs-config.ts";
 import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { ChangeEvent, FC, useState } from "react";
+import { ChangeEvent, FC, useState, useEffect } from "react";
 import { ButtonsWrapper } from "./components/buttons-wrapper.tsx";
 import { CheckboxWithLabel } from "./components/checkbox-with-label.tsx";
 import { FileCardContent } from "./components/file-card-content.tsx";
@@ -23,20 +23,29 @@ interface IQRContentBuilderProps {
     qrType: EQRType;
   }) => void;
   minimalFlow?: boolean;
+  initialInputValues?: Record<string, string>;
 }
 
 export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
   qrType,
   handleContent,
   minimalFlow = false,
+  initialInputValues = {},
 }) => {
   const { isMobile } = useMediaQuery();
 
   const [files, setFiles] = useState<File[]>([]);
   const [showFileError, setShowFileError] = useState(false);
-  const [isHiddenNetwork, setIsHiddenNetwork] = useState(false);
-  const [inputValues, setInputValues] = useState<Record<string, string>>({});
+  const [isHiddenNetwork, setIsHiddenNetwork] = useState(
+    initialInputValues.isHiddenNetwork === "true"
+  );
+  const [inputValues, setInputValues] = useState<Record<string, string>>(initialInputValues);
   const [inputErrors, setInputErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    setInputValues(initialInputValues);
+    setIsHiddenNetwork(initialInputValues.isHiddenNetwork === "true");
+  }, [initialInputValues]);
 
   const validationFailed = Object.values(inputErrors).some((err) => err !== "");
 
@@ -47,14 +56,6 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
       [id]: value.trim() === "" ? "Field is required" : "",
     }));
   };
-  //
-  // const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-  //   const { id, value } = e.target;
-  //   validateField(id, value);
-  //   if (minimalFlow) {
-  //     handleContent({ inputValues, files, isHiddenNetwork, qrType });
-  //   }
-  // };
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
