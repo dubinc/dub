@@ -14,10 +14,10 @@ test("GET /links/metatags", async (ctx) => {
 
   expect(status).toEqual(200);
   expect(metatags).toStrictEqual({
-    title: "Dub.co - Link Management for Modern Marketing Teams",
+    title: "Dub – The Modern Link Attribution Platform",
     description:
-      "Dub.co is the open-source link management platform for modern marketing teams to create marketing campaigns, link sharing features, and referral programs.",
+      "Dub is the modern link attribution platform for short links, conversion tracking, and affiliate programs.",
     image: "https://assets.dub.co/thumbnail.jpg",
-    poweredBy: "Dub.co - Link management for modern marketing teams",
+    poweredBy: "Dub – The Modern Link Attribution Platform",
   });
 });
