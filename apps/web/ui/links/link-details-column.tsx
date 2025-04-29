@@ -61,14 +61,19 @@ export function LinkDetailsColumn({ link }: { link: ResponseLink }) {
   // const { primaryTag, additionalTags } = useOrganizedTags(tags);
 
   return (
-    <div ref={ref} className="flex items-center justify-end gap-6">
+    <div
+      ref={ref}
+      className="flex h-full items-start justify-end gap-6 md:items-center"
+    >
       {/*{displayProperties.includes("tags") && primaryTag && (*/}
       {/*  <TagsTooltip additionalTags={additionalTags}>*/}
       {/*    <TagButton tag={primaryTag} plus={additionalTags.length} />*/}
       {/*  </TagsTooltip>*/}
       {/*)}*/}
       {/*{displayProperties.includes("analytics") && (*/}
-      <AnalyticsBadge link={link} />
+      <div className="hidden md:flex">
+        <AnalyticsBadge link={link} />
+      </div>
       {/*)}*/}
       <LinkControls link={link} />
     </div>

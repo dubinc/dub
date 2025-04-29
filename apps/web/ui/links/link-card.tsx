@@ -1,6 +1,5 @@
 import useFolders from "@/lib/swr/use-folders";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { LinkControls } from "@/ui/links/link-controls.tsx";
 import { CardList, useMediaQuery } from "@dub/ui";
 import { useSearchParams } from "next/navigation";
 import { useContext } from "react";
@@ -68,12 +67,7 @@ export function LinkCard({ link }: { link: ResponseLink }) {
         <div className="h-full min-w-0 grow">
           <LinkTitleColumn link={link} />
         </div>
-        <div className="flex h-full justify-start md:hidden">
-          <LinkControls link={link} />
-        </div>
-        <div className={"hidden md:block"}>
-          <LinkDetailsColumn link={link} />
-        </div>
+        <LinkDetailsColumn link={link} />
       </CardList.Card>
     </>
   );
