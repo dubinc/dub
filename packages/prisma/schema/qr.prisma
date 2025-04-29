@@ -12,15 +12,15 @@ enum QRType {
 }
 
 model Qr {
-  id              String    @id @default(cuid())
-  data            String    @db.LongText
+  id              String     @id @default(cuid())
+  data            String     @db.LongText
 
   qrType          QRType
 
   title           String?
-  description     String?   @db.VarChar(280)
+  description     String?    @db.VarChar(280)
 
-  styles          Json?     // styles of the qr
+  styles          Json?      // styles of the qr
   frameOptions    Json?
 
   linkId          String?
@@ -29,4 +29,7 @@ model Qr {
   // User who created the qr
   userId          String?
   user            User?      @relation(fields: [userId], references: [id])
+
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
 }
