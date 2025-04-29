@@ -42,9 +42,12 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
       return (
         <>
           <div
-            className={cn("h-full transition-[height] duration-[300ms]", {
-              "md:max-h-[600px] md:overflow-y-scroll": !homepageDemo,
-            })}
+            className={cn(
+              "h-full w-full transition-[height] duration-[300ms]",
+              {
+                "md:max-h-[600px] md:overflow-y-scroll": !homepageDemo,
+              },
+            )}
           >
             {isMobile ? (
               <QrConfigTypeTabsMobile
