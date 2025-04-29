@@ -1,5 +1,4 @@
 import { useQRBuilder } from "@/ui/modals/qr-builder";
-import { QrCodeControls } from "@/ui/qr-code/qr-code-controls.tsx";
 import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
 import { CardList, useMediaQuery } from "@dub/ui";
 import { QrCodeDetailsColumn } from "./qr-code-details-column.tsx";
@@ -23,12 +22,7 @@ export function QrCodeCard({ qrCode }: { qrCode: ResponseQrCode }) {
         <div className="h-full min-w-0 grow">
           <QrCodeTitleColumn qrCode={qrCode} />
         </div>
-        <div className="flex h-full justify-start md:hidden">
-          <QrCodeControls qrCode={qrCode} />
-        </div>
-        <div className={"hidden md:block"}>
-          <QrCodeDetailsColumn qrCode={qrCode} />
-        </div>
+        <QrCodeDetailsColumn qrCode={qrCode} />
       </CardList.Card>
     </>
   );

@@ -2,6 +2,7 @@
 
 import useDomain from "@/lib/swr/use-domain";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { QR_TYPES } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { AnalyticsBadge } from "@/ui/qr-code/qr-code-details-column.tsx";
 import { QRCode } from "@/ui/shared/qr-code.tsx";
 import {
@@ -33,6 +34,8 @@ export function QrCodeTitleColumn({ qrCode }: { qrCode: ResponseQrCode }) {
   const { isMobile } = useMediaQuery();
 
   const ref = useRef<HTMLDivElement>(null);
+
+  const currentQrType = QR_TYPES.find((item) => item.id === qrCode.qrType);
 
   return (
     <div
@@ -90,7 +93,8 @@ export function QrCodeTitleColumn({ qrCode }: { qrCode: ResponseQrCode }) {
                 domain={domain}
                 linkKey={key}
                 link={qrCode.link}
-                linkClassname="max-w-[180px] text-sm font-semibold text-neutral-800 truncate"
+                linkClassname="block max-w-[180px] text-sm font-semibold text-neutral-800 truncate"
+                hideCopy
               />
             )}
             <Tooltip
@@ -232,11 +236,13 @@ function ShortLinkWrapper({
   linkKey,
   link,
   linkClassname,
+  hideCopy = false,
 }: PropsWithChildren<{
   domain: string;
   linkKey: string;
   link: ResponseQrCode["link"];
   linkClassname?: string;
+  hideCopy?: boolean;
 }>) {
   return (
     <div className="flex items-center gap-2">
@@ -256,15 +262,17 @@ function ShortLinkWrapper({
         </a>
       </UnverifiedTooltip>
 
-      <CopyButton
-        value={linkConstructor({
-          domain,
-          key: linkKey,
-          pretty: false,
-        })}
-        variant="neutral"
-        className="p-1"
-      />
+      {!hideCopy && (
+        <CopyButton
+          value={linkConstructor({
+            domain,
+            key: linkKey,
+            pretty: false,
+          })}
+          variant="neutral"
+          className="p-1"
+        />
+      )}
     </div>
   );
 }

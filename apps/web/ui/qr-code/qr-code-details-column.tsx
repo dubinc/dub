@@ -12,8 +12,13 @@ export function QrCodeDetailsColumn({ qrCode }: { qrCode: ResponseQrCode }) {
   const ref = useRef<HTMLDivElement>(null);
 
   return (
-    <div ref={ref} className="flex items-center justify-end gap-6">
-      <AnalyticsBadge qrCode={qrCode} />
+    <div
+      ref={ref}
+      className="flex h-full items-start justify-end gap-6 md:items-center"
+    >
+      <div className="hidden md:flex">
+        <AnalyticsBadge qrCode={qrCode} />
+      </div>
 
       <QrCodeControls qrCode={qrCode} />
     </div>
