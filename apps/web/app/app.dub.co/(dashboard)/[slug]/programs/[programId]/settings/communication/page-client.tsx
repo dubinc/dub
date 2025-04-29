@@ -72,7 +72,7 @@ export function ProgramCommunication() {
 
         <div className="divide-y divide-neutral-200 border-t border-neutral-200 px-6">
           <SettingsRow
-            heading="Support email"
+            heading="Support Email"
             description="For partner support requests"
             required
           >
@@ -91,7 +91,7 @@ export function ProgramCommunication() {
           </SettingsRow>
 
           <SettingsRow
-            heading="Help center"
+            heading="Help Center"
             description="Program help articles and documentation"
           >
             <div className="flex items-center justify-end">
