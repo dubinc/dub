@@ -10,6 +10,14 @@ export const roleSchema = z
   .enum(roles)
   .describe("The role of the authenticated user in the workspace.");
 
+const allowedImageTypes = [
+  "image/png",
+  "image/jpeg",
+  "image/jpg",
+  "image/gif",
+  "image/webp",
+];
+
 // A boolean query schema that coerces the value to a boolean
 export const booleanQuerySchema = z
   .enum(["true", "false"])
@@ -66,18 +74,10 @@ export const base64ImageSchema = z
       }
 
       try {
-        const allowedTypes = [
-          "image/png",
-          "image/jpeg",
-          "image/jpg",
-          "image/gif",
-          "image/webp",
-        ];
-
         const buffer = new Uint8Array(Buffer.from(base64Data, "base64"));
         const fileType = await fileTypeFromBuffer(buffer);
 
-        return fileType && allowedTypes.includes(fileType.mime);
+        return fileType && allowedImageTypes.includes(fileType.mime);
       } catch (e) {
         return false;
       }
