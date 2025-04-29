@@ -4,14 +4,14 @@ import {
   useCheckFolderPermission,
   useFolderPermissions,
 } from "@/lib/swr/use-folder-permissions";
-import useLinks from "@/lib/swr/use-links";
+import useQrs from "@/lib/swr/use-qrs.ts";
 import useWorkspace from "@/lib/swr/use-workspace";
-import LinkSort from "@/ui/links/link-sort.tsx";
-import { LinksDisplayProvider } from "@/ui/links/links-display-provider";
-import { useLinkFilters } from "@/ui/links/use-link-filters";
 import { useExportLinksModal } from "@/ui/modals/export-links-modal";
 import { useQRBuilder } from "@/ui/modals/qr-builder";
+import QrCodeSort from "@/ui/qr-code/qr-code-sort.tsx";
 import QrCodesContainer from "@/ui/qr-code/qr-codes-container.tsx";
+import { QrCodesDisplayProvider } from "@/ui/qr-code/qr-codes-display-provider.tsx";
+import { useQrCodeFilters } from "@/ui/qr-code/use-qr-code-filters.tsx";
 import { ThreeDots } from "@/ui/shared/icons";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
@@ -48,17 +48,17 @@ export default function WorkspaceLinksClient() {
   }, [session?.user]);
 
   return (
-    <LinksDisplayProvider>
+    <QrCodesDisplayProvider>
       <WorkspaceLinks />
-    </LinksDisplayProvider>
+    </QrCodesDisplayProvider>
   );
 }
 
 function WorkspaceLinks() {
-  const { isValidating } = useLinks();
+  const { isValidating } = useQrs();
   const searchParams = useSearchParams();
 
-  const { filters, activeFilters, onRemove, onRemoveAll } = useLinkFilters();
+  const { filters, activeFilters, onRemove, onRemoveAll } = useQrCodeFilters();
 
   const folderId = searchParams.get("folderId");
 
@@ -139,7 +139,7 @@ function WorkspaceLinks() {
               {/*  <LinkDisplay />*/}
               {/*</div>*/}
               <div className="grow basis-0 md:grow-0">
-                <LinkSort />
+                <QrCodeSort />
               </div>
             </div>
             <div className="flex gap-x-2 max-md:w-full">
