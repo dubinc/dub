@@ -988,7 +988,7 @@ export default function Toggle({
                 rel="noreferrer"
               >
                 <BlurImage
-                  alt={url || "Dub.co"}
+                  alt={url || "Dub"}
                   src={
                     url
                       ? `${GOOGLE_FAVICON_URL}${getApexDomain(url)}`
