@@ -35,11 +35,23 @@ export const GET = withWorkspace(
             email: true,
             image: true,
             isMachine: true,
+            restrictedTokens: {
+              select: {
+                name: true,
+                lastUsed: true,
+              },
+              where: {
+                lastUsed: {
+                  gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // tokens used in the last 30 days
+                },
+              },
+            },
           },
         },
         createdAt: true,
       },
     });
+
     return NextResponse.json(
       users.map((u) => ({
         ...u.user,
