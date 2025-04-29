@@ -3,12 +3,11 @@ import { createLink, processLink } from "@/lib/api/links";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { PARTNER_LINKS_LIMIT } from "@/lib/embed/constants";
 import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { getApexDomain } from "@dub/utils";
 import { NextResponse } from "next/server";
-
-const PARTNER_LINKS_LIMIT = 5;
 
 // GET /api/partner-profile/programs/[programId]/links - get a partner's links in a program
 export const GET = withPartnerProfile(async ({ partner, params }) => {
@@ -80,7 +79,7 @@ export const POST = withPartnerProfile(
         id: program.workspaceId,
         plan: "business",
       },
-      userId: session.user.id,
+      userId: session.user.id, // TODO: Hm, this is the partner user, not the workspace user?
       skipFolderChecks: true, // can't be changed by the partner
       skipProgramChecks: true, // can't be changed by the partner
       skipExternalIdChecks: true, // can't be changed by the partner

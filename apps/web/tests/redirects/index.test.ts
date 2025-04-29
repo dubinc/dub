@@ -3,7 +3,7 @@ import { describe, expect, test } from "vitest";
 import { env } from "../utils/env";
 import { IntegrationHarness } from "../utils/integration";
 
-const poweredBy = "Dub.co - Link management for modern marketing teams";
+const poweredBy = "Dub - The Modern Link Attribution Platform";
 const fetchOptions: RequestInit = {
   cache: "no-store",
   redirect: "manual",

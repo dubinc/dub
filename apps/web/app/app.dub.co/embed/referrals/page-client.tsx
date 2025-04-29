@@ -8,7 +8,7 @@ import { programResourcesSchema } from "@/lib/zod/schemas/program-resources";
 import { HeroBackground } from "@/ui/partners/hero-background";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import { ThreeDots } from "@/ui/shared/icons";
-import { Link, Program } from "@dub/prisma/client";
+import { Program } from "@dub/prisma/client";
 import {
   Button,
   Check,
@@ -20,7 +20,7 @@ import {
   useLocalStorage,
   Wordmark,
 } from "@dub/ui";
-import { cn, getPrettyUrl } from "@dub/utils";
+import { cn, getDomainWithoutWWW, getPrettyUrl } from "@dub/utils";
 import { AnimatePresence } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { ReferralsEmbedActivity } from "./activity";
@@ -28,10 +28,12 @@ import { ReferralsEmbedEarnings } from "./earnings";
 import { ReferralsEmbedEarningsSummary } from "./earnings-summary";
 import { ReferralsEmbedFAQ } from "./faq";
 import { ReferralsEmbedLeaderboard } from "./leaderboard";
+import ReferralsEmbedLinks from "./links";
 import { ReferralsEmbedQuickstart } from "./quickstart";
 import { ReferralsEmbedResources } from "./resources";
 import { ThemeOptions } from "./theme-options";
 import { ReferralsReferralsEmbedToken } from "./token";
+import { ReferralsEmbedLink } from "./types";
 
 export function ReferralsEmbedPageClient({
   program,
@@ -43,7 +45,7 @@ export function ReferralsEmbedPageClient({
   themeOptions,
 }: {
   program: Program;
-  links: Link[];
+  links: ReferralsEmbedLink[];
   rewards: RewardProps[];
   discount?: DiscountProps | null;
   earnings: {
@@ -78,6 +80,7 @@ export function ReferralsEmbedPageClient({
     () => [
       ...(showQuickstart ? ["Quickstart"] : []),
       "Earnings",
+      "Links",
       ...(programEmbedData?.leaderboard?.mode === "disabled"
         ? []
         : ["Leaderboard"]),
@@ -94,6 +97,10 @@ export function ReferralsEmbedPageClient({
     if (!tabs.includes(selectedTab)) setSelectedTab(tabs[0]);
   }, [tabs, selectedTab]);
 
+  const shortLinkDomain = program.domain || "";
+  const destinationDomain = program.url
+    ? getDomainWithoutWWW(program.url)!
+    : "";
   const partnerLink = constructPartnerLink({
     program,
     linkKey: links[0].key,
@@ -210,7 +217,6 @@ export function ReferralsEmbedPageClient({
               }))}
               selected={selectedTab}
               onSelect={(option) => {
-                console.log("onSelect", option);
                 setSelectedTab(option);
               }}
               className="scrollbar-hide min-w-0 grow overflow-x-auto"
@@ -238,6 +244,12 @@ export function ReferralsEmbedPageClient({
                 />
               ) : selectedTab === "Earnings" ? (
                 <ReferralsEmbedEarnings salesCount={stats.sales} />
+              ) : selectedTab === "Links" ? (
+                <ReferralsEmbedLinks
+                  links={links}
+                  destinationDomain={destinationDomain}
+                  shortLinkDomain={shortLinkDomain}
+                />
               ) : selectedTab === "Leaderboard" &&
                 programEmbedData?.leaderboard?.mode !== "disabled" ? (
                 <ReferralsEmbedLeaderboard />

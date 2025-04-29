@@ -9,8 +9,13 @@ export const ReferralsReferralsEmbedToken = () => {
   const token = useEmbedToken();
 
   const { error } = useSWR<{ token: number }>(
-    `/api/embed/referrals/token?token=${token}`,
-    fetcher,
+    "/api/embed/referrals/token",
+    (url) =>
+      fetcher(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }),
     {
       revalidateOnFocus: true,
       dedupingInterval: 30000,

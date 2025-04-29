@@ -7,10 +7,10 @@ import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
-import { createProgramSchema } from "../../zod/schemas/programs";
+import { updateProgramSchema } from "../../zod/schemas/programs";
 import { authActionClient } from "../safe-action";
 
-const schema = createProgramSchema.partial().extend({
+const schema = updateProgramSchema.partial().extend({
   workspaceId: z.string(),
   programId: z.string(),
   logo: z.string().nullish(),
@@ -35,6 +35,9 @@ export const updateProgramAction = authActionClient
       wordmark,
       brandColor,
       linkStructure,
+      supportEmail,
+      helpUrl,
+      termsUrl,
     } = parsedInput;
 
     try {
@@ -80,6 +83,9 @@ export const updateProgramAction = authActionClient
           wordmark: wordmarkUrl ?? undefined,
           defaultFolderId,
           linkStructure,
+          supportEmail,
+          helpUrl,
+          termsUrl,
         },
       });
 

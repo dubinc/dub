@@ -29,6 +29,9 @@ export function FormWrapper({ children }: { children: React.ReactNode }) {
           partners: programOnboarding.partners?.length
             ? programOnboarding.partners
             : [{ email: "", key: "" }],
+          supportEmail: programOnboarding.supportEmail || null,
+          helpUrl: programOnboarding.helpUrl || null,
+          termsUrl: programOnboarding.termsUrl || null,
         }
       : undefined,
   });
