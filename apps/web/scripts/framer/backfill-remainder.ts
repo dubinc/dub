@@ -135,11 +135,16 @@ async function main() {
 
   // Get the first link to process
   const linkToProcess = linksWithSales[0];
-  console.log(
-    `Processing link: ${linkToProcess.via} (${linkToProcess.linkId})`,
-  );
 
-  await processFramerData(linkToProcess);
+  if (linkToProcess.linkId) {
+    console.log(
+      `Processing link: ${linkToProcess.via} (${linkToProcess.linkId})`,
+    );
+
+    await processFramerData(linkToProcess);
+  } else {
+    console.log("No linkId found for linkToProcess");
+  }
 
   // Remove the processed link from the array
   linksWithSales.shift();
