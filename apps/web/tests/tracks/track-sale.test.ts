@@ -137,8 +137,8 @@ describe("POST /track/sale", async () => {
 
     expectValidSaleResponse(response, {
       ...jpySale,
-      // amount: 6500,
       currency: "usd",
+      amount: 45,
     });
   });
 });
