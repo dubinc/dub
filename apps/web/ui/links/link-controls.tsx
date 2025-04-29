@@ -4,7 +4,10 @@ import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
 import useFolders from "@/lib/swr/use-folders";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { QRLinkProps } from "@/lib/types.ts";
-import { useArchiveLinkModal } from "@/ui/modals/archive-link-modal";
+import {
+  sendArchiveRequest,
+  useArchiveLinkModal,
+} from "@/ui/modals/archive-link-modal";
 import { useDeleteLinkModal } from "@/ui/modals/delete-link-modal";
 import { Download } from "@/ui/shared/icons";
 import {
@@ -43,6 +46,7 @@ export function LinkControls({ link }: { link: ResponseLink }) {
   const { folders } = useFolders();
   const { hovered } = useContext(CardList.Card.Context);
   const searchParams = useSearchParams();
+  const [archiving, setArchiving] = useState<boolean>(false);
 
   const { openMenuLinkId, setOpenMenuLinkId } = useContext(LinksListContext);
   const openPopover = openMenuLinkId === link.id;
@@ -297,18 +301,37 @@ export function LinkControls({ link }: { link: ResponseLink }) {
               <Button
                 text={link.archived ? "Unpause" : "Pause"}
                 variant="outline"
-                onClick={() => {
+                onClick={async () => {
+                  setArchiving(true);
+                  const res = await sendArchiveRequest({
+                    linkId: link.id,
+                    archive: !link.archived,
+                    workspaceId,
+                  });
+
+                  if (!res.ok) {
+                    const { error } = await res.json();
+                    toast.error(error.message);
+                    setArchiving(false);
+                    return;
+                  }
+
+                  mutatePrefix("/api/links");
+                  toast.success(
+                    `Successfully ${link.archived ? "unpaused" : "paused"} QR code!`,
+                  );
                   setOpenPopover(false);
-                  setShowArchiveLinkModal(true);
+                  setArchiving(false);
                 }}
                 icon={<BoxArchive className="size-4" />}
                 shortcut="A"
-                className="h-9 px-2 font-medium"
+                className="border-border-500 h-9 px-2 font-medium"
                 disabledTooltip={
                   !canManageLink
                     ? "You don't have permission to archive this link."
                     : undefined
                 }
+                loading={archiving}
               />
 
               {/*<Button*/}
