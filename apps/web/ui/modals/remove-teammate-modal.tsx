@@ -1,8 +1,8 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { UserProps } from "@/lib/types";
-import { Button, Modal, useMediaQuery } from "@dub/ui";
+import { Avatar, Button, Modal, useMediaQuery } from "@dub/ui";
 import { TriangleWarning } from "@dub/ui/icons";
-import { OG_AVATAR_URL, timeAgo } from "@dub/utils";
+import { timeAgo } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
@@ -145,11 +145,7 @@ function RemoveTeammateModal({
 
         <div className="relative flex items-center gap-2 space-x-3 rounded-md border border-neutral-300 bg-white px-4 py-2">
           <div className="flex items-center gap-2">
-            <img
-              src={user.image || `${OG_AVATAR_URL}${user.id}`}
-              alt={user.name!}
-              className="size-10 rounded-full"
-            />
+            <Avatar user={user} className="size-10" />
             <div className="flex flex-col">
               <p className="text-sm font-medium text-neutral-900">
                 {user.name}
