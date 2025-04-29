@@ -42,7 +42,7 @@ export const GET = withWorkspace(
               },
               where: {
                 lastUsed: {
-                  gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // tokens used in the last 30 days
+                  not: null,
                 },
               },
             },
