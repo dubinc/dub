@@ -1,8 +1,6 @@
-import { getQRAsCanvas, getQRAsSVGDataUri, getQRData } from "@/lib/qr";
 import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
-import { QRLinkProps } from "@/lib/types.ts";
 import { useArchiveLinkModal } from "@/ui/modals/archive-link-modal";
-import { useDeleteLinkModal } from "@/ui/modals/delete-link-modal";
+import { useDeleteQRModal } from "@/ui/modals/delete-qr-modal.tsx";
 import { useQRBuilder } from "@/ui/modals/qr-builder";
 import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization";
 import {
@@ -13,7 +11,6 @@ import { useQrDownload } from "@/ui/qr-code/use-qr-download";
 import {
   Button,
   CardList,
-  IconMenu,
   PenWriting,
   Photo,
   Popover,
@@ -23,7 +20,7 @@ import { BoxArchive, Download } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Delete } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { PropsWithChildren, useContext, useRef, useState } from "react";
+import { PropsWithChildren, useContext, useState } from "react";
 import { ThreeDots } from "../shared/icons";
 
 interface QrCodeControlsProps {
@@ -45,8 +42,8 @@ export function QrCodeControls({ qrCode, canvasRef }: QrCodeControlsProps) {
   const { setShowArchiveLinkModal, ArchiveLinkModal } = useArchiveLinkModal({
     props: qrCode.link,
   });
-  const { setShowDeleteLinkModal, DeleteLinkModal } = useDeleteLinkModal({
-    props: qrCode.link,
+  const { setShowDeleteQRModal, DeleteLinkModal } = useDeleteQRModal({
+    props: qrCode,
   });
 
   const { setShowQRBuilderModal, QRBuilderModal } = useQRBuilder({
@@ -72,7 +69,7 @@ export function QrCodeControls({ qrCode, canvasRef }: QrCodeControlsProps) {
           canManageLink && setShowArchiveLinkModal(true);
           break;
         case "x":
-          canManageLink && setShowDeleteLinkModal(true);
+          canManageLink && setShowDeleteQRModal(true);
           break;
       }
     },
@@ -144,7 +141,7 @@ export function QrCodeControls({ qrCode, canvasRef }: QrCodeControlsProps) {
                 variant="danger-outline"
                 onClick={() => {
                   setOpenPopover(false);
-                  setShowDeleteLinkModal(true);
+                  setShowDeleteQRModal(true);
                 }}
                 icon={<Delete className="size-4" />}
                 shortcut="X"

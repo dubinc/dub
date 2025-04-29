@@ -81,14 +81,13 @@ export function QRBuilderModal({
         body: JSON.stringify({
           ...data,
           data: data.styles.data,
-          ...(props
-            ? {}
-            : {
-                link: {
-                  url: data.styles.data,
-                  domain: SHORT_DOMAIN,
-                },
-              }),
+          link: {
+            url: data.styles.data,
+            domain: SHORT_DOMAIN,
+            tagId: null,
+            tags: [],
+            webhookIds: [],
+          },
         }),
       });
 
@@ -134,6 +133,7 @@ export function QRBuilderModal({
       //   }
       // }
     } catch (e) {
+      setIsProcessing(false);
       // setError("root", { message: "Failed to save link" });
       console.error("Failed to save QR", e);
       toast.error("Failed to save QR");

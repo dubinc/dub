@@ -1,14 +1,12 @@
-import { DubApiError } from '@/lib/api/errors';
-import { getQr } from '@/lib/api/qrs/get-qr';
-import { parseRequestBody } from '@/lib/api/utils';
+import { DubApiError } from "@/lib/api/errors";
+import { includeTags } from "@/lib/api/links/include-tags.ts";
+import { getQr } from "@/lib/api/qrs/get-qr";
+import { updateQr } from "@/lib/api/qrs/update-qr";
+import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { sendWorkspaceWebhook } from '@/lib/webhook/publish';
-import { linkEventSchema } from '@/lib/zod/schemas/links';
-import { updateQrBodySchema } from '@/lib/zod/schemas/qrs';
-import { waitUntil } from '@vercel/functions/wait-until';
-import { NextResponse } from "next/server";
+import { updateQrBodySchema } from "@/lib/zod/schemas/qrs";
 import { prisma } from "@dub/prisma";
-import { updateQr } from '@/lib/api/qrs/update-qr';
+import { NextResponse } from "next/server";
 
 // GET /api/qrs/[qrId] – get a qr
 export const GET = withWorkspace(
@@ -44,13 +42,13 @@ export const PATCH = withWorkspace(
         },
       });
 
-      waitUntil(
-        sendWorkspaceWebhook({
-          trigger: "link.updated",
-          workspace,
-          data: linkEventSchema.parse(response),
-        }),
-      );
+      // waitUntil(
+      //   sendWorkspaceWebhook({
+      //     trigger: "link.updated",
+      //     workspace,
+      //     data: linkEventSchema.parse(response),
+      //   }),
+      // );
 
       const updatedQr = await updateQr(params.qrId, body);
 
@@ -72,36 +70,41 @@ export const PATCH = withWorkspace(
 // backwards compatibility
 export const PUT = PATCH;
 
-// // DELETE /api/links/[linkId] – delete a link
-// export const DELETE = withWorkspace(
-//   async ({ headers, params, workspace, session }) => {
-//     const link = await getLinkOrThrow({
-//       workspaceId: workspace.id,
-//       linkId: params.linkId,
-//     });
+// DELETE /api/links/[qrId] – delete a link
+export const DELETE = withWorkspace(
+  async ({ headers, params, workspace, session }) => {
+    const qr = await getQr({
+      qrId: params.qrId,
+    });
 
-//     if (link.folderId) {
-//       await verifyFolderAccess({
-//         workspace,
-//         userId: session.user.id,
-//         folderId: link.folderId,
-//         requiredPermission: "folders.links.write",
-//       });
-//     }
+    if (session.user.id !== qr.userId) {
+      throw new DubApiError({
+        code: "unprocessable_entity",
+        message: "Access denied",
+      });
+    }
 
-//     const response = await deleteLink(link.id);
+    const removedQr = await prisma.qr.delete({
+      where: {
+        id: qr.id,
+      },
+    });
 
-//     waitUntil(
-//       sendWorkspaceWebhook({
-//         trigger: "link.deleted",
-//         workspace,
-//         data: linkEventSchema.parse(response),
-//       }),
-//     );
+    const removedLink = await prisma.link.delete({
+      where: {
+        id: qr.link!.id,
+      },
+      include: {
+        ...includeTags,
+      },
+    });
 
-//     return NextResponse.json({ id: link.id }, { headers });
-//   },
-//   {
-//     requiredPermissions: ["links.write"],
-//   },
-// );
+    return NextResponse.json(
+      { linkId: removedLink.id, qrId: removedQr.id },
+      { headers },
+    );
+  },
+  {
+    requiredPermissions: ["links.write"],
+  },
+);
