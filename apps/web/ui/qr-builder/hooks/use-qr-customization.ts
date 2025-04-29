@@ -4,6 +4,8 @@ import {
   WHITE_COLOR,
 } from "@/ui/qr-builder/constants/customization/colors.ts";
 import { FRAMES } from "@/ui/qr-builder/constants/customization/frames.ts";
+import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
+import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
 import QRCodeStyling, {
   CornerDotType,
   CornerSquareType,
@@ -13,14 +15,18 @@ import { DotType } from "qr-code-styling/lib/types";
 import { useEffect, useState } from "react";
 import { convertSvgUrlToBase64 } from "../helpers/convert-svg-url-to-base64.ts";
 
-export function useQrCustomization() {
+export function useQrCustomization(initialData?: ResponseQrCode) {
   const [qrCode, setQrCode] = useState<QRCodeStyling | null>(null);
   const [uploadedLogo, setUploadedLogo] = useState<File | null>(null);
   const [selectedSuggestedLogo, setSelectedSuggestedLogo] = useState("none");
   const [selectedSuggestedFrame, setSelectedSuggestedFrame] = useState("none");
 
+  const [selectedQRType, setSelectedQRType] = useState<EQRType>(
+    (initialData?.qrType as EQRType) || EQRType.WEBSITE,
+  );
+
   const qrPlaceholder = "https://www.getqr.com/";
-  const [data, setData] = useState(qrPlaceholder);
+  const [data, setData] = useState(initialData?.data || qrPlaceholder);
   const isQrDisabled = !data?.trim() || data === qrPlaceholder;
 
   const [options, setOptions] = useState<Options>({
@@ -54,7 +60,84 @@ export function useQrCustomization() {
       hideBackgroundDots: true,
       crossOrigin: "anonymous",
     },
+    ...(initialData?.styles as Options),
   });
+
+  const parseQRData = (data: string, type: EQRType): Record<string, string> => {
+    switch (type) {
+      case EQRType.WHATSAPP:
+        try {
+          const url = new URL(data);
+          let number = "";
+          let message = "";
+
+          if (url.hostname === "wa.me") {
+            number = url.pathname.replace("/", "");
+            const textParam = url.searchParams.get("text");
+            message = textParam && textParam !== "undefined" ? decodeURIComponent(textParam) : "";
+          } else if (
+            url.hostname === "whatsapp.com" ||
+            url.hostname === "api.whatsapp.com"
+          ) {
+            number = url.searchParams.get("phone") || "";
+            const textParam = url.searchParams.get("text");
+            message = textParam && textParam !== "undefined" ? decodeURIComponent(textParam) : "";
+          }
+
+          number = number.replace(/\D/g, "");
+
+          if (number) {
+            return {
+              number,
+              message,
+            };
+          }
+        } catch (e) {
+          const numberMatch = data.match(/\d+/);
+          if (numberMatch) {
+            return {
+              number: numberMatch[0],
+              message: "",
+            };
+          }
+        }
+        break;
+      case EQRType.WIFI:
+        const wifiMatch = data.match(/WIFI:T:(.+);S:(.+);P:(.+);H:(.+);/);
+        if (wifiMatch) {
+          return {
+            networkName: wifiMatch[2],
+            networkPassword: wifiMatch[3],
+            networkEncryption: wifiMatch[1],
+            isHiddenNetwork: wifiMatch[4],
+          };
+        }
+        break;
+      case EQRType.WEBSITE:
+        return { websiteLink: data };
+      case EQRType.APP_LINK:
+        return { storeLink: data };
+      case EQRType.SOCIAL:
+        return { socialLink: data };
+      case EQRType.FEEDBACK:
+        return { link: data };
+    }
+    return {};
+  };
+
+  const [initialInputValues, setInitialInputValues] = useState<
+    Record<string, string>
+  >({});
+
+  useEffect(() => {
+    if (initialData) {
+      const parsedData = parseQRData(
+        initialData.data,
+        initialData.qrType as EQRType,
+      );
+      setInitialInputValues(parsedData);
+    }
+  }, [initialData]);
 
   useEffect(() => {
     const qrCodeStyling = new QRCodeStyling(options);
@@ -64,7 +147,10 @@ export function useQrCustomization() {
   useEffect(() => {
     if (!qrCode || isQrDisabled) return;
 
-    qrCode.update({ ...options, data });
+    setOptions((prevOptions) => ({
+      ...prevOptions,
+      data,
+    }));
 
     if (selectedSuggestedFrame !== "none") {
       const extensionFn = FRAMES[selectedSuggestedFrame];
@@ -72,7 +158,28 @@ export function useQrCustomization() {
     } else {
       qrCode.deleteExtension?.();
     }
-  }, [qrCode, options, data, selectedSuggestedFrame, isQrDisabled]);
+  }, [qrCode, data, selectedSuggestedFrame, isQrDisabled]);
+
+  useEffect(() => {
+    if (!qrCode || isQrDisabled) return;
+
+    qrCode.update(options);
+  }, [qrCode, options, isQrDisabled]);
+
+  useEffect(() => {
+    if (initialData && qrCode) {
+      if (
+        initialData.frameOptions &&
+        typeof initialData?.frameOptions === "object" &&
+        "id" in initialData.frameOptions
+      ) {
+        const frameId = initialData.frameOptions.id as string;
+        setSelectedSuggestedFrame(frameId);
+        handlers.onSuggestedFrameSelect(frameId);
+      }
+      setSelectedQRType(initialData.qrType as EQRType);
+    }
+  }, [initialData, qrCode]);
 
   const handlers = {
     onBorderStyleChange: (newType: CornerSquareType) => {
@@ -144,6 +251,7 @@ export function useQrCustomization() {
       qrCode.update({ ...options, data });
 
       const selected = FRAMES.find((f) => f.type === frameId);
+
       if (selected?.extension) {
         qrCode.applyExtension(selected.extension);
       } else {
@@ -188,5 +296,8 @@ export function useQrCustomization() {
     setOptions,
     handlers,
     isQrDisabled,
+    selectedQRType,
+    setSelectedQRType,
+    initialInputValues,
   };
 }

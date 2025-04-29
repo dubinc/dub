@@ -1,5 +1,5 @@
 import QRCodeStyling from "qr-code-styling";
-import { useEffect, useRef } from "react";
+import { forwardRef, useEffect, useRef } from "react";
 
 interface QRCanvasProps {
   qrCode: QRCodeStyling | null;
@@ -7,13 +7,16 @@ interface QRCanvasProps {
   height?: number;
 }
 
-export const QRCanvas = ({
+export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(({
   qrCode,
   width = 200,
   height = 200,
-}: QRCanvasProps) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+}, ref) => {
+  const internalCanvasRef = useRef<HTMLCanvasElement>(null);
   const svgContainerRef = useRef<HTMLDivElement>(null);
+  
+  // Используем переданный ref или внутренний
+  const canvasRef = (ref as React.RefObject<HTMLCanvasElement>) || internalCanvasRef;
 
   useEffect(() => {
     if (!qrCode || !svgContainerRef.current || !canvasRef.current) return;
@@ -66,35 +69,38 @@ export const QRCanvas = ({
       observer.disconnect();
       svgContainerRef.current?.replaceChildren();
     };
-  }, [qrCode]);
+  }, [qrCode, canvasRef]);
 
-  // @USEFUL_FEATURE: download new qr preview in canvas (for each format of png, jpg, svg)
-  // const handleDownload = async () => {
-  //   if (!qrCode) return;
-  //
-  //   if (exportFormat === "svg") {
-  //     qrCode.download({
-  //       extension: "svg",
-  //       name: "qr-code",
-  //     });
-  //   } else {
-  //     if (canvasRef.current) {
-  //       const link = document.createElement("a");
-  //
-  //       const mimeType = exportFormat === "png" ? "image/png" : "image/jpeg";
-  //       const quality = exportFormat === "jpeg" ? 0.9 : undefined;
-  //
-  //       const dataUrl = canvasRef.current.toDataURL(mimeType, quality);
-  //
-  //       link.href = dataUrl;
-  //       link.download = `qr-code.${exportFormat}`;
-  //
-  //       document.body.appendChild(link);
-  //       link.click();
-  //       document.body.removeChild(link);
-  //     }
-  //   }
-  // };
+  const downloadQrCode = async (
+    qrCode: QRCodeStyling,
+    format: "svg" | "png" | "jpg",
+  ) => {
+    if (!qrCode) return;
+
+    if (format === "svg") {
+      qrCode.download({
+        extension: "svg",
+        name: "qr-code",
+      });
+    } else {
+      if (canvasRef.current) {
+        const link = document.createElement("a");
+
+        const mimeType = format === "png" ? "image/png" : "image/jpeg";
+        // @ts-ignore
+        const quality = format === "jpeg" ? 0.9 : undefined;
+
+        const dataUrl = canvasRef.current.toDataURL(mimeType, quality);
+
+        link.href = dataUrl;
+        link.download = `qr-code.${format}`;
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    }
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -109,4 +115,4 @@ export const QRCanvas = ({
       </div>
     </div>
   );
-};
+});

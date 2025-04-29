@@ -20,6 +20,10 @@ interface QrTypeTabsProps {
   setData: Dispatch<SetStateAction<any>>;
   isQrDisabled: boolean;
   nonFileQrTypes: QRType[];
+  homepageDemo?: boolean;
+  qrTypeActiveTab: QRType["id"];
+  setQRTypeActiveTab: Dispatch<SetStateAction<QRType["id"]>>;
+  initialInputValues?: Record<string, string>;
 }
 
 export const QrTypeTabs = ({
@@ -32,10 +36,11 @@ export const QrTypeTabs = ({
   setData,
   isQrDisabled,
   nonFileQrTypes,
+  homepageDemo,
+  qrTypeActiveTab,
+  setQRTypeActiveTab,
+  initialInputValues = {},
 }: QrTypeTabsProps) => {
-  const [qrTypeActiveTab, setQRTypeActiveTab] = useState<EQRType>(
-    EQRType.WEBSITE,
-  );
   const [styleOptionActiveTab, setStyleOptionActiveActiveTab] =
     useState<string>("Frame");
 
@@ -59,7 +64,10 @@ export const QrTypeTabs = ({
     <Tabs.Root
       value={qrTypeActiveTab}
       onValueChange={setQRTypeActiveTab as (value: string) => void}
-      className="border-border-500 mx-auto flex w-full flex-col items-center justify-center gap-[18px] rounded-lg border bg-white"
+      className={cn(
+        "border-border-500 mx-auto flex w-full flex-col items-center justify-center gap-[18px] border bg-white",
+        { ["rounded-lg"]: homepageDemo },
+      )}
     >
       <Tabs.List className="border-b-border-500 flex w-full items-center justify-between gap-0.5 overflow-x-auto border-b p-3">
         {nonFileQrTypes.map((type, idx) => (
@@ -67,7 +75,7 @@ export const QrTypeTabs = ({
             key={type.id}
             value={type.id}
             className={cn(
-              "text-neutral group flex min-w-32 items-center justify-center gap-2 rounded-md px-4 py-3.5 font-medium transition-colors",
+              "text-neutral group flex w-48 items-center justify-center gap-2 rounded-md px-4 py-3.5 font-medium transition-colors",
               "hover:bg-border-100 hover:text-neutral",
               "data-[state=active]:bg-secondary-100 data-[state=active]:border-secondary data-[state=active]:text-secondary",
             )}
@@ -85,7 +93,7 @@ export const QrTypeTabs = ({
                     : "[&>g]:stroke-secondary group-hover:[&>g]:stroke-secondary [&>path]:stroke-secondary group-hover:[&>path]:stroke-secondary"),
               )}
             />
-            <span className="whitespace-nowrap text-base font-normal md:text-xs">
+            <span className="whitespace-nowrap text-base text-xs font-normal">
               {type.label}
             </span>
           </Tabs.Trigger>
@@ -115,6 +123,7 @@ export const QrTypeTabs = ({
                       qrType={type.id}
                       handleContent={handleContent}
                       minimalFlow
+                      initialInputValues={initialInputValues}
                     />
                   </div>
                 </div>
@@ -137,9 +146,16 @@ export const QrTypeTabs = ({
                 </div>
               </div>
 
-              <div className="bg-background relative flex h-auto shrink-0 basis-2/5 items-start justify-center rounded-lg p-6">
+              <div
+                className={cn(
+                  "bg-background relative flex h-auto shrink-0 basis-2/5 items-center justify-center rounded-lg p-6",
+                  { ["items-start"]: homepageDemo },
+                )}
+              >
                 <div className="sticky top-8 flex flex-col gap-6">
-                  <QrTabsStepTitle stepNumber={3} title={"Download your QR"} />
+                  {homepageDemo && (
+                    <QrTabsStepTitle stepNumber={3} title="Download your QR" />
+                  )}
                   <div
                     className={cn("flex justify-center rounded-lg shadow-lg", {
                       "opacity-30": isQrDisabled,
@@ -148,7 +164,9 @@ export const QrTypeTabs = ({
                     <QRCanvas qrCode={qrCode} />
                     {/*<QRPreview qrCode={qrCode} />*/}
                   </div>
-                  <QrTabsDownloadButton isQrDisabled={isQrDisabled} />
+                  {homepageDemo && (
+                    <QrTabsDownloadButton isQrDisabled={isQrDisabled} />
+                  )}
                 </div>
               </div>
             </div>

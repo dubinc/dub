@@ -44,7 +44,7 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
       >
         <QrTabsTitle />
 
-        <QrBuilder />
+        <QrBuilder homepageDemo />
 
         {isMobile && <Rating />}
 
