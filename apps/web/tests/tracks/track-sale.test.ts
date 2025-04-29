@@ -122,6 +122,7 @@ describe("POST /track/sale", async () => {
   test("track a sale with JPY currency (zero decimal currency)", async () => {
     const jpySale = {
       ...sale,
+      eventName: "Payment in JPY",
       invoiceId: `INV_${randomId()}`,
       amount: 1437, // approximately 1000 USD cents
       currency: "jpy",
