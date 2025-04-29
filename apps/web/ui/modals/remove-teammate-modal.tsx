@@ -126,18 +126,20 @@ function RemoveTeammateModal({
               and may disrupt the integration.
             </p>
 
-            <ul className="mt-4 space-y-2">
-              {user.restrictedTokens.map((token, index) => (
-                <li key={index} className="flex items-center justify-between">
-                  <span className="text-sm font-medium leading-4 text-amber-900">
-                    {token.name}
-                  </span>
-                  <span className="text-xs font-normal leading-4 text-amber-700">
-                    used {timeAgo(token.lastUsed)} ago
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <div>
+              <ul className="mt-6 space-y-2">
+                {user.restrictedTokens.map((token, index) => (
+                  <li key={index} className="flex items-center justify-between">
+                    <span className="text-sm font-medium leading-4 text-amber-900">
+                      {token.name}
+                    </span>
+                    <span className="text-xs font-normal leading-4 text-amber-700">
+                      used {timeAgo(token.lastUsed)} ago
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         )}
 
