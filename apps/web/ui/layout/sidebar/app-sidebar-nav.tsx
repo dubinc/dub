@@ -269,7 +269,11 @@ export function AppSidebarNav({
         }),
         programs,
         session: session || undefined,
-        showNews: pathname.startsWith(`/${slug}/programs/`) ? false : true,
+        showNews:
+          pathname.startsWith(`/${slug}/programs/`) ||
+          (programs && programs.length === 0)
+            ? false
+            : true,
       }}
       toolContent={toolContent}
       newsContent={newsContent}

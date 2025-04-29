@@ -1,11 +1,23 @@
-import { getAnalytics } from "@/lib/analytics/get-analytics";
+import { getEvents } from "@/lib/analytics/get-events";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { partnerProfileAnalyticsQuerySchema } from "@/lib/zod/schemas/partner-profile";
+import {
+  PartnerProfileLinkSchema,
+  partnerProfileEventsQuerySchema,
+} from "@/lib/zod/schemas/partner-profile";
+
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
-// GET /api/partner-profile/programs/[programId]/analytics – get analytics for a program enrollment link
+const CustomerSchema = z.object({
+  id: z.string(),
+  email: z
+    .string()
+    .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "****")),
+});
+
+// GET /api/partner-profile/programs/[programId]/events – get events for a program enrollment link
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
     const { program } = await getProgramEnrollmentOrThrow({
@@ -14,7 +26,7 @@ export const GET = withPartnerProfile(
     });
 
     let { linkId, domain, key, ...rest } =
-      partnerProfileAnalyticsQuerySchema.parse(searchParams);
+      partnerProfileEventsQuerySchema.parse(searchParams);
 
     if (!linkId && domain && key) {
       const link = await prisma.link.findUnique({
@@ -33,12 +45,25 @@ export const GET = withPartnerProfile(
       linkId = link.id;
     }
 
-    const response = await getAnalytics({
+    const events = await getEvents({
       ...rest,
       linkId,
       programId: program.id,
       partnerId: partner.id,
       dataAvailableFrom: program.createdAt,
+    });
+
+    const response = events.map((event) => {
+      return {
+        ...event,
+        link: event?.link ? PartnerProfileLinkSchema.parse(event.link) : null,
+        // @ts-expect-error - customer is not always present
+        ...(event?.customer && {
+          customer: CustomerSchema
+            // @ts-expect-error - customer is not always present
+            .parse(event.customer),
+        }),
+      };
     });
 
     return NextResponse.json(response);
