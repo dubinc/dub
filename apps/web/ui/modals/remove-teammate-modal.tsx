@@ -134,7 +134,7 @@ function RemoveTeammateModal({
                       {token.name}
                     </span>
                     <span className="text-xs font-normal leading-4 text-amber-700">
-                      used {timeAgo(token.lastUsed)} ago
+                      used {timeAgo(token.lastUsed, { withAgo: true })}
                     </span>
                   </li>
                 ))}
