@@ -72,11 +72,11 @@ export function QrCodeTitleColumn({ qrCode }: { qrCode: ResponseQrCode }) {
           >
             <Flex direction="row" gap="1" align="center" justify="center">
               <Icon
-                icon="basil:whatsapp-outline"
+                icon={currentQrType!.icon!}
                 className="text-secondary text-lg"
               />
               <Text as="span" size="2" weight="bold" className="text-secondary">
-                Whatsapp
+                {currentQrType!.label!}
               </Text>
             </Flex>
             {title ? (
