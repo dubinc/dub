@@ -8,7 +8,8 @@ export const createQrBodySchema = z.object({
   description: z.string().max(280).optional(),
   styles: z.record(z.any()).optional(), // Json
   frameOptions: z.record(z.any()).optional(), // Json
+  archived: z.boolean().optional(),
   link: createLinkBodySchema,
 });
 
-export const updateLinkBodySchema = createQrBodySchema.partial();
+export const updateQrBodySchema = createQrBodySchema.partial();

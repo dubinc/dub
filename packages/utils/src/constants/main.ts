@@ -47,7 +47,9 @@ export const API_HOSTNAMES = new Set([
 //       ? `https://api-staging.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
 //       : "http://api.localhost:8888";
 
-export const API_DOMAIN = `https://api-${process.env.NEXT_PUBLIC_APP_DOMAIN}`;
+export const API_DOMAIN = process.env.NEXT_PUBLIC_API_DOMAIN
+  ? `${process.env.NEXT_PUBLIC_API_DOMAIN}`
+  : `https://api-${process.env.NEXT_PUBLIC_APP_DOMAIN}`;
 
 export const ADMIN_HOSTNAMES = new Set([
   `admin.${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
