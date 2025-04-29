@@ -79,9 +79,6 @@ export function ProgramCommunication() {
                 <input
                   type="email"
                   className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                  {...register("supportEmail", {
-                    required: true,
-                  })}
                   placeholder="support@dub.co"
                 />
               </div>

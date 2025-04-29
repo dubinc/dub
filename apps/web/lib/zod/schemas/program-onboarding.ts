@@ -69,8 +69,8 @@ export const onboardingStepSchema = z.enum([
   "get-started",
   "configure-reward",
   "invite-partners",
-  "connect",
   "help-and-support",
+  "connect",
   "create-program",
 ]);
 
@@ -107,17 +107,17 @@ export const onboardProgramSchema = z.discriminatedUnion("step", [
     }),
   ),
 
-  z.object({
-    step: z.literal("connect"),
-    workspaceId: z.string(),
-  }),
-
   programSupportSchema.merge(
     z.object({
       step: z.literal("help-and-support"),
       workspaceId: z.string(),
     }),
   ),
+
+  z.object({
+    step: z.literal("connect"),
+    workspaceId: z.string(),
+  }),
 
   z.object({
     step: z.literal("create-program"),
@@ -153,15 +153,15 @@ export const PROGRAM_ONBOARDING_STEPS = [
   },
   {
     stepNumber: 4,
-    label: "Connect Dub",
-    href: "/programs/new/connect",
-    step: "connect",
-  },
-  {
-    stepNumber: 5,
     label: "Help and Support",
     href: "/programs/new/support",
     step: "help-and-support",
+  },
+  {
+    stepNumber: 5,
+    label: "Connect Dub",
+    href: "/programs/new/connect",
+    step: "connect",
   },
   {
     stepNumber: 6,

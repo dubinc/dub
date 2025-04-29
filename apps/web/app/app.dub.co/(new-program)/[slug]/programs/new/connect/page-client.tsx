@@ -31,7 +31,7 @@ export function PageClient() {
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
-      router.push(`/${workspaceSlug}/programs/new/support`);
+      router.push(`/${workspaceSlug}/programs/new/overview`);
       mutate();
     },
     onError: ({ error }) => {

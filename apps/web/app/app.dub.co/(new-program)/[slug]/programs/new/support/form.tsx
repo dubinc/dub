@@ -25,7 +25,7 @@ export function Form() {
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
-      router.push(`/${workspaceSlug}/programs/new/overview`);
+      router.push(`/${workspaceSlug}/programs/new/connect`);
       mutate();
     },
     onError: ({ error }) => {
@@ -62,7 +62,7 @@ export function Form() {
       <div className="space-y-6">
         <div>
           <label className="block text-sm font-medium text-neutral-800">
-            Support email
+            Support email <span className="text-red-800">*</span>
           </label>
           <Input
             type="email"
