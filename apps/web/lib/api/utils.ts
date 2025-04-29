@@ -72,6 +72,7 @@ const prefixes = [
   "dub_embed_",
   "inv_",
   "fold_",
+  "qr_",
 ] as const;
 
 export const createId = ({

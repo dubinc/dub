@@ -67,6 +67,7 @@ import {
   webhookEventSchemaTB,
   WebhookSchema,
 } from "./zod/schemas/webhooks";
+import { createQrBodySchema } from './zod/schemas/qrs';
 
 export type QRProps = Qr;
 
@@ -432,3 +433,5 @@ export type FolderSummary = Pick<
   Folder,
   "id" | "name" | "accessLevel" | "linkCount"
 >;
+
+export type NewQrProps = z.infer<typeof createQrBodySchema>;
