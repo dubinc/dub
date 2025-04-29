@@ -62,17 +62,19 @@ export function ProgramCommunication() {
       <div className="rounded-lg border border-neutral-200 bg-white">
         <div className="p-6">
           <h2 className="inline-flex items-center gap-2 text-lg font-semibold text-neutral-900">
-            Help and Accouncements
+            Help and Support
           </h2>
           <p className="mt-1 text-sm text-neutral-600">
-            Determine how much your partners can view.
+            Configure the support email, help center, and terms of service for
+            your program.
           </p>
         </div>
 
         <div className="divide-y divide-neutral-200 border-t border-neutral-200 px-6">
           <SettingsRow
             heading="Support email"
-            description="For program help requests"
+            description="For partner support requests"
+            required
           >
             <div className="flex items-center justify-end">
               <div className="w-full max-w-md">
@@ -80,6 +82,9 @@ export function ProgramCommunication() {
                   type="email"
                   className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                   placeholder="support@dub.co"
+                  {...register("supportEmail", {
+                    required: true,
+                  })}
                 />
               </div>
             </div>
@@ -103,7 +108,7 @@ export function ProgramCommunication() {
 
           <SettingsRow
             heading="Terms of Service"
-            description="Your terms of service page"
+            description="Program terms of service and legal information"
           >
             <div className="flex items-center justify-end">
               <div className="w-full max-w-md">
