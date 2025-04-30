@@ -4,6 +4,8 @@ import { DUB_PARTNERS_ANALYTICS_INTERVAL } from "@/lib/analytics/constants";
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { IntervalOptions } from "@/lib/analytics/types";
 import { useSyncedLocalStorage } from "@/lib/hooks/use-synced-local-storage";
+import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
+import { QueryLinkStructureHelpText } from "@/lib/partners/query-link-structure-help-text";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-timeseries";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
@@ -75,6 +77,15 @@ export default function ProgramPageClient() {
   const program = programEnrollment?.program;
   const defaultProgramLink = programEnrollment?.links?.[0];
 
+  if (!program || !defaultProgramLink) {
+    return null;
+  }
+
+  const partnerLink = constructPartnerLink({
+    program,
+    linkKey: defaultProgramLink.key,
+  });
+
   return (
     <MaxWidthWrapper className="pb-10">
       <AnimatePresence mode="wait" initial={false}>
@@ -98,15 +109,16 @@ export default function ProgramPageClient() {
                   color={program.brandColor}
                 />
               )}
+
               <span className="text-base font-semibold text-neutral-800">
                 Referral link
               </span>
               <div className="xs:flex-row xs:items-center relative mt-3 flex flex-col gap-2 md:max-w-[50%]">
-                {defaultProgramLink ? (
+                {partnerLink ? (
                   <input
                     type="text"
                     readOnly
-                    value={getPrettyUrl(defaultProgramLink.shortLink)}
+                    value={getPrettyUrl(partnerLink)}
                     className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default h-10 min-w-0 shrink grow rounded-md border px-3 text-sm focus:outline-none focus:ring-neutral-500"
                   />
                 ) : (
@@ -135,14 +147,21 @@ export default function ProgramPageClient() {
                   }
                   text={copied ? "Copied link" : "Copy link"}
                   className="xs:w-fit"
-                  disabled={!defaultProgramLink}
                   onClick={() => {
-                    if (defaultProgramLink) {
-                      copyToClipboard(defaultProgramLink.shortLink);
+                    if (partnerLink) {
+                      copyToClipboard(partnerLink);
                     }
                   }}
                 />
               </div>
+
+              {program.linkStructure === "query" && (
+                <QueryLinkStructureHelpText
+                  program={program}
+                  linkKey={defaultProgramLink.key}
+                />
+              )}
+
               <span className="mt-12 text-base font-semibold text-neutral-800">
                 Rewards
               </span>

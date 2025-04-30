@@ -13,9 +13,9 @@ const getLeadEvent = tb.buildPipe({
 
 // update tinybird lead event
 async function main() {
-  const eventId = "nLvob3FdmsYuI1BI";
-  const columnName = "link_id";
-  const columnValue = "link_1JRVCZWHWACS7R2KZB9ME6CJR";
+  const eventId = "9Q22Mkh9edsHdePl";
+  const columnName = "event_name";
+  const columnValue = "Manual commission for QE6IwYufKjVaHFbreyW3";
 
   const { data } = await getLeadEvent({ eventId });
   const oldData = data[0];

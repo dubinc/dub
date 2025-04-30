@@ -72,7 +72,6 @@ export const createPayout = async ({
         id: true,
         createdAt: true,
         earnings: true,
-        quantity: true,
       },
       orderBy: {
         createdAt: "asc",
@@ -97,11 +96,6 @@ export const createPayout = async ({
     let periodEnd = commissions[commissions.length - 1].createdAt;
     periodEnd = new Date(periodEnd.getFullYear(), periodEnd.getMonth() + 1);
 
-    const totalQuantity = commissions.reduce(
-      (total, { quantity }) => total + quantity,
-      0,
-    );
-
     const totalAmount = commissions.reduce(
       (total, { earnings }) => total + earnings,
       0,
@@ -111,7 +105,6 @@ export const createPayout = async ({
       console.log("Total amount is 0, skipping payout.", {
         programId,
         partnerId,
-        totalQuantity,
         totalAmount,
       });
 
@@ -138,9 +131,6 @@ export const createPayout = async ({
           amount: {
             increment: totalAmount,
           },
-          quantity: {
-            increment: totalQuantity,
-          },
           periodEnd,
           description: existingPayout.description ?? "Dub Partners payout",
         },
@@ -154,7 +144,6 @@ export const createPayout = async ({
           periodStart,
           periodEnd,
           amount: totalAmount,
-          quantity: totalQuantity,
           description: "Dub Partners payout",
         },
       });

@@ -21,7 +21,7 @@ export default function useCustomer<
   const { id: workspaceId } = useWorkspace();
 
   const { data, error, isLoading } = useSWR<T>(
-    customerId && workspaceId
+    workspaceId && customerId
       ? `/api/customers/${customerId}?${new URLSearchParams({
           workspaceId: workspaceId,
           ...query,

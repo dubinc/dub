@@ -155,6 +155,7 @@ export * from "./percentage-arrow-down";
 export * from "./photo";
 export * from "./plug2";
 export * from "./plus";
+export * from "./plus2";
 export * from "./post";
 export * from "./pyramid";
 export * from "./qrcode";

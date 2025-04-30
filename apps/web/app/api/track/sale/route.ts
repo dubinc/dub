@@ -31,7 +31,7 @@ export const POST = withWorkspace(
 
     let {
       externalId,
-      customerId, // deprecated
+      customerId: oldCustomerId, // deprecated
       paymentProcessor,
       invoiceId,
       amount,
@@ -63,7 +63,7 @@ export const POST = withWorkspace(
       }
     }
 
-    const customerExternalId = customerId || externalId;
+    const customerExternalId = externalId || oldCustomerId;
 
     if (!customerExternalId) {
       throw new DubApiError({

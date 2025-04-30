@@ -42,9 +42,8 @@ export function WelcomeEmail({
             </Text>
             <Text className="text-sm leading-6 text-black">
               My name is Steven, and I'm the founder of Dub - the modern link
-              management platform for you to create marketing campaigns, link
-              sharing features, and referral programs. We're excited to have you
-              on board!
+              attribution platform for short links, conversion tracking, and
+              affiliate programs. We're excited to have you on board!
             </Text>
             <Text className="text-sm leading-6 text-black">
               Here are a few things you can do:

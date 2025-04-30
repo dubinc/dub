@@ -13,12 +13,13 @@ import { PartnerProfileType } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { stripe } from "../../stripe";
 import z from "../../zod";
+import { uploadedImageSchema } from "../../zod/schemas/misc";
 import { authPartnerActionClient } from "../safe-action";
 
 const updatePartnerProfileSchema = z
   .object({
     name: z.string(),
-    image: z.string().nullable(),
+    image: uploadedImageSchema.nullish(),
     description: z.string().nullable(),
     country: z.enum(Object.keys(COUNTRIES) as [string, ...string[]]).nullable(),
     profileType: z.nativeEnum(PartnerProfileType),

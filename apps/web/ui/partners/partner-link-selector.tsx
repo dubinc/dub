@@ -25,15 +25,19 @@ const getLinkOption = (link: LinkProps) => ({
 export function PartnerLinkSelector({
   selectedLinkId,
   setSelectedLinkId,
+  partnerId,
   showDestinationUrl = true,
   onCreate,
   error,
+  optional = false,
 }: {
   selectedLinkId: string | null;
   setSelectedLinkId: (id: string) => void;
+  partnerId?: string | null;
   showDestinationUrl?: boolean;
   onCreate?: (search: string) => Promise<boolean>;
   error?: boolean;
+  optional?: boolean;
 }) {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
@@ -41,9 +45,13 @@ export function PartnerLinkSelector({
 
   const { links } = useLinks(
     {
+      folderId: program?.defaultFolderId ?? undefined,
       domain: program?.domain ?? undefined,
       search: debouncedSearch,
-      sort: "clicks", // need to specify this to avoid the ?sort= param in the URL overriding the default
+      ...(partnerId && { partnerId }),
+      includeDashboard: false,
+      includeWebhooks: false,
+      includeUser: false,
     },
     {
       keepPreviousData: false,
@@ -75,7 +83,9 @@ export function PartnerLinkSelector({
           selectedLinkId && !selectedLink ? (
             <div className="h-4 w-32 animate-pulse rounded bg-neutral-200" />
           ) : (
-            `Select${onCreate ? " or create" : ""} referral link`
+            `Select${onCreate ? " or create" : ""} referral link${
+              optional ? " (optional)" : ""
+            }`
           )
         }
         searchPlaceholder={onCreate ? "Search or create link..." : "Search..."}

@@ -31,7 +31,6 @@ import { clickCache } from "../api/links/click-cache";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
 import { getPartnerAndDiscount } from "../planetscale/get-partner-discount";
-import { hasEmptySearchParams } from "./utils/has-empty-search-params";
 import { resolveABTestURL } from "./utils/resolve-ab-test-url";
 
 export default async function LinkMiddleware(
@@ -512,22 +511,6 @@ export default async function LinkMiddleware(
         shouldPassClickId,
       }),
     );
-
-    if (hasEmptySearchParams(url)) {
-      return createResponseWithCookies(
-        NextResponse.rewrite(new URL("/api/patch-redirect", req.url), {
-          request: {
-            headers: new Headers({
-              destination: getFinalUrl(url, {
-                req,
-                clickId: shouldPassClickId ? clickId : undefined,
-              }),
-            }),
-          },
-        }),
-        cookieData,
-      );
-    }
 
     return createResponseWithCookies(
       NextResponse.redirect(

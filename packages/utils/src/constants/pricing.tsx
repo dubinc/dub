@@ -276,6 +276,12 @@ export const PLANS = [
       {
         id: "whitelabel",
         text: "White-labeling support",
+        tooltip: {
+          title:
+            "Embed a white-labeled referral dashboard directly in your app in just a few lines of code.",
+          cta: "Learn more.",
+          href: "https://dub.co/docs/partners/white-labeling",
+        },
       },
       {
         id: "volume",

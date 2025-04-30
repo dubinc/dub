@@ -11,7 +11,7 @@ import {
   createCustomerBodySchema,
   CustomerEnrichedSchema,
   CustomerSchema,
-  getCustomersQuerySchema,
+  getCustomersQuerySchemaExtended,
 } from "@/lib/zod/schemas/customers";
 import { DiscountSchemaWithDeprecatedFields } from "@/lib/zod/schemas/discount";
 import { prisma } from "@dub/prisma";
@@ -42,19 +42,43 @@ interface CustomerResponse extends Customer {
 // GET /api/customers – Get all customers
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
-    const { email, externalId, includeExpandedFields } =
-      getCustomersQuerySchema.parse(searchParams);
+    const {
+      email,
+      externalId,
+      search,
+      includeExpandedFields,
+      page,
+      pageSize,
+      customerIds,
+    } = getCustomersQuerySchemaExtended.parse(searchParams);
 
     const customers = (await prisma.customer.findMany({
       where: {
+        ...(customerIds
+          ? {
+              id: { in: customerIds },
+            }
+          : {}),
         projectId: workspace.id,
-        ...(email ? { email } : {}),
-        ...(externalId ? { externalId } : {}),
+        ...(email
+          ? { email }
+          : externalId
+            ? { externalId }
+            : search
+              ? {
+                  OR: [
+                    { email: { startsWith: search } },
+                    { externalId: { startsWith: search } },
+                    { name: { startsWith: search } },
+                  ],
+                }
+              : {}),
       },
-      take: 100,
       orderBy: {
         createdAt: "desc",
       },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
       ...(includeExpandedFields
         ? {
             include: {

@@ -1,8 +1,13 @@
 "use server";
 
+import { createPartnerLink } from "@/lib/api/partners/create-partner-link";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
+import { ProgramPartnerLinkProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
+import {
+  approvePartnerSchema,
+  EnrolledPartnerSchema,
+} from "@/lib/zod/schemas/partners";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { sendEmail } from "@dub/email";
 import { PartnerApplicationApproved } from "@dub/email/templates/partner-application-approved";
@@ -11,21 +16,13 @@ import { waitUntil } from "@vercel/functions";
 import { getLinkOrThrow } from "../../api/links/get-link-or-throw";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
 import { recordLink } from "../../tinybird";
-import z from "../../zod";
 import { authActionClient } from "../safe-action";
 
-const approvePartnerSchema = z.object({
-  workspaceId: z.string(),
-  programId: z.string(),
-  partnerId: z.string(),
-  linkId: z.string(),
-});
-
-// Update a partner enrollment
+// Approve a partner application
 export const approvePartnerAction = authActionClient
   .schema(approvePartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     const { programId, partnerId, linkId } = parsedInput;
 
     const [program, link] = await Promise.all([
@@ -33,13 +30,16 @@ export const approvePartnerAction = authActionClient
         workspaceId: workspace.id,
         programId,
       }),
-      getLinkOrThrow({
-        workspaceId: workspace.id,
-        linkId,
-      }),
+
+      linkId
+        ? getLinkOrThrow({
+            workspaceId: workspace.id,
+            linkId,
+          })
+        : null,
     ]);
 
-    if (link.partnerId) {
+    if (link?.partnerId) {
       throw new Error("Link is already associated with another partner.");
     }
 
@@ -59,24 +59,26 @@ export const approvePartnerAction = authActionClient
         },
       }),
 
-      // update link to have programId and partnerId
-      prisma.link.update({
-        where: {
-          id: linkId,
-        },
-        data: {
-          programId,
-          partnerId,
-          folderId: program.defaultFolderId,
-        },
-        include: {
-          tags: {
-            select: {
-              tag: true,
+      // Update link to have programId and partnerId
+      link
+        ? prisma.link.update({
+            where: {
+              id: link.id,
             },
-          },
-        },
-      }),
+            data: {
+              programId,
+              partnerId,
+              folderId: program.defaultFolderId,
+            },
+            include: {
+              tags: {
+                select: {
+                  tag: true,
+                },
+              },
+            },
+          })
+        : null,
 
       determinePartnerReward({
         programId,
@@ -85,18 +87,34 @@ export const approvePartnerAction = authActionClient
       }),
     ]);
 
+    let partnerLink: ProgramPartnerLinkProps;
     const { partner, ...enrollment } = programEnrollment;
+
+    if (updatedLink) {
+      partnerLink = updatedLink;
+    } else {
+      partnerLink = await createPartnerLink({
+        workspace,
+        program,
+        partner: {
+          name: partner.name,
+          email: partner.email!,
+        },
+        userId: user.id,
+        partnerId,
+      });
+    }
 
     const enrolledPartner = EnrolledPartnerSchema.parse({
       ...partner,
       ...enrollment,
       id: partner.id,
-      links: [updatedLink],
+      links: [partnerLink],
     });
 
     waitUntil(
       Promise.allSettled([
-        recordLink(updatedLink),
+        updatedLink ? recordLink(updatedLink) : null,
 
         sendEmail({
           subject: `Your application to join ${program.name} partner program has been approved!`,
@@ -126,8 +144,4 @@ export const approvePartnerAction = authActionClient
         }),
       ]),
     );
-
-    return {
-      ok: true,
-    };
   });

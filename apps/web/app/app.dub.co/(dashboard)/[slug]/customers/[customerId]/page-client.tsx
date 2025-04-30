@@ -14,7 +14,7 @@ import { CustomerDetailsColumn } from "@/ui/customers/customer-details-column";
 import { CustomerPartnerEarningsTable } from "@/ui/customers/customer-partner-earnings-table";
 import { CustomerSalesTable } from "@/ui/customers/customer-sales-table";
 import { BackLink } from "@/ui/shared/back-link";
-import { ArrowUpRight, CopyButton } from "@dub/ui";
+import { ArrowUpRight, Button, CopyButton } from "@dub/ui";
 import { OG_AVATAR_URL, fetcher } from "@dub/utils";
 import Link from "next/link";
 import { notFound, useParams } from "next/navigation";
@@ -135,9 +135,20 @@ export function CustomerPageClient() {
           )}
 
           <section className="flex flex-col">
-            <h2 className="py-3 text-lg font-semibold text-neutral-900">
-              Activity
-            </h2>
+            <div className="flex items-center justify-between">
+              <h2 className="py-3 text-lg font-semibold text-neutral-900">
+                Activity
+              </h2>
+              <Link
+                href={`/${slug}/events?interval=all&customerId=${customerId}`}
+              >
+                <Button
+                  variant="secondary"
+                  text="View all"
+                  className="h-7 px-2"
+                />
+              </Link>
+            </div>
             <CustomerActivityList
               activity={customerActivity}
               isLoading={!customer || isCustomerActivityLoading}
@@ -200,7 +211,12 @@ const PartnerEarningsTable = memo(
     const { data: commissions, isLoading: isComissionsLoading } = useSWR<
       CommissionResponse[]
     >(
-      `/api/programs/${programId}/commissions?customerId=${customerId}&workspaceId=${workspaceId}&pageSize=${CUSTOMER_PAGE_EVENTS_LIMIT}`,
+      `/api/commissions?${new URLSearchParams({
+        customerId,
+        programId,
+        workspaceId: workspaceId!,
+        pageSize: CUSTOMER_PAGE_EVENTS_LIMIT.toString(),
+      })}`,
       fetcher,
     );
 
@@ -208,7 +224,11 @@ const PartnerEarningsTable = memo(
       useSWR<{ all: { count: number } }>(
         // Only fetch total earnings count if the earnings data is equal to the limit
         commissions?.length === CUSTOMER_PAGE_EVENTS_LIMIT &&
-          `/api/programs/${programId}/commissions/count?customerId=${customerId}&workspaceId=${workspaceId}`,
+          `/api/commissions/count?${new URLSearchParams({
+            customerId,
+            programId,
+            workspaceId: workspaceId!,
+          })}`,
         fetcher,
       );
 

@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 import z from "node_modules/zod/lib";
 
 // GET /api/embed/referrals/leaderboard – get leaderboard for a program
-export const GET = withReferralsEmbedToken(async ({ programId }) => {
+export const GET = withReferralsEmbedToken(async ({ program }) => {
   const partners = await prisma.$queryRaw`
       SELECT 
         p.id,
@@ -26,11 +26,11 @@ export const GET = withReferralsEmbedToken(async ({ programId }) => {
           SUM(sales) as totalSales,
           SUM(saleAmount) as totalSaleAmount
         FROM Link
-        WHERE programId = ${programId}
+        WHERE programId = ${program.id}
         GROUP BY partnerId
       ) metrics ON metrics.partnerId = pe.partnerId
       WHERE 
-        pe.programId = ${programId}
+        pe.programId = ${program.id}
         AND pe.status = 'approved'
       ORDER BY 
         totalSaleAmount DESC,

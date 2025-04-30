@@ -565,6 +565,9 @@ importers:
 
   packages/embeds/react:
     dependencies:
+      '@dub/embed-core':
+        specifier: workspace:*
+        version: link:../core
       class-variance-authority:
         specifier: ^0.7.0
         version: 0.7.0
@@ -575,9 +578,6 @@ importers:
         specifier: 5.2.9
         version: 5.2.9(@types/node@18.11.9)
     devDependencies:
-      '@dub/embed-core':
-        specifier: workspace:*
-        version: link:../core
       '@types/react':
         specifier: ^18.2.47
         version: 18.2.48

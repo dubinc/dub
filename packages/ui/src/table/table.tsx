@@ -542,9 +542,11 @@ export function Table<T>({
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="bg-bg-default/50 absolute inset-0 flex h-[50vh] items-center justify-center rounded-xl"
+            className="bg-bg-default/50 absolute inset-0 h-full"
           >
-            <LoadingSpinner />
+            <div className="flex h-[75vh] w-full items-center justify-center">
+              <LoadingSpinner />
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

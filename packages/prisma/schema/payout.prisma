@@ -18,7 +18,7 @@ model Payout {
   description      String?
   periodStart      DateTime?
   periodEnd        DateTime?
-  quantity         Int? // Number of clicks/leads/sales in this payout
+  paypalTransferId String?      @unique
   stripeTransferId String?      @unique
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
