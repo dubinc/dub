@@ -1,13 +1,20 @@
 "use client";
 
+import { QRBuilderData } from "@/ui/modals/qr-builder";
 import { QrBuilder } from "@/ui/qr-builder/qr-builder.tsx";
 import { QrTabsTitle } from "@/ui/qr-builder/qr-tabs-title.tsx";
 import { Rating } from "@/ui/qr-rating/rating.tsx";
-import { useMediaQuery } from "@dub/ui";
+import { useLocalStorage, useMediaQuery } from "@dub/ui";
+import { useRouter } from "next/navigation";
 import { forwardRef, useEffect } from "react";
 import { LogoScrollingBanner } from "./components/logo-scrolling-banner.tsx";
 
 export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
+  const router = useRouter();
+
+  const [localQrDataToCreate, setLocalQrDataToCreate] =
+    useLocalStorage<QRBuilderData | null>(`qr-data-to-create`, null);
+
   const { isMobile } = useMediaQuery();
 
   useEffect(() => {
@@ -36,6 +43,11 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
     };
   }, [isMobile]);
 
+  const handleSaveQR = (data: QRBuilderData) => {
+    setLocalQrDataToCreate(data);
+    router.push("/register");
+  };
+
   return (
     <section className="bg-primary-100 w-full px-3 pb-6 md:pb-12">
       <div
@@ -44,7 +56,7 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
       >
         <QrTabsTitle />
 
-        <QrBuilder />
+        <QrBuilder handleSaveQR={handleSaveQR} homepageDemo />
 
         {isMobile && <Rating />}
 

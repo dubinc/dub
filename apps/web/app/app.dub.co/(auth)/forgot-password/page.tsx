@@ -10,8 +10,8 @@ export const metadata = constructMetadata({
 export default function ForgotPasswordPage() {
   return (
     <AuthLayout>
-      <div className="w-full max-w-md overflow-hidden border-y border-neutral-200 sm:rounded-2xl sm:border sm:shadow-sm">
-        <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 bg-white px-4 py-6 pt-8 text-center sm:px-16">
+      <div className="border-border-500 w-full max-w-md overflow-hidden border-y sm:rounded-2xl sm:border sm:shadow-sm">
+        <div className="border-border-500 flex flex-col items-center justify-center space-y-3 border-b bg-white px-4 py-6 pt-8 text-center sm:px-16">
           <h3 className="text-xl font-semibold">Reset your password</h3>
         </div>
 
@@ -23,7 +23,7 @@ export default function ForgotPasswordPage() {
         Already have an account?&nbsp;
         <Link
           href="/login"
-          className="font-semibold text-neutral-500 underline underline-offset-2 transition-colors hover:text-black"
+          className="hover:text-neutral font-semibold text-neutral-500 underline underline-offset-2 transition-colors"
         >
           Sign in
         </Link>

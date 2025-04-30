@@ -1,13 +1,13 @@
-import { cn } from "@dub/utils/src";
 import { Button } from "@radix-ui/themes";
-import Link from "next/link";
 import { FC } from "react";
 
 interface IQrTabsDownloadButtonProps {
+  onRegistrationClick?: () => void;
   isQrDisabled: boolean;
 }
 
 export const QrTabsDownloadButton: FC<IQrTabsDownloadButtonProps> = ({
+  onRegistrationClick,
   isQrDisabled,
 }) => {
   return (
@@ -17,16 +17,9 @@ export const QrTabsDownloadButton: FC<IQrTabsDownloadButtonProps> = ({
       variant="solid"
       disabled={isQrDisabled}
       className="w-full"
+      onClick={onRegistrationClick}
     >
-      <Link
-        className={cn(
-          "",
-          isQrDisabled && "pointer-events-none cursor-not-allowed",
-        )}
-        href={"/register"}
-      >
-        Download QR code
-      </Link>
+      Download QR code
     </Button>
   );
 };

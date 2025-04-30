@@ -155,7 +155,7 @@ export const GET = withSession(async ({ session, params }) => {
     {
       title: "From",
       address: {
-        name: "GetQR Technologies, Inc.",
+        name: "GetQR",
         line1: "2261 Market Street STE 5906",
         city: "San Francisco",
         state: "CA",

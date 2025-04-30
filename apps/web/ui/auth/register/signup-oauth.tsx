@@ -37,6 +37,7 @@ export const SignUpOAuth = ({
           }}
           loading={clickedGoogle}
           icon={<Google className="h-4 w-4" />}
+          className="border-border-500"
         />
       )}
       {methods.includes("github") && (

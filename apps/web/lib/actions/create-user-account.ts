@@ -1,5 +1,9 @@
 "use server";
 
+import { DubApiError, ErrorCodes } from "@/lib/api/errors.ts";
+import { createLink, processLink } from "@/lib/api/links";
+import { createQr } from "@/lib/api/qrs/create-qr.ts";
+import { WorkspaceProps } from "@/lib/types.ts";
 import { ratelimit, redis } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { generateRandomString } from "@dub/utils/src";
@@ -13,8 +17,27 @@ import { signUpSchema } from "../zod/schemas/auth";
 import { throwIfAuthenticated } from "./auth/throw-if-authenticated";
 import { actionClient } from "./safe-action";
 
+const qrDataToCreateSchema = z.object({
+  styles: z.object({}).passthrough(),
+  frameOptions: z.object({
+    id: z.string(),
+  }),
+  qrType: z.enum([
+    "website",
+    "pdf",
+    "image",
+    "video",
+    "whatsapp",
+    "social",
+    "wifi",
+    "app",
+    "feedback",
+  ]),
+});
+
 const schema = signUpSchema.extend({
   code: z.string().min(6, "OTP must be 6 characters long."),
+  qrDataToCreate: qrDataToCreateSchema.nullish(),
 });
 
 // Sign up a new user using email and password
@@ -25,7 +48,7 @@ export const createUserAccountAction = actionClient
   })
   .use(throwIfAuthenticated)
   .action(async ({ parsedInput }) => {
-    const { email, password, code } = parsedInput;
+    const { email, password, code, qrDataToCreate } = parsedInput;
 
     const { success } = await ratelimit(2, "1 m").limit(`signup:${getIP()}`);
 
@@ -119,6 +142,47 @@ export const createUserAccountAction = actionClient
           defaultWorkspace: workspaceResponse.slug,
         },
       });
+
+      if (qrDataToCreate !== null) {
+        const { link, error, code } = await processLink({
+          payload: {
+            url: qrDataToCreate!.styles!.data! as string,
+          },
+          workspace: workspaceResponse as Pick<
+            WorkspaceProps,
+            "id" | "plan" | "flags"
+          >,
+          userId: generatedUserId,
+        });
+
+        if (error != null) {
+          throw new DubApiError({
+            code: code as ErrorCodes,
+            message: error,
+          });
+        }
+
+        try {
+          const createdLink = await createLink(link);
+
+          await createQr(
+            {
+              ...qrDataToCreate,
+              // @ts-ignore
+              link: createdLink,
+              // @ts-ignore
+              data: qrDataToCreate.styles.data,
+            },
+            createdLink.id,
+            createdLink.userId,
+          );
+        } catch (error) {
+          throw new DubApiError({
+            code: "unprocessable_entity",
+            message: error.message,
+          });
+        }
+      }
 
       await redis.set(`onboarding-step:${generatedUserId}`, "completed");
     }

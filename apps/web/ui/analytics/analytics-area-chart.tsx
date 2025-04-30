@@ -85,7 +85,7 @@ export default function AnalyticsAreaChart({
       id: "clicks",
       valueAccessor: (d) => d.values.clicks,
       isActive: resource === "clicks",
-      colorClassName: "text-blue-500",
+      colorClassName: "text-secondary",
     },
     {
       id: "leads",
@@ -115,7 +115,7 @@ export default function AnalyticsAreaChart({
           tooltipContent={(d) => {
             return (
               <>
-                <p className="border-b border-neutral-200 px-4 py-3 text-sm text-neutral-900">
+                <p className="border-border-500 border-b px-4 py-3 text-sm text-neutral-900">
                   {formatDateTooltip(d.date, {
                     interval: demo ? "day" : interval,
                     start,
@@ -134,7 +134,9 @@ export default function AnalyticsAreaChart({
                           )}
                         />
                       )}
-                      <p className="capitalize text-neutral-600">{resource}</p>
+                      <p className="capitalize text-neutral-600">
+                        {resource === "clicks" ? "scans" : resource}
+                      </p>
                     </div>
                     <p className="text-right font-medium text-neutral-900">
                       {resource === "sales" && saleUnit === "saleAmount"

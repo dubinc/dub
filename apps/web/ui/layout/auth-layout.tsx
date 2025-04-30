@@ -4,8 +4,7 @@ import fox from "@/ui/landing/assets/svg/fox.svg";
 import globeAndMail from "@/ui/landing/assets/svg/globe-and-mail.svg";
 import msn from "@/ui/landing/assets/svg/msn.svg";
 import yahoo from "@/ui/landing/assets/svg/yahoo.svg";
-import { ScrollingBanner } from "@/ui/landing/scrolling-banner.tsx";
-import { BlurImage, ClientOnly } from "@dub/ui";
+import { ClientOnly } from "@dub/ui";
 import { Suspense } from "react";
 
 // const logos = [
@@ -31,8 +30,9 @@ const news = [fox, globeAndMail, yahoo, barchart, benzinga, msn];
 
 export const AuthLayout = ({ children }: AuthLayoutProps) => {
   return (
-    <div className="grid w-full grid-cols-1 md:grid-cols-5">
-      <div className="col-span-1 flex min-h-screen flex-col items-center justify-between border-r border-neutral-200 bg-white/10 shadow-[inset_10px_-50px_94px_0_rgb(199,199,199,0.2)] backdrop-blur sm:col-span-3">
+    // <div className="grid w-full grid-cols-1 md:grid-cols-5">
+    <div className="h-full w-full">
+      <div className="border-border-500 col-span-1 flex min-h-screen flex-col items-center justify-center border-r bg-white/10 shadow-[inset_10px_-50px_94px_0_rgb(199,199,199,0.2)] backdrop-blur sm:col-span-3">
         <div className="flex h-full w-full flex-col items-center justify-center">
           <ClientOnly className="relative flex w-full flex-col items-center justify-center">
             <Suspense>{children}</Suspense>
@@ -40,57 +40,57 @@ export const AuthLayout = ({ children }: AuthLayoutProps) => {
         </div>
 
         <div className="grid gap-2 pb-8 pt-4">
-          <p className="text-xs text-neutral-600">
-            © {new Date().getFullYear()} GetQR Technologies, Inc.
-          </p>
+          {/*<p className="text-xs text-neutral-600">*/}
+          {/*  © {new Date().getFullYear()} GetQR.*/}
+          {/*</p>*/}
           <div className="flex gap-3 text-center text-xs text-neutral-500 underline underline-offset-2">
             <a
-              href="https://dub.co/legal/privacy"
-              target="_blank"
+              href="/privacy-policy"
+              // target="_blank"
               className="hover:text-neutral-800"
             >
               Privacy Policy
             </a>
             <a
-              href="https://dub.co/legal/terms"
-              target="_blank"
+              href="/eula"
+              // target="_blank"
               className="hover:text-neutral-800"
             >
-              Terms of Service
+              Terms & Conditions
             </a>
           </div>
         </div>
       </div>
 
-      <div className="hidden h-full flex-col justify-center space-y-12 overflow-hidden md:col-span-2 md:flex">
-        <div className="ml-12 h-1/2 w-[140%] rounded-xl border border-neutral-200 p-2 shadow-xl">
-          <BlurImage
-            alt="Dub.co Analytics"
-            src="https://assets.dub.co/changelog/new-dashboard.jpg"
-            width={2400}
-            height={1260}
-            className="aspect-[2400/1260] h-full rounded-lg border border-neutral-200 object-cover object-left-top"
-          />
-        </div>
-        {/*<a*/}
-        {/*  href="https://dub.co/customers"*/}
-        {/*  target="_blank"*/}
-        {/*  className="animate-infinite-scroll flex items-center space-x-4"*/}
-        {/*>*/}
-        {/*  {logos.map((logo, idx) => (*/}
-        {/*    <BlurImage*/}
-        {/*      alt={`${logo} logo`}*/}
-        {/*      key={idx}*/}
-        {/*      src={`https://assets.dub.co/clients/${logo}.svg`}*/}
-        {/*      width={520}*/}
-        {/*      height={182}*/}
-        {/*      className="h-12 grayscale transition-all hover:grayscale-0"*/}
-        {/*    />*/}
-        {/*  ))}*/}
-        {/*</a>*/}
+      {/*<div className="hidden h-full flex-col justify-center space-y-12 overflow-hidden md:col-span-2 md:flex">*/}
+      {/*  <div className="ml-12 h-1/2 w-[140%] rounded-xl border border-neutral-200 p-2 shadow-xl">*/}
+      {/*    <BlurImage*/}
+      {/*      alt="Dub.co Analytics"*/}
+      {/*      src="https://assets.dub.co/changelog/new-dashboard.jpg"*/}
+      {/*      width={2400}*/}
+      {/*      height={1260}*/}
+      {/*      className="aspect-[2400/1260] h-full rounded-lg border border-neutral-200 object-cover object-left-top"*/}
+      {/*    />*/}
+      {/*  </div>*/}
+      {/*  /!*<a*!/*/}
+      {/*  /!*  href="https://dub.co/customers"*!/*/}
+      {/*  /!*  target="_blank"*!/*/}
+      {/*  /!*  className="animate-infinite-scroll flex items-center space-x-4"*!/*/}
+      {/*  /!*>*!/*/}
+      {/*  /!*  {logos.map((logo, idx) => (*!/*/}
+      {/*  /!*    <BlurImage*!/*/}
+      {/*  /!*      alt={`${logo} logo`}*!/*/}
+      {/*  /!*      key={idx}*!/*/}
+      {/*  /!*      src={`https://assets.dub.co/clients/${logo}.svg`}*!/*/}
+      {/*  /!*      width={520}*!/*/}
+      {/*  /!*      height={182}*!/*/}
+      {/*  /!*      className="h-12 grayscale transition-all hover:grayscale-0"*!/*/}
+      {/*  /!*    />*!/*/}
+      {/*  /!*  ))}*!/*/}
+      {/*  /!*</a>*!/*/}
 
-        <ScrollingBanner data={news} />
-      </div>
+      {/*  <ScrollingBanner data={news} />*/}
+      {/*</div>*/}
     </div>
   );
 };

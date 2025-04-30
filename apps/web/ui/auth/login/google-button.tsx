@@ -26,6 +26,7 @@ export function GoogleButton() {
       loading={clickedMethod === "google"}
       disabled={clickedMethod && clickedMethod !== "google"}
       icon={<Google className="size-4" />}
+      className="border-border-500"
     />
   );
 }

@@ -4,7 +4,7 @@ import useLinks from "@/lib/swr/use-links";
 import useLinksCount from "@/lib/swr/use-links-count";
 import { ExpandedLinkProps, UserProps } from "@/lib/types";
 import { CardList, MaxWidthWrapper } from "@dub/ui";
-import { CursorRays, Hyperlink } from "@dub/ui/icons";
+import { CursorRays, QRCode as QRCodeIcon } from "@dub/ui/icons";
 import { useSearchParams } from "next/navigation";
 import {
   Dispatch,
@@ -27,9 +27,11 @@ export default function LinksContainer({
 }: {
   CreateLinkButton: () => JSX.Element;
 }) {
-  const { viewMode, sortBy, 
+  const {
+    viewMode,
+    sortBy,
     // showArchived
-   } = useContext(LinksDisplayContext);
+  } = useContext(LinksDisplayContext);
 
   const { links, isValidating } = useLinks({ sortBy, showArchived: true });
   const { data: count } = useLinksCount<number>({ showArchived: true });
@@ -116,7 +118,7 @@ function LinksList({
           }
           cardContent={
             <>
-              <Hyperlink className="size-4 text-neutral-700" />
+              <QRCodeIcon className="size-4 text-neutral-700" />
               <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
               <div className="xs:flex hidden grow items-center justify-end gap-1.5 text-neutral-500">
                 <CursorRays className="size-3.5" />

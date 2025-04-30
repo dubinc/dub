@@ -9,6 +9,7 @@ import {
   Prisma,
   ProgramEnrollmentStatus,
   Project,
+  Qr,
   User,
   UtmTemplate,
   Webhook,
@@ -67,6 +68,8 @@ import {
   WebhookSchema,
 } from "./zod/schemas/webhooks";
 import { createQrBodySchema } from './zod/schemas/qrs';
+
+export type QRProps = Qr;
 
 export type LinkProps = Link;
 

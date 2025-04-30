@@ -174,7 +174,7 @@ export function FilterSelect({
               !selectedFilter || selectedFilter.shouldFilter !== false
             }
           >
-            <div className="flex items-center overflow-hidden rounded-t-lg border-b border-neutral-200">
+            <div className="border-border-500 flex items-center overflow-hidden rounded-t-lg border-b">
               <CommandInput
                 placeholder={`${selectedFilter?.label || "Filter"}...`}
                 value={search}
@@ -205,7 +205,7 @@ export function FilterSelect({
                 }}
               />
               {!selectedFilter && (
-                <kbd className="mr-2 hidden shrink-0 rounded border border-neutral-200 bg-neutral-100 px-2 py-0.5 text-xs font-light text-neutral-500 md:block">
+                <kbd className="border-border-500 mr-2 hidden shrink-0 rounded border bg-neutral-100 px-2 py-0.5 text-xs font-light text-neutral-500 md:block">
                   F
                 </kbd>
               )}
@@ -226,7 +226,7 @@ export function FilterSelect({
                           onSelect={() => openFilter(filter.key)}
                         />
                         {filter.separatorAfter && (
-                          <Command.Separator className="-mx-1 my-1 border-b border-neutral-200" />
+                          <Command.Separator className="border-border-500 -mx-1 my-1 border-b" />
                         )}
                       </Fragment>
                     ))
@@ -284,8 +284,8 @@ export function FilterSelect({
         type="button"
         className={cn(
           "group flex h-10 cursor-pointer appearance-none items-center gap-x-2 truncate rounded-md border px-3 text-sm outline-none transition-all",
-          "border-neutral-200/20 bg-white text-neutral-900 placeholder-neutral-400",
-          "focus-visible:border-neutral-200/40 data-[state=open]:border-neutral-200/40 data-[state=open]:ring-4 data-[state=open]:ring-neutral-200/40",
+          "border-border-500 bg-white text-neutral-900 placeholder-neutral-400",
+          "focus-visible:border-border-500 data-[state=open]:border-border-500 data-[state=open]:ring-4 data-[state=open]:ring-neutral-200/40",
           className,
         )}
       >
@@ -294,7 +294,7 @@ export function FilterSelect({
           {children ?? "Filter"}
         </span>
         {activeFilters?.length ? (
-          <div className="flex size-4 shrink-0 items-center justify-center rounded-full bg-black text-[0.625rem] text-white">
+          <div className="bg-neutral flex size-4 shrink-0 items-center justify-center rounded-full text-[0.625rem] text-white">
             {activeFilters.length}
           </div>
         ) : (
@@ -432,7 +432,7 @@ const CommandEmpty = ({
       <Command.Empty className="flex min-w-[180px] items-center space-x-2 rounded-md bg-neutral-100 px-3 py-2">
         <Magic className="h-4 w-4" />
         <p className="text-center text-sm text-neutral-600">
-          Ask AI <span className="text-black">"{search}"</span>
+          Ask AI <span className="text-neutral">"{search}"</span>
         </p>
       </Command.Empty>
     );

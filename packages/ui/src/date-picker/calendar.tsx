@@ -36,7 +36,7 @@ const NavigationButton = forwardRef<HTMLButtonElement, NavigationButtonProps>(
         disabled={disabled}
         className={cn(
           "flex size-7 shrink-0 select-none items-center justify-center rounded border p-1 outline-none transition",
-          "border-neutral-200 text-neutral-600 hover:text-neutral-800",
+          "border-border-500 text-neutral-600 hover:text-neutral-800",
           "hover:bg-neutral-50 active:bg-neutral-100",
           "disabled:pointer-events-none disabled:text-neutral-400",
         )}
@@ -100,16 +100,16 @@ function Calendar({
         cell: "relative p-0 text-center focus-within:relative text-neutral-900",
         day: cn(
           "relative size-10 rounded-md text-sm text-neutral-900",
-          "hover:bg-neutral-100 active:bg-neutral-200 outline outline-offset-2 outline-0 focus-visible:outline-2 outline-blue-500",
+          "hover:bg-neutral-100 active:bg-neutral-200 outline outline-offset-2 outline-0 focus-visible:outline-2 outline-secondary",
         ),
         day_today: "font-semibold",
         day_selected:
-          "rounded aria-selected:bg-blue-500 aria-selected:text-white",
+          "rounded aria-selected:bg-secondary aria-selected:text-white",
         day_disabled:
           "!text-neutral-300 line-through disabled:hover:bg-transparent",
         day_outside: "text-neutral-400",
         day_range_middle:
-          "!rounded-none aria-selected:!bg-blue-100 aria-selected:!text-blue-900",
+          "!rounded-none aria-selected:!bg-secondary-100 aria-selected:!text-secondary",
         day_range_start: "rounded-r-none !rounded-l",
         day_range_end: "rounded-l-none !rounded-r",
         day_hidden: "invisible",
@@ -249,9 +249,9 @@ function Calendar({
                   className={cn(
                     "absolute inset-x-1/2 bottom-1.5 h-0.5 w-4 -translate-x-1/2 rounded-[2px]",
                     {
-                      "bg-blue-500": !selected,
+                      "bg-secondary": !selected,
                       "!bg-white": selected,
-                      "!bg-blue-400": selected && range_middle,
+                      "!bg-secondary-100": selected && range_middle,
                       "text-neutral-400": disabled,
                     },
                   )}

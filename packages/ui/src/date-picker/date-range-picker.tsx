@@ -137,7 +137,7 @@ const DateRangePickerInner = ({
                 <div
                   className={cn(
                     "relative flex h-16 w-full items-center sm:h-full sm:w-48",
-                    "border-b border-neutral-200 sm:border-b-0 sm:border-l",
+                    "border-border-500 border-b sm:border-b-0 sm:border-l",
                     "scrollbar-hide overflow-auto",
                   )}
                 >
@@ -166,7 +166,7 @@ const DateRangePickerInner = ({
                   className="scrollbar-hide overflow-x-scroll"
                   classNames={{
                     months:
-                      "flex flex-row divide-x divide-neutral-200 overflow-x-scroll scrollbar-hide",
+                      "flex flex-row divide-x divide-border-500 overflow-x-scroll scrollbar-hide",
                   }}
                   {...props}
                 />

@@ -1,7 +1,13 @@
 "use client";
 
 import { createUserAccountAction } from "@/lib/actions/create-user-account";
-import { AnimatedSizeContainer, Button, useMediaQuery } from "@dub/ui";
+import { QRBuilderData } from "@/ui/modals/qr-builder";
+import {
+  AnimatedSizeContainer,
+  Button,
+  useLocalStorage,
+  useMediaQuery,
+} from "@dub/ui";
 import { cn } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { OTPInput } from "input-otp";
@@ -21,11 +27,14 @@ export const VerifyEmailForm = () => {
   const [isInvalidCode, setIsInvalidCode] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
 
+  const [qrDataToCreate, setQrDataToCreate] =
+    useLocalStorage<QRBuilderData | null>("qr-data-to-create", null);
+
   const { executeAsync, isPending } = useAction(createUserAccountAction, {
     async onSuccess() {
       toast.success("Account created! Redirecting to dashboard...");
       setIsRedirecting(true);
-
+      setQrDataToCreate(null);
       const response = await signIn("credentials", {
         email,
         password,
@@ -59,7 +68,7 @@ export const VerifyEmailForm = () => {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            executeAsync({ email, password, code });
+            executeAsync({ email, password, code, qrDataToCreate });
           }}
         >
           <div>
@@ -79,7 +88,7 @@ export const VerifyEmailForm = () => {
                       key={idx}
                       className={cn(
                         "relative flex h-14 w-10 items-center justify-center text-xl",
-                        "border-y border-r border-neutral-200 bg-white first:rounded-l-lg first:border-l last:rounded-r-lg",
+                        "border-border-500 border-y border-r bg-white first:rounded-l-lg first:border-l last:rounded-r-lg",
                         "ring-0 transition-all",
                         isActive &&
                           "z-10 border border-neutral-500 ring-2 ring-neutral-200",
@@ -89,7 +98,7 @@ export const VerifyEmailForm = () => {
                       {char}
                       {hasFakeCaret && (
                         <div className="animate-caret-blink pointer-events-none absolute inset-0 flex items-center justify-center">
-                          <div className="h-5 w-px bg-black" />
+                          <div className="bg-neutral h-5 w-px" />
                         </div>
                       )}
                     </div>
@@ -97,7 +106,7 @@ export const VerifyEmailForm = () => {
                 </div>
               )}
               onComplete={() => {
-                executeAsync({ email, password, code });
+                executeAsync({ email, password, code, qrDataToCreate });
               }}
             />
             {isInvalidCode && (
@@ -107,7 +116,7 @@ export const VerifyEmailForm = () => {
             )}
 
             <Button
-              className="mt-8"
+              className="border-border-500 mt-8"
               text={isPending ? "Verifying..." : "Continue"}
               type="submit"
               loading={isPending || isRedirecting}

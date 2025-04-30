@@ -103,7 +103,7 @@ const Presets = <TPreset extends Preset, TValue>({
               {preset.requiresUpgrade ? (
                 <Lock className="h-3.5 w-3.5" aria-hidden="true" />
               ) : preset.shortcut ? (
-                <kbd className="text-neutral-4000 hidden rounded bg-neutral-100 px-2 py-0.5 text-xs font-light group-data-[selected=true]:bg-neutral-200 md:block">
+                <kbd className="text-secondary bg-secondary-100 group-data-[selected=true]:bg-border-500 hidden rounded px-2 py-0.5 text-xs font-light md:block">
                   {preset.shortcut.toUpperCase()}
                 </kbd>
               ) : null}
