@@ -20,9 +20,9 @@ export default function PartnerAuthLayout({
       </div>
       <div className="flex grow flex-col justify-end">
         <div className="relative flex w-full flex-col items-center justify-center gap-2 py-10 pb-6">
-          <p className="text-xs text-neutral-600">
-            © {new Date().getFullYear()} GetQR.
-          </p>
+          {/*<p className="text-xs text-neutral-600">*/}
+          {/*  © {new Date().getFullYear()} GetQR.*/}
+          {/*</p>*/}
           <div className="flex gap-3 text-center text-xs text-neutral-500 underline underline-offset-2">
             <a
               href="https://dub.co/legal/privacy"
