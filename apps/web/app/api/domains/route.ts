@@ -90,7 +90,7 @@ export const POST = withWorkspace(
       placeholder,
       assetLinks,
       appleAppSiteAssociation,
-    } = createDomainBodySchema.parse(body);
+    } = await createDomainBodySchema.parseAsync(body);
 
     if (workspace.plan === "free") {
       if (

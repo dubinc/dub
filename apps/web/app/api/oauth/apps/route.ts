@@ -56,7 +56,7 @@ export const POST = withWorkspace(
       logo,
       pkce,
       screenshots,
-    } = createOAuthAppSchema.parse(await parseRequestBody(req));
+    } = await createOAuthAppSchema.parseAsync(await parseRequestBody(req));
 
     const integration = await prisma.integration.findUnique({
       where: {
