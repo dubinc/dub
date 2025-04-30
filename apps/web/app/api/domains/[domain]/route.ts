@@ -56,7 +56,7 @@ export const PATCH = withWorkspace(
       archived,
       assetLinks,
       appleAppSiteAssociation,
-    } = updateDomainBodySchema.parse(await parseRequestBody(req));
+    } = await updateDomainBodySchema.parseAsync(await parseRequestBody(req));
 
     if (workspace.plan === "free") {
       if (
