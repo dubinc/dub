@@ -1,4 +1,4 @@
-import { Logo } from "@/ui/shared/logo";
+import { Logo } from "@/ui/shared/logo.tsx";
 import { Button, Text } from "@radix-ui/themes";
 import Link from "next/link";
 

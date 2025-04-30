@@ -1,12 +1,12 @@
-import { CustomerSupport } from "@/ui/landing/footer/components/customer-support.tsx";
-import { Links } from "@/ui/landing/footer/components/links.tsx";
-import { Payments } from "@/ui/landing/footer/components/payments.tsx";
-import { SocialMedia } from "@/ui/landing/footer/components/social-media.tsx";
-import { Logo } from "@/ui/shared/logo";
+import { CustomerSupport } from "@/ui/landing/components/footer/components/customer-support.tsx";
+import { Links } from "@/ui/landing/components/footer/components/links.tsx";
+import { Payments } from "@/ui/landing/components/footer/components/payments.tsx";
+import { SocialMedia } from "@/ui/landing/components/footer/components/social-media.tsx";
+import { Logo } from "@/ui/shared/logo.tsx";
 import {
   GENERAL_LINKS,
   LEGAL_LINKS,
-} from "../../../app/app.dub.co/(public)/constants/types.ts";
+} from "../../../../app/app.dub.co/(public)/constants/types.ts";
 
 export const Footer = () => (
   <footer className="mt-auto w-full">
