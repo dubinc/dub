@@ -28,6 +28,7 @@ interface QrConfigTypeTabsMobileProps {
   qrTypeActiveTab: QRType["id"];
   setQRTypeActiveTab: Dispatch<SetStateAction<QRType["id"]>>;
   initialInputValues?: Record<string, string>;
+  onRegistrationClick?: () => void;
 }
 
 export const QrConfigTypeTabsMobile = ({
@@ -44,6 +45,7 @@ export const QrConfigTypeTabsMobile = ({
   qrTypeActiveTab,
   setQRTypeActiveTab,
   initialInputValues = {},
+  onRegistrationClick,
 }: QrConfigTypeTabsMobileProps) => {
   const [openPopover, setOpenPopover] = useState<boolean>(false);
 
@@ -151,7 +153,12 @@ export const QrConfigTypeTabsMobile = ({
         </Tabs.Content>
       )}
 
-      {homepageDemo && <QrTabsDownloadButton isQrDisabled={isQrDisabled} />}
+      {homepageDemo && (
+        <QrTabsDownloadButton
+          onRegistrationClick={onRegistrationClick}
+          isQrDisabled={isQrDisabled}
+        />
+      )}
     </Tabs.Root>
   );
 };

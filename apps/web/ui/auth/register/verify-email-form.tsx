@@ -1,7 +1,13 @@
 "use client";
 
 import { createUserAccountAction } from "@/lib/actions/create-user-account";
-import { AnimatedSizeContainer, Button, useMediaQuery } from "@dub/ui";
+import { QRBuilderData } from "@/ui/modals/qr-builder";
+import {
+  AnimatedSizeContainer,
+  Button,
+  useLocalStorage,
+  useMediaQuery,
+} from "@dub/ui";
 import { cn } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { OTPInput } from "input-otp";
@@ -21,11 +27,14 @@ export const VerifyEmailForm = () => {
   const [isInvalidCode, setIsInvalidCode] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
 
+  const [qrDataToCreate, setQrDataToCreate] =
+    useLocalStorage<QRBuilderData | null>("qr-data-to-create", null);
+
   const { executeAsync, isPending } = useAction(createUserAccountAction, {
     async onSuccess() {
       toast.success("Account created! Redirecting to dashboard...");
       setIsRedirecting(true);
-
+      setQrDataToCreate(null);
       const response = await signIn("credentials", {
         email,
         password,
@@ -59,7 +68,7 @@ export const VerifyEmailForm = () => {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            executeAsync({ email, password, code });
+            executeAsync({ email, password, code, qrDataToCreate });
           }}
         >
           <div>
@@ -97,7 +106,7 @@ export const VerifyEmailForm = () => {
                 </div>
               )}
               onComplete={() => {
-                executeAsync({ email, password, code });
+                executeAsync({ email, password, code, qrDataToCreate });
               }}
             />
             {isInvalidCode && (
