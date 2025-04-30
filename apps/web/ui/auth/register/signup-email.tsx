@@ -45,7 +45,7 @@ export const SignUpEmail = () => {
       <div className="flex flex-col space-y-4">
         <Input
           type="email"
-          placeholder="Work Email"
+          placeholder="Your Email"
           autoComplete="email"
           required
           {...register("email")}
