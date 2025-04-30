@@ -8,7 +8,6 @@ import {
   ToggleGroup,
   useMediaQuery,
 } from "@dub/ui";
-import { CursorRays, InvoiceDollar, UserCheck } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { ChevronsUpDown } from "lucide-react";
 import {
@@ -65,7 +64,7 @@ export function AnalyticsCard<T extends string>({
         setShowModal={setShowModal}
         className="max-w-lg px-0"
       >
-        <div className="border-b border-neutral-200 px-6 py-4">
+        <div className="border-border-500 border-b px-6 py-4">
           <h1 className="text-lg font-semibold">{selectedTab?.label}</h1>
         </div>
         {subTabs && selectedSubTabId && onSelectSubTab && (
@@ -79,11 +78,11 @@ export function AnalyticsCard<T extends string>({
       </Modal>
       <div
         className={cn(
-          "relative z-0 h-[400px] overflow-hidden border border-neutral-200 bg-white sm:rounded-xl",
+          "border-border-500 relative z-0 h-[400px] overflow-hidden border bg-white sm:rounded-xl",
           className,
         )}
       >
-        <div className="flex items-center justify-between border-b border-neutral-200 px-4">
+        <div className="border-border-500 flex items-center justify-between border-b px-4">
           {/* Main tabs */}
           {isMobile ? (
             <Popover
@@ -134,14 +133,16 @@ export function AnalyticsCard<T extends string>({
           )}
 
           <div className="flex items-center gap-1 pr-2 text-neutral-500">
-            {event === "sales" ? (
-              <InvoiceDollar className="hidden h-4 w-4 sm:block" />
-            ) : event === "leads" ? (
-              <UserCheck className="hidden h-4 w-4 sm:block" />
-            ) : (
-              <CursorRays className="hidden h-4 w-4 sm:block" />
-            )}
-            <p className="text-xs uppercase">{event}</p>
+            {/*{event === "sales" ? (*/}
+            {/*  <InvoiceDollar className="hidden h-4 w-4 sm:block" />*/}
+            {/*) : event === "leads" ? (*/}
+            {/*  <UserCheck className="hidden h-4 w-4 sm:block" />*/}
+            {/*) : (*/}
+            {/*  <CursorRays className="hidden h-4 w-4 sm:block" />*/}
+            {/*)}*/}
+            <p className="text-xs uppercase">
+              {event === "clicks" ? "scans" : event}
+            </p>
           </div>
         </div>
         <AnimatedSizeContainer
@@ -170,7 +171,7 @@ export function AnalyticsCard<T extends string>({
               onClick={() => setShowModal(true)}
               className="group relative flex w-full items-center justify-center py-4"
             >
-              <div className="rounded-md border border-neutral-200 bg-white px-2.5 py-1 text-sm text-neutral-950 group-hover:bg-neutral-100 group-active:border-neutral-300">
+              <div className="border-border-500 rounded-md border bg-white px-2.5 py-1 text-sm text-neutral-950 group-hover:bg-neutral-100 group-active:border-neutral-300">
                 View All
               </div>
             </button>
@@ -199,9 +200,9 @@ function SubTabs({
       }))}
       selected={selectedTab}
       selectAction={(period) => onSelectTab(period)}
-      className="flex w-full flex-wrap rounded-none border-x-0 border-t-0 border-neutral-200 bg-neutral-50 px-6 py-2.5 sm:flex-nowrap"
-      optionClassName="text-xs px-2 font-normal hover:text-neutral-700"
-      indicatorClassName="border-0 bg-neutral-200 rounded-md"
+      className="border-border-500 flex w-full flex-wrap rounded-none border-x-0 border-t-0 bg-neutral-50 px-6 py-2.5 sm:flex-nowrap"
+      optionClassName="text-xs data-[selected=true]:text-secondary px-2 font-normal hover:text-neutral-700"
+      indicatorClassName="border-0 bg-secondary-100 rounded-md"
     />
   );
 }

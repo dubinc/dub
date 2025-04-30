@@ -1,5 +1,10 @@
+import { mutatePrefix } from "@/lib/swr/mutate.ts";
 import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
-import { useArchiveQRModal } from "@/ui/modals/archive-qr-modal.tsx";
+import useWorkspace from "@/lib/swr/use-workspace.ts";
+import {
+  sendArchiveRequest,
+  useArchiveQRModal,
+} from "@/ui/modals/archive-qr-modal.tsx";
 import { useDeleteQRModal } from "@/ui/modals/delete-qr-modal.tsx";
 import { useQRBuilder } from "@/ui/modals/qr-builder";
 import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization";
@@ -21,6 +26,7 @@ import { cn } from "@dub/utils";
 import { Delete } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { PropsWithChildren, useContext, useState } from "react";
+import { toast } from "sonner";
 import { ThreeDots } from "../shared/icons";
 
 interface QrCodeControlsProps {
@@ -29,6 +35,7 @@ interface QrCodeControlsProps {
 }
 
 export function QrCodeControls({ qrCode, canvasRef }: QrCodeControlsProps) {
+  const { id: workspaceId } = useWorkspace();
   const { hovered } = useContext(CardList.Card.Context);
   const searchParams = useSearchParams();
 
@@ -49,6 +56,8 @@ export function QrCodeControls({ qrCode, canvasRef }: QrCodeControlsProps) {
   const { setShowQRBuilderModal, QRBuilderModal } = useQRBuilder({
     props: qrCode,
   });
+
+  const [archiving, setArchiving] = useState<boolean>(false);
 
   const folderId = qrCode.link.folderId || searchParams.get("folderId");
 
@@ -122,9 +131,27 @@ export function QrCodeControls({ qrCode, canvasRef }: QrCodeControlsProps) {
               <Button
                 text={qrCode.link.archived ? "Unpause" : "Pause"}
                 variant="outline"
-                onClick={() => {
+                onClick={async () => {
+                  setArchiving(true);
+                  const res = await sendArchiveRequest({
+                    qrId: qrCode.id,
+                    archive: !qrCode.link.archived,
+                    workspaceId,
+                  });
+
+                  if (!res.ok) {
+                    const { error } = await res.json();
+                    toast.error(error.message);
+                    setArchiving(false);
+                    return;
+                  }
+
+                  mutatePrefix(["/api/qrs", "/api/links"]);
+                  toast.success(
+                    `Successfully ${qrCode.link.archived ? "unpaused" : "paused"} QR code!`,
+                  );
                   setOpenPopover(false);
-                  setShowArchiveQRModal(true);
+                  setArchiving(false);
                 }}
                 icon={<BoxArchive className="size-4" />}
                 shortcut="A"
@@ -134,6 +161,7 @@ export function QrCodeControls({ qrCode, canvasRef }: QrCodeControlsProps) {
                     ? "You don't have permission to archive this link."
                     : undefined
                 }
+                loading={archiving}
               />
 
               <Button

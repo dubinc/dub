@@ -4,26 +4,26 @@ import { HOME_DOMAIN } from "../constants";
 export function constructMetadata({
   title,
   fullTitle,
-  description = "Dub.co is the open-source link management platform for modern marketing teams to create marketing campaigns, link sharing features, and referral programs.",
-  image = "https://assets.dub.co/thumbnail.jpg",
+  description = "Design dynamic QR codes with logos, frames, and colors. Track scans, edit content anytime, and download in JPG, PNG, or SVG. Start free—no credit card needed.",
+  image = `${HOME_DOMAIN}/images/thumbnail.jpg`,
   video,
   icons = [
     {
       rel: "apple-touch-icon",
       sizes: "32x32",
-      url: "https://assets.dub.co/favicons/apple-touch-icon.png",
+      url: `${HOME_DOMAIN}/images/android-chrome-192x192.png`,
     },
     {
       rel: "icon",
       type: "image/png",
       sizes: "32x32",
-      url: "https://assets.dub.co/favicons/favicon-32x32.png",
+      url: `${HOME_DOMAIN}/images/favicon-32x32.png`,
     },
     {
       rel: "icon",
       type: "image/png",
       sizes: "16x16",
-      url: "https://assets.dub.co/favicons/favicon-16x16.png",
+      url: `${HOME_DOMAIN}/images/favicon-16x16.png`,
     },
   ],
   url,
@@ -46,8 +46,8 @@ export function constructMetadata({
     title:
       fullTitle ||
       (title
-        ? `${title} | Dub.co`
-        : "Dub.co - Link Management for Modern Marketing Teams"),
+        ? `${title} | GetQR`
+        : "GetQR | Create Custom QR Codes with Logo, Colors & Tracking"),
     description,
     openGraph: {
       title,

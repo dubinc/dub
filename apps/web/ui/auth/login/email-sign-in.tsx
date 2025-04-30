@@ -126,14 +126,14 @@ export const EmailSignIn = ({ redirectTo }: { redirectTo?: string }) => {
             name="email"
             autoFocus={!isMobile && !showPasswordField}
             type="email"
-            placeholder="panic@thedis.co"
+            placeholder="example@domain.com"
             autoComplete="email"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             size={1}
             className={cn(
-              "block w-full min-w-0 appearance-none rounded-md border border-neutral-300 px-3 py-2 placeholder-neutral-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm",
+              "border-border-500 focus:border-secondary block w-full min-w-0 appearance-none rounded-md border px-3 py-2 placeholder-neutral-400 shadow-sm focus:outline-none sm:text-sm",
               {
                 "pr-10": isPending,
               },
@@ -173,6 +173,7 @@ export const EmailSignIn = ({ redirectTo }: { redirectTo?: string }) => {
           })}
           loading={clickedMethod === "email" || isPending}
           disabled={clickedMethod && clickedMethod !== "email"}
+          className="border-border-500"
         />
       </form>
       {showPasswordField && (

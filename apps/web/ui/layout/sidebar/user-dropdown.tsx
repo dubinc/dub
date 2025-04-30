@@ -107,7 +107,7 @@ function UserOption<T extends ElementType = "button">({
 
   return (
     <Component
-      className="flex items-center gap-x-4 rounded-md px-2.5 py-2 text-sm transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80"
+      className="hover:bg-border-100 active:bg-secondary-100 flex items-center gap-x-4 rounded-md px-2.5 py-2 text-sm transition-all duration-75"
       {...rest}
     >
       <Icon className="size-4 text-neutral-500" />

@@ -11,8 +11,8 @@ export const metadata = constructMetadata({
 export default function LoginPage() {
   return (
     <AuthLayout>
-      <div className="w-full max-w-md overflow-hidden border-y border-neutral-200 sm:rounded-2xl sm:border sm:shadow-sm">
-        <div className="border-b border-neutral-200 bg-white pb-6 pt-8 text-center">
+      <div className="border-border-500 w-full max-w-md overflow-hidden border-y sm:rounded-2xl sm:border sm:shadow-sm">
+        <div className="border-border-500 border-b bg-white pb-6 pt-8 text-center">
           <h3 className="text-lg font-semibold">
             Sign in to your GetQR account
           </h3>
@@ -25,7 +25,7 @@ export default function LoginPage() {
         Don't have an account?&nbsp;
         <Link
           href="register"
-          className="font-semibold text-neutral-500 underline underline-offset-2 transition-colors hover:text-black"
+          className="hover:text-neutral font-semibold text-neutral-500 underline underline-offset-2 transition-colors"
         >
           Sign up
         </Link>

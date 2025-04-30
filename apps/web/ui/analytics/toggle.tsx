@@ -4,7 +4,6 @@ import {
   TRIGGER_DISPLAY,
   VALID_ANALYTICS_FILTERS,
 } from "@/lib/analytics/constants";
-import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import useDomains from "@/lib/swr/use-domains";
 import useDomainsCount from "@/lib/swr/use-domains-count";
@@ -26,7 +25,6 @@ import {
   Filter,
   LinkLogo,
   Sliders,
-  SquareLayoutGrid6,
   TooltipContent,
   useMediaQuery,
   useRouterStuff,
@@ -57,7 +55,6 @@ import {
   cn,
   CONTINENTS,
   COUNTRIES,
-  DUB_DEMO_LINKS,
   DUB_LOGO,
   getApexDomain,
   getNextPlan,
@@ -79,13 +76,11 @@ import { useDebounce } from "use-debounce";
 import { FolderIcon } from "../folders/folder-icon";
 import { LinkIcon } from "../links/link-icon";
 import TagBadge from "../links/tag-badge";
-import AnalyticsOptions from "./analytics-options";
 import { AnalyticsContext } from "./analytics-provider";
 import ContinentIcon from "./continent-icon";
 import DeviceIcon from "./device-icon";
 import EventsOptions from "./events/events-options";
 import RefererIcon from "./referer-icon";
-import { ShareButton } from "./share-button";
 import { useAnalyticsFilterOption } from "./utils";
 
 export default function Toggle({
@@ -777,18 +772,18 @@ export default function Toggle({
         });
       }}
       presets={INTERVAL_DISPLAYS.map(({ display, value, shortcut }) => {
-        const requiresUpgrade =
-          partnerPage ||
-          DUB_DEMO_LINKS.find((l) => l.domain === domain && l.key === key)
-            ? false
-            : !validDateRangeForPlan({
-                plan: plan || dashboardProps?.workspacePlan,
-                dataAvailableFrom: createdAt,
-                interval: value,
-                start,
-                end,
-              });
-
+        // const requiresUpgrade =
+        //   partnerPage ||
+        //   DUB_DEMO_LINKS.find((l) => l.domain === domain && l.key === key)
+        //     ? false
+        //     : !validDateRangeForPlan({
+        //         plan: plan || dashboardProps?.workspacePlan,
+        //         dataAvailableFrom: createdAt,
+        //         interval: value,
+        //         start,
+        //         end,
+        //       });
+        const requiresUpgrade = false;
         const { startDate, endDate } = getStartEndDates({
           interval: value,
           dataAvailableFrom: createdAt,
@@ -880,29 +875,29 @@ export default function Toggle({
                 {isMobile ? filterSelect : dateRangePicker}
                 {!dashboardProps && (
                   <div className="flex grow justify-end gap-2">
-                    {page === "analytics" && !partnerPage && (
-                      <>
-                        {domain && key && <ShareButton />}
-                        <Button
-                          variant="secondary"
-                          className="w-fit"
-                          icon={
-                            <SquareLayoutGrid6 className="h-4 w-4 text-neutral-600" />
-                          }
-                          text={isMobile ? undefined : "Switch to Events"}
-                          onClick={() => {
-                            if (dashboardProps) {
-                              window.open("https://d.to/events");
-                            } else {
-                              router.push(
-                                `/${slug}/events${getQueryString({}, { exclude: ["view"] })}`,
-                              );
-                            }
-                          }}
-                        />
-                        <AnalyticsOptions />
-                      </>
-                    )}
+                    {/*{page === "analytics" && !partnerPage && (*/}
+                    {/*  <>*/}
+                    {/*    {domain && key && <ShareButton />}*/}
+                    {/*    <Button*/}
+                    {/*      variant="secondary"*/}
+                    {/*      className="border-border-500 w-fit"*/}
+                    {/*      icon={*/}
+                    {/*        <SquareLayoutGrid6 className="h-4 w-4 text-neutral-600" />*/}
+                    {/*      }*/}
+                    {/*      text={isMobile ? undefined : "Switch to Events"}*/}
+                    {/*      onClick={() => {*/}
+                    {/*        if (dashboardProps) {*/}
+                    {/*          window.open("https://d.to/events");*/}
+                    {/*        } else {*/}
+                    {/*          router.push(*/}
+                    {/*            `/${slug}/events${getQueryString({}, { exclude: ["view"] })}`,*/}
+                    {/*          );*/}
+                    {/*        }*/}
+                    {/*      }}*/}
+                    {/*    />*/}
+                    {/*    <AnalyticsOptions />*/}
+                    {/*  </>*/}
+                    {/*)}*/}
                     {page === "events" && !partnerPage && (
                       <>
                         <Button

@@ -169,11 +169,11 @@ export default function LoginForm({
                     </div>
                   )}
                 <div className="my-2 flex flex-shrink items-center justify-center gap-2">
-                  <div className="grow basis-0 border-b border-neutral-300" />
+                  <div className="border-border-500 grow basis-0 border-b" />
                   <span className="text-xs font-normal uppercase leading-none text-neutral-500">
                     or
                   </span>
-                  <div className="grow basis-0 border-b border-neutral-300" />
+                  <div className="border-border-500 grow basis-0 border-b" />
                 </div>
               </div>
             )}

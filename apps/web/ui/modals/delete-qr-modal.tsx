@@ -1,7 +1,7 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { QRProps } from "@/lib/types";
-import { Button, Modal, useMediaQuery } from "@dub/ui";
+import { Button, Modal } from "@dub/ui";
 import {
   Dispatch,
   SetStateAction,
@@ -22,6 +22,7 @@ function DeleteQRModal(props: DeleteQRModalProps) {
     <Modal
       showModal={props.showDeleteQRModal}
       setShowModal={props.setShowDeleteQRModal}
+      className="border-border-500"
     >
       <DeleteQrModalInner {...props} />
     </Modal>
@@ -35,16 +36,18 @@ function DeleteQrModalInner({
   const { id } = useWorkspace();
   const [deleting, setDeleting] = useState(false);
 
-  const { isMobile } = useMediaQuery();
+  // const { isMobile } = useMediaQuery();
 
   return (
     <>
-      <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-4 pt-8 text-center sm:px-16">
-        <h3 className="text-lg font-medium">Delete {props.id}</h3>
-        <p className="text-sm text-neutral-500">
-          Warning: Deleting this QR will remove all of its analytics. This
-          action cannot be undone – proceed with caution.
-        </p>
+      <div className="border-border-500 flex flex-col items-center justify-center space-y-3 border-b px-4 py-4 pt-8 text-center sm:px-16">
+        <h3 className="text-lg font-medium">
+          This QR code will be removed. <br /> Are you sure?
+        </h3>
+        {/*<p className="text-sm text-neutral-500">*/}
+        {/*  Warning: Deleting this QR will remove all of its analytics. This*/}
+        {/*  action cannot be undone – proceed with caution.*/}
+        {/*</p>*/}
       </div>
 
       <form
@@ -67,29 +70,34 @@ function DeleteQrModalInner({
         }}
         className="flex flex-col space-y-3 bg-neutral-50 px-4 py-8 text-left sm:px-16"
       >
-        <div>
-          <label
-            htmlFor="verification"
-            className="block text-sm text-neutral-700"
-          >
-            To verify, type <span className="font-semibold">{props.id}</span>{" "}
-            below
-          </label>
-          <div className="relative mt-1 rounded-md shadow-sm">
-            <input
-              type="text"
-              name="verification"
-              id="verification"
-              pattern={props.id}
-              required
-              autoFocus={!isMobile}
-              autoComplete="off"
-              className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-            />
-          </div>
-        </div>
+        {/*<div>*/}
+        {/*  <label*/}
+        {/*    htmlFor="verification"*/}
+        {/*    className="block text-sm text-neutral-700"*/}
+        {/*  >*/}
+        {/*    To verify, type <span className="font-semibold">{props.id}</span>{" "}*/}
+        {/*    below*/}
+        {/*  </label>*/}
+        {/*  <div className="relative mt-1 rounded-md shadow-sm">*/}
+        {/*    <input*/}
+        {/*      type="text"*/}
+        {/*      name="verification"*/}
+        {/*      id="verification"*/}
+        {/*      pattern={props.id}*/}
+        {/*      required*/}
+        {/*      autoFocus={!isMobile}*/}
+        {/*      autoComplete="off"*/}
+        {/*      className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"*/}
+        {/*    />*/}
+        {/*  </div>*/}
+        {/*</div>*/}
 
-        <Button variant="danger" text="Confirm delete" loading={deleting} />
+        <Button
+          variant="danger"
+          text="Confirm delete"
+          loading={deleting}
+          className="border-border-500"
+        />
       </form>
     </>
   );

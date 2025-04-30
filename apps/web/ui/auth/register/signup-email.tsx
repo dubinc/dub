@@ -45,11 +45,12 @@ export const SignUpEmail = () => {
       <div className="flex flex-col space-y-4">
         <Input
           type="email"
-          placeholder="Work Email"
+          placeholder="Your Email"
           autoComplete="email"
           required
           {...register("email")}
           error={errors.email?.message}
+          className="border-border-500 focus:border-secondary"
         />
         <Input
           containerClassName="hidden"

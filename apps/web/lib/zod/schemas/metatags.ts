@@ -6,14 +6,15 @@ export const metaTagsSchema = z.object({
     .nullable()
     .describe("The meta title tag for the URL.")
     .openapi({
-      example: "Dub.co - Link Management for Modern Marketing Teams",
+      example: "GetQR | Create Custom QR Codes with Logo, Colors & Tracking",
     }),
   description: z
     .string()
     .nullable()
     .describe("The meta description tag for the URL.")
     .openapi({
-      example: "Dub.co is the open-source link management infrastructure ...",
+      example:
+        "Design dynamic QR codes with logos, frames, and colors. Track scans, edit content anytime, and download in JPG, PNG, or SVG. Start free—no credit card needed.",
     }),
   image: z
     .string()
