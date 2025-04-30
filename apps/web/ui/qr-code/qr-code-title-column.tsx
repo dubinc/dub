@@ -34,7 +34,10 @@ interface QrCodeTitleColumnProps {
   canvasRef: React.RefObject<HTMLCanvasElement>;
 }
 
-export function QrCodeTitleColumn({ qrCode, canvasRef }: QrCodeTitleColumnProps) {
+export function QrCodeTitleColumn({
+  qrCode,
+  canvasRef,
+}: QrCodeTitleColumnProps) {
   const { domain, key, createdAt, shortLink, archived, title } =
     qrCode?.link ?? {};
   const { isMobile } = useMediaQuery();
@@ -50,7 +53,7 @@ export function QrCodeTitleColumn({ qrCode, canvasRef }: QrCodeTitleColumnProps)
       ref={containerRef}
       className="flex h-full flex-row items-start transition-[height] md:items-center md:gap-6 xl:gap-12"
     >
-      <div className="flex h-full flex-row items-center justify-center gap-1">
+      <div className="flex h-full flex-row items-center justify-center gap-2">
         <div className="flex flex-col items-center justify-center gap-1.5">
           <QRCanvas
             ref={canvasRef}

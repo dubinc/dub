@@ -39,6 +39,15 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
         (qrType) => !FILE_QR_TYPES.includes(qrType.id),
       );
 
+      const onSaveClick = () =>
+        handleSaveQR?.({
+          styles: options,
+          frameOptions: {
+            id: selectedSuggestedFrame,
+          },
+          qrType: qrTypeActiveTab,
+        });
+
       return (
         <>
           <div
@@ -64,6 +73,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                 qrTypeActiveTab={qrTypeActiveTab}
                 setQRTypeActiveTab={setQRTypeActiveTab}
                 initialInputValues={initialInputValues}
+                onRegistrationClick={onSaveClick}
               />
             ) : (
               <QrTypeTabs
@@ -80,6 +90,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                 qrTypeActiveTab={qrTypeActiveTab}
                 setQRTypeActiveTab={setQRTypeActiveTab}
                 initialInputValues={initialInputValues}
+                onRegistrationClick={onSaveClick}
               />
             )}
           </div>
@@ -97,15 +108,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                   </span>
                 }
                 className="h-8 w-fit pl-2.5 pr-1.5"
-                onClick={() =>
-                  handleSaveQR?.({
-                    styles: options,
-                    frameOptions: {
-                      id: selectedSuggestedFrame,
-                    },
-                    qrType: qrTypeActiveTab,
-                  })
-                }
+                onClick={onSaveClick}
               />
             </div>
           )}

@@ -1,7 +1,13 @@
 "use client";
 
 import { createUserAccountAction } from "@/lib/actions/create-user-account";
-import { AnimatedSizeContainer, Button, useMediaQuery } from "@dub/ui";
+import { AuthMethod } from "@/ui/auth/login/login-form.tsx";
+import {
+  AnimatedSizeContainer,
+  Button,
+  useLocalStorage,
+  useMediaQuery,
+} from "@dub/ui";
 import { cn } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { OTPInput } from "input-otp";
@@ -20,6 +26,10 @@ export const VerifyEmailForm = () => {
   const { email, password } = useRegisterContext();
   const [isInvalidCode, setIsInvalidCode] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
+
+  const [lastUsedAuthMethodLive, qrDataToCreate] = useLocalStorage<
+    AuthMethod | undefined
+  >("last-used-auth-method", undefined);
 
   const { executeAsync, isPending } = useAction(createUserAccountAction, {
     async onSuccess() {
@@ -59,7 +69,7 @@ export const VerifyEmailForm = () => {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            executeAsync({ email, password, code });
+            executeAsync({ email, password, code, qrDataToCreate });
           }}
         >
           <div>
@@ -97,7 +107,7 @@ export const VerifyEmailForm = () => {
                 </div>
               )}
               onComplete={() => {
-                executeAsync({ email, password, code });
+                executeAsync({ email, password, code, qrDataToCreate });
               }}
             />
             {isInvalidCode && (
