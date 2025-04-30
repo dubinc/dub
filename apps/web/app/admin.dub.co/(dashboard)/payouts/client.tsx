@@ -225,7 +225,9 @@ export default function PayoutsPageClient() {
                   <span>{label}</span>
                 </div>
                 <div className="mt-1 flex h-12 items-center">
-                  {totals[id] || totals[id] === 0 ? (
+                  {totals[id] === undefined ? (
+                    <div className="h-10 w-24 animate-pulse rounded-md bg-neutral-200" />
+                  ) : (
                     <NumberFlow
                       value={totals[id] / 100}
                       className="text-xl font-medium sm:text-3xl"
@@ -236,8 +238,6 @@ export default function PayoutsPageClient() {
                         trailingZeroDisplay: "stripIfInteger",
                       }}
                     />
-                  ) : (
-                    <div className="h-10 w-24 animate-pulse rounded-md bg-neutral-200" />
                   )}
                 </div>
               </button>
