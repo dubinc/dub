@@ -2,7 +2,7 @@
 
 import useDomain from "@/lib/swr/use-domain";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { QR_TYPES } from "@/ui/qr-builder/constants/get-qr-config.ts";
+import { EQRType, QR_TYPES } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization.ts";
 import { QRCanvas } from "@/ui/qr-builder/qr-canvas.tsx";
 import { AnalyticsBadge } from "@/ui/qr-code/qr-code-details-column.tsx";
@@ -105,7 +105,7 @@ export function QrCodeTitleColumn({
               >
                 {title}
               </span>
-            ) : (
+            ) : qrCode.qrType !== EQRType.WIFI ? (
               <ShortLinkWrapper
                 domain={domain}
                 linkKey={key}
@@ -113,7 +113,7 @@ export function QrCodeTitleColumn({
                 linkClassname="block max-w-[180px] text-sm font-semibold text-neutral-800 truncate"
                 hideCopy
               />
-            )}
+            ) : null}
             <Tooltip
               className="block md:hidden"
               content={formatDateTime(createdAt)}
