@@ -12,9 +12,7 @@ export default function LibraryHeader() {
   const page = selectedLayoutSegment === null ? "" : selectedLayoutSegment;
 
   if (selectedLayoutSegment === null) {
-    redirect(
-      `/${slug}/settings/library/${flags?.linkFolders ? "folders" : "tags"}`,
-    );
+    redirect(`/${slug}/settings/library/folders`);
   }
 
   return (
@@ -29,15 +27,11 @@ export default function LibraryHeader() {
       <TabSelect
         variant="accent"
         options={[
-          ...(flags?.linkFolders
-            ? [
-                {
-                  id: "folders",
-                  label: "Folders",
-                  href: `/${slug}/settings/library/folders`,
-                },
-              ]
-            : []),
+          {
+            id: "folders",
+            label: "Folders",
+            href: `/${slug}/settings/library/folders`,
+          },
           { id: "tags", label: "Tags", href: `/${slug}/settings/library/tags` },
           {
             id: "utm",

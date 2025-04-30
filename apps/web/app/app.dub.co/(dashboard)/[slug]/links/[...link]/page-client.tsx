@@ -156,8 +156,6 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
             );
           }}
           className="p-0"
-          foldersEnabled={!!workspace.flags?.linkFolders}
-          linkToFolder={!!workspace.flags?.linkFolders}
         >
           <div
             className={cn(
