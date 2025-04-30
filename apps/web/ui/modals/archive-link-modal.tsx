@@ -13,7 +13,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 
-const sendArchiveRequest = ({
+export const sendArchiveRequest = ({
   linkId,
   archive,
   workspaceId,

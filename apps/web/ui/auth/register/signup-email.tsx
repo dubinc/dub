@@ -50,6 +50,7 @@ export const SignUpEmail = () => {
           required
           {...register("email")}
           error={errors.email?.message}
+          className="border-border-500 focus:border-secondary"
         />
         <Input
           containerClassName="hidden"

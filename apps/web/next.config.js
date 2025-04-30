@@ -95,6 +95,15 @@ module.exports = withAxiom({
         ],
       },
       {
+        source: "/images/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      {
         source: "/embed/:path*",
         headers: [
           {
@@ -223,6 +232,11 @@ module.exports = withAxiom({
   },
   async rewrites() {
     return [
+      // Static files
+      {
+        source: "/images/:path*",
+        destination: "/images/:path*",
+      },
       // for dub proxy
       {
         source: "/_proxy/dub/track/click",

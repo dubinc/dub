@@ -7,9 +7,9 @@ const tabSelectButtonVariants = cva("p-4 transition-colors duration-75", {
   variants: {
     variant: {
       default:
-        "text-neutral-400 data-[selected=true]:text-black data-[selected=false]:hover:text-neutral-500",
+        "text-neutral-400 data-[selected=true]:text-secondary data-[selected=false]:hover:text-neutral-500",
       accent:
-        "text-neutral-500 transition-[color,font-weight] data-[selected=true]:text-blue-600 data-[selected=false]:hover:text-neutral-700 data-[selected=true]:font-medium",
+        "text-neutral-500 transition-[color,font-weight] data-[selected=true]:text-secondary data-[selected=false]:hover:text-neutral-700 data-[selected=true]:font-medium",
     },
   },
   defaultVariants: {
@@ -20,8 +20,8 @@ const tabSelectButtonVariants = cva("p-4 transition-colors duration-75", {
 const tabSelectIndicatorVariants = cva("absolute bottom-0 w-full px-1.5", {
   variants: {
     variant: {
-      default: "text-black",
-      accent: "text-blue-600",
+      default: "text-secondary",
+      accent: "text-secondary-100",
     },
   },
   defaultVariants: {

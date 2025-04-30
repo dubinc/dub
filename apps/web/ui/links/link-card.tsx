@@ -27,7 +27,7 @@ export function LinkCard({ link }: { link: ResponseLink }) {
       <CardList.Card
         key={link.id}
         onClick={isMobile ? undefined : () => setShowLinkBuilder(true)}
-        innerClassName="flex items-center gap-5 sm:gap-8 md:gap-12 text-sm"
+        innerClassName="h-full flex items-center gap-5 sm:gap-8 md:gap-12 text-sm"
       >
         {/*{...(variant === "loose" &&*/}
         {/*  link.folderId &&*/}
@@ -64,7 +64,7 @@ export function LinkCard({ link }: { link: ResponseLink }) {
         {/*      </Link>*/}
         {/*    ),*/}
         {/*  })}*/}
-        <div className="min-w-0 grow">
+        <div className="h-full min-w-0 grow">
           <LinkTitleColumn link={link} />
         </div>
         <LinkDetailsColumn link={link} />

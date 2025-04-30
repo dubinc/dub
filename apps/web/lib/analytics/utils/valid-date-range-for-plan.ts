@@ -22,23 +22,23 @@ export const validDateRangeForPlan = ({
   }
 
   // Free plan users can only get analytics for 30 days
-  if (
-    (!plan || plan === "free") &&
-    (interval === "90d" ||
-      interval === "1y" ||
-      interval === "ytd" ||
-      (start && getDaysDifference(new Date(start), end || now) > 31))
-  ) {
-    if (throwError) {
-      throw new DubApiError({
-        code: "forbidden",
-        message:
-          "You can only get analytics for up to 30 days on a Free plan. Upgrade to Pro or Business to get analytics for longer periods.",
-      });
-    } else {
-      return false;
-    }
-  }
+  // if (
+  //   (!plan || plan === "free") &&
+  //   (interval === "90d" ||
+  //     interval === "1y" ||
+  //     interval === "ytd" ||
+  //     (start && getDaysDifference(new Date(start), end || now) > 31))
+  // ) {
+  //   if (throwError) {
+  //     throw new DubApiError({
+  //       code: "forbidden",
+  //       message:
+  //         "You can only get analytics for up to 30 days on a Free plan. Upgrade to Pro or Business to get analytics for longer periods.",
+  //     });
+  //   } else {
+  //     return false;
+  //   }
+  // }
 
   // Pro plan users can only get analytics for 1 year
   if (

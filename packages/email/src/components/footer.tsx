@@ -24,7 +24,7 @@ export function Footer({
           </Link>
         </Text>
         <Text className="text-[12px] text-neutral-500">
-          GetQR Technologies, Inc.
+          GetQR.
           <br />
           2261 Market Street STE 5906
           <br />
@@ -56,7 +56,7 @@ export function Footer({
         </Text>
       )}
       <Text className="text-[12px] text-neutral-500">
-        GetQR Technologies, Inc.
+        GetQR.
         <br />
         2261 Market Street STE 5906
         <br />

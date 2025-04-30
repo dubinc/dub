@@ -34,7 +34,7 @@ function SignUp() {
         Already have an account?&nbsp;
         <Link
           href="/login"
-          className="font-semibold text-neutral-500 underline underline-offset-2 transition-colors hover:text-black"
+          className="hover:text-neutral font-semibold text-neutral-500 underline underline-offset-2 transition-colors"
         >
           Sign in
         </Link>
@@ -66,7 +66,7 @@ function Verify() {
         Already have an account?&nbsp;
         <Link
           href="/login"
-          className="font-semibold text-neutral-500 underline underline-offset-2 transition-colors hover:text-black"
+          className="hover:text-neutral font-semibold text-neutral-500 underline underline-offset-2 transition-colors"
         >
           Sign in
         </Link>

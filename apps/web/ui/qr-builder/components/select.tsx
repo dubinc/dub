@@ -46,6 +46,7 @@ export const Select = ({ options, onChange }: ISelectProps) => {
       <DropdownMenu.Content
         className="border-border-100 !z-10 flex flex-col items-center justify-start gap-2 rounded-lg border bg-white p-3 shadow-md"
         sideOffset={5}
+        align="start"
       >
         {options.map((option) => (
           <DropdownMenu.Item
