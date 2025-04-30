@@ -2,7 +2,7 @@ import { NewQrProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { createId } from "../utils";
 
-export async function createQr({ data, qrType, title, description, styles, frameOptions }: NewQrProps, linkId: string, userId: string | null) {
+export async function createQr({ data, qrType, title, description, styles, frameOptions }: NewQrProps, linkId: string | null, userId: string | null) {
   const qr = await prisma.qr.create({
     data: {
       id: createId({ prefix: "qr_" }),

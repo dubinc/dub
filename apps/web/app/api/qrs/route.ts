@@ -26,6 +26,7 @@ export const POST = withWorkspace(
     console.log("POST /api/qrs прошли проверку воркспейса?");
 
     const body = createQrBodySchema.parse(await parseRequestBody(req));
+
     console.log("POST /api/qrs body:", body);
     if (!session) {
       const ip = req.headers.get("x-forwarded-for") || LOCALHOST_IP;
@@ -36,6 +37,25 @@ export const POST = withWorkspace(
           code: "rate_limit_exceeded",
           message:
             "Rate limited – you can only create up to 10 links per day without an account.",
+        });
+      }
+    }
+
+    if (body.qrType === 'wifi') {
+      try {
+        const createdQr = await createQr(
+          body,
+          null,
+          session.user.id,
+        );
+
+        return NextResponse.json(createdQr, {
+          headers,
+        });
+      } catch (error) {
+        throw new DubApiError({
+          code: "unprocessable_entity",
+          message: error.message,
         });
       }
     }
