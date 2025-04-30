@@ -217,7 +217,7 @@ export default function CommissionsPageClient() {
                       }}
                     />
                   ) : (
-                    <div className="h-9 w-16 animate-pulse rounded-md bg-neutral-200" />
+                    <div className="h-10 w-24 animate-pulse rounded-md bg-neutral-200" />
                   )}
                 </div>
               </button>
