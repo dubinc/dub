@@ -1,7 +1,7 @@
 "use client";
 
 import { createUserAccountAction } from "@/lib/actions/create-user-account";
-import { AuthMethod } from "@/ui/auth/login/login-form.tsx";
+import { QRBuilderData } from "@/ui/modals/qr-builder";
 import {
   AnimatedSizeContainer,
   Button,
@@ -27,15 +27,14 @@ export const VerifyEmailForm = () => {
   const [isInvalidCode, setIsInvalidCode] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
 
-  const [lastUsedAuthMethodLive, qrDataToCreate] = useLocalStorage<
-    AuthMethod | undefined
-  >("last-used-auth-method", undefined);
+  const [qrDataToCreate, setQrDataToCreate] =
+    useLocalStorage<QRBuilderData | null>("qr-data-to-create", null);
 
   const { executeAsync, isPending } = useAction(createUserAccountAction, {
     async onSuccess() {
       toast.success("Account created! Redirecting to dashboard...");
       setIsRedirecting(true);
-
+      setQrDataToCreate(null);
       const response = await signIn("credentials", {
         email,
         password,

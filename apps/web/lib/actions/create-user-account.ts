@@ -37,7 +37,7 @@ const qrDataToCreateSchema = z.object({
 
 const schema = signUpSchema.extend({
   code: z.string().min(6, "OTP must be 6 characters long."),
-  qrDataToCreate: qrDataToCreateSchema.optional(),
+  qrDataToCreate: qrDataToCreateSchema.nullish(),
 });
 
 // Sign up a new user using email and password
@@ -134,6 +134,8 @@ export const createUserAccountAction = actionClient
         },
       });
 
+      console.log("workspaceResponse: ", workspaceResponse);
+
       await prisma.user.update({
         where: {
           id: generatedUserId,
@@ -145,7 +147,6 @@ export const createUserAccountAction = actionClient
 
       if (qrDataToCreate !== null) {
         console.log("qrDataToCreate !== null: ", qrDataToCreate);
-        console.log("workspaceResponse: ", workspaceResponse);
         const { link, error, code } = await processLink({
           payload: {
             url: qrDataToCreate!.styles!.data! as string,
@@ -166,9 +167,24 @@ export const createUserAccountAction = actionClient
 
         try {
           const createdLink = await createLink(link);
+          console.log("createdLink: ", {
+            createdLink,
+            qrDataToCreate,
+            linkId: createdLink.id,
+            userId: createdLink.userId,
+          });
 
-          // @ts-ignore
-          await createQr(qrDataToCreate, createdLink.id, createdLink.userId);
+          await createQr(
+            {
+              ...qrDataToCreate,
+              // @ts-ignore
+              link: createdLink,
+              // @ts-ignore
+              data: qrDataToCreate.styles.data,
+            },
+            createdLink.id,
+            createdLink.userId,
+          );
         } catch (error) {
           throw new DubApiError({
             code: "unprocessable_entity",
