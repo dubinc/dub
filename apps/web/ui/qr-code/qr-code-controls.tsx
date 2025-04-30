@@ -25,7 +25,7 @@ import { BoxArchive, Download } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Delete } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { PropsWithChildren, useContext, useState } from "react";
+import { PropsWithChildren, RefObject, useContext, useState } from "react";
 import { toast } from "sonner";
 import { ThreeDots } from "../shared/icons";
 
@@ -205,7 +205,7 @@ function DownloadPopover({
   children,
 }: PropsWithChildren<{
   qrCode: ResponseQrCode;
-  canvasRef: React.RefObject<HTMLCanvasElement>;
+  canvasRef: RefObject<HTMLCanvasElement>;
 }>) {
   const [openPopover, setOpenPopover] = useState(false);
   const { qrCode: qrCodeObject } = useQrCustomization(qrCode);

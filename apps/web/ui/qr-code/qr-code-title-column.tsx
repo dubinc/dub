@@ -25,13 +25,13 @@ import {
 } from "@dub/utils";
 import { Icon } from "@iconify/react";
 import { Flex, Text } from "@radix-ui/themes";
-import { memo, PropsWithChildren, useContext, useRef } from "react";
+import { memo, PropsWithChildren, RefObject, useContext, useRef } from "react";
 import { ResponseQrCode } from "./qr-codes-container";
 import { QrCodesDisplayContext } from "./qr-codes-display-provider";
 
 interface QrCodeTitleColumnProps {
   qrCode: ResponseQrCode;
-  canvasRef: React.RefObject<HTMLCanvasElement>;
+  canvasRef: RefObject<HTMLCanvasElement>;
 }
 
 export function QrCodeTitleColumn({

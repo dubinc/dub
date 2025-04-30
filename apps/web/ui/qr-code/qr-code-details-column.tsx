@@ -5,15 +5,18 @@ import { CardList, CursorRays, useMediaQuery } from "@dub/ui";
 import { cn, currencyFormatter, nFormatter } from "@dub/utils";
 import { Icon } from "@iconify/react";
 import Link from "next/link";
-import { useContext, useMemo, useRef } from "react";
+import { RefObject, useContext, useMemo, useRef } from "react";
 import { useShareDashboardModal } from "../modals/share-dashboard-modal";
 
 interface QrCodeDetailsColumnProps {
   qrCode: ResponseQrCode;
-  canvasRef: React.RefObject<HTMLCanvasElement>;
+  canvasRef: RefObject<HTMLCanvasElement>;
 }
 
-export function QrCodeDetailsColumn({ qrCode, canvasRef }: QrCodeDetailsColumnProps) {
+export function QrCodeDetailsColumn({
+  qrCode,
+  canvasRef,
+}: QrCodeDetailsColumnProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   return (
