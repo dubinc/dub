@@ -112,7 +112,7 @@ export default function PayoutsPageClient() {
     columns: [
       {
         id: "date",
-        header: "Date",
+        header: "Payment Date",
         accessorKey: "date",
         cell: ({ row }) => formatDateTime(row.original.date),
       },

@@ -31,6 +31,9 @@ export const GET = withAdmin(async ({ searchParams }) => {
       programId: {
         not: ACME_PROGRAM_ID,
       },
+      status: {
+        not: "failed",
+      },
       createdAt: {
         gte: startDate,
         lte: endDate,
@@ -64,6 +67,7 @@ export const GET = withAdmin(async ({ searchParams }) => {
     FROM Invoice
     WHERE 
       programId != ${ACME_PROGRAM_ID}
+      AND status != 'failed'
       AND createdAt >= ${startDate}
       AND createdAt <= ${endDate}
     GROUP BY DATE_FORMAT(CONVERT_TZ(createdAt, "UTC", ${timezone}), ${dateFormat})
