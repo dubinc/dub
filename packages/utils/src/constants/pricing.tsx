@@ -192,13 +192,12 @@ export const PLANS = [
         },
       },
       {
-        id: "payouts",
-        text: "1-click global payouts",
-        tooltip: {
-          title: "Send payouts to 180+ countries in 1-click.",
-          cta: "Learn more.",
-          href: "https://dub.co/help/article/partner-payouts",
-        },
+        id: "tests",
+        text: "A/B testing (beta)",
+      },
+      {
+        id: "roles",
+        text: "Folders RBAC",
       },
       {
         id: "webhooks",
@@ -209,10 +208,6 @@ export const PLANS = [
           cta: "Learn more.",
           href: "https://dub.co/docs/concepts/webhooks/introduction",
         },
-      },
-      {
-        id: "tests",
-        text: "A/B testing",
       },
     ] as PlanFeature[],
   },
@@ -268,10 +263,6 @@ export const PLANS = [
       {
         id: "users",
         text: "20 users",
-      },
-      {
-        id: "roles",
-        text: "Folders RBAC",
       },
       {
         id: "whitelabel",
