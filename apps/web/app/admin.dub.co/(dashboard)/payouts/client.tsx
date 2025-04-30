@@ -113,7 +113,7 @@ export default function PayoutsPageClient() {
     columns: [
       {
         id: "date",
-        header: "Date",
+        header: "Payment Date",
         accessorKey: "date",
         cell: ({ row }) => formatDateTime(row.original.date),
       },
@@ -226,16 +226,20 @@ export default function PayoutsPageClient() {
                   <span>{label}</span>
                 </div>
                 <div className="mt-1 flex h-12 items-center">
-                  <NumberFlow
-                    value={totals[id] / 100}
-                    className="text-xl font-medium sm:text-3xl"
-                    format={{
-                      style: "currency",
-                      currency: "USD",
-                      // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
-                      trailingZeroDisplay: "stripIfInteger",
-                    }}
-                  />
+                  {(totals[id] || totals[id] === 0) && !isLoading ? (
+                    <NumberFlow
+                      value={(totals[id] ?? 0) / 100}
+                      className="text-xl font-medium sm:text-3xl"
+                      format={{
+                        style: "currency",
+                        currency: "USD",
+                        // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
+                        trailingZeroDisplay: "stripIfInteger",
+                      }}
+                    />
+                  ) : (
+                    <div className="h-10 w-24 animate-pulse rounded-md bg-neutral-200" />
+                  )}
                 </div>
               </button>
             );
