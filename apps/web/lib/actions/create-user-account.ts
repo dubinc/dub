@@ -134,8 +134,6 @@ export const createUserAccountAction = actionClient
         },
       });
 
-      console.log("workspaceResponse: ", workspaceResponse);
-
       await prisma.user.update({
         where: {
           id: generatedUserId,
@@ -146,7 +144,6 @@ export const createUserAccountAction = actionClient
       });
 
       if (qrDataToCreate !== null) {
-        console.log("qrDataToCreate !== null: ", qrDataToCreate);
         const { link, error, code } = await processLink({
           payload: {
             url: qrDataToCreate!.styles!.data! as string,
@@ -157,7 +154,7 @@ export const createUserAccountAction = actionClient
           >,
           userId: generatedUserId,
         });
-        console.log("{ link, error, code: ", { link, error, code });
+
         if (error != null) {
           throw new DubApiError({
             code: code as ErrorCodes,
@@ -167,12 +164,6 @@ export const createUserAccountAction = actionClient
 
         try {
           const createdLink = await createLink(link);
-          console.log("createdLink: ", {
-            createdLink,
-            qrDataToCreate,
-            linkId: createdLink.id,
-            userId: createdLink.userId,
-          });
 
           await createQr(
             {

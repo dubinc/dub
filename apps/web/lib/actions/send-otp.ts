@@ -14,28 +14,9 @@ import { emailSchema, passwordSchema } from "../zod/schemas/auth";
 import { throwIfAuthenticated } from "./auth/throw-if-authenticated";
 import { actionClient } from "./safe-action";
 
-const qrDataToCreateSchema = z.object({
-  styles: z.object({}).passthrough(),
-  frameOptions: z.object({
-    id: z.string(),
-  }),
-  qrType: z.enum([
-    "website",
-    "pdf",
-    "image",
-    "video",
-    "whatsapp",
-    "social",
-    "wifi",
-    "app",
-    "feedback",
-  ]),
-});
-
 const schema = z.object({
   email: emailSchema,
   password: passwordSchema.optional(),
-  qrDataToCreate: qrDataToCreateSchema.optional(),
 });
 
 // Send OTP to email to verify account
@@ -46,7 +27,7 @@ export const sendOtpAction = actionClient
   })
   .use(throwIfAuthenticated)
   .action(async ({ parsedInput }) => {
-    const { email, qrDataToCreate } = parsedInput;
+    const { email } = parsedInput;
 
     const { success } = await ratelimit(2, "1 m").limit(`send-otp:${getIP()}`);
 
