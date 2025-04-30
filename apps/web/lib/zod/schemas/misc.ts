@@ -1,5 +1,6 @@
 import { plans, roles } from "@/lib/types";
 import z from "@/lib/zod";
+import { R2_URL } from "@dub/utils";
 
 export const RECURRING_MAX_DURATIONS = [0, 3, 6, 12, 18, 24];
 
@@ -76,15 +77,15 @@ export const base64ImageSchema = z
   )
   .transform((v) => v || null);
 
-// Base64 encoded image or dubassets.com URL
+// Base64 encoded image or R2_URL
 export const uploadedImageSchema = z
   .union([
     base64ImageSchema,
     z
       .string()
       .url()
-      .refine((url) => url.startsWith("https://dubassets.com"), {
-        message: "URL must start with https://dubassets.com",
+      .refine((url) => url.startsWith(R2_URL), {
+        message: `URL must start with ${R2_URL}`,
       }),
   ])
   .transform((v) => v || null);
