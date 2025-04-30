@@ -1,5 +1,6 @@
 import { plans, roles } from "@/lib/types";
 import z from "@/lib/zod";
+import { fileTypeFromBuffer } from "file-type";
 
 export const RECURRING_MAX_DURATIONS = [0, 3, 6, 12, 18, 24];
 
@@ -8,6 +9,14 @@ export const planSchema = z.enum(plans).describe("The plan of the workspace.");
 export const roleSchema = z
   .enum(roles)
   .describe("The role of the authenticated user in the workspace.");
+
+const allowedImageTypes = [
+  "image/png",
+  "image/jpeg",
+  "image/jpg",
+  "image/gif",
+  "image/webp",
+];
 
 // A boolean query schema that coerces the value to a boolean
 export const booleanQuerySchema = z
@@ -54,29 +63,34 @@ export const maxDurationSchema = z.coerce
 export const base64ImageSchema = z
   .string()
   .regex(/^data:image\/(png|jpeg|jpg|gif|webp);base64,/, {
-    message:
-      "Invalid image format. Must be a base64 encoded image with valid image type (png, jpeg, jpg, gif, webp).",
+    message: "Invalid image format, supports only png, jpeg, jpg, gif, webp.",
   })
   .refine(
-    (str) => {
+    async (str) => {
       const base64Data = str.split(",")[1];
 
       if (!base64Data) {
         return false;
       }
 
-      return /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(
-        base64Data,
-      );
+      try {
+        const buffer = new Uint8Array(Buffer.from(base64Data, "base64"));
+        const fileType = await fileTypeFromBuffer(buffer);
+
+        return fileType && allowedImageTypes.includes(fileType.mime);
+      } catch (e) {
+        return false;
+      }
     },
     {
-      message:
-        "Invalid base64 content. The image data is not properly base64 encoded.",
+      message: "Invalid image format, supports only png, jpeg, jpg, gif, webp.",
     },
   )
   .transform((v) => v || null);
 
 // Base64 encoded image or dubassets.com URL
+// This schema contains an async refinement check for base64 image validation,
+// which requires using parseAsync() instead of parse() when validating
 export const uploadedImageSchema = z
   .union([
     base64ImageSchema,
