@@ -85,11 +85,13 @@ export default function CommissionsPageClient() {
 
   const totals = useMemo(() => {
     return {
-      commissions: timeseries?.reduce(
-        (acc, { commissions }) => acc + commissions,
-        0,
-      ),
-      revenue: timeseries?.reduce((acc, { revenue }) => acc + revenue, 0),
+      commissions:
+        timeseries?.reduce(
+          (acc, { commissions }) => acc + (commissions || 0),
+          0,
+        ) ?? 0,
+      revenue:
+        timeseries?.reduce((acc, { revenue }) => acc + (revenue || 0), 0) ?? 0,
     };
   }, [timeseries]);
 
@@ -202,11 +204,9 @@ export default function CommissionsPageClient() {
                   <span>{label}</span>
                 </div>
                 <div className="mt-1 flex h-12 items-center">
-                  {totals[id] === undefined ? (
-                    <div className="h-10 w-24 animate-pulse rounded-md bg-neutral-200" />
-                  ) : (
+                  {(totals[id] || totals[id] === 0) && !isLoading ? (
                     <NumberFlow
-                      value={totals[id] / 100}
+                      value={(totals[id] ?? 0) / 100}
                       className="text-xl font-medium sm:text-3xl"
                       format={{
                         style: "currency",
@@ -215,6 +215,8 @@ export default function CommissionsPageClient() {
                         trailingZeroDisplay: "stripIfInteger",
                       }}
                     />
+                  ) : (
+                    <div className="h-10 w-24 animate-pulse rounded-md bg-neutral-200" />
                   )}
                 </div>
               </button>

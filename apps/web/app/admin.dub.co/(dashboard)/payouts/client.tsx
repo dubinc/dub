@@ -99,9 +99,10 @@ export default function PayoutsPageClient() {
 
   const totals = useMemo(() => {
     return {
-      payouts: timeseriesData?.reduce((acc, { payouts }) => acc + payouts, 0),
-      fees: timeseriesData?.reduce((acc, { fees }) => acc + fees, 0),
-      total: timeseriesData?.reduce((acc, { total }) => acc + total, 0),
+      payouts:
+        timeseriesData?.reduce((acc, { payouts }) => acc + payouts, 0) ?? 0,
+      fees: timeseriesData?.reduce((acc, { fees }) => acc + fees, 0) ?? 0,
+      total: timeseriesData?.reduce((acc, { total }) => acc + total, 0) ?? 0,
     };
   }, [timeseriesData]);
 
@@ -225,11 +226,9 @@ export default function PayoutsPageClient() {
                   <span>{label}</span>
                 </div>
                 <div className="mt-1 flex h-12 items-center">
-                  {totals[id] === undefined ? (
-                    <div className="h-10 w-24 animate-pulse rounded-md bg-neutral-200" />
-                  ) : (
+                  {(totals[id] || totals[id] === 0) && !isLoading ? (
                     <NumberFlow
-                      value={totals[id] / 100}
+                      value={(totals[id] ?? 0) / 100}
                       className="text-xl font-medium sm:text-3xl"
                       format={{
                         style: "currency",
@@ -238,6 +237,8 @@ export default function PayoutsPageClient() {
                         trailingZeroDisplay: "stripIfInteger",
                       }}
                     />
+                  ) : (
+                    <div className="h-10 w-24 animate-pulse rounded-md bg-neutral-200" />
                   )}
                 </div>
               </button>
