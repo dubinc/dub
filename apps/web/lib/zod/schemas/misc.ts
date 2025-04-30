@@ -89,6 +89,8 @@ export const base64ImageSchema = z
   .transform((v) => v || null);
 
 // Base64 encoded image or dubassets.com URL
+// This schema contains an async refinement check for base64 image validation,
+// which requires using parseAsync() instead of parse() when validating
 export const uploadedImageSchema = z
   .union([
     base64ImageSchema,
