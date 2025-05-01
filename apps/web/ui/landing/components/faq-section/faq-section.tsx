@@ -1,7 +1,7 @@
 "use client";
 
-import { FAQ_ITEMS } from "@/ui/landing/faq-section/config.ts";
-import { BlockMarkdown } from "@/ui/partners/lander-blocks/BlockMarkdown";
+import { FAQ_ITEMS } from "@/ui/landing/components/faq-section/config.ts";
+import { BlockMarkdown } from "@/ui/partners/lander-blocks/BlockMarkdown.tsx";
 import {
   Accordion,
   AccordionContent,

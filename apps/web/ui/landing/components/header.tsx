@@ -1,6 +1,6 @@
 "use client";
 
-import { Logo } from "@/ui/shared/logo";
+import { Logo } from "@/ui/shared/logo.tsx";
 import { Button, Text } from "@radix-ui/themes";
 import { useAuthModal } from "../../app/app.dub.co/(auth)/auth.modal.tsx";
 
