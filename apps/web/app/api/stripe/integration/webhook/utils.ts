@@ -42,7 +42,7 @@ export async function createNewCustomer(event: Stripe.Event) {
     return `Link with ID ${linkId} not found or does not have a project, skipping...`;
   }
 
-  // Create a new customer
+  // Create a customer
   const customer = await prisma.customer.create({
     data: {
       id: createId({ prefix: "cus_" }),
