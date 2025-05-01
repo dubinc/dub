@@ -115,6 +115,9 @@ export const FolderDropdown = ({
         ? [selectedFolderData]
         : []),
     ];
+    if (folderId && folderId !== "unsorted") {
+      router.prefetch(`/${slug}/links?folderId=${folderId}`);
+    }
 
     return [
       ...allFolders.map((folder) => ({
