@@ -175,7 +175,7 @@ export const GET = withWorkspace(
   },
 );
 
-// POST /api/customers – Create a new customer
+// POST /api/customers – Create a customer
 export const POST = withWorkspace(
   async ({ req, workspace }) => {
     const { email, name, avatar, externalId } = createCustomerBodySchema.parse(
