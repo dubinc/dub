@@ -5,8 +5,8 @@ import { ZodOpenApiOperationObject } from "zod-openapi";
 export const createFolder: ZodOpenApiOperationObject = {
   operationId: "createFolder",
   "x-speakeasy-name-override": "create",
-  summary: "Create a new folder",
-  description: "Create a new folder for the authenticated workspace.",
+  summary: "Create a folder",
+  description: "Create a folder for the authenticated workspace.",
   requestBody: {
     content: {
       "application/json": {

@@ -50,7 +50,7 @@ export const requestPasswordResetAction = actionClient
         },
       }),
 
-      // Create a new password reset token
+      // Create a password reset token
       prisma.passwordResetToken.create({
         data: {
           identifier: email,
