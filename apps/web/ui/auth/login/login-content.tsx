@@ -23,7 +23,7 @@ export function LoginContent({ authModal = false }: LoginContentProps) {
           })}
         >
           <h3 className="text-lg font-semibold">
-            Sign in to your GetQR account
+            Log in to your GetQR account
           </h3>
         </div>
         <div
@@ -34,7 +34,11 @@ export function LoginContent({ authModal = false }: LoginContentProps) {
           <LoginForm />
         </div>
       </div>
-      <p className="mt-4 text-center text-sm text-neutral-500">
+      <p
+        className={cn("mt-4 text-center text-sm text-neutral-500", {
+          "mt-0": authModal,
+        })}
+      >
         Don't have an account?&nbsp;
         <Link
           href="/register"

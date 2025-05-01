@@ -3,7 +3,7 @@ import { AuthLayout } from "@/ui/layout/auth-layout";
 import { APP_DOMAIN, constructMetadata } from "@dub/utils";
 
 export const metadata = constructMetadata({
-  title: `Sign in to ${process.env.NEXT_PUBLIC_APP_NAME}`,
+  title: `Log in to ${process.env.NEXT_PUBLIC_APP_NAME}`,
   canonicalUrl: `${APP_DOMAIN}/login`,
 });
 

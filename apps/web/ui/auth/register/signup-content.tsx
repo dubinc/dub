@@ -52,7 +52,7 @@ export function SignUpContent({ authModal = false }: SignUpContentProps) {
           href="/login"
           className="hover:text-neutral font-semibold text-neutral-500 underline underline-offset-2 transition-colors"
         >
-          Log In
+          Log in
         </Link>
       </p>
     </>

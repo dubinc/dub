@@ -22,7 +22,7 @@ export const Header = () => {
               onClick={() => showModal("login")}
             >
               <Text size="3" weight="medium" className="text-neutral">
-                Log In
+                Log in
               </Text>
             </Button>
 
