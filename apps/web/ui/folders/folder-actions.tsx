@@ -13,6 +13,7 @@ import {
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Bookmark } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -69,7 +70,11 @@ export const FolderActions = ({
       switch (e.key) {
         case "a":
           if (!unsortedLinks) {
-            router.push(`/${workspaceSlug}/analytics?folderId=${folder.id}`);
+            router.push(
+              `/${workspaceSlug}/analytics${
+                folder.id === "unsorted" ? "" : `?folderId=${folder.id}`
+              }`,
+            );
           }
           break;
         case "m":
@@ -114,19 +119,22 @@ export const FolderActions = ({
         content={
           <div className="grid w-full divide-y divide-neutral-200 sm:w-52">
             <div className="grid gap-px p-2">
-              <Button
-                text="Analytics"
-                variant="outline"
-                onClick={() => {
-                  setOpenPopover(false);
-                  router.push(
-                    `/${workspaceSlug}/analytics?folderId=${folder.id}`,
-                  );
-                }}
-                icon={<Chart className="h-4 w-4" />}
-                shortcut="A"
-                className="h-9 px-2 font-medium"
-              />
+              <Link
+                href={`/${workspaceSlug}/analytics${
+                  folder.id === "unsorted" ? "" : `?folderId=${folder.id}`
+                }`}
+              >
+                <Button
+                  text="Analytics"
+                  variant="outline"
+                  onClick={() => {
+                    setOpenPopover(false);
+                  }}
+                  icon={<Chart className="h-4 w-4" />}
+                  shortcut="A"
+                  className="h-9 px-2 font-medium"
+                />
+              </Link>
 
               {!unsortedLinks && (
                 <Button

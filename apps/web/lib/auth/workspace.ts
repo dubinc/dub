@@ -351,12 +351,6 @@ export const withWorkspace = (
             workspaceId: workspace.id,
           });
 
-          // TODO: Remove this once Folders goes GA
-          flags = {
-            ...flags,
-            linkFolders: flags.linkFolders || workspace.partnersEnabled,
-          };
-
           if (!flags[featureFlag]) {
             throw new DubApiError({
               code: "forbidden",

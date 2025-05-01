@@ -40,11 +40,6 @@ export const GET = withWorkspace(
           ...workspace,
           id: prefixWorkspaceId(workspace.id),
           domains,
-          // TODO: Remove this once Folders goes GA
-          flags: {
-            ...flags,
-            linkFolders: flags.linkFolders || workspace.partnersEnabled,
-          },
         }),
       },
       { headers },
