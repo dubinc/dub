@@ -35,8 +35,9 @@ const qrDataToCreateSchema = z.object({
   ]),
 });
 
+// Modified schema without OTP
 const schema = signUpSchema.extend({
-  code: z.string().min(6, "OTP must be 6 characters long."),
+  // code: z.string().min(6, "OTP must be 6 characters long."),
   qrDataToCreate: qrDataToCreateSchema.nullish(),
 });
 
@@ -48,7 +49,8 @@ export const createUserAccountAction = actionClient
   })
   .use(throwIfAuthenticated)
   .action(async ({ parsedInput }) => {
-    const { email, password, code, qrDataToCreate } = parsedInput;
+    const { email, password, qrDataToCreate } = parsedInput;
+    // const { email, password, code, qrDataToCreate } = parsedInput;
 
     const { success } = await ratelimit(2, "1 m").limit(`signup:${getIP()}`);
 
@@ -56,6 +58,8 @@ export const createUserAccountAction = actionClient
       throw new Error("Too many requests. Please try again later.");
     }
 
+    // Skip OTP verification
+    /*
     const verificationToken = await prisma.emailVerificationToken.findUnique({
       where: {
         identifier: email,
@@ -76,6 +80,7 @@ export const createUserAccountAction = actionClient
         token: code,
       },
     });
+    */
 
     const user = await prisma.user.findUnique({
       where: {
