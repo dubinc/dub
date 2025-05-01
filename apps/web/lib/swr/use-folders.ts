@@ -15,7 +15,7 @@ export default function useFolders({
   query?: Record<string, any>;
   options?: SWRConfiguration;
 } = {}) {
-  const { id: workspaceId, plan, flags } = useWorkspace();
+  const { id: workspaceId, plan } = useWorkspace();
   const { getQueryString } = useRouterStuff();
 
   const qs = getQueryString(
@@ -28,7 +28,7 @@ export default function useFolders({
     isValidating,
     isLoading,
   } = useSWR<Folder[]>(
-    workspaceId && flags?.linkFolders && plan !== "free"
+    workspaceId && plan !== "free"
       ? `/api/folders${qs}${includeLinkCount ? "&includeLinkCount=true" : ""}`
       : null,
     fetcher,

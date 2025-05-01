@@ -452,50 +452,46 @@ export default function Toggle({
           ? [LinkFilterItem, CustomerFilterItem]
           : [
               ...(canManageCustomers ? [CustomerFilterItem] : []),
-              ...(flags?.linkFolders
-                ? [
-                    {
-                      key: "folderId",
-                      icon: Folder,
-                      label: "Folder",
-                      shouldFilter: !foldersAsync,
-                      getOptionIcon: (value, props) => {
-                        const folderName = props.option?.label;
-                        const folder = folders?.find(
-                          ({ name }) => name === folderName,
-                        );
+              {
+                key: "folderId",
+                icon: Folder,
+                label: "Folder",
+                shouldFilter: !foldersAsync,
+                getOptionIcon: (value, props) => {
+                  const folderName = props.option?.label;
+                  const folder = folders?.find(
+                    ({ name }) => name === folderName,
+                  );
 
-                        return folder ? (
-                          <FolderIcon
-                            folder={folder}
-                            shape="square"
-                            iconClassName="size-3"
-                          />
-                        ) : null;
-                      },
-                      options: loadingFolders
-                        ? null
-                        : [
-                            ...(folders || []),
-                            // Add currently filtered folder if not already in the list
-                            ...(selectedFolder &&
-                            !folders?.find((f) => f.id === selectedFolder.id)
-                              ? [selectedFolder]
-                              : []),
-                          ].map((folder) => ({
-                            value: folder.id,
-                            icon: (
-                              <FolderIcon
-                                folder={folder}
-                                shape="square"
-                                iconClassName="size-3"
-                              />
-                            ),
-                            label: folder.name,
-                          })),
-                    },
-                  ]
-                : []),
+                  return folder ? (
+                    <FolderIcon
+                      folder={folder}
+                      shape="square"
+                      iconClassName="size-3"
+                    />
+                  ) : null;
+                },
+                options: loadingFolders
+                  ? null
+                  : [
+                      ...(folders || []),
+                      // Add currently filtered folder if not already in the list
+                      ...(selectedFolder &&
+                      !folders?.find((f) => f.id === selectedFolder.id)
+                        ? [selectedFolder]
+                        : []),
+                    ].map((folder) => ({
+                      value: folder.id,
+                      icon: (
+                        <FolderIcon
+                          folder={folder}
+                          shape="square"
+                          iconClassName="size-3"
+                        />
+                      ),
+                      label: folder.name,
+                    })),
+              },
               {
                 key: "tagIds",
                 icon: Tag,

@@ -38,10 +38,6 @@ export const FoldersPageClient = () => {
   const showAllLinkFolder =
     !searchParams.get("search") || folders?.length === 0;
 
-  if (flags && !flags.linkFolders) {
-    router.push("/settings");
-  }
-
   const { pagination, setPagination } = usePagination(FOLDERS_MAX_PAGE_SIZE);
 
   return (
