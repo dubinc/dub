@@ -98,6 +98,12 @@ export const PLANS = [
       {
         id: "folders",
         text: "Link folders",
+        tooltip: {
+          title:
+            "Organize and manage access to your links on Dub using folders.",
+          cta: "Learn more.",
+          href: "https://dub.co/help/article/link-folders",
+        },
       },
       {
         id: "deeplinks",
@@ -198,6 +204,12 @@ export const PLANS = [
       {
         id: "roles",
         text: "Folders RBAC",
+        tooltip: {
+          title:
+            "Limit access to your links using fine-grained role-based access controls (write-access, read-only, no access).",
+          cta: "Learn more.",
+          href: "https://dub.co/help/article/folders-rbac",
+        },
       },
       {
         id: "webhooks",
