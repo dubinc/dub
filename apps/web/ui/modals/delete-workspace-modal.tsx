@@ -61,7 +61,7 @@ function DeleteWorkspaceModal({
         <h3 className="text-lg font-medium">Delete Workspace</h3>
         <p className="text-center text-sm text-neutral-500">
           Warning: This will permanently delete your workspace, custom domain,
-          and all associated links and their respective stats.
+          and all associated links and their respective analytics.
         </p>
       </div>
 
