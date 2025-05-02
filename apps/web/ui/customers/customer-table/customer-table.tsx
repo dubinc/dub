@@ -62,8 +62,6 @@ export function CustomerTable() {
     },
   );
 
-  console.log(customers);
-
   const { columnVisibility, setColumnVisibility } = useColumnVisibility();
   const { pagination, setPagination } = usePagination();
 
