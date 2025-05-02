@@ -101,7 +101,9 @@ async function PayoutRSC() {
   //     email: user.email,
   //   },
   // });
-  // const provider = partner?.country === "US" ? "stripe" : "paypal";
+  // const provider = partner?.country && CONNECT_SUPPORTED_COUNTRIES.includes(partner.country)
+  //   ? "stripe"
+  //   : "paypal";
   const provider = "stripe";
   return <PayoutProvider provider={provider} />;
 }

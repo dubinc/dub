@@ -2,6 +2,7 @@
 
 import { paypalEnv } from "@/lib/paypal/env";
 import { paypalOAuth } from "@/lib/paypal/oauth";
+import { CONNECT_SUPPORTED_COUNTRIES, COUNTRIES } from "@dub/utils";
 import { authPartnerActionClient } from "../safe-action";
 
 export const generatePaypalOAuthUrl = authPartnerActionClient.action(
@@ -20,9 +21,9 @@ export const generatePaypalOAuthUrl = authPartnerActionClient.action(
       );
     }
 
-    if (partner.country === "US") {
+    if (CONNECT_SUPPORTED_COUNTRIES.includes(partner.country)) {
       throw new Error(
-        "PayPal payouts is not supported in the United States. Please go to partners.dub.co/settings to update your country, or contact support.",
+        `Your current country (${COUNTRIES[partner.country]}) is not supported for PayPal payouts. Please go to partners.dub.co/settings to update your country, or contact support.`,
       );
     }
 

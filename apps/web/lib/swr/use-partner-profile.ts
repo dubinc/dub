@@ -31,11 +31,11 @@ export default function usePartnerProfile() {
     partner: partner
       ? {
           ...partner,
-          supportedPayoutMethod: CONNECT_SUPPORTED_COUNTRIES.includes(
-            partner.country || "US",
-          )
-            ? "stripe"
-            : "paypal",
+          supportedPayoutMethod:
+            partner.country &&
+            CONNECT_SUPPORTED_COUNTRIES.includes(partner.country)
+              ? "stripe"
+              : "paypal",
         }
       : undefined,
     error,
