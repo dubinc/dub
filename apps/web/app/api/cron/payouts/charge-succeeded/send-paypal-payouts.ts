@@ -1,7 +1,6 @@
-import { qstash } from "@/lib/cron";
 import { createPaypalToken } from "@/lib/paypal/create-paypal-token";
 import { paypalEnv } from "@/lib/paypal/env";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { log } from "@dub/utils";
 import { Payload, Payouts } from "./utils";
 
 export async function sendPaypalPayouts({
@@ -52,14 +51,15 @@ export async function sendPaypalPayouts({
   if (!response.ok) {
     console.error("Error creating PayPal batch payout", data);
 
-    // schedule a retry after 24 hours (TBD)
-    await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/charge-succeeded`,
-      body: payload,
-      delay: 24 * 60 * 60,
+    await log({
+      message: `Error creating PayPal batch payout. Invoice ID: ${invoiceId}. Error: ${JSON.stringify(
+        data,
+      )}`,
+      type: "alerts",
+      mention: true,
     });
 
-    throw new Error(data.message);
+    return;
   }
 
   console.log("Paypal batch payout created", data);
