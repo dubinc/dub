@@ -31,7 +31,22 @@ const updateOnlinePresenceResponseSchema = updateOnlinePresenceSchema.merge(
 );
 
 export const updateOnlinePresenceAction = authPartnerActionClient
-  .schema(updateOnlinePresenceSchema)
+  .schema(
+    updateOnlinePresenceSchema.refine(
+      (data) => {
+        return (
+          data.youtube ||
+          data.twitter ||
+          data.linkedin ||
+          data.instagram ||
+          data.tiktok
+        );
+      },
+      {
+        message: "At least one social platform is required.",
+      },
+    ),
+  )
   .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
 

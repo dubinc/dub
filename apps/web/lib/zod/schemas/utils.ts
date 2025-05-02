@@ -25,7 +25,11 @@ export const parseUrlSchemaAllowEmpty = ({
     });
   }
 
-  return schema.transform((v) => getUrlFromString(v));
+  return schema
+    .transform((v) => getUrlFromString(v))
+    .refine((v) => !v || isValidUrl(v), {
+      message: "Invalid URL.",
+    });
 };
 
 export const parseDateSchema = z
