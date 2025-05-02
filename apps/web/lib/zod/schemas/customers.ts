@@ -26,11 +26,30 @@ export const getCustomersQuerySchema = z
       .describe(
         "A search query to filter customers by email, externalId, or name. If `email` or `externalId` is provided, this will be ignored.",
       ),
+    country: z
+      .string()
+      .optional()
+      .describe(
+        "A filter on the list based on the customer's `country` field.",
+      ),
     includeExpandedFields: booleanQuerySchema
       .optional()
       .describe(
         "Whether to include expanded fields on the customer (`link`, `partner`, `discount`).",
       ),
+
+    sortBy: z
+      .enum(["createdAt"])
+      .optional()
+      .default("createdAt")
+      .describe(
+        "The field to sort the customers by. The default is `createdAt`.",
+      ),
+    sortOrder: z
+      .enum(["asc", "desc"])
+      .optional()
+      .default("desc")
+      .describe("The sort order. The default is `desc`."),
   })
   .merge(getPaginationQuerySchema({ pageSize: CUSTOMERS_MAX_PAGE_SIZE }));
 

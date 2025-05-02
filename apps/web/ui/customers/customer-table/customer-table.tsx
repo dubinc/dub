@@ -19,7 +19,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Dots, Users } from "@dub/ui/icons";
+import { Dots, User } from "@dub/ui/icons";
 import { COUNTRIES, fetcher, formatDate, getPrettyUrl } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
@@ -235,7 +235,7 @@ export function CustomerTable() {
           }
           cardContent={() => (
             <>
-              <Users className="size-4 text-neutral-700" />
+              <User className="size-4 text-neutral-700" />
               <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
             </>
           )}
