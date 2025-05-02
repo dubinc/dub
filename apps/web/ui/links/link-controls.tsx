@@ -1,7 +1,5 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
-import useFoldersCount from "@/lib/swr/use-folders-count";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { ExpandedLinkProps } from "@/lib/types";
 import { useArchiveLinkModal } from "@/ui/modals/archive-link-modal";
 import { useDeleteLinkModal } from "@/ui/modals/delete-link-modal";
@@ -67,10 +65,8 @@ export function LinkControls({
   className?: string;
   iconClassName?: string;
 }) {
-  const { flags } = useWorkspace();
   const router = useRouter();
   const { slug } = useParams() as { slug?: string };
-  const { data: foldersCount } = useFoldersCount();
   const searchParams = useSearchParams();
 
   const [copiedLinkId, copyToClipboard] = useCopyToClipboard();
@@ -276,27 +272,24 @@ export function LinkControls({
             </div>
             <div className="border-t border-neutral-200" />
             <div className="grid gap-px p-2">
-              {options.includes("move") &&
-                Boolean(flags?.linkFolders && foldersCount) && (
-                  <Button
-                    text="Move"
-                    variant="outline"
-                    shortcut="M"
-                    className="h-9 px-2 font-medium"
-                    icon={
-                      <FolderBookmark className="size-4 text-neutral-600" />
-                    }
-                    onClick={() => {
-                      setOpenPopover(false);
-                      setShowMoveLinkToFolderModal(true);
-                    }}
-                    disabledTooltip={
-                      !canManageLink
-                        ? "You don't have permission to move this link to another folder."
-                        : undefined
-                    }
-                  />
-                )}
+              {options.includes("move") && (
+                <Button
+                  text="Move"
+                  variant="outline"
+                  shortcut="M"
+                  className="h-9 px-2 font-medium"
+                  icon={<FolderBookmark className="size-4 text-neutral-600" />}
+                  onClick={() => {
+                    setOpenPopover(false);
+                    setShowMoveLinkToFolderModal(true);
+                  }}
+                  disabledTooltip={
+                    !canManageLink
+                      ? "You don't have permission to move this link to another folder."
+                      : undefined
+                  }
+                />
+              )}
               {options.includes("archive") && (
                 <Button
                   text={link.archived ? "Unarchive" : "Archive"}

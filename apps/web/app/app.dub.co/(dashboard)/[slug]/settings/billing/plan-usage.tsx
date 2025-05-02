@@ -185,8 +185,7 @@ export default function PlanUsage() {
         <div
           className={cn(
             "grid grid-cols-1 gap-[1px] overflow-hidden rounded-b-lg bg-neutral-200 md:grid-cols-3",
-            flags?.linkFolders &&
-              "md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4",
+            "md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4",
             !partnersEnabled && "rounded-b-lg",
           )}
         >
@@ -197,15 +196,13 @@ export default function PlanUsage() {
             usageLimit={domainsLimit}
             href={`/${slug}/settings/domains`}
           />
-          {flags?.linkFolders && (
-            <UsageCategory
-              title="Folders"
-              icon={Folder5}
-              usage={foldersUsage}
-              usageLimit={foldersLimit}
-              href={`/${slug}/settings/library/folders`}
-            />
-          )}
+          <UsageCategory
+            title="Folders"
+            icon={Folder5}
+            usage={foldersUsage}
+            usageLimit={foldersLimit}
+            href={`/${slug}/settings/library/folders`}
+          />
           <UsageCategory
             title="Tags"
             icon={Tag}

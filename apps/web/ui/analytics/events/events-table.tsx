@@ -429,38 +429,42 @@ export default function EventsTable({
             </div>
           ),
         },
-        {
-          id: "ip",
-          header: "IP Address",
-          accessorKey: "click.ip",
-          cell: ({ getValue }) =>
-            getValue() ? (
-              <span className="truncate" title={getValue()}>
-                {getValue()}
-              </span>
-            ) : (
-              <Tooltip content="We do not record IP addresses for EU users.">
-                <span className="cursor-default truncate underline decoration-dotted">
-                  Unknown
-                </span>
-              </Tooltip>
-            ),
-        },
-        // Sale invoice ID
-        {
-          id: "invoiceId",
-          header: "Invoice ID",
-          accessorKey: "sale.invoiceId",
-          maxSize: 200,
-          cell: ({ getValue }) =>
-            getValue() ? (
-              <span className="truncate" title={getValue()}>
-                {getValue()}
-              </span>
-            ) : (
-              <span className="text-neutral-400">-</span>
-            ),
-        },
+        ...(partnerPage
+          ? []
+          : [
+              {
+                id: "ip",
+                header: "IP Address",
+                accessorKey: "click.ip",
+                cell: ({ getValue }) =>
+                  getValue() ? (
+                    <span className="truncate" title={getValue()}>
+                      {getValue()}
+                    </span>
+                  ) : (
+                    <Tooltip content="We do not record IP addresses for EU users.">
+                      <span className="cursor-default truncate underline decoration-dotted">
+                        Unknown
+                      </span>
+                    </Tooltip>
+                  ),
+              },
+              // Sale invoice ID
+              {
+                id: "invoiceId",
+                header: "Invoice ID",
+                accessorKey: "sale.invoiceId",
+                maxSize: 200,
+                cell: ({ getValue }) =>
+                  getValue() ? (
+                    <span className="truncate" title={getValue()}>
+                      {getValue()}
+                    </span>
+                  ) : (
+                    <span className="text-neutral-400">-</span>
+                  ),
+              },
+            ]),
         // Menu
         {
           id: "menu",

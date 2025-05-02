@@ -98,6 +98,12 @@ export const PLANS = [
       {
         id: "folders",
         text: "Link folders",
+        tooltip: {
+          title:
+            "Organize and manage access to your links on Dub using folders.",
+          cta: "Learn more.",
+          href: "https://dub.co/help/article/link-folders",
+        },
       },
       {
         id: "deeplinks",
@@ -192,12 +198,17 @@ export const PLANS = [
         },
       },
       {
-        id: "payouts",
-        text: "1-click global payouts",
+        id: "tests",
+        text: "A/B testing (beta)",
+      },
+      {
+        id: "roles",
+        text: "Folders RBAC",
         tooltip: {
-          title: "Send payouts to 180+ countries in 1-click.",
+          title:
+            "Limit access to your links using fine-grained role-based access controls (write-access, read-only, no access).",
           cta: "Learn more.",
-          href: "https://dub.co/help/article/partner-payouts",
+          href: "https://dub.co/help/article/folders-rbac",
         },
       },
       {
@@ -209,10 +220,6 @@ export const PLANS = [
           cta: "Learn more.",
           href: "https://dub.co/docs/concepts/webhooks/introduction",
         },
-      },
-      {
-        id: "tests",
-        text: "A/B testing",
       },
     ] as PlanFeature[],
   },
@@ -268,10 +275,6 @@ export const PLANS = [
       {
         id: "users",
         text: "20 users",
-      },
-      {
-        id: "roles",
-        text: "Folders RBAC",
       },
       {
         id: "whitelabel",
