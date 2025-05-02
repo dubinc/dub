@@ -6,7 +6,7 @@ import {
 } from "@/lib/api/oauth/utils";
 import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
 import { prisma } from "@dub/prisma";
-import { PARTNERS_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { isValidUrl, PARTNERS_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { cookies } from "next/headers";
 import { v4 as uuid } from "uuid";
 import { z } from "zod";
@@ -31,7 +31,31 @@ const updateOnlinePresenceResponseSchema = updateOnlinePresenceSchema.merge(
 );
 
 export const updateOnlinePresenceAction = authPartnerActionClient
-  .schema(updateOnlinePresenceSchema)
+  .schema(
+    updateOnlinePresenceSchema
+      .refine(
+        (data) => {
+          return !data.website || isValidUrl(data.website);
+        },
+        {
+          message: "Invalid website URL.",
+        },
+      )
+      .refine(
+        (data) => {
+          return (
+            data.youtube ||
+            data.twitter ||
+            data.linkedin ||
+            data.instagram ||
+            data.tiktok
+          );
+        },
+        {
+          message: "At least one social platform is required.",
+        },
+      ),
+  )
   .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
 
