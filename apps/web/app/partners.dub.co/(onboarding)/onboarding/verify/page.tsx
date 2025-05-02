@@ -94,7 +94,7 @@ function PayoutSkeleton() {
 }
 
 async function PayoutRSC() {
-  // TODO: Remove this once PayPal connection is ready
+  // TODO: Uncomment this once PayPal connection is ready
   // const { user } = await getSession();
   // const partner = await prisma.partner.findUnique({
   //   where: {

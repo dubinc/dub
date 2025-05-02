@@ -48,7 +48,7 @@ export function ConnectPayoutButton(props: ButtonProps) {
       return;
     }
 
-    // TODO: Remove this once PayPal connection is ready
+    // TODO: Uncomment this once PayPal connection is ready
     // if (partner.supportedPayoutMethod === "paypal") {
     //   await executePaypalAsync();
     // } else if (partner.supportedPayoutMethod === "stripe") {
@@ -63,7 +63,7 @@ export function ConnectPayoutButton(props: ButtonProps) {
     <Button
       onClick={onClick}
       loading={isStripePending || isPaypalPending}
-      // TODO: Remove this once PayPal connection is ready
+      // TODO: Uncomment this once PayPal connection is ready
       disabledTooltip={
         partner?.country &&
         !CONNECT_SUPPORTED_COUNTRIES.includes(partner.country) &&
