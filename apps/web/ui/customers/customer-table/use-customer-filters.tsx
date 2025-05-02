@@ -1,3 +1,4 @@
+import useCustomersCount from "@/lib/swr/use-customers-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useRouterStuff } from "@dub/ui";
 import { FlagWavy } from "@dub/ui/icons";
@@ -8,17 +9,17 @@ export function useCustomerFilters(extraSearchParams: Record<string, string>) {
   const { searchParamsObj, queryParams } = useRouterStuff();
   const { id: workspaceId } = useWorkspace();
 
-  // const { data: countriesCount } = useCustomersCount<
-  //   | {
-  //       country: string;
-  //       _count: number;
-  //     }[]
-  //   | undefined
-  // >({
-  //   groupBy: "country",
-  // });
-
-  const countriesCount = [];
+  const { data: countriesCount } = useCustomersCount<
+    | {
+        country: string;
+        _count: number;
+      }[]
+    | undefined
+  >({
+    query: {
+      groupBy: "country",
+    },
+  });
 
   const filters = useMemo(
     () => [

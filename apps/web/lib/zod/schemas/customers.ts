@@ -63,11 +63,15 @@ export const getCustomersQuerySchemaExtended = getCustomersQuerySchema.merge(
   }),
 );
 
-export const getCustomersCountQuerySchema = getCustomersQuerySchema.omit({
-  includeExpandedFields: true,
-  page: true,
-  pageSize: true,
-});
+export const getCustomersCountQuerySchema = getCustomersQuerySchema
+  .omit({
+    includeExpandedFields: true,
+    page: true,
+    pageSize: true,
+    sortBy: true,
+    sortOrder: true,
+  })
+  .extend({ groupBy: z.enum(["country"]).optional() });
 
 export const createCustomerBodySchema = z.object({
   email: z
