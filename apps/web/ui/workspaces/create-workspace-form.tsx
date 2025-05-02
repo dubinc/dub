@@ -40,6 +40,20 @@ export function CreateWorkspaceForm({
 
   const { isMobile } = useMediaQuery();
 
+  async function suggestAvailableSlug(baseSlug: string): Promise<string> {
+    let counter = 1;
+    let newSlug = baseSlug;
+
+    while (true) {
+      const res = await fetch(`/api/workspaces/${newSlug}/exists`);
+      if (res.status === 200 && (await res.json()) === 0) {
+        return newSlug;
+      }
+      newSlug = `${baseSlug}_${counter}`;
+      counter++;
+    }
+  }
+
   return (
     <form
       onSubmit={handleSubmit(async (data) => {
@@ -139,17 +153,20 @@ export function CreateWorkspaceForm({
               maxLength: 48,
               pattern: /^[a-zA-Z0-9\-]+$/,
             })}
-            onBlur={() => {
-              fetch(`/api/workspaces/${slug}/exists`).then(async (res) => {
-                if (res.status === 200) {
-                  const exists = await res.json();
-                  if (exists === 1)
-                    setError("slug", {
-                      message: `The slug "${slug}" is already in use.`,
-                    });
-                  else clearErrors("slug");
+            onBlur={async () => {
+              const res = await fetch(`/api/workspaces/${slug}/exists`);
+              if (res.status === 200) {
+                const exists = await res.json();
+                if (exists === 1) {
+                  const newSlug = await suggestAvailableSlug(slug);
+                  setValue("slug", newSlug, { shouldValidate: true });
+                  toast.info(
+                    `The slug "${slug}" is already in use. Suggested: "${newSlug}"`,
+                  );
+                } else {
+                  clearErrors("slug");
                 }
-              });
+              }
             }}
             aria-invalid="true"
           />
@@ -160,6 +177,11 @@ export function CreateWorkspaceForm({
                 aria-hidden="true"
               />
             </div>
+          )}
+          {slug !== watch("slug") && (
+            <p className="mt-1 text-sm text-neutral-600">
+              Suggested slug: <strong>{watch("slug")}</strong>
+            </p>
           )}
         </div>
         {errors.slug && (
