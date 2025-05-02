@@ -12,7 +12,7 @@ import {
   StatusBadge,
   Stripe as StripeIcon,
 } from "@dub/ui";
-import { cn, fetcher } from "@dub/utils";
+import { cn, CONNECT_SUPPORTED_COUNTRIES, fetcher } from "@dub/utils";
 import { ChevronsUpDown } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useState } from "react";
@@ -73,7 +73,8 @@ export function PayoutMethodsDropdown() {
           ? `Account ${partner.paypalEmail}`
           : "Not connected",
       isVisible: (partner: Pick<PartnerProps, "country">) =>
-        partner?.country !== "US",
+        partner.country &&
+        !CONNECT_SUPPORTED_COUNTRIES.includes(partner.country),
     },
     {
       id: "stripe",
@@ -95,8 +96,9 @@ export function PayoutMethodsDropdown() {
         );
       },
       isVisible: (partner: Pick<PartnerProps, "country" | "stripeConnectId">) =>
-        partner?.country === "US" ||
-        (partner?.country !== "US" && partner?.stripeConnectId),
+        (partner.country &&
+          CONNECT_SUPPORTED_COUNTRIES.includes(partner.country)) ||
+        partner.stripeConnectId,
     },
   ];
 
