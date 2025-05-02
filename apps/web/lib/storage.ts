@@ -153,3 +153,7 @@ export const storage = new StorageClient();
 export const isStored = (url: string) => {
   return url.startsWith(R2_URL) || url.startsWith(OG_AVATAR_URL);
 };
+
+export const isNotHostedImage = (imageString: string) => {
+  return !imageString.startsWith("https://");
+};
