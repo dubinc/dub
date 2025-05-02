@@ -1,0 +1,282 @@
+"use client";
+
+import useCustomersCount from "@/lib/swr/use-customers-count";
+import useWorkspace from "@/lib/swr/use-workspace";
+import { CustomerProps } from "@/lib/types";
+import EditColumnsButton from "@/ui/analytics/events/edit-columns-button";
+import { CustomerRowItem } from "@/ui/customers/customer-row-item";
+import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
+import { SearchBoxPersisted } from "@/ui/shared/search-box";
+import {
+  AnimatedSizeContainer,
+  Button,
+  CopyText,
+  Filter,
+  LinkLogo,
+  Popover,
+  Table,
+  usePagination,
+  useRouterStuff,
+  useTable,
+} from "@dub/ui";
+import { Dots, Users } from "@dub/ui/icons";
+import { COUNTRIES, fetcher, formatDate, getPrettyUrl } from "@dub/utils";
+import { Row } from "@tanstack/react-table";
+import { Command } from "cmdk";
+import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
+import useSWR from "swr";
+import { customersColumns, useColumnVisibility } from "./use-column-visibility";
+import { useCustomerFilters } from "./use-customer-filters";
+
+export function CustomerTable() {
+  const { id: workspaceId } = useWorkspace();
+  const { queryParams, searchParams, getQueryString } = useRouterStuff();
+
+  const sortBy = searchParams.get("sortBy") || "saleAmount";
+  const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
+
+  const {
+    filters,
+    activeFilters,
+    onSelect,
+    onRemove,
+    onRemoveAll,
+    isFiltered,
+  } = useCustomerFilters({ sortBy, sortOrder });
+
+  const { data: customersCount, error: countError } = useCustomersCount();
+
+  const {
+    data: customers,
+    error,
+    isLoading,
+  } = useSWR<CustomerProps[]>(
+    `/api/customers${getQueryString({
+      workspaceId,
+      includeExpandedFields: "true",
+    })}`,
+    fetcher,
+    {
+      keepPreviousData: true,
+    },
+  );
+
+  console.log(customers);
+
+  const { columnVisibility, setColumnVisibility } = useColumnVisibility();
+  const { pagination, setPagination } = usePagination();
+
+  const { table, ...tableProps } = useTable({
+    data: customers || [],
+    columns: [
+      {
+        id: "customer",
+        header: "Customer",
+        enableHiding: false,
+        minSize: 250,
+        cell: ({ row }) => {
+          return <CustomerRowItem customer={row.original} />;
+        },
+      },
+      {
+        id: "createdAt",
+        header: "Created date",
+        accessorFn: (d) => formatDate(d.createdAt, { month: "short" }),
+      },
+      {
+        id: "link",
+        header: "Referral link",
+        accessorKey: "link",
+        meta: {
+          filterParams: ({ getValue }) => ({
+            linkId: getValue().id,
+          }),
+        },
+        cell: ({ row }) =>
+          row.original.link ? (
+            <div className="flex items-center gap-3">
+              <LinkLogo
+                apexDomain={row.original.link.domain}
+                className="size-4 shrink-0 sm:size-4"
+              />
+              <CopyText
+                value={row.original.link.shortLink}
+                successMessage="Copied link to clipboard!"
+                className="truncate"
+              >
+                <span className="truncate" title={row.original.link.shortLink}>
+                  {getPrettyUrl(row.original.link.shortLink)}
+                </span>
+              </CopyText>
+            </div>
+          ) : (
+            "-"
+          ),
+        size: 250,
+      },
+      {
+        id: "externalId",
+        header: "External ID",
+        accessorKey: "externalId",
+        cell: ({ row }) =>
+          row.original.externalId ? (
+            <CopyText
+              value={row.original.externalId}
+              successMessage="Copied external ID to clipboard!"
+              className="truncate"
+            >
+              {row.original.externalId}
+            </CopyText>
+          ) : (
+            "-"
+          ),
+      },
+      {
+        id: "country",
+        header: "Country",
+        minSize: 150,
+        cell: ({ row }) => {
+          const country = row.original.country;
+          return (
+            <div className="flex items-center gap-2">
+              {country && (
+                <img
+                  alt={`${country} flag`}
+                  src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
+                  className="size-4 shrink-0"
+                />
+              )}
+              <span className="min-w-0 truncate">
+                {(country ? COUNTRIES[country] : null) ?? "-"}
+              </span>
+            </div>
+          );
+        },
+      },
+      // Menu
+      {
+        id: "menu",
+        enableHiding: false,
+        minSize: 43,
+        size: 43,
+        maxSize: 43,
+        header: () => <EditColumnsButton table={table} />,
+        cell: ({ row }) => (
+          <RowMenuButton row={row} workspaceId={workspaceId!} />
+        ),
+      },
+    ].filter((c) => c.id === "menu" || customersColumns.all.includes(c.id)),
+    onRowClick: (row) => {},
+    pagination,
+    onPaginationChange: setPagination,
+    columnVisibility,
+    onColumnVisibilityChange: setColumnVisibility,
+    sortableColumns: ["createdAt"],
+    sortBy,
+    sortOrder,
+    onSortChange: ({ sortBy, sortOrder }) =>
+      queryParams({
+        set: {
+          ...(sortBy && { sortBy }),
+          ...(sortOrder && { sortOrder }),
+        },
+        del: "page",
+        scroll: false,
+      }),
+    thClassName: "border-l-0",
+    tdClassName: "border-l-0",
+    resourceName: (p) => `customer${p ? "s" : ""}`,
+    rowCount: customersCount || 0,
+    loading: isLoading,
+    error: error || countError ? "Failed to load customers" : undefined,
+  });
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div>
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <Filter.Select
+            className="w-full md:w-fit"
+            filters={filters}
+            activeFilters={activeFilters}
+            onSelect={onSelect}
+            onRemove={onRemove}
+          />
+          <SearchBoxPersisted
+            placeholder="Search..."
+            inputClassName="md:w-72"
+          />
+        </div>
+        <AnimatedSizeContainer height>
+          <div>
+            {activeFilters.length > 0 && (
+              <div className="pt-3">
+                <Filter.List
+                  filters={filters}
+                  activeFilters={activeFilters}
+                  onRemove={onRemove}
+                  onRemoveAll={onRemoveAll}
+                />
+              </div>
+            )}
+          </div>
+        </AnimatedSizeContainer>
+      </div>
+      {customers?.length !== 0 ? (
+        <Table {...tableProps} table={table} />
+      ) : (
+        <AnimatedEmptyState
+          title="No customers found"
+          description={
+            isFiltered
+              ? "No customers found for the selected filters."
+              : "No customers have been added to this program yet."
+          }
+          cardContent={() => (
+            <>
+              <Users className="size-4 text-neutral-700" />
+              <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+            </>
+          )}
+        />
+      )}
+    </div>
+  );
+}
+
+function RowMenuButton({
+  row,
+  workspaceId,
+}: {
+  row: Row<CustomerProps>;
+  workspaceId: string;
+}) {
+  const router = useRouter();
+  const { slug } = useParams();
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <>
+      <Popover
+        openPopover={isOpen}
+        setOpenPopover={setIsOpen}
+        content={
+          <Command tabIndex={0} loop className="focus:outline-none">
+            <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[130px]">
+              {/* TODO: Add menu items */}
+            </Command.List>
+          </Command>
+        }
+        align="end"
+      >
+        <Button
+          type="button"
+          className="h-8 whitespace-nowrap px-2"
+          variant="outline"
+          icon={<Dots className="h-4 w-4 shrink-0" />}
+        />
+      </Popover>
+    </>
+  );
+}
