@@ -86,6 +86,7 @@ export default async function AppMiddleware(req: NextRequest) {
         "/links",
         "/analytics",
         "/events",
+        "/customers",
         "/programs",
         "/settings",
         "/upgrade",
