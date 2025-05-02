@@ -31,9 +31,10 @@ export const GET = withAdmin(async ({ searchParams }) => {
       programId: {
         not: ACME_PROGRAM_ID,
       },
-      status: "completed",
-      paidAt: {
-        not: null,
+      status: {
+        not: "failed",
+      },
+      createdAt: {
         gte: startDate,
         lte: endDate,
       },
@@ -47,7 +48,7 @@ export const GET = withAdmin(async ({ searchParams }) => {
       },
     },
     orderBy: {
-      paidAt: "desc",
+      createdAt: "desc",
     },
   });
 
@@ -59,23 +60,22 @@ export const GET = withAdmin(async ({ searchParams }) => {
     { date: Date; payouts: number; fees: number; total: number }[]
   >`
     SELECT 
-      DATE_FORMAT(CONVERT_TZ(paidAt, "UTC", ${timezone}), ${dateFormat}) as date,
+      DATE_FORMAT(CONVERT_TZ(createdAt, "UTC", ${timezone}), ${dateFormat}) as date,
       SUM(amount) as payouts,
       SUM(fee) as fees,
       SUM(total) as total
     FROM Invoice
     WHERE 
       programId != ${ACME_PROGRAM_ID}
-      AND status = 'completed'
-      AND paidAt IS NOT NULL
-      AND paidAt >= ${startDate}
-      AND paidAt <= ${endDate}
-    GROUP BY DATE_FORMAT(CONVERT_TZ(paidAt, "UTC", ${timezone}), ${dateFormat})
+      AND status != 'failed'
+      AND createdAt >= ${startDate}
+      AND createdAt <= ${endDate}
+    GROUP BY DATE_FORMAT(CONVERT_TZ(createdAt, "UTC", ${timezone}), ${dateFormat})
     ORDER BY date ASC;
   `;
 
   const formattedInvoices = invoices.map((invoice) => ({
-    date: invoice.paidAt,
+    date: invoice.createdAt,
     programName: invoice.program.name,
     programLogo: invoice.program.logo,
     status: invoice.status,

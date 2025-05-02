@@ -54,8 +54,14 @@ export const GET = withPartnerProfile(
     });
 
     const response = events.map((event) => {
+      // don't return ip address for partner profile
+      // @ts-ignore – ip is deprecated but present in the data
+      const { ip, click, ...eventRest } = event;
+      const { ip: _, ...clickRest } = click;
+
       return {
-        ...event,
+        ...eventRest,
+        click: clickRest,
         link: event?.link ? PartnerProfileLinkSchema.parse(event.link) : null,
         // @ts-expect-error - customer is not always present
         ...(event?.customer && {

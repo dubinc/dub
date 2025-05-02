@@ -43,7 +43,6 @@ export const GET = withWorkspace(
       "advanced",
       "enterprise",
     ],
-    featureFlag: "linkFolders",
   },
 );
 
@@ -124,6 +123,5 @@ export const POST = withWorkspace(
       "advanced",
       "enterprise",
     ],
-    featureFlag: "linkFolders",
   },
 );

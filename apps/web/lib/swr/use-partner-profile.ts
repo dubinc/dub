@@ -1,4 +1,4 @@
-import { fetcher } from "@dub/utils";
+import { CONNECT_SUPPORTED_COUNTRIES, fetcher } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
@@ -28,7 +28,16 @@ export default function usePartnerProfile() {
   );
 
   return {
-    partner,
+    partner: partner
+      ? {
+          ...partner,
+          supportedPayoutMethod:
+            partner.country &&
+            CONNECT_SUPPORTED_COUNTRIES.includes(partner.country)
+              ? "stripe"
+              : "paypal",
+        }
+      : undefined,
     error,
     loading: status === "loading" || isLoading,
     mutate,

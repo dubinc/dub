@@ -13,7 +13,7 @@ import { generateRandomString, nanoid, R2_URL } from "@dub/utils";
 import { Program, Project, User } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 
-// Create a new program from the onboarding data
+// Create a program from the onboarding data
 export const createProgram = async ({
   workspace,
   user,

@@ -44,8 +44,8 @@ function OnboardingButtonInner({
   const tasks = useMemo(() => {
     return [
       {
-        display: "Create a new Dub link",
-        cta: `/${slug}`,
+        display: "Create your first short link",
+        cta: `/${slug}/links`,
         checked: totalLinks === 0 ? false : true,
         recommended: true,
       },
