@@ -713,6 +713,7 @@ export const getLinkInfoQuerySchema = domainKeySchema.partial().merge(
       .openapi({ example: "123456" }),
   }),
 );
+
 export const getLinksQuerySchemaExtended = getLinksQuerySchemaBase.merge(
   z.object({
     // Only Dub UI uses the following query parameters
@@ -729,6 +730,12 @@ export const getLinksQuerySchemaExtended = getLinksQuerySchemaBase.merge(
       .enum(["fuzzy", "exact"])
       .default("fuzzy")
       .describe("Search mode to filter by."),
+  }),
+);
+
+export const getLinkInfoQuerySchemaExtended = getLinkInfoQuerySchema.merge(
+  z.object({
+    includeWebhooks: booleanQuerySchema.default("false"),
   }),
 );
 
