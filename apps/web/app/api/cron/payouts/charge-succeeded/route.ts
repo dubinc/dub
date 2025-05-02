@@ -74,9 +74,7 @@ export async function POST(req: Request) {
 
     // if paypal is not connected, we use stripe
     const stripePayouts = payouts.filter(
-      (payout) =>
-        payout.partner.stripeConnectId &&
-        !paypalPayouts.some((p) => p.id === payout.id),
+      (payout) => payout.partner.stripeConnectId && !payout.partner.paypalEmail,
     );
 
     await Promise.allSettled([
