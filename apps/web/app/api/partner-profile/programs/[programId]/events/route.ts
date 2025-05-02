@@ -54,8 +54,10 @@ export const GET = withPartnerProfile(
     });
 
     const response = events.map((event) => {
+      const { ip, ...rest } = event; // don't return ip address for partner profile
+
       return {
-        ...event,
+        ...rest,
         link: event?.link ? PartnerProfileLinkSchema.parse(event.link) : null,
         // @ts-expect-error - customer is not always present
         ...(event?.customer && {
