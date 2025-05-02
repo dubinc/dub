@@ -1,27 +1,28 @@
 import "dotenv-flow/config";
+import { createId } from "../lib/api/create-id";
 import { createPaypalToken } from "../lib/paypal/create-paypal-token";
 import { paypalEnv } from "../lib/paypal/env";
 
 const payouts = [
   {
-    id: "123",
+    id: createId({ prefix: "po_" }),
     partner: {
-      paypalEmail: "sb-23tzi32665884@personal.example.com",
+      paypalEmail: "test@test.com",
     },
     program: {
       name: "Dub",
     },
-    amount: 2499,
+    amount: 1000,
   },
   {
-    id: "456",
+    id: createId({ prefix: "po_" }),
     partner: {
-      paypalEmail: "sb-cdajt40769451@personal.example.com",
+      paypalEmail: "test@test.com",
     },
     program: {
       name: "Dub",
     },
-    amount: 4999,
+    amount: 1000,
   },
 ];
 
@@ -47,6 +48,8 @@ async function main() {
     })),
   };
 
+  console.log("Creating PayPal batch payout with body", body);
+
   const response = await fetch(
     `${paypalEnv.PAYPAL_API_HOST}/v1/payments/payouts`,
     {
@@ -61,7 +64,7 @@ async function main() {
 
   const data = await response.json();
 
-  console.log("data", data);
+  console.log("Completed PayPal batch payout with data", data);
 }
 
 main();
