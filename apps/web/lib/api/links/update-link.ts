@@ -93,7 +93,7 @@ export async function updateLink({
       title: truncate(title, 120),
       description: truncate(description, 240),
       image:
-        proxy && image && !isNotHostedImage(image)
+        proxy && image && isNotHostedImage(image)
           ? `${R2_URL}/images/${id}_${imageUrlNonce}`
           : image,
       utm_source: utm_source || null,
@@ -188,7 +188,7 @@ export async function updateLink({
       // if proxy is true and image is not stored in R2, upload image to R2
       proxy &&
         image &&
-        !isNotHostedImage(image) &&
+        isNotHostedImage(image) &&
         storage.upload(`images/${id}_${imageUrlNonce}`, image, {
           width: 1200,
           height: 630,
