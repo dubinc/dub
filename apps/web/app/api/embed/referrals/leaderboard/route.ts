@@ -1,6 +1,8 @@
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
+import { generateRandomName } from "@/lib/names";
 import { LeaderboardPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
+import { OG_AVATAR_URL } from "@dub/utils";
 import { NextResponse } from "next/server";
 import z from "node_modules/zod/lib";
 
@@ -41,7 +43,8 @@ export const GET = withReferralsEmbedToken(async ({ program }) => {
   // @ts-ignore
   const response = partners.map((partner) => ({
     id: partner.id,
-    name: partner.name,
+    name: generateRandomName(partner.id),
+    image: `${OG_AVATAR_URL}${partner.id}`,
     clicks: Number(partner.totalClicks),
     leads: Number(partner.totalLeads),
     sales: Number(partner.totalSales),

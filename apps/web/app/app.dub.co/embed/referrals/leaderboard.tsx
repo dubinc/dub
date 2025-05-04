@@ -35,11 +35,13 @@ export function ReferralsEmbedLeaderboard() {
     loading: isLoading,
     columns: [
       {
-        id: "position",
-        header: "Position",
+        id: "rank",
+        header: "Rank",
+        size: 40,
+        minSize: 40,
         cell: ({ row }) => {
           return (
-            <div className="flex items-center justify-start gap-2 tabular-nums">
+            <div className="flex w-8 items-center justify-start gap-1 tabular-nums">
               {row.index + 1}
               {row.index <= 2 && (
                 <Crown
@@ -58,7 +60,16 @@ export function ReferralsEmbedLeaderboard() {
         id: "name",
         header: "Partner",
         cell: ({ row }) => {
-          return row.original.name;
+          return (
+            <div className="flex items-center gap-2">
+              <img
+                src={row.original.image}
+                alt={row.original.name}
+                className="size-5 rounded-full"
+              />
+              <span className="text-sm font-medium">{row.original.name}</span>
+            </div>
+          );
         },
       },
       {
