@@ -97,9 +97,17 @@ export async function createShopifySale({
       },
     }),
 
-    prisma.customer.findUniqueOrThrow({
+    prisma.customer.update({
       where: {
         id: customerId,
+      },
+      data: {
+        sales: {
+          increment: 1,
+        },
+        saleAmount: {
+          increment: amount,
+        },
       },
     }),
 
