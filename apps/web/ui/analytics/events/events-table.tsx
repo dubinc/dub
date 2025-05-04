@@ -175,7 +175,8 @@ export default function EventsTable({
           id: "customer",
           header: "Customer",
           accessorKey: "customer",
-          minSize: 200,
+          minSize: 300,
+          size: 300,
           maxSize: 400,
           cell: ({ getValue }) => (
             <CustomerRowItem

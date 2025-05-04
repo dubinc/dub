@@ -12,9 +12,16 @@ export const parseActionError = (
   }
 
   if (error.validationErrors) {
-    const errors = Object.values(error.validationErrors).flat();
+    if (error.validationErrors._errors) {
+      return error.validationErrors._errors;
+    }
+    console.log("error.validationErrors", error.validationErrors);
 
-    return errors.join(", ");
+    return Object.entries(error.validationErrors)
+      .map(([_key, value]) => {
+        return (value as { _errors: string[] })._errors;
+      })
+      .join("\n");
   }
 
   return fallback || "An unknown error occurred.";

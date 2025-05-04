@@ -196,16 +196,8 @@ export const EnrolledPartnerSchemaWithExpandedFields =
 
 export const LeaderboardPartnerSchema = z.object({
   id: z.string(),
-  name: z.string().transform((name) => {
-    const parts = name.trim().split(/\s+/);
-    return parts[0]; // return first name only
-
-    // old approach: return first name and last initial
-    // if (parts.length < 2) return name; // Return original if single word
-    // const firstName = parts[0];
-    // const lastInitial = parts[parts.length - 1][0];
-    // return `${firstName} ${lastInitial}.`;
-  }),
+  name: z.string(),
+  image: z.string(),
   clicks: z.number().default(0),
   leads: z.number().default(0),
   sales: z.number().default(0),

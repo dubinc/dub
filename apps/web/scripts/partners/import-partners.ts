@@ -10,7 +10,7 @@ const userId = "xxx";
 const partnersToImport: { email: string; slug: string }[] = [];
 
 async function main() {
-  Papa.parse(fs.createReadStream("tella-import-affiliates.csv", "utf-8"), {
+  Papa.parse(fs.createReadStream("affiliates.csv", "utf-8"), {
     header: true,
     skipEmptyLines: true,
     step: (result: { data: { email: string; slug: string } }) => {
