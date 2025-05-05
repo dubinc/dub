@@ -4,6 +4,7 @@ import { transformDomain } from "@/lib/api/domains/transform-domain";
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
+import { ratelimit } from "@/lib/upstash";
 import { transferDomainBodySchema } from "@/lib/zod/schemas/domains";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
@@ -31,6 +32,18 @@ export const POST = withWorkspace(
       throw new DubApiError({
         code: "bad_request",
         message: "Please select another workspace to transfer the domain to.",
+      });
+    }
+
+    // Allow only 1 domain transfer per workspace per hour
+    const { success } = await ratelimit(1, "1 h").limit(
+      `domain-transfer:${workspace.id}`,
+    );
+
+    if (!success) {
+      throw new DubApiError({
+        code: "rate_limit_exceeded",
+        message: "Too many requests. Please try again later.",
       });
     }
 
