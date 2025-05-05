@@ -18,7 +18,10 @@ export function CustomerDetailsColumn({
   customerActivity,
   isCustomerActivityLoading,
 }: {
-  customer?: Omit<CustomerProps, "name" | "externalId"> & {
+  customer?: Omit<
+    CustomerProps,
+    "name" | "externalId" | "sales" | "saleAmount"
+  > & {
     name?: string;
     externalId?: string;
   };
