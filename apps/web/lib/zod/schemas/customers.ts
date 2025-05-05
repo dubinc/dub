@@ -118,7 +118,7 @@ export const CustomerSchema = z.object({
     .number()
     .nullish()
     .describe("Total amount of sales for the customer."),
-  createdAt: z.date().nullish().describe("The date the customer was created."),
+  createdAt: z.date().describe("The date the customer was created."),
 });
 
 // An extended schema that includes the customer's link, partner, and discount.
