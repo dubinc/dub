@@ -1,10 +1,11 @@
 import OAuthAppManagePageClient from "./page-client";
 
-export default function OAuthAppManagePage({
-  params,
-}: {
-  params: { appId: string };
-}) {
+export default async function OAuthAppManagePage(
+  props: {
+    params: Promise<{ appId: string }>;
+  }
+) {
+  const params = await props.params;
   const { appId } = params;
 
   return <OAuthAppManagePageClient appId={appId} />;

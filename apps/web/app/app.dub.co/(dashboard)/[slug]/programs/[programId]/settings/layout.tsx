@@ -3,10 +3,15 @@ import { MaxWidthWrapper } from "@dub/ui";
 import { PropsWithChildren } from "react";
 import { ProgramSettingsHeader } from "./program-settings-header";
 
-export default function ProgramSettingsLayout({
-  children,
-  params,
-}: PropsWithChildren<{ params: { slug: string; programId: string } }>) {
+export default async function ProgramSettingsLayout(
+  props: PropsWithChildren<{ params: Promise<{ slug: string; programId: string }> }>
+) {
+  const params = await props.params;
+
+  const {
+    children
+  } = props;
+
   return (
     <PageContent title="Program Configuration">
       <MaxWidthWrapper>

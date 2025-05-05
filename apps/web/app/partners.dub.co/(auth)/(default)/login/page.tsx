@@ -5,11 +5,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PartnerBanner } from "../partner-banner";
 
-export default async function LoginPage({
-  params,
-}: {
-  params: { programSlug?: string };
-}) {
+export default async function LoginPage(
+  props: {
+    params: Promise<{ programSlug?: string }>;
+  }
+) {
+  const params = await props.params;
   const { programSlug } = params;
   const program = programSlug ? await getProgram({ slug: programSlug }) : null;
 

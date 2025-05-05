@@ -1,9 +1,10 @@
+import { useActionState } from "react";
 "use client";
 
 import { AlertCircleFill } from "@/ui/shared/icons";
 import { Button, useMediaQuery } from "@dub/ui";
 import { useParams } from "next/navigation";
-import { useFormState, useFormStatus } from "react-dom";
+import { useFormStatus } from "react-dom";
 import { verifyPassword } from "./action";
 
 const initialState = {
@@ -13,7 +14,7 @@ const initialState = {
 export default function DashboardPasswordForm() {
   const { dashboardId } = useParams() as { dashboardId: string };
 
-  const [state, formAction] = useFormState(verifyPassword, initialState);
+  const [state, formAction] = useActionState(verifyPassword, initialState);
   const { isMobile } = useMediaQuery();
 
   return (

@@ -1,5 +1,5 @@
 import { ABTestVariantsSchema, MAX_TEST_COUNT } from "@/lib/zod/schemas/links";
-import { cookies } from "next/headers";
+import { cookies, type UnsafeUnwrappedCookies } from "next/headers";
 import { z } from "zod";
 
 /**
@@ -26,7 +26,7 @@ export const resolveABTestURL = ({
       return null;
     }
 
-    const cookieStore = cookies();
+    const cookieStore = (cookies() as unknown as UnsafeUnwrappedCookies);
     const urlFromCookie = cookieStore.get("dub_test_url")?.value;
     if (
       urlFromCookie &&

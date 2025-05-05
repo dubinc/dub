@@ -5,11 +5,12 @@ import { ReferralsEmbedPageClient } from "./page-client";
 import { parseThemeOptions, ThemeOptions } from "./theme-options";
 import { getReferralsEmbedData } from "./utils";
 
-export default function ReferralsEmbedPage({
-  searchParams,
-}: {
-  searchParams: { token: string; themeOptions?: string };
-}) {
+export default async function ReferralsEmbedPage(
+  props: {
+    searchParams: Promise<{ token: string; themeOptions?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
   const { token, themeOptions: themeOptionsRaw } = searchParams;
 
   const themeOptions = parseThemeOptions(themeOptionsRaw);

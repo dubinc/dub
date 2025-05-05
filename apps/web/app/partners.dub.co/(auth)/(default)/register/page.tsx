@@ -4,11 +4,12 @@ import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import RegisterPageClient from "./page-client";
 
-export default async function RegisterPage({
-  params,
-}: {
-  params: { programSlug?: string };
-}) {
+export default async function RegisterPage(
+  props: {
+    params: Promise<{ programSlug?: string }>;
+  }
+) {
+  const params = await props.params;
   const { programSlug } = params;
   const program = programSlug
     ? (await getProgram({ slug: programSlug })) ?? undefined
@@ -20,7 +21,7 @@ export default async function RegisterPage({
   let lockEmail = false;
 
   if (program) {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const programApplicationIds = cookieStore
       .get("programApplicationIds")
       ?.value?.split(",");

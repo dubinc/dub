@@ -9,13 +9,14 @@ import { Suspense } from "react";
 
 export const runtime = "nodejs";
 
-export default function InvitesPage({
-  params,
-}: {
-  params: {
-    code: string;
-  };
-}) {
+export default async function InvitesPage(
+  props: {
+    params: Promise<{
+      code: string;
+    }>;
+  }
+) {
+  const params = await props.params;
   return (
     <div className="flex flex-col items-center justify-center gap-6 text-center">
       <Suspense
