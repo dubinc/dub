@@ -32,7 +32,6 @@ import {
   fetcher,
   formatDate,
   getPrettyUrl,
-  isClickOnInteractiveChild,
 } from "@dub/utils";
 import { Cell, Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
@@ -58,7 +57,6 @@ export function CustomerTable() {
   const { canManageCustomers } = getPlanCapabilities(plan);
 
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
-  const router = useRouter();
 
   const sortBy = searchParams.get("sortBy") || "createdAt";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
@@ -109,7 +107,13 @@ export function CustomerTable() {
           enableHiding: false,
           minSize: 250,
           cell: ({ row }) => {
-            return <CustomerRowItem customer={row.original} />;
+            return (
+              <CustomerRowItem
+                customer={row.original}
+                href={`/${workspaceSlug}/customers/${row.original.id}`}
+                hideChartActivityOnHover={false}
+              />
+            );
           },
         },
         {
@@ -159,7 +163,7 @@ export function CustomerTable() {
         },
         {
           id: "createdAt",
-          header: "Created date",
+          header: "Created",
           accessorFn: (d) => formatDate(d.createdAt, { month: "short" }),
         },
         {
@@ -176,7 +180,7 @@ export function CustomerTable() {
               <Link
                 href={`/${workspaceSlug}/links/${row.original.link.domain}/${row.original.link.key}`}
                 target="_blank"
-                className="flex items-center gap-3 decoration-dotted underline-offset-2 hover:underline"
+                className="flex cursor-alias items-center gap-3 decoration-dotted underline-offset-2 hover:underline"
               >
                 <LinkLogo
                   apexDomain={row.original.link.domain}
@@ -227,22 +231,6 @@ export function CustomerTable() {
   const { table, ...tableProps } = useTable({
     data: canManageCustomers ? customers || [] : EXAMPLE_CUSTOMER_DATA,
     columns,
-    rowProps: (row) => {
-      const href = `/${workspaceSlug}/customers/${row.original.id}`;
-      return {
-        className: "cursor-pointer select-none",
-        onMouseEnter: () => router.prefetch(href),
-        onClick: (e) => {
-          if (isClickOnInteractiveChild(e)) return;
-          if (e.metaKey || e.ctrlKey) window.open(href, "_blank");
-          else router.push(href);
-        },
-        onAuxClick: (e) => {
-          if (isClickOnInteractiveChild(e)) return;
-          window.open(href, "_blank");
-        },
-      };
-    },
     pagination,
     onPaginationChange: setPagination,
     columnVisibility,
@@ -269,8 +257,7 @@ export function CustomerTable() {
       );
     },
     thClassName: "border-l-0",
-    tdClassName:
-      "border-l-0 group-hover/row:bg-bg-muted transition-colors duration-75",
+    tdClassName: "border-l-0",
     resourceName: (p) => `customer${p ? "s" : ""}`,
     rowCount: customersCount || 0,
     loading: isLoading,
