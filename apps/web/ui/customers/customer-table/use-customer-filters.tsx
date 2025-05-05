@@ -5,7 +5,10 @@ import { FlagWavy } from "@dub/ui/icons";
 import { COUNTRIES, nFormatter } from "@dub/utils";
 import { useCallback, useMemo } from "react";
 
-export function useCustomerFilters(extraSearchParams: Record<string, string>) {
+export function useCustomerFilters(
+  extraSearchParams: Record<string, string>,
+  { enabled = true }: { enabled?: boolean } = {},
+) {
   const { searchParamsObj, queryParams } = useRouterStuff();
   const { id: workspaceId } = useWorkspace();
 
@@ -19,6 +22,7 @@ export function useCustomerFilters(extraSearchParams: Record<string, string>) {
     query: {
       groupBy: "country",
     },
+    enabled,
   });
 
   const filters = useMemo(

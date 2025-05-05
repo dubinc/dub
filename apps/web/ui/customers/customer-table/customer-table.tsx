@@ -1,5 +1,6 @@
 "use client";
 
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useCustomersCount from "@/lib/swr/use-customers-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CustomerProps } from "@/lib/types";
@@ -37,13 +38,16 @@ import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
+import { EXAMPLE_CUSTOMER_DATA } from "./example-data";
 import { customersColumns, useColumnVisibility } from "./use-column-visibility";
 import { useCustomerFilters } from "./use-customer-filters";
 
 export function CustomerTable() {
-  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
-  const { queryParams, searchParams, getQueryString } = useRouterStuff();
+  const { id: workspaceId, slug: workspaceSlug, plan } = useWorkspace();
 
+  const { canManageCustomers } = getPlanCapabilities(plan);
+
+  const { queryParams, searchParams, getQueryString } = useRouterStuff();
   const router = useRouter();
 
   const sortBy = searchParams.get("sortBy") || "createdAt";
@@ -56,19 +60,25 @@ export function CustomerTable() {
     onRemove,
     onRemoveAll,
     isFiltered,
-  } = useCustomerFilters({ sortBy, sortOrder });
+  } = useCustomerFilters(
+    { sortBy, sortOrder },
+    { enabled: canManageCustomers },
+  );
 
-  const { data: customersCount, error: countError } = useCustomersCount();
+  const { data: customersCount, error: countError } = useCustomersCount({
+    enabled: canManageCustomers,
+  });
 
   const {
     data: customers,
     error,
     isLoading,
   } = useSWR<CustomerProps[]>(
-    `/api/customers${getQueryString({
-      workspaceId,
-      includeExpandedFields: "true",
-    })}`,
+    canManageCustomers &&
+      `/api/customers${getQueryString({
+        workspaceId,
+        includeExpandedFields: "true",
+      })}`,
     fetcher,
     {
       keepPreviousData: true,
@@ -197,7 +207,7 @@ export function CustomerTable() {
   );
 
   const { table, ...tableProps } = useTable({
-    data: customers || [],
+    data: canManageCustomers ? customers || [] : EXAMPLE_CUSTOMER_DATA,
     columns,
     rowProps: (row) => {
       const href = `/${workspaceSlug}/customers/${row.original.id}`;
@@ -272,8 +282,23 @@ export function CustomerTable() {
           </div>
         </AnimatedSizeContainer>
       </div>
-      {customers?.length !== 0 ? (
-        <Table {...tableProps} table={table} />
+      {!canManageCustomers || customers?.length !== 0 ? (
+        <Table
+          {...tableProps}
+          table={table}
+          scrollWrapperClassName={
+            canManageCustomers ? undefined : "overflow-x-hidden"
+          }
+        >
+          {!canManageCustomers && (
+            <>
+              <div className="absolute inset-0 flex touch-pan-y items-center justify-center bg-gradient-to-t from-[#fff_70%] to-[#fff6]">
+                upgrade!
+              </div>
+              <div className="h-[400px]" />
+            </>
+          )}
+        </Table>
       ) : (
         <AnimatedEmptyState
           title="No customers found"

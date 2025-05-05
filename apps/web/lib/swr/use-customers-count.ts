@@ -6,13 +6,16 @@ import useWorkspace from "./use-workspace";
 
 export default function useCustomersCount<T = number>({
   query,
+  enabled = true,
 }: {
   query?: z.infer<typeof getCustomersCountQuerySchema>;
+  enabled?: boolean;
 } = {}) {
   const { id: workspaceId } = useWorkspace();
 
   const { data, error } = useSWR<T>(
-    workspaceId &&
+    enabled &&
+      workspaceId &&
       `/api/customers/count?${new URLSearchParams({ workspaceId, ...query })}`,
     fetcher,
   );
