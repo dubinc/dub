@@ -86,4 +86,16 @@ export const CommissionStatusBadges = {
       </LinkifyTooltipContent>
     ),
   },
+  ineligible: {
+    label: "Ineligible",
+    variant: "neutral",
+    className: "text-gray-600 bg-gray-100",
+    icon: CircleXmark,
+    tooltip: (data: CommissionTooltipDataProps) => (
+      <LinkifyTooltipContent>
+        This sale is ineligible for commission. Reach out to {data.supportEmail}{" "}
+        if you believe this is incorrect.
+      </LinkifyTooltipContent>
+    ),
+  },
 };

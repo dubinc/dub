@@ -141,24 +141,30 @@ SQL >
     %
     SELECT *
     FROM
-        (
-            SELECT *, NULL AS saleAmount, NULL AS invoice_id, NULL AS payment_processor
-            FROM lead_events
-            UNION ALL
-            SELECT
-                *,
-                NULL AS event_id,
-                NULL AS event_name,
-                NULL AS metadata,
-                NULL AS saleAmount,
-                NULL AS invoice_id,
-                NULL AS payment_processor
-            FROM click_events
-            UNION ALL
-            SELECT *
-            FROM sale_events
-        )
+        {% if eventType == 'leads' %}
+            lead_events
+        {% elif eventType == 'sales' %}
+            sale_events
+        {% elif eventType == 'clicks' %}
+            click_events
+        {% else %}
+            (
+                SELECT *, NULL AS saleAmount, NULL AS invoice_id, NULL AS payment_processor
+                FROM lead_events
+                UNION ALL
+                SELECT
+                    *,
+                    NULL AS event_id,
+                    NULL AS event_name,
+                    NULL AS metadata,
+                    NULL AS saleAmount,
+                    NULL AS invoice_id,
+                    NULL AS payment_processor
+                FROM click_events
+                UNION ALL
+                SELECT *
+                FROM sale_events
+            )
+        {% end %}
     ORDER BY
         timestamp DESC, CASE event WHEN 'click' THEN 1 WHEN 'lead' THEN 2 WHEN 'sale' THEN 3 END DESC
-
-
