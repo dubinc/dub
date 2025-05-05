@@ -79,10 +79,10 @@ export const GET = withWorkspace(
                 ...(country && {
                   country,
                 }),
+                ...(linkId && {
+                  linkId,
+                }),
               }),
-        ...(linkId && {
-          linkId,
-        }),
       },
       orderBy: {
         [sortBy]: sortOrder,

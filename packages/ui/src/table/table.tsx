@@ -521,12 +521,16 @@ export function Table<T>({
           <div>
             <span className="hidden sm:inline-block">Viewing</span>{" "}
             <span className="font-medium">
-              {(pagination.pageIndex - 1) * pagination.pageSize + 1}-
+              {(
+                (pagination.pageIndex - 1) * pagination.pageSize +
+                1
+              ).toLocaleString()}
+              -
               {Math.min(
                 (pagination.pageIndex - 1) * pagination.pageSize +
                   pagination.pageSize,
                 table.getRowCount(),
-              )}
+              ).toLocaleString()}
             </span>{" "}
             of{" "}
             <span className="font-medium">
