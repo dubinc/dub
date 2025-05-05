@@ -11,6 +11,7 @@ import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
   AnimatedSizeContainer,
   Button,
+  buttonVariants,
   CopyText,
   Filter,
   LinkLogo,
@@ -24,6 +25,7 @@ import {
 } from "@dub/ui";
 import { Copy, Dots, User } from "@dub/ui/icons";
 import {
+  cn,
   COUNTRIES,
   currencyFormatter,
   fetcher,
@@ -33,6 +35,7 @@ import {
 } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
+import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -87,6 +90,8 @@ export function CustomerTable() {
 
   const { columnVisibility, setColumnVisibility } = useColumnVisibility();
   const { pagination, setPagination } = usePagination();
+
+  if (!canManageCustomers) columnVisibility.link = false;
 
   const columns = useMemo(
     () =>
@@ -292,10 +297,42 @@ export function CustomerTable() {
         >
           {!canManageCustomers && (
             <>
-              <div className="absolute inset-0 flex touch-pan-y items-center justify-center bg-gradient-to-t from-[#fff_70%] to-[#fff6]">
-                upgrade!
+              <div className="absolute inset-0 flex touch-pan-y flex-col items-center justify-center bg-gradient-to-t from-[#fff_75%] to-[#fff6] px-4 text-center">
+                <div className="h-40 w-full max-w-[480px] overflow-hidden [mask-image:linear-gradient(black,transparent)]">
+                  <div className="relative h-96 w-full overflow-hidden rounded-lg border border-neutral-200">
+                    <Image
+                      src="https://assets.dub.co/misc/customer-screenshot.jpg"
+                      fill
+                      className="object-contain object-top"
+                      alt="Customer overview screenshot"
+                      draggable={false}
+                    />
+                  </div>
+                </div>
+                <div className="relative -mt-4 flex flex-col items-center justify-center">
+                  <span className="text-lg font-semibold text-neutral-700">
+                    Customers
+                  </span>
+                  <p className="mt-3 max-w-sm text-pretty text-sm text-neutral-500">
+                    Upgrade to our Business Plan to see more details about your
+                    customers, their activity, and how they&rsquo;ve impacted
+                    your business.
+                    {/* TODO: Add "Learn more" link once we have a help article */}
+                  </p>
+                  <div className="mt-8">
+                    <Link
+                      href={`/${workspaceSlug}/upgrade`}
+                      className={cn(
+                        buttonVariants({ variant: "primary" }),
+                        "flex h-10 items-center justify-center gap-2 rounded-md border px-4 text-sm",
+                      )}
+                    >
+                      Upgrade to Business
+                    </Link>
+                  </div>
+                </div>
               </div>
-              <div className="h-[400px]" />
+              <div className="h-[420px]" />
             </>
           )}
         </Table>
