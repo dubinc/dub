@@ -110,9 +110,15 @@ export const CustomerSchema = z.object({
   email: z.string().nullish().describe("Email of the customer."),
   avatar: z.string().nullish().describe("Avatar URL of the customer."),
   country: z.string().nullish().describe("Country of the customer."),
-  sales: z.number().describe("Total number of sales for the customer."),
-  saleAmount: z.number().describe("Total amount of sales for the customer."),
-  createdAt: z.date().describe("The date the customer was created."),
+  sales: z
+    .number()
+    .nullish()
+    .describe("Total number of sales for the customer."),
+  saleAmount: z
+    .number()
+    .nullish()
+    .describe("Total amount of sales for the customer."),
+  createdAt: z.date().nullish().describe("The date the customer was created."),
 });
 
 // An extended schema that includes the customer's link, partner, and discount.
