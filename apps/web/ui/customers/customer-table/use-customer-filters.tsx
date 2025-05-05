@@ -1,8 +1,8 @@
 import useCustomersCount from "@/lib/swr/use-customers-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { useRouterStuff } from "@dub/ui";
+import { LinkLogo, useRouterStuff } from "@dub/ui";
 import { FlagWavy, Hyperlink } from "@dub/ui/icons";
-import { COUNTRIES, getPrettyUrl, nFormatter } from "@dub/utils";
+import { COUNTRIES, getApexDomain, getPrettyUrl, nFormatter } from "@dub/utils";
 import { useCallback, useMemo } from "react";
 
 export function useCustomerFilters(
@@ -29,6 +29,7 @@ export function useCustomerFilters(
     | {
         linkId: string;
         shortLink: string;
+        url: string;
         _count: number;
       }[]
     | undefined
@@ -72,12 +73,19 @@ export function useCustomerFilters(
         key: "linkId",
         icon: Hyperlink,
         label: "Referral link",
+        getOptionIcon: (_value, props) => (
+          <LinkLogo
+            apexDomain={getApexDomain(props.option?.data?.url)}
+            className="size-4 shrink-0 sm:size-4"
+          />
+        ),
         options:
-          linksCount?.map(({ linkId, shortLink, _count }) => ({
+          linksCount?.map(({ linkId, shortLink, url, _count }) => ({
             value: linkId,
             label: getPrettyUrl(shortLink),
             right: nFormatter(_count, { full: true }),
             permalink: `/${slug}/links/${getPrettyUrl(shortLink)}`,
+            data: { url },
           })) ?? [],
         meta: {
           filterParams: ({ getValue }) => ({

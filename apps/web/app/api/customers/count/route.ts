@@ -68,14 +68,19 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
       select: {
         id: true,
         shortLink: true,
+        url: true,
       },
     });
 
     return NextResponse.json(
-      data.map(({ linkId }) => ({
-        ...data.find(({ linkId: id }) => id === linkId)!,
-        shortLink: links.find(({ id }) => id === linkId)?.shortLink,
-      })),
+      data.map((d) => {
+        const link = links.find(({ id }) => id === d.linkId);
+        return {
+          ...d,
+          shortLink: link?.shortLink,
+          url: link?.url,
+        };
+      }),
     );
   }
 
