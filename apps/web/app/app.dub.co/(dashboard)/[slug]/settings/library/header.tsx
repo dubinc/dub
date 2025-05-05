@@ -2,11 +2,10 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TabSelect } from "@dub/ui";
-import { redirect, useRouter, useSelectedLayoutSegment } from "next/navigation";
+import { redirect, useSelectedLayoutSegment } from "next/navigation";
 
 export default function LibraryHeader() {
-  const router = useRouter();
-  const { slug, flags } = useWorkspace();
+  const { slug } = useWorkspace();
 
   const selectedLayoutSegment = useSelectedLayoutSegment();
   const page = selectedLayoutSegment === null ? "" : selectedLayoutSegment;

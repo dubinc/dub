@@ -3,7 +3,6 @@
 import { unsortedLinks } from "@/lib/folder/constants";
 import useFolders from "@/lib/swr/use-folders";
 import useFoldersCount from "@/lib/swr/use-folders-count";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { Folder } from "@/lib/types";
 import { FOLDERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/folders";
 import { FolderCard } from "@/ui/folders/folder-card";
@@ -11,7 +10,7 @@ import { FolderCardPlaceholder } from "@/ui/folders/folder-card-placeholder";
 import { useAddFolderModal } from "@/ui/modals/add-folder-modal";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { PaginationControls, usePagination, useRouterStuff } from "@dub/ui";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 const allLinkFolder: Folder = {
   type: "default",
@@ -21,8 +20,6 @@ const allLinkFolder: Folder = {
 };
 
 export const FoldersPageClient = () => {
-  const router = useRouter();
-  const { flags } = useWorkspace();
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
 

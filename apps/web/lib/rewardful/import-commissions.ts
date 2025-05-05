@@ -250,8 +250,18 @@ async function createCommission({
       timestamp: new Date(sale.created_at).toISOString(),
     }),
 
+    // update link stats
     prisma.link.update({
       where: { id: customerFound.linkId },
+      data: {
+        sales: { increment: 1 },
+        saleAmount: { increment: sale.sale_amount_cents },
+      },
+    }),
+
+    // update customer stats
+    prisma.customer.update({
+      where: { id: customerFound.id },
       data: {
         sales: { increment: 1 },
         saleAmount: { increment: sale.sale_amount_cents },

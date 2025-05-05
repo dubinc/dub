@@ -46,16 +46,6 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     link = decodeLinkIfCaseSensitive(link);
   }
 
-  // Find the LTV of the customer
-  // TODO: Calculate this from all events, not limited
-  const ltv = events.reduce((acc, event) => {
-    if (event.event === "sale" && event.saleAmount) {
-      acc += Number(event.saleAmount);
-    }
-
-    return acc;
-  }, 0);
-
   // Find the time to lead of the customer
   const timeToLead =
     customer.clickedAt && customer.createdAt
@@ -73,7 +63,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
 
   return NextResponse.json(
     customerActivityResponseSchema.parse({
-      ltv,
+      ltv: customer.saleAmount,
       timeToLead,
       timeToSale,
       events,

@@ -295,6 +295,21 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         },
       },
     }),
+
+    // update customer sales count
+    prisma.customer.update({
+      where: {
+        id: customer.id,
+      },
+      data: {
+        sales: {
+          increment: 1,
+        },
+        saleAmount: {
+          increment: charge.amount_total!,
+        },
+      },
+    }),
   ]);
 
   // for program links
