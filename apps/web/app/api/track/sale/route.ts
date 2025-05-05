@@ -158,7 +158,7 @@ export const POST = withWorkspace(
 
     waitUntil(
       (async () => {
-        const [_sale, link, _project] = await Promise.all([
+        const [_sale, link] = await Promise.all([
           recordSale(saleData),
 
           // update link sales count
@@ -186,6 +186,20 @@ export const POST = withWorkspace(
                 increment: 1,
               },
               salesUsage: {
+                increment: amount,
+              },
+            },
+          }),
+          // update customer sales count
+          prisma.customer.update({
+            where: {
+              id: customer.id,
+            },
+            data: {
+              sales: {
+                increment: 1,
+              },
+              saleAmount: {
                 increment: amount,
               },
             },
