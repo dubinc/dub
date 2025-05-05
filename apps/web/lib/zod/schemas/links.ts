@@ -6,7 +6,12 @@ import {
   formatDate,
   validDomainRegex,
 } from "@dub/utils";
-import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
+import {
+  base64ImageSchema,
+  booleanQuerySchema,
+  getPaginationQuerySchema,
+  publicHostedImageSchema,
+} from "./misc";
 import { TagSchema } from "./tags";
 import {
   parseDateSchema,
@@ -426,7 +431,11 @@ export const createLinkBodySchema = z.object({
     .describe("The date and time when the tests were or will be completed."),
 });
 
-export const updateLinkBodySchema = createLinkBodySchema.partial();
+export const createLinkBodySchemaAsync = createLinkBodySchema.extend({
+  image: z.union([base64ImageSchema, publicHostedImageSchema]),
+});
+
+export const updateLinkBodySchema = createLinkBodySchemaAsync.partial();
 
 export const bulkCreateLinksBodySchema = z
   .array(createLinkBodySchema)
