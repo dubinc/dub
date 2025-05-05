@@ -28,6 +28,7 @@ import {
   fetcher,
   formatDate,
   getPrettyUrl,
+  isClickOnInteractiveChild,
 } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
@@ -42,6 +43,8 @@ import { useCustomerFilters } from "./use-customer-filters";
 export function CustomerTable() {
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
+
+  const router = useRouter();
 
   const sortBy = searchParams.get("sortBy") || "createdAt";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
@@ -196,7 +199,22 @@ export function CustomerTable() {
   const { table, ...tableProps } = useTable({
     data: customers || [],
     columns,
-    onRowClick: (row) => {},
+    rowProps: (row) => {
+      const href = `/${workspaceSlug}/customers/${row.original.id}`;
+      return {
+        className: "cursor-pointer select-none",
+        onMouseEnter: () => router.prefetch(href),
+        onClick: (e) => {
+          if (isClickOnInteractiveChild(e)) return;
+          if (e.metaKey || e.ctrlKey) window.open(href, "_blank");
+          else router.push(href);
+        },
+        onAuxClick: (e) => {
+          if (isClickOnInteractiveChild(e)) return;
+          window.open(href, "_blank");
+        },
+      };
+    },
     pagination,
     onPaginationChange: setPagination,
     columnVisibility,
@@ -215,7 +233,8 @@ export function CustomerTable() {
       }),
     columnPinning: { right: ["menu"] },
     thClassName: "border-l-0",
-    tdClassName: "border-l-0",
+    tdClassName:
+      "border-l-0 group-hover/row:bg-bg-muted transition-colors duration-75",
     resourceName: (p) => `customer${p ? "s" : ""}`,
     rowCount: customersCount || 0,
     loading: isLoading,
