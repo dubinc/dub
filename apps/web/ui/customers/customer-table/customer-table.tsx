@@ -106,9 +106,26 @@ export function CustomerTable() {
           },
         },
         {
-          id: "createdAt",
-          header: "Created date",
-          accessorFn: (d) => formatDate(d.createdAt, { month: "short" }),
+          id: "country",
+          header: "Country",
+          minSize: 150,
+          cell: ({ row }) => {
+            const country = row.original.country;
+            return (
+              <div className="flex items-center gap-2">
+                {country && (
+                  <img
+                    alt={`${country} flag`}
+                    src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
+                    className="size-4 shrink-0"
+                  />
+                )}
+                <span className="min-w-0 truncate">
+                  {(country ? COUNTRIES[country] : null) ?? "-"}
+                </span>
+              </div>
+            );
+          },
         },
         {
           id: "saleAmount",
@@ -126,6 +143,11 @@ export function CustomerTable() {
               <span className="text-neutral-400">USD</span>
             </div>
           ),
+        },
+        {
+          id: "createdAt",
+          header: "Created date",
+          accessorFn: (d) => formatDate(d.createdAt, { month: "short" }),
         },
         {
           id: "link",
@@ -172,28 +194,6 @@ export function CustomerTable() {
             ) : (
               "-"
             ),
-        },
-        {
-          id: "country",
-          header: "Country",
-          minSize: 150,
-          cell: ({ row }) => {
-            const country = row.original.country;
-            return (
-              <div className="flex items-center gap-2">
-                {country && (
-                  <img
-                    alt={`${country} flag`}
-                    src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
-                    className="size-4 shrink-0"
-                  />
-                )}
-                <span className="min-w-0 truncate">
-                  {(country ? COUNTRIES[country] : null) ?? "-"}
-                </span>
-              </div>
-            );
-          },
         },
         // Menu
         {

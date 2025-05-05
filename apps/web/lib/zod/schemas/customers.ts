@@ -71,7 +71,7 @@ export const getCustomersCountQuerySchema = getCustomersQuerySchema
     sortBy: true,
     sortOrder: true,
   })
-  .extend({ groupBy: z.enum(["country"]).optional() });
+  .extend({ groupBy: z.enum(["country", "linkId"]).optional() });
 
 export const createCustomerBodySchema = z.object({
   email: z

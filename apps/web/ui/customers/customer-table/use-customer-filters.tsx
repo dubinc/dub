@@ -1,8 +1,8 @@
 import useCustomersCount from "@/lib/swr/use-customers-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useRouterStuff } from "@dub/ui";
-import { FlagWavy } from "@dub/ui/icons";
-import { COUNTRIES, nFormatter } from "@dub/utils";
+import { FlagWavy, Hyperlink } from "@dub/ui/icons";
+import { COUNTRIES, getPrettyUrl, nFormatter } from "@dub/utils";
 import { useCallback, useMemo } from "react";
 
 export function useCustomerFilters(
@@ -10,7 +10,7 @@ export function useCustomerFilters(
   { enabled = true }: { enabled?: boolean } = {},
 ) {
   const { searchParamsObj, queryParams } = useRouterStuff();
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, slug } = useWorkspace();
 
   const { data: countriesCount } = useCustomersCount<
     | {
@@ -21,6 +21,20 @@ export function useCustomerFilters(
   >({
     query: {
       groupBy: "country",
+    },
+    enabled,
+  });
+
+  const { data: linksCount } = useCustomersCount<
+    | {
+        linkId: string;
+        shortLink: string;
+        _count: number;
+      }[]
+    | undefined
+  >({
+    query: {
+      groupBy: "linkId",
     },
     enabled,
   });
@@ -46,16 +60,32 @@ export function useCustomerFilters(
               value: country,
               label: COUNTRIES[country],
               right: nFormatter(_count, { full: true }),
+              permalink: `/${slug}/analytics?event=leads&country=${country}`,
             })) ?? [],
       },
+      {
+        key: "linkId",
+        icon: Hyperlink,
+        label: "Link",
+        options:
+          linksCount?.map(({ linkId, shortLink, _count }) => ({
+            value: linkId,
+            label: getPrettyUrl(shortLink),
+            right: nFormatter(_count, { full: true }),
+            permalink: `/${slug}/links/${getPrettyUrl(shortLink)}`,
+          })) ?? [],
+      },
     ],
-    [countriesCount],
+    [countriesCount, linksCount],
   );
 
   const activeFilters = useMemo(() => {
-    const { country } = searchParamsObj;
+    const { country, linkId } = searchParamsObj;
 
-    return [...(country ? [{ key: "country", value: country }] : [])];
+    return [
+      ...(country ? [{ key: "country", value: country }] : []),
+      ...(linkId ? [{ key: "linkId", value: linkId }] : []),
+    ];
   }, [searchParamsObj]);
 
   const onSelect = useCallback(
@@ -70,7 +100,7 @@ export function useCustomerFilters(
   );
 
   const onRemove = useCallback(
-    (key: string, value: any) =>
+    (key: string) =>
       queryParams({
         del: [key, "page"],
       }),

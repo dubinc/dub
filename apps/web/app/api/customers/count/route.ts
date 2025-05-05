@@ -31,11 +31,9 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
 
   // Get customer count by country
   if (groupBy === "country") {
-    const customers = await prisma.customer.groupBy({
+    const data = await prisma.customer.groupBy({
       by: ["country"],
-      where: {
-        ...commonWhere,
-      },
+      where: commonWhere,
       _count: true,
       orderBy: {
         _count: {
@@ -44,7 +42,38 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
       },
     });
 
-    return NextResponse.json(customers);
+    return NextResponse.json(data);
+  }
+
+  // Get customer count by linkId
+  if (groupBy === "linkId") {
+    const data = await prisma.customer.groupBy({
+      by: ["linkId"],
+      where: { ...commonWhere, linkId: { not: null } },
+      _count: true,
+      orderBy: {
+        _count: {
+          linkId: "desc",
+        },
+      },
+    });
+
+    const links = await prisma.link.findMany({
+      where: {
+        id: { in: data.map(({ linkId }) => linkId!) },
+      },
+      select: {
+        id: true,
+        shortLink: true,
+      },
+    });
+
+    return NextResponse.json(
+      data.map(({ linkId }) => ({
+        ...data.find(({ linkId: id }) => id === linkId)!,
+        shortLink: links.find(({ id }) => id === linkId)?.shortLink,
+      })),
+    );
   }
 
   const count = await prisma.customer.count({
