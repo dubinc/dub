@@ -1,5 +1,6 @@
 const { PrismaPlugin } = require("@prisma/nextjs-monorepo-workaround-plugin");
 const { withAxiom } = require("next-axiom");
+const path = require("path");
 
 const REDIRECT_SEGMENTS = [
   "pricing",
@@ -15,6 +16,7 @@ module.exports = withAxiom({
   reactStrictMode: false,
   transpilePackages: ["shiki", "@dub/prisma", "@dub/email"],
   experimental: {
+    outputFileTracingRoot: path.join(__dirname, "../../"),
     outputFileTracingIncludes: {
       "/api/auth/saml/**": [
         "./node_modules/jose/**/*",
