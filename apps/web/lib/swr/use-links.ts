@@ -48,6 +48,7 @@ export default function useLinks(
               "domain",
               "userId",
               "search",
+              "page",
               "sortBy",
               "sortOrder",
               "showArchived",
