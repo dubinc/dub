@@ -13,13 +13,15 @@ import {
   CopyText,
   Filter,
   LinkLogo,
+  MenuItem,
   Popover,
   Table,
+  useCopyToClipboard,
   usePagination,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Dots, User } from "@dub/ui/icons";
+import { Copy, Dots, User } from "@dub/ui/icons";
 import {
   COUNTRIES,
   currencyFormatter,
@@ -29,14 +31,16 @@ import {
 } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import useSWR from "swr";
 import { customersColumns, useColumnVisibility } from "./use-column-visibility";
 import { useCustomerFilters } from "./use-customer-filters";
 
 export function CustomerTable() {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
   const sortBy = searchParams.get("sortBy") || "createdAt";
@@ -116,24 +120,19 @@ export function CustomerTable() {
           },
           cell: ({ row }) =>
             row.original.link ? (
-              <div className="flex items-center gap-3">
+              <Link
+                href={`/${workspaceSlug}/links/${row.original.link.domain}/${row.original.link.key}`}
+                target="_blank"
+                className="flex items-center gap-3 decoration-dotted underline-offset-2 hover:underline"
+              >
                 <LinkLogo
                   apexDomain={row.original.link.domain}
                   className="size-4 shrink-0 sm:size-4"
                 />
-                <CopyText
-                  value={row.original.link.shortLink}
-                  successMessage="Copied link to clipboard!"
-                  className="truncate"
-                >
-                  <span
-                    className="truncate"
-                    title={row.original.link.shortLink}
-                  >
-                    {getPrettyUrl(row.original.link.shortLink)}
-                  </span>
-                </CopyText>
-              </div>
+                <span className="truncate" title={row.original.link.shortLink}>
+                  {getPrettyUrl(row.original.link.shortLink)}
+                </span>
+              </Link>
             ) : (
               "-"
             ),
@@ -287,6 +286,8 @@ function RowMenuButton({
   const { slug } = useParams();
   const [isOpen, setIsOpen] = useState(false);
 
+  const [, copyToClipboard] = useCopyToClipboard();
+
   return (
     <>
       <Popover
@@ -295,7 +296,34 @@ function RowMenuButton({
         content={
           <Command tabIndex={0} loop className="focus:outline-none">
             <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[130px]">
-              {/* TODO: Add menu items */}
+              {row.original.externalId && (
+                <MenuItem
+                  as={Command.Item}
+                  icon={Copy}
+                  onSelect={() => {
+                    toast.promise(copyToClipboard(row.original.externalId), {
+                      success: "Copied to clipboard",
+                    });
+                    setIsOpen(false);
+                  }}
+                >
+                  Copy external ID
+                </MenuItem>
+              )}
+              {row.original.email && (
+                <MenuItem
+                  as={Command.Item}
+                  icon={Copy}
+                  onSelect={() => {
+                    toast.promise(copyToClipboard(row.original.email!), {
+                      success: "Copied to clipboard",
+                    });
+                    setIsOpen(false);
+                  }}
+                >
+                  Copy email
+                </MenuItem>
+              )}
             </Command.List>
           </Command>
         }
@@ -303,9 +331,10 @@ function RowMenuButton({
       >
         <Button
           type="button"
-          className="h-8 whitespace-nowrap px-2"
+          className="h-8 whitespace-nowrap px-2 disabled:border-transparent disabled:bg-transparent"
           variant="outline"
           icon={<Dots className="h-4 w-4 shrink-0" />}
+          disabled={!row.original.externalId && !row.original.email}
         />
       </Popover>
     </>
