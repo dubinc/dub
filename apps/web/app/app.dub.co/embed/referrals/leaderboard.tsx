@@ -1,7 +1,7 @@
 import z from "@/lib/zod";
 import { LeaderboardPartnerSchema } from "@/lib/zod/schemas/partners";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { Crown, Table, Users, useTable } from "@dub/ui";
+import { Crown, Table, Tooltip, Users, useTable } from "@dub/ui";
 import {
   currencyFormatter,
   fetcher,
@@ -67,7 +67,11 @@ export function ReferralsEmbedLeaderboard() {
                 alt={row.original.name}
                 className="size-5 rounded-full"
               />
-              <span className="text-sm font-medium">{row.original.name}</span>
+              <Tooltip content="For privacy reasons, the name of the partner is anonymized.">
+                <span className="cursor-help text-sm font-medium decoration-dotted underline-offset-2 hover:underline">
+                  {row.original.name}
+                </span>
+              </Tooltip>
             </div>
           );
         },
