@@ -14,6 +14,14 @@ const REDIRECT_SEGMENTS = [
 module.exports = withAxiom({
   reactStrictMode: false,
   transpilePackages: ["shiki", "@dub/prisma", "@dub/email"],
+  experimental: {
+    outputFileTracingIncludes: {
+      "/api/auth/saml/**": [
+        "./node_modules/jose/**/*",
+        "./node_modules/openid-client/**/*",
+      ],
+    },
+  },
   webpack: (config, { webpack, isServer }) => {
     if (isServer) {
       config.plugins.push(
@@ -33,12 +41,6 @@ module.exports = withAxiom({
     };
 
     return config;
-  },
-  outputFileTracingIncludes: {
-    "/api/auth/saml/**": [
-      "./node_modules/jose/**/*",
-      "./node_modules/openid-client/**/*",
-    ],
   },
   images: {
     remotePatterns: [
