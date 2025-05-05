@@ -72,16 +72,19 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
       },
     });
 
-    return NextResponse.json(
-      data.map((d) => {
+    const enrichedData = data
+      .map((d) => {
         const link = links.find(({ id }) => id === d.linkId);
+        if (!link) return null;
         return {
           ...d,
           shortLink: link?.shortLink,
           url: link?.url,
         };
-      }),
-    );
+      })
+      .filter(Boolean);
+
+    return NextResponse.json(enrichedData);
   }
 
   const count = await prisma.customer.count({
