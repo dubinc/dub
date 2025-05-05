@@ -151,7 +151,7 @@ export function WorkspaceBillingUpgradePageClient() {
                       </button>
                       {plan.name === "Enterprise" ? (
                         <Link
-                          href="https://dub.co/contact"
+                          href="https://dub.co/contact/sales"
                           target="_blank"
                           className={cn(
                             "flex h-8 w-full items-center justify-center rounded-md text-center text-sm ring-gray-200 transition-all duration-200 ease-in-out",
