@@ -39,7 +39,7 @@ export const getCustomersQuerySchema = z
       ),
 
     sortBy: z
-      .enum(["createdAt"])
+      .enum(["createdAt", "saleAmount"])
       .optional()
       .default("createdAt")
       .describe(
@@ -110,6 +110,8 @@ export const CustomerSchema = z.object({
   email: z.string().nullish().describe("Email of the customer."),
   avatar: z.string().nullish().describe("Avatar URL of the customer."),
   country: z.string().nullish().describe("Country of the customer."),
+  sales: z.number().describe("Total number of sales for the customer."),
+  saleAmount: z.number().describe("Total amount of sales for the customer."),
   createdAt: z.date().describe("The date the customer was created."),
 });
 

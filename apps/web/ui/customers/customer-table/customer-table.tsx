@@ -20,11 +20,17 @@ import {
   useTable,
 } from "@dub/ui";
 import { Dots, User } from "@dub/ui/icons";
-import { COUNTRIES, fetcher, formatDate, getPrettyUrl } from "@dub/utils";
+import {
+  COUNTRIES,
+  currencyFormatter,
+  fetcher,
+  formatDate,
+  getPrettyUrl,
+} from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import useSWR from "swr";
 import { customersColumns, useColumnVisibility } from "./use-column-visibility";
 import { useCustomerFilters } from "./use-customer-filters";
@@ -33,7 +39,7 @@ export function CustomerTable() {
   const { id: workspaceId } = useWorkspace();
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
-  const sortBy = searchParams.get("sortBy") || "saleAmount";
+  const sortBy = searchParams.get("sortBy") || "createdAt";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const {
@@ -65,112 +71,138 @@ export function CustomerTable() {
   const { columnVisibility, setColumnVisibility } = useColumnVisibility();
   const { pagination, setPagination } = usePagination();
 
-  const { table, ...tableProps } = useTable({
-    data: customers || [],
-    columns: [
-      {
-        id: "customer",
-        header: "Customer",
-        enableHiding: false,
-        minSize: 250,
-        cell: ({ row }) => {
-          return <CustomerRowItem customer={row.original} />;
+  const columns = useMemo(
+    () =>
+      [
+        {
+          id: "customer",
+          header: "Customer",
+          enableHiding: false,
+          minSize: 250,
+          cell: ({ row }) => {
+            return <CustomerRowItem customer={row.original} />;
+          },
         },
-      },
-      {
-        id: "createdAt",
-        header: "Created date",
-        accessorFn: (d) => formatDate(d.createdAt, { month: "short" }),
-      },
-      {
-        id: "link",
-        header: "Referral link",
-        accessorKey: "link",
-        meta: {
-          filterParams: ({ getValue }) => ({
-            linkId: getValue().id,
-          }),
+        {
+          id: "createdAt",
+          header: "Created date",
+          accessorFn: (d) => formatDate(d.createdAt, { month: "short" }),
         },
-        cell: ({ row }) =>
-          row.original.link ? (
-            <div className="flex items-center gap-3">
-              <LinkLogo
-                apexDomain={row.original.link.domain}
-                className="size-4 shrink-0 sm:size-4"
-              />
+        {
+          id: "saleAmount",
+          header: "Lifetime value",
+          accessorKey: "saleAmount",
+          cell: ({ getValue }) => (
+            <div className="flex items-center gap-2">
+              <span>
+                {currencyFormatter(getValue() / 100, {
+                  maximumFractionDigits: undefined,
+                  // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
+                  trailingZeroDisplay: "stripIfInteger",
+                })}
+              </span>
+              <span className="text-neutral-400">USD</span>
+            </div>
+          ),
+        },
+        {
+          id: "link",
+          header: "Referral link",
+          accessorKey: "link",
+          meta: {
+            filterParams: ({ getValue }) => ({
+              linkId: getValue().id,
+            }),
+          },
+          cell: ({ row }) =>
+            row.original.link ? (
+              <div className="flex items-center gap-3">
+                <LinkLogo
+                  apexDomain={row.original.link.domain}
+                  className="size-4 shrink-0 sm:size-4"
+                />
+                <CopyText
+                  value={row.original.link.shortLink}
+                  successMessage="Copied link to clipboard!"
+                  className="truncate"
+                >
+                  <span
+                    className="truncate"
+                    title={row.original.link.shortLink}
+                  >
+                    {getPrettyUrl(row.original.link.shortLink)}
+                  </span>
+                </CopyText>
+              </div>
+            ) : (
+              "-"
+            ),
+          size: 250,
+        },
+        {
+          id: "externalId",
+          header: "External ID",
+          accessorKey: "externalId",
+          cell: ({ row }) =>
+            row.original.externalId ? (
               <CopyText
-                value={row.original.link.shortLink}
-                successMessage="Copied link to clipboard!"
+                value={row.original.externalId}
+                successMessage="Copied external ID to clipboard!"
                 className="truncate"
               >
-                <span className="truncate" title={row.original.link.shortLink}>
-                  {getPrettyUrl(row.original.link.shortLink)}
-                </span>
+                {row.original.externalId}
               </CopyText>
-            </div>
-          ) : (
-            "-"
-          ),
-        size: 250,
-      },
-      {
-        id: "externalId",
-        header: "External ID",
-        accessorKey: "externalId",
-        cell: ({ row }) =>
-          row.original.externalId ? (
-            <CopyText
-              value={row.original.externalId}
-              successMessage="Copied external ID to clipboard!"
-              className="truncate"
-            >
-              {row.original.externalId}
-            </CopyText>
-          ) : (
-            "-"
-          ),
-      },
-      {
-        id: "country",
-        header: "Country",
-        minSize: 150,
-        cell: ({ row }) => {
-          const country = row.original.country;
-          return (
-            <div className="flex items-center gap-2">
-              {country && (
-                <img
-                  alt={`${country} flag`}
-                  src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
-                  className="size-4 shrink-0"
-                />
-              )}
-              <span className="min-w-0 truncate">
-                {(country ? COUNTRIES[country] : null) ?? "-"}
-              </span>
-            </div>
-          );
+            ) : (
+              "-"
+            ),
         },
-      },
-      // Menu
-      {
-        id: "menu",
-        enableHiding: false,
-        minSize: 43,
-        size: 43,
-        maxSize: 43,
-        header: () => <EditColumnsButton table={table} />,
-        cell: ({ row }) => (
-          <RowMenuButton row={row} workspaceId={workspaceId!} />
-        ),
-      },
-    ].filter((c) => c.id === "menu" || customersColumns.all.includes(c.id)),
+        {
+          id: "country",
+          header: "Country",
+          minSize: 150,
+          cell: ({ row }) => {
+            const country = row.original.country;
+            return (
+              <div className="flex items-center gap-2">
+                {country && (
+                  <img
+                    alt={`${country} flag`}
+                    src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
+                    className="size-4 shrink-0"
+                  />
+                )}
+                <span className="min-w-0 truncate">
+                  {(country ? COUNTRIES[country] : null) ?? "-"}
+                </span>
+              </div>
+            );
+          },
+        },
+        // Menu
+        {
+          id: "menu",
+          enableHiding: false,
+          minSize: 43,
+          size: 43,
+          maxSize: 43,
+          header: () => <EditColumnsButton table={table} />,
+          cell: ({ row }) => (
+            <RowMenuButton row={row} workspaceId={workspaceId!} />
+          ),
+        },
+      ].filter((c) => c.id === "menu" || customersColumns.all.includes(c.id)),
+    [],
+  );
+
+  const { table, ...tableProps } = useTable({
+    data: customers || [],
+    columns,
     onRowClick: (row) => {},
     pagination,
     onPaginationChange: setPagination,
     columnVisibility,
     onColumnVisibilityChange: setColumnVisibility,
-    sortableColumns: ["createdAt"],
+    sortableColumns: ["createdAt", "saleAmount"],
     sortBy,
     sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>
@@ -182,6 +214,7 @@ export function CustomerTable() {
         del: "page",
         scroll: false,
       }),
+    columnPinning: { right: ["menu"] },
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `customer${p ? "s" : ""}`,

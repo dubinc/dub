@@ -3,7 +3,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { useRouterStuff } from "@dub/ui";
 import { FlagWavy } from "@dub/ui/icons";
 import { COUNTRIES, nFormatter } from "@dub/utils";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 
 export function useCustomerFilters(extraSearchParams: Record<string, string>) {
   const { searchParamsObj, queryParams } = useRouterStuff();
@@ -54,23 +54,32 @@ export function useCustomerFilters(extraSearchParams: Record<string, string>) {
     return [...(country ? [{ key: "country", value: country }] : [])];
   }, [searchParamsObj]);
 
-  const onSelect = (key: string, value: any) =>
-    queryParams({
-      set: {
-        [key]: value,
-      },
-      del: "page",
-    });
+  const onSelect = useCallback(
+    (key: string, value: any) =>
+      queryParams({
+        set: {
+          [key]: value,
+        },
+        del: "page",
+      }),
+    [queryParams],
+  );
 
-  const onRemove = (key: string, value: any) =>
-    queryParams({
-      del: [key, "page"],
-    });
+  const onRemove = useCallback(
+    (key: string, value: any) =>
+      queryParams({
+        del: [key, "page"],
+      }),
+    [queryParams],
+  );
 
-  const onRemoveAll = () =>
-    queryParams({
-      del: ["country", "search"],
-    });
+  const onRemoveAll = useCallback(
+    () =>
+      queryParams({
+        del: ["country", "search"],
+      }),
+    [queryParams],
+  );
 
   const searchQuery = useMemo(
     () =>
@@ -85,7 +94,10 @@ export function useCustomerFilters(extraSearchParams: Record<string, string>) {
     [activeFilters, workspaceId, extraSearchParams],
   );
 
-  const isFiltered = activeFilters.length > 0 || searchParamsObj.search;
+  const isFiltered = useMemo(
+    () => activeFilters.length > 0 || searchParamsObj.search,
+    [activeFilters, searchParamsObj.search],
+  );
 
   return {
     filters,

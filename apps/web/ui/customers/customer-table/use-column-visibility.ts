@@ -2,11 +2,11 @@ import { useLocalStorage } from "@dub/ui";
 import { VisibilityState } from "@tanstack/react-table";
 
 export const customersColumns = {
-  all: ["customer", "createdAt", "ltv", "link", "externalId", "country"],
+  all: ["customer", "createdAt", "saleAmount", "link", "externalId", "country"],
   defaultVisible: [
     "customer",
     "createdAt",
-    "ltv",
+    "saleAmount",
     "link",
     "externalId",
     "country",
