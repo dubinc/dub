@@ -432,7 +432,7 @@ export const createLinkBodySchema = z.object({
 });
 
 export const createLinkBodySchemaAsync = createLinkBodySchema.extend({
-  image: z.union([base64ImageSchema, publicHostedImageSchema]),
+  image: z.union([base64ImageSchema, publicHostedImageSchema]).nullish(),
 });
 
 export const updateLinkBodySchema = createLinkBodySchemaAsync.partial();
