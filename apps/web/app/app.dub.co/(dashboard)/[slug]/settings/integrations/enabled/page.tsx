@@ -9,11 +9,12 @@ import { Suspense } from "react";
 
 export const dynamic = "force-dynamic";
 
-export default function EnabledIntegrationsPage({
-  params,
-}: {
-  params: { slug: string };
-}) {
+export default async function EnabledIntegrationsPage(
+  props: {
+    params: Promise<{ slug: string }>;
+  }
+) {
+  const params = await props.params;
   return (
     <div className="mx-auto flex w-full max-w-screen-md flex-col gap-8">
       <BackLink href={`/${params.slug}/settings/integrations`}>

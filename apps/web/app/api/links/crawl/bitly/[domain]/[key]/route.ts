@@ -16,7 +16,8 @@ const userId = "cm05wnd49000411ztg2xbup0i";
 const folderId = "fold_1JNQBVZV8P0NA0YGB11W2HHSQ";
 
 // GET /api/links/crawl/bitly – crawl a bitly link and redirect to the destination if exists
-export const GET = async (_req: NextRequest, { params }) => {
+export const GET = async (_req: NextRequest, props) => {
+  const params = await props.params;
   const { domain, key } = z
     .object({
       domain: z.string(),

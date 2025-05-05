@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: ISC
  */
 import { DUB_QR_LOGO } from "@dub/utils/src/constants";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type JSX } from "react";
 import qrcodegen from "./codegen";
 import {
   DEFAULT_BGCOLOR,

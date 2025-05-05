@@ -1,11 +1,12 @@
 import { prisma } from "@dub/prisma";
 import { notFound, redirect } from "next/navigation";
 
-export default async function Programs({
-  params,
-}: {
-  params: { slug: string };
-}) {
+export default async function Programs(
+  props: {
+    params: Promise<{ slug: string }>;
+  }
+) {
+  const params = await props.params;
   const workspace = await prisma.project.findUnique({
     where: {
       slug: params.slug,

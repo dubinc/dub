@@ -7,12 +7,16 @@ import { prisma } from "@dub/prisma";
 // Completes a link's AB tests if they're ready, scheduled by QStash
 export async function POST(
   req: Request,
-  {
-    params: { linkId },
-  }: {
-    params: { linkId: string };
-  },
+  props: {
+    params: Promise<{ linkId: string }>;
+  }
 ) {
+  const params = await props.params;
+
+  const {
+    linkId
+  } = params;
+
   try {
     const rawBody = await req.text();
     await verifyQstashSignature({ req, rawBody });

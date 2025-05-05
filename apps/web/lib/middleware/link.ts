@@ -17,7 +17,7 @@ import {
   nanoid,
   punyEncode,
 } from "@dub/utils";
-import { ipAddress } from "@vercel/functions";
+import { ipAddress, geolocation } from "@vercel/functions";
 import { cookies } from "next/headers";
 import {
   NextFetchEvent,
@@ -150,14 +150,15 @@ export default async function LinkMiddleware(
     expiresAt,
     ios,
     android,
-    geo,
     expiredUrl,
     doIndex,
     webhookIds,
     testVariants,
     testCompletedAt,
-    projectId: workspaceId,
+    projectId: workspaceId
   } = cachedLink;
+
+  const geo = geolocation(req);
 
   const testUrl = resolveABTestURL({
     testVariants,
@@ -245,7 +246,7 @@ export default async function LinkMiddleware(
 
   const dubIdCookieName = `dub_id_${domain}_${key}`;
 
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   let clickId = cookieStore.get(dubIdCookieName)?.value;
   if (!clickId) {
     // if we need to pass the clickId, check if clickId is cached in Redis
@@ -299,7 +300,7 @@ export default async function LinkMiddleware(
   const isBot = detectBot(req);
 
   const { country } =
-    process.env.VERCEL === "1" && req.geo ? req.geo : LOCALHOST_GEO_DATA;
+    process.env.VERCEL === "1" && geolocation(req) ? geolocation(req) : LOCALHOST_GEO_DATA;
 
   // rewrite to proxy page (/proxy/[domain]/[key]) if it's a bot and proxy is enabled
   if (isBot && proxy) {

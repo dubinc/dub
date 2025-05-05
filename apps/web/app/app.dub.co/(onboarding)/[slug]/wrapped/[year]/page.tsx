@@ -3,11 +3,12 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import WrappedPageClient from "./client";
 
-export default function WrappedPage({
-  params,
-}: {
-  params: { slug: string; year: string };
-}) {
+export default async function WrappedPage(
+  props: {
+    params: Promise<{ slug: string; year: string }>;
+  }
+) {
+  const params = await props.params;
   if (params.year !== "2024") {
     redirect(`/${params.slug}`);
   }

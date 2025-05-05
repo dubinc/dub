@@ -19,11 +19,12 @@ const UTM_PARAMS = {
   utm_medium: "Expired Link Page",
 };
 
-export default async function BannedPage({
-  params,
-}: {
-  params: { domain: string };
-}) {
+export default async function BannedPage(
+  props: {
+    params: Promise<{ domain: string }>;
+  }
+) {
+  const params = await props.params;
   return (
     <main className="flex min-h-screen flex-col justify-between">
       <NavMobile />

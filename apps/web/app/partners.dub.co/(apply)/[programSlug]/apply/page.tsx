@@ -5,11 +5,17 @@ import { CSSProperties } from "react";
 import { Header } from "../header";
 import { ProgramApplicationForm } from "./form";
 
-export default async function ApplicationPage({
-  params: { programSlug },
-}: {
-  params: { programSlug: string };
-}) {
+export default async function ApplicationPage(
+  props: {
+    params: Promise<{ programSlug: string }>;
+  }
+) {
+  const params = await props.params;
+
+  const {
+    programSlug
+  } = params;
+
   const program = await getProgram({
     slug: programSlug,
     include: ["rewards", "defaultDiscount"],

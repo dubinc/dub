@@ -132,7 +132,7 @@ function NewsCard({
     startTime: 0,
     maxDelta: 0,
   });
-  const animation = useRef<Animation>();
+  const animation = useRef<Animation>(undefined);
   const [dragging, setDragging] = useState(false);
 
   const onDragMove = (e: PointerEvent) => {

@@ -21,7 +21,7 @@ export async function verifyPassword(_prevState: any, data: FormData) {
 
   if (validPassword) {
     // if the password is valid, set the cookie
-    cookies().set(`dub_password_${link.id}`, password, {
+    (await cookies()).set(`dub_password_${link.id}`, password, {
       path: `/${link.key}`,
       httpOnly: true,
       secure: true,

@@ -10,6 +10,8 @@ import {
 } from "./constants";
 import { Excavation, ImageSettings, Modules, QRPropsSVG } from "./types";
 
+import type { JSX } from "react";
+
 // We could just do this in generatePath, except that we want to support
 // non-Path2D canvas, so we need to keep it an explicit step.
 export function excavateModules(

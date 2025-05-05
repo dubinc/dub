@@ -8,13 +8,7 @@ import { ExpandedLinkProps, UserProps } from "@/lib/types";
 import { CardList, MaxWidthWrapper, useRouterStuff } from "@dub/ui";
 import { CursorRays, Hyperlink } from "@dub/ui/icons";
 import { useSearchParams } from "next/navigation";
-import {
-  createContext,
-  Dispatch,
-  SetStateAction,
-  useContext,
-  useState,
-} from "react";
+import { createContext, Dispatch, SetStateAction, useContext, useState, type JSX } from "react";
 import { AnimatedEmptyState } from "../shared/animated-empty-state";
 import { LinkCard } from "./link-card";
 import LinkCardPlaceholder from "./link-card-placeholder";
@@ -109,7 +103,7 @@ function LinksList({
       <LinkSelectionProvider links={links}>
         {!links || links.length ? (
           // Cards
-          <CardList variant={compact ? "compact" : "loose"} loading={loading}>
+          (<CardList variant={compact ? "compact" : "loose"} loading={loading}>
             {links?.length
               ? // Link cards
                 links.map((link) => <LinkCard key={link.id} link={link} />)
@@ -123,7 +117,7 @@ function LinksList({
                     <LinkCardPlaceholder />
                   </CardList.Card>
                 ))}
-          </CardList>
+          </CardList>)
         ) : (
           <AnimatedEmptyState
             title={isFiltered ? "No links found" : "No links yet"}
