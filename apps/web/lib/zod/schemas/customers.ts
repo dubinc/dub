@@ -134,6 +134,7 @@ export const CustomerEnrichedSchema = CustomerSchema.extend({
     domain: true,
     key: true,
     shortLink: true,
+    url: true,
     programId: true,
   }).nullish(),
   programId: z.string().nullish(),

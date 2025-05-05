@@ -31,6 +31,7 @@ import {
   currencyFormatter,
   fetcher,
   formatDate,
+  getApexDomain,
   getPrettyUrl,
 } from "@dub/utils";
 import { Cell, Row } from "@tanstack/react-table";
@@ -183,7 +184,7 @@ export function CustomerTable() {
                 className="flex cursor-alias items-center gap-3 decoration-dotted underline-offset-2 hover:underline"
               >
                 <LinkLogo
-                  apexDomain={row.original.link.domain}
+                  apexDomain={getApexDomain(row.original.link.url)}
                   className="size-4 shrink-0 sm:size-4"
                 />
                 <span className="truncate" title={row.original.link.shortLink}>
