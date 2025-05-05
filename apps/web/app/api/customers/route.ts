@@ -47,6 +47,7 @@ export const GET = withWorkspace(
       externalId,
       search,
       country,
+      linkId,
       includeExpandedFields,
       page,
       pageSize,
@@ -79,6 +80,9 @@ export const GET = withWorkspace(
                   country,
                 }),
               }),
+        ...(linkId && {
+          linkId,
+        }),
       },
       orderBy: {
         [sortBy]: sortOrder,

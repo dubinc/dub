@@ -3,11 +3,11 @@
 import usePartnerEarningsCount from "@/lib/swr/use-partner-earnings-count";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerEarningsResponse } from "@/lib/types";
-import FilterButton from "@/ui/analytics/events/filter-button";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
+import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import {
   CopyText,
   LinkLogo,
@@ -191,7 +191,9 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
     cellRight: (cell) => {
       const meta = cell.column.columnDef.meta as ColumnMeta | undefined;
       return (
-        meta?.filterParams && <FilterButton set={meta.filterParams(cell)} />
+        meta?.filterParams && (
+          <FilterButtonTableRow set={meta.filterParams(cell)} />
+        )
       );
     },
     ...(!limit && {

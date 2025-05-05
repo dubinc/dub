@@ -7,6 +7,7 @@ import { CustomerProps } from "@/lib/types";
 import EditColumnsButton from "@/ui/analytics/events/edit-columns-button";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
+import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
   AnimatedSizeContainer,
@@ -33,7 +34,7 @@ import {
   getPrettyUrl,
   isClickOnInteractiveChild,
 } from "@dub/utils";
-import { Row } from "@tanstack/react-table";
+import { Cell, Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import Image from "next/image";
 import Link from "next/link";
@@ -44,6 +45,12 @@ import useSWR from "swr";
 import { EXAMPLE_CUSTOMER_DATA } from "./example-data";
 import { customersColumns, useColumnVisibility } from "./use-column-visibility";
 import { useCustomerFilters } from "./use-customer-filters";
+
+type ColumnMeta = {
+  filterParams?: (
+    args: Pick<Cell<CustomerProps, any>, "getValue">,
+  ) => Record<string, any>;
+};
 
 export function CustomerTable() {
   const { id: workspaceId, slug: workspaceSlug, plan } = useWorkspace();
@@ -108,6 +115,12 @@ export function CustomerTable() {
         {
           id: "country",
           header: "Country",
+          accessorKey: "country",
+          meta: {
+            filterParams: ({ getValue }) => ({
+              country: getValue(),
+            }),
+          },
           minSize: 150,
           cell: ({ row }) => {
             const country = row.original.country;
@@ -247,6 +260,14 @@ export function CustomerTable() {
         scroll: false,
       }),
     columnPinning: { right: ["menu"] },
+    cellRight: (cell) => {
+      const meta = cell.column.columnDef.meta as ColumnMeta | undefined;
+      return (
+        meta?.filterParams && (
+          <FilterButtonTableRow set={meta.filterParams(cell)} />
+        )
+      );
+    },
     thClassName: "border-l-0",
     tdClassName:
       "border-l-0 group-hover/row:bg-bg-muted transition-colors duration-75",

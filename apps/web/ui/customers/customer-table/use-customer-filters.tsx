@@ -62,11 +62,16 @@ export function useCustomerFilters(
               right: nFormatter(_count, { full: true }),
               permalink: `/${slug}/analytics?event=leads&country=${country}`,
             })) ?? [],
+        meta: {
+          filterParams: ({ getValue }) => ({
+            country: getValue(),
+          }),
+        },
       },
       {
         key: "linkId",
         icon: Hyperlink,
-        label: "Link",
+        label: "Referral link",
         options:
           linksCount?.map(({ linkId, shortLink, _count }) => ({
             value: linkId,
@@ -74,6 +79,11 @@ export function useCustomerFilters(
             right: nFormatter(_count, { full: true }),
             permalink: `/${slug}/links/${getPrettyUrl(shortLink)}`,
           })) ?? [],
+        meta: {
+          filterParams: ({ getValue }) => ({
+            linkId: getValue(),
+          }),
+        },
       },
     ],
     [countriesCount, linksCount],
