@@ -103,3 +103,10 @@ export const uploadedImageSchema = z
       }),
   ])
   .transform((v) => v || null);
+
+export const publicHostedImageSchema = z
+  .string()
+  .url()
+  .refine((url) => url.startsWith("http://") || url.startsWith("https://"), {
+    message: "Image URL must start with http:// or https://",
+  });
