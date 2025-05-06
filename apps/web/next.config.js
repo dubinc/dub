@@ -1,5 +1,6 @@
 const { PrismaPlugin } = require("@prisma/nextjs-monorepo-workaround-plugin");
 const { withAxiom } = require("next-axiom");
+const path = require("path");
 
 const REDIRECT_SEGMENTS = [
   "pricing",

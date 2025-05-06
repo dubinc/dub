@@ -147,7 +147,7 @@ export const PLANS = [
       folders: 20,
       users: 10,
       ai: 1000,
-      api: 3000,
+      api: 1200,
       retention: "3-year",
     },
     featureTitle: "Everything in Pro, plus:",
