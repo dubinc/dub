@@ -127,16 +127,21 @@ export const leadEventResponseSchema = z
     timestamp: z.coerce.string(),
     eventId: z.string(),
     eventName: z.string(),
-    metadata: z
-      .string()
-      .nullish()
-      .transform((val) => (val === "" ? null : val))
-      .default(null)
-      .openapi({ type: "string" }),
     // nested objects
     click: clickEventSchema,
     link: linkEventSchema,
     customer: CustomerSchema,
   })
   .merge(commonDeprecatedEventFields)
-  .openapi({ ref: "LeadEvent" });
+  .openapi({ ref: "LeadEvent", title: "LeadEvent" });
+
+export const leadEventResponseSchemaExtended = leadEventResponseSchema.merge(
+  z.object({
+    metadata: z
+      .string()
+      .nullish()
+      .transform((val) => (val === "" ? null : val))
+      .default(null)
+      .openapi({ type: "string" }),
+  }),
+);
