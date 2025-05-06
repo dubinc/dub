@@ -20,11 +20,13 @@ export const listEvents: ZodOpenApiOperationObject = {
       description: "A list of events",
       content: {
         "application/json": {
-          schema: z.union([
-            z.array(clickEventResponseSchema).openapi({ title: "ClickEvents" }),
-            z.array(leadEventResponseSchema).openapi({ title: "LeadEvents" }),
-            z.array(saleEventResponseSchema).openapi({ title: "SaleEvents" }),
-          ]),
+          schema: z.array(
+            z.discriminatedUnion("event", [
+              clickEventResponseSchema,
+              leadEventResponseSchema,
+              saleEventResponseSchema,
+            ]),
+          ),
         },
       },
     },

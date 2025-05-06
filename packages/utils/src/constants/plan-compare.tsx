@@ -368,7 +368,7 @@ export const PLAN_COMPARE_FEATURES: {
             <strong>
               {id === "enterprise"
                 ? "Custom"
-                : nFormatter(plan.limits.api) + "/min"}
+                : nFormatter(plan.limits.api, { full: true }) + "/min"}
             </strong>{" "}
             rate limit
           </>
