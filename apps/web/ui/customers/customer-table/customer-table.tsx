@@ -320,23 +320,31 @@ export function CustomerTable() {
                 </div>
                 <div className="relative -mt-4 flex flex-col items-center justify-center">
                   <span className="text-lg font-semibold text-neutral-700">
-                    Customers
+                    Customer Insights
                   </span>
                   <p className="mt-3 max-w-sm text-pretty text-sm text-neutral-500">
-                    Upgrade to our Business Plan to see more details about your
-                    customers, their activity, and how they&rsquo;ve impacted
-                    your business.
-                    {/* TODO: Add "Learn more" link once we have a help article */}
+                    Want to see more details about your customers' LTV, country
+                    breakdown etc.? Upgrade to our Business Plan to get deeper,
+                    real-time customer insights.{" "}
+                    <a
+                      href="https://dub.co/help"
+                      target="_blank"
+                      className="underline underline-offset-2 hover:text-neutral-800"
+                    >
+                      Learn more ↗
+                    </a>
                   </p>
-                  <div className="mt-8">
+                  <div className="mt-4">
                     <Link
                       href={`/${workspaceSlug}/upgrade`}
                       className={cn(
-                        buttonVariants({ variant: "primary" }),
-                        "flex h-10 items-center justify-center gap-2 rounded-md border px-4 text-sm",
+                        buttonVariants({ variant: "secondary" }),
+                        "flex h-8 items-center justify-center gap-2 rounded-md border px-4 text-sm",
                       )}
                     >
-                      Upgrade to Business
+                      <span className="bg-gradient-to-r from-violet-600 to-pink-600 bg-clip-text text-transparent">
+                        Upgrade to Business
+                      </span>
                     </Link>
                   </div>
                 </div>
