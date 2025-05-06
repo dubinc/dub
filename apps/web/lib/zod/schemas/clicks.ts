@@ -77,4 +77,4 @@ export const clickEventResponseSchema = z
     link: linkEventSchema,
   })
   .merge(commonDeprecatedEventFields)
-  .openapi({ ref: "ClickEvent" });
+  .openapi({ ref: "ClickEvent", title: "ClickEvent" });
