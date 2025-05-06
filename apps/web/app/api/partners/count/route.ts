@@ -24,7 +24,7 @@ export const GET = withWorkspace(
       programId,
     });
 
-    const { groupBy, status, country, rewardId, search, ids } =
+    const { groupBy, status, country, rewardId, search, ids, discountId } =
       partnersCountQuerySchema.parse(searchParams);
 
     const commonWhere: Prisma.PartnerWhereInput = {
@@ -50,6 +50,9 @@ export const GET = withWorkspace(
                     rewardId,
                   },
                 },
+              }),
+              ...(discountId && {
+                discountId,
               }),
             },
             every: {
@@ -81,6 +84,9 @@ export const GET = withWorkspace(
                 rewardId,
               },
             },
+          }),
+          ...(discountId && {
+            discountId,
           }),
           partner: {
             ...(country && {
@@ -161,6 +167,51 @@ export const GET = withWorkspace(
       return NextResponse.json(partnersWithReward);
     }
 
+    // Get partner count by discount
+    if (groupBy === "discountId") {
+      const [customDiscountsPartners, allDiscounts] = await Promise.all([
+        prisma.programEnrollment.groupBy({
+          by: ["discountId"],
+          where: {
+            programId,
+            status: status || { notIn: ["rejected", "banned"] },
+            discountId: { not: null },
+            partner: {
+              ...(country && {
+                country,
+              }),
+              ...commonWhere,
+            },
+          },
+          _count: true,
+        }),
+
+        prisma.discount.findMany({
+          where: {
+            programId,
+            id: {
+              not: program.defaultDiscountId ?? undefined,
+            },
+          },
+        }),
+      ]);
+
+      const partnersWithDiscount = allDiscounts
+        .map((discount) => {
+          const partnerCount = customDiscountsPartners.find(
+            (p) => p.discountId === discount.id,
+          )?._count;
+
+          return {
+            ...discount,
+            partnersCount: partnerCount ?? 0,
+          };
+        })
+        .sort((a, b) => (b.partnersCount ?? 0) - (a.partnersCount ?? 0));
+
+      return NextResponse.json(partnersWithDiscount);
+    }
+
     // Get absolute count of partners
     const count = await prisma.programEnrollment.count({
       where: {
@@ -172,6 +223,9 @@ export const GET = withWorkspace(
               rewardId,
             },
           },
+        }),
+        ...(discountId && {
+          discountId,
         }),
         partner: {
           ...(country && {

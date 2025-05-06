@@ -1,12 +1,14 @@
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { RewardProps } from "@/lib/types";
+import { DiscountProps, RewardProps } from "@/lib/types";
 import { REWARD_EVENTS } from "@/ui/partners/constants";
+import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { useRouterStuff } from "@dub/ui";
 import { CircleDotted, FlagWavy, Gift } from "@dub/ui/icons";
 import { cn, COUNTRIES, nFormatter } from "@dub/utils";
+import { BadgePercent } from "lucide-react";
 import { useMemo } from "react";
 
 export function usePartnerFilters(extraSearchParams: Record<string, string>) {
@@ -40,6 +42,15 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
     | undefined
   >({
     groupBy: "rewardId",
+  });
+
+  const { partnersCount: discountsCount } = usePartnersCount<
+    | (DiscountProps & {
+        partnersCount: number;
+      })[]
+    | undefined
+  >({
+    groupBy: "discountId",
   });
 
   const filters = useMemo(
@@ -81,6 +92,20 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
           }) ?? [],
       },
       {
+        key: "discountId",
+        icon: BadgePercent,
+        label: "Discount",
+        options:
+          discountsCount?.map((discount) => {
+            return {
+              value: discount.id,
+              label: formatDiscountDescription({ discount }),
+              icon: <BadgePercent className="size-4 bg-transparent" />,
+              right: nFormatter(discount.partnersCount, { full: true }),
+            };
+          }) ?? [],
+      },
+      {
         key: "status",
         icon: CircleDotted,
         label: "Status",
@@ -107,12 +132,13 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
   );
 
   const activeFilters = useMemo(() => {
-    const { status, country, rewardId } = searchParamsObj;
+    const { status, country, rewardId, discountId } = searchParamsObj;
 
     return [
       ...(status ? [{ key: "status", value: status }] : []),
       ...(country ? [{ key: "country", value: country }] : []),
       ...(rewardId ? [{ key: "rewardId", value: rewardId }] : []),
+      ...(discountId ? [{ key: "discountId", value: discountId }] : []),
     ];
   }, [searchParamsObj]);
 
@@ -131,7 +157,7 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
 
   const onRemoveAll = () =>
     queryParams({
-      del: ["status", "country", "rewardId", "search"],
+      del: ["status", "country", "rewardId", "discountId", "search"],
     });
 
   const searchQuery = useMemo(
