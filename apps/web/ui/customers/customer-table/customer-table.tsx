@@ -172,9 +172,10 @@ export function CustomerTable() {
           header: "Referral link",
           accessorKey: "link",
           meta: {
-            filterParams: ({ getValue }) => ({
-              linkId: getValue().id,
-            }),
+            filterParams: ({ getValue }) => {
+              const link = getValue();
+              return link ? { linkId: link.id } : undefined;
+            },
           },
           cell: ({ row }) =>
             row.original.link ? (
