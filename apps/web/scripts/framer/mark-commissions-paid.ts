@@ -3,7 +3,7 @@ import "dotenv-flow/config";
 import * as fs from "fs";
 import * as Papa from "papaparse";
 
-const eventIds: string[] = [];
+let eventIds: string[] = [];
 
 async function main() {
   Papa.parse(fs.createReadStream("framer_paid_event_ids.csv", "utf-8"), {
@@ -13,61 +13,41 @@ async function main() {
       eventIds.push(result.data.event_id);
     },
     complete: async () => {
-      //   const commissionsToUpdate = await prisma.commission.findMany({
-      //     where: {
-      //       eventId: { in: eventIds },
-      //     },
-      //     orderBy: {
-      //       createdAt: "asc",
-      //     },
-      //   });
-
-      //   console.log(
-      //     `Found ${commissionsToUpdate.length} commissions to mark as paid`,
-      //   );
-
-      //   const payoutsToUpdate = await prisma.commission.groupBy({
-      //     by: ["payoutId"],
-      //     where: {
-      //       eventId: { in: eventIds },
-      //     },
-      //     _count: true,
-      //     orderBy: {
-      //       _count: {
-      //         eventId: "desc",
-      //       },
-      //     },
-      //   });
-
-      //   console.log(
-      //     `Found ${payoutsToUpdate.length} payouts to update commission totals`,
-      //   );
-
-      const commissions = await prisma.commission.updateMany({
-        where: {
-          eventId: { in: eventIds },
-        },
-        data: {
-          status: "paid",
-          payoutId: null,
-        },
-      });
-
-      console.log(
-        `Updated ${commissions} commissions to have a payoutId of null`,
-      );
-
       const payoutIdsToUpdate = await prisma.commission.groupBy({
         by: ["payoutId"],
         where: {
           eventId: { in: eventIds },
+          payoutId: { not: null },
+        },
+        _count: true,
+        orderBy: {
+          _count: {
+            eventId: "desc",
+          },
         },
       });
 
-      for (const payout of payoutIdsToUpdate) {
+      console.log(payoutIdsToUpdate.slice(0, 50));
+
+      for (const payout of payoutIdsToUpdate.slice(0, 50)) {
         if (!payout.payoutId) {
           continue;
         }
+
+        const updateCommissions = await prisma.commission.updateMany({
+          where: {
+            payoutId: payout.payoutId,
+            eventId: { in: eventIds },
+          },
+          data: {
+            status: "paid",
+            payoutId: null,
+          },
+        });
+
+        console.log(
+          `Updated ${updateCommissions.count} commissions to have status "paid" and payoutId null`,
+        );
 
         const commissionGroupedByPayout = await prisma.commission.groupBy({
           by: ["payoutId"],
@@ -80,7 +60,9 @@ async function main() {
         });
 
         const finalCommissionAmount =
-          commissionGroupedByPayout[0]._sum.earnings;
+          commissionGroupedByPayout.length > 0
+            ? commissionGroupedByPayout[0]._sum.earnings
+            : null;
 
         if (!finalCommissionAmount) {
           console.log(
@@ -91,20 +73,19 @@ async function main() {
               id: payout.payoutId,
             },
           });
-          continue;
+        } else {
+          console.log(
+            `Updating payout ${payout.payoutId} with amount ${finalCommissionAmount}`,
+          );
+          await prisma.payout.update({
+            where: {
+              id: payout.payoutId,
+            },
+            data: {
+              amount: finalCommissionAmount,
+            },
+          });
         }
-
-        console.log(
-          `Updating payout ${payout.payoutId} with amount ${finalCommissionAmount}`,
-        );
-        await prisma.payout.update({
-          where: {
-            id: payout.payoutId,
-          },
-          data: {
-            amount: finalCommissionAmount,
-          },
-        });
       }
     },
   });
