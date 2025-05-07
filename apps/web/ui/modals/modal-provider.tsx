@@ -81,7 +81,7 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
 
   const workspace = useWorkspace();
   const [dotLinkOfferDismissed, _, { loading: loadingDotLinkOfferDismissed }] =
-    useWorkspaceStore<boolean>(STORE_KEYS.dotLinkOfferDismissed);
+    useWorkspaceStore<string>(STORE_KEYS.dotLinkOfferDismissed);
 
   const { AddWorkspaceModal, setShowAddWorkspaceModal } =
     useAddWorkspaceModal();
@@ -115,7 +115,7 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
   const { setShowImportRewardfulModal, ImportRewardfulModal } =
     useImportRewardfulModal();
 
-  const [showedUpgradedModal, setShowedUpgradedModal] = useState(false);
+  const [showedDotLinkModal, setShowedDotLinkModal] = useState(false);
 
   useEffect(() => {
     setShowProgramWelcomeModal(searchParams.has("onboarded-program"));
@@ -123,13 +123,13 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
 
     if (searchParams.has("upgraded")) {
       setShowUpgradedModal(true);
-      setShowedUpgradedModal(true);
+      setShowedDotLinkModal(true);
     }
   }, [searchParams]);
 
   // If another initial modal hasn't been opened, check/show the .link offer modal
   useEffect(() => {
-    if (showedUpgradedModal) return;
+    if (showedDotLinkModal) return;
 
     if (
       workspace?.plan &&
@@ -137,11 +137,13 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
       workspace?.domains?.length === 0 &&
       !workspace.dotLinkClaimed &&
       !loadingDotLinkOfferDismissed &&
-      dotLinkOfferDismissed !== true
-    )
+      dotLinkOfferDismissed === undefined
+    ) {
       setShowDotLinkOfferModal(true);
+      setShowedDotLinkModal(true);
+    }
   }, [
-    showedUpgradedModal,
+    showedDotLinkModal,
     workspace,
     loadingDotLinkOfferDismissed,
     dotLinkOfferDismissed,

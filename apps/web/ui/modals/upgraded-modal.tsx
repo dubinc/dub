@@ -29,7 +29,7 @@ function UpgradedModal({
 
   const { dotLinkClaimed } = useWorkspace();
   const [_, setDotLinkOfferDismissed, { mutateWorkspace }] =
-    useWorkspaceStore<boolean>(STORE_KEYS.dotLinkOfferDismissed);
+    useWorkspaceStore<string>(STORE_KEYS.dotLinkOfferDismissed);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
@@ -68,7 +68,7 @@ function UpgradedModal({
     queryParams({
       del: ["upgraded", "plan", "period"],
     });
-    await setDotLinkOfferDismissed(true);
+    await setDotLinkOfferDismissed(new Date().toISOString());
     mutateWorkspace();
   };
 

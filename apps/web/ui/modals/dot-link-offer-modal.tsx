@@ -31,13 +31,13 @@ function DotLinkOfferModal({
   setShowDotLinkOfferModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const [_, setDotLinkOfferDismissed, { mutateWorkspace }] =
-    useWorkspaceStore<boolean>(STORE_KEYS.dotLinkOfferDismissed);
+    useWorkspaceStore<string>(STORE_KEYS.dotLinkOfferDismissed);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
 
   const onClose = async () => {
-    await setDotLinkOfferDismissed(true);
+    await setDotLinkOfferDismissed(new Date().toISOString());
     mutateWorkspace();
   };
 
