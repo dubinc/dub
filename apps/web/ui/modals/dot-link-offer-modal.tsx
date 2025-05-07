@@ -129,15 +129,10 @@ export function useDotLinkOfferModal() {
 
   return useMemo(
     () => ({
-      showDotLinkOfferModal,
       setShowDotLinkOfferModal,
       DotLinkOfferModal: DotLinkOfferModalCallback,
     }),
-    [
-      showDotLinkOfferModal,
-      setShowDotLinkOfferModal,
-      DotLinkOfferModalCallback,
-    ],
+    [setShowDotLinkOfferModal, DotLinkOfferModalCallback],
   );
 }
 
