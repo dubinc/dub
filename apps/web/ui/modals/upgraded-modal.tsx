@@ -1,6 +1,6 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, Modal, useRouterStuff, useScrollProgress } from "@dub/ui";
-import { cn, getPlanDetails, PLANS, PRO_PLAN } from "@dub/utils";
+import { getPlanDetails, PLANS, PRO_PLAN } from "@dub/utils";
 import { usePlausible } from "next-plausible";
 import { useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
@@ -14,7 +14,6 @@ import {
   useState,
 } from "react";
 import { ModalHero } from "../shared/modal-hero";
-import { PlanFeatures } from "../workspaces/plan-features";
 
 function UpgradedModal({
   showUpgradedModal,
@@ -58,6 +57,8 @@ function UpgradedModal({
       ) ?? PRO_PLAN
     : undefined;
 
+  if (!plan) return null;
+
   return (
     <Modal
       showModal={showUpgradedModal}
@@ -70,40 +71,31 @@ function UpgradedModal({
     >
       <div className="flex flex-col">
         <ModalHero />
-        <div className="px-6 py-8 sm:px-12">
+        <div className="px-6 py-8 sm:px-8">
           <div className="relative">
             <div
               ref={scrollRef}
               onScroll={updateScrollProgress}
-              className="scrollbar-hide max-h-[calc(100vh-350px)] overflow-y-auto pb-6"
+              className="scrollbar-hide max-h-[calc(100vh-350px)] overflow-y-auto pb-6 text-left"
             >
-              <h1
-                className={cn(
-                  "text-lg font-medium text-neutral-950",
-                  plan ? "text-left" : "text-center",
-                )}
-              >
-                {plan
-                  ? `Dub ${plan.name} looks good on you!`
-                  : "Welcome to Dub!"}
+              <h1 className="text-lg font-semibold text-neutral-900">
+                Dub {plan?.name} looks good on you!
               </h1>
-              <p
-                className={cn(
-                  "mt-2 text-sm text-neutral-500",
-                  plan ? "text-left" : "text-center",
+              <p className="mt-2 text-sm text-neutral-600">
+                Thank you for upgrading to the {plan?.name} plan. You now have
+                access to more powerful features
+                {dotLinkClaimed ? (
+                  <> and higher limits.</>
+                ) : (
+                  <>
+                    , higher limits, and a{" "}
+                    <strong className="font-semibold text-neutral-800">
+                      free .link domain for 1 year
+                    </strong>
+                    .
+                  </>
                 )}
-              >
-                Thank you for upgrading to the {plan?.name} plan! You now have
-                access to more powerful features and higher limits.
               </p>
-              {plan && (
-                <>
-                  <h2 className="mb-2 mt-6 text-base font-medium text-neutral-950">
-                    Explore the benefits of your {plan.name} plan
-                  </h2>
-                  <PlanFeatures plan={plan.name} />
-                </>
-              )}
             </div>
             {/* Bottom scroll fade */}
             <div
@@ -114,8 +106,7 @@ function UpgradedModal({
           <Button
             type="button"
             variant="primary"
-            text="Get started"
-            className="mt-2"
+            text="Go to Dub"
             onClick={() =>
               queryParams({
                 del: ["onboarded", "upgraded", "plan", "period"],
