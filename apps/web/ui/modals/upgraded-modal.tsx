@@ -65,7 +65,6 @@ function UpgradedModal({
   if (!plan) return null;
 
   const onClose = async () => {
-    console.log("onClose");
     queryParams({
       del: ["upgraded", "plan", "period"],
     });

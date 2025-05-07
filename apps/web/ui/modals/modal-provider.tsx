@@ -129,7 +129,7 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
 
   // If another initial modal hasn't been opened, check/show the .link offer modal
   useEffect(() => {
-    if (showedUpgradedModal !== false) return;
+    if (showedUpgradedModal) return;
 
     if (
       workspace?.domains?.length === 0 &&
