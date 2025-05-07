@@ -63,6 +63,7 @@ export const maxDurationSchema = z.coerce
 // Base64 encoded image
 export const base64ImageSchema = z
   .string()
+  .trim()
   .regex(/^data:image\/(png|jpeg|jpg|gif|webp);base64,/, {
     message: "Invalid image format, supports only png, jpeg, jpg, gif, webp.",
   })
@@ -98,6 +99,7 @@ export const uploadedImageSchema = z
     z
       .string()
       .url()
+      .trim()
       .refine((url) => url.startsWith(R2_URL), {
         message: `URL must start with ${R2_URL}`,
       }),
@@ -107,6 +109,7 @@ export const uploadedImageSchema = z
 export const publicHostedImageSchema = z
   .string()
   .url()
+  .trim()
   .refine((url) => url.startsWith("http://") || url.startsWith("https://"), {
     message: "Image URL must start with http:// or https://",
   });
