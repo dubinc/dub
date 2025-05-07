@@ -13,6 +13,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { RegisterDomainForm } from "../domains/register-domain-form";
 import { ModalHero } from "../shared/modal-hero";
 
 function UpgradedModal({
@@ -96,6 +97,16 @@ function UpgradedModal({
                   </>
                 )}
               </p>
+              {!dotLinkClaimed && (
+                <div className="mt-6 rounded-xl border border-neutral-100 bg-neutral-50 p-4">
+                  <RegisterDomainForm
+                    onSuccess={() => {
+                      setShowUpgradedModal(false);
+                    }}
+                    onCancel={() => setShowUpgradedModal(false)}
+                  />
+                </div>
+              )}
             </div>
             {/* Bottom scroll fade */}
             <div
@@ -105,11 +116,15 @@ function UpgradedModal({
           </div>
           <Button
             type="button"
-            variant="primary"
-            text="Go to Dub"
+            variant={dotLinkClaimed ? "primary" : "secondary"}
+            text={
+              dotLinkClaimed
+                ? "Go to Dub"
+                : "No thanks, take me to the dashboard"
+            }
             onClick={() =>
               queryParams({
-                del: ["onboarded", "upgraded", "plan", "period"],
+                del: ["upgraded", "plan", "period"],
               })
             }
           />

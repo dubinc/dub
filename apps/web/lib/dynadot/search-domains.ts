@@ -65,7 +65,10 @@ export const searchDomainsAvailability = async ({
     });
   }
 
-  const data = schema.parse(await response.json());
+  const result = await response.json();
+  console.log({ DYNADOT_BASE_URL, searchParams, result });
+
+  const data = schema.parse(result);
 
   if (data.SearchResponse.ResponseCode === "-1") {
     throw new DubApiError({
