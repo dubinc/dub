@@ -68,6 +68,7 @@ function DotLinkOfferModal({
               </p>
               <div className="mt-6 rounded-xl border border-neutral-100 bg-neutral-50 p-4">
                 <RegisterDomainForm
+                  showTerms={false}
                   onSuccess={() => {
                     setShowDotLinkOfferModal(false);
                   }}
@@ -90,6 +91,18 @@ function DotLinkOfferModal({
               setShowDotLinkOfferModal(false);
             }}
           />
+          <p className="mt-6 text-pretty text-center text-xs text-neutral-500">
+            By claiming your .link domain, you agree to our{" "}
+            <a
+              href="https://dub.co/help/article/free-dot-link-domain#terms-and-conditions"
+              target="_blank"
+              className="underline transition-colors hover:text-neutral-700"
+            >
+              terms
+            </a>
+            .<br />
+            After the first year, your renewal is $12/year.
+          </p>
         </div>
       </div>
     </Modal>

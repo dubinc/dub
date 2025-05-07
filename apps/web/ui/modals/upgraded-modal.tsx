@@ -85,7 +85,7 @@ function UpgradedModal({
             <div
               ref={scrollRef}
               onScroll={updateScrollProgress}
-              className="scrollbar-hide max-h-[calc(100vh-350px)] overflow-y-auto pb-6 text-left"
+              className="scrollbar-hide max-h-[calc(100vh-400px)] overflow-y-auto pb-6 text-left"
             >
               <h1 className="text-lg font-semibold text-neutral-900">
                 Dub {plan?.name} looks good on you!
@@ -108,6 +108,7 @@ function UpgradedModal({
               {!dotLinkClaimed && (
                 <div className="mt-6 rounded-xl border border-neutral-100 bg-neutral-50 p-4">
                   <RegisterDomainForm
+                    showTerms={false}
                     onSuccess={() => {
                       setShowUpgradedModal(false);
                     }}
@@ -135,6 +136,20 @@ function UpgradedModal({
               setShowUpgradedModal(false);
             }}
           />
+          {!dotLinkClaimed && (
+            <p className="mt-6 text-pretty text-center text-xs text-neutral-500">
+              By claiming your .link domain, you agree to our{" "}
+              <a
+                href="https://dub.co/help/article/free-dot-link-domain#terms-and-conditions"
+                target="_blank"
+                className="underline transition-colors hover:text-neutral-700"
+              >
+                terms
+              </a>
+              .<br />
+              After the first year, your renewal is $12/year.
+            </p>
+          )}
         </div>
       </div>
     </Modal>

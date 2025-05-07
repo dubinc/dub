@@ -28,11 +28,13 @@ interface DomainSearchResult {
 export function RegisterDomainForm({
   variant = "default",
   saveOnly = false,
+  showTerms = true,
   onSuccess,
   onCancel,
 }: {
   variant?: "default" | "modal";
   saveOnly?: boolean; // Whether to only save the data without actually sending invites
+  showTerms?: boolean;
   onSuccess: (domain: string) => void;
   onCancel?: () => void;
 }) {
@@ -295,7 +297,7 @@ export function RegisterDomainForm({
             </div>
           )}
 
-        {searchedDomain && (
+        {searchedDomain && showTerms && (
           <p className="-my-2 text-pretty text-left text-sm text-neutral-400">
             By claiming your .link domain, you agree to our{" "}
             <a
@@ -305,7 +307,8 @@ export function RegisterDomainForm({
             >
               terms
             </a>
-            .
+            .<br />
+            After the first year, your renewal is $12/year.
           </p>
         )}
       </div>
