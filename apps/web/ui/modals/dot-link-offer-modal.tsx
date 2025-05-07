@@ -36,10 +36,17 @@ function DotLinkOfferModal({
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
 
+  const onClose = async () => {
+    setShowDotLinkOfferModal(false);
+    await setDotLinkOfferDismissed(new Date().toISOString());
+    mutateWorkspace();
+  };
+
   return (
     <Modal
       showModal={showDotLinkOfferModal}
       setShowModal={setShowDotLinkOfferModal}
+      onClose={onClose}
     >
       <div className="flex flex-col">
         <Hero />
@@ -86,9 +93,8 @@ function DotLinkOfferModal({
             variant="secondary"
             text="No thanks, maybe later"
             onClick={() => {
-              setDotLinkOfferDismissed(new Date().toISOString());
+              onClose();
               setShowDotLinkOfferModal(false);
-              mutateWorkspace();
             }}
           />
           <p className="mt-6 text-pretty text-center text-xs text-neutral-500">
