@@ -36,16 +36,10 @@ function DotLinkOfferModal({
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
 
-  const onClose = async () => {
-    await setDotLinkOfferDismissed(new Date().toISOString());
-    mutateWorkspace();
-  };
-
   return (
     <Modal
       showModal={showDotLinkOfferModal}
       setShowModal={setShowDotLinkOfferModal}
-      onClose={onClose}
     >
       <div className="flex flex-col">
         <Hero />
@@ -60,11 +54,16 @@ function DotLinkOfferModal({
                 Get more from your short links
               </h1>
               <p className="mt-2 text-sm text-neutral-600">
-                Increase your click-through rate by redeeming a{" "}
-                <strong className="font-semibold text-neutral-800">
-                  free .link domain for 1-year with your paid account
-                </strong>
-                .
+                Increase the click-through rates for your short links by
+                claiming a{" "}
+                <a
+                  href="https://dub.link/claim"
+                  target="_blank"
+                  className="cursor-help font-semibold text-neutral-800 underline decoration-dotted underline-offset-2"
+                >
+                  1-year free .link domain
+                </a>{" "}
+                on Dub.
               </p>
               <div className="mt-6 rounded-xl border border-neutral-100 bg-neutral-50 p-4">
                 <RegisterDomainForm
@@ -87,8 +86,9 @@ function DotLinkOfferModal({
             variant="secondary"
             text="No thanks, maybe later"
             onClick={() => {
-              onClose();
+              setDotLinkOfferDismissed(new Date().toISOString());
               setShowDotLinkOfferModal(false);
+              mutateWorkspace();
             }}
           />
           <p className="mt-6 text-pretty text-center text-xs text-neutral-500">

@@ -314,9 +314,8 @@ export function RegisterDomainForm({
       </div>
       <div
         className={cn(
-          "mt-8 flex justify-end gap-2",
-          variant === "modal" &&
-            "border-t border-neutral-200 px-4 py-4 sm:px-6",
+          "mt-4 flex justify-end gap-2",
+          variant === "modal" && "border-t border-neutral-200 p-4 sm:px-6",
         )}
       >
         {onCancel && variant === "modal" && (
