@@ -132,6 +132,8 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
     if (showedUpgradedModal) return;
 
     if (
+      workspace?.plan &&
+      workspace.plan !== "free" &&
       workspace?.domains?.length === 0 &&
       !workspace.dotLinkClaimed &&
       !loadingDotLinkOfferDismissed &&
