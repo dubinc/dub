@@ -127,7 +127,7 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
     }
   }, [searchParams]);
 
-  // If another initial modal hasn't been opened, check/show the .link offer modal
+  // If another dot link modal hasn't been opened, check/show the .link offer modal
   useEffect(() => {
     if (showedDotLinkModal) return;
 
