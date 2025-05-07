@@ -5,6 +5,7 @@ import {
   ExpandingArrow,
   useIntersectionObserver,
   useMediaQuery,
+  useRouterStuff,
 } from "@dub/ui";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -55,6 +56,7 @@ const LinkCardInner = memo(({ link }: { link: ResponseLink }) => {
   const searchParams = useSearchParams();
   const selectedFolderId = searchParams.get("folderId");
   const { slug, defaultFolderId } = useWorkspace();
+  const { queryParams } = useRouterStuff();
 
   const entry = useIntersectionObserver(ref);
   const isInView = entry?.isIntersecting;
@@ -102,7 +104,14 @@ const LinkCardInner = memo(({ link }: { link: ResponseLink }) => {
           showFolderIcon && {
             banner: (
               <Link
-                href={`/${slug}/links?folderId=${folder?.id}`}
+                href={
+                  folder
+                    ? (queryParams({
+                        set: { folderId: folder?.id || "" },
+                        getNewPath: true,
+                      }) as string)
+                    : "#"
+                }
                 className="group flex items-center justify-between gap-2 rounded-t-xl border-b border-neutral-100 bg-neutral-50 px-5 py-2 text-xs"
               >
                 <div className="flex items-center gap-1.5">
