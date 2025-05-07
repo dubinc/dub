@@ -8,6 +8,7 @@ import useWorkspace from "./use-workspace";
 
 export const STORE_KEYS = {
   conversionsOnboarding: "conversionsOnboarding",
+  dotLinkOfferDismissed: "dotLinkOfferDismissed",
 };
 
 export function useWorkspaceStore<T>(
@@ -17,14 +18,23 @@ export function useWorkspaceStore<T>(
   (value: T) => Promise<void>,
   { loading: boolean; mutateWorkspace: () => void },
 ] {
-  const { id: workspaceId, slug, store, loading } = useWorkspace();
+  const {
+    id: workspaceId,
+    slug,
+    store,
+    loading: loadingWorkspace,
+  } = useWorkspace();
+  const [loading, setLoading] = useState(loadingWorkspace);
 
   const { executeAsync } = useAction(updateWorkspaceStore);
   const [item, setItemState] = useState<T | undefined>(store?.[key]);
 
   useEffect(() => {
-    setItemState(store?.[key]);
-  }, [store]);
+    if (!loadingWorkspace) {
+      setItemState(store?.[key]);
+      setLoading(false);
+    }
+  }, [store, loadingWorkspace]);
 
   const setItem = async (value: T) => {
     setItemState(value);

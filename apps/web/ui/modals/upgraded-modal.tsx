@@ -1,4 +1,5 @@
 import useWorkspace from "@/lib/swr/use-workspace";
+import { STORE_KEYS, useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { Button, Modal, useRouterStuff, useScrollProgress } from "@dub/ui";
 import { getPlanDetails, PLANS, PRO_PLAN } from "@dub/utils";
 import { usePlausible } from "next-plausible";
@@ -27,6 +28,8 @@ function UpgradedModal({
   const searchParams = useSearchParams();
 
   const { dotLinkClaimed } = useWorkspace();
+  const [_, setDotLinkOfferDismissed, { mutateWorkspace }] =
+    useWorkspaceStore<boolean>(STORE_KEYS.dotLinkOfferDismissed);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
@@ -48,6 +51,7 @@ function UpgradedModal({
       }
     }
   };
+
   useEffect(() => {
     handlePlanUpgrade();
   }, [searchParams, planId]);
@@ -60,15 +64,20 @@ function UpgradedModal({
 
   if (!plan) return null;
 
+  const onClose = async () => {
+    console.log("onClose");
+    queryParams({
+      del: ["upgraded", "plan", "period"],
+    });
+    await setDotLinkOfferDismissed(true);
+    mutateWorkspace();
+  };
+
   return (
     <Modal
       showModal={showUpgradedModal}
       setShowModal={setShowUpgradedModal}
-      onClose={() =>
-        queryParams({
-          del: ["onboarded", "upgraded", "plan", "period"],
-        })
-      }
+      onClose={onClose}
     >
       <div className="flex flex-col">
         <ModalHero />
@@ -122,11 +131,10 @@ function UpgradedModal({
                 ? "Go to Dub"
                 : "No thanks, take me to the dashboard"
             }
-            onClick={() =>
-              queryParams({
-                del: ["upgraded", "plan", "period"],
-              })
-            }
+            onClick={() => {
+              onClose();
+              setShowUpgradedModal(false);
+            }}
           />
         </div>
       </div>

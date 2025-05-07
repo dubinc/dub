@@ -2,6 +2,7 @@
 
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { STORE_KEYS, useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { SimpleLinkProps } from "@/lib/types";
 import { useAcceptInviteModal } from "@/ui/modals/accept-invite-modal";
@@ -22,9 +23,11 @@ import {
   createContext,
   useEffect,
   useMemo,
+  useState,
 } from "react";
 import { toast } from "sonner";
 import { useAddEditTagModal } from "./add-edit-tag-modal";
+import { useDotLinkOfferModal } from "./dot-link-offer-modal";
 import { useImportRebrandlyModal } from "./import-rebrandly-modal";
 import { useImportRewardfulModal } from "./import-rewardful-modal";
 import { useLinkBuilder } from "./link-builder";
@@ -76,6 +79,10 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
     }
   }, [searchParams]);
 
+  const workspace = useWorkspace();
+  const [dotLinkOfferDismissed, _, { loading: loadingDotLinkOfferDismissed }] =
+    useWorkspaceStore<boolean>(STORE_KEYS.dotLinkOfferDismissed);
+
   const { AddWorkspaceModal, setShowAddWorkspaceModal } =
     useAddWorkspaceModal();
   const { AcceptInviteModal, setShowAcceptInviteModal } =
@@ -103,14 +110,40 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
   const { setShowUpgradedModal, UpgradedModal } = useUpgradedModal();
   const { setShowProgramWelcomeModal, ProgramWelcomeModal } =
     useProgramWelcomeModal();
+  const { setShowDotLinkOfferModal, DotLinkOfferModal } =
+    useDotLinkOfferModal();
   const { setShowImportRewardfulModal, ImportRewardfulModal } =
     useImportRewardfulModal();
+
+  const [showedUpgradedModal, setShowedUpgradedModal] = useState(false);
 
   useEffect(() => {
     setShowProgramWelcomeModal(searchParams.has("onboarded-program"));
     setShowWelcomeModal(searchParams.has("onboarded"));
-    setShowUpgradedModal(searchParams.has("upgraded"));
+
+    if (searchParams.has("upgraded")) {
+      setShowUpgradedModal(true);
+      setShowedUpgradedModal(true);
+    }
   }, [searchParams]);
+
+  // If another initial modal hasn't been opened, check/show the .link offer modal
+  useEffect(() => {
+    if (showedUpgradedModal !== false) return;
+
+    if (
+      workspace?.domains?.length === 0 &&
+      !workspace.dotLinkClaimed &&
+      !loadingDotLinkOfferDismissed &&
+      dotLinkOfferDismissed !== true
+    )
+      setShowDotLinkOfferModal(true);
+  }, [
+    showedUpgradedModal,
+    workspace,
+    loadingDotLinkOfferDismissed,
+    dotLinkOfferDismissed,
+  ]);
 
   const [hashes, setHashes] = useCookies<SimpleLinkProps[]>("hashes__dub", [], {
     domain: !!process.env.NEXT_PUBLIC_VERCEL_URL ? ".dub.co" : undefined,
@@ -209,6 +242,7 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
       <WelcomeModal />
       <UpgradedModal />
       <ProgramWelcomeModal />
+      <DotLinkOfferModal />
       {children}
     </ModalContext.Provider>
   );
