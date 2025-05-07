@@ -93,12 +93,13 @@ function WorkspaceLinks() {
 
     // We show the .link offer modal if:
     // - The upgraded modal is not open
-    // - The user has a paid plan
+    // - The user has a paid plan (and valid stripe ID)
     // - The user has no custom domains
     // - The user has not claimed their .link domain
     // - The user has not dismissed the .link offer modal
     if (
       !searchParams.has("upgraded") &&
+      workspace.stripeId &&
       workspace.plan &&
       workspace.plan !== "free" &&
       workspace.domains?.length === 0 &&
