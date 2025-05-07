@@ -1,5 +1,18 @@
+import useWorkspace from "@/lib/swr/use-workspace";
 import { STORE_KEYS, useWorkspaceStore } from "@/lib/swr/use-workspace-store";
-import { Button, Modal, useScrollProgress } from "@dub/ui";
+import {
+  ArrowTurnRight2,
+  Button,
+  CursorRays,
+  Globe,
+  Grid,
+  InvoiceDollar,
+  Modal,
+  UserCheck,
+  useScrollProgress,
+} from "@dub/ui";
+import { cn } from "@dub/utils";
+import slugify from "@sindresorhus/slugify";
 import {
   Dispatch,
   SetStateAction,
@@ -9,7 +22,6 @@ import {
   useState,
 } from "react";
 import { RegisterDomainForm } from "../domains/register-domain-form";
-import { ModalHero } from "../shared/modal-hero";
 
 function DotLinkOfferModal({
   showDotLinkOfferModal,
@@ -36,7 +48,7 @@ function DotLinkOfferModal({
       onClose={onClose}
     >
       <div className="flex flex-col">
-        <ModalHero />
+        <Hero />
         <div className="px-6 py-8 sm:px-8">
           <div className="relative">
             <div
@@ -102,5 +114,95 @@ export function useDotLinkOfferModal() {
       DotLinkOfferModal: DotLinkOfferModalCallback,
     }),
     [setShowDotLinkOfferModal, DotLinkOfferModalCallback],
+  );
+}
+
+export function Hero() {
+  const { slug } = useWorkspace();
+
+  return (
+    <div className="relative h-[140px] w-full overflow-hidden bg-white">
+      <BackgroundGradient className="opacity-5" />
+      <Grid
+        className="text-neutral-300"
+        cellSize={20}
+        patternOffset={[-15, -9]}
+      />
+      <BackgroundGradient className="opacity-80 mix-blend-overlay" />
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute left-6 top-1/2 flex h-[81px] w-full -translate-y-1/2 items-center gap-12 rounded-xl border border-neutral-200 bg-white p-4">
+          <div className="flex min-w-0 items-center gap-4">
+            <div className="hidden rounded-full border border-neutral-200 sm:block">
+              <div className="rounded-full border border-white bg-gradient-to-t from-neutral-100 p-1 md:p-2">
+                <Globe className="size-5" />
+              </div>
+            </div>
+            <div className="overflow-hidden">
+              <div className="flex items-center gap-1.5 sm:gap-2.5">
+                <span className="truncate text-sm font-medium">
+                  {slugify(slug || "acme")}.link
+                </span>
+              </div>
+              <div className="mt-1 flex items-center gap-1 text-xs">
+                <ArrowTurnRight2 className="h-3 w-3 text-neutral-400" />
+                <span className="truncate text-neutral-400">
+                  yourwebsite.com
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex grow items-center gap-2 rounded-lg border border-neutral-200 p-1 text-xs text-neutral-900">
+            {[
+              {
+                id: "clicks",
+                icon: CursorRays,
+                value: 830,
+                iconClassName: "text-blue-500",
+              },
+              {
+                id: "leads",
+                icon: UserCheck,
+                value: 415,
+                className: "hidden sm:flex",
+                iconClassName: "text-purple-500",
+              },
+              {
+                id: "sales",
+                icon: InvoiceDollar,
+                value: 200,
+                className: "hidden sm:flex",
+                iconClassName: "text-teal-500",
+              },
+            ].map(({ id, icon: Icon, value, iconClassName }) => (
+              <div
+                key={id}
+                className="flex items-center gap-1.5 whitespace-nowrap rounded-md px-1 py-px"
+              >
+                <Icon
+                  data-active={value > 0}
+                  className={cn("size-4 shrink-0", iconClassName)}
+                />
+                <span>{value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BackgroundGradient({ className }: { className?: string }) {
+  return (
+    <div className={cn("absolute inset-0 w-full overflow-hidden", className)}>
+      <div
+        className="absolute inset-0 saturate-150"
+        style={{
+          backgroundImage: `conic-gradient(from -66deg, #855AFC -32deg, #FF0000 63deg, #EAB308 158deg, #5CFF80 240deg, #855AFC 328deg, #FF0000 423deg)`,
+        }}
+      />
+      <div className="absolute inset-0 backdrop-blur-[20px]" />
+    </div>
   );
 }
