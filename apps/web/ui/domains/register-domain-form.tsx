@@ -298,7 +298,7 @@ export function RegisterDomainForm({
           )}
 
         {searchedDomain && showTerms && (
-          <p className="-my-2 text-pretty text-left text-sm text-neutral-400">
+          <p className="-my-2 text-pretty text-center text-xs text-neutral-500">
             By claiming your .link domain, you agree to our{" "}
             <a
               href="https://dub.co/help/article/free-dot-link-domain#terms-and-conditions"

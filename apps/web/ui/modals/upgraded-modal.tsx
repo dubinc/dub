@@ -94,13 +94,17 @@ function UpgradedModal({
                 Thank you for upgrading to the {plan?.name} plan. You now have
                 access to more powerful features
                 {dotLinkClaimed ? (
-                  <> and higher limits.</>
+                  <> and higher usage limits.</>
                 ) : (
                   <>
-                    , higher limits, and a{" "}
-                    <strong className="font-semibold text-neutral-800">
-                      free .link domain for 1 year
-                    </strong>
+                    , higher usage limits, and a{" "}
+                    <a
+                      href="https://dub.link/claim"
+                      target="_blank"
+                      className="cursor-help font-semibold text-neutral-800 underline decoration-dotted underline-offset-2"
+                    >
+                      1-year free .link domain
+                    </a>
                     .
                   </>
                 )}
