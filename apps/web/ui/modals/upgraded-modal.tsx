@@ -1,3 +1,4 @@
+import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, Modal, useRouterStuff, useScrollProgress } from "@dub/ui";
 import { cn, getPlanDetails, PLANS, PRO_PLAN } from "@dub/utils";
 import { usePlausible } from "next-plausible";
@@ -15,15 +16,17 @@ import {
 import { ModalHero } from "../shared/modal-hero";
 import { PlanFeatures } from "../workspaces/plan-features";
 
-function WelcomeModal({
-  showWelcomeModal,
-  setShowWelcomeModal,
+function UpgradedModal({
+  showUpgradedModal,
+  setShowUpgradedModal,
 }: {
-  showWelcomeModal: boolean;
-  setShowWelcomeModal: Dispatch<SetStateAction<boolean>>;
+  showUpgradedModal: boolean;
+  setShowUpgradedModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const { queryParams } = useRouterStuff();
   const searchParams = useSearchParams();
+
+  const { dotLinkClaimed } = useWorkspace();
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
@@ -57,8 +60,8 @@ function WelcomeModal({
 
   return (
     <Modal
-      showModal={showWelcomeModal}
-      setShowModal={setShowWelcomeModal}
+      showModal={showUpgradedModal}
+      setShowModal={setShowUpgradedModal}
       onClose={() =>
         queryParams({
           del: ["onboarded", "upgraded", "plan", "period"],
@@ -90,9 +93,8 @@ function WelcomeModal({
                   plan ? "text-left" : "text-center",
                 )}
               >
-                Thanks for signing up – your account is ready to go! Now you
-                have one central, organized place to build and manage all your
-                short links.
+                Thank you for upgrading to the {plan?.name} plan! You now have
+                access to more powerful features and higher limits.
               </p>
               {plan && (
                 <>
@@ -126,23 +128,23 @@ function WelcomeModal({
   );
 }
 
-export function useWelcomeModal() {
-  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+export function useUpgradedModal() {
+  const [showUpgradedModal, setShowUpgradedModal] = useState(false);
 
-  const WelcomeModalCallback = useCallback(() => {
+  const UpgradedModalCallback = useCallback(() => {
     return (
-      <WelcomeModal
-        showWelcomeModal={showWelcomeModal}
-        setShowWelcomeModal={setShowWelcomeModal}
+      <UpgradedModal
+        showUpgradedModal={showUpgradedModal}
+        setShowUpgradedModal={setShowUpgradedModal}
       />
     );
-  }, [showWelcomeModal, setShowWelcomeModal]);
+  }, [showUpgradedModal, setShowUpgradedModal]);
 
   return useMemo(
     () => ({
-      setShowWelcomeModal,
-      WelcomeModal: WelcomeModalCallback,
+      setShowUpgradedModal,
+      UpgradedModal: UpgradedModalCallback,
     }),
-    [setShowWelcomeModal, WelcomeModalCallback],
+    [setShowUpgradedModal, UpgradedModalCallback],
   );
 }

@@ -29,6 +29,7 @@ import { useImportRebrandlyModal } from "./import-rebrandly-modal";
 import { useImportRewardfulModal } from "./import-rewardful-modal";
 import { useLinkBuilder } from "./link-builder";
 import { useProgramWelcomeModal } from "./program-welcome-modal";
+import { useUpgradedModal } from "./upgraded-modal";
 import { useWelcomeModal } from "./welcome-modal";
 
 export const ModalContext = createContext<{
@@ -99,6 +100,7 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
     useImportRebrandlyModal();
   const { setShowImportCsvModal, ImportCsvModal } = useImportCsvModal();
   const { setShowWelcomeModal, WelcomeModal } = useWelcomeModal();
+  const { setShowUpgradedModal, UpgradedModal } = useUpgradedModal();
   const { setShowProgramWelcomeModal, ProgramWelcomeModal } =
     useProgramWelcomeModal();
   const { setShowImportRewardfulModal, ImportRewardfulModal } =
@@ -106,9 +108,8 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setShowProgramWelcomeModal(searchParams.has("onboarded-program"));
-    setShowWelcomeModal(
-      searchParams.has("onboarded") || searchParams.has("upgraded"),
-    );
+    setShowWelcomeModal(searchParams.has("onboarded"));
+    setShowUpgradedModal(searchParams.has("upgraded"));
   }, [searchParams]);
 
   const [hashes, setHashes] = useCookies<SimpleLinkProps[]>("hashes__dub", [], {
@@ -206,6 +207,7 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
       <ImportCsvModal />
       <ImportRewardfulModal />
       <WelcomeModal />
+      <UpgradedModal />
       <ProgramWelcomeModal />
       {children}
     </ModalContext.Provider>
