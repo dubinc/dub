@@ -172,27 +172,29 @@ export const createAndEnrollPartner = async ({
                 partnerId: upsertedPartner.id,
                 programId: program.id,
               }),
-            // upload partner image to R2
-            partner.image &&
-              !isStored(partner.image) &&
-              storage
-                .upload(
-                  `partners/${upsertedPartner.id}/image_${nanoid(7)}`,
-                  partner.image,
-                )
-                .then(async ({ url }) => {
-                  await prisma.partner.update({
-                    where: {
-                      id: upsertedPartner.id,
-                    },
-                    data: {
-                      image: url,
-                    },
-                  });
-                }),
           ]),
         ),
 
+      // upload partner image to R2
+      partner.image &&
+        !isStored(partner.image) &&
+        storage
+          .upload(
+            `partners/${upsertedPartner.id}/image_${nanoid(7)}`,
+            partner.image,
+          )
+          .then(async ({ url }) => {
+            await prisma.partner.update({
+              where: {
+                id: upsertedPartner.id,
+              },
+              data: {
+                image: url,
+              },
+            });
+          }),
+
+      // send partner.enrolled webhook
       sendWorkspaceWebhook({
         workspace,
         trigger: "partner.enrolled",

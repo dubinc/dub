@@ -1,5 +1,6 @@
 import { generateRandomName } from "@/lib/names";
-import { Link } from "@dub/prisma/client";
+import { Link, Partner } from "@dub/prisma/client";
+import { R2_URL } from "@dub/utils";
 import { describe, expect, test } from "vitest";
 import { randomEmail, randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
@@ -61,7 +62,6 @@ describe.sequential("POST /partners", async () => {
     const partner = {
       name: generateRandomName(),
       email: randomEmail(),
-      image: `https://api.dicebear.com/9.x/micah/png?seed=${randomId()}`,
       tenantId: randomId(),
       description: "A description of the partner",
       country: "US",
@@ -72,6 +72,7 @@ describe.sequential("POST /partners", async () => {
       body: {
         programId: E2E_PROGRAM.id,
         ...partner,
+        image: `https://api.dicebear.com/9.x/micah/png?seed=${partner.tenantId}`,
       },
     });
 
@@ -80,6 +81,17 @@ describe.sequential("POST /partners", async () => {
       ...expectedPartner,
       ...partner,
     });
+
+    // wait 1s, and then request the partners/[partnerId] endpoint
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    const { data: partnerData } = await http.get<Partner>({
+      path: `/partners/${data.id}?programId=${E2E_PROGRAM.id}`,
+    });
+
+    // make sure the image is successfully stored in R2
+    expect(partnerData.image).toMatch(
+      new RegExp(`^${R2_URL}/partners/${data.id}/image_.*`),
+    );
   });
 
   test("with link props", async () => {
