@@ -11,7 +11,6 @@ model Domain {
   logo                    String?
   appleAppSiteAssociation Json?
   assetLinks              Json?
-  links                   Link[]
   project                 Project?          @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId               String?
   registeredDomain        RegisteredDomain?
