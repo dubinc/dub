@@ -19,7 +19,7 @@ export const GET = withReferralsEmbedToken(async ({ program }) => {
       FROM 
         ProgramEnrollment pe
       INNER JOIN 
-        Partner p ON p.id = pe.partnerId AND p.showOnLeaderboard = true
+        Partner p ON p.id = pe.partnerId
       LEFT JOIN (
         SELECT 
           partnerId,

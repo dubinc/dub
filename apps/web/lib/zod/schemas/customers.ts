@@ -26,11 +26,36 @@ export const getCustomersQuerySchema = z
       .describe(
         "A search query to filter customers by email, externalId, or name. If `email` or `externalId` is provided, this will be ignored.",
       ),
+    country: z
+      .string()
+      .optional()
+      .describe(
+        "A filter on the list based on the customer's `country` field.",
+      ),
+    linkId: z
+      .string()
+      .optional()
+      .describe(
+        "A filter on the list based on the customer's `linkId` field (the referral link ID).",
+      ),
     includeExpandedFields: booleanQuerySchema
       .optional()
       .describe(
         "Whether to include expanded fields on the customer (`link`, `partner`, `discount`).",
       ),
+
+    sortBy: z
+      .enum(["createdAt", "saleAmount"])
+      .optional()
+      .default("createdAt")
+      .describe(
+        "The field to sort the customers by. The default is `createdAt`.",
+      ),
+    sortOrder: z
+      .enum(["asc", "desc"])
+      .optional()
+      .default("desc")
+      .describe("The sort order. The default is `desc`."),
   })
   .merge(getPaginationQuerySchema({ pageSize: CUSTOMERS_MAX_PAGE_SIZE }));
 
@@ -44,11 +69,15 @@ export const getCustomersQuerySchemaExtended = getCustomersQuerySchema.merge(
   }),
 );
 
-export const getCustomersCountQuerySchema = getCustomersQuerySchema.omit({
-  includeExpandedFields: true,
-  page: true,
-  pageSize: true,
-});
+export const getCustomersCountQuerySchema = getCustomersQuerySchema
+  .omit({
+    includeExpandedFields: true,
+    page: true,
+    pageSize: true,
+    sortBy: true,
+    sortOrder: true,
+  })
+  .extend({ groupBy: z.enum(["country", "linkId"]).optional() });
 
 export const createCustomerBodySchema = z.object({
   email: z
@@ -87,6 +116,14 @@ export const CustomerSchema = z.object({
   email: z.string().nullish().describe("Email of the customer."),
   avatar: z.string().nullish().describe("Avatar URL of the customer."),
   country: z.string().nullish().describe("Country of the customer."),
+  sales: z
+    .number()
+    .nullish()
+    .describe("Total number of sales for the customer."),
+  saleAmount: z
+    .number()
+    .nullish()
+    .describe("Total amount of sales for the customer."),
   createdAt: z.date().describe("The date the customer was created."),
 });
 
@@ -97,6 +134,7 @@ export const CustomerEnrichedSchema = CustomerSchema.extend({
     domain: true,
     key: true,
     shortLink: true,
+    url: true,
     programId: true,
   }).nullish(),
   programId: z.string().nullish(),
