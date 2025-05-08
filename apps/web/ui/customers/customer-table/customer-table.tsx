@@ -168,7 +168,7 @@ export function CustomerTable() {
         },
         {
           id: "link",
-          header: "Referral link",
+          header: "Link",
           accessorKey: "link",
           meta: {
             filterParams: ({ getValue }) => {

@@ -72,7 +72,7 @@ export function useCustomerFilters(
       {
         key: "linkId",
         icon: Hyperlink,
-        label: "Referral link",
+        label: "Link",
         getOptionIcon: (_value, props) => (
           <LinkLogo
             apexDomain={getApexDomain(props.option?.data?.url)}
