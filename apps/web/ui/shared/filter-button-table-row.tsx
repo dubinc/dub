@@ -1,12 +1,24 @@
 import { useRouterStuff } from "@dub/ui";
 import { FilterBars } from "@dub/ui/icons";
+import { cn } from "@dub/utils";
 import Link from "next/link";
 
-export default function FilterButton({ set }: { set: Record<string, any> }) {
+export function FilterButtonTableRow({
+  set,
+  className,
+}: {
+  set: Record<string, any>;
+  className?: string;
+}) {
   const { queryParams } = useRouterStuff();
 
   return (
-    <div className="absolute right-1 top-0 flex h-full shrink-0 translate-x-3 items-center justify-center bg-[linear-gradient(to_right,transparent,white_10%)] p-2 opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100">
+    <div
+      className={cn(
+        "absolute right-1 top-0 flex h-full shrink-0 translate-x-3 items-center justify-center p-2 opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100",
+        className,
+      )}
+    >
       <Link
         href={
           queryParams({

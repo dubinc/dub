@@ -203,12 +203,12 @@ export const PLANS = [
       },
       {
         id: "roles",
-        text: "Folders RBAC",
+        text: "Customer insights",
         tooltip: {
           title:
-            "Limit access to your links using fine-grained role-based access controls (write-access, read-only, no access).",
+            "Get real-time insights into your customers' behavior and preferences.",
           cta: "Learn more.",
-          href: "https://dub.co/help/article/folders-rbac",
+          href: "https://dub.co/help/article/customer-insights",
         },
       },
       {

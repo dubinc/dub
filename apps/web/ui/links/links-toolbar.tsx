@@ -293,14 +293,18 @@ export const LinksToolbar = memo(
                       )}
                     >
                       {bulkActions.map(
-                        ({
-                          label,
-                          icon: Icon,
-                          action,
-                          disabledTooltip,
-                          keyboardShortcut,
-                        }) => (
+                        (
+                          {
+                            label,
+                            icon: Icon,
+                            action,
+                            disabledTooltip,
+                            keyboardShortcut,
+                          },
+                          idx,
+                        ) => (
                           <Button
+                            key={idx}
                             type="button"
                             variant="secondary"
                             className="xs:px-2.5 h-7 gap-1.5 px-2 text-xs min-[1120px]:pr-1.5"

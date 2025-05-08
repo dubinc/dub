@@ -46,10 +46,14 @@ export const GET = withWorkspace(
       email,
       externalId,
       search,
+      country,
+      linkId,
       includeExpandedFields,
       page,
       pageSize,
       customerIds,
+      sortBy,
+      sortOrder,
     } = getCustomersQuerySchemaExtended.parse(searchParams);
 
     const customers = (await prisma.customer.findMany({
@@ -64,18 +68,24 @@ export const GET = withWorkspace(
           ? { email }
           : externalId
             ? { externalId }
-            : search
-              ? {
+            : {
+                ...(search && {
                   OR: [
                     { email: { startsWith: search } },
                     { externalId: { startsWith: search } },
                     { name: { startsWith: search } },
                   ],
-                }
-              : {}),
+                }),
+                ...(country && {
+                  country,
+                }),
+                ...(linkId && {
+                  linkId,
+                }),
+              }),
       },
       orderBy: {
-        createdAt: "desc",
+        [sortBy]: sortOrder,
       },
       skip: (page - 1) * pageSize,
       take: pageSize,

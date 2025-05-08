@@ -1,7 +1,11 @@
+import { storage } from "@/lib/storage";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
+import { R2_URL } from "@dub/utils";
 import { bulkDeleteLinks } from "../links/bulk-delete-links";
 
+// delete partner and all associated links, customers, payouts, and commissions
+// currently only used for the cron/cleanup job
 export async function deletePartner({ partnerId }: { partnerId: string }) {
   const partner = await prisma.partner.findUnique({
     where: {
@@ -61,5 +65,9 @@ export async function deletePartner({ partnerId }: { partnerId: string }) {
 
   if (partner.stripeConnectId) {
     await stripe.accounts.del(partner.stripeConnectId);
+  }
+
+  if (partner.image && partner.image.startsWith(R2_URL)) {
+    await storage.delete(partner.image.replace(`${R2_URL}/`, ""));
   }
 }

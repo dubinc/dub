@@ -11,8 +11,9 @@ import { Icon } from "./icons";
 
 const menuItemVariants = cva(
   [
-    "flex h-9 w-full rounded-md px-2 items-center justify-center gap-2 transition-colors",
-    "whitespace-nowrap text-sm font-medium text-content-default hover:bg-bg-subtle transition-colors",
+    "flex h-9 w-full rounded-md px-2 items-center justify-center gap-2 transition-colors cursor-pointer",
+    "whitespace-nowrap text-sm font-medium text-content-default enabled:hover:bg-bg-subtle transition-colors",
+    "disabled:opacity-50 disabled:cursor-default",
   ],
   {
     variants: {
