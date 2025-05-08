@@ -180,8 +180,8 @@ export const createAndEnrollPartner = async ({
                   `partners/${upsertedPartner.id}/image_${nanoid(7)}`,
                   partner.image,
                 )
-                .then(({ url }) => {
-                  prisma.partner.update({
+                .then(async ({ url }) => {
+                  await prisma.partner.update({
                     where: {
                       id: upsertedPartner.id,
                     },
