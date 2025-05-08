@@ -25,14 +25,10 @@ export function LinkBuilderHeader({
   onSelectLink,
   children,
   className,
-  foldersEnabled,
-  linkToFolder,
 }: PropsWithChildren<{
   onClose?: () => void;
   onSelectLink?: (link: LinkProps) => void;
   className?: string;
-  foldersEnabled?: boolean;
-  linkToFolder?: boolean;
 }>) {
   const { props, workspace } = useLinkBuilderContext();
   const { isDirty } = useFormState();
@@ -60,12 +56,6 @@ export function LinkBuilderHeader({
   });
 
   const folderContent = useMemo(() => {
-    if (!foldersEnabled) {
-      return (
-        <span className="text-sm font-semibold text-neutral-800">Links</span>
-      );
-    }
-
     if (folderId && folderId !== "unsorted" && folder?.id !== folderId)
       return (
         <div className="h-7 w-24 animate-pulse rounded-md bg-neutral-200" />
@@ -84,7 +74,7 @@ export function LinkBuilderHeader({
         </span>
       </>
     );
-  }, [foldersEnabled, folderId, folder, isFolderLoading]);
+  }, [folderId, folder, isFolderLoading]);
 
   return (
     <div
@@ -94,36 +84,32 @@ export function LinkBuilderHeader({
       )}
     >
       <div className="flex min-w-0 max-w-full items-center gap-1">
-        {foldersEnabled && (
-          <>
-            {linkToFolder && canAddFolder ? (
-              <Link
-                href={`/${workspace.slug}/links?folderId=${folderId ?? "unsorted"}`}
-                className="flex min-w-0 items-center gap-2 rounded-md py-1 pl-1 pr-2 hover:bg-neutral-100"
-                onClick={
-                  isDirty
-                    ? (e) => {
-                        if (
-                          !window.confirm(
-                            "Are you sure you want to discard your changes and continue?",
-                          )
-                        )
-                          e.preventDefault();
-                      }
-                    : undefined
-                }
-              >
-                {folderContent}
-              </Link>
-            ) : (
-              <div className="flex min-w-0 items-center gap-2 px-1.5">
-                {folderContent}
-              </div>
-            )}
-
-            <ChevronRight className="hidden size-4 shrink-0 text-neutral-500 md:block" />
-          </>
+        {canAddFolder ? (
+          <Link
+            href={`/${workspace.slug}/links?folderId=${folderId ?? "unsorted"}`}
+            className="flex min-w-0 items-center gap-2 rounded-md py-1 pl-1 pr-2 hover:bg-neutral-100"
+            onClick={
+              isDirty
+                ? (e) => {
+                    if (
+                      !window.confirm(
+                        "Are you sure you want to discard your changes and continue?",
+                      )
+                    )
+                      e.preventDefault();
+                  }
+                : undefined
+            }
+          >
+            {folderContent}
+          </Link>
+        ) : (
+          <div className="flex min-w-0 items-center gap-2 px-1.5">
+            {folderContent}
+          </div>
         )}
+
+        <ChevronRight className="hidden size-4 shrink-0 text-neutral-500 md:block" />
         {onSelectLink ? (
           <div className="min-w-0">
             <LinkSelector

@@ -139,13 +139,14 @@ export const PartnerSchema = z
     country: z.string().nullable(),
     status: z.nativeEnum(PartnerStatus),
     stripeConnectId: z.string().nullable(),
+    paypalEmail: z.string().nullable(),
     payoutsEnabledAt: z.date().nullable(),
     createdAt: z.date(),
     updatedAt: z.date(),
   })
   .merge(PartnerOnlinePresenceSchema);
 
-// Used externally by GET+POST /api/partners and partner.created webhook
+// Used externally by GET+POST /api/partners and partner.enrolled webhook
 export const EnrolledPartnerSchema = PartnerSchema.pick({
   id: true,
   name: true,
@@ -153,6 +154,8 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
   image: true,
   description: true,
   country: true,
+  paypalEmail: true,
+  stripeConnectId: true,
   payoutsEnabledAt: true,
   createdAt: true,
 })
@@ -193,16 +196,8 @@ export const EnrolledPartnerSchemaWithExpandedFields =
 
 export const LeaderboardPartnerSchema = z.object({
   id: z.string(),
-  name: z.string().transform((name) => {
-    const parts = name.trim().split(/\s+/);
-    return parts[0]; // return first name only
-
-    // old approach: return first name and last initial
-    // if (parts.length < 2) return name; // Return original if single word
-    // const firstName = parts[0];
-    // const lastInitial = parts[parts.length - 1][0];
-    // return `${firstName} ${lastInitial}.`;
-  }),
+  name: z.string(),
+  image: z.string(),
   clicks: z.number().default(0),
   leads: z.number().default(0),
   sales: z.number().default(0),
@@ -446,7 +441,7 @@ export const invitePartnerSchema = z.object({
   programId: z.string(),
   name: z.string().trim().min(1).max(100),
   email: z.string().trim().email().min(1).max(100),
-  linkId: z.string(),
+  linkId: z.string().optional(),
   rewardId: z.string().optional(),
   discountId: z.string().optional(),
 });
@@ -461,6 +456,13 @@ export const banPartnerSchema = z.object({
       ...PartnerBannedReason[],
     ],
   ),
+});
+
+export const approvePartnerSchema = z.object({
+  workspaceId: z.string(),
+  programId: z.string(),
+  partnerId: z.string(),
+  linkId: z.string().nullable(),
 });
 
 export const retrievePartnerLinksSchema = z

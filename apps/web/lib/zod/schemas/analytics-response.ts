@@ -149,7 +149,11 @@ export const analyticsResponse = {
       country: z
         .enum(COUNTRY_CODES)
         .describe("The 2-letter country code of the city: https://d.to/geo"),
-      region: z.literal("*").default("*"),
+      region: z
+        .string()
+        .describe(
+          "The 2-letter ISO 3166-2 region code representing the region associated with the location of the user.",
+        ),
       city: z.string().describe("The name of the city"),
       clicks: z
         .number()

@@ -1,4 +1,5 @@
-import { isStored, storage } from "@/lib/storage";
+import { getPartnerAndDiscount } from "@/lib/planetscale/get-partner-discount";
+import { isNotHostedImage, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { LinkProps, ProcessedLinkProps } from "@/lib/types";
 import { propagateWebhookTriggerChanges } from "@/lib/webhook/update-webhook";
@@ -92,7 +93,7 @@ export async function updateLink({
       title: truncate(title, 120),
       description: truncate(description, 240),
       image:
-        proxy && image && !isStored(image)
+        proxy && image && isNotHostedImage(image)
           ? `${R2_URL}/images/${id}_${imageUrlNonce}`
           : image,
       utm_source: utm_source || null,
@@ -169,7 +170,14 @@ export async function updateLink({
   waitUntil(
     Promise.allSettled([
       // record link in Redis
-      linkCache.set(response),
+      linkCache.set({
+        ...response,
+        ...(response.programId &&
+          (await getPartnerAndDiscount({
+            programId: response.programId,
+            partnerId: response.partnerId,
+          }))),
+      }),
 
       // record link in Tinybird
       recordLink(response),
@@ -180,7 +188,7 @@ export async function updateLink({
       // if proxy is true and image is not stored in R2, upload image to R2
       proxy &&
         image &&
-        !isStored(image) &&
+        isNotHostedImage(image) &&
         storage.upload(`images/${id}_${imageUrlNonce}`, image, {
           width: 1200,
           height: 630,

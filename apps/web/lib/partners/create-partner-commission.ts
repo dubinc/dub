@@ -4,9 +4,11 @@ import { log } from "@dub/utils";
 import { differenceInMonths } from "date-fns";
 import { createId } from "../api/create-id";
 import { calculateSaleEarnings } from "../api/sales/calculate-sale-earnings";
+import { RewardProps } from "../types";
 import { determinePartnerReward } from "./determine-partner-reward";
 
 export const createPartnerCommission = async ({
+  reward,
   event,
   programId,
   partnerId,
@@ -17,7 +19,11 @@ export const createPartnerCommission = async ({
   amount = 0,
   quantity,
   currency,
+  createdAt,
 }: {
+  // we optionally let the caller pass in a reward to avoid a db call
+  // (e.g. in aggregate-clicks route)
+  reward?: RewardProps | null;
   event: EventType;
   partnerId: string;
   programId: string;
@@ -28,22 +34,25 @@ export const createPartnerCommission = async ({
   amount?: number;
   quantity: number;
   currency?: string;
+  createdAt?: Date;
 }) => {
-  const reward = await determinePartnerReward({
-    event,
-    partnerId,
-    programId,
-  });
-
   if (!reward) {
-    console.log(
-      `Partner ${partnerId} has no reward for ${event} event, skipping commission creation...`,
-    );
-    return;
+    reward = await determinePartnerReward({
+      event,
+      partnerId,
+      programId,
+    });
+
+    if (!reward) {
+      console.log(
+        `Partner ${partnerId} has no reward for ${event} event, skipping commission creation...`,
+      );
+      return;
+    }
   }
 
-  // handle rewards with max duration limit
-  if (typeof reward.maxDuration === "number") {
+  // handle sale rewards that have a max duration limit
+  if (reward.event === "sale" && typeof reward.maxDuration === "number") {
     // Get the first commission (earliest sale) for this customer-partner pair
     const firstCommission = await prisma.commission.findFirst({
       where: {
@@ -108,6 +117,7 @@ export const createPartnerCommission = async ({
         earnings: true,
       },
     });
+
     const totalEarnings = totalRewards._sum.earnings || 0;
     if (totalEarnings >= reward.maxAmount) {
       console.log(
@@ -115,6 +125,7 @@ export const createPartnerCommission = async ({
       );
       return;
     }
+
     const remainingRewardAmount = reward.maxAmount - totalEarnings;
     earnings = Math.max(0, Math.min(earnings, remainingRewardAmount));
   }
@@ -134,6 +145,7 @@ export const createPartnerCommission = async ({
         type: event,
         currency,
         earnings,
+        createdAt,
       },
     });
 

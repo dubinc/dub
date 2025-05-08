@@ -187,8 +187,8 @@ export const PLAN_COMPARE_FEATURES: {
           advanced: true,
           enterprise: true,
         },
-        text: "Real-time events stream",
-        href: "https://dub.co/help/article/real-time-events-stream",
+        text: "Conversion tracking",
+        href: "https://dub.co/help/article/dub-conversions",
       },
       {
         check: {
@@ -197,8 +197,18 @@ export const PLAN_COMPARE_FEATURES: {
           advanced: true,
           enterprise: true,
         },
-        text: "Conversion tracking",
-        href: "https://dub.co/help/article/dub-conversions",
+        text: "Customer insights",
+        href: "https://dub.co/help/article/customer-insights",
+      },
+      {
+        check: {
+          default: false,
+          business: true,
+          advanced: true,
+          enterprise: true,
+        },
+        text: "Real-time events stream",
+        href: "https://dub.co/help/article/real-time-events-stream",
       },
     ],
   },
@@ -214,7 +224,7 @@ export const PLAN_COMPARE_FEATURES: {
           enterprise: true,
         },
         text: "Partner management",
-        href: "https://dub.co/help/article/dub-partners",
+        href: "https://dub.co/partners",
       },
       {
         check: {
@@ -292,7 +302,7 @@ export const PLAN_COMPARE_FEATURES: {
           enterprise: true,
         },
         text: "White-labeling support",
-        href: "https://dub.co/help/article/dub-partners#white-labeled-in-app-dashboard",
+        href: "https://dub.co/docs/partners/white-labeling",
       },
       {
         check: {
@@ -368,7 +378,7 @@ export const PLAN_COMPARE_FEATURES: {
             <strong>
               {id === "enterprise"
                 ? "Custom"
-                : nFormatter(plan.limits.api) + "/min"}
+                : nFormatter(plan.limits.api, { full: true }) + "/min"}
             </strong>{" "}
             rate limit
           </>

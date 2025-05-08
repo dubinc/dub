@@ -40,11 +40,6 @@ export const GET = withWorkspace(
           ...workspace,
           id: prefixWorkspaceId(workspace.id),
           domains,
-          // TODO: Remove this once Folders goes GA
-          flags: {
-            ...flags,
-            linkFolders: flags.linkFolders || workspace.partnersEnabled,
-          },
         }),
       },
       { headers },
@@ -110,13 +105,9 @@ export const PATCH = withWorkspace(
         });
       }
 
-      waitUntil(
-        (async () => {
-          if (logoUploaded && workspace.logo) {
-            await storage.delete(workspace.logo.replace(`${R2_URL}/`, ""));
-          }
-        })(),
-      );
+      if (logoUploaded && workspace.logo) {
+        waitUntil(storage.delete(workspace.logo.replace(`${R2_URL}/`, "")));
+      }
 
       return NextResponse.json(
         WorkspaceSchema.parse({

@@ -38,6 +38,7 @@ export const LinkTests = memo(({ link }: { link: ResponseLink }) => {
     }[]
   >(
     Boolean(testVariants && testVariants.length) &&
+      showTests &&
       `/api/analytics?${new URLSearchParams({
         event: "composite",
         groupBy: "top_urls",

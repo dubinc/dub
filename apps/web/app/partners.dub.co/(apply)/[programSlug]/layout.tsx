@@ -69,7 +69,7 @@ export default async function ApplyLayout({
           <Link
             href="https://dub.partners"
             target="_blank"
-            className="flex items-center gap-1.5"
+            className="flex items-center gap-1.5 whitespace-nowrap"
           >
             Powered by <Wordmark className="h-4 p-0.5" />
           </Link>

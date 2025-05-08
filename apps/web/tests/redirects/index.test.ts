@@ -3,7 +3,7 @@ import { describe, expect, test } from "vitest";
 import { env } from "../utils/env";
 import { IntegrationHarness } from "../utils/integration";
 
-const poweredBy = "Dub.co - Link management for modern marketing teams";
+const poweredBy = "Dub - The Modern Link Attribution Platform";
 const fetchOptions: RequestInit = {
   cache: "no-store",
   redirect: "manual",
@@ -51,6 +51,20 @@ describe.runIf(env.CI)("Link Redirects", async () => {
 
     // the location should contain `?dub_id=` query param
     expect(response.headers.get("location")).toMatch(/dub_id=[a-zA-Z0-9]+/);
+    expect(response.headers.get("x-powered-by")).toBe(poweredBy);
+    expect(response.status).toBe(302);
+  });
+
+  test("with dub_id and via", async () => {
+    const response = await fetch(`${h.baseUrl}/track-test`, {
+      ...fetchOptions,
+      headers: {},
+    });
+
+    // the location should contain `?dub_id=` query param
+    expect(response.headers.get("location")).toMatch(/dub_id=[a-zA-Z0-9]+/);
+    // the location should contain `?via=track-test` query param
+    expect(response.headers.get("location")).toMatch(/via=track-test/);
     expect(response.headers.get("x-powered-by")).toBe(poweredBy);
     expect(response.status).toBe(302);
   });
@@ -108,6 +122,30 @@ describe.runIf(env.CI)("Link Redirects", async () => {
     expect(response.status).toBe(302);
   });
 
+  test("with case-sensitive (correct) key", async () => {
+    const response = await fetch(
+      `${h.baseUrl}/cAsE-sensitive-test`,
+      fetchOptions,
+    );
+
+    expect(response.headers.get("location")).toBe(
+      "https://dub.co/changelog/case-insensitive-links",
+    );
+    expect(response.headers.get("x-powered-by")).toBe(poweredBy);
+    expect(response.status).toBe(302);
+  });
+
+  test("with case-sensitive (incorrect) key", async () => {
+    const response = await fetch(
+      `${h.baseUrl}/case-sensitive-test`,
+      fetchOptions,
+    );
+
+    expect(response.headers.get("location")).toBe("https://dub.co/");
+    expect(response.headers.get("x-powered-by")).toBe(poweredBy);
+    expect(response.status).toBe(302);
+  });
+
   test("with password", async () => {
     const response = await fetch(
       `${h.baseUrl}/password/check?pw=dub`,
@@ -143,7 +181,4 @@ describe.runIf(env.CI)("Link Redirects", async () => {
     expect(response.headers.get("x-powered-by")).toBe(poweredBy);
     expect(response.status).toBe(302);
   });
-
-  //  DUMMY test to record a hit on track-test
-  await fetch(`${h.baseUrl}/track-test`);
 });

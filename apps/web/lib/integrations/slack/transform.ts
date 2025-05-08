@@ -209,7 +209,7 @@ const enrolledPartnerTemplate = ({ data }: { data: PartnerEventDataProps }) => {
         type: "section",
         text: {
           type: "mrkdwn",
-          text: `*New partner created* :tada:`,
+          text: `*New partner enrolled* :tada:`,
         },
       },
       {
@@ -240,7 +240,6 @@ const slackTemplates: Record<WebhookTrigger, any> = {
   "link.clicked": clickLinkTemplate,
   "lead.created": createLeadTemplate,
   "sale.created": createSaleTemplate,
-  "partner.created": enrolledPartnerTemplate,
   "partner.enrolled": enrolledPartnerTemplate,
 };
 

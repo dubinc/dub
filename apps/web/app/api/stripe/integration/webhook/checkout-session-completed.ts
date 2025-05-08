@@ -23,11 +23,12 @@ import { Customer } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
+import { getConnectedCustomer } from "./utils";
 
 // Handle event "checkout.session.completed"
 export async function checkoutSessionCompleted(event: Stripe.Event) {
   let charge = event.data.object as Stripe.Checkout.Session;
-  const dubCustomerId = charge.metadata?.dubCustomerId;
+  let dubCustomerId = charge.metadata?.dubCustomerId;
   const clientReferenceId = charge.client_reference_id;
   const stripeAccountId = event.account as string;
   const stripeCustomerId = charge.customer as string;
@@ -42,45 +43,12 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   let linkId: string;
 
   /*
-    for regular stripe checkout setup:
-    - if dubCustomerId is found, we update the customer with the stripe customerId
-    - we then find the lead event using the customer's unique ID on Dub
-    - the lead event will then be passed to the remaining logic to record a sale
-  */
-  if (dubCustomerId) {
-    try {
-      // Update customer with stripe customerId if exists
-      customer = await prisma.customer.update({
-        where: {
-          projectConnectId_externalId: {
-            projectConnectId: stripeAccountId,
-            externalId: dubCustomerId,
-          },
-        },
-        data: {
-          stripeCustomerId,
-        },
-      });
-    } catch (error) {
-      // Skip if customer not found
-      console.log(error);
-      return `Customer with dubCustomerId ${dubCustomerId} not found, skipping...`;
-    }
-
-    // Find lead
-    leadEvent = await getLeadEvent({ customerId: customer.id }).then(
-      (res) => res.data[0],
-    );
-
-    linkId = leadEvent.link_id;
-
-    /*
       for stripe checkout links:
       - if client_reference_id is a dub_id, we find the click event
       - the click event will be used to create a lead event + customer
       - the lead event will then be passed to the remaining logic to record a sale
     */
-  } else if (clientReferenceId?.startsWith("dub_id_")) {
+  if (clientReferenceId?.startsWith("dub_id_")) {
     const dubClickId = clientReferenceId.split("dub_id_")[1];
 
     clickEvent = await getClickEvent({ clickId: dubClickId }).then(
@@ -169,7 +137,55 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     // if it's not either a regular stripe checkout setup or a stripe checkout link,
     // we skip the event
   } else {
-    return `Customer ID not found in Stripe checkout session metadata and client_reference_id is not a dub_id, skipping...`;
+    /*
+    for regular stripe checkout setup:
+    - if dubCustomerId not provided, we try to find the customer on the connected account
+    - if present:
+        - we update the customer with the stripe customerId
+        - we then find the lead event using the customer's unique ID on Dub
+        - the lead event will then be passed to the remaining logic to record a sale
+    - if not present, we skip the event
+  */
+
+    if (!dubCustomerId) {
+      const connectedCustomer = await getConnectedCustomer({
+        stripeCustomerId,
+        stripeAccountId,
+        livemode: event.livemode,
+      });
+
+      if (!connectedCustomer || !connectedCustomer.metadata.dubCustomerId) {
+        return `dubCustomerId not found in Stripe checkout session metadata (nor is it available on the connected customer ${stripeCustomerId}) and client_reference_id is not a dub_id, skipping...`;
+      }
+
+      dubCustomerId = connectedCustomer.metadata.dubCustomerId;
+    }
+
+    try {
+      // Update customer with stripeCustomerId if exists – for future events
+      customer = await prisma.customer.update({
+        where: {
+          projectConnectId_externalId: {
+            projectConnectId: stripeAccountId,
+            externalId: dubCustomerId,
+          },
+        },
+        data: {
+          stripeCustomerId,
+        },
+      });
+    } catch (error) {
+      // Skip if customer not found
+      console.log(error);
+      return `Customer with dubCustomerId ${dubCustomerId} not found, skipping...`;
+    }
+
+    // Find lead
+    leadEvent = await getLeadEvent({ customerId: customer.id }).then(
+      (res) => res.data[0],
+    );
+
+    linkId = leadEvent.link_id;
   }
 
   if (charge.amount_total === 0) {
@@ -275,6 +291,21 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
           increment: clickEvent ? 2 : 1,
         },
         salesUsage: {
+          increment: charge.amount_total!,
+        },
+      },
+    }),
+
+    // update customer sales count
+    prisma.customer.update({
+      where: {
+        id: customer.id,
+      },
+      data: {
+        sales: {
+          increment: 1,
+        },
+        saleAmount: {
           increment: charge.amount_total!,
         },
       },

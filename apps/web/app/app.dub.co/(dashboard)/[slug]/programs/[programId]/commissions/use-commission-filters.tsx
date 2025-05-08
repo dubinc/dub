@@ -1,15 +1,16 @@
 import useCommissionsCount from "@/lib/swr/use-commissions-count";
+import useCustomers from "@/lib/swr/use-customers";
+import useCustomersCount from "@/lib/swr/use-customers-count";
 import usePartners from "@/lib/swr/use-partners";
 import usePartnersCount from "@/lib/swr/use-partners-count";
-import useProgramCustomers from "@/lib/swr/use-program-customers";
-import useProgramCustomersCount from "@/lib/swr/use-program-customers-count";
 import { CustomerProps, EnrolledPartnerProps } from "@/lib/types";
 import { CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/customers";
 import { PARTNERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partners";
+import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { CircleDotted, useRouterStuff } from "@dub/ui";
-import { User, Users } from "@dub/ui/icons";
-import { cn, DICEBEAR_AVATAR_URL, nFormatter } from "@dub/utils";
+import { Sliders, User, Users } from "@dub/ui/icons";
+import { capitalize, cn, nFormatter, OG_AVATAR_URL } from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
@@ -43,7 +44,7 @@ export function useCommissionFilters() {
               label: email ?? name,
               icon: (
                 <img
-                  src={avatar || `${DICEBEAR_AVATAR_URL}${id}`}
+                  src={avatar || `${OG_AVATAR_URL}${id}`}
                   alt={`${email} avatar`}
                   className="size-4 rounded-full"
                 />
@@ -63,13 +64,23 @@ export function useCommissionFilters() {
               label: name,
               icon: (
                 <img
-                  src={image || `${DICEBEAR_AVATAR_URL}${name}`}
+                  src={image || `${OG_AVATAR_URL}${name}`}
                   alt={`${name} image`}
                   className="size-4 rounded-full"
                 />
               ),
             };
           }) ?? null,
+      },
+      {
+        key: "type",
+        icon: Sliders,
+        label: "Type",
+        options: ["click", "lead", "sale"].map((slug) => ({
+          value: slug,
+          label: capitalize(slug) as string,
+          icon: <CommissionTypeIcon type={slug} />,
+        })),
       },
       {
         key: "status",
@@ -101,18 +112,20 @@ export function useCommissionFilters() {
   );
 
   const activeFilters = useMemo(() => {
-    const { status, partnerId, customerId, payoutId } = searchParamsObj;
+    const { customerId, partnerId, status, type, payoutId } = searchParamsObj;
 
     return [
-      ...(status ? [{ key: "status", value: status }] : []),
-      ...(partnerId ? [{ key: "partnerId", value: partnerId }] : []),
       ...(customerId ? [{ key: "customerId", value: customerId }] : []),
+      ...(partnerId ? [{ key: "partnerId", value: partnerId }] : []),
+      ...(status ? [{ key: "status", value: status }] : []),
+      ...(type ? [{ key: "type", value: type }] : []),
       ...(payoutId ? [{ key: "payoutId", value: payoutId }] : []),
     ];
   }, [
-    searchParamsObj.status,
-    searchParamsObj.partnerId,
     searchParamsObj.customerId,
+    searchParamsObj.partnerId,
+    searchParamsObj.status,
+    searchParamsObj.type,
     searchParamsObj.payoutId,
   ]);
 
@@ -205,18 +218,18 @@ function usePartnerFilterOptions(search: string) {
 function useCustomerFilterOptions(search: string) {
   const { searchParamsObj } = useRouterStuff();
 
-  const { customersCount } = useProgramCustomersCount();
+  const { data: customersCount } = useCustomersCount();
   const customersAsync = Boolean(
     customersCount && customersCount > CUSTOMERS_MAX_PAGE_SIZE,
   );
 
-  const { data: customers, loading: customersLoading } = useProgramCustomers({
+  const { customers, loading: customersLoading } = useCustomers({
     query: { search: customersAsync ? search : "" },
   });
 
-  const { data: selectedCustomers } = useProgramCustomers({
+  const { customers: selectedCustomers } = useCustomers({
     query: {
-      ids: searchParamsObj.customerId
+      customerIds: searchParamsObj.customerId
         ? [searchParamsObj.customerId]
         : undefined,
     },

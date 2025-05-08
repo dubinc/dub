@@ -2,17 +2,16 @@ import { ElementType } from "react";
 import {
   Book2Fill,
   BulletListFill,
-  ConnectedDotsFill,
-  CubeSettingsFill,
   DiamondTurnRightFill,
+  DubAnalyticsIcon,
+  DubLinksIcon,
+  DubPartnersIcon,
   FeatherFill,
   Github,
   Go,
   HeadsetFill,
   HeartFill,
   HexadecagonStar,
-  Hyperlink,
-  LinesY,
   LinkedIn,
   MicrophoneFill,
   Php,
@@ -20,11 +19,13 @@ import {
   Python,
   Raycast,
   Ruby,
+  Toggle2Fill,
   Twitter,
   Typescript,
   UsersFill,
   YouTube,
 } from "./icons";
+import { DubApiIcon } from "./icons/dub-api";
 import { Elxo } from "./icons/elxo";
 
 export type NavItemChild = {
@@ -44,26 +45,32 @@ export const FEATURES_LIST = [
   {
     title: "Dub Links",
     description: "Short links with superpowers",
-    icon: Hyperlink,
+    icon: DubLinksIcon,
     href: "/home",
+  },
+  {
+    title: "Dub Partners",
+    description: "Grow your revenue with partnerships",
+    icon: DubPartnersIcon,
+    href: "/partners",
   },
   {
     title: "Dub Analytics",
     description: "Powerful real-time analytics",
-    icon: LinesY,
+    icon: DubAnalyticsIcon,
     href: "/analytics",
   },
   {
     title: "Dub API",
     description: "Programmatic link creation at scale",
-    icon: CubeSettingsFill,
+    icon: DubApiIcon,
     href: "/docs/api-reference/introduction",
   },
   {
     title: "Dub Integrations",
     description: "Connect Dub with your favorite tools",
-    icon: ConnectedDotsFill,
-    href: "/docs/integrations",
+    icon: Toggle2Fill,
+    href: "/integrations",
   },
 ];
 
@@ -166,6 +173,12 @@ export const RESOURCES = [
     href: "/help",
   },
   {
+    icon: HeartFill,
+    title: "About",
+    description: "Company, values, and team",
+    href: "/about",
+  },
+  {
     icon: FeatherFill,
     title: "Blog",
     description: "Insights and stories",
@@ -176,12 +189,6 @@ export const RESOURCES = [
     title: "Changelog",
     description: "Releases and updates",
     href: "/changelog",
-  },
-  {
-    icon: HeartFill,
-    title: "Customers",
-    description: "Success stories and use cases",
-    href: "/customers",
   },
   {
     icon: HexadecagonStar,

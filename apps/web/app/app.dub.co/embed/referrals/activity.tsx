@@ -1,7 +1,7 @@
 import { CursorRays } from "@/ui/layout/sidebar/icons/cursor-rays";
 import { InfoTooltip, MiniAreaChart } from "@dub/ui";
-import { cn, nFormatter } from "@dub/utils";
-import { fetcher } from "@dub/utils/src/functions";
+import { cn, currencyFormatter, fetcher, nFormatter } from "@dub/utils";
+import { useEmbedToken } from "app/app.dub.co/embed/use-embed-token";
 import { AnalyticsTimeseries } from "dub/models/components";
 import { SVGProps, useId } from "react";
 import useSWR from "swr";
@@ -10,15 +10,24 @@ export function ReferralsEmbedActivity({
   clicks,
   leads,
   sales,
+  saleAmount,
 }: {
   clicks: number;
   leads: number;
   sales: number;
+  saleAmount: number;
 }) {
+  const token = useEmbedToken();
+
   const isEmpty = clicks === 0 && leads === 0 && sales === 0;
   const { data: analytics } = useSWR<AnalyticsTimeseries[]>(
     !isEmpty && "/api/embed/referrals/analytics",
-    fetcher,
+    (url) =>
+      fetcher(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }),
     {
       keepPreviousData: true,
       dedupingInterval: 60000,
@@ -46,10 +55,11 @@ export function ReferralsEmbedActivity({
             {
               label: "Sales",
               value: sales,
+              subValue: saleAmount,
               description:
                 "Total number of leads that converted to a paid account",
             },
-          ].map(({ label, value, description }) => (
+          ].map(({ label, value, subValue, description }) => (
             <div
               key={label}
               className="relative flex flex-col justify-between p-4"
@@ -60,7 +70,12 @@ export function ReferralsEmbedActivity({
                   <InfoTooltip content={description} />
                 </span>
                 <span className="text-content-default text-base font-medium leading-none">
-                  {nFormatter(value, { full: true })}
+                  {nFormatter(value, { full: true })}{" "}
+                  {subValue || subValue === 0 ? (
+                    <span className="text-content-subtle text-xs">
+                      ({currencyFormatter(subValue / 100)})
+                    </span>
+                  ) : null}
                 </span>
               </div>
               <div className="xs:block hidden h-12">

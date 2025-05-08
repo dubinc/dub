@@ -98,6 +98,12 @@ export const PLANS = [
       {
         id: "folders",
         text: "Link folders",
+        tooltip: {
+          title:
+            "Organize and manage access to your links on Dub using folders.",
+          cta: "Learn more.",
+          href: "https://dub.co/help/article/link-folders",
+        },
       },
       {
         id: "deeplinks",
@@ -141,7 +147,7 @@ export const PLANS = [
       folders: 20,
       users: 10,
       ai: 1000,
-      api: 3000,
+      api: 1200,
       retention: "3-year",
     },
     featureTitle: "Everything in Pro, plus:",
@@ -192,12 +198,17 @@ export const PLANS = [
         },
       },
       {
-        id: "payouts",
-        text: "1-click global payouts",
+        id: "tests",
+        text: "A/B testing (beta)",
+      },
+      {
+        id: "roles",
+        text: "Customer insights",
         tooltip: {
-          title: "Send payouts to 180+ countries in 1-click.",
+          title:
+            "Get real-time insights into your customers' behavior and preferences.",
           cta: "Learn more.",
-          href: "https://dub.co/help/article/partner-payouts",
+          href: "https://dub.co/help/article/customer-insights",
         },
       },
       {
@@ -209,10 +220,6 @@ export const PLANS = [
           cta: "Learn more.",
           href: "https://dub.co/docs/concepts/webhooks/introduction",
         },
-      },
-      {
-        id: "tests",
-        text: "A/B testing",
       },
     ] as PlanFeature[],
   },
@@ -270,12 +277,14 @@ export const PLANS = [
         text: "20 users",
       },
       {
-        id: "roles",
-        text: "Folders RBAC",
-      },
-      {
         id: "whitelabel",
         text: "White-labeling support",
+        tooltip: {
+          title:
+            "Embed a white-labeled referral dashboard directly in your app in just a few lines of code.",
+          cta: "Learn more.",
+          href: "https://dub.co/docs/partners/white-labeling",
+        },
       },
       {
         id: "volume",

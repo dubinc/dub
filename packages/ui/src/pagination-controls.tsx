@@ -1,4 +1,4 @@
-import { cn, nFormatter } from "@dub/utils";
+import { cn } from "@dub/utils";
 import { PaginationState } from "@tanstack/react-table";
 import { PropsWithChildren } from "react";
 
@@ -37,20 +37,22 @@ export function PaginationControls({
           {totalCount > 0 && (
             <>
               <span className="font-medium">
-                {(pagination.pageIndex - 1) * pagination.pageSize + 1}-
+                {(
+                  (pagination.pageIndex - 1) * pagination.pageSize +
+                  1
+                ).toLocaleString()}
+                -
                 {Math.min(
                   (pagination.pageIndex - 1) * pagination.pageSize +
                     pagination.pageSize,
                   totalCount,
-                )}
+                ).toLocaleString()}
               </span>{" "}
               {showTotalCount && "of "}
             </>
           )}
           {showTotalCount && (
-            <span className="font-medium">
-              {nFormatter(totalCount, { full: true })}
-            </span>
+            <span className="font-medium">{totalCount.toLocaleString()}</span>
           )}{" "}
           {typeof unit === "function" ? unit(totalCount !== 1) : unit}
         </div>

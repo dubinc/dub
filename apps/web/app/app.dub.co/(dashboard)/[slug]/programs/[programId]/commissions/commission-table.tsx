@@ -3,12 +3,13 @@
 import useCommissionsCount from "@/lib/swr/use-commissions-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse } from "@/lib/types";
-import FilterButton from "@/ui/analytics/events/filter-button";
+import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
+import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   AnimatedSizeContainer,
@@ -22,10 +23,10 @@ import {
 import { MoneyBill2 } from "@dub/ui/icons";
 import {
   currencyFormatter,
-  DICEBEAR_AVATAR_URL,
   fetcher,
   formatDateTime,
   formatDateTimeSmart,
+  nFormatter,
 } from "@dub/utils";
 import { useParams } from "next/navigation";
 import { memo } from "react";
@@ -51,7 +52,7 @@ const CommissionTableInner = memo(
     setSelectedFilter,
   }: { limit?: number } & ReturnType<typeof useCommissionFilters>) => {
     const { programId } = useParams();
-    const { id: workspaceId } = useWorkspace();
+    const { id: workspaceId, slug } = useWorkspace();
     const { pagination, setPagination } = usePagination(limit);
     const { queryParams, getQueryString, searchParamsObj } = useRouterStuff();
     const { sortBy, sortOrder } = searchParamsObj as {
@@ -59,20 +60,23 @@ const CommissionTableInner = memo(
       sortOrder: "asc" | "desc";
     };
 
-    const { commissionsCount } = useCommissionsCount();
-    const { data: commissions, error } = useSWR<CommissionResponse[]>(
-      `/api/programs/${programId}/commissions${getQueryString(
-        {
-          workspaceId,
-        },
-        {
-          exclude: ["view"],
-        },
-      )}`,
+    const {
+      data: commissions,
+      error,
+      isLoading,
+    } = useSWR<CommissionResponse[]>(
+      `/api/commissions${getQueryString({
+        workspaceId,
+        programId,
+      })}`,
       fetcher,
+      {
+        keepPreviousData: true,
+      },
     );
-
-    const loading = !commissions && !error;
+    const { commissionsCount } = useCommissionsCount({
+      exclude: ["status", "page"],
+    });
 
     const table = useTable<CommissionResponse>({
       data: commissions?.slice(0, limit) || [],
@@ -87,30 +91,17 @@ const CommissionTableInner = memo(
           ),
         },
         {
+          id: "customer",
           header: "Customer",
-          cell: ({ row }) => {
-            if (!row.original.customer) {
-              return "-";
-            }
-
-            return (
-              <div className="flex items-center gap-2">
-                <img
-                  src={
-                    row.original.customer.avatar ||
-                    `${DICEBEAR_AVATAR_URL}${row.original.customer.id}`
-                  }
-                  alt={
-                    row.original.customer.email ?? row.original.customer.name
-                  }
-                  className="size-5 rounded-full"
-                />
-                <div>
-                  {row.original.customer.email ?? row.original.customer.name}
-                </div>
-              </div>
-            );
-          },
+          cell: ({ row }) =>
+            row.original.customer ? (
+              <CustomerRowItem
+                customer={row.original.customer}
+                href={`/${slug}/customers/${row.original.customer.id}`}
+              />
+            ) : (
+              "-"
+            ),
           meta: {
             filterParams: ({ row }) =>
               row.original.customer
@@ -125,6 +116,7 @@ const CommissionTableInner = memo(
           cell: ({ row }) => {
             return <PartnerRowItem partner={row.original.partner} />;
           },
+          size: 200,
           meta: {
             filterParams: ({ row }) => ({
               partnerId: row.original.partner.id,
@@ -132,13 +124,28 @@ const CommissionTableInner = memo(
           },
         },
         {
+          id: "type",
+          header: "Type",
+          accessorKey: "type",
+          cell: ({ row }) => (
+            <CommissionTypeBadge type={row.original.type ?? "sale"} />
+          ),
+          meta: {
+            filterParams: ({ row }) => ({
+              type: row.original.type,
+            }),
+          },
+        },
+        {
           id: "amount",
           header: "Amount",
           accessorFn: (d) =>
-            currencyFormatter(d.amount / 100, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            }),
+            d.type === "sale"
+              ? currencyFormatter(d.amount / 100, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })
+              : nFormatter(d.quantity),
         },
         {
           id: "commission",
@@ -148,14 +155,6 @@ const CommissionTableInner = memo(
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             }),
-        },
-        {
-          id: "type",
-          header: "Type",
-          accessorKey: "type",
-          cell: ({ row }) => (
-            <CommissionTypeBadge type={row.original.type ?? "sale"} />
-          ),
         },
         {
           header: "Status",
@@ -189,7 +188,9 @@ const CommissionTableInner = memo(
 
         return (
           !limit &&
-          meta?.filterParams && <FilterButton set={meta.filterParams(cell)} />
+          meta?.filterParams && (
+            <FilterButtonTableRow set={meta.filterParams(cell)} />
+          )
         );
       },
       ...(!limit && {
@@ -204,13 +205,15 @@ const CommissionTableInner = memo(
               ...(sortBy && { sortBy }),
               ...(sortOrder && { sortOrder }),
             },
+            del: "page",
+            scroll: false,
           }),
       }),
       thClassName: "border-l-0",
       tdClassName: "border-l-0",
-      resourceName: (p) => `sale${p ? "s" : ""}`,
-      rowCount: commissionsCount?.[status || "all"].count ?? 0,
-      loading,
+      resourceName: (p) => `commission${p ? "s" : ""}`,
+      rowCount: commissionsCount?.[searchParamsObj.status || "all"].count ?? 0,
+      loading: isLoading,
       error: error ? "Failed to load commissions" : undefined,
     });
 
@@ -257,7 +260,7 @@ const CommissionTableInner = memo(
             </AnimatedSizeContainer>
           </div>
         )}
-        {commissions?.length !== 0 ? (
+        {commissions?.length !== 0 || isLoading ? (
           <Table {...table} />
         ) : (
           <AnimatedEmptyState

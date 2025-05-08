@@ -1,7 +1,6 @@
 export const UA_BOTS = [
   "bot", // most bots
   "crawler", // most crawlers
-  "metatags", // Dub.co Metatags API (https://api.dub.co/metatags)
   "chatgpt", // ChatGPT
   "bluesky", // Bluesky crawler
   "facebookexternalhit", // Facebook crawler
@@ -18,6 +17,7 @@ export const UA_BOTS = [
   "MetaInspector", // metatags.io
   "Go-http-client", // Go-http-client/1.1 is a bot: https://user-agents.net/string/go-http-client-1-1
   "iframely", // https://iframely.com/docs/about (used by Notion, Linear)
+  "H1cbA69", // internal links/metatags API
 
   // new
   "ia_archiver",
@@ -33,6 +33,7 @@ export const UA_BOTS = [
   "cron-job",
   "InternetMeasurement",
   "HostTracker",
+  "Expanse", // Expanse (Palo Alto Networks)
 
   // AI bots
   "anthropic-ai", // Anthropic AI
@@ -89,4 +90,12 @@ export const IP_BOTS = [
   "35.185.193.22", // The Dalles
   "34.105.67.76", // The Dalles
   "154.28.229.7", // Ashburn
+];
+
+export const IP_RANGES_BOTS = [
+  "159.148.128.0/24", // weird bot activity from Miami
+
+  // Expanse (Palo Alto Networks)
+  "198.235.24.0/24",
+  "205.210.31.0/24",
 ];

@@ -10,7 +10,8 @@ import { updatePartnerSaleSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
-// PATCH /api/partners/sales - update a sale
+// PATCH /api/partners/sales - update a commission
+// TODO: move to PATCH /api/commissions
 export const PATCH = withWorkspace(
   async ({ req, workspace }) => {
     let { programId, invoiceId, amount, modifyAmount, currency } =
@@ -21,7 +22,7 @@ export const PATCH = withWorkspace(
       programId,
     });
 
-    const sale = await prisma.commission.findUnique({
+    const commission = await prisma.commission.findUnique({
       where: {
         programId_invoiceId: {
           programId: program.id,
@@ -33,21 +34,21 @@ export const PATCH = withWorkspace(
       },
     });
 
-    if (!sale) {
+    if (!commission) {
       throw new DubApiError({
         code: "not_found",
-        message: `Sale with invoice ID ${invoiceId} not found for program ${programId}.`,
+        message: `Commission with invoice ID ${invoiceId} not found for program ${programId}.`,
       });
     }
 
-    if (sale.status === "paid") {
+    if (commission.status === "paid") {
       throw new DubApiError({
         code: "bad_request",
-        message: `Cannot update amount: Sale with invoice ID ${invoiceId} has already been paid.`,
+        message: `Cannot update amount: Commission with invoice ID ${invoiceId} has already been paid.`,
       });
     }
 
-    const { partner, amount: originalAmount } = sale;
+    const { partner, amount: originalAmount } = commission;
 
     // if currency is not USD, convert it to USD  based on the current FX rate
     // TODO: allow custom "defaultCurrency" on workspace table in the future
@@ -86,13 +87,13 @@ export const PATCH = withWorkspace(
       reward,
       sale: {
         amount: finalAmount,
-        quantity: sale.quantity,
+        quantity: commission.quantity,
       },
     });
 
-    const updatedSale = await prisma.commission.update({
+    const updatedCommission = await prisma.commission.update({
       where: {
-        id: sale.id,
+        id: commission.id,
       },
       data: {
         amount: finalAmount,
@@ -103,43 +104,30 @@ export const PATCH = withWorkspace(
     // TODO:
     // Check the reward limit
 
-    const amountDifference = finalAmount - sale.amount;
-    const earningsDifference = finalEarnings - sale.earnings;
+    const amountDifference = finalAmount - commission.amount;
+    const earningsDifference = finalEarnings - commission.earnings;
 
-    if (amountDifference !== 0) {
-      await Promise.all([
-        // update link sales
-        prisma.link.update({
-          where: {
-            id: sale.linkId,
+    // If the sale has already been paid, we need to update the payout
+    if (
+      amountDifference !== 0 &&
+      commission.status === "processed" &&
+      commission.payoutId
+    ) {
+      await prisma.payout.update({
+        where: {
+          id: commission.payoutId,
+        },
+        data: {
+          amount: {
+            ...(earningsDifference < 0
+              ? { decrement: Math.abs(earningsDifference) }
+              : { increment: earningsDifference }),
           },
-          data: {
-            saleAmount: {
-              ...(amountDifference < 0
-                ? { decrement: Math.abs(amountDifference) }
-                : { increment: amountDifference }),
-            },
-          },
-        }),
-        // If the sale has already been paid, we need to update the payout
-        sale.status === "processed" &&
-          sale.payoutId &&
-          prisma.payout.update({
-            where: {
-              id: sale.payoutId,
-            },
-            data: {
-              amount: {
-                ...(earningsDifference < 0
-                  ? { decrement: Math.abs(earningsDifference) }
-                  : { increment: earningsDifference }),
-              },
-            },
-          }),
-      ]);
+        },
+      });
     }
 
-    return NextResponse.json(CommissionSchema.parse(updatedSale));
+    return NextResponse.json(CommissionSchema.parse(updatedCommission));
   },
   {
     requiredPlan: [

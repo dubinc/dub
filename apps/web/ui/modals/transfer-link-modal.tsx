@@ -12,7 +12,7 @@ import {
 } from "@dub/ui";
 import {
   APP_NAME,
-  DICEBEAR_AVATAR_URL,
+  OG_AVATAR_URL,
   getApexDomain,
   isDubDomain,
   linkConstructor,
@@ -117,8 +117,7 @@ function TransferLinkModalInner({
               ? workspaces.map((workspace) => ({
                   id: workspace.id,
                   value: workspace.name,
-                  image:
-                    workspace.logo || `${DICEBEAR_AVATAR_URL}${workspace.name}`,
+                  image: workspace.logo || `${OG_AVATAR_URL}${workspace.name}`,
                   disabled:
                     normalizeWorkspaceId(workspace.id) === props.projectId,
                   label:

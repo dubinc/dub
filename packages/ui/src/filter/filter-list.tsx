@@ -1,6 +1,7 @@
 import { cn, truncate } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
+import Link from "next/link";
 import { ReactNode, isValidElement } from "react";
 import { AnimatedSizeContainer } from "../animated-size-container";
 import { useKeyboardShortcut } from "../hooks";
@@ -83,6 +84,11 @@ export function FilterList({
                   filter.getOptionLabel?.(value, { key: filter.key, option }) ??
                   value;
 
+                const optionPermalink =
+                  option?.permalink ??
+                  filter.getOptionPermalink?.(value) ??
+                  null;
+
                 return (
                   <motion.div
                     key={`${key}-${value}`}
@@ -116,7 +122,17 @@ export function FilterList({
                               <OptionIcon className="h-4 w-4" />
                             )}
                           </span>
-                          {truncate(optionLabel, 30)}
+                          {optionPermalink ? (
+                            <Link
+                              href={optionPermalink}
+                              target="_blank"
+                              className="cursor-alias decoration-dotted underline-offset-2 hover:underline"
+                            >
+                              {truncate(optionLabel, 30)}
+                            </Link>
+                          ) : (
+                            truncate(optionLabel, 30)
+                          )}
                         </>
                       ) : (
                         <div className="h-5 w-12 animate-pulse rounded-md bg-neutral-200" />

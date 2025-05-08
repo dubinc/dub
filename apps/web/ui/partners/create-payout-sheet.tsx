@@ -7,10 +7,15 @@ import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { createManualPayoutSchema } from "@/lib/zod/schemas/payouts";
 import { X } from "@/ui/shared/icons";
-import { Button, Combobox, Sheet, useEnterSubmit } from "@dub/ui";
+import {
+  Button,
+  Combobox,
+  Sheet,
+  useEnterSubmit,
+  useRouterStuff,
+} from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { useParams, useRouter } from "next/navigation";
 import { Dispatch, SetStateAction, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -32,11 +37,10 @@ type FormData = z.infer<typeof schema>;
 function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
   const { setIsOpen } = props;
 
-  const router = useRouter();
+  const { queryParams } = useRouterStuff();
   const { program } = useProgram();
   const { partners } = usePartners();
   const { id: workspaceId } = useWorkspace();
-  const { slug, programId } = useParams();
 
   const formRef = useRef<HTMLFormElement>(null);
   const { handleKeyDown } = useEnterSubmit(formRef);
@@ -63,8 +67,7 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
       icon: (
         <img
           src={
-            partner.image ||
-            `https://api.dicebear.com/9.x/micah/svg?seed=${partner.id}`
+            partner.image || `https://api.dub.co/og/avatar?seed=${partner.id}`
           }
           className="size-4 rounded-full"
         />
@@ -81,9 +84,7 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
       const payoutId = res.data?.id;
 
       if (payoutId) {
-        router.push(
-          `/${slug}/programs/${programId}/payouts?payoutId=${payoutId}`,
-        );
+        queryParams({ set: { payoutId } });
       }
     },
     onError({ error }) {
@@ -105,8 +106,6 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
       partnerId,
     });
   };
-
-  const selectedPartner = partners?.find((p) => p.id === partnerId);
 
   const buttonDisabled = isPending || !partnerId;
 

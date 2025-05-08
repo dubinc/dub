@@ -5,11 +5,22 @@ import { stripe } from "@/lib/stripe";
 import { APP_DOMAIN } from "@dub/utils";
 import { NextResponse } from "next/server";
 
+// POST /api/workspaces/[idOrSlug]/billing/upgrade
 export const POST = withWorkspace(async ({ req, workspace, session }) => {
   let { plan, period, baseUrl, onboarding } = await req.json();
 
+  if (!baseUrl.startsWith(APP_DOMAIN)) {
+    throw new DubApiError({
+      code: "unprocessable_entity",
+      message: "Invalid baseUrl.",
+    });
+  }
+
   if (!plan || !period) {
-    return new Response("Invalid plan or period", { status: 400 });
+    throw new DubApiError({
+      code: "unprocessable_entity",
+      message: "Invalid plan or period.",
+    });
   }
 
   plan = plan.replace(" ", "+");

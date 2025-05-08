@@ -13,11 +13,18 @@ interface GetLinkParams {
   externalId?: string;
   domain?: string;
   key?: string;
+  includeWebhooks?: boolean;
 }
 
 // Get link or throw error if not found or doesn't belong to workspace
 export const getLinkOrThrow = async (params: GetLinkParams) => {
-  let { workspaceId, domain, key, externalId } = params;
+  let {
+    workspaceId,
+    domain,
+    key,
+    externalId,
+    includeWebhooks = false,
+  } = params;
   let link: Link | null = null;
 
   const linkId = params.linkId || params.externalId || undefined;
@@ -39,6 +46,9 @@ export const getLinkOrThrow = async (params: GetLinkParams) => {
             }
           : { id: linkId }),
       },
+      include: {
+        webhooks: includeWebhooks,
+      },
     });
   }
 
@@ -55,6 +65,9 @@ export const getLinkOrThrow = async (params: GetLinkParams) => {
           domain,
           key,
         },
+      },
+      include: {
+        webhooks: includeWebhooks,
       },
     });
   }

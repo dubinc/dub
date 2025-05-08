@@ -2,19 +2,16 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TabSelect } from "@dub/ui";
-import { redirect, useRouter, useSelectedLayoutSegment } from "next/navigation";
+import { redirect, useSelectedLayoutSegment } from "next/navigation";
 
 export default function LibraryHeader() {
-  const router = useRouter();
-  const { slug, flags } = useWorkspace();
+  const { slug } = useWorkspace();
 
   const selectedLayoutSegment = useSelectedLayoutSegment();
   const page = selectedLayoutSegment === null ? "" : selectedLayoutSegment;
 
   if (selectedLayoutSegment === null) {
-    redirect(
-      `/${slug}/settings/library/${flags?.linkFolders ? "folders" : "tags"}`,
-    );
+    redirect(`/${slug}/settings/library/folders`);
   }
 
   return (
@@ -29,21 +26,19 @@ export default function LibraryHeader() {
       <TabSelect
         variant="accent"
         options={[
-          ...(flags?.linkFolders
-            ? [
-                {
-                  id: "folders",
-                  label: "Folders",
-                },
-              ]
-            : []),
-          { id: "tags", label: "Tags" },
-          { id: "utm", label: "UTM Templates" },
+          {
+            id: "folders",
+            label: "Folders",
+            href: `/${slug}/settings/library/folders`,
+          },
+          { id: "tags", label: "Tags", href: `/${slug}/settings/library/tags` },
+          {
+            id: "utm",
+            label: "UTM Templates",
+            href: `/${slug}/settings/library/utm`,
+          },
         ]}
         selected={page}
-        onSelect={(id) => {
-          router.push(`/${slug}/settings/library/${id}`);
-        }}
       />
     </div>
   );

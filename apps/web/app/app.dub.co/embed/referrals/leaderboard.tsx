@@ -1,33 +1,47 @@
 import z from "@/lib/zod";
 import { LeaderboardPartnerSchema } from "@/lib/zod/schemas/partners";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { Crown, Table, Users, useTable } from "@dub/ui";
+import { Crown, Table, Tooltip, Users, useTable } from "@dub/ui";
 import {
   currencyFormatter,
   fetcher,
   TAB_ITEM_ANIMATION_SETTINGS,
 } from "@dub/utils";
 import { cn } from "@dub/utils/src/functions";
+import { useEmbedToken } from "app/app.dub.co/embed/use-embed-token";
 import { motion } from "framer-motion";
 import useSWR from "swr";
 
 export function ReferralsEmbedLeaderboard() {
+  const token = useEmbedToken();
+
   const { data: partners, isLoading } = useSWR<
     z.infer<typeof LeaderboardPartnerSchema>[]
-  >("/api/embed/referrals/leaderboard", fetcher, {
-    keepPreviousData: true,
-  });
+  >(
+    "/api/embed/referrals/leaderboard",
+    (url) =>
+      fetcher(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }),
+    {
+      keepPreviousData: true,
+    },
+  );
 
   const { table, ...tableProps } = useTable({
     data: partners || [],
     loading: isLoading,
     columns: [
       {
-        id: "position",
-        header: "Position",
+        id: "rank",
+        header: "Rank",
+        size: 40,
+        minSize: 40,
         cell: ({ row }) => {
           return (
-            <div className="flex items-center justify-start gap-2 tabular-nums">
+            <div className="flex w-8 items-center justify-start gap-1 tabular-nums">
               {row.index + 1}
               {row.index <= 2 && (
                 <Crown
@@ -46,7 +60,20 @@ export function ReferralsEmbedLeaderboard() {
         id: "name",
         header: "Partner",
         cell: ({ row }) => {
-          return row.original.name;
+          return (
+            <div className="flex items-center gap-2">
+              <img
+                src={row.original.image}
+                alt={row.original.name}
+                className="size-5 rounded-full"
+              />
+              <Tooltip content="For privacy reasons, the name of the partner is anonymized.">
+                <span className="cursor-help text-sm font-medium decoration-dotted underline-offset-2 hover:underline">
+                  {row.original.name}
+                </span>
+              </Tooltip>
+            </div>
+          );
         },
       },
       {

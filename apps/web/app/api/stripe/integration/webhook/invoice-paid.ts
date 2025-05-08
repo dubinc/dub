@@ -10,22 +10,55 @@ import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
+import { getConnectedCustomer } from "./utils";
 
 // Handle event "invoice.paid"
 export async function invoicePaid(event: Stripe.Event) {
   const invoice = event.data.object as Stripe.Invoice;
+  const stripeAccountId = event.account as string;
   const stripeCustomerId = invoice.customer as string;
   const invoiceId = invoice.id;
 
   // Find customer using projectConnectId and stripeCustomerId
-  const customer = await prisma.customer.findUnique({
+  let customer = await prisma.customer.findUnique({
     where: {
       stripeCustomerId,
     },
   });
 
+  // if customer is not found, we check if the connected customer has a dubCustomerId
   if (!customer) {
-    return `Customer with stripeCustomerId ${stripeCustomerId} not found, skipping...`;
+    const connectedCustomer = await getConnectedCustomer({
+      stripeCustomerId,
+      stripeAccountId,
+      livemode: event.livemode,
+    });
+    const dubCustomerId = connectedCustomer?.metadata.dubCustomerId;
+
+    if (dubCustomerId) {
+      try {
+        // Update customer with stripeCustomerId if exists – for future events
+        customer = await prisma.customer.update({
+          where: {
+            projectConnectId_externalId: {
+              projectConnectId: stripeAccountId,
+              externalId: dubCustomerId,
+            },
+          },
+          data: {
+            stripeCustomerId,
+          },
+        });
+      } catch (error) {
+        console.log(error);
+        return `Customer with dubCustomerId ${dubCustomerId} not found, skipping...`;
+      }
+    }
+  }
+
+  // if customer is still not found, we skip the event
+  if (!customer) {
+    return `Customer with stripeCustomerId ${stripeCustomerId} not found on Dub (nor does the connected customer ${stripeCustomerId} have a valid dubCustomerId), skipping...`;
   }
 
   // Skip if invoice id is already processed
@@ -120,6 +153,21 @@ export async function invoicePaid(event: Stripe.Event) {
           increment: 1,
         },
         salesUsage: {
+          increment: invoice.amount_paid,
+        },
+      },
+    }),
+
+    // update customer sales count
+    prisma.customer.update({
+      where: {
+        id: customer.id,
+      },
+      data: {
+        sales: {
+          increment: 1,
+        },
+        saleAmount: {
           increment: invoice.amount_paid,
         },
       },

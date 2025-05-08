@@ -18,12 +18,14 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   CSSProperties,
   Dispatch,
+  HTMLAttributes,
   memo,
   MouseEvent,
   PropsWithChildren,
   ReactNode,
   SetStateAction,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 import { Button } from "../button";
@@ -67,6 +69,9 @@ type BaseTableProps<T> = {
   columnPinning?: ColumnPinningState;
   resourceName?: (plural: boolean) => string;
   onRowClick?: (row: Row<T>, e: MouseEvent) => void;
+  rowProps?:
+    | HTMLAttributes<HTMLTableRowElement>
+    | ((row: Row<T>) => HTMLAttributes<HTMLTableRowElement>);
   enableColumnResizing?: boolean;
   columnResizeMode?: ColumnResizeMode;
 
@@ -195,16 +200,20 @@ const ResizableTableRow = memo(
   function ResizableTableRow<T>({
     row,
     onRowClick,
+    rowProps,
     cellRight,
     tdClassName,
     table,
   }: {
     row: Row<T>;
     onRowClick?: (row: Row<T>, e: MouseEvent) => void;
+    rowProps?: HTMLAttributes<HTMLTableRowElement>;
     cellRight?: (cell: Cell<T, any>) => ReactNode;
     tdClassName?: string | ((columnId: string) => string);
     table: TableType<T>;
   }) {
+    const { className, ...rest } = rowProps || {};
+
     return (
       <tr
         key={row.id}
@@ -215,6 +224,7 @@ const ResizableTableRow = memo(
           table.getRowModel().rows.length > 8 &&
             row.index === table.getRowModel().rows.length - 1 &&
             "[&_td]:border-b-0",
+          className,
         )}
         onClick={
           onRowClick
@@ -225,6 +235,7 @@ const ResizableTableRow = memo(
               }
             : undefined
         }
+        {...rest}
       >
         {row.getVisibleCells().map((cell) => (
           <td
@@ -268,6 +279,7 @@ const ResizableTableRow = memo(
 ) as <T>(props: {
   row: Row<T>;
   onRowClick?: (row: Row<T>, e: MouseEvent) => void;
+  rowProps?: HTMLAttributes<HTMLTableRowElement>;
   cellRight?: (cell: Cell<T, any>) => ReactNode;
   tdClassName?: string | ((columnId: string) => string);
   table: TableType<T>;
@@ -293,10 +305,19 @@ export function Table<T>({
   pagination,
   resourceName,
   onRowClick,
+  rowProps,
   rowCount,
   children,
   enableColumnResizing = false,
 }: TableProps<T>) {
+  // Memoize table width calculation
+  const tableWidth = useMemo(() => {
+    if (!enableColumnResizing) return "100%";
+    return table
+      .getVisibleLeafColumns()
+      .reduce((acc, column) => acc + column.getSize(), 0);
+  }, [enableColumnResizing, table.getVisibleLeafColumns()]);
+
   return (
     <div
       className={cn(
@@ -326,11 +347,7 @@ export function Table<T>({
             style={{
               width: "100%",
               tableLayout: enableColumnResizing ? "fixed" : "auto",
-              ...(enableColumnResizing && {
-                minWidth: table
-                  .getVisibleLeafColumns()
-                  .reduce((acc, column) => acc + column.getSize(), 0),
-              }),
+              minWidth: tableWidth,
             }}
           >
             <thead>
@@ -359,13 +376,7 @@ export function Table<T>({
                           enableColumnResizing && "relative",
                         )}
                         style={{
-                          ...(enableColumnResizing
-                            ? { width: header.getSize() }
-                            : {
-                                minWidth: header.column.columnDef.minSize,
-                                maxWidth: header.column.columnDef.maxSize,
-                                width: header.column.columnDef.size || "auto",
-                              }),
+                          width: header.getSize(),
                           ...getCommonPinningStyles(header.column),
                         }}
                       >
@@ -420,12 +431,20 @@ export function Table<T>({
               ))}
             </thead>
             <tbody>
-              {table.getRowModel().rows.map((row) =>
-                enableColumnResizing ? (
+              {table.getRowModel().rows.map((row) => {
+                const props =
+                  typeof rowProps === "function" ? rowProps(row) : rowProps;
+                const { className, ...rest } = props || {};
+
+                return enableColumnResizing ? (
                   <ResizableTableRow
-                    key={row.id}
+                    key={`${row.id}-${table
+                      .getVisibleLeafColumns()
+                      .map((col) => col.id)
+                      .join(",")}`}
                     row={row}
                     onRowClick={onRowClick}
+                    rowProps={props}
                     cellRight={cellRight}
                     tdClassName={tdClassName}
                     table={table}
@@ -436,20 +455,20 @@ export function Table<T>({
                     className={cn(
                       "group/row",
                       onRowClick && "cursor-pointer select-none",
-                      // hacky fix: if there are more than 8 rows, remove the bottom border from the last row
                       table.getRowModel().rows.length > 8 &&
                         row.index === table.getRowModel().rows.length - 1 &&
                         "[&_td]:border-b-0",
+                      className,
                     )}
                     onClick={
                       onRowClick
                         ? (e) => {
-                            // Ignore if click is on an interactive child
                             if (isClickOnInteractiveChild(e)) return;
                             onRowClick(row, e);
                           }
                         : undefined
                     }
+                    {...rest}
                   >
                     {row.getVisibleCells().map((cell) => (
                       <td
@@ -484,8 +503,8 @@ export function Table<T>({
                       </td>
                     ))}
                   </tr>
-                ),
-              )}
+                );
+              })}
             </tbody>
           </table>
           {children}
@@ -502,12 +521,16 @@ export function Table<T>({
           <div>
             <span className="hidden sm:inline-block">Viewing</span>{" "}
             <span className="font-medium">
-              {(pagination.pageIndex - 1) * pagination.pageSize + 1}-
+              {(
+                (pagination.pageIndex - 1) * pagination.pageSize +
+                1
+              ).toLocaleString()}
+              -
               {Math.min(
                 (pagination.pageIndex - 1) * pagination.pageSize +
                   pagination.pageSize,
                 table.getRowCount(),
-              )}
+              ).toLocaleString()}
             </span>{" "}
             of{" "}
             <span className="font-medium">
@@ -542,9 +565,11 @@ export function Table<T>({
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="bg-bg-default/50 absolute inset-0 flex h-[50vh] items-center justify-center rounded-xl"
+            className="bg-bg-default/50 absolute inset-0 h-full"
           >
-            <LoadingSpinner />
+            <div className="flex h-[75vh] w-full items-center justify-center">
+              <LoadingSpinner />
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

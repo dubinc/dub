@@ -180,7 +180,6 @@ function LinkBuilderInner({
               }
               draftControlsRef.current?.onClose();
             }}
-            foldersEnabled={!!flags?.linkFolders}
           >
             <DraftControls
               ref={draftControlsRef}

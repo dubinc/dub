@@ -1,4 +1,4 @@
-import { SALES_PAGE_SIZE } from "@/lib/partners/constants";
+import { REFERRALS_EMBED_EARNINGS_LIMIT } from "@/lib/partners/constants";
 import { PartnerEarningsResponse } from "@/lib/types";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { Gift, StatusBadge, Table, usePagination, useTable } from "@dub/ui";
@@ -9,14 +9,24 @@ import {
   formatDateTime,
   TAB_ITEM_ANIMATION_SETTINGS,
 } from "@dub/utils";
+import { useEmbedToken } from "app/app.dub.co/embed/use-embed-token";
 import { motion } from "framer-motion";
 import useSWR from "swr";
 
 export function ReferralsEmbedEarnings({ salesCount }: { salesCount: number }) {
-  const { pagination, setPagination } = usePagination(SALES_PAGE_SIZE);
+  const token = useEmbedToken();
+
+  const { pagination, setPagination } = usePagination(
+    REFERRALS_EMBED_EARNINGS_LIMIT,
+  );
   const { data: earnings, isLoading } = useSWR<PartnerEarningsResponse[]>(
     `/api/embed/referrals/earnings?page=${pagination.pageIndex}`,
-    fetcher,
+    (url) =>
+      fetcher(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }),
     {
       keepPreviousData: true,
     },

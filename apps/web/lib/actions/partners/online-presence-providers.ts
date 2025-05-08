@@ -88,8 +88,6 @@ export const ONLINE_PRESENCE_PROVIDERS: Record<string, OnlinePresenceProvider> =
 
         const username = userResponse?.data?.user?.username;
 
-        console.log({ userResponse, user: userResponse?.data?.user, username });
-
         return (
           !!username && partner.tiktok.toLowerCase() === username.toLowerCase()
         );

@@ -2,6 +2,7 @@ import { webhookPayloadSchema } from "@/lib/webhook/schemas";
 import {
   ClickEventWebhookData,
   LeadEventWebhookData,
+  PartnerEventDataProps,
   SaleEventWebhookData,
 } from "@/lib/webhook/types";
 import { Link } from "@dub/prisma/client";
@@ -25,6 +26,8 @@ export const formatEventForSegment = (
       return transformLeadEvent(data);
     case "sale.created":
       return transformSaleEvent(data);
+    case "partner.enrolled":
+      return transformPartnerEnrolledEvent(data);
     default:
       throw new Error(`Event ${event} is not supported for Segment.`);
   }
@@ -88,6 +91,23 @@ const transformSaleEvent = (data: SaleEventWebhookData) => {
       sale,
       revenue: sale.amount,
       currency: sale.currency,
+    },
+  };
+};
+
+const transformPartnerEnrolledEvent = (data: PartnerEventDataProps) => {
+  const { links, ...partner } = data;
+
+  return {
+    event: "Partner Enrolled",
+    userId: partner.id,
+    context: {
+      integration,
+      library: integration,
+    },
+    properties: {
+      partner,
+      links,
     },
   };
 };

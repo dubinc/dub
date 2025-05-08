@@ -6,7 +6,6 @@ import {
   Books2,
   CircleInfo,
   ConnectedDots,
-  ConnectedDots4,
   CubeSettings,
   Gear2,
   Gift,
@@ -22,10 +21,12 @@ import { useSession } from "next-auth/react";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
 import UserSurveyButton from "../user-survey";
+import { ConnectedDots4 } from "./icons/connected-dots4";
 import { CursorRays } from "./icons/cursor-rays";
 import { Gear } from "./icons/gear";
 import { Hyperlink } from "./icons/hyperlink";
 import { LinesY } from "./icons/lines-y";
+import { User } from "./icons/user";
 import { SidebarNav, SidebarNavAreas } from "./sidebar-nav";
 import { Usage } from "./usage";
 import { WorkspaceDropdown } from "./workspace-dropdown";
@@ -62,6 +63,11 @@ const NAV_AREAS: SidebarNavAreas<{
             href: `/${slug}/events${pathname === `/${slug}/events` ? "" : queryString}`,
           },
           {
+            name: "Customers",
+            icon: User,
+            href: `/${slug}/customers`,
+          },
+          {
             name: "Settings",
             icon: Gear,
             href: `/${slug}/settings`,
@@ -93,7 +99,7 @@ const NAV_AREAS: SidebarNavAreas<{
                     },
                     {
                       name: "Payouts",
-                      href: `/${slug}/programs/${programs[0].id}/payouts`,
+                      href: `/${slug}/programs/${programs[0].id}/payouts?status=pending`,
                     },
                     {
                       name: "Resources",
@@ -259,7 +265,11 @@ export function AppSidebarNav({
         }),
         programs,
         session: session || undefined,
-        showNews: pathname.startsWith(`/${slug}/programs/`) ? false : true,
+        showNews:
+          pathname.startsWith(`/${slug}/programs/`) ||
+          (programs && programs.length === 0)
+            ? false
+            : true,
       }}
       toolContent={toolContent}
       newsContent={newsContent}
