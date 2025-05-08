@@ -9,6 +9,7 @@ import { recordSaleWithTimestamp } from "@/lib/tinybird/record-sale";
 import z from "@/lib/zod";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { createCommissionSchema } from "@/lib/zod/schemas/commissions";
+import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -82,6 +83,7 @@ export const createCommissionAction = authActionClient
     }
 
     let clickEvent: z.infer<typeof clickEventSchemaTB> | null = null;
+    let leadEvent: z.infer<typeof leadEventSchemaTB> | null = null;
     let shouldUpdateCustomer = false;
 
     // if there's no existing lead event and there is also no custom leadEventName/Date
@@ -93,7 +95,7 @@ export const createCommissionAction = authActionClient
 
       if (existingLeadEvent && existingLeadEvent.data.length > 0) {
         // if there is an existing lead event, we can use that for the clickEvent details
-        clickEvent = clickEventSchemaTB.parse(existingLeadEvent.data[0]);
+        leadEvent = leadEventSchemaTB.parse(existingLeadEvent.data[0]);
       } else {
         // else, we need to record a dummy click
         const dummyRequest = new Request(link.url, {
@@ -122,19 +124,19 @@ export const createCommissionAction = authActionClient
           ).toISOString(),
         });
 
-        // Record lead
         clickEvent = clickEventSchemaTB.parse({
           ...clickData,
           bot: 0,
           qr: 0,
         });
+        leadEvent = leadEventSchemaTB.parse(clickEvent);
 
         const leadEventId = nanoid(16);
         shouldUpdateCustomer = !customer.linkId && clickData ? true : false;
 
         await Promise.allSettled([
           recordLeadWithTimestamp({
-            ...clickEvent,
+            ...leadEvent,
             event_id: leadEventId,
             event_name: leadEventName || "Sign up",
             customer_id: customerId,
@@ -159,12 +161,12 @@ export const createCommissionAction = authActionClient
     // Record sale
     const shouldRecordSale = saleAmount && saleEventDate;
 
-    if (shouldRecordSale && clickEvent) {
+    if (shouldRecordSale && leadEvent) {
       const saleEventId = nanoid(16);
 
       await Promise.allSettled([
         recordSaleWithTimestamp({
-          ...clickEvent,
+          ...leadEvent,
           event_id: saleEventId,
           event_name: "Purchase",
           amount: saleAmount,
