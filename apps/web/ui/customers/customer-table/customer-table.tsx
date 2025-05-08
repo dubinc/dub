@@ -38,7 +38,6 @@ import { Cell, Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import Image from "next/image";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
@@ -222,9 +221,7 @@ export function CustomerTable() {
           size: 43,
           maxSize: 43,
           header: () => <EditColumnsButton table={table} />,
-          cell: ({ row }) => (
-            <RowMenuButton row={row} workspaceId={workspaceId!} />
-          ),
+          cell: ({ row }) => <RowMenuButton row={row} />,
         },
       ].filter((c) => c.id === "menu" || customersColumns.all.includes(c.id)),
     [],
@@ -374,15 +371,7 @@ export function CustomerTable() {
   );
 }
 
-function RowMenuButton({
-  row,
-  workspaceId,
-}: {
-  row: Row<CustomerProps>;
-  workspaceId: string;
-}) {
-  const router = useRouter();
-  const { slug } = useParams();
+function RowMenuButton({ row }: { row: Row<CustomerProps> }) {
   const [isOpen, setIsOpen] = useState(false);
 
   const [, copyToClipboard] = useCopyToClipboard();
