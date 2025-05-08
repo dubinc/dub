@@ -2,9 +2,11 @@
 
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
+import { getLeadEvent } from "@/lib/tinybird";
 import { recordClick } from "@/lib/tinybird/record-click";
 import { recordLeadWithTimestamp } from "@/lib/tinybird/record-lead";
 import { recordSaleWithTimestamp } from "@/lib/tinybird/record-sale";
+import z from "@/lib/zod";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { createCommissionSchema } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
@@ -81,73 +83,82 @@ export const createCommissionAction = authActionClient
       }
     }
 
-    // Record click
-    const dummyRequest = new Request(link.url, {
-      headers: new Headers({
-        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
-        "x-forwarded-for": "127.0.0.1",
-        "x-vercel-ip-country": "US",
-        "x-vercel-ip-country-region": "CA",
-        "x-vercel-ip-continent": "NA",
-      }),
-    });
+    let clickEvent: z.infer<typeof clickEventSchemaTB> | null = null;
+    let shouldUpdateCustomer = false;
 
-    const clickData = await recordClick({
-      req: dummyRequest,
-      linkId,
-      clickId: nanoid(16),
-      url: link.url,
-      domain: link.domain,
-      key: link.key,
-      workspaceId: workspace.id,
-      skipRatelimit: true,
-      timestamp: new Date(
-        new Date(finalLeadEventDate).getTime() - 5 * 60 * 1000,
-      ).toISOString(),
-    });
-
-    // Record lead
-    const clickEvent = clickEventSchemaTB.parse({
-      ...clickData,
-      bot: 0,
-      qr: 0,
-    });
-
-    const leadEventId = nanoid(16);
-    const shouldUpdateCustomer = !customer.linkId && clickData;
-
-    await Promise.allSettled([
-      recordLeadWithTimestamp({
-        ...clickEvent,
-        event_id: leadEventId,
-        event_name: leadEventName || "Sign up",
-        customer_id: customerId,
-        timestamp: new Date(finalLeadEventDate).toISOString(),
-      }),
-
-      createPartnerCommission({
-        event: "lead",
-        programId,
-        partnerId,
-        linkId,
-        eventId: leadEventId,
+    // if there's no existing lead event and there is also no custom leadEventName/Date
+    // we need to create a dummy click + lead event
+    if (!leadEventDate && !leadEventName) {
+      const existingLeadEvent = await getLeadEvent({
         customerId,
-        amount: 0,
-        quantity: 1,
-        createdAt: finalLeadEventDate,
-      }),
-    ]);
+      });
+      if (existingLeadEvent && existingLeadEvent.data.length > 0) {
+        // if there is an existing lead event, we can use that for the clickEvent details
+        clickEvent = clickEventSchemaTB.parse(existingLeadEvent.data[0]);
+      } else {
+        // else, we need to record a dummy click
+        const dummyRequest = new Request(link.url, {
+          headers: new Headers({
+            "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+            "x-forwarded-for": "127.0.0.1",
+            "x-vercel-ip-country": "US",
+            "x-vercel-ip-country-region": "CA",
+            "x-vercel-ip-continent": "NA",
+          }),
+        });
+
+        const clickData = await recordClick({
+          req: dummyRequest,
+          linkId,
+          clickId: nanoid(16),
+          url: link.url,
+          domain: link.domain,
+          key: link.key,
+          workspaceId: workspace.id,
+          skipRatelimit: true,
+          timestamp: new Date(
+            new Date(finalLeadEventDate).getTime() - 5 * 60 * 1000,
+          ).toISOString(),
+        });
+
+        // Record lead
+        clickEvent = clickEventSchemaTB.parse({
+          ...clickData,
+          bot: 0,
+          qr: 0,
+        });
+
+        const leadEventId = nanoid(16);
+        shouldUpdateCustomer = !customer.linkId && clickData ? true : false;
+
+        await Promise.allSettled([
+          recordLeadWithTimestamp({
+            ...clickEvent,
+            event_id: leadEventId,
+            event_name: leadEventName || "Sign up",
+            customer_id: customerId,
+            timestamp: new Date(finalLeadEventDate).toISOString(),
+          }),
+
+          createPartnerCommission({
+            event: "lead",
+            programId,
+            partnerId,
+            linkId,
+            eventId: leadEventId,
+            customerId,
+            amount: 0,
+            quantity: 1,
+            createdAt: finalLeadEventDate,
+          }),
+        ]);
+      }
+    }
 
     // Record sale
     const shouldRecordSale = saleAmount && saleEventDate;
 
-    if (shouldRecordSale) {
-      const clickEvent = clickEventSchemaTB.parse({
-        ...clickData,
-        bot: 0,
-        qr: 0,
-      });
-
+    if (shouldRecordSale && clickEvent) {
       const saleEventId = nanoid(16);
 
       await Promise.allSettled([
@@ -210,8 +221,8 @@ export const createCommissionAction = authActionClient
             data: {
               ...(shouldUpdateCustomer && {
                 linkId,
-                clickId: clickData.click_id,
-                clickedAt: clickData.timestamp,
+                clickId: clickEvent?.click_id,
+                clickedAt: clickEvent?.timestamp,
               }),
               ...(shouldRecordSale && {
                 sales: {
