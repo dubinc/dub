@@ -86,76 +86,79 @@ export const createCommissionAction = authActionClient
     let leadEvent: z.infer<typeof leadEventSchemaTB> | null = null;
     let shouldUpdateCustomer = false;
 
-    // if there's no existing lead event and there is also no custom leadEventName/Date
-    // we need to create a dummy click + lead event
-    if (!leadEventDate && !leadEventName) {
-      const existingLeadEvent = await getLeadEvent({
-        customerId,
+    const existingLeadEvent = await getLeadEvent({
+      customerId,
+    });
+
+    // if there is an existing lead event + no custom lead details were provided
+    // we can use that leadEvent's existing details
+    if (
+      !leadEventDate &&
+      !leadEventName &&
+      existingLeadEvent &&
+      existingLeadEvent.data.length > 0
+    ) {
+      leadEvent = leadEventSchemaTB.parse(existingLeadEvent.data[0]);
+    } else {
+      // else, if there's no existing lead event and there is also no custom leadEventName/Date
+      // we need to create a dummy click + lead event
+      const dummyRequest = new Request(link.url, {
+        headers: new Headers({
+          "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+          "x-forwarded-for": "127.0.0.1",
+          "x-vercel-ip-country": "US",
+          "x-vercel-ip-country-region": "CA",
+          "x-vercel-ip-continent": "NA",
+        }),
       });
 
-      if (existingLeadEvent && existingLeadEvent.data.length > 0) {
-        // if there is an existing lead event, we can use that for the clickEvent details
-        leadEvent = leadEventSchemaTB.parse(existingLeadEvent.data[0]);
-      } else {
-        // else, we need to record a dummy click
-        const dummyRequest = new Request(link.url, {
-          headers: new Headers({
-            "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
-            "x-forwarded-for": "127.0.0.1",
-            "x-vercel-ip-country": "US",
-            "x-vercel-ip-country-region": "CA",
-            "x-vercel-ip-continent": "NA",
-          }),
-        });
+      const finalLeadEventDate = leadEventDate ?? saleEventDate ?? new Date();
 
-        const finalLeadEventDate = leadEventDate ?? saleEventDate ?? new Date();
+      const clickData = await recordClick({
+        req: dummyRequest,
+        linkId,
+        clickId: nanoid(16),
+        url: link.url,
+        domain: link.domain,
+        key: link.key,
+        workspaceId: workspace.id,
+        skipRatelimit: true,
+        timestamp: new Date(
+          new Date(finalLeadEventDate).getTime() - 5 * 60 * 1000,
+        ).toISOString(),
+      });
 
-        const clickData = await recordClick({
-          req: dummyRequest,
+      clickEvent = clickEventSchemaTB.parse({
+        ...clickData,
+        bot: 0,
+        qr: 0,
+      });
+      leadEvent = leadEventSchemaTB.parse(clickEvent);
+
+      const leadEventId = nanoid(16);
+      shouldUpdateCustomer = !customer.linkId && clickData ? true : false;
+
+      await Promise.allSettled([
+        recordLeadWithTimestamp({
+          ...leadEvent,
+          event_id: leadEventId,
+          event_name: leadEventName || "Sign up",
+          customer_id: customerId,
+          timestamp: new Date(finalLeadEventDate).toISOString(),
+        }),
+
+        createPartnerCommission({
+          event: "lead",
+          programId,
+          partnerId,
           linkId,
-          clickId: nanoid(16),
-          url: link.url,
-          domain: link.domain,
-          key: link.key,
-          workspaceId: workspace.id,
-          skipRatelimit: true,
-          timestamp: new Date(
-            new Date(finalLeadEventDate).getTime() - 5 * 60 * 1000,
-          ).toISOString(),
-        });
-
-        clickEvent = clickEventSchemaTB.parse({
-          ...clickData,
-          bot: 0,
-          qr: 0,
-        });
-        leadEvent = leadEventSchemaTB.parse(clickEvent);
-
-        const leadEventId = nanoid(16);
-        shouldUpdateCustomer = !customer.linkId && clickData ? true : false;
-
-        await Promise.allSettled([
-          recordLeadWithTimestamp({
-            ...leadEvent,
-            event_id: leadEventId,
-            event_name: leadEventName || "Sign up",
-            customer_id: customerId,
-            timestamp: new Date(finalLeadEventDate).toISOString(),
-          }),
-
-          createPartnerCommission({
-            event: "lead",
-            programId,
-            partnerId,
-            linkId,
-            eventId: leadEventId,
-            customerId,
-            amount: 0,
-            quantity: 1,
-            createdAt: finalLeadEventDate,
-          }),
-        ]);
-      }
+          eventId: leadEventId,
+          customerId,
+          amount: 0,
+          quantity: 1,
+          createdAt: finalLeadEventDate,
+        }),
+      ]);
     }
 
     // Record sale
