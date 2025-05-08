@@ -72,7 +72,7 @@ export async function POST(req: Request) {
       },
     });
 
-    await Promise.all([
+    await Promise.allSettled([
       // update the `shortLink` field for each of the short links
       updateShortLinks(updatedLinks),
       // record new link values in Tinybird (dub_links_metadata)
