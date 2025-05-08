@@ -325,7 +325,7 @@ export function CustomerTable() {
                     breakdown etc.? Upgrade to our Business Plan to get deeper,
                     real-time customer insights.{" "}
                     <a
-                      href="https://dub.co/help"
+                      href="https://dub.co/help/article/customer-insights"
                       target="_blank"
                       className="underline underline-offset-2 hover:text-neutral-800"
                     >
@@ -353,12 +353,16 @@ export function CustomerTable() {
         </Table>
       ) : (
         <AnimatedEmptyState
-          title="No customers found"
+          title={`No customers ${isFiltered ? "found" : "yet"}`}
           description={
             isFiltered
               ? "No customers found for the selected filters."
-              : "No customers have been added to this program yet."
+              : "No customers have been recorded for your workspace yet. Learn how to track your first customer."
           }
+          {...(!isFiltered && {
+            learnMoreHref: "https://dub.co/help/article/customer-insights",
+            learnMoreText: "Read the guide",
+          })}
           cardContent={() => (
             <>
               <User className="size-4 text-neutral-700" />
