@@ -61,6 +61,7 @@ describe.sequential("POST /partners", async () => {
     const partner = {
       name: generateRandomName(),
       email: randomEmail(),
+      image: `https://api.dicebear.com/9.x/micah/png?seed=${randomId()}`,
       tenantId: randomId(),
       description: "A description of the partner",
       country: "US",
