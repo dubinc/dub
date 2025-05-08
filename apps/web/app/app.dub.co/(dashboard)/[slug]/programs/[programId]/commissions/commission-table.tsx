@@ -3,13 +3,13 @@
 import useCommissionsCount from "@/lib/swr/use-commissions-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse } from "@/lib/types";
-import FilterButton from "@/ui/analytics/events/filter-button";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
+import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   AnimatedSizeContainer,
@@ -188,7 +188,9 @@ const CommissionTableInner = memo(
 
         return (
           !limit &&
-          meta?.filterParams && <FilterButton set={meta.filterParams(cell)} />
+          meta?.filterParams && (
+            <FilterButtonTableRow set={meta.filterParams(cell)} />
+          )
         );
       },
       ...(!limit && {
