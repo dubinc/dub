@@ -1,6 +1,7 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
+import { isStored, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import {
   CreatePartnerProps,
@@ -12,6 +13,7 @@ import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { Prisma, ProgramEnrollmentStatus } from "@dub/prisma/client";
+import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
 import { linkCache } from "../links/cache";
@@ -119,7 +121,7 @@ export const createAndEnrollPartner = async ({
       id: createId({ prefix: "pn_" }),
       name: partner.name,
       email: partner.email,
-      image: partner.image,
+      image: partner.image && !isStored(partner.image) ? null : partner.image,
       country: partner.country,
       description: partner.description,
     },
@@ -170,6 +172,24 @@ export const createAndEnrollPartner = async ({
                 partnerId: upsertedPartner.id,
                 programId: program.id,
               }),
+            // upload partner image to R2
+            partner.image &&
+              !isStored(partner.image) &&
+              storage
+                .upload(
+                  `partners/${upsertedPartner.id}/image_${nanoid(7)}`,
+                  partner.image,
+                )
+                .then(({ url }) => {
+                  prisma.partner.update({
+                    where: {
+                      id: upsertedPartner.id,
+                    },
+                    data: {
+                      image: url,
+                    },
+                  });
+                }),
           ]),
         ),
 
