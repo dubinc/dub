@@ -10,7 +10,10 @@ import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { NewLinkProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import { createLinkBodySchema, linkEventSchema } from "@/lib/zod/schemas/links";
+import {
+  createLinkBodySchemaAsync,
+  linkEventSchema,
+} from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
 import { deepEqual } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -20,7 +23,7 @@ import { NextResponse } from "next/server";
 export const PUT = withWorkspace(
   async ({ req, headers, workspace, session }) => {
     const bodyRaw = await parseRequestBody(req);
-    const body = createLinkBodySchema.parse(bodyRaw);
+    const body = await createLinkBodySchemaAsync.parseAsync(bodyRaw);
 
     const link = await prisma.link.findFirst({
       where: {

@@ -7,12 +7,14 @@ import {
 import { useIsMegaFolder } from "@/lib/swr/use-is-mega-folder";
 import useLinks from "@/lib/swr/use-links";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { STORE_KEYS, useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { RequestFolderEditAccessButton } from "@/ui/folders/request-edit-button";
 import LinkDisplay from "@/ui/links/link-display";
 import LinksContainer from "@/ui/links/links-container";
 import { LinksDisplayProvider } from "@/ui/links/links-display-provider";
 import { useLinkFilters } from "@/ui/links/use-link-filters";
 import { useAddEditTagModal } from "@/ui/modals/add-edit-tag-modal";
+import { useDotLinkOfferModal } from "@/ui/modals/dot-link-offer-modal";
 import { useExportLinksModal } from "@/ui/modals/export-links-modal";
 import { useLinkBuilder } from "@/ui/modals/link-builder";
 import { ThreeDots } from "@/ui/shared/icons";
@@ -56,7 +58,7 @@ function WorkspaceLinks() {
   const router = useRouter();
   const { isValidating } = useLinks();
   const searchParams = useSearchParams();
-  const { id: workspaceId, slug } = useWorkspace();
+  const workspace = useWorkspace();
   const { LinkBuilder, CreateLinkButton } = useLinkBuilder();
   const { AddEditTagModal, setShowAddEditTagModal } = useAddEditTagModal();
 
@@ -79,8 +81,46 @@ function WorkspaceLinks() {
     "folders.links.write",
   );
 
+  const [dotLinkOfferDismissed, _, { loading: loadingDotLinkOfferDismissed }] =
+    useWorkspaceStore<string>(STORE_KEYS.dotLinkOfferDismissed);
+
+  const [showedDotLinkModal, setShowedDotLinkModal] = useState(false);
+  const { setShowDotLinkOfferModal, DotLinkOfferModal } =
+    useDotLinkOfferModal();
+
+  useEffect(() => {
+    if (showedDotLinkModal) return;
+
+    // We show the .link offer modal if:
+    // - The upgraded modal is not open
+    // - The user has a paid plan (and valid stripe ID)
+    // - The user has no custom domains
+    // - The user has not claimed their .link domain
+    // - The user has not dismissed the .link offer modal
+    if (
+      !searchParams.has("upgraded") &&
+      workspace.stripeId &&
+      workspace.plan &&
+      workspace.plan !== "free" &&
+      workspace.domains?.length === 0 &&
+      !workspace.dotLinkClaimed &&
+      !loadingDotLinkOfferDismissed &&
+      dotLinkOfferDismissed === undefined
+    ) {
+      setShowDotLinkOfferModal(true);
+      setShowedDotLinkModal(true);
+    }
+  }, [
+    showedDotLinkModal,
+    searchParams,
+    workspace,
+    loadingDotLinkOfferDismissed,
+    dotLinkOfferDismissed,
+  ]);
+
   return (
     <>
+      <DotLinkOfferModal />
       <LinkBuilder />
       <AddEditTagModal />
       <div className="flex w-full items-center pt-2">
@@ -133,7 +173,9 @@ function WorkspaceLinks() {
                             <Button
                               className="mt-1 h-8"
                               onClick={() =>
-                                router.push(`/${slug}/settings/domains`)
+                                router.push(
+                                  `/${workspace.slug}/settings/domains`,
+                                )
                               }
                               text="Add domain"
                             />
@@ -172,7 +214,7 @@ function WorkspaceLinks() {
                 <div className="w-fit">
                   <RequestFolderEditAccessButton
                     folderId={folderId!}
-                    workspaceId={workspaceId!}
+                    workspaceId={workspace.id!}
                     variant="primary"
                   />
                 </div>

@@ -56,7 +56,7 @@ export const AuthLayout = ({ children }: AuthLayoutProps) => {
       <div className="hidden h-full flex-col justify-center space-y-12 overflow-hidden md:col-span-2 md:flex">
         <div className="ml-12 h-1/2 w-[140%] rounded-xl border border-neutral-200 p-2 shadow-xl">
           <BlurImage
-            alt="Dub.co Analytics"
+            alt="Dub Analytics"
             src="https://assets.dub.co/changelog/new-dashboard.jpg"
             width={2400}
             height={1260}

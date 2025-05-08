@@ -20,8 +20,13 @@ export function ReferralsEmbedEarnings({ salesCount }: { salesCount: number }) {
     REFERRALS_EMBED_EARNINGS_LIMIT,
   );
   const { data: earnings, isLoading } = useSWR<PartnerEarningsResponse[]>(
-    `/api/embed/referrals/earnings?page=${pagination.pageIndex}&token=${token}`,
-    fetcher,
+    `/api/embed/referrals/earnings?page=${pagination.pageIndex}`,
+    (url) =>
+      fetcher(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }),
     {
       keepPreviousData: true,
     },

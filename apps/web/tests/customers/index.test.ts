@@ -10,6 +10,8 @@ const expectedCustomer = {
   country: "US",
   name: expect.any(String),
   avatar: expect.any(String),
+  saleAmount: 0,
+  sales: 0,
   createdAt: expect.any(String),
 };
 

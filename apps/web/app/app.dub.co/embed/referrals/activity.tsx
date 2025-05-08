@@ -1,7 +1,6 @@
 import { CursorRays } from "@/ui/layout/sidebar/icons/cursor-rays";
 import { InfoTooltip, MiniAreaChart } from "@dub/ui";
-import { cn, currencyFormatter, nFormatter } from "@dub/utils";
-import { fetcher } from "@dub/utils/src/functions";
+import { cn, currencyFormatter, fetcher, nFormatter } from "@dub/utils";
 import { useEmbedToken } from "app/app.dub.co/embed/use-embed-token";
 import { AnalyticsTimeseries } from "dub/models/components";
 import { SVGProps, useId } from "react";
@@ -22,8 +21,13 @@ export function ReferralsEmbedActivity({
 
   const isEmpty = clicks === 0 && leads === 0 && sales === 0;
   const { data: analytics } = useSWR<AnalyticsTimeseries[]>(
-    !isEmpty && `/api/embed/referrals/analytics?token=${token}`,
-    fetcher,
+    !isEmpty && "/api/embed/referrals/analytics",
+    (url) =>
+      fetcher(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }),
     {
       keepPreviousData: true,
       dedupingInterval: 60000,

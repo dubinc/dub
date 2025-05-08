@@ -56,7 +56,7 @@ export const PATCH = withWorkspace(
       archived,
       assetLinks,
       appleAppSiteAssociation,
-    } = updateDomainBodySchema.parse(await parseRequestBody(req));
+    } = await updateDomainBodySchema.parseAsync(await parseRequestBody(req));
 
     if (workspace.plan === "free") {
       if (
@@ -151,10 +151,8 @@ export const PATCH = withWorkspace(
 
             // trigger the queue to rename the redis keys and update the links in Tinybird
             queueDomainUpdate({
-              workspaceId: workspace.id,
               oldDomain: domain,
               newDomain: newDomain,
-              page: 1,
             }),
           ]);
         }

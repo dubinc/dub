@@ -34,7 +34,6 @@ export const GET = withWorkspace(
       "advanced",
       "enterprise",
     ],
-    featureFlag: "linkFolders",
   },
 );
 
@@ -104,7 +103,6 @@ export const PATCH = withWorkspace(
       "advanced",
       "enterprise",
     ],
-    featureFlag: "linkFolders",
   },
 );
 
@@ -175,6 +173,5 @@ export const DELETE = withWorkspace(
       "advanced",
       "enterprise",
     ],
-    featureFlag: "linkFolders",
   },
 );

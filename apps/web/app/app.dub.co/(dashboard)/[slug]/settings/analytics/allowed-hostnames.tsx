@@ -21,7 +21,7 @@ export const AllowedHostnames = () => {
           Specify a list of hostnames where client-side click tracking will be
           allowed on.{" "}
           <Link
-            href="https://dub.co/docs/conversions/clicks/introduction#client-side-click-tracking"
+            href="https://dub.co/docs/sdks/client-side/features/client-side-click-tracking"
             target="_blank"
             className="underline transition-colors hover:text-neutral-800"
           >

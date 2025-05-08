@@ -74,7 +74,9 @@ export const PATCH = withWorkspace(
       linkId: params.linkId,
     });
 
-    const body = updateLinkBodySchema.parse(await parseRequestBody(req)) || {};
+    const body =
+      (await updateLinkBodySchema.parseAsync(await parseRequestBody(req))) ||
+      {};
 
     await Promise.all([
       ...(link.folderId

@@ -11,8 +11,8 @@ model Link {
   trackConversion Boolean   @default(false) // whether to track conversions or not
 
   proxy       Boolean @default(false) // Proxy to use custom OG tags (stored on redis) – if false, will use OG tags from target url
-  title       String? // OG title for the link (e.g. Dub.co - Open-Source Link Management Infrastructure)
-  description String? @db.VarChar(280) // OG description for the link (e.g. An open-source link management tool for modern marketing teams to create, share, and track short links.)
+  title       String? // OG title for the link (e.g. Dub - open-source link attribution platform)
+  description String? @db.VarChar(280) // OG description for the link (e.g. The modern link attribution platform for short links, conversion tracking, and affiliate programs.)
   image       String? @db.LongText // OG image for the link (e.g. https://d.to/og)
   video       String? @db.Text // OG video for the link
 
@@ -43,12 +43,11 @@ model Link {
   userId String?
 
   // Project that the link belongs to
-  project       Project? @relation(fields: [projectId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  projectId     String?
-  // Relational reference to the project domain
-  projectDomain Domain?  @relation(fields: [domain], references: [slug], onUpdate: Cascade, onDelete: Cascade)
+  project   Project? @relation(fields: [projectId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  projectId String?
+
   // Program that the link belongs to
-  programId     String?
+  programId String?
 
   folderId String?
   folder   Folder? @relation(fields: [folderId], references: [id], onUpdate: Cascade, onDelete: SetNull)
@@ -84,9 +83,9 @@ model Link {
   commissions Commission[]
 
   @@unique([domain, key])
+  @@unique([projectId, externalId])
   @@index([projectId, url(length: 500)])
   @@index([projectId, folderId, archived, createdAt(sort: Desc)])
-  @@unique([projectId, externalId])
   @@index([programId, partnerId])
   @@index(folderId) // used in /api/folders
   @@index(userId) // for relation to User table

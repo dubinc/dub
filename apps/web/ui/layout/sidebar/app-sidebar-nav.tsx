@@ -6,7 +6,6 @@ import {
   Books2,
   CircleInfo,
   ConnectedDots,
-  ConnectedDots4,
   CubeSettings,
   Gear2,
   Gift,
@@ -14,7 +13,6 @@ import {
   Key,
   Receipt2,
   ShieldCheck,
-  Users2,
   Users6,
   Webhook,
 } from "@dub/ui/icons";
@@ -23,10 +21,12 @@ import { useSession } from "next-auth/react";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
 import UserSurveyButton from "../user-survey";
+import { ConnectedDots4 } from "./icons/connected-dots4";
 import { CursorRays } from "./icons/cursor-rays";
 import { Gear } from "./icons/gear";
 import { Hyperlink } from "./icons/hyperlink";
 import { LinesY } from "./icons/lines-y";
+import { User } from "./icons/user";
 import { SidebarNav, SidebarNavAreas } from "./sidebar-nav";
 import { Usage } from "./usage";
 import { WorkspaceDropdown } from "./workspace-dropdown";
@@ -62,15 +62,11 @@ const NAV_AREAS: SidebarNavAreas<{
             icon: CursorRays,
             href: `/${slug}/events${pathname === `/${slug}/events` ? "" : queryString}`,
           },
-          ...(pathname.startsWith(`/${slug}/customers`)
-            ? [
-                {
-                  name: "Customers",
-                  icon: Users2,
-                  href: `/${slug}/customers`,
-                },
-              ]
-            : []),
+          {
+            name: "Customers",
+            icon: User,
+            href: `/${slug}/customers`,
+          },
           {
             name: "Settings",
             icon: Gear,

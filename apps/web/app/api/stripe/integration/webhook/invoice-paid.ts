@@ -157,6 +157,21 @@ export async function invoicePaid(event: Stripe.Event) {
         },
       },
     }),
+
+    // update customer sales count
+    prisma.customer.update({
+      where: {
+        id: customer.id,
+      },
+      data: {
+        sales: {
+          increment: 1,
+        },
+        saleAmount: {
+          increment: invoice.amount_paid,
+        },
+      },
+    }),
   ]);
 
   // for program links

@@ -466,8 +466,20 @@ export const authOptions: NextAuthOptions = {
       // refresh the user's data if they update their name / email
       if (trigger === "update") {
         const refreshedUser = await prisma.user.findUnique({
-          where: { id: token.sub },
+          where: {
+            id: token.sub,
+          },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+            isMachine: true,
+            defaultPartnerId: true,
+            defaultWorkspace: true,
+          },
         });
+
         if (refreshedUser) {
           token.user = refreshedUser;
         } else {
@@ -516,7 +528,7 @@ export const authOptions: NextAuthOptions = {
               sendEmail({
                 email,
                 replyTo: "steven.tey@dub.co",
-                subject: "Welcome to Dub.co!",
+                subject: "Welcome to Dub!",
                 react: WelcomeEmail({
                   email,
                   name: user.name || null,

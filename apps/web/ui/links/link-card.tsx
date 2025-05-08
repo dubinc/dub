@@ -5,6 +5,7 @@ import {
   ExpandingArrow,
   useIntersectionObserver,
   useMediaQuery,
+  useRouterStuff,
 } from "@dub/ui";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -47,20 +48,30 @@ export const LinkCard = memo(({ link }: { link: ResponseLink }) => {
 });
 
 const LinkCardInner = memo(({ link }: { link: ResponseLink }) => {
-  const { variant } = useContext(CardList.Context);
+  const { variant, loading } = useContext(CardList.Context);
   const { isMobile } = useMediaQuery();
   const ref = useRef<HTMLDivElement>(null);
 
-  const searchParams = useSearchParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const selectedFolderId = searchParams.get("folderId");
   const { slug, defaultFolderId } = useWorkspace();
+  const { queryParams } = useRouterStuff();
 
   const entry = useIntersectionObserver(ref);
   const isInView = entry?.isIntersecting;
 
+  const showFolderIcon = useMemo(() => {
+    return Boolean(
+      !loading &&
+        link.folderId &&
+        ![defaultFolderId, selectedFolderId].includes(link.folderId),
+    );
+  }, [loading, link.folderId, defaultFolderId, selectedFolderId]);
+
   const { folder } = useFolder({
     folderId: link.folderId,
-    enabled: isInView,
+    enabled: showFolderIcon,
   });
 
   const editUrl = useMemo(
@@ -90,13 +101,17 @@ const LinkCardInner = memo(({ link }: { link: ResponseLink }) => {
         outerClassName="overflow-hidden"
         innerClassName="p-0"
         {...(variant === "loose" &&
-          link.folderId &&
-          ![defaultFolderId, searchParams.get("folderId")].includes(
-            link.folderId,
-          ) && {
+          showFolderIcon && {
             banner: (
               <Link
-                href={`/${slug}/links?folderId=${folder?.id}`}
+                href={
+                  folder
+                    ? (queryParams({
+                        set: { folderId: folder?.id || "" },
+                        getNewPath: true,
+                      }) as string)
+                    : "#"
+                }
                 className="group flex items-center justify-between gap-2 rounded-t-xl border-b border-neutral-100 bg-neutral-50 px-5 py-2 text-xs"
               >
                 <div className="flex items-center gap-1.5">
