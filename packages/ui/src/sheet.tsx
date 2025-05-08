@@ -14,7 +14,12 @@ function SheetRoot({
 >) {
   const RootComponent = nested ? Drawer.NestedRoot : Drawer.Root;
   return (
-    <RootComponent direction="right" handleOnly {...rest}>
+    <RootComponent
+      direction="right"
+      handleOnly
+      repositionInputs={false}
+      {...rest}
+    >
       <Drawer.Portal>
         <Drawer.Overlay
           className="fixed inset-0 bg-black/20"
