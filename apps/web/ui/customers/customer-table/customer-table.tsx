@@ -356,7 +356,7 @@ export function CustomerTable() {
           title={`No customers ${isFiltered ? "found" : "yet"}`}
           description={
             isFiltered
-              ? "No customers found for the selected filters."
+              ? "No customers found for the selected filters. Adjust your filters to refine your search results."
               : "No customers have been recorded for your workspace yet. Learn how to track your first customer."
           }
           {...(!isFiltered && {
