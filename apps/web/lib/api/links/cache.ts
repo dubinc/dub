@@ -75,33 +75,6 @@ class LinkCache {
     return await pipeline.exec();
   }
 
-  async rename({
-    links,
-    oldDomain,
-  }: {
-    links: Pick<LinkProps, "domain" | "key">[];
-    oldDomain: string;
-  }) {
-    if (links.length === 0) {
-      return;
-    }
-
-    const pipeline = redis.pipeline();
-
-    links.forEach(({ domain, key }) => {
-      const oldCacheKey = this._createKey({ domain: oldDomain, key });
-      const newCacheKey = this._createKey({ domain, key });
-
-      pipeline.rename(oldCacheKey, newCacheKey);
-    });
-
-    try {
-      return await pipeline.exec();
-    } catch (_error) {
-      return null;
-    }
-  }
-
   async expireMany(links: Pick<LinkProps, "domain" | "key">[]) {
     if (links.length === 0) {
       return;

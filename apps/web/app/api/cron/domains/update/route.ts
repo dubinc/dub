@@ -33,23 +33,23 @@ export async function POST(req: Request) {
       return new Response(`Domain ${newDomain} not found. Skipping update...`);
     }
 
-    const links = await prisma.link.findMany({
+    const linksToUpdate = await prisma.link.findMany({
       where: {
         domain: oldDomain,
       },
       take: 100,
     });
 
-    if (links.length === 0) {
+    if (linksToUpdate.length === 0) {
       return new Response("No more links to update. Exiting...");
     }
 
-    const linkIds = links.map((link) => link.id);
+    const linkIdsToUpdate = linksToUpdate.map((link) => link.id);
 
     await prisma.link.updateMany({
       where: {
         id: {
-          in: linkIds,
+          in: linkIdsToUpdate,
         },
       },
       data: {
@@ -60,7 +60,7 @@ export async function POST(req: Request) {
     const updatedLinks = await prisma.link.findMany({
       where: {
         id: {
-          in: linkIds,
+          in: linkIdsToUpdate,
         },
       },
       include: {
@@ -73,14 +73,12 @@ export async function POST(req: Request) {
     });
 
     await Promise.all([
-      linkCache.rename({
-        links: updatedLinks,
-        oldDomain,
-      }),
-
-      recordLink(updatedLinks),
-
+      // update the `shortLink` field for each of the short links
       updateShortLinks(updatedLinks),
+      // record new link values in Tinybird (dub_links_metadata)
+      recordLink(updatedLinks),
+      // expire the redis cache for the old links
+      linkCache.expireMany(linksToUpdate),
     ]);
 
     await queueDomainUpdate({
