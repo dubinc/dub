@@ -79,6 +79,7 @@ const LinksQuerySchema = z.object({
     .union([z.string(), z.array(z.string())])
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
     .optional()
+    .describe("The tag IDs to filter the links by.")
     .openapi({
       param: {
         style: "form",
@@ -95,15 +96,31 @@ const LinksQuerySchema = z.object({
           },
         },
       ],
-    })
-    .describe("The tag IDs to filter the links by."),
+    }),
   tagNames: z
     .union([z.string(), z.array(z.string())])
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
     .optional()
     .describe(
       "The unique name of the tags assigned to the short link (case insensitive).",
-    ),
+    )
+    .openapi({
+      param: {
+        style: "form",
+        explode: false,
+      },
+      anyOf: [
+        {
+          type: "string",
+        },
+        {
+          type: "array",
+          items: {
+            type: "string",
+          },
+        },
+      ],
+    }),
   folderId: z
     .string()
     .optional()
