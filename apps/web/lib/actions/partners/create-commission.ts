@@ -133,17 +133,19 @@ export const createCommissionAction = authActionClient
         bot: 0,
         qr: 0,
       });
-      leadEvent = leadEventSchemaTB.parse(clickEvent);
-
       const leadEventId = nanoid(16);
+      leadEvent = leadEventSchemaTB.parse({
+        ...clickEvent,
+        event_id: leadEventId,
+        event_name: leadEventName || "Sign up",
+        customer_id: customerId,
+      });
+
       shouldUpdateCustomer = !customer.linkId && clickData ? true : false;
 
       await Promise.allSettled([
         recordLeadWithTimestamp({
           ...leadEvent,
-          event_id: leadEventId,
-          event_name: leadEventName || "Sign up",
-          customer_id: customerId,
           timestamp: new Date(finalLeadEventDate).toISOString(),
         }),
 
