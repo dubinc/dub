@@ -31,8 +31,6 @@ export const createCommissionAction = authActionClient
       leadEventName,
     } = parsedInput;
 
-    const finalLeadEventDate = leadEventDate ?? saleEventDate ?? new Date();
-
     const [programEnrollment, customer] = await Promise.all([
       getProgramEnrollmentOrThrow({
         programId,
@@ -92,6 +90,7 @@ export const createCommissionAction = authActionClient
       const existingLeadEvent = await getLeadEvent({
         customerId,
       });
+
       if (existingLeadEvent && existingLeadEvent.data.length > 0) {
         // if there is an existing lead event, we can use that for the clickEvent details
         clickEvent = clickEventSchemaTB.parse(existingLeadEvent.data[0]);
@@ -106,6 +105,8 @@ export const createCommissionAction = authActionClient
             "x-vercel-ip-continent": "NA",
           }),
         });
+
+        const finalLeadEventDate = leadEventDate ?? saleEventDate ?? new Date();
 
         const clickData = await recordClick({
           req: dummyRequest,
