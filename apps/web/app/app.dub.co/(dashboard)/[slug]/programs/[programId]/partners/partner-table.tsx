@@ -94,19 +94,20 @@ export function PartnerTable() {
   );
 
   const [detailsSheetState, setDetailsSheetState] = useState<
-    | { open: false; partner: EnrolledPartnerProps | null }
-    | { open: true; partner: EnrolledPartnerProps }
-  >({ open: false, partner: null });
+    | { open: false; partnerId: string | null }
+    | { open: true; partnerId: string }
+  >({ open: false, partnerId: null });
 
   useEffect(() => {
     const partnerId = searchParams.get("partnerId");
-    if (partnerId) {
-      const partner = partners?.find((p) => p.id === partnerId);
-      if (partner) {
-        setDetailsSheetState({ open: true, partner });
-      }
-    }
-  }, [searchParams, partners]);
+    if (partnerId) setDetailsSheetState({ open: true, partnerId });
+  }, [searchParams]);
+
+  const { currentPartner, isLoading: isCurrentPartnerLoading } =
+    useCurrentPartner({
+      partners,
+      partnerId: detailsSheetState.partnerId,
+    });
 
   const { columnVisibility, setColumnVisibility } = useColumnVisibility();
   const { pagination, setPagination } = usePagination();
@@ -264,20 +265,21 @@ export function PartnerTable() {
     tdClassName: "border-l-0",
     resourceName: (p) => `partner${p ? "s" : ""}`,
     rowCount: partnersCount || 0,
-    loading: isLoading,
+    loading: isLoading || isCurrentPartnerLoading,
     error: error || countError ? "Failed to load partners" : undefined,
   });
 
   return (
     <div className="flex flex-col gap-3">
-      {detailsSheetState.partner &&
-        (detailsSheetState.partner.status === "pending" ? (
+      {detailsSheetState.partnerId &&
+        currentPartner &&
+        (currentPartner.status === "pending" ? (
           <PartnerApplicationSheet
             isOpen={detailsSheetState.open}
             setIsOpen={(open) =>
               setDetailsSheetState((s) => ({ ...s, open }) as any)
             }
-            partner={detailsSheetState.partner}
+            partner={currentPartner}
           />
         ) : (
           <PartnerDetailsSheet
@@ -285,7 +287,7 @@ export function PartnerTable() {
             setIsOpen={(open) =>
               setDetailsSheetState((s) => ({ ...s, open }) as any)
             }
-            partner={detailsSheetState.partner}
+            partner={currentPartner}
           />
         ))}
       <div>
@@ -526,4 +528,43 @@ function MenuItem({
       {label}
     </Command.Item>
   );
+}
+
+/** Gets the current partner from the loaded partners array if available, or a separate fetch if not */
+function useCurrentPartner({
+  partners,
+  partnerId,
+}: {
+  partners?: EnrolledPartnerProps[];
+  partnerId: string | null;
+}) {
+  const { id: workspaceId } = useWorkspace();
+  const { programId } = useParams();
+
+  let currentPartner = partnerId
+    ? partners?.find(({ id }) => id === partnerId)
+    : null;
+
+  const { data: currentPartnersFetched, isLoading } = useSWR<
+    EnrolledPartnerProps[]
+  >(
+    partners &&
+      partnerId &&
+      !currentPartner &&
+      `/api/partners?${new URLSearchParams({
+        workspaceId: workspaceId!,
+        programId: programId.toString(),
+        ids: partnerId,
+        includeExpandedFields: "true",
+      })}`,
+    fetcher,
+    {
+      keepPreviousData: true,
+    },
+  );
+
+  if (!currentPartner && currentPartnersFetched?.[0]?.id === partnerId)
+    currentPartner = currentPartnersFetched[0];
+
+  return { currentPartner, isLoading };
 }
