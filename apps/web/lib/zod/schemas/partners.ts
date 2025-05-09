@@ -22,12 +22,6 @@ export const exportPartnerColumns = [
   { id: "email", label: "Email", default: true },
   { id: "country", label: "Country", default: true },
   { id: "status", label: "Status", default: true },
-  {
-    id: "payoutsEnabledAt",
-    label: "Payouts enabled at",
-    default: false,
-  },
-  { id: "createdAt", label: "Enrolled at", default: true },
   { id: "createdAt", label: "Enrolled at", default: true },
   { id: "description", label: "Description", default: false },
   { id: "clicks", label: "Clicks", default: false },
