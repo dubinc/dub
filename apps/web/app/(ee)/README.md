@@ -1,7 +1,7 @@
 <!-- PROJECT LOGO -->
 <div align="center">
   <a href="https://dub.co/enterprise">
-    <img src="https://github.com/user-attachments/assets/81bf1a0c-f396-4e52-9dcf-8a0ae4d527f8" alt="Logo">
+    <img src="https://github.com/user-attachments/assets/42cf0705-f5a2-4200-bc4a-c5acf0ba9e15" alt="Logo">
   </a>
   
   <a href="https://dub.co/enterprise">Get an Enterprise License</a>
@@ -9,7 +9,7 @@
 
 # Enterprise Edition
 
-Welcome to the Enterprise Edition ("/(ee)") of Dub.co.
+Welcome to the Enterprise Edition of Dub.co.
 
 The [/(ee)](<https://github.com/dubinc/dub/tree/main/apps/web/app/(ee)>) subfolder is the place for all the **Enterprise Edition** features from our [hosted](https://dub.co/pricing) plan and enterprise-grade features for [Enterprise](https://dub.co/enterprise), included but not limited to the following:
 
