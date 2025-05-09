@@ -30,6 +30,7 @@ export const createAndEnrollPartner = async ({
   tenantId,
   status = "approved",
   skipEnrollmentCheck = false,
+  enrolledAt,
 }: {
   program: Pick<
     ProgramProps,
@@ -46,6 +47,7 @@ export const createAndEnrollPartner = async ({
   tenantId?: string;
   status?: ProgramEnrollmentStatus;
   skipEnrollmentCheck?: boolean;
+  enrolledAt?: Date;
 }) => {
   if (!skipEnrollmentCheck && partner.email) {
     const programEnrollment = await prisma.programEnrollment.findFirst({
@@ -107,6 +109,9 @@ export const createAndEnrollPartner = async ({
           discountId !== program.defaultDiscountId && {
             discountId,
           }),
+        ...(enrolledAt && {
+          createdAt: enrolledAt,
+        }),
       },
     },
   };
