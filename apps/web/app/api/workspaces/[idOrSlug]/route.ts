@@ -30,10 +30,6 @@ export const GET = withWorkspace(
       take: 100,
     });
 
-    const flags = await getFeatureFlags({
-      workspaceId: workspace.id,
-    });
-
     return NextResponse.json(
       {
         ...WorkspaceSchemaExtended.parse({
