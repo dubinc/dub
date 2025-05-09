@@ -14,7 +14,7 @@ import type Stripe from "stripe";
 export async function createNewCustomer(event: Stripe.Event) {
   const stripeCustomer = event.data.object as Stripe.Customer;
   const stripeAccountId = event.account as string;
-  const dubCustomerExternalId = stripeCustomer.metadata?.dubCustomerId;
+  const dubCustomerId = stripeCustomer.metadata?.dubCustomerId;
   const clickId = stripeCustomer.metadata?.dubClickId;
 
   // The client app should always send dubClickId (dub_id) via metadata
@@ -50,7 +50,7 @@ export async function createNewCustomer(event: Stripe.Event) {
       email: stripeCustomer.email,
       stripeCustomerId: stripeCustomer.id,
       projectConnectId: stripeAccountId,
-      externalId: dubCustomerExternalId,
+      externalId: dubCustomerId,
       projectId: link.projectId,
       linkId,
       clickId,
@@ -151,4 +151,33 @@ export async function getConnectedCustomer({
   }
 
   return connectedCustomer;
+}
+
+export async function updateCustomerWithStripeCustomerId({
+  stripeAccountId,
+  dubCustomerId,
+  stripeCustomerId,
+}: {
+  stripeAccountId: string;
+  dubCustomerId: string;
+  stripeCustomerId: string;
+}) {
+  try {
+    // Update customer with stripeCustomerId if exists – for future events
+    return await prisma.customer.update({
+      where: {
+        projectConnectId_externalId: {
+          projectConnectId: stripeAccountId,
+          externalId: dubCustomerId,
+        },
+      },
+      data: {
+        stripeCustomerId,
+      },
+    });
+  } catch (error) {
+    // Skip if customer not found
+    console.log(error);
+    return null;
+  }
 }
