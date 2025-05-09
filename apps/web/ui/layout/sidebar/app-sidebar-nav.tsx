@@ -1,6 +1,5 @@
 "use client";
 
-import usePrograms from "@/lib/swr/use-programs";
 import { useRouterStuff } from "@dub/ui";
 import {
   Books2,
@@ -243,7 +242,6 @@ export function AppSidebarNav({
   const pathname = usePathname();
   const { getQueryString } = useRouterStuff();
   const { data: session } = useSession();
-  const { programs } = usePrograms();
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
@@ -263,13 +261,8 @@ export function AppSidebarNav({
         queryString: getQueryString(undefined, {
           include: ["folderId", "tagIds"],
         }),
-        programs,
         session: session || undefined,
-        showNews:
-          pathname.startsWith(`/${slug}/programs/`) ||
-          (programs && programs.length === 0)
-            ? false
-            : true,
+        showNews: pathname.startsWith(`/${slug}/programs/`) ? false : true,
       }}
       toolContent={toolContent}
       newsContent={newsContent}

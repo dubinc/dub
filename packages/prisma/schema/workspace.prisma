@@ -4,6 +4,7 @@ model Project {
   slug       String  @unique
   logo       String?
   inviteCode String? @unique
+  defaultProgramId String? // default affiliate program ID for the workspace
 
   plan              String    @default("free")
   stripeId          String?   @unique // Stripe subscription ID
@@ -31,8 +32,8 @@ model Project {
   aiUsage      Int @default(0)
   aiLimit      Int @default(10)
 
-  referralLinkId  String? @unique
-  referredSignups Int     @default(0)
+  referralLinkId   String? @unique
+  referredSignups  Int     @default(0)
 
   store            Json? // General key-value store for things like persisting toggles, dismissing popups, etc.
   allowedHostnames Json?

@@ -1,5 +1,4 @@
 import { DubApiError } from "@/lib/api/errors";
-import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth/workspace";
@@ -17,15 +16,17 @@ export const PATCH = withWorkspace(
     let { programId, invoiceId, amount, modifyAmount, currency } =
       updatePartnerSaleSchema.parse(await parseRequestBody(req));
 
-    const program = await getProgramOrThrow({
-      workspaceId: workspace.id,
-      programId,
-    });
+    if (programId !== workspace.defaultProgramId) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Program not found",
+      });
+    }
 
     const commission = await prisma.commission.findUnique({
       where: {
         programId_invoiceId: {
-          programId: program.id,
+          programId: programId,
           invoiceId,
         },
       },
@@ -72,13 +73,13 @@ export const PATCH = withWorkspace(
     const reward = await determinePartnerReward({
       event: "sale",
       partnerId: partner.id,
-      programId: program.id,
+      programId: programId,
     });
 
     if (!reward) {
       throw new DubApiError({
         code: "not_found",
-        message: `No reward found for partner ${partner.id} in program ${program.id}.`,
+        message: `No reward found for partner ${partner.id} in program ${programId}.`,
       });
     }
 
