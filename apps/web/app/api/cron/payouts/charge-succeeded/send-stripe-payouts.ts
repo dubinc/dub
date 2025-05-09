@@ -62,7 +62,6 @@ export async function sendStripePayouts({
         sendEmail({
           subject: "You've been paid!",
           email: payout.partner.email,
-          from: "Dub Partners <system@dub.co>",
           react: PartnerPayoutSent({
             email: payout.partner.email,
             program: payout.program,

@@ -2,7 +2,6 @@
 
 import { PAYOUT_FEES } from "@/lib/partners/constants";
 import usePartnersCount from "@/lib/swr/use-partners-count";
-import usePrograms from "@/lib/swr/use-programs";
 import useTagsCount from "@/lib/swr/use-tags-count";
 import useUsers from "@/lib/swr/use-users";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -37,6 +36,7 @@ export default function PlanUsage() {
     slug,
     plan,
     stripeId,
+    defaultProgramId,
     usage,
     usageLimit,
     salesUsage,
@@ -52,13 +52,10 @@ export default function PlanUsage() {
     usersLimit,
     partnersEnabled,
     billingCycleStart,
-    flags,
   } = useWorkspace();
 
-  const { programs } = usePrograms();
   const { partnersCount } = usePartnersCount<number>({
-    enabled: !!programs?.[0]?.id,
-    programId: programs?.[0]?.id,
+    programId: defaultProgramId ?? undefined,
     status: "approved",
   });
 
@@ -223,11 +220,11 @@ export default function PlanUsage() {
             <UsageCategory
               title="Partners"
               icon={Users6}
-              usage={programs && !programs.length ? 0 : partnersCount}
+              usage={partnersCount}
               usageLimit={INFINITY_NUMBER}
               href={
-                programs?.[0]?.id
-                  ? `/${slug}/programs/${programs?.[0]?.id}/partners`
+                defaultProgramId
+                  ? `/${slug}/programs/${defaultProgramId}/partners`
                   : undefined
               }
             />

@@ -1,4 +1,4 @@
-import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
+import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { programResourcesSchema } from "@/lib/zod/schemas/program-resources";
 import { prisma } from "@dub/prisma";
@@ -8,10 +8,12 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(async ({ workspace, params }) => {
   const { programId } = params;
 
-  await getProgramOrThrow({
-    workspaceId: workspace.id,
-    programId,
-  });
+  if (programId !== workspace.defaultProgramId) {
+    throw new DubApiError({
+      code: "not_found",
+      message: "Program not found",
+    });
+  }
 
   const program = await prisma.program.findUnique({
     where: {

@@ -1,5 +1,5 @@
+import { DubApiError } from "@/lib/api/errors";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
-import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { discountPartnersQuerySchema } from "@/lib/zod/schemas/discount";
 import { prisma } from "@dub/prisma";
@@ -9,19 +9,19 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(
   async ({ workspace, params, searchParams }) => {
     const { programId } = params;
+    if (programId !== workspace.defaultProgramId) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Program not found",
+      });
+    }
+
     const { discountId } = discountPartnersQuerySchema.parse(searchParams);
 
-    await Promise.all([
-      getProgramOrThrow({
-        workspaceId: workspace.id,
-        programId,
-      }),
-
-      getDiscountOrThrow({
-        programId,
-        discountId,
-      }),
-    ]);
+    await getDiscountOrThrow({
+      programId,
+      discountId,
+    });
 
     const partners = await prisma.programEnrollment.findMany({
       where: {

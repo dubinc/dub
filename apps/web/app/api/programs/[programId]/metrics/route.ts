@@ -1,5 +1,5 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
-import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
+import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import {
   getProgramMetricsQuerySchema,
@@ -11,17 +11,20 @@ import { NextResponse } from "next/server";
 // GET /api/programs/[programId]/metrics - get metrics for a program
 export const GET = withWorkspace(
   async ({ workspace, params, searchParams }) => {
+    const { programId } = params;
     const { interval, start, end } =
       getProgramMetricsQuerySchema.parse(searchParams);
     const { startDate, endDate } = getStartEndDates({ interval, start, end });
 
-    const program = await getProgramOrThrow({
-      workspaceId: workspace.id,
-      programId: params.programId,
-    });
+    if (programId !== workspace.defaultProgramId) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Program not found",
+      });
+    }
 
     const where = {
-      programId: program.id,
+      programId,
       createdAt: {
         gte: startDate.toISOString(),
         lte: endDate.toISOString(),
@@ -53,7 +56,7 @@ export const GET = withWorkspace(
 
       prisma.programEnrollment.count({
         where: {
-          programId: program.id,
+          programId,
           status: "approved",
         },
       }),

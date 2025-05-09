@@ -1,4 +1,4 @@
-import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
+import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { DiscountSchema } from "@/lib/zod/schemas/discount";
 import { prisma } from "@dub/prisma";
@@ -9,10 +9,12 @@ import { z } from "zod";
 export const GET = withWorkspace(async ({ workspace, params }) => {
   const { programId } = params;
 
-  await getProgramOrThrow({
-    workspaceId: workspace.id,
-    programId,
-  });
+  if (programId !== workspace.defaultProgramId) {
+    throw new DubApiError({
+      code: "not_found",
+      message: "Program not found",
+    });
+  }
 
   const discounts = await prisma.discount.findMany({
     where: {

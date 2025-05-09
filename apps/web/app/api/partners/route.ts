@@ -27,6 +27,13 @@ export const GET = withWorkspace(
       });
     }
 
+    if (programId !== workspace.defaultProgramId) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Program not found",
+      });
+    }
+
     const partners = await getPartners({
       ...partnersQuerySchema.parse(searchParams),
       workspaceId: workspace.id,

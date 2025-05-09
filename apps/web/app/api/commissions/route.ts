@@ -1,5 +1,5 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
-import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
+import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import {
   CommissionResponseSchema,
@@ -13,10 +13,12 @@ import { z } from "zod";
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const { programId } = searchParams;
 
-  await getProgramOrThrow({
-    workspaceId: workspace.id,
-    programId,
-  });
+  if (programId !== workspace.defaultProgramId) {
+    throw new DubApiError({
+      code: "not_found",
+      message: "Program not found",
+    });
+  }
 
   const {
     status,

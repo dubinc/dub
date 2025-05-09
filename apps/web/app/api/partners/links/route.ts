@@ -22,10 +22,12 @@ export const GET = withWorkspace(
     const { programId, partnerId, tenantId } =
       retrievePartnerLinksSchema.parse(searchParams);
 
-    await getProgramOrThrow({
-      programId,
-      workspaceId: workspace.id,
-    });
+    if (programId !== workspace.defaultProgramId) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Program not found",
+      });
+    }
 
     const programEnrollment = await prisma.programEnrollment.findUnique({
       where: partnerId

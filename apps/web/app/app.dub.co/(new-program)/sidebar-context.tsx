@@ -1,6 +1,5 @@
 "use client";
 
-import usePrograms from "@/lib/swr/use-programs";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { notFound, useRouter } from "next/navigation";
 import { createContext, ReactNode, useContext, useState } from "react";
@@ -19,16 +18,15 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
 
   const {
     slug: workspaceSlug,
+    defaultProgramId,
     partnersEnabled,
     loading: workspaceLoading,
     error: workspaceError,
   } = useWorkspace();
 
-  const { programs, loading: programsLoading } = usePrograms();
-
   if (workspaceError && workspaceError.status === 404) {
     notFound();
-  } else if (workspaceLoading || programsLoading) {
+  } else if (workspaceLoading) {
     return <LayoutLoader />;
   }
 
@@ -36,8 +34,8 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     router.push(`/${workspaceSlug}`);
   }
 
-  if (programs && programs.length > 0) {
-    router.push(`/${workspaceSlug}/programs/${programs[0].id}`);
+  if (defaultProgramId) {
+    router.push(`/${workspaceSlug}/programs/${defaultProgramId}`);
   }
 
   return (

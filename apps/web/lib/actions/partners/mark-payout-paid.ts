@@ -1,7 +1,7 @@
 "use server";
 
+import { DubApiError } from "@/lib/api/errors";
 import { getPayoutOrThrow } from "@/lib/api/partners/get-payout-or-throw";
-import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { prisma } from "@dub/prisma";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
@@ -18,16 +18,17 @@ export const markPayoutPaidAction = authActionClient
     const { workspace } = ctx;
     const { programId, payoutId } = parsedInput;
 
-    const [_program, payout] = await Promise.all([
-      getProgramOrThrow({
-        workspaceId: workspace.id,
-        programId,
-      }),
-      getPayoutOrThrow({
-        payoutId,
-        programId,
-      }),
-    ]);
+    if (programId !== workspace.defaultProgramId) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Program not found",
+      });
+    }
+
+    const payout = await getPayoutOrThrow({
+      payoutId,
+      programId,
+    });
 
     await Promise.all([
       prisma.payout.update({
