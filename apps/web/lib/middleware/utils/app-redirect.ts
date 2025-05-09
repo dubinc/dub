@@ -26,6 +26,20 @@ export const appRedirect = (path: string) => {
   if (programSettingsRegex.test(path))
     return path.replace(programSettingsRegex, "/programs/$1/settings/rewards");
 
+  // Redirect "programs/[programId]/settings/branding" to "programs/[programId]/branding/design"
+  const programSettingsBrandingRegex =
+    /\/programs\/([^\/]+)\/settings\/branding$/;
+  if (programSettingsBrandingRegex.test(path))
+    return path.replace(
+      programSettingsBrandingRegex,
+      "/programs/$1/branding/design",
+    );
+
+  // Redirect "programs/[programId]/branding" to "programs/[programId]/branding/design" (first tab)
+  const programBrandingRegex = /\/programs\/([^\/]+)\/branding$/;
+  if (programBrandingRegex.test(path))
+    return path.replace(programBrandingRegex, "/programs/$1/branding/design");
+
   // Redirect "/[slug]/programs/[programId]/sales" to "/[slug]/programs/[programId]/commissions"
   const salesRegex = /^\/([^\/]+)\/programs\/([^\/]+)\/sales$/;
   if (salesRegex.test(path))
