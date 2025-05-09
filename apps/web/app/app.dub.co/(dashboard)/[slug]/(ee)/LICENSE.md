@@ -1,1 +1,1 @@
-../../../../../(ee)/LICENSE.md
+../../../../(ee)/LICENSE.md
