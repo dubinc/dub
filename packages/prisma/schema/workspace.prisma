@@ -4,7 +4,7 @@ model Project {
   slug       String  @unique
   logo       String?
   inviteCode String? @unique
-  defaultProgramId String? // default affiliate program ID for the workspace
+  defaultProgramId String?  @unique // default affiliate program ID for the workspace
 
   plan              String    @default("free")
   stripeId          String?   @unique // Stripe subscription ID

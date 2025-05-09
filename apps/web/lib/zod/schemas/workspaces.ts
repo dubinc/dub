@@ -155,6 +155,7 @@ export const notificationTypes = z.enum([
 ]);
 
 export const WorkspaceSchemaExtended = WorkspaceSchema.extend({
+  defaultProgramId: z.string().nullable(),
   users: z.array(
     WorkspaceSchema.shape.users.element.extend({
       workspacePreferences: z.record(z.any()).nullish(),
