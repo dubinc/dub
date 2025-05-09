@@ -26,7 +26,7 @@ export const PATCH = withWorkspace(
     const commission = await prisma.commission.findUnique({
       where: {
         programId_invoiceId: {
-          programId: programId,
+          programId,
           invoiceId,
         },
       },
