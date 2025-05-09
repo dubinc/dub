@@ -169,7 +169,11 @@ export default async function LinkMiddleware(
   // TODO: This may not be the right place to handle this
   // MVP:Universal linking
   if (domain === "getacme.link") {
-    //
+    return NextResponse.rewrite(new URL(`/universal-link/${key}`, req.url), {
+      headers: {
+        ...DUB_HEADERS,
+      },
+    });
   }
 
   // we only pass the clickId if:
