@@ -1,9 +1,9 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
+import LayoutLoader from "@/ui/layout/layout-loader";
 import { notFound, useRouter } from "next/navigation";
 import { createContext, ReactNode, useContext, useState } from "react";
-import LayoutLoader from "../(dashboard)/loading";
 
 interface SidebarContextType {
   isOpen: boolean;
