@@ -166,6 +166,12 @@ export default async function LinkMiddleware(
 
   const url = testUrl || cachedLink.url;
 
+  // TODO: This may not be the right place to handle this
+  // MVP:Universal linking
+  if (domain === "getacme.link") {
+    //
+  }
+
   // we only pass the clickId if:
   // - trackConversion is enabled
   // - it's a partner link
