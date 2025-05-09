@@ -83,7 +83,7 @@ describe.sequential("POST /partners", async () => {
     });
 
     // wait 1s, and then request the partners/[partnerId] endpoint
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 2500));
     const { data: partnerData } = await http.get<Partner>({
       path: `/partners/${data.id}?programId=${E2E_PROGRAM.id}`,
     });
