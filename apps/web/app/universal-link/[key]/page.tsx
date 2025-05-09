@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import Script from "next/script";
+
 export default function UniversalLinkPage({
   params,
 }: {
