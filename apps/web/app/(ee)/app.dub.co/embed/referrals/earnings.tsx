@@ -9,9 +9,9 @@ import {
   formatDateTime,
   TAB_ITEM_ANIMATION_SETTINGS,
 } from "@dub/utils";
-import { useEmbedToken } from "app/app.dub.co/embed/use-embed-token";
 import { motion } from "framer-motion";
 import useSWR from "swr";
+import { useEmbedToken } from "../../embed/use-embed-token";
 
 export function ReferralsEmbedEarnings({ salesCount }: { salesCount: number }) {
   const token = useEmbedToken();
