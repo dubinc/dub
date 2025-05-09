@@ -4,14 +4,16 @@ import "dotenv-flow/config";
 async function main() {
   const programs = await prisma.program.findMany();
 
-  await Promise.all(
+  const data = await Promise.all(
     programs.map(async (program) => {
-      await prisma.project.update({
+      return await prisma.project.update({
         where: { id: program.workspaceId },
         data: { defaultProgramId: program.id },
       });
     }),
   );
+
+  console.table(data, ["slug", "plan", "stripeId", "defaultProgramId"]);
 }
 
 main();
