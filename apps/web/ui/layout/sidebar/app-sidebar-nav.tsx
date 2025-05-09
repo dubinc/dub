@@ -102,8 +102,8 @@ const NAV_AREAS: SidebarNavAreas<{
                       href: `/${slug}/programs/${programs[0].id}/payouts?status=pending`,
                     },
                     {
-                      name: "Resources",
-                      href: `/${slug}/programs/${programs[0].id}/resources`,
+                      name: "Branding",
+                      href: `/${slug}/programs/${programs[0].id}/branding`,
                     },
                     {
                       name: "Configuration",
