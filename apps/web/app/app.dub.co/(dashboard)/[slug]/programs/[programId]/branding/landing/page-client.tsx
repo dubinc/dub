@@ -1,13 +1,19 @@
 "use client";
 
 import useProgram from "@/lib/swr/use-program";
+import { ProgramWithLanderDataProps } from "@/lib/types";
 import { PreviewWindow } from "@/ui/partners/design/preview-window";
-import { Brush, Button } from "@dub/ui";
+import { BLOCK_COMPONENTS } from "@/ui/partners/lander-blocks";
+import { LanderHero } from "@/ui/partners/lander-hero";
+import { LanderRewards } from "@/ui/partners/lander-rewards";
+import { Brush, Button, useScroll, Wordmark } from "@dub/ui";
 import { cn, PARTNERS_DOMAIN } from "@dub/utils";
-import { useState } from "react";
+import { CSSProperties, useRef, useState } from "react";
 
 export function ProgramBrandingLandingPageClient() {
-  const { program } = useProgram();
+  const { program } = useProgram<ProgramWithLanderDataProps>({
+    query: { includeLanderData: true },
+  });
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(true);
 
   return (
@@ -56,12 +62,118 @@ export function ProgramBrandingLandingPageClient() {
             </div>
           </div>
         </div>
-        <div className="h-[calc(100vh-300px)] px-4 pt-4">
-          <PreviewWindow url={`${PARTNERS_DOMAIN}/${program?.slug}`}>
-            <div className="p-12 text-center text-sm text-neutral-500">WIP</div>
-          </PreviewWindow>
+        <div className="h-[calc(100vh-240px)] px-4 pt-4">
+          {program && <LanderPreview program={program} />}
         </div>
       </div>
     </div>
+  );
+}
+
+function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const scrolled = useScroll(0, { container: scrollRef });
+
+  const landerData = program.landerData ?? { blocks: [] };
+
+  return (
+    <PreviewWindow
+      url={`${PARTNERS_DOMAIN}/${program?.slug}`}
+      scrollRef={scrollRef}
+    >
+      <div className="relative z-0 mx-auto min-h-screen w-full max-w-screen-sm bg-white">
+        <div className="pointer-events-none absolute left-0 top-0 h-screen w-full border-x border-neutral-200 [mask-image:linear-gradient(black,transparent)]" />
+        <div
+          style={
+            {
+              "--brand": program.brandColor || "#000000",
+              "--brand-ring": "rgb(from var(--brand) r g b / 0.2)",
+            } as CSSProperties
+          }
+        >
+          <header
+            className={
+              "sticky top-0 z-10 mx-px flex items-center justify-between bg-white/90 px-6 py-4 backdrop-blur-sm"
+            }
+          >
+            {/* Bottom border when scrolled */}
+            <div
+              className={cn(
+                "absolute inset-x-0 bottom-0 h-px bg-neutral-200 opacity-0 transition-opacity duration-300 [mask-image:linear-gradient(90deg,transparent,black,transparent)]",
+                scrolled && "opacity-100",
+              )}
+            />
+
+            <div className="animate-fade-in my-0.5 block">
+              {program.wordmark || program.logo ? (
+                <img
+                  className="max-h-7 max-w-32"
+                  src={(program.wordmark ?? program.logo) as string}
+                />
+              ) : (
+                <Wordmark className="h-7" />
+              )}
+            </div>
+
+            <div className="flex items-center gap-2" {...{ inert: true }}>
+              <Button
+                type="button"
+                variant="secondary"
+                text="Log in"
+                className="animate-fade-in h-8 w-fit text-neutral-600"
+              />
+              <Button
+                type="button"
+                text="Apply"
+                className="animate-fade-in h-8 w-fit border-[var(--brand)] bg-[var(--brand)] hover:bg-[var(--brand)] hover:ring-[var(--brand-ring)]"
+              />
+            </div>
+          </header>
+          <div className="p-6">
+            <LanderHero program={program} />
+
+            {/* Program details grid */}
+            <div className="mt-10">
+              <LanderRewards
+                program={{
+                  rewards: program.rewards ?? [],
+                  defaultDiscount:
+                    program.discounts?.find(
+                      (d) => d.id === program.defaultDiscountId,
+                    ) || null,
+                }}
+              />
+            </div>
+
+            {/* Buttons */}
+            <div
+              className="animate-scale-in-fade mt-10 flex flex-col gap-2 [animation-delay:400ms] [animation-fill-mode:both]"
+              {...{ inert: true }}
+            >
+              <Button
+                type="button"
+                text="Apply today"
+                className="border-[var(--brand)] bg-[var(--brand)] hover:bg-[var(--brand)] hover:ring-[var(--brand-ring)]"
+              />
+            </div>
+
+            {/* Content blocks */}
+            <div className="mt-16 grid grid-cols-1 gap-10">
+              {landerData.blocks.map((block, idx) => {
+                const Component = BLOCK_COMPONENTS[block.type];
+                return Component ? (
+                  <Component
+                    key={idx}
+                    block={block}
+                    logo={program.logo}
+                    preview
+                  />
+                ) : null;
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+    </PreviewWindow>
   );
 }

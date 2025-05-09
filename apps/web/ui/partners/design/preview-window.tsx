@@ -2,13 +2,14 @@ import { buttonVariants, Copy, useCopyToClipboard } from "@dub/ui";
 import { cn, getPrettyUrl } from "@dub/utils";
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
-import { PropsWithChildren } from "react";
+import { PropsWithChildren, RefObject } from "react";
 import { toast } from "sonner";
 
 export function PreviewWindow({
   url,
+  scrollRef,
   children,
-}: PropsWithChildren<{ url: string }>) {
+}: PropsWithChildren<{ url: string; scrollRef?: RefObject<HTMLDivElement> }>) {
   const [_, copyToClipboard] = useCopyToClipboard();
 
   return (
@@ -56,7 +57,9 @@ export function PreviewWindow({
           </Link>
         </div>
       </div>
-      <div className="grow overflow-y-auto">{children}</div>
+      <div className="scrollbar-hide grow overflow-y-auto" ref={scrollRef}>
+        {children}
+      </div>
     </div>
   );
 }
