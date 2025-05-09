@@ -1,31 +1,31 @@
 "use client";
 
+import { useProgramSupportSheet } from "@/ui/partners/program-support-sheet";
+import { usePathname } from "next/navigation";
 import posthog from "posthog-js";
-import { HelpArticle, HelpContext } from "../help";
-import { useHelpSheet } from "../help/help-sheet";
+import { HelpContext } from "../help";
 
-export function HelpButton({
-  popularHelpArticles,
-  allHelpArticles,
-}: {
-  popularHelpArticles: HelpArticle[];
-  allHelpArticles: HelpArticle[];
-}) {
-  const { HelpSheet, setIsOpen, isOpen } = useHelpSheet();
+export function PartnerHelpButton() {
+  const pathname = usePathname();
+  const { ProgramSupportSheet, setIsOpen, isOpen } = useProgramSupportSheet();
+
+  if (pathname === "/programs") {
+    return null;
+  }
 
   return (
     <HelpContext.Provider
       value={{
-        popularHelpArticles,
-        allHelpArticles,
+        popularHelpArticles: [],
+        allHelpArticles: [],
       }}
     >
-      {HelpSheet}
+      {ProgramSupportSheet}
       {!isOpen && (
         <button
           type="button"
           onClick={() => {
-            posthog.capture("help_portal_opened");
+            posthog.capture("partner_help_portal_opened");
             setIsOpen(true);
           }}
           className="animate-fade-in font-lg relative h-12 w-12 overflow-hidden rounded-full border border-neutral-200 bg-white shadow-md active:bg-neutral-50"
