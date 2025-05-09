@@ -1,1 +1,1 @@
-export { default } from "app/partners.dub.co/(auth)/(default)/register/page";
+export { default } from "../../register/page";
