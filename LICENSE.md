@@ -10,6 +10,7 @@ All third-party components incorporated into the Dub Software are licensed under
 Content outside of the above mentioned directories or restrictions above is available under the "AGPLv3" license as defined below.
 
 ---
+
                     GNU AFFERO GENERAL PUBLIC LICENSE
                        Version 3, 19 November 2007
 
@@ -70,7 +71,7 @@ modification follow.
 
                        TERMS AND CONDITIONS
 
-1. Definitions.
+0. Definitions.
 
 "This License" refers to version 3 of the GNU Affero General Public License.
 
