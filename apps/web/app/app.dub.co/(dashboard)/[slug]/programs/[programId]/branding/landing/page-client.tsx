@@ -1,11 +1,13 @@
 "use client";
 
+import useProgram from "@/lib/swr/use-program";
 import { PreviewWindow } from "@/ui/partners/design/preview-window";
 import { Brush, Button } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, PARTNERS_DOMAIN } from "@dub/utils";
 import { useState } from "react";
 
 export function ProgramBrandingLandingPageClient() {
+  const { program } = useProgram();
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(true);
 
   return (
@@ -54,9 +56,9 @@ export function ProgramBrandingLandingPageClient() {
             </div>
           </div>
         </div>
-        <div className="h-[calc(100vh-300px)] p-4">
-          <PreviewWindow url="https://partners.dub.co/claude">
-            WIP
+        <div className="h-[calc(100vh-300px)] px-4 pt-4">
+          <PreviewWindow url={`${PARTNERS_DOMAIN}/${program?.slug}`}>
+            <div className="p-12 text-center text-sm text-neutral-500">WIP</div>
           </PreviewWindow>
         </div>
       </div>
