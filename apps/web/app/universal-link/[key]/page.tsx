@@ -1,15 +1,11 @@
+import { headers } from "next/headers";
 import Script from "next/script";
-
 export default function UniversalLinkPage({
   params,
 }: {
   params: { key: string };
 }) {
-  // TODO:
-  // read the fallback url from header
-  const fallbackUrl = "https://example.com/fallback";
-
-  console.log("fallbackUrl", fallbackUrl);
+  const fallbackUrl = headers().get("fallback-url");
 
   return (
     <>

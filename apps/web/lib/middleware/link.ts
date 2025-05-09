@@ -172,6 +172,7 @@ export default async function LinkMiddleware(
     return NextResponse.rewrite(new URL(`/universal-link/${key}`, req.url), {
       headers: {
         ...DUB_HEADERS,
+        ...(url && { "fallback-url": url }),
       },
     });
   }
