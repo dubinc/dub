@@ -144,6 +144,7 @@ export const createProgram = async ({
           id: workspace.id,
         },
         data: {
+          defaultProgramId: program.id,
           foldersUsage: {
             increment: 1,
           },

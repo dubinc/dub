@@ -1,4 +1,3 @@
-import usePrograms from "@/lib/swr/use-programs";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramData } from "@/lib/types";
 import { PROGRAM_ONBOARDING_STEPS } from "@/lib/zod/schemas/program-onboarding";
@@ -9,19 +8,13 @@ import Link from "next/link";
 export function CreateProgramCard() {
   const {
     slug,
-    store,
+    defaultProgramId,
     partnersEnabled,
+    store,
     loading: workspaceLoading,
   } = useWorkspace();
 
-  const { programs, loading: programsLoading } = usePrograms();
-
-  if (
-    !partnersEnabled ||
-    programsLoading ||
-    workspaceLoading ||
-    (programs && programs.length > 0)
-  ) {
+  if (workspaceLoading || !partnersEnabled || defaultProgramId) {
     return null;
   }
 

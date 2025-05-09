@@ -1,7 +1,7 @@
 "use server";
 
+import { DubApiError } from "@/lib/api/errors";
 import { prisma } from "@dub/prisma";
-import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
 import z from "../../zod";
 import { authActionClient } from "../safe-action";
 
@@ -18,10 +18,12 @@ export const rejectPartnerAction = authActionClient
     const { workspace } = ctx;
     const { programId, partnerId } = parsedInput;
 
-    await getProgramOrThrow({
-      workspaceId: workspace.id,
-      programId,
-    });
+    if (programId !== workspace.defaultProgramId) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Program not found",
+      });
+    }
 
     const programEnrollment = await prisma.programEnrollment.findUniqueOrThrow({
       where: {

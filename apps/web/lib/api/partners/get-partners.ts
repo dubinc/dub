@@ -1,4 +1,3 @@
-import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { partnersQuerySchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@prisma/client";
@@ -43,15 +42,9 @@ export async function getPartners(filters: PartnerFilters) {
     pageSize,
     sortBy,
     sortOrder,
-    workspaceId,
     programId,
     includeExpandedFields,
   } = filters;
-
-  const program = await getProgramOrThrow({
-    workspaceId,
-    programId,
-  });
 
   const partners = (await prisma.$queryRaw`
     SELECT 
@@ -113,7 +106,7 @@ export async function getPartners(filters: PartnerFilters) {
         SUM(sales) as totalSales,
         SUM(saleAmount) as totalSaleAmount
       FROM Link
-      WHERE programId = ${program.id}
+      WHERE programId = ${programId}
         AND partnerId IS NOT NULL
         AND clicks > 0
       GROUP BY partnerId
@@ -128,7 +121,7 @@ export async function getPartners(filters: PartnerFilters) {
       FROM Commission
       WHERE 
         earnings > 0
-        AND programId = ${program.id}
+        AND programId = ${programId}
         AND partnerId IS NOT NULL
         AND status IN ('pending', 'processed', 'paid')
       GROUP BY partnerId
@@ -137,7 +130,7 @@ export async function getPartners(filters: PartnerFilters) {
         : Prisma.sql``
     }
     WHERE 
-      pe.programId = ${program.id}
+      pe.programId = ${programId}
       ${status ? Prisma.sql`AND pe.status = ${status}` : Prisma.sql`AND pe.status NOT IN ('rejected', 'banned')`}
       ${tenantId ? Prisma.sql`AND pe.tenantId = ${tenantId}` : Prisma.sql``}
       ${country ? Prisma.sql`AND p.country = ${country}` : Prisma.sql``}
@@ -149,7 +142,7 @@ export async function getPartners(filters: PartnerFilters) {
         OR LOWER(p.email) LIKE LOWER(${`%${search}%`})
         OR EXISTS (
           SELECT 1 FROM Link searchLink 
-          WHERE searchLink.programId = ${program.id}
+          WHERE searchLink.programId = ${programId}
           AND searchLink.partnerId = p.id 
           AND searchLink.shortLink LIKE LOWER(${`%${search}%`})
         )

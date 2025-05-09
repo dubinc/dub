@@ -1,6 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
 import { getPartnerForProgram } from "@/lib/api/partners/get-partner-for-program";
-import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { EnrolledPartnerSchemaWithExpandedFields } from "@/lib/zod/schemas/partners";
 import { NextResponse } from "next/server";
@@ -19,16 +18,17 @@ export const GET = withWorkspace(
       });
     }
 
-    const [_program, partner] = await Promise.all([
-      getProgramOrThrow({
-        workspaceId: workspace.id,
-        programId,
-      }),
-      getPartnerForProgram({
-        programId,
-        partnerId,
-      }),
-    ]);
+    if (programId !== workspace.defaultProgramId) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Program not found",
+      });
+    }
+
+    const partner = await getPartnerForProgram({
+      programId,
+      partnerId,
+    });
 
     if (!partner)
       throw new DubApiError({
