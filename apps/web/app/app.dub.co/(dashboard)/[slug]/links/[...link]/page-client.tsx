@@ -20,6 +20,7 @@ import {
   LinkBuilderProvider,
   LinkFormData,
 } from "@/ui/links/link-builder/link-builder-provider";
+import { LinkCreatorInfo } from "@/ui/links/link-builder/link-creator-info";
 import { LinkFeatureButtons } from "@/ui/links/link-builder/link-feature-buttons";
 import { LinkPartnerDetails } from "@/ui/links/link-builder/link-partner-details";
 import { LinkPreview } from "@/ui/links/link-builder/link-preview";
@@ -241,14 +242,9 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
                 <LinkPartnerDetails link={link} partner={partner} />
               </div>
             )}
+            {/* Creator info at the bottom (desktop only) */}
+            <LinkCreatorInfo link={link} className="hidden lg:flex" />
           </div>
-
-          {isDesktop && (
-            <>
-              <div className="grow" />
-              <LinkActionBar />
-            </>
-          )}
         </div>
         <div className="px-4 md:px-6 lg:bg-neutral-50 lg:px-0">
           <div className="mx-auto max-w-xl divide-neutral-200 lg:divide-y">
@@ -261,6 +257,8 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
             <div className="py-4 lg:px-4 lg:py-6">
               <LinkPreview />
             </div>
+            {/* Creator info below preview (mobile only) */}
+            <LinkCreatorInfo link={link} className="pb-8 lg:hidden" />
           </div>
         </div>
         {!isDesktop && (

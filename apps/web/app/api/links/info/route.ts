@@ -10,8 +10,8 @@ import { NextResponse } from "next/server";
 // GET /api/links/info – get the info for a link
 export const GET = withWorkspace(
   async ({ headers, searchParams, workspace, session }) => {
-    const { domain, key, linkId, externalId, includeWebhooks } =
-      getLinkInfoQuerySchemaExtended.parse(searchParams);
+    const queryParams = getLinkInfoQuerySchemaExtended.parse(searchParams);
+    const { domain, key, linkId, externalId } = queryParams;
 
     if (!domain && !key && !linkId && !externalId) {
       throw new DubApiError({
@@ -23,12 +23,8 @@ export const GET = withWorkspace(
     }
 
     const link = await getLinkOrThrow({
+      ...queryParams,
       workspaceId: workspace.id,
-      linkId,
-      externalId,
-      domain,
-      key,
-      includeWebhooks,
     });
 
     if (link.folderId) {

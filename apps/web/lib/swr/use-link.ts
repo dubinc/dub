@@ -18,6 +18,7 @@ export default function useLink(
             workspaceId,
             domain: linkIdOrLink.domain,
             key: linkIdOrLink.slug,
+            includeUser: "true",
             includeWebhooks: "true",
           })}`),
     fetcher,
