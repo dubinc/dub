@@ -1023,12 +1023,7 @@ export default function Toggle({
                       <>
                         {domain && key && <ShareButton />}
                         <Link
-                          href={
-                            dashboardProps
-                              ? "https://d.to/events"
-                              : `/${partnerPage ? `programs/${programSlug}/` : adminPage ? "" : `${slug}/`}events${getQueryString()}`
-                          }
-                          {...(dashboardProps ? { target: "_blank" } : {})}
+                          href={`/${partnerPage ? `programs/${programSlug}/` : adminPage ? "" : `${slug}/`}events${getQueryString()}`}
                         >
                           <Button
                             variant="secondary"
