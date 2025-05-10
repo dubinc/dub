@@ -1,9 +1,9 @@
 "use client";
 
 import { fetcher } from "@dub/utils";
-import { useEmbedToken } from "app/app.dub.co/embed/use-embed-token";
 import { useEffect } from "react";
 import useSWR from "swr";
+import { useEmbedToken } from "../../embed/use-embed-token";
 
 export const ReferralsReferralsEmbedToken = () => {
   const token = useEmbedToken();

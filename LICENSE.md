@@ -1,3 +1,16 @@
+Copyright (c) 2024-present Dub Technologies, Inc.
+
+Portions of this software – namely all files that reside under the following directories of this repository – are licensed under the license defined in "[ee/LICENSE.md](<https://github.com/dubinc/dub/tree/main/apps/web/app/(ee)/LICENSE.md>)".
+
+- [apps/web/app/(ee)](<https://github.com/dubinc/dub/tree/main/apps/web/app/(ee)>)
+- [apps/web/app/app.dub.co/(dashboard)/[slug]/(ee)](<https://github.com/dubinc/dub/tree/main/apps/web/app/app.dub.co/(dashboard)/%5Bslug%5D/(ee)>)
+
+All third-party components incorporated into the Dub Software are licensed under the original license provided by the owner of the applicable component.
+
+Content outside of the above mentioned directories or restrictions above is available under the "AGPLv3" license as defined below.
+
+---
+
                     GNU AFFERO GENERAL PUBLIC LICENSE
                        Version 3, 19 November 2007
 
