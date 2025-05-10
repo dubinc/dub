@@ -90,7 +90,7 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
   const router = useRouter();
   const workspace = useWorkspace();
 
-  const { isDesktop, isMobile } = useMediaQuery();
+  const { isDesktop } = useMediaQuery();
   const [copied, copyToClipboard] = useCopyToClipboard();
 
   const { control, handleSubmit, reset, getValues } =
@@ -243,8 +243,14 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
               </div>
             )}
             {/* Creator info at the bottom (desktop only) */}
-            <LinkCreatorInfo link={link} className="hidden lg:flex" />
+            {isDesktop && <LinkCreatorInfo link={link} />}
           </div>
+          {isDesktop && (
+            <>
+              <div className="grow" />
+              <LinkActionBar />
+            </>
+          )}
         </div>
         <div className="px-4 md:px-6 lg:bg-neutral-50 lg:px-0">
           <div className="mx-auto max-w-xl divide-neutral-200 lg:divide-y">
@@ -257,8 +263,7 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
             <div className="py-4 lg:px-4 lg:py-6">
               <LinkPreview />
             </div>
-            {/* Creator info below preview (mobile only) */}
-            <LinkCreatorInfo link={link} className="pb-8 lg:hidden" />
+            {!isDesktop && <LinkCreatorInfo link={link} />}
           </div>
         </div>
         {!isDesktop && (

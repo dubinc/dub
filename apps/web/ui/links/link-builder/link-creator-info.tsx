@@ -1,7 +1,7 @@
 import { ExpandedLinkProps } from "@/lib/types";
 import { UserAvatar } from "@/ui/links/link-title-column";
 import { Tooltip } from "@dub/ui";
-import { cn, formatDateTime, timeAgo } from "@dub/utils";
+import { formatDateTime, timeAgo } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
@@ -10,18 +10,13 @@ interface LinkCreatorInfoProps {
   className?: string;
 }
 
-export function LinkCreatorInfo({ link, className }: LinkCreatorInfoProps) {
+export function LinkCreatorInfo({ link }: { link: ExpandedLinkProps }) {
   const { slug } = useParams();
 
   if (!link.user) return null;
 
   return (
-    <div
-      className={cn(
-        "mt-2 flex items-center gap-1 border-t border-neutral-200 pt-6 text-sm text-neutral-600",
-        className,
-      )}
-    >
+    <div className="flex items-center gap-1 border-t border-neutral-200 py-8 text-sm text-neutral-600">
       <UserAvatar user={link.user} />
       <span>Created by</span>
       <Link
