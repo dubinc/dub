@@ -36,12 +36,14 @@ import {
   useCopyToClipboard,
   useKeyboardShortcut,
   useMediaQuery,
+  Avatar,
 } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, timeAgo } from "@dub/utils";
 import { notFound, useParams, useRouter } from "next/navigation";
 import { memo, useEffect, useRef, useState } from "react";
 import { useFormContext, useFormState } from "react-hook-form";
 import { toast } from "sonner";
+import { UserAvatar } from "@/ui/links/link-title-column";
 
 export function LinkPageClient() {
   const params = useParams<{ link: string | string[] }>();
@@ -241,14 +243,18 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
                 <LinkPartnerDetails link={link} partner={partner} />
               </div>
             )}
+
+            {/* Creator info at the bottom (desktop only) */}
+            {link.user && (
+              <div className="mt-2 border-t border-neutral-200 pt-6 hidden lg:flex items-center gap-1 text-sm text-neutral-600">
+                <UserAvatar link={link as any} />
+                <span>Created by</span>
+                <span className="font-semibold text-neutral-800">{link.user.name || link.user.email || "Anonymous"}</span>
+                <span className="text-neutral-400">· {timeAgo(link.createdAt)}</span>
+              </div>
+            )}
           </div>
 
-          {isDesktop && (
-            <>
-              <div className="grow" />
-              <LinkActionBar />
-            </>
-          )}
         </div>
         <div className="px-4 md:px-6 lg:bg-neutral-50 lg:px-0">
           <div className="mx-auto max-w-xl divide-neutral-200 lg:divide-y">
@@ -261,6 +267,15 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
             <div className="py-4 lg:px-4 lg:py-6">
               <LinkPreview />
             </div>
+            {/* Creator info below preview (mobile only) */}
+            {link.user && (
+              <div className="mt-2 border-t border-neutral-200 pt-6 pb-8 flex lg:hidden items-center gap-1 text-sm text-neutral-600">
+                <UserAvatar link={link as any} />
+                <span>Created by</span>
+                <span className="font-semibold text-neutral-800">{link.user.name || link.user.email || "Anonymous"}</span>
+                <span className="text-neutral-400">· {timeAgo(link.createdAt)}</span>
+              </div>
+            )}
           </div>
         </div>
         {!isDesktop && (

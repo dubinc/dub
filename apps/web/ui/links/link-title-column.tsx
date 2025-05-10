@@ -392,7 +392,7 @@ const Details = memo(
   },
 );
 
-function UserAvatar({ link }: { link: ResponseLink }) {
+export function UserAvatar({ link }: { link: ResponseLink }) {
   const { user } = link;
   const { slug } = useWorkspace();
 

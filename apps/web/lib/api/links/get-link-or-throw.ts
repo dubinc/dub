@@ -48,6 +48,7 @@ export const getLinkOrThrow = async (params: GetLinkParams) => {
       },
       include: {
         webhooks: includeWebhooks,
+        user: true,
       },
     });
   }
@@ -68,6 +69,7 @@ export const getLinkOrThrow = async (params: GetLinkParams) => {
       },
       include: {
         webhooks: includeWebhooks,
+        user: true,
       },
     });
   }
