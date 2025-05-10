@@ -136,12 +136,9 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     }
 
     linkId = clickEvent.link_id;
-
-    // if it's not either a regular stripe checkout setup or a stripe checkout link,
-    // we skip the event
-  } else {
+  } else if (stripeCustomerId) {
     /*
-    for regular stripe checkout setup:
+    for regular stripe checkout setup (provided stripeCustomerId is present):
     - if dubCustomerId is provided:
       - we update the customer with the stripe customerId (for future events)
     - else:
@@ -203,6 +200,8 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     );
 
     linkId = leadEvent.link_id;
+  } else {
+    return "No dubCustomerId or stripeCustomerId found in Stripe checkout session metadata, skipping...";
   }
 
   if (charge.amount_total === 0) {

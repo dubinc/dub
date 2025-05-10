@@ -158,10 +158,16 @@ export async function updateCustomerWithStripeCustomerId({
   dubCustomerId,
   stripeCustomerId,
 }: {
-  stripeAccountId: string;
+  stripeAccountId?: string | null;
   dubCustomerId: string;
-  stripeCustomerId: string;
+  stripeCustomerId?: string | null;
 }) {
+  // if stripeCustomerId or stripeAccountId is not provided, return null
+  // (same logic as in getConnectedCustomer)
+  if (!stripeCustomerId || !stripeAccountId) {
+    return null;
+  }
+
   try {
     // Update customer with stripeCustomerId if exists – for future events
     return await prisma.customer.update({
