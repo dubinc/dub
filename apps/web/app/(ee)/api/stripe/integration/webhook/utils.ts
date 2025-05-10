@@ -152,3 +152,32 @@ export async function getConnectedCustomer({
 
   return connectedCustomer;
 }
+
+export async function updateCustomerWithStripeCustomerId({
+  stripeAccountId,
+  dubCustomerId,
+  stripeCustomerId,
+}: {
+  stripeAccountId: string;
+  dubCustomerId: string;
+  stripeCustomerId: string;
+}) {
+  try {
+    // Update customer with stripeCustomerId if exists – for future events
+    return await prisma.customer.update({
+      where: {
+        projectConnectId_externalId: {
+          projectConnectId: stripeAccountId,
+          externalId: dubCustomerId,
+        },
+      },
+      data: {
+        stripeCustomerId,
+      },
+    });
+  } catch (error) {
+    // Skip if customer not found
+    console.error("Failed to update customer with StripeCustomerId:", error);
+    return null;
+  }
+}
