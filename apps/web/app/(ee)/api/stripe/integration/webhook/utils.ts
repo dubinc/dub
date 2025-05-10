@@ -177,7 +177,7 @@ export async function updateCustomerWithStripeCustomerId({
     });
   } catch (error) {
     // Skip if customer not found
-    console.log(error);
+    console.error("Failed to update customer with StripeCustomerId:", error);
     return null;
   }
 }
