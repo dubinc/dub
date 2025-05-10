@@ -761,6 +761,7 @@ export const getLinksQuerySchemaExtended = getLinksQuerySchemaBase.merge(
 
 export const getLinkInfoQuerySchemaExtended = getLinkInfoQuerySchema.merge(
   z.object({
+    includeUser: booleanQuerySchema.default("false"),
     includeWebhooks: booleanQuerySchema.default("false"),
   }),
 );

@@ -3,6 +3,7 @@
 import useDomain from "@/lib/swr/use-domain";
 import useFolder from "@/lib/swr/use-folder";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { UserProps } from "@/lib/types";
 import {
   ArrowTurnRight2,
   Avatar,
@@ -40,7 +41,7 @@ import {
 import * as HoverCard from "@radix-ui/react-hover-card";
 import { Mail } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import {
   memo,
   PropsWithChildren,
@@ -375,7 +376,7 @@ const Details = memo(
             displayProperties.includes("user") && "sm:block",
           )}
         >
-          <UserAvatar link={link} />
+          <UserAvatar user={link.user} />
         </div>
         <div
           className={cn(
@@ -392,10 +393,8 @@ const Details = memo(
   },
 );
 
-export function UserAvatar({ link }: { link: ResponseLink }) {
-  const { user } = link;
-  const { slug } = useWorkspace();
-
+export function UserAvatar({ user }: { user: UserProps }) {
+  const { slug } = useParams();
   return (
     <Tooltip
       content={
