@@ -106,10 +106,9 @@ export default function Toggle({
   page?: "analytics" | "events";
 }) {
   const { slug, programSlug } = useParams();
-  const { plan, flags, createdAt } = useWorkspace();
+  const { plan, createdAt } = useWorkspace();
 
-  const { router, queryParams, searchParamsObj, getQueryString } =
-    useRouterStuff();
+  const { queryParams, searchParamsObj, getQueryString } = useRouterStuff();
 
   const {
     selectedTab,
@@ -1027,7 +1026,7 @@ export default function Toggle({
                           href={
                             dashboardProps
                               ? "https://d.to/events"
-                              : `/${partnerPage ? `programs/${programSlug}` : slug}/events${getQueryString()}`
+                              : `/${partnerPage ? `programs/${programSlug}/` : adminPage ? "" : `${slug}/`}events${getQueryString()}`
                           }
                           {...(dashboardProps ? { target: "_blank" } : {})}
                         >
@@ -1046,7 +1045,7 @@ export default function Toggle({
                     {page === "events" && (
                       <>
                         <Link
-                          href={`/${partnerPage ? `programs/${programSlug}` : slug}/analytics${getQueryString()}`}
+                          href={`/${partnerPage ? `programs/${programSlug}/` : adminPage ? "" : `${slug}/`}analytics${getQueryString()}`}
                         >
                           <Button
                             variant="secondary"
