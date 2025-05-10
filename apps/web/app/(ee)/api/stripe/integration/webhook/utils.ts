@@ -182,8 +182,8 @@ export async function updateCustomerWithStripeCustomerId({
       },
     });
   } catch (error) {
-    // Skip if customer not found
-    console.error("Failed to update customer with StripeCustomerId:", error);
+    // Skip if customer not found (not an error, just a case where the customer doesn't exist on Dub yet)
+    console.log("Failed to update customer with StripeCustomerId:", error);
     return null;
   }
 }
