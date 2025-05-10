@@ -1,10 +1,10 @@
 import { CursorRays } from "@/ui/layout/sidebar/icons/cursor-rays";
 import { InfoTooltip, MiniAreaChart } from "@dub/ui";
 import { cn, currencyFormatter, fetcher, nFormatter } from "@dub/utils";
-import { useEmbedToken } from "app/app.dub.co/embed/use-embed-token";
 import { AnalyticsTimeseries } from "dub/models/components";
 import { SVGProps, useId } from "react";
 import useSWR from "swr";
+import { useEmbedToken } from "../../embed/use-embed-token";
 
 export function ReferralsEmbedActivity({
   clicks,
