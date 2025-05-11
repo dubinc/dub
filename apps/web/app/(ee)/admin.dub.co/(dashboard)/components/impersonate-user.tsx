@@ -33,7 +33,7 @@ export default function ImpersonateUser() {
       </form>
       {data && (
         <form
-          action={async (formData) => {
+          action={async () => {
             if (
               !confirm(
                 `This will ban the user ${data.email} and delete all their workspaces and links. Are you sure?`,
@@ -79,7 +79,7 @@ const Form = () => {
         disabled={pending}
         autoComplete="off"
         className={cn(
-          "block w-full rounded-md border-neutral-300 text-sm text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500",
+          "block w-full rounded-md border-neutral-300 text-sm text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-base",
           pending && "bg-neutral-100",
         )}
         placeholder="stey@vercel.com"

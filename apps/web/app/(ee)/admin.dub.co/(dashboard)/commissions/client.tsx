@@ -171,7 +171,7 @@ export default function CommissionsPageClient() {
     <div className="mx-auto flex w-full max-w-screen-xl flex-col space-y-6 p-6">
       <SimpleDateRangePicker defaultInterval="mtd" className="w-fit" />
       <div className="flex flex-col divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white">
-        <div className="scrollbar-hide grid w-full grid-cols-3 divide-x overflow-y-hidden">
+        <div className="scrollbar-hide grid w-full grid-cols-2 divide-x overflow-y-hidden sm:grid-cols-3">
           {tabs.map(({ id, label, colorClassName }) => {
             return (
               <button
