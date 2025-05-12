@@ -1,6 +1,8 @@
 "use client";
 
+import { updateProgramAction } from "@/lib/actions/partners/update-program";
 import useProgram from "@/lib/swr/use-program";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramProps, ProgramWithLanderDataProps } from "@/lib/types";
 import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { PreviewWindow } from "@/ui/partners/design/preview-window";
@@ -9,6 +11,7 @@ import { LanderHero } from "@/ui/partners/lander-hero";
 import { LanderRewards } from "@/ui/partners/lander-rewards";
 import { Brush, Button, useScroll, Wordmark } from "@dub/ui";
 import { cn, PARTNERS_DOMAIN } from "@dub/utils";
+import { useAction } from "next-safe-action/hooks";
 import { CSSProperties, useRef, useState } from "react";
 import {
   FormProvider,
@@ -16,6 +19,8 @@ import {
   useFormContext,
   useWatch,
 } from "react-hook-form";
+import { toast } from "sonner";
+import { mutate } from "swr";
 import { z } from "zod";
 import { BrandingSettingsForm } from "./branding-settings-form";
 
@@ -28,6 +33,7 @@ export function useProgramBrandingForm() {
 }
 
 export function ProgramBrandingLandingPageClient() {
+  const { id: workspaceId } = useWorkspace();
   const { program } = useProgram<ProgramWithLanderDataProps>({
     query: { includeLanderData: true },
   });
@@ -43,19 +49,37 @@ export function ProgramBrandingLandingPageClient() {
     },
   });
 
-  // const { executeAsync } = useAction(updateProgramAction, {
-  //   async onSuccess() {
-  //     toast.success("Program updated successfully.");
-  //     mutate(`/api/programs/${program.id}?workspaceId=${workspaceId}`);
-  //   },
-  //   onError({ error }) {
-  //     console.error(error);
-  //     toast.error("Failed to update program.");
-  //   },
-  // });
+  const {
+    handleSubmit,
+    reset,
+    formState: { isSubmitting },
+  } = form;
+
+  const { executeAsync } = useAction(updateProgramAction, {
+    async onSuccess() {
+      toast.success("Program updated successfully.");
+      mutate(`/api/programs/${program?.id}?workspaceId=${workspaceId}`);
+    },
+    onError({ error }) {
+      console.error(error);
+      toast.error("Failed to update program.");
+    },
+  });
 
   return (
-    <form className="overflow-hidden rounded-lg border border-neutral-200 bg-neutral-100">
+    <form
+      onSubmit={handleSubmit(async (data) => {
+        await executeAsync({
+          workspaceId: workspaceId!,
+          programId: program!.id,
+          ...data,
+        });
+
+        // Reset isDirty state
+        reset(data);
+      })}
+      className="overflow-hidden rounded-lg border border-neutral-200 bg-neutral-100"
+    >
       <FormProvider {...form}>
         <div className="flex items-center justify-between border-b border-neutral-200 bg-white px-4 py-3">
           <div className="grow basis-0">
@@ -73,10 +97,10 @@ export function ProgramBrandingLandingPageClient() {
           </span>
           <div className="flex grow basis-0 justify-end">
             <Button
-              type="button"
-              onClick={() => alert("WIP")}
+              type="submit"
               variant="primary"
               text="Publish"
+              loading={isSubmitting}
               className="h-8 w-fit"
             />
           </div>
