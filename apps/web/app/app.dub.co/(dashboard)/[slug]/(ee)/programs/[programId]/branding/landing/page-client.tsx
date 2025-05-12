@@ -83,7 +83,7 @@ export function ProgramBrandingLandingPageClient() {
         </div>
         <div
           className={cn(
-            "grid grid-cols-1 transition-[grid-template-columns]",
+            "grid h-[calc(100vh-240px)] grid-cols-1 transition-[grid-template-columns]",
             isSidePanelOpen
               ? "lg:grid-cols-[240px_minmax(0,1fr)]"
               : "lg:grid-cols-[0px_minmax(0,1fr)]",
@@ -92,14 +92,14 @@ export function ProgramBrandingLandingPageClient() {
           <div className="h-full overflow-hidden">
             <div
               className={cn(
-                "h-full border-neutral-200 p-5 transition-opacity max-lg:border-b lg:w-[240px] lg:border-r",
+                "scrollbar-hide h-full overflow-y-auto border-neutral-200 p-5 transition-opacity max-lg:border-b lg:w-[240px] lg:border-r",
                 !isSidePanelOpen && "opacity-0",
               )}
             >
               <BrandingSettingsForm />
             </div>
           </div>
-          <div className="h-[calc(100vh-240px)] px-4 pt-4">
+          <div className="h-full overflow-hidden px-4 pt-4">
             {program && <LanderPreview program={program} />}
           </div>
         </div>
