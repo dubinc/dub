@@ -1,7 +1,8 @@
 "use client";
 
 import useProgram from "@/lib/swr/use-program";
-import { ProgramWithLanderDataProps } from "@/lib/types";
+import { ProgramProps, ProgramWithLanderDataProps } from "@/lib/types";
+import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { PreviewWindow } from "@/ui/partners/design/preview-window";
 import { BLOCK_COMPONENTS } from "@/ui/partners/lander-blocks";
 import { LanderHero } from "@/ui/partners/lander-hero";
@@ -9,64 +10,101 @@ import { LanderRewards } from "@/ui/partners/lander-rewards";
 import { Brush, Button, useScroll, Wordmark } from "@dub/ui";
 import { cn, PARTNERS_DOMAIN } from "@dub/utils";
 import { CSSProperties, useRef, useState } from "react";
+import {
+  FormProvider,
+  useForm,
+  useFormContext,
+  useWatch,
+} from "react-hook-form";
+import { z } from "zod";
+import { BrandingSettingsForm } from "./branding-settings-form";
+
+type FormData = {
+  landerData: z.infer<typeof programLanderSchema>;
+} & Pick<ProgramProps, "logo" | "wordmark" | "brandColor">;
+
+export function useProgramBrandingForm() {
+  return useFormContext<FormData>();
+}
 
 export function ProgramBrandingLandingPageClient() {
   const { program } = useProgram<ProgramWithLanderDataProps>({
     query: { includeLanderData: true },
   });
+
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(true);
 
+  const form = useForm<FormData>({
+    values: {
+      logo: program?.logo ?? null,
+      wordmark: program?.wordmark ?? null,
+      brandColor: program?.brandColor ?? null,
+      landerData: program?.landerData ?? { blocks: [] },
+    },
+  });
+
+  // const { executeAsync } = useAction(updateProgramAction, {
+  //   async onSuccess() {
+  //     toast.success("Program updated successfully.");
+  //     mutate(`/api/programs/${program.id}?workspaceId=${workspaceId}`);
+  //   },
+  //   onError({ error }) {
+  //     console.error(error);
+  //     toast.error("Failed to update program.");
+  //   },
+  // });
+
   return (
-    <div className="overflow-hidden rounded-lg border border-neutral-200 bg-neutral-100">
-      <div className="flex items-center justify-between border-b border-neutral-200 bg-white px-4 py-3">
-        <div className="grow basis-0">
-          <Button
-            type="button"
-            onClick={() => setIsSidePanelOpen(!isSidePanelOpen)}
-            data-state={isSidePanelOpen ? "open" : "closed"}
-            variant="secondary"
-            icon={<Brush className="size-4" />}
-            className="hidden size-8 p-0 lg:flex"
-          />
-        </div>
-        <span className="text-center text-xs font-medium text-neutral-500">
-          Landing page
-        </span>
-        <div className="flex grow basis-0 justify-end">
-          <Button
-            type="button"
-            onClick={() => alert("WIP")}
-            variant="primary"
-            text="Publish"
-            className="h-8 w-fit"
-          />
-        </div>
-      </div>
-      <div
-        className={cn(
-          "grid grid-cols-1 transition-[grid-template-columns]",
-          isSidePanelOpen
-            ? "lg:grid-cols-[240px_minmax(0,1fr)]"
-            : "lg:grid-cols-[0px_minmax(0,1fr)]",
-        )}
-      >
-        <div className="h-full overflow-hidden">
-          <div
-            className={cn(
-              "h-full border-neutral-200 p-5 transition-opacity max-lg:border-b lg:w-[240px] lg:border-r",
-              !isSidePanelOpen && "opacity-0",
-            )}
-          >
-            <div className="rounded-lg border border-neutral-300 bg-white p-3 text-sm text-neutral-500">
-              WIP
-            </div>
+    <form className="overflow-hidden rounded-lg border border-neutral-200 bg-neutral-100">
+      <FormProvider {...form}>
+        <div className="flex items-center justify-between border-b border-neutral-200 bg-white px-4 py-3">
+          <div className="grow basis-0">
+            <Button
+              type="button"
+              onClick={() => setIsSidePanelOpen(!isSidePanelOpen)}
+              data-state={isSidePanelOpen ? "open" : "closed"}
+              variant="secondary"
+              icon={<Brush className="size-4" />}
+              className="hidden size-8 p-0 lg:flex"
+            />
+          </div>
+          <span className="text-center text-xs font-medium text-neutral-500">
+            Landing page
+          </span>
+          <div className="flex grow basis-0 justify-end">
+            <Button
+              type="button"
+              onClick={() => alert("WIP")}
+              variant="primary"
+              text="Publish"
+              className="h-8 w-fit"
+            />
           </div>
         </div>
-        <div className="h-[calc(100vh-240px)] px-4 pt-4">
-          {program && <LanderPreview program={program} />}
+        <div
+          className={cn(
+            "grid grid-cols-1 transition-[grid-template-columns]",
+            isSidePanelOpen
+              ? "lg:grid-cols-[240px_minmax(0,1fr)]"
+              : "lg:grid-cols-[0px_minmax(0,1fr)]",
+          )}
+        >
+          <div className="h-full overflow-hidden">
+            <div
+              className={cn(
+                "h-full border-neutral-200 p-5 transition-opacity max-lg:border-b lg:w-[240px] lg:border-r",
+                !isSidePanelOpen && "opacity-0",
+              )}
+            >
+              <BrandingSettingsForm />
+            </div>
+          </div>
+          <div className="h-[calc(100vh-240px)] px-4 pt-4">
+            {program && <LanderPreview program={program} />}
+          </div>
         </div>
-      </div>
-    </div>
+      </FormProvider>
+    </form>
   );
 }
 
@@ -75,6 +113,8 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
   const scrolled = useScroll(0, { container: scrollRef });
 
   const landerData = program.landerData ?? { blocks: [] };
+
+  const brandColor = useWatch({ name: "brandColor" });
 
   return (
     <PreviewWindow
@@ -86,7 +126,7 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
         <div
           style={
             {
-              "--brand": program.brandColor || "#000000",
+              "--brand": brandColor || "#000000",
               "--brand-ring": "rgb(from var(--brand) r g b / 0.2)",
             } as CSSProperties
           }
