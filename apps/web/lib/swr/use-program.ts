@@ -4,7 +4,11 @@ import useSWR from "swr";
 import { ProgramProps } from "../types";
 import useWorkspace from "./use-workspace";
 
-export default function useProgram() {
+export default function useProgram<T = ProgramProps>({
+  query,
+}: {
+  query?: Record<string, any>;
+} = {}) {
   const { id: workspaceId } = useWorkspace();
   const { programId } = useParams();
 
@@ -12,10 +16,10 @@ export default function useProgram() {
     data: program,
     error,
     mutate,
-  } = useSWR<ProgramProps>(
+  } = useSWR<T>(
     programId &&
       workspaceId &&
-      `/api/programs/${programId}?workspaceId=${workspaceId}`,
+      `/api/programs/${programId}?${new URLSearchParams({ workspaceId, ...query }).toString()}`,
     fetcher,
     {
       dedupingInterval: 60000,
