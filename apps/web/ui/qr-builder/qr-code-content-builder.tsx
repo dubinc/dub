@@ -1,7 +1,7 @@
 import { QR_TYPE_INPUTS_CONFIG } from "@/ui/qr-builder/constants/qr-type-inputs-config.ts";
 import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { ChangeEvent, FC, useState, useEffect } from "react";
+import { ChangeEvent, FC, useEffect, useState } from "react";
 import { ButtonsWrapper } from "./components/buttons-wrapper.tsx";
 import { CheckboxWithLabel } from "./components/checkbox-with-label.tsx";
 import { FileCardContent } from "./components/file-card-content.tsx";
@@ -37,9 +37,10 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
   const [files, setFiles] = useState<File[]>([]);
   const [showFileError, setShowFileError] = useState(false);
   const [isHiddenNetwork, setIsHiddenNetwork] = useState(
-    initialInputValues.isHiddenNetwork === "true"
+    initialInputValues.isHiddenNetwork === "true",
   );
-  const [inputValues, setInputValues] = useState<Record<string, string>>(initialInputValues);
+  const [inputValues, setInputValues] =
+    useState<Record<string, string>>(initialInputValues);
   const [inputErrors, setInputErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -107,10 +108,7 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
 
   const renderedInputs = (): string[] => {
     const fields = QR_TYPE_INPUTS_CONFIG[qrType] || [];
-    const filteredFields = minimalFlow
-      ? fields.filter((field) => !field.isNotRequired)
-      : fields;
-    return filteredFields.map((field) => field.id);
+    return fields.map((field) => field.id);
   };
 
   const handleNext = () => {
@@ -134,21 +132,18 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
   const renderCardContent = () => {
     if (!qrType) return <p className="text-neutral text-sm">Unknown QR Type</p>;
 
-    const getFilteredFields = () => {
-      const fields = QR_TYPE_INPUTS_CONFIG[qrType] || [];
-      return minimalFlow
-        ? fields.filter((field) => !field.isNotRequired)
-        : fields;
-    };
-
     if (LINKED_QR_TYPES.includes(qrType) || qrType === EQRType.WHATSAPP) {
-      return getFilteredFields().map((field, index) => (
+      return QR_TYPE_INPUTS_CONFIG[qrType].map((field, index) => (
         <InputWithLabel
           key={index}
           onChange={handleChange}
           value={inputValues[field.id] || ""}
+          setValue={(value: string) => {
+            setInputValues((prev) => ({ ...prev, [field.id]: value }));
+          }}
           errorMessage={inputErrors[field.id]}
           minimalFlow={minimalFlow}
+          initFromPlaceholder={field.initFromPlaceholder}
           {...field}
         />
       ));
@@ -157,12 +152,16 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
     if (qrType === EQRType.WIFI) {
       return (
         <>
-          {getFilteredFields().map((field, index) => (
+          {QR_TYPE_INPUTS_CONFIG[qrType].map((field, index) => (
             <InputWithLabel
               key={index}
               onChange={handleChange}
               value={inputValues[field.id] || ""}
+              setValue={(value: string) => {
+                setInputValues((prev) => ({ ...prev, [field.id]: value }));
+              }}
               errorMessage={inputErrors[field.id]}
+              initFromPlaceholder={field.initFromPlaceholder}
               {...field}
             />
           ))}

@@ -6,9 +6,11 @@ interface IInputWithLabelProps {
   type?: "text" | "url" | "tel" | "password" | "textarea";
   placeholder: string;
   value?: string;
+  setValue?: (value: string) => void;
   onChange?: ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>;
   errorMessage?: string;
   minimalFlow?: boolean;
+  initFromPlaceholder?: boolean;
 }
 
 export const InputWithLabel: FC<IInputWithLabelProps> = ({
@@ -17,8 +19,10 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
   errorMessage,
   minimalFlow = false,
   value = "",
+  setValue,
   onChange,
   placeholder,
+  initFromPlaceholder = false,
   ...props
 }) => {
   let autoCompleteValue: "on" | "tel" | "url";
@@ -53,6 +57,11 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
           autoComplete={autoCompleteValue}
           value={value}
           onChange={onChange}
+          onFocus={() => {
+            if (initFromPlaceholder && setValue && !value) {
+              setValue(placeholder);
+            }
+          }}
           placeholder={placeholder}
           {...props}
         />

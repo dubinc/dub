@@ -154,10 +154,10 @@ export const QrTypeTabs = ({
                   { ["items-start"]: homepageDemo },
                 )}
               >
-                <div className="sticky top-8 flex flex-col gap-6">
-                  {homepageDemo && (
-                    <QrTabsStepTitle stepNumber={3} title="Download your QR" />
-                  )}
+                <div className="center sticky top-20 flex flex-col gap-6">
+                  {/*{homepageDemo && (*/}
+                  {/*  <QrTabsStepTitle stepNumber={3} title="Download your QR" />*/}
+                  {/*)}*/}
                   <div
                     className={cn("flex justify-center rounded-lg shadow-lg", {
                       "opacity-30": isQrDisabled,
