@@ -155,7 +155,7 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
               )}
             </div>
 
-            <div className="flex items-center gap-2" {...{ inert: true }}>
+            <div className="flex items-center gap-2" {...{ inert: "" }}>
               <Button
                 type="button"
                 variant="secondary"
@@ -188,7 +188,7 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
             {/* Buttons */}
             <div
               className="animate-scale-in-fade mt-10 flex flex-col gap-2 [animation-delay:400ms] [animation-fill-mode:both]"
-              {...{ inert: true }}
+              {...{ inert: "" }}
             >
               <Button
                 type="button"
