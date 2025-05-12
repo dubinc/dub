@@ -144,6 +144,7 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
           errorMessage={inputErrors[field.id]}
           minimalFlow={minimalFlow}
           initFromPlaceholder={field.initFromPlaceholder}
+          tooltip={field.tooltip}
           {...field}
         />
       ));

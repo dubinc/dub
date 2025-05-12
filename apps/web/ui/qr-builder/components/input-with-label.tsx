@@ -1,4 +1,6 @@
+import { TooltipComponent } from "@/ui/qr-builder/components/tooltip.tsx";
 import { Input } from "@dub/ui";
+import { Flex } from "@radix-ui/themes";
 import { ChangeEventHandler, FC } from "react";
 
 interface IInputWithLabelProps {
@@ -11,6 +13,7 @@ interface IInputWithLabelProps {
   errorMessage?: string;
   minimalFlow?: boolean;
   initFromPlaceholder?: boolean;
+  tooltip?: string;
 }
 
 export const InputWithLabel: FC<IInputWithLabelProps> = ({
@@ -23,10 +26,11 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
   onChange,
   placeholder,
   initFromPlaceholder = false,
+  tooltip = "",
   ...props
 }) => {
   let autoCompleteValue: "on" | "tel" | "url";
-
+  console.log("props", props);
   switch (type) {
     case "tel":
       autoCompleteValue = "tel";
@@ -41,7 +45,10 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
 
   return (
     <div className="flex w-full flex-col gap-2">
-      <label className="text-neutral text-sm font-medium">{label}</label>
+      <Flex gap="1" align="center">
+        <label className="text-neutral text-sm font-medium">{label}</label>
+        <TooltipComponent tooltip={tooltip} />
+      </Flex>
       {type === "textarea" ? (
         <textarea
           className="border-border-500 focus:border-secondary h-32 w-full rounded-md border p-3 text-base"
