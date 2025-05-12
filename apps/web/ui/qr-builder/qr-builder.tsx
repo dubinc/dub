@@ -3,7 +3,11 @@ import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
 import { ArrowTurnLeft, Button, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { FC, forwardRef, Ref } from "react";
-import { FILE_QR_TYPES, QR_TYPES } from "./constants/get-qr-config.ts";
+import {
+  EQRType,
+  LINKED_QR_TYPES,
+  QR_TYPES,
+} from "./constants/get-qr-config.ts";
 import { useQrCustomization } from "./hooks/use-qr-customization.ts";
 import { QrConfigTypeTabsMobile } from "./qr-config-type-tabs.mobile.tsx";
 import { QrTypeTabs } from "./qr-type-tabs.tsx";
@@ -35,8 +39,9 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
         initialInputValues,
       } = useQrCustomization(props);
 
-      const nonFileQrTypes = QR_TYPES.filter(
-        (qrType) => !FILE_QR_TYPES.includes(qrType.id),
+      const filteredQrTypes = QR_TYPES.filter(
+        (qrType) =>
+          !LINKED_QR_TYPES.includes(qrType.id) || qrType.id === EQRType.WEBSITE,
       );
 
       const onSaveClick = () =>
@@ -68,7 +73,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                 handlers={handlers}
                 setData={setData}
                 isQrDisabled={isQrDisabled}
-                nonFileQrTypes={nonFileQrTypes}
+                qrTypes={filteredQrTypes}
                 homepageDemo={homepageDemo}
                 qrTypeActiveTab={qrTypeActiveTab}
                 setQRTypeActiveTab={setQRTypeActiveTab}
@@ -85,7 +90,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                 handlers={handlers}
                 setData={setData}
                 isQrDisabled={isQrDisabled}
-                nonFileQrTypes={nonFileQrTypes}
+                nonFileQrTypes={filteredQrTypes}
                 homepageDemo={homepageDemo}
                 qrTypeActiveTab={qrTypeActiveTab}
                 setQRTypeActiveTab={setQRTypeActiveTab}

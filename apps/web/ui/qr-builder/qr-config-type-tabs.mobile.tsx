@@ -23,7 +23,7 @@ interface QrConfigTypeTabsMobileProps {
   handlers: any;
   setData: Dispatch<SetStateAction<any>>;
   isQrDisabled: boolean;
-  nonFileQrTypes: QRType[];
+  qrTypes: QRType[];
   homepageDemo?: boolean;
   qrTypeActiveTab: QRType["id"];
   setQRTypeActiveTab: Dispatch<SetStateAction<QRType["id"]>>;
@@ -40,7 +40,7 @@ export const QrConfigTypeTabsMobile = ({
   handlers,
   setData,
   isQrDisabled,
-  nonFileQrTypes,
+  qrTypes,
   homepageDemo,
   qrTypeActiveTab,
   setQRTypeActiveTab,
@@ -114,15 +114,13 @@ export const QrConfigTypeTabsMobile = ({
           className="align-center flex w-full flex-col justify-center gap-6"
         >
           <QRTabsPopover
-            qrTypes={nonFileQrTypes}
+            qrTypes={qrTypes}
             setOpenPopover={setOpenPopover}
             openPopover={openPopover}
             handlePopoverItemClick={handlePopoverItemClick}
             isMobile={true}
             showButtonContent
-            selectedQrType={nonFileQrTypes.find(
-              (type) => type.id === qrTypeActiveTab,
-            )}
+            selectedQrType={qrTypes.find((type) => type.id === qrTypeActiveTab)}
           />
 
           <QRCodeContentBuilder
