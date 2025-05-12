@@ -112,9 +112,9 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrolled = useScroll(0, { container: scrollRef });
 
-  const landerData = program.landerData ?? { blocks: [] };
-
-  const brandColor = useWatch({ name: "brandColor" });
+  const [landerData, brandColor, logo, wordmark] = useWatch({
+    name: ["landerData", "brandColor", "logo", "wordmark"],
+  });
 
   return (
     <PreviewWindow
@@ -145,10 +145,10 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
             />
 
             <div className="animate-fade-in my-0.5 block">
-              {program.wordmark || program.logo ? (
+              {wordmark || logo ? (
                 <img
                   className="max-h-7 max-w-32"
-                  src={(program.wordmark ?? program.logo) as string}
+                  src={(wordmark ?? logo) as string}
                 />
               ) : (
                 <Wordmark className="h-7" />
