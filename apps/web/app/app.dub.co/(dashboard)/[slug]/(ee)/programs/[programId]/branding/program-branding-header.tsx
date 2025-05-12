@@ -20,19 +20,14 @@ export function ProgramBrandingHeader({
           variant="accent"
           options={[
             {
-              id: "design",
-              label: "Design",
-              href: `/${slug}/programs/${programId}/branding/design`,
+              id: "elements",
+              label: "Brand elements",
+              href: `/${slug}/programs/${programId}/branding/elements`,
             },
             {
               id: "resources",
-              label: "Resources",
+              label: "Brand assets",
               href: `/${slug}/programs/${programId}/branding/resources`,
-            },
-            {
-              id: "landing",
-              label: "Landing Page",
-              href: `/${slug}/programs/${programId}/branding/landing`,
             },
           ]}
           selected={page}
