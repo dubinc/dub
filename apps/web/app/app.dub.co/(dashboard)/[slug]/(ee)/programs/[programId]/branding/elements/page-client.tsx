@@ -9,7 +9,7 @@ import { PreviewWindow } from "@/ui/partners/design/preview-window";
 import { BLOCK_COMPONENTS } from "@/ui/partners/lander-blocks";
 import { LanderHero } from "@/ui/partners/lander-hero";
 import { LanderRewards } from "@/ui/partners/lander-rewards";
-import { Brush, Button, Grid, Plus2, useScroll, Wordmark } from "@dub/ui";
+import { Brush, Button, Grid, Pen2, Plus2, useScroll, Wordmark } from "@dub/ui";
 import { cn, PARTNERS_DOMAIN } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { CSSProperties, useRef, useState } from "react";
@@ -227,28 +227,29 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
               const Component = BLOCK_COMPONENTS[block.type];
               return Component ? (
                 <div key={idx} className="group relative py-10">
-                  {/* Background grid */}
-                  <div className="border-subtle pointer-events-none absolute inset-y-0 left-1/2 w-[1080px] max-w-[calc(100cqw-32px)] -translate-x-1/2 overflow-hidden rounded-xl border opacity-0 group-hover:opacity-100">
-                    <Grid
-                      cellSize={60}
-                      className="text-border-subtle inset-[unset] left-1/2 top-1/2 h-[max(1200px,100%)] w-[1200px] -translate-x-1/2 -translate-y-1/2"
-                    />
+                  <EditIndicatorGrid />
+
+                  {/* Edit toolbar */}
+                  <div className="absolute inset-0 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+                    <div className="absolute right-6 top-2">
+                      <EditToolbar />
+                    </div>
                   </div>
 
                   {/* Insert block button */}
                   <div
                     className={cn(
-                      "absolute inset-0 opacity-0",
-                      "group-hover:opacity-100 group-has-[+div:hover]:opacity-100",
+                      "pointer-events-none absolute inset-0 opacity-0",
+                      "transition-opacity duration-150 group-hover:opacity-100 group-has-[+div:hover]:opacity-100",
                     )}
                   >
                     <div className="absolute inset-x-0 top-0 z-10 hidden group-first:block">
-                      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                      <div className="pointer-events-auto absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                         <InsertBlockButton />
                       </div>
                     </div>
                     <div className="absolute inset-x-0 bottom-0 z-10">
-                      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                      <div className="pointer-events-auto absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                         <InsertBlockButton />
                       </div>
                     </div>
@@ -282,5 +283,30 @@ function InsertBlockButton() {
       variant="secondary"
       className="h-6 w-fit gap-1 px-2.5 text-xs"
     />
+  );
+}
+
+function EditIndicatorGrid() {
+  return (
+    <div className="border-subtle pointer-events-none absolute inset-y-0 left-1/2 w-[1080px] max-w-[calc(100cqw-32px)] -translate-x-1/2 overflow-hidden rounded-xl border opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+      <Grid
+        cellSize={60}
+        className="text-border-subtle inset-[unset] left-1/2 top-1/2 h-[max(1200px,100%)] w-[1200px] -translate-x-1/2 -translate-y-1/2"
+      />
+    </div>
+  );
+}
+
+function EditToolbar() {
+  return (
+    <div className="flex items-center rounded-md border border-neutral-200 bg-white shadow-sm">
+      <Button
+        type="button"
+        variant="outline"
+        icon={<Pen2 className="size-4" />}
+        className="size-7 p-0"
+        onClick={() => toast.info("WIP")}
+      />
+    </div>
   );
 }
