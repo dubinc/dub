@@ -73,12 +73,26 @@ export const QR_TYPE_INPUTS_CONFIG: Record<
       type: "text",
       placeholder: "My QR Code",
       initFromPlaceholder: true,
+      tooltip:
+        "Only you can see this. It helps you recognize your QR codes later.",
     },
     {
       id: `number`,
-      label: "Your number",
+      label: "WhatsApp Number",
       type: "tel",
       placeholder: "Type your number",
+      tooltip:
+        "This is the number people will message on WhatsApp after scanning your QR code.",
+    },
+    {
+      id: `message`,
+      label: "Pre-typed Message",
+      type: "textarea",
+      placeholder:
+        "Hi GetQR team! 👋 I saw your awesome QR code platform and I’d love to start using it for my restaurant. Digital menus sound perfect — physical ones are just sooo outdated! Can you help me get set up?",
+      maxLength: 160,
+      tooltip:
+        "This text will appear in the chat box — the user just needs to tap send.",
     },
   ],
   [EQRType.WIFI]: [

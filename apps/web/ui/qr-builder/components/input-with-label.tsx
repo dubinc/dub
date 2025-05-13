@@ -1,7 +1,11 @@
+import { CountrySelectAutocompleteComponent } from "@/ui/qr-builder/components/country-select-autocomplete.tsx";
+import { PhoneNumberInputComponent } from "@/ui/qr-builder/components/phone-number-input.tsx";
 import { TooltipComponent } from "@/ui/qr-builder/components/tooltip.tsx";
 import { Input } from "@dub/ui";
 import { Flex } from "@radix-ui/themes";
 import { ChangeEventHandler, FC } from "react";
+import PhoneInput, { Country } from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 
 interface IInputWithLabelProps {
   label: string;
@@ -30,7 +34,7 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
   ...props
 }) => {
   let autoCompleteValue: "on" | "tel" | "url";
-  console.log("props", props);
+
   switch (type) {
     case "tel":
       autoCompleteValue = "tel";
@@ -49,13 +53,27 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
         <label className="text-neutral text-sm font-medium">{label}</label>
         <TooltipComponent tooltip={tooltip} />
       </Flex>
+
       {type === "textarea" ? (
         <textarea
           className="border-border-500 focus:border-secondary h-32 w-full rounded-md border p-3 text-base"
           value={value}
-          onChange={onChange}
+          onChange={(e) => {
+            onChange?.(e);
+            setValue?.(e.target.value);
+          }}
           placeholder={placeholder}
           {...props}
+        />
+      ) : type === "tel" ? (
+        <PhoneInput
+          international
+          defaultCountry={"US" as Country}
+          value={value}
+          onChange={(val) => setValue?.(val ?? "")}
+          countrySelectComponent={CountrySelectAutocompleteComponent}
+          inputComponent={PhoneNumberInputComponent}
+          className="w-full"
         />
       ) : (
         <Input
@@ -63,7 +81,10 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
           className="border-border-500 focus:border-secondary h-11 w-full max-w-2xl rounded-md border p-3 text-base"
           autoComplete={autoCompleteValue}
           value={value}
-          onChange={onChange}
+          onChange={(e) => {
+            onChange?.(e);
+            setValue?.(e.target.value);
+          }}
           onFocus={() => {
             if (initFromPlaceholder && setValue && !value) {
               setValue(placeholder);
@@ -73,6 +94,7 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
           {...props}
         />
       )}
+
       {errorMessage && (
         <span className="error-message text-sm text-red-500">
           {errorMessage}
