@@ -6,7 +6,7 @@ import { redirect, useRouter, useSelectedLayoutSegment } from "next/navigation";
 
 export function DomainsHeader() {
   const router = useRouter();
-  const { slug, partnersEnabled } = useWorkspace();
+  const { slug } = useWorkspace();
   const selectedLayoutSegment = useSelectedLayoutSegment();
   const page = selectedLayoutSegment === null ? "" : selectedLayoutSegment;
 
@@ -35,7 +35,6 @@ export function DomainsHeader() {
         variant="accent"
         options={[
           { id: "custom", label: "Custom domains" },
-          ...(partnersEnabled ? [{ id: "email", label: "Email domains" }] : []),
           { id: "default", label: "Default domains" },
         ]}
         selected={page}
