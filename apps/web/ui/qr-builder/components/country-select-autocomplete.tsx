@@ -13,14 +13,12 @@ interface ICountryOption {
 }
 
 interface CountrySelectProps {
-  value?: Country;
+  value: Country;
   onChange: (value: Country) => void;
   options: ICountryOption[];
   disabled?: boolean;
   className?: string;
 }
-
-const DEFAULT_COUNTRY: Country = "US";
 
 export const CountrySelectAutocompleteComponent = ({
   value,
@@ -32,9 +30,7 @@ export const CountrySelectAutocompleteComponent = ({
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
-  const initialSelectedValue = value ?? DEFAULT_COUNTRY;
-  const [selectedValue, setSelectedValue] =
-    useState<Country>(initialSelectedValue);
+  const [selectedValue, setSelectedValue] = useState<Country>(value);
 
   const sortedOptions = useMemo(() => {
     return [...options]
@@ -49,19 +45,24 @@ export const CountrySelectAutocompleteComponent = ({
   }, [sortedOptions, search]);
 
   useEffect(() => {
-    setSelectedValue(value ?? DEFAULT_COUNTRY);
+    if (value !== undefined) {
+      setSelectedValue(value);
+    }
   }, [value]);
 
   const handleSelect = (val: Country) => {
-    setSelectedValue(val);
-    onChange(val);
-    setOpen(false);
+    if (val !== undefined) {
+      setSelectedValue(val);
+      onChange(val);
+      setOpen(false);
+    }
   };
 
   return (
     <Popover
       openPopover={open}
       setOpenPopover={setOpen}
+      disableDrawer
       content={
         <Command className="w-full max-w-36 rounded-md bg-white text-base shadow-md">
           <Command.Input
@@ -102,7 +103,9 @@ export const CountrySelectAutocompleteComponent = ({
               )}
             </Command.List>
 
-            <div className="pointer-events-none absolute bottom-0 left-0 h-6 w-full rounded-md bg-gradient-to-t from-white to-transparent" />
+            {filteredOptions.length !== 0 && (
+              <div className="pointer-events-none absolute bottom-0 left-0 h-6 w-full rounded-md bg-gradient-to-t from-white to-transparent" />
+            )}
           </div>
         </Command>
       }
@@ -116,16 +119,21 @@ export const CountrySelectAutocompleteComponent = ({
         )}
         onClick={() => !disabled && setOpen((prev) => !prev)}
       >
-        <Flex gap="2">
-          <Image
-            src={`https://flagcdn.com/${selectedValue.toLowerCase()}.svg`}
-            alt={selectedValue}
-            width={24}
-            height={24}
-            className="shrink-0"
-          />
-          <span className="text-neutral truncate text-sm">{selectedValue}</span>
-        </Flex>
+        {selectedValue && (
+          <Flex gap="2">
+            <Image
+              priority
+              src={`https://flagcdn.com/${selectedValue.toLowerCase()}.svg`}
+              alt={selectedValue}
+              width={24}
+              height={24}
+              className="shrink-0"
+            />
+            <span className="text-neutral truncate text-sm">
+              {selectedValue}
+            </span>
+          </Flex>
+        )}
         <Icon
           icon={"line-md:chevron-down"}
           className={cn("transition-transform duration-200", "rotate-[0deg]", {

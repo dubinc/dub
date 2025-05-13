@@ -19,6 +19,7 @@ export type PopoverProps = PropsWithChildren<{
   sticky?: "partial" | "always";
   onEscapeKeyDown?: (event: KeyboardEvent) => void;
   onWheel?: WheelEventHandler;
+  disableDrawer?: boolean;
 }>;
 
 export function Popover({
@@ -35,10 +36,11 @@ export function Popover({
   sticky,
   onEscapeKeyDown,
   onWheel,
+  disableDrawer = false,
 }: PopoverProps) {
   const { isMobile } = useMediaQuery();
 
-  if (mobileOnly || isMobile) {
+  if (!disableDrawer && (mobileOnly || isMobile)) {
     return (
       <Drawer.Root open={openPopover} onOpenChange={setOpenPopover}>
         <Drawer.Trigger className="sm:hidden" asChild>

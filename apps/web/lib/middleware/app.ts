@@ -1,4 +1,5 @@
 import { parse } from "@/lib/middleware/utils";
+import { getUserCountry } from "@/lib/middleware/utils/get-user-country.ts";
 import { NextRequest, NextResponse } from "next/server";
 import EmbedMiddleware from "./embed";
 import NewLinkMiddleware from "./new-link";
@@ -17,7 +18,7 @@ export default async function AppMiddleware(req: NextRequest) {
   if (path.startsWith("/embed")) {
     return EmbedMiddleware(req);
   }
-
+  const country = await getUserCountry(req);
   const user = await getUserViaToken(req);
   const isWorkspaceInvite =
     req.nextUrl.searchParams.get("invite") || path.startsWith("/invites/");
@@ -40,11 +41,16 @@ export default async function AppMiddleware(req: NextRequest) {
     !path.startsWith("/auth/reset-password/") &&
     !path.startsWith("/share/")
   ) {
-    return NextResponse.redirect(
+    return NextResponse.rewrite(
       new URL(
         `/landing${path === "/" ? "" : `?next=${encodeURIComponent(fullPath)}`}`,
         req.url,
       ),
+      {
+        headers: {
+          "Set-Cookie": `country=${country}; Path=/; HttpOnly; Secure; SameSite=Strict;`,
+        },
+      },
     );
 
     // if there's a user
@@ -110,5 +116,9 @@ export default async function AppMiddleware(req: NextRequest) {
   }
 
   // otherwise, rewrite the path to /app
-  return NextResponse.rewrite(new URL(`/app.dub.co${fullPath}`, req.url));
+  return NextResponse.rewrite(new URL(`/app.dub.co${fullPath}`, req.url), {
+    headers: {
+      "Set-Cookie": `country=${country}; Path=/; HttpOnly; Secure; SameSite=Strict;`,
+    },
+  });
 }

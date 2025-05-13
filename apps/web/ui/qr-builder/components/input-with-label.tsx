@@ -3,8 +3,9 @@ import { PhoneNumberInputComponent } from "@/ui/qr-builder/components/phone-numb
 import { TooltipComponent } from "@/ui/qr-builder/components/tooltip.tsx";
 import { Input } from "@dub/ui";
 import { Flex } from "@radix-ui/themes";
+import Cookies from "js-cookie";
 import { ChangeEventHandler, FC } from "react";
-import PhoneInput, { Country } from "react-phone-number-input";
+import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 
 interface IInputWithLabelProps {
@@ -56,7 +57,7 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
 
       {type === "textarea" ? (
         <textarea
-          className="border-border-500 focus:border-secondary h-32 w-full rounded-md border p-3 text-base"
+          className="border-border-500 focus:border-secondary h-36 w-full rounded-md border p-3 text-base"
           value={value}
           onChange={(e) => {
             onChange?.(e);
@@ -68,12 +69,12 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
       ) : type === "tel" ? (
         <PhoneInput
           international
-          defaultCountry={"US" as Country}
+          defaultCountry={Cookies.get("country") || "US"}
           value={value}
           onChange={(val) => setValue?.(val ?? "")}
           countrySelectComponent={CountrySelectAutocompleteComponent}
           inputComponent={PhoneNumberInputComponent}
-          className="w-full"
+          className="w-full [&>div]:w-full"
         />
       ) : (
         <Input
