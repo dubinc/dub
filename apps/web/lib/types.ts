@@ -53,6 +53,7 @@ import {
   PayoutResponseSchema,
   PayoutSchema,
 } from "./zod/schemas/payouts";
+import { programLanderSchema } from "./zod/schemas/program-lander";
 import { programDataSchema } from "./zod/schemas/program-onboarding";
 import {
   PartnerProgramInviteSchema,
@@ -402,6 +403,8 @@ export type EnrolledPartnerProps = z.infer<
 export type DiscountProps = z.infer<typeof DiscountSchema>;
 
 export type ProgramProps = z.infer<typeof ProgramSchema>;
+
+export type ProgramLanderData = z.infer<typeof programLanderSchema>;
 
 export type ProgramWithLanderDataProps = z.infer<
   typeof ProgramWithLanderDataSchema

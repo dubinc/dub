@@ -3,7 +3,11 @@
 import { updateProgramAction } from "@/lib/actions/partners/update-program";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ProgramProps, ProgramWithLanderDataProps } from "@/lib/types";
+import {
+  ProgramLanderData,
+  ProgramProps,
+  ProgramWithLanderDataProps,
+} from "@/lib/types";
 import {
   programLanderBlockSchema,
   programLanderSchema,
@@ -19,13 +23,20 @@ import {
   Pen2,
   Plus2,
   Tooltip,
+  Trash,
   useScroll,
   Wordmark,
 } from "@dub/ui";
 import { cn, PARTNERS_DOMAIN } from "@dub/utils";
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { CSSProperties, PropsWithChildren, useRef, useState } from "react";
+import {
+  CSSProperties,
+  PropsWithChildren,
+  useCallback,
+  useRef,
+  useState,
+} from "react";
 import {
   FormProvider,
   useForm,
@@ -155,6 +166,24 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
     name: ["landerData", "brandColor", "logo", "wordmark"],
   });
 
+  const updateBlocks = useCallback(
+    (
+      fn: (blocks: ProgramLanderData["blocks"]) => ProgramLanderData["blocks"],
+    ) => {
+      return setValue(
+        "landerData",
+        {
+          ...landerData,
+          blocks: fn(landerData.blocks),
+        },
+        {
+          shouldDirty: true,
+        },
+      );
+    },
+    [landerData],
+  );
+
   return (
     <PreviewWindow
       url={`${PARTNERS_DOMAIN}/${program?.slug}`}
@@ -251,30 +280,19 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
                         block={block}
                         isFirst={idx === 0}
                         isLast={idx === landerData.blocks.length - 1}
-                        onMoveUp={() => {
-                          setValue(
-                            "landerData",
-                            {
-                              ...landerData,
-                              blocks: moveItem(landerData.blocks, idx, idx - 1),
-                            },
-                            {
-                              shouldDirty: true,
-                            },
-                          );
-                        }}
-                        onMoveDown={() => {
-                          setValue(
-                            "landerData",
-                            {
-                              ...landerData,
-                              blocks: moveItem(landerData.blocks, idx, idx + 1),
-                            },
-                            {
-                              shouldDirty: true,
-                            },
-                          );
-                        }}
+                        onMoveUp={() =>
+                          updateBlocks((blocks) =>
+                            moveItem(blocks, idx, idx - 1),
+                          )
+                        }
+                        onMoveDown={() =>
+                          updateBlocks((blocks) =>
+                            moveItem(blocks, idx, idx + 1),
+                          )
+                        }
+                        onDelete={() =>
+                          updateBlocks((blocks) => blocks.toSpliced(idx, 1))
+                        }
                       />
                     </div>
                   </div>
@@ -346,12 +364,14 @@ function EditToolbar({
   isLast,
   onMoveUp,
   onMoveDown,
+  onDelete,
 }: {
   block: z.infer<typeof programLanderBlockSchema>;
   isFirst: boolean;
   isLast: boolean;
   onMoveUp: () => void;
   onMoveDown: () => void;
+  onDelete: () => void;
 }) {
   return (
     <div className="flex items-center rounded-md border border-neutral-200 bg-white p-0.5 shadow-sm">
@@ -386,6 +406,15 @@ function EditToolbar({
           />
         </EditToolbarTooltip>
       )}
+      <EditToolbarTooltip content="Delete">
+        <Button
+          type="button"
+          variant="outline"
+          icon={<Trash className="size-4" />}
+          className="size-7 p-0"
+          onClick={onDelete}
+        />
+      </EditToolbarTooltip>
     </div>
   );
 }
