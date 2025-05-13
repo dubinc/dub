@@ -4,7 +4,10 @@ import { updateProgramAction } from "@/lib/actions/partners/update-program";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramProps, ProgramWithLanderDataProps } from "@/lib/types";
-import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
+import {
+  programLanderBlockSchema,
+  programLanderSchema,
+} from "@/lib/zod/schemas/program-lander";
 import { PreviewWindow } from "@/ui/partners/design/preview-window";
 import { BLOCK_COMPONENTS } from "@/ui/partners/lander-blocks";
 import { LanderHero } from "@/ui/partners/lander-hero";
@@ -136,7 +139,9 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrolled = useScroll(0, { container: scrollRef });
 
+  const { control } = useProgramBrandingForm();
   const [landerData, brandColor, logo, wordmark] = useWatch({
+    control,
     name: ["landerData", "brandColor", "logo", "wordmark"],
   });
 
@@ -223,7 +228,7 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
 
           {/* Content blocks */}
           <div className="relative z-0 mt-6 grid grid-cols-1">
-            {landerData.blocks.map((block) => {
+            {landerData?.blocks.map((block) => {
               const Component = BLOCK_COMPONENTS[block.type];
               return Component ? (
                 <div key={block.id} className="group relative py-10">
@@ -232,7 +237,7 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
                   {/* Edit toolbar */}
                   <div className="absolute inset-0 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
                     <div className="absolute right-6 top-2">
-                      <EditToolbar />
+                      <EditToolbar block={block} />
                     </div>
                   </div>
 
@@ -297,7 +302,11 @@ function EditIndicatorGrid() {
   );
 }
 
-function EditToolbar() {
+function EditToolbar({
+  block,
+}: {
+  block: z.infer<typeof programLanderBlockSchema>;
+}) {
   return (
     <div className="flex items-center rounded-md border border-neutral-200 bg-white shadow-sm">
       <Button
