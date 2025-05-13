@@ -101,7 +101,7 @@ export function WorkspaceDropdown() {
               width={28}
               height={28}
               alt={selected.id || selected.name}
-              className="h-7 w-7 flex-none shrink-0 overflow-hidden rounded-full"
+              className="h-7 w-7 flex-none shrink-0 overflow-hidden rounded-full border border-neutral-900/10"
             />
             <div className={cn(key ? "hidden" : "block", "min-w-0 sm:block")}>
               <div className="truncate text-sm font-medium leading-5 text-neutral-900">
@@ -245,7 +245,7 @@ function WorkspaceList({
                     width={28}
                     height={28}
                     alt={id}
-                    className="size-7 shrink-0 overflow-hidden rounded-full"
+                    className="size-7 shrink-0 overflow-hidden rounded-full border border-neutral-900/10"
                   />
                   <div>
                     <span className="block truncate text-sm leading-5 text-neutral-900 sm:max-w-[140px]">

@@ -104,7 +104,7 @@ export function PartnerProgramDropdown() {
                   width={40}
                   height={40}
                   alt={partner.name}
-                  className="size-5 shrink-0 overflow-hidden rounded-full border border-black/10"
+                  className="size-5 shrink-0 overflow-hidden rounded-full border border-neutral-900/10"
                 />
                 <span className="block min-w-0 truncate text-sm leading-5 text-neutral-800">
                   {partner.name}
@@ -153,7 +153,7 @@ export function PartnerProgramDropdown() {
               width={28}
               height={28}
               alt={selectedProgram?.name || partner.name}
-              className="size-7 flex-none shrink-0 overflow-hidden rounded-full"
+              className="size-7 flex-none shrink-0 overflow-hidden rounded-full border border-neutral-900/10"
             />
             <div className="min-w-0">
               <div className="truncate text-sm font-medium leading-5 text-neutral-900">
@@ -284,7 +284,7 @@ function ProgramList({
                           width={40}
                           height={40}
                           alt={name}
-                          className="size-5 shrink-0 overflow-hidden rounded-full border border-black/10"
+                          className="size-5 shrink-0 overflow-hidden rounded-full border border-neutral-900/10"
                         />
                         <span className="block min-w-0 grow truncate text-sm leading-5 text-neutral-800">
                           {name}
