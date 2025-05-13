@@ -24,7 +24,7 @@ const tw = createTw({
 });
 
 // GET /api/partner-profile/payouts/[payoutId]/invoice - get the invoice for a payout
-export const GET = withPartnerProfile(async ({ partner, session, params }) => {
+export const GET = withPartnerProfile(async ({ partner, params }) => {
   const { payoutId } = params;
 
   const payout = await prisma.payout.findUniqueOrThrow({
