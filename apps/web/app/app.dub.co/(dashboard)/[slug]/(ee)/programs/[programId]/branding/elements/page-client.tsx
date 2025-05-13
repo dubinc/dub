@@ -228,7 +228,7 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
               return Component ? (
                 <div key={idx} className="group relative py-10">
                   {/* Background grid */}
-                  <div className="border-subtle pointer-events-none absolute inset-y-0 left-1/2 w-[1080px] max-w-[calc(100cqw-32px)] -translate-x-1/2 overflow-hidden rounded-xl border opacity-0 transition-opacity group-hover:opacity-100">
+                  <div className="border-subtle pointer-events-none absolute inset-y-0 left-1/2 w-[1080px] max-w-[calc(100cqw-32px)] -translate-x-1/2 overflow-hidden rounded-xl border opacity-0 group-hover:opacity-100">
                     <Grid
                       cellSize={60}
                       className="text-border-subtle inset-[unset] left-1/2 top-1/2 h-[max(1200px,100%)] w-[1200px] -translate-x-1/2 -translate-y-1/2"
@@ -238,7 +238,7 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
                   {/* Insert block button */}
                   <div
                     className={cn(
-                      "absolute inset-0 opacity-0 transition-opacity",
+                      "absolute inset-0 opacity-0",
                       "group-hover:opacity-100 group-has-[+div:hover]:opacity-100",
                     )}
                   >
