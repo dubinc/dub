@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { CustomDomains } from "./page-client";
 
-export default function DomainsPage({ params }: { params: { slug: string } }) {
-  redirect(`/${params.slug}/settings/domains/custom`);
+export default function CustomDomainsPage() {
+  return <CustomDomains />;
 }
