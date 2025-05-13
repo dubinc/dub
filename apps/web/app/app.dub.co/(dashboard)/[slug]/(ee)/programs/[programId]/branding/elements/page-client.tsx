@@ -12,10 +12,20 @@ import { PreviewWindow } from "@/ui/partners/design/preview-window";
 import { BLOCK_COMPONENTS } from "@/ui/partners/lander-blocks";
 import { LanderHero } from "@/ui/partners/lander-hero";
 import { LanderRewards } from "@/ui/partners/lander-rewards";
-import { Brush, Button, Grid, Pen2, Plus2, useScroll, Wordmark } from "@dub/ui";
+import {
+  Brush,
+  Button,
+  Grid,
+  Pen2,
+  Plus2,
+  Tooltip,
+  useScroll,
+  Wordmark,
+} from "@dub/ui";
 import { cn, PARTNERS_DOMAIN } from "@dub/utils";
+import { ArrowDown, ArrowUp } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { CSSProperties, useRef, useState } from "react";
+import { CSSProperties, PropsWithChildren, useRef, useState } from "react";
 import {
   FormProvider,
   useForm,
@@ -139,7 +149,7 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrolled = useScroll(0, { container: scrollRef });
 
-  const { control } = useProgramBrandingForm();
+  const { control, setValue } = useProgramBrandingForm();
   const [landerData, brandColor, logo, wordmark] = useWatch({
     control,
     name: ["landerData", "brandColor", "logo", "wordmark"],
@@ -228,7 +238,7 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
 
           {/* Content blocks */}
           <div className="relative z-0 mt-6 grid grid-cols-1">
-            {landerData?.blocks.map((block) => {
+            {landerData?.blocks.map((block, idx) => {
               const Component = BLOCK_COMPONENTS[block.type];
               return Component ? (
                 <div key={block.id} className="group relative py-10">
@@ -237,7 +247,35 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
                   {/* Edit toolbar */}
                   <div className="absolute inset-0 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
                     <div className="absolute right-6 top-2">
-                      <EditToolbar block={block} />
+                      <EditToolbar
+                        block={block}
+                        isFirst={idx === 0}
+                        isLast={idx === landerData.blocks.length - 1}
+                        onMoveUp={() => {
+                          setValue(
+                            "landerData",
+                            {
+                              ...landerData,
+                              blocks: moveItem(landerData.blocks, idx, idx - 1),
+                            },
+                            {
+                              shouldDirty: true,
+                            },
+                          );
+                        }}
+                        onMoveDown={() => {
+                          setValue(
+                            "landerData",
+                            {
+                              ...landerData,
+                              blocks: moveItem(landerData.blocks, idx, idx + 1),
+                            },
+                            {
+                              shouldDirty: true,
+                            },
+                          );
+                        }}
+                      />
                     </div>
                   </div>
 
@@ -304,18 +342,71 @@ function EditIndicatorGrid() {
 
 function EditToolbar({
   block,
+  isFirst,
+  isLast,
+  onMoveUp,
+  onMoveDown,
 }: {
   block: z.infer<typeof programLanderBlockSchema>;
+  isFirst: boolean;
+  isLast: boolean;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
 }) {
   return (
-    <div className="flex items-center rounded-md border border-neutral-200 bg-white shadow-sm">
-      <Button
-        type="button"
-        variant="outline"
-        icon={<Pen2 className="size-4" />}
-        className="size-7 p-0"
-        onClick={() => toast.info("WIP")}
-      />
+    <div className="flex items-center rounded-md border border-neutral-200 bg-white p-0.5 shadow-sm">
+      <EditToolbarTooltip content="Edit">
+        <Button
+          type="button"
+          variant="outline"
+          icon={<Pen2 className="size-4" />}
+          className="size-7 p-0"
+          onClick={() => toast.info("WIP")}
+        />
+      </EditToolbarTooltip>
+      {!isFirst && (
+        <EditToolbarTooltip content="Move up">
+          <Button
+            type="button"
+            variant="outline"
+            icon={<ArrowUp className="size-4" />}
+            className="size-7 p-0"
+            onClick={onMoveUp}
+          />
+        </EditToolbarTooltip>
+      )}
+      {!isLast && (
+        <EditToolbarTooltip content="Move down">
+          <Button
+            type="button"
+            variant="outline"
+            icon={<ArrowDown className="size-4" />}
+            className="size-7 p-0"
+            onClick={onMoveDown}
+          />
+        </EditToolbarTooltip>
+      )}
     </div>
   );
 }
+
+function EditToolbarTooltip({
+  content,
+  children,
+}: PropsWithChildren<{ content: string }>) {
+  return (
+    <Tooltip
+      content={
+        <div className="px-2 py-1 text-xs text-neutral-600">{content}</div>
+      }
+    >
+      <div>{children}</div>
+    </Tooltip>
+  );
+}
+
+const moveItem = <T extends any>(array: T[], from: number, to: number) => {
+  const newArray = array.slice();
+  newArray.splice(to, 0, newArray.splice(from, 1)[0]);
+  return newArray;
+};
