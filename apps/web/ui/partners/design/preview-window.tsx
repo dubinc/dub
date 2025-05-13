@@ -57,7 +57,10 @@ export function PreviewWindow({
           </Link>
         </div>
       </div>
-      <div className="scrollbar-hide grow overflow-y-auto" ref={scrollRef}>
+      <div
+        className="scrollbar-hide @container grow overflow-y-auto"
+        ref={scrollRef}
+      >
         {children}
       </div>
     </div>

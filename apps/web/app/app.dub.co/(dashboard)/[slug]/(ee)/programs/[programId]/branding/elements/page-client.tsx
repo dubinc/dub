@@ -9,7 +9,7 @@ import { PreviewWindow } from "@/ui/partners/design/preview-window";
 import { BLOCK_COMPONENTS } from "@/ui/partners/lander-blocks";
 import { LanderHero } from "@/ui/partners/lander-hero";
 import { LanderRewards } from "@/ui/partners/lander-rewards";
-import { Brush, Button, useScroll, Wordmark } from "@dub/ui";
+import { Brush, Button, Grid, Plus2, useScroll, Wordmark } from "@dub/ui";
 import { cn, PARTNERS_DOMAIN } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { CSSProperties, useRef, useState } from "react";
@@ -222,16 +222,42 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
             </div>
 
             {/* Content blocks */}
-            <div className="mt-16 grid grid-cols-1 gap-10">
+            <div className="mt-6 grid grid-cols-1">
               {landerData.blocks.map((block, idx) => {
                 const Component = BLOCK_COMPONENTS[block.type];
                 return Component ? (
-                  <Component
-                    key={idx}
-                    block={block}
-                    logo={program.logo}
-                    preview
-                  />
+                  <div key={idx} className="group relative py-10">
+                    {/* Background grid */}
+                    <div className="border-subtle pointer-events-none absolute inset-y-0 left-1/2 w-[1080px] max-w-[calc(100cqw-32px)] -translate-x-1/2 overflow-hidden rounded-xl border opacity-0 transition-opacity group-hover:opacity-100">
+                      <Grid
+                        cellSize={60}
+                        className="text-border-subtle inset-[unset] left-1/2 top-1/2 h-[max(1200px,100%)] w-[1200px] -translate-x-1/2 -translate-y-1/2"
+                      />
+                    </div>
+
+                    {/* Insert block button */}
+                    <div
+                      className={cn(
+                        "absolute inset-0 opacity-0 transition-opacity",
+                        "group-hover:opacity-100 group-has-[+div:hover]:opacity-100",
+                      )}
+                    >
+                      <div className="absolute inset-x-0 top-0 z-10 hidden group-first:block">
+                        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                          <InsertBlockButton />
+                        </div>
+                      </div>
+                      <div className="absolute inset-x-0 bottom-0 z-10">
+                        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                          <InsertBlockButton />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="relative" {...{ inert: "" }}>
+                      <Component block={block} logo={program.logo} preview />
+                    </div>
+                  </div>
                 ) : null;
               })}
             </div>
@@ -239,5 +265,18 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
         </div>
       </div>
     </PreviewWindow>
+  );
+}
+
+function InsertBlockButton() {
+  return (
+    <Button
+      type="button"
+      text="Insert block"
+      onClick={() => toast.info("WIP")}
+      icon={<Plus2 className="size-2.5" />}
+      variant="secondary"
+      className="h-6 w-fit gap-1 px-2.5 text-xs"
+    />
   );
 }
