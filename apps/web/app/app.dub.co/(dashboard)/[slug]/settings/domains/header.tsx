@@ -35,7 +35,7 @@ export function DomainsHeader() {
         variant="accent"
         options={[
           { id: "custom", label: "Custom domains" },
-          // ...(partnersEnabled ? [{ id: "email", label: "Email domains" }] : []),
+          ...(partnersEnabled ? [{ id: "email", label: "Email domains" }] : []),
           { id: "default", label: "Default domains" },
         ]}
         selected={page}
