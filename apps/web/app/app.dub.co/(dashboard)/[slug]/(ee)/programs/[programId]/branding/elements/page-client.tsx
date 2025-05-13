@@ -145,8 +145,7 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
       url={`${PARTNERS_DOMAIN}/${program?.slug}`}
       scrollRef={scrollRef}
     >
-      <div className="relative z-0 mx-auto min-h-screen w-full max-w-screen-sm bg-white">
-        <div className="pointer-events-none absolute left-0 top-0 h-screen w-full border-x border-neutral-200 [mask-image:linear-gradient(black,transparent)]" />
+      <div className="relative z-0 mx-auto min-h-screen w-full bg-white">
         <div
           style={
             {
@@ -155,112 +154,117 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
             } as CSSProperties
           }
         >
-          <header
-            className={
-              "sticky top-0 z-10 mx-px flex items-center justify-between bg-white/90 px-6 py-4 backdrop-blur-sm"
-            }
-          >
-            {/* Bottom border when scrolled */}
-            <div
-              className={cn(
-                "absolute inset-x-0 bottom-0 h-px bg-neutral-200 opacity-0 transition-opacity duration-300 [mask-image:linear-gradient(90deg,transparent,black,transparent)]",
-                scrolled && "opacity-100",
-              )}
-            />
+          <header className={"sticky top-0 z-10 bg-white/90 backdrop-blur-sm"}>
+            <div className="mx-auto flex max-w-screen-sm items-center justify-between px-6 py-4">
+              {/* Bottom border when scrolled */}
+              <div
+                className={cn(
+                  "absolute inset-x-0 bottom-0 h-px bg-neutral-200 opacity-0 transition-opacity duration-300 [mask-image:linear-gradient(90deg,transparent,black,transparent)]",
+                  scrolled && "opacity-100",
+                )}
+              />
 
-            <div className="animate-fade-in my-0.5 block">
-              {wordmark || logo ? (
-                <img
-                  className="max-h-7 max-w-32"
-                  src={(wordmark ?? logo) as string}
+              <div className="animate-fade-in my-0.5 block">
+                {wordmark || logo ? (
+                  <img
+                    className="max-h-7 max-w-32"
+                    src={(wordmark ?? logo) as string}
+                  />
+                ) : (
+                  <Wordmark className="h-7" />
+                )}
+              </div>
+
+              <div className="flex items-center gap-2" {...{ inert: "" }}>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  text="Log in"
+                  className="animate-fade-in h-8 w-fit text-neutral-600"
                 />
-              ) : (
-                <Wordmark className="h-7" />
-              )}
-            </div>
-
-            <div className="flex items-center gap-2" {...{ inert: "" }}>
-              <Button
-                type="button"
-                variant="secondary"
-                text="Log in"
-                className="animate-fade-in h-8 w-fit text-neutral-600"
-              />
-              <Button
-                type="button"
-                text="Apply"
-                className="animate-fade-in h-8 w-fit border-[var(--brand)] bg-[var(--brand)] hover:bg-[var(--brand)] hover:ring-[var(--brand-ring)]"
-              />
+                <Button
+                  type="button"
+                  text="Apply"
+                  className="animate-fade-in h-8 w-fit border-[var(--brand)] bg-[var(--brand)] hover:bg-[var(--brand)] hover:ring-[var(--brand-ring)]"
+                />
+              </div>
             </div>
           </header>
-          <div className="p-6">
-            <LanderHero program={program} />
+          <div className="mx-auto mt-6 max-w-screen-sm">
+            <div className="px-6">
+              <LanderHero program={program} />
 
-            {/* Program details grid */}
-            <div className="mt-10">
-              <LanderRewards
-                program={{
-                  rewards: program.rewards ?? [],
-                  defaultDiscount:
-                    program.discounts?.find(
-                      (d) => d.id === program.defaultDiscountId,
-                    ) || null,
-                }}
-              />
+              {/* Program details grid */}
+              <div className="mt-10">
+                <LanderRewards
+                  program={{
+                    rewards: program.rewards ?? [],
+                    defaultDiscount:
+                      program.discounts?.find(
+                        (d) => d.id === program.defaultDiscountId,
+                      ) || null,
+                  }}
+                />
+              </div>
+
+              {/* Buttons */}
+              <div
+                className="animate-scale-in-fade mt-10 flex flex-col gap-2 [animation-delay:400ms] [animation-fill-mode:both]"
+                {...{ inert: "" }}
+              >
+                <Button
+                  type="button"
+                  text="Apply today"
+                  className="border-[var(--brand)] bg-[var(--brand)] hover:bg-[var(--brand)] hover:ring-[var(--brand-ring)]"
+                />
+              </div>
             </div>
+          </div>
 
-            {/* Buttons */}
-            <div
-              className="animate-scale-in-fade mt-10 flex flex-col gap-2 [animation-delay:400ms] [animation-fill-mode:both]"
-              {...{ inert: "" }}
-            >
-              <Button
-                type="button"
-                text="Apply today"
-                className="border-[var(--brand)] bg-[var(--brand)] hover:bg-[var(--brand)] hover:ring-[var(--brand-ring)]"
-              />
-            </div>
+          {/* Content blocks */}
+          <div className="relative z-0 mt-6 grid grid-cols-1">
+            {landerData.blocks.map((block, idx) => {
+              const Component = BLOCK_COMPONENTS[block.type];
+              return Component ? (
+                <div key={idx} className="group relative py-10">
+                  {/* Background grid */}
+                  <div className="border-subtle pointer-events-none absolute inset-y-0 left-1/2 w-[1080px] max-w-[calc(100cqw-32px)] -translate-x-1/2 overflow-hidden rounded-xl border opacity-0 transition-opacity group-hover:opacity-100">
+                    <Grid
+                      cellSize={60}
+                      className="text-border-subtle inset-[unset] left-1/2 top-1/2 h-[max(1200px,100%)] w-[1200px] -translate-x-1/2 -translate-y-1/2"
+                    />
+                  </div>
 
-            {/* Content blocks */}
-            <div className="mt-6 grid grid-cols-1">
-              {landerData.blocks.map((block, idx) => {
-                const Component = BLOCK_COMPONENTS[block.type];
-                return Component ? (
-                  <div key={idx} className="group relative py-10">
-                    {/* Background grid */}
-                    <div className="border-subtle pointer-events-none absolute inset-y-0 left-1/2 w-[1080px] max-w-[calc(100cqw-32px)] -translate-x-1/2 overflow-hidden rounded-xl border opacity-0 transition-opacity group-hover:opacity-100">
-                      <Grid
-                        cellSize={60}
-                        className="text-border-subtle inset-[unset] left-1/2 top-1/2 h-[max(1200px,100%)] w-[1200px] -translate-x-1/2 -translate-y-1/2"
-                      />
-                    </div>
-
-                    {/* Insert block button */}
-                    <div
-                      className={cn(
-                        "absolute inset-0 opacity-0 transition-opacity",
-                        "group-hover:opacity-100 group-has-[+div:hover]:opacity-100",
-                      )}
-                    >
-                      <div className="absolute inset-x-0 top-0 z-10 hidden group-first:block">
-                        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                          <InsertBlockButton />
-                        </div>
-                      </div>
-                      <div className="absolute inset-x-0 bottom-0 z-10">
-                        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                          <InsertBlockButton />
-                        </div>
+                  {/* Insert block button */}
+                  <div
+                    className={cn(
+                      "absolute inset-0 opacity-0 transition-opacity",
+                      "group-hover:opacity-100 group-has-[+div:hover]:opacity-100",
+                    )}
+                  >
+                    <div className="absolute inset-x-0 top-0 z-10 hidden group-first:block">
+                      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                        <InsertBlockButton />
                       </div>
                     </div>
+                    <div className="absolute inset-x-0 bottom-0 z-10">
+                      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                        <InsertBlockButton />
+                      </div>
+                    </div>
+                  </div>
 
-                    <div className="relative" {...{ inert: "" }}>
+                  <div
+                    className="relative mx-auto max-w-screen-sm"
+                    {...{ inert: "" }}
+                  >
+                    <div className="px-6">
                       <Component block={block} logo={program.logo} preview />
                     </div>
                   </div>
-                ) : null;
-              })}
-            </div>
+                </div>
+              ) : null;
+            })}
           </div>
         </div>
       </div>
