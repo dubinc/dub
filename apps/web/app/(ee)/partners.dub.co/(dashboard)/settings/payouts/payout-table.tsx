@@ -12,12 +12,14 @@ import {
   Filter,
   StatusBadge,
   Table,
+  Tooltip,
   usePagination,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { MoneyBill2 } from "@dub/ui/icons";
+import { InvoiceDollar, MoneyBill2 } from "@dub/ui/icons";
 import { OG_AVATAR_URL, formatPeriod } from "@dub/utils";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { PayoutDetailsSheet } from "./payout-details-sheet";
 import { usePayoutFilters } from "./use-payout-filters";
@@ -94,12 +96,24 @@ export function PayoutTable() {
         id: "amount",
         header: "Amount",
         cell: ({ row }) => (
-          <AmountRowItem
-            amount={row.original.amount}
-            status={row.original.status}
-            payoutsEnabled={Boolean(partner?.payoutsEnabledAt)}
-            minPayoutAmount={row.original.program.minPayoutAmount}
-          />
+          <div className="flex items-center gap-2">
+            <AmountRowItem
+              amount={row.original.amount}
+              status={row.original.status}
+              payoutsEnabled={Boolean(partner?.payoutsEnabledAt)}
+              minPayoutAmount={row.original.program.minPayoutAmount}
+            />
+            <Tooltip content="View invoice">
+              <Link
+                href={`/partners.dub.co/${partner?.id}/settings/payouts`}
+                className="text-neutral-700"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <InvoiceDollar className="size-4" />
+              </Link>
+            </Tooltip>
+          </div>
         ),
       },
     ],
