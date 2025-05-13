@@ -2,17 +2,12 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InfoTooltip, TabSelect, TooltipContent } from "@dub/ui";
-import { redirect, useRouter, useSelectedLayoutSegment } from "next/navigation";
+import { useSelectedLayoutSegment } from "next/navigation";
 
 export function DomainsHeader() {
-  const router = useRouter();
   const { slug } = useWorkspace();
   const selectedLayoutSegment = useSelectedLayoutSegment();
   const page = selectedLayoutSegment === null ? "" : selectedLayoutSegment;
-
-  if (selectedLayoutSegment === null) {
-    redirect(`/${slug}/settings/domains/custom`);
-  }
 
   return (
     <div className="border-b border-neutral-200">
@@ -34,13 +29,18 @@ export function DomainsHeader() {
       <TabSelect
         variant="accent"
         options={[
-          { id: "custom", label: "Custom domains" },
-          { id: "default", label: "Default domains" },
+          {
+            id: "",
+            label: "Custom domains",
+            href: `/${slug}/settings/domains`,
+          },
+          {
+            id: "default",
+            label: "Default domains",
+            href: `/${slug}/settings/domains/default`,
+          },
         ]}
         selected={page}
-        onSelect={(id: string) => {
-          router.push(`/${slug}/settings/domains/${id}`);
-        }}
       />
     </div>
   );
