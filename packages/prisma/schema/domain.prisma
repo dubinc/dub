@@ -40,6 +40,21 @@ model RegisteredDomain {
   @@index(expiresAt(sort: Asc))
 }
 
+model EmailDomain {
+  id          String   @id @default(cuid())
+  workspaceId String
+  slug        String   @unique
+  verified    Boolean  @default(false)
+  lastChecked DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  project Project @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index(workspaceId)
+  @@index(lastChecked(sort: Asc))
+}
+
 model DefaultDomains {
   id          String  @id @default(cuid())
   dublink     Boolean @default(false)

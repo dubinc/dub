@@ -31,6 +31,7 @@ import {
 } from "./zod/schemas/customers";
 import { dashboardSchema } from "./zod/schemas/dashboard";
 import { DiscountSchema } from "./zod/schemas/discount";
+import { EmailDomainSchema } from "./zod/schemas/domains";
 import { FolderSchema } from "./zod/schemas/folders";
 import { integrationSchema } from "./zod/schemas/integration";
 import { InvoiceSchema } from "./zod/schemas/invoices";
@@ -470,3 +471,5 @@ export type ProgramData = z.infer<typeof programDataSchema>;
 export type ProgramMetrics = z.infer<typeof ProgramMetricsSchema>;
 
 export type PayoutMethod = "stripe" | "paypal";
+
+export type EmailDomainProps = z.infer<typeof EmailDomainSchema>;
