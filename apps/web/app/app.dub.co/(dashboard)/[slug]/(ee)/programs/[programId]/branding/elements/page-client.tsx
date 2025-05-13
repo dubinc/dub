@@ -223,10 +223,10 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
 
           {/* Content blocks */}
           <div className="relative z-0 mt-6 grid grid-cols-1">
-            {landerData.blocks.map((block, idx) => {
+            {landerData.blocks.map((block) => {
               const Component = BLOCK_COMPONENTS[block.type];
               return Component ? (
-                <div key={idx} className="group relative py-10">
+                <div key={block.id} className="group relative py-10">
                   <EditIndicatorGrid />
 
                   {/* Edit toolbar */}
