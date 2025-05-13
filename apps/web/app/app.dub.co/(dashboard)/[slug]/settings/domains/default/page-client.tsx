@@ -43,28 +43,26 @@ function DubDomainsIcon(domain: string) {
 
 export function DefaultDomains() {
   const { id, plan, role, flags } = useWorkspace();
+  const [submitting, setSubmitting] = useState(false);
+  const [defaultDomains, setDefaultDomains] = useState<string[]>([]);
+  const { defaultDomains: initialDefaultDomains, mutate } = useDefaultDomains();
+
   const permissionsError = clientAccessCheck({
     action: "domains.write",
     role,
     customPermissionDescription: "manage default domains",
   }).error;
 
-  const { defaultDomains: initialDefaultDomains, mutate } = useDefaultDomains();
-  const [defaultDomains, setDefaultDomains] = useState<string[]>([]);
   useEffect(() => {
     if (initialDefaultDomains) {
       setDefaultDomains(initialDefaultDomains);
     }
   }, [initialDefaultDomains]);
-  const [submitting, setSubmitting] = useState(false);
 
   return (
-    <div className="my-10 grid gap-5 border-t border-neutral-200 py-10">
-      <div>
-        <h2 className="text-xl font-semibold tracking-tight text-black">
-          Default Domains
-        </h2>
-        <p className="mt-3 text-sm text-neutral-500">
+    <div className="grid gap-5">
+      <div className="rounded-lg bg-neutral-100 p-4">
+        <p className="text-sm text-neutral-500">
           Leverage default branded domains from Dub for specific links.{" "}
           <Link
             href="https://dub.co/help/article/default-dub-domains"
@@ -75,6 +73,7 @@ export function DefaultDomains() {
           </Link>
         </p>
       </div>
+
       <div className="mt-2 grid grid-cols-1 gap-3">
         {DUB_DOMAINS.filter((domain) => {
           if (domain.slug === "dub.link") {
@@ -135,7 +134,7 @@ export function DefaultDomains() {
                         if (error.message.includes("Upgrade to Pro")) {
                           toast.custom(() => (
                             <UpgradeRequiredToast
-                              planToUpgradeTo="Pro"
+                              title="You've discovered a Pro feature!"
                               message={error.message}
                             />
                           ));

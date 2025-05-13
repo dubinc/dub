@@ -1,10 +1,5 @@
-import { Suspense } from "react";
-import WorkspaceDomainsClient from "./page-client";
+import { redirect } from "next/navigation";
 
-export default function WorkspaceDomains() {
-  return (
-    <Suspense>
-      <WorkspaceDomainsClient />
-    </Suspense>
-  );
+export default function DomainsPage({ params }: { params: { slug: string } }) {
+  redirect(`/${params.slug}/settings/domains/custom`);
 }
