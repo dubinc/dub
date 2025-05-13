@@ -1,6 +1,5 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { DomainProps } from "@/lib/types";
 import { Button, LinkLogo, Modal, useMediaQuery } from "@dub/ui";
 import {
   Dispatch,
@@ -10,6 +9,12 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+
+interface DomainProps {
+  slug: string;
+  registeredDomain: boolean;
+  type: "custom" | "email";
+}
 
 function DeleteDomainModal({
   showDeleteDomainModal,
@@ -21,10 +26,8 @@ function DeleteDomainModal({
   props: DomainProps;
 }) {
   const { id } = useWorkspace();
-  const [deleting, setDeleting] = useState(false);
-  const domain = props.slug;
-
   const { isMobile } = useMediaQuery();
+  const [deleting, setDeleting] = useState(false);
 
   return (
     <Modal
@@ -32,16 +35,27 @@ function DeleteDomainModal({
       setShowModal={setShowDeleteDomainModal}
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-4 pt-8 text-center sm:px-16">
-        <LinkLogo apexDomain={domain} />
-        <h3 className="text-lg font-medium">Delete {domain}</h3>
+        <LinkLogo apexDomain={props.slug} />
+        <h3 className="text-lg font-medium">Delete {props.slug}</h3>
         <div className="space-y-2 text-sm text-neutral-500">
           <p>
-            Deleting this domain will delete all associated links as well as
-            their analytics, permanently.
+            {props.type === "custom" ? (
+              <>
+                Deleting this domain will delete all associated links as well as
+                their anaytics, permanently.
+              </>
+            ) : (
+              <>
+                Deleting this domain will break sending emails from your
+                workspace.
+              </>
+            )}
           </p>
-          {Boolean(props.registeredDomain) && (
+
+          {props.registeredDomain && (
             <p>The domain will also be provisioned back to Dub.</p>
           )}
+
           <p>
             <strong className="font-semibold text-neutral-700">
               This action can't be undone
@@ -55,11 +69,19 @@ function DeleteDomainModal({
         onSubmit={async (e) => {
           e.preventDefault();
           setDeleting(true);
-          fetch(`/api/domains/${domain}?workspaceId=${id}`, {
+
+          const url =
+            props.type === "custom"
+              ? `/api/domains/${props.slug}?workspaceId=${id}`
+              : `/api/email-domains/${props.slug}?workspaceId=${id}`;
+
+          fetch(url, {
             method: "DELETE",
           }).then(async (res) => {
             if (res.status === 200) {
-              await mutatePrefix("/api/domains");
+              await mutatePrefix(
+                props.type === "custom" ? "/api/domains" : "/api/email-domains",
+              );
               setShowDeleteDomainModal(false);
               toast.success("Successfully deleted domain!");
             } else {
@@ -77,14 +99,15 @@ function DeleteDomainModal({
             className="block text-sm text-neutral-700"
           >
             To verify, type{" "}
-            <span className="font-semibold">confirm delete {domain}</span> below
+            <span className="font-semibold">confirm delete {props.slug}</span>{" "}
+            below
           </label>
           <div className="relative mt-1 rounded-md shadow-sm">
             <input
               type="text"
               name="verification"
               id="verification"
-              pattern={`confirm delete ${domain}`}
+              pattern={`confirm delete ${props.slug}`}
               required
               autoFocus={!isMobile}
               autoComplete="off"
