@@ -50,8 +50,6 @@ export const GET = withPartnerProfile(async ({ partner, session, params }) => {
     },
   });
 
-  console.log(payout);
-
   if (payout.partnerId !== partner.id) {
     throw new DubApiError({
       code: "unauthorized",
@@ -70,161 +68,99 @@ export const GET = withPartnerProfile(async ({ partner, session, params }) => {
   const invoiceMetadata = [
     {
       label: "Program",
-      value: payout.program.name,
+      value: (
+        <View style={tw("flex-row items-center gap-2")}>
+          {payout.program.logo && (
+            <Image
+              src={payout.program.logo}
+              style={tw("w-5 h-5 rounded-full")}
+            />
+          )}
+          <Text>{payout.program.name}</Text>
+        </View>
+      ),
     },
     {
       label: "Period",
-      value:
-        payout.periodStart && payout.periodEnd
-          ? `${formatDate(payout.periodStart, {
-              month: "short",
-              year: "numeric",
-            })} - ${formatDate(payout.periodEnd, { month: "short" })}`
-          : "-",
+      value: (
+        <Text style={tw("text-neutral-800 w-2/3")}>
+          {payout.periodStart && payout.periodEnd
+            ? `${formatDate(payout.periodStart, {
+                month: "short",
+                year: "numeric",
+              })} - ${formatDate(payout.periodEnd, { month: "short" })}`
+            : "-"}
+        </Text>
+      ),
     },
     {
       label: "Description",
-      value: payout.description || "-",
+      value: (
+        <Text style={tw("text-neutral-800 w-2/3")}>
+          {payout.description || "-"}
+        </Text>
+      ),
     },
     {
       label: "Amount",
-      value: currencyFormatter(payout.amount / 100, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }),
+      value: (
+        <Text style={tw("text-neutral-800 w-2/3")}>
+          {currencyFormatter(payout.amount / 100, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}
+        </Text>
+      ),
     },
     {
       label: "VAT",
-      value: "VAT to be paid on reverse charge basis.",
+      value: (
+        <Text style={tw("text-neutral-800 w-2/3")}>
+          VAT to be paid on reverse charge basis.
+        </Text>
+      ),
     },
     {
       label: "Payout reference number",
-      value: payout.id,
+      value: <Text style={tw("text-neutral-800 w-2/3")}>{payout.id}</Text>,
     },
   ];
-
-  const dubAddress = {
-    name: "Dub Technologies, Inc.",
-    line1: "2261 Market Street STE 5906",
-    city: "San Francisco",
-    state: "CA",
-    postalCode: "94114",
-  };
 
   const supportEmail = payout.program.supportEmail || "support@dub.co";
 
   const pdf = await renderToBuffer(
     <Document>
-      <Page size="A4" style={tw("p-20 bg-white")}>
-        <View style={tw("flex-row justify-between items-center mb-10")}>
-          <Image src={DUB_WORDMARK} style={tw("w-20 h-10")} />
-          <View style={tw("text-right w-1/2")}>
-            <Text style={tw("text-sm font-medium text-neutral-800")}>
-              Dub Technologies Inc.
-            </Text>
-            <Text style={tw("text-sm text-neutral-500 ")}>support@dub.co</Text>
-          </View>
-        </View>
-
-        <View style={tw("flex-col gap-2 text-sm font-medium mb-10")}>
-          {invoiceMetadata.map((row) => (
-            <View style={tw("flex-row")} key={row.label}>
-              <Text style={tw("text-neutral-500 w-1/5")}>{row.label}</Text>
-              <Text style={tw("text-neutral-800 w-4/5")}>{row.value}</Text>
-            </View>
-          ))}
-        </View>
-
-        {/* <View style={tw("flex-row justify-between mb-10 ")}>
-          {addresses.map(({ title, address }, index) => {
-            const cityStatePostal = [
-              address.city,
-              address.state,
-              address.postalCode,
-            ]
-              .filter(Boolean)
-              .join(", ");
-
-            const records = [
-              address.companyName,
-              address.name,
-              address.line1,
-              address.line2,
-              cityStatePostal,
-              address.email,
-            ].filter((record) => record && record.length > 0);
-
-            return (
-              <View style={tw("w-1/2")} key={index}>
-                <Text
-                  style={tw(
-                    "text-sm font-medium text-neutral-800 leading-6 mb-2",
-                  )}
-                >
-                  {title}
-                </Text>
-                {records.map((record, index) => (
-                  <Text
-                    style={tw("font-normal text-sm text-neutral-500 leading-6")}
-                    key={index}
-                  >
-                    {record}
-                  </Text>
-                ))}
-              </View>
-            );
-          })}
-        </View> */}
-
-        {/* <View
-          style={tw(
-            "flex-row justify-between border border-neutral-200 rounded-xl mb-6",
-          )}
-        >
-          <View style={tw("flex-col gap-2 w-1/2 p-4")}>
-            <Text style={tw("text-neutral-500 font-normal text-sm")}>
-              Payouts
-            </Text>
-            <Text style={tw("text-neutral-800 font-medium text-[16px]")}>
-              {invoice.payouts.length}
-            </Text>
-          </View>
-
-          <View
-            style={tw(
-              "flex-col items-start gap-2 border-l border-neutral-200 w-1/2 p-4",
-            )}
-          >
-            <Text style={tw("text-neutral-500 font-normal text-sm")}>
-              Total
-            </Text>
-            <Text style={tw("text-neutral-800 font-medium text-[16px]")}>
-              {currencyFormatter(invoice.total / 100, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </Text>
-          </View>
-        </View> */}
-
-        {/* <View
-          style={tw(
-            "flex-col gap-2 mb-10 p-4 border border-neutral-100 rounded-xl bg-neutral-50",
-          )}
-        >
-          {invoiceSummaryDetails.map((row) => (
-            <View style={tw("flex-row")} key={row.label}>
-              <Text style={tw("text-neutral-500 text-sm font-medium w-2/5")}>
-                {row.label}
+      <Page size="A4" style={tw("p-20 bg-white flex flex-col min-h-full")}>
+        <View style={tw("flex-1")}>
+          <View style={tw("flex-row justify-between items-center mb-10")}>
+            <Image src={DUB_WORDMARK} style={tw("w-20 h-10")} />
+            <View style={tw("text-right w-1/2")}>
+              <Text style={tw("text-sm font-medium text-neutral-800")}>
+                Dub Technologies INC
               </Text>
-              <Text style={tw("text-neutral-800 text-sm font-medium w-3/5")}>
+              <Text style={tw("text-sm text-neutral-500")}>
+                2261 Market Street STE 5906
+              </Text>
+              <Text style={tw("text-sm text-neutral-500")}>
+                San Francisco, CA 94114
+              </Text>
+            </View>
+          </View>
+
+          <Text style={tw("text-lg font-bold text-neutral-900 mb-4 leading-6")}>
+            Invoice detail
+          </Text>
+          <View style={tw("flex-col gap-4 text-sm font-medium mb-10")}>
+            {invoiceMetadata.map((row) => (
+              <View style={tw("flex-row")} key={row.label}>
+                <Text style={tw("text-neutral-500 w-1/3")}>{row.label}</Text>
                 {row.value}
-              </Text>
-            </View>
-          ))}
-        </View> */}
+              </View>
+            ))}
+          </View>
+        </View>
 
-        <Text style={tw("text-sm text-neutral-600 mt-6")}>
+        <Text style={tw("text-sm text-neutral-600 mt-auto")}>
           If you have any questions, contact the program at{" "}
           <Link href={`mailto:${supportEmail}`} style={tw("text-neutral-900")}>
             {supportEmail}
@@ -237,7 +173,7 @@ export const GET = withPartnerProfile(async ({ partner, session, params }) => {
   return new Response(pdf, {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `inline; filename="Invoice-${payout.id}.pdf"`,
+      "Content-Disposition": `inline; filename="payout-invoice-${payout.id}.pdf"`,
     },
   });
 });
