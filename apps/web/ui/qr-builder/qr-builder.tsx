@@ -96,6 +96,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                 setQRTypeActiveTab={setQRTypeActiveTab}
                 initialInputValues={initialInputValues}
                 onRegistrationClick={onSaveClick}
+                isMobile={isMobile}
               />
             )}
           </div>

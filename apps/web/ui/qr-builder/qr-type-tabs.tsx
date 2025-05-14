@@ -25,6 +25,7 @@ interface QrTypeTabsProps {
   setQRTypeActiveTab: Dispatch<SetStateAction<QRType["id"]>>;
   initialInputValues?: Record<string, string>;
   onRegistrationClick?: () => void;
+  isMobile?: boolean;
 }
 
 export const QrTypeTabs = ({
@@ -42,6 +43,7 @@ export const QrTypeTabs = ({
   setQRTypeActiveTab,
   initialInputValues = {},
   onRegistrationClick,
+  isMobile,
 }: QrTypeTabsProps) => {
   const [styleOptionActiveTab, setStyleOptionActiveActiveTab] =
     useState<string>("Frame");
@@ -163,7 +165,11 @@ export const QrTypeTabs = ({
                       "opacity-30": isQrDisabled,
                     })}
                   >
-                    <QRCanvas qrCode={qrCode} />
+                    <QRCanvas
+                      width={isMobile ? 200 : 300}
+                      height={isMobile ? 200 : 300}
+                      qrCode={qrCode}
+                    />
                     {/*<QRPreview qrCode={qrCode} />*/}
                   </div>
                   {homepageDemo && (
