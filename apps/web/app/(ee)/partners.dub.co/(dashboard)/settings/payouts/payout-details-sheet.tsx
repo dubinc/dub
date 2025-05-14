@@ -9,10 +9,12 @@ import {
   Button,
   buttonVariants,
   ExpandingArrow,
+  InvoiceDollar,
   LoadingSpinner,
   Sheet,
   StatusBadge,
   Table,
+  Tooltip,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
@@ -79,12 +81,29 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
       ),
 
       Amount: (
-        <strong>
-          {currencyFormatter(payout.amount / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}
-        </strong>
+        <div className="flex items-center gap-2">
+          <strong>
+            {currencyFormatter(payout.amount / 100, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </strong>
+
+          {payout.status === "completed" && (
+            <Tooltip content="View invoice">
+              <div className="flex h-5 w-5 items-center justify-center rounded-md transition-colors duration-150 hover:border hover:border-neutral-200 hover:bg-neutral-100">
+                <Link
+                  href={`/api/partner-profile/payouts/${payout.id}/invoice`}
+                  className="text-neutral-700"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <InvoiceDollar className="size-4" />
+                </Link>
+              </div>
+            </Tooltip>
+          )}
+        </div>
       ),
 
       Description: payout.description || "-",
