@@ -61,14 +61,6 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     });
   }
 
-  if (payout.status !== "completed") {
-    throw new DubApiError({
-      code: "unauthorized",
-      message:
-        "This payout is not completed yet, hence no invoice is generated.",
-    });
-  }
-
   const invoiceMetadata = [
     {
       label: "Program",
