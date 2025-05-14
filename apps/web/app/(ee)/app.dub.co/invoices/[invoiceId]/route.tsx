@@ -156,8 +156,7 @@ export const GET = withSession(async ({ session, params }) => {
       ? [
           {
             label: "VAT reverse charge",
-            value:
-              "VAT to be accounted for by the recipient under Article 196 of Directive 2006/112/EC.",
+            value: "Tax to be paid on reverse charge basis.",
           },
         ]
       : []),
