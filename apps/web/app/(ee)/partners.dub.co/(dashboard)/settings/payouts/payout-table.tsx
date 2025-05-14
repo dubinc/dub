@@ -106,7 +106,7 @@ export function PayoutTable() {
             <Tooltip content="View invoice">
               <div className="flex h-5 w-5 items-center justify-center rounded-md transition-colors duration-150 hover:border hover:border-neutral-200 hover:bg-neutral-100">
                 <Link
-                  href={`/api/partner-profile/invoices/${row.original.id}`}
+                  href={`/invoices/${row.original.id}`}
                   className="text-neutral-700"
                   target="_blank"
                   rel="noopener noreferrer"
