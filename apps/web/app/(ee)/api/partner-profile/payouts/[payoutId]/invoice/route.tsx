@@ -34,7 +34,6 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     select: {
       id: true,
       status: true,
-      invoiceId: true,
       partnerId: true,
       periodStart: true,
       periodEnd: true,
