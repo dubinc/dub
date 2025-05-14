@@ -1,7 +1,12 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { prisma } from "@dub/prisma";
-import { currencyFormatter, DUB_WORDMARK, formatDate } from "@dub/utils";
+import {
+  currencyFormatter,
+  DUB_WORDMARK,
+  EU_COUNTRY_CODES,
+  formatDate,
+} from "@dub/utils";
 import {
   Document,
   Image,
@@ -112,17 +117,22 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       ),
     },
     {
-      label: "VAT",
-      value: (
-        <Text style={tw("text-neutral-800 w-2/3")}>
-          VAT to be paid on reverse charge basis.
-        </Text>
-      ),
-    },
-    {
       label: "Payout reference number",
       value: <Text style={tw("text-neutral-800 w-2/3")}>{payout.id}</Text>,
     },
+    // if partner is in EU, add VAT reverse charge note:
+    ...(partner.country && EU_COUNTRY_CODES.includes(partner.country)
+      ? [
+          {
+            label: "VAT",
+            value: (
+              <Text style={tw("text-neutral-800 w-2/3")}>
+                VAT to be paid on reverse charge basis.
+              </Text>
+            ),
+          },
+        ]
+      : []),
   ];
 
   const supportEmail = payout.program.supportEmail || "support@dub.co";
