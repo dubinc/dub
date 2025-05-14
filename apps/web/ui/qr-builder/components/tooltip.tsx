@@ -1,9 +1,4 @@
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@radix-ui/react-tooltip";
+import { Tooltip } from "@dub/ui";
 import { Text } from "@radix-ui/themes";
 import { HelpCircleIcon } from "lucide-react";
 import { FC } from "react";
@@ -17,19 +12,19 @@ export const TooltipComponent: FC<ITooltipProps> = ({
   tooltip,
   delayDuration = 100,
 }) => (
-  <TooltipProvider delayDuration={delayDuration}>
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <HelpCircleIcon className="h-4 w-4 text-gray-400" />
-      </TooltipTrigger>
-      <TooltipContent
-        className="border-border-500 rounded-md border bg-white p-1 shadow-sm"
-        sideOffset={5}
-      >
-        <Text as="p" size="1" className="text-neutral">
-          {tooltip}
-        </Text>
-      </TooltipContent>
-    </Tooltip>
-  </TooltipProvider>
+  <Tooltip
+    side="top"
+    align="center"
+    avoidCollisions
+    collisionPadding={24}
+    delayDuration={delayDuration}
+    content={
+      <Text as="p" className="text-xs text-neutral-800">
+        {tooltip}
+      </Text>
+    }
+    className="border-border-500 rounded-md border bg-white p-1 shadow-sm md:max-w-none"
+  >
+    <HelpCircleIcon className="h-4 w-4 text-neutral-500" />
+  </Tooltip>
 );

@@ -6,6 +6,7 @@ import { Flex } from "@radix-ui/themes";
 import Cookies from "js-cookie";
 import { ChangeEventHandler, FC } from "react";
 import PhoneInput from "react-phone-number-input";
+import { Country } from "react-phone-number-input/input";
 import "react-phone-number-input/style.css";
 
 interface IInputWithLabelProps {
@@ -69,7 +70,7 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
       ) : type === "tel" ? (
         <PhoneInput
           international
-          defaultCountry={Cookies.get("country") || "US"}
+          defaultCountry={(Cookies.get("country") || "US") as Country}
           value={value}
           onChange={(val) => setValue?.(val ?? "")}
           countrySelectComponent={CountrySelectAutocompleteComponent}

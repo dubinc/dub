@@ -397,6 +397,9 @@ importers:
       '@types/html-escaper':
         specifier: ^3.0.0
         version: 3.0.0
+      '@types/js-cookie':
+        specifier: ^3.0.6
+        version: 3.0.6
       '@types/ms':
         specifier: ^0.7.31
         version: 0.7.31
