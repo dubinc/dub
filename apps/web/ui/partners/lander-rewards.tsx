@@ -7,7 +7,7 @@ export function LanderRewards({
   program: { rewards: RewardProps[]; defaultDiscount: DiscountProps | null };
 }) {
   return (
-    <div className="mt-10">
+    <div className="mt-4">
       <h2 className="mb-2 text-base font-semibold text-neutral-800">Rewards</h2>
       <ProgramRewardList
         rewards={program.rewards}

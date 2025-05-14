@@ -11,7 +11,7 @@ export function LanderHero({
   const Heading = preview ? "div" : "h1";
 
   return (
-    <div className="grid grid-cols-1 gap-5 sm:pt-20">
+    <div className="grid grid-cols-1 gap-5 py-6 sm:mt-14">
       <span
         className={cn(
           "font-mono text-xs font-medium uppercase text-[var(--brand)]",

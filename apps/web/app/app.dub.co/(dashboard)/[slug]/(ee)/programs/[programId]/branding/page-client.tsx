@@ -8,10 +8,7 @@ import {
   ProgramProps,
   ProgramWithLanderDataProps,
 } from "@/lib/types";
-import {
-  programLanderBlockSchema,
-  programLanderSchema,
-} from "@/lib/zod/schemas/program-lander";
+import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { PreviewWindow } from "@/ui/partners/design/preview-window";
 import { BLOCK_COMPONENTS } from "@/ui/partners/lander-blocks";
 import { LanderHero } from "@/ui/partners/lander-hero";
@@ -105,7 +102,7 @@ export function ProgramBrandingLandingPageClient() {
       className="overflow-hidden rounded-lg border border-neutral-200 bg-neutral-100"
     >
       <FormProvider {...form}>
-        <div className="flex items-center justify-between border-b border-neutral-200 bg-white px-4 py-3">
+        <div className="flex items-center justify-between border-b border-neutral-200 bg-white px-5 py-3">
           <div className="grow basis-0">
             <Button
               type="button"
@@ -125,13 +122,13 @@ export function ProgramBrandingLandingPageClient() {
               variant="primary"
               text="Publish"
               loading={isSubmitting}
-              className="h-8 w-fit"
+              className="h-8 w-fit px-3"
             />
           </div>
         </div>
         <div
           className={cn(
-            "grid h-[calc(100vh-240px)] grid-cols-1 transition-[grid-template-columns]",
+            "grid h-[calc(100vh-186px)] grid-cols-1 transition-[grid-template-columns]",
             isSidePanelOpen
               ? "lg:grid-cols-[240px_minmax(0,1fr)]"
               : "lg:grid-cols-[0px_minmax(0,1fr)]",
@@ -234,22 +231,27 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
               </div>
             </div>
           </header>
-          <div className="mx-auto mt-6 max-w-screen-sm">
-            <div className="px-6">
-              <LanderHero program={program} />
-
-              {/* Program details grid */}
-              <div className="mt-10">
-                <LanderRewards
-                  program={{
-                    rewards: program.rewards ?? [],
-                    defaultDiscount:
-                      program.discounts?.find(
-                        (d) => d.id === program.defaultDiscountId,
-                      ) || null,
-                  }}
-                />
+          <div className="group relative mt-6">
+            <EditIndicatorGrid />
+            <EditToolbar />
+            <div className="mx-auto max-w-screen-sm">
+              <div className="px-6">
+                <LanderHero program={program} />
               </div>
+            </div>
+          </div>
+          <div className="mx-auto max-w-screen-sm">
+            <div className="px-6">
+              {/* Program details grid */}
+              <LanderRewards
+                program={{
+                  rewards: program.rewards ?? [],
+                  defaultDiscount:
+                    program.discounts?.find(
+                      (d) => d.id === program.defaultDiscountId,
+                    ) || null,
+                }}
+              />
 
               {/* Buttons */}
               <div
@@ -274,28 +276,28 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
                   <EditIndicatorGrid />
 
                   {/* Edit toolbar */}
-                  <div className="absolute inset-0 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
-                    <div className="absolute right-6 top-2">
-                      <EditToolbar
-                        block={block}
-                        isFirst={idx === 0}
-                        isLast={idx === landerData.blocks.length - 1}
-                        onMoveUp={() =>
-                          updateBlocks((blocks) =>
-                            moveItem(blocks, idx, idx - 1),
-                          )
-                        }
-                        onMoveDown={() =>
-                          updateBlocks((blocks) =>
-                            moveItem(blocks, idx, idx + 1),
-                          )
-                        }
-                        onDelete={() =>
-                          updateBlocks((blocks) => blocks.toSpliced(idx, 1))
-                        }
-                      />
-                    </div>
-                  </div>
+
+                  <EditToolbar
+                    onMoveUp={
+                      idx !== 0
+                        ? () =>
+                            updateBlocks((blocks) =>
+                              moveItem(blocks, idx, idx - 1),
+                            )
+                        : undefined
+                    }
+                    onMoveDown={
+                      idx !== landerData.blocks.length - 1
+                        ? () =>
+                            updateBlocks((blocks) =>
+                              moveItem(blocks, idx, idx + 1),
+                            )
+                        : undefined
+                    }
+                    onDelete={() =>
+                      updateBlocks((blocks) => blocks.toSpliced(idx, 1))
+                    }
+                  />
 
                   {/* Insert block button */}
                   <div
@@ -359,62 +361,62 @@ function EditIndicatorGrid() {
 }
 
 function EditToolbar({
-  block,
-  isFirst,
-  isLast,
   onMoveUp,
   onMoveDown,
   onDelete,
 }: {
-  block: z.infer<typeof programLanderBlockSchema>;
-  isFirst: boolean;
-  isLast: boolean;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
-  onDelete: () => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
+  onDelete?: () => void;
 }) {
   return (
-    <div className="flex items-center rounded-md border border-neutral-200 bg-white p-0.5 shadow-sm">
-      <EditToolbarTooltip content="Edit">
-        <Button
-          type="button"
-          variant="outline"
-          icon={<Pen2 className="size-4" />}
-          className="size-7 p-0"
-          onClick={() => toast.info("WIP")}
-        />
-      </EditToolbarTooltip>
-      {!isFirst && (
-        <EditToolbarTooltip content="Move up">
-          <Button
-            type="button"
-            variant="outline"
-            icon={<ArrowUp className="size-4" />}
-            className="size-7 p-0"
-            onClick={onMoveUp}
-          />
-        </EditToolbarTooltip>
-      )}
-      {!isLast && (
-        <EditToolbarTooltip content="Move down">
-          <Button
-            type="button"
-            variant="outline"
-            icon={<ArrowDown className="size-4" />}
-            className="size-7 p-0"
-            onClick={onMoveDown}
-          />
-        </EditToolbarTooltip>
-      )}
-      <EditToolbarTooltip content="Delete">
-        <Button
-          type="button"
-          variant="outline"
-          icon={<Trash className="size-4" />}
-          className="size-7 p-0"
-          onClick={onDelete}
-        />
-      </EditToolbarTooltip>
+    <div className="absolute inset-0 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+      <div className="absolute right-6 top-2">
+        <div className="flex items-center rounded-md border border-neutral-200 bg-white p-1 shadow-sm">
+          <EditToolbarTooltip content="Edit">
+            <Button
+              type="button"
+              variant="outline"
+              icon={<Pen2 className="size-4" />}
+              className="size-7 rounded p-0"
+              onClick={() => toast.info("WIP")}
+            />
+          </EditToolbarTooltip>
+          {onMoveUp && (
+            <EditToolbarTooltip content="Move up">
+              <Button
+                type="button"
+                variant="outline"
+                icon={<ArrowUp className="size-4" />}
+                className="size-7 rounded p-0"
+                onClick={onMoveUp}
+              />
+            </EditToolbarTooltip>
+          )}
+          {onMoveDown && (
+            <EditToolbarTooltip content="Move down">
+              <Button
+                type="button"
+                variant="outline"
+                icon={<ArrowDown className="size-4" />}
+                className="size-7 rounded p-0"
+                onClick={onMoveDown}
+              />
+            </EditToolbarTooltip>
+          )}
+          {onDelete && (
+            <EditToolbarTooltip content="Delete">
+              <Button
+                type="button"
+                variant="outline"
+                icon={<Trash className="size-4" />}
+                className="size-7 rounded p-0"
+                onClick={onDelete}
+              />
+            </EditToolbarTooltip>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -428,6 +430,7 @@ function EditToolbarTooltip({
       content={
         <div className="px-2 py-1 text-xs text-neutral-600">{content}</div>
       }
+      disableHoverableContent
     >
       <div>{children}</div>
     </Tooltip>
