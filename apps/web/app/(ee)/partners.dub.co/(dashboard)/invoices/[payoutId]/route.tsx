@@ -119,7 +119,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
             label: "VAT",
             value: (
               <Text style={tw("text-neutral-800 w-2/3")}>
-                VAT to be paid on reverse charge basis.
+                Tax to be paid on reverse charge basis.
               </Text>
             ),
           },
