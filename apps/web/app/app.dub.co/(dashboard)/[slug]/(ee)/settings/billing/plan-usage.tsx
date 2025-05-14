@@ -108,7 +108,7 @@ export default function PlanUsage() {
         requiresUpgrade: plan === "free" || plan === "pro",
       },
     ];
-    if (totalLinks && totalLinks > 100_000) {
+    if (totalLinks && totalLinks > 10_000) {
       // Find the links tab and move it to the first position
       const linksTabIndex = tabs.findIndex((tab) => tab.id === "links");
       if (linksTabIndex !== -1) {
@@ -268,7 +268,7 @@ function UsageTabCard({
   const { slug, totalLinks } = useWorkspace();
 
   const defaultActiveTab = useMemo(() => {
-    if (totalLinks && totalLinks > 100_000) {
+    if (totalLinks && totalLinks > 10_000) {
       return "links";
     }
     return "events";
