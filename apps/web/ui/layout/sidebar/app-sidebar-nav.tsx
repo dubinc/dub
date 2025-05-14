@@ -145,7 +145,7 @@ const NAV_AREAS: SidebarNavAreas<{
           {
             name: "Library",
             icon: Books2,
-            href: `/${slug}/settings/library`,
+            href: `/${slug}/settings/library/folders`,
           },
           {
             name: "People",

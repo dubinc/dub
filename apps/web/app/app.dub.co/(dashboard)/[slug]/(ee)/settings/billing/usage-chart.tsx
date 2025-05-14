@@ -36,7 +36,7 @@ export function UsageChart() {
   const { totalLinks } = useWorkspace();
 
   const defaultActiveTab = useMemo(() => {
-    if (totalLinks && totalLinks > 100_000) {
+    if (totalLinks && totalLinks > 10_000) {
       return "links";
     }
     return "events";
