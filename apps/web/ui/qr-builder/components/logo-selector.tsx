@@ -48,10 +48,7 @@ export const LogoSelector: FC<ILogoSelectorProps> = ({
           return file ? [file] : [];
         }}
         title="Upload your logo"
-        multiple={false}
-        minimumFlow
         isLogo
-        isMobile={isMobile}
       />
     </div>
   );

@@ -1,6 +1,7 @@
 import { CountrySelectAutocompleteComponent } from "@/ui/qr-builder/components/country-select-autocomplete.tsx";
 import { PhoneNumberInputComponent } from "@/ui/qr-builder/components/phone-number-input.tsx";
 import { TooltipComponent } from "@/ui/qr-builder/components/tooltip.tsx";
+import { QRInputType } from "@/ui/qr-builder/constants/qr-type-inputs-config.ts";
 import { Input } from "@dub/ui";
 import { Flex } from "@radix-ui/themes";
 import Cookies from "js-cookie";
@@ -11,7 +12,7 @@ import "react-phone-number-input/style.css";
 
 interface IInputWithLabelProps {
   label: string;
-  type?: "text" | "url" | "tel" | "password" | "textarea";
+  type: QRInputType;
   placeholder: string;
   value?: string;
   setValue?: (value: string) => void;
@@ -24,7 +25,7 @@ interface IInputWithLabelProps {
 
 export const InputWithLabel: FC<IInputWithLabelProps> = ({
   label,
-  type = "text",
+  type,
   errorMessage,
   minimalFlow = false,
   value = "",

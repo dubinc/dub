@@ -170,7 +170,6 @@ export const QrTypeTabs = ({
                       height={isMobile ? 200 : 300}
                       qrCode={qrCode}
                     />
-                    {/*<QRPreview qrCode={qrCode} />*/}
                   </div>
                   {homepageDemo && (
                     <QrTabsDownloadButton

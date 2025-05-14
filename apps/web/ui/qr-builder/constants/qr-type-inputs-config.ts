@@ -1,25 +1,33 @@
 import { EQRType, FILE_QR_TYPES } from "./get-qr-config.ts";
 
+export type QRInputType = "text" | "url" | "tel" | "password" | "textarea";
+
+export type QRInputConfig = {
+  id: string;
+  label: string;
+  type: QRInputType;
+  placeholder: string;
+  tooltip?: string;
+  initFromPlaceholder?: boolean;
+  maxLength?: number;
+  isNotRequired?: boolean;
+};
+
+export const QR_NAME_INPUT: QRInputConfig = {
+  id: "qrName",
+  label: "Name your QR Code",
+  type: "text",
+  placeholder: "My QR Code",
+  tooltip: "Only you can see this. It helps you recognize your QR codes later.",
+  initFromPlaceholder: true,
+} as const;
+
 export const QR_TYPE_INPUTS_CONFIG: Record<
   Exclude<EQRType, (typeof FILE_QR_TYPES)[number]>,
-  {
-    id: string;
-    label: string;
-    type: string;
-    placeholder?: string;
-    maxLength?: number;
-  }[]
+  QRInputConfig[]
 > = {
   [EQRType.WEBSITE]: [
-    {
-      id: `qrName`,
-      label: "Name your QR Code",
-      type: "text",
-      placeholder: "My QR Code",
-      tooltip:
-        "Only you can see this. It helps you recognize your QR codes later.",
-      initFromPlaceholder: true,
-    },
+    QR_NAME_INPUT,
     {
       id: `websiteLink`,
       label: "Enter your website",
@@ -67,15 +75,7 @@ export const QR_TYPE_INPUTS_CONFIG: Record<
   //   },
   // ],
   [EQRType.WHATSAPP]: [
-    {
-      id: `qrName`,
-      label: "Name your QR Code",
-      type: "text",
-      placeholder: "My QR Code",
-      initFromPlaceholder: true,
-      tooltip:
-        "Only you can see this. It helps you recognize your QR codes later.",
-    },
+    QR_NAME_INPUT,
     {
       id: `number`,
       label: "WhatsApp Number",
@@ -96,6 +96,7 @@ export const QR_TYPE_INPUTS_CONFIG: Record<
     },
   ],
   [EQRType.WIFI]: [
+    QR_NAME_INPUT,
     {
       id: `networkName`,
       label: "Network name (SSID)",

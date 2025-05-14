@@ -48,7 +48,7 @@ export const QR_TYPES: QRType[] = [
   },
   {
     id: EQRType.IMAGE,
-    label: "Images",
+    label: "Image",
     icon: "hugeicons:ai-image",
     img: QrImagesFull,
     content:

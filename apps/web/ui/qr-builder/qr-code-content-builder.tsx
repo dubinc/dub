@@ -1,4 +1,7 @@
-import { QR_TYPE_INPUTS_CONFIG } from "@/ui/qr-builder/constants/qr-type-inputs-config.ts";
+import {
+  QR_NAME_INPUT,
+  QR_TYPE_INPUTS_CONFIG,
+} from "@/ui/qr-builder/constants/qr-type-inputs-config.ts";
 import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { ChangeEvent, FC, useEffect, useState } from "react";
@@ -189,6 +192,19 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
     if (FILE_QR_TYPES.includes(qrType)) {
       return (
         <>
+          <InputWithLabel
+            key={"fileQRTypeName"}
+            onChange={handleChange}
+            value={inputValues[QR_NAME_INPUT.id] || ""}
+            setValue={(value: string) => {
+              setInputValues((prev) => ({
+                ...prev,
+                [QR_NAME_INPUT.id]: value,
+              }));
+            }}
+            errorMessage={inputErrors[QR_NAME_INPUT.id]}
+            {...QR_NAME_INPUT}
+          />
           <FileCardContent
             qrType={qrType}
             files={files}
