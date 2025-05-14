@@ -25,7 +25,7 @@ export const PLAN_COMPARE_FEATURES: {
 }[] = [
   {
     category: "Links",
-    href: "https://dub.co/home", // TODO: update to https://dub.co/links
+    href: "https://dub.co/links",
     features: [
       {
         text: () => (
@@ -447,7 +447,7 @@ export const PLAN_COMPARE_FEATURES: {
   },
   {
     category: "Support",
-    href: "https://dub.co/help", // TODO: update to https://dub.co/contact/support
+    href: "https://dub.co/contact/support",
     features: [
       {
         text: ({ id }) => (
