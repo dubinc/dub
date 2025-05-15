@@ -100,9 +100,10 @@ function EditHeroModalInner({ setShowEditHeroModal }: EditHeroModalProps) {
               <textarea
                 id={`${id}-description`}
                 rows={3}
+                maxLength={240}
                 onKeyDown={handleKeyDown}
                 placeholder={`Share ${program?.name} with your audience and for each subscription generated through your referral, you'll earn a share of the revenue on any plans they purchase.`}
-                className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                className="block max-h-32 min-h-16 w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                 {...register("landerData.description")}
               />
             </div>
