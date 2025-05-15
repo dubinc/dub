@@ -66,5 +66,7 @@ export const programLanderBlockSchema = z.discriminatedUnion("type", [
 ]);
 
 export const programLanderSchema = z.object({
+  title: z.string().optional(),
+  description: z.string().optional(),
   blocks: z.array(programLanderBlockSchema),
 });
