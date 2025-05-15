@@ -1,9 +1,12 @@
+import { TooltipComponent } from "@/ui/qr-builder/components/tooltip.tsx";
 import {
   QR_NAME_INPUT,
   QR_TYPE_INPUTS_CONFIG,
 } from "@/ui/qr-builder/constants/qr-type-inputs-config.ts";
 import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { Flex, Text } from "@radix-ui/themes";
+import { Info } from "lucide-react";
 import { ChangeEvent, FC, useEffect, useState } from "react";
 import { ButtonsWrapper } from "./components/buttons-wrapper.tsx";
 import { CheckboxWithLabel } from "./components/checkbox-with-label.tsx";
@@ -169,22 +172,44 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
               {...field}
             />
           ))}
-          <div className="flex flex-col items-end justify-center gap-4 md:flex-row">
-            <div className="flex w-full basis-1/2 flex-col gap-2">
+          <Flex
+            direction="column"
+            gap="2"
+            justify="start"
+            className="w-full basis-1/2"
+          >
+            <Flex align="center" gap="1">
               <label className="text-neutral text-sm font-medium">
-                Type of encryption
+                Network Security Type
               </label>
-              <Select
-                options={WIFI_ENCRYPTION_TYPES}
-                onChange={handleEncryptionSelectChange}
+              <TooltipComponent
+                tooltip={
+                  "Most routers today use WPA/WPA2. If you’re not sure, choose this. You can also check on your router label."
+                }
               />
-            </div>
+            </Flex>
+            <Select
+              options={WIFI_ENCRYPTION_TYPES}
+              onChange={handleEncryptionSelectChange}
+            />
             <CheckboxWithLabel
-              label="Hidden Network option"
+              label="Wi-Fi is not visible to others"
               checked={isHiddenNetwork}
               onCheckedChange={handleSetIsHiddenNetwork}
             />
-          </div>
+            <Flex
+              align="center"
+              gap="2"
+              className="border-border-300 bg-border-400 h-11 w-full rounded-md border p-3"
+            >
+              <Info className="size-7 text-neutral-500" />
+              <Text as="p" size="1" className="text-neutral-800">
+                Not sure where to find this info? Look at the label on your
+                router — it usually lists your Wi-Fi name, password, and
+                security type.
+              </Text>
+            </Flex>
+          </Flex>
         </>
       );
     }

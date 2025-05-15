@@ -23,7 +23,7 @@ export const TooltipComponent: FC<ITooltipProps> = ({
         {tooltip}
       </Text>
     }
-    className="border-border-500 rounded-md border bg-white p-1 shadow-sm md:max-w-none"
+    className="border-border-500 max-w-[200px] rounded-md border bg-white p-1 shadow-sm"
   >
     <HelpCircleIcon className="h-4 w-4 text-neutral-500" />
   </Tooltip>

@@ -59,7 +59,9 @@ export const QrTypeTabs = ({
       isHiddenNetwork: boolean;
       qrType: EQRType;
     }) => {
-      setData(qrTypeDataHandlers[qrType](inputValues, isHiddenNetwork));
+      // QR name is not needed for QR code generation
+      const { qrName, ...filteredInputValues } = inputValues;
+      setData(qrTypeDataHandlers[qrType](filteredInputValues, isHiddenNetwork));
     },
     [setData],
   );
@@ -97,7 +99,7 @@ export const QrTypeTabs = ({
                     : "[&>g]:stroke-secondary group-hover:[&>g]:stroke-secondary [&>path]:stroke-secondary group-hover:[&>path]:stroke-secondary"),
               )}
             />
-            <span className="whitespace-nowrap text-base text-xs font-normal">
+            <span className="whitespace-nowrap text-xs font-normal">
               {type.label}
             </span>
           </Tabs.Trigger>

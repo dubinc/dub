@@ -74,14 +74,20 @@ export function useQrCustomization(initialData?: ResponseQrCode) {
           if (url.hostname === "wa.me") {
             number = url.pathname.replace("/", "");
             const textParam = url.searchParams.get("text");
-            message = textParam && textParam !== "undefined" ? decodeURIComponent(textParam) : "";
+            message =
+              textParam && textParam !== "undefined"
+                ? decodeURIComponent(textParam)
+                : "";
           } else if (
             url.hostname === "whatsapp.com" ||
             url.hostname === "api.whatsapp.com"
           ) {
             number = url.searchParams.get("phone") || "";
             const textParam = url.searchParams.get("text");
-            message = textParam && textParam !== "undefined" ? decodeURIComponent(textParam) : "";
+            message =
+              textParam && textParam !== "undefined"
+                ? decodeURIComponent(textParam)
+                : "";
           }
 
           number = number.replace(/\D/g, "");

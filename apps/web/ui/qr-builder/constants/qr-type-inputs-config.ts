@@ -99,9 +99,11 @@ export const QR_TYPE_INPUTS_CONFIG: Record<
     QR_NAME_INPUT,
     {
       id: `networkName`,
-      label: "Network name (SSID)",
+      label: "Wifi Network Name",
       type: "text",
-      placeholder: "Enter network name",
+      placeholder: "MamaMiaHotspot",
+      tooltip:
+        "This is the name of the Wi-Fi network you want to share. You can usually find it on the back of your router.",
     },
     {
       id: `networkPassword`,

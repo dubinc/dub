@@ -77,7 +77,7 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
         )}
       </Flex>
       <FileUpload
-        maxFiles={5}
+        maxFiles={1}
         maxSize={size}
         className="w-full max-w-xl"
         value={files}
@@ -105,10 +105,10 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
                   <Upload className="text-secondary size-6" />
                 </div>
                 <p className="text-neutral text-sm font-medium">
-                  Drag & drop files here
+                  {`Drag & drop your ${qrTypeLabel}`}
                 </p>
                 <p className="text-xs text-neutral-800">
-                  {`Or click to browse (max 5 files, up to ${label} each)`}
+                  {`or click to browse (1 file, up to ${label})`}
                 </p>
               </div>
               <FileUploadTrigger asChild>
