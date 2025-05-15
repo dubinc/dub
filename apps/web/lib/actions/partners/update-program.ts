@@ -2,8 +2,10 @@
 
 import { getFolderOrThrow } from "@/lib/folder/get-folder-or-throw";
 import { isStored, storage } from "@/lib/storage";
+import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { prisma } from "@dub/prisma";
 import { nanoid, R2_URL } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
@@ -16,6 +18,7 @@ const schema = updateProgramSchema.partial().extend({
   logo: z.string().nullish(),
   wordmark: z.string().nullish(),
   brandColor: z.string().nullish(),
+  landerData: programLanderSchema.nullish(),
 });
 
 export const updateProgramAction = authActionClient
@@ -34,6 +37,7 @@ export const updateProgramAction = authActionClient
       logo,
       wordmark,
       brandColor,
+      landerData,
       linkStructure,
       supportEmail,
       helpUrl,
@@ -81,6 +85,7 @@ export const updateProgramAction = authActionClient
           brandColor,
           logo: logoUrl ?? undefined,
           wordmark: wordmarkUrl ?? undefined,
+          landerData: landerData === null ? Prisma.JsonNull : landerData,
           defaultFolderId,
           linkStructure,
           supportEmail,
