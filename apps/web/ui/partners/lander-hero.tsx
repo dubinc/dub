@@ -1,11 +1,14 @@
+import { ProgramLanderData } from "@/lib/types";
 import { cn } from "@dub/utils";
 import { Program } from "@prisma/client";
 
 export function LanderHero({
   program,
+  landerData,
   preview,
 }: {
   program: Pick<Program, "name">;
+  landerData: Pick<ProgramLanderData, "title" | "description">;
   preview?: boolean;
 }) {
   const Heading = preview ? "div" : "h1";
@@ -26,7 +29,7 @@ export function LanderHero({
           "animate-slide-up-fade [--offset:5px] [animation-delay:100ms] [animation-duration:1s] [animation-fill-mode:both]",
         )}
       >
-        Join the {program.name} affiliate program
+        {landerData.title || `Join the ${program.name} affiliate program`}
       </Heading>
       <p
         className={cn(
@@ -34,9 +37,8 @@ export function LanderHero({
           "animate-slide-up-fade [--offset:5px] [animation-delay:200ms] [animation-duration:1s] [animation-fill-mode:both]",
         )}
       >
-        Share {program.name} with your audience and for each subscription
-        generated through your referral, you'll earn a share of the revenue on
-        any plans they purchase.
+        {landerData.description ||
+          `Share ${program.name} with your audience and for each subscription generated through your referral, you'll earn a share of the revenue on any plans they purchase.`}
       </p>
     </div>
   );

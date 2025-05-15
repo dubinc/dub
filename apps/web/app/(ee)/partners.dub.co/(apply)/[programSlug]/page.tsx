@@ -36,7 +36,7 @@ export default async function ApplyPage({
     >
       <Header program={program} />
       <div className="p-6">
-        <LanderHero program={program} />
+        <LanderHero program={program} landerData={landerData} />
 
         {/* Program details grid */}
         <LanderRewards program={program} />

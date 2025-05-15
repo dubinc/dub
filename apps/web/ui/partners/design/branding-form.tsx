@@ -243,7 +243,7 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
               <EditToolbar onEdit={() => setShowEditHeroModal(true)} />
               <div className="mx-auto max-w-screen-sm">
                 <div className="px-6">
-                  <LanderHero program={program} />
+                  <LanderHero program={program} landerData={landerData} />
                 </div>
               </div>
             </div>
