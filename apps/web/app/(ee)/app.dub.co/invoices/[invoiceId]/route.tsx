@@ -5,6 +5,7 @@ import { prisma } from "@dub/prisma";
 import {
   currencyFormatter,
   DUB_WORDMARK,
+  EU_COUNTRY_CODES,
   formatDate,
   OG_AVATAR_URL,
 } from "@dub/utils";
@@ -148,6 +149,17 @@ export const GET = withSession(async ({ session, params }) => {
         maximumFractionDigits: 2,
       }),
     },
+    // if customer is in EU, add VAT reverse charge note:
+    // Reverse charge: VAT to be accounted for by the recipient under Article 196 of Directive 2006/112/EC.
+    ...(customer?.address?.country &&
+    EU_COUNTRY_CODES.includes(customer.address.country)
+      ? [
+          {
+            label: "VAT reverse charge",
+            value: "Tax to be paid on reverse charge basis.",
+          },
+        ]
+      : []),
   ];
 
   const addresses = [
