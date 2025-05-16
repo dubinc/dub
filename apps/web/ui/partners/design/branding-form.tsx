@@ -319,14 +319,14 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
                     >
                       <div className="absolute inset-x-0 top-0 z-10 hidden group-first:block">
                         <div className="pointer-events-auto absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                          <InsertBlockButton
+                          <AddBlockButton
                             onClick={() => setShowAddBlockModal(true)}
                           />
                         </div>
                       </div>
                       <div className="absolute inset-x-0 bottom-0 z-10">
                         <div className="pointer-events-auto absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                          <InsertBlockButton
+                          <AddBlockButton
                             onClick={() => setShowAddBlockModal(true)}
                           />
                         </div>
@@ -352,7 +352,7 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
   );
 }
 
-function InsertBlockButton({ onClick }: { onClick: () => void }) {
+function AddBlockButton({ onClick }: { onClick: () => void }) {
   return (
     <Button
       type="button"
