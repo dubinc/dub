@@ -5,7 +5,7 @@ import { Button, useKeyboardShortcut } from "@dub/ui";
 import { mutatePrefix } from "@/lib/swr/mutate.ts";
 import useWorkspace from "@/lib/swr/use-workspace.ts";
 import { EQRType } from "@/ui/qr-builder/constants/get-qr-config";
-import { DEFAULT_WEBSITE } from "@/ui/qr-builder/constants/qr-type-inputs-config";
+import { DEFAULT_WEBSITE } from "@/ui/qr-builder/constants/qr-type-inputs-placeholders.ts";
 import { QrBuilder } from "@/ui/qr-builder/qr-builder";
 import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
 import { X } from "@/ui/shared/icons";

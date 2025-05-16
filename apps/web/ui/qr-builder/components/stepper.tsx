@@ -64,10 +64,8 @@ export default function Stepper({ steps, currentStep }: IStepperProps) {
               <div className="relative flex h-6 w-6 items-center justify-center transition-all duration-300 ease-in-out">
                 <div
                   className={cn("absolute inset-0 -m-[2px] rounded-full", {
-                    // Use gradient only when active or completed
                     "bg-[linear-gradient(90deg,_#115740_20.53%,_#25BD8B_37.79%)] p-[2px]":
                       isActive || isCompleted,
-                    // Fallback gray border
                     "border border-gray-300 bg-white":
                       !isActive && !isCompleted,
                   })}

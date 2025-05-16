@@ -1,6 +1,9 @@
+import {
+  DEFAULT_WEBSITE,
+  DEFAULT_WHATSAPP_MESSAGE,
+  DEFAULT_WIFI_NETWORK_NAME,
+} from "@/ui/qr-builder/constants/qr-type-inputs-placeholders.ts";
 import { EQRType, FILE_QR_TYPES } from "./get-qr-config.ts";
-
-export const DEFAULT_WEBSITE = "https://www.getqr.com/";
 
 export type QRInputType = "text" | "url" | "tel" | "password" | "textarea";
 
@@ -90,8 +93,7 @@ export const QR_TYPE_INPUTS_CONFIG: Record<
       id: `message`,
       label: "Pre-typed Message",
       type: "textarea",
-      placeholder:
-        "Hi GetQR team! 👋 I saw your awesome QR code platform and I’d love to start using it for my restaurant. Digital menus sound perfect — physical ones are just sooo outdated! Can you help me get set up?",
+      placeholder: DEFAULT_WHATSAPP_MESSAGE,
       maxLength: 160,
       tooltip:
         "This text will appear in the chat box — the user just needs to tap send.",
@@ -103,7 +105,7 @@ export const QR_TYPE_INPUTS_CONFIG: Record<
       id: `networkName`,
       label: "Wifi Network Name",
       type: "text",
-      placeholder: "MamaMiaHotspot",
+      placeholder: DEFAULT_WIFI_NETWORK_NAME,
       tooltip:
         "This is the name of the Wi-Fi network you want to share. You can usually find it on the back of your router.",
     },

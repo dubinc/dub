@@ -1,6 +1,6 @@
 import { QRBuilderData } from "@/ui/modals/qr-builder";
+import { QRCodeDemoMap } from "@/ui/qr-builder/components/qr-code-demos/qr-code-demo-map.ts";
 import { QRCodeDemoPlaceholder } from "@/ui/qr-builder/components/qr-code-demos/qr-code-demo-placeholder.tsx";
-import { QRCodeDemo } from "@/ui/qr-builder/components/qr-code-demos/qr-code-demo.tsx";
 import Stepper from "@/ui/qr-builder/components/stepper.tsx";
 import { qrTypeDataHandlers } from "@/ui/qr-builder/helpers/qr-type-data-handlers.ts";
 import { QRCanvas } from "@/ui/qr-builder/qr-canvas.tsx";
@@ -28,6 +28,12 @@ interface IQRBuilderProps {
   isEdit?: boolean;
 }
 
+export const QRBuilderStepsTitles = [
+  "Choose QR Code Type",
+  "Complete the content",
+  "Customize your QR",
+];
+
 export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
   forwardRef(
     ({ props, homepageDemo, handleSaveQR, isProcessing, isEdit }, ref) => {
@@ -36,6 +42,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
       const [inputValues, setInputValues] = useState<Record<string, string>>(
         {},
       );
+      console.log("[QrBuilder] inputValues", inputValues);
       const [isHiddenNetwork, setIsHiddenNetwork] = useState(false);
       const [inputErrors, setInputErrors] = useState<Record<string, string>>(
         {},
@@ -63,6 +70,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
         initialInputValues,
       );
       console.log("[useQrCustomization] props", props);
+      console.log("[useQrCustomization] data", data);
       const filteredQrTypes = QR_TYPES.filter(
         (qrType) =>
           !LINKED_QR_TYPES.includes(qrType.id) || qrType.id === EQRType.WEBSITE,
@@ -107,6 +115,21 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
         [setData],
       );
 
+      const qrCodeDemo = QRCodeDemoMap[selectedQRType] ?? null;
+      const demoProps = qrCodeDemo?.propsKeys.reduce(
+        (acc, key) => {
+          acc[key] = inputValues[key];
+          return acc;
+        },
+        {} as Record<string, string>,
+      );
+      console.log("[QrBuilder] qrCodeDemo", qrCodeDemo);
+      console.log("[QrBuilder] demoProps", demoProps);
+
+      const typeStep = step === 1;
+      const contentStep = step === 2;
+      const customizationStep = step === 3;
+
       return (
         <div
           className={cn(
@@ -128,14 +151,14 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
               ]}
             />
 
-            {step !== 1 && (
+            {!typeStep && (
               <Flex gap="2">
                 <Button
                   size="3"
                   variant="outline"
                   color="blue"
                   className="flex min-h-10 self-center"
-                  disabled={step === 1}
+                  disabled={typeStep}
                   onClick={() => setStep((prev) => Math.max(prev - 1, 1))}
                 >
                   Back
@@ -145,7 +168,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                   size="3"
                   color="blue"
                   disabled={
-                    step === 2 &&
+                    contentStep &&
                     (isQrDisabled ||
                       Object.values(inputErrors).some((error) => error !== ""))
                   }
@@ -158,10 +181,10 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
           </Flex>
 
           <div className="border-t-border-500 flex w-full flex-col items-stretch justify-between gap-6 overflow-x-auto border-t p-6">
-            <QrTabsStepTitle title={"Choose QR Code Type"} />
+            <QrTabsStepTitle title={QRBuilderStepsTitles[step - 1]} />
 
             <Flex direction="row" gap="6">
-              {step === 1 && (
+              {typeStep && (
                 <Flex gap="4" direction="column" align="start" justify="start">
                   <QrTypeSelection
                     qrTypesList={filteredQrTypes}
@@ -171,7 +194,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                 </Flex>
               )}
 
-              {step === 2 && (
+              {contentStep && (
                 <Flex
                   gap="4"
                   direction="column"
@@ -194,7 +217,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                 </Flex>
               )}
 
-              {step === 3 && (
+              {customizationStep && (
                 <Flex
                   gap="4"
                   direction="column"
@@ -218,19 +241,26 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                 </Flex>
               )}
 
-              <div className="bg-background relative flex h-auto shrink-0 basis-2/5 items-start justify-center overflow-y-auto rounded-lg p-6">
-                {step !== 3 && (
+              <div
+                className={cn(
+                  "bg-background relative flex h-auto shrink-0 basis-2/5 items-end justify-center overflow-y-auto rounded-lg p-6",
+                  {
+                    "items-start": customizationStep,
+                  },
+                )}
+              >
+                {!customizationStep && (
                   <div className="relative inline-block">
-                    {step === 1 && !selectedQRType ? (
+                    {typeStep && !selectedQRType ? (
                       <QRCodeDemoPlaceholder />
                     ) : (
-                      <QRCodeDemo websiteURL={data} />
+                      <qrCodeDemo.Component {...demoProps} />
                     )}
-                    <div className="absolute bottom-0 left-0 h-[136px] w-full bg-gradient-to-b from-white/0 via-white/40 to-white"></div>
+                    <div className="absolute left-1/2 top-[249.72px] h-[150.28px] w-[400px] -translate-x-1/2 bg-[linear-gradient(180deg,_rgba(255,255,255,0)_12.22%,_#FFFFFF_73.25%)]"></div>
                   </div>
                 )}
 
-                {step === 3 && (
+                {customizationStep && (
                   <div className="center sticky top-0 flex h-fit flex-col gap-6">
                     <QRCanvas
                       width={isMobile ? 200 : 300}
