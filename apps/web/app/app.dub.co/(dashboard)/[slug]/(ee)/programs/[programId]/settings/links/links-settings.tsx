@@ -227,7 +227,7 @@ function LinksSettingsForm({ program }: { program: ProgramProps }) {
               >
                 installation guides
               </a>{" "}
-              to add Dub Conversions to your website.
+              to add our tracking script to your website.
             </p>
           </div>
         </SettingsRow>
