@@ -2,6 +2,7 @@ import {
   LOCALHOST_GEO_DATA,
   LOCALHOST_IP,
   capitalize,
+  fetchWithRetry,
   getDomainWithoutWWW,
 } from "@dub/utils";
 import { EU_COUNTRY_CODES } from "@dub/utils/src/constants/countries";
@@ -149,7 +150,7 @@ export async function recordClick({
   const hasWebhooks = webhookIds && webhookIds.length > 0;
 
   const [, , , , workspaceRows] = await Promise.allSettled([
-    fetch(
+    fetchWithRetry(
       `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_click_events&wait=true`,
       {
         method: "POST",

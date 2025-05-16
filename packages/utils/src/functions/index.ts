@@ -8,6 +8,7 @@ export * from "./currency-formatter";
 export * from "./datetime";
 export * from "./deep-equal";
 export * from "./domains";
+export * from "./fetch-with-retry";
 export * from "./fetch-with-timeout";
 export * from "./fetcher";
 export * from "./format-file-size";
