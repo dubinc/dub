@@ -44,6 +44,7 @@ import {
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
+import { useAddBlockModal } from "./add-block-modal";
 import { BrandingSettingsForm } from "./branding-settings-form";
 
 export type BrandingFormData = {
@@ -183,10 +184,12 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
   );
 
   const { setShowEditHeroModal, EditHeroModal } = useEditHeroModal();
+  const { setShowAddBlockModal, AddBlockModal } = useAddBlockModal();
 
   return (
     <>
       <EditHeroModal />
+      <AddBlockModal />
       <PreviewWindow
         url={`${PARTNERS_DOMAIN}/${program?.slug}`}
         scrollRef={scrollRef}
@@ -316,12 +319,16 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
                     >
                       <div className="absolute inset-x-0 top-0 z-10 hidden group-first:block">
                         <div className="pointer-events-auto absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                          <InsertBlockButton />
+                          <InsertBlockButton
+                            onClick={() => setShowAddBlockModal(true)}
+                          />
                         </div>
                       </div>
                       <div className="absolute inset-x-0 bottom-0 z-10">
                         <div className="pointer-events-auto absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                          <InsertBlockButton />
+                          <InsertBlockButton
+                            onClick={() => setShowAddBlockModal(true)}
+                          />
                         </div>
                       </div>
                     </div>
@@ -345,12 +352,12 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
   );
 }
 
-function InsertBlockButton() {
+function InsertBlockButton({ onClick }: { onClick: () => void }) {
   return (
     <Button
       type="button"
       text="Insert block"
-      onClick={() => toast.info("WIP")}
+      onClick={onClick}
       icon={<Plus2 className="size-2.5" />}
       variant="secondary"
       className="h-6 w-fit gap-1 px-2.5 text-xs"
