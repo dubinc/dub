@@ -28,8 +28,17 @@ function AddBlockModal(props: AddBlockModalProps) {
 function AddBlockModalInner({ setShowAddBlockModal }: AddBlockModalProps) {
   return (
     <>
-      <div className="flex items-center justify-center py-8 text-xs text-neutral-500">
-        WIP
+      <div className="p-4 pt-3">
+        <h3 className="text-base font-semibold leading-6 text-neutral-800">
+          Insert block
+        </h3>
+        <div className="mt-4 grid grid-cols-2 gap-4">
+          {[...Array(4)].map((_, idx) => (
+            <div key={idx} className="h-48 rounded-md bg-neutral-100" />
+          ))}
+
+          <div className="col-span-2 h-20 rounded-md bg-neutral-100" />
+        </div>
       </div>
     </>
   );

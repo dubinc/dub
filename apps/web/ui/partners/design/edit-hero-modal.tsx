@@ -52,7 +52,7 @@ function EditHeroModalInner({ setShowEditHeroModal }: EditHeroModalProps) {
   return (
     <>
       <form
-        className="px-5 py-4"
+        className="p-4 pt-3"
         onSubmit={(e) => {
           e.stopPropagation();
           handleSubmit(({ landerData }) => {
@@ -63,7 +63,7 @@ function EditHeroModalInner({ setShowEditHeroModal }: EditHeroModalProps) {
           })(e);
         }}
       >
-        <h3 className="text-base font-medium leading-none text-neutral-800">
+        <h3 className="text-base font-semibold leading-6 text-neutral-800">
           Title and Description
         </h3>
 
