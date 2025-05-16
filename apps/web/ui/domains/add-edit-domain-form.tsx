@@ -85,9 +85,9 @@ const STATUS_CONFIG: Record<
   },
   "has site": {
     suffix:
-      "already has a site connected. Ensure you want to connect this domain for shortlinks.",
+      "is currently pointing to an existing website. Only proceed if you're sure you want to use this domain for short links on Dub.",
     icon: AlertCircleFill,
-    className: "bg-amber-100 text-amber-600",
+    className: "bg-blue-100 text-blue-800",
   },
   available: {
     suffix: "is ready to connect.",
