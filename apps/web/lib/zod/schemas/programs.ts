@@ -7,6 +7,7 @@ import { LinkStructure, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { z } from "zod";
 import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
+import { programLanderSchema } from "./program-lander";
 import { RewardSchema } from "./rewards";
 import { parseDateSchema } from "./utils";
 
@@ -40,6 +41,10 @@ export const ProgramSchema = z.object({
   supportEmail: z.string().nullish(),
   helpUrl: z.string().nullish(),
   termsUrl: z.string().nullish(),
+});
+
+export const ProgramWithLanderDataSchema = ProgramSchema.extend({
+  landerData: programLanderSchema.nullish(),
 });
 
 export const updateProgramSchema = z.object({
@@ -101,6 +106,10 @@ export const ProgramInviteSchema = z.object({
   email: z.string(),
   shortLink: z.string(),
   createdAt: z.date(),
+});
+
+export const getProgramQuerySchema = z.object({
+  includeLanderData: z.coerce.boolean().optional(),
 });
 
 export const getProgramMetricsQuerySchema = z.object({

@@ -37,11 +37,6 @@ export function ProgramSettingsHeader({
               href: `/${slug}/programs/${programId}/settings/links`,
             },
             {
-              id: "branding",
-              label: "Branding",
-              href: `/${slug}/programs/${programId}/settings/branding`,
-            },
-            {
               id: "communication",
               label: "Communication",
               href: `/${slug}/programs/${programId}/settings/communication`,

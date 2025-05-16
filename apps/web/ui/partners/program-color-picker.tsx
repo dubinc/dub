@@ -72,7 +72,7 @@ export function ProgramColorPicker({
         </div>
       }
       side="right"
-      align="start"
+      align="end"
     >
       <button
         id={id}
