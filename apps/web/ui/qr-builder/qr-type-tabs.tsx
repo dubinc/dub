@@ -1,4 +1,3 @@
-import { QRCodeContentBuilder } from "@/ui/qr-builder/qr-code-content-builder.tsx";
 import { QrTabsCustomization } from "@/ui/qr-builder/qr-tabs-customization.tsx";
 import { cn } from "@dub/utils/src";
 import { Icon } from "@iconify/react";
@@ -125,12 +124,12 @@ export const QrTypeTabs = ({
                     title={"Complete the content"}
                   />
                   <div className="w-full">
-                    <QRCodeContentBuilder
-                      qrType={type.id}
-                      handleContent={handleContent}
-                      minimalFlow
-                      initialInputValues={initialInputValues}
-                    />
+                    {/*<QRCodeContentBuilder*/}
+                    {/*  qrType={type.id}*/}
+                    {/*  handleContent={handleContent}*/}
+                    {/*  minimalFlow*/}
+                    {/*  initialInputValues={initialInputValues}*/}
+                    {/*/>*/}
                   </div>
                 </div>
 

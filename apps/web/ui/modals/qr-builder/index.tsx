@@ -5,6 +5,7 @@ import { Button, useKeyboardShortcut } from "@dub/ui";
 import { mutatePrefix } from "@/lib/swr/mutate.ts";
 import useWorkspace from "@/lib/swr/use-workspace.ts";
 import { EQRType } from "@/ui/qr-builder/constants/get-qr-config";
+import { DEFAULT_WEBSITE } from "@/ui/qr-builder/constants/qr-type-inputs-config";
 import { QrBuilder } from "@/ui/qr-builder/qr-builder";
 import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
 import { X } from "@/ui/shared/icons";
@@ -67,7 +68,7 @@ export function QRBuilderModal({
   const handleSaveQR = async (data: QRBuilderData) => {
     setIsProcessing(true);
 
-    if (data.styles.data === "https://www.getqr.com/") {
+    if (data.styles.data === DEFAULT_WEBSITE) {
       setIsProcessing(false);
       toast.error("Data of QR Code not found.");
     }

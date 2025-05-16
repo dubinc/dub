@@ -1,5 +1,7 @@
 import { EQRType, FILE_QR_TYPES } from "./get-qr-config.ts";
 
+export const DEFAULT_WEBSITE = "https://www.getqr.com/";
+
 export type QRInputType = "text" | "url" | "tel" | "password" | "textarea";
 
 export type QRInputConfig = {
@@ -32,7 +34,7 @@ export const QR_TYPE_INPUTS_CONFIG: Record<
       id: `websiteLink`,
       label: "Enter your website",
       type: "url",
-      placeholder: "https://www.getqr.com/",
+      placeholder: DEFAULT_WEBSITE,
       tooltip: "This is the link people will open when they scan your QR code.",
     },
   ],
@@ -109,7 +111,9 @@ export const QR_TYPE_INPUTS_CONFIG: Record<
       id: `networkPassword`,
       label: "Network password",
       type: "text",
-      placeholder: "Enter password",
+      placeholder: "ExtraToppings123",
+      tooltip:
+        "People will automatically connect using this password after scanning your QR code. Leave this blank if your network has no password.",
     },
   ],
 };
