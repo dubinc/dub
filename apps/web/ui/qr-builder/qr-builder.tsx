@@ -12,7 +12,15 @@ import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
 import { ArrowTurnLeft, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Button, Flex } from "@radix-ui/themes";
-import { FC, forwardRef, Ref, useCallback, useState } from "react";
+import {
+  FC,
+  forwardRef,
+  Ref,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
   EQRType,
   LINKED_QR_TYPES,
@@ -49,6 +57,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
       );
       const [styleOptionActiveTab, setStyleOptionActiveActiveTab] =
         useState<string>("Frame");
+      const [hoveredQRType, setHoveredQRType] = useState<EQRType | null>(null);
 
       const {
         options,
@@ -95,6 +104,10 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
         handleNextStep();
       };
 
+      const handleHoverQRType = (type: EQRType | null) => {
+        setHoveredQRType(type);
+      };
+
       const handleContent = useCallback(
         ({
           inputValues,
@@ -115,20 +128,56 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
         [setData],
       );
 
-      const qrCodeDemo = QRCodeDemoMap[selectedQRType] ?? null;
-      const demoProps = qrCodeDemo?.propsKeys.reduce(
-        (acc, key) => {
-          acc[key] = inputValues[key];
-          return acc;
-        },
-        {} as Record<string, string>,
-      );
-      console.log("[QrBuilder] qrCodeDemo", qrCodeDemo);
-      console.log("[QrBuilder] demoProps", demoProps);
-
       const typeStep = step === 1;
       const contentStep = step === 2;
       const customizationStep = step === 3;
+
+      // const currentQRType = typeStep
+      //   ? hoveredQRType !== null
+      //     ? hoveredQRType
+      //     : selectedQRType
+      //   : selectedQRType;
+      // const qrCodeDemo = QRCodeDemoMap[currentQRType] ?? null;
+      // const demoProps = qrCodeDemo?.propsKeys.reduce(
+      //   (acc, key) => {
+      //     acc[key] = inputValues[key];
+      //     return acc;
+      //   },
+      //   {} as Record<string, string>,
+      // );
+      const [currentQRType, setCurrentQRType] = useState<EQRType | null>(null);
+
+      useEffect(() => {
+        const typeStep = step === 1;
+        const newCurrentQRType = typeStep
+          ? hoveredQRType !== null
+            ? hoveredQRType
+            : selectedQRType
+          : selectedQRType;
+
+        setCurrentQRType(newCurrentQRType);
+        console.log("[QRBuilder] currentQRType updated to:", newCurrentQRType);
+      }, [step, hoveredQRType, selectedQRType]);
+
+      const qrCodeDemo = useMemo(() => {
+        return currentQRType ? QRCodeDemoMap[currentQRType] : null;
+      }, [currentQRType]);
+
+      const demoProps = useMemo(() => {
+        return (
+          qrCodeDemo?.propsKeys.reduce(
+            (acc: Record<string, string>, key: string) => {
+              acc[key] = inputValues[key];
+              return acc;
+            },
+            {},
+          ) || {}
+        );
+      }, [qrCodeDemo, inputValues]);
+
+      console.log("[QrBuilder] currentQRType", currentQRType);
+      console.log("[QrBuilder] qrCodeDemo", qrCodeDemo);
+      console.log("[QrBuilder] demoProps", demoProps);
 
       return (
         <div
@@ -190,6 +239,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                     qrTypesList={filteredQrTypes}
                     qrTypeActiveTab={selectedQRType}
                     onSelect={handleSelectQRType}
+                    onHover={handleHoverQRType}
                   />
                 </Flex>
               )}
@@ -251,7 +301,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
               >
                 {!customizationStep && (
                   <div className="relative inline-block">
-                    {typeStep && !selectedQRType ? (
+                    {!currentQRType ? (
                       <QRCodeDemoPlaceholder />
                     ) : (
                       <qrCodeDemo.Component {...demoProps} />

@@ -16,4 +16,16 @@ export const QRCodeDemoMap = {
     Component: QRCodeDemoWifi,
     propsKeys: ["networkName"],
   },
+  [EQRType.PDF]: {
+    Component: QRCodeDemoWifi,
+    propsKeys: ["networkName"],
+  },
+  [EQRType.IMAGE]: {
+    Component: QRCodeDemoWifi,
+    propsKeys: ["networkName"],
+  },
+  [EQRType.VIDEO]: {
+    Component: QRCodeDemoWifi,
+    propsKeys: ["networkName"],
+  },
 };

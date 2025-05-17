@@ -8,14 +8,17 @@ interface IQrTypeSelection {
   qrTypesList: QRType[];
   qrTypeActiveTab: EQRType;
   onSelect: (type: EQRType) => void;
+  onHover: (type: EQRType | null) => void;
 }
 
 export const QrTypeSelection: FC<IQrTypeSelection> = ({
   qrTypesList,
   qrTypeActiveTab,
   onSelect,
+  onHover,
 }) => {
   console.log("QrTypeSelection qrTypeActiveTab", qrTypeActiveTab);
+
   return (
     // <div>
     /*{qrTypesList.map((type, idx) => (*/
@@ -66,6 +69,8 @@ export const QrTypeSelection: FC<IQrTypeSelection> = ({
             },
           )}
           onClick={() => onSelect(type.id)}
+          onMouseEnter={() => onHover(type.id)}
+          onMouseLeave={() => onHover(null)}
         >
           <Flex direction="column" align="start">
             <Flex direction="row" gap="2" align="center">
