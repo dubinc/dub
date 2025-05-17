@@ -12,6 +12,7 @@ import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
 import { ArrowTurnLeft, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Button, Flex } from "@radix-ui/themes";
+import { motion } from "framer-motion";
 import {
   FC,
   forwardRef,
@@ -304,7 +305,20 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                     {!currentQRType ? (
                       <QRCodeDemoPlaceholder />
                     ) : (
-                      <qrCodeDemo.Component {...demoProps} />
+                      <motion.div
+                        key={currentQRType}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        variants={{
+                          hidden: { opacity: 0, y: 20 },
+                          visible: { opacity: 1, y: 0 },
+                          exit: { opacity: 0, y: 20 },
+                        }}
+                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                      >
+                        {qrCodeDemo && <qrCodeDemo.Component {...demoProps} />}
+                      </motion.div>
                     )}
                     <div className="absolute left-1/2 top-[249.72px] h-[150.28px] w-[400px] -translate-x-1/2 bg-[linear-gradient(180deg,_rgba(255,255,255,0)_12.22%,_#FFFFFF_73.25%)]"></div>
                   </div>
