@@ -106,18 +106,36 @@ export const partnerInvitesQuerySchema = getPaginationQuerySchema({
 });
 
 export const PartnerOnlinePresenceSchema = z.object({
-  website: z.string().nullable(),
+  website: z
+    .string()
+    .nullable()
+    .describe("The partner's website URL (including the https protocol)."),
   websiteTxtRecord: z.string().nullable(),
   websiteVerifiedAt: z.date().nullable(),
-  youtube: z.string().nullable(),
+  youtube: z
+    .string()
+    .nullable()
+    .describe("The partner's YouTube channel username (e.g. `johndoe`)."),
   youtubeVerifiedAt: z.date().nullable(),
-  twitter: z.string().nullable(),
+  twitter: z
+    .string()
+    .nullable()
+    .describe("The partner's Twitter username (e.g. `johndoe`)."),
   twitterVerifiedAt: z.date().nullable(),
-  linkedin: z.string().nullable(),
+  linkedin: z
+    .string()
+    .nullable()
+    .describe("The partner's LinkedIn username (e.g. `johndoe`)."),
   linkedinVerifiedAt: z.date().nullable(),
-  instagram: z.string().nullable(),
+  instagram: z
+    .string()
+    .nullable()
+    .describe("The partner's Instagram username (e.g. `johndoe`)."),
   instagramVerifiedAt: z.date().nullable(),
-  tiktok: z.string().nullable(),
+  tiktok: z
+    .string()
+    .nullable()
+    .describe("The partner's TikTok username (e.g. `johndoe`)."),
   tiktokVerifiedAt: z.date().nullable(),
 });
 
