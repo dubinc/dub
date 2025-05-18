@@ -18,6 +18,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   CSSProperties,
   Dispatch,
+  HTMLAttributes,
   memo,
   MouseEvent,
   PropsWithChildren,
@@ -68,6 +69,9 @@ type BaseTableProps<T> = {
   columnPinning?: ColumnPinningState;
   resourceName?: (plural: boolean) => string;
   onRowClick?: (row: Row<T>, e: MouseEvent) => void;
+  rowProps?:
+    | HTMLAttributes<HTMLTableRowElement>
+    | ((row: Row<T>) => HTMLAttributes<HTMLTableRowElement>);
   enableColumnResizing?: boolean;
   columnResizeMode?: ColumnResizeMode;
 
@@ -196,16 +200,20 @@ const ResizableTableRow = memo(
   function ResizableTableRow<T>({
     row,
     onRowClick,
+    rowProps,
     cellRight,
     tdClassName,
     table,
   }: {
     row: Row<T>;
     onRowClick?: (row: Row<T>, e: MouseEvent) => void;
+    rowProps?: HTMLAttributes<HTMLTableRowElement>;
     cellRight?: (cell: Cell<T, any>) => ReactNode;
     tdClassName?: string | ((columnId: string) => string);
     table: TableType<T>;
   }) {
+    const { className, ...rest } = rowProps || {};
+
     return (
       <tr
         key={row.id}
@@ -216,6 +224,7 @@ const ResizableTableRow = memo(
           table.getRowModel().rows.length > 8 &&
             row.index === table.getRowModel().rows.length - 1 &&
             "[&_td]:border-b-0",
+          className,
         )}
         onClick={
           onRowClick
@@ -226,6 +235,7 @@ const ResizableTableRow = memo(
               }
             : undefined
         }
+        {...rest}
       >
         {row.getVisibleCells().map((cell) => (
           <td
@@ -269,6 +279,7 @@ const ResizableTableRow = memo(
 ) as <T>(props: {
   row: Row<T>;
   onRowClick?: (row: Row<T>, e: MouseEvent) => void;
+  rowProps?: HTMLAttributes<HTMLTableRowElement>;
   cellRight?: (cell: Cell<T, any>) => ReactNode;
   tdClassName?: string | ((columnId: string) => string);
   table: TableType<T>;
@@ -294,6 +305,7 @@ export function Table<T>({
   pagination,
   resourceName,
   onRowClick,
+  rowProps,
   rowCount,
   children,
   enableColumnResizing = false,
@@ -419,8 +431,12 @@ export function Table<T>({
               ))}
             </thead>
             <tbody>
-              {table.getRowModel().rows.map((row) =>
-                enableColumnResizing ? (
+              {table.getRowModel().rows.map((row) => {
+                const props =
+                  typeof rowProps === "function" ? rowProps(row) : rowProps;
+                const { className, ...rest } = props || {};
+
+                return enableColumnResizing ? (
                   <ResizableTableRow
                     key={`${row.id}-${table
                       .getVisibleLeafColumns()
@@ -428,6 +444,7 @@ export function Table<T>({
                       .join(",")}`}
                     row={row}
                     onRowClick={onRowClick}
+                    rowProps={props}
                     cellRight={cellRight}
                     tdClassName={tdClassName}
                     table={table}
@@ -441,6 +458,7 @@ export function Table<T>({
                       table.getRowModel().rows.length > 8 &&
                         row.index === table.getRowModel().rows.length - 1 &&
                         "[&_td]:border-b-0",
+                      className,
                     )}
                     onClick={
                       onRowClick
@@ -450,6 +468,7 @@ export function Table<T>({
                           }
                         : undefined
                     }
+                    {...rest}
                   >
                     {row.getVisibleCells().map((cell) => (
                       <td
@@ -484,8 +503,8 @@ export function Table<T>({
                       </td>
                     ))}
                   </tr>
-                ),
-              )}
+                );
+              })}
             </tbody>
           </table>
           {children}
@@ -502,12 +521,16 @@ export function Table<T>({
           <div>
             <span className="hidden sm:inline-block">Viewing</span>{" "}
             <span className="font-medium">
-              {(pagination.pageIndex - 1) * pagination.pageSize + 1}-
+              {(
+                (pagination.pageIndex - 1) * pagination.pageSize +
+                1
+              ).toLocaleString()}
+              -
               {Math.min(
                 (pagination.pageIndex - 1) * pagination.pageSize +
                   pagination.pageSize,
                 table.getRowCount(),
-              )}
+              ).toLocaleString()}
             </span>{" "}
             of{" "}
             <span className="font-medium">

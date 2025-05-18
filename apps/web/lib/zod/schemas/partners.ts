@@ -22,12 +22,6 @@ export const exportPartnerColumns = [
   { id: "email", label: "Email", default: true },
   { id: "country", label: "Country", default: true },
   { id: "status", label: "Status", default: true },
-  {
-    id: "payoutsEnabledAt",
-    label: "Payouts enabled at",
-    default: false,
-  },
-  { id: "createdAt", label: "Enrolled at", default: true },
   { id: "createdAt", label: "Enrolled at", default: true },
   { id: "description", label: "Description", default: false },
   { id: "clicks", label: "Clicks", default: false },
@@ -139,6 +133,7 @@ export const PartnerSchema = z
     country: z.string().nullable(),
     status: z.nativeEnum(PartnerStatus),
     stripeConnectId: z.string().nullable(),
+    paypalEmail: z.string().nullable(),
     payoutsEnabledAt: z.date().nullable(),
     createdAt: z.date(),
     updatedAt: z.date(),
@@ -159,6 +154,8 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
   linkedin: true,
   instagram: true,
   tiktok: true,
+  paypalEmail: true,
+  stripeConnectId: true,
   payoutsEnabledAt: true,
   createdAt: true,
 })
@@ -199,16 +196,8 @@ export const EnrolledPartnerSchemaWithExpandedFields =
 
 export const LeaderboardPartnerSchema = z.object({
   id: z.string(),
-  name: z.string().transform((name) => {
-    const parts = name.trim().split(/\s+/);
-    return parts[0]; // return first name only
-
-    // old approach: return first name and last initial
-    // if (parts.length < 2) return name; // Return original if single word
-    // const firstName = parts[0];
-    // const lastInitial = parts[parts.length - 1][0];
-    // return `${firstName} ${lastInitial}.`;
-  }),
+  name: z.string(),
+  image: z.string(),
   clicks: z.number().default(0),
   leads: z.number().default(0),
   sales: z.number().default(0),

@@ -84,6 +84,7 @@ export interface ExpandedLinkProps extends LinkProps {
   tags: TagProps[];
   webhookIds: string[];
   dashboardId: string | null;
+  user?: UserProps;
 }
 
 export interface SimpleLinkProps {
@@ -138,7 +139,7 @@ export type PlanProps = (typeof plans)[number];
 
 export type RoleProps = (typeof roles)[number];
 
-export type BetaFeatures = "noDubLink" | "linkFolders" | "abTesting";
+export type BetaFeatures = "noDubLink" | "abTesting";
 
 export interface WorkspaceProps extends Project {
   logo: string | null;
@@ -160,6 +161,7 @@ export interface WorkspaceProps extends Project {
 }
 
 export type ExpandedWorkspaceProps = WorkspaceProps & {
+  defaultProgramId: string | null;
   allowedHostnames: string[];
   users: (WorkspaceProps["users"][number] & {
     workspacePreferences?: z.infer<typeof workspacePreferencesSchema>;
@@ -466,3 +468,5 @@ export type CreatePartnerProps = z.infer<typeof createPartnerSchema>;
 export type ProgramData = z.infer<typeof programDataSchema>;
 
 export type ProgramMetrics = z.infer<typeof ProgramMetricsSchema>;
+
+export type PayoutMethod = "stripe" | "paypal";

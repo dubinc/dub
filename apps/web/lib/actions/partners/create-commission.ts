@@ -2,13 +2,17 @@
 
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
+import { getLeadEvent } from "@/lib/tinybird";
 import { recordClick } from "@/lib/tinybird/record-click";
 import { recordLeadWithTimestamp } from "@/lib/tinybird/record-lead";
 import { recordSaleWithTimestamp } from "@/lib/tinybird/record-sale";
+import z from "@/lib/zod";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { createCommissionSchema } from "@/lib/zod/schemas/commissions";
+import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
 export const createCommissionAction = authActionClient
@@ -27,8 +31,6 @@ export const createCommissionAction = authActionClient
       leadEventDate,
       leadEventName,
     } = parsedInput;
-
-    const finalLeadEventDate = leadEventDate ?? saleEventDate ?? new Date();
 
     const [programEnrollment, customer] = await Promise.all([
       getProgramEnrollmentOrThrow({
@@ -80,90 +82,96 @@ export const createCommissionAction = authActionClient
       }
     }
 
-    // Record click
-    const dummyRequest = new Request(link.url, {
-      headers: new Headers({
-        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
-        "x-forwarded-for": "127.0.0.1",
-        "x-vercel-ip-country": "US",
-        "x-vercel-ip-country-region": "CA",
-        "x-vercel-ip-continent": "NA",
-      }),
+    let clickEvent: z.infer<typeof clickEventSchemaTB> | null = null;
+    let leadEvent: z.infer<typeof leadEventSchemaTB> | null = null;
+    let shouldUpdateCustomer = false;
+
+    const existingLeadEvent = await getLeadEvent({
+      customerId,
     });
 
-    const clickData = await recordClick({
-      req: dummyRequest,
-      linkId,
-      clickId: nanoid(16),
-      url: link.url,
-      domain: link.domain,
-      key: link.key,
-      workspaceId: workspace.id,
-      skipRatelimit: true,
-      timestamp: new Date(
-        new Date(finalLeadEventDate).getTime() - 5 * 60 * 1000,
-      ).toISOString(),
-    });
-
-    // Record lead
-    const clickEvent = clickEventSchemaTB.parse({
-      ...clickData,
-      bot: 0,
-      qr: 0,
-    });
-
-    const leadEventId = nanoid(16);
-    const shouldUpdateCustomer = !customer.linkId && clickData;
-
-    await Promise.all([
-      recordLeadWithTimestamp({
-        ...clickEvent,
-        event_id: leadEventId,
-        event_name: leadEventName || "Sign up",
-        customer_id: customerId,
-        timestamp: new Date(finalLeadEventDate).toISOString(),
-      }),
-
-      createPartnerCommission({
-        event: "lead",
-        programId,
-        partnerId,
-        linkId,
-        eventId: leadEventId,
-        customerId,
-        amount: 0,
-        quantity: 1,
-        createdAt: finalLeadEventDate,
-      }),
-
-      shouldUpdateCustomer &&
-        prisma.customer.update({
-          where: {
-            id: customerId,
-          },
-          data: {
-            linkId,
-            clickId: clickData.click_id,
-            clickedAt: clickData.timestamp,
-          },
+    // if there is an existing lead event + no custom lead details were provided
+    // we can use that leadEvent's existing details
+    if (
+      !leadEventDate &&
+      !leadEventName &&
+      existingLeadEvent &&
+      existingLeadEvent.data.length > 0
+    ) {
+      leadEvent = leadEventSchemaTB.parse(existingLeadEvent.data[0]);
+    } else {
+      // else, if there's no existing lead event and there is also no custom leadEventName/Date
+      // we need to create a dummy click + lead event
+      const dummyRequest = new Request(link.url, {
+        headers: new Headers({
+          "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+          "x-forwarded-for": "127.0.0.1",
+          "x-vercel-ip-country": "US",
+          "x-vercel-ip-country-region": "CA",
+          "x-vercel-ip-continent": "NA",
         }),
-    ]);
+      });
 
-    // Record sale
-    const shouldRecordSale = saleAmount && saleEventDate;
+      const finalLeadEventDate = leadEventDate ?? saleEventDate ?? new Date();
 
-    if (shouldRecordSale) {
-      const clickEvent = clickEventSchemaTB.parse({
+      const clickData = await recordClick({
+        req: dummyRequest,
+        linkId,
+        clickId: nanoid(16),
+        url: link.url,
+        domain: link.domain,
+        key: link.key,
+        workspaceId: workspace.id,
+        skipRatelimit: true,
+        timestamp: new Date(
+          new Date(finalLeadEventDate).getTime() - 5 * 60 * 1000,
+        ).toISOString(),
+      });
+
+      clickEvent = clickEventSchemaTB.parse({
         ...clickData,
         bot: 0,
         qr: 0,
       });
+      const leadEventId = nanoid(16);
+      leadEvent = leadEventSchemaTB.parse({
+        ...clickEvent,
+        event_id: leadEventId,
+        event_name: leadEventName || "Sign up",
+        customer_id: customerId,
+      });
 
+      shouldUpdateCustomer = !customer.linkId && clickData ? true : false;
+
+      await Promise.allSettled([
+        recordLeadWithTimestamp({
+          ...leadEvent,
+          timestamp: new Date(finalLeadEventDate).toISOString(),
+        }),
+
+        createPartnerCommission({
+          event: "lead",
+          programId,
+          partnerId,
+          linkId,
+          eventId: leadEventId,
+          customerId,
+          amount: 0,
+          quantity: 1,
+          createdAt: finalLeadEventDate,
+        }),
+      ]);
+    }
+
+    // Record sale
+    const shouldRecordSale = saleAmount && saleEventDate;
+
+    if (shouldRecordSale && leadEvent) {
       const saleEventId = nanoid(16);
 
-      await Promise.all([
+      await Promise.allSettled([
         recordSaleWithTimestamp({
-          ...clickEvent,
+          ...leadEvent,
           event_id: saleEventId,
           event_name: "Purchase",
           amount: saleAmount,
@@ -189,23 +197,51 @@ export const createCommissionAction = authActionClient
       ]);
     }
 
-    // Update link stats
-    await prisma.link.update({
-      where: {
-        id: linkId,
-      },
-      data: {
-        leads: {
-          increment: 1,
-        },
-        ...(shouldRecordSale && {
-          sales: {
-            increment: 1,
+    // link & customer updates
+    waitUntil(
+      Promise.allSettled([
+        // Update link stats
+        prisma.link.update({
+          where: {
+            id: linkId,
           },
-          saleAmount: {
-            increment: saleAmount,
+          data: {
+            leads: {
+              increment: 1,
+            },
+            ...(shouldRecordSale && {
+              sales: {
+                increment: 1,
+              },
+              saleAmount: {
+                increment: saleAmount,
+              },
+            }),
           },
         }),
-      },
-    });
+
+        // Update customer details / stats
+        (shouldUpdateCustomer || shouldRecordSale) &&
+          prisma.customer.update({
+            where: {
+              id: customerId,
+            },
+            data: {
+              ...(shouldUpdateCustomer && {
+                linkId,
+                clickId: clickEvent?.click_id,
+                clickedAt: clickEvent?.timestamp,
+              }),
+              ...(shouldRecordSale && {
+                sales: {
+                  increment: 1,
+                },
+                saleAmount: {
+                  increment: saleAmount,
+                },
+              }),
+            },
+          }),
+      ]),
+    );
   });

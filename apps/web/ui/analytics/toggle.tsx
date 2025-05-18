@@ -7,6 +7,7 @@ import {
 } from "@/lib/analytics/constants";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useCustomer from "@/lib/swr/use-customer";
 import useCustomers from "@/lib/swr/use-customers";
 import useCustomersCount from "@/lib/swr/use-customers-count";
@@ -105,10 +106,9 @@ export default function Toggle({
   page?: "analytics" | "events";
 }) {
   const { slug, programSlug } = useParams();
-  const { plan, flags, createdAt } = useWorkspace();
+  const { plan, createdAt } = useWorkspace();
 
-  const { router, queryParams, searchParamsObj, getQueryString } =
-    useRouterStuff();
+  const { queryParams, searchParamsObj, getQueryString } = useRouterStuff();
 
   const {
     selectedTab,
@@ -159,6 +159,7 @@ export default function Toggle({
           : "",
     },
   });
+  const { canManageCustomers } = getPlanCapabilities(plan);
 
   const {
     allDomains: domains,
@@ -414,21 +415,20 @@ export default function Toggle({
           ? `/${slug}/customers/${selectedCustomerId}`
           : null;
     },
-    options: customers?.map(({ id, email, name, avatar }) => {
-      return {
-        value: id,
-        label: email ?? name,
-        icon: (
-          <img
-            src={avatar || `${OG_AVATAR_URL}${id}`}
-            alt={`${email} avatar`}
-            className="size-4 rounded-full"
-          />
-        ),
-      };
-    }) ?? [
-      { value: selectedCustomerId, label: selectedCustomerId, icon: User },
-    ],
+    options:
+      customers?.map(({ id, email, name, avatar }) => {
+        return {
+          value: id,
+          label: email ?? name,
+          icon: (
+            <img
+              src={avatar || `${OG_AVATAR_URL}${id}`}
+              alt={`${email} avatar`}
+              className="size-4 rounded-full"
+            />
+          ),
+        };
+      }) ?? null,
   };
 
   const filters: ComponentProps<typeof Filter.Select>["filters"] = useMemo(
@@ -450,51 +450,47 @@ export default function Toggle({
         : partnerPage
           ? [LinkFilterItem, CustomerFilterItem]
           : [
-              CustomerFilterItem,
-              ...(flags?.linkFolders
-                ? [
-                    {
-                      key: "folderId",
-                      icon: Folder,
-                      label: "Folder",
-                      shouldFilter: !foldersAsync,
-                      getOptionIcon: (value, props) => {
-                        const folderName = props.option?.label;
-                        const folder = folders?.find(
-                          ({ name }) => name === folderName,
-                        );
+              ...(canManageCustomers ? [CustomerFilterItem] : []),
+              {
+                key: "folderId",
+                icon: Folder,
+                label: "Folder",
+                shouldFilter: !foldersAsync,
+                getOptionIcon: (value, props) => {
+                  const folderName = props.option?.label;
+                  const folder = folders?.find(
+                    ({ name }) => name === folderName,
+                  );
 
-                        return folder ? (
-                          <FolderIcon
-                            folder={folder}
-                            shape="square"
-                            iconClassName="size-3"
-                          />
-                        ) : null;
-                      },
-                      options: loadingFolders
-                        ? null
-                        : [
-                            ...(folders || []),
-                            // Add currently filtered folder if not already in the list
-                            ...(selectedFolder &&
-                            !folders?.find((f) => f.id === selectedFolder.id)
-                              ? [selectedFolder]
-                              : []),
-                          ].map((folder) => ({
-                            value: folder.id,
-                            icon: (
-                              <FolderIcon
-                                folder={folder}
-                                shape="square"
-                                iconClassName="size-3"
-                              />
-                            ),
-                            label: folder.name,
-                          })),
-                    },
-                  ]
-                : []),
+                  return folder ? (
+                    <FolderIcon
+                      folder={folder}
+                      shape="square"
+                      iconClassName="size-3"
+                    />
+                  ) : null;
+                },
+                options: loadingFolders
+                  ? null
+                  : [
+                      ...(folders || []),
+                      // Add currently filtered folder if not already in the list
+                      ...(selectedFolder &&
+                      !folders?.find((f) => f.id === selectedFolder.id)
+                        ? [selectedFolder]
+                        : []),
+                    ].map((folder) => ({
+                      value: folder.id,
+                      icon: (
+                        <FolderIcon
+                          folder={folder}
+                          shape="square"
+                          iconClassName="size-3"
+                        />
+                      ),
+                      label: folder.name,
+                    })),
+              },
               {
                 key: "tagIds",
                 icon: Tag,
@@ -988,7 +984,7 @@ export default function Toggle({
                 rel="noreferrer"
               >
                 <BlurImage
-                  alt={url || "Dub.co"}
+                  alt={url || "Dub"}
                   src={
                     url
                       ? `${GOOGLE_FAVICON_URL}${getApexDomain(url)}`
@@ -1027,12 +1023,7 @@ export default function Toggle({
                       <>
                         {domain && key && <ShareButton />}
                         <Link
-                          href={
-                            dashboardProps
-                              ? "https://d.to/events"
-                              : `/${partnerPage ? `programs/${programSlug}` : slug}/events${getQueryString()}`
-                          }
-                          {...(dashboardProps ? { target: "_blank" } : {})}
+                          href={`/${partnerPage ? `programs/${programSlug}/` : adminPage ? "" : `${slug}/`}events${getQueryString()}`}
                         >
                           <Button
                             variant="secondary"
@@ -1049,7 +1040,7 @@ export default function Toggle({
                     {page === "events" && (
                       <>
                         <Link
-                          href={`/${partnerPage ? `programs/${programSlug}` : slug}/analytics${getQueryString()}`}
+                          href={`/${partnerPage ? `programs/${programSlug}/` : adminPage ? "" : `${slug}/`}analytics${getQueryString()}`}
                         >
                           <Button
                             variant="secondary"

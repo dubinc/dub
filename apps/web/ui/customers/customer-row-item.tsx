@@ -2,11 +2,13 @@ import { generateRandomName } from "@/lib/names";
 import { ChartActivity2 } from "@dub/ui";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
 import Link from "next/link";
+import React, { ComponentProps } from "react";
 
 export function CustomerRowItem({
   customer,
   href,
   className,
+  hideChartActivityOnHover = true,
 }: {
   customer: {
     id: string;
@@ -14,17 +16,19 @@ export function CustomerRowItem({
     name?: string | null;
     avatar?: string | null;
   };
-  href: string;
+  href?: string;
   className?: string;
+  hideChartActivityOnHover?: boolean;
 }) {
   const display = customer.email || customer.name || generateRandomName();
 
   return (
-    <Link
-      href={href}
-      target="_blank"
+    <Wrapper
+      element={href ? Link : "div"}
+      {...(href ? { href, target: "_blank" } : {})}
       className={cn(
-        "group flex cursor-alias items-center justify-between gap-2 decoration-dotted hover:underline",
+        "group flex items-center justify-between gap-2",
+        href && "cursor-alias decoration-dotted hover:underline",
         className,
       )}
     >
@@ -36,7 +40,22 @@ export function CustomerRowItem({
         />
         <span className="truncate">{display}</span>
       </div>
-      <ChartActivity2 className="size-3.5 shrink-0 transition-all group-hover:-translate-x-3 group-hover:opacity-0" />
-    </Link>
+      {href && (
+        <ChartActivity2
+          className={cn(
+            "size-3.5 shrink-0 transition-all",
+            hideChartActivityOnHover &&
+              "group-hover:-translate-x-3 group-hover:opacity-0",
+          )}
+        />
+      )}
+    </Wrapper>
   );
 }
+
+const Wrapper = <T extends React.ElementType>({
+  element: T,
+  ...props
+}: {
+  element: T;
+} & ComponentProps<T>) => <T {...props} />;

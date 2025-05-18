@@ -6,7 +6,12 @@ import {
   formatDate,
   validDomainRegex,
 } from "@dub/utils";
-import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
+import {
+  base64ImageSchema,
+  booleanQuerySchema,
+  getPaginationQuerySchema,
+  publicHostedImageSchema,
+} from "./misc";
 import { TagSchema } from "./tags";
 import {
   parseDateSchema,
@@ -74,6 +79,7 @@ const LinksQuerySchema = z.object({
     .union([z.string(), z.array(z.string())])
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
     .optional()
+    .describe("The tag IDs to filter the links by.")
     .openapi({
       param: {
         style: "form",
@@ -90,15 +96,31 @@ const LinksQuerySchema = z.object({
           },
         },
       ],
-    })
-    .describe("The tag IDs to filter the links by."),
+    }),
   tagNames: z
     .union([z.string(), z.array(z.string())])
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
     .optional()
     .describe(
       "The unique name of the tags assigned to the short link (case insensitive).",
-    ),
+    )
+    .openapi({
+      param: {
+        style: "form",
+        explode: false,
+      },
+      anyOf: [
+        {
+          type: "string",
+        },
+        {
+          type: "array",
+          items: {
+            type: "string",
+          },
+        },
+      ],
+    }),
   folderId: z
     .string()
     .optional()
@@ -426,7 +448,11 @@ export const createLinkBodySchema = z.object({
     .describe("The date and time when the tests were or will be completed."),
 });
 
-export const updateLinkBodySchema = createLinkBodySchema.partial();
+export const createLinkBodySchemaAsync = createLinkBodySchema.extend({
+  image: z.union([base64ImageSchema, publicHostedImageSchema]).nullish(),
+});
+
+export const updateLinkBodySchema = createLinkBodySchemaAsync.partial();
 
 export const bulkCreateLinksBodySchema = z
   .array(createLinkBodySchema)
@@ -713,6 +739,7 @@ export const getLinkInfoQuerySchema = domainKeySchema.partial().merge(
       .openapi({ example: "123456" }),
   }),
 );
+
 export const getLinksQuerySchemaExtended = getLinksQuerySchemaBase.merge(
   z.object({
     // Only Dub UI uses the following query parameters
@@ -729,6 +756,13 @@ export const getLinksQuerySchemaExtended = getLinksQuerySchemaBase.merge(
       .enum(["fuzzy", "exact"])
       .default("fuzzy")
       .describe("Search mode to filter by."),
+  }),
+);
+
+export const getLinkInfoQuerySchemaExtended = getLinkInfoQuerySchema.merge(
+  z.object({
+    includeUser: booleanQuerySchema.default("false"),
+    includeWebhooks: booleanQuerySchema.default("false"),
   }),
 );
 

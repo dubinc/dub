@@ -5,11 +5,11 @@ import useFolders from "@/lib/swr/use-folders";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderSummary } from "@/lib/types";
 import { FOLDERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/folders";
-import { Button, Combobox, TooltipContent } from "@dub/ui";
+import { Button, Combobox, TooltipContent, useRouterStuff } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { ChevronsUpDown } from "lucide-react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { ReactNode, useEffect, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 import { useAddFolderModal } from "../modals/add-folder-modal";
@@ -42,7 +42,7 @@ export const FolderDropdown = ({
 }: FolderDropdownProps) => {
   const router = useRouter();
   const { slug, plan, defaultFolderId } = useWorkspace();
-  const searchParams = useSearchParams();
+  const { searchParams, queryParams } = useRouterStuff();
 
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
@@ -83,11 +83,9 @@ export const FolderDropdown = ({
       onFolderSelect?.(folder);
 
       if (!disableAutoRedirect) {
-        if (folder.id !== "unsorted") {
-          router.push(`/${slug}/links?folderId=${folder.id}`);
-        } else {
-          router.push(`/${slug}`);
-        }
+        router.push(
+          `/${slug}/links${folderId && folderId !== "unsorted" ? `?folderId=${folder.id}` : ""}`,
+        );
       }
     },
   });
@@ -115,6 +113,9 @@ export const FolderDropdown = ({
         ? [selectedFolderData]
         : []),
     ];
+    if (folderId && folderId !== "unsorted") {
+      router.prefetch(`/${slug}/links?folderId=${folderId}`);
+    }
 
     return [
       ...allFolders.map((folder) => ({
@@ -178,7 +179,11 @@ export const FolderDropdown = ({
             setSelectedFolder(folder);
             onFolderSelect
               ? onFolderSelect(folder)
-              : router.push(`/${slug}/links?folderId=${folder.id}`);
+              : queryParams({
+                  ...(folder.id === "unsorted"
+                    ? { del: "folderId" }
+                    : { set: { folderId: folder.id } }),
+                });
           }
         }}
         inputRight={

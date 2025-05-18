@@ -1,4 +1,5 @@
 import { FolderDropdown } from "@/ui/folders/folder-dropdown";
+import { InfoTooltip, SimpleTooltipContent } from "@dub/ui";
 import { useFormContext, useWatch } from "react-hook-form";
 import { LinkFormData } from "../link-builder-provider";
 
@@ -10,6 +11,15 @@ export function LinkBuilderFolderSelector() {
     <div>
       <div className="mb-1 flex items-center gap-2">
         <h2 className="text-sm font-medium text-neutral-700">Folder</h2>
+        <InfoTooltip
+          content={
+            <SimpleTooltipContent
+              title="Use folders to organize and manage access to your links."
+              cta="Learn more"
+              href="https://dub.co/help/article/link-folders"
+            />
+          }
+        />
       </div>
       <FolderDropdown
         variant="input"

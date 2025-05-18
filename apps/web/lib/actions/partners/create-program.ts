@@ -13,7 +13,7 @@ import { generateRandomString, nanoid, R2_URL } from "@dub/utils";
 import { Program, Project, User } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 
-// Create a new program from the onboarding data
+// Create a program from the onboarding data
 export const createProgram = async ({
   workspace,
   user,
@@ -40,6 +40,9 @@ export const createProgram = async ({
     partners,
     rewardful,
     linkStructure,
+    supportEmail,
+    helpUrl,
+    termsUrl,
     logo: uploadedLogo,
   } = programDataSchema.parse(store.programOnboarding);
 
@@ -78,6 +81,9 @@ export const createProgram = async ({
       url,
       defaultFolderId: programFolder.id,
       linkStructure,
+      supportEmail,
+      helpUrl,
+      termsUrl,
       ...(type &&
         amount && {
           rewards: {
@@ -138,6 +144,7 @@ export const createProgram = async ({
           id: workspace.id,
         },
         data: {
+          defaultProgramId: program.id,
           foldersUsage: {
             increment: 1,
           },
