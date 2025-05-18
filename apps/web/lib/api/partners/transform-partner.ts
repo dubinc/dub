@@ -5,6 +5,8 @@ import {
 import { getPrettyUrl } from "@dub/utils";
 import { z } from "zod";
 
+// TODO: This is nice to have but ideally response types should be the same
+// across all partners endpoints, so we're not using this for now.
 export const transformPartner = (
   partner:
     | z.infer<typeof EnrolledPartnerSchema>
