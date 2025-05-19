@@ -7,10 +7,10 @@ import { cn } from "@dub/utils/src";
 import { flightRouterStateSchema } from "next/dist/server/app-render/types";
 import { ReactNode, useId } from "react";
 import { Controller } from "react-hook-form";
-import { useProgramBrandingForm } from "./branding-form";
+import { useBrandingFormContext } from "./branding-form";
 
 export function BrandingSettingsForm() {
-  const { control } = useProgramBrandingForm();
+  const { control } = useBrandingFormContext();
 
   return (
     <div>

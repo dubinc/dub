@@ -11,7 +11,7 @@ import {
   useState,
 } from "react";
 import { useForm } from "react-hook-form";
-import { BrandingFormData, useProgramBrandingForm } from "./branding-form";
+import { BrandingFormData, useBrandingFormContext } from "../branding-form";
 
 type EditHeroModalProps = {
   showEditHeroModal: boolean;
@@ -35,7 +35,7 @@ function EditHeroModalInner({ setShowEditHeroModal }: EditHeroModalProps) {
   const { program } = useProgram();
 
   const { getValues: getValuesParent, setValue: setValueParent } =
-    useProgramBrandingForm();
+    useBrandingFormContext();
 
   const {
     register,

@@ -9,7 +9,7 @@ import {
   ProgramWithLanderDataProps,
 } from "@/lib/types";
 import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
-import { useEditHeroModal } from "@/ui/partners/design/edit-hero-modal";
+import { useEditHeroModal } from "@/ui/partners/design/modals/edit-hero-modal";
 import { PreviewWindow } from "@/ui/partners/design/preview-window";
 import { BLOCK_COMPONENTS } from "@/ui/partners/lander-blocks";
 import { LanderHero } from "@/ui/partners/lander-hero";
@@ -44,14 +44,14 @@ import {
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
-import { useAddBlockModal } from "./add-block-modal";
 import { BrandingSettingsForm } from "./branding-settings-form";
+import { useAddBlockModal } from "./modals/add-block-modal";
 
 export type BrandingFormData = {
   landerData: z.infer<typeof programLanderSchema>;
 } & Pick<ProgramProps, "logo" | "wordmark" | "brandColor">;
 
-export function useProgramBrandingForm() {
+export function useBrandingFormContext() {
   return useFormContext<BrandingFormData>();
 }
 
@@ -159,7 +159,7 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrolled = useScroll(0, { container: scrollRef });
 
-  const { control, setValue } = useProgramBrandingForm();
+  const { control, setValue } = useBrandingFormContext();
   const [landerData, brandColor, logo, wordmark] = useWatch({
     control,
     name: ["landerData", "brandColor", "logo", "wordmark"],
