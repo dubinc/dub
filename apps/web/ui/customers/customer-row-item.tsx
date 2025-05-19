@@ -34,7 +34,7 @@ export function CustomerRowItem({
         className,
       )}
     >
-      <div className="flex items-center gap-3 truncate" title={display}>
+      <div className="flex items-center gap-2 truncate" title={display}>
         <img
           alt={display}
           src={customer.avatar || `${OG_AVATAR_URL}${customer.id}`}
