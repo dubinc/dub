@@ -1,4 +1,4 @@
-import { markAsFraudOrCancelAction } from "@/lib/actions/partners/mark-as-fraud-or-cancel";
+import { markAsFraudOrCancelAction } from "@/lib/actions/partners/mark-as-fraud-or-canceled";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse } from "@/lib/types";
