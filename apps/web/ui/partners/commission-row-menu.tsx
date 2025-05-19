@@ -6,6 +6,7 @@ import { Button, Icon, Popover, useCopyToClipboard } from "@dub/ui";
 import {
   CircleCheck,
   CircleHalfDottedClock,
+  CircleXmark,
   Dots,
   Duplicate,
   InvoiceDollar,
@@ -19,16 +20,21 @@ import { useAction } from "next-safe-action/hooks";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useMarkAsFraudModal } from "./mark-as-fraud-modal";
+import { useMarkAsFraudOrCanceledModal } from "./mark-as-fraud-or-canceled-modal";
 
 export function CommissionRowMenu({ row }: { row: Row<CommissionResponse> }) {
   const { id: workspaceId } = useWorkspace();
   const [isOpen, setIsOpen] = useState(false);
   const { programId } = useParams() as { programId: string };
+  const [commissionStatus, setCommissionStatus] = useState<
+    "fraud" | "canceled"
+  >("fraud");
 
-  const { setShowMarkAsFraudModal, MarkAsFraudModal } = useMarkAsFraudModal({
-    commission: row.original,
-  });
+  const { setShowModal, MarkAsFraudOrCanceledModal } =
+    useMarkAsFraudOrCanceledModal({
+      commission: row.original,
+      status: commissionStatus,
+    });
 
   const { executeAsync } = useAction(updateCommissionStatusAction, {
     onSuccess: async () => {
@@ -62,7 +68,7 @@ export function CommissionRowMenu({ row }: { row: Row<CommissionResponse> }) {
 
   return (
     <>
-      <MarkAsFraudModal />
+      <MarkAsFraudOrCanceledModal />
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
@@ -70,7 +76,9 @@ export function CommissionRowMenu({ row }: { row: Row<CommissionResponse> }) {
           <Command tabIndex={0} loop className="pointer-events-auto">
             <Command.List className="flex w-screen flex-col gap-1 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[180px]">
               <Command.Group className="p-1.5">
-                {["duplicate", "fraud"].includes(row.original.status) ? (
+                {["duplicate", "fraud", "canceled"].includes(
+                  row.original.status,
+                ) ? (
                   <MenuItem
                     icon={CircleHalfDottedClock}
                     label="Mark as pending"
@@ -95,7 +103,19 @@ export function CommissionRowMenu({ row }: { row: Row<CommissionResponse> }) {
                       icon={ShieldAlert}
                       label="Mark as fraud"
                       onSelect={() => {
-                        setShowMarkAsFraudModal(true);
+                        setCommissionStatus("fraud");
+                        setShowModal(true);
+                        setIsOpen(false);
+                      }}
+                      disabled={isPaid}
+                    />
+
+                    <MenuItem
+                      icon={CircleXmark}
+                      label="Mark as canceled"
+                      onSelect={() => {
+                        setCommissionStatus("canceled");
+                        setShowModal(true);
                         setIsOpen(false);
                       }}
                       disabled={isPaid}

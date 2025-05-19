@@ -91,9 +91,11 @@ export const createPartnerCommission = async ({
         }
       }
 
-      // Mark all future commissions as fraud if the first commission is fraud
-      if (firstCommission.status === "fraud") {
-        status = "fraud";
+      if (
+        firstCommission.status === "fraud" ||
+        firstCommission.status === "canceled"
+      ) {
+        status = firstCommission.status;
       }
     }
   }

@@ -4,18 +4,19 @@ import { prisma } from "@dub/prisma";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
 
-const markAsFraudSchema = z.object({
+const markAsFraudOrCancelSchema = z.object({
   workspaceId: z.string(),
   programId: z.string(),
   commissionId: z.string(),
+  status: z.enum(["fraud", "canceled"]),
 });
 
-// Mark a commission as fraud for a partner + customer for all historical commissions
-export const markAsFraudAction = authActionClient
-  .schema(markAsFraudSchema)
+// Mark a commission as fraud or canceled for a partner + customer for all historical commissions
+export const markAsFraudOrCancelAction = authActionClient
+  .schema(markAsFraudOrCancelSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { programId, commissionId } = parsedInput;
+    const { programId, commissionId, status } = parsedInput;
 
     if (programId !== workspace.defaultProgramId) {
       throw new Error("Program not found.");
@@ -99,7 +100,7 @@ export const markAsFraudAction = authActionClient
         },
       },
       data: {
-        status: "fraud",
+        status,
         payoutId: null,
       },
     });

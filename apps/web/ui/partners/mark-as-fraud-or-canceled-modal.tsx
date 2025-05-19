@@ -1,4 +1,4 @@
-import { markAsFraudAction } from "@/lib/actions/partners/mark-as-fraud";
+import { markAsFraudOrCancelAction } from "@/lib/actions/partners/mark-as-fraud-or-cancel";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse } from "@/lib/types";
@@ -13,43 +13,44 @@ import { CommissionStatusBadges } from "./commission-status-badges";
 import { CommissionTypeBadge } from "./commission-type-badge";
 import { PartnerRowItem } from "./partner-row-item";
 
-interface MarkAsFraudModalProps {
-  showMarkAsFraudModal: boolean;
-  setShowMarkAsFraudModal: (show: boolean) => void;
+interface ModalProps {
+  showModal: boolean;
+  setShowModal: (show: boolean) => void;
   commission: CommissionResponse;
+  status: "fraud" | "canceled";
 }
 
-function MarkAsFraudModal({
-  showMarkAsFraudModal,
-  setShowMarkAsFraudModal,
+function MarkAsFraudOrCanceledModal({
+  showModal,
+  setShowModal,
   commission,
-}: MarkAsFraudModalProps) {
+  status,
+}: ModalProps) {
   return (
-    <Modal
-      showModal={showMarkAsFraudModal}
-      setShowModal={setShowMarkAsFraudModal}
-    >
-      <MarkAsFraudModalInner
-        setShowMarkAsFraudModal={setShowMarkAsFraudModal}
+    <Modal showModal={showModal} setShowModal={setShowModal}>
+      <ModalInner
+        setShowModal={setShowModal}
         commission={commission}
+        status={status}
       />
     </Modal>
   );
 }
 
-function MarkAsFraudModalInner({
-  setShowMarkAsFraudModal,
+function ModalInner({
+  setShowModal,
   commission,
-}: Omit<MarkAsFraudModalProps, "showMarkAsFraudModal">) {
+  status,
+}: Omit<ModalProps, "showModal">) {
   const { id: workspaceId } = useWorkspace();
   const { programId } = useParams<{ programId: string }>();
 
   const { executeAsync, isExecuting, hasSucceeded } = useAction(
-    markAsFraudAction,
+    markAsFraudOrCancelAction,
     {
       onSuccess: () => {
-        toast.success("Commission marked as fraud successfully!");
-        setShowMarkAsFraudModal(false);
+        toast.success(`Commission marked as ${status} successfully!`);
+        setShowModal(false);
         mutatePrefix(
           `/api/commissions?workspaceId=${workspaceId}&programId=${programId}`,
         );
@@ -113,7 +114,7 @@ function MarkAsFraudModalInner({
     <>
       <div className="space-y-2 border-b border-neutral-200 p-4 sm:p-6">
         <h3 className="text-lg font-medium leading-none">
-          Mark commission as fraud
+          Mark commission as {status}
         </h3>
       </div>
 
@@ -121,7 +122,7 @@ function MarkAsFraudModalInner({
         <div className="rounded-lg border border-red-200 bg-red-50 p-4">
           <div className="text-sm text-red-900">
             <span className="font-bold">Warning:</span> This will mark all
-            future and past commissions from this partner as fraud. Please
+            future and past commissions from this partner as {status}. Please
             proceed with caution.
           </div>
         </div>
@@ -144,7 +145,7 @@ function MarkAsFraudModalInner({
 
       <div className="flex items-center justify-between border-t border-neutral-200 bg-neutral-50 px-4 py-5 sm:px-6">
         <Button
-          onClick={() => setShowMarkAsFraudModal(false)}
+          onClick={() => setShowModal(false)}
           variant="secondary"
           text="Cancel"
           className="h-8 w-fit px-3"
@@ -160,12 +161,13 @@ function MarkAsFraudModalInner({
               workspaceId,
               programId,
               commissionId: commission.id,
+              status,
             });
           }}
           autoFocus
           variant="danger"
           loading={isExecuting || hasSucceeded}
-          text="Mark as fraud"
+          text={`Mark as ${status}`}
           className="h-8 w-fit px-3"
         />
       </div>
@@ -173,28 +175,31 @@ function MarkAsFraudModalInner({
   );
 }
 
-export function useMarkAsFraudModal({
+export function useMarkAsFraudOrCanceledModal({
   commission,
+  status,
 }: {
   commission: CommissionResponse;
+  status: "fraud" | "canceled";
 }) {
-  const [showMarkAsFraudModal, setShowMarkAsFraudModal] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
-  const MarkAsFraudModalCallback = useCallback(() => {
+  const ModalCallback = useCallback(() => {
     return (
-      <MarkAsFraudModal
-        showMarkAsFraudModal={showMarkAsFraudModal}
-        setShowMarkAsFraudModal={setShowMarkAsFraudModal}
+      <MarkAsFraudOrCanceledModal
+        showModal={showModal}
+        setShowModal={setShowModal}
         commission={commission}
+        status={status}
       />
     );
-  }, [showMarkAsFraudModal, setShowMarkAsFraudModal, commission]);
+  }, [showModal, setShowModal, commission, status]);
 
   return useMemo(
     () => ({
-      setShowMarkAsFraudModal,
-      MarkAsFraudModal: MarkAsFraudModalCallback,
+      setShowModal,
+      MarkAsFraudOrCanceledModal: ModalCallback,
     }),
-    [setShowMarkAsFraudModal, MarkAsFraudModalCallback],
+    [setShowModal, ModalCallback],
   );
 }
