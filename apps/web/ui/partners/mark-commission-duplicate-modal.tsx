@@ -113,10 +113,11 @@ function ModalInner({
       </div>
 
       <div className="flex flex-col space-y-6 bg-neutral-50 p-6">
-        <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
-          <div className="text-sm text-yellow-900">
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+          <div className="text-sm text-red-900">
             <span className="font-bold">Warning:</span> This will mark the
             commission as duplicate and remove it from any upcoming payouts.
+            This action cannot be undone.
           </div>
         </div>
 

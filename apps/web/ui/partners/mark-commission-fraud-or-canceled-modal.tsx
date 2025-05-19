@@ -123,8 +123,8 @@ function ModalInner({
         <div className="rounded-lg border border-red-200 bg-red-50 p-4">
           <div className="text-sm text-red-900">
             <span className="font-bold">Warning:</span> This will mark all
-            future and past commissions from this partner as {status}. Please
-            proceed with caution.
+            future and past commissions from this partner as {status}. This
+            action cannot be undone – please proceed with caution.
           </div>
         </div>
 
