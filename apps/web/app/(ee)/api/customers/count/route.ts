@@ -23,12 +23,16 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
                 { name: { startsWith: search } },
               ],
             }),
-            ...(country && {
-              country,
-            }),
-            ...(linkId && {
-              linkId,
-            }),
+            // only filter by country if not grouping by country
+            ...(country &&
+              groupBy !== "country" && {
+                country,
+              }),
+            // only filter by linkId if not grouping by linkId
+            ...(linkId &&
+              groupBy !== "linkId" && {
+                linkId,
+              }),
           }),
   };
 

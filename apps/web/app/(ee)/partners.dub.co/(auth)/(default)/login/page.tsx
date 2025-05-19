@@ -34,7 +34,7 @@ export default async function LoginPage({
       <p className="mt-4 text-center text-sm text-neutral-500">
         Don't have an account?&nbsp;
         <Link
-          href="register"
+          href={`${programSlug ? `/${programSlug}` : ""}/register`}
           className="font-semibold text-neutral-500 underline underline-offset-2 transition-colors hover:text-black"
         >
           Sign up
