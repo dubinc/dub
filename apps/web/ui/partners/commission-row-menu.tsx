@@ -41,7 +41,7 @@ export function CommissionRowMenu({ row }: { row: Row<CommissionResponse> }) {
   const showUpdateActions =
     row.original.status === "pending" || row.original.status === "processed";
 
-  console.log("row.original.invoiceId", row.original.invoiceId);
+// Removed unnecessary console.log statement to avoid leaking internal state.
 
   if (!showUpdateActions && !row.original.invoiceId) {
     return null;
