@@ -4,7 +4,7 @@ import { prisma } from "@dub/prisma";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
 
-const markAsFraudOrCanceledSchema = z.object({
+const markCommissionFraudOrCanceledSchema = z.object({
   workspaceId: z.string(),
   programId: z.string(),
   commissionId: z.string(),
@@ -12,8 +12,8 @@ const markAsFraudOrCanceledSchema = z.object({
 });
 
 // Mark a commission as fraud or canceled for a partner + customer for all historical commissions
-export const markAsFraudOrCanceledAction = authActionClient
-  .schema(markAsFraudOrCanceledSchema)
+export const markCommissionFraudOrCanceledAction = authActionClient
+  .schema(markCommissionFraudOrCanceledSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
     const { programId, commissionId, status } = parsedInput;

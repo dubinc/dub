@@ -168,7 +168,7 @@ const CommissionTableInner = memo(
             );
           },
         },
-        // Menu
+        // Menu (only show if is pending or processed status)
         {
           id: "menu",
           enableHiding: false,

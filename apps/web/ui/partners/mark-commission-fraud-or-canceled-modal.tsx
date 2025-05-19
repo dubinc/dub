@@ -1,4 +1,4 @@
-import { markAsFraudOrCanceledAction } from "@/lib/actions/partners/mark-as-fraud-or-canceled";
+import { markCommissionFraudOrCanceledAction } from "@/lib/actions/partners/mark-commission-fraud-or-canceled";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse } from "@/lib/types";
@@ -20,7 +20,7 @@ interface ModalProps {
   status: "fraud" | "canceled";
 }
 
-function MarkAsFraudOrCanceledModal({
+function MarkCommissionFraudOrCanceledModal({
   showModal,
   setShowModal,
   commission,
@@ -46,12 +46,15 @@ function ModalInner({
   const { programId } = useParams<{ programId: string }>();
 
   const { executeAsync, isExecuting, hasSucceeded } = useAction(
-    markAsFraudOrCanceledAction,
+    markCommissionFraudOrCanceledAction,
     {
-      onSuccess: () => {
+      onSuccess: async () => {
         toast.success(`Commission marked as ${status} successfully!`);
+        await mutatePrefix([
+          "/api/commissions",
+          `/api/programs/${programId}/payouts`,
+        ]);
         setShowModal(false);
-        mutatePrefix("/api/commissions");
       },
       onError: () => {
         toast.error("Failed to update commission status.");
@@ -173,7 +176,7 @@ function ModalInner({
   );
 }
 
-export function useMarkAsFraudOrCanceledModal({
+export function useMarkCommissionFraudOrCanceledModal({
   commission,
   status,
 }: {
@@ -184,7 +187,7 @@ export function useMarkAsFraudOrCanceledModal({
 
   const ModalCallback = useCallback(() => {
     return (
-      <MarkAsFraudOrCanceledModal
+      <MarkCommissionFraudOrCanceledModal
         showModal={showModal}
         setShowModal={setShowModal}
         commission={commission}
@@ -196,7 +199,7 @@ export function useMarkAsFraudOrCanceledModal({
   return useMemo(
     () => ({
       setShowModal,
-      MarkAsFraudOrCanceledModal: ModalCallback,
+      MarkCommissionFraudOrCanceledModal: ModalCallback,
     }),
     [setShowModal, ModalCallback],
   );

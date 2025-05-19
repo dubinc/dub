@@ -2,23 +2,21 @@
 
 import { DubApiError } from "@/lib/api/errors";
 import { prisma } from "@dub/prisma";
-import { CommissionStatus } from "@dub/prisma/client";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
 
-const updateCommissionStatusSchema = z.object({
+const markCommissionDuplicateSchema = z.object({
   workspaceId: z.string(),
   programId: z.string(),
   commissionId: z.string(),
-  status: z.enum([CommissionStatus.duplicate, CommissionStatus.pending]),
 });
 
 // Mark a sale as duplicate or fraud or pending
-export const updateCommissionStatusAction = authActionClient
-  .schema(updateCommissionStatusSchema)
+export const markCommissionDuplicateAction = authActionClient
+  .schema(markCommissionDuplicateSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { programId, commissionId, status } = parsedInput;
+    const { programId, commissionId } = parsedInput;
 
     if (programId !== workspace.defaultProgramId) {
       throw new DubApiError({
@@ -44,11 +42,11 @@ export const updateCommissionStatusAction = authActionClient
     }
 
     if (commission.status === "paid") {
-      throw new Error("You cannot update the status of a paid sale.");
+      throw new Error("You cannot mark a paid commission as duplicate.");
     }
 
     // there is a payout associated with this sale
-    // we need to update the payout amount if the sale is being marked as duplicate or fraud
+    // we need to update the payout amount if the sale is being marked as duplicate
     if (commission.payout) {
       const earnings = commission.earnings;
       const revisedAmount = commission.payout.amount - earnings;
@@ -68,7 +66,7 @@ export const updateCommissionStatusAction = authActionClient
         id: commission.id,
       },
       data: {
-        status,
+        status: "duplicate",
         payoutId: null,
       },
     });
