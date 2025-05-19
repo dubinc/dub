@@ -1,4 +1,4 @@
-import { markAsFraudOrCancelAction } from "@/lib/actions/partners/mark-as-fraud-or-canceled";
+import { markAsFraudOrCanceledAction } from "@/lib/actions/partners/mark-as-fraud-or-canceled";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse } from "@/lib/types";
@@ -46,7 +46,7 @@ function ModalInner({
   const { programId } = useParams<{ programId: string }>();
 
   const { executeAsync, isExecuting, hasSucceeded } = useAction(
-    markAsFraudOrCancelAction,
+    markAsFraudOrCanceledAction,
     {
       onSuccess: () => {
         toast.success(`Commission marked as ${status} successfully!`);
