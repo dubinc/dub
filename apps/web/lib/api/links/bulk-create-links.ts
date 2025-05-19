@@ -33,7 +33,7 @@ export async function bulkCreateLinks({
   const hasWebhooks = checkIfLinksHaveWebhooks(links);
 
   // Create a map of shortLinks to their original indices at the start
-  let shortLinkToIndexMap = new Map(
+  const shortLinkToIndexMap = new Map(
     links.map((link, index) => {
       const key = encodeKeyIfCaseSensitive({
         domain: link.domain,
