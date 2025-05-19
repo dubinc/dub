@@ -1,5 +1,5 @@
 import { prisma } from "@dub/prisma";
-import { EventType } from "@dub/prisma/client";
+import { CommissionStatus, EventType } from "@dub/prisma/client";
 import { log } from "@dub/utils";
 import { differenceInMonths } from "date-fns";
 import { createId } from "../api/create-id";
@@ -51,9 +51,9 @@ export const createPartnerCommission = async ({
     }
   }
 
-  // handle sale rewards that have a max duration limit
-  if (reward.event === "sale" && typeof reward.maxDuration === "number") {
-    // Get the first commission (earliest sale) for this customer-partner pair
+  let status: CommissionStatus = "pending";
+
+  if (event === "sale") {
     const firstCommission = await prisma.commission.findFirst({
       where: {
         partnerId,
@@ -66,24 +66,34 @@ export const createPartnerCommission = async ({
     });
 
     if (firstCommission) {
-      if (reward.maxDuration === 0) {
-        console.log(
-          `Partner ${partnerId} is only eligible for first-sale commissions, skipping commission creation...`,
-        );
-        return;
-      } else {
-        // Calculate months difference between first commission and now
-        const monthsDifference = differenceInMonths(
-          new Date(),
-          firstCommission.createdAt,
-        );
-
-        if (monthsDifference >= reward.maxDuration) {
+      if (typeof reward.maxDuration === "number") {
+        // One-time sale reward
+        if (reward.maxDuration === 0) {
           console.log(
-            `Partner ${partnerId} has reached max duration for ${event} event, skipping commission creation...`,
+            `Partner ${partnerId} is only eligible for first-sale commissions, skipping commission creation...`,
           );
           return;
         }
+
+        // Recurring sale reward
+        else {
+          const monthsDifference = differenceInMonths(
+            new Date(),
+            firstCommission.createdAt,
+          );
+
+          if (monthsDifference >= reward.maxDuration) {
+            console.log(
+              `Partner ${partnerId} has reached max duration for ${event} event, skipping commission creation...`,
+            );
+            return;
+          }
+        }
+      }
+
+      // Mark all future commissions as fraud if the first commission is fraud
+      if (firstCommission.status === "fraud") {
+        status = "fraud";
       }
     }
   }
@@ -145,6 +155,7 @@ export const createPartnerCommission = async ({
         type: event,
         currency,
         earnings,
+        status,
         createdAt,
       },
     });
