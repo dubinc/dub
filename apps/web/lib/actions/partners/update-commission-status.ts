@@ -10,11 +10,7 @@ const updateCommissionStatusSchema = z.object({
   workspaceId: z.string(),
   programId: z.string(),
   commissionId: z.string(),
-  status: z.enum([
-    CommissionStatus.duplicate,
-    CommissionStatus.fraud,
-    CommissionStatus.pending,
-  ]), // We might want to support other statuses in the future
+  status: z.enum([CommissionStatus.duplicate, CommissionStatus.pending]),
 });
 
 // Mark a sale as duplicate or fraud or pending

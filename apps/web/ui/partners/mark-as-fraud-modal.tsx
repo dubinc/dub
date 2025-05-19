@@ -1,4 +1,4 @@
-import { updateCommissionStatusAction } from "@/lib/actions/partners/update-commission-status";
+import { markAsFraudAction } from "@/lib/actions/partners/mark-as-fraud";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse } from "@/lib/types";
@@ -45,7 +45,7 @@ function MarkAsFraudModalInner({
   const { programId } = useParams<{ programId: string }>();
 
   const { executeAsync, isExecuting, hasSucceeded } = useAction(
-    updateCommissionStatusAction,
+    markAsFraudAction,
     {
       onSuccess: () => {
         toast.success("Commission marked as fraud successfully!");
@@ -160,7 +160,6 @@ function MarkAsFraudModalInner({
               workspaceId,
               programId,
               commissionId: commission.id,
-              status: "fraud",
             });
           }}
           autoFocus
