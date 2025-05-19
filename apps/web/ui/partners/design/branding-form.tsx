@@ -45,7 +45,7 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
 import { BrandingSettingsForm } from "./branding-settings-form";
-import { useAddBlockModal } from "./modals/add-block-modal";
+import { AddBlockModal } from "./modals/add-block-modal";
 
 export type BrandingFormData = {
   landerData: z.infer<typeof programLanderSchema>;
@@ -184,12 +184,17 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
   );
 
   const { setShowEditHeroModal, EditHeroModal } = useEditHeroModal();
-  const { setShowAddBlockModal, AddBlockModal } = useAddBlockModal();
+
+  const [addBlockIndex, setAddBlockIndex] = useState<number | null>(null);
 
   return (
     <>
       <EditHeroModal />
-      <AddBlockModal />
+      <AddBlockModal
+        addIndex={addBlockIndex ?? 0}
+        showAddBlockModal={addBlockIndex !== null}
+        setShowAddBlockModal={(show) => !show && setAddBlockIndex(null)}
+      />
       <PreviewWindow
         url={`${PARTNERS_DOMAIN}/${program?.slug}`}
         scrollRef={scrollRef}
@@ -320,14 +325,14 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
                       <div className="absolute inset-x-0 top-0 z-10 hidden group-first:block">
                         <div className="pointer-events-auto absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                           <AddBlockButton
-                            onClick={() => setShowAddBlockModal(true)}
+                            onClick={() => setAddBlockIndex(idx)}
                           />
                         </div>
                       </div>
                       <div className="absolute inset-x-0 bottom-0 z-10">
                         <div className="pointer-events-auto absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                           <AddBlockButton
-                            onClick={() => setShowAddBlockModal(true)}
+                            onClick={() => setAddBlockIndex(idx + 1)}
                           />
                         </div>
                       </div>

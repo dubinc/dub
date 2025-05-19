@@ -1,19 +1,18 @@
 "use client";
 
+import { programLanderTextBlockSchema } from "@/lib/zod/schemas/program-lander";
 import { Button, Modal, useEnterSubmit, useMediaQuery } from "@dub/ui";
 import { Dispatch, SetStateAction, useId } from "react";
 import { useForm } from "react-hook-form";
+import { z } from "zod";
 
-type TextBlockFormData = {
-  title: string;
-  content: string;
-};
+type TextBlockData = z.infer<typeof programLanderTextBlockSchema>["data"];
 
 type TextBlockModalProps = {
   showModal: boolean;
   setShowModal: Dispatch<SetStateAction<boolean>>;
-  defaultValues?: Partial<TextBlockFormData>;
-  onSubmit: (data: TextBlockFormData) => void;
+  defaultValues?: Partial<TextBlockData>;
+  onSubmit: (data: TextBlockData) => void;
 };
 
 export function TextBlockModal(props: TextBlockModalProps) {
@@ -31,7 +30,7 @@ function TextBlockModalInner({
 }: TextBlockModalProps) {
   const id = useId();
   const { isMobile } = useMediaQuery();
-  const { handleSubmit, register } = useForm<TextBlockFormData>({
+  const { handleSubmit, register } = useForm<TextBlockData>({
     defaultValues,
   });
 

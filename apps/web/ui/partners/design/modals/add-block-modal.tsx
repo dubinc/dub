@@ -1,15 +1,11 @@
 "use client";
 
+import { programLanderBlockSchema } from "@/lib/zod/schemas/program-lander";
 import { Modal } from "@dub/ui";
-import {
-  Dispatch,
-  Fragment,
-  SetStateAction,
-  useCallback,
-  useMemo,
-  useState,
-} from "react";
+import { Dispatch, Fragment, SetStateAction, useState } from "react";
 import { useWatch } from "react-hook-form";
+import { v4 as uuid } from "uuid";
+import { z } from "zod";
 import { useBrandingFormContext } from "../branding-form";
 import { AccordionBlockThumbnail } from "./accordion-block-modal";
 import { FilesBlockThumbnail } from "./files-block-modal";
@@ -19,9 +15,10 @@ import { TextBlockModal, TextBlockThumbnail } from "./text-block-modal";
 type AddBlockModalProps = {
   showAddBlockModal: boolean;
   setShowAddBlockModal: Dispatch<SetStateAction<boolean>>;
+  addIndex: number;
 };
 
-function AddBlockModal(props: AddBlockModalProps) {
+export function AddBlockModal(props: AddBlockModalProps) {
   return (
     <Modal
       showModal={props.showAddBlockModal}
@@ -32,7 +29,13 @@ function AddBlockModal(props: AddBlockModalProps) {
   );
 }
 
-const Blocks = [
+const Blocks: {
+  id: z.infer<typeof programLanderBlockSchema>["type"];
+  label: string;
+  description: string;
+  modal: React.ComponentType<any>;
+  thumbnail: React.ReactNode;
+}[] = [
   {
     id: "text",
     label: "Text",
@@ -61,9 +64,12 @@ const Blocks = [
     modal: TextBlockModal,
     thumbnail: <AccordionBlockThumbnail />,
   },
-] as const;
+];
 
-function AddBlockModalInner({ setShowAddBlockModal }: AddBlockModalProps) {
+function AddBlockModalInner({
+  setShowAddBlockModal,
+  addIndex,
+}: AddBlockModalProps) {
   const [modalState, setModalState] = useState<
     null | "text" | "image" | "files" | "accordion"
   >(null);
@@ -91,7 +97,15 @@ function AddBlockModalInner({ setShowAddBlockModal }: AddBlockModalProps) {
                   )
                 }
                 onSubmit={(data) => {
-                  alert("added block");
+                  setValue(
+                    `landerData.blocks`,
+                    [
+                      ...landerData.blocks.slice(0, addIndex),
+                      { type: block.id, id: uuid(), data },
+                      ...landerData.blocks.slice(addIndex),
+                    ],
+                    { shouldDirty: true },
+                  );
                   setModalState(null);
                   setShowAddBlockModal(false);
                 }}
@@ -120,26 +134,5 @@ function AddBlockModalInner({ setShowAddBlockModal }: AddBlockModalProps) {
         </div>
       </div>
     </>
-  );
-}
-
-export function useAddBlockModal() {
-  const [showAddBlockModal, setShowAddBlockModal] = useState(false);
-
-  const AddBlockModalCallback = useCallback(() => {
-    return (
-      <AddBlockModal
-        showAddBlockModal={showAddBlockModal}
-        setShowAddBlockModal={setShowAddBlockModal}
-      />
-    );
-  }, [showAddBlockModal, setShowAddBlockModal]);
-
-  return useMemo(
-    () => ({
-      setShowAddBlockModal,
-      AddBlockModal: AddBlockModalCallback,
-    }),
-    [setShowAddBlockModal, AddBlockModalCallback],
   );
 }
