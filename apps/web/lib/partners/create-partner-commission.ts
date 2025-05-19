@@ -66,6 +66,8 @@ export const createPartnerCommission = async ({
     });
 
     if (firstCommission) {
+      // for reward types with a max duration, we need to check if the first commission is within the max duration
+      // if its beyond the max duration, we should not create a new commission
       if (typeof reward.maxDuration === "number") {
         // One-time sale reward
         if (reward.maxDuration === 0) {
@@ -91,6 +93,7 @@ export const createPartnerCommission = async ({
         }
       }
 
+      // if first commission is fraud or canceled, we should not create a new commission
       if (
         firstCommission.status === "fraud" ||
         firstCommission.status === "canceled"
