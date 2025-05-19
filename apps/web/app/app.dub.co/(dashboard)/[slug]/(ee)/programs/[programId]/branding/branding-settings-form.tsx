@@ -1,5 +1,6 @@
 "use client";
 
+import { useBrandingFormContext } from "@/ui/partners/design/branding-form";
 import { ProgramColorPicker } from "@/ui/partners/program-color-picker";
 import { FileUpload } from "@dub/ui";
 import { Plus } from "@dub/ui/icons";
@@ -7,10 +8,9 @@ import { cn } from "@dub/utils/src";
 import { flightRouterStateSchema } from "next/dist/server/app-render/types";
 import { ReactNode, useId } from "react";
 import { Controller } from "react-hook-form";
-import { useProgramBrandingForm } from "./page-client";
 
 export function BrandingSettingsForm() {
-  const { control } = useProgramBrandingForm();
+  const { control } = useBrandingFormContext();
 
   return (
     <div>
