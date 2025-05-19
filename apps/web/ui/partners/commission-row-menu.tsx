@@ -13,7 +13,7 @@ import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useMarkCommissionDuplicateModal } from "./mark-commission-duplicate";
+import { useMarkCommissionDuplicateModal } from "./mark-commission-duplicate-modal";
 import { useMarkCommissionFraudOrCanceledModal } from "./mark-commission-fraud-or-canceled-modal";
 
 export function CommissionRowMenu({ row }: { row: Row<CommissionResponse> }) {
