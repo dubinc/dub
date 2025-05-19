@@ -19,11 +19,16 @@ import { useAction } from "next-safe-action/hooks";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useMarkAsFraudModal } from "./mark-as-fraud-modal";
 
 export function CommissionRowMenu({ row }: { row: Row<CommissionResponse> }) {
   const { id: workspaceId } = useWorkspace();
-  const { programId } = useParams() as { programId: string };
   const [isOpen, setIsOpen] = useState(false);
+  const { programId } = useParams() as { programId: string };
+
+  const { setShowMarkAsFraudModal, MarkAsFraudModal } = useMarkAsFraudModal({
+    commission: row.original,
+  });
 
   const { executeAsync } = useAction(updateCommissionStatusAction, {
     onSuccess: async () => {
@@ -34,10 +39,11 @@ export function CommissionRowMenu({ row }: { row: Row<CommissionResponse> }) {
     },
   });
 
-  const updateStatus = (status: "pending" | "duplicate" | "fraud") => {
+  const updateStatus = (status: "pending" | "duplicate") => {
     toast.promise(
       executeAsync({
         workspaceId: workspaceId!,
+        programId,
         commissionId: row.original.id,
         status,
       }),
@@ -55,84 +61,88 @@ export function CommissionRowMenu({ row }: { row: Row<CommissionResponse> }) {
   const [copiedInvoiceId, copyInvoiceIdToClipboard] = useCopyToClipboard();
 
   return (
-    <Popover
-      openPopover={isOpen}
-      setOpenPopover={setIsOpen}
-      content={
-        <Command tabIndex={0} loop className="pointer-events-auto">
-          <Command.List className="flex w-screen flex-col gap-1 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[180px]">
-            <Command.Group className="p-1.5">
-              {["duplicate", "fraud"].includes(row.original.status) ? (
-                <MenuItem
-                  icon={CircleHalfDottedClock}
-                  label="Mark as pending"
-                  onSelect={() => {
-                    updateStatus("pending");
-                    setIsOpen(false);
-                  }}
-                />
-              ) : (
-                <>
+    <>
+      <MarkAsFraudModal />
+      <Popover
+        openPopover={isOpen}
+        setOpenPopover={setIsOpen}
+        content={
+          <Command tabIndex={0} loop className="pointer-events-auto">
+            <Command.List className="flex w-screen flex-col gap-1 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[180px]">
+              <Command.Group className="p-1.5">
+                {["duplicate", "fraud"].includes(row.original.status) ? (
                   <MenuItem
-                    icon={Duplicate}
-                    label="Mark as duplicate"
+                    icon={CircleHalfDottedClock}
+                    label="Mark as pending"
                     onSelect={() => {
-                      updateStatus("duplicate");
+                      updateStatus("pending");
                       setIsOpen(false);
                     }}
-                    disabled={isPaid}
                   />
-                  <MenuItem
-                    icon={ShieldAlert}
-                    label="Mark as fraud"
-                    onSelect={() => {
-                      updateStatus("fraud");
-                      setIsOpen(false);
-                    }}
-                    disabled={isPaid}
-                  />
-                </>
-              )}
-            </Command.Group>
-            {row.original.invoiceId && (
-              <>
-                <Command.Separator className="w-full border-t border-neutral-200" />
-                <Command.Group className="p-1.5">
-                  {row.original.customer?.externalId && (
+                ) : (
+                  <>
                     <MenuItem
-                      icon={copiedCustomerId ? CircleCheck : User}
-                      label="Copy customer ID"
+                      icon={Duplicate}
+                      label="Mark as duplicate"
                       onSelect={() => {
-                        copyCustomerIdToClipboard(
-                          row.original.customer!.externalId!, // can safely assert cause we check for externalId above
-                        );
-                        toast.success("Customer ID copied to clipboard");
+                        updateStatus("duplicate");
+                        setIsOpen(false);
+                      }}
+                      disabled={isPaid}
+                    />
+
+                    <MenuItem
+                      icon={ShieldAlert}
+                      label="Mark as fraud"
+                      onSelect={() => {
+                        setShowMarkAsFraudModal(true);
+                        setIsOpen(false);
+                      }}
+                      disabled={isPaid}
+                    />
+                  </>
+                )}
+              </Command.Group>
+              {row.original.invoiceId && (
+                <>
+                  <Command.Separator className="w-full border-t border-neutral-200" />
+                  <Command.Group className="p-1.5">
+                    {row.original.customer?.externalId && (
+                      <MenuItem
+                        icon={copiedCustomerId ? CircleCheck : User}
+                        label="Copy customer ID"
+                        onSelect={() => {
+                          copyCustomerIdToClipboard(
+                            row.original.customer!.externalId!, // can safely assert cause we check for externalId above
+                          );
+                          toast.success("Customer ID copied to clipboard");
+                        }}
+                      />
+                    )}
+                    <MenuItem
+                      icon={copiedInvoiceId ? CircleCheck : InvoiceDollar}
+                      label="Copy invoice ID"
+                      onSelect={() => {
+                        copyInvoiceIdToClipboard(row.original.invoiceId!);
+                        toast.success("Invoice ID copied to clipboard");
                       }}
                     />
-                  )}
-                  <MenuItem
-                    icon={copiedInvoiceId ? CircleCheck : InvoiceDollar}
-                    label="Copy invoice ID"
-                    onSelect={() => {
-                      copyInvoiceIdToClipboard(row.original.invoiceId!);
-                      toast.success("Invoice ID copied to clipboard");
-                    }}
-                  />
-                </Command.Group>
-              </>
-            )}
-          </Command.List>
-        </Command>
-      }
-      align="end"
-    >
-      <Button
-        type="button"
-        className="h-8 whitespace-nowrap px-2"
-        variant="outline"
-        icon={<Dots className="h-4 w-4 shrink-0" />}
-      />
-    </Popover>
+                  </Command.Group>
+                </>
+              )}
+            </Command.List>
+          </Command>
+        }
+        align="end"
+      >
+        <Button
+          type="button"
+          className="h-8 whitespace-nowrap px-2"
+          variant="outline"
+          icon={<Dots className="h-4 w-4 shrink-0" />}
+        />
+      </Popover>
+    </>
   );
 }
 

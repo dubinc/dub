@@ -30,8 +30,6 @@ export default function useCustomersCount<T = number>({
     },
   );
 
-  console.log({ data });
-
   return {
     data,
     error,

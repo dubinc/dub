@@ -1,5 +1,6 @@
 "use server";
 
+import { DubApiError } from "@/lib/api/errors";
 import { prisma } from "@dub/prisma";
 import { CommissionStatus } from "@dub/prisma/client";
 import { z } from "zod";
@@ -7,6 +8,7 @@ import { authActionClient } from "../safe-action";
 
 const updateCommissionStatusSchema = z.object({
   workspaceId: z.string(),
+  programId: z.string(),
   commissionId: z.string(),
   status: z.enum([
     CommissionStatus.duplicate,
@@ -20,33 +22,44 @@ export const updateCommissionStatusAction = authActionClient
   .schema(updateCommissionStatusSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { commissionId, status } = parsedInput;
+    const { programId, commissionId, status } = parsedInput;
 
-    const sale = await prisma.commission.findUniqueOrThrow({
+    if (programId !== workspace.defaultProgramId) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Program not found.",
+      });
+    }
+
+    const commission = await prisma.commission.findUniqueOrThrow({
       where: {
         id: commissionId,
-        program: {
-          workspaceId: workspace.id,
-        },
       },
       include: {
         payout: true,
       },
     });
 
-    if (sale.status === "paid") {
+    if (commission.programId !== programId) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Commission not found.",
+      });
+    }
+
+    if (commission.status === "paid") {
       throw new Error("You cannot update the status of a paid sale.");
     }
 
     // there is a payout associated with this sale
     // we need to update the payout amount if the sale is being marked as duplicate or fraud
-    if (sale.payout) {
-      const earnings = sale.earnings;
-      const revisedAmount = sale.payout.amount - earnings;
+    if (commission.payout) {
+      const earnings = commission.earnings;
+      const revisedAmount = commission.payout.amount - earnings;
 
       await prisma.payout.update({
         where: {
-          id: sale.payout.id,
+          id: commission.payout.id,
         },
         data: {
           amount: revisedAmount,
@@ -56,7 +69,7 @@ export const updateCommissionStatusAction = authActionClient
 
     await prisma.commission.update({
       where: {
-        id: sale.id,
+        id: commission.id,
       },
       data: {
         status,

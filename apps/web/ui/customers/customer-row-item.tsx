@@ -8,6 +8,7 @@ export function CustomerRowItem({
   customer,
   href,
   className,
+  avatarClassName,
   hideChartActivityOnHover = true,
 }: {
   customer: {
@@ -18,6 +19,7 @@ export function CustomerRowItem({
   };
   href?: string;
   className?: string;
+  avatarClassName?: string;
   hideChartActivityOnHover?: boolean;
 }) {
   const display = customer.email || customer.name || generateRandomName();
@@ -36,7 +38,10 @@ export function CustomerRowItem({
         <img
           alt={display}
           src={customer.avatar || `${OG_AVATAR_URL}${customer.id}`}
-          className="size-4 shrink-0 rounded-full border border-neutral-200"
+          className={cn(
+            "size-4 shrink-0 rounded-full border border-neutral-200",
+            avatarClassName,
+          )}
         />
         <span className="truncate">{display}</span>
       </div>
