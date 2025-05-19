@@ -51,9 +51,7 @@ function ModalInner({
       onSuccess: () => {
         toast.success(`Commission marked as ${status} successfully!`);
         setShowModal(false);
-        mutatePrefix(
-          `/api/commissions?workspaceId=${workspaceId}&programId=${programId}`,
-        );
+        mutatePrefix("/api/commissions");
       },
       onError: () => {
         toast.error("Failed to update commission status.");

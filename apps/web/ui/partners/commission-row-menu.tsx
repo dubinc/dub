@@ -8,7 +8,6 @@ import {
   CircleHalfDottedClock,
   CircleXmark,
   Dots,
-  Duplicate,
   InvoiceDollar,
   ShieldAlert,
   User,
@@ -89,16 +88,6 @@ export function CommissionRowMenu({ row }: { row: Row<CommissionResponse> }) {
                   />
                 ) : (
                   <>
-                    <MenuItem
-                      icon={Duplicate}
-                      label="Mark as duplicate"
-                      onSelect={() => {
-                        updateStatus("duplicate");
-                        setIsOpen(false);
-                      }}
-                      disabled={isPaid}
-                    />
-
                     <MenuItem
                       icon={ShieldAlert}
                       label="Mark as fraud"
