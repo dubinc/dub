@@ -169,6 +169,7 @@ function PartnerApproval({
   partner: EnrolledPartnerProps;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }) {
+  const { queryParams } = useRouterStuff();
   const { id: workspaceId } = useWorkspace();
   const { program } = useProgram();
 
@@ -181,13 +182,11 @@ function PartnerApproval({
   }, [selectedLinkId]);
 
   const { executeAsync, isPending } = useAction(approvePartnerAction, {
-    onSuccess() {
-      mutatePrefix(
-        `/api/partners?workspaceId=${workspaceId}&programId=${program!.id}`,
-      );
-
-      toast.success("Approved the partner successfully.");
+    onSuccess: async () => {
+      queryParams({ del: "partnerId" });
       setIsOpen(false);
+      await mutatePrefix("/api/partners");
+      toast.success("Approved the partner successfully.");
     },
     onError({ error }) {
       toast.error(error.serverError || "Failed to approve partner.");
@@ -273,6 +272,7 @@ function PartnerApproval({
                 return false;
               }}
               error={linkError}
+              optional
             />
           </div>
         </div>
@@ -284,18 +284,13 @@ function PartnerApproval({
             text="Approve"
             loading={isPending}
             onClick={async () => {
+              if (!program || !workspaceId) {
+                return;
+              }
+
               if (!isApproving) {
                 setIsApproving(true);
                 setLinkError(false);
-                return;
-              }
-
-              if (!selectedLinkId) {
-                setLinkError(true);
-                return;
-              }
-
-              if (!program) {
                 return;
               }
 
@@ -326,9 +321,7 @@ function PartnerRejectButton({
 
   const { executeAsync, isPending } = useAction(rejectPartnerAction, {
     onSuccess: async () => {
-      await mutatePrefix(
-        `/api/partners?workspaceId=${workspaceId}&programId=${program!.id}`,
-      );
+      await mutatePrefix("/api/partners");
 
       toast.success("Partner rejected successfully.");
       setIsOpen(false);

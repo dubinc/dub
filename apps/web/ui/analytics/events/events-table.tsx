@@ -1,9 +1,11 @@
 "use client";
 
 import { editQueryString } from "@/lib/analytics/utils";
-import { ClickEvent, Customer, LeadEvent, SaleEvent } from "@/lib/types";
-import { CustomerDetailsSheet } from "@/ui/partners/customer-details-sheet";
+import useWorkspace from "@/lib/swr/use-workspace";
+import { ClickEvent, LeadEvent, SaleEvent } from "@/lib/types";
+import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import EmptyState from "@/ui/shared/empty-state";
+import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import {
   CopyText,
   LinkLogo,
@@ -19,23 +21,24 @@ import {
   COUNTRIES,
   REGIONS,
   capitalize,
+  cn,
+  currencyFormatter,
   fetcher,
   getApexDomain,
   getPrettyUrl,
-  nFormatter,
 } from "@dub/utils";
 import { Cell, ColumnDef } from "@tanstack/react-table";
 import { Link2 } from "lucide-react";
-import { ReactNode, useContext, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { ReactNode, useContext, useEffect, useMemo } from "react";
 import useSWR from "swr";
 import { AnalyticsContext } from "../analytics-provider";
 import ContinentIcon from "../continent-icon";
 import DeviceIcon from "../device-icon";
-import { CustomerRowItem } from "./customer-row-item";
 import EditColumnsButton from "./edit-columns-button";
 import { EventsContext } from "./events-provider";
 import { EXAMPLE_EVENTS_DATA } from "./example-data";
-import FilterButton from "./filter-button";
 import { RowMenuButton } from "./row-menu-button";
 import { eventColumns, useColumnVisibility } from "./use-column-visibility";
 
@@ -54,6 +57,7 @@ export default function EventsTable({
   requiresUpgrade?: boolean;
   upgradeOverlay?: ReactNode;
 }) {
+  const { slug } = useWorkspace();
   const { searchParams, queryParams } = useRouterStuff();
   const { setExportQueryString } = useContext(EventsContext);
   const {
@@ -61,8 +65,10 @@ export default function EventsTable({
     queryString: originalQueryString,
     eventsApiPath,
     totalEvents,
+    partnerPage,
   } = useContext(AnalyticsContext);
 
+  const { programSlug } = useParams<{ programSlug: string }>();
   const { columnVisibility, setColumnVisibility } = useColumnVisibility();
 
   const sortBy = searchParams.get("sortBy") || "timestamp";
@@ -71,12 +77,61 @@ export default function EventsTable({
   const columns = useMemo<ColumnDef<EventDatum, any>[]>(
     () =>
       [
+        // Date
+        {
+          id: "timestamp",
+          header: "Date",
+          accessorFn: (d: { timestamp: string }) => new Date(d.timestamp),
+          enableHiding: false,
+          size: 160,
+          cell: ({ getValue }) => (
+            <Tooltip
+              content={getValue().toLocaleTimeString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                hour: "numeric",
+                minute: "numeric",
+                second: "numeric",
+                hour12: true,
+              })}
+            >
+              <div className="w-full truncate">
+                {getValue().toLocaleTimeString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  hour: "numeric",
+                  minute: "numeric",
+                  hour12: true,
+                })}
+              </div>
+            </Tooltip>
+          ),
+        },
+        // Sale amount
+        {
+          id: "saleAmount",
+          header: "Amount",
+          accessorKey: "sale.amount",
+          size: 120,
+          cell: ({ getValue }) => (
+            <div className="flex items-center gap-2">
+              <span>
+                {currencyFormatter(getValue() / 100, {
+                  maximumFractionDigits: undefined,
+                  // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
+                  trailingZeroDisplay: "stripIfInteger",
+                })}
+              </span>
+              <span className="text-neutral-400">USD</span>
+            </div>
+          ),
+        },
         // Click trigger
         {
           id: "trigger",
           header: "Event",
           accessorKey: "qr",
-          enableHiding: false,
           meta: {
             filterParams: ({ getValue }) => ({
               qr: !!getValue(),
@@ -107,7 +162,6 @@ export default function EventsTable({
           id: "event",
           header: "Event",
           accessorKey: "eventName",
-          enableHiding: false,
           cell: ({ getValue }) =>
             getValue() ? (
               <span className="truncate" title={getValue()}>
@@ -118,11 +172,35 @@ export default function EventsTable({
             ),
         },
         {
+          id: "customer",
+          header: "Customer",
+          accessorKey: "customer",
+          minSize: 300,
+          size: 300,
+          maxSize: 400,
+          cell: ({ getValue }) => (
+            <CustomerRowItem
+              customer={getValue()}
+              href={
+                partnerPage
+                  ? `/programs/${programSlug}/customers/${getValue().id}`
+                  : `/${slug}/customers/${getValue().id}`
+              }
+              className="px-4 py-2.5"
+            />
+          ),
+          meta: {
+            filterParams: ({ getValue }) => ({
+              customerId: getValue().id,
+            }),
+          },
+        },
+        {
           id: "link",
           header: "Link",
           accessorKey: "link",
-          minSize: 150,
-          size: 200,
+          minSize: 250,
+          size: 250,
           maxSize: 400,
           meta: {
             filterParams: ({ getValue }) => ({
@@ -130,32 +208,85 @@ export default function EventsTable({
               key: getValue().key,
             }),
           },
-          cell: ({ getValue }) => (
-            <div className="flex items-center gap-3">
-              <LinkLogo
-                apexDomain={getApexDomain(getValue().url)}
-                className="size-4 shrink-0 sm:size-4"
-              />
-              <CopyText
-                value={getValue().shortLink}
-                successMessage="Copied link to clipboard!"
-                className="truncate"
+          cell: ({ getValue }) => {
+            const content = (
+              <div
+                className={cn(
+                  "flex items-center gap-3",
+                  !partnerPage &&
+                    "cursor-alias decoration-dotted hover:underline",
+                )}
               >
+                <LinkLogo
+                  apexDomain={getApexDomain(getValue().url)}
+                  className="size-4 shrink-0 sm:size-4"
+                />
                 <span className="truncate" title={getValue().shortLink}>
                   {getPrettyUrl(getValue().shortLink)}
                 </span>
-              </CopyText>
+              </div>
+            );
+
+            return partnerPage ? (
+              content
+            ) : (
+              <Link
+                href={`/${slug}/links/${getValue().domain}/${getValue().key}`}
+                target="_blank"
+              >
+                {content}
+              </Link>
+            );
+          },
+        },
+        {
+          id: "referer",
+          header: "Referer",
+          accessorKey: "click.referer",
+          meta: {
+            filterParams: ({ getValue }) => ({ referer: getValue() }),
+          },
+          cell: ({ getValue }) => (
+            <div className="flex items-center gap-3" title={getValue()}>
+              {getValue() === "(direct)" ? (
+                <Link2 className="h-4 w-4" />
+              ) : (
+                <LinkLogo
+                  apexDomain={getValue()}
+                  className="size-4 shrink-0 sm:size-4"
+                />
+              )}
+              <span className="truncate">{getValue()}</span>
             </div>
           ),
         },
         {
-          id: "customer",
-          header: "Customer",
-          accessorKey: "customer",
-          minSize: 150,
-          size: 230,
-          maxSize: 400,
-          cell: ({ getValue }) => <CustomerRowItem customer={getValue()} />,
+          id: "refererUrl",
+          header: "Referrer URL",
+          accessorKey: "click.refererUrl",
+          meta: {
+            filterParams: ({ getValue }) => ({ refererUrl: getValue() }),
+          },
+          cell: ({ getValue }) => (
+            <div className="flex items-center gap-3">
+              {getValue() === "(direct)" ? (
+                <Link2 className="h-4 w-4" />
+              ) : (
+                <LinkLogo
+                  apexDomain={getApexDomain(getValue())}
+                  className="size-4 shrink-0 sm:size-4"
+                />
+              )}
+              <CopyText
+                value={getValue()}
+                successMessage="Copied referrer URL to clipboard!"
+              >
+                <span className="truncate" title={getValue()}>
+                  {getPrettyUrl(getValue())}
+                </span>
+              </CopyText>
+            </div>
+          ),
         },
         {
           id: "country",
@@ -299,131 +430,42 @@ export default function EventsTable({
             </div>
           ),
         },
-        {
-          id: "referer",
-          header: "Referer",
-          accessorKey: "click.referer",
-          meta: {
-            filterParams: ({ getValue }) => ({ referer: getValue() }),
-          },
-          cell: ({ getValue }) => (
-            <div className="flex items-center gap-3" title={getValue()}>
-              {getValue() === "(direct)" ? (
-                <Link2 className="h-4 w-4" />
-              ) : (
-                <LinkLogo
-                  apexDomain={getValue()}
-                  className="size-4 shrink-0 sm:size-4"
-                />
-              )}
-              <span className="truncate">{getValue()}</span>
-            </div>
-          ),
-        },
-        {
-          id: "refererUrl",
-          header: "Referrer URL",
-          accessorKey: "click.refererUrl",
-          meta: {
-            filterParams: ({ getValue }) => ({ refererUrl: getValue() }),
-          },
-          cell: ({ getValue }) => (
-            <div className="flex items-center gap-3">
-              {getValue() === "(direct)" ? (
-                <Link2 className="h-4 w-4" />
-              ) : (
-                <LinkLogo
-                  apexDomain={getApexDomain(getValue())}
-                  className="size-4 shrink-0 sm:size-4"
-                />
-              )}
-              <CopyText
-                value={getValue()}
-                successMessage="Copied referrer URL to clipboard!"
-              >
-                <span className="truncate" title={getValue()}>
-                  {getPrettyUrl(getValue())}
-                </span>
-              </CopyText>
-            </div>
-          ),
-        },
-        {
-          id: "ip",
-          header: "IP Address",
-          accessorKey: "click.ip",
-          cell: ({ getValue }) =>
-            getValue() ? (
-              <span className="truncate" title={getValue()}>
-                {getValue()}
-              </span>
-            ) : (
-              <Tooltip content="We do not record IP addresses for EU users.">
-                <span className="cursor-default truncate underline decoration-dotted">
-                  Unknown
-                </span>
-              </Tooltip>
-            ),
-        },
-        // Sale amount
-        {
-          id: "saleAmount",
-          header: "Sale Amount",
-          accessorKey: "sale.amount",
-          minSize: 120,
-          cell: ({ getValue }) => (
-            <div className="flex items-center gap-2">
-              <span>${nFormatter(getValue() / 100)}</span>
-              <span className="text-neutral-400">USD</span>
-            </div>
-          ),
-        },
-        // Sale invoice ID
-        {
-          id: "invoiceId",
-          header: "Invoice ID",
-          accessorKey: "sale.invoiceId",
-          maxSize: 200,
-          cell: ({ getValue }) =>
-            getValue() ? (
-              <span className="truncate" title={getValue()}>
-                {getValue()}
-              </span>
-            ) : (
-              <span className="text-neutral-400">-</span>
-            ),
-        },
-        // Date
-        {
-          id: "timestamp",
-          header: "Date",
-          accessorFn: (d: { timestamp: string }) => new Date(d.timestamp),
-          enableHiding: false,
-          minSize: 100,
-          cell: ({ getValue }) => (
-            <Tooltip
-              content={getValue().toLocaleTimeString("en-US", {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-                hour: "numeric",
-                minute: "numeric",
-                second: "numeric",
-                hour12: true,
-              })}
-            >
-              <div className="w-full truncate">
-                {getValue().toLocaleTimeString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  hour: "numeric",
-                  minute: "numeric",
-                  hour12: true,
-                })}
-              </div>
-            </Tooltip>
-          ),
-        },
+        ...(partnerPage
+          ? []
+          : [
+              {
+                id: "ip",
+                header: "IP Address",
+                accessorKey: "click.ip",
+                cell: ({ getValue }) =>
+                  getValue() ? (
+                    <span className="truncate" title={getValue()}>
+                      {getValue()}
+                    </span>
+                  ) : (
+                    <Tooltip content="We do not record IP addresses for EU users.">
+                      <span className="cursor-default truncate underline decoration-dotted">
+                        Unknown
+                      </span>
+                    </Tooltip>
+                  ),
+              },
+              // Sale invoice ID
+              {
+                id: "invoiceId",
+                header: "Invoice ID",
+                accessorKey: "sale.invoiceId",
+                maxSize: 200,
+                cell: ({ getValue }) =>
+                  getValue() ? (
+                    <span className="truncate" title={getValue()}>
+                      {getValue()}
+                    </span>
+                  ) : (
+                    <span className="text-neutral-400">-</span>
+                  ),
+              },
+            ]),
         // Menu
         {
           id: "menu",
@@ -443,7 +485,7 @@ export default function EventsTable({
           minSize: col.minSize || 100,
           maxSize: col.maxSize || 1000,
         })),
-    [tab],
+    [tab, partnerPage],
   );
 
   const { pagination, setPagination } = usePagination();
@@ -511,7 +553,12 @@ export default function EventsTable({
     cellRight: (cell) => {
       const meta = cell.column.columnDef.meta as ColumnMeta | undefined;
       return (
-        meta?.filterParams && <FilterButton set={meta.filterParams(cell)} />
+        meta?.filterParams && (
+          <FilterButtonTableRow
+            set={meta.filterParams(cell)}
+            className="bg-[linear-gradient(to_right,transparent,white_10%)]"
+          />
+        )
       );
     },
     tdClassName: (columnId) => (columnId === "customer" ? "p-0" : ""),
@@ -525,38 +572,8 @@ export default function EventsTable({
     resourceName: (plural) => `event${plural ? "s" : ""}`,
   });
 
-  const [customerDetailsSheet, setCustomerDetailsSheet] = useState<
-    | { open: false; customer: Customer | null }
-    | { open: true; customer: Customer }
-  >({ open: false, customer: null });
-
-  useEffect(() => {
-    const customerId = searchParams.get("customerId");
-    if (!data || data.every((d) => !("customer" in d))) return;
-    if (customerId) {
-      const customerEvent = data.find(
-        (d) => "customer" in d && d.customer?.id === customerId,
-      );
-      if (customerEvent && "customer" in customerEvent) {
-        setCustomerDetailsSheet({
-          open: true,
-          customer: customerEvent.customer,
-        });
-      }
-    }
-  }, [searchParams, data]);
-
   return (
     <>
-      {customerDetailsSheet.customer && (
-        <CustomerDetailsSheet
-          isOpen={customerDetailsSheet.open}
-          setIsOpen={(open) =>
-            setCustomerDetailsSheet((s) => ({ ...s, open }) as any)
-          }
-          customer={customerDetailsSheet.customer}
-        />
-      )}
       <Table
         {...tableProps}
         table={table}

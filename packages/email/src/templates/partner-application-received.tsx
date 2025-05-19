@@ -1,4 +1,4 @@
-import { DICEBEAR_AVATAR_URL, DUB_WORDMARK } from "@dub/utils";
+import { DUB_WORDMARK, OG_AVATAR_URL } from "@dub/utils";
 import {
   Body,
   Container,
@@ -54,7 +54,7 @@ export function PartnerApplicationReceived({
     slug: string;
   };
 }) {
-  const applicationUrl = `https://app.dub.co/${workspace.slug}/programs/${program.id}/partners?partnerId=${partner.id}`;
+  const applicationUrl = `https://app.dub.co/${workspace.slug}/programs/${program.id}/partners?status=pending&partnerId=${partner.id}`;
 
   return (
     <Html>
@@ -67,7 +67,7 @@ export function PartnerApplicationReceived({
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
             <Section className="mb-8 mt-6">
-              <Img src={DUB_WORDMARK} width="65" height="32" alt="dub" />
+              <Img src={DUB_WORDMARK} width="61" height="32" alt="dub" />
             </Section>
 
             <Heading className="mx-0 p-0 text-lg font-medium text-neutral-800">
@@ -92,10 +92,7 @@ export function PartnerApplicationReceived({
                   <div>
                     <div className="relative w-fit">
                       <Img
-                        src={
-                          partner.image ||
-                          `${DICEBEAR_AVATAR_URL}${partner.name}`
-                        }
+                        src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
                         width="48"
                         height="48"
                         alt={partner.name}
@@ -151,7 +148,7 @@ export function PartnerApplicationReceived({
                   <Section className="mt-8 text-center">
                     <Link
                       href={applicationUrl}
-                      className="box-border block w-full rounded-md bg-black px-0 py-4 text-center text-sm font-medium leading-none text-white no-underline"
+                      className="box-border block w-full rounded-lg bg-black px-0 py-4 text-center text-sm font-semibold leading-none text-white no-underline"
                     >
                       Review application on Dub
                     </Link>

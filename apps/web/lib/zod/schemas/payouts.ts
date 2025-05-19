@@ -1,6 +1,4 @@
-import { intervals } from "@/lib/analytics/constants";
-import { parseDateSchema } from "@/lib/zod/schemas/utils";
-import { PayoutStatus, PayoutType } from "@dub/prisma/client";
+import { PayoutStatus } from "@dub/prisma/client";
 import { z } from "zod";
 import { getPaginationQuerySchema } from "./misc";
 import { PartnerSchema, PAYOUTS_MAX_PAGE_SIZE } from "./partners";
@@ -28,14 +26,11 @@ export const payoutsQuerySchema = z
     partnerId: z.string().optional(),
     programId: z.string().optional(),
     invoiceId: z.string().optional(),
+    eligibility: z.enum(["eligible", "ineligible"]).optional(),
     sortBy: z
       .enum(["createdAt", "periodStart", "amount", "paidAt"])
-      .default("createdAt"),
+      .default("amount"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
-    type: z.nativeEnum(PayoutType).optional(),
-    interval: z.enum(intervals).default("all"),
-    start: parseDateSchema.optional(),
-    end: parseDateSchema.optional(),
   })
   .merge(getPaginationQuerySchema({ pageSize: PAYOUTS_MAX_PAGE_SIZE }));
 
@@ -44,14 +39,12 @@ export const payoutsCountQuerySchema = payoutsQuerySchema
     status: true,
     programId: true,
     partnerId: true,
-    interval: true,
-    start: true,
-    end: true,
+    eligibility: true,
+    invoiceId: true,
   })
   .merge(
     z.object({
       groupBy: z.enum(["status"]).optional(),
-      eligibility: z.enum(["eligible"]).optional(),
     }),
   );
 
@@ -61,11 +54,9 @@ export const PayoutSchema = z.object({
   amount: z.number(),
   currency: z.string(),
   status: z.nativeEnum(PayoutStatus),
-  type: z.nativeEnum(PayoutType),
   description: z.string().nullish(),
   periodStart: z.date().nullable(),
   periodEnd: z.date().nullable(),
-  quantity: z.number().nullable(),
   createdAt: z.date(),
   paidAt: z.date().nullable(),
 });
@@ -73,7 +64,13 @@ export const PayoutSchema = z.object({
 export const PayoutResponseSchema = PayoutSchema.merge(
   z.object({
     partner: PartnerSchema,
-    _count: z.object({ commissions: z.number() }),
+    user: z
+      .object({
+        id: z.string(),
+        name: z.string().nullable(),
+        image: z.string().nullable(),
+      })
+      .nullish(),
   }),
 );
 

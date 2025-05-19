@@ -1,53 +1,76 @@
+import { ElementType } from "react";
 import {
   Book2Fill,
   BulletListFill,
-  ConnectedDotsFill,
-  CubeSettingsFill,
+  DiamondTurnRightFill,
+  DubAnalyticsIcon,
+  DubLinksIcon,
+  DubPartnersIcon,
   FeatherFill,
   Github,
   Go,
   HeadsetFill,
   HeartFill,
   HexadecagonStar,
-  Hyperlink,
-  LinesY,
   LinkedIn,
+  MicrophoneFill,
   Php,
   ProductHunt,
   Python,
   Raycast,
   Ruby,
+  Toggle2Fill,
   Twitter,
   Typescript,
+  UsersFill,
   YouTube,
 } from "./icons";
+import { DubApiIcon } from "./icons/dub-api";
 import { Elxo } from "./icons/elxo";
-import { Logo } from "./logo";
+
+export type NavItemChild = {
+  title: string;
+  description?: string;
+  href: string;
+  icon: ElementType;
+  iconClassName?: string;
+};
+
+export type NavItemChildren = (
+  | NavItemChild
+  | { label: string; items: NavItemChild[] }
+)[];
 
 export const FEATURES_LIST = [
   {
     title: "Dub Links",
     description: "Short links with superpowers",
-    icon: Hyperlink,
+    icon: DubLinksIcon,
     href: "/home",
+  },
+  {
+    title: "Dub Partners",
+    description: "Grow your revenue with partnerships",
+    icon: DubPartnersIcon,
+    href: "/partners",
   },
   {
     title: "Dub Analytics",
     description: "Powerful real-time analytics",
-    icon: LinesY,
+    icon: DubAnalyticsIcon,
     href: "/analytics",
   },
   {
     title: "Dub API",
     description: "Programmatic link creation at scale",
-    icon: CubeSettingsFill,
+    icon: DubApiIcon,
     href: "/docs/api-reference/introduction",
   },
   {
     title: "Dub Integrations",
     description: "Connect Dub with your favorite tools",
-    icon: ConnectedDotsFill,
-    href: "/docs/integrations",
+    icon: Toggle2Fill,
+    href: "/integrations",
   },
 ];
 
@@ -80,34 +103,59 @@ export const SDKS = [
     icon: Typescript,
     iconClassName: "py-0.5 group-hover:text-[#3178C6]",
     title: "Typescript",
-    href: "/solutions/typescript",
+    href: "/sdks/typescript",
   },
   {
     icon: Python,
     iconClassName:
       "py-0.5 [&_.snake]:transition-colors group-hover:[&_.snake1]:text-[#3776ab] group-hover:[&_.snake2]:text-[#ffd343]",
     title: "Python",
-    href: "/solutions/python",
+    href: "/sdks/python",
   },
   {
     icon: Go,
     iconClassName: "group-hover:text-[#00ACD7]",
     title: "Go",
-    href: "/solutions/go",
+    href: "/sdks/go",
   },
   {
     icon: Ruby,
     iconClassName:
       "py-[3px] grayscale brightness-150 transition-[filter] group-hover:grayscale-0 group-hover:brightness-100",
     title: "Ruby",
-    href: "/solutions/ruby",
+    href: "/sdks/ruby",
   },
   {
     icon: Php,
     iconClassName:
       "py-[3px] grayscale brightness-150 transition-[filter] group-hover:grayscale-0 group-hover:brightness-100",
     title: "PHP",
-    href: "/solutions/php",
+    href: "/sdks/php",
+  },
+];
+
+export const SOLUTIONS: NavItemChildren = [
+  {
+    icon: DiamondTurnRightFill,
+    title: "Marketing Attribution",
+    description: "Easily track and measure marketing impact",
+    href: "/analytics",
+  },
+  {
+    icon: MicrophoneFill,
+    title: "Content Creators",
+    description: "Intelligent audience insights and link tracking",
+    href: "/solutions/creators",
+  },
+  {
+    icon: UsersFill,
+    title: "Affiliate Management",
+    description: "Manage affiliates and automate payouts",
+    href: "/partners",
+  },
+  {
+    label: "SDKs",
+    items: SDKS,
   },
 ];
 
@@ -125,18 +173,9 @@ export const RESOURCES = [
     href: "/help",
   },
   {
-    icon: HexadecagonStar,
-    title: "Dub Brand",
-    description: "Logos, wordmark, etc.",
-    href: "/brand",
-  },
-];
-
-export const COMPANY = [
-  {
-    icon: Logo,
+    icon: HeartFill,
     title: "About",
-    description: "Company and team",
+    description: "Company, values, and team",
     href: "/about",
   },
   {
@@ -152,10 +191,10 @@ export const COMPANY = [
     href: "/changelog",
   },
   {
-    icon: HeartFill,
-    title: "Customers",
-    description: "Success stories and use cases",
-    href: "/customers",
+    icon: HexadecagonStar,
+    title: "Dub Brand",
+    description: "Logos, wordmark, etc.",
+    href: "/brand",
   },
 ];
 

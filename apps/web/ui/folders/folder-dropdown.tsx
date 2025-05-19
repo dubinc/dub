@@ -5,12 +5,12 @@ import useFolders from "@/lib/swr/use-folders";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderSummary } from "@/lib/types";
 import { FOLDERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/folders";
-import { Button, Combobox, TooltipContent } from "@dub/ui";
+import { Button, Combobox, TooltipContent, useRouterStuff } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { ChevronsUpDown } from "lucide-react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 import { useAddFolderModal } from "../modals/add-folder-modal";
 import { FolderIcon } from "./folder-icon";
@@ -22,8 +22,10 @@ interface FolderDropdownProps {
   hideFolderIcon?: boolean;
   buttonClassName?: string;
   buttonTextClassName?: string;
+  iconClassName?: string;
   disableAutoRedirect?: boolean; // decide if we should auto redirect to the folder after it's created
   selectedFolderId?: string;
+  loadingPlaceholder?: ReactNode;
 }
 
 export const FolderDropdown = ({
@@ -33,12 +35,14 @@ export const FolderDropdown = ({
   hideFolderIcon = false,
   buttonClassName,
   buttonTextClassName,
+  iconClassName,
   disableAutoRedirect = false,
   selectedFolderId,
+  loadingPlaceholder,
 }: FolderDropdownProps) => {
   const router = useRouter();
   const { slug, plan, defaultFolderId } = useWorkspace();
-  const searchParams = useSearchParams();
+  const { searchParams, queryParams } = useRouterStuff();
 
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
@@ -70,6 +74,7 @@ export const FolderDropdown = ({
 
   const { folder: selectedFolderData } = useFolder({
     folderId,
+    enabled: !!folderId,
   });
 
   const { AddFolderModal, setShowAddFolderModal } = useAddFolderModal({
@@ -78,11 +83,9 @@ export const FolderDropdown = ({
       onFolderSelect?.(folder);
 
       if (!disableAutoRedirect) {
-        if (folder.id !== "unsorted") {
-          router.push(`/${slug}?folderId=${folder.id}`);
-        } else {
-          router.push(`/${slug}`);
-        }
+        router.push(
+          `/${slug}/links${folderId && folderId !== "unsorted" ? `?folderId=${folder.id}` : ""}`,
+        );
       }
     },
   });
@@ -110,6 +113,9 @@ export const FolderDropdown = ({
         ? [selectedFolderData]
         : []),
     ];
+    if (folderId && folderId !== "unsorted") {
+      router.prefetch(`/${slug}/links?folderId=${folderId}`);
+    }
 
     return [
       ...allFolders.map((folder) => ({
@@ -153,7 +159,8 @@ export const FolderDropdown = ({
   }, [selectedFolder]);
 
   if (folderId && folderId !== "unsorted" && !selectedFolderData) {
-    return <FolderSwitcherPlaceholder />;
+    // if (true) {
+    return loadingPlaceholder ?? <FolderSwitcherPlaceholder />;
   }
 
   return (
@@ -172,7 +179,11 @@ export const FolderDropdown = ({
             setSelectedFolder(folder);
             onFolderSelect
               ? onFolderSelect(folder)
-              : router.push(`/${slug}?folderId=${folder.id}`);
+              : queryParams({
+                  ...(folder.id === "unsorted"
+                    ? { del: "folderId" }
+                    : { set: { folderId: folder.id } }),
+                });
           }
         }}
         inputRight={
@@ -194,6 +205,7 @@ export const FolderDropdown = ({
               folder={selectedFolder}
               shape="square"
               className="hidden md:block"
+              iconClassName={iconClassName}
             />
           ) : undefined
         }
@@ -211,7 +223,7 @@ export const FolderDropdown = ({
           className: cn(
             "group flex items-center gap-2 rounded-lg px-2 py-1 w-fit",
             variant === "inline" && "border-none !ring-0",
-            "transition-colors hover:bg-neutral-100 active:bg-neutral-200 data-[state=open]:bg-neutral-100",
+            "transition-all hover:bg-neutral-100 active:bg-neutral-200 data-[state=open]:bg-neutral-100",
             buttonClassName,
           ),
           textWrapperClassName: cn(

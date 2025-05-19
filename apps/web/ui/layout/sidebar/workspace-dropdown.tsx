@@ -10,7 +10,7 @@ import {
   useScrollProgress,
 } from "@dub/ui";
 import { Book2, Check2, Plus } from "@dub/ui/icons";
-import { cn, DICEBEAR_AVATAR_URL } from "@dub/utils";
+import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { ChevronsUpDown, HelpCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -47,8 +47,7 @@ export function WorkspaceDropdown() {
       return {
         ...selectedWorkspace,
         image:
-          selectedWorkspace.logo ||
-          `${DICEBEAR_AVATAR_URL}${selectedWorkspace.name}`,
+          selectedWorkspace.logo || `${OG_AVATAR_URL}${selectedWorkspace.name}`,
       };
 
       // return personal account selector if there's no workspace or error (user doesn't have access to workspace)
@@ -170,9 +169,8 @@ function WorkspaceList({
   setOpenPopover: (open: boolean) => void;
 }) {
   const { setShowAddWorkspaceModal } = useContext(ModalContext);
-  const { domain, key, programId } = useParams() as {
-    domain?: string;
-    key?: string;
+  const { link, programId } = useParams() as {
+    link: string | string[];
     programId?: string;
   };
   const pathname = usePathname();
@@ -182,15 +180,18 @@ function WorkspaceList({
 
   const href = useCallback(
     (slug: string) => {
-      if (domain || key || programId || selected.slug === "/") {
-        // if we're on a link or program page, navigate back to the workspace root
+      if (link || selected.slug === "/") {
+        // if we're on a link page, navigate back to the workspace root
         return `/${slug}`;
+      } else if (programId) {
+        // if we're on a program page, navigate to the program page
+        return `/${slug}/programs`;
       } else {
         // else, we keep the path but remove all query params
         return pathname?.replace(selected.slug, slug).split("?")[0] || "/";
       }
     },
-    [domain, key, programId, pathname, selected.slug],
+    [link, programId, pathname, selected.slug],
   );
 
   return (
@@ -240,7 +241,7 @@ function WorkspaceList({
                   onClick={() => setOpenPopover(false)}
                 >
                   <BlurImage
-                    src={logo || `${DICEBEAR_AVATAR_URL}${name}`}
+                    src={logo || `${OG_AVATAR_URL}${name}`}
                     width={28}
                     height={28}
                     alt={id}

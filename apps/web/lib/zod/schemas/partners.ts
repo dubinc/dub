@@ -22,12 +22,6 @@ export const exportPartnerColumns = [
   { id: "email", label: "Email", default: true },
   { id: "country", label: "Country", default: true },
   { id: "status", label: "Status", default: true },
-  {
-    id: "payoutsEnabledAt",
-    label: "Payouts enabled at",
-    default: false,
-  },
-  { id: "createdAt", label: "Enrolled at", default: true },
   { id: "createdAt", label: "Enrolled at", default: true },
   { id: "description", label: "Description", default: false },
   { id: "clicks", label: "Clicks", default: false },
@@ -112,41 +106,96 @@ export const partnerInvitesQuerySchema = getPaginationQuerySchema({
 });
 
 export const PartnerOnlinePresenceSchema = z.object({
-  website: z.string().nullable(),
+  website: z
+    .string()
+    .nullable()
+    .describe("The partner's website URL (including the https protocol)."),
   websiteTxtRecord: z.string().nullable(),
   websiteVerifiedAt: z.date().nullable(),
-  youtube: z.string().nullable(),
+  youtube: z
+    .string()
+    .nullable()
+    .describe("The partner's YouTube channel username (e.g. `johndoe`)."),
   youtubeVerifiedAt: z.date().nullable(),
-  twitter: z.string().nullable(),
+  twitter: z
+    .string()
+    .nullable()
+    .describe("The partner's Twitter username (e.g. `johndoe`)."),
   twitterVerifiedAt: z.date().nullable(),
-  linkedin: z.string().nullable(),
+  linkedin: z
+    .string()
+    .nullable()
+    .describe("The partner's LinkedIn username (e.g. `johndoe`)."),
   linkedinVerifiedAt: z.date().nullable(),
-  instagram: z.string().nullable(),
+  instagram: z
+    .string()
+    .nullable()
+    .describe("The partner's Instagram username (e.g. `johndoe`)."),
   instagramVerifiedAt: z.date().nullable(),
-  tiktok: z.string().nullable(),
+  tiktok: z
+    .string()
+    .nullable()
+    .describe("The partner's TikTok username (e.g. `johndoe`)."),
   tiktokVerifiedAt: z.date().nullable(),
 });
 
 export const PartnerSchema = z
   .object({
-    id: z.string(),
-    name: z.string(),
-    companyName: z.string().nullable(),
-    profileType: z.nativeEnum(PartnerProfileType),
-    email: z.string().nullable(),
-    image: z.string().nullable(),
-    description: z.string().nullish(),
-    country: z.string().nullable(),
-    status: z.nativeEnum(PartnerStatus),
-    stripeConnectId: z.string().nullable(),
-    payoutsEnabledAt: z.date().nullable(),
-
-    createdAt: z.date(),
-    updatedAt: z.date(),
+    id: z.string().describe("The partner's unique ID on Dub."),
+    name: z.string().max(190).describe("The partner's full legal name."),
+    companyName: z
+      .string()
+      .max(190)
+      .nullable()
+      .describe(
+        "If the partner profile type is a company, this is the partner's legal company name.",
+      ),
+    profileType: z
+      .nativeEnum(PartnerProfileType)
+      .describe("The partner's profile type on Dub."),
+    email: z
+      .string()
+      .max(190)
+      .nullable()
+      .describe(
+        "The partner's email address. Should be a unique value across Dub.",
+      ),
+    image: z.string().nullable().describe("The partner's avatar image."),
+    description: z
+      .string()
+      .max(1000)
+      .nullish()
+      .describe("A brief description of the partner and their background."),
+    country: z
+      .string()
+      .nullable()
+      .describe("The partner's country (required for tax purposes)."),
+    status: z
+      .nativeEnum(PartnerStatus)
+      .describe("The partner's verification status on Dub."),
+    stripeConnectId: z
+      .string()
+      .nullable()
+      .describe(
+        "The partner's Stripe Connect ID (for receiving payouts via Stripe).",
+      ),
+    paypalEmail: z
+      .string()
+      .nullable()
+      .describe(
+        "The partner's PayPal email (for receiving payouts via PayPal).",
+      ),
+    payoutsEnabledAt: z
+      .date()
+      .nullable()
+      .describe("The date when the partner enabled payouts."),
+    createdAt: z
+      .date()
+      .describe("The date when the partner was created on Dub."),
   })
   .merge(PartnerOnlinePresenceSchema);
 
-// Used externally by GET+POST /api/partners and partner.created webhook
+// Used externally by GET+POST /api/partners and partner.enrolled webhook
 export const EnrolledPartnerSchema = PartnerSchema.pick({
   id: true,
   name: true,
@@ -154,6 +203,14 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
   image: true,
   description: true,
   country: true,
+  website: true,
+  youtube: true,
+  twitter: true,
+  linkedin: true,
+  instagram: true,
+  tiktok: true,
+  paypalEmail: true,
+  stripeConnectId: true,
   payoutsEnabledAt: true,
   createdAt: true,
 })
@@ -166,14 +223,38 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
     }),
   )
   .extend({
-    clicks: z.number().default(0),
-    leads: z.number().default(0),
-    sales: z.number().default(0),
-    saleAmount: z.number().default(0),
-    earnings: z.number().default(0),
+    clicks: z
+      .number()
+      .default(0)
+      .describe("The total number of clicks on the partner's links."),
+    leads: z
+      .number()
+      .default(0)
+      .describe("The total number of leads generated by the partner's links."),
+    sales: z
+      .number()
+      .default(0)
+      .describe("The total number of sales generated by the partner's links."),
+    saleAmount: z
+      .number()
+      .default(0)
+      .describe(
+        "The total amount of sales (in cents) generated by the partner's links.",
+      ),
+    earnings: z
+      .number()
+      .default(0)
+      .describe(
+        "The total earnings/commissions accrued by the partner's links.",
+      ),
   })
   .extend({
-    applicationId: z.string().nullish(),
+    applicationId: z
+      .string()
+      .nullish()
+      .describe(
+        "If the partner submitted an application to join the program, this is the ID of the application.",
+      ),
   });
 
 // Used internally in the Dub dashboard for partners table
@@ -194,13 +275,8 @@ export const EnrolledPartnerSchemaWithExpandedFields =
 
 export const LeaderboardPartnerSchema = z.object({
   id: z.string(),
-  name: z.string().transform((name) => {
-    const parts = name.trim().split(/\s+/);
-    if (parts.length < 2) return name; // Return original if single word
-    const firstName = parts[0];
-    const lastInitial = parts[parts.length - 1][0];
-    return `${firstName} ${lastInitial}.`;
-  }),
+  name: z.string(),
+  image: z.string(),
   clicks: z.number().default(0),
   leads: z.number().default(0),
   sales: z.number().default(0),
@@ -444,7 +520,7 @@ export const invitePartnerSchema = z.object({
   programId: z.string(),
   name: z.string().trim().min(1).max(100),
   email: z.string().trim().email().min(1).max(100),
-  linkId: z.string(),
+  linkId: z.string().optional(),
   rewardId: z.string().optional(),
   discountId: z.string().optional(),
 });
@@ -460,3 +536,25 @@ export const banPartnerSchema = z.object({
     ],
   ),
 });
+
+export const approvePartnerSchema = z.object({
+  workspaceId: z.string(),
+  programId: z.string(),
+  partnerId: z.string(),
+  linkId: z.string().nullable(),
+});
+
+export const retrievePartnerLinksSchema = z
+  .object({
+    programId: z.string(),
+    partnerId: z.string().optional(),
+    tenantId: z.string().optional(),
+  })
+  .refine(
+    (data) => data.partnerId !== undefined || data.tenantId !== undefined,
+    {
+      message:
+        "Either partnerId or tenantId must be provided to retrieve a partner.",
+      path: [],
+    },
+  );

@@ -1,5 +1,6 @@
 import { qstash } from "@/lib/cron";
-import { isStored, storage } from "@/lib/storage";
+import { getPartnerAndDiscount } from "@/lib/planetscale/get-partner-discount";
+import { isNotHostedImage, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { ProcessedLinkProps } from "@/lib/types";
 import { propagateWebhookTriggerChanges } from "@/lib/webhook/update-webhook";
@@ -16,6 +17,7 @@ import { waitUntil } from "@vercel/functions";
 import { createId } from "../create-id";
 import { DubApiError } from "../errors";
 import { combineTagIds } from "../tags/combine-tag-ids";
+import { scheduleABTestCompletion } from "./ab-test-scheduler";
 import { linkCache } from "./cache";
 import { encodeKeyIfCaseSensitive } from "./case-sensitivity";
 import { includeTags } from "./include-tags";
@@ -33,6 +35,9 @@ export async function createLink(link: ProcessedLinkProps) {
     proxy,
     geo,
     publicStats,
+    testVariants,
+    testStartedAt,
+    testCompletedAt,
   } = link;
 
   const combinedTagIds = combineTagIds(link);
@@ -59,7 +64,7 @@ export async function createLink(link: ProcessedLinkProps) {
         title: truncate(title, 120),
         description: truncate(description, 240),
         // if it's an uploaded image, make this null first because we'll update it later
-        image: proxy && image && !isStored(image) ? null : image,
+        image: proxy && image && isNotHostedImage(image) ? null : image,
         utm_source,
         utm_medium,
         utm_campaign,
@@ -67,6 +72,10 @@ export async function createLink(link: ProcessedLinkProps) {
         utm_content,
         expiresAt: expiresAt ? new Date(expiresAt) : null,
         geo: geo || Prisma.JsonNull,
+
+        testVariants: testVariants || Prisma.JsonNull,
+        testCompletedAt: testCompletedAt ? new Date(testCompletedAt) : null,
+        testStartedAt: testStartedAt ? new Date(testStartedAt) : null,
 
         // Associate tags by tagNames
         ...(tagNames?.length &&
@@ -148,12 +157,20 @@ export async function createLink(link: ProcessedLinkProps) {
   waitUntil(
     Promise.allSettled([
       // cache link in Redis
-      linkCache.set(response),
+      linkCache.set({
+        ...response,
+        ...(response.programId &&
+          (await getPartnerAndDiscount({
+            programId: response.programId,
+            partnerId: response.partnerId,
+          }))),
+      }),
+
       // record link in Tinybird
       recordLink(response),
       // Upload image to R2 and update the link with the uploaded image URL when
-      // proxy is enabled and image is set and not stored in R2
-      ...(proxy && image && !isStored(image)
+      // proxy is enabled and image is set and is not a hosted image URL
+      ...(proxy && image && isNotHostedImage(image)
         ? [
             // upload image to R2
             storage.upload(`images/${response.id}`, image, {
@@ -192,6 +209,8 @@ export async function createLink(link: ProcessedLinkProps) {
         propagateWebhookTriggerChanges({
           webhookIds,
         }),
+
+      testVariants && testCompletedAt && scheduleABTestCompletion(response),
     ]),
   );
 
@@ -199,6 +218,8 @@ export async function createLink(link: ProcessedLinkProps) {
     ...transformLink(response),
     // optimistically set the image URL to the uploaded image URL
     image:
-      proxy && image && !isStored(image) ? uploadedImageUrl : response.image,
+      proxy && image && isNotHostedImage(image)
+        ? uploadedImageUrl
+        : response.image,
   };
 }

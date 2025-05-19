@@ -4,22 +4,17 @@ import { createId } from "@/lib/api/create-id";
 import { notifyPartnerApplication } from "@/lib/api/partners/notify-partner-application";
 import { getIP } from "@/lib/api/utils";
 import { getSession } from "@/lib/auth";
+import { qstash } from "@/lib/cron";
 import { ratelimit } from "@/lib/upstash";
+import { createProgramApplicationSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
 import { Partner, Program, ProgramEnrollment } from "@dub/prisma/client";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { addDays } from "date-fns";
 import { cookies } from "next/headers";
 import z from "../../zod";
 import { actionClient } from "../safe-action";
-const createProgramApplicationSchema = z.object({
-  programId: z.string(),
-  name: z.string().trim().min(1).max(100),
-  email: z.string().trim().email().min(1).max(100),
-  website: z.string().trim().max(100).optional(),
-  proposal: z.string().trim().min(1).max(5000),
-  comments: z.string().trim().max(5000).optional(),
-});
 
 // Create a program application (or enrollment if a partner is already logged in)
 export const createProgramApplicationAction = actionClient
@@ -68,10 +63,20 @@ export const createProgramApplicationAction = actionClient
         });
       }
 
-      return createApplication({
+      const application = await createApplication({
         program,
         data: parsedInput,
       });
+
+      await qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/program-application-reminder`,
+        delay: 15 * 60, // 15 minutes
+        body: {
+          applicationId: application.programApplicationId,
+        },
+      });
+
+      return application;
     },
   );
 
@@ -98,7 +103,6 @@ async function createApplicationAndEnrollment({
         ...data,
         id: applicationId,
         programId: program.id,
-        partnerId: partner.id,
       },
     }),
 

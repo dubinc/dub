@@ -22,7 +22,7 @@ export default function usePayoutsCount<T>(
           workspaceId,
         },
         {
-          exclude: ["payoutId"],
+          exclude: ["payoutId", "sortBy", "sortOrder"],
         },
       )}`,
     fetcher,

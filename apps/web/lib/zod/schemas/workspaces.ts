@@ -1,9 +1,8 @@
-import { isReservedKey } from "@/lib/edge-config";
 import z from "@/lib/zod";
-import { DEFAULT_REDIRECTS, validSlugRegex } from "@dub/utils";
+import { DEFAULT_REDIRECTS, RESERVED_SLUGS, validSlugRegex } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { DomainSchema } from "./domains";
-import { planSchema, roleSchema } from "./misc";
+import { planSchema, roleSchema, uploadedImageSchema } from "./misc";
 
 export const workspaceIdSchema = z.object({
   workspaceId: z
@@ -134,10 +133,13 @@ export const createWorkspaceSchema = z.object({
     .max(48, "Slug must be less than 48 characters")
     .transform((v) => slugify(v))
     .refine((v) => validSlugRegex.test(v), { message: "Invalid slug format" })
-    .refine(async (v) => !((await isReservedKey(v)) || DEFAULT_REDIRECTS[v]), {
-      message: "Cannot use reserved slugs",
-    }),
-  logo: z.string().optional(),
+    .refine(
+      async (v) => !(RESERVED_SLUGS.includes(v) || DEFAULT_REDIRECTS[v]),
+      {
+        message: "Cannot use reserved slugs",
+      },
+    ),
+  logo: uploadedImageSchema.nullish(),
   conversionEnabled: z.boolean().optional(),
 });
 
@@ -151,3 +153,12 @@ export const notificationTypes = z.enum([
   "newPartnerSale",
   "newPartnerApplication",
 ]);
+
+export const WorkspaceSchemaExtended = WorkspaceSchema.extend({
+  defaultProgramId: z.string().nullable(),
+  users: z.array(
+    WorkspaceSchema.shape.users.element.extend({
+      workspacePreferences: z.record(z.any()).nullish(),
+    }),
+  ),
+});

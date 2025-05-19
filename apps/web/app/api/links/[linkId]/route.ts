@@ -74,7 +74,9 @@ export const PATCH = withWorkspace(
       linkId: params.linkId,
     });
 
-    const body = updateLinkBodySchema.parse(await parseRequestBody(req)) || {};
+    const body =
+      (await updateLinkBodySchema.parseAsync(await parseRequestBody(req))) ||
+      {};
 
     await Promise.all([
       ...(link.folderId
@@ -108,6 +110,7 @@ export const PATCH = withWorkspace(
           ? link.expiresAt.toISOString()
           : link.expiresAt,
       geo: link.geo as NewLinkProps["geo"],
+
       ...body,
       // for UTM tags, we only pass them to processLink if they have changed from their previous value
       // or else they will override any changes to the UTM params in the destination URL

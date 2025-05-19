@@ -9,17 +9,19 @@ import { programDataSchema } from "@/lib/zod/schemas/program-onboarding";
 import { sendEmail } from "@dub/email";
 import { PartnerInvite } from "@dub/email/templates/partner-invite";
 import { prisma } from "@dub/prisma";
-import { nanoid, R2_URL } from "@dub/utils";
+import { generateRandomString, nanoid, R2_URL } from "@dub/utils";
 import { Program, Project, User } from "@prisma/client";
-import slugify from "@sindresorhus/slugify";
 import { waitUntil } from "@vercel/functions";
 
-// Create a new program from the onboarding data
+// Create a program from the onboarding data
 export const createProgram = async ({
   workspace,
   user,
 }: {
-  workspace: Pick<Project, "id" | "store" | "plan" | "webhookEnabled">;
+  workspace: Pick<
+    Project,
+    "id" | "slug" | "plan" | "store" | "webhookEnabled" | "invoicePrefix"
+  >;
   user: Pick<User, "id">;
 }) => {
   const store = workspace.store as Record<string, any>;
@@ -31,18 +33,30 @@ export const createProgram = async ({
     name,
     domain,
     url,
+    defaultRewardType,
     type,
     amount,
     maxDuration,
     partners,
     rewardful,
+    linkStructure,
+    supportEmail,
+    helpUrl,
+    termsUrl,
     logo: uploadedLogo,
   } = programDataSchema.parse(store.programOnboarding);
 
   await getDomainOrThrow({ workspace, domain });
 
-  const programFolder = await prisma.folder.create({
-    data: {
+  const programFolder = await prisma.folder.upsert({
+    where: {
+      name_projectId: {
+        name: "Partner Links",
+        projectId: workspace.id,
+      },
+    },
+    update: {},
+    create: {
       id: createId({ prefix: "fold_" }),
       name: "Partner Links",
       projectId: workspace.id,
@@ -62,10 +76,14 @@ export const createProgram = async ({
       id: createId({ prefix: "prog_" }),
       workspaceId: workspace.id,
       name,
-      slug: slugify(name),
+      slug: workspace.slug,
       domain,
       url,
       defaultFolderId: programFolder.id,
+      linkStructure,
+      supportEmail,
+      helpUrl,
+      termsUrl,
       ...(type &&
         amount && {
           rewards: {
@@ -74,7 +92,7 @@ export const createProgram = async ({
               type,
               amount,
               maxDuration,
-              event: "sale",
+              event: defaultRewardType,
             },
           },
         }),
@@ -126,21 +144,33 @@ export const createProgram = async ({
           id: workspace.id,
         },
         data: {
+          defaultProgramId: program.id,
+          foldersUsage: {
+            increment: 1,
+          },
           store: {
             ...store,
             programOnboarding: undefined,
           },
+          // if the workspace doesn't have an invoice prefix, generate one
+          ...(!workspace.invoicePrefix && {
+            invoicePrefix: generateRandomString(8),
+          }),
         },
       }),
+
       prisma.program.update({
         where: {
           id: program.id,
         },
         data: {
           ...(logoUrl && { logo: logoUrl }),
-          ...(program.rewards && { defaultRewardId: program.rewards[0].id }),
+          ...(program.rewards?.[0]?.id && {
+            defaultRewardId: program.rewards[0].id,
+          }),
         },
       }),
+
       uploadedLogo &&
         isStored(uploadedLogo) &&
         storage.delete(uploadedLogo.replace(`${R2_URL}/`, "")),
@@ -205,7 +235,6 @@ async function invitePartner({
       email: partner.email,
       react: PartnerInvite({
         email: partner.email,
-        appName: `${process.env.NEXT_PUBLIC_APP_NAME}`,
         program: {
           name: program.name,
           logo: program.logo,

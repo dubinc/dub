@@ -1,12 +1,11 @@
 "use client";
 
-import { ALL_TOOLS, cn, createHref, fetcher } from "@dub/utils";
+import { ALL_TOOLS, cn, createHref } from "@dub/utils";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import useSWR from "swr";
 import { COMPARE_PAGES, FEATURES_LIST, LEGAL_PAGES } from "./content";
+import { DubStatusBadge } from "./dub-status-badge";
 import { Github, LinkedIn, ReferredVia, Twitter, YouTube } from "./icons";
 import { MaxWidthWrapper } from "./max-width-wrapper";
 import { NavWordmark } from "./nav-wordmark";
@@ -35,19 +34,33 @@ const socials = [
 ];
 
 const navigation = {
-  features: FEATURES_LIST.map(({ title, href }) => ({
-    name: title,
-    href,
-  })),
   product: [
-    { name: "Blog", href: "/blog" },
-    { name: "Changelog", href: "/changelog" },
-    { name: "Customers", href: "/customers" },
-    { name: "Enterprise", href: "/enterprise" },
+    ...FEATURES_LIST.map(({ title, href }) => ({
+      name: title,
+      href,
+    })),
+    { name: "Dub Enterprise", href: "/enterprise" },
     { name: "Pricing", href: "/pricing" },
+  ],
+  solutions: [
+    { name: "Marketing attribution", href: "/analytics" },
+    { name: "Content creators", href: "/solutions/creators" },
+    { name: "Affiliate management", href: "/partners" },
+  ],
+  resources: [
     { name: "Docs", href: "/docs/introduction" },
     { name: "Help Center", href: "/help" },
+    { name: "Changelog", href: "/changelog" },
+    { name: "Blog", href: "/blog" },
+    { name: "Customers", href: "/customers" },
+    {
+      name: "Affiliates",
+      href: "https://partners.dub.co/dub",
+      target: "_blank",
+    },
+    { name: "About", href: "/about" },
     { name: "Brand", href: "/brand" },
+    { name: "Contact", href: "/contact" },
   ],
   compare: COMPARE_PAGES.map(({ name, slug }) => ({
     name,
@@ -64,9 +77,9 @@ const navigation = {
 };
 
 const linkListHeaderClassName = "text-sm font-medium text-neutral-900";
-const linkListClassName = "flex flex-col mt-2.5 gap-2.5";
+const linkListClassName = "flex flex-col mt-2.5 gap-3.5";
 const linkListItemClassName =
-  "text-sm text-neutral-500 hover:text-neutral-700 transition-colors duration-75";
+  "flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-700 transition-colors duration-75";
 
 export function Footer({
   staticDomain,
@@ -123,30 +136,52 @@ export function Footer({
           </div>
           <div className="mt-16 grid grid-cols-2 gap-4 xl:col-span-2 xl:mt-0">
             <div className="md:grid md:grid-cols-2">
-              <div>
-                <h3 className={linkListHeaderClassName}>Product</h3>
-                <ul role="list" className={linkListClassName}>
-                  {navigation.features.map((item) => (
-                    <li key={item.name}>
-                      <Link
-                        href={createHref(item.href, domain, {
-                          utm_source: "Custom Domain",
-                          utm_medium: "Footer",
-                          utm_campaign: domain,
-                          utm_content: item.name,
-                        })}
-                        className={linkListItemClassName}
-                      >
-                        {item.name}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
+              <div className="grid gap-8">
+                <div>
+                  <h3 className={linkListHeaderClassName}>Product</h3>
+                  <ul role="list" className={linkListClassName}>
+                    {navigation.product.map((item) => (
+                      <li key={item.name}>
+                        <Link
+                          href={createHref(item.href, domain, {
+                            utm_source: "Custom Domain",
+                            utm_medium: "Footer",
+                            utm_campaign: domain,
+                            utm_content: item.name,
+                          })}
+                          className={linkListItemClassName}
+                        >
+                          {item.name}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h3 className={linkListHeaderClassName}>Solutions</h3>
+                  <ul role="list" className={linkListClassName}>
+                    {navigation.solutions.map((item) => (
+                      <li key={item.name}>
+                        <Link
+                          href={createHref(item.href, domain, {
+                            utm_source: "Custom Domain",
+                            utm_medium: "Footer",
+                            utm_campaign: domain,
+                            utm_content: item.name,
+                          })}
+                          className={linkListItemClassName}
+                        >
+                          {item.name}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
               <div className="mt-10 md:mt-0">
                 <h3 className={linkListHeaderClassName}>Resources</h3>
                 <ul role="list" className={linkListClassName}>
-                  {navigation.product.map((item) => (
+                  {navigation.resources.map((item) => (
                     <li key={item.name}>
                       <Link
                         href={createHref(item.href, domain, {
@@ -155,9 +190,11 @@ export function Footer({
                           utm_campaign: domain,
                           utm_content: item.name,
                         })}
+                        target={item.target}
                         className={linkListItemClassName}
                       >
                         {item.name}
+                        {item.target && <ReferredVia className="size-3.5" />}
                       </Link>
                     </li>
                   ))}
@@ -165,7 +202,7 @@ export function Footer({
               </div>
             </div>
             <div className="md:grid md:grid-cols-2">
-              <div className="flex flex-col space-y-8">
+              <div className="grid gap-8">
                 <div>
                   <h3 className={linkListHeaderClassName}>Compare</h3>
                   <ul role="list" className={linkListClassName}>
@@ -209,10 +246,7 @@ export function Footer({
                         href="https://security.dub.co"
                         target="_blank"
                         rel="noreferrer"
-                        className={cn(
-                          linkListItemClassName,
-                          "flex items-center gap-1",
-                        )}
+                        className={linkListItemClassName}
                       >
                         Trust Center <ReferredVia className="size-3.5" />
                       </a>
@@ -247,7 +281,7 @@ export function Footer({
 
         {/* Bottom row (status, SOC2, copyright) */}
         <div className="mt-12 grid grid-cols-1 items-center gap-8 sm:grid-cols-3">
-          <StatusBadge />
+          <DubStatusBadge />
           <Link
             href={createHref("/blog/soc2", domain, {
               utm_source: "Custom Domain",
@@ -271,64 +305,5 @@ export function Footer({
         </div>
       </footer>
     </MaxWidthWrapper>
-  );
-}
-
-function StatusBadge() {
-  const { data } = useSWR<{
-    ongoing_incidents: {
-      name: string;
-      current_worst_impact:
-        | "degraded_performance"
-        | "partial_outage"
-        | "full_outage";
-    }[];
-  }>("https://status.dub.co/api/v1/summary", fetcher);
-
-  const [color, setColor] = useState("bg-neutral-200");
-  const [status, setStatus] = useState("Loading status...");
-
-  useEffect(() => {
-    if (!data) return;
-    const { ongoing_incidents } = data;
-    if (ongoing_incidents.length > 0) {
-      const { current_worst_impact, name } = ongoing_incidents[0];
-      const color =
-        current_worst_impact === "degraded_performance"
-          ? "bg-yellow-500"
-          : "bg-red-500";
-      setStatus(name);
-      setColor(color);
-    } else {
-      setStatus("All systems operational");
-      setColor("bg-green-500");
-    }
-  }, [data]);
-
-  return (
-    <Link
-      href="https://status.dub.co"
-      target="_blank"
-      className="group flex max-w-fit items-center gap-2 rounded-lg border border-neutral-200 bg-white py-2 pl-2 pr-2.5 transition-colors hover:bg-neutral-50 active:bg-neutral-100"
-    >
-      <div className="relative size-2">
-        <div
-          className={cn(
-            "absolute inset-0 m-auto size-2 animate-ping items-center justify-center rounded-full group-hover:animate-none",
-            color,
-            status === "Loading status..." && "animate-none",
-          )}
-        />
-        <div
-          className={cn(
-            "absolute inset-0 z-10 m-auto size-2 rounded-full",
-            color,
-          )}
-        />
-      </div>
-      <p className="text-xs font-medium leading-none text-neutral-600">
-        {status}
-      </p>
-    </Link>
   );
 }

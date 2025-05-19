@@ -1,3 +1,5 @@
+// @ts-nocheck contains old fields that are not used anymore
+
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 

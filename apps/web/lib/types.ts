@@ -1,7 +1,7 @@
 import z from "@/lib/zod";
-import { metaTagsSchema } from "@/lib/zod/schemas/metatags";
 import {
   PartnerEarningsSchema,
+  PartnerProfileCustomerSchema,
   PartnerProfileLinkSchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
@@ -16,7 +16,6 @@ import {
   User,
   UtmTemplate,
   Webhook,
-  YearInReview,
 } from "@dub/prisma/client";
 import {
   FOLDER_PERMISSIONS,
@@ -24,9 +23,9 @@ import {
 } from "./folder/constants";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import { clickEventResponseSchema } from "./zod/schemas/clicks";
+import { CommissionResponseSchema } from "./zod/schemas/commissions";
+import { customerActivityResponseSchema } from "./zod/schemas/customer-activity";
 import {
-  customerActivityResponseSchema,
-  customerActivitySchema,
   CustomerEnrichedSchema,
   CustomerSchema,
 } from "./zod/schemas/customers";
@@ -39,7 +38,10 @@ import {
   leadEventResponseSchema,
   trackLeadResponseSchema,
 } from "./zod/schemas/leads";
-import { createLinkBodySchema } from "./zod/schemas/links";
+import {
+  ABTestVariantsSchema,
+  createLinkBodySchema,
+} from "./zod/schemas/links";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
 import {
   createPartnerSchema,
@@ -53,13 +55,10 @@ import {
 } from "./zod/schemas/payouts";
 import { programDataSchema } from "./zod/schemas/program-onboarding";
 import {
-  ProgramSaleResponseSchema,
-  ProgramSaleSchema,
-} from "./zod/schemas/program-sales";
-import {
   PartnerProgramInviteSchema,
   ProgramEnrollmentSchema,
   ProgramInviteSchema,
+  ProgramMetricsSchema,
   ProgramPartnerLinkSchema,
   ProgramSchema,
 } from "./zod/schemas/programs";
@@ -75,6 +74,7 @@ import {
   webhookEventSchemaTB,
   WebhookSchema,
 } from "./zod/schemas/webhooks";
+import { workspacePreferencesSchema } from "./zod/schemas/workspace-preferences";
 
 export type LinkProps = Link;
 
@@ -84,6 +84,7 @@ export interface ExpandedLinkProps extends LinkProps {
   tags: TagProps[];
   webhookIds: string[];
   dashboardId: string | null;
+  user?: UserProps;
 }
 
 export interface SimpleLinkProps {
@@ -113,6 +114,12 @@ export interface RedisLinkProps {
   doIndex?: boolean;
   projectId?: string;
   webhookIds?: string[];
+  programId?: string;
+  partnerId?: string;
+  partner?: Pick<PartnerProps, "id" | "name" | "image">;
+  discount?: Pick<DiscountProps, "id" | "amount" | "type" | "maxDuration">;
+  testVariants?: z.infer<typeof ABTestVariantsSchema>;
+  testCompletedAt?: Date;
 }
 
 export interface TagProps {
@@ -132,7 +139,7 @@ export type PlanProps = (typeof plans)[number];
 
 export type RoleProps = (typeof roles)[number];
 
-export type BetaFeatures = "noDubLink" | "linkFolders";
+export type BetaFeatures = "noDubLink" | "abTesting";
 
 export interface WorkspaceProps extends Project {
   logo: string | null;
@@ -154,12 +161,11 @@ export interface WorkspaceProps extends Project {
 }
 
 export type ExpandedWorkspaceProps = WorkspaceProps & {
-  programs: {
-    id: string;
-    name: string;
-  }[];
-  yearInReview: YearInReview | null;
+  defaultProgramId: string | null;
   allowedHostnames: string[];
+  users: (WorkspaceProps["users"][number] & {
+    workspacePreferences?: z.infer<typeof workspacePreferencesSchema>;
+  })[];
 };
 
 export type WorkspaceWithUsers = Omit<WorkspaceProps, "domains">;
@@ -273,8 +279,6 @@ export const tagColors = [
 
 export type DashboardProps = z.infer<typeof dashboardSchema>;
 
-export type MetaTag = z.infer<typeof metaTagsSchema>;
-
 export type TokenProps = z.infer<typeof tokenSchema>;
 
 export type OAuthAppProps = z.infer<typeof oAuthAppSchema>;
@@ -365,9 +369,7 @@ export type UsageResponse = z.infer<typeof usageResponse>;
 
 export type PartnersCount = Record<ProgramEnrollmentStatus | "all", number>;
 
-export type SaleProps = z.infer<typeof ProgramSaleSchema>;
-
-export type SalesCount = Record<
+export type CommissionsCount = Record<
   CommissionStatus | "all",
   {
     count: number;
@@ -376,7 +378,7 @@ export type SalesCount = Record<
   }
 >;
 
-export type SaleResponse = z.infer<typeof ProgramSaleResponseSchema>;
+export type CommissionResponse = z.infer<typeof CommissionResponseSchema>;
 
 export type PartnerEarningsResponse = z.infer<typeof PartnerEarningsSchema>;
 
@@ -385,6 +387,10 @@ export type CustomerProps = z.infer<typeof CustomerSchema>;
 export type PartnerProps = z.infer<typeof PartnerSchema>;
 
 export type ProgramPartnerLinkProps = z.infer<typeof ProgramPartnerLinkSchema>;
+
+export type PartnerProfileCustomerProps = z.infer<
+  typeof PartnerProfileCustomerSchema
+>;
 
 export type PartnerProfileLinkProps = z.infer<typeof PartnerProfileLinkSchema>;
 
@@ -420,8 +426,6 @@ export type SegmentIntegrationCredentials = {
   writeKey?: string;
 };
 export type InvoiceProps = z.infer<typeof InvoiceSchema>;
-
-export type CustomerActivity = z.infer<typeof customerActivitySchema>;
 
 export type CustomerActivityResponse = z.infer<
   typeof customerActivityResponseSchema
@@ -462,3 +466,7 @@ export type RewardProps = z.infer<typeof RewardSchema>;
 export type CreatePartnerProps = z.infer<typeof createPartnerSchema>;
 
 export type ProgramData = z.infer<typeof programDataSchema>;
+
+export type ProgramMetrics = z.infer<typeof ProgramMetricsSchema>;
+
+export type PayoutMethod = "stripe" | "paypal";

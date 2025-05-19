@@ -13,6 +13,7 @@ import { throwIfNoAccess } from "../api/tokens/permissions";
 import { Scope, mapScopesToPermissions } from "../api/tokens/scopes";
 import { normalizeWorkspaceId } from "../api/workspace-id";
 import { getFeatureFlags } from "../edge-config";
+import { logConversionEvent } from "../tinybird/log-conversion-events";
 import { hashToken } from "./hash-token";
 import { Session, getSession } from "./utils";
 
@@ -68,6 +69,7 @@ export const withWorkspace = (
 
       let apiKey: string | undefined = undefined;
       let headers = {};
+      let workspace: WorkspaceWithUsers | undefined;
 
       try {
         const authorizationHeader = req.headers.get("Authorization");
@@ -249,7 +251,7 @@ export const withWorkspace = (
           }
         }
 
-        const workspace = (await prisma.project.findUnique({
+        workspace = (await prisma.project.findUnique({
           where: {
             id: workspaceId || undefined,
             slug: workspaceSlug || undefined,
@@ -262,6 +264,7 @@ export const withWorkspace = (
               select: {
                 role: true,
                 defaultFolderId: true,
+                workspacePreferences: !apiKey, // Hide from API
               },
             },
           },
@@ -321,15 +324,6 @@ export const withWorkspace = (
           permissions = mapScopesToPermissions(tokenScopes).filter((p) =>
             permissions.includes(p),
           );
-
-          // Prevent integration tokens from accessing API endpoints without explicit permissions
-          if (token.installationId && requiredPermissions.length === 0) {
-            throw new DubApiError({
-              code: "forbidden",
-              message:
-                "You don't have the necessary permissions to complete this request.",
-            });
-          }
         }
 
         // Check user has permission to make the action
@@ -347,12 +341,6 @@ export const withWorkspace = (
           let flags = await getFeatureFlags({
             workspaceId: workspace.id,
           });
-
-          // TODO: Remove this once Folders goes GA
-          flags = {
-            ...flags,
-            linkFolders: flags.linkFolders || workspace.partnersEnabled,
-          };
 
           if (!flags[featureFlag]) {
             throw new DubApiError({
@@ -395,6 +383,22 @@ export const withWorkspace = (
         });
       } catch (error) {
         req.log.error(error);
+
+        // Log the conversion events for debugging purposes
+        waitUntil(
+          (async () => {
+            const paths = ["/track/lead", "/track/sale"];
+
+            if (workspace && paths.includes(req.nextUrl.pathname)) {
+              logConversionEvent({
+                workspace_id: workspace.id,
+                path: req.nextUrl.pathname,
+                error: error.message,
+              });
+            }
+          })(),
+        );
+
         return handleAndReturnErrorResponse(error, headers);
       }
     },

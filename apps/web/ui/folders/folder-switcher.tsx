@@ -1,3 +1,5 @@
+"use client";
+
 import { unsortedLinks } from "@/lib/folder/constants";
 import useFolder from "@/lib/swr/use-folder";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -29,6 +31,7 @@ export const FolderSwitcher = () => {
 
   const { folder } = useFolder({
     folderId,
+    enabled: !!folderId,
   });
 
   useEffect(() => {

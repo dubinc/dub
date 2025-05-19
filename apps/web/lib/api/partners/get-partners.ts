@@ -1,4 +1,3 @@
-import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { partnersQuerySchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@prisma/client";
@@ -28,6 +27,7 @@ const sortColumnExtraMap = {
 type PartnerFilters = z.infer<typeof partnersQuerySchema> & {
   workspaceId: string;
   programId: string;
+  includeExpandedFields?: boolean;
 };
 
 export async function getPartners(filters: PartnerFilters) {
@@ -42,14 +42,9 @@ export async function getPartners(filters: PartnerFilters) {
     pageSize,
     sortBy,
     sortOrder,
-    workspaceId,
     programId,
+    includeExpandedFields,
   } = filters;
-
-  const program = await getProgramOrThrow({
-    workspaceId,
-    programId,
-  });
 
   const partners = (await prisma.$queryRaw`
     SELECT 
@@ -67,8 +62,17 @@ export async function getPartners(filters: PartnerFilters) {
       COALESCE(metrics.totalLeads, 0) as totalLeads,
       COALESCE(metrics.totalSales, 0) as totalSales,
       COALESCE(metrics.totalSaleAmount, 0) as totalSaleAmount,
+      ${
+        includeExpandedFields
+          ? Prisma.sql`
       COALESCE(commissions.totalCommissions, 0) as totalCommissions,
       COALESCE(metrics.totalSaleAmount, 0) - COALESCE(commissions.totalCommissions, 0) as netRevenue,
+      `
+          : Prisma.sql`
+      0 as totalCommissions,
+      0 as netRevenue,
+      `
+      }
       COALESCE(
         JSON_ARRAYAGG(
           IF(l.id IS NOT NULL,
@@ -94,7 +98,6 @@ export async function getPartners(filters: PartnerFilters) {
       Partner p ON p.id = pe.partnerId 
     LEFT JOIN Link l ON l.programId = pe.programId 
       AND l.partnerId = pe.partnerId
-      AND l.programId = ${program.id}
     LEFT JOIN (
       SELECT 
         partnerId,
@@ -103,24 +106,31 @@ export async function getPartners(filters: PartnerFilters) {
         SUM(sales) as totalSales,
         SUM(saleAmount) as totalSaleAmount
       FROM Link
-      WHERE programId = ${program.id}
+      WHERE programId = ${programId}
         AND partnerId IS NOT NULL
+        AND clicks > 0
       GROUP BY partnerId
     ) metrics ON metrics.partnerId = pe.partnerId
+    ${
+      includeExpandedFields
+        ? Prisma.sql`
     LEFT JOIN (
       SELECT 
         partnerId,
         SUM(earnings) as totalCommissions
       FROM Commission
       WHERE 
-        amount > 0
-        AND programId = ${program.id}
+        earnings > 0
+        AND programId = ${programId}
         AND partnerId IS NOT NULL
         AND status IN ('pending', 'processed', 'paid')
       GROUP BY partnerId
     ) commissions ON commissions.partnerId = pe.partnerId
+    `
+        : Prisma.sql``
+    }
     WHERE 
-      pe.programId = ${program.id}
+      pe.programId = ${programId}
       ${status ? Prisma.sql`AND pe.status = ${status}` : Prisma.sql`AND pe.status NOT IN ('rejected', 'banned')`}
       ${tenantId ? Prisma.sql`AND pe.tenantId = ${tenantId}` : Prisma.sql``}
       ${country ? Prisma.sql`AND p.country = ${country}` : Prisma.sql``}
@@ -132,7 +142,7 @@ export async function getPartners(filters: PartnerFilters) {
         OR LOWER(p.email) LIKE LOWER(${`%${search}%`})
         OR EXISTS (
           SELECT 1 FROM Link searchLink 
-          WHERE searchLink.programId = ${program.id}
+          WHERE searchLink.programId = ${programId}
           AND searchLink.partnerId = p.id 
           AND searchLink.shortLink LIKE LOWER(${`%${search}%`})
         )
@@ -141,7 +151,7 @@ export async function getPartners(filters: PartnerFilters) {
       }
       ${ids && ids.length > 0 ? Prisma.sql`AND pe.partnerId IN (${Prisma.join(ids)})` : Prisma.sql``}
     GROUP BY 
-      p.id, pe.id, metrics.totalClicks, metrics.totalLeads, metrics.totalSales, metrics.totalSaleAmount, commissions.totalCommissions
+      p.id, pe.id, metrics.totalClicks, metrics.totalLeads, metrics.totalSales, metrics.totalSaleAmount${includeExpandedFields ? Prisma.sql`, commissions.totalCommissions` : Prisma.sql``}
     ORDER BY ${Prisma.raw(sortColumnsMap[sortBy])} ${Prisma.raw(sortOrder)} ${Prisma.raw(`, ${sortColumnExtraMap[sortBy]} ${sortOrder}`)}
     LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`) satisfies Array<any>;
 

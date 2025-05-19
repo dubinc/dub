@@ -73,7 +73,7 @@ export function Form() {
           // If url is valid, continue to generate metatags, else return null
           new URL(debouncedUrl);
           setLoadingPreviewImage(true);
-          const res = await fetch(`/api/metatags?url=${debouncedUrl}`);
+          const res = await fetch(`/api/links/metatags?url=${debouncedUrl}`);
           if (res.ok) {
             const results = await res.json();
             setPreviewImage(results.image);
@@ -117,9 +117,12 @@ export function Form() {
             const { error } = await res.json();
             if (error) {
               if (error.message.includes("Upgrade to")) {
+                const planToUpgradeTo = error.message.match(
+                  /Upgrade to (.*) to use/,
+                )?.[1];
                 toast.custom(() => (
                   <UpgradeRequiredToast
-                    title={`You've discovered a ${nextPlan.name} feature!`}
+                    planToUpgradeTo={planToUpgradeTo}
                     message={error.message}
                   />
                 ));

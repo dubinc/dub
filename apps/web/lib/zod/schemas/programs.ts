@@ -1,9 +1,9 @@
 import {
+  DATE_RANGE_INTERVAL_PRESETS,
   DUB_PARTNERS_ANALYTICS_INTERVAL,
-  intervals,
 } from "@/lib/analytics/constants";
 import { DUB_MIN_PAYOUT_AMOUNT_CENTS } from "@/lib/partners/constants";
-import { ProgramEnrollmentStatus, ProgramType } from "@dub/prisma/client";
+import { LinkStructure, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { z } from "zod";
 import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
@@ -20,13 +20,14 @@ export const ProgramSchema = z.object({
   brandColor: z.string().nullable(),
   domain: z.string().nullable(),
   url: z.string().nullable(),
-  type: z.nativeEnum(ProgramType),
   cookieLength: z.number(),
   defaultRewardId: z.string().nullable(),
   defaultDiscountId: z.string().nullable(),
   rewards: z.array(RewardSchema).nullish(),
   holdingPeriodDays: z.number(),
   minPayoutAmount: z.number(),
+  linkStructure: z.nativeEnum(LinkStructure),
+  linkParameter: z.string().nullish(),
 
   // Discounts (for dual-sided incentives)
   discounts: z.array(DiscountSchema).nullish(),
@@ -41,7 +42,7 @@ export const ProgramSchema = z.object({
   termsUrl: z.string().nullish(),
 });
 
-export const createProgramSchema = z.object({
+export const updateProgramSchema = z.object({
   name: z.string(),
   cookieLength: z.number().min(1).max(180),
   domain: z.string().nullable(),
@@ -55,10 +56,20 @@ export const createProgramSchema = z.object({
   minPayoutAmount: z.coerce
     .number()
     .nullish()
-    .transform((val) => (val ? val * 100 : DUB_MIN_PAYOUT_AMOUNT_CENTS))
+    .transform((val) =>
+      val && val < DUB_MIN_PAYOUT_AMOUNT_CENTS
+        ? val * 100
+        : DUB_MIN_PAYOUT_AMOUNT_CENTS,
+    )
     .refine((val) => val >= DUB_MIN_PAYOUT_AMOUNT_CENTS, {
       message: "Minimum payout amount must be at least $100",
     }),
+  linkStructure: z.nativeEnum(LinkStructure),
+
+  // Help & Support
+  supportEmail: z.string().email().max(255).nullish(),
+  helpUrl: z.string().url().max(500).nullish(),
+  termsUrl: z.string().url().max(500).nullish(),
 });
 
 export const ProgramPartnerLinkSchema = LinkSchema.pick({
@@ -74,12 +85,22 @@ export const ProgramPartnerLinkSchema = LinkSchema.pick({
 });
 
 export const ProgramEnrollmentSchema = z.object({
-  partnerId: z.string(),
-  tenantId: z.string().nullable(),
-  programId: z.string(),
+  partnerId: z.string().describe("The partner's unique ID on Dub."),
+  tenantId: z
+    .string()
+    .nullable()
+    .describe(
+      "The partner's unique ID within your database. Can be useful for associating the partner with a user in your database and retrieving/update their data in the future.",
+    ),
+  programId: z.string().describe("The program's unique ID on Dub."),
   program: ProgramSchema,
-  status: z.nativeEnum(ProgramEnrollmentStatus),
-  links: z.array(ProgramPartnerLinkSchema).nullable(),
+  status: z
+    .nativeEnum(ProgramEnrollmentStatus)
+    .describe("The status of the partner's enrollment in the program."),
+  links: z
+    .array(ProgramPartnerLinkSchema)
+    .nullable()
+    .describe("The partner's referral links in this program."),
   rewards: z.array(RewardSchema).nullish(),
   discount: DiscountSchema.nullish(),
   createdAt: z.date(),
@@ -93,7 +114,9 @@ export const ProgramInviteSchema = z.object({
 });
 
 export const getProgramMetricsQuerySchema = z.object({
-  interval: z.enum(intervals).default(DUB_PARTNERS_ANALYTICS_INTERVAL),
+  interval: z
+    .enum(DATE_RANGE_INTERVAL_PRESETS)
+    .default(DUB_PARTNERS_ANALYTICS_INTERVAL),
   start: parseDateSchema.optional(),
   end: parseDateSchema.optional(),
 });
@@ -103,4 +126,20 @@ export const PartnerProgramInviteSchema = z.object({
   email: z.string(),
   program: ProgramSchema,
   reward: RewardSchema.nullable(),
+});
+
+export const ProgramMetricsSchema = z.object({
+  partnersCount: z.number(),
+  commissionsCount: z.number(),
+  commissions: z.number(),
+  payouts: z.number(),
+});
+
+export const createProgramApplicationSchema = z.object({
+  programId: z.string(),
+  name: z.string().trim().min(1).max(100),
+  email: z.string().trim().email().min(1).max(100),
+  website: z.string().trim().max(100).optional(),
+  proposal: z.string().trim().min(1).max(5000),
+  comments: z.string().trim().max(5000).optional(),
 });

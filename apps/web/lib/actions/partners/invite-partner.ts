@@ -1,6 +1,7 @@
 "use server";
 
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
+import { createPartnerLink } from "@/lib/api/partners/create-partner-link";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { invitePartnerSchema } from "@/lib/zod/schemas/partners";
@@ -15,20 +16,22 @@ import { authActionClient } from "../safe-action";
 export const invitePartnerAction = authActionClient
   .schema(invitePartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     const { programId, name, email, linkId, rewardId, discountId } =
       parsedInput;
 
-    const [program, link, , ,] = await Promise.all([
+    let [program, link, , ,] = await Promise.all([
       getProgramOrThrow({
         workspaceId: workspace.id,
         programId,
       }),
 
-      getLinkOrThrow({
-        workspaceId: workspace.id,
-        linkId,
-      }),
+      linkId
+        ? getLinkOrThrow({
+            workspaceId: workspace.id,
+            linkId,
+          })
+        : null,
 
       rewardId
         ? getRewardOrThrow({
@@ -45,7 +48,7 @@ export const invitePartnerAction = authActionClient
         : null,
     ]);
 
-    if (link.partnerId) {
+    if (link?.partnerId) {
       throw new Error("Link is already associated with another partner.");
     }
 
@@ -74,6 +77,19 @@ export const invitePartnerAction = authActionClient
       }
     }
 
+    // If the link is not provided, create a new one
+    if (!link) {
+      link = await createPartnerLink({
+        workspace,
+        program,
+        partner: {
+          name,
+          email,
+        },
+        userId: user.id,
+      });
+    }
+
     await createAndEnrollPartner({
       program,
       link,
@@ -94,7 +110,6 @@ export const invitePartnerAction = authActionClient
         email,
         react: PartnerInvite({
           email,
-          appName: `${process.env.NEXT_PUBLIC_APP_NAME}`,
           program: {
             name: program.name,
             logo: program.logo,

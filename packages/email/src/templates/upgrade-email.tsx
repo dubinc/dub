@@ -27,15 +27,15 @@ export function UpgradeEmail({
   return (
     <Html>
       <Head />
-      <Preview>Thank you for upgrading to Dub.co {plan}!</Preview>
+      <Preview>Thank you for upgrading to Dub {plan}!</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
-          <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-neutral-200 px-10 py-5">
-            <Section className="my-8">
+          <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
+            <Section className="mt-8">
               <Img src={DUB_WORDMARK} height="32" alt="Dub" />
             </Section>
-            <Heading className="mx-0 p-0 text-lg font-medium text-black">
-              Thank you for upgrading to Dub.co {plan}!
+            <Heading className="mx-0 my-7 p-0 text-xl font-medium text-black">
+              Thank you for upgrading to Dub {plan}!
             </Heading>
             <Section className="my-8">
               <Img
@@ -48,35 +48,21 @@ export function UpgradeEmail({
               Hey{name && ` ${name}`}!
             </Text>
             <Text className="text-sm leading-6 text-black">
-              My name is Steven, and I'm the founder of Dub. I wanted to
-              personally reach out to thank you for upgrading to{" "}
-              <Link
-                href={planDetails.link}
-                className="font-medium text-blue-600 no-underline"
-              >
-                Dub.co {plan}
-              </Link>
-              !
+              My name is Steven, and I'm the founder of Dub.
             </Text>
             <Text className="text-sm leading-6 text-black">
-              As you might already know, we are fully{" "}
-              <Link
-                href="https://d.to/github"
-                className="font-medium text-blue-600 no-underline"
-              >
-                open-source
-              </Link>{" "}
-              business. Your support means the world to us and helps us continue
-              to build and improve Dub.co.
+              I wanted to personally reach out to thank you for upgrading to{" "}
+              <strong>Dub {plan}</strong>! Your support means the world to us
+              and helps us continue to build and improve Dub.
             </Text>
             <Text className="text-sm leading-6 text-black">
               On the {plan} plan, you now have access to:
             </Text>
-            {planDetails.features.map((feature) => (
+            {planDetails.features?.map((feature) => (
               <Text className="ml-1 text-sm leading-4 text-black">
                 ◆{" "}
-                {feature.footnote?.href ? (
-                  <Link href={feature.footnote.href}>{feature.text}</Link>
+                {feature.tooltip?.href ? (
+                  <Link href={feature.tooltip.href}>{feature.text}</Link>
                 ) : (
                   feature.text
                 )}

@@ -12,6 +12,7 @@ export * from "./carousel";
 export * from "./checkbox";
 export * from "./combobox";
 export * from "./date-picker";
+export * from "./dub-status-badge";
 export * from "./empty-state";
 export * from "./file-upload";
 export * from "./filter";
@@ -28,6 +29,7 @@ export * from "./popover";
 export * from "./radio-group";
 export * from "./sheet";
 export * from "./shimmer-dots";
+export * from "./smart-datetime-picker";
 export * from "./status-badge";
 export * from "./switch";
 export * from "./table";
@@ -63,6 +65,7 @@ export * from "./link-preview";
 export * from "./popup";
 export * from "./progress-bar";
 export * from "./tab-select";
+export * from "./tooltip-advanced-link-features";
 
 // logos
 export * from "./composite-logo";

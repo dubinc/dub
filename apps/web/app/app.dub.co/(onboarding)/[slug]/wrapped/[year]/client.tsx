@@ -4,7 +4,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { BlurImage, ExpandingArrow } from "@dub/ui";
 import {
   cn,
-  DICEBEAR_AVATAR_URL,
+  OG_AVATAR_URL,
   smartTruncate,
   STAGGER_CHILD_VARIANTS,
 } from "@dub/utils";
@@ -17,10 +17,14 @@ import { redirect, useParams } from "next/navigation";
 
 export default function WrappedPageClient() {
   const { slug, year } = useParams();
-  const { name, logo, yearInReview, loading } = useWorkspace();
+  const { name, logo, loading } = useWorkspace();
 
-  const { totalLinks, totalClicks, topLinks, topCountries } =
-    yearInReview || {};
+  const { totalLinks, totalClicks, topLinks, topCountries } = {
+    totalLinks: 0,
+    totalClicks: 0,
+    topLinks: [],
+    topCountries: [],
+  };
 
   const stats = {
     "Total Links": totalLinks,
@@ -32,7 +36,9 @@ export default function WrappedPageClient() {
     count: 0,
   }));
 
-  if (!loading && !yearInReview) {
+  // we're redirecting to the dashboard for now
+  // for next year's year in review, we can replace true with yearInReview
+  if (!loading && true) {
     redirect(`/${slug}`);
   }
 
@@ -58,7 +64,7 @@ export default function WrappedPageClient() {
           {name ? (
             <>
               <BlurImage
-                src={logo || `${DICEBEAR_AVATAR_URL}${name}`}
+                src={logo || `${OG_AVATAR_URL}${name}`}
                 alt={name || "Workspace Logo"}
                 className="h-8 rounded-full"
                 width={32}

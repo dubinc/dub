@@ -1,10 +1,11 @@
 {
   "name": "@dub/tailwind-config",
-  "description": "Tailwindcss config for Dub.co",
+  "description": "Tailwindcss config for Dub",
   "version": "0.0.8",
   "main": "index.ts",
   "types": "index.ts",
   "devDependencies": {
+    "@tailwindcss/container-queries": "^0.1.1",
     "tailwindcss": "^3.4.4"
   },
   "dependencies": {

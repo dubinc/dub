@@ -9,10 +9,11 @@ import {
   TooltipContent,
   useMediaQuery,
 } from "@dub/ui";
-import { DICEBEAR_AVATAR_URL } from "@dub/utils";
+import { OG_AVATAR_URL } from "@dub/utils";
 import { FormEvent, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import { MarkdownDescription } from "../shared/markdown-description";
 
 interface AddFolderFormProps {
   onSuccess: (folder: FolderSummary) => void;
@@ -79,15 +80,16 @@ export const AddFolderForm = ({ onSuccess, onCancel }: AddFolderFormProps) => {
     <>
       <div className="space-y-2 border-b border-neutral-200 px-4 py-4 sm:px-6">
         <h3 className="text-lg font-medium">
-          {step === 1 ? "Create new folder" : `${name} access`}
+          {step === 1
+            ? "Create new folder"
+            : "Set folder workspace-level access"}
         </h3>
 
-        {step === 2 && (
-          <p className="text-sm text-neutral-500">
-            Set the default folder access for the workspace. Individual user
-            permissions can be set in the folder settings.
-          </p>
-        )}
+        <MarkdownDescription>
+          {step === 1
+            ? "You can use folders to [manage and organize your links](https://dub.co/help/article/link-folders)."
+            : "Set the [default folder access for the workspace](https://dub.co/help/article/folders-rbac). Individual user permissions can be set in the folder settings."}
+        </MarkdownDescription>
       </div>
 
       <div className="bg-neutral-50">
@@ -98,12 +100,12 @@ export const AddFolderForm = ({ onSuccess, onCancel }: AddFolderFormProps) => {
                 <label className="text-sm font-normal text-neutral-500">
                   Name
                 </label>
-                <div className="mt-2 flex rounded-md border border-neutral-300 bg-white">
+                <div className="mt-2 flex rounded-md">
                   <input
                     type="text"
                     required
                     autoComplete="off"
-                    className="block w-full rounded-md border-0 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-0 sm:text-sm"
+                    className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                     aria-invalid="true"
                     placeholder="Acme Links"
                     autoFocus={!isMobile}
@@ -126,7 +128,7 @@ export const AddFolderForm = ({ onSuccess, onCancel }: AddFolderFormProps) => {
                 <div className="mt-2 flex h-10 items-center justify-between rounded-md border border-neutral-300 bg-white">
                   <div className="flex items-center gap-2 pl-2">
                     <BlurImage
-                      src={workspace.logo || `${DICEBEAR_AVATAR_URL}${name}`}
+                      src={workspace.logo || `${OG_AVATAR_URL}${name}`}
                       alt={workspace.name || "Workspace logo"}
                       className="size-5 shrink-0 overflow-hidden rounded-full"
                       width={20}
@@ -144,7 +146,7 @@ export const AddFolderForm = ({ onSuccess, onCancel }: AddFolderFormProps) => {
                         <TooltipContent
                           title="You can only set custom folder permissions on a Business plan and above."
                           cta="Upgrade to Business"
-                          href={`/${workspace.slug}/upgrade?exit=close`}
+                          href={`/${workspace.slug}/upgrade`}
                           target="_blank"
                         />
                       }

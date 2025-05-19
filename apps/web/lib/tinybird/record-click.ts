@@ -37,10 +37,10 @@ export async function recordClick({
   skipRatelimit,
   timestamp,
   referrer,
-  trackConversion,
+  shouldPassClickId,
 }: {
   req: Request;
-  clickId: string;
+  clickId?: string;
   linkId: string;
   domain: string;
   key: string;
@@ -50,12 +50,21 @@ export async function recordClick({
   skipRatelimit?: boolean;
   timestamp?: string;
   referrer?: string;
-  trackConversion?: boolean;
+  shouldPassClickId?: boolean;
 }) {
+  if (!clickId) {
+    return null;
+  }
+
   const searchParams = new URL(req.url).searchParams;
 
   // only track the click when there is no `dub-no-track` header or query param
   if (req.headers.has("dub-no-track") || searchParams.has("dub-no-track")) {
+    return null;
+  }
+
+  // don't track HEAD requests to avoid non-user traffic from inflating click count
+  if (req.method === "HEAD") {
     return null;
   }
 
@@ -156,8 +165,8 @@ export async function recordClick({
 
     // cache the click data for 5 mins
     // we're doing this because ingested click events are not available immediately in Tinybird
-    trackConversion &&
-      redis.set(`click:${clickId}`, clickData, {
+    shouldPassClickId &&
+      redis.set(`clickCache:${clickId}`, clickData, {
         ex: 60 * 5,
       }),
 

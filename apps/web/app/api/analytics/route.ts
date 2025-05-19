@@ -103,11 +103,14 @@ export const GET = withWorkspace(
       event,
       groupBy,
       ...(link && { linkId: link.id }),
-      workspaceId: workspace.id,
-      isDeprecatedClicksEndpoint,
-      dataAvailableFrom: workspace.createdAt,
       folderIds,
       isMegaFolder: selectedFolder?.type === "mega",
+      workspaceId: workspace.id,
+      isDeprecatedClicksEndpoint,
+      // dataAvailableFrom is only relevant for timeseries groupBy
+      ...(groupBy === "timeseries" && {
+        dataAvailableFrom: workspace.createdAt,
+      }),
     });
 
     return NextResponse.json(response);

@@ -1,5 +1,5 @@
 import { generateRandomName } from "@/lib/names";
-import { nanoid } from "@dub/utils";
+import { OG_AVATAR_URL, nanoid } from "@dub/utils";
 
 export const randomId = () => nanoid(24);
 
@@ -12,10 +12,18 @@ export const randomCustomer = () => {
     externalId,
     name: customerName,
     email: `${customerName.split(" ").join(".").toLowerCase()}@example.com`,
-    avatar: `https://api.dicebear.com/9.x/notionists/svg?seed=${externalId}`,
+    avatar: `${OG_AVATAR_URL}${externalId}`,
   };
 };
 
 export const randomTagName = () => {
   return `e2e-${randomId()}`;
+};
+
+export const randomEmail = ({
+  domain = "dub-internal-test.com",
+}: {
+  domain?: string;
+} = {}) => {
+  return `${generateRandomName().split(" ").join(".").toLowerCase()}@${domain}`;
 };

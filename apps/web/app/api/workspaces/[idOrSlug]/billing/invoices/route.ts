@@ -55,8 +55,8 @@ const payoutInvoices = async (workspaceId: string) => {
       id: true,
       total: true,
       createdAt: true,
-      receiptUrl: true,
       status: true,
+      failedReason: true,
     },
     orderBy: {
       createdAt: "desc",

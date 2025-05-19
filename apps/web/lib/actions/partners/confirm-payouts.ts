@@ -5,7 +5,7 @@ import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { PAYOUT_FEES } from "@/lib/partners/constants";
 import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
-import { PartnerPayoutConfirmed } from "@dub/email/templates/partner-payout-confirmed";
+import PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import z from "zod";
@@ -15,7 +15,6 @@ const confirmPayoutsSchema = z.object({
   workspaceId: z.string(),
   programId: z.string(),
   paymentMethodId: z.string(),
-  payoutIds: z.array(z.string()).min(1),
 });
 
 const allowedPaymentMethods = ["us_bank_account", "card", "link"];
@@ -24,8 +23,8 @@ const allowedPaymentMethods = ["us_bank_account", "card", "link"];
 export const confirmPayoutsAction = authActionClient
   .schema(confirmPayoutsSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
-    const { programId, paymentMethodId, payoutIds } = parsedInput;
+    const { workspace, user } = ctx;
+    const { programId, paymentMethodId } = parsedInput;
 
     const { minPayoutAmount } = await getProgramOrThrow({
       workspaceId: workspace.id,
@@ -52,21 +51,15 @@ export const confirmPayoutsAction = authActionClient
     const payouts = await prisma.payout.findMany({
       where: {
         programId,
-        id: {
-          in: payoutIds,
-        },
         status: "pending",
         invoiceId: null, // just to be extra safe
+        amount: {
+          gte: minPayoutAmount,
+        },
         partner: {
-          stripeConnectId: {
-            not: null,
-          },
           payoutsEnabledAt: {
             not: null,
           },
-        },
-        amount: {
-          gte: minPayoutAmount,
         },
       },
       select: {
@@ -155,6 +148,7 @@ export const confirmPayoutsAction = authActionClient
         data: {
           invoiceId: invoice.id,
           status: "processing",
+          userId: user.id,
         },
       });
 
@@ -173,17 +167,17 @@ export const confirmPayoutsAction = authActionClient
                 sendEmail({
                   subject: "You've got money coming your way!",
                   email: payout.partner.email!,
-                  from: "Dub Partners <system@dub.co>",
                   react: PartnerPayoutConfirmed({
                     email: payout.partner.email!,
                     program: payout.program,
                     payout: {
                       id: payout.id,
                       amount: payout.amount,
-                      startDate: payout.periodStart!,
-                      endDate: payout.periodEnd!,
+                      startDate: payout.periodStart,
+                      endDate: payout.periodEnd,
                     },
                   }),
+                  variant: "notifications",
                 }),
               ),
           );

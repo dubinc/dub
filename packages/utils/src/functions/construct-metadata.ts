@@ -1,10 +1,9 @@
 import { Metadata } from "next";
-import { HOME_DOMAIN } from "../constants";
 
 export function constructMetadata({
   title,
   fullTitle,
-  description = "Dub.co is the open-source link management platform for modern marketing teams to create marketing campaigns, link sharing features, and referral programs.",
+  description = "Dub is the modern link attribution platform for short links, conversion tracking, and affiliate programs.",
   image = "https://assets.dub.co/thumbnail.jpg",
   video,
   icons = [
@@ -45,9 +44,7 @@ export function constructMetadata({
   return {
     title:
       fullTitle ||
-      (title
-        ? `${title} | Dub.co`
-        : "Dub.co - Link Management for Modern Marketing Teams"),
+      (title ? `${title} | Dub` : "Dub - The Modern Link Attribution Platform"),
     description,
     openGraph: {
       title,
@@ -73,7 +70,7 @@ export function constructMetadata({
       creator: "@dubdotco",
     },
     icons,
-    metadataBase: new URL(HOME_DOMAIN),
+    metadataBase: new URL("https://dub.co"),
     ...((url || canonicalUrl) && {
       alternates: {
         canonical: url || canonicalUrl,

@@ -3,15 +3,16 @@
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PayoutsCount } from "@/lib/types";
-import StripeConnectButton from "@/ui/partners/stripe-connect-button";
+import { ConnectPayoutButton } from "@/ui/partners/connect-payout-button";
 import { AlertCircleFill } from "@/ui/shared/icons";
 import { PayoutStatus } from "@dub/prisma/client";
 import { AnimatedSizeContainer, MoneyBills2, Tooltip } from "@dub/ui";
 import { currencyFormatter } from "@dub/utils";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { memo } from "react";
 
-export function PayoutStats() {
+export const PayoutStats = memo(() => {
   const { partner } = usePartnerProfile();
   const { payoutsCount } = usePartnerPayoutsCount<PayoutsCount[]>({
     groupBy: "status",
@@ -35,7 +36,9 @@ export function PayoutStats() {
             <div className="flex items-center gap-2">
               {partner && !partner.payoutsEnabledAt && (
                 <Tooltip
-                  content="You need to set up your Stripe payouts account to be able to receive payouts from the programs you are enrolled in."
+                  content={`You need to set up your ${
+                    partner.stripeConnectId ? "Stripe" : "PayPal"
+                  } payouts account to be able to receive payouts from the programs you are enrolled in.`}
                   side="right"
                 >
                   <div>
@@ -65,7 +68,9 @@ export function PayoutStats() {
               <p className="text-black">
                 {currencyFormatter(
                   (payoutsCount?.find(
-                    (payout) => payout.status === PayoutStatus.completed,
+                    (payout) =>
+                      payout.status === PayoutStatus.completed ||
+                      payout.status === PayoutStatus.processing,
                   )?.amount || 0) / 100,
                   {
                     maximumFractionDigits: 2,
@@ -78,12 +83,12 @@ export function PayoutStats() {
           </div>
         </div>
         {partner && !partner.payoutsEnabledAt && (
-          <StripeConnectButton
+          <ConnectPayoutButton
             className="mt-4 h-9 w-full"
-            text="Connect payouts"
+            text={`Connect ${partner.supportedPayoutMethod === "stripe" ? "Stripe" : "PayPal"}`}
           />
         )}
       </div>
     </AnimatedSizeContainer>
   );
-}
+});
