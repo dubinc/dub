@@ -120,9 +120,9 @@ function MarkAsFraudModalInner({
       <div className="flex flex-col space-y-6 bg-neutral-50 p-6">
         <div className="rounded-lg border border-red-200 bg-red-50 p-4">
           <div className="text-sm text-red-900">
-            <span className="font-bold">Warning:</span> This action is not
-            reversible and will mark all future and past commissions from this
-            partner as fraud. Please proceed with caution.
+            <span className="font-bold">Warning:</span> This will mark all
+            future and past commissions from this partner as fraud. Please
+            proceed with caution.
           </div>
         </div>
 
