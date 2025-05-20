@@ -1,9 +1,9 @@
+import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { DubApiError } from "@/lib/api/errors";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
-import { redis } from "@/lib/upstash";
 import {
   CommissionSchema,
   updateCommissionSchema,
@@ -47,30 +47,34 @@ export const PATCH = withWorkspace(async ({ workspace, params, req }) => {
     await parseRequestBody(req),
   );
 
-  // if currency is not USD, convert it to USD  based on the current FX rate
-  // TODO: allow custom "defaultCurrency" on workspace table in the future
-  if (currency !== "usd") {
-    const fxRates = await redis.hget("fxRates:usd", currency.toUpperCase()); // e.g. for MYR it'll be around 4.4
-    if (fxRates) {
-      currency = "usd";
-      // convert amount to USD (in cents) based on the current FX rate
-      // round it to 0 decimal places
-      amount = Math.round(originalAmount / Number(fxRates));
-      modifyAmount = modifyAmount
-        ? Math.round(modifyAmount / Number(fxRates))
-        : undefined;
-    }
-  }
-
   let finalAmount: number | undefined;
   let finalEarnings: number | undefined;
-  let earningsDifference: number | undefined;
 
-  if (status) {
-    // if status is being set to refunded, duplicate, canceled, or fraudulent
-    // we need to decrement the payout amount by the commission earnings
-    earningsDifference = -commission.earnings;
-  } else if (amount || modifyAmount) {
+  if (amount || modifyAmount) {
+    if (commission.type !== "sale") {
+      throw new DubApiError({
+        code: "bad_request",
+        message: `Cannot update amount: Commission ${commissionId} is not a sale commission.`,
+      });
+    }
+
+    // if currency is not USD, convert it to USD  based on the current FX rate
+    // TODO: allow custom "defaultCurrency" on workspace table in the future
+    if (currency !== "usd") {
+      const valueToConvert = modifyAmount || amount;
+      if (valueToConvert) {
+        const { currency: convertedCurrency, amount: convertedAmount } =
+          await convertCurrency({ currency, amount: valueToConvert });
+
+        if (modifyAmount) {
+          modifyAmount = convertedAmount;
+        } else {
+          amount = convertedAmount;
+        }
+        currency = convertedCurrency;
+      }
+    }
+
     finalAmount = Math.max(
       modifyAmount ? originalAmount + modifyAmount : amount ?? originalAmount,
       0, // Ensure the amount is not negative
@@ -97,8 +101,6 @@ export const PATCH = withWorkspace(async ({ workspace, params, req }) => {
         quantity: commission.quantity,
       },
     });
-
-    earningsDifference = finalEarnings - commission.earnings;
   }
 
   const updatedCommission = await prisma.commission.update({
@@ -109,27 +111,42 @@ export const PATCH = withWorkspace(async ({ workspace, params, req }) => {
       amount: finalAmount,
       earnings: finalEarnings,
       status,
+      // need to update payoutId to null if the commission has no earnings
+      // or is being updated to refunded, duplicate, canceled, or fraudulent
+      ...(finalEarnings === 0 || status ? { payoutId: null } : {}),
     },
   });
 
-  // If the sale has already been paid, we need to update the payout
+  // If the commission has already been added to a payout, we need to update the payout amount
   if (
-    earningsDifference &&
     commission.status === "processed" &&
-    commission.payoutId
+    typeof commission.payoutId === "string"
   ) {
     waitUntil(
-      prisma.payout.update({
-        where: {
-          id: commission.payoutId,
-        },
-        data: {
-          amount: {
-            ...(earningsDifference < 0
-              ? { decrement: Math.abs(earningsDifference) }
-              : { increment: earningsDifference }),
+      prisma.$transaction(async (tx) => {
+        const commissions = await tx.commission.groupBy({
+          by: ["payoutId"],
+          where: {
+            payoutId: commission.payoutId,
           },
-        },
+          _sum: {
+            earnings: true,
+          },
+        });
+        console.log("commissions", commissions);
+
+        const newPayoutAmount = commissions[0]._sum.earnings ?? 0;
+
+        if (newPayoutAmount === 0) {
+          console.log("deleting payout", commission.payoutId);
+          // await tx.payout.delete({ where: { id: commission.payoutId! } });
+        } else {
+          console.log("updating payout", commission.payoutId, newPayoutAmount);
+          await tx.payout.update({
+            where: { id: commission.payoutId! },
+            data: { amount: newPayoutAmount },
+          });
+        }
       }),
     );
   }

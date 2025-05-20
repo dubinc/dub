@@ -21,12 +21,14 @@ describe.sequential("/commissions/**", async () => {
   const { http } = await h.init();
 
   let testCommissionId: string;
+  let testLeadCommissionId: string;
   let testPaidCommissionId: string;
 
   test("GET /commissions", async () => {
     const { status, data: commissions } = await http.get<Commission[]>({
       path: "/commissions",
       query: {
+        status: "processed",
         page: "1",
         pageSize: "10",
         sortBy: "createdAt",
@@ -38,9 +40,9 @@ describe.sequential("/commissions/**", async () => {
     expect(Array.isArray(commissions)).toBe(true);
     expect(commissions.length).toBeGreaterThan(0);
     expect(commissions[0]).toMatchObject(expectedCommission);
-
-    // Store the first commission's ID for subsequent tests
-    testCommissionId = commissions[0].id;
+    // Store the first sale and lead commission's ID for subsequent tests
+    testCommissionId = commissions.find((c) => c.type === "sale")!.id;
+    testLeadCommissionId = commissions.find((c) => c.type === "lead")!.id;
   });
 
   test("GET /commissions with filters", async () => {
@@ -59,6 +61,7 @@ describe.sequential("/commissions/**", async () => {
     expect(paidStatus).toEqual(200);
     expect(Array.isArray(paidCommissions)).toBe(true);
     expect(paidCommissions.length).toBeGreaterThan(0);
+    expect(paidCommissions[0]).toMatchObject(expectedCommission);
     testPaidCommissionId = paidCommissions[0].id;
   });
 
@@ -96,8 +99,8 @@ describe.sequential("/commissions/**", async () => {
 
   test("PATCH /commissions/{id} - foreign currency conversion", async () => {
     const toUpdate = {
-      amount: 10000, // 100 MYR
-      currency: "myr",
+      amount: 1437, // approximately 1000 USD cents
+      currency: "jpy",
     };
 
     const { status, data: commission } = await http.patch<Commission>({
@@ -105,12 +108,24 @@ describe.sequential("/commissions/**", async () => {
       body: toUpdate,
     });
 
-    console.log("commission", commission);
-
     expect(status).toEqual(200);
-    expect(commission.amount).toBeLessThan(6000);
-    expect(commission.amount).toBeGreaterThanOrEqual(3000); // 100 MYR should be around 23 USD and hence 6000 - 2300 = 3700
     expect(commission.currency).toEqual("usd");
+    expect(commission.amount).toBeGreaterThanOrEqual(900); // 900 cents
+    expect(commission.amount).toBeLessThanOrEqual(1100); // 1100 cents
+  });
+
+  test("PATCH /commissions/{id} - error on lead commission", async () => {
+    const toUpdate = {
+      amount: 5000,
+    };
+
+    const response = await http.patch<Commission>({
+      path: `/commissions/${testLeadCommissionId}`,
+      body: toUpdate,
+    });
+
+    expect(response.status).toEqual(400);
+    expect(response.data["error"].message).toContain("not a sale commission.");
   });
 
   test("PATCH /commissions/{id} - error on paid commission", async () => {
@@ -124,9 +139,7 @@ describe.sequential("/commissions/**", async () => {
     });
 
     expect(response.status).toEqual(400);
-    // The error response will be in the response body
-    const errorResponse = response.data as unknown as { message: string };
-    expect(errorResponse.message).toContain("has already been paid");
+    expect(response.data["error"].message).toContain("has already been paid");
   });
 
   test("PATCH /commissions/{id} - update status to refunded", async () => {

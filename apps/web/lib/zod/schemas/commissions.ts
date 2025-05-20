@@ -105,7 +105,7 @@ export const updateCommissionSchema = z.object({
   modifyAmount: z
     .number()
     .describe(
-      "Modify the current sale amount: use positive values to increase the amount, negative values to decrease it.",
+      "Modify the current sale amount: use positive values to increase the amount, negative values to decrease it. Takes precedence over `amount`.",
     )
     .optional(),
   currency: z
