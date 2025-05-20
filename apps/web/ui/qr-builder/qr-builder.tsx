@@ -369,7 +369,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                           qrCode={qrCode}
                         />
                       </div>
-                      {homepageDemo && (
+                      {homepageDemo && !isMobile && (
                         <QrTabsDownloadButton
                           onRegistrationClick={onSaveClick}
                           isQrDisabled={isQrDisabled}
