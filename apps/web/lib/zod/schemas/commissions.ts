@@ -100,12 +100,14 @@ export const updateCommissionSchema = z.object({
   amount: z
     .number()
     .min(0)
-    .describe("The new absolute amount for the sale.")
+    .describe(
+      "The new absolute amount for the sale. Paid commissions cannot be updated.",
+    )
     .optional(),
   modifyAmount: z
     .number()
     .describe(
-      "Modify the current sale amount: use positive values to increase the amount, negative values to decrease it. Takes precedence over `amount`.",
+      "Modify the current sale amount: use positive values to increase the amount, negative values to decrease it. Takes precedence over `amount`. Paid commissions cannot be updated.",
     )
     .optional(),
   currency: z
@@ -119,6 +121,6 @@ export const updateCommissionSchema = z.object({
     .enum(["refunded", "duplicate", "canceled", "fraud"])
     .optional()
     .describe(
-      "Useful for marking a commission as refunded, duplicate, canceled, or fraudulent. Paid commissions cannot be updated. Takes precedence over `amount` and `modifyAmount`.",
+      "Useful for marking a commission as refunded, duplicate, canceled, or fraudulent. Takes precedence over `amount` and `modifyAmount`. When a commission is marked as refunded, duplicate, canceled, or fraudulent, it will be omitted from the payout, and the payout amount will be recalculated accordingly. Paid commissions cannot be updated.",
     ),
 });
