@@ -41,8 +41,6 @@ export function CommissionRowMenu({ row }: { row: Row<CommissionResponse> }) {
   const showUpdateActions =
     row.original.status === "pending" || row.original.status === "processed";
 
-// (Line removed)
-
   if (!showUpdateActions && !row.original.invoiceId) {
     return null;
   }
