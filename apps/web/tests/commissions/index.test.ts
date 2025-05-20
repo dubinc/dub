@@ -105,6 +105,8 @@ describe.sequential("/commissions/**", async () => {
       body: toUpdate,
     });
 
+    console.log("commission", commission);
+
     expect(status).toEqual(200);
     expect(commission.amount).toBeLessThan(6000);
     expect(commission.amount).toBeGreaterThanOrEqual(3000); // 100 MYR should be around 23 USD and hence 6000 - 2300 = 3700
