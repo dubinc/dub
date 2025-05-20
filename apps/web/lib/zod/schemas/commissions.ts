@@ -29,16 +29,50 @@ export const CommissionResponseSchema = CommissionSchema.merge(
 export const getCommissionsQuerySchema = z
   .object({
     type: z.enum(["click", "lead", "sale"]).optional(),
-    customerId: z.string().optional(),
-    payoutId: z.string().optional(),
-    partnerId: z.string().optional(),
-    invoiceId: z.string().optional(),
-    status: z.nativeEnum(CommissionStatus).optional(),
-    sortBy: z.enum(["createdAt", "amount"]).default("createdAt"),
-    sortOrder: z.enum(["asc", "desc"]).default("desc"),
-    interval: z.enum(DATE_RANGE_INTERVAL_PRESETS).default("all"),
-    start: parseDateSchema.optional(),
-    end: parseDateSchema.optional(),
+    customerId: z
+      .string()
+      .optional()
+      .describe("Filter the list of commissions by the associated customer."),
+    payoutId: z
+      .string()
+      .optional()
+      .describe("Filter the list of commissions by the associated payout."),
+    partnerId: z
+      .string()
+      .optional()
+      .describe("Filter the list of commissions by the associated partner."),
+    invoiceId: z
+      .string()
+      .optional()
+      .describe(
+        "Filter the list of commissions by the associated invoice. Since invoiceId is unique on a per-program basis, this will only return one commission per invoice.",
+      ),
+    status: z
+      .nativeEnum(CommissionStatus)
+      .optional()
+      .describe(
+        "Filter the list of commissions by their corresponding status.",
+      ),
+    sortBy: z
+      .enum(["createdAt", "amount"])
+      .default("createdAt")
+      .describe("The field to sort the list of commissions by."),
+    sortOrder: z
+      .enum(["asc", "desc"])
+      .default("desc")
+      .describe("The sort order for the list of commissions."),
+    interval: z
+      .enum(DATE_RANGE_INTERVAL_PRESETS)
+      .default("all")
+      .describe("The interval to retrieve commissions for."),
+    start: parseDateSchema
+      .optional()
+      .describe(
+        "The start date of the date range to filter the commissions by.",
+      ),
+    end: parseDateSchema
+      .optional()
+      .describe("The end date of the date range to filter the commissions by."),
   })
   .merge(getPaginationQuerySchema({ pageSize: 100 }));
 
