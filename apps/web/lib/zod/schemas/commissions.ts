@@ -119,6 +119,6 @@ export const updateCommissionSchema = z.object({
     .enum(["refunded", "duplicate", "canceled", "fraud"])
     .optional()
     .describe(
-      "Useful for marking a commission as refunded, duplicate, canceled, or fraudulent. Paid commissions cannot be updated.",
+      "Useful for marking a commission as refunded, duplicate, canceled, or fraudulent. Paid commissions cannot be updated. Takes precedence over `amount` and `modifyAmount`.",
     ),
 });
