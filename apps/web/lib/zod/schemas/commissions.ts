@@ -32,6 +32,7 @@ export const getCommissionsQuerySchema = z
     customerId: z.string().optional(),
     payoutId: z.string().optional(),
     partnerId: z.string().optional(),
+    invoiceId: z.string().optional(),
     status: z.nativeEnum(CommissionStatus).optional(),
     sortBy: z.enum(["createdAt", "amount"]).default("createdAt"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),

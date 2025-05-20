@@ -484,10 +484,8 @@ export const partnerAnalyticsResponseSchema = {
   }),
 } as const;
 
-export const updatePartnerSaleSchema = z
+export const updateCommissionSchema = z
   .object({
-    programId: z.string(),
-    invoiceId: z.string(),
     amount: z
       .number()
       .min(0)
@@ -514,6 +512,30 @@ export const updatePartnerSaleSchema = z
       path: ["amount"],
     },
   );
+
+// TODO: remove this
+export const updatePartnerSaleSchema = z.object({
+  programId: z.string(),
+  invoiceId: z.string(),
+  amount: z
+    .number()
+    .min(0)
+    .describe("The new absolute amount for the sale.")
+    .optional(),
+  modifyAmount: z
+    .number()
+    .describe(
+      "Modify the current sale amount: use positive values to increase the amount, negative values to decrease it.",
+    )
+    .optional(),
+  currency: z
+    .string()
+    .default("usd")
+    .transform((val) => val.toLowerCase())
+    .describe(
+      "The currency of the sale amount to update. Accepts ISO 4217 currency codes.",
+    ),
+});
 
 export const invitePartnerSchema = z.object({
   workspaceId: z.string(),

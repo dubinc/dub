@@ -26,6 +26,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     customerId,
     payoutId,
     partnerId,
+    invoiceId,
     page,
     pageSize,
     sortBy,
@@ -42,21 +43,26 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   });
 
   const commissions = await prisma.commission.findMany({
-    where: {
-      earnings: {
-        gt: 0,
-      },
-      programId,
-      partnerId,
-      status,
-      type,
-      customerId,
-      payoutId,
-      createdAt: {
-        gte: startDate.toISOString(),
-        lte: endDate.toISOString(),
-      },
-    },
+    where: invoiceId
+      ? {
+          programId,
+          invoiceId,
+        }
+      : {
+          earnings: {
+            gt: 0,
+          },
+          programId,
+          partnerId,
+          status,
+          type,
+          customerId,
+          payoutId,
+          createdAt: {
+            gte: startDate.toISOString(),
+            lte: endDate.toISOString(),
+          },
+        },
     include: {
       customer: true,
       partner: true,
