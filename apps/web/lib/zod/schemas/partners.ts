@@ -163,7 +163,7 @@ export const PartnerSchema = z
     image: z.string().nullable().describe("The partner's avatar image."),
     description: z
       .string()
-      .max(1000)
+      .max(5000)
       .nullish()
       .describe("A brief description of the partner and their background."),
     country: z
