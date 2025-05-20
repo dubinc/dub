@@ -8,7 +8,8 @@ export const updatePartnerSale: ZodOpenApiOperationObject = {
   "x-speakeasy-name-override": "updateSale",
   summary: "Update a sale for a partner.",
   description:
-    "Update an existing sale amount. This is useful for handling refunds (partial or full) or fraudulent sales.",
+    "[Deprecated]: Update an existing sale amount. This is useful for handling refunds (partial or full) or fraudulent sales.",
+  deprecated: true,
   requestBody: {
     content: {
       "application/json": {

@@ -4,13 +4,17 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { redis } from "@/lib/upstash";
-import { CommissionSchema } from "@/lib/zod/schemas/commissions";
-import { updateCommissionSchema } from "@/lib/zod/schemas/partners";
+import {
+  CommissionSchema,
+  updateCommissionSchema,
+} from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // PATCH /api/commissions/:commissionId - update a commission
 export const PATCH = withWorkspace(async ({ workspace, params, req }) => {
+  const programId = workspace.defaultProgramId!;
+
   const { commissionId } = params;
 
   const commission = await prisma.commission.findUnique({
@@ -22,7 +26,7 @@ export const PATCH = withWorkspace(async ({ workspace, params, req }) => {
     },
   });
 
-  if (!commission || commission.programId !== workspace.defaultProgramId) {
+  if (!commission || commission.programId !== programId) {
     throw new DubApiError({
       code: "not_found",
       message: `Commission ${commissionId} not found.`,
@@ -64,13 +68,13 @@ export const PATCH = withWorkspace(async ({ workspace, params, req }) => {
   const reward = await determinePartnerReward({
     event: "sale",
     partnerId: partner.id,
-    programId: commission.programId,
+    programId,
   });
 
   if (!reward) {
     throw new DubApiError({
       code: "not_found",
-      message: `No reward found for partner ${partner.id} in program ${commission.programId}.`,
+      message: `No reward found for partner ${partner.id} in program ${programId}.`,
     });
   }
 
