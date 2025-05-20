@@ -93,7 +93,7 @@ export const createPartnerCommission = async ({
         }
       }
 
-      // if first commission is fraud or canceled, we should not create a new commission
+      // if first commission is fraud or canceled, the commission will be set to fraud or canceled as well
       if (
         firstCommission.status === "fraud" ||
         firstCommission.status === "canceled"
