@@ -48,7 +48,7 @@ export function Avatar({
       referrerPolicy="no-referrer"
       src={url}
       className={cn(
-        "h-10 w-10 rounded-full border border-neutral-300",
+        "h-10 w-10 rounded-full border border-neutral-900/10",
         className,
       )}
       draggable={false}
