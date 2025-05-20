@@ -30,21 +30,23 @@ interface IQRContentBuilderProps {
   }) => void;
   inputValues: Record<string, string>;
   setInputValues: Dispatch<SetStateAction<Record<string, string>>>;
+  files: File[];
+  setFiles: Dispatch<SetStateAction<File[]>>;
   isHiddenNetwork: boolean;
   setIsHiddenNetwork: Dispatch<SetStateAction<boolean>>;
   inputErrors: Record<string, string>;
   setInputErrors: Dispatch<SetStateAction<Record<string, string>>>;
   minimalFlow?: boolean;
-  initialInputValues?: Record<string, string>;
 }
 
 export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
   qrType,
   handleContent,
   minimalFlow = false,
-  initialInputValues = {},
   inputValues,
   setInputValues,
+  files,
+  setFiles,
   isHiddenNetwork,
   setIsHiddenNetwork,
   inputErrors,
@@ -52,7 +54,6 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
 }) => {
   const { isMobile } = useMediaQuery();
 
-  const [files, setFiles] = useState<File[]>([]);
   const [showFileError, setShowFileError] = useState(false);
 
   const validationFailed = Object.values(inputErrors).some((err) => err !== "");
@@ -262,7 +263,7 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
     <div className="flex h-full w-full flex-col items-center justify-between gap-4 md:items-start">
       <div
         className={cn(
-          "flex h-fit w-full flex-col items-center justify-center gap-6 p-0 md:max-w-[654px] md:p-0",
+          "flex h-fit w-full flex-col items-center justify-center gap-6 p-0 md:max-w-[524px] md:p-0",
           {
             "border-border-100 rounded-lg border p-3 md:px-6 md:py-4":
               !minimalFlow,

@@ -13,6 +13,7 @@ import { ArrowTurnLeft, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Button, Flex } from "@radix-ui/themes";
 import { motion } from "framer-motion";
+import { ChevronLeft } from "lucide-react";
 import {
   FC,
   forwardRef,
@@ -24,6 +25,7 @@ import {
 } from "react";
 import {
   EQRType,
+  FILE_QR_TYPES,
   LINKED_QR_TYPES,
   QR_TYPES,
 } from "./constants/get-qr-config.ts";
@@ -51,7 +53,9 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
       const [inputValues, setInputValues] = useState<Record<string, string>>(
         {},
       );
+      const [files, setFiles] = useState<File[]>([]);
       console.log("[QrBuilder] inputValues", inputValues);
+      console.log("[QrBuilder] files", files);
       const [isHiddenNetwork, setIsHiddenNetwork] = useState(false);
       const [inputErrors, setInputErrors] = useState<Record<string, string>>(
         {},
@@ -165,16 +169,20 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
       }, [currentQRType]);
 
       const demoProps = useMemo(() => {
-        return (
-          qrCodeDemo?.propsKeys.reduce(
-            (acc: Record<string, string>, key: string) => {
-              acc[key] = inputValues[key];
-              return acc;
-            },
-            {},
-          ) || {}
+        if (!qrCodeDemo || !currentQRType) return {};
+
+        if (FILE_QR_TYPES.includes(currentQRType)) {
+          return { files };
+        }
+
+        return qrCodeDemo.propsKeys.reduce(
+          (acc: Record<string, string>, key: string) => {
+            acc[key] = inputValues[key];
+            return acc;
+          },
+          {},
         );
-      }, [qrCodeDemo, inputValues]);
+      }, [qrCodeDemo, inputValues, files, currentQRType]);
 
       console.log("[QrBuilder] currentQRType", currentQRType);
       console.log("[QrBuilder] qrCodeDemo", qrCodeDemo);
@@ -189,7 +197,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
           <Flex
             direction="row"
             align="center"
-            justify="between"
+            justify="start"
             className="px-6 py-3"
           >
             <Stepper
@@ -202,7 +210,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
             />
 
             {!typeStep && (
-              <Flex gap="2">
+              <Flex gap="4" className="pr-8">
                 <Button
                   size="3"
                   variant="outline"
@@ -211,12 +219,13 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                   disabled={typeStep}
                   onClick={() => setStep((prev) => Math.max(prev - 1, 1))}
                 >
-                  Back
+                  <ChevronLeft />
                 </Button>
                 <Button
                   type="submit"
                   size="3"
                   color="blue"
+                  className="min-w-60"
                   disabled={
                     contentStep &&
                     (isQrDisabled ||
@@ -251,19 +260,20 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                   direction="column"
                   align="start"
                   justify="start"
-                  className="w-full"
+                  className="w-full md:max-w-[524px]"
                 >
                   <QRCodeContentBuilder
                     qrType={selectedQRType}
                     handleContent={handleContent}
                     inputValues={inputValues}
                     setInputValues={setInputValues}
+                    files={files}
+                    setFiles={setFiles}
                     isHiddenNetwork={isHiddenNetwork}
                     setIsHiddenNetwork={setIsHiddenNetwork}
                     inputErrors={inputErrors}
                     setInputErrors={setInputErrors}
                     minimalFlow
-                    initialInputValues={initialInputValues}
                   />
                 </Flex>
               )}
@@ -294,9 +304,9 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
 
               <div
                 className={cn(
-                  "bg-background relative flex h-auto shrink-0 basis-2/5 items-end justify-center overflow-y-auto rounded-lg p-6",
+                  "bg-background relative flex h-auto shrink-0 basis-2/5 items-end justify-center rounded-lg p-6",
                   {
-                    "items-start": customizationStep,
+                    "items-start overflow-y-auto": customizationStep,
                   },
                 )}
               >

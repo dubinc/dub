@@ -35,7 +35,7 @@ export const QRCodeDemoWhatsapp: FC<IQRCodeDemoWhatsappProps> = ({
         x="90"
         y="70"
         width="168"
-        height="109"
+        height="155"
         xmlns="http://www.w3.org/1999/xhtml"
       >
         <div
@@ -44,8 +44,8 @@ export const QRCodeDemoWhatsapp: FC<IQRCodeDemoWhatsappProps> = ({
             backgroundColor: "white",
             borderRadius: "16px",
             padding: "10px 12px 4px 12px",
-            fontSize: "10px",
-            lineHeight: "12px",
+            fontSize: "12px",
+            lineHeight: "14px",
             fontFamily: "Satoshi, sans-serif",
             color: "#212121",
             boxShadow: "0 1px 2px rgba(0,0,0,0.1)",

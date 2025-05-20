@@ -1,3 +1,6 @@
+import { QRCodeDemoImage } from "@/ui/qr-builder/components/qr-code-demos/demos/image.tsx";
+import QRCodeDemoPdf from "@/ui/qr-builder/components/qr-code-demos/demos/pdf.tsx";
+import { QRCodeDemoVideo } from "@/ui/qr-builder/components/qr-code-demos/demos/video.tsx";
 import { EQRType } from "../../constants/get-qr-config";
 import { QRCodeDemoWebsite } from "./demos/website";
 import { QRCodeDemoWhatsapp } from "./demos/whatsapp";
@@ -17,15 +20,15 @@ export const QRCodeDemoMap = {
     propsKeys: ["networkName"],
   },
   [EQRType.PDF]: {
-    Component: QRCodeDemoWifi,
-    propsKeys: ["networkName"],
+    Component: QRCodeDemoPdf,
+    propsKeys: [],
   },
   [EQRType.IMAGE]: {
-    Component: QRCodeDemoWifi,
-    propsKeys: ["networkName"],
+    Component: QRCodeDemoImage,
+    propsKeys: [],
   },
   [EQRType.VIDEO]: {
-    Component: QRCodeDemoWifi,
-    propsKeys: ["networkName"],
+    Component: QRCodeDemoVideo,
+    propsKeys: [],
   },
 };
