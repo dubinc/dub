@@ -1,25 +1,16 @@
-// "use client";
-//
-// import { Document, Page, pdfjs } from "react-pdf";
-//
-// pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.js";
-//
-// export function QRCodeDemoPdf({ files }: { files: File[] }) {
-//   const file = files[0];
-//
-//   return (
-//     <Document file={file}>
-//       <Page pageNumber={1} />
-//     </Document>
-//   );
-// }
-
+import { LoadingCircle } from "@dub/ui";
 import dynamic from "next/dynamic";
 
-const PDFViewer = dynamic(() => import("../pdf-viewer.tsx"), {
+const PdfViewer = dynamic(() => import("../pdf-viewer.tsx"), {
   ssr: false,
+  loading: () => (
+    <LoadingCircle className="fill-secondary text-secondary-100 h-10 w-10 self-center" />
+  ),
 });
 
-export default function QRCodeDemoPdf() {
-  return <PDFViewer />;
+interface IQRCodeDemoPdfProps {
+  files: File[];
+}
+export default function QRCodeDemoPdf({ files }: IQRCodeDemoPdfProps) {
+  return <PdfViewer file={files?.[0]} />;
 }
