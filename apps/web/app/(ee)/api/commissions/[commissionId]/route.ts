@@ -118,10 +118,7 @@ export const PATCH = withWorkspace(async ({ workspace, params, req }) => {
   });
 
   // If the commission has already been added to a payout, we need to update the payout amount
-  if (
-    commission.status === "processed" &&
-    typeof commission.payoutId === "string"
-  ) {
+  if (commission.status === "processed" && commission.payoutId) {
     waitUntil(
       prisma.$transaction(async (tx) => {
         const commissions = await tx.commission.groupBy({
@@ -133,15 +130,16 @@ export const PATCH = withWorkspace(async ({ workspace, params, req }) => {
             earnings: true,
           },
         });
-        console.log("commissions", commissions);
 
         const newPayoutAmount = commissions[0]._sum.earnings ?? 0;
 
         if (newPayoutAmount === 0) {
-          console.log("deleting payout", commission.payoutId);
-          // await tx.payout.delete({ where: { id: commission.payoutId! } });
+          console.log(`Deleting payout ${commission.payoutId}`);
+          await tx.payout.delete({ where: { id: commission.payoutId! } });
         } else {
-          console.log("updating payout", commission.payoutId, newPayoutAmount);
+          console.log(
+            `Updating payout ${commission.payoutId} to ${newPayoutAmount}`,
+          );
           await tx.payout.update({
             where: { id: commission.payoutId! },
             data: { amount: newPayoutAmount },
