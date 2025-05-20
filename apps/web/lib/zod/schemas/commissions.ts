@@ -96,31 +96,29 @@ export const createCommissionSchema = z.object({
   leadEventName: z.string().nullish(),
 });
 
-export const updateCommissionSchema = z
-  .object({
-    amount: z
-      .number()
-      .min(0)
-      .describe("The new absolute amount for the sale.")
-      .optional(),
-    modifyAmount: z
-      .number()
-      .describe(
-        "Modify the current sale amount: use positive values to increase the amount, negative values to decrease it.",
-      )
-      .optional(),
-    currency: z
-      .string()
-      .default("usd")
-      .transform((val) => val.toLowerCase())
-      .describe(
-        "The currency of the sale amount to update. Accepts ISO 4217 currency codes.",
-      ),
-  })
-  .refine(
-    (data) => data.amount !== undefined || data.modifyAmount !== undefined,
-    {
-      message: "Either amount or modifyAmount must be provided.",
-      path: ["amount"],
-    },
-  );
+export const updateCommissionSchema = z.object({
+  amount: z
+    .number()
+    .min(0)
+    .describe("The new absolute amount for the sale.")
+    .optional(),
+  modifyAmount: z
+    .number()
+    .describe(
+      "Modify the current sale amount: use positive values to increase the amount, negative values to decrease it.",
+    )
+    .optional(),
+  currency: z
+    .string()
+    .default("usd")
+    .transform((val) => val.toLowerCase())
+    .describe(
+      "The currency of the sale amount to update. Accepts ISO 4217 currency codes.",
+    ),
+  status: z
+    .enum(["refunded", "duplicate", "canceled", "fraud"])
+    .optional()
+    .describe(
+      "Useful for marking a commission as refunded, duplicate, canceled, or fraudulent. Paid commissions cannot be updated.",
+    ),
+});

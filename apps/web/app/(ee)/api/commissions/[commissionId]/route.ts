@@ -9,6 +9,7 @@ import {
   updateCommissionSchema,
 } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // PATCH /api/commissions/:commissionId - update a commission
@@ -42,7 +43,7 @@ export const PATCH = withWorkspace(async ({ workspace, params, req }) => {
 
   const { partner, amount: originalAmount } = commission;
 
-  let { amount, modifyAmount, currency } = updateCommissionSchema.parse(
+  let { amount, modifyAmount, currency, status } = updateCommissionSchema.parse(
     await parseRequestBody(req),
   );
 
@@ -61,31 +62,44 @@ export const PATCH = withWorkspace(async ({ workspace, params, req }) => {
     }
   }
 
-  const finalAmount = modifyAmount
-    ? originalAmount + modifyAmount
-    : amount ?? originalAmount;
+  let finalAmount: number | undefined;
+  let finalEarnings: number | undefined;
+  let earningsDifference: number | undefined;
 
-  const reward = await determinePartnerReward({
-    event: "sale",
-    partnerId: partner.id,
-    programId,
-  });
+  if (status) {
+    // if status is being set to refunded, duplicate, canceled, or fraudulent
+    // we need to decrement the payout amount by the commission earnings
+    earningsDifference = -commission.earnings;
+  } else if (amount || modifyAmount) {
+    finalAmount = Math.max(
+      modifyAmount ? originalAmount + modifyAmount : amount ?? originalAmount,
+      0, // Ensure the amount is not negative
+    );
 
-  if (!reward) {
-    throw new DubApiError({
-      code: "not_found",
-      message: `No reward found for partner ${partner.id} in program ${programId}.`,
+    const reward = await determinePartnerReward({
+      event: "sale",
+      partnerId: partner.id,
+      programId,
     });
-  }
 
-  // Recalculate the earnings based on the new amount
-  const finalEarnings = calculateSaleEarnings({
-    reward,
-    sale: {
-      amount: finalAmount,
-      quantity: commission.quantity,
-    },
-  });
+    if (!reward) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `No reward found for partner ${partner.id} in program ${programId}.`,
+      });
+    }
+
+    // Recalculate the earnings based on the new amount
+    finalEarnings = calculateSaleEarnings({
+      reward,
+      sale: {
+        amount: finalAmount,
+        quantity: commission.quantity,
+      },
+    });
+
+    earningsDifference = finalEarnings - commission.earnings;
+  }
 
   const updatedCommission = await prisma.commission.update({
     where: {
@@ -94,33 +108,30 @@ export const PATCH = withWorkspace(async ({ workspace, params, req }) => {
     data: {
       amount: finalAmount,
       earnings: finalEarnings,
+      status,
     },
   });
 
-  // TODO:
-  // Check the reward limit
-
-  const amountDifference = finalAmount - commission.amount;
-  const earningsDifference = finalEarnings - commission.earnings;
-
   // If the sale has already been paid, we need to update the payout
   if (
-    amountDifference !== 0 &&
+    earningsDifference &&
     commission.status === "processed" &&
     commission.payoutId
   ) {
-    await prisma.payout.update({
-      where: {
-        id: commission.payoutId,
-      },
-      data: {
-        amount: {
-          ...(earningsDifference < 0
-            ? { decrement: Math.abs(earningsDifference) }
-            : { increment: earningsDifference }),
+    waitUntil(
+      prisma.payout.update({
+        where: {
+          id: commission.payoutId,
         },
-      },
-    });
+        data: {
+          amount: {
+            ...(earningsDifference < 0
+              ? { decrement: Math.abs(earningsDifference) }
+              : { increment: earningsDifference }),
+          },
+        },
+      }),
+    );
   }
 
   return NextResponse.json(CommissionSchema.parse(updatedCommission));
