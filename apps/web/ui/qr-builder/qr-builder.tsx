@@ -1,4 +1,5 @@
 import { QRBuilderData } from "@/ui/modals/qr-builder";
+import { QrBuilderButtons } from "@/ui/qr-builder/components/qr-builder-buttons.tsx";
 import { QRCodeDemoMap } from "@/ui/qr-builder/components/qr-code-demos/qr-code-demo-map.ts";
 import { QRCodeDemoPlaceholder } from "@/ui/qr-builder/components/qr-code-demos/qr-code-demo-placeholder.tsx";
 import Stepper from "@/ui/qr-builder/components/stepper.tsx";
@@ -13,7 +14,6 @@ import { ArrowTurnLeft, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Button, Flex } from "@radix-ui/themes";
 import { motion } from "framer-motion";
-import { ChevronLeft } from "lucide-react";
 import {
   FC,
   forwardRef,
@@ -137,19 +137,6 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
       const contentStep = step === 2;
       const customizationStep = step === 3;
 
-      // const currentQRType = typeStep
-      //   ? hoveredQRType !== null
-      //     ? hoveredQRType
-      //     : selectedQRType
-      //   : selectedQRType;
-      // const qrCodeDemo = QRCodeDemoMap[currentQRType] ?? null;
-      // const demoProps = qrCodeDemo?.propsKeys.reduce(
-      //   (acc, key) => {
-      //     acc[key] = inputValues[key];
-      //     return acc;
-      //   },
-      //   {} as Record<string, string>,
-      // );
       const [currentQRType, setCurrentQRType] = useState<EQRType | null>(null);
 
       useEffect(() => {
@@ -188,6 +175,8 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
       console.log("[QrBuilder] qrCodeDemo", qrCodeDemo);
       console.log("[QrBuilder] demoProps", demoProps);
 
+      const hideDemoPlaceholderOnMobile = isMobile && typeStep;
+
       return (
         <div
           className={cn(
@@ -203,48 +192,45 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
             <Stepper
               currentStep={step}
               steps={[
-                { number: 1, label: "Choose QR Type" },
+                {
+                  number: 1,
+                  label: "Choose type",
+                },
                 { number: 2, label: "Complete Content" },
                 { number: 3, label: "Customize QR" },
               ]}
             />
-
             {!typeStep && (
-              <Flex gap="4" className="pr-8">
-                <Button
-                  size="3"
-                  variant="outline"
-                  color="blue"
-                  className="flex min-h-10 self-center"
-                  disabled={typeStep}
-                  onClick={() => setStep((prev) => Math.max(prev - 1, 1))}
-                >
-                  <ChevronLeft />
-                </Button>
-                <Button
-                  type="submit"
-                  size="3"
-                  color="blue"
-                  className="min-w-60"
-                  disabled={
-                    contentStep &&
-                    (isQrDisabled ||
-                      Object.values(inputErrors).some((error) => error !== ""))
-                  }
-                  onClick={() => setStep((prev) => Math.min(prev + 1, 3))}
-                >
-                  Continue
-                </Button>
-              </Flex>
+              <QrBuilderButtons
+                step={step}
+                onStepChange={setStep}
+                disableContinue={
+                  contentStep &&
+                  (isQrDisabled ||
+                    Object.values(inputErrors).some((error) => error !== ""))
+                }
+                size="3"
+                display={{ initial: "none", md: "flex" }}
+                className="pr-8"
+              />
             )}
           </Flex>
 
           <div className="border-t-border-500 flex w-full flex-col items-stretch justify-between gap-6 overflow-x-auto border-t p-6">
             <QrTabsStepTitle title={QRBuilderStepsTitles[step - 1]} />
 
-            <Flex direction="row" gap="6">
+            <Flex
+              direction={{ initial: "column-reverse", md: "row" }}
+              gap={{ initial: "4", md: "6" }}
+            >
               {typeStep && (
-                <Flex gap="4" direction="column" align="start" justify="start">
+                <Flex
+                  gap="4"
+                  direction="column"
+                  align="start"
+                  justify="start"
+                  className="w-full"
+                >
                   <QrTypeSelection
                     qrTypesList={filteredQrTypes}
                     qrTypeActiveTab={selectedQRType}
@@ -275,6 +261,19 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                     setInputErrors={setInputErrors}
                     minimalFlow
                   />
+
+                  <QrBuilderButtons
+                    step={step}
+                    onStepChange={setStep}
+                    disableContinue={
+                      contentStep &&
+                      (isQrDisabled ||
+                        Object.values(inputErrors).some(
+                          (error) => error !== "",
+                        ))
+                    }
+                    display={{ initial: "flex", md: "none" }}
+                  />
                 </Flex>
               )}
 
@@ -299,88 +298,69 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                     options={options}
                     handlers={handlers}
                   />
+
+                  <QrBuilderButtons
+                    step={step}
+                    onStepChange={setStep}
+                    disableContinue={
+                      contentStep &&
+                      (isQrDisabled ||
+                        Object.values(inputErrors).some(
+                          (error) => error !== "",
+                        ))
+                    }
+                    display={{ initial: "flex", md: "none" }}
+                  />
                 </Flex>
               )}
 
-              <div
-                className={cn(
-                  "bg-background relative flex h-auto shrink-0 basis-2/5 items-end justify-center rounded-lg p-6",
-                  {
-                    "items-start overflow-y-auto": customizationStep,
-                  },
-                )}
-              >
-                {!customizationStep && (
-                  <div className="relative inline-block">
-                    {!currentQRType ? (
-                      <QRCodeDemoPlaceholder />
-                    ) : (
-                      <motion.div
-                        key={currentQRType}
-                        initial="hidden"
-                        animate="visible"
-                        exit="exit"
-                        variants={{
-                          hidden: { opacity: 0, y: 20 },
-                          visible: { opacity: 1, y: 0 },
-                          exit: { opacity: 0, y: 20 },
-                        }}
-                        transition={{ duration: 0.3, ease: "easeInOut" }}
-                      >
-                        {qrCodeDemo && <qrCodeDemo.Component {...demoProps} />}
-                      </motion.div>
-                    )}
-                    <div className="absolute left-1/2 top-[249.72px] h-[150.28px] w-[400px] -translate-x-1/2 bg-[linear-gradient(180deg,_rgba(255,255,255,0)_12.22%,_#FFFFFF_73.25%)]"></div>
-                  </div>
-                )}
+              {!hideDemoPlaceholderOnMobile && (
+                <div
+                  className={cn(
+                    "bg-background relative flex h-auto shrink-0 basis-2/5 items-end justify-center rounded-lg p-6 [&_svg]:h-[300px] md:[&_svg]:h-full",
+                    {
+                      "items-start overflow-y-auto": customizationStep,
+                    },
+                  )}
+                >
+                  {!customizationStep && (
+                    <div className="relative inline-block">
+                      {!currentQRType ? (
+                        <QRCodeDemoPlaceholder />
+                      ) : (
+                        <motion.div
+                          key={currentQRType}
+                          initial="hidden"
+                          animate="visible"
+                          exit="exit"
+                          variants={{
+                            hidden: { opacity: 0, y: 20 },
+                            visible: { opacity: 1, y: 0 },
+                            exit: { opacity: 0, y: 20 },
+                          }}
+                          transition={{ duration: 0.3, ease: "easeInOut" }}
+                        >
+                          {qrCodeDemo && (
+                            <qrCodeDemo.Component {...demoProps} />
+                          )}
+                        </motion.div>
+                      )}
+                      <div className="absolute left-1/2 top-[200px] h-[100px] w-[230px] -translate-x-1/2 bg-[linear-gradient(180deg,_rgba(255,255,255,0)_12.22%,_#FFFFFF_73.25%)] md:top-[249.72px] md:h-[150.28px] md:w-[400px]"></div>
+                    </div>
+                  )}
 
-                {customizationStep && (
-                  <div className="center sticky top-0 flex h-fit flex-col gap-6">
-                    <QRCanvas
-                      width={isMobile ? 200 : 300}
-                      height={isMobile ? 200 : 300}
-                      qrCode={qrCode}
-                    />
-                  </div>
-                )}
-              </div>
+                  {customizationStep && (
+                    <div className="center sticky top-0 flex h-fit flex-col gap-6">
+                      <QRCanvas
+                        width={isMobile ? 250 : 300}
+                        height={isMobile ? 250 : 300}
+                        qrCode={qrCode}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
             </Flex>
-            {/*{isMobile ? (*/}
-            {/*  <QrConfigTypeTabsMobile*/}
-            {/*    options={options}*/}
-            {/*    qrCode={qrCode}*/}
-            {/*    uploadedLogo={uploadedLogo}*/}
-            {/*    selectedSuggestedLogo={selectedSuggestedLogo}*/}
-            {/*    selectedSuggestedFrame={selectedSuggestedFrame}*/}
-            {/*    handlers={handlers}*/}
-            {/*    setData={setData}*/}
-            {/*    isQrDisabled={isQrDisabled}*/}
-            {/*    qrTypes={filteredQrTypes}*/}
-            {/*    homepageDemo={homepageDemo}*/}
-            {/*    qrTypeActiveTab={qrTypeActiveTab}*/}
-            {/*    setQRTypeActiveTab={setQRTypeActiveTab}*/}
-            {/*    initialInputValues={initialInputValues}*/}
-            {/*    onRegistrationClick={onSaveClick}*/}
-            {/*  />*/}
-            {/*) : (*/}
-            {/*  <QrTypeTabs*/}
-            {/*    options={options}*/}
-            {/*    qrCode={qrCode}*/}
-            {/*    uploadedLogo={uploadedLogo}*/}
-            {/*    selectedSuggestedLogo={selectedSuggestedLogo}*/}
-            {/*    selectedSuggestedFrame={selectedSuggestedFrame}*/}
-            {/*    handlers={handlers}*/}
-            {/*    setData={setData}*/}
-            {/*    isQrDisabled={isQrDisabled}*/}
-            {/*    nonFileQrTypes={filteredQrTypes}*/}
-            {/*    homepageDemo={homepageDemo}*/}
-            {/*    qrTypeActiveTab={qrTypeActiveTab}*/}
-            {/*    setQRTypeActiveTab={setQRTypeActiveTab}*/}
-            {/*    initialInputValues={initialInputValues}*/}
-            {/*    onRegistrationClick={onSaveClick}*/}
-            {/*    isMobile={isMobile}*/}
-            {/*  />*/}
-            {/*)}*/}
           </div>
           {!homepageDemo && (
             <div className="-mt-2 flex items-center justify-end gap-2 border-t border-neutral-100 bg-neutral-50 p-4">

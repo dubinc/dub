@@ -13,54 +13,21 @@ interface IStepperProps {
 
 export default function Stepper({ steps, currentStep }: IStepperProps) {
   return (
-    <div className="flex w-[70%] items-center justify-start">
+    <div className="flex w-full items-start justify-start md:w-[70%] md:items-center">
       {steps.map((step, index) => {
         const isCompleted = currentStep > step.number;
         const isActive = currentStep === step.number;
         const isLast = index === steps.length - 1;
 
         return (
-          <div key={step.number} className="flex flex-1 items-center">
+          <div
+            key={step.number}
+            className={cn(
+              "flex items-center",
+              isLast ? "flex-0 md:flex-1" : "flex-1",
+            )}
+          >
             <div className="flex flex-col items-center">
-              {/*<div*/}
-              {/*  className={cn(*/}
-              {/*    "flex h-10 w-10 items-center justify-center rounded-full border-2 text-sm font-medium",*/}
-              {/*    isCompleted*/}
-              {/*      ? "border-primary text-primary bg-green-50"*/}
-              {/*      : isActive*/}
-              {/*        ? "border-primary text-primary"*/}
-              {/*        : "border-gray-300 text-gray-500",*/}
-              {/*  )}*/}
-              {/*>*/}
-              {/*  {isCompleted ? <CheckIcon className="h-5 w-5" /> : step.number}*/}
-              {/*</div>*/}
-              {/*<div className="relative flex h-[25px] w-[25px] items-center justify-center">*/}
-              {/*  <div*/}
-              {/*    className="absolute inset-0 -m-[2px] rounded-full"*/}
-              {/*    style={{*/}
-              {/*      background:*/}
-              {/*        "linear-gradient(90deg, #115740 20.53%, #25BD8B 37.79%)",*/}
-              {/*      padding: "2px",*/}
-              {/*    }}*/}
-              {/*  >*/}
-              {/*    <div*/}
-              {/*      className={cn(*/}
-              {/*        "flex h-full w-full items-center justify-center rounded-full text-sm font-medium",*/}
-              {/*        isCompleted*/}
-              {/*          ? "text-primary bg-primary-100"*/}
-              {/*          : isActive*/}
-              {/*            ? "text-primary bg-white"*/}
-              {/*            : "bg-white text-neutral-500",*/}
-              {/*      )}*/}
-              {/*    >*/}
-              {/*      {isCompleted ? (*/}
-              {/*        <CheckIcon className="h-5 w-5" />*/}
-              {/*      ) : (*/}
-              {/*        step.number*/}
-              {/*      )}*/}
-              {/*    </div>*/}
-              {/*  </div>*/}
-              {/*</div>*/}
               <div className="relative flex h-6 w-6 items-center justify-center transition-all duration-300 ease-in-out">
                 <div
                   className={cn("absolute inset-0 -m-[2px] rounded-full", {
@@ -91,7 +58,7 @@ export default function Stepper({ steps, currentStep }: IStepperProps) {
 
               <span
                 className={cn(
-                  "mt-1 text-sm font-medium",
+                  "mt-1 whitespace-nowrap text-xs font-medium md:text-sm",
                   isCompleted || isActive ? "text-primary" : "text-neutral-500",
                 )}
               >
@@ -102,7 +69,7 @@ export default function Stepper({ steps, currentStep }: IStepperProps) {
             {!isLast && (
               <div
                 className={cn(
-                  "mx-2 mb-6 h-0.5 flex-1 rounded-md",
+                  "mx-2 mb-6 h-0.5 min-w-6 flex-1 shrink-0 rounded-md",
                   isCompleted ? "bg-primary" : "bg-border-500",
                 )}
               />
