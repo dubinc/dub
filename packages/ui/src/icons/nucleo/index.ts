@@ -114,6 +114,7 @@ export * from "./greek-temple";
 export * from "./grid";
 export * from "./grid-layout-rows";
 export * from "./grid-plus";
+export * from "./grip-dots-vertical";
 export * from "./headset";
 export * from "./headset-fill";
 export * from "./heart-fill";

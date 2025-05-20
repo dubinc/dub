@@ -1,10 +1,20 @@
 "use client";
 
 import { programLanderAccordionBlockSchema } from "@/lib/zod/schemas/program-lander";
-import { Button, Modal, useMediaQuery } from "@dub/ui";
-import { Dispatch, SetStateAction, useId } from "react";
-import { useFieldArray, useForm } from "react-hook-form";
+import { Button, Modal, useMediaQuery, useScrollProgress } from "@dub/ui";
+import { Dispatch, SetStateAction, useId, useRef } from "react";
+import {
+  FieldArrayWithId,
+  FormProvider,
+  useFieldArray,
+  UseFieldArrayRemove,
+  useForm,
+  useFormContext,
+  useWatch,
+} from "react-hook-form";
+import { v4 as uuid } from "uuid";
 import { z } from "zod";
+import { EditList, EditListItem } from "../edit-list";
 
 type AccordionBlockData = z.infer<
   typeof programLanderAccordionBlockSchema
@@ -19,7 +29,11 @@ type AccordionBlockModalProps = {
 
 export function AccordionBlockModal(props: AccordionBlockModalProps) {
   return (
-    <Modal showModal={props.showModal} setShowModal={props.setShowModal}>
+    <Modal
+      showModal={props.showModal}
+      setShowModal={props.setShowModal}
+      className=""
+    >
       <AccordionBlockModalInner {...props} />
     </Modal>
   );
@@ -32,19 +46,32 @@ function AccordionBlockModalInner({
 }: AccordionBlockModalProps) {
   const id = useId();
   const { isMobile } = useMediaQuery();
-  const { handleSubmit, register, control } = useForm<AccordionBlockData>({
-    defaultValues,
+  const form = useForm<AccordionBlockData>({
+    defaultValues: defaultValues ?? {
+      title: "",
+      items: [
+        {
+          id: uuid(),
+          title: "Item 1",
+          content: "",
+        },
+      ],
+    },
   });
 
-  const { fields, append, prepend, remove, swap, move, insert } = useFieldArray(
-    {
-      control,
-      name: "items",
-    },
-  );
+  const { handleSubmit, register, control } = form;
+
+  const { fields, append, remove, move } = useFieldArray({
+    control,
+    keyName: "rhfId",
+    name: "items",
+  });
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
 
   return (
-    <>
+    <FormProvider {...form}>
       <div className="p-4 pt-3">
         <h3 className="text-base font-semibold leading-6 text-neutral-800">
           Add Accordion
@@ -79,25 +106,41 @@ function AccordionBlockModalInner({
             </div>
           </div>
 
-          <div>
-            {fields.map((field, index) => (
-              <div key={field.id}>
-                <input {...register(`items.${index}.title`)} />
-                <input {...register(`items.${index}.content`)} />
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={() =>
+          <div
+            ref={scrollRef}
+            onScroll={updateScrollProgress}
+            className="scrollbar-hide relative max-h-[calc(100vh-300px)] overflow-y-auto"
+          >
+            <EditList
+              values={fields.map(({ id }) => id)}
+              onAdd={() => {
+                const id = uuid();
                 append({
-                  id: crypto.randomUUID(),
-                  title: "title",
-                  content: "content",
-                })
-              }
+                  id,
+                  title: `Item ${fields.length + 1}`,
+                  content: "",
+                });
+
+                return id;
+              }}
+              onReorder={() => {}}
             >
-              add
-            </button>
+              {fields.map((field, index) => (
+                <AccordionItem
+                  key={field.id}
+                  field={field}
+                  totalFields={fields.length}
+                  remove={remove}
+                  index={index}
+                />
+              ))}
+            </EditList>
+
+            {/* Bottom scroll fade */}
+            <div
+              className="pointer-events-none absolute bottom-0 left-0 hidden h-16 w-full bg-gradient-to-t from-white sm:block"
+              style={{ opacity: 1 - Math.pow(scrollProgress, 2) }}
+            />
           </div>
 
           <div className="flex items-center justify-end gap-2">
@@ -116,7 +159,77 @@ function AccordionBlockModalInner({
           </div>
         </form>
       </div>
-    </>
+    </FormProvider>
+  );
+}
+
+function AccordionItem({
+  field,
+  totalFields,
+  remove,
+  index,
+}: {
+  field: FieldArrayWithId<AccordionBlockData, "items", "rhfId">;
+  totalFields: number;
+  remove: UseFieldArrayRemove;
+  index: number;
+}) {
+  const id = useId();
+  const { register, control } = useFormContext<AccordionBlockData>();
+
+  const title = useWatch({
+    control,
+    name: `items.${index}.title`,
+  });
+
+  return (
+    <EditListItem
+      key={field.id}
+      value={field.id}
+      title={title || "Item"}
+      onRemove={totalFields > 1 ? () => remove(index) : undefined}
+    >
+      <div className="flex flex-col gap-6">
+        {/* Title */}
+        <div>
+          <label
+            htmlFor={`${id}-${field.id}-title`}
+            className="flex items-center gap-2 text-sm font-medium text-neutral-700"
+          >
+            Title
+          </label>
+          <div className="mt-2 rounded-md shadow-sm">
+            <input
+              id={`${id}-${field.id}-title`}
+              type="text"
+              placeholder="Title"
+              className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+              {...register(`items.${index}.title`)}
+            />
+          </div>
+        </div>
+
+        {/* Content */}
+        <div>
+          <label
+            htmlFor={`${id}-${field.id}-content`}
+            className="flex items-center gap-2 text-sm font-medium text-neutral-700"
+          >
+            Content
+          </label>
+          <div className="mt-2 rounded-md shadow-sm">
+            <textarea
+              id={`${id}-${field.id}-content`}
+              rows={3}
+              maxLength={1000}
+              placeholder="Start typing"
+              className="block max-h-32 min-h-16 w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+              {...register(`items.${index}.content`)}
+            />
+          </div>
+        </div>
+      </div>
+    </EditListItem>
   );
 }
 
