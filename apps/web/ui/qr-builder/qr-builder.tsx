@@ -7,6 +7,7 @@ import { qrTypeDataHandlers } from "@/ui/qr-builder/helpers/qr-type-data-handler
 import { QRCanvas } from "@/ui/qr-builder/qr-canvas.tsx";
 import { QRCodeContentBuilder } from "@/ui/qr-builder/qr-code-content-builder.tsx";
 import { QrTabsCustomization } from "@/ui/qr-builder/qr-tabs-customization.tsx";
+import { QrTabsDownloadButton } from "@/ui/qr-builder/qr-tabs-download-button.tsx";
 import { QrTabsStepTitle } from "@/ui/qr-builder/qr-tabs-step-title.tsx";
 import { QrTypeSelection } from "@/ui/qr-builder/qr-type-selection.tsx";
 import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
@@ -204,6 +205,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
               <QrBuilderButtons
                 step={step}
                 onStepChange={setStep}
+                onSaveClick={onSaveClick}
                 disableContinue={
                   contentStep &&
                   (isQrDisabled ||
@@ -216,7 +218,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
             )}
           </Flex>
 
-          <div className="border-t-border-500 flex w-full flex-col items-stretch justify-between gap-6 overflow-x-auto border-t p-6">
+          <div className="border-t-border-500 flex w-full flex-col items-stretch justify-between gap-6 border-t p-6">
             <QrTabsStepTitle title={QRBuilderStepsTitles[step - 1]} />
 
             <Flex
@@ -265,6 +267,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                   <QrBuilderButtons
                     step={step}
                     onStepChange={setStep}
+                    onSaveClick={onSaveClick}
                     disableContinue={
                       contentStep &&
                       (isQrDisabled ||
@@ -302,6 +305,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                   <QrBuilderButtons
                     step={step}
                     onStepChange={setStep}
+                    onSaveClick={onSaveClick}
                     disableContinue={
                       contentStep &&
                       (isQrDisabled ||
@@ -319,7 +323,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                   className={cn(
                     "bg-background relative flex h-auto shrink-0 basis-2/5 items-end justify-center rounded-lg p-6 [&_svg]:h-[300px] md:[&_svg]:h-full",
                     {
-                      "items-start overflow-y-auto": customizationStep,
+                      "items-start": customizationStep,
                     },
                   )}
                 >
@@ -350,12 +354,27 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                   )}
 
                   {customizationStep && (
-                    <div className="center sticky top-0 flex h-fit flex-col gap-6">
-                      <QRCanvas
-                        width={isMobile ? 250 : 300}
-                        height={isMobile ? 250 : 300}
-                        qrCode={qrCode}
-                      />
+                    <div className="center sticky top-20 flex flex-col gap-6">
+                      <div
+                        className={cn(
+                          "flex justify-center rounded-lg shadow-lg",
+                          {
+                            "opacity-30": isQrDisabled,
+                          },
+                        )}
+                      >
+                        <QRCanvas
+                          width={isMobile ? 200 : 300}
+                          height={isMobile ? 200 : 300}
+                          qrCode={qrCode}
+                        />
+                      </div>
+                      {homepageDemo && (
+                        <QrTabsDownloadButton
+                          onRegistrationClick={onSaveClick}
+                          isQrDisabled={isQrDisabled}
+                        />
+                      )}
                     </div>
                   )}
                 </div>

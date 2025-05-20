@@ -6,6 +6,7 @@ import { FC } from "react";
 interface IQrBuilderButtonsProps {
   step: number;
   onStepChange: (newStep: number) => void;
+  onSaveClick: () => void;
   maxStep?: number;
   minStep?: number;
   onContinue?: () => void;
@@ -19,6 +20,7 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
   step,
   onStepChange,
   onContinue,
+  onSaveClick,
   disableContinue,
   maxStep = 3,
   minStep = 1,
@@ -26,11 +28,18 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
   size = "4",
   display = "flex",
 }) => {
+  const lastStep = step === maxStep;
+
   const handleBack = () => {
     onStepChange(Math.max(step - 1, minStep));
   };
 
   const handleContinue = () => {
+    if (lastStep) {
+      onSaveClick();
+      return;
+    }
+
     if (onContinue) {
       onContinue();
     } else {
@@ -64,7 +73,7 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
         disabled={disableContinue}
         onClick={handleContinue}
       >
-        Continue
+        {lastStep ? "Download QR Code" : "Continue"}
       </Button>
     </Flex>
   );
