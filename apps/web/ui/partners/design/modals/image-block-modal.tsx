@@ -1,13 +1,16 @@
-import { Button, Modal, useEnterSubmit, useMediaQuery } from "@dub/ui";
-import { Dispatch, SetStateAction, useId } from "react";
-import { useForm } from "react-hook-form";
+import { uploadLanderImageAction } from "@/lib/actions/partners/upload-lander-image";
+import useProgram from "@/lib/swr/use-program";
+import useWorkspace from "@/lib/swr/use-workspace";
+import { programLanderImageBlockSchema } from "@/lib/zod/schemas/program-lander";
+import { Button, FileUpload, Modal } from "@dub/ui";
+import { cn } from "@dub/utils";
+import { useAction } from "next-safe-action/hooks";
+import { Dispatch, SetStateAction, useId, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
 
-type ImageBlockFormData = {
-  url: string;
-  alt: string;
-  width: number;
-  height: number;
-};
+type ImageBlockFormData = z.infer<typeof programLanderImageBlockSchema>["data"];
 
 type ImageBlockModalProps = {
   showModal: boolean;
@@ -30,12 +33,57 @@ function ImageBlockModalInner({
   defaultValues,
 }: ImageBlockModalProps) {
   const id = useId();
-  const { isMobile } = useMediaQuery();
-  const { handleSubmit, register } = useForm<ImageBlockFormData>({
+
+  const { id: workspaceId } = useWorkspace();
+  const { program } = useProgram();
+
+  const {
+    handleSubmit,
+    register,
+    control,
+    setValue,
+    formState: { errors, isSubmitting, isSubmitSuccessful },
+  } = useForm<ImageBlockFormData>({
     defaultValues,
   });
 
-  const { handleKeyDown } = useEnterSubmit();
+  const [isUploading, setIsUploading] = useState(false);
+
+  const { executeAsync } = useAction(uploadLanderImageAction);
+
+  // Handle logo upload
+  const handleUpload = async (file: File) => {
+    setIsUploading(true);
+
+    try {
+      const result = await executeAsync({
+        workspaceId: workspaceId!,
+        programId: program!.id,
+      });
+
+      if (!result?.data) throw new Error("Failed to get signed upload URL");
+
+      const { signedUrl, destinationUrl } = result.data;
+
+      const uploadResponse = await fetch(signedUrl, {
+        method: "PUT",
+        body: file,
+        headers: {
+          "Content-Type": file.type,
+          "Content-Length": file.size.toString(),
+        },
+      });
+
+      if (!uploadResponse.ok) throw new Error("Failed to upload to signed URL");
+
+      setValue("url", destinationUrl, { shouldDirty: true });
+    } catch (e) {
+      toast.error("Failed to upload image");
+      console.error("Failed to upload image", e);
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   return (
     <>
@@ -49,11 +97,78 @@ function ImageBlockModalInner({
             e.stopPropagation();
             handleSubmit(async (data) => {
               setShowModal(false);
+
+              // Try to get the image dimensions
+              try {
+                const [width, height] = await new Promise<[number, number]>(
+                  (resolve, reject) => {
+                    const image = new Image();
+                    image.src = data.url;
+                    image.onload = () => resolve([image.width, image.height]);
+                    image.onerror = () => reject();
+                  },
+                );
+
+                data.width = width;
+                data.height = height;
+              } catch (e) {
+                console.error("Failed to get image dimensions for", data.url);
+              }
+
               onSubmit(data);
             })(e);
           }}
         >
-          WIP
+          <div>
+            <label
+              htmlFor="logo-file"
+              className="mb-2 block text-sm font-medium text-neutral-700"
+            >
+              Image
+            </label>
+            <Controller
+              control={control}
+              name="url"
+              rules={{ required: true }}
+              render={({ field }) => (
+                <FileUpload
+                  accept="programResourceImages"
+                  className={cn(
+                    "aspect-[4.2] w-full rounded-md border border-neutral-300",
+                    errors.url && "border-red-300 ring-1 ring-red-500",
+                  )}
+                  iconClassName="size-5"
+                  previewClassName="object-contain"
+                  variant="plain"
+                  imageSrc={field.value}
+                  readFile
+                  loading={isUploading}
+                  onChange={({ file }) => handleUpload(file)}
+                  content="SVG, JPG, or PNG, max size of 10MB"
+                  maxFileSizeMB={10}
+                />
+              )}
+            />
+            {errors.url && (
+              <p className="mt-1 text-xs text-red-600">{errors.url.message}</p>
+            )}
+          </div>
+
+          <div>
+            <label
+              htmlFor={`${id}-alt`}
+              className="mb-2 block text-sm font-medium text-neutral-700"
+            >
+              Alt text
+            </label>
+            <input
+              id={`${id}-alt`}
+              type="text"
+              className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm"
+              {...register("alt")}
+            />
+          </div>
+
           <div className="flex items-center justify-end gap-2">
             <Button
               onClick={() => setShowModal(false)}
@@ -66,6 +181,8 @@ function ImageBlockModalInner({
               variant="primary"
               text="Add"
               className="h-8 w-fit px-3"
+              disabled={isUploading}
+              loading={isSubmitting || isSubmitSuccessful}
             />
           </div>
         </form>

@@ -1,3 +1,125 @@
+"use client";
+
+import { programLanderAccordionBlockSchema } from "@/lib/zod/schemas/program-lander";
+import { Button, Modal, useMediaQuery } from "@dub/ui";
+import { Dispatch, SetStateAction, useId } from "react";
+import { useFieldArray, useForm } from "react-hook-form";
+import { z } from "zod";
+
+type AccordionBlockData = z.infer<
+  typeof programLanderAccordionBlockSchema
+>["data"];
+
+type AccordionBlockModalProps = {
+  showModal: boolean;
+  setShowModal: Dispatch<SetStateAction<boolean>>;
+  defaultValues?: Partial<AccordionBlockData>;
+  onSubmit: (data: AccordionBlockData) => void;
+};
+
+export function AccordionBlockModal(props: AccordionBlockModalProps) {
+  return (
+    <Modal showModal={props.showModal} setShowModal={props.setShowModal}>
+      <AccordionBlockModalInner {...props} />
+    </Modal>
+  );
+}
+
+function AccordionBlockModalInner({
+  setShowModal,
+  onSubmit,
+  defaultValues,
+}: AccordionBlockModalProps) {
+  const id = useId();
+  const { isMobile } = useMediaQuery();
+  const { handleSubmit, register, control } = useForm<AccordionBlockData>({
+    defaultValues,
+  });
+
+  const { fields, append, prepend, remove, swap, move, insert } = useFieldArray(
+    {
+      control,
+      name: "items",
+    },
+  );
+
+  return (
+    <>
+      <div className="p-4 pt-3">
+        <h3 className="text-base font-semibold leading-6 text-neutral-800">
+          Add Accordion
+        </h3>
+        <form
+          className="mt-4 flex flex-col gap-6"
+          onSubmit={(e) => {
+            e.stopPropagation();
+            handleSubmit(async (data) => {
+              setShowModal(false);
+              onSubmit(data);
+            })(e);
+          }}
+        >
+          {/* Title */}
+          <div>
+            <label
+              htmlFor={`${id}-title`}
+              className="flex items-center gap-2 text-sm font-medium text-neutral-700"
+            >
+              Section heading
+            </label>
+            <div className="mt-2 rounded-md shadow-sm">
+              <input
+                id={`${id}-title`}
+                type="text"
+                placeholder="Title"
+                autoFocus={!isMobile}
+                className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                {...register("title")}
+              />
+            </div>
+          </div>
+
+          <div>
+            {fields.map((field, index) => (
+              <div key={field.id}>
+                <input {...register(`items.${index}.title`)} />
+                <input {...register(`items.${index}.content`)} />
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() =>
+                append({
+                  id: crypto.randomUUID(),
+                  title: "title",
+                  content: "content",
+                })
+              }
+            >
+              add
+            </button>
+          </div>
+
+          <div className="flex items-center justify-end gap-2">
+            <Button
+              onClick={() => setShowModal(false)}
+              variant="secondary"
+              text="Cancel"
+              className="h-8 w-fit px-3"
+            />
+            <Button
+              type="submit"
+              variant="primary"
+              text="Add"
+              className="h-8 w-fit px-3"
+            />
+          </div>
+        </form>
+      </div>
+    </>
+  );
+}
+
 export function AccordionBlockThumbnail() {
   return (
     <svg

@@ -7,9 +7,12 @@ import { useWatch } from "react-hook-form";
 import { v4 as uuid } from "uuid";
 import { z } from "zod";
 import { useBrandingFormContext } from "../branding-form";
-import { AccordionBlockThumbnail } from "./accordion-block-modal";
+import {
+  AccordionBlockModal,
+  AccordionBlockThumbnail,
+} from "./accordion-block-modal";
 import { FilesBlockThumbnail } from "./files-block-modal";
-import { ImageBlockThumbnail } from "./image-block-modal";
+import { ImageBlockModal, ImageBlockThumbnail } from "./image-block-modal";
 import { TextBlockModal, TextBlockThumbnail } from "./text-block-modal";
 
 type AddBlockModalProps = {
@@ -47,7 +50,7 @@ const Blocks: {
     id: "image",
     label: "Image",
     description: "Add nice visuals to accompany your content",
-    modal: TextBlockModal,
+    modal: ImageBlockModal,
     thumbnail: <ImageBlockThumbnail />,
   },
   {
@@ -61,7 +64,7 @@ const Blocks: {
     id: "accordion",
     label: "Accordion",
     description: "Expanding and collapsing, great for FAQs",
-    modal: TextBlockModal,
+    modal: AccordionBlockModal,
     thumbnail: <AccordionBlockThumbnail />,
   },
 ];
