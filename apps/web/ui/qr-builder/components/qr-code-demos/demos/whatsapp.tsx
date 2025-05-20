@@ -1,5 +1,7 @@
 import { DEFAULT_WHATSAPP_MESSAGE } from "@/ui/qr-builder/constants/qr-type-inputs-placeholders.ts";
-import { FC } from "react";
+import { FC, useEffect, useState } from "react";
+
+const DEFAULT_NUMBER = "+1 123 456 789";
 
 interface IQRCodeDemoWhatsappProps {
   number: string;
@@ -10,6 +12,21 @@ export const QRCodeDemoWhatsapp: FC<IQRCodeDemoWhatsappProps> = ({
   number,
   message,
 }) => {
+  const [currentNumber, setCurrentNumber] = useState<string>(
+    number || DEFAULT_NUMBER,
+  );
+  const [currentMessage, setCurrentMessage] = useState<string>(
+    message || DEFAULT_WHATSAPP_MESSAGE,
+  );
+
+  useEffect(() => {
+    setCurrentNumber(number || DEFAULT_NUMBER);
+  }, [number]);
+
+  useEffect(() => {
+    setCurrentMessage(message || DEFAULT_WHATSAPP_MESSAGE);
+  }, [message]);
+
   return (
     <svg
       width="270"
@@ -28,7 +45,7 @@ export const QRCodeDemoWhatsapp: FC<IQRCodeDemoWhatsappProps> = ({
       />
       <foreignObject x="75" y="25" width="104" height="17">
         <div className="pointer-events-none max-w-[104px] select-none truncate text-center text-sm text-white">
-          {number ?? "+1 123 456 789"}
+          {currentNumber}
         </div>
       </foreignObject>
       <foreignObject
@@ -50,14 +67,14 @@ export const QRCodeDemoWhatsapp: FC<IQRCodeDemoWhatsappProps> = ({
             color: "#212121",
             boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
             width: "100%",
-            height: "100%",
+            height: "auto",
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
           }}
         >
           <div className="pointer-events-none select-none">
-            {message ?? DEFAULT_WHATSAPP_MESSAGE}
+            {currentMessage}
           </div>
           <div className="pointer-events-none select-none self-end text-right text-[8px] text-[#5F6C73]">
             11:42

@@ -1,11 +1,19 @@
 import { DEFAULT_WIFI_NETWORK_NAME } from "@/ui/qr-builder/constants/qr-type-inputs-placeholders.ts";
-import { FC } from "react";
+import { FC, useEffect, useState } from "react";
 
 interface IQRCodeDemoWifiProps {
   networkName: string;
 }
 
 export const QRCodeDemoWifi: FC<IQRCodeDemoWifiProps> = ({ networkName }) => {
+  const [currentNetworkName, setCurrentNetworkName] = useState<string>(
+    networkName || DEFAULT_WIFI_NETWORK_NAME,
+  );
+
+  useEffect(() => {
+    setCurrentNetworkName(networkName || DEFAULT_WIFI_NETWORK_NAME);
+  }, [networkName]);
+
   return (
     <svg
       width="270"
@@ -60,7 +68,7 @@ export const QRCodeDemoWifi: FC<IQRCodeDemoWifiProps> = ({ networkName }) => {
           <div className="h-full w-full overflow-y-clip truncate whitespace-pre-wrap text-center font-sans text-base font-semibold text-neutral-800">
             {`Connect to the `}
             <span className="inline max-w-[120px] overflow-hidden truncate whitespace-nowrap">
-              {networkName ?? DEFAULT_WIFI_NETWORK_NAME}
+              {currentNetworkName}
             </span>
             {` Wifi network?`}
           </div>
