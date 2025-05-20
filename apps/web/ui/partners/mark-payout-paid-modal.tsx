@@ -8,34 +8,34 @@ import { useParams } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 
-interface MarkAsPaidModalProps {
-  showMarkAsPaidModal: boolean;
-  setShowMarkAsPaidModal: (show: boolean) => void;
+interface MarkPayoutPaidModalProps {
+  showMarkPayoutPaidModal: boolean;
+  setShowMarkPayoutPaidModal: (show: boolean) => void;
   payout: PayoutResponse;
 }
 
-function MarkAsPaidModal({
-  showMarkAsPaidModal,
-  setShowMarkAsPaidModal,
+function MarkPayoutPaidModal({
+  showMarkPayoutPaidModal,
+  setShowMarkPayoutPaidModal,
   payout,
-}: MarkAsPaidModalProps) {
+}: MarkPayoutPaidModalProps) {
   return (
     <Modal
-      showModal={showMarkAsPaidModal}
-      setShowModal={setShowMarkAsPaidModal}
+      showModal={showMarkPayoutPaidModal}
+      setShowModal={setShowMarkPayoutPaidModal}
     >
-      <MarkAsPaidModalInner
-        setShowMarkAsPaidModal={setShowMarkAsPaidModal}
+      <MarkPayoutPaidModalInner
+        setShowMarkPayoutPaidModal={setShowMarkPayoutPaidModal}
         payout={payout}
       />
     </Modal>
   );
 }
 
-function MarkAsPaidModalInner({
-  setShowMarkAsPaidModal,
+function MarkPayoutPaidModalInner({
+  setShowMarkPayoutPaidModal,
   payout,
-}: Omit<MarkAsPaidModalProps, "showMarkAsPaidModal">) {
+}: Omit<MarkPayoutPaidModalProps, "showMarkPayoutPaidModal">) {
   const { id: workspaceId } = useWorkspace();
   const { programId } = useParams();
 
@@ -44,7 +44,7 @@ function MarkAsPaidModalInner({
     {
       onSuccess: () => {
         toast.success("Payout updated successfully!");
-        setShowMarkAsPaidModal(false);
+        setShowMarkPayoutPaidModal(false);
         mutatePrefix(`/api/programs/${programId}/payouts`);
       },
       onError: () => {
@@ -70,7 +70,7 @@ function MarkAsPaidModalInner({
 
       <div className="flex items-center justify-end gap-2 border-t border-neutral-200 bg-neutral-50 px-4 py-5 sm:px-6">
         <Button
-          onClick={() => setShowMarkAsPaidModal(false)}
+          onClick={() => setShowMarkPayoutPaidModal(false)}
           variant="secondary"
           text="Cancel"
           className="h-8 w-fit px-3"
@@ -93,24 +93,24 @@ function MarkAsPaidModalInner({
   );
 }
 
-export function useMarkAsPaidModal(props: { payout: PayoutResponse }) {
-  const [showMarkAsPaidModal, setShowMarkAsPaidModal] = useState(false);
+export function useMarkPayoutPaidModal(props: { payout: PayoutResponse }) {
+  const [showMarkPayoutPaidModal, setShowMarkPayoutPaidModal] = useState(false);
 
-  const MarkAsPaidModalCallback = useCallback(() => {
+  const MarkPayoutPaidModalCallback = useCallback(() => {
     return (
-      <MarkAsPaidModal
-        showMarkAsPaidModal={showMarkAsPaidModal}
-        setShowMarkAsPaidModal={setShowMarkAsPaidModal}
+      <MarkPayoutPaidModal
+        showMarkPayoutPaidModal={showMarkPayoutPaidModal}
+        setShowMarkPayoutPaidModal={setShowMarkPayoutPaidModal}
         payout={props.payout}
       />
     );
-  }, [showMarkAsPaidModal, setShowMarkAsPaidModal, props.payout]);
+  }, [showMarkPayoutPaidModal, setShowMarkPayoutPaidModal, props.payout]);
 
   return useMemo(
     () => ({
-      setShowMarkAsPaidModal,
-      MarkAsPaidModal: MarkAsPaidModalCallback,
+      setShowMarkPayoutPaidModal,
+      MarkPayoutPaidModal: MarkPayoutPaidModalCallback,
     }),
-    [setShowMarkAsPaidModal, MarkAsPaidModalCallback],
+    [setShowMarkPayoutPaidModal, MarkPayoutPaidModalCallback],
   );
 }
