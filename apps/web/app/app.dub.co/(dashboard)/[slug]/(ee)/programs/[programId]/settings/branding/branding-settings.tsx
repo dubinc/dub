@@ -60,8 +60,7 @@ function BrandingSettingsForm({ program }: { program: ProgramProps }) {
       className="rounded-lg border border-neutral-200 bg-white"
       onSubmit={handleSubmit(async (data) => {
         await executeAsync({
-          workspaceId: workspaceId || "",
-          programId: program.id,
+          workspaceId: workspaceId!,
           ...data,
         });
 

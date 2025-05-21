@@ -1,5 +1,6 @@
 "use server";
 
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getFolderOrThrow } from "@/lib/folder/get-folder-or-throw";
 import { isStored, storage } from "@/lib/storage";
 import { prisma } from "@dub/prisma";
@@ -12,7 +13,6 @@ import { authActionClient } from "../safe-action";
 
 const schema = updateProgramSchema.partial().extend({
   workspaceId: z.string(),
-  programId: z.string(),
   logo: z.string().nullish(),
   wordmark: z.string().nullish(),
   brandColor: z.string().nullish(),
@@ -23,7 +23,6 @@ export const updateProgramAction = authActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
     const {
-      programId,
       defaultFolderId,
       name,
       holdingPeriodDays,
@@ -40,12 +39,9 @@ export const updateProgramAction = authActionClient
       termsUrl,
     } = parsedInput;
 
-    try {
-      const program = await getProgramOrThrow({
-        workspaceId: workspace.id,
-        programId,
-      });
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
+    try {
       if (defaultFolderId) {
         await getFolderOrThrow({
           workspaceId: workspace.id,
@@ -87,6 +83,11 @@ export const updateProgramAction = authActionClient
           helpUrl,
           termsUrl,
         },
+      });
+
+      const program = await getProgramOrThrow({
+        workspaceId: workspace.id,
+        programId,
       });
 
       // Delete old logo/wordmark if they were updated
