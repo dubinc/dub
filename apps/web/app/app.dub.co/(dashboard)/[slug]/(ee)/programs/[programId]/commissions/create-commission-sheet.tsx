@@ -87,7 +87,6 @@ function CreateCommissionSheetContent({
     await executeAsync({
       ...data,
       workspaceId,
-      programId: program.id,
       saleAmount: data.saleAmount ? data.saleAmount * 100 : null,
       saleEventDate,
       leadEventDate,

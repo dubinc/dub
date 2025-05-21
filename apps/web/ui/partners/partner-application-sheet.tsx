@@ -298,7 +298,6 @@ function PartnerApproval({
               await executeAsync({
                 workspaceId: workspaceId!,
                 partnerId: partner.id,
-                programId: program.id,
                 linkId: selectedLinkId,
               });
             }}
@@ -317,7 +316,6 @@ function PartnerRejectButton({
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }) {
   const { id: workspaceId } = useWorkspace();
-  const { program } = useProgram();
 
   const { executeAsync, isPending } = useAction(rejectPartnerAction, {
     onSuccess: async () => {
@@ -341,7 +339,6 @@ function PartnerRejectButton({
         await executeAsync({
           workspaceId: workspaceId!,
           partnerId: partner.id,
-          programId: program!.id,
         });
       }}
     />
