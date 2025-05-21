@@ -2,15 +2,12 @@
 
 import { prisma } from "@dub/prisma";
 import z from "../zod";
+import { workspaceStoreKeys } from "../zod/schemas/workspaces";
 import { authActionClient } from "./safe-action";
 
 const updateWorkspaceStoreSchema = z.object({
   workspaceId: z.string(),
-  key: z.enum([
-    "conversionsOnboarding",
-    "programOnboarding",
-    "dotLinkOfferDismissed",
-  ]),
+  key: workspaceStoreKeys,
   value: z.any().refine((val) => {
     const valueStr = JSON.stringify(val);
     const sizeInBytes = new TextEncoder().encode(valueStr).length;

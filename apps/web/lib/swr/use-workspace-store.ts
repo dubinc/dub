@@ -3,16 +3,13 @@
 import { useAction } from "next-safe-action/hooks";
 import { useEffect, useState } from "react";
 import { mutate } from "swr";
+import { z } from "zod";
 import { updateWorkspaceStore } from "../actions/update-workspace-store";
+import { workspaceStoreKeys } from "../zod/schemas/workspaces";
 import useWorkspace from "./use-workspace";
 
-type STORE_KEYS =
-  | "conversionsOnboarding"
-  | "dotLinkOfferDismissed"
-  | "programOnboarding";
-
 export function useWorkspaceStore<T>(
-  key: STORE_KEYS,
+  key: z.infer<typeof workspaceStoreKeys>,
 ): [
   T | undefined,
   (value: T) => Promise<void>,
