@@ -1,5 +1,5 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
-import { DubApiError } from "@/lib/api/errors";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { getCommissionsCountQuerySchema } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
@@ -8,14 +8,7 @@ import { NextResponse } from "next/server";
 
 // GET /api/commissions/count
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
-  const { programId } = searchParams;
-
-  if (programId !== workspace.defaultProgramId) {
-    throw new DubApiError({
-      code: "not_found",
-      message: "Program not found",
-    });
-  }
+  const programId = getDefaultProgramIdOrThrow(workspace);
 
   const {
     status,

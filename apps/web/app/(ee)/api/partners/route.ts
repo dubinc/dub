@@ -1,7 +1,7 @@
-import { DubApiError } from "@/lib/api/errors";
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
 import { createPartnerLink } from "@/lib/api/partners/create-partner-link";
 import { getPartners } from "@/lib/api/partners/get-partners";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -17,22 +17,9 @@ import { z } from "zod";
 // GET /api/partners - get all partners for a program
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
-    const { programId, includeExpandedFields } = searchParams;
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
-    if (!programId) {
-      throw new DubApiError({
-        code: "bad_request",
-        message:
-          "Program ID not found. Did you forget to include a `programId` query parameter?",
-      });
-    }
-
-    if (programId !== workspace.defaultProgramId) {
-      throw new DubApiError({
-        code: "not_found",
-        message: "Program not found",
-      });
-    }
+    const { includeExpandedFields } = searchParams;
 
     const partners = await getPartners({
       ...partnersQuerySchema.parse(searchParams),

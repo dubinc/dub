@@ -1,5 +1,6 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { DubApiError } from "@/lib/api/errors";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -14,7 +15,7 @@ import { NextResponse } from "next/server";
 
 // PATCH /api/commissions/:commissionId - update a commission
 export const PATCH = withWorkspace(async ({ workspace, params, req }) => {
-  const programId = workspace.defaultProgramId!;
+  const programId = getDefaultProgramIdOrThrow(workspace);
 
   const { commissionId } = params;
 

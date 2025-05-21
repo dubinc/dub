@@ -1,4 +1,5 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import {
   CommissionResponseSchema,
@@ -10,7 +11,7 @@ import { z } from "zod";
 
 // GET /api/commissions - get all commissions for a program
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
-  const programId = workspace.defaultProgramId!;
+  const programId = getDefaultProgramIdOrThrow(workspace);
 
   const {
     status,
