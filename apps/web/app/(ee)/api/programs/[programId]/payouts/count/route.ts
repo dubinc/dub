@@ -29,8 +29,6 @@ export const GET = withWorkspace(
       Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
     );
 
-    console.log("currentMonthStart", currentMonthStart);
-
     const where: Prisma.PayoutWhereInput = {
       programId,
       ...(partnerId && { partnerId }),
@@ -100,8 +98,6 @@ export const GET = withWorkspace(
           });
         }
       });
-
-      console.log(counts);
 
       return NextResponse.json(counts);
     }
