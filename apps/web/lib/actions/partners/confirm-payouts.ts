@@ -40,8 +40,8 @@ export const confirmPayoutsAction = authActionClient
         programId,
         minPayoutAmount,
       });
+      return; // Remove this, just for testing
     }
-    return;
 
     if (!workspace.stripeId) {
       throw new Error("Workspace does not have a valid Stripe ID.");
@@ -249,47 +249,25 @@ const splitPayouts = async ({
         return a.createdAt.getTime() - b.createdAt.getTime();
       });
 
-    if (
-      currentMonthCommissions.length > 0 &&
-      previousMonthCommissions.length === 0
-    ) {
+    const previousMonthCommissionsCount = previousMonthCommissions.length;
+    const currentMonthCommissionsCount = currentMonthCommissions.length;
+
+    if (previousMonthCommissionsCount > 0) {
+      let periodEnd =
+        previousMonthCommissions[previousMonthCommissionsCount - 1].createdAt;
+      periodEnd = new Date(periodEnd.getFullYear(), periodEnd.getMonth() + 1);
+
       await prisma.payout.update({
         where: {
           id: payout.id,
         },
         data: {
-          periodEnd: previousMonthEnd,
+          periodEnd,
         },
       });
     }
 
-    if (
-      currentMonthCommissions.length === 0 &&
-      previousMonthCommissions.length > 0
-    ) {
-      await prisma.payout.update({
-        where: {
-          id: payout.id,
-        },
-        data: {
-          periodStart: currentMonthStart,
-        },
-      });
-    }
-
-    if (
-      currentMonthCommissions.length > 0 &&
-      previousMonthCommissions.length > 0
-    ) {
-      await prisma.payout.update({
-        where: {
-          id: payout.id,
-        },
-        data: {
-          periodEnd: previousMonthEnd,
-        },
-      });
-
+    if (previousMonthCommissionsCount > 0 && currentMonthCommissionsCount > 0) {
       const periodStart = currentMonthCommissions[0].createdAt;
       let periodEnd =
         currentMonthCommissions[currentMonthCommissions.length - 1].createdAt;
