@@ -510,7 +510,6 @@ export const updatePartnerSaleSchema = z.object({
 
 export const invitePartnerSchema = z.object({
   workspaceId: z.string(),
-  programId: z.string(),
   name: z.string().trim().min(1).max(100),
   email: z.string().trim().email().min(1).max(100),
   linkId: z.string().optional(),
@@ -520,7 +519,6 @@ export const invitePartnerSchema = z.object({
 
 export const banPartnerSchema = z.object({
   workspaceId: z.string(),
-  programId: z.string(),
   partnerId: z.string(),
   reason: z.enum(
     Object.keys(BAN_PARTNER_REASONS) as [
@@ -532,7 +530,6 @@ export const banPartnerSchema = z.object({
 
 export const approvePartnerSchema = z.object({
   workspaceId: z.string(),
-  programId: z.string(),
   partnerId: z.string(),
   linkId: z.string().nullable(),
 });

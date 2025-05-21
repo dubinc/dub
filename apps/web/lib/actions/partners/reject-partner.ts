@@ -7,7 +7,6 @@ import { authActionClient } from "../safe-action";
 
 const rejectPartnerSchema = z.object({
   workspaceId: z.string(),
-  programId: z.string(),
   partnerId: z.string(),
 });
 

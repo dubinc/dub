@@ -8,7 +8,6 @@ import { authActionClient } from "../safe-action";
 
 const markCommissionDuplicateSchema = z.object({
   workspaceId: z.string(),
-  programId: z.string(),
   commissionId: z.string(),
 });
 

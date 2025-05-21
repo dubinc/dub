@@ -1,6 +1,7 @@
 "use server";
 
 import { linkCache } from "@/lib/api/links/cache";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { banPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
@@ -16,18 +17,14 @@ export const unbanPartnerAction = authActionClient
   .schema(unbanPartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { programId, partnerId } = parsedInput;
+    const { partnerId } = parsedInput;
+
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
     const programEnrollment = await getProgramEnrollmentOrThrow({
       partnerId,
       programId,
     });
-
-    const { program } = programEnrollment;
-
-    if (program.workspaceId !== workspace.id) {
-      throw new Error("You are not authorized to ban this partner.");
-    }
 
     if (programEnrollment.status !== "banned") {
       throw new Error("This partner is not banned.");
