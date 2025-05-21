@@ -108,12 +108,8 @@ export function ReferralsEmbedPageClient({
 
   return (
     <div
-      style={
-        themeOptions.backgroundColor
-          ? { backgroundColor: themeOptions.backgroundColor }
-          : undefined
-      }
-      className="bg-bg-default flex min-h-screen flex-col"
+      style={{ backgroundColor: themeOptions.backgroundColor || "transparent" }}
+      className="flex min-h-screen flex-col"
     >
       <div className="relative z-0 p-5">
         <div className="border-border-default relative flex flex-col overflow-hidden rounded-lg border p-4 md:p-6">
