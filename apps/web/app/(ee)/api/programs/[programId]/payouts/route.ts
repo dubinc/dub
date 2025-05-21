@@ -32,6 +32,11 @@ export const GET = withWorkspace(
       excludeCurrentMonth,
     } = parsed;
 
+    const now = new Date();
+    const currentMonthStart = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
+    );
+
     const payouts = await prisma.payout.findMany({
       where: {
         programId,
@@ -53,7 +58,13 @@ export const GET = withWorkspace(
         partner: true,
         user: true,
         ...(excludeCurrentMonth && {
-          commissions: true,
+          commissions: {
+            where: {
+              createdAt: {
+                lt: currentMonthStart,
+              },
+            },
+          },
         }),
       },
       skip: (page - 1) * pageSize,
@@ -64,7 +75,7 @@ export const GET = withWorkspace(
     });
 
     const result = excludeCurrentMonth
-      ? await excludeCurrentMonthCommissions(payouts)
+      ? excludeCurrentMonthCommissions(payouts)
       : payouts;
 
     return NextResponse.json(z.array(PayoutResponseSchema).parse(result));
@@ -72,31 +83,24 @@ export const GET = withWorkspace(
 );
 
 // Exclude the current month's commissions from the payouts
-const excludeCurrentMonthCommissions = async (
+const excludeCurrentMonthCommissions = (
   payouts: (z.infer<typeof PayoutResponseSchema> & {
     commissions: Commission[];
   })[],
 ) => {
-  const now = new Date();
-  const currentMonthStart = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
-  );
-
   return payouts.map((payout) => {
+    // custom payouts
+    if (!payout.periodStart && !payout.periodEnd) {
+      return payout;
+    }
+
     const newPayoutAmount = payout.commissions.reduce((acc, commission) => {
-      const commissionDate = new Date(commission.createdAt);
-
-      if (commissionDate < currentMonthStart) {
-        return acc + commission.amount;
-      }
-
-      return acc;
+      return acc + commission.earnings;
     }, 0);
 
     return {
       ...payout,
       amount: newPayoutAmount,
-      periodEnd: currentMonthStart,
     };
   });
 };
