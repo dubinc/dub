@@ -8,6 +8,7 @@ import { sendEmail } from "@dub/email";
 import PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
+import { subDays } from "date-fns";
 import z from "zod";
 import { authActionClient } from "../safe-action";
 
@@ -15,6 +16,7 @@ const confirmPayoutsSchema = z.object({
   workspaceId: z.string(),
   programId: z.string(),
   paymentMethodId: z.string(),
+  excludeCurrentMonth: z.boolean().optional().default(false),
 });
 
 const allowedPaymentMethods = ["us_bank_account", "card", "link"];
@@ -24,12 +26,22 @@ export const confirmPayoutsAction = authActionClient
   .schema(confirmPayoutsSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { programId, paymentMethodId } = parsedInput;
+    const { programId, paymentMethodId, excludeCurrentMonth } = parsedInput;
 
     const { minPayoutAmount } = await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
     });
+
+    // TODO:
+    // Move this down
+    if (excludeCurrentMonth) {
+      await splitPayouts({
+        programId,
+        minPayoutAmount,
+      });
+    }
+    return;
 
     if (!workspace.stripeId) {
       throw new Error("Workspace does not have a valid Stripe ID.");
@@ -44,7 +56,7 @@ export const confirmPayoutsAction = authActionClient
 
     if (!allowedPaymentMethods.includes(paymentMethod.type)) {
       throw new Error(
-        `We only support ACH and Card for now. Please update your payout method to one of these.`,
+        "We only support ACH and Card for now. Please update your payout method to one of these.",
       );
     }
 
@@ -185,3 +197,129 @@ export const confirmPayoutsAction = authActionClient
       })(),
     );
   });
+
+const splitPayouts = async ({
+  programId,
+  minPayoutAmount,
+}: {
+  programId: string;
+  minPayoutAmount: number;
+}) => {
+  const now = new Date();
+
+  const currentMonthStart = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
+  );
+
+  const previousMonthEnd = subDays(currentMonthStart, 1);
+
+  const payouts = await prisma.payout.findMany({
+    where: {
+      programId,
+      status: "pending",
+      invoiceId: null,
+      amount: {
+        gte: minPayoutAmount,
+      },
+      partner: {
+        payoutsEnabledAt: {
+          not: null,
+        },
+      },
+    },
+    include: {
+      commissions: true,
+    },
+  });
+
+  for (const payout of payouts) {
+    const previousMonthCommissions = payout.commissions
+      .filter((commission) => {
+        return commission.createdAt < currentMonthStart;
+      })
+      .sort((a, b) => {
+        return a.createdAt.getTime() - b.createdAt.getTime();
+      });
+
+    const currentMonthCommissions = payout.commissions
+      .filter((commission) => {
+        return commission.createdAt >= currentMonthStart;
+      })
+      .sort((a, b) => {
+        return a.createdAt.getTime() - b.createdAt.getTime();
+      });
+
+    if (
+      currentMonthCommissions.length > 0 &&
+      previousMonthCommissions.length === 0
+    ) {
+      await prisma.payout.update({
+        where: {
+          id: payout.id,
+        },
+        data: {
+          periodEnd: previousMonthEnd,
+        },
+      });
+    }
+
+    if (
+      currentMonthCommissions.length === 0 &&
+      previousMonthCommissions.length > 0
+    ) {
+      await prisma.payout.update({
+        where: {
+          id: payout.id,
+        },
+        data: {
+          periodStart: currentMonthStart,
+        },
+      });
+    }
+
+    if (
+      currentMonthCommissions.length > 0 &&
+      previousMonthCommissions.length > 0
+    ) {
+      await prisma.payout.update({
+        where: {
+          id: payout.id,
+        },
+        data: {
+          periodEnd: previousMonthEnd,
+        },
+      });
+
+      const periodStart = currentMonthCommissions[0].createdAt;
+      let periodEnd =
+        currentMonthCommissions[currentMonthCommissions.length - 1].createdAt;
+      periodEnd = new Date(periodEnd.getFullYear(), periodEnd.getMonth() + 1);
+
+      const currentMonthPayout = await prisma.payout.create({
+        data: {
+          id: createId({ prefix: "po_" }),
+          programId,
+          partnerId: payout.partnerId,
+          periodStart,
+          periodEnd,
+          amount: currentMonthCommissions.reduce(
+            (total, commission) => total + commission.amount,
+            0,
+          ),
+          description: "Dub Partners payout",
+        },
+      });
+
+      await prisma.commission.updateMany({
+        where: {
+          id: {
+            in: currentMonthCommissions.map((commission) => commission.id),
+          },
+        },
+        data: {
+          payoutId: currentMonthPayout.id,
+        },
+      });
+    }
+  }
+};
