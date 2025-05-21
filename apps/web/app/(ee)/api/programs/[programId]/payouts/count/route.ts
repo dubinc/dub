@@ -67,6 +67,24 @@ export const GET = withWorkspace(
         },
       });
 
+      // console.log("payouts", payouts);
+
+      // const commissions = await prisma.commission.groupBy({
+      //   by: ["payoutId"],
+      //   where: {
+      //     ...(excludeCurrentMonth && {
+      //       createdAt: {
+      //         lt: currentMonthStart,
+      //       },
+      //     }),
+      //   },
+      //   _sum: {
+      //     earnings: true,
+      //   },
+      // });
+
+      // console.log("commissions", commissions);
+
       const counts = payouts.map((p) => ({
         status: p.status,
         count: p._count,
@@ -83,7 +101,7 @@ export const GET = withWorkspace(
         }
       });
 
-      console.log(counts)
+      console.log(counts);
 
       return NextResponse.json(counts);
     }
