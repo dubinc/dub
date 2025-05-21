@@ -45,6 +45,20 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   let leadEvent: z.infer<typeof leadEventSchemaTB>;
   let linkId: string;
 
+  const workspace = await prisma.project.findUnique({
+    where: {
+      stripeConnectId: stripeAccountId,
+    },
+    select: {
+      id: true,
+      webhookEnabled: true,
+    },
+  });
+
+  if (!workspace) {
+    return `Workspace with stripeConnectId ${stripeAccountId} not found, skipping...`;
+  }
+
   /*
       for stripe checkout links:
       - if client_reference_id is a dub_id, we find the click event
@@ -60,19 +74,6 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
 
     if (!clickEvent) {
       return `Click event with dub_id ${dubClickId} not found, skipping...`;
-    }
-
-    const workspace = await prisma.project.findUnique({
-      where: {
-        stripeConnectId: stripeAccountId,
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (!workspace) {
-      return `Workspace with stripeConnectId ${stripeAccountId} not found, skipping...`;
     }
 
     existingCustomer = await prisma.customer.findFirst({
@@ -162,9 +163,16 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         return `dubCustomerId was provided but customer with dubCustomerId ${dubCustomerId} not found on Dub, skipping...`;
       }
     } else {
-      existingCustomer = await prisma.customer.findUnique({
+      existingCustomer = await prisma.customer.findFirst({
         where: {
-          stripeCustomerId,
+          OR: [
+            // get customer by stripeCustomerId
+            { stripeCustomerId },
+            // if stripeCustomerEmail is specified, get customer by workspaceId + email
+            ...(stripeCustomerEmail
+              ? [{ projectId: workspace.id, email: stripeCustomerEmail }]
+              : []),
+          ],
         },
       });
 
@@ -271,7 +279,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     },
   });
 
-  const [_sale, linkUpdated, workspace] = await Promise.all([
+  const [_sale, linkUpdated] = await Promise.all([
     recordSale(saleData),
 
     // update link sales count
