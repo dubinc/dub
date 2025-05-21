@@ -1,7 +1,7 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import { STORE_KEYS, useWorkspaceStore } from "@/lib/swr/use-workspace-store";
+import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { X } from "@/ui/shared/icons";
 import { Book2Small, useMediaQuery } from "@dub/ui";
 import { useConversionOnboardingModal } from "./conversions-onboarding-modal";
@@ -23,7 +23,7 @@ export function ConversionsOnboarding({
     setConversionsOnboarding,
     { loading: loadingConversionsOnboarding },
   ] = useWorkspaceStore<undefined | "nav-button" | "dismissed">(
-    STORE_KEYS.conversionsOnboarding,
+    "conversionsOnboarding",
   );
 
   const { setShowConversionOnboardingModal, conversionOnboardingModal } =

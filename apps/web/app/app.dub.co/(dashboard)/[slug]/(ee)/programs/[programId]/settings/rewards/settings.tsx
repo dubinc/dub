@@ -46,13 +46,12 @@ export function RewardSettings() {
   });
 
   const onSubmit = async (data: FormData) => {
-    if (!workspaceId || !program?.id) {
+    if (!workspaceId) {
       return;
     }
 
     await executeAsync({
       workspaceId,
-      programId: program.id,
       ...data,
     });
   };

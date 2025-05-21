@@ -63,7 +63,6 @@ function UnbanPartnerModal({
 
     await executeAsync({
       workspaceId,
-      programId,
       partnerId: partner.id,
     });
   }, [executeAsync, partner.id, programId, workspaceId]);

@@ -161,7 +161,6 @@ function ModalInner({
 
             await executeAsync({
               workspaceId,
-              programId,
               commissionId: commission.id,
               status,
             });

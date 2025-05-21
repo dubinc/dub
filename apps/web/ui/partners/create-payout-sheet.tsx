@@ -101,7 +101,6 @@ function CreatePayoutSheetContent(props: CreatePayoutSheetProps) {
     await executeAsync({
       ...data,
       workspaceId,
-      programId: program.id,
       amount: amount * 100,
       partnerId,
     });

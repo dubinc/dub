@@ -8,7 +8,6 @@ import { authActionClient } from "../safe-action";
 
 const markPayoutPaidSchema = z.object({
   workspaceId: z.string(),
-  programId: z.string(),
   payoutId: z.string(),
 });
 

@@ -29,7 +29,6 @@ export const RewardSchema = z.object({
 
 export const createOrUpdateRewardSchema = z.object({
   workspaceId: z.string(),
-  programId: z.string(),
   event: z.nativeEnum(EventType),
   type: z.nativeEnum(CommissionType).default("flat"),
   amount: z.number().min(0),
