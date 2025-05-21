@@ -2,7 +2,12 @@
 
 import { Button, GripDotsVertical, Plus2, Trash } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { motion, Reorder, useDragControls } from "framer-motion";
+import {
+  AnimatePresence,
+  motion,
+  Reorder,
+  useDragControls,
+} from "framer-motion";
 import {
   createContext,
   Dispatch,
@@ -45,10 +50,11 @@ export function EditList({
         axis="y"
         values={values}
         onReorder={onReorder}
+        layoutScroll
         className="flex flex-col gap-2"
       >
         <EditListContext.Provider value={{ expandedValue, setExpandedValue }}>
-          {children}
+          <AnimatePresence>{children}</AnimatePresence>
         </EditListContext.Provider>
       </Reorder.Group>
       <Button
@@ -81,6 +87,7 @@ export function EditListItem({
 
   return (
     <Reorder.Item
+      key={value}
       value={value}
       dragListener={false}
       dragControls={controls}
