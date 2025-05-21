@@ -42,6 +42,4 @@ export const rejectPartnerAction = authActionClient
     });
 
     // TODO: [partners] Notify partner of rejection?
-
-    return { ok: true };
   });
