@@ -107,10 +107,6 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
     },
   });
 
-  console.log({
-    eligiblePayouts,
-  });
-
   const { executeAsync, isPending } = useAction(confirmPayoutsAction, {
     onSuccess: async () => {
       await mutatePrefix(`/api/programs/${programId}/payouts`);
@@ -394,6 +390,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
                 workspaceId,
                 programId,
                 paymentMethodId: selectedPaymentMethod.id,
+                excludeCurrentMonth,
               });
             }}
             text={`Confirm ${currencyFormatter(amount / 100, {
