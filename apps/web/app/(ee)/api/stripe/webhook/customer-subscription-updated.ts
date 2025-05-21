@@ -1,7 +1,7 @@
 import { deleteWorkspaceFolders } from "@/lib/api/folders/delete-workspace-folders";
 import { webhookCache } from "@/lib/webhook/cache";
 import { prisma } from "@dub/prisma";
-import { getPlanFromPriceId, log } from "@dub/utils";
+import { getPlanFromPriceId } from "@dub/utils";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { sendCancellationFeedback } from "./utils";
@@ -13,10 +13,9 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
   const plan = getPlanFromPriceId(priceId);
 
   if (!plan) {
-    await log({
-      message: `Invalid price ID in customer.subscription.updated event: ${priceId}`,
-      type: "errors",
-    });
+    console.log(
+      `Invalid price ID in customer.subscription.updated event: ${priceId}`,
+    );
     return;
   }
 
