@@ -1,4 +1,264 @@
-import { useId } from "react";
+"use client";
+
+import { programLanderFilesBlockSchema } from "@/lib/zod/schemas/program-lander";
+import {
+  Button,
+  CircleWarning,
+  Modal,
+  useMediaQuery,
+  useScrollProgress,
+} from "@dub/ui";
+import { Dispatch, SetStateAction, useId, useRef } from "react";
+import { FormProvider, useForm } from "react-hook-form";
+import { v4 as uuid } from "uuid";
+import { z } from "zod";
+import { EditList, EditListItem } from "../edit-list";
+
+type FilesBlockData = z.infer<typeof programLanderFilesBlockSchema>["data"];
+
+type FilesBlockModalProps = {
+  showModal: boolean;
+  setShowModal: Dispatch<SetStateAction<boolean>>;
+  defaultValues?: Partial<FilesBlockData>;
+  onSubmit: (data: FilesBlockData) => void;
+};
+
+export function FilesBlockModal(props: FilesBlockModalProps) {
+  return (
+    <Modal
+      showModal={props.showModal}
+      setShowModal={props.setShowModal}
+      className=""
+    >
+      <FilesBlockModalInner {...props} />
+    </Modal>
+  );
+}
+
+function FilesBlockModalInner({
+  setShowModal,
+  onSubmit,
+  defaultValues,
+}: FilesBlockModalProps) {
+  const id = useId();
+  const { isMobile } = useMediaQuery();
+  const form = useForm<FilesBlockData>({
+    defaultValues: defaultValues ?? {
+      title: "",
+      items: [
+        {
+          id: uuid(),
+          name: "File 1",
+          description: "",
+          url: "",
+        },
+      ],
+    },
+  });
+
+  const {
+    handleSubmit,
+    register,
+    watch,
+    setValue,
+    formState: { errors },
+  } = form;
+
+  const fields = watch("items");
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
+
+  return (
+    <FormProvider {...form}>
+      <div className="p-4 pt-3">
+        <h3 className="text-base font-semibold leading-6 text-neutral-800">
+          Add Accordion
+        </h3>
+        <form
+          className="mt-4 flex flex-col gap-6"
+          onSubmit={(e) => {
+            e.stopPropagation();
+            handleSubmit(async (data) => {
+              setShowModal(false);
+              onSubmit(data);
+            })(e);
+          }}
+        >
+          {/* Title */}
+          <div>
+            <label
+              htmlFor={`${id}-title`}
+              className="flex items-center gap-2 text-sm font-medium text-neutral-700"
+            >
+              Section heading
+            </label>
+            <div className="mt-2 rounded-md shadow-sm">
+              <input
+                id={`${id}-title`}
+                type="text"
+                placeholder="Title"
+                autoFocus={!isMobile}
+                className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                {...register("title")}
+              />
+            </div>
+          </div>
+
+          <div
+            ref={scrollRef}
+            onScroll={updateScrollProgress}
+            className="scrollbar-hide relative -my-2 max-h-[calc(100vh-300px)] overflow-y-auto py-2"
+          >
+            <EditList
+              values={fields.map(({ id }) => id)}
+              onAdd={() => {
+                const id = uuid();
+
+                setValue(
+                  "items",
+                  [
+                    ...fields,
+                    {
+                      id,
+                      name: `File ${fields.length + 1}`,
+                      description: "",
+                      url: "",
+                    },
+                  ],
+                  { shouldDirty: true },
+                );
+
+                return id;
+              }}
+              onReorder={(updated) =>
+                setValue(
+                  "items",
+                  updated.map((id) => fields.find((f) => f.id === id)!),
+                  { shouldDirty: true },
+                )
+              }
+            >
+              {fields.map((field, index) => {
+                const fieldErrors = errors.items?.[index];
+
+                return (
+                  <EditListItem
+                    key={field.id}
+                    value={field.id}
+                    title={
+                      <span className="flex items-center gap-2">
+                        {field.name || "File"}
+                        {(fieldErrors?.url || fieldErrors?.name) && (
+                          <CircleWarning className="size-3.5 text-red-600" />
+                        )}
+                      </span>
+                    }
+                    onRemove={
+                      fields.length > 1
+                        ? () =>
+                            setValue(
+                              "items",
+                              fields.filter(({ id }) => id !== field.id),
+                              { shouldDirty: true },
+                            )
+                        : undefined
+                    }
+                  >
+                    <div className="flex flex-col gap-6">
+                      {/* Name */}
+                      <div>
+                        <label
+                          htmlFor={`${id}-${field.id}-name`}
+                          className="flex items-center gap-2 text-sm font-medium text-neutral-700"
+                        >
+                          Display name
+                        </label>
+                        <div className="mt-2 rounded-md shadow-sm">
+                          <input
+                            id={`${id}-${field.id}-name`}
+                            type="text"
+                            placeholder="Brand assets"
+                            className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                            {...register(`items.${index}.name`, {
+                              required: "Display name is required",
+                            })}
+                          />
+                        </div>
+                      </div>
+
+                      {/* URL */}
+                      <div>
+                        <label
+                          htmlFor={`${id}-${field.id}-url`}
+                          className="flex items-center gap-2 text-sm font-medium text-neutral-700"
+                        >
+                          File URL
+                        </label>
+                        <div className="mt-2 rounded-md shadow-sm">
+                          <input
+                            id={`${id}-${field.id}-url`}
+                            type="text"
+                            placeholder="https://example.com/file.pdf"
+                            className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                            {...register(`items.${index}.url`, {
+                              required: "File URL is required",
+                            })}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Description */}
+                      <div>
+                        <label
+                          htmlFor={`${id}-${field.id}-description`}
+                          className="flex items-center gap-2 text-sm font-medium text-neutral-700"
+                        >
+                          Description
+                        </label>
+                        <div className="mt-2 rounded-md shadow-sm">
+                          <textarea
+                            id={`${id}-${field.id}-description`}
+                            rows={2}
+                            maxLength={1000}
+                            placeholder="More information about the file"
+                            className="block max-h-32 min-h-10 w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                            {...register(`items.${index}.description`)}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </EditListItem>
+                );
+              })}
+            </EditList>
+
+            {/* Bottom scroll fade */}
+            <div
+              className="pointer-events-none absolute bottom-0 left-0 hidden h-16 w-full bg-gradient-to-t from-white sm:block"
+              style={{ opacity: 1 - Math.pow(scrollProgress, 2) }}
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-2">
+            <Button
+              onClick={() => setShowModal(false)}
+              variant="secondary"
+              text="Cancel"
+              className="h-8 w-fit px-3"
+            />
+            <Button
+              type="submit"
+              variant="primary"
+              text="Add"
+              className="h-8 w-fit px-3"
+            />
+          </div>
+        </form>
+      </div>
+    </FormProvider>
+  );
+}
 
 export function FilesBlockThumbnail() {
   const id = useId();

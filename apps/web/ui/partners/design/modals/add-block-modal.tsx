@@ -11,7 +11,7 @@ import {
   AccordionBlockModal,
   AccordionBlockThumbnail,
 } from "./accordion-block-modal";
-import { FilesBlockThumbnail } from "./files-block-modal";
+import { FilesBlockModal, FilesBlockThumbnail } from "./files-block-modal";
 import { ImageBlockModal, ImageBlockThumbnail } from "./image-block-modal";
 import { TextBlockModal, TextBlockThumbnail } from "./text-block-modal";
 
@@ -57,7 +57,7 @@ const Blocks: {
     id: "files",
     label: "Files",
     description: "Provide helpful files to potential partners",
-    modal: TextBlockModal,
+    modal: FilesBlockModal,
     thumbnail: <FilesBlockThumbnail />,
   },
   {
