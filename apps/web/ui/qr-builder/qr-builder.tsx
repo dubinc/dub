@@ -4,6 +4,7 @@ import { QRCodeDemoMap } from "@/ui/qr-builder/components/qr-code-demos/qr-code-
 import { QRCodeDemoPlaceholder } from "@/ui/qr-builder/components/qr-code-demos/qr-code-demo-placeholder.tsx";
 import Stepper from "@/ui/qr-builder/components/stepper.tsx";
 import { qrTypeDataHandlers } from "@/ui/qr-builder/helpers/qr-type-data-handlers.ts";
+import { useIsInViewport } from "@/ui/qr-builder/hooks/use-is-in-viewport.ts";
 import { QRCanvas } from "@/ui/qr-builder/qr-canvas.tsx";
 import { QRCodeContentBuilder } from "@/ui/qr-builder/qr-code-content-builder.tsx";
 import { QrTabsCustomization } from "@/ui/qr-builder/qr-tabs-customization.tsx";
@@ -22,6 +23,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import {
@@ -177,9 +179,17 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
       console.log("[QrBuilder] demoProps", demoProps);
 
       const hideDemoPlaceholderOnMobile = isMobile && typeStep;
+      const qrBuilderContentWrapperRef = useRef<HTMLDivElement>(null);
+      const qrBuilderButtonsWrapperRef = useRef<HTMLDivElement>(null);
+      const isMobileButtonsInViewport = useIsInViewport(
+        qrBuilderButtonsWrapperRef,
+        1,
+        qrBuilderContentWrapperRef,
+      );
 
       return (
         <div
+          ref={qrBuilderContentWrapperRef}
           className={cn(
             "border-border-500 mx-auto h-full w-full rounded-lg border bg-white transition-[height] duration-[300ms]",
           )}
@@ -218,7 +228,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
             )}
           </Flex>
 
-          <div className="border-t-border-500 flex w-full flex-col items-stretch justify-between gap-6 border-t p-6">
+          <div className="border-t-border-500 flex w-full flex-col items-stretch justify-between gap-4 border-t p-6 md:gap-6">
             <QrTabsStepTitle title={QRBuilderStepsTitles[step - 1]} />
 
             <Flex
@@ -263,20 +273,21 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                     setInputErrors={setInputErrors}
                     minimalFlow
                   />
-
-                  <QrBuilderButtons
-                    step={step}
-                    onStepChange={setStep}
-                    onSaveClick={onSaveClick}
-                    disableContinue={
-                      contentStep &&
-                      (isQrDisabled ||
-                        Object.values(inputErrors).some(
-                          (error) => error !== "",
-                        ))
-                    }
-                    display={{ initial: "flex", md: "none" }}
-                  />
+                  <div ref={qrBuilderButtonsWrapperRef} className="w-full">
+                    <QrBuilderButtons
+                      step={step}
+                      onStepChange={setStep}
+                      onSaveClick={onSaveClick}
+                      disableContinue={
+                        contentStep &&
+                        (isQrDisabled ||
+                          Object.values(inputErrors).some(
+                            (error) => error !== "",
+                          ))
+                      }
+                      display={{ initial: "flex", md: "none" }}
+                    />
+                  </div>
                 </Flex>
               )}
 
@@ -302,26 +313,28 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                     handlers={handlers}
                   />
 
-                  <QrBuilderButtons
-                    step={step}
-                    onStepChange={setStep}
-                    onSaveClick={onSaveClick}
-                    disableContinue={
-                      contentStep &&
-                      (isQrDisabled ||
-                        Object.values(inputErrors).some(
-                          (error) => error !== "",
-                        ))
-                    }
-                    display={{ initial: "flex", md: "none" }}
-                  />
+                  <div ref={qrBuilderButtonsWrapperRef} className="w-full">
+                    <QrBuilderButtons
+                      step={step}
+                      onStepChange={setStep}
+                      onSaveClick={onSaveClick}
+                      disableContinue={
+                        contentStep &&
+                        (isQrDisabled ||
+                          Object.values(inputErrors).some(
+                            (error) => error !== "",
+                          ))
+                      }
+                      display={{ initial: "flex", md: "none" }}
+                    />
+                  </div>
                 </Flex>
               )}
 
               {!hideDemoPlaceholderOnMobile && (
                 <div
                   className={cn(
-                    "bg-background relative flex h-auto shrink-0 basis-2/5 items-end justify-center rounded-lg p-6 [&_svg]:h-[300px] md:[&_svg]:h-full",
+                    "bg-background relative flex h-auto shrink-0 basis-2/5 items-end justify-center rounded-lg p-6 [&_svg]:h-[250px] md:[&_svg]:h-full",
                     {
                       "items-start": customizationStep,
                     },
@@ -349,26 +362,39 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                           )}
                         </motion.div>
                       )}
-                      <div className="absolute left-1/2 top-[200px] h-[100px] w-[230px] -translate-x-1/2 bg-[linear-gradient(180deg,_rgba(255,255,255,0)_12.22%,_#FFFFFF_73.25%)] md:top-[249.72px] md:h-[150.28px] md:w-[400px]"></div>
+                      <div className="absolute left-1/2 top-[150px] h-[125px] w-[356px] -translate-x-1/2 bg-[linear-gradient(180deg,_rgba(255,255,255,0)_12.22%,_#FFFFFF_73.25%)] md:top-[249.72px] md:w-[400px]"></div>
                     </div>
                   )}
 
                   {customizationStep && (
                     <div className="center sticky top-20 flex flex-col gap-6">
-                      <div
-                        className={cn(
-                          "flex justify-center rounded-lg shadow-lg",
-                          {
-                            "opacity-30": isQrDisabled,
-                          },
-                        )}
+                      <motion.div
+                        key={currentQRType}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        variants={{
+                          hidden: { opacity: 0, y: 20 },
+                          visible: { opacity: 1, y: 0 },
+                          exit: { opacity: 0, y: 20 },
+                        }}
+                        transition={{ duration: 0.3, ease: "easeInOut" }}
                       >
-                        <QRCanvas
-                          width={isMobile ? 200 : 300}
-                          height={isMobile ? 200 : 300}
-                          qrCode={qrCode}
-                        />
-                      </div>
+                        <div
+                          className={cn(
+                            "flex justify-center rounded-lg shadow-lg",
+                            {
+                              "opacity-30": isQrDisabled,
+                            },
+                          )}
+                        >
+                          <QRCanvas
+                            width={isMobile ? 250 : 300}
+                            height={isMobile ? 250 : 300}
+                            qrCode={qrCode}
+                          />
+                        </div>
+                      </motion.div>
                       {homepageDemo && !isMobile && (
                         <QrTabsDownloadButton
                           onRegistrationClick={onSaveClick}
@@ -396,6 +422,21 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                 }
                 className="h-8 w-fit pl-2.5 pr-1.5"
                 onClick={onSaveClick}
+              />
+            </div>
+          )}
+
+          {isMobile && !isMobileButtonsInViewport && !typeStep && (
+            <div className="border-border-500 sticky bottom-0 left-0 z-50 w-full border-t bg-white px-6 py-3 shadow-md">
+              <QrBuilderButtons
+                step={step}
+                onStepChange={setStep}
+                onSaveClick={onSaveClick}
+                disableContinue={
+                  contentStep &&
+                  (isQrDisabled ||
+                    Object.values(inputErrors).some((error) => error !== ""))
+                }
               />
             </div>
           )}

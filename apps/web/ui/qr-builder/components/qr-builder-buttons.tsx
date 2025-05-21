@@ -69,7 +69,7 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
         type="submit"
         size={size}
         color="blue"
-        className="min-w-60"
+        className="min-w-60 basis-3/4"
         disabled={disableContinue}
         onClick={handleContinue}
       >
