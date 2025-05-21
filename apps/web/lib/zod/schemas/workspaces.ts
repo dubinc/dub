@@ -162,3 +162,9 @@ export const WorkspaceSchemaExtended = WorkspaceSchema.extend({
     }),
   ),
 });
+
+export const workspaceStoreKeys = z.enum([
+  "programOnboarding", // json
+  "conversionsOnboarding", // boolean
+  "dotLinkOfferDismissed", // string
+]);
