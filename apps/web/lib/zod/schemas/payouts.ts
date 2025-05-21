@@ -27,7 +27,7 @@ export const payoutsQuerySchema = z
     programId: z.string().optional(),
     invoiceId: z.string().optional(),
     eligibility: z.enum(["eligible", "ineligible"]).optional(),
-    excludeCurrentMonth: booleanQuerySchema.optional().default("false"),
+    excludeCurrentMonth: booleanQuerySchema.optional(),
     sortBy: z
       .enum(["createdAt", "periodStart", "amount", "paidAt"])
       .default("amount"),

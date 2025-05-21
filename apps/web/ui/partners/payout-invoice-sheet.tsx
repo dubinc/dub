@@ -91,7 +91,9 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
   } = usePayoutsCount<PayoutsCount[]>({
     groupBy: "status",
     eligibility: "eligible",
-    excludeCurrentMonth: excludeCurrentMonth ? "true" : "false",
+    ...(excludeCurrentMonth && {
+      excludeCurrentMonth: "true",
+    }),
   });
 
   const {
@@ -103,9 +105,13 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
       status: "pending",
       eligibility: "eligible",
       sortBy: "amount",
-      excludeCurrentMonth: excludeCurrentMonth ? "true" : "false",
+      ...(excludeCurrentMonth && {
+        excludeCurrentMonth: "true",
+      }),
     },
   });
+
+  console.log("excludeCurrentMonth", excludeCurrentMonth);
 
   const { executeAsync, isPending } = useAction(confirmPayoutsAction, {
     onSuccess: async () => {
@@ -377,6 +383,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
             type="button"
             variant="primary"
             loading={isPending}
+            disabled={eligiblePayoutsCountLoading || eligiblePayoutsLoading}
             onClick={async () => {
               if (!workspaceId || !selectedPaymentMethod) {
                 return;
@@ -389,7 +396,11 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
                 excludeCurrentMonth,
               });
             }}
-            text={`Confirm ${invoiceData.Amount} payout`}
+            text={
+              typeof invoiceData.Amount === "string"
+                ? `Confirm ${invoiceData.Amount} payout`
+                : "Confirm payout"
+            }
           />
         </div>
       </div>

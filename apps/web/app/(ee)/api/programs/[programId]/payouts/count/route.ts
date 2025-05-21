@@ -43,63 +43,71 @@ export const GET = withWorkspace(
         },
       }),
       ...(invoiceId && { invoiceId }),
-      ...(excludeCurrentMonth && {
-        commissions: {
-          some: {
-            createdAt: {
-              lt: currentMonthStart,
-            },
-          },
-        },
-      }),
     };
 
     // Get payout count by status
     if (groupBy === "status") {
-      const payouts = await prisma.payout.groupBy({
-        by: ["status"],
-        where,
-        _count: true,
+      if (!excludeCurrentMonth) {
+        const payouts = await prisma.payout.groupBy({
+          by: ["status"],
+          where,
+          _count: true,
+          _sum: {
+            amount: true,
+          },
+        });
+
+        const counts = payouts.map((p) => ({
+          status: p.status,
+          count: p._count,
+          amount: p._sum.amount,
+        }));
+
+        Object.values(PayoutStatus).forEach((status) => {
+          if (!counts.find((p) => p.status === status)) {
+            counts.push({
+              status,
+              count: 0,
+              amount: 0,
+            });
+          }
+        });
+
+        return NextResponse.json(counts);
+      }
+
+      // Special case for excludeCurrentMonth on the payout invoice sheet
+      const commissions = await prisma.commission.groupBy({
+        by: ["payoutId"],
+        where: {
+          programId,
+          payout: {
+            amount: {
+              gte: minPayoutAmount,
+            },
+          },
+          partner: {
+            payoutsEnabledAt: {
+              not: null,
+            },
+          },
+          status: "processed",
+          createdAt: {
+            lt: currentMonthStart,
+          },
+        },
         _sum: {
-          amount: true,
+          earnings: true,
         },
       });
 
-      // console.log("payouts", payouts);
+      const counts = {
+        status: "pending",
+        count: commissions.length,
+        amount: commissions.reduce((acc, c) => acc + (c._sum.earnings ?? 0), 0),
+      };
 
-      // const commissions = await prisma.commission.groupBy({
-      //   by: ["payoutId"],
-      //   where: {
-      //     ...(excludeCurrentMonth && {
-      //       createdAt: {
-      //         lt: currentMonthStart,
-      //       },
-      //     }),
-      //   },
-      //   _sum: {
-      //     earnings: true,
-      //   },
-      // });
-
-      // console.log("commissions", commissions);
-
-      const counts = payouts.map((p) => ({
-        status: p.status,
-        count: p._count,
-        amount: p._sum.amount,
-      }));
-
-      Object.values(PayoutStatus).forEach((status) => {
-        if (!counts.find((p) => p.status === status)) {
-          counts.push({
-            status,
-            count: 0,
-            amount: 0,
-          });
-        }
-      });
-
-      return NextResponse.json(counts);
+      return NextResponse.json([counts]);
     }
 
     const count = await prisma.payout.count({
