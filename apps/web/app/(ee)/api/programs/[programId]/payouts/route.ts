@@ -5,6 +5,7 @@ import {
   payoutsQuerySchema,
 } from "@/lib/zod/schemas/payouts";
 import { prisma } from "@dub/prisma";
+import { Commission } from "@prisma/client";
 import { NextResponse } from "next/server";
 import z from "zod";
 
@@ -28,6 +29,7 @@ export const GET = withWorkspace(
       sortOrder,
       page,
       pageSize,
+      excludeCurrentMonth,
     } = parsed;
 
     const payouts = await prisma.payout.findMany({
@@ -50,6 +52,9 @@ export const GET = withWorkspace(
       include: {
         partner: true,
         user: true,
+        ...(excludeCurrentMonth && {
+          commissions: true,
+        }),
       },
       skip: (page - 1) * pageSize,
       take: pageSize,
@@ -58,6 +63,46 @@ export const GET = withWorkspace(
       },
     });
 
-    return NextResponse.json(z.array(PayoutResponseSchema).parse(payouts));
+    const result = excludeCurrentMonth
+      ? await excludeCurrentMonthCommissions(payouts)
+      : payouts;
+
+    return NextResponse.json(z.array(PayoutResponseSchema).parse(result));
   },
 );
+
+// Exclude the current month's commissions from the payouts
+const excludeCurrentMonthCommissions = async (
+  payouts: (z.infer<typeof PayoutResponseSchema> & {
+    commissions: Commission[];
+  })[],
+) => {
+  const now = new Date();
+  const currentMonthStart = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
+  );
+
+  return payouts.map((payout) => {
+    const newPayoutAmount = payout.commissions.reduce((acc, commission) => {
+      const commissionDate = new Date(commission.createdAt);
+
+      if (commissionDate < currentMonthStart) {
+        console.log({
+          payoutId: payout.id,
+          commissionId: commission.id,
+          commissionAmount: commission.amount,
+        });
+
+        return acc + commission.amount;
+      }
+
+      return acc;
+    }, 0);
+
+    return {
+      ...payout,
+      amount: newPayoutAmount,
+      periodEnd: currentMonthStart,
+    };
+  });
+};

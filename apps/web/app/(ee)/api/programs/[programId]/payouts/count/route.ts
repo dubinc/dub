@@ -9,14 +9,27 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(
   async ({ workspace, params, searchParams }) => {
     const { programId } = params;
-    const parsed = payoutsCountQuerySchema.parse(searchParams);
+
+    const {
+      partnerId,
+      groupBy,
+      eligibility,
+      status,
+      invoiceId,
+      excludeCurrentMonth,
+    } = payoutsCountQuerySchema.parse(searchParams);
 
     const { minPayoutAmount } = await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
     });
 
-    const { partnerId, groupBy, eligibility, status, invoiceId } = parsed;
+    const now = new Date();
+    const currentMonthStart = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
+    );
+
+    console.log("currentMonthStart", currentMonthStart);
 
     const where: Prisma.PayoutWhereInput = {
       programId,
@@ -32,6 +45,15 @@ export const GET = withWorkspace(
         },
       }),
       ...(invoiceId && { invoiceId }),
+      ...(excludeCurrentMonth && {
+        commissions: {
+          some: {
+            createdAt: {
+              lt: currentMonthStart,
+            },
+          },
+        },
+      }),
     };
 
     // Get payout count by status
@@ -60,6 +82,8 @@ export const GET = withWorkspace(
           });
         }
       });
+
+      console.log(counts)
 
       return NextResponse.json(counts);
     }

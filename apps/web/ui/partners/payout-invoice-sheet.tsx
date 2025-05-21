@@ -91,6 +91,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
   } = usePayoutsCount<PayoutsCount[]>({
     groupBy: "status",
     eligibility: "eligible",
+    excludeCurrentMonth: excludeCurrentMonth ? "true" : "false",
   });
 
   const {
@@ -102,7 +103,12 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
       status: "pending",
       eligibility: "eligible",
       sortBy: "amount",
+      excludeCurrentMonth: excludeCurrentMonth ? "true" : "false",
     },
+  });
+
+  console.log({
+    eligiblePayouts,
   });
 
   const { executeAsync, isPending } = useAction(confirmPayoutsAction, {
@@ -171,6 +177,10 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
         ),
       };
     }
+
+    const amount =
+      eligiblePayoutsCount?.find((p) => p.status === PayoutStatus.pending)
+        ?.amount ?? 0;
 
     const fee = amount * (selectedPaymentMethod?.fee ?? 0);
     const total = amount + fee;
@@ -258,6 +268,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
     eligiblePayoutsCountLoading,
     paymentMethods,
     selectedPaymentMethod,
+    excludeCurrentMonth,
   ]);
 
   const table = useTable({
