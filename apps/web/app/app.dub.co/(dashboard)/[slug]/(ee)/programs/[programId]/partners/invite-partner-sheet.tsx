@@ -113,7 +113,6 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
     await executeAsync({
       ...data,
       workspaceId,
-      programId: program.id,
     });
   };
 

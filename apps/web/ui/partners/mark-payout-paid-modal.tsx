@@ -79,7 +79,6 @@ function MarkPayoutPaidModalInner({
           onClick={() =>
             execute({
               workspaceId: workspaceId!,
-              programId: programId as string,
               payoutId: payout.id,
             })
           }

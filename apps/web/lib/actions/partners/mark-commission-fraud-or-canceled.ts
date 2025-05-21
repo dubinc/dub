@@ -7,7 +7,6 @@ import { authActionClient } from "../safe-action";
 
 const markCommissionFraudOrCanceledSchema = z.object({
   workspaceId: z.string(),
-  programId: z.string(),
   commissionId: z.string(),
   status: z.enum(["fraud", "canceled"]),
 });

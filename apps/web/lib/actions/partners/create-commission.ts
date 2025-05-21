@@ -1,5 +1,6 @@
 "use server";
 
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { getLeadEvent } from "@/lib/tinybird";
@@ -21,7 +22,6 @@ export const createCommissionAction = authActionClient
     const { workspace } = ctx;
 
     const {
-      programId,
       partnerId,
       linkId,
       invoiceId,
@@ -32,11 +32,14 @@ export const createCommissionAction = authActionClient
       leadEventName,
     } = parsedInput;
 
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
     const [programEnrollment, customer] = await Promise.all([
       getProgramEnrollmentOrThrow({
         programId,
         partnerId,
       }),
+
       prisma.customer.findUniqueOrThrow({
         where: {
           id: customerId,
@@ -44,11 +47,7 @@ export const createCommissionAction = authActionClient
       }),
     ]);
 
-    const { program, partner, links } = programEnrollment;
-
-    if (program.workspaceId !== workspace.id) {
-      throw new Error(`Program ${programId} not found.`);
-    }
+    const { partner, links } = programEnrollment;
 
     if (customer.projectId !== workspace.id) {
       throw new Error(`Customer ${customerId} not found.`);
