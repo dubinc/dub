@@ -1,7 +1,7 @@
 "use server";
 
-import { DubApiError } from "@/lib/api/errors";
 import { getPayoutOrThrow } from "@/lib/api/partners/get-payout-or-throw";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { prisma } from "@dub/prisma";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
@@ -16,14 +16,9 @@ export const markPayoutPaidAction = authActionClient
   .schema(markPayoutPaidSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { programId, payoutId } = parsedInput;
+    const { payoutId } = parsedInput;
 
-    if (programId !== workspace.defaultProgramId) {
-      throw new DubApiError({
-        code: "not_found",
-        message: "Program not found",
-      });
-    }
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
     const payout = await getPayoutOrThrow({
       payoutId,

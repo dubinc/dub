@@ -1,5 +1,6 @@
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, processLink } from "@/lib/api/links";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -19,15 +20,10 @@ import { z } from "zod";
 // GET /api/partners/links - get the partner links
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
-    const { programId, partnerId, tenantId } =
+    const { partnerId, tenantId } =
       retrievePartnerLinksSchema.parse(searchParams);
 
-    if (programId !== workspace.defaultProgramId) {
-      throw new DubApiError({
-        code: "not_found",
-        message: "Program not found",
-      });
-    }
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
     const programEnrollment = await prisma.programEnrollment.findUnique({
       where: partnerId

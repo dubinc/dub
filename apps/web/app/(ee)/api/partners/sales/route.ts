@@ -1,4 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth/workspace";
@@ -13,15 +14,10 @@ import { NextResponse } from "next/server";
 // TODO: move to PATCH /api/commissions
 export const PATCH = withWorkspace(
   async ({ req, workspace }) => {
-    let { programId, invoiceId, amount, modifyAmount, currency } =
-      updatePartnerSaleSchema.parse(await parseRequestBody(req));
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
-    if (programId !== workspace.defaultProgramId) {
-      throw new DubApiError({
-        code: "not_found",
-        message: "Program not found",
-      });
-    }
+    let { invoiceId, amount, modifyAmount, currency } =
+      updatePartnerSaleSchema.parse(await parseRequestBody(req));
 
     const commission = await prisma.commission.findUnique({
       where: {

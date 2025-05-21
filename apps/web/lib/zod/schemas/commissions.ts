@@ -7,7 +7,9 @@ import { PartnerSchema } from "./partners";
 import { parseDateSchema } from "./utils";
 
 export const CommissionSchema = z.object({
-  id: z.string(),
+  id: z.string().describe("The commission's unique ID on Dub.").openapi({
+    example: "cm_1JVR7XRCSR0EDBAF39FZ4PMYE",
+  }),
   type: z.enum(["click", "lead", "sale"]).optional(),
   amount: z.number(),
   earnings: z.number(),
@@ -29,15 +31,50 @@ export const CommissionResponseSchema = CommissionSchema.merge(
 export const getCommissionsQuerySchema = z
   .object({
     type: z.enum(["click", "lead", "sale"]).optional(),
-    customerId: z.string().optional(),
-    payoutId: z.string().optional(),
-    partnerId: z.string().optional(),
-    status: z.nativeEnum(CommissionStatus).optional(),
-    sortBy: z.enum(["createdAt", "amount"]).default("createdAt"),
-    sortOrder: z.enum(["asc", "desc"]).default("desc"),
-    interval: z.enum(DATE_RANGE_INTERVAL_PRESETS).default("all"),
-    start: parseDateSchema.optional(),
-    end: parseDateSchema.optional(),
+    customerId: z
+      .string()
+      .optional()
+      .describe("Filter the list of commissions by the associated customer."),
+    payoutId: z
+      .string()
+      .optional()
+      .describe("Filter the list of commissions by the associated payout."),
+    partnerId: z
+      .string()
+      .optional()
+      .describe("Filter the list of commissions by the associated partner."),
+    invoiceId: z
+      .string()
+      .optional()
+      .describe(
+        "Filter the list of commissions by the associated invoice. Since invoiceId is unique on a per-program basis, this will only return one commission per invoice.",
+      ),
+    status: z
+      .nativeEnum(CommissionStatus)
+      .optional()
+      .describe(
+        "Filter the list of commissions by their corresponding status.",
+      ),
+    sortBy: z
+      .enum(["createdAt", "amount"])
+      .default("createdAt")
+      .describe("The field to sort the list of commissions by."),
+    sortOrder: z
+      .enum(["asc", "desc"])
+      .default("desc")
+      .describe("The sort order for the list of commissions."),
+    interval: z
+      .enum(DATE_RANGE_INTERVAL_PRESETS)
+      .default("all")
+      .describe("The interval to retrieve commissions for."),
+    start: parseDateSchema
+      .optional()
+      .describe(
+        "The start date of the date range to filter the commissions by.",
+      ),
+    end: parseDateSchema
+      .optional()
+      .describe("The end date of the date range to filter the commissions by."),
   })
   .merge(getPaginationQuerySchema({ pageSize: 100 }));
 
@@ -59,4 +96,33 @@ export const createCommissionSchema = z.object({
   invoiceId: z.string().nullish(),
   leadEventDate: parseDateSchema.nullish(),
   leadEventName: z.string().nullish(),
+});
+
+export const updateCommissionSchema = z.object({
+  amount: z
+    .number()
+    .min(0)
+    .describe(
+      "The new absolute amount for the sale. Paid commissions cannot be updated.",
+    )
+    .optional(),
+  modifyAmount: z
+    .number()
+    .describe(
+      "Modify the current sale amount: use positive values to increase the amount, negative values to decrease it. Takes precedence over `amount`. Paid commissions cannot be updated.",
+    )
+    .optional(),
+  currency: z
+    .string()
+    .default("usd")
+    .transform((val) => val.toLowerCase())
+    .describe(
+      "The currency of the sale amount to update. Accepts ISO 4217 currency codes.",
+    ),
+  status: z
+    .enum(["refunded", "duplicate", "canceled", "fraud"])
+    .optional()
+    .describe(
+      "Useful for marking a commission as refunded, duplicate, canceled, or fraudulent. Takes precedence over `amount` and `modifyAmount`. When a commission is marked as refunded, duplicate, canceled, or fraudulent, it will be omitted from the payout, and the payout amount will be recalculated accordingly. Paid commissions cannot be updated.",
+    ),
 });

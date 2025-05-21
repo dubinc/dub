@@ -64,7 +64,7 @@ export const authActionClient = actionClient.use(
       },
     });
 
-    if (!workspace || !workspace.users) {
+    if (!workspace || !workspace.users || workspace.users.length === 0) {
       throw new Error("Workspace not found.");
     }
 
