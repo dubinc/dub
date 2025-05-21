@@ -40,68 +40,63 @@ export const updateProgramAction = authActionClient
     } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
+    const program = await getProgramOrThrow({
+      workspaceId: workspace.id,
+      programId,
+    });
 
-    try {
-      if (defaultFolderId) {
-        await getFolderOrThrow({
-          workspaceId: workspace.id,
-          userId: ctx.user.id,
-          folderId: defaultFolderId,
-        });
-      }
-
-      const [logoUrl, wordmarkUrl] = await Promise.all([
-        logo && !isStored(logo)
-          ? storage
-              .upload(`programs/${programId}/logo_${nanoid(7)}`, logo)
-              .then(({ url }) => url)
-          : null,
-        wordmark && !isStored(wordmark)
-          ? storage
-              .upload(`programs/${programId}/wordmark_${nanoid(7)}`, wordmark)
-              .then(({ url }) => url)
-          : null,
-      ]);
-
-      await prisma.program.update({
-        where: {
-          id: programId,
-        },
-        data: {
-          name,
-          cookieLength,
-          holdingPeriodDays,
-          minPayoutAmount,
-          domain,
-          url,
-          brandColor,
-          logo: logoUrl ?? undefined,
-          wordmark: wordmarkUrl ?? undefined,
-          defaultFolderId,
-          linkStructure,
-          supportEmail,
-          helpUrl,
-          termsUrl,
-        },
-      });
-
-      const program = await getProgramOrThrow({
+    if (defaultFolderId) {
+      await getFolderOrThrow({
         workspaceId: workspace.id,
-        programId,
+        userId: ctx.user.id,
+        folderId: defaultFolderId,
       });
-
-      // Delete old logo/wordmark if they were updated
-      waitUntil(
-        Promise.all([
-          ...(logoUrl && program.logo
-            ? [storage.delete(program.logo.replace(`${R2_URL}/`, ""))]
-            : []),
-          ...(wordmarkUrl && program.wordmark
-            ? [storage.delete(program.wordmark.replace(`${R2_URL}/`, ""))]
-            : []),
-        ]),
-      );
-    } catch (e) {
-      throw new Error("Failed to update program.");
     }
+
+    const [logoUrl, wordmarkUrl] = await Promise.all([
+      logo && !isStored(logo)
+        ? storage
+            .upload(`programs/${programId}/logo_${nanoid(7)}`, logo)
+            .then(({ url }) => url)
+        : null,
+      wordmark && !isStored(wordmark)
+        ? storage
+            .upload(`programs/${programId}/wordmark_${nanoid(7)}`, wordmark)
+            .then(({ url }) => url)
+        : null,
+    ]);
+
+    await prisma.program.update({
+      where: {
+        id: programId,
+      },
+      data: {
+        name,
+        cookieLength,
+        holdingPeriodDays,
+        minPayoutAmount,
+        domain,
+        url,
+        brandColor,
+        logo: logoUrl ?? undefined,
+        wordmark: wordmarkUrl ?? undefined,
+        defaultFolderId,
+        linkStructure,
+        supportEmail,
+        helpUrl,
+        termsUrl,
+      },
+    });
+
+    // Delete old logo/wordmark if they were updated
+    waitUntil(
+      Promise.all([
+        ...(logoUrl && program.logo
+          ? [storage.delete(program.logo.replace(`${R2_URL}/`, ""))]
+          : []),
+        ...(wordmarkUrl && program.wordmark
+          ? [storage.delete(program.wordmark.replace(`${R2_URL}/`, ""))]
+          : []),
+      ]),
+    );
   });
