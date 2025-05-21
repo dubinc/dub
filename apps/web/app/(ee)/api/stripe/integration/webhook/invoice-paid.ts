@@ -19,7 +19,7 @@ export async function invoicePaid(event: Stripe.Event) {
   const stripeCustomerId = invoice.customer as string;
   const invoiceId = invoice.id;
 
-  // Find customer using projectConnectId and stripeCustomerId
+  // Find customer using stripeCustomerId
   let customer = await prisma.customer.findUnique({
     where: {
       stripeCustomerId,
