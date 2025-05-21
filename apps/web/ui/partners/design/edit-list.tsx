@@ -54,7 +54,7 @@ export function EditList({
         className="flex flex-col gap-2"
       >
         <EditListContext.Provider value={{ expandedValue, setExpandedValue }}>
-          <AnimatePresence>{children}</AnimatePresence>
+          <AnimatePresence initial={false}>{children}</AnimatePresence>
         </EditListContext.Provider>
       </Reorder.Group>
       <Button

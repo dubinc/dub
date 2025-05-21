@@ -73,7 +73,7 @@ function FilesBlockModalInner({
     <FormProvider {...form}>
       <div className="p-4 pt-3">
         <h3 className="text-base font-semibold leading-6 text-neutral-800">
-          Add Accordion
+          {defaultValues ? "Edit" : "Add"} Files
         </h3>
         <form
           className="mt-4 flex flex-col gap-6"
@@ -250,7 +250,7 @@ function FilesBlockModalInner({
             <Button
               type="submit"
               variant="primary"
-              text="Add"
+              text={defaultValues ? "Update" : "Add"}
               className="h-8 w-fit px-3"
             />
           </div>
