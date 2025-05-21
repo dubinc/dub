@@ -1,13 +1,7 @@
 "use client";
 
 import { programLanderAccordionBlockSchema } from "@/lib/zod/schemas/program-lander";
-import {
-  AnimatedSizeContainer,
-  Button,
-  Modal,
-  useMediaQuery,
-  useScrollProgress,
-} from "@dub/ui";
+import { Button, Modal, useMediaQuery, useScrollProgress } from "@dub/ui";
 import { Dispatch, SetStateAction, useId, useRef } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { v4 as uuid } from "uuid";
@@ -103,100 +97,95 @@ function AccordionBlockModalInner({
           <div
             ref={scrollRef}
             onScroll={updateScrollProgress}
-            className="scrollbar-hide relative max-h-[calc(100vh-300px)] overflow-y-auto"
+            className="scrollbar-hide relative -my-2 max-h-[calc(100vh-300px)] overflow-y-auto py-2"
           >
-            <AnimatedSizeContainer
-              //height
-              transition={{ ease: "easeInOut", duration: 0.2 }}
+            <EditList
+              values={fields.map(({ id }) => id)}
+              onAdd={() => {
+                const id = uuid();
+
+                setValue(
+                  "items",
+                  [
+                    ...fields,
+                    {
+                      id,
+                      title: `Item ${fields.length + 1}`,
+                      content: "",
+                    },
+                  ],
+                  { shouldDirty: true },
+                );
+
+                return id;
+              }}
+              onReorder={(updated) =>
+                setValue(
+                  "items",
+                  updated.map((id) => fields.find((f) => f.id === id)!),
+                  { shouldDirty: true },
+                )
+              }
             >
-              <EditList
-                values={fields.map(({ id }) => id)}
-                onAdd={() => {
-                  const id = uuid();
-
-                  setValue(
-                    "items",
-                    [
-                      ...fields,
-                      {
-                        id,
-                        title: `Item ${fields.length + 1}`,
-                        content: "",
-                      },
-                    ],
-                    { shouldDirty: true },
-                  );
-
-                  return id;
-                }}
-                onReorder={(updated) =>
-                  setValue(
-                    "items",
-                    updated.map((id) => fields.find((f) => f.id === id)!),
-                    { shouldDirty: true },
-                  )
-                }
-              >
-                {fields.map((field, index) => (
-                  <EditListItem
-                    key={field.id}
-                    value={field.id}
-                    title={field.title || "Item"}
-                    onRemove={
-                      fields.length > 1
-                        ? () =>
-                            setValue(
-                              "items",
-                              fields.filter(({ id }) => id !== field.id),
-                              { shouldDirty: true },
-                            )
-                        : undefined
-                    }
-                  >
-                    <div className="flex flex-col gap-6">
-                      {/* Title */}
-                      <div>
-                        <label
-                          htmlFor={`${id}-${field.id}-title`}
-                          className="flex items-center gap-2 text-sm font-medium text-neutral-700"
-                        >
-                          Title
-                        </label>
-                        <div className="mt-2 rounded-md shadow-sm">
-                          <input
-                            id={`${id}-${field.id}-title`}
-                            type="text"
-                            placeholder="Title"
-                            className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                            {...register(`items.${index}.title`)}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Content */}
-                      <div>
-                        <label
-                          htmlFor={`${id}-${field.id}-content`}
-                          className="flex items-center gap-2 text-sm font-medium text-neutral-700"
-                        >
-                          Content
-                        </label>
-                        <div className="mt-2 rounded-md shadow-sm">
-                          <textarea
-                            id={`${id}-${field.id}-content`}
-                            rows={3}
-                            maxLength={1000}
-                            placeholder="Start typing"
-                            className="block max-h-32 min-h-16 w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                            {...register(`items.${index}.content`)}
-                          />
-                        </div>
+              {fields.map((field, index) => (
+                <EditListItem
+                  key={field.id}
+                  value={field.id}
+                  title={field.title || "Item"}
+                  onRemove={
+                    fields.length > 1
+                      ? () =>
+                          setValue(
+                            "items",
+                            fields.filter(({ id }) => id !== field.id),
+                            { shouldDirty: true },
+                          )
+                      : undefined
+                  }
+                >
+                  <div className="flex flex-col gap-6">
+                    {/* Title */}
+                    <div>
+                      <label
+                        htmlFor={`${id}-${field.id}-title`}
+                        className="flex items-center gap-2 text-sm font-medium text-neutral-700"
+                      >
+                        Title
+                      </label>
+                      <div className="mt-2 rounded-md shadow-sm">
+                        <input
+                          id={`${id}-${field.id}-title`}
+                          type="text"
+                          placeholder="Title"
+                          className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                          {...register(`items.${index}.title`)}
+                        />
                       </div>
                     </div>
-                  </EditListItem>
-                ))}
-              </EditList>
-            </AnimatedSizeContainer>
+
+                    {/* Content */}
+                    <div>
+                      <label
+                        htmlFor={`${id}-${field.id}-content`}
+                        className="flex items-center gap-2 text-sm font-medium text-neutral-700"
+                      >
+                        Content
+                      </label>
+                      <div className="mt-2 rounded-md shadow-sm">
+                        <textarea
+                          id={`${id}-${field.id}-content`}
+                          rows={3}
+                          maxLength={1000}
+                          placeholder="Start typing"
+                          className="block max-h-32 min-h-16 w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                          {...register(`items.${index}.content`)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </EditListItem>
+              ))}
+            </EditList>
 
             {/* Bottom scroll fade */}
             <div

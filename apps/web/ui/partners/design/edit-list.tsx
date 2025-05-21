@@ -92,6 +92,10 @@ export function EditListItem({
       dragListener={false}
       dragControls={controls}
       className="relative overflow-hidden rounded-md border border-neutral-200 bg-neutral-50"
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: "auto" }}
+      exit={{ opacity: 0, height: 0 }}
+      transition={{ duration: 0.15 }}
     >
       <div className="relative">
         <div
@@ -129,7 +133,7 @@ export function EditListItem({
           overflow: "hidden",
         }}
         transition={{
-          duration: 0.2,
+          duration: 0.15,
         }}
         initial={false}
       >
