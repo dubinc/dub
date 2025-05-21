@@ -149,10 +149,6 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
     [paymentMethods],
   );
 
-  const amount =
-    eligiblePayoutsCount?.find((p) => p.status === PayoutStatus.pending)
-      ?.amount ?? 0;
-
   const invoiceData = useMemo(() => {
     if (eligiblePayoutsCountLoading) {
       return {
@@ -393,10 +389,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
                 excludeCurrentMonth,
               });
             }}
-            text={`Confirm ${currencyFormatter(amount / 100, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })} payout`}
+            text={`Confirm ${invoiceData.Amount} payout`}
           />
         </div>
       </div>
