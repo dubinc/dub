@@ -32,7 +32,7 @@ export function AddBlockModal(props: AddBlockModalProps) {
   );
 }
 
-const Blocks: {
+export const DESIGNER_BLOCKS: {
   id: z.infer<typeof programLanderBlockSchema>["type"];
   label: string;
   description: string;
@@ -90,7 +90,7 @@ function AddBlockModalInner({
           Insert block
         </h3>
         <div className="mt-4 grid grid-cols-2 gap-4">
-          {Blocks.map((block) => (
+          {DESIGNER_BLOCKS.map((block) => (
             <Fragment key={block.id}>
               <block.modal
                 showModal={modalState === block.id}

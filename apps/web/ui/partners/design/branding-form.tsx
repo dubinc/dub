@@ -32,6 +32,7 @@ import {
   CSSProperties,
   PropsWithChildren,
   useCallback,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -45,7 +46,7 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
 import { BrandingSettingsForm } from "./branding-settings-form";
-import { AddBlockModal } from "./modals/add-block-modal";
+import { AddBlockModal, DESIGNER_BLOCKS } from "./modals/add-block-modal";
 
 export type BrandingFormData = {
   landerData: z.infer<typeof programLanderSchema>;
@@ -173,7 +174,7 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
         "landerData",
         {
           ...landerData,
-          blocks: fn(landerData.blocks),
+          blocks: fn([...landerData.blocks]),
         },
         {
           shouldDirty: true,
@@ -186,9 +187,34 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
   const { setShowEditHeroModal, EditHeroModal } = useEditHeroModal();
 
   const [addBlockIndex, setAddBlockIndex] = useState<number | null>(null);
+  const [editingBlockId, setEditingBlockId] = useState<string | null>(null);
+
+  const [editingBlock, editingBlockMeta] = useMemo(() => {
+    if (!editingBlockId) return [null, null];
+
+    const block = landerData.blocks.find(
+      (block) => block.id === editingBlockId,
+    );
+
+    return [block, DESIGNER_BLOCKS.find((b) => b.id === block?.type)];
+  }, [landerData, editingBlockId]);
 
   return (
     <>
+      {editingBlock && editingBlockMeta && (
+        <editingBlockMeta.modal
+          defaultValues={editingBlock.data}
+          showModal={true}
+          setShowModal={(show) => !show && setEditingBlockId(null)}
+          onSubmit={(data) => {
+            updateBlocks((blocks) => {
+              blocks[blocks.findIndex((b) => b.id === editingBlockId)].data =
+                data;
+              return blocks;
+            });
+          }}
+        />
+      )}
       <EditHeroModal />
       <AddBlockModal
         addIndex={addBlockIndex ?? 0}
@@ -291,9 +317,8 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
                     <EditIndicatorGrid />
 
                     {/* Edit toolbar */}
-
                     <EditToolbar
-                      onEdit={() => toast.info("WIP")}
+                      onEdit={() => setEditingBlockId(block.id)}
                       onMoveUp={
                         idx !== 0
                           ? () =>
