@@ -87,12 +87,6 @@ const excludeCurrentMonthCommissions = async (
       const commissionDate = new Date(commission.createdAt);
 
       if (commissionDate < currentMonthStart) {
-        console.log({
-          payoutId: payout.id,
-          commissionId: commission.id,
-          commissionAmount: commission.amount,
-        });
-
         return acc + commission.amount;
       }
 
