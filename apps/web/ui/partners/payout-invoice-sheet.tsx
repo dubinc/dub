@@ -11,6 +11,7 @@ import { PayoutStatus } from "@dub/prisma/client";
 import {
   Button,
   buttonVariants,
+  Checkbox,
   CreditCard,
   Gear,
   GreekTemple,
@@ -82,6 +83,8 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
     useState<PaymentMethodWithFee | null>(null);
 
+  const [excludeCurrentMonth, setExcludeCurrentMonth] = useState(false);
+
   const {
     payoutsCount: eligiblePayoutsCount,
     loading: eligiblePayoutsCountLoading,
@@ -144,6 +147,10 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
     [paymentMethods],
   );
 
+  const amount =
+    eligiblePayoutsCount?.find((p) => p.status === PayoutStatus.pending)
+      ?.amount ?? 0;
+
   const invoiceData = useMemo(() => {
     if (eligiblePayoutsCountLoading) {
       return {
@@ -156,7 +163,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
         Fee: (
           <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
         ),
-        Duration: (
+        "Transfer Time": (
           <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
         ),
         Total: (
@@ -164,10 +171,6 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
         ),
       };
     }
-
-    const amount =
-      eligiblePayoutsCount?.find((p) => p.status === PayoutStatus.pending)
-        ?.amount ?? 0;
 
     const fee = amount * (selectedPaymentMethod?.fee ?? 0);
     const total = amount + fee;
@@ -235,7 +238,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
         <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
       ),
 
-      Duration: (
+      "Transfer Time": (
         <div>
           {selectedPaymentMethod ? (
             selectedPaymentMethod?.duration
@@ -256,6 +259,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
     paymentMethods,
     selectedPaymentMethod,
   ]);
+
   const table = useTable({
     data: eligiblePayouts || [],
     columns: [
@@ -337,18 +341,34 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
         </div>
 
         <div className="p-6 pt-2">
-          <Table {...table} />
+          <div className="rounded-xl bg-neutral-50">
+            <div className="group flex items-center gap-2 px-3 py-2">
+              <Checkbox
+                name="excludeCurrentMonth"
+                value="true"
+                checked={excludeCurrentMonth}
+                disabled={eligiblePayoutsLoading}
+                onCheckedChange={(checked) => {
+                  setExcludeCurrentMonth(
+                    checked === "indeterminate" ? false : checked,
+                  );
+                }}
+                className="focus-visible:border-black data-[state=checked]:bg-black data-[state=checked]:text-white"
+              />
+
+              <label
+                htmlFor="excludeCurrentMonth"
+                className="text-sm font-normal leading-5 text-neutral-600"
+              >
+                Exclude current month
+              </label>
+            </div>
+            <Table {...table} />
+          </div>
         </div>
       </div>
       <div className="flex grow flex-col justify-end">
         <div className="flex items-center justify-end gap-2 border-t border-neutral-200 p-5">
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => setIsOpen(false)}
-            text="Close"
-            className="w-fit"
-          />
           <Button
             type="button"
             variant="primary"
@@ -364,8 +384,10 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
                 paymentMethodId: selectedPaymentMethod.id,
               });
             }}
-            text="Confirm payout"
-            className="w-fit"
+            text={`Confirm ${currencyFormatter(amount / 100, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })} payout`}
           />
         </div>
       </div>
