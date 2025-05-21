@@ -1,4 +1,5 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
@@ -21,12 +22,7 @@ interface Commission {
 
 // GET /api/commissions/timeseries - get commissions timeseries for a program
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
-  const { programId } = searchParams;
-
-  const program = await getProgramOrThrow({
-    workspaceId: workspace.id,
-    programId,
-  });
+  const programId = getDefaultProgramIdOrThrow(workspace);
 
   const { start, end, interval, timezone } = querySchema.parse(searchParams);
 
@@ -34,7 +30,14 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     interval,
     start,
     end,
-    dataAvailableFrom: program.createdAt,
+    dataAvailableFrom:
+      // ideally we should get the first commission event date for dataAvailableFrom
+      interval === "all"
+        ? await getProgramOrThrow({
+            workspaceId: workspace.id,
+            programId,
+          }).then((program) => program.createdAt)
+        : undefined,
   });
 
   const { dateFormat, dateIncrement, startFunction, formatString } =
@@ -47,7 +50,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
       FROM Commission
       WHERE 
         earnings > 0
-        AND programId = ${program.id}
+        AND programId = ${programId}
         AND createdAt >= ${startDate}
         AND createdAt < ${endDate}
       GROUP BY start
