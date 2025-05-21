@@ -7,7 +7,9 @@ import { PartnerSchema } from "./partners";
 import { parseDateSchema } from "./utils";
 
 export const CommissionSchema = z.object({
-  id: z.string(),
+  id: z.string().describe("The commission's unique ID on Dub.").openapi({
+    example: "cm_1JVR7XRCSR0EDBAF39FZ4PMYE",
+  }),
   type: z.enum(["click", "lead", "sale"]).optional(),
   amount: z.number(),
   earnings: z.number(),

@@ -9,6 +9,9 @@ export const updateCommission: ZodOpenApiOperationObject = {
   summary: "Update a commission.",
   description:
     "Update an existing commission amount. This is useful for handling refunds (partial or full) or fraudulent sales.",
+  requestParams: {
+    path: CommissionSchema.pick({ id: true }),
+  },
   requestBody: {
     content: {
       "application/json": {
