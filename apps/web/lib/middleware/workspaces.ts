@@ -11,7 +11,8 @@ export default async function WorkspacesMiddleware(
   const { path, searchParamsObj, searchParamsString } = parse(req);
 
   // special case for handling ?next= query param
-  if (searchParamsObj.next) {
+  // only redirect if next is a valid relative path (not an absolute URL)
+  if (searchParamsObj.next && searchParamsObj.next.startsWith("/")) {
     return NextResponse.redirect(new URL(searchParamsObj.next, req.url));
   }
 
