@@ -344,6 +344,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
           <div className="rounded-xl bg-neutral-50">
             <div className="group flex items-center gap-2 px-3 py-2">
               <Checkbox
+                id="excludeCurrentMonth"
                 name="excludeCurrentMonth"
                 value="true"
                 checked={excludeCurrentMonth}
@@ -358,7 +359,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
 
               <label
                 htmlFor="excludeCurrentMonth"
-                className="text-sm font-normal leading-5 text-neutral-600"
+                className="cursor-pointer text-sm font-normal leading-5 text-neutral-600"
               >
                 Exclude current month
               </label>
