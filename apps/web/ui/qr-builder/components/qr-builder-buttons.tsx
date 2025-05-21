@@ -7,10 +7,10 @@ interface IQrBuilderButtonsProps {
   step: number;
   onStepChange: (newStep: number) => void;
   onSaveClick: () => void;
+  validateFields: () => boolean;
   maxStep?: number;
   minStep?: number;
   onContinue?: () => void;
-  disableContinue?: boolean;
   className?: string;
   size?: Responsive<"3" | "4" | "1" | "2"> | undefined;
   display?: Responsive<"none" | "inline-flex" | "flex"> | undefined;
@@ -21,7 +21,7 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
   onStepChange,
   onContinue,
   onSaveClick,
-  disableContinue,
+  validateFields,
   maxStep = 3,
   minStep = 1,
   className,
@@ -39,6 +39,10 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
       onSaveClick();
       return;
     }
+
+    const isValid = validateFields();
+
+    if (!isValid) return;
 
     if (onContinue) {
       onContinue();
@@ -70,7 +74,6 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
         size={size}
         color="blue"
         className="min-w-60 basis-3/4"
-        disabled={disableContinue}
         onClick={handleContinue}
       >
         {lastStep ? "Download QR Code" : "Continue"}

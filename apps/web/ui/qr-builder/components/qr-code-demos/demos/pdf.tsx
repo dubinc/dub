@@ -46,7 +46,7 @@ export default function QRCodeDemoPdf({ files }: IQRCodeDemoPdfProps) {
           fill="white"
           shape-rendering="crispEdges"
         />
-        <g clip-path="url(#clip0_1608_2975)">
+        <g clipPath="url(#clip0_1608_2975)">
           <rect x="29" y="75" width="212" height="263" rx="12" fill="white" />
           <foreignObject x="29" y="75" width="212" height="263">
             <PdfViewer file={files?.[0]} />

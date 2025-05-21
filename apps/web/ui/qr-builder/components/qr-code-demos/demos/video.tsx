@@ -71,7 +71,7 @@ export const QRCodeDemoVideo: FC<IQRCodeDemoVideoProps> = ({ files }) => {
           fill="white"
           shape-rendering="crispEdges"
         />
-        <g clip-path="url(#clip0_1608_3245)">
+        <g clipPath="url(#clip0_1608_3245)">
           <foreignObject x="30" y="80" width="212" height="140">
             <Image
               src={imageToShow}

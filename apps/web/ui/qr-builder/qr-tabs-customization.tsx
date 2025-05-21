@@ -1,6 +1,6 @@
 import { cn } from "@dub/utils";
 import * as Tabs from "@radix-ui/react-tabs";
-import { FC } from "react";
+import { Dispatch, FC, SetStateAction } from "react";
 
 import { FrameSelector } from "@/ui/qr-builder/components/frame-selector.tsx";
 import { LogoSelector } from "@/ui/qr-builder/components/logo-selector.tsx";
@@ -29,6 +29,8 @@ interface QrTabsCustomizationProps {
     onSuggestedLogoSelect: (type: string, src?: string) => void;
     setUploadedLogoFile: (file: File | null) => void;
   };
+  fileError: string;
+  setFileError: Dispatch<SetStateAction<string>>;
 }
 
 export const QrTabsCustomization: FC<QrTabsCustomizationProps> = ({
@@ -41,6 +43,8 @@ export const QrTabsCustomization: FC<QrTabsCustomizationProps> = ({
   isMobile,
   options,
   handlers,
+  fileError,
+  setFileError,
 }) => {
   return isMobile ? (
     <Tabs.Root
@@ -103,7 +107,8 @@ export const QrTabsCustomization: FC<QrTabsCustomizationProps> = ({
               isQrDisabled={isQrDisabled}
               onSuggestedLogoSelect={handlers.onSuggestedLogoSelect}
               onUploadLogo={handlers.setUploadedLogoFile}
-              isMobile={isMobile}
+              fileError={fileError}
+              setFileError={setFileError}
             />
           )}
         </Tabs.Content>
@@ -144,7 +149,8 @@ export const QrTabsCustomization: FC<QrTabsCustomizationProps> = ({
               isQrDisabled={isQrDisabled}
               onSuggestedLogoSelect={handlers.onSuggestedLogoSelect}
               onUploadLogo={handlers.setUploadedLogoFile}
-              isMobile={isMobile}
+              fileError={fileError}
+              setFileError={setFileError}
             />
           )}
         </div>

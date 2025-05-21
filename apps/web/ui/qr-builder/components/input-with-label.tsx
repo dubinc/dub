@@ -99,7 +99,7 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
       )}
 
       {errorMessage && (
-        <span className="error-message text-sm text-red-500">
+        <span className="text-xs font-medium text-red-500 md:text-sm">
           {errorMessage}
         </span>
       )}

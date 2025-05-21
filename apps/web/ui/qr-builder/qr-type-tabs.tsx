@@ -1,4 +1,4 @@
-import { QrTabsCustomization } from "@/ui/qr-builder/qr-tabs-customization.tsx";
+// import { QrTabsCustomization } from "@/ui/qr-builder/qr-tabs-customization.tsx";
 import { cn } from "@dub/utils/src";
 import { Icon } from "@iconify/react";
 import * as Tabs from "@radix-ui/react-tabs";
@@ -135,19 +135,19 @@ export const QrTypeTabs = ({
 
                 <div className="flex flex-col items-start justify-start gap-4 pt-4">
                   <QrTabsStepTitle stepNumber={2} title={"Customize your QR"} />
-                  <QrTabsCustomization
-                    styleOptionActiveTab={styleOptionActiveTab}
-                    setStyleOptionActiveActiveTab={
-                      setStyleOptionActiveActiveTab
-                    }
-                    selectedSuggestedFrame={selectedSuggestedFrame}
-                    selectedSuggestedLogo={selectedSuggestedLogo}
-                    uploadedLogo={uploadedLogo}
-                    isQrDisabled={isQrDisabled}
-                    isMobile={false}
-                    options={options}
-                    handlers={handlers}
-                  />
+                  {/*<QrTabsCustomization*/}
+                  {/*  styleOptionActiveTab={styleOptionActiveTab}*/}
+                  {/*  setStyleOptionActiveActiveTab={*/}
+                  {/*    setStyleOptionActiveActiveTab*/}
+                  {/*  }*/}
+                  {/*  selectedSuggestedFrame={selectedSuggestedFrame}*/}
+                  {/*  selectedSuggestedLogo={selectedSuggestedLogo}*/}
+                  {/*  uploadedLogo={uploadedLogo}*/}
+                  {/*  isQrDisabled={isQrDisabled}*/}
+                  {/*  isMobile={false}*/}
+                  {/*  options={options}*/}
+                  {/*  handlers={handlers}*/}
+                  {/*/>*/}
                 </div>
               </div>
 
@@ -158,9 +158,6 @@ export const QrTypeTabs = ({
                 )}
               >
                 <div className="center sticky top-20 flex flex-col gap-6">
-                  {/*{homepageDemo && (*/}
-                  {/*  <QrTabsStepTitle stepNumber={3} title="Download your QR" />*/}
-                  {/*)}*/}
                   <div
                     className={cn("flex justify-center rounded-lg shadow-lg", {
                       "opacity-30": isQrDisabled,

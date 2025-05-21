@@ -5,6 +5,7 @@ import { QRCodeDemoPlaceholder } from "@/ui/qr-builder/components/qr-code-demos/
 import Stepper from "@/ui/qr-builder/components/stepper.tsx";
 import { qrTypeDataHandlers } from "@/ui/qr-builder/helpers/qr-type-data-handlers.ts";
 import { useIsInViewport } from "@/ui/qr-builder/hooks/use-is-in-viewport.ts";
+import { useQRContent } from "@/ui/qr-builder/hooks/use-qr-content.ts";
 import { QRCanvas } from "@/ui/qr-builder/qr-canvas.tsx";
 import { QRCodeContentBuilder } from "@/ui/qr-builder/qr-code-content-builder.tsx";
 import { QrTabsCustomization } from "@/ui/qr-builder/qr-tabs-customization.tsx";
@@ -53,16 +54,6 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
     ({ props, homepageDemo, handleSaveQR, isProcessing, isEdit }, ref) => {
       const { isMobile } = useMediaQuery();
       const [step, setStep] = useState<number>(1);
-      const [inputValues, setInputValues] = useState<Record<string, string>>(
-        {},
-      );
-      const [files, setFiles] = useState<File[]>([]);
-      console.log("[QrBuilder] inputValues", inputValues);
-      console.log("[QrBuilder] files", files);
-      const [isHiddenNetwork, setIsHiddenNetwork] = useState(false);
-      const [inputErrors, setInputErrors] = useState<Record<string, string>>(
-        {},
-      );
       const [styleOptionActiveTab, setStyleOptionActiveActiveTab] =
         useState<string>("Frame");
       const [hoveredQRType, setHoveredQRType] = useState<EQRType | null>(null);
@@ -136,6 +127,27 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
         [setData],
       );
 
+      const {
+        files,
+        setFiles,
+        inputValues,
+        setInputValues,
+        inputErrors,
+        setInputErrors,
+        isHiddenNetwork,
+        setIsHiddenNetwork,
+        fileError,
+        setFileError,
+        handleChange,
+        handleEncryptionSelectChange,
+        handleSetIsHiddenNetwork,
+        handleValidationAndContentSubmit,
+      } = useQRContent({
+        qrType: selectedQRType,
+        minimalFlow: true,
+        handleContent,
+      });
+
       const typeStep = step === 1;
       const contentStep = step === 2;
       const customizationStep = step === 3;
@@ -183,7 +195,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
       const qrBuilderButtonsWrapperRef = useRef<HTMLDivElement>(null);
       const isMobileButtonsInViewport = useIsInViewport(
         qrBuilderButtonsWrapperRef,
-        1,
+        0.6,
         qrBuilderContentWrapperRef,
       );
 
@@ -216,11 +228,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                 step={step}
                 onStepChange={setStep}
                 onSaveClick={onSaveClick}
-                disableContinue={
-                  contentStep &&
-                  (isQrDisabled ||
-                    Object.values(inputErrors).some((error) => error !== ""))
-                }
+                validateFields={handleValidationAndContentSubmit}
                 size="3"
                 display={{ initial: "none", md: "flex" }}
                 className="pr-8"
@@ -262,7 +270,6 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                 >
                   <QRCodeContentBuilder
                     qrType={selectedQRType}
-                    handleContent={handleContent}
                     inputValues={inputValues}
                     setInputValues={setInputValues}
                     files={files}
@@ -271,6 +278,12 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                     setIsHiddenNetwork={setIsHiddenNetwork}
                     inputErrors={inputErrors}
                     setInputErrors={setInputErrors}
+                    fileError={fileError}
+                    setFileError={setFileError}
+                    onChange={handleChange}
+                    onEncryptionChange={handleEncryptionSelectChange}
+                    onHiddenNetworkChange={handleSetIsHiddenNetwork}
+                    validateFields={handleValidationAndContentSubmit}
                     minimalFlow
                   />
                   <div ref={qrBuilderButtonsWrapperRef} className="w-full">
@@ -278,13 +291,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                       step={step}
                       onStepChange={setStep}
                       onSaveClick={onSaveClick}
-                      disableContinue={
-                        contentStep &&
-                        (isQrDisabled ||
-                          Object.values(inputErrors).some(
-                            (error) => error !== "",
-                          ))
-                      }
+                      validateFields={handleValidationAndContentSubmit}
                       display={{ initial: "flex", md: "none" }}
                     />
                   </div>
@@ -311,6 +318,8 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                     isMobile={isMobile}
                     options={options}
                     handlers={handlers}
+                    fileError={fileError}
+                    setFileError={setFileError}
                   />
 
                   <div ref={qrBuilderButtonsWrapperRef} className="w-full">
@@ -318,13 +327,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                       step={step}
                       onStepChange={setStep}
                       onSaveClick={onSaveClick}
-                      disableContinue={
-                        contentStep &&
-                        (isQrDisabled ||
-                          Object.values(inputErrors).some(
-                            (error) => error !== "",
-                          ))
-                      }
+                      validateFields={handleValidationAndContentSubmit}
                       display={{ initial: "flex", md: "none" }}
                     />
                   </div>
@@ -432,11 +435,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                 step={step}
                 onStepChange={setStep}
                 onSaveClick={onSaveClick}
-                disableContinue={
-                  contentStep &&
-                  (isQrDisabled ||
-                    Object.values(inputErrors).some((error) => error !== ""))
-                }
+                validateFields={handleValidationAndContentSubmit}
               />
             </div>
           )}
