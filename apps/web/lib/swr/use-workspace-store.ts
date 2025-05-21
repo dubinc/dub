@@ -6,13 +6,13 @@ import { mutate } from "swr";
 import { updateWorkspaceStore } from "../actions/update-workspace-store";
 import useWorkspace from "./use-workspace";
 
-export const STORE_KEYS = {
-  conversionsOnboarding: "conversionsOnboarding",
-  dotLinkOfferDismissed: "dotLinkOfferDismissed",
-};
+type STORE_KEYS =
+  | "conversionsOnboarding"
+  | "dotLinkOfferDismissed"
+  | "programOnboarding";
 
 export function useWorkspaceStore<T>(
-  key: string,
+  key: STORE_KEYS,
 ): [
   T | undefined,
   (value: T) => Promise<void>,
@@ -38,7 +38,12 @@ export function useWorkspaceStore<T>(
 
   const setItem = async (value: T) => {
     setItemState(value);
-    await executeAsync({ key, value, workspaceId: workspaceId! });
+
+    await executeAsync({
+      key,
+      value,
+      workspaceId: workspaceId!,
+    });
   };
 
   const mutateWorkspace = () => {
