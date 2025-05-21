@@ -1,24 +1,24 @@
+import { updateCommissionSchema } from "@/lib/zod/schemas/commissions";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 import { CommissionSchema } from "../../zod/schemas/commissions";
-import { updatePartnerSaleSchema } from "../../zod/schemas/partners";
 import { openApiErrorResponses } from "../responses";
 
-export const updatePartnerSale: ZodOpenApiOperationObject = {
-  operationId: "updatePartnerSale",
-  "x-speakeasy-name-override": "updateSale",
-  summary: "Update a sale for a partner.",
+export const updateCommission: ZodOpenApiOperationObject = {
+  operationId: "updateCommission",
+  "x-speakeasy-name-override": "update",
+  summary: "Update a commission.",
   description:
-    "Update an existing sale amount. This is useful for handling refunds (partial or full) or fraudulent sales.",
+    "Update an existing commission amount. This is useful for handling refunds (partial or full) or fraudulent sales.",
   requestBody: {
     content: {
       "application/json": {
-        schema: updatePartnerSaleSchema,
+        schema: updateCommissionSchema,
       },
     },
   },
   responses: {
     "200": {
-      description: "The updated sale.",
+      description: "The updated commission.",
       content: {
         "application/json": {
           schema: CommissionSchema,
@@ -27,6 +27,6 @@ export const updatePartnerSale: ZodOpenApiOperationObject = {
     },
     ...openApiErrorResponses,
   },
-  tags: ["Partners"],
+  tags: ["Commissions"],
   security: [{ token: [] }],
 };

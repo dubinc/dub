@@ -1,6 +1,7 @@
 "use server";
 
 import { DubApiError } from "@/lib/api/errors";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { prisma } from "@dub/prisma";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
@@ -16,14 +17,9 @@ export const markCommissionDuplicateAction = authActionClient
   .schema(markCommissionDuplicateSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { programId, commissionId } = parsedInput;
+    const { commissionId } = parsedInput;
 
-    if (programId !== workspace.defaultProgramId) {
-      throw new DubApiError({
-        code: "not_found",
-        message: "Program not found.",
-      });
-    }
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
     const commission = await prisma.commission.findUniqueOrThrow({
       where: {

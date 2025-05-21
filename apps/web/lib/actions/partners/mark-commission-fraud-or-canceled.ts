@@ -1,5 +1,6 @@
 "use server";
 
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { prisma } from "@dub/prisma";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
@@ -16,11 +17,9 @@ export const markCommissionFraudOrCanceledAction = authActionClient
   .schema(markCommissionFraudOrCanceledSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { programId, commissionId, status } = parsedInput;
+    const { commissionId, status } = parsedInput;
 
-    if (programId !== workspace.defaultProgramId) {
-      throw new Error("Program not found.");
-    }
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
     const commission = await prisma.commission.findUniqueOrThrow({
       where: {

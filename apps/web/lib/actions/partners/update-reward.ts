@@ -2,6 +2,7 @@
 
 import { DubApiError } from "@/lib/api/errors";
 import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { updateRewardSchema } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
 import { authActionClient } from "../safe-action";
@@ -10,22 +11,10 @@ export const updateRewardAction = authActionClient
   .schema(updateRewardSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const {
-      programId,
-      rewardId,
-      partnerIds,
-      amount,
-      maxDuration,
-      type,
-      maxAmount,
-    } = parsedInput;
+    const { rewardId, partnerIds, amount, maxDuration, type, maxAmount } =
+      parsedInput;
 
-    if (programId !== workspace.defaultProgramId) {
-      throw new DubApiError({
-        code: "not_found",
-        message: "Program not found",
-      });
-    }
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
     if (maxAmount && maxAmount < amount) {
       throw new Error(

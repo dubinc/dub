@@ -1,5 +1,5 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
-import { DubApiError } from "@/lib/api/errors";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import {
   CommissionResponseSchema,
@@ -11,14 +11,7 @@ import { z } from "zod";
 
 // GET /api/commissions - get all commissions for a program
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
-  const { programId } = searchParams;
-
-  if (programId !== workspace.defaultProgramId) {
-    throw new DubApiError({
-      code: "not_found",
-      message: "Program not found",
-    });
-  }
+  const programId = getDefaultProgramIdOrThrow(workspace);
 
   const {
     status,
@@ -26,6 +19,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     customerId,
     payoutId,
     partnerId,
+    invoiceId,
     page,
     pageSize,
     sortBy,
@@ -42,21 +36,26 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   });
 
   const commissions = await prisma.commission.findMany({
-    where: {
-      earnings: {
-        gt: 0,
-      },
-      programId,
-      partnerId,
-      status,
-      type,
-      customerId,
-      payoutId,
-      createdAt: {
-        gte: startDate.toISOString(),
-        lte: endDate.toISOString(),
-      },
-    },
+    where: invoiceId
+      ? {
+          programId,
+          invoiceId,
+        }
+      : {
+          earnings: {
+            gt: 0,
+          },
+          programId,
+          partnerId,
+          status,
+          type,
+          customerId,
+          payoutId,
+          createdAt: {
+            gte: startDate.toISOString(),
+            lte: endDate.toISOString(),
+          },
+        },
     include: {
       customer: true,
       partner: true,
