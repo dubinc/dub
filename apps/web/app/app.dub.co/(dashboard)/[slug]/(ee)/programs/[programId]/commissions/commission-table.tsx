@@ -67,7 +67,6 @@ const CommissionTableInner = memo(
     } = useSWR<CommissionResponse[]>(
       `/api/commissions${getQueryString({
         workspaceId,
-        programId,
       })}`,
       fetcher,
       {

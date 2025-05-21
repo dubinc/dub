@@ -1,6 +1,6 @@
 import { convertToCSV } from "@/lib/analytics/utils/convert-to-csv";
-import { DubApiError } from "@/lib/api/errors";
 import { getPartners } from "@/lib/api/partners/get-partners";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import {
   exportPartnerColumns,
@@ -16,14 +16,7 @@ const columnIdToLabel = exportPartnerColumns.reduce((acc, column) => {
 // GET /api/partners/export – export partners to CSV
 export const GET = withWorkspace(
   async ({ searchParams, workspace }) => {
-    const { programId } = searchParams;
-
-    if (programId !== workspace.defaultProgramId) {
-      throw new DubApiError({
-        code: "not_found",
-        message: "Program not found",
-      });
-    }
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
     let { columns, ...filters } = partnersExportQuerySchema.parse(searchParams);
 

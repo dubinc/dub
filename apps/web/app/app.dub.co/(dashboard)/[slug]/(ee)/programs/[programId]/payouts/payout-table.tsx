@@ -5,7 +5,7 @@ import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutResponse } from "@/lib/types";
 import { AmountRowItem } from "@/ui/partners/amount-row-item";
-import { useMarkAsPaidModal } from "@/ui/partners/mark-as-paid-modal";
+import { useMarkPayoutPaidModal } from "@/ui/partners/mark-payout-paid-modal";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PayoutDetailsSheet } from "@/ui/partners/payout-details-sheet";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
@@ -300,9 +300,10 @@ function RowMenuButton({ row }: { row: Row<PayoutResponse> }) {
   const { slug, programId } = useParams();
   const [isOpen, setIsOpen] = useState(false);
 
-  const { setShowMarkAsPaidModal, MarkAsPaidModal } = useMarkAsPaidModal({
-    payout: row.original,
-  });
+  const { setShowMarkPayoutPaidModal, MarkPayoutPaidModal } =
+    useMarkPayoutPaidModal({
+      payout: row.original,
+    });
 
   const isPayable = ["pending", "failed"].includes(row.original.status);
 
@@ -310,7 +311,7 @@ function RowMenuButton({ row }: { row: Row<PayoutResponse> }) {
 
   return (
     <>
-      <MarkAsPaidModal />
+      <MarkPayoutPaidModal />
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
@@ -321,7 +322,7 @@ function RowMenuButton({ row }: { row: Row<PayoutResponse> }) {
                 icon={CircleCheck}
                 label="Mark as paid"
                 onSelect={() => {
-                  setShowMarkAsPaidModal(true);
+                  setShowMarkPayoutPaidModal(true);
                   setIsOpen(false);
                 }}
               />

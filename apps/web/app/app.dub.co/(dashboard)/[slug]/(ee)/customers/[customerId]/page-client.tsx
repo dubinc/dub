@@ -213,7 +213,6 @@ const PartnerEarningsTable = memo(
     >(
       `/api/commissions?${new URLSearchParams({
         customerId,
-        programId,
         workspaceId: workspaceId!,
         pageSize: CUSTOMER_PAGE_EVENTS_LIMIT.toString(),
       })}`,
@@ -226,7 +225,6 @@ const PartnerEarningsTable = memo(
         commissions?.length === CUSTOMER_PAGE_EVENTS_LIMIT &&
           `/api/commissions/count?${new URLSearchParams({
             customerId,
-            programId,
             workspaceId: workspaceId!,
           })}`,
         fetcher,

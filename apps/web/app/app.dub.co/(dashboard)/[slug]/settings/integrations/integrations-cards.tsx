@@ -10,10 +10,11 @@ import { IntegrationsWithInstallations } from "./integrations-list";
 
 const CATEGORY_ORDER = [
   "Payments",
-  "Authentication",
   "Automations",
   "Analytics",
-  "Social Scheduling",
+  "Scheduling",
+  "Authentication",
+  "Social Media",
   "Productivity",
   "CMS",
   "Miscellaneous",

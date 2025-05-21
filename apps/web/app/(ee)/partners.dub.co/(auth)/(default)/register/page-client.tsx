@@ -46,7 +46,7 @@ function SignUp({ program }: { program?: PartialProgram }) {
       <p className="mt-4 text-center text-sm text-neutral-500">
         Already have an account?&nbsp;
         <Link
-          href="/login"
+          href={`${program ? `/${program.slug}` : ""}/login`}
           className="font-semibold text-neutral-500 underline underline-offset-2 transition-colors hover:text-black"
         >
           Sign in

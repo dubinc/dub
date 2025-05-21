@@ -7,6 +7,7 @@ import { createDocument } from "zod-openapi";
 import { webhookEventSchema } from "../webhook/schemas";
 import { FolderSchema } from "../zod/schemas/folders";
 import { analyticsPath } from "./analytics";
+import { commissionsPaths } from "./commissions";
 import { customersPaths } from "./customers";
 import { domainsPaths } from "./domains";
 import { embedTokensPaths } from "./embed-tokens";
@@ -52,6 +53,7 @@ export const document = createDocument({
     ...trackPaths,
     ...customersPaths,
     ...partnersPaths,
+    ...commissionsPaths,
     ...workspacesPaths,
     ...embedTokensPaths,
     ...qrCodePaths,
