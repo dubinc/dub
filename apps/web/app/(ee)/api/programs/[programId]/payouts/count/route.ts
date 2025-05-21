@@ -77,34 +77,62 @@ export const GET = withWorkspace(
       }
 
       // Special case for excludeCurrentMonth on the payout invoice sheet
-      const commissions = await prisma.commission.groupBy({
-        by: ["payoutId"],
-        where: {
-          programId,
-          payout: {
+      const [commissions, customPayouts] = await Promise.all([
+        prisma.commission.groupBy({
+          by: ["payoutId"],
+          where: {
+            programId,
+            payout: {
+              amount: {
+                gte: minPayoutAmount,
+              },
+            },
+            partner: {
+              payoutsEnabledAt: {
+                not: null,
+              },
+            },
+            status: "processed",
+            createdAt: {
+              lt: currentMonthStart,
+            },
+          },
+          _sum: {
+            earnings: true,
+          },
+        }),
+
+        prisma.payout.aggregate({
+          where: {
+            programId,
             amount: {
               gte: minPayoutAmount,
             },
-          },
-          partner: {
-            payoutsEnabledAt: {
-              not: null,
+            partner: {
+              payoutsEnabledAt: {
+                not: null,
+              },
             },
+            status: "pending",
+            periodStart: null,
+            periodEnd: null,
+            // createdAt: {
+            //   lt: currentMonthStart,
+            // },
           },
-          status: "processed",
-          createdAt: {
-            lt: currentMonthStart,
+          _sum: {
+            amount: true,
           },
-        },
-        _sum: {
-          earnings: true,
-        },
-      });
+          _count: true,
+        }),
+      ]);
 
       const counts = {
         status: "pending",
-        count: commissions.length,
-        amount: commissions.reduce((acc, c) => acc + (c._sum.earnings ?? 0), 0),
+        count: commissions.length + customPayouts._count,
+        amount:
+          commissions.reduce((acc, c) => acc + (c._sum.earnings ?? 0), 0) +
+          (customPayouts._sum.amount ?? 0),
       };
 
       return NextResponse.json([counts]);
