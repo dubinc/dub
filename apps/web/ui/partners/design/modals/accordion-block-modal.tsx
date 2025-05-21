@@ -61,7 +61,7 @@ function AccordionBlockModalInner({
 
   const { handleSubmit, register, control } = form;
 
-  const { fields, append, remove, move } = useFieldArray({
+  const { fields, append, remove, replace } = useFieldArray({
     control,
     keyName: "rhfId",
     name: "items",
@@ -123,7 +123,9 @@ function AccordionBlockModalInner({
 
                 return id;
               }}
-              onReorder={() => {}}
+              onReorder={(updated) =>
+                replace(updated.map((id) => fields.find((f) => f.id === id)!))
+              }
             >
               {fields.map((field, index) => (
                 <AccordionItem
