@@ -17,13 +17,27 @@ interface FormattedTimeseriesPoint extends TimeseriesPoint {
 }
 
 export const GET = withAdmin(async ({ searchParams }) => {
-  const { interval = "mtd", start, end, timezone = "UTC" } = searchParams;
+  const { interval = "mtd", start, end } = searchParams;
 
-  const { startDate, endDate, granularity } = getStartEndDates({
+  let { startDate, endDate, granularity } = getStartEndDates({
     interval,
     start,
     end,
   });
+
+  const timezone = "UTC";
+  // convert to UTC
+  startDate = DateTime.fromJSDate(startDate)
+    .setZone(timezone)
+    .startOf("day")
+    .toUTC()
+    .toJSDate();
+
+  endDate = DateTime.fromJSDate(endDate)
+    .setZone(timezone)
+    .endOf("day")
+    .toUTC()
+    .toJSDate();
 
   // Fetch invoices
   const invoices = await prisma.invoice.findMany({

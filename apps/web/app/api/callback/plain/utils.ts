@@ -16,7 +16,7 @@ export const plainEmptyContainer = (text: string) => ({
       },
       {
         componentPlainText: {
-          text: "No user found.",
+          text,
           size: "S",
         },
       },
