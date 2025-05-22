@@ -7,13 +7,20 @@ export const formatDateTooltip = (
     start,
     end,
     dataAvailableFrom,
+    timezone = Intl.DateTimeFormat().resolvedOptions().timeZone,
   }: {
     interval?: string;
     start?: string | Date | null;
     end?: string | Date | null;
     dataAvailableFrom?: Date;
+    timezone?: string;
   },
 ) => {
+  // Convert date to local timezone (or provided timezone if specified)
+  const targetDate = new Date(
+    date.toLocaleString("en-US", { timeZone: timezone }),
+  );
+
   if (interval === "all" && dataAvailableFrom) {
     start = dataAvailableFrom;
     end = new Date(Date.now());
@@ -26,26 +33,26 @@ export const formatDateTooltip = (
     );
 
     if (daysDifference <= 2)
-      return date.toLocaleTimeString("en-US", {
+      return targetDate.toLocaleTimeString("en-US", {
         hour: "numeric",
         minute: "numeric",
       });
     else if (daysDifference > 180)
-      return date.toLocaleDateString("en-US", {
+      return targetDate.toLocaleDateString("en-US", {
         month: "short",
         year: "numeric",
       });
   } else if (interval) {
     switch (interval) {
       case "24h":
-        return date.toLocaleTimeString("en-US", {
+        return targetDate.toLocaleTimeString("en-US", {
           hour: "numeric",
           minute: "numeric",
         });
       case "ytd":
       case "1y":
       case "all":
-        return date.toLocaleDateString("en-US", {
+        return targetDate.toLocaleDateString("en-US", {
           month: "short",
           year: "numeric",
         });
@@ -54,7 +61,7 @@ export const formatDateTooltip = (
     }
   }
 
-  return date.toLocaleDateString("en-US", {
+  return targetDate.toLocaleDateString("en-US", {
     weekday: "short",
     month: "short",
     day: "numeric",

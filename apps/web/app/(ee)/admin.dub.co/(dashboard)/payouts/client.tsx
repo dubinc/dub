@@ -264,6 +264,7 @@ export default function PayoutsPageClient() {
                           interval,
                           start,
                           end,
+                          timezone: "UTC",
                         })}
                       </p>
                       <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-4 py-3 text-sm">
