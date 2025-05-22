@@ -105,10 +105,9 @@ export const updateProgramAction = authActionClient
           : []),
 
         // Revalidate public pages
-        revalidatePath(
-          `/(ee)/partners.dub.co/(apply)/${program.slug}`,
-          "layout",
-        ),
+        revalidatePath(`/partners.dub.co/${program.slug}`),
+        revalidatePath(`/partners.dub.co/${program.slug}/apply`),
+        revalidatePath(`/partners.dub.co/${program.slug}/apply/success`),
       ]),
     );
   });
