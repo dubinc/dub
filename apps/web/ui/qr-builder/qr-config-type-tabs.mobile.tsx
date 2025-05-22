@@ -1,6 +1,6 @@
 import { QRCanvas } from "@/ui/qr-builder/qr-canvas.tsx";
-import { QRCodeContentBuilder } from "@/ui/qr-builder/qr-code-content-builder.tsx";
-import { QrTabsCustomization } from "@/ui/qr-builder/qr-tabs-customization.tsx";
+// import { QRCodeContentBuilder } from "@/ui/qr-builder/qr-code-content-builder.tsx";
+// import { QrTabsCustomization } from "@/ui/qr-builder/qr-tabs-customization.tsx";
 import { cn } from "@dub/utils/src";
 import * as Tabs from "@radix-ui/react-tabs";
 import { Dispatch, SetStateAction, useCallback, useState } from "react";
@@ -23,7 +23,7 @@ interface QrConfigTypeTabsMobileProps {
   handlers: any;
   setData: Dispatch<SetStateAction<any>>;
   isQrDisabled: boolean;
-  nonFileQrTypes: QRType[];
+  qrTypes: QRType[];
   homepageDemo?: boolean;
   qrTypeActiveTab: QRType["id"];
   setQRTypeActiveTab: Dispatch<SetStateAction<QRType["id"]>>;
@@ -40,7 +40,7 @@ export const QrConfigTypeTabsMobile = ({
   handlers,
   setData,
   isQrDisabled,
-  nonFileQrTypes,
+  qrTypes,
   homepageDemo,
   qrTypeActiveTab,
   setQRTypeActiveTab,
@@ -114,23 +114,21 @@ export const QrConfigTypeTabsMobile = ({
           className="align-center flex w-full flex-col justify-center gap-6"
         >
           <QRTabsPopover
-            qrTypes={nonFileQrTypes}
+            qrTypes={qrTypes}
             setOpenPopover={setOpenPopover}
             openPopover={openPopover}
             handlePopoverItemClick={handlePopoverItemClick}
             isMobile={true}
             showButtonContent
-            selectedQrType={nonFileQrTypes.find(
-              (type) => type.id === qrTypeActiveTab,
-            )}
+            selectedQrType={qrTypes.find((type) => type.id === qrTypeActiveTab)}
           />
 
-          <QRCodeContentBuilder
-            qrType={qrTypeActiveTab}
-            handleContent={handleContent}
-            minimalFlow
-            initialInputValues={initialInputValues}
-          />
+          {/*<QRCodeContentBuilder*/}
+          {/*  qrType={qrTypeActiveTab}*/}
+          {/*  handleContent={handleContent}*/}
+          {/*  minimalFlow*/}
+          {/*  initialInputValues={initialInputValues}*/}
+          {/*/>*/}
         </Tabs.Content>
       )}
       {mobileStepActiveTab === "design" && (
@@ -139,17 +137,17 @@ export const QrConfigTypeTabsMobile = ({
           className="flex w-full flex-col items-start justify-start gap-4"
           value={QR_GENERATION_STEPS[1].id}
         >
-          <QrTabsCustomization
-            styleOptionActiveTab={styleOptionActiveTab}
-            setStyleOptionActiveActiveTab={setStyleOptionActiveActiveTab}
-            selectedSuggestedFrame={selectedSuggestedFrame}
-            selectedSuggestedLogo={selectedSuggestedLogo}
-            uploadedLogo={uploadedLogo}
-            isQrDisabled={isQrDisabled}
-            isMobile={true}
-            options={options}
-            handlers={handlers}
-          />
+          {/*<QrTabsCustomization*/}
+          {/*  styleOptionActiveTab={styleOptionActiveTab}*/}
+          {/*  setStyleOptionActiveActiveTab={setStyleOptionActiveActiveTab}*/}
+          {/*  selectedSuggestedFrame={selectedSuggestedFrame}*/}
+          {/*  selectedSuggestedLogo={selectedSuggestedLogo}*/}
+          {/*  uploadedLogo={uploadedLogo}*/}
+          {/*  isQrDisabled={isQrDisabled}*/}
+          {/*  isMobile={true}*/}
+          {/*  options={options}*/}
+          {/*  handlers={handlers}*/}
+          {/*/>*/}
         </Tabs.Content>
       )}
 

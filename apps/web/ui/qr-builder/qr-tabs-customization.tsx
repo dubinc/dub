@@ -1,6 +1,6 @@
 import { cn } from "@dub/utils";
 import * as Tabs from "@radix-ui/react-tabs";
-import { FC } from "react";
+import { Dispatch, FC, SetStateAction } from "react";
 
 import { FrameSelector } from "@/ui/qr-builder/components/frame-selector.tsx";
 import { LogoSelector } from "@/ui/qr-builder/components/logo-selector.tsx";
@@ -29,6 +29,8 @@ interface QrTabsCustomizationProps {
     onSuggestedLogoSelect: (type: string, src?: string) => void;
     setUploadedLogoFile: (file: File | null) => void;
   };
+  fileError: string;
+  setFileError: Dispatch<SetStateAction<string>>;
 }
 
 export const QrTabsCustomization: FC<QrTabsCustomizationProps> = ({
@@ -41,12 +43,14 @@ export const QrTabsCustomization: FC<QrTabsCustomizationProps> = ({
   isMobile,
   options,
   handlers,
+  fileError,
+  setFileError,
 }) => {
-  return (
+  return isMobile ? (
     <Tabs.Root
       value={styleOptionActiveTab}
       onValueChange={setStyleOptionActiveActiveTab}
-      className="flex w-full flex-col items-center justify-center gap-4"
+      className="text-neutral flex w-full flex-col items-center justify-center gap-4"
     >
       <Tabs.List className="flex w-full items-center gap-1 overflow-x-auto rounded-lg">
         {QR_STYLES_OPTIONS.map((tab) => (
@@ -103,11 +107,54 @@ export const QrTabsCustomization: FC<QrTabsCustomizationProps> = ({
               isQrDisabled={isQrDisabled}
               onSuggestedLogoSelect={handlers.onSuggestedLogoSelect}
               onUploadLogo={handlers.setUploadedLogoFile}
-              isMobile={isMobile}
+              fileError={fileError}
+              setFileError={setFileError}
             />
           )}
         </Tabs.Content>
       ))}
     </Tabs.Root>
+  ) : (
+    <div className="text-neutral flex w-full flex-col gap-8">
+      {QR_STYLES_OPTIONS.map((tab) => (
+        <div key={tab.id} className="flex w-full flex-col gap-4">
+          <h3 className="text-lg font-medium">{tab.label}</h3>
+          {tab.id === "frame" && (
+            <FrameSelector
+              selectedSuggestedFrame={selectedSuggestedFrame}
+              isQrDisabled={isQrDisabled}
+              onFrameSelect={handlers.onSuggestedFrameSelect}
+            />
+          )}
+          {tab.id === "style" && (
+            <StyleSelector
+              options={options}
+              isMobile={isMobile}
+              onDotsStyleChange={handlers.onDotsStyleChange}
+              onBorderColorChange={handlers.onBorderColorChange}
+              onBackgroundColorChange={handlers.onBackgroundColorChange}
+            />
+          )}
+          {tab.id === "shape" && (
+            <ShapeSelector
+              options={options}
+              onBorderStyleChange={handlers.onBorderStyleChange}
+              onCenterStyleChange={handlers.onCenterStyleChange}
+            />
+          )}
+          {tab.id === "logo" && (
+            <LogoSelector
+              selectedSuggestedLogo={selectedSuggestedLogo}
+              uploadedLogo={uploadedLogo}
+              isQrDisabled={isQrDisabled}
+              onSuggestedLogoSelect={handlers.onSuggestedLogoSelect}
+              onUploadLogo={handlers.setUploadedLogoFile}
+              fileError={fileError}
+              setFileError={setFileError}
+            />
+          )}
+        </div>
+      ))}
+    </div>
   );
 };

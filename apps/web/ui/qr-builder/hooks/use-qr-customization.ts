@@ -5,6 +5,7 @@ import {
 } from "@/ui/qr-builder/constants/customization/colors.ts";
 import { FRAMES } from "@/ui/qr-builder/constants/customization/frames.ts";
 import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
+import { DEFAULT_WEBSITE } from "@/ui/qr-builder/constants/qr-type-inputs-placeholders.ts";
 import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
 import QRCodeStyling, {
   CornerDotType,
@@ -22,12 +23,13 @@ export function useQrCustomization(initialData?: ResponseQrCode) {
   const [selectedSuggestedFrame, setSelectedSuggestedFrame] = useState("none");
 
   const [selectedQRType, setSelectedQRType] = useState<EQRType>(
-    (initialData?.qrType as EQRType) || EQRType.WEBSITE,
+    initialData?.qrType as EQRType,
   );
 
-  const qrPlaceholder = "https://www.getqr.com/";
-  const [data, setData] = useState(initialData?.data || qrPlaceholder);
-  const isQrDisabled = !data?.trim() || data === qrPlaceholder;
+  const [data, setData] = useState(initialData?.data || DEFAULT_WEBSITE);
+  console.log("[useQrCustomization] data", data);
+  console.log("[useQrCustomization] qrCode", qrCode);
+  const isQrDisabled = !data?.trim() || data === DEFAULT_WEBSITE;
 
   const [options, setOptions] = useState<Options>({
     width: 300,
@@ -74,14 +76,20 @@ export function useQrCustomization(initialData?: ResponseQrCode) {
           if (url.hostname === "wa.me") {
             number = url.pathname.replace("/", "");
             const textParam = url.searchParams.get("text");
-            message = textParam && textParam !== "undefined" ? decodeURIComponent(textParam) : "";
+            message =
+              textParam && textParam !== "undefined"
+                ? decodeURIComponent(textParam)
+                : "";
           } else if (
             url.hostname === "whatsapp.com" ||
             url.hostname === "api.whatsapp.com"
           ) {
             number = url.searchParams.get("phone") || "";
             const textParam = url.searchParams.get("text");
-            message = textParam && textParam !== "undefined" ? decodeURIComponent(textParam) : "";
+            message =
+              textParam && textParam !== "undefined"
+                ? decodeURIComponent(textParam)
+                : "";
           }
 
           number = number.replace(/\D/g, "");
