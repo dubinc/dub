@@ -2,14 +2,18 @@ import { prisma } from "@dub/prisma";
 import { EventType } from "@dub/prisma/client";
 import { RewardSchema } from "../zod/schemas/rewards";
 
+const PartnerRewardSchema = RewardSchema.omit({ geoRules: true });
+
 export const determinePartnerReward = async ({
   event,
   partnerId,
   programId,
+  country,
 }: {
   event: EventType;
   partnerId: string;
   programId: string;
+  country?: string | null;
 }) => {
   const rewards = await prisma.reward.findMany({
     where: {
@@ -56,11 +60,33 @@ export const determinePartnerReward = async ({
     (reward) => reward._count.partners === 0,
   );
 
-  const reward = partnerSpecificReward || programWideReward;
+  let reward = partnerSpecificReward || programWideReward;
 
-  if (!reward || reward.amount === 0) {
+  if (!reward) {
     return null;
   }
 
-  return RewardSchema.parse(reward);
+  if (
+    event === "lead" &&
+    country &&
+    reward.geoRules &&
+    reward.geoRules[country]
+  ) {
+    const amount = reward.geoRules[country];
+
+    if (amount === 0) {
+      return null;
+    }
+
+    reward = {
+      ...reward,
+      amount,
+    };
+  }
+
+  if (reward.amount === 0) {
+    return null;
+  }
+
+  return PartnerRewardSchema.parse(reward);
 };

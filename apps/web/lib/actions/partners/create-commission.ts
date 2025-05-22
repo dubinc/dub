@@ -155,6 +155,7 @@ export const createCommissionAction = authActionClient
           linkId,
           eventId: leadEventId,
           customerId,
+          customerCountry: clickData?.country,
           amount: 0,
           quantity: 1,
           createdAt: finalLeadEventDate,

@@ -14,6 +14,7 @@ export const createPartnerCommission = async ({
   partnerId,
   linkId,
   customerId,
+  customerCountry,
   eventId,
   invoiceId,
   amount = 0,
@@ -29,6 +30,7 @@ export const createPartnerCommission = async ({
   programId: string;
   linkId: string;
   customerId?: string;
+  customerCountry?: string | null;
   eventId?: string;
   invoiceId?: string | null;
   amount?: number;
@@ -41,6 +43,7 @@ export const createPartnerCommission = async ({
       event,
       partnerId,
       programId,
+      country: customerCountry,
     });
 
     if (!reward) {

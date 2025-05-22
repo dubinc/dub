@@ -249,6 +249,7 @@ export const POST = withWorkspace(
               linkId: link.id,
               eventId: leadEventId,
               customerId: customerId,
+              customerCountry: clickData.country,
               quantity: eventQuantity ?? 1,
             });
           }
