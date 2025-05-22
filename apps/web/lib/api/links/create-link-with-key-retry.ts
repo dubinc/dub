@@ -45,7 +45,7 @@ export async function createLinkWithKeyRetry({
         }
 
         // Otherwise, generate a new random key and retry
-        const newKey = await getRandomKey({
+        const newKey = getRandomKey({
           prefix: link["prefix"],
           long: link.domain === "loooooooo.ng",
         });

@@ -254,7 +254,7 @@ export async function processLink<T extends Record<string, any>>({
   }
 
   if (!key) {
-    key = await getRandomKey({
+    key = getRandomKey({
       prefix: payload["prefix"],
       long: domain === "loooooooo.ng",
     });

@@ -17,7 +17,7 @@ export const GET = async (req: NextRequest) => {
 
     await ratelimitOrThrow(req, "links-random");
 
-    const response = await getRandomKey({
+    const response = getRandomKey({
       long: domain === "loooooooo.ng",
     });
     return NextResponse.json(response);
