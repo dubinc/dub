@@ -95,7 +95,6 @@ export function BrandingForm() {
       onSubmit={handleSubmit(async (data) => {
         await executeAsync({
           workspaceId: workspaceId!,
-          programId: program!.id,
           ...data,
         });
 

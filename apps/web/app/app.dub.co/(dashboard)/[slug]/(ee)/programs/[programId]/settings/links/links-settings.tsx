@@ -78,7 +78,6 @@ function LinksSettingsForm({ program }: { program: ProgramProps }) {
         await executeAsync({
           ...data,
           workspaceId: workspaceId!,
-          programId: program.id,
         });
 
         // Reset isDirty state

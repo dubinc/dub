@@ -233,7 +233,6 @@ function RewardSheetContent({
     const payload = {
       ...data,
       workspaceId,
-      programId: program.id,
       partnerIds,
       amount: type === "flat" ? data.amount * 100 : data.amount,
       maxDuration:
@@ -262,7 +261,6 @@ function RewardSheetContent({
 
     await deleteReward({
       workspaceId,
-      programId: program.id,
       rewardId: reward.id,
     });
   };

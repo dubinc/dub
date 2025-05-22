@@ -1,5 +1,5 @@
 import useWorkspace from "@/lib/swr/use-workspace";
-import { STORE_KEYS, useWorkspaceStore } from "@/lib/swr/use-workspace-store";
+import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import {
   ArrowTurnRight2,
   Button,
@@ -31,7 +31,7 @@ function DotLinkOfferModal({
   setShowDotLinkOfferModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const [_, setDotLinkOfferDismissed, { mutateWorkspace }] =
-    useWorkspaceStore<string>(STORE_KEYS.dotLinkOfferDismissed);
+    useWorkspaceStore<string>("dotLinkOfferDismissed");
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
