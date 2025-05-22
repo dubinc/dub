@@ -82,17 +82,17 @@ export const GET = withWorkspace(
           by: ["payoutId"],
           where: {
             programId,
-            payout: {
-              amount: {
-                gte: minPayoutAmount,
-              },
-            },
             partner: {
               payoutsEnabledAt: {
                 not: null,
               },
             },
-            status: "processed",
+            payout: {
+              amount: {
+                gte: minPayoutAmount,
+              },
+              status: "pending",
+            },
             createdAt: {
               lt: currentMonthStart,
             },

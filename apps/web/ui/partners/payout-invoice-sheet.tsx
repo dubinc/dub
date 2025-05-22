@@ -111,8 +111,6 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
     },
   });
 
-  console.log("excludeCurrentMonth", excludeCurrentMonth);
-
   const { executeAsync, isPending } = useAction(confirmPayoutsAction, {
     onSuccess: async () => {
       await mutatePrefix(`/api/programs/${programId}/payouts`);
@@ -383,7 +381,12 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
             type="button"
             variant="primary"
             loading={isPending}
-            disabled={eligiblePayoutsCountLoading || eligiblePayoutsLoading}
+            disabled={
+              eligiblePayoutsCountLoading ||
+              eligiblePayoutsLoading ||
+              (typeof invoiceData.Amount === "string" &&
+                invoiceData.Amount === "$0.00")
+            }
             onClick={async () => {
               if (!workspaceId || !selectedPaymentMethod) {
                 return;
