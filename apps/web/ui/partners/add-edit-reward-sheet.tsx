@@ -15,20 +15,28 @@ import {
   COMMISSION_TYPES,
   createRewardSchema,
 } from "@/lib/zod/schemas/rewards";
-import { X } from "@/ui/shared/icons";
+import { Delete, X } from "@/ui/shared/icons";
 import { EventType } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
   CircleCheckFill,
+  Combobox,
   InfoTooltip,
   Sheet,
   Switch,
   Tooltip,
 } from "@dub/ui";
-import { cn, pluralize } from "@dub/utils";
+import { cn, COUNTRIES, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+import {
+  Dispatch,
+  Fragment,
+  SetStateAction,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   FieldErrors,
   useForm,
@@ -112,6 +120,7 @@ function RewardSheetContent({
       amount: reward?.type === "flat" ? reward.amount / 100 : reward?.amount,
       maxAmount: reward?.maxAmount ? reward.maxAmount / 100 : null,
       partnerIds: null,
+      geoRules: reward?.geoRules || {},
     },
   });
 
@@ -123,9 +132,10 @@ function RewardSheetContent({
     }
   }, [reward]);
 
-  const [amount, type, partnerIds = []] = watch([
+  const [amount, type, geoRules = {}, partnerIds = []] = watch([
     "amount",
     "type",
+    "geoRules",
     "partnerIds",
   ]);
 
@@ -597,6 +607,10 @@ function RewardSheetContent({
               </div>
             </div>
 
+            {selectedEvent === "lead" && (
+              <GeoRulesSection geoRules={geoRules} setValue={setValue} />
+            )}
+
             {displayPartners && program?.id && (
               <RewardPartnersTable
                 partnerIds={partnerIds || []}
@@ -739,6 +753,147 @@ function RewardLimitSection({
             </div>
           )}
         </AnimatedSizeContainer>
+      </div>
+    </div>
+  );
+}
+
+// Geo rules for lead rewards
+function GeoRulesSection({
+  geoRules,
+  setValue,
+}: {
+  geoRules: Record<string, number> | null;
+  setValue: UseFormSetValue<FormData>;
+}) {
+  return (
+    <div className="grid grid-cols-1 space-y-4">
+      <div className="flex items-center gap-2">
+        <span className="block text-sm font-medium text-neutral-700">
+          Geo Targeting
+        </span>
+        <InfoTooltip content="Set different reward amounts for specific countries." />
+      </div>
+
+      <div className="mt-2">
+        {geoRules && Object.entries(geoRules).length > 0 && (
+          <div className="relative mb-2 grid grid-cols-[min-content_1fr_min-content] gap-y-2">
+            {Object.entries(geoRules).map(([key, value]) => (
+              <Fragment key={key}>
+                <div className="z-[1]">
+                  <Combobox
+                    selected={
+                      key ? { value: key, label: COUNTRIES[key] } : null
+                    }
+                    setSelected={(option) => {
+                      if (!option) {
+                        return;
+                      }
+
+                      const newgeoRules = { ...geoRules };
+                      delete newgeoRules[key];
+                      newgeoRules[option.value] = value;
+
+                      setValue("geoRules", newgeoRules, {
+                        shouldDirty: true,
+                      });
+                    }}
+                    options={Object.entries(COUNTRIES)
+                      .filter(
+                        ([ck]) =>
+                          ck === key || !Object.keys(geoRules).includes(ck),
+                      )
+                      .map(([key, value]) => ({
+                        icon: (
+                          <img
+                            alt={value}
+                            src={`https://flag.vercel.app/m/${key}.svg`}
+                            className="mr-1 h-2.5 w-4"
+                          />
+                        ),
+                        value: key,
+                        label: value,
+                      }))}
+                    icon={
+                      key ? (
+                        <img
+                          alt={COUNTRIES[key]}
+                          src={`https://flag.vercel.app/m/${key}.svg`}
+                          className="h-2.5 w-4"
+                        />
+                      ) : undefined
+                    }
+                    caret={true}
+                    placeholder="Country"
+                    searchPlaceholder="Search countries..."
+                    buttonProps={{
+                      className: cn(
+                        "w-32 sm:w-40 rounded-r-none border-r-transparent justify-start px-2.5",
+                        "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
+                        "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
+                        !key && "text-neutral-600",
+                      ),
+                    }}
+                    optionClassName="sm:max-w-[200px]"
+                  />
+                </div>
+
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
+                    $
+                  </span>
+                  <input
+                    type="text"
+                    placeholder="0.00"
+                    className="block w-full rounded-r-md border border-neutral-300 pl-6 pr-12 text-sm placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500"
+                    value={value}
+                    onChange={(e) => {
+                      const newValue = e.target.value.replace(/[^0-9.]/g, "");
+                      const newgeoRules = {
+                        ...geoRules,
+                        [key]: newValue ? parseFloat(newValue) : 0,
+                      };
+                      setValue("geoRules", newgeoRules, {
+                        shouldDirty: true,
+                      });
+                    }}
+                    onKeyDown={handleMoneyKeyDown}
+                  />
+                  <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
+                    USD
+                  </span>
+                </div>
+                <div className="pl-1.5">
+                  <Button
+                    variant="danger-outline"
+                    icon={<Delete className="size-4" />}
+                    className="bg-red-600/5 px-3 text-red-600 hover:bg-red-600/10 hover:text-red-700"
+                    onClick={() => {
+                      const newgeoRules = { ...geoRules };
+                      delete newgeoRules[key];
+                      setValue("geoRules", newgeoRules, {
+                        shouldDirty: true,
+                      });
+                    }}
+                  />
+                </div>
+              </Fragment>
+            ))}
+          </div>
+        )}
+        <Button
+          type="button"
+          variant="secondary"
+          text="Add country reward"
+          className="h-9"
+          onClick={() => {
+            const newgeoRules = { ...geoRules, "": 0 };
+            setValue("geoRules", newgeoRules, {
+              shouldDirty: true,
+            });
+          }}
+          disabled={!!geoRules && Object.keys(geoRules).includes("")}
+        />
       </div>
     </div>
   );
