@@ -789,7 +789,7 @@ function GeoRulesSection({
   register: UseFormRegister<FormData>;
 }) {
   return (
-    <div className="grid grid-cols-1 space-y-4">
+    <div className="grid grid-cols-1">
       <div className="flex items-center gap-2">
         <span className="block text-sm font-medium text-neutral-700">
           Geo Targeting
@@ -802,7 +802,7 @@ function GeoRulesSection({
           <div className="relative mb-2 grid grid-cols-[min-content_1fr_min-content] gap-y-2">
             {Object.entries(geoRules).map(([key, value]) => (
               <Fragment key={key}>
-                <div className="z-[1]">
+                <div className="z-[1] flex items-center">
                   <Combobox
                     selected={
                       key ? { value: key, label: COUNTRIES[key] } : null
@@ -850,7 +850,7 @@ function GeoRulesSection({
                     searchPlaceholder="Search countries..."
                     buttonProps={{
                       className: cn(
-                        "h-9 w-32 sm:w-40 rounded-r-none border border-neutral-300 border-r-transparent justify-start px-2.5",
+                        "w-32 sm:w-40 rounded-r-none border-r-transparent justify-start px-2.5 h-9",
                         "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
                         "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
                         !key && "text-neutral-600",
@@ -860,18 +860,20 @@ function GeoRulesSection({
                   />
                 </div>
 
-                <div className="relative">
+                <div className="relative flex items-center">
                   <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
                     $
                   </span>
                   <input
                     type="text"
-                    className="block h-9 w-full rounded-r-md border border-neutral-300 pl-6 pr-12 text-sm placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500"
+                    className={cn(
+                      "block h-9 w-full rounded-r-md border border-neutral-300 text-sm text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500",
+                      "pl-6 pr-12",
+                    )}
                     value={value}
                     onKeyDown={handleMoneyKeyDown}
                     onChange={(e) => {
                       const newValue = e.target.value;
-
                       setValue(
                         `geoRules`,
                         {
@@ -886,7 +888,7 @@ function GeoRulesSection({
                     USD
                   </span>
                 </div>
-                <div className="pl-1.5">
+                <div className="pl-1.5 flex items-center">
                   <Button
                     variant="danger-outline"
                     icon={<Delete className="size-4" />}
