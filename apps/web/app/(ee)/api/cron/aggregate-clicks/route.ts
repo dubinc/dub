@@ -117,6 +117,7 @@ export async function GET(req: Request) {
           linkId,
           quantity,
         });
+
         await createPartnerCommission({
           reward,
           event: "click",
