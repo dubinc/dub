@@ -237,8 +237,6 @@ const splitPayouts = async ({
     },
   });
 
-  console.log("payouts", payouts);
-
   for (const payout of payouts) {
     const previousCommissions = payout.commissions
       .filter((commission) => {

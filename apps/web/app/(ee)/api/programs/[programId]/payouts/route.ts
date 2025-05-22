@@ -88,7 +88,7 @@ const excludeCurrentMonthCommissions = (
     commissions: Commission[];
   })[],
 ) => {
-  return payouts.map((payout) => {
+  const allPayouts = payouts.map((payout) => {
     // custom payouts
     if (!payout.periodStart && !payout.periodEnd) {
       return payout;
@@ -103,4 +103,6 @@ const excludeCurrentMonthCommissions = (
       amount: newPayoutAmount,
     };
   });
+
+  return allPayouts.filter((payout) => payout.amount > 0);
 };
