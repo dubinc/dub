@@ -34,16 +34,6 @@ export const confirmPayoutsAction = authActionClient
       programId,
     });
 
-    // TODO:
-    // Move this down
-    if (excludeCurrentMonth) {
-      await splitPayouts({
-        programId,
-        minPayoutAmount,
-      });
-      return; // Remove this, just for testing
-    }
-
     if (!workspace.stripeId) {
       throw new Error("Workspace does not have a valid Stripe ID.");
     }
@@ -61,6 +51,21 @@ export const confirmPayoutsAction = authActionClient
       );
     }
 
+    // If the user wants to exclude the current month, we need to split the payouts
+    // 1 - one for everything up until the end of the previous month
+    // 2 - everything else in the current month will be left as pending (and excluded from the payout)
+    if (excludeCurrentMonth) {
+      await splitPayouts({
+        programId,
+        minPayoutAmount,
+      });
+    }
+
+    const now = new Date();
+    const currentMonthStart = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
+    );
+
     const payouts = await prisma.payout.findMany({
       where: {
         programId,
@@ -74,6 +79,19 @@ export const confirmPayoutsAction = authActionClient
             not: null,
           },
         },
+        ...(excludeCurrentMonth && {
+          OR: [
+            {
+              periodStart: null,
+              periodEnd: null,
+            },
+            {
+              periodEnd: {
+                lte: currentMonthStart,
+              },
+            },
+          ],
+        }),
       },
       select: {
         id: true,
