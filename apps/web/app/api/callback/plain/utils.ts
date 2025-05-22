@@ -6,7 +6,7 @@ export const plainDivider = {
   },
 };
 
-export const plainEmptyContainer = () => ({
+export const plainEmptyContainer = (text: string) => ({
   componentContainer: {
     containerContent: [
       {
@@ -16,7 +16,7 @@ export const plainEmptyContainer = () => ({
       },
       {
         componentPlainText: {
-          text: "No user found.",
+          text,
           size: "S",
         },
       },
