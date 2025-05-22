@@ -8,6 +8,7 @@ import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
 import { updateProgramSchema } from "../../zod/schemas/programs";
@@ -93,15 +94,21 @@ export const updateProgramAction = authActionClient
       },
     });
 
-    // Delete old logo/wordmark if they were updated
     waitUntil(
       Promise.all([
+        // Delete old logo/wordmark if they were updated
         ...(logoUrl && program.logo
           ? [storage.delete(program.logo.replace(`${R2_URL}/`, ""))]
           : []),
         ...(wordmarkUrl && program.wordmark
           ? [storage.delete(program.wordmark.replace(`${R2_URL}/`, ""))]
           : []),
+
+        // Revalidate public pages
+        revalidatePath(
+          `/(ee)/partners.dub.co/(apply)/${program.slug}`,
+          "layout",
+        ),
       ]),
     );
   });

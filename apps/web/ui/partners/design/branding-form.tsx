@@ -28,7 +28,6 @@ import {
 import { cn, PARTNERS_DOMAIN } from "@dub/utils";
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { useRouter } from "next/navigation";
 import {
   CSSProperties,
   PropsWithChildren,
@@ -59,8 +58,6 @@ export function useBrandingFormContext() {
 }
 
 export function BrandingForm() {
-  const router = useRouter();
-
   const { id: workspaceId } = useWorkspace();
   const { program } = useProgram<ProgramWithLanderDataProps>({
     query: { includeLanderData: true },
