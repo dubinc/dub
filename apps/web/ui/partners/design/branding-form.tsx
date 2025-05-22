@@ -28,10 +28,12 @@ import {
 import { cn, PARTNERS_DOMAIN } from "@dub/utils";
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
+import { useRouter } from "next/navigation";
 import {
   CSSProperties,
   PropsWithChildren,
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -57,6 +59,8 @@ export function useBrandingFormContext() {
 }
 
 export function BrandingForm() {
+  const router = useRouter();
+
   const { id: workspaceId } = useWorkspace();
   const { program } = useProgram<ProgramWithLanderDataProps>({
     query: { includeLanderData: true },
@@ -76,7 +80,7 @@ export function BrandingForm() {
   const {
     handleSubmit,
     reset,
-    formState: { isSubmitting },
+    formState: { isDirty, isSubmitting },
   } = form;
 
   const { executeAsync } = useAction(updateProgramAction, {
@@ -89,6 +93,15 @@ export function BrandingForm() {
       toast.error("Failed to update program.");
     },
   });
+
+  // Unsaved changes warning
+  useEffect(() => {
+    if (!isDirty) return;
+
+    const beforeUnload = (e: BeforeUnloadEvent) => e.preventDefault();
+    window.addEventListener("beforeunload", beforeUnload);
+    return () => window.removeEventListener("beforeunload", beforeUnload);
+  }, [isDirty]);
 
   return (
     <form
@@ -124,6 +137,7 @@ export function BrandingForm() {
               variant="primary"
               text="Publish"
               loading={isSubmitting}
+              disabled={!isDirty}
               className="h-8 w-fit px-3"
             />
           </div>
