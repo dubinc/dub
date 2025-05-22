@@ -124,10 +124,9 @@ function RewardSheetContent({
       partnerIds: null,
       geoRules: reward?.geoRules
         ? Object.fromEntries(
-            Object.entries(reward.geoRules).map(([key, value]) => [
-              key,
-              value / 100,
-            ]),
+            Object.entries(reward.geoRules as Record<string, number>).map(
+              ([key, value]) => [key, (value || 0) / 100],
+            ),
           )
         : {},
     },

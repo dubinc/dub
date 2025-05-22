@@ -26,7 +26,7 @@ export const RewardSchema = z.object({
   maxDuration: z.number().nullish(),
   maxAmount: z.number().nullish(),
   partnersCount: z.number().nullish(),
-  geoRules: z.record(z.string(), z.number()).nullish(),
+  geoRules: z.any().nullish(),
 });
 
 export const createOrUpdateRewardSchema = z.object({
