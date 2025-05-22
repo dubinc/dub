@@ -309,7 +309,7 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
             </div>
 
             {/* Content blocks */}
-            <div className="relative z-0 mt-6 grid grid-cols-1">
+            <div className="relative z-0 my-6 grid grid-cols-1">
               {landerData?.blocks.map((block, idx) => {
                 const Component = BLOCK_COMPONENTS[block.type];
                 return Component ? (
@@ -374,6 +374,12 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
                   </div>
                 ) : null;
               })}
+
+              {!landerData?.blocks?.length && (
+                <div className="flex justify-center py-10">
+                  <AddBlockButton onClick={() => setAddBlockIndex(0)} />
+                </div>
+              )}
             </div>
           </div>
         </div>
