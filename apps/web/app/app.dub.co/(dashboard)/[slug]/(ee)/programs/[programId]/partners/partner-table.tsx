@@ -410,7 +410,6 @@ function RowMenuButton({
 
                       await resendInvite({
                         workspaceId,
-                        programId: row.original.programId!,
                         partnerId: row.original.id,
                       });
                     }}
@@ -434,7 +433,6 @@ function RowMenuButton({
 
                       await deleteInvite({
                         workspaceId,
-                        programId: row.original.programId!,
                         partnerId: row.original.id,
                       });
                     }}

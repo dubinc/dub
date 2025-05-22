@@ -1,6 +1,7 @@
 "use server";
 
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { qstash } from "@/lib/cron";
 import { updateDiscountSchema } from "@/lib/zod/schemas/discount";
@@ -14,7 +15,6 @@ export const updateDiscountAction = authActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
     const {
-      programId,
       discountId,
       partnerIds,
       amount,
@@ -23,6 +23,8 @@ export const updateDiscountAction = authActionClient
       couponId,
       couponTestId,
     } = parsedInput;
+
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
     const program = await getProgramOrThrow({
       workspaceId: workspace.id,

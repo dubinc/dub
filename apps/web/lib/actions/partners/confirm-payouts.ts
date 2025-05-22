@@ -1,6 +1,7 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { PAYOUT_FEES } from "@/lib/partners/constants";
 import { stripe } from "@/lib/stripe";
@@ -14,7 +15,6 @@ import { authActionClient } from "../safe-action";
 
 const confirmPayoutsSchema = z.object({
   workspaceId: z.string(),
-  programId: z.string(),
   paymentMethodId: z.string(),
   excludeCurrentMonth: z.boolean().optional().default(false),
 });
@@ -26,7 +26,9 @@ export const confirmPayoutsAction = authActionClient
   .schema(confirmPayoutsSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { programId, paymentMethodId, excludeCurrentMonth } = parsedInput;
+    const { paymentMethodId, excludeCurrentMonth } = parsedInput;
+
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
     const { minPayoutAmount } = await getProgramOrThrow({
       workspaceId: workspace.id,

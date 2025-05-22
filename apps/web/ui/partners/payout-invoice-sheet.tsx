@@ -391,7 +391,6 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
 
               await executeAsync({
                 workspaceId,
-                programId,
                 paymentMethodId: selectedPaymentMethod.id,
                 excludeCurrentMonth,
               });

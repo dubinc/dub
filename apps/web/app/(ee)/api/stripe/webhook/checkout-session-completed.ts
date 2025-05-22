@@ -38,10 +38,9 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   const plan = getPlanFromPriceId(priceId);
 
   if (!plan) {
-    await log({
-      message: `Invalid price ID in checkout.session.completed event: ${priceId}`,
-      type: "errors",
-    });
+    console.log(
+      `Invalid price ID in checkout.session.completed event: ${priceId}`,
+    );
     return;
   }
 

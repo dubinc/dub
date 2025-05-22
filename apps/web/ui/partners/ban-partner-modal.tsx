@@ -71,7 +71,6 @@ function BanPartnerModal({
       await executeAsync({
         ...data,
         workspaceId,
-        programId,
         partnerId: partner.id,
       });
     },

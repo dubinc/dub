@@ -6,7 +6,6 @@ import { ProgramSchema } from "./programs";
 
 export const createManualPayoutSchema = z.object({
   workspaceId: z.string(),
-  programId: z.string(),
   partnerId: z.string({ required_error: "Please select a partner" }),
   amount: z
     .preprocess((val) => {

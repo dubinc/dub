@@ -1,6 +1,7 @@
 "use server";
 
 import { createPartnerLink } from "@/lib/api/partners/create-partner-link";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { ProgramPartnerLinkProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -23,7 +24,9 @@ export const approvePartnerAction = authActionClient
   .schema(approvePartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { programId, partnerId, linkId } = parsedInput;
+    const { partnerId, linkId } = parsedInput;
+
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
     const [program, link] = await Promise.all([
       getProgramOrThrow({

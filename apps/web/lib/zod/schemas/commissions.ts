@@ -87,7 +87,6 @@ export const getCommissionsCountQuerySchema = getCommissionsQuerySchema.omit({
 
 export const createCommissionSchema = z.object({
   workspaceId: z.string(),
-  programId: z.string(),
   partnerId: z.string(),
   linkId: z.string(),
   customerId: z.string(),
