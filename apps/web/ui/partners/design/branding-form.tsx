@@ -9,6 +9,7 @@ import {
   ProgramWithLanderDataProps,
 } from "@/lib/types";
 import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
+import LayoutLoader from "@/ui/layout/layout-loader";
 import { useEditHeroModal } from "@/ui/partners/design/modals/edit-hero-modal";
 import { PreviewWindow } from "@/ui/partners/design/preview-window";
 import { BLOCK_COMPONENTS } from "@/ui/partners/lander-blocks";
@@ -22,12 +23,14 @@ import {
   Plus2,
   Tooltip,
   Trash,
+  useLocalStorage,
   useScroll,
   Wordmark,
 } from "@dub/ui";
 import { cn, PARTNERS_DOMAIN } from "@dub/utils";
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
+import { useParams } from "next/navigation";
 import {
   CSSProperties,
   PropsWithChildren,
@@ -44,7 +47,7 @@ import {
   useWatch,
 } from "react-hook-form";
 import { toast } from "sonner";
-import { mutate } from "swr";
+import { KeyedMutator } from "swr";
 import { z } from "zod";
 import { BrandingSettingsForm } from "./branding-settings-form";
 import { AddBlockModal, DESIGNER_BLOCKS } from "./modals/add-block-modal";
@@ -58,15 +61,56 @@ export function useBrandingFormContext() {
 }
 
 export function BrandingForm() {
+  const { programId } = useParams();
+
+  const { program, mutate, loading } = useProgram<ProgramWithLanderDataProps>(
+    {
+      query: { includeLanderData: true },
+    },
+    {
+      keepPreviousData: true,
+    },
+  );
+
+  const [draft, setDraft] = useLocalStorage<BrandingFormData | null>(
+    `program-lander-${programId}`,
+    null,
+  );
+
+  if (loading) return <LayoutLoader />;
+
+  if (!program)
+    return (
+      <div className="text-content-muted text-sm">Failed to load program</div>
+    );
+
+  return (
+    <BrandingFormInner
+      program={program}
+      mutate={mutate}
+      draft={draft}
+      setDraft={setDraft}
+    />
+  );
+}
+
+function BrandingFormInner({
+  program,
+  mutate,
+  draft,
+  setDraft,
+}: {
+  program: ProgramWithLanderDataProps;
+  mutate: KeyedMutator<ProgramWithLanderDataProps>;
+  draft: BrandingFormData | null;
+  setDraft: (draft: BrandingFormData | null) => void;
+}) {
   const { id: workspaceId } = useWorkspace();
-  const { program } = useProgram<ProgramWithLanderDataProps>({
-    query: { includeLanderData: true },
-  });
 
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(true);
 
   const form = useForm<BrandingFormData>({
-    values: {
+    defaultValues: {
       logo: program?.logo ?? null,
       wordmark: program?.wordmark ?? null,
       brandColor: program?.brandColor ?? null,
@@ -83,7 +127,7 @@ export function BrandingForm() {
   const { executeAsync } = useAction(updateProgramAction, {
     async onSuccess() {
       toast.success("Program updated successfully.");
-      mutate(`/api/programs/${program?.id}?workspaceId=${workspaceId}`);
+      mutate();
     },
     onError({ error }) {
       console.error(error);
@@ -128,7 +172,12 @@ export function BrandingForm() {
           <span className="text-center text-xs font-medium text-neutral-500">
             Landing page
           </span>
-          <div className="flex grow basis-0 justify-end">
+          <div className="flex grow basis-0 items-center justify-end gap-4">
+            <Drafts
+              enabled={!program.landerData}
+              draft={draft}
+              setDraft={setDraft}
+            />
             <Button
               type="submit"
               variant="primary"
@@ -158,7 +207,7 @@ export function BrandingForm() {
             </div>
           </div>
           <div className="h-full overflow-hidden px-4 pt-4">
-            {program && <LanderPreview program={program} />}
+            <LanderPreview program={program} />
           </div>
         </div>
       </FormProvider>
@@ -166,15 +215,64 @@ export function BrandingForm() {
   );
 }
 
+function Drafts({
+  enabled,
+  draft,
+  setDraft,
+}: {
+  enabled: boolean;
+  draft: BrandingFormData | null;
+  setDraft: (draft: BrandingFormData | null) => void;
+}) {
+  const {
+    setValue,
+    getValues,
+    formState: { isDirty },
+  } = useBrandingFormContext();
+
+  // Load draft
+  useEffect(() => {
+    if (!enabled || !draft) return;
+
+    // Update form values to draft
+    // setTimeout: https://github.com/orgs/react-hook-form/discussions/9913#discussioncomment-4936301
+    setTimeout(() =>
+      (["logo", "wordmark", "brandColor", "landerData"] as const).forEach(
+        (key) => {
+          setValue(key, draft[key], {
+            shouldDirty: true,
+          });
+        },
+      ),
+    );
+  }, []);
+
+  // Save draft
+  useEffect(() => {
+    if (!enabled || !isDirty) return;
+
+    // TODO: Use `subscribe` from a future version of `react-hook-form`
+    const interval = setInterval(() => {
+      setDraft(getValues());
+    }, 1_000);
+
+    return () => clearInterval(interval);
+  }, [enabled, isDirty]);
+
+  return enabled && isDirty ? (
+    <span className="text-content-muted text-sm">Unsaved draft</span>
+  ) : null;
+}
+
 function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrolled = useScroll(0, { container: scrollRef });
 
-  const { control, setValue } = useBrandingFormContext();
-  const [landerData, brandColor, logo, wordmark] = useWatch({
-    control,
-    name: ["landerData", "brandColor", "logo", "wordmark"],
-  });
+  const { setValue, getValues } = useBrandingFormContext();
+  const { landerData, brandColor, logo, wordmark } = {
+    ...useWatch(),
+    ...getValues(),
+  };
 
   const updateBlocks = useCallback(
     (
