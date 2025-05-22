@@ -154,26 +154,6 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
   );
 
   const invoiceData = useMemo(() => {
-    if (eligiblePayoutsCountLoading) {
-      return {
-        Method: (
-          <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
-        ),
-        Amount: (
-          <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
-        ),
-        Fee: (
-          <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
-        ),
-        "Transfer Time": (
-          <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
-        ),
-        Total: (
-          <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
-        ),
-      };
-    }
-
     const amount =
       eligiblePayoutsCount?.find((p) => p.status === PayoutStatus.pending)
         ?.amount ?? 0;
