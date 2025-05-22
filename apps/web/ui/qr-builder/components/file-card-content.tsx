@@ -68,6 +68,10 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
     setFileError(message);
   }, []);
 
+  const onFileAccept = useCallback((file: File) => {
+    setFileError("");
+  }, []);
+
   const handleFile = (files: File[]) => {
     setFiles(files);
 
@@ -94,6 +98,7 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
         className="w-full max-w-xl"
         value={files}
         onValueChange={handleFile}
+        onFileAccept={onFileAccept}
         onFileReject={onFileReject}
         accept={acceptFileTypes}
         multiple={!isLogo}
