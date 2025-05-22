@@ -9,7 +9,6 @@ import { sendEmail } from "@dub/email";
 import PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
-import { subDays } from "date-fns";
 import z from "zod";
 import { authActionClient } from "../safe-action";
 
@@ -66,7 +65,7 @@ export const confirmPayoutsAction = authActionClient
       where: {
         programId,
         status: "pending",
-        invoiceId: null, // just to be extra safe
+        invoiceId: null,
         amount: {
           gte: minPayoutAmount,
         },
@@ -200,6 +199,8 @@ export const confirmPayoutsAction = authActionClient
     );
   });
 
+// TODO:
+// Move this to a background job before merging this PR
 const splitPayouts = async ({
   programId,
   minPayoutAmount,
@@ -212,8 +213,6 @@ const splitPayouts = async ({
   const currentMonthStart = new Date(
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
   );
-
-  const previousMonthEnd = subDays(currentMonthStart, 1);
 
   const payouts = await prisma.payout.findMany({
     where: {
@@ -228,14 +227,20 @@ const splitPayouts = async ({
           not: null,
         },
       },
+      // exclude the manual payouts
+      periodStart: {
+        not: null,
+      },
     },
     include: {
       commissions: true,
     },
   });
 
+  console.log("payouts", payouts);
+
   for (const payout of payouts) {
-    const previousMonthCommissions = payout.commissions
+    const previousCommissions = payout.commissions
       .filter((commission) => {
         return commission.createdAt < currentMonthStart;
       })
@@ -243,7 +248,7 @@ const splitPayouts = async ({
         return a.createdAt.getTime() - b.createdAt.getTime();
       });
 
-    const currentMonthCommissions = payout.commissions
+    const currentCommissions = payout.commissions
       .filter((commission) => {
         return commission.createdAt >= currentMonthStart;
       })
@@ -251,39 +256,46 @@ const splitPayouts = async ({
         return a.createdAt.getTime() - b.createdAt.getTime();
       });
 
-    const previousMonthCommissionsCount = previousMonthCommissions.length;
-    const currentMonthCommissionsCount = currentMonthCommissions.length;
+    const previousCommissionsCount = previousCommissions.length;
+    const currentCommissionsCount = currentCommissions.length;
 
-    if (previousMonthCommissionsCount > 0) {
-      let periodEnd =
-        previousMonthCommissions[previousMonthCommissionsCount - 1].createdAt;
-      periodEnd = new Date(periodEnd.getFullYear(), periodEnd.getMonth() + 1);
+    if (previousCommissionsCount > 0) {
+      const periodEnd =
+        previousCommissions[previousCommissionsCount - 1].createdAt;
 
       await prisma.payout.update({
         where: {
           id: payout.id,
         },
         data: {
-          periodEnd,
+          periodEnd: new Date(
+            periodEnd.getFullYear(),
+            periodEnd.getMonth() + 1,
+          ),
+          amount: previousCommissions.reduce(
+            (total, commission) => total + commission.earnings,
+            0,
+          ),
         },
       });
     }
 
-    if (previousMonthCommissionsCount > 0 && currentMonthCommissionsCount > 0) {
-      const periodStart = currentMonthCommissions[0].createdAt;
-      let periodEnd =
-        currentMonthCommissions[currentMonthCommissions.length - 1].createdAt;
-      periodEnd = new Date(periodEnd.getFullYear(), periodEnd.getMonth() + 1);
+    if (previousCommissionsCount > 0 && currentCommissionsCount > 0) {
+      const periodEnd =
+        currentCommissions[currentCommissions.length - 1].createdAt;
 
       const currentMonthPayout = await prisma.payout.create({
         data: {
           id: createId({ prefix: "po_" }),
           programId,
           partnerId: payout.partnerId,
-          periodStart,
-          periodEnd,
-          amount: currentMonthCommissions.reduce(
-            (total, commission) => total + commission.amount,
+          periodStart: currentCommissions[0].createdAt,
+          periodEnd: new Date(
+            periodEnd.getFullYear(),
+            periodEnd.getMonth() + 1,
+          ),
+          amount: currentCommissions.reduce(
+            (total, commission) => total + commission.earnings,
             0,
           ),
           description: "Dub Partners payout",
@@ -293,7 +305,7 @@ const splitPayouts = async ({
       await prisma.commission.updateMany({
         where: {
           id: {
-            in: currentMonthCommissions.map((commission) => commission.id),
+            in: currentCommissions.map((commission) => commission.id),
           },
         },
         data: {
