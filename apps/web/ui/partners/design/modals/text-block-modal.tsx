@@ -2,6 +2,7 @@
 
 import { programLanderTextBlockSchema } from "@/lib/zod/schemas/program-lander";
 import { Button, Modal, useEnterSubmit, useMediaQuery } from "@dub/ui";
+import { cn } from "@dub/utils";
 import { Dispatch, SetStateAction, useId } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -30,7 +31,11 @@ function TextBlockModalInner({
 }: TextBlockModalProps) {
   const id = useId();
   const { isMobile } = useMediaQuery();
-  const { handleSubmit, register } = useForm<TextBlockData>({
+  const {
+    handleSubmit,
+    register,
+    formState: { errors },
+  } = useForm<TextBlockData>({
     defaultValues,
   });
 
@@ -87,8 +92,12 @@ function TextBlockModalInner({
                 maxLength={240}
                 onKeyDown={handleKeyDown}
                 placeholder="Start typing (markdown supported)"
-                className="block max-h-64 min-h-16 w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                {...register("content")}
+                className={cn(
+                  "block max-h-64 min-h-16 w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                  errors.content &&
+                    "border-red-600 focus:border-red-500 focus:ring-red-600",
+                )}
+                {...register("content", { required: "Content is required" })}
               />
             </div>
           </div>

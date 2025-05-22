@@ -1,9 +1,16 @@
 "use client";
 
 import { programLanderAccordionBlockSchema } from "@/lib/zod/schemas/program-lander";
-import { Button, Modal, useMediaQuery, useScrollProgress } from "@dub/ui";
+import {
+  Button,
+  CircleWarning,
+  Modal,
+  useMediaQuery,
+  useScrollProgress,
+} from "@dub/ui";
+import { cn } from "@dub/utils";
 import { Dispatch, SetStateAction, useId, useRef } from "react";
-import { FormProvider, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { v4 as uuid } from "uuid";
 import { z } from "zod";
 import { EditList, EditListItem } from "../edit-list";
@@ -38,7 +45,13 @@ function AccordionBlockModalInner({
 }: AccordionBlockModalProps) {
   const id = useId();
   const { isMobile } = useMediaQuery();
-  const form = useForm<AccordionBlockData>({
+  const {
+    handleSubmit,
+    register,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useForm<AccordionBlockData>({
     defaultValues: defaultValues ?? {
       title: "",
       items: [
@@ -51,87 +64,94 @@ function AccordionBlockModalInner({
     },
   });
 
-  const { handleSubmit, register, watch, setValue } = form;
-
   const fields = watch("items");
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
 
   return (
-    <FormProvider {...form}>
-      <div className="p-4 pt-3">
-        <h3 className="text-base font-semibold leading-6 text-neutral-800">
-          {defaultValues ? "Edit" : "Add"} Accordion
-        </h3>
-        <form
-          className="mt-4 flex flex-col gap-6"
-          onSubmit={(e) => {
-            e.stopPropagation();
-            handleSubmit(async (data) => {
-              setShowModal(false);
-              onSubmit(data);
-            })(e);
-          }}
-        >
-          {/* Title */}
-          <div>
-            <label
-              htmlFor={`${id}-title`}
-              className="flex items-center gap-2 text-sm font-medium text-neutral-700"
-            >
-              Section heading
-            </label>
-            <div className="mt-2 rounded-md shadow-sm">
-              <input
-                id={`${id}-title`}
-                type="text"
-                placeholder="Title"
-                autoFocus={!isMobile}
-                className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                {...register("title")}
-              />
-            </div>
-          </div>
-
-          <div
-            ref={scrollRef}
-            onScroll={updateScrollProgress}
-            className="scrollbar-hide relative -my-2 max-h-[calc(100vh-300px)] overflow-y-auto py-2"
+    <div className="p-4 pt-3">
+      <h3 className="text-base font-semibold leading-6 text-neutral-800">
+        {defaultValues ? "Edit" : "Add"} Accordion
+      </h3>
+      <form
+        className="mt-4 flex flex-col gap-6"
+        onSubmit={(e) => {
+          e.stopPropagation();
+          handleSubmit(async (data) => {
+            setShowModal(false);
+            onSubmit(data);
+          })(e);
+        }}
+      >
+        {/* Title */}
+        <div>
+          <label
+            htmlFor={`${id}-title`}
+            className="flex items-center gap-2 text-sm font-medium text-neutral-700"
           >
-            <EditList
-              values={fields.map(({ id }) => id)}
-              onAdd={() => {
-                const id = uuid();
+            Section heading
+          </label>
+          <div className="mt-2 rounded-md shadow-sm">
+            <input
+              id={`${id}-title`}
+              type="text"
+              placeholder="Title"
+              autoFocus={!isMobile}
+              className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+              {...register("title")}
+            />
+          </div>
+        </div>
 
-                setValue(
-                  "items",
-                  [
-                    ...fields,
-                    {
-                      id,
-                      title: `Item ${fields.length + 1}`,
-                      content: "",
-                    },
-                  ],
-                  { shouldDirty: true },
-                );
+        <div
+          ref={scrollRef}
+          onScroll={updateScrollProgress}
+          className="scrollbar-hide relative -my-2 max-h-[calc(100vh-300px)] overflow-y-auto py-2"
+        >
+          <EditList
+            values={fields.map(({ id }) => id)}
+            onAdd={() => {
+              const id = uuid();
 
-                return id;
-              }}
-              onReorder={(updated) =>
-                setValue(
-                  "items",
-                  updated.map((id) => fields.find((f) => f.id === id)!),
-                  { shouldDirty: true },
-                )
-              }
-            >
-              {fields.map((field, index) => (
+              setValue(
+                "items",
+                [
+                  ...fields,
+                  {
+                    id,
+                    title: `Item ${fields.length + 1}`,
+                    content: "",
+                  },
+                ],
+                { shouldDirty: true },
+              );
+
+              return id;
+            }}
+            onReorder={(updated) =>
+              setValue(
+                "items",
+                updated.map((id) => fields.find((f) => f.id === id)!),
+                { shouldDirty: true },
+              )
+            }
+          >
+            {fields.map((field, index) => {
+              const fieldErrors = errors.items?.[index];
+
+              return (
                 <EditListItem
                   key={field.id}
                   value={field.id}
-                  title={field.title || "Item"}
+                  title={
+                    <span className="flex items-center gap-2">
+                      {field.title || "Item"}
+                      {(fieldErrors?.title || fieldErrors?.content) && (
+                        <CircleWarning className="size-3.5 text-red-600" />
+                      )}
+                    </span>
+                  }
                   onRemove={
                     fields.length > 1
                       ? () =>
@@ -157,8 +177,14 @@ function AccordionBlockModalInner({
                           id={`${id}-${field.id}-title`}
                           type="text"
                           placeholder="Title"
-                          className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                          {...register(`items.${index}.title`)}
+                          className={cn(
+                            "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                            fieldErrors?.title &&
+                              "border-red-600 focus:border-red-500 focus:ring-red-600",
+                          )}
+                          {...register(`items.${index}.title`, {
+                            required: "Title is required",
+                          })}
                         />
                       </div>
                     </div>
@@ -177,40 +203,46 @@ function AccordionBlockModalInner({
                           rows={3}
                           maxLength={1000}
                           placeholder="Start typing"
-                          className="block max-h-32 min-h-16 w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                          {...register(`items.${index}.content`)}
+                          className={cn(
+                            "block max-h-32 min-h-16 w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                            fieldErrors?.content &&
+                              "border-red-600 focus:border-red-500 focus:ring-red-600",
+                          )}
+                          {...register(`items.${index}.content`, {
+                            required: "Content is required",
+                          })}
                         />
                       </div>
                     </div>
                   </div>
                 </EditListItem>
-              ))}
-            </EditList>
+              );
+            })}
+          </EditList>
 
-            {/* Bottom scroll fade */}
-            <div
-              className="pointer-events-none absolute bottom-0 left-0 hidden h-16 w-full bg-gradient-to-t from-white sm:block"
-              style={{ opacity: 1 - Math.pow(scrollProgress, 2) }}
-            />
-          </div>
+          {/* Bottom scroll fade */}
+          <div
+            className="pointer-events-none absolute bottom-0 left-0 hidden h-16 w-full bg-gradient-to-t from-white sm:block"
+            style={{ opacity: 1 - Math.pow(scrollProgress, 2) }}
+          />
+        </div>
 
-          <div className="flex items-center justify-end gap-2">
-            <Button
-              onClick={() => setShowModal(false)}
-              variant="secondary"
-              text="Cancel"
-              className="h-8 w-fit px-3"
-            />
-            <Button
-              type="submit"
-              variant="primary"
-              text={defaultValues ? "Update" : "Add"}
-              className="h-8 w-fit px-3"
-            />
-          </div>
-        </form>
-      </div>
-    </FormProvider>
+        <div className="flex items-center justify-end gap-2">
+          <Button
+            onClick={() => setShowModal(false)}
+            variant="secondary"
+            text="Cancel"
+            className="h-8 w-fit px-3"
+          />
+          <Button
+            type="submit"
+            variant="primary"
+            text={defaultValues ? "Update" : "Add"}
+            className="h-8 w-fit px-3"
+          />
+        </div>
+      </form>
+    </div>
   );
 }
 

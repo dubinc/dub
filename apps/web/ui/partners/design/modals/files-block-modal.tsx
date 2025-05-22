@@ -8,6 +8,7 @@ import {
   useMediaQuery,
   useScrollProgress,
 } from "@dub/ui";
+import { cn } from "@dub/utils";
 import { Dispatch, SetStateAction, useId, useRef } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { v4 as uuid } from "uuid";
@@ -179,7 +180,11 @@ function FilesBlockModalInner({
                             id={`${id}-${field.id}-name`}
                             type="text"
                             placeholder="Brand assets"
-                            className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                            className={cn(
+                              "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                              fieldErrors?.name &&
+                                "border-red-600 focus:border-red-500 focus:ring-red-600",
+                            )}
                             {...register(`items.${index}.name`, {
                               required: "Display name is required",
                             })}
@@ -200,7 +205,11 @@ function FilesBlockModalInner({
                             id={`${id}-${field.id}-url`}
                             type="text"
                             placeholder="https://example.com/file.pdf"
-                            className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                            className={cn(
+                              "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                              fieldErrors?.url &&
+                                "border-red-600 focus:border-red-500 focus:ring-red-600",
+                            )}
                             {...register(`items.${index}.url`, {
                               required: "File URL is required",
                             })}
