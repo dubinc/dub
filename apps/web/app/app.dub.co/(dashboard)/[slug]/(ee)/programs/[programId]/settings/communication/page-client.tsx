@@ -44,14 +44,13 @@ export function ProgramCommunication() {
   });
 
   const onSubmit = async (data: FormData) => {
-    if (!workspaceId || !program?.id) {
+    if (!workspaceId) {
       return;
     }
 
     await executeAsync({
       ...data,
       workspaceId,
-      programId: program.id,
       helpUrl: data.helpUrl || null,
       termsUrl: data.termsUrl || null,
     });

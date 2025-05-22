@@ -27,7 +27,6 @@ export default function useCommissionsTimeseries(
     groupBy: params?.groupBy ?? "count",
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     workspaceId: workspaceId!,
-    programId,
   });
 
   const { data, error } = useSWR<Commission[]>(

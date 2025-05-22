@@ -163,7 +163,7 @@ export const PartnerSchema = z
     image: z.string().nullable().describe("The partner's avatar image."),
     description: z
       .string()
-      .max(1000)
+      .max(5000)
       .nullish()
       .describe("A brief description of the partner and their background."),
     country: z
@@ -484,40 +484,32 @@ export const partnerAnalyticsResponseSchema = {
   }),
 } as const;
 
-export const updatePartnerSaleSchema = z
-  .object({
-    programId: z.string(),
-    invoiceId: z.string(),
-    amount: z
-      .number()
-      .min(0)
-      .describe("The new absolute amount for the sale.")
-      .optional(),
-    modifyAmount: z
-      .number()
-      .describe(
-        "Modify the current sale amount: use positive values to increase the amount, negative values to decrease it.",
-      )
-      .optional(),
-    currency: z
-      .string()
-      .default("usd")
-      .transform((val) => val.toLowerCase())
-      .describe(
-        "The currency of the sale amount to update. Accepts ISO 4217 currency codes.",
-      ),
-  })
-  .refine(
-    (data) => data.amount !== undefined || data.modifyAmount !== undefined,
-    {
-      message: "Either amount or modifyAmount must be provided.",
-      path: ["amount"],
-    },
-  );
+// TODO: remove this
+export const updatePartnerSaleSchema = z.object({
+  programId: z.string(),
+  invoiceId: z.string(),
+  amount: z
+    .number()
+    .min(0)
+    .describe("The new absolute amount for the sale.")
+    .optional(),
+  modifyAmount: z
+    .number()
+    .describe(
+      "Modify the current sale amount: use positive values to increase the amount, negative values to decrease it.",
+    )
+    .optional(),
+  currency: z
+    .string()
+    .default("usd")
+    .transform((val) => val.toLowerCase())
+    .describe(
+      "The currency of the sale amount to update. Accepts ISO 4217 currency codes.",
+    ),
+});
 
 export const invitePartnerSchema = z.object({
   workspaceId: z.string(),
-  programId: z.string(),
   name: z.string().trim().min(1).max(100),
   email: z.string().trim().email().min(1).max(100),
   linkId: z.string().optional(),
@@ -527,7 +519,6 @@ export const invitePartnerSchema = z.object({
 
 export const banPartnerSchema = z.object({
   workspaceId: z.string(),
-  programId: z.string(),
   partnerId: z.string(),
   reason: z.enum(
     Object.keys(BAN_PARTNER_REASONS) as [
@@ -539,7 +530,6 @@ export const banPartnerSchema = z.object({
 
 export const approvePartnerSchema = z.object({
   workspaceId: z.string(),
-  programId: z.string(),
   partnerId: z.string(),
   linkId: z.string().nullable(),
 });

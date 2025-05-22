@@ -81,7 +81,6 @@ export async function POST(req: NextRequest) {
         _count: {
           select: {
             domains: true,
-            tags: true,
             users: true,
           },
         },
@@ -123,7 +122,7 @@ export async function POST(req: NextRequest) {
     domainsLimit,
     tagsLimit,
     usersLimit,
-    _count: { domains, tags, users },
+    _count: { domains, users },
   } = topWorkspace;
 
   if (plainCustomer.data) {
@@ -253,17 +252,6 @@ export async function POST(req: NextRequest) {
             usageLimit: domainsLimit,
             label: "Total Domains",
             color: "BLUE",
-          }),
-          {
-            componentSpacer: {
-              spacerSize: "M",
-            },
-          },
-          plainUsageSection({
-            usage: tags,
-            usageLimit: tagsLimit,
-            label: "Total Tags",
-            color: "RED",
           }),
           {
             componentSpacer: {

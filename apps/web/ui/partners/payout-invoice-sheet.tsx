@@ -1,9 +1,9 @@
 import { confirmPayoutsAction } from "@/lib/actions/partners/confirm-payouts";
 import { PAYOUT_FEES } from "@/lib/partners/constants";
+import { mutatePrefix } from "@/lib/swr/mutate";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import usePayouts from "@/lib/swr/use-payouts";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
-import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutsCount } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
@@ -29,6 +29,7 @@ import {
   truncate,
 } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
+import { useParams } from "next/navigation";
 import {
   Dispatch,
   Fragment,
@@ -44,7 +45,7 @@ interface PayoutInvoiceSheetProps {
 }
 
 function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
-  const { program } = useProgram();
+  const { programId } = useParams() as { programId: string };
   const { id: workspaceId, slug, plan } = useWorkspace();
   const { paymentMethods, loading: paymentMethodsLoading } =
     usePaymentMethods();
@@ -103,6 +104,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
 
   const { executeAsync, isPending } = useAction(confirmPayoutsAction, {
     onSuccess: async () => {
+      await mutatePrefix(`/api/programs/${programId}/payouts`);
       toast.success(
         "Payouts confirmed successfully! They will be processed soon.",
       );
@@ -352,13 +354,12 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
             variant="primary"
             loading={isPending}
             onClick={async () => {
-              if (!workspaceId || !program?.id || !selectedPaymentMethod) {
+              if (!workspaceId || !selectedPaymentMethod) {
                 return;
               }
 
               await executeAsync({
                 workspaceId,
-                programId: program.id,
                 paymentMethodId: selectedPaymentMethod.id,
               });
             }}

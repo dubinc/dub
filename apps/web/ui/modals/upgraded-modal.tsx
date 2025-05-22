@@ -1,5 +1,5 @@
 import useWorkspace from "@/lib/swr/use-workspace";
-import { STORE_KEYS, useWorkspaceStore } from "@/lib/swr/use-workspace-store";
+import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { Button, Modal, useRouterStuff, useScrollProgress } from "@dub/ui";
 import { getPlanDetails, PLANS, PRO_PLAN } from "@dub/utils";
 import { usePlausible } from "next-plausible";
@@ -29,7 +29,7 @@ function UpgradedModal({
 
   const { dotLinkClaimed } = useWorkspace();
   const [_, setDotLinkOfferDismissed, { mutateWorkspace }] =
-    useWorkspaceStore<string>(STORE_KEYS.dotLinkOfferDismissed);
+    useWorkspaceStore<string>("dotLinkOfferDismissed");
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);

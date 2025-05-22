@@ -23,7 +23,6 @@ export const DiscountSchemaWithDeprecatedFields = DiscountSchema.extend({
 
 export const createDiscountSchema = z.object({
   workspaceId: z.string(),
-  programId: z.string(),
   partnerIds: z.array(z.string()).nullish(),
   amount: z.number().min(0),
   type: z.nativeEnum(CommissionType).default("flat"),

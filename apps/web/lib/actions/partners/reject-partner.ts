@@ -1,13 +1,12 @@
 "use server";
 
-import { DubApiError } from "@/lib/api/errors";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { prisma } from "@dub/prisma";
 import z from "../../zod";
 import { authActionClient } from "../safe-action";
 
 const rejectPartnerSchema = z.object({
   workspaceId: z.string(),
-  programId: z.string(),
   partnerId: z.string(),
 });
 
@@ -16,14 +15,9 @@ export const rejectPartnerAction = authActionClient
   .schema(rejectPartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { programId, partnerId } = parsedInput;
+    const { partnerId } = parsedInput;
 
-    if (programId !== workspace.defaultProgramId) {
-      throw new DubApiError({
-        code: "not_found",
-        message: "Program not found",
-      });
-    }
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
     const programEnrollment = await prisma.programEnrollment.findUniqueOrThrow({
       where: {
@@ -48,6 +42,4 @@ export const rejectPartnerAction = authActionClient
     });
 
     // TODO: [partners] Notify partner of rejection?
-
-    return { ok: true };
   });
