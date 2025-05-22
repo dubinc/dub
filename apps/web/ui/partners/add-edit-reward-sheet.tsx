@@ -121,7 +121,14 @@ function RewardSheetContent({
       amount: reward?.type === "flat" ? reward.amount / 100 : reward?.amount,
       maxAmount: reward?.maxAmount ? reward.maxAmount / 100 : null,
       partnerIds: null,
-      geoRules: reward?.geoRules || {},
+      geoRules: reward?.geoRules
+        ? Object.fromEntries(
+            Object.entries(reward.geoRules).map(([key, value]) => [
+              key,
+              value / 100,
+            ]),
+          )
+        : {},
     },
   });
 
@@ -617,7 +624,11 @@ function RewardSheetContent({
             </div>
 
             {selectedEvent === "lead" && (
-              <GeoRulesSection geoRules={geoRules} setValue={setValue} />
+              <GeoRulesSection
+                geoRules={geoRules}
+                setValue={setValue}
+                register={register}
+              />
             )}
 
             {displayPartners && program?.id && (
@@ -771,9 +782,11 @@ function RewardLimitSection({
 function GeoRulesSection({
   geoRules,
   setValue,
+  register,
 }: {
   geoRules: Record<string, number> | null;
   setValue: UseFormSetValue<FormData>;
+  register: UseFormRegister<FormData>;
 }) {
   return (
     <div className="grid grid-cols-1 space-y-4">
@@ -837,7 +850,7 @@ function GeoRulesSection({
                     searchPlaceholder="Search countries..."
                     buttonProps={{
                       className: cn(
-                        "w-32 sm:w-40 rounded-r-none border-r-transparent justify-start px-2.5",
+                        "h-9 w-32 sm:w-40 rounded-r-none border border-neutral-300 border-r-transparent justify-start px-2.5",
                         "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
                         "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
                         !key && "text-neutral-600",
@@ -853,20 +866,21 @@ function GeoRulesSection({
                   </span>
                   <input
                     type="text"
-                    placeholder="0.00"
-                    className="block w-full rounded-r-md border border-neutral-300 pl-6 pr-12 text-sm placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500"
-                    value={value / 100}
-                    onChange={(e) => {
-                      const newValue = e.target.value.replace(/[^0-9.]/g, "");
-                      const newgeoRules = {
-                        ...geoRules,
-                        [key]: newValue ? parseFloat(newValue) * 100 : 0,
-                      };
-                      setValue("geoRules", newgeoRules, {
-                        shouldDirty: true,
-                      });
-                    }}
+                    className="block h-9 w-full rounded-r-md border border-neutral-300 pl-6 pr-12 text-sm placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500"
+                    value={value}
                     onKeyDown={handleMoneyKeyDown}
+                    onChange={(e) => {
+                      const newValue = e.target.value;
+
+                      setValue(
+                        `geoRules`,
+                        {
+                          ...((geoRules as object) || {}),
+                          [key]: newValue ? parseFloat(newValue) : 0,
+                        },
+                        { shouldDirty: true },
+                      );
+                    }}
                   />
                   <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
                     USD
