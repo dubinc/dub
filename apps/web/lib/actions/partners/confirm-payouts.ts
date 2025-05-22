@@ -20,6 +20,9 @@ const confirmPayoutsSchema = z.object({
 
 const allowedPaymentMethods = ["us_bank_account", "card", "link"];
 
+// TODO:
+// Move this to a background job
+
 // Confirm payouts
 export const confirmPayoutsAction = authActionClient
   .schema(confirmPayoutsSchema)
@@ -157,18 +160,18 @@ export const confirmPayoutsAction = authActionClient
         throw new Error("Failed to create payout invoice.");
       }
 
-      await stripe.paymentIntents.create({
-        amount: invoice.total,
-        customer: workspace.stripeId!,
-        payment_method_types: allowedPaymentMethods,
-        payment_method: paymentMethod.id,
-        currency: "usd",
-        confirmation_method: "automatic",
-        confirm: true,
-        transfer_group: invoice.id,
-        statement_descriptor: "Dub Partners",
-        description: `Dub Partners payout invoice (${invoice.id})`,
-      });
+      // await stripe.paymentIntents.create({
+      //   amount: invoice.total,
+      //   customer: workspace.stripeId!,
+      //   payment_method_types: allowedPaymentMethods,
+      //   payment_method: paymentMethod.id,
+      //   currency: "usd",
+      //   confirmation_method: "automatic",
+      //   confirm: true,
+      //   transfer_group: invoice.id,
+      //   statement_descriptor: "Dub Partners",
+      //   description: `Dub Partners payout invoice (${invoice.id})`,
+      // });
 
       await tx.payout.updateMany({
         where: {
@@ -217,8 +220,6 @@ export const confirmPayoutsAction = authActionClient
     );
   });
 
-// TODO:
-// Move this to a background job
 const splitPayouts = async ({
   programId,
   minPayoutAmount,
