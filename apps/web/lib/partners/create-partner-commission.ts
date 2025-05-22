@@ -43,7 +43,6 @@ export const createPartnerCommission = async ({
       event,
       partnerId,
       programId,
-      country: customerCountry,
     });
 
     if (!reward) {
@@ -52,6 +51,28 @@ export const createPartnerCommission = async ({
       );
       return;
     }
+  }
+
+  // Apply geo rules if the event is lead and the customer country is specified
+  if (
+    event === "lead" &&
+    customerCountry &&
+    reward.geoRules &&
+    reward.geoRules[customerCountry]
+  ) {
+    const amount = reward.geoRules[customerCountry];
+
+    if (amount === 0) {
+      console.log(
+        `Partner ${partnerId} has no reward for ${event} event in ${customerCountry}, skipping commission creation...`,
+      );
+      return null;
+    }
+
+    reward = {
+      ...reward,
+      amount,
+    };
   }
 
   let status: CommissionStatus = "pending";
