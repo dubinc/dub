@@ -23,6 +23,7 @@ import {
   CircleCheckFill,
   Combobox,
   InfoTooltip,
+  Plus,
   Sheet,
   Switch,
   Tooltip,
@@ -248,6 +249,14 @@ function RewardSheetContent({
       maxDuration:
         Infinity === Number(data.maxDuration) ? null : data.maxDuration,
       maxAmount: data.maxAmount ? data.maxAmount * 100 : null,
+      geoRules: data.geoRules
+        ? Object.fromEntries(
+            Object.entries(data.geoRules).map(([country, amount]) => [
+              country,
+              amount * 100,
+            ]),
+          )
+        : null,
     };
 
     if (!reward) {
@@ -846,12 +855,12 @@ function GeoRulesSection({
                     type="text"
                     placeholder="0.00"
                     className="block w-full rounded-r-md border border-neutral-300 pl-6 pr-12 text-sm placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500"
-                    value={value}
+                    value={value / 100}
                     onChange={(e) => {
                       const newValue = e.target.value.replace(/[^0-9.]/g, "");
                       const newgeoRules = {
                         ...geoRules,
-                        [key]: newValue ? parseFloat(newValue) : 0,
+                        [key]: newValue ? parseFloat(newValue) * 100 : 0,
                       };
                       setValue("geoRules", newgeoRules, {
                         shouldDirty: true,
@@ -884,7 +893,8 @@ function GeoRulesSection({
         <Button
           type="button"
           variant="secondary"
-          text="Add country reward"
+          icon={<Plus className="size-4" />}
+          text="Add more"
           className="h-9"
           onClick={() => {
             const newgeoRules = { ...geoRules, "": 0 };
