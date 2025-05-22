@@ -6,7 +6,7 @@ export const plainDivider = {
   },
 };
 
-export const plainEmptyContainer = (text: string) => ({
+export const plainEmptyContainer = () => ({
   componentContainer: {
     containerContent: [
       {

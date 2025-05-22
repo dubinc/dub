@@ -3,6 +3,7 @@ import { withAdmin } from "@/lib/auth";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
 import { prisma } from "@dub/prisma";
 import { ACME_PROGRAM_ID } from "@dub/utils";
+import { endOfDay, startOfDay } from "date-fns";
 import { DateTime } from "luxon";
 import { NextResponse } from "next/server";
 
@@ -21,8 +22,8 @@ export const GET = withAdmin(async ({ searchParams }) => {
 
   const { startDate, endDate, granularity } = getStartEndDates({
     interval,
-    start,
-    end,
+    start: start ? startOfDay(new Date(start)) : undefined,
+    end: end ? endOfDay(new Date(end)) : undefined,
   });
 
   // Fetch invoices
