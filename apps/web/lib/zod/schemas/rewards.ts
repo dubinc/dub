@@ -1,4 +1,5 @@
 import { CommissionType, EventType } from "@dub/prisma/client";
+import { COUNTRY_CODES } from "@dub/utils";
 import { z } from "zod";
 import { getPaginationQuerySchema, maxDurationSchema } from "./misc";
 
@@ -35,6 +36,7 @@ export const createOrUpdateRewardSchema = z.object({
   maxDuration: maxDurationSchema,
   maxAmount: z.number().nullish(),
   partnerIds: z.array(z.string()).nullish(),
+  geoRules: z.record(z.enum(COUNTRY_CODES), z.number()).nullish(), // example { US: 100, CA: 50 }
 });
 
 export const createRewardSchema = createOrUpdateRewardSchema.superRefine(

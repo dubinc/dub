@@ -5,14 +5,22 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { createRewardSchema } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import { authActionClient } from "../safe-action";
 
 export const createRewardAction = authActionClient
   .schema(createRewardSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { partnerIds, event, amount, type, maxDuration, maxAmount } =
-      parsedInput;
+    const {
+      partnerIds,
+      event,
+      amount,
+      type,
+      maxDuration,
+      maxAmount,
+      geoRules,
+    } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -96,6 +104,7 @@ export const createRewardAction = authActionClient
         amount,
         maxDuration,
         maxAmount,
+        geoRules: geoRules || Prisma.JsonNull,
         ...(programEnrollments && {
           partners: {
             createMany: {
