@@ -1,3 +1,4 @@
+import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { stripe } from "@/lib/stripe";
@@ -6,8 +7,29 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 const addPaymentMethodSchema = z.object({
-  method: z.enum(["card", "us_bank_account"]).optional(),
+  method: z
+    .enum([
+      "card",
+      "us_bank_account",
+      "acss_debit",
+      "sepa_debit",
+      "au_becs_debit",
+    ])
+    .optional(),
 });
+
+const stripePaymentMethodOptions = {
+  us_bank_account: {},
+  acss_debit: {
+    currency: "usd",
+    mandate_options: {
+      payment_schedule: "sporadic",
+      transaction_type: "business",
+    },
+  },
+  sepa_debit: {},
+  au_becs_debit: {},
+};
 
 // GET /api/workspaces/[idOrSlug]/billing/payment-methods - get all payment methods
 export const GET = withWorkspace(async ({ workspace }) => {
@@ -38,7 +60,10 @@ export const GET = withWorkspace(async ({ workspace }) => {
 // POST /api/workspaces/[idOrSlug]/billing/payment-methods - add a payment method for the workspace
 export const POST = withWorkspace(async ({ workspace, req }) => {
   if (!workspace.stripeId) {
-    return NextResponse.json({ error: "Workspace does not have a Stripe ID" });
+    throw new DubApiError({
+      code: "bad_request",
+      message: "Workspace does not have a Stripe ID.",
+    });
   }
 
   const { method } = addPaymentMethodSchema.parse(await parseRequestBody(req));
@@ -59,6 +84,7 @@ export const POST = withWorkspace(async ({ workspace, req }) => {
     mode: "setup",
     customer: workspace.stripeId,
     payment_method_types: [method],
+    currency: "usd",
     success_url: `${APP_DOMAIN}/${workspace.slug}/settings/billing`,
     cancel_url: `${APP_DOMAIN}/${workspace.slug}/settings/billing`,
   });
