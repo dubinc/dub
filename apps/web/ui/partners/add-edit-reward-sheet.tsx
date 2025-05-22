@@ -15,7 +15,7 @@ import {
   COMMISSION_TYPES,
   createRewardSchema,
 } from "@/lib/zod/schemas/rewards";
-import { Delete, X } from "@/ui/shared/icons";
+import { X } from "@/ui/shared/icons";
 import { EventType } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
@@ -27,6 +27,7 @@ import {
   Sheet,
   Switch,
   Tooltip,
+  Trash,
 } from "@dub/ui";
 import { cn, COUNTRIES, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
@@ -888,10 +889,10 @@ function GeoRulesSection({
                     USD
                   </span>
                 </div>
-                <div className="pl-1.5 flex items-center">
+                <div className="flex items-center pl-1.5">
                   <Button
                     variant="danger-outline"
-                    icon={<Delete className="size-4" />}
+                    icon={<Trash className="size-4" />}
                     className="bg-red-600/5 px-3 text-red-600 hover:bg-red-600/10 hover:text-red-700"
                     onClick={() => {
                       const newgeoRules = { ...geoRules };
@@ -910,7 +911,7 @@ function GeoRulesSection({
           type="button"
           variant="secondary"
           icon={<Plus className="size-4" />}
-          text="Add more"
+          text="Add location"
           className="h-9"
           onClick={() => {
             const newgeoRules = { ...geoRules, "": 0 };

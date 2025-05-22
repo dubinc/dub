@@ -37,7 +37,16 @@ export const createOrUpdateRewardSchema = z.object({
   maxDuration: maxDurationSchema,
   maxAmount: z.number().nullish(),
   partnerIds: z.array(z.string()).nullish(),
-  geoRules: z.record(z.enum(COUNTRY_CODES), z.number()).nullish(),
+  geoRules: z
+    .record(z.enum(COUNTRY_CODES), z.number())
+    .nullish()
+    .transform((val) => {
+      if (Object.keys(val || {}).length === 0) {
+        return undefined;
+      }
+
+      return val;
+    }),
 });
 
 export const createRewardSchema = createOrUpdateRewardSchema.superRefine(

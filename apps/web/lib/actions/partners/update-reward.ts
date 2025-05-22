@@ -87,7 +87,9 @@ export const updateRewardAction = authActionClient
         amount,
         maxDuration,
         maxAmount,
-        geoRules: geoRules || Prisma.JsonNull,
+        ...(reward.event === "lead" && {
+          geoRules: geoRules || Prisma.JsonNull,
+        }),
         ...(programEnrollments && {
           partners: {
             deleteMany: {},
