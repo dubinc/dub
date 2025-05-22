@@ -102,6 +102,7 @@ export const GET = withWorkspace(
           },
         }),
 
+        // custom payouts
         prisma.payout.aggregate({
           where: {
             programId,
@@ -116,9 +117,6 @@ export const GET = withWorkspace(
             status: "pending",
             periodStart: null,
             periodEnd: null,
-            // createdAt: {
-            //   lt: currentMonthStart,
-            // },
           },
           _sum: {
             amount: true,

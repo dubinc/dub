@@ -200,7 +200,7 @@ export const confirmPayoutsAction = authActionClient
   });
 
 // TODO:
-// Move this to a background job before merging this PR
+// Move this to a background job
 const splitPayouts = async ({
   programId,
   minPayoutAmount,
@@ -208,12 +208,6 @@ const splitPayouts = async ({
   programId: string;
   minPayoutAmount: number;
 }) => {
-  const now = new Date();
-
-  const currentMonthStart = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
-  );
-
   const payouts = await prisma.payout.findMany({
     where: {
       programId,
@@ -236,6 +230,15 @@ const splitPayouts = async ({
       commissions: true,
     },
   });
+
+  if (payouts.length === 0) {
+    return;
+  }
+
+  const now = new Date();
+  const currentMonthStart = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
+  );
 
   for (const payout of payouts) {
     const previousCommissions = payout.commissions
