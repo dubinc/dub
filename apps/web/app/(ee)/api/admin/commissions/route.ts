@@ -1,6 +1,7 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { withAdmin } from "@/lib/auth";
 import { THE_BEGINNING_OF_TIME } from "@dub/utils";
+import { endOfDay, startOfDay } from "date-fns";
 import { NextResponse } from "next/server";
 import { getCommissionsTimeseries, getTopProgramsByCommissions } from "./utils";
 
@@ -9,8 +10,8 @@ export const GET = withAdmin(async ({ searchParams }) => {
 
   const { startDate, endDate, granularity } = getStartEndDates({
     interval,
-    start,
-    end,
+    start: start ? startOfDay(new Date(start)) : undefined,
+    end: end ? endOfDay(new Date(end)) : undefined,
     dataAvailableFrom: THE_BEGINNING_OF_TIME,
   });
 
