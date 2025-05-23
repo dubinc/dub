@@ -1,6 +1,14 @@
 "use client";
 
-import { Avatar, Gift, Icon, Popover, User } from "@dub/ui";
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import {
+  ArrowsOppositeDirectionX,
+  Avatar,
+  Gift,
+  Icon,
+  Popover,
+  User,
+} from "@dub/ui";
 import { cn } from "@dub/utils";
 import { LogOut } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
@@ -9,12 +17,13 @@ import { ComponentPropsWithoutRef, ElementType, useState } from "react";
 
 export default function UserDropdown() {
   const { data: session } = useSession();
+  const { partner } = usePartnerProfile();
   const [openPopover, setOpenPopover] = useState(false);
 
   return (
     <Popover
       content={
-        <div className="flex w-full flex-col space-y-px rounded-md bg-white p-2 sm:w-56">
+        <div className="flex w-full flex-col space-y-px rounded-md bg-white p-2">
           {session?.user ? (
             <div className="p-2">
               <p className="truncate text-sm font-medium text-neutral-900">
@@ -44,6 +53,14 @@ export default function UserDropdown() {
             href="/account/settings/referrals"
             onClick={() => setOpenPopover(false)}
           />
+          {partner && (
+            <UserOption
+              as={Link}
+              label="Switch to partner account"
+              icon={ArrowsOppositeDirectionX}
+              href="https://partners.dub.co"
+            />
+          )}
           <UserOption
             as="button"
             type="button"
@@ -99,7 +116,7 @@ function UserOption<T extends ElementType = "button">({
 
   return (
     <Component
-      className="flex items-center gap-x-4 rounded-md px-2.5 py-2 text-sm transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80"
+      className="flex items-center gap-x-4 rounded-md px-2.5 py-1.5 text-sm transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80"
       {...rest}
     >
       <Icon className="size-4 text-neutral-500" />
