@@ -43,7 +43,9 @@ export default async function PartnersMiddleware(req: NextRequest) {
       return NextResponse.redirect(new URL("/onboarding", req.url));
     }
 
-    if (searchParamsObj.next) {
+    // special case for handling ?next= query param
+    // only redirect if next is a valid relative path (not an absolute URL)
+    if (searchParamsObj.next && searchParamsObj.next.startsWith("/")) {
       return NextResponse.redirect(new URL(searchParamsObj.next, req.url));
     }
 

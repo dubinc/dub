@@ -6,6 +6,7 @@ export * from "./arrow-trend-up";
 export * from "./arrow-turn-left";
 export * from "./arrow-turn-right2";
 export * from "./arrow-up-right";
+export * from "./arrows-opposite-direction-x";
 export * from "./arrows-opposite-direction-y";
 export * from "./badge-check";
 export * from "./badge-check2-fill";
