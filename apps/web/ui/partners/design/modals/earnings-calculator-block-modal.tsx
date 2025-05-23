@@ -40,7 +40,12 @@ function EarningsCalculatorBlockModalInner({
     register,
     formState: { errors },
   } = useForm<EarningsCalculatorBlockData>({
-    defaultValues,
+    defaultValues: {
+      ...defaultValues,
+      productPrice: defaultValues?.productPrice
+        ? defaultValues.productPrice / 100
+        : undefined,
+    },
   });
 
   return (
@@ -55,7 +60,10 @@ function EarningsCalculatorBlockModalInner({
             e.stopPropagation();
             handleSubmit(async (data) => {
               setShowModal(false);
-              onSubmit({ ...data, productPrice: Number(data.productPrice) });
+              onSubmit({
+                ...data,
+                productPrice: Number(data.productPrice) * 100,
+              });
             })(e);
           }}
         >
