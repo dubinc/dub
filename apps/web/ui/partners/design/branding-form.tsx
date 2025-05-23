@@ -121,6 +121,7 @@ function BrandingFormInner({
   const {
     handleSubmit,
     reset,
+    setError,
     formState: { isDirty, isSubmitting },
   } = form;
 
@@ -131,6 +132,7 @@ function BrandingFormInner({
     },
     onError({ error }) {
       console.error(error);
+      setError("root", { message: "Failed to update program." });
       toast.error("Failed to update program.");
     },
   });
@@ -476,7 +478,13 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
                       {...{ inert: "" }}
                     >
                       <div className="px-6">
-                        <Component block={block} logo={program.logo} preview />
+                        <Component
+                          block={block}
+                          logo={program.logo}
+                          reward={program.rewards?.find(
+                            (r) => r.id === program.defaultRewardId,
+                          )}
+                        />
                       </div>
                     </div>
                   </div>

@@ -62,6 +62,9 @@ export default async function ProgramDetailsPage({
                           key={idx}
                           block={block}
                           logo={program.logo}
+                          reward={program.rewards?.find(
+                            (r) => r.id === program.defaultRewardId,
+                          )}
                         />
                       ) : null;
                     })}

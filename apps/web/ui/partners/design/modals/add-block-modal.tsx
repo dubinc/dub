@@ -12,6 +12,7 @@ import {
   AccordionBlockModal,
   AccordionBlockThumbnail,
 } from "./accordion-block-modal";
+import { EarningsCalculatorBlockModal } from "./earnings-calculator-block-modal";
 import { FilesBlockModal, FilesBlockThumbnail } from "./files-block-modal";
 import { ImageBlockModal, ImageBlockThumbnail } from "./image-block-modal";
 import { TextBlockModal, TextBlockThumbnail } from "./text-block-modal";
@@ -74,7 +75,7 @@ export const DESIGNER_BLOCKS: ({
     id: "earnings-calculator",
     label: "Earnings Calculator",
     description: "Calculate potential earnings for your program",
-    modal: TextBlockModal,
+    modal: EarningsCalculatorBlockModal,
     icon: Calculator,
   },
 ];

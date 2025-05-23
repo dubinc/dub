@@ -52,7 +52,14 @@ export default async function ApplyPage({
           {landerData.blocks.map((block, idx) => {
             const Component = BLOCK_COMPONENTS[block.type];
             return Component ? (
-              <Component key={idx} block={block} logo={program.logo} />
+              <Component
+                key={idx}
+                block={block}
+                logo={program.logo}
+                reward={program.rewards?.find(
+                  (r) => r.id === program.defaultRewardId,
+                )}
+              />
             ) : null;
           })}
         </div>

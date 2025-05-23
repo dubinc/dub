@@ -62,6 +62,7 @@ export const programLanderEarningsCalculatorBlockSchema =
   programLanderBlockCommonSchema.extend({
     type: z.literal("earnings-calculator"),
     data: z.object({
+      title: programLanderBlockTitleSchema,
       productPrice: z.number(),
     }),
   });
