@@ -69,7 +69,7 @@ export async function confirmPayouts({
     },
   });
 
-  if (!payouts.length) {
+  if (payouts.length === 0) {
     return;
   }
 
