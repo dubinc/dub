@@ -1,6 +1,6 @@
 import { UserProps } from "@/lib/types";
 import { NextRequest, NextResponse } from "next/server";
-import { parse } from "./utils";
+import { isValidInternalRedirect, parse } from "./utils";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";
 import { isTopLevelSettingsRedirect } from "./utils/is-top-level-settings-redirect";
 
@@ -10,9 +10,11 @@ export default async function WorkspacesMiddleware(
 ) {
   const { path, searchParamsObj, searchParamsString } = parse(req);
 
-  // special case for handling ?next= query param
-  // only redirect if next is a valid relative path (not an absolute URL)
-  if (searchParamsObj.next && searchParamsObj.next.startsWith("/")) {
+  // Handle ?next= query param with proper validation to prevent open redirects
+  if (
+    searchParamsObj.next &&
+    isValidInternalRedirect(searchParamsObj.next, req.url)
+  ) {
     return NextResponse.redirect(new URL(searchParamsObj.next, req.url));
   }
 
