@@ -95,18 +95,26 @@ function EarningsCalculatorBlockModalInner({
             >
               Average product price
             </label>
-            <div className="mt-2 rounded-md shadow-sm">
+            <div className="relative mt-2 rounded-md shadow-sm">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
+                $
+              </span>
               <input
                 id={`${id}-price`}
                 type="text"
                 placeholder="30"
                 autoFocus={!isMobile}
                 className={cn(
-                  "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                  "block w-full rounded-md border-neutral-300 pl-6 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                   errors.productPrice &&
                     "border-red-600 focus:border-red-500 focus:ring-red-600",
                 )}
-                {...register("productPrice")}
+                {...register("productPrice", {
+                  required: true,
+                  valueAsNumber: true,
+                  min: 0,
+                  max: 10_000_00,
+                })}
               />
             </div>
           </div>

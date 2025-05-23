@@ -41,7 +41,7 @@ export function EarningsCalculatorBlock({
           <input
             id={`${id}-slider`}
             type="range"
-            min={0}
+            min={1}
             max={50}
             value={value}
             onChange={(e) => setValue(Number(e.target.value))}
@@ -57,7 +57,11 @@ export function EarningsCalculatorBlock({
         <div className="flex flex-col items-center justify-center border-t border-neutral-200 bg-neutral-100 p-4 font-semibold text-neutral-800/60 sm:p-8">
           <span>You can earn</span>
           <NumberFlow
-            value={Math.floor(revenue * (reward.amount / 100))}
+            value={Math.floor(
+              reward.type === "flat"
+                ? reward.amount / 100
+                : revenue * (reward.amount / 100),
+            )}
             className="text-4xl font-medium text-neutral-800"
             prefix="$"
           />
