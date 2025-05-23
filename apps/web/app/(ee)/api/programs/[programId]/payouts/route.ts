@@ -96,7 +96,7 @@ const excludeCurrentMonthCommissions = ({
   minPayoutAmount: number;
 }) => {
   const allPayouts = payouts.map((payout) => {
-    // custom payouts
+    // custom payouts are included by default
     if (!payout.periodStart && !payout.periodEnd) {
       return payout;
     }

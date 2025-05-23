@@ -82,16 +82,16 @@ export const GET = withWorkspace(
           by: ["payoutId"],
           where: {
             programId,
-            partner: {
-              payoutsEnabledAt: {
-                not: null,
-              },
-            },
             payout: {
               amount: {
                 gte: minPayoutAmount,
               },
               status: "pending",
+            },
+            partner: {
+              payoutsEnabledAt: {
+                not: null,
+              },
             },
             createdAt: {
               lt: currentMonthStart,
@@ -102,7 +102,7 @@ export const GET = withWorkspace(
           },
         }),
 
-        // custom payouts
+        // custom payouts are included by default
         prisma.payout.aggregate({
           where: {
             programId,
@@ -125,11 +125,15 @@ export const GET = withWorkspace(
         }),
       ]);
 
+      const allCommissions = commissions.filter(
+        (c) => (c._sum.earnings ?? 0) >= minPayoutAmount,
+      );
+
       const counts = {
         status: "pending",
-        count: commissions.length + customPayouts._count,
+        count: allCommissions.length + customPayouts._count,
         amount:
-          commissions.reduce((acc, c) => acc + (c._sum.earnings ?? 0), 0) +
+          allCommissions.reduce((acc, c) => acc + (c._sum.earnings ?? 0), 0) +
           (customPayouts._sum.amount ?? 0),
       };
 
