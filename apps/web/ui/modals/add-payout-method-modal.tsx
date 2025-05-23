@@ -1,7 +1,7 @@
 "use client";
 
 import { X } from "@/ui/shared/icons";
-import { AnimatedSizeContainer, GreekTemple, Modal, Stripe } from "@dub/ui";
+import { AnimatedSizeContainer, GreekTemple, Modal } from "@dub/ui";
 import { CSSProperties, Dispatch, SetStateAction, useState } from "react";
 
 const PAYMENT_PROCESSORS = [
@@ -9,25 +9,25 @@ const PAYMENT_PROCESSORS = [
     id: "us_bank_account",
     location: "US",
     method: "ACH",
-    icon: Stripe,
+    icon: "https://flag.vercel.app/m/US.svg",
   },
   {
     id: "acss_debit",
     location: "CA",
     method: "ACSS Debit",
-    icon: Stripe,
+    icon: "https://flag.vercel.app/m/CA.svg",
   },
   {
     id: "sepa_debit",
     location: "EU",
     method: "SEPA Debit",
-    icon: Stripe,
+    icon: "https://flag.vercel.app/m/US.svg",
   },
   {
     id: "au_becs_debit",
     location: "AUS",
     method: "AU BECS Debit",
-    icon: Stripe,
+    icon: "https://flag.vercel.app/m/AU.svg",
   },
 ];
 
@@ -42,7 +42,7 @@ function AddPayoutMethodModal({
     <Modal
       showModal={showAddPayoutMethodModal}
       setShowModal={setShowAddPayoutMethodModal}
-      className="max-h-[calc(100dvh-100px)] max-w-xl"
+      className="max-h-[calc(100dvh-100px)] max-w-2xl"
     >
       <AddPayoutMethodModalInner
         setShowAddPayoutMethodModal={setShowAddPayoutMethodModal}
@@ -74,18 +74,22 @@ function AddPayoutMethodModalInner({
           <X className="size-5" />
         </button>
 
-        <div>
+        <div className="flex flex-col gap-7">
           <div className="flex size-12 items-center justify-center rounded-full border border-neutral-200 text-neutral-900">
-            <GreekTemple className="size-8 [&_*]:stroke-1 [&_circle]:hidden" />
+            <GreekTemple className="size-5 [&_*]:stroke-1 [&_circle]:hidden" />
           </div>
-          <h3 className="mt-6 text-lg font-semibold text-neutral-800">
-            Connect your bank account
-          </h3>
-          <p className="mt-2 text-base text-neutral-500">
-            Select your bank’s location to
-          </p>
+
+          <div>
+            <h3 className="text-lg font-semibold text-neutral-800">
+              Connect your bank account
+            </h3>
+            <p className="mt-1 text-base text-neutral-500">
+              Select your bank’s location to connect your bank account.
+            </p>
+          </div>
+
           <div
-            className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-[repeat(var(--cols),minmax(0,1fr))]"
+            className="grid grid-cols-2 gap-4 sm:grid-cols-[repeat(var(--cols),minmax(0,1fr))]"
             style={
               {
                 "--cols": PAYMENT_PROCESSORS.length,
@@ -93,19 +97,28 @@ function AddPayoutMethodModalInner({
             }
           >
             {PAYMENT_PROCESSORS.map(
-              ({ icon: Icon, name, shortName }, index) => (
+              ({ icon: Icon, location, method }, index) => (
                 <button
                   key={index}
                   type="button"
-                  className="group flex flex-col items-center rounded-lg bg-neutral-200/40 p-8 pb-6 transition-colors duration-100 hover:bg-neutral-200/60"
+                  className="group flex flex-col items-center gap-4 rounded-lg bg-neutral-200/40 p-8 px-2 py-4 transition-colors duration-100 hover:bg-neutral-200/60"
                   onClick={() => {
                     setPaymentProcessorIndex(index);
                   }}
                 >
-                  <Icon className="h-11 transition-transform duration-100 group-hover:-translate-y-0.5" />
-                  <span className="mt-3 text-center text-sm font-medium text-neutral-700 sm:mt-8">
-                    {shortName || name}
-                  </span>
+                  <img
+                    src={Icon}
+                    alt={location}
+                    className="size-12 rounded-full transition-transform duration-100 group-hover:-translate-y-0.5"
+                  />
+                  <div className="flex flex-col items-center gap-1">
+                    <span className="text-center text-sm font-semibold text-neutral-700">
+                      {location}
+                    </span>
+                    <span className="text-center text-xs font-medium text-neutral-700">
+                      {method}
+                    </span>
+                  </div>
                 </button>
               ),
             )}
