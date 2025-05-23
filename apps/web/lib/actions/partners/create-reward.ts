@@ -11,8 +11,15 @@ export const createRewardAction = authActionClient
   .schema(createRewardSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { partnerIds, event, amount, type, maxDuration, maxAmount } =
-      parsedInput;
+    const {
+      partnerIds,
+      event,
+      amount,
+      type,
+      maxDuration,
+      maxAmount,
+      geoRules,
+    } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -25,6 +32,10 @@ export const createRewardAction = authActionClient
       throw new Error(
         "Max reward amount cannot be less than the reward amount.",
       );
+    }
+
+    if (geoRules && event === "sale") {
+      throw new Error("Geo specific rules are not allowed for sale rewards.");
     }
 
     let programEnrollments: { id: string }[] = [];
@@ -96,6 +107,7 @@ export const createRewardAction = authActionClient
         amount,
         maxDuration,
         maxAmount,
+        ...(geoRules && { geoRules }),
         ...(programEnrollments && {
           partners: {
             createMany: {

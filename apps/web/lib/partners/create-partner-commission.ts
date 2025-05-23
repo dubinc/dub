@@ -14,10 +14,12 @@ export const createPartnerCommission = async ({
   partnerId,
   linkId,
   customerId,
+  customerCountry,
   eventId,
   invoiceId,
   amount = 0,
   quantity,
+  clickEarnings,
   currency,
   createdAt,
 }: {
@@ -29,10 +31,12 @@ export const createPartnerCommission = async ({
   programId: string;
   linkId: string;
   customerId?: string;
+  customerCountry?: string | null;
   eventId?: string;
   invoiceId?: string | null;
   amount?: number;
   quantity: number;
+  clickEarnings?: number; // only for clicks rewards
   currency?: string;
   createdAt?: Date;
 }) => {
@@ -49,6 +53,28 @@ export const createPartnerCommission = async ({
       );
       return;
     }
+  }
+
+  // Apply geo rules if the event is lead
+  if (
+    event === "lead" &&
+    customerCountry &&
+    reward.geoRules &&
+    reward.geoRules[customerCountry]
+  ) {
+    const amount = reward.geoRules[customerCountry];
+
+    if (amount === 0) {
+      console.log(
+        `Partner ${partnerId} has no reward for ${event} event in ${customerCountry}, skipping commission creation...`,
+      );
+      return null;
+    }
+
+    reward = {
+      ...reward,
+      amount,
+    };
   }
 
   let status: CommissionStatus = "pending";
@@ -103,16 +129,21 @@ export const createPartnerCommission = async ({
     }
   }
 
-  let earnings =
-    event === "sale"
-      ? calculateSaleEarnings({
-          reward,
-          sale: {
-            quantity,
-            amount,
-          },
-        })
-      : reward.amount * quantity;
+  let earnings = 0;
+
+  if (event === "click") {
+    earnings = clickEarnings || 0;
+  } else if (event === "lead") {
+    earnings = reward.amount * quantity;
+  } else if (event === "sale") {
+    earnings = calculateSaleEarnings({
+      reward,
+      sale: {
+        quantity,
+        amount,
+      },
+    });
+  }
 
   // handle rewards with max reward amount limit
   if (reward.maxAmount) {
@@ -146,7 +177,7 @@ export const createPartnerCommission = async ({
   }
 
   try {
-    const commission = await prisma.commission.create({
+    return await prisma.commission.create({
       data: {
         id: createId({ prefix: "cm_" }),
         programId,
@@ -164,8 +195,6 @@ export const createPartnerCommission = async ({
         createdAt,
       },
     });
-
-    return commission;
   } catch (error) {
     console.error("Error creating commission", error);
 
