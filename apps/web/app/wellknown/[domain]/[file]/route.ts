@@ -19,7 +19,7 @@ export async function GET(
   }
 
   const { appleAppSiteAssociation, assetLinks } =
-    await prismaEdge.domain.findUniqueOrThrow({
+    (await prismaEdge.domain.findUnique({
       where: {
         slug: domain,
       },
@@ -27,7 +27,10 @@ export async function GET(
         appleAppSiteAssociation: true,
         assetLinks: true,
       },
-    });
+    })) || {
+      appleAppSiteAssociation: null,
+      assetLinks: null,
+    };
 
   let response: WellKnownConfig[SupportedWellKnownFiles];
   switch (file) {
