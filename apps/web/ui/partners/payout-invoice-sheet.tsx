@@ -1,5 +1,5 @@
 import { confirmPayoutsAction } from "@/lib/actions/partners/confirm-payouts";
-import { PAYOUT_FEES } from "@/lib/partners/constants";
+import { calculatePayoutFee } from "@/lib/payment-methods";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import usePayouts from "@/lib/swr/use-payouts";
@@ -34,7 +34,6 @@ import {
   Dispatch,
   Fragment,
   SetStateAction,
-  useCallback,
   useEffect,
   useMemo,
   useState,
@@ -142,29 +141,6 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
     }
   }, [paymentMethods, selectedPaymentMethod]);
 
-  const calculateFee = useCallback(
-    (paymentMethod: PAYMENT_METHOD | null) => {
-      if (!paymentMethod) {
-        return null;
-      }
-
-      const planType = plan?.split(" ")[0] ?? "business";
-
-      if (["link", "card"].includes(paymentMethod.type)) {
-        return PAYOUT_FEES[planType].card;
-      }
-
-      if (
-        ["us_bank_account", "acss_debit", "sepa_debit"].includes(
-          paymentMethod.type,
-        )
-      ) {
-        return PAYOUT_FEES[planType].ach;
-      }
-    },
-    [plan],
-  );
-
   const finalPaymentMethods = useMemo(
     () =>
       paymentMethods?.map((pm) => {
@@ -173,7 +149,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
         const base = {
           ...paymentMethod,
           id: pm.id,
-          fee: calculateFee(paymentMethod),
+          fee: calculatePayoutFee(pm.type, plan),
         };
 
         if (pm.link) {

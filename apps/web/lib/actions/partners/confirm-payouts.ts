@@ -3,7 +3,11 @@
 import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
-import { PAYOUT_FEES } from "@/lib/partners/constants";
+import {
+  calculatePayoutFee,
+  PARTNER_PAYOUT_METHOD,
+  PARTNER_PAYOUT_METHODS,
+} from "@/lib/payment-methods";
 import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
 import PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
@@ -17,7 +21,7 @@ const confirmPayoutsSchema = z.object({
   paymentMethodId: z.string(),
 });
 
-const allowedPaymentMethods = ["us_bank_account", "card", "link"];
+const allowedPaymentMethods = ["card", "link", ...PARTNER_PAYOUT_METHODS];
 
 // Confirm payouts
 export const confirmPayoutsAction = authActionClient
@@ -46,7 +50,9 @@ export const confirmPayoutsAction = authActionClient
 
     if (!allowedPaymentMethods.includes(paymentMethod.type)) {
       throw new Error(
-        `We only support ACH and Card for now. Please update your payout method to one of these.`,
+        `We only support ${PARTNER_PAYOUT_METHODS.join(
+          ", ",
+        )} for now. Please update your payout method to one of these.`,
       );
     }
 
@@ -96,11 +102,7 @@ export const confirmPayoutsAction = authActionClient
       );
 
       const fee =
-        amount *
-        PAYOUT_FEES[workspace.plan?.split(" ")[0] ?? "business"][
-          paymentMethod.type === "us_bank_account" ? "ach" : "card"
-        ];
-
+        amount * calculatePayoutFee(paymentMethod.type, workspace.plan);
       const total = amount + fee;
 
       // Generate the next invoice number
@@ -161,7 +163,12 @@ export const confirmPayoutsAction = authActionClient
       (async () => {
         // Send emails to all the partners involved in the payouts if the payout method is ACH
         // ACH takes 4 business days to process
-        if (newInvoice && paymentMethod.type === "us_bank_account") {
+        if (
+          newInvoice &&
+          PARTNER_PAYOUT_METHODS.includes(
+            paymentMethod.type as PARTNER_PAYOUT_METHOD,
+          )
+        ) {
           await Promise.all(
             payouts
               .filter((payout) => payout.partner.email)
