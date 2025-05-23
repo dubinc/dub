@@ -18,19 +18,19 @@ const PAYMENT_METHODS: {
     id: "us_bank_account",
     location: "US",
     method: "ACH",
-    icon: "https://flag.vercel.app/m/US.svg",
+    icon: "https://hatscripts.github.io/circle-flags/flags/us.svg",
   },
   {
     id: "acss_debit",
     location: "CA",
     method: "ACSS Debit",
-    icon: "https://flag.vercel.app/m/CA.svg",
+    icon: "https://hatscripts.github.io/circle-flags/flags/ca.svg",
   },
   {
     id: "sepa_debit",
     location: "EU",
     method: "SEPA Debit",
-    icon: "https://flag.vercel.app/m/US.svg", // TODO: update the flag icon
+    icon: "https://hatscripts.github.io/circle-flags/flags/eu.svg",
   },
 ];
 
