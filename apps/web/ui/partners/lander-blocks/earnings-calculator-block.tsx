@@ -16,7 +16,7 @@ export function EarningsCalculatorBlock({
 }: {
   block: z.infer<typeof programLanderEarningsCalculatorBlockSchema>;
   brandColor?: string;
-  reward?: RewardProps;
+  reward?: Pick<RewardProps, "event" | "type" | "amount" | "maxDuration">;
 }) {
   const id = useId();
 
@@ -62,7 +62,7 @@ export function EarningsCalculatorBlock({
             className="absolute inset-0 opacity-5"
             style={{ backgroundColor: brandColor || "black" }}
           />
-          <div className="flex flex-col items-center justify-center p-4 font-semibold text-neutral-800/60 sm:p-8">
+          <div className="flex flex-col items-center justify-center p-4 font-semibold text-neutral-800/60 sm:p-6">
             <span>You can earn</span>
             <NumberFlow
               value={Math.floor(

@@ -1,11 +1,16 @@
 "use client";
 
+import useProgram from "@/lib/swr/use-program";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { programLanderEarningsCalculatorBlockSchema } from "@/lib/zod/schemas/program-lander";
 import { Button, Modal, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
+import Link from "next/link";
 import { Dispatch, SetStateAction, useId } from "react";
-import { useForm } from "react-hook-form";
+import { Control, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
+import { EarningsCalculatorBlock } from "../../lander-blocks/earnings-calculator-block";
+import { useBrandingFormContext } from "../branding-form";
 
 type EarningsCalculatorBlockData = z.infer<
   typeof programLanderEarningsCalculatorBlockSchema
@@ -17,6 +22,8 @@ type EarningsCalculatorBlockModalProps = {
   defaultValues?: Partial<EarningsCalculatorBlockData>;
   onSubmit: (data: EarningsCalculatorBlockData) => void;
 };
+
+const MAX_PRODUCT_PRICE = 10_000;
 
 export function EarningsCalculatorBlockModal(
   props: EarningsCalculatorBlockModalProps,
@@ -35,9 +42,14 @@ function EarningsCalculatorBlockModalInner({
 }: EarningsCalculatorBlockModalProps) {
   const id = useId();
   const { isMobile } = useMediaQuery();
+
+  const { slug: workspaceSlug } = useWorkspace();
+  const { program } = useProgram();
+
   const {
     handleSubmit,
     register,
+    control,
     formState: { errors },
   } = useForm<EarningsCalculatorBlockData>({
     defaultValues: {
@@ -113,10 +125,28 @@ function EarningsCalculatorBlockModalInner({
                   required: true,
                   valueAsNumber: true,
                   min: 0,
-                  max: 10_000_00,
+                  max: MAX_PRODUCT_PRICE,
                 })}
               />
             </div>
+          </div>
+
+          <div className="flex flex-col gap-2.5">
+            <div>
+              <span className="text-content-emphasis text-sm font-medium">
+                Preview
+              </span>
+              <p className="text-xs text-neutral-500">
+                This is calculated using your{" "}
+                <Link
+                  href={`/${workspaceSlug}/programs/${program!.id}/settings/rewards`}
+                  target="_blank"
+                >
+                  default program reward
+                </Link>
+              </p>
+            </div>
+            <Preview control={control} />
           </div>
 
           <div className="flex items-center justify-end gap-2">
@@ -136,5 +166,40 @@ function EarningsCalculatorBlockModalInner({
         </form>
       </div>
     </>
+  );
+}
+
+function Preview({
+  control,
+}: {
+  control: Control<EarningsCalculatorBlockData>;
+}) {
+  const { program } = useProgram();
+  const { control: brandingFormControl } = useBrandingFormContext();
+  const brandColor = useWatch({
+    control: brandingFormControl,
+    name: "brandColor",
+  });
+  const productPrice = useWatch({ control, name: "productPrice" });
+
+  console.log(productPrice);
+
+  return (
+    <div className="-mt-4">
+      <EarningsCalculatorBlock
+        block={{
+          id: "",
+          type: "earnings-calculator",
+          data: {
+            productPrice:
+              Math.min(Math.max(productPrice || 0, 0), MAX_PRODUCT_PRICE) * 100,
+          },
+        }}
+        reward={program?.rewards?.find(
+          (r) => r.id === program?.defaultRewardId,
+        )}
+        brandColor={brandColor ?? undefined}
+      />
+    </div>
   );
 }
