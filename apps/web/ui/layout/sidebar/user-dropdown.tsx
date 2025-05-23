@@ -13,17 +13,26 @@ import { cn } from "@dub/utils";
 import { LogOut } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
-import { ComponentPropsWithoutRef, ElementType, useState } from "react";
+import {
+  ComponentPropsWithoutRef,
+  ElementType,
+  useEffect,
+  useState,
+} from "react";
 
 export default function UserDropdown() {
   const { data: session } = useSession();
   const { partner } = usePartnerProfile();
   const [openPopover, setOpenPopover] = useState(false);
+  const [isPartnerPage, setIsPartnerPage] = useState(false);
+  useEffect(() => {
+    setIsPartnerPage(window.location.hostname.startsWith("partners."));
+  }, []);
 
   return (
     <Popover
       content={
-        <div className="flex w-full flex-col space-y-px rounded-md bg-white p-2">
+        <div className="flex w-full flex-col space-y-px rounded-md bg-white p-2 sm:min-w-56">
           {session?.user ? (
             <div className="p-2">
               <p className="truncate text-sm font-medium text-neutral-900">
@@ -46,21 +55,25 @@ export default function UserDropdown() {
             href="/account/settings"
             onClick={() => setOpenPopover(false)}
           />
-          <UserOption
-            as={Link}
-            label="Refer and earn"
-            icon={Gift}
-            href="/account/settings/referrals"
-            onClick={() => setOpenPopover(false)}
-          />
-          {partner && (
-            <UserOption
-              as={Link}
-              label="Switch to partner account"
-              icon={ArrowsOppositeDirectionX}
-              href="https://partners.dub.co"
-            />
-          )}
+          {...!isPartnerPage
+            ? [
+                <UserOption
+                  as={Link}
+                  label="Refer and earn"
+                  icon={Gift}
+                  href="/account/settings/referrals"
+                  onClick={() => setOpenPopover(false)}
+                />,
+                partner ? (
+                  <UserOption
+                    as={Link}
+                    label="Switch to partner account"
+                    icon={ArrowsOppositeDirectionX}
+                    href="https://partners.dub.co"
+                  />
+                ) : null,
+              ].filter(Boolean)
+            : []}
           <UserOption
             as="button"
             type="button"
