@@ -72,6 +72,20 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
       fee: PAYOUT_FEES[plan?.split(" ")[0] ?? "business"].ach,
       duration: "4 business days",
     },
+    acss_debit: {
+      label: "ACSS Debit",
+      type: "acss_debit",
+      icon: GreekTemple,
+      fee: PAYOUT_FEES[plan?.split(" ")[0] ?? "business"].ach,
+      duration: "4 business days",
+    },
+    sepa_debit: {
+      label: "SEPA Debit",
+      type: "sepa_debit",
+      icon: GreekTemple,
+      fee: PAYOUT_FEES[plan?.split(" ")[0] ?? "business"].ach,
+      duration: "4 business days",
+    },
   });
 
   type PaymentMethodWithFee =
@@ -256,6 +270,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
     paymentMethods,
     selectedPaymentMethod,
   ]);
+
   const table = useTable({
     data: eligiblePayouts || [],
     columns: [
