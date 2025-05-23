@@ -221,18 +221,27 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
           <>
             <div className="p-6 pt-2">
               <Table {...commissionsTable} />
+
+              <div className="flex justify-end py-4">
+                <Link
+                  href={`/${slug}/programs/${programId}/commissions?payoutId=${payout.id}&interval=all`}
+                  target="_blank"
+                  className={cn(
+                    buttonVariants({ variant: "secondary" }),
+                    "flex h-7 items-center rounded-lg border px-2 text-sm",
+                  )}
+                >
+                  View all
+                </Link>
+              </div>
             </div>
             <div className="sticky bottom-0 z-10 flex justify-end border-t border-neutral-200 bg-white px-6 py-4">
-              <Link
-                href={`/${slug}/programs/${programId}/commissions?payoutId=${payout.id}&interval=all`}
-                target="_blank"
-                className={cn(
-                  buttonVariants({ variant: "secondary" }),
-                  "flex h-7 items-center rounded-lg border px-2 text-sm",
-                )}
-              >
-                View all
-              </Link>
+              <Button
+                type="button"
+                variant="secondary"
+                loading={isLoading}
+                text="Confirm all pending payouts"
+              />
             </div>
           </>
         ) : null}
