@@ -14,6 +14,7 @@ import { PaymentMethodTypesList } from "./payment-method-types";
 
 export default function PaymentMethods() {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
   const { slug, stripeId, partnersEnabled, plan } = useWorkspace();
   const { paymentMethods } = usePaymentMethods();
 
@@ -24,8 +25,6 @@ export default function PaymentMethods() {
   const achPaymentMethods = paymentMethods?.filter(
     (pm) => pm.type === "us_bank_account",
   );
-
-  const [isLoading, setIsLoading] = useState(false);
 
   const managePaymentMethods = async () => {
     setIsLoading(true);
@@ -123,9 +122,6 @@ const PaymentMethodCard = ({
   paymentMethod?: Stripe.PaymentMethod;
   forPayouts?: boolean;
 }) => {
-  const router = useRouter();
-  const { slug } = useWorkspace();
-  const [isLoading, setIsLoading] = useState(false);
   const { setShowAddPayoutMethodModal, AddPayoutMethodModal } =
     useAddPayoutMethodModal();
 
@@ -140,19 +136,6 @@ const PaymentMethodCard = ({
     title: "Bank account",
     icon: GreekTemple,
     description: "Not connected",
-  };
-
-  const addPaymentMethod = async (method: string) => {
-    setIsLoading(true);
-    const { url } = await fetch(
-      `/api/workspaces/${slug}/billing/payment-methods`,
-      {
-        method: "POST",
-        body: JSON.stringify({ method }),
-      },
-    ).then((res) => res.json());
-
-    router.push(url);
   };
 
   return (
@@ -189,7 +172,6 @@ const PaymentMethodCard = ({
               className="h-9 w-fit"
               text="Connect"
               onClick={() => setShowAddPayoutMethodModal(true)}
-              loading={isLoading}
             />
           )}
         </div>

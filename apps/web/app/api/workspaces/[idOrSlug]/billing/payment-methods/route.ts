@@ -8,13 +8,7 @@ import { z } from "zod";
 
 const addPaymentMethodSchema = z.object({
   method: z
-    .enum([
-      "card",
-      "us_bank_account",
-      "acss_debit",
-      "sepa_debit",
-      "au_becs_debit",
-    ])
+    .enum(["card", "us_bank_account", "acss_debit", "sepa_debit"])
     .optional(),
 });
 
@@ -28,7 +22,6 @@ const stripePaymentMethodOptions = {
     },
   },
   sepa_debit: {},
-  au_becs_debit: {},
 };
 
 // GET /api/workspaces/[idOrSlug]/billing/payment-methods - get all payment methods
@@ -84,6 +77,9 @@ export const POST = withWorkspace(async ({ workspace, req }) => {
     mode: "setup",
     customer: workspace.stripeId,
     payment_method_types: [method],
+    payment_method_options: {
+      [method]: stripePaymentMethodOptions[method],
+    },
     currency: "usd",
     success_url: `${APP_DOMAIN}/${workspace.slug}/settings/billing`,
     cancel_url: `${APP_DOMAIN}/${workspace.slug}/settings/billing`,

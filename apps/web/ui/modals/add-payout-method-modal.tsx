@@ -1,10 +1,24 @@
 "use client";
 
+import useWorkspace from "@/lib/swr/use-workspace";
 import { X } from "@/ui/shared/icons";
 import { AnimatedSizeContainer, GreekTemple, Modal } from "@dub/ui";
+import { useRouter } from "next/navigation";
 import { CSSProperties, Dispatch, SetStateAction, useState } from "react";
+import { toast } from "sonner";
 
-const PAYMENT_PROCESSORS = [
+type PaymentMethods =
+  | "us_bank_account"
+  | "acss_debit"
+  | "sepa_debit"
+  | "au_becs_debit";
+
+const PAYMENT_METHODS: {
+  id: PaymentMethods;
+  location: string;
+  method: string;
+  icon: string;
+}[] = [
   {
     id: "us_bank_account",
     location: "US",
@@ -21,14 +35,14 @@ const PAYMENT_PROCESSORS = [
     id: "sepa_debit",
     location: "EU",
     method: "SEPA Debit",
-    icon: "https://flag.vercel.app/m/US.svg",
+    icon: "https://flag.vercel.app/m/US.svg", // TODO: update the flag icon
   },
-  {
-    id: "au_becs_debit",
-    location: "AUS",
-    method: "AU BECS Debit",
-    icon: "https://flag.vercel.app/m/AU.svg",
-  },
+  // {
+  //   id: "au_becs_debit",
+  //   location: "AUS",
+  //   method: "AU BECS Debit",
+  //   icon: "https://flag.vercel.app/m/AU.svg",
+  // },
 ];
 
 function AddPayoutMethodModal({
@@ -42,7 +56,7 @@ function AddPayoutMethodModal({
     <Modal
       showModal={showAddPayoutMethodModal}
       setShowModal={setShowAddPayoutMethodModal}
-      className="max-h-[calc(100dvh-100px)] max-w-2xl"
+      className="max-h-[calc(100dvh-100px)] max-w-xl"
     >
       <AddPayoutMethodModalInner
         setShowAddPayoutMethodModal={setShowAddPayoutMethodModal}
@@ -56,9 +70,31 @@ function AddPayoutMethodModalInner({
 }: {
   setShowAddPayoutMethodModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const [paymentProcessorIndex, setPaymentProcessorIndex] = useState<
-    number | null
-  >(null);
+  const router = useRouter();
+  const { slug } = useWorkspace();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const addPaymentMethod = async (method: PaymentMethods) => {
+    setIsLoading(true);
+
+    const response = await fetch(
+      `/api/workspaces/${slug}/billing/payment-methods`,
+      {
+        method: "POST",
+        body: JSON.stringify({ method }),
+      },
+    );
+
+    if (!response.ok) {
+      setIsLoading(false);
+      toast.error("Failed to add payment method. Please try again.");
+      return;
+    }
+
+    const data = (await response.json()) as { url: string };
+
+    router.push(data.url);
+  };
 
   return (
     <AnimatedSizeContainer
@@ -92,19 +128,18 @@ function AddPayoutMethodModalInner({
             className="grid grid-cols-2 gap-4 sm:grid-cols-[repeat(var(--cols),minmax(0,1fr))]"
             style={
               {
-                "--cols": PAYMENT_PROCESSORS.length,
+                "--cols": PAYMENT_METHODS.length,
               } as CSSProperties
             }
           >
-            {PAYMENT_PROCESSORS.map(
-              ({ icon: Icon, location, method }, index) => (
+            {PAYMENT_METHODS.map(
+              ({ id, icon: Icon, location, method }, index) => (
                 <button
                   key={index}
                   type="button"
                   className="group flex flex-col items-center gap-4 rounded-lg bg-neutral-200/40 p-8 px-2 py-4 transition-colors duration-100 hover:bg-neutral-200/60"
-                  onClick={() => {
-                    setPaymentProcessorIndex(index);
-                  }}
+                  onClick={() => addPaymentMethod(id)}
+                  disabled={isLoading}
                 >
                   <img
                     src={Icon}
