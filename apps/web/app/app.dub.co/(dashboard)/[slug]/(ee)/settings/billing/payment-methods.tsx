@@ -12,18 +12,20 @@ import { useState } from "react";
 import { Stripe } from "stripe";
 import { PaymentMethodTypesList } from "./payment-method-types";
 
+const PARTNER_PAYMENT_METHODS = ["us_bank_account", "acss_debit", "sepa_debit"];
+
 export default function PaymentMethods() {
   const router = useRouter();
+  const { paymentMethods } = usePaymentMethods();
   const [isLoading, setIsLoading] = useState(false);
   const { slug, stripeId, partnersEnabled, plan } = useWorkspace();
-  const { paymentMethods } = usePaymentMethods();
 
   const regularPaymentMethods = paymentMethods?.filter(
-    (pm) => pm.type !== "us_bank_account",
+    (pm) => !PARTNER_PAYMENT_METHODS.includes(pm.type),
   );
 
-  const achPaymentMethods = paymentMethods?.filter(
-    (pm) => pm.type === "us_bank_account",
+  const partnerPaymentMethods = paymentMethods?.filter((pm) =>
+    PARTNER_PAYMENT_METHODS.includes(pm.type),
   );
 
   const managePaymentMethods = async () => {
@@ -86,25 +88,26 @@ export default function PaymentMethods() {
             />
           )
         ) : (
-          <>
-            <PaymentMethodCardSkeleton />
-            <PaymentMethodCardSkeleton />
-          </>
+          <PaymentMethodCardSkeleton />
         )}
 
         {partnersEnabled && (
           <>
-            {achPaymentMethods && achPaymentMethods.length > 0 ? (
-              achPaymentMethods.map((paymentMethod) => (
-                <PaymentMethodCard
-                  key={paymentMethod.id}
-                  type={paymentMethod.type}
-                  paymentMethod={paymentMethod}
-                  forPayouts={true}
-                />
-              ))
+            {partnerPaymentMethods ? (
+              partnerPaymentMethods.length > 0 ? (
+                partnerPaymentMethods.map((paymentMethod) => (
+                  <PaymentMethodCard
+                    key={paymentMethod.id}
+                    type={paymentMethod.type}
+                    paymentMethod={paymentMethod}
+                    forPayouts={true}
+                  />
+                ))
+              ) : (
+                <NoPartnerPaymentMethods />
+              )
             ) : (
-              <PaymentMethodCard forPayouts={true} />
+              <PaymentMethodCardSkeleton />
             )}
           </>
         )}
@@ -132,11 +135,7 @@ const PaymentMethodCard = ({
     icon: Icon,
     iconBgColor,
     description,
-  } = result.find((method) => method.type === type) || {
-    title: "Bank account",
-    icon: GreekTemple,
-    description: "Not connected",
-  };
+  } = result.find((method) => method.type === type) || result[0];
 
   return (
     <>
@@ -156,7 +155,8 @@ const PaymentMethodCard = ({
               <div className="flex items-center gap-2">
                 <p className="font-medium text-neutral-900">{title}</p>
                 {paymentMethod &&
-                  (type === "us_bank_account" || paymentMethod.link?.email) && (
+                  (PARTNER_PAYMENT_METHODS.includes(type ?? "") ||
+                    paymentMethod.link?.email) && (
                     <Badge className="border-transparent bg-green-200 text-[0.625rem] text-green-900">
                       Connected
                     </Badge>
@@ -174,6 +174,44 @@ const PaymentMethodCard = ({
               onClick={() => setShowAddPayoutMethodModal(true)}
             />
           )}
+        </div>
+      </RecommendedForPayoutsWrapper>
+    </>
+  );
+};
+
+const NoPartnerPaymentMethods = () => {
+  const { setShowAddPayoutMethodModal, AddPayoutMethodModal } =
+    useAddPayoutMethodModal();
+
+  return (
+    <>
+      {AddPayoutMethodModal}
+      <RecommendedForPayoutsWrapper recommended={true}>
+        <div className="flex items-center justify-between rounded-lg border border-neutral-200 bg-white p-4 drop-shadow-sm">
+          <div className="flex items-center gap-4">
+            <div
+              className={cn(
+                "flex size-12 items-center justify-center rounded-lg bg-neutral-100",
+              )}
+            >
+              <GreekTemple className="size-6 text-neutral-700" />
+            </div>
+
+            <div>
+              <div className="flex items-center gap-2">
+                <p className="font-medium text-neutral-900">Bank account</p>
+              </div>
+              <p className="text-sm text-neutral-500">Not connected</p>
+            </div>
+          </div>
+
+          <Button
+            variant="primary"
+            className="h-9 w-fit"
+            text="Connect"
+            onClick={() => setShowAddPayoutMethodModal(true)}
+          />
         </div>
       </RecommendedForPayoutsWrapper>
     </>

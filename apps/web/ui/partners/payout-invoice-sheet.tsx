@@ -34,6 +34,7 @@ import {
   Dispatch,
   Fragment,
   SetStateAction,
+  useCallback,
   useEffect,
   useMemo,
   useState,
@@ -44,57 +45,53 @@ interface PayoutInvoiceSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }
 
+const PAYMENT_METHODS = Object.freeze({
+  link: {
+    label: "link",
+    type: "link",
+    icon: CreditCard,
+    duration: "Instantly",
+  },
+  card: {
+    label: "card",
+    type: "card",
+    icon: CreditCard,
+    duration: "Instantly",
+  },
+  us_bank_account: {
+    label: "ACH",
+    type: "us_bank_account",
+    icon: GreekTemple,
+    duration: "4 business days",
+  },
+  acss_debit: {
+    label: "ACSS Debit",
+    type: "acss_debit",
+    icon: GreekTemple,
+    duration: "5 business days",
+  },
+  sepa_debit: {
+    label: "SEPA Debit",
+    type: "sepa_debit",
+    icon: GreekTemple,
+    duration: "5 business days",
+  },
+});
+
+type PAYMENT_METHOD = (typeof PAYMENT_METHODS)[keyof typeof PAYMENT_METHODS] & {
+  id: string;
+  fee: number;
+};
+
 function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
-  const { programId } = useParams() as { programId: string };
+  const { programId } = useParams<{ programId: string }>();
   const { id: workspaceId, slug, plan } = useWorkspace();
+
   const { paymentMethods, loading: paymentMethodsLoading } =
     usePaymentMethods();
 
-  const paymentMethodsTypes = Object.freeze({
-    link: {
-      label: "link",
-      type: "link",
-      icon: CreditCard,
-      fee: PAYOUT_FEES[plan?.split(" ")[0] ?? "business"].card,
-      duration: "Instantly",
-    },
-    card: {
-      label: "card",
-      type: "card",
-      icon: CreditCard,
-      fee: PAYOUT_FEES[plan?.split(" ")[0] ?? "business"].card,
-      duration: "Instantly",
-    },
-    us_bank_account: {
-      label: "ACH",
-      type: "us_bank_account",
-      icon: GreekTemple,
-      fee: PAYOUT_FEES[plan?.split(" ")[0] ?? "business"].ach,
-      duration: "4 business days",
-    },
-    acss_debit: {
-      label: "ACSS Debit",
-      type: "acss_debit",
-      icon: GreekTemple,
-      fee: PAYOUT_FEES[plan?.split(" ")[0] ?? "business"].ach,
-      duration: "4 business days",
-    },
-    sepa_debit: {
-      label: "SEPA Debit",
-      type: "sepa_debit",
-      icon: GreekTemple,
-      fee: PAYOUT_FEES[plan?.split(" ")[0] ?? "business"].ach,
-      duration: "4 business days",
-    },
-  });
-
-  type PaymentMethodWithFee =
-    (typeof paymentMethodsTypes)[keyof typeof paymentMethodsTypes] & {
-      id: string;
-    };
-
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
-    useState<PaymentMethodWithFee | null>(null);
+    useState<PAYMENT_METHOD | null>(null);
 
   const {
     payoutsCount: eligiblePayoutsCount,
@@ -137,24 +134,67 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
 
     if (!selectedPaymentMethod) {
       const firstPaymentMethod = paymentMethods[0];
+
       setSelectedPaymentMethod({
-        ...paymentMethodsTypes[firstPaymentMethod.type],
+        ...PAYMENT_METHODS[firstPaymentMethod.type],
         id: firstPaymentMethod.id,
       });
     }
   }, [paymentMethods, selectedPaymentMethod]);
 
-  const paymentMethodsWithFee = useMemo(
+  const calculateFee = useCallback(
+    (paymentMethod: PAYMENT_METHOD | null) => {
+      if (!paymentMethod) {
+        return null;
+      }
+
+      const planType = plan?.split(" ")[0] ?? "business";
+
+      if (["link", "card"].includes(paymentMethod.type)) {
+        return PAYOUT_FEES[planType].card;
+      }
+
+      if (
+        ["us_bank_account", "acss_debit", "sepa_debit"].includes(
+          paymentMethod.type,
+        )
+      ) {
+        return PAYOUT_FEES[planType].ach;
+      }
+    },
+    [plan],
+  );
+
+  const finalPaymentMethods = useMemo(
     () =>
-      paymentMethods?.map((pm) => ({
-        ...paymentMethodsTypes[pm.type],
-        id: pm.id,
-        title: pm.link
-          ? `Link – ${truncate(pm.link.email, 16)}`
-          : pm.card
-            ? `${capitalize(pm.card?.brand)} **** ${pm.card?.last4}`
-            : `ACH **** ${pm.us_bank_account?.last4}`,
-      })),
+      paymentMethods?.map((pm) => {
+        const paymentMethod = PAYMENT_METHODS[pm.type];
+
+        const base = {
+          ...paymentMethod,
+          id: pm.id,
+          fee: calculateFee(paymentMethod),
+        };
+
+        if (pm.link) {
+          return {
+            ...base,
+            title: `Link – ${truncate(pm.link.email, 16)}`,
+          };
+        }
+
+        if (pm.card) {
+          return {
+            ...base,
+            title: `${capitalize(pm.card.brand)} **** ${pm.card.last4}`,
+          };
+        }
+
+        return {
+          ...base,
+          title: `${paymentMethod.label} **** ${pm[paymentMethod.type]?.last4}`,
+        };
+      }),
     [paymentMethods],
   );
 
@@ -197,13 +237,12 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
               value={selectedPaymentMethod?.id || ""}
               onChange={(e) =>
                 setSelectedPaymentMethod(
-                  paymentMethodsWithFee?.find(
-                    (pm) => pm.id === e.target.value,
-                  ) || null,
+                  finalPaymentMethods?.find((pm) => pm.id === e.target.value) ||
+                    null,
                 )
               }
             >
-              {paymentMethodsWithFee?.map(({ id, title }) => (
+              {finalPaymentMethods?.map(({ id, title }) => (
                 <option key={id} value={id}>
                   {title}
                 </option>
