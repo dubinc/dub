@@ -3,12 +3,10 @@
 import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
-import {
-  calculatePayoutFee,
-  PARTNER_PAYOUT_METHOD,
-  PARTNER_PAYOUT_METHODS,
-} from "@/lib/payment-methods";
+import { DIRECT_DEBIT_PAYMENT_METHODS } from "@/lib/partners/constants";
+import { calculatePayoutFee } from "@/lib/payment-methods";
 import { stripe } from "@/lib/stripe";
+import { DIRECT_DEBIT_PAYMENT_METHOD } from "@/lib/types";
 import { sendEmail } from "@dub/email";
 import PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
 import { prisma } from "@dub/prisma";
@@ -21,7 +19,11 @@ const confirmPayoutsSchema = z.object({
   paymentMethodId: z.string(),
 });
 
-const allowedPaymentMethods = ["card", "link", ...PARTNER_PAYOUT_METHODS];
+const ALLOWED_PAYMENT_METHODS = [
+  "card",
+  "link",
+  ...DIRECT_DEBIT_PAYMENT_METHODS,
+];
 
 // Confirm payouts
 export const confirmPayoutsAction = authActionClient
@@ -48,9 +50,9 @@ export const confirmPayoutsAction = authActionClient
       throw new Error("Invalid payout method.");
     }
 
-    if (!allowedPaymentMethods.includes(paymentMethod.type)) {
+    if (!ALLOWED_PAYMENT_METHODS.includes(paymentMethod.type)) {
       throw new Error(
-        `We only support ${PARTNER_PAYOUT_METHODS.join(
+        `We only support ${ALLOWED_PAYMENT_METHODS.join(
           ", ",
         )} for now. Please update your payout method to one of these.`,
       );
@@ -133,7 +135,7 @@ export const confirmPayoutsAction = authActionClient
       await stripe.paymentIntents.create({
         amount: invoice.total,
         customer: workspace.stripeId!,
-        payment_method_types: allowedPaymentMethods,
+        payment_method_types: ALLOWED_PAYMENT_METHODS,
         payment_method: paymentMethod.id,
         currency: "usd",
         confirmation_method: "automatic",
@@ -161,12 +163,12 @@ export const confirmPayoutsAction = authActionClient
 
     waitUntil(
       (async () => {
-        // Send emails to all the partners involved in the payouts if the payout method is ACH
-        // ACH takes 4 business days to process
+        // Send emails to all the partners involved in the payouts if the payout method is direct debit
+        // Direct debit takes 4-5 business days to process
         if (
           newInvoice &&
-          PARTNER_PAYOUT_METHODS.includes(
-            paymentMethod.type as PARTNER_PAYOUT_METHOD,
+          DIRECT_DEBIT_PAYMENT_METHODS.includes(
+            paymentMethod.type as DIRECT_DEBIT_PAYMENT_METHOD,
           )
         ) {
           await Promise.all(
