@@ -15,17 +15,20 @@ export function CountryCombobox({
 }) {
   const options = useMemo(
     () =>
-      Object.entries(COUNTRIES).map(([key, value]) => ({
-        icon: (
-          <img
-            alt={value}
-            src={`https://hatscripts.github.io/circle-flags/flags/${key.toLowerCase()}.svg`}
-            className="mr-1.5 size-4"
-          />
-        ),
-        value: key,
-        label: value,
-      })),
+      Object.entries(COUNTRIES)
+        // show United States first
+        .sort((a, b) => (a[0] === "US" ? -1 : b[0] === "US" ? 1 : 0))
+        .map(([key, value]) => ({
+          icon: (
+            <img
+              alt={value}
+              src={`https://hatscripts.github.io/circle-flags/flags/${key.toLowerCase()}.svg`}
+              className="mr-1.5 size-4"
+            />
+          ),
+          value: key,
+          label: value,
+        })),
     [],
   );
 

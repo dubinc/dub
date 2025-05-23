@@ -174,6 +174,10 @@ function TargetingModal({
                               setValue("geo", newGeo, { shouldDirty: true });
                             }}
                             options={Object.entries(COUNTRIES)
+                              // show United States first
+                              .sort((a, b) =>
+                                a[0] === "US" ? -1 : b[0] === "US" ? 1 : 0,
+                              )
                               .filter(
                                 ([ck]) =>
                                   ck === key || !Object.keys(geo).includes(ck),
