@@ -2,8 +2,10 @@ import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
+import { analyticsResponse } from "@/lib/zod/schemas/analytics-response";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 export const dynamic = "force-dynamic";
 
@@ -92,16 +94,58 @@ export async function GET(req: Request) {
           continue;
         }
 
-        const { clicks: quantity } = await getAnalytics({
-          linkId,
-          start,
-          end,
-          groupBy: "count",
-          event: "clicks",
-        });
+        let earnings = 0;
+        let quantity = 0;
+
+        // if the reward has geo rules, we need to get the clicks count by country
+        if (reward.geoRules) {
+          const clickResponse: z.infer<
+            (typeof analyticsResponse)["countries"]
+          >[] = await getAnalytics({
+            linkId,
+            start,
+            end,
+            groupBy: "countries",
+            event: "clicks",
+          });
+
+          for (const { country, clicks } of clickResponse) {
+            quantity += clicks;
+
+            if (reward.geoRules[country]) {
+              earnings += reward.geoRules[country] * clicks;
+            } else {
+              earnings += reward.amount * clicks;
+            }
+          }
+        }
+
+        // otherwise, we can just get the total clicks
+        else {
+          const clickResponse: z.infer<(typeof analyticsResponse)["count"]> =
+            await getAnalytics({
+              linkId,
+              start,
+              end,
+              groupBy: "count",
+              event: "clicks",
+            });
+
+          quantity = clickResponse.clicks;
+          earnings = reward.amount * quantity;
+        }
 
         if (!quantity || quantity === 0) {
           console.log("No clicks found for link", {
+            linkId,
+            programId,
+            partnerId,
+          });
+          continue;
+        }
+
+        if (!earnings || earnings === 0) {
+          console.log("No earnings found for link", {
             linkId,
             programId,
             partnerId,
@@ -125,6 +169,7 @@ export async function GET(req: Request) {
           partnerId,
           linkId,
           quantity,
+          clickEarnings: earnings,
         });
       }
     }

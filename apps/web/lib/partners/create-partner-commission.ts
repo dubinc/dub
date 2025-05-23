@@ -19,6 +19,7 @@ export const createPartnerCommission = async ({
   invoiceId,
   amount = 0,
   quantity,
+  clickEarnings,
   currency,
   createdAt,
 }: {
@@ -35,6 +36,7 @@ export const createPartnerCommission = async ({
   invoiceId?: string | null;
   amount?: number;
   quantity: number;
+  clickEarnings?: number; // only for clicks rewards
   currency?: string;
   createdAt?: Date;
 }) => {
@@ -53,9 +55,9 @@ export const createPartnerCommission = async ({
     }
   }
 
-  // Apply geo rules if the event is click or lead
+  // Apply geo rules if the event is lead
   if (
-    ["click", "lead"].includes(event) &&
+    event === "lead" &&
     customerCountry &&
     reward.geoRules &&
     reward.geoRules[customerCountry]
@@ -74,8 +76,6 @@ export const createPartnerCommission = async ({
       amount,
     };
   }
-
-  console.log("reward", reward);
 
   let status: CommissionStatus = "pending";
 
@@ -129,16 +129,21 @@ export const createPartnerCommission = async ({
     }
   }
 
-  let earnings =
-    event === "sale"
-      ? calculateSaleEarnings({
-          reward,
-          sale: {
-            quantity,
-            amount,
-          },
-        })
-      : reward.amount * quantity;
+  let earnings = 0;
+
+  if (event === "click") {
+    earnings = clickEarnings || 0;
+  } else if (event === "lead") {
+    earnings = reward.amount * quantity;
+  } else if (event === "sale") {
+    earnings = calculateSaleEarnings({
+      reward,
+      sale: {
+        quantity,
+        amount,
+      },
+    });
+  }
 
   // handle rewards with max reward amount limit
   if (reward.maxAmount) {
@@ -172,7 +177,7 @@ export const createPartnerCommission = async ({
   }
 
   try {
-    const commission = await prisma.commission.create({
+    return await prisma.commission.create({
       data: {
         id: createId({ prefix: "cm_" }),
         programId,
@@ -190,8 +195,6 @@ export const createPartnerCommission = async ({
         createdAt,
       },
     });
-
-    return commission;
   } catch (error) {
     console.error("Error creating commission", error);
 
