@@ -1,19 +1,9 @@
-import { createId } from "@/lib/api/create-id";
-import { encodeKeyIfCaseSensitive } from "@/lib/api/links/case-sensitivity";
-import { conn } from "@/lib/planetscale";
 import { redis } from "@/lib/upstash";
 import z from "@/lib/zod";
-import {
-  DUB_HEADERS,
-  getUrlFromStringIfValid,
-  linkConstructorSimple,
-} from "@dub/utils";
-import { waitUntil } from "@vercel/functions";
+import { DUB_HEADERS, getUrlFromStringIfValid } from "@dub/utils";
 import { NextRequest, NextResponse } from "next/server";
 
 const workspaceId = "cm05wnnpo000711ztj05wwdbu";
-const userId = "cm05wnd49000411ztg2xbup0i";
-const folderId = "fold_1JNQBVZV8P0NA0YGB11W2HHSQ";
 
 // GET /api/links/crawl/bitly – crawl a bitly link and redirect to the destination if exists
 export const GET = async (_req: NextRequest, { params }) => {
@@ -34,55 +24,6 @@ export const GET = async (_req: NextRequest, { params }) => {
       const sanitizedUrl = getUrlFromStringIfValid(link.long_url);
 
       if (sanitizedUrl) {
-        const processedKey = encodeKeyIfCaseSensitive({
-          domain,
-          key,
-        });
-
-        const newLink = {
-          id: createId({ prefix: "link_" }),
-          projectId: workspaceId,
-          userId,
-          domain,
-          key: processedKey,
-          url: sanitizedUrl,
-          shortLink: linkConstructorSimple({
-            domain,
-            key: processedKey,
-          }),
-          archived: false,
-          folderId,
-          createdAt: new Date(link.created_at),
-          updatedAt: new Date(link.created_at),
-        };
-
-        console.log(
-          `[Bitly] Creating link ${newLink.shortLink} -> ${newLink.url}`,
-        );
-
-        waitUntil(
-          (async () => {
-            try {
-              await conn.execute(
-                "INSERT INTO Link (id, projectId, userId, domain, `key`, url, shortLink, archived, folderId, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                [
-                  newLink.id,
-                  newLink.projectId,
-                  newLink.userId,
-                  newLink.domain,
-                  newLink.key,
-                  newLink.url,
-                  newLink.shortLink,
-                  newLink.archived,
-                  newLink.folderId,
-                  newLink.createdAt,
-                  newLink.updatedAt,
-                ],
-              );
-            } catch (_e) {}
-          })(),
-        );
-
         return NextResponse.redirect(sanitizedUrl, {
           headers: DUB_HEADERS,
           status: 302,

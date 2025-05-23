@@ -23,7 +23,6 @@ import { ReactNode, useMemo } from "react";
 import UserSurveyButton from "../user-survey";
 import { ConnectedDots4 } from "./icons/connected-dots4";
 import { CursorRays } from "./icons/cursor-rays";
-import { Gear } from "./icons/gear";
 import { Hyperlink } from "./icons/hyperlink";
 import { LinesY } from "./icons/lines-y";
 import { User } from "./icons/user";
@@ -67,20 +66,10 @@ const NAV_AREAS: SidebarNavAreas<{
             icon: User,
             href: `/${slug}/customers`,
           },
-          {
-            name: "Settings",
-            icon: Gear,
-            href: `/${slug}/settings`,
-          },
-        ],
-      },
-      ...(defaultProgramId
-        ? [
-            {
-              name: "Programs",
-              items: [
+          ...(defaultProgramId
+            ? [
                 {
-                  name: "Affiliate",
+                  name: "Program",
                   icon: ConnectedDots4,
                   href: `/${slug}/programs/${defaultProgramId}`,
                   items: [
@@ -111,10 +100,10 @@ const NAV_AREAS: SidebarNavAreas<{
                     },
                   ],
                 },
-              ],
-            },
-          ]
-        : []),
+              ]
+            : []),
+        ],
+      },
     ],
   }),
 
