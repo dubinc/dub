@@ -403,7 +403,10 @@ export function PayoutInvoiceSheet({
       open={isOpen}
       onOpenChange={setIsOpen}
       onClose={() => {
-        queryParams({ del: "payoutId", scroll: false });
+        queryParams({
+          del: ["payoutId", "confirmPayouts"],
+          scroll: false,
+        });
       }}
     >
       <PayoutInvoiceSheetContent setIsOpen={setIsOpen} />
