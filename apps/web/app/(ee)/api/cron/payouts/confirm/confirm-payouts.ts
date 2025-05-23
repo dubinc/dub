@@ -27,8 +27,6 @@ export async function confirmPayouts({
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
   );
 
-  const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
-
   const payouts = await prisma.payout.findMany({
     where: {
       programId: program.id,
@@ -72,6 +70,8 @@ export async function confirmPayouts({
   if (payouts.length === 0) {
     return;
   }
+
+  const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
 
   // Create the invoice for the payouts
   const newInvoice = await prisma.$transaction(async (tx) => {
