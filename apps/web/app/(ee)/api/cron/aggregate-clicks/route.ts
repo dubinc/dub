@@ -2,7 +2,6 @@ import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
-import { RewardProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
@@ -120,7 +119,7 @@ export async function GET(req: Request) {
         });
 
         await createPartnerCommission({
-          reward: reward as RewardProps,
+          reward,
           event: "click",
           programId,
           partnerId,

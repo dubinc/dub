@@ -34,6 +34,10 @@ export const createRewardAction = authActionClient
       );
     }
 
+    if (geoRules && event === "sale") {
+      throw new Error("Geo specific rules are not allowed for sale rewards.");
+    }
+
     let programEnrollments: { id: string }[] = [];
 
     // only one program-wide reward is allowed for each event

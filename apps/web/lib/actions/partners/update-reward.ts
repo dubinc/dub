@@ -40,6 +40,10 @@ export const updateRewardAction = authActionClient
       },
     );
 
+    if (geoRules && reward.event === "sale") {
+      throw new Error("Geo specific rules are not allowed for sale rewards.");
+    }
+
     let programEnrollments: { id: string }[] = [];
 
     if (partnerIds && partnerIds.length > 0) {
@@ -87,7 +91,7 @@ export const updateRewardAction = authActionClient
         amount,
         maxDuration,
         maxAmount,
-        ...(reward.event === "lead" && {
+        ...(["click", "lead"].includes(reward.event) && {
           geoRules: geoRules || Prisma.JsonNull,
         }),
         ...(programEnrollments && {

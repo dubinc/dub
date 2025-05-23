@@ -53,9 +53,9 @@ export const createPartnerCommission = async ({
     }
   }
 
-  // Apply geo rules if the event is lead and the customer country is specified
+  // Apply geo rules if the event is click or lead
   if (
-    event === "lead" &&
+    ["click", "lead"].includes(event) &&
     customerCountry &&
     reward.geoRules &&
     reward.geoRules[customerCountry]
@@ -74,6 +74,8 @@ export const createPartnerCommission = async ({
       amount,
     };
   }
+
+  console.log("reward", reward);
 
   let status: CommissionStatus = "pending";
 

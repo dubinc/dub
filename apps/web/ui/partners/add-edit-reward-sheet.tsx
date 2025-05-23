@@ -623,12 +623,8 @@ function RewardSheetContent({
               </div>
             </div>
 
-            {selectedEvent === "lead" && (
-              <GeoRulesSection
-                geoRules={geoRules}
-                setValue={setValue}
-                register={register}
-              />
+            {["click", "lead"].includes(selectedEvent) && (
+              <GeoRulesSection geoRules={geoRules} setValue={setValue} />
             )}
 
             {displayPartners && program?.id && (
@@ -782,11 +778,9 @@ function RewardLimitSection({
 function GeoRulesSection({
   geoRules,
   setValue,
-  register,
 }: {
   geoRules: Record<string, number> | null;
   setValue: UseFormSetValue<FormData>;
-  register: UseFormRegister<FormData>;
 }) {
   return (
     <div className="grid grid-cols-1">
@@ -906,6 +900,7 @@ function GeoRulesSection({
             ))}
           </div>
         )}
+
         <Button
           type="button"
           variant="secondary"
