@@ -5,12 +5,14 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutsCount } from "@/lib/types";
 import { usePayoutInvoiceSheet } from "@/ui/partners/payout-invoice-sheet";
 import { PayoutStatus } from "@dub/prisma/client";
-import { Button, buttonVariants, Tooltip } from "@dub/ui";
+import { Button, buttonVariants, Tooltip, useRouterStuff } from "@dub/ui";
 import { cn, currencyFormatter } from "@dub/utils";
 import Link from "next/link";
+import { useEffect } from "react";
 
 export function PayoutStats() {
   const { slug } = useWorkspace();
+  const { searchParams } = useRouterStuff();
   const { payoutInvoiceSheet, setIsOpen } = usePayoutInvoiceSheet();
 
   const { payoutsCount, loading } = usePayoutsCount<PayoutsCount[]>({
@@ -24,6 +26,14 @@ export function PayoutStats() {
     groupBy: "status",
     eligibility: "eligible",
   });
+
+  useEffect(() => {
+    const confirmPayouts = searchParams.get("confirmPayouts");
+
+    if (confirmPayouts) {
+      setIsOpen(true);
+    }
+  }, [searchParams]);
 
   const allPendingPayouts = payoutsCount?.find(
     (p) => p.status === PayoutStatus.pending,

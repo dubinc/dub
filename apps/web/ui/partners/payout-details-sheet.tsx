@@ -40,6 +40,7 @@ type PayoutDetailsSheetProps = {
 function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
   const { id: workspaceId, slug } = useWorkspace();
   const { programId } = useParams() as { programId: string };
+  const { queryParams } = useRouterStuff();
 
   const {
     data: commissions,
@@ -241,6 +242,15 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
                 variant="secondary"
                 loading={isLoading}
                 text="Confirm all pending payouts"
+                onClick={() => {
+                  queryParams({
+                    set: {
+                      confirmPayouts: "true",
+                    },
+                    del: "payoutId",
+                    scroll: false,
+                  });
+                }}
               />
             </div>
           </>
