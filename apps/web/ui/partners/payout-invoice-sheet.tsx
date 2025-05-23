@@ -1,11 +1,12 @@
 import { confirmPayoutsAction } from "@/lib/actions/partners/confirm-payouts";
-import { PAYOUT_FEES } from "@/lib/partners/constants";
+import { DIRECT_DEBIT_PAYMENT_METHODS } from "@/lib/partners/constants";
+import { calculatePayoutFee } from "@/lib/payment-methods";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import usePayouts from "@/lib/swr/use-payouts";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { PayoutsCount } from "@/lib/types";
+import { DIRECT_DEBIT_PAYMENT_METHOD, PayoutsCount } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import { PayoutStatus } from "@dub/prisma/client";
 import {
@@ -44,43 +45,53 @@ interface PayoutInvoiceSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }
 
+const PAYMENT_METHODS = Object.freeze({
+  link: {
+    label: "link",
+    type: "link",
+    icon: CreditCard,
+    duration: "Instantly",
+  },
+  card: {
+    label: "card",
+    type: "card",
+    icon: CreditCard,
+    duration: "Instantly",
+  },
+  us_bank_account: {
+    label: "ACH",
+    type: "us_bank_account",
+    icon: GreekTemple,
+    duration: "4 business days",
+  },
+  acss_debit: {
+    label: "ACSS Debit",
+    type: "acss_debit",
+    icon: GreekTemple,
+    duration: "5 business days",
+  },
+  sepa_debit: {
+    label: "SEPA Debit",
+    type: "sepa_debit",
+    icon: GreekTemple,
+    duration: "5 business days",
+  },
+});
+
+type PAYMENT_METHOD = (typeof PAYMENT_METHODS)[keyof typeof PAYMENT_METHODS] & {
+  id: string;
+  fee: number;
+};
+
 function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
-  const { programId } = useParams() as { programId: string };
+  const { programId } = useParams<{ programId: string }>();
   const { id: workspaceId, slug, plan } = useWorkspace();
+
   const { paymentMethods, loading: paymentMethodsLoading } =
     usePaymentMethods();
 
-  const paymentMethodsTypes = Object.freeze({
-    link: {
-      label: "link",
-      type: "link",
-      icon: CreditCard,
-      fee: PAYOUT_FEES[plan?.split(" ")[0] ?? "business"].card,
-      duration: "Instantly",
-    },
-    card: {
-      label: "card",
-      type: "card",
-      icon: CreditCard,
-      fee: PAYOUT_FEES[plan?.split(" ")[0] ?? "business"].card,
-      duration: "Instantly",
-    },
-    us_bank_account: {
-      label: "ACH",
-      type: "us_bank_account",
-      icon: GreekTemple,
-      fee: PAYOUT_FEES[plan?.split(" ")[0] ?? "business"].ach,
-      duration: "4 business days",
-    },
-  });
-
-  type PaymentMethodWithFee =
-    (typeof paymentMethodsTypes)[keyof typeof paymentMethodsTypes] & {
-      id: string;
-    };
-
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
-    useState<PaymentMethodWithFee | null>(null);
+    useState<PAYMENT_METHOD | null>(null);
 
   const {
     payoutsCount: eligiblePayoutsCount,
@@ -115,34 +126,48 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
     },
   });
 
-  // Set the first payment method as the selected payment method
-  useEffect(() => {
-    if (!paymentMethods || !paymentMethods.length) {
-      return;
-    }
-
-    if (!selectedPaymentMethod) {
-      const firstPaymentMethod = paymentMethods[0];
-      setSelectedPaymentMethod({
-        ...paymentMethodsTypes[firstPaymentMethod.type],
-        id: firstPaymentMethod.id,
-      });
-    }
-  }, [paymentMethods, selectedPaymentMethod]);
-
-  const paymentMethodsWithFee = useMemo(
+  const finalPaymentMethods = useMemo(
     () =>
-      paymentMethods?.map((pm) => ({
-        ...paymentMethodsTypes[pm.type],
-        id: pm.id,
-        title: pm.link
-          ? `Link – ${truncate(pm.link.email, 16)}`
-          : pm.card
-            ? `${capitalize(pm.card?.brand)} **** ${pm.card?.last4}`
-            : `ACH **** ${pm.us_bank_account?.last4}`,
-      })),
-    [paymentMethods],
+      paymentMethods?.map((pm) => {
+        const paymentMethod = PAYMENT_METHODS[pm.type];
+
+        const base = {
+          ...paymentMethod,
+          id: pm.id,
+          fee: calculatePayoutFee(pm.type, plan),
+        };
+
+        if (pm.link) {
+          return {
+            ...base,
+            title: `Link – ${truncate(pm.link.email, 16)}`,
+          };
+        }
+
+        if (pm.card) {
+          return {
+            ...base,
+            title: `${capitalize(pm.card.brand)} **** ${pm.card.last4}`,
+          };
+        }
+
+        return {
+          ...base,
+          title: `${paymentMethod.label} **** ${pm[paymentMethod.type]?.last4}`,
+        };
+      }),
+    [paymentMethods, plan],
   );
+
+  useEffect(() => {
+    if (
+      !selectedPaymentMethod &&
+      finalPaymentMethods &&
+      finalPaymentMethods.length > 0
+    ) {
+      setSelectedPaymentMethod(finalPaymentMethods[0]);
+    }
+  }, [finalPaymentMethods, selectedPaymentMethod]);
 
   const invoiceData = useMemo(() => {
     if (eligiblePayoutsCountLoading) {
@@ -183,13 +208,12 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
               value={selectedPaymentMethod?.id || ""}
               onChange={(e) =>
                 setSelectedPaymentMethod(
-                  paymentMethodsWithFee?.find(
-                    (pm) => pm.id === e.target.value,
-                  ) || null,
+                  finalPaymentMethods?.find((pm) => pm.id === e.target.value) ||
+                    null,
                 )
               }
             >
-              {paymentMethodsWithFee?.map(({ id, title }) => (
+              {finalPaymentMethods?.map(({ id, title }) => (
                 <option key={id} value={id}>
                   {title}
                 </option>
@@ -218,7 +242,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
         <Tooltip
           content={
             <SimpleTooltipContent
-              title={`${Math.round(selectedPaymentMethod.fee * 100)}% processing fee.${selectedPaymentMethod.type !== "us_bank_account" ? " Switch to ACH for a reduced fee." : ""}`}
+              title={`${Math.round(selectedPaymentMethod.fee * 100)}% processing fee. ${!DIRECT_DEBIT_PAYMENT_METHODS.includes(selectedPaymentMethod.type as DIRECT_DEBIT_PAYMENT_METHOD) ? " Switch to Direct Debit for a reduced fee." : ""}`}
               cta="Learn more"
               href="https://d.to/payouts"
             />
@@ -256,6 +280,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
     paymentMethods,
     selectedPaymentMethod,
   ]);
+
   const table = useTable({
     data: eligiblePayouts || [],
     columns: [

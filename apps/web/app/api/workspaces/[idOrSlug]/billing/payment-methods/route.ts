@@ -1,10 +1,29 @@
+import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { DIRECT_DEBIT_PAYMENT_METHODS } from "@/lib/partners/constants";
 import { stripe } from "@/lib/stripe";
 import { APP_DOMAIN } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+const addPaymentMethodSchema = z.object({
+  method: z.enum(["card", ...DIRECT_DEBIT_PAYMENT_METHODS]).optional(),
+});
+
+const stripePaymentMethodOptions = {
+  us_bank_account: {},
+  acss_debit: {
+    currency: "usd",
+    mandate_options: {
+      payment_schedule: "sporadic",
+      transaction_type: "business",
+    },
+  },
+  sepa_debit: {},
+};
+
+// GET /api/workspaces/[idOrSlug]/billing/payment-methods - get all payment methods
 export const GET = withWorkspace(async ({ workspace }) => {
   if (!workspace.stripeId) {
     return NextResponse.json([]);
@@ -30,13 +49,13 @@ export const GET = withWorkspace(async ({ workspace }) => {
   }
 });
 
-const addPaymentMethodSchema = z.object({
-  method: z.enum(["card", "us_bank_account"]).optional(),
-});
-
+// POST /api/workspaces/[idOrSlug]/billing/payment-methods - add a payment method for the workspace
 export const POST = withWorkspace(async ({ workspace, req }) => {
   if (!workspace.stripeId) {
-    return NextResponse.json({ error: "Workspace does not have a Stripe ID" });
+    throw new DubApiError({
+      code: "bad_request",
+      message: "Workspace does not have a Stripe ID.",
+    });
   }
 
   const { method } = addPaymentMethodSchema.parse(await parseRequestBody(req));
@@ -57,6 +76,10 @@ export const POST = withWorkspace(async ({ workspace, req }) => {
     mode: "setup",
     customer: workspace.stripeId,
     payment_method_types: [method],
+    payment_method_options: {
+      [method]: stripePaymentMethodOptions[method],
+    },
+    currency: "usd",
     success_url: `${APP_DOMAIN}/${workspace.slug}/settings/billing`,
     cancel_url: `${APP_DOMAIN}/${workspace.slug}/settings/billing`,
   });

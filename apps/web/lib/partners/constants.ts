@@ -18,3 +18,9 @@ export const PAYOUT_FEES = {
 };
 
 export const DUB_MIN_PAYOUT_AMOUNT_CENTS = 10000;
+
+export const DIRECT_DEBIT_PAYMENT_METHODS = [
+  "us_bank_account",
+  "acss_debit",
+  "sepa_debit",
+] as const;
