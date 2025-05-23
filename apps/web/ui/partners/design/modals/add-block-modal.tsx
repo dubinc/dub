@@ -1,8 +1,9 @@
 "use client";
 
 import { programLanderBlockSchema } from "@/lib/zod/schemas/program-lander";
-import { Modal } from "@dub/ui";
-import { Dispatch, Fragment, SetStateAction, useState } from "react";
+import { Calculator, Icon, Modal } from "@dub/ui";
+import { cn } from "@dub/utils";
+import { Dispatch, Fragment, ReactNode, SetStateAction, useState } from "react";
 import { useWatch } from "react-hook-form";
 import { v4 as uuid } from "uuid";
 import { z } from "zod";
@@ -32,13 +33,15 @@ export function AddBlockModal(props: AddBlockModalProps) {
   );
 }
 
-export const DESIGNER_BLOCKS: {
+export const DESIGNER_BLOCKS: ({
   id: z.infer<typeof programLanderBlockSchema>["type"];
   label: string;
   description: string;
   modal: React.ComponentType<any>;
-  thumbnail: React.ReactNode;
-}[] = [
+} & (
+  | { icon: Icon; thumbnail?: never }
+  | { thumbnail: ReactNode; icon?: never }
+))[] = [
   {
     id: "text",
     label: "Text",
@@ -67,6 +70,13 @@ export const DESIGNER_BLOCKS: {
     modal: AccordionBlockModal,
     thumbnail: <AccordionBlockThumbnail />,
   },
+  {
+    id: "earnings-calculator",
+    label: "Earnings Calculator",
+    description: "Calculate potential earnings for your program",
+    modal: TextBlockModal,
+    icon: Calculator,
+  },
 ];
 
 function AddBlockModalInner({
@@ -74,7 +84,7 @@ function AddBlockModalInner({
   addIndex,
 }: AddBlockModalProps) {
   const [modalState, setModalState] = useState<
-    null | "text" | "image" | "files" | "accordion"
+    null | z.infer<typeof programLanderBlockSchema>["type"]
   >(null);
 
   const { control, setValue } = useBrandingFormContext();
@@ -116,11 +126,20 @@ function AddBlockModalInner({
               <button
                 type="button"
                 onClick={() => setModalState(block.id)}
-                className="flex flex-col gap-4 rounded-md border border-transparent bg-neutral-100 p-4 text-left outline-none ring-black/10 transition-all duration-150 hover:border-neutral-800 hover:ring focus-visible:border-neutral-800"
+                className={cn(
+                  "flex flex-col gap-4 rounded-md border border-transparent bg-neutral-100 p-4 text-left outline-none ring-black/10 transition-all duration-150 hover:border-neutral-800 hover:ring focus-visible:border-neutral-800",
+                  block.icon && "col-span-2 flex-row items-center",
+                )}
               >
-                <div className="flex h-24 items-center justify-center overflow-hidden rounded-md border border-neutral-200 bg-white">
-                  {block.thumbnail}
-                </div>
+                {block.icon ? (
+                  <div className="flex size-12 items-center justify-center overflow-hidden rounded-md border border-neutral-200 bg-white">
+                    <block.icon className="size-5 text-neutral-600" />
+                  </div>
+                ) : (
+                  <div className="flex h-24 items-center justify-center overflow-hidden rounded-md border border-neutral-200 bg-white">
+                    {block.thumbnail}
+                  </div>
+                )}
                 <div className="flex flex-col gap-1">
                   <span className="text-sm font-semibold text-neutral-900">
                     {block.label}

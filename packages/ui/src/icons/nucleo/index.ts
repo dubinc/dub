@@ -22,6 +22,7 @@ export * from "./brackets-curly";
 export * from "./brush";
 export * from "./bullet-list";
 export * from "./bullet-list-fill";
+export * from "./calculator";
 export * from "./calendar";
 export * from "./calendar-days";
 export * from "./calendar-refresh";

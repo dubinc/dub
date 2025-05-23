@@ -58,11 +58,20 @@ export const programLanderAccordionBlockSchema =
     }),
   });
 
+export const programLanderEarningsCalculatorBlockSchema =
+  programLanderBlockCommonSchema.extend({
+    type: z.literal("earnings-calculator"),
+    data: z.object({
+      productPrice: z.number(),
+    }),
+  });
+
 export const programLanderBlockSchema = z.discriminatedUnion("type", [
   programLanderImageBlockSchema,
   programLanderTextBlockSchema,
   programLanderFilesBlockSchema,
   programLanderAccordionBlockSchema,
+  programLanderEarningsCalculatorBlockSchema,
 ]);
 
 export const programLanderSchema = z.object({
