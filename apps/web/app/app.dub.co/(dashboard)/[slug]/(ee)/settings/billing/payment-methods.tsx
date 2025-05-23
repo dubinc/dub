@@ -1,8 +1,12 @@
 "use client";
 
+import {
+  PARTNER_PAYOUT_METHOD,
+  PARTNER_PAYOUT_METHODS,
+} from "@/lib/payment-methods";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { useAddPayoutMethodModal } from "@/ui/modals/add-payout-method-modal";
+import { useAddPaymentMethodModal } from "@/ui/modals/add-payment-method-modal";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { Badge, Button, CreditCard, GreekTemple, MoneyBill2 } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -12,8 +16,6 @@ import { useState } from "react";
 import { Stripe } from "stripe";
 import { PaymentMethodTypesList } from "./payment-method-types";
 
-const PARTNER_PAYMENT_METHODS = ["us_bank_account", "acss_debit", "sepa_debit"];
-
 export default function PaymentMethods() {
   const router = useRouter();
   const { paymentMethods } = usePaymentMethods();
@@ -21,11 +23,11 @@ export default function PaymentMethods() {
   const { slug, stripeId, partnersEnabled, plan } = useWorkspace();
 
   const regularPaymentMethods = paymentMethods?.filter(
-    (pm) => !PARTNER_PAYMENT_METHODS.includes(pm.type),
+    (pm) => !PARTNER_PAYOUT_METHODS.includes(pm.type as PARTNER_PAYOUT_METHOD),
   );
 
   const partnerPaymentMethods = paymentMethods?.filter((pm) =>
-    PARTNER_PAYMENT_METHODS.includes(pm.type),
+    PARTNER_PAYOUT_METHODS.includes(pm.type as PARTNER_PAYOUT_METHOD),
   );
 
   const managePaymentMethods = async () => {
@@ -125,9 +127,6 @@ const PaymentMethodCard = ({
   paymentMethod?: Stripe.PaymentMethod;
   forPayouts?: boolean;
 }) => {
-  const { setShowAddPayoutMethodModal, AddPayoutMethodModal } =
-    useAddPayoutMethodModal();
-
   const result = PaymentMethodTypesList(paymentMethod);
 
   const {
@@ -139,7 +138,6 @@ const PaymentMethodCard = ({
 
   return (
     <>
-      {AddPayoutMethodModal}
       <RecommendedForPayoutsWrapper recommended={forPayouts}>
         <div className="flex items-center justify-between rounded-lg border border-neutral-200 bg-white p-4 drop-shadow-sm">
           <div className="flex items-center gap-4">
@@ -155,7 +153,9 @@ const PaymentMethodCard = ({
               <div className="flex items-center gap-2">
                 <p className="font-medium text-neutral-900">{title}</p>
                 {paymentMethod &&
-                  (PARTNER_PAYMENT_METHODS.includes(type ?? "") ||
+                  (PARTNER_PAYOUT_METHODS.includes(
+                    type as (typeof PARTNER_PAYOUT_METHODS)[number],
+                  ) ||
                     paymentMethod.link?.email) && (
                     <Badge className="border-transparent bg-green-200 text-[0.625rem] text-green-900">
                       Connected
@@ -165,15 +165,6 @@ const PaymentMethodCard = ({
               <p className="text-sm text-neutral-500">{description}</p>
             </div>
           </div>
-
-          {!paymentMethod && (
-            <Button
-              variant="primary"
-              className="h-9 w-fit"
-              text="Connect"
-              onClick={() => setShowAddPayoutMethodModal(true)}
-            />
-          )}
         </div>
       </RecommendedForPayoutsWrapper>
     </>
@@ -181,12 +172,12 @@ const PaymentMethodCard = ({
 };
 
 const NoPartnerPaymentMethods = () => {
-  const { setShowAddPayoutMethodModal, AddPayoutMethodModal } =
-    useAddPayoutMethodModal();
+  const { setShowAddPaymentMethodModal, AddPaymentMethodModal } =
+    useAddPaymentMethodModal();
 
   return (
     <>
-      {AddPayoutMethodModal}
+      {AddPaymentMethodModal}
       <RecommendedForPayoutsWrapper recommended={true}>
         <div className="flex items-center justify-between rounded-lg border border-neutral-200 bg-white p-4 drop-shadow-sm">
           <div className="flex items-center gap-4">
@@ -210,7 +201,7 @@ const NoPartnerPaymentMethods = () => {
             variant="primary"
             className="h-9 w-fit"
             text="Connect"
-            onClick={() => setShowAddPayoutMethodModal(true)}
+            onClick={() => setShowAddPaymentMethodModal(true)}
           />
         </div>
       </RecommendedForPayoutsWrapper>

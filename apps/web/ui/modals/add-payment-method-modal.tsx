@@ -1,5 +1,6 @@
 "use client";
 
+import { PARTNER_PAYOUT_METHOD } from "@/lib/payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { X } from "@/ui/shared/icons";
 import { AnimatedSizeContainer, GreekTemple, Modal } from "@dub/ui";
@@ -7,14 +8,8 @@ import { useRouter } from "next/navigation";
 import { CSSProperties, Dispatch, SetStateAction, useState } from "react";
 import { toast } from "sonner";
 
-type PaymentMethods =
-  | "us_bank_account"
-  | "acss_debit"
-  | "sepa_debit"
-  | "au_becs_debit";
-
 const PAYMENT_METHODS: {
-  id: PaymentMethods;
+  id: PARTNER_PAYOUT_METHOD;
   location: string;
   method: string;
   icon: string;
@@ -37,44 +32,38 @@ const PAYMENT_METHODS: {
     method: "SEPA Debit",
     icon: "https://flag.vercel.app/m/US.svg", // TODO: update the flag icon
   },
-  // {
-  //   id: "au_becs_debit",
-  //   location: "AUS",
-  //   method: "AU BECS Debit",
-  //   icon: "https://flag.vercel.app/m/AU.svg",
-  // },
 ];
 
-function AddPayoutMethodModal({
-  showAddPayoutMethodModal,
-  setShowAddPayoutMethodModal,
+function AddPaymentMethodModal({
+  showAddPaymentMethodModal,
+  setShowAddPaymentMethodModal,
 }: {
-  showAddPayoutMethodModal: boolean;
-  setShowAddPayoutMethodModal: Dispatch<SetStateAction<boolean>>;
+  showAddPaymentMethodModal: boolean;
+  setShowAddPaymentMethodModal: Dispatch<SetStateAction<boolean>>;
 }) {
   return (
     <Modal
-      showModal={showAddPayoutMethodModal}
-      setShowModal={setShowAddPayoutMethodModal}
+      showModal={showAddPaymentMethodModal}
+      setShowModal={setShowAddPaymentMethodModal}
       className="max-h-[calc(100dvh-100px)] max-w-xl"
     >
-      <AddPayoutMethodModalInner
-        setShowAddPayoutMethodModal={setShowAddPayoutMethodModal}
+      <AddPaymentMethodModalInner
+        setShowAddPaymentMethodModal={setShowAddPaymentMethodModal}
       />
     </Modal>
   );
 }
 
-function AddPayoutMethodModalInner({
-  setShowAddPayoutMethodModal,
+function AddPaymentMethodModalInner({
+  setShowAddPaymentMethodModal,
 }: {
-  setShowAddPayoutMethodModal: Dispatch<SetStateAction<boolean>>;
+  setShowAddPaymentMethodModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const router = useRouter();
   const { slug } = useWorkspace();
   const [isLoading, setIsLoading] = useState(false);
 
-  const addPaymentMethod = async (method: PaymentMethods) => {
+  const addPaymentMethod = async (method: PARTNER_PAYOUT_METHOD) => {
     setIsLoading(true);
 
     const response = await fetch(
@@ -104,7 +93,7 @@ function AddPayoutMethodModalInner({
       <div className="p-4 sm:p-8">
         <button
           type="button"
-          onClick={() => setShowAddPayoutMethodModal(false)}
+          onClick={() => setShowAddPaymentMethodModal(false)}
           className="group absolute right-4 top-4 z-[1] hidden rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none active:bg-neutral-200 md:block"
         >
           <X className="size-5" />
@@ -164,16 +153,16 @@ function AddPayoutMethodModalInner({
   );
 }
 
-export function useAddPayoutMethodModal() {
-  const [showAddPayoutMethodModal, setShowAddPayoutMethodModal] =
+export function useAddPaymentMethodModal() {
+  const [showAddPaymentMethodModal, setShowAddPaymentMethodModal] =
     useState(false);
 
   return {
-    setShowAddPayoutMethodModal,
-    AddPayoutMethodModal: (
-      <AddPayoutMethodModal
-        showAddPayoutMethodModal={showAddPayoutMethodModal}
-        setShowAddPayoutMethodModal={setShowAddPayoutMethodModal}
+    setShowAddPaymentMethodModal,
+    AddPaymentMethodModal: (
+      <AddPaymentMethodModal
+        showAddPaymentMethodModal={showAddPaymentMethodModal}
+        setShowAddPaymentMethodModal={setShowAddPaymentMethodModal}
       />
     ),
   };

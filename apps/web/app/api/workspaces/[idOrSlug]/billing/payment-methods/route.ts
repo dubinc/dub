@@ -1,15 +1,14 @@
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { PARTNER_PAYOUT_METHODS } from "@/lib/payment-methods";
 import { stripe } from "@/lib/stripe";
 import { APP_DOMAIN } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 const addPaymentMethodSchema = z.object({
-  method: z
-    .enum(["card", "us_bank_account", "acss_debit", "sepa_debit"])
-    .optional(),
+  method: z.enum(["card", ...PARTNER_PAYOUT_METHODS]).optional(),
 });
 
 const stripePaymentMethodOptions = {
