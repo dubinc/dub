@@ -481,6 +481,7 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
                         <Component
                           block={block}
                           logo={program.logo}
+                          brandColor={brandColor}
                           reward={program.rewards?.find(
                             (r) => r.id === program.defaultRewardId,
                           )}

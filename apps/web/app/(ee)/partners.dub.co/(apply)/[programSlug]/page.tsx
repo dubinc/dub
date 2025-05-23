@@ -56,6 +56,7 @@ export default async function ApplyPage({
                 key={idx}
                 block={block}
                 logo={program.logo}
+                brandColor={program.brandColor}
                 reward={program.rewards?.find(
                   (r) => r.id === program.defaultRewardId,
                 )}
