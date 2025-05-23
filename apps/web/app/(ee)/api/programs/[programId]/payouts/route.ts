@@ -75,7 +75,10 @@ export const GET = withWorkspace(
     });
 
     const result = excludeCurrentMonth
-      ? excludeCurrentMonthCommissions(payouts)
+      ? excludeCurrentMonthCommissions({
+          payouts,
+          minPayoutAmount,
+        })
       : payouts;
 
     return NextResponse.json(z.array(PayoutResponseSchema).parse(result));
@@ -83,11 +86,15 @@ export const GET = withWorkspace(
 );
 
 // Exclude the current month's commissions from the payouts
-const excludeCurrentMonthCommissions = (
+const excludeCurrentMonthCommissions = ({
+  payouts,
+  minPayoutAmount,
+}: {
   payouts: (z.infer<typeof PayoutResponseSchema> & {
     commissions: Commission[];
-  })[],
-) => {
+  })[];
+  minPayoutAmount: number;
+}) => {
   const allPayouts = payouts.map((payout) => {
     // custom payouts
     if (!payout.periodStart && !payout.periodEnd) {
@@ -104,5 +111,5 @@ const excludeCurrentMonthCommissions = (
     };
   });
 
-  return allPayouts.filter((payout) => payout.amount > 0);
+  return allPayouts.filter((payout) => payout.amount >= minPayoutAmount);
 };
