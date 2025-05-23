@@ -30,6 +30,8 @@ import {
   Trash,
 } from "@dub/ui";
 import { cn, COUNTRIES, pluralize } from "@dub/utils";
+import { motion } from "framer-motion";
+import { ChevronDown } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
@@ -103,6 +105,8 @@ function RewardSheetContent({
   const [commissionStructure, setCommissionStructure] = useState<
     "one-off" | "recurring"
   >("recurring");
+
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
 
   const {
     register,
@@ -624,7 +628,31 @@ function RewardSheetContent({
             </div>
 
             {["click", "lead"].includes(selectedEvent) && (
-              <GeoRulesSection geoRules={geoRules} setValue={setValue} />
+              <div className="flex flex-col gap-2">
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-2"
+                  onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+                >
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm text-neutral-600">
+                      {showAdvancedOptions ? "Hide" : "Show"} advanced settings
+                    </p>
+                  </div>
+                  <motion.div
+                    animate={{ rotate: showAdvancedOptions ? 180 : 0 }}
+                    className="text-neutral-600"
+                  >
+                    <ChevronDown className="size-4" />
+                  </motion.div>
+                </button>
+
+                <AnimatedSizeContainer height>
+                  {showAdvancedOptions && (
+                    <GeoRulesSection geoRules={geoRules} setValue={setValue} />
+                  )}
+                </AnimatedSizeContainer>
+              </div>
             )}
 
             {displayPartners && program?.id && (
