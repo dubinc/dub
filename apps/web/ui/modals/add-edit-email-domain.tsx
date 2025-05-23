@@ -1,9 +1,7 @@
 import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { DomainProps } from "@/lib/types";
-import { AddEditDomainForm } from "@/ui/domains/add-edit-domain-form";
-import { Button, ButtonProps, Modal, TooltipContent } from "@dub/ui";
-import { capitalize, pluralize } from "@dub/utils";
+import { EmailDomainProps } from "@/lib/types";
+import { Button, ButtonProps, Modal } from "@dub/ui";
 import {
   Dispatch,
   SetStateAction,
@@ -11,28 +9,29 @@ import {
   useMemo,
   useState,
 } from "react";
+import { AddEditEmailDomainForm } from "../domains/add-edit-email-domain-form";
 
-function AddEditDomainModal({
+function AddEditEmailDomainModal({
   showAddEditDomainModal,
   setShowAddEditDomainModal,
   props,
 }: {
   showAddEditDomainModal: boolean;
   setShowAddEditDomainModal: Dispatch<SetStateAction<boolean>>;
-  props?: DomainProps;
+  props?: EmailDomainProps;
 }) {
   return (
     <Modal
-      showModal={showAddEditDomainModal} // TODO change back to showAddEditDomainModal
+      showModal={showAddEditDomainModal}
       setShowModal={setShowAddEditDomainModal}
       drawerRootProps={{ repositionInputs: false }}
       className="max-h-[90vh] max-w-lg"
     >
       <h3 className="border-b border-neutral-200 px-4 py-4 text-lg font-medium sm:px-6">
-        {props ? "Update" : "Add"} custom domain
+        {props ? "Update" : "Add"} email domain
       </h3>
       <div className="flex-1 overflow-auto bg-neutral-50">
-        <AddEditDomainForm
+        <AddEditEmailDomainForm
           props={props}
           onSuccess={() => {
             setShowAddEditDomainModal(false);
@@ -44,14 +43,14 @@ function AddEditDomainModal({
   );
 }
 
-function AddDomainButton({
+function AddEmailDomainButton({
   setShowAddEditDomainModal,
   buttonProps,
 }: {
   setShowAddEditDomainModal: Dispatch<SetStateAction<boolean>>;
   buttonProps?: Partial<ButtonProps>;
 }) {
-  const { slug, plan, role, domainsLimit, exceededDomains } = useWorkspace();
+  const { role } = useWorkspace();
 
   const permissionsError = clientAccessCheck({
     action: "domains.write",
@@ -61,18 +60,8 @@ function AddDomainButton({
   return (
     <div>
       <Button
-        text="Add custom domain"
-        disabledTooltip={
-          exceededDomains ? (
-            <TooltipContent
-              title={`You can only add up to ${domainsLimit} ${pluralize("domain", domainsLimit || 0)} on the ${capitalize(plan)} plan. Upgrade to add more domains`}
-              cta="Upgrade"
-              href={`/${slug}/upgrade`}
-            />
-          ) : (
-            permissionsError || undefined
-          )
-        }
+        text="Add email domain"
+        disabledTooltip={permissionsError}
         onClick={() => setShowAddEditDomainModal(true)}
         {...buttonProps}
       />
@@ -80,15 +69,15 @@ function AddDomainButton({
   );
 }
 
-export function useAddEditDomainModal({
+export function useAddEditEmailDomainModal({
   props,
   buttonProps,
-}: { props?: DomainProps; buttonProps?: Partial<ButtonProps> } = {}) {
+}: { props?: EmailDomainProps; buttonProps?: Partial<ButtonProps> } = {}) {
   const [showAddEditDomainModal, setShowAddEditDomainModal] = useState(false);
 
   const AddEditDomainModalCallback = useCallback(() => {
     return (
-      <AddEditDomainModal
+      <AddEditEmailDomainModal
         showAddEditDomainModal={showAddEditDomainModal}
         setShowAddEditDomainModal={setShowAddEditDomainModal}
         props={props}
@@ -98,7 +87,7 @@ export function useAddEditDomainModal({
 
   const AddDomainButtonCallback = useCallback(() => {
     return (
-      <AddDomainButton
+      <AddEmailDomainButton
         setShowAddEditDomainModal={setShowAddEditDomainModal}
         buttonProps={buttonProps}
       />
