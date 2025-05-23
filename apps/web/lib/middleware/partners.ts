@@ -1,4 +1,4 @@
-import { parse } from "@/lib/middleware/utils";
+import { isValidInternalRedirect, parse } from "@/lib/middleware/utils";
 import { NextRequest, NextResponse } from "next/server";
 import { getDefaultPartnerId } from "./utils/get-default-partner";
 import { getUserViaToken } from "./utils/get-user-via-token";
@@ -43,9 +43,11 @@ export default async function PartnersMiddleware(req: NextRequest) {
       return NextResponse.redirect(new URL("/onboarding", req.url));
     }
 
-    // special case for handling ?next= query param
-    // only redirect if next is a valid relative path (not an absolute URL)
-    if (searchParamsObj.next && searchParamsObj.next.startsWith("/")) {
+    // Handle ?next= query param with proper validation to prevent open redirects
+    if (
+      searchParamsObj.next &&
+      isValidInternalRedirect(searchParamsObj.next, req.url)
+    ) {
       return NextResponse.redirect(new URL(searchParamsObj.next, req.url));
     }
 
