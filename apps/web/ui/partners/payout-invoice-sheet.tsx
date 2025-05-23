@@ -1,11 +1,12 @@
 import { confirmPayoutsAction } from "@/lib/actions/partners/confirm-payouts";
+import { DIRECT_DEBIT_PAYMENT_METHODS } from "@/lib/partners/constants";
 import { calculatePayoutFee } from "@/lib/payment-methods";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import usePayouts from "@/lib/swr/use-payouts";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { PayoutsCount } from "@/lib/types";
+import { DIRECT_DEBIT_PAYMENT_METHOD, PayoutsCount } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import { PayoutStatus } from "@dub/prisma/client";
 import {
@@ -125,22 +126,6 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
     },
   });
 
-  // Set the first payment method as the selected payment method
-  useEffect(() => {
-    if (!paymentMethods || !paymentMethods.length) {
-      return;
-    }
-
-    if (!selectedPaymentMethod) {
-      const firstPaymentMethod = paymentMethods[0];
-
-      setSelectedPaymentMethod({
-        ...PAYMENT_METHODS[firstPaymentMethod.type],
-        id: firstPaymentMethod.id,
-      });
-    }
-  }, [paymentMethods, selectedPaymentMethod]);
-
   const finalPaymentMethods = useMemo(
     () =>
       paymentMethods?.map((pm) => {
@@ -171,8 +156,18 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
           title: `${paymentMethod.label} **** ${pm[paymentMethod.type]?.last4}`,
         };
       }),
-    [paymentMethods],
+    [paymentMethods, plan],
   );
+
+  useEffect(() => {
+    if (
+      !selectedPaymentMethod &&
+      finalPaymentMethods &&
+      finalPaymentMethods.length > 0
+    ) {
+      setSelectedPaymentMethod(finalPaymentMethods[0]);
+    }
+  }, [finalPaymentMethods, selectedPaymentMethod]);
 
   const invoiceData = useMemo(() => {
     if (eligiblePayoutsCountLoading) {
@@ -247,7 +242,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
         <Tooltip
           content={
             <SimpleTooltipContent
-              title={`${Math.round(selectedPaymentMethod.fee * 100)}% processing fee.${selectedPaymentMethod.type !== "us_bank_account" ? " Switch to ACH for a reduced fee." : ""}`}
+              title={`${Math.round(selectedPaymentMethod.fee * 100)}% processing fee. ${!DIRECT_DEBIT_PAYMENT_METHODS.includes(selectedPaymentMethod.type as DIRECT_DEBIT_PAYMENT_METHOD) ? " Switch to Direct Debit for a reduced fee." : ""}`}
               cta="Learn more"
               href="https://d.to/payouts"
             />
