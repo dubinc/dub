@@ -8,7 +8,6 @@ import {
   AnimatedSizeContainer,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import * as React from "react";
 
@@ -25,8 +24,8 @@ const ProgramSheetAccordionItem = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     className={cn(
-      // Completely custom card styling - not extending AccordionItem
-      "mb-3 overflow-hidden rounded-lg border border-neutral-200 bg-white last:mb-0",
+      // Completely custom card styling with group for state tracking
+      "group mb-3 overflow-hidden rounded-lg border border-neutral-200 bg-white last:mb-0",
       className,
     )}
   >
@@ -40,64 +39,24 @@ const ProgramSheetAccordionTrigger = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof AccordionTrigger> & {
     children: React.ReactNode;
   }
->(({ className, children, ...props }, ref) => {
-  const [isOpen, setIsOpen] = React.useState(false);
-
-  const handleRef = React.useCallback(
-    (element: HTMLButtonElement | null) => {
-      if (element) {
-        const observer = new MutationObserver(() => {
-          const state = element.getAttribute("data-state");
-          setIsOpen(state === "open");
-        });
-
-        observer.observe(element, {
-          attributes: true,
-          attributeFilter: ["data-state"],
-        });
-
-        // Set initial state
-        const initialState = element.getAttribute("data-state");
-        setIsOpen(initialState === "open");
-
-        // Store cleanup function
-        (element as any)._observer = observer;
-      }
-
-      // Forward the ref
-      if (typeof ref === "function") {
-        ref(element);
-      } else if (ref) {
-        (ref as any).current = element;
-      }
-    },
-    [ref],
-  );
-
-  return (
-    <AccordionTrigger
-      ref={handleRef}
-      className={cn(
-        // Completely custom trigger styling - force small text on all screen sizes, hide default icon
-        "border-b border-neutral-200 bg-neutral-50 px-4 py-3 text-sm font-semibold text-neutral-800 transition-all hover:bg-neutral-100 data-[state=closed]:border-b-0 sm:text-sm [&>svg]:hidden",
-        className,
-      )}
-      {...props}
-    >
-      <div className="flex w-full items-center justify-between">
-        <span>{children}</span>
-        <motion.div
-          animate={{ rotate: isOpen ? 180 : 0 }}
-          transition={{ duration: 0.2, ease: "easeInOut" }}
-          className="text-neutral-400"
-          style={{ transformOrigin: "center" }}
-        >
-          <ChevronDown className="h-4 w-4" />
-        </motion.div>
+>(({ className, children, ...props }, ref) => (
+  <AccordionTrigger
+    ref={ref}
+    className={cn(
+      // Completely custom trigger styling - force small text on all screen sizes, hide default icon
+      "border-b border-neutral-200 bg-neutral-50 px-4 py-3 text-sm font-semibold text-neutral-800 transition-all hover:bg-neutral-100 data-[state=closed]:border-b-0 sm:text-sm [&>svg]:hidden",
+      className,
+    )}
+    {...props}
+  >
+    <div className="flex w-full items-center justify-between">
+      <span>{children}</span>
+      <div className="text-neutral-400 transition-transform duration-200 ease-out group-data-[state=open]:rotate-180">
+        <ChevronDown className="h-4 w-4" />
       </div>
-    </AccordionTrigger>
-  );
-});
+    </div>
+  </AccordionTrigger>
+));
 ProgramSheetAccordionTrigger.displayName = "ProgramSheetAccordionTrigger";
 
 const ProgramSheetAccordionContent = React.forwardRef<
@@ -106,22 +65,24 @@ const ProgramSheetAccordionContent = React.forwardRef<
 >(({ className, children, ...props }, ref) => (
   <AnimatedSizeContainer
     height
-    transition={{ duration: 0.2, ease: "easeInOut" }}
-    className="-m-1"
+    transition={{
+      type: "spring",
+      stiffness: 300,
+      damping: 30,
+      mass: 0.8,
+    }}
   >
-    <div className="p-1">
-      <AccordionContent
-        ref={ref}
-        className={cn(
-          // Remove default animations and use framer-motion instead
-          "bg-white px-4 py-4 data-[state=closed]:animate-none data-[state=open]:animate-none",
-          className,
-        )}
-        {...props}
-      >
-        {children}
-      </AccordionContent>
-    </div>
+    <AccordionContent
+      ref={ref}
+      className={cn(
+        // Remove default animations and use framer-motion instead
+        "bg-white px-4 py-4 data-[state=closed]:animate-none data-[state=open]:animate-none",
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </AccordionContent>
   </AnimatedSizeContainer>
 ));
 ProgramSheetAccordionContent.displayName = "ProgramSheetAccordionContent";
