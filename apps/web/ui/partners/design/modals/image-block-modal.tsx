@@ -144,8 +144,8 @@ function ImageBlockModalInner({
                   readFile
                   loading={isUploading}
                   onChange={({ file }) => handleUpload(file)}
-                  content="SVG, JPG, or PNG, max size of 10MB"
-                  maxFileSizeMB={10}
+                  content="SVG, JPG, PNG, or WEBP, max size of 5MB"
+                  maxFileSizeMB={5}
                 />
               )}
             />

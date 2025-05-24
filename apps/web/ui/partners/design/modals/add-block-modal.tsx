@@ -74,7 +74,7 @@ export const DESIGNER_BLOCKS: ({
   {
     id: "earnings-calculator",
     label: "Earnings Calculator",
-    description: "Calculate potential earnings for your program",
+    description: "Show partners how much they can earn..",
     modal: EarningsCalculatorBlockModal,
     icon: Calculator,
   },
