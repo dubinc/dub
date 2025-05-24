@@ -80,40 +80,40 @@ export async function splitPayouts({
           ),
         },
       });
-    }
 
-    if (previousCommissionsCount > 0 && currentCommissionsCount > 0) {
-      const periodEnd =
-        currentCommissions[currentCommissions.length - 1].createdAt;
+      if (currentCommissionsCount > 0) {
+        const periodEnd =
+          currentCommissions[currentCommissions.length - 1].createdAt;
 
-      const currentMonthPayout = await prisma.payout.create({
-        data: {
-          id: createId({ prefix: "po_" }),
-          programId: program.id,
-          partnerId: payout.partnerId,
-          periodStart: currentCommissions[0].createdAt,
-          periodEnd: new Date(
-            periodEnd.getFullYear(),
-            periodEnd.getMonth() + 1,
-          ),
-          amount: currentCommissions.reduce(
-            (total, commission) => total + commission.earnings,
-            0,
-          ),
-          description: "Dub Partners payout",
-        },
-      });
-
-      await prisma.commission.updateMany({
-        where: {
-          id: {
-            in: currentCommissions.map((commission) => commission.id),
+        const currentMonthPayout = await prisma.payout.create({
+          data: {
+            id: createId({ prefix: "po_" }),
+            programId: program.id,
+            partnerId: payout.partnerId,
+            periodStart: currentCommissions[0].createdAt,
+            periodEnd: new Date(
+              periodEnd.getFullYear(),
+              periodEnd.getMonth() + 1,
+            ),
+            amount: currentCommissions.reduce(
+              (total, commission) => total + commission.earnings,
+              0,
+            ),
+            description: "Dub Partners payout",
           },
-        },
-        data: {
-          payoutId: currentMonthPayout.id,
-        },
-      });
+        });
+
+        await prisma.commission.updateMany({
+          where: {
+            id: {
+              in: currentCommissions.map((commission) => commission.id),
+            },
+          },
+          data: {
+            payoutId: currentMonthPayout.id,
+          },
+        });
+      }
     }
   }
 }
