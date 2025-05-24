@@ -297,20 +297,21 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
   }, [eligiblePayouts]);
 
   return (
-    <>
-      <div>
-        <div className="flex items-start justify-between border-b border-neutral-200 p-6">
-          <Sheet.Title className="text-xl font-semibold">
-            Payout invoice
-          </Sheet.Title>
-          <Sheet.Close asChild>
-            <Button
-              variant="outline"
-              icon={<X className="size-5" />}
-              className="h-auto w-fit p-1"
-            />
-          </Sheet.Close>
-        </div>
+    <div className="flex h-full flex-col">
+      <div className="flex items-start justify-between border-b border-neutral-200 p-6">
+        <Sheet.Title className="text-xl font-semibold">
+          Payout invoice
+        </Sheet.Title>
+        <Sheet.Close asChild>
+          <Button
+            variant="outline"
+            icon={<X className="size-5" />}
+            className="h-auto w-fit p-1"
+          />
+        </Sheet.Close>
+      </div>
+
+      <div className="flex-1 overflow-y-auto">
         <div className="flex flex-col gap-4 p-6">
           <div className="text-base font-medium text-neutral-900">
             Invoice details
@@ -355,38 +356,37 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
           </div>
         </div>
       </div>
-      <div className="flex grow flex-col justify-end">
-        <div className="flex items-center justify-end gap-2 border-t border-neutral-200 p-5">
-          <Button
-            type="button"
-            variant="primary"
-            loading={isPending}
-            disabled={
-              eligiblePayoutsCountLoading ||
-              eligiblePayoutsLoading ||
-              (typeof invoiceData.Amount === "string" &&
-                invoiceData.Amount === "$0.00")
-            }
-            onClick={async () => {
-              if (!workspaceId || !selectedPaymentMethod) {
-                return;
-              }
 
-              await executeAsync({
-                workspaceId,
-                paymentMethodId: selectedPaymentMethod.id,
-                excludeCurrentMonth,
-              });
-            }}
-            text={
-              typeof invoiceData.Amount === "string"
-                ? `Confirm ${invoiceData.Amount} payout`
-                : "Confirm payout"
+      <div className="flex items-center justify-end gap-2 border-t border-neutral-200 p-5">
+        <Button
+          type="button"
+          variant="primary"
+          loading={isPending}
+          disabled={
+            eligiblePayoutsCountLoading ||
+            eligiblePayoutsLoading ||
+            (typeof invoiceData.Amount === "string" &&
+              invoiceData.Amount === "$0.00")
+          }
+          onClick={async () => {
+            if (!workspaceId || !selectedPaymentMethod) {
+              return;
             }
-          />
-        </div>
+
+            await executeAsync({
+              workspaceId,
+              paymentMethodId: selectedPaymentMethod.id,
+              excludeCurrentMonth,
+            });
+          }}
+          text={
+            typeof invoiceData.Amount === "string"
+              ? `Confirm ${invoiceData.Amount} payout`
+              : "Confirm payout"
+          }
+        />
       </div>
-    </>
+    </div>
   );
 }
 
