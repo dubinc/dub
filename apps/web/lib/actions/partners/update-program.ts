@@ -27,21 +27,21 @@ export const updateProgramAction = authActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
     const {
-      defaultFolderId,
       name,
-      holdingPeriodDays,
-      minPayoutAmount,
-      cookieLength,
-      domain,
-      url,
       logo,
       wordmark,
       brandColor,
       landerData,
+      domain,
+      url,
       linkStructure,
       supportEmail,
       helpUrl,
       termsUrl,
+      holdingPeriodDays,
+      minPayoutAmount,
+      cookieLength,
+      defaultFolderId,
     } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -77,20 +77,20 @@ export const updateProgramAction = authActionClient
       },
       data: {
         name,
-        cookieLength,
-        holdingPeriodDays,
-        minPayoutAmount,
-        domain,
-        url,
-        brandColor,
         logo: logoUrl ?? undefined,
         wordmark: wordmarkUrl ?? undefined,
+        brandColor,
         landerData: landerData === null ? Prisma.JsonNull : landerData,
-        defaultFolderId,
+        domain,
+        url,
         linkStructure,
         supportEmail,
         helpUrl,
         termsUrl,
+        cookieLength,
+        holdingPeriodDays,
+        minPayoutAmount,
+        defaultFolderId,
       },
     });
 
@@ -104,10 +104,26 @@ export const updateProgramAction = authActionClient
           ? [storage.delete(program.wordmark.replace(`${R2_URL}/`, ""))]
           : []),
 
-        // Revalidate public pages
-        revalidatePath(`/partners.dub.co/${program.slug}`),
-        revalidatePath(`/partners.dub.co/${program.slug}/apply`),
-        revalidatePath(`/partners.dub.co/${program.slug}/apply/success`),
+        /*
+         Revalidate public pages if the following fields were updated:
+         - name
+         - logo
+         - wordmark
+         - brand color
+         - lander data
+        */
+        ...(name !== program.name ||
+        logoUrl ||
+        wordmarkUrl ||
+        brandColor !== program.brandColor ||
+        landerData
+          ? [
+              revalidatePath(`/partners.dub.co/${program.slug}`),
+              revalidatePath(`/partners.dub.co/${program.slug}/apply`),
+              revalidatePath(`/partners.dub.co/${program.slug}/apply/form`),
+              revalidatePath(`/partners.dub.co/${program.slug}/apply/success`),
+            ]
+          : []),
       ]),
     );
   });
