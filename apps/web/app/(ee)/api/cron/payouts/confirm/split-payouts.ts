@@ -2,9 +2,6 @@ import { createId } from "@/lib/api/create-id";
 import { prisma } from "@dub/prisma";
 import { Program } from "@prisma/client";
 
-// If the user wants to exclude the current month, we need to split the payouts
-// 1 - one for everything up until the end of the previous month
-// 2 - everything else in the current month will be left as pending (and excluded from the payout)
 export async function splitPayouts({
   program,
 }: {
@@ -61,6 +58,9 @@ export async function splitPayouts({
     const previousCommissionsCount = previousCommissions.length;
     const currentCommissionsCount = currentCommissions.length;
 
+    // If there are previous commissions, we need to split the payout into two
+    // 1 - one for everything up until the end of the previous month
+    // 2 - everything else in the current month will be left as pending (and excluded from the payout)
     if (previousCommissionsCount > 0) {
       const periodEnd =
         previousCommissions[previousCommissionsCount - 1].createdAt;
@@ -114,6 +114,19 @@ export async function splitPayouts({
           },
         });
       }
+    }
+
+    // If there are no previous commissions, we need to update the existing payout start date
+    // so that it will be excluded from the current month's payout
+    else {
+      await prisma.payout.update({
+        where: {
+          id: payout.id,
+        },
+        data: {
+          periodStart: currentCommissions[0].createdAt,
+        },
+      });
     }
   }
 }
