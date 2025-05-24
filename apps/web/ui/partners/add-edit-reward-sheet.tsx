@@ -28,7 +28,14 @@ import {
 } from "@dub/ui";
 import { cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   FieldErrors,
   useForm,
@@ -277,11 +284,10 @@ function RewardSheetContent({
       (!partnerIds || partnerIds.length === 0));
 
   const hasDefaultReward = !!program?.defaultRewardId;
-  const displayPartners = !isDefault && selectedPartnerType === "specific";
   const canDeleteReward = reward && program?.defaultRewardId !== reward.id;
 
   // Determine which accordions should be open by default
-  const getDefaultAccordionValues = () => {
+  const defaultAccordionValues = useMemo(() => {
     const baseValues = ["reward-type", "commission-structure", "payout-amount"];
 
     // Only include partner-eligibility if:
@@ -295,7 +301,7 @@ function RewardSheetContent({
     }
 
     return baseValues;
-  };
+  }, [reward, isDefault, selectedPartnerType]);
 
   return (
     <>
@@ -322,7 +328,7 @@ function RewardSheetContent({
           <div className="space-y-0 p-6">
             <ProgramSheetAccordion
               type="multiple"
-              defaultValue={getDefaultAccordionValues()}
+              defaultValue={defaultAccordionValues}
             >
               {isDefault && !hasDefaultReward && (
                 <ProgramSheetAccordionItem value="reward-type">
