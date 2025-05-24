@@ -40,11 +40,11 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
 import {
-  ProgramDrawerAccordion,
-  ProgramDrawerAccordionContent,
-  ProgramDrawerAccordionItem,
-  ProgramDrawerAccordionTrigger,
-} from "./program-drawer-accordion";
+  ProgramSheetAccordion,
+  ProgramSheetAccordionContent,
+  ProgramSheetAccordionItem,
+  ProgramSheetAccordionTrigger,
+} from "./program-sheet-accordion";
 import { RewardPartnersTable } from "./reward-partners-table";
 
 interface RewardSheetProps {
@@ -282,17 +282,18 @@ function RewardSheetContent({
 
   // Determine which accordions should be open by default
   const getDefaultAccordionValues = () => {
-    const baseValues = ["reward-type", "commission-structure", "payout"];
-    
+    const baseValues = ["reward-type", "commission-structure", "payout-amount"];
+
     // Only include partner-eligibility if:
     // 1. No existing reward (new creation), OR
     // 2. Existing reward with specific partners selected
-    const shouldOpenPartnerEligibility = !reward || (reward && (reward.partnersCount ?? 0) > 0);
-    
+    const shouldOpenPartnerEligibility =
+      !reward || (reward && (reward.partnersCount ?? 0) > 0);
+
     if (!isDefault && shouldOpenPartnerEligibility) {
       baseValues.push("partner-eligibility");
     }
-    
+
     return baseValues;
   };
 
@@ -318,14 +319,17 @@ function RewardSheetContent({
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          <div className="p-6 space-y-0">
-            <ProgramDrawerAccordion type="multiple" defaultValue={getDefaultAccordionValues()}>
+          <div className="space-y-0 p-6">
+            <ProgramSheetAccordion
+              type="multiple"
+              defaultValue={getDefaultAccordionValues()}
+            >
               {isDefault && !hasDefaultReward && (
-                <ProgramDrawerAccordionItem value="reward-type">
-                  <ProgramDrawerAccordionTrigger>
+                <ProgramSheetAccordionItem value="reward-type">
+                  <ProgramSheetAccordionTrigger>
                     Reward Type
-                  </ProgramDrawerAccordionTrigger>
-                  <ProgramDrawerAccordionContent>
+                  </ProgramSheetAccordionTrigger>
+                  <ProgramSheetAccordionContent>
                     <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
                       {DEFAULT_REWARD_TYPES.map((rewardType) => {
                         const isSelected = selectedEvent === rewardType.key;
@@ -370,20 +374,21 @@ function RewardSheetContent({
                         return labelContent;
                       })}
                     </div>
-                  </ProgramDrawerAccordionContent>
-                </ProgramDrawerAccordionItem>
+                  </ProgramSheetAccordionContent>
+                </ProgramSheetAccordionItem>
               )}
 
               {!isDefault && (
-                <ProgramDrawerAccordionItem value="partner-eligibility">
-                  <ProgramDrawerAccordionTrigger>
+                <ProgramSheetAccordionItem value="partner-eligibility">
+                  <ProgramSheetAccordionTrigger>
                     Partner Eligibility
-                  </ProgramDrawerAccordionTrigger>
-                  <ProgramDrawerAccordionContent>
+                  </ProgramSheetAccordionTrigger>
+                  <ProgramSheetAccordionContent>
                     <div className="space-y-4">
                       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
                         {PARTNER_TYPES.map((partnerType) => {
-                          const isSelected = selectedPartnerType === partnerType.key;
+                          const isSelected =
+                            selectedPartnerType === partnerType.key;
 
                           const isDisabled =
                             (partnerType.key === "all" &&
@@ -430,7 +435,9 @@ function RewardSheetContent({
                                 }}
                               />
                               <div className="flex grow flex-col text-sm">
-                                <span className="font-medium">{partnerType.label}</span>
+                                <span className="font-medium">
+                                  {partnerType.label}
+                                </span>
                                 <span>{partnerType.description}</span>
                               </div>
                               <CircleCheckFill
@@ -443,7 +450,10 @@ function RewardSheetContent({
                           );
 
                           return isDisabled ? (
-                            <Tooltip key={partnerType.label} content={tooltipContent}>
+                            <Tooltip
+                              key={partnerType.label}
+                              content={tooltipContent}
+                            >
                               {labelContent}
                             </Tooltip>
                           ) : (
@@ -465,16 +475,16 @@ function RewardSheetContent({
                         </div>
                       )}
                     </div>
-                  </ProgramDrawerAccordionContent>
-                </ProgramDrawerAccordionItem>
+                  </ProgramSheetAccordionContent>
+                </ProgramSheetAccordionItem>
               )}
 
               {selectedEvent === "sale" && (
-                <ProgramDrawerAccordionItem value="commission-structure">
-                  <ProgramDrawerAccordionTrigger>
+                <ProgramSheetAccordionItem value="commission-structure">
+                  <ProgramSheetAccordionTrigger>
                     Commission Structure
-                  </ProgramDrawerAccordionTrigger>
-                  <ProgramDrawerAccordionContent>
+                  </ProgramSheetAccordionTrigger>
+                  <ProgramSheetAccordionContent>
                     <div className="space-y-4">
                       <p className="text-sm text-neutral-600">
                         Set how the affiliate will get rewarded
@@ -488,7 +498,8 @@ function RewardSheetContent({
                             <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
                               {COMMISSION_TYPES.map(
                                 ({ label, description, value }) => {
-                                  const isSelected = value === commissionStructure;
+                                  const isSelected =
+                                    value === commissionStructure;
 
                                   return (
                                     <label
@@ -511,14 +522,17 @@ function RewardSheetContent({
                                             setValue(
                                               "maxDuration",
                                               value === "recurring"
-                                                ? reward?.maxDuration || Infinity
+                                                ? reward?.maxDuration ||
+                                                    Infinity
                                                 : 0,
                                             );
                                           }
                                         }}
                                       />
                                       <div className="flex grow flex-col text-sm">
-                                        <span className="font-medium">{label}</span>
+                                        <span className="font-medium">
+                                          {label}
+                                        </span>
                                         <span>{description}</span>
                                       </div>
                                       <CircleCheckFill
@@ -575,17 +589,17 @@ function RewardSheetContent({
                         </AnimatedSizeContainer>
                       </div>
                     </div>
-                  </ProgramDrawerAccordionContent>
-                </ProgramDrawerAccordionItem>
+                  </ProgramSheetAccordionContent>
+                </ProgramSheetAccordionItem>
               )}
 
-              <ProgramDrawerAccordionItem value="payout">
-                <ProgramDrawerAccordionTrigger>
-                  Payout
-                </ProgramDrawerAccordionTrigger>
-                <ProgramDrawerAccordionContent>
+              <ProgramSheetAccordionItem value="payout-amount">
+                <ProgramSheetAccordionTrigger>
+                  Payout Amount
+                </ProgramSheetAccordionTrigger>
+                <ProgramSheetAccordionContent>
                   <div className="space-y-4">
-                    <p className="text-sm  text-neutral-600">
+                    <p className="text-sm text-neutral-600">
                       Set how much the affiliate will get rewarded
                     </p>
 
@@ -645,11 +659,9 @@ function RewardSheetContent({
                       </div>
                     </div>
                   </div>
-                </ProgramDrawerAccordionContent>
-              </ProgramDrawerAccordionItem>
-
-
-            </ProgramDrawerAccordion>
+                </ProgramSheetAccordionContent>
+              </ProgramSheetAccordionItem>
+            </ProgramSheetAccordion>
           </div>
         </div>
 
@@ -796,12 +808,12 @@ export function RewardSheet({
   nested?: boolean;
 }) {
   return (
-    <Sheet 
-      open={isOpen} 
-      onOpenChange={rest.setIsOpen} 
+    <Sheet
+      open={isOpen}
+      onOpenChange={rest.setIsOpen}
       nested={nested}
       contentProps={{
-        className: "z-50"
+        className: "z-50",
       }}
     >
       <RewardSheetContent {...rest} />

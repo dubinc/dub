@@ -480,14 +480,7 @@ export function DiscountSheet({
   nested?: boolean;
 }) {
   return (
-    <Sheet 
-      open={isOpen} 
-      onOpenChange={rest.setIsOpen} 
-      nested={nested}
-      contentProps={{
-        className: "z-50"
-      }}
-    >
+    <Sheet open={isOpen} onOpenChange={rest.setIsOpen} nested={nested}>
       <DiscountSheetContent {...rest} />
     </Sheet>
   );
