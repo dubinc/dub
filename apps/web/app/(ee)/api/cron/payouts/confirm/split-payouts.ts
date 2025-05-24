@@ -115,18 +115,5 @@ export async function splitPayouts({
         });
       }
     }
-
-    // If there are no previous commissions, we need to update the existing payout start date
-    // so that it will be excluded from the current month's payout
-    else {
-      await prisma.payout.update({
-        where: {
-          id: payout.id,
-        },
-        data: {
-          periodStart: currentCommissions[0].createdAt,
-        },
-      });
-    }
   }
 }
