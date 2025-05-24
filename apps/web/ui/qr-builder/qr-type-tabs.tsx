@@ -28,7 +28,6 @@ interface QrTypeTabsProps {
 }
 
 export const QrTypeTabs = ({
-  options,
   qrCode,
   uploadedLogo,
   selectedSuggestedLogo,
@@ -60,7 +59,9 @@ export const QrTypeTabs = ({
     }) => {
       // QR name is not needed for QR code generation
       const { qrName, ...filteredInputValues } = inputValues;
-      setData(qrTypeDataHandlers[qrType](filteredInputValues, isHiddenNetwork));
+      setData(
+        qrTypeDataHandlers[qrType]?.(filteredInputValues, isHiddenNetwork),
+      );
     },
     [setData],
   );

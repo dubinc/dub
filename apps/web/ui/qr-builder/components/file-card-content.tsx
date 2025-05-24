@@ -9,98 +9,67 @@ import {
   FileUploadTrigger,
 } from "@/ui/qr-builder/components/file-upload.tsx";
 import { TooltipComponent } from "@/ui/qr-builder/components/tooltip.tsx";
-import { ERROR_MESSAGES } from "@/ui/qr-builder/constants/errors.ts";
+import { EAcceptedFileType } from "@/ui/qr-builder/constants/qr-type-inputs-config.ts";
+import { getMaxSizeLabel } from "@/ui/qr-builder/helpers/get-max-size-label.ts";
 import { Button, Flex } from "@radix-ui/themes";
 import { CloudUpload, Upload, X } from "lucide-react";
-import {
-  Dispatch,
-  FC,
-  SetStateAction,
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
-import {
-  EQRType,
-  FILE_QR_TYPES,
-  QR_TYPES,
-} from "../constants/get-qr-config.ts";
-import { getMaxSizeLabel } from "../helpers/get-max-size-label.ts";
-
-const DEFAULT_FILE_LABEL = "Image";
+import { Dispatch, FC, SetStateAction, useEffect, useState } from "react";
 
 interface IFileCardContentProps {
-  qrType: (typeof FILE_QR_TYPES)[number];
   files: File[];
   setFiles: Dispatch<SetStateAction<File[]>>;
+  acceptedFileType: EAcceptedFileType;
+  maxFileSize: number;
   fileError: string;
-  setFileError: Dispatch<SetStateAction<string>>;
   title?: string;
   isLogo?: boolean;
 }
 
 export const FileCardContent: FC<IFileCardContentProps> = ({
-  qrType,
   files,
   setFiles,
+  acceptedFileType,
+  maxFileSize,
   fileError,
-  setFileError,
   title,
   isLogo = false,
 }) => {
-  const { size, label } = getMaxSizeLabel(qrType, isLogo);
-  const [acceptFileTypes, setAcceptFileTypes] = useState<string>("");
+  const [localFileError, setLocalFileError] = useState<string>("");
+
+  const onFileReject = (file: File, message: string) => {
+    setLocalFileError(message);
+  };
+
+  const onFileAccept = (file: File) => {
+    setLocalFileError("");
+  };
 
   useEffect(() => {
-    const FILE_TYPE_MAP: Partial<Record<EQRType, string>> = {
-      [EQRType.IMAGE]: "image/*",
-      [EQRType.VIDEO]: "video/mp4",
-      [EQRType.PDF]: "application/pdf",
-    };
-
-    setAcceptFileTypes(FILE_TYPE_MAP[qrType] || "");
-  }, [qrType]);
-
-  const qrTypeLabel =
-    QR_TYPES.find((type) => type.id === qrType)?.label ?? DEFAULT_FILE_LABEL;
-
-  const onFileReject = useCallback((file: File, message: string) => {
-    setFileError(message);
-  }, []);
-
-  const onFileAccept = useCallback((file: File) => {
-    setFileError("");
-  }, []);
-
-  const handleFile = (files: File[]) => {
-    setFiles(files);
-
-    if (files.length > 0 && fileError === ERROR_MESSAGES.file.noFileUploaded) {
-      setFileError("");
+    if (files.length === 0) {
+      setLocalFileError("");
     }
-  };
+  }, [files]);
 
   return (
     <div className="flex w-full flex-col gap-2">
       <Flex gap="2" align="center">
-        <h3 className="text-neutral text-sm font-medium">
-          {title ?? `Upload your ${qrTypeLabel}`}
-        </h3>
+        <h3 className="text-neutral text-sm font-medium">{`Upload your ${title}`}</h3>
         {!isLogo && (
           <TooltipComponent
-            tooltip={`People will be able to view this ${qrTypeLabel} when they scan your QR code.`}
+            tooltip={`People will be able to view this ${title} when they scan your QR code.`}
           />
         )}
       </Flex>
+
       <FileUpload
         maxFiles={1}
-        maxSize={size}
+        maxSize={maxFileSize}
         className="w-full max-w-xl"
         value={files}
-        onValueChange={handleFile}
+        onValueChange={setFiles}
         onFileAccept={onFileAccept}
         onFileReject={onFileReject}
-        accept={acceptFileTypes}
+        accept={acceptedFileType}
         multiple={!isLogo}
       >
         <FileUploadDropzone className="border-secondary-100">
@@ -122,10 +91,10 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
                   <Upload className="text-secondary size-6" />
                 </div>
                 <p className="text-neutral text-sm font-medium">
-                  {`Drag & drop your ${qrTypeLabel}`}
+                  {`Drag & drop your ${title}`}
                 </p>
                 <p className="text-xs text-neutral-800">
-                  {`or click to browse (1 file, up to ${label})`}
+                  {`or click to browse (1 file, up to ${getMaxSizeLabel(maxFileSize)})`}
                 </p>
               </div>
               <FileUploadTrigger asChild>
@@ -156,9 +125,9 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
         </FileUploadList>
       </FileUpload>
 
-      {fileError && (
+      {(localFileError || fileError) && (
         <p className="text-xs font-medium text-red-500 md:text-sm">
-          {fileError}
+          {localFileError || fileError}
         </p>
       )}
     </div>

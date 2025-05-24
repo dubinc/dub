@@ -1,43 +1,87 @@
 import { CountrySelectAutocompleteComponent } from "@/ui/qr-builder/components/country-select-autocomplete.tsx";
+import { FileCardContent } from "@/ui/qr-builder/components/file-card-content.tsx";
 import { PhoneNumberInputComponent } from "@/ui/qr-builder/components/phone-number-input.tsx";
 import { TooltipComponent } from "@/ui/qr-builder/components/tooltip.tsx";
-import { QRInputType } from "@/ui/qr-builder/constants/qr-type-inputs-config.ts";
+import {
+  EAcceptedFileType,
+  TQRInputType,
+} from "@/ui/qr-builder/constants/qr-type-inputs-config.ts";
 import { Input } from "@dub/ui";
 import { Flex } from "@radix-ui/themes";
 import Cookies from "js-cookie";
-import { ChangeEventHandler, FC } from "react";
+import { FC, ReactNode } from "react";
+import { Controller, useFormContext } from "react-hook-form";
 import PhoneInput from "react-phone-number-input";
 import { Country } from "react-phone-number-input/input";
 import "react-phone-number-input/style.css";
 
 interface IInputWithLabelProps {
+  id: string;
   label: string;
-  type: QRInputType;
+  type: TQRInputType;
   placeholder: string;
   value?: string;
   setValue?: (value: string) => void;
-  onChange?: ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>;
   errorMessage?: string;
   minimalFlow?: boolean;
   initFromPlaceholder?: boolean;
   tooltip?: string;
+  acceptedFileType?: EAcceptedFileType;
+  maxFileSize?: number;
 }
 
 export const InputWithLabel: FC<IInputWithLabelProps> = ({
+  id,
   label,
   type,
-  errorMessage,
-  minimalFlow = false,
+  placeholder,
   value = "",
   setValue,
-  onChange,
-  placeholder,
+  errorMessage,
+  minimalFlow = false,
   initFromPlaceholder = false,
   tooltip = "",
+  acceptedFileType,
+  maxFileSize,
   ...props
 }) => {
-  let autoCompleteValue: "on" | "tel" | "url";
+  const {
+    register,
+    setValue: setFormValue,
+    control,
+    trigger,
+    formState: { errors },
+  } = useFormContext();
 
+  const error = errors[id]?.message as string;
+
+  if (type === "file" && acceptedFileType && maxFileSize) {
+    return (
+      <Controller
+        key={id}
+        name={id}
+        control={control}
+        render={({
+          field: { onChange, value = [] },
+          fieldState: { error },
+        }) => (
+          <FileCardContent
+            title={label}
+            files={value}
+            setFiles={(files) => {
+              onChange(files);
+              trigger(id);
+            }}
+            acceptedFileType={acceptedFileType}
+            maxFileSize={maxFileSize}
+            fileError={error?.message || ""}
+          />
+        )}
+      />
+    );
+  }
+
+  let autoCompleteValue: "on" | "tel" | "url";
   switch (type) {
     case "tel":
       autoCompleteValue = "tel";
@@ -47,7 +91,60 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
       break;
     default:
       autoCompleteValue = "on";
+  }
+
+  let inputField: ReactNode;
+
+  switch (type) {
+    case "textarea":
+      inputField = (
+        <textarea
+          className="border-border-500 focus:border-secondary h-36 w-full rounded-md border p-3 text-base"
+          placeholder={placeholder}
+          maxLength={500}
+          required
+          {...register(id)}
+          {...props}
+        />
+      );
       break;
+
+    case "tel":
+      inputField = (
+        <Controller
+          name={id}
+          control={control}
+          render={({ field }) => (
+            <PhoneInput
+              {...field}
+              international
+              defaultCountry={(Cookies.get("country") || "US") as Country}
+              countrySelectComponent={CountrySelectAutocompleteComponent}
+              inputComponent={PhoneNumberInputComponent}
+              className="w-full [&>div]:w-full"
+            />
+          )}
+        />
+      );
+      break;
+
+    default:
+      inputField = (
+        <Input
+          type={type}
+          className="border-border-500 focus:border-secondary h-11 w-full max-w-2xl rounded-md border p-3 text-base"
+          autoComplete={autoCompleteValue}
+          placeholder={placeholder}
+          onFocus={(e) => {
+            if (initFromPlaceholder && !e.target.value) {
+              setFormValue(id, placeholder);
+            }
+          }}
+          required
+          {...register(id)}
+          {...props}
+        />
+      );
   }
 
   return (
@@ -56,51 +153,10 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
         <label className="text-neutral text-sm font-medium">{label}</label>
         <TooltipComponent tooltip={tooltip} />
       </Flex>
-
-      {type === "textarea" ? (
-        <textarea
-          className="border-border-500 focus:border-secondary h-36 w-full rounded-md border p-3 text-base"
-          value={value}
-          onChange={(e) => {
-            onChange?.(e);
-            setValue?.(e.target.value);
-          }}
-          placeholder={placeholder}
-          {...props}
-        />
-      ) : type === "tel" ? (
-        <PhoneInput
-          international
-          defaultCountry={(Cookies.get("country") || "US") as Country}
-          value={value}
-          onChange={(val) => setValue?.(val ?? "")}
-          countrySelectComponent={CountrySelectAutocompleteComponent}
-          inputComponent={PhoneNumberInputComponent}
-          className="w-full [&>div]:w-full"
-        />
-      ) : (
-        <Input
-          type={type}
-          className="border-border-500 focus:border-secondary h-11 w-full max-w-2xl rounded-md border p-3 text-base"
-          autoComplete={autoCompleteValue}
-          value={value}
-          onChange={(e) => {
-            onChange?.(e);
-            setValue?.(e.target.value);
-          }}
-          onFocus={() => {
-            if (initFromPlaceholder && setValue && !value) {
-              setValue(placeholder);
-            }
-          }}
-          placeholder={placeholder}
-          {...props}
-        />
-      )}
-
-      {errorMessage && (
+      {inputField}
+      {error && (
         <span className="text-xs font-medium text-red-500 md:text-sm">
-          {errorMessage}
+          {error}
         </span>
       )}
     </div>

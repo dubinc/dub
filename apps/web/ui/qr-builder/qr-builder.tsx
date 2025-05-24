@@ -5,7 +5,7 @@ import { QRCodeDemoPlaceholder } from "@/ui/qr-builder/components/qr-code-demos/
 import Stepper from "@/ui/qr-builder/components/stepper.tsx";
 import { qrTypeDataHandlers } from "@/ui/qr-builder/helpers/qr-type-data-handlers.ts";
 import { useIsInViewport } from "@/ui/qr-builder/hooks/use-is-in-viewport.ts";
-import { useQRContent } from "@/ui/qr-builder/hooks/use-qr-content.ts";
+import { useQRContentForm } from "@/ui/qr-builder/hooks/use-qr-content-form.ts";
 import { QRCanvas } from "@/ui/qr-builder/qr-canvas.tsx";
 import { QRCodeContentBuilder } from "@/ui/qr-builder/qr-code-content-builder.tsx";
 import { QrTabsCustomization } from "@/ui/qr-builder/qr-tabs-customization.tsx";
@@ -27,9 +27,9 @@ import {
   useRef,
   useState,
 } from "react";
+import { FormProvider } from "react-hook-form";
 import {
   EQRType,
-  FILE_QR_TYPES,
   LINKED_QR_TYPES,
   QR_TYPES,
 } from "./constants/get-qr-config.ts";
@@ -90,7 +90,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
           frameOptions: {
             id: selectedSuggestedFrame,
           },
-          qrType: setSelectedQRType,
+          qrType: selectedQRType,
         });
 
       const handleNextStep = () => {
@@ -113,36 +113,25 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
           isHiddenNetwork,
           qrType,
         }: {
-          inputValues: Record<string, string>;
-          files: File[];
+          inputValues: Record<string, string | File[]>;
           isHiddenNetwork: boolean;
           qrType: EQRType;
         }) => {
           // QR name is not needed for QR code generation
           const { qrName, ...filteredInputValues } = inputValues;
           setData(
-            qrTypeDataHandlers[qrType](filteredInputValues, isHiddenNetwork),
+            qrTypeDataHandlers[qrType]?.(filteredInputValues, isHiddenNetwork),
           );
         },
         [setData],
       );
 
       const {
-        files,
-        setFiles,
-        inputValues,
-        setInputValues,
-        inputErrors,
-        setInputErrors,
+        form,
         isHiddenNetwork,
-        setIsHiddenNetwork,
-        fileError,
-        setFileError,
-        handleChange,
-        handleEncryptionSelectChange,
-        handleSetIsHiddenNetwork,
         handleValidationAndContentSubmit,
-      } = useQRContent({
+        handleSetIsHiddenNetwork,
+      } = useQRContentForm({
         qrType: selectedQRType,
         minimalFlow: true,
         handleContent,
@@ -173,18 +162,14 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
       const demoProps = useMemo(() => {
         if (!qrCodeDemo || !currentQRType) return {};
 
-        if (FILE_QR_TYPES.includes(currentQRType)) {
-          return { files };
-        }
-
         return qrCodeDemo.propsKeys.reduce(
-          (acc: Record<string, string>, key: string) => {
-            acc[key] = inputValues[key];
+          (acc: Record<string, string | File[] | undefined>, key: string) => {
+            acc[key] = form.getValues()[key];
             return acc;
           },
           {},
         );
-      }, [qrCodeDemo, inputValues, files, currentQRType]);
+      }, [qrCodeDemo, form.getValues(), currentQRType]);
 
       console.log("[QrBuilder] currentQRType", currentQRType);
       console.log("[QrBuilder] qrCodeDemo", qrCodeDemo);
@@ -268,33 +253,24 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                   justify="start"
                   className="w-full md:max-w-[524px]"
                 >
-                  <QRCodeContentBuilder
-                    qrType={selectedQRType}
-                    inputValues={inputValues}
-                    setInputValues={setInputValues}
-                    files={files}
-                    setFiles={setFiles}
-                    isHiddenNetwork={isHiddenNetwork}
-                    setIsHiddenNetwork={setIsHiddenNetwork}
-                    inputErrors={inputErrors}
-                    setInputErrors={setInputErrors}
-                    fileError={fileError}
-                    setFileError={setFileError}
-                    onChange={handleChange}
-                    onEncryptionChange={handleEncryptionSelectChange}
-                    onHiddenNetworkChange={handleSetIsHiddenNetwork}
-                    validateFields={handleValidationAndContentSubmit}
-                    minimalFlow
-                  />
-                  <div ref={qrBuilderButtonsWrapperRef} className="w-full">
-                    <QrBuilderButtons
-                      step={step}
-                      onStepChange={setStep}
-                      onSaveClick={onSaveClick}
+                  <FormProvider {...form}>
+                    <QRCodeContentBuilder
+                      qrType={selectedQRType}
+                      isHiddenNetwork={isHiddenNetwork}
+                      onHiddenNetworkChange={handleSetIsHiddenNetwork}
                       validateFields={handleValidationAndContentSubmit}
-                      display={{ initial: "flex", md: "none" }}
+                      minimalFlow
                     />
-                  </div>
+                    <div ref={qrBuilderButtonsWrapperRef} className="w-full">
+                      <QrBuilderButtons
+                        step={step}
+                        onStepChange={setStep}
+                        onSaveClick={onSaveClick}
+                        validateFields={handleValidationAndContentSubmit}
+                        display={{ initial: "flex", md: "none" }}
+                      />
+                    </div>
+                  </FormProvider>
                 </Flex>
               )}
 
@@ -318,8 +294,6 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                     isMobile={isMobile}
                     options={options}
                     handlers={handlers}
-                    fileError={fileError}
-                    setFileError={setFileError}
                   />
 
                   <div ref={qrBuilderButtonsWrapperRef} className="w-full">

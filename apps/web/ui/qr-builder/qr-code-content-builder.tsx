@@ -1,18 +1,15 @@
 import { TooltipComponent } from "@/ui/qr-builder/components/tooltip.tsx";
-import {
-  QR_NAME_INPUT,
-  QR_TYPE_INPUTS_CONFIG,
-} from "@/ui/qr-builder/constants/qr-type-inputs-config.ts";
+import { QR_TYPE_INPUTS_CONFIG } from "@/ui/qr-builder/constants/qr-type-inputs-config.ts";
 import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Flex, Text } from "@radix-ui/themes";
 import { Info } from "lucide-react";
-import { ChangeEvent, Dispatch, FC, SetStateAction } from "react";
+import { FC } from "react";
+import { Controller, useFormContext } from "react-hook-form";
 import { ButtonsWrapper } from "./components/buttons-wrapper.tsx";
 import { CheckboxWithLabel } from "./components/checkbox-with-label.tsx";
-import { FileCardContent } from "./components/file-card-content.tsx";
 import { InputWithLabel } from "./components/input-with-label.tsx";
-import { ISelectOption, Select } from "./components/select.tsx";
+import { Select } from "./components/select.tsx";
 import {
   EQRType,
   FILE_QR_TYPES,
@@ -22,18 +19,7 @@ import { WIFI_ENCRYPTION_TYPES } from "./constants/wifi-encryption-types.ts";
 
 interface IQRContentBuilderProps {
   qrType: EQRType;
-  inputValues: Record<string, string>;
-  setInputValues: Dispatch<SetStateAction<Record<string, string>>>;
-  files: File[];
-  setFiles: Dispatch<SetStateAction<File[]>>;
   isHiddenNetwork: boolean;
-  setIsHiddenNetwork: Dispatch<SetStateAction<boolean>>;
-  inputErrors: Record<string, string>;
-  setInputErrors: Dispatch<SetStateAction<Record<string, string>>>;
-  fileError: string;
-  setFileError: Dispatch<SetStateAction<string>>;
-  onChange: (e: ChangeEvent<HTMLInputElement>) => void;
-  onEncryptionChange: (option: ISelectOption) => void;
   onHiddenNetworkChange: (checked: boolean) => void;
   validateFields: () => void;
   minimalFlow?: boolean;
@@ -41,37 +27,27 @@ interface IQRContentBuilderProps {
 
 export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
   qrType,
-  inputValues,
-  setInputValues,
-  files,
-  setFiles,
   isHiddenNetwork,
-  inputErrors,
-  fileError,
-  setFileError,
-  onChange,
-  onEncryptionChange,
   onHiddenNetworkChange,
   validateFields,
   minimalFlow = false,
 }) => {
   const { isMobile } = useMediaQuery();
 
-  const validationFailed = Object.values(inputErrors).some((err) => err !== "");
+  const { control } = useFormContext();
 
   const renderCardContent = () => {
     if (!qrType) return <p className="text-neutral text-sm">Unknown QR Type</p>;
 
-    if (LINKED_QR_TYPES.includes(qrType) || qrType === EQRType.WHATSAPP) {
+    if (
+      LINKED_QR_TYPES.includes(qrType) ||
+      qrType === EQRType.WHATSAPP ||
+      FILE_QR_TYPES.includes(qrType)
+    ) {
       return QR_TYPE_INPUTS_CONFIG[qrType].map((field, index) => (
         <InputWithLabel
+          id={field.id}
           key={index}
-          onChange={onChange}
-          value={inputValues[field.id] || ""}
-          setValue={(value: string) => {
-            setInputValues((prev) => ({ ...prev, [field.id]: value }));
-          }}
-          errorMessage={inputErrors[field.id]}
           minimalFlow={minimalFlow}
           initFromPlaceholder={field.initFromPlaceholder}
           tooltip={field.tooltip}
@@ -86,12 +62,6 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
           {QR_TYPE_INPUTS_CONFIG[qrType].map((field, index) => (
             <InputWithLabel
               key={index}
-              onChange={onChange}
-              value={inputValues[field.id] || ""}
-              setValue={(value: string) => {
-                setInputValues((prev) => ({ ...prev, [field.id]: value }));
-              }}
-              errorMessage={inputErrors[field.id]}
               initFromPlaceholder={field.initFromPlaceholder}
               {...field}
             />
@@ -113,9 +83,21 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
                   }
                 />
               </Flex>
-              <Select
-                options={WIFI_ENCRYPTION_TYPES}
-                onChange={onEncryptionChange}
+              <Controller
+                name="networkEncryption"
+                control={control}
+                render={({ field: { onChange, value } }) => (
+                  <Select
+                    options={WIFI_ENCRYPTION_TYPES}
+                    value={
+                      WIFI_ENCRYPTION_TYPES.find((opt) => opt.id === value) ??
+                      null
+                    }
+                    onChange={(option) => {
+                      onChange(option.id);
+                    }}
+                  />
+                )}
               />
             </Flex>
             <Flex direction="row" gap="2" align="center">
@@ -146,33 +128,6 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
         </>
       );
     }
-
-    if (FILE_QR_TYPES.includes(qrType)) {
-      return (
-        <>
-          <InputWithLabel
-            key={"fileQRTypeName"}
-            onChange={onChange}
-            value={inputValues[QR_NAME_INPUT.id] || ""}
-            setValue={(value: string) => {
-              setInputValues((prev) => ({
-                ...prev,
-                [QR_NAME_INPUT.id]: value,
-              }));
-            }}
-            errorMessage={inputErrors[QR_NAME_INPUT.id]}
-            {...QR_NAME_INPUT}
-          />
-          <FileCardContent
-            qrType={qrType}
-            files={files}
-            setFiles={setFiles}
-            fileError={fileError}
-            setFileError={setFileError}
-          />
-        </>
-      );
-    }
   };
 
   return (
@@ -186,24 +141,22 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
           },
         )}
       >
-        <div className="flex w-full flex-col gap-4">{renderCardContent()}</div>
+        <form
+          className="flex w-full flex-col gap-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            validateFields();
+          }}
+        >
+          {renderCardContent()}
+        </form>
 
         {!minimalFlow && !isMobile && (
-          <ButtonsWrapper
-            qrType={qrType}
-            files={files}
-            handleNext={validateFields}
-            disabled={validationFailed}
-          />
+          <ButtonsWrapper qrType={qrType} handleNext={validateFields} />
         )}
       </div>
       {!minimalFlow && isMobile && (
-        <ButtonsWrapper
-          qrType={qrType}
-          files={files}
-          handleNext={validateFields}
-          disabled={validationFailed}
-        />
+        <ButtonsWrapper qrType={qrType} handleNext={validateFields} />
       )}
     </div>
   );
