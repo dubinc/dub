@@ -8,7 +8,6 @@ import {
   AnimatedSizeContainer,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { ChevronDown } from "lucide-react";
 import * as React from "react";
 
 // Program sheet specific accordion that completely overrides base styles
@@ -44,17 +43,14 @@ const ProgramSheetAccordionTrigger = React.forwardRef<
     ref={ref}
     className={cn(
       // Completely custom trigger styling - force small text on all screen sizes, hide default icon
-      "border-b border-neutral-200 bg-neutral-50 px-4 py-3 text-sm font-semibold text-neutral-800 transition-all hover:bg-neutral-100 data-[state=closed]:border-b-0 sm:text-sm [&>svg]:hidden",
+      "flex items-center justify-between border-b border-neutral-200 bg-neutral-50 px-4 py-3 text-sm font-semibold text-neutral-800",
+      "transition-all hover:bg-neutral-100 data-[state=closed]:border-b-0 sm:text-sm",
+      "[&>svg]:size-4 [&>svg]:text-neutral-400 [&[data-state=open]>svg]:rotate-180",
       className,
     )}
     {...props}
   >
-    <div className="flex w-full items-center justify-between">
-      <span>{children}</span>
-      <div className="text-neutral-400 transition-transform duration-200 ease-out group-data-[state=open]:rotate-180">
-        <ChevronDown className="h-4 w-4" />
-      </div>
-    </div>
+    <span>{children}</span>
   </AccordionTrigger>
 ));
 ProgramSheetAccordionTrigger.displayName = "ProgramSheetAccordionTrigger";
