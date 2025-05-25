@@ -1,4 +1,3 @@
-import { SHORT_DOMAIN } from "@dub/utils";
 import { NextRequest } from "next/server";
 
 export const parse = (req: NextRequest) => {
@@ -14,7 +13,7 @@ export const parse = (req: NextRequest) => {
       domain = "dub-internal-test.com";
     } else {
       // for local development and preview URLs
-      domain = SHORT_DOMAIN;
+      domain = "buff.ly";
     }
   }
 
