@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  DIRECT_DEBIT_PAYMENT_TYPES,
-  DirectDebitPaymentMethodType,
-} from "@/lib/partners/constants";
+import { DIRECT_DEBIT_PAYMENT_METHOD_TYPES } from "@/lib/partners/constants";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useAddPaymentMethodModal } from "@/ui/modals/add-payment-method-modal";
@@ -23,16 +20,11 @@ export default function PaymentMethods() {
   const { slug, stripeId, partnersEnabled, plan } = useWorkspace();
 
   const regularPaymentMethods = paymentMethods?.filter(
-    (pm) =>
-      !DIRECT_DEBIT_PAYMENT_TYPES.includes(
-        pm.type as DirectDebitPaymentMethodType,
-      ),
+    (pm) => !DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(pm.type),
   );
 
   const partnerPaymentMethods = paymentMethods?.filter((pm) =>
-    DIRECT_DEBIT_PAYMENT_TYPES.includes(
-      pm.type as DirectDebitPaymentMethodType,
-    ),
+    DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(pm.type),
   );
 
   const managePaymentMethods = async () => {
@@ -158,9 +150,7 @@ const PaymentMethodCard = ({
               <div className="flex items-center gap-2">
                 <p className="font-medium text-neutral-900">{title}</p>
                 {paymentMethod &&
-                  (DIRECT_DEBIT_PAYMENT_TYPES.includes(
-                    type as DirectDebitPaymentMethodType,
-                  ) ||
+                  (DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(type) ||
                     paymentMethod.link?.email) && (
                     <Badge className="border-transparent bg-green-200 text-[0.625rem] text-green-900">
                       Connected

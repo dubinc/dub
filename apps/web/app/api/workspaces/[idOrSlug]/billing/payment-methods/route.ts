@@ -8,10 +8,11 @@ import {
 import { stripe } from "@/lib/stripe";
 import { APP_DOMAIN } from "@dub/utils";
 import { NextResponse } from "next/server";
+import Stripe from "stripe";
 import { z } from "zod";
 
 const addPaymentMethodSchema = z.object({
-  method: z.enum(PAYMENT_METHOD_TYPES).optional(),
+  method: z.enum(PAYMENT_METHOD_TYPES as [string, ...string[]]).optional(),
 });
 
 // GET /api/workspaces/[idOrSlug]/billing/payment-methods - get all payment methods
@@ -70,7 +71,9 @@ export const POST = withWorkspace(async ({ workspace, req }) => {
   const { url } = await stripe.checkout.sessions.create({
     mode: "setup",
     customer: workspace.stripeId,
-    payment_method_types: [method],
+    payment_method_types: [
+      method as Stripe.Checkout.SessionCreateParams.PaymentMethodType,
+    ],
     payment_method_options: {
       [method]: paymentMethodOption,
     },

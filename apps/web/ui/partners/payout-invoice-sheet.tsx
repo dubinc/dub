@@ -3,7 +3,7 @@ import { calculatePayoutFee } from "@/lib/payment-methods";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { DirectDebitPaymentMethod, PayoutResponse } from "@/lib/types";
+import { PayoutResponse } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
@@ -30,6 +30,7 @@ import {
 import { useAction } from "next-safe-action/hooks";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import Stripe from "stripe";
 import useSWR from "swr";
 
 const PAYMENT_METHODS = Object.freeze({
@@ -65,16 +66,23 @@ const PAYMENT_METHODS = Object.freeze({
   },
 });
 
+
+type SelectPaymentMethod = typeof PAYMENT_METHODS[keyof typeof PAYMENT_METHODS] & {
+  id: string;
+  fee: number;
+  title: string;
+};
+
 function PayoutInvoiceSheetContent() {
-  const { id: workspaceId, slug, plan, defaultProgramId } = useWorkspace();
   const { queryParams } = useRouterStuff();
+  const [excludeCurrentMonth, setExcludeCurrentMonth] = useState(false);
+  const { id: workspaceId, slug, plan, defaultProgramId } = useWorkspace();
+
   const { paymentMethods, loading: paymentMethodsLoading } =
     usePaymentMethods();
 
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
-    useState<DirectDebitPaymentMethod | null>(null);
-
-  const [excludeCurrentMonth, setExcludeCurrentMonth] = useState(false);
+    useState<SelectPaymentMethod | null>(null);
 
   const {
     data: eligiblePayouts,

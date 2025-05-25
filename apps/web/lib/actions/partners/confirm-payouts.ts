@@ -2,7 +2,7 @@
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { qstash } from "@/lib/cron";
-import { DIRECT_DEBIT_PAYMENT_METHODS } from "@/lib/partners/constants";
+import { PAYMENT_METHOD_TYPES } from "@/lib/partners/constants";
 import { stripe } from "@/lib/stripe";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import z from "zod";
@@ -13,12 +13,6 @@ const confirmPayoutsSchema = z.object({
   paymentMethodId: z.string(),
   excludeCurrentMonth: z.boolean().optional().default(false),
 });
-
-const ALLOWED_PAYMENT_METHODS = [
-  "card",
-  "link",
-  ...DIRECT_DEBIT_PAYMENT_METHODS,
-];
 
 // Confirm payouts
 export const confirmPayoutsAction = authActionClient
@@ -39,9 +33,9 @@ export const confirmPayoutsAction = authActionClient
       throw new Error("Invalid payout method.");
     }
 
-    if (!ALLOWED_PAYMENT_METHODS.includes(paymentMethod.type)) {
+    if (!PAYMENT_METHOD_TYPES.includes(paymentMethod.type)) {
       throw new Error(
-        `We only support ${ALLOWED_PAYMENT_METHODS.join(
+        `We only support ${PAYMENT_METHOD_TYPES.join(
           ", ",
         )} for now. Please update your payout method to one of these.`,
       );

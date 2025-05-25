@@ -1,3 +1,5 @@
+import Stripe from "stripe";
+
 export const PAYOUTS_SHEET_ITEMS_LIMIT = 10;
 export const REFERRALS_EMBED_EARNINGS_LIMIT = 8;
 export const CUSTOMER_PAGE_EVENTS_LIMIT = 8;
@@ -21,7 +23,7 @@ export const DUB_MIN_PAYOUT_AMOUNT_CENTS = 10000;
 
 // Direct debit payment types for Partner payout
 export const DIRECT_DEBIT_PAYMENT_TYPES_INFO: {
-  type: "us_bank_account" | "acss_debit" | "sepa_debit";
+  type: Stripe.PaymentMethod.Type;
   location: string;
   title: string;
   icon: string;
@@ -56,20 +58,14 @@ export const DIRECT_DEBIT_PAYMENT_TYPES_INFO: {
   },
 ];
 
-export const DIRECT_DEBIT_PAYMENT_TYPES = DIRECT_DEBIT_PAYMENT_TYPES_INFO.map(
-  (type) => type.type,
-);
+export const DIRECT_DEBIT_PAYMENT_METHOD_TYPES: Stripe.PaymentMethod.Type[] = [
+  "us_bank_account",
+  "acss_debit",
+  "sepa_debit",
+];
 
-export const PAYMENT_METHOD_TYPES = [
+export const PAYMENT_METHOD_TYPES: Stripe.PaymentMethod.Type[] = [
   "card",
   "link",
-  ...DIRECT_DEBIT_PAYMENT_TYPES,
-] as const;
-
-export type PaymentMethodType =
-  | (typeof DIRECT_DEBIT_PAYMENT_TYPES)[number]
-  | "card"
-  | "link";
-
-export type DirectDebitPaymentMethodType =
-  (typeof DIRECT_DEBIT_PAYMENT_TYPES)[number];
+  ...DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
+];
