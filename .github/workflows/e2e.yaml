@@ -24,9 +24,7 @@ jobs:
           cache: "pnpm"
 
       - name: Install dependencies
-        run: |
-          pnpm store prune
-          pnpm install --frozen-lockfile
+        run: pnpm install
 
       - name: Build utils
         working-directory: packages/utils
