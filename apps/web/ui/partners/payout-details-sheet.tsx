@@ -183,6 +183,19 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
     error: error ? "Failed to load commissions" : undefined,
   } as any);
 
+  const ViewAllPayoutsLink = () => (
+    <Link
+      href={`/${slug}/programs/${programId}/commissions?payoutId=${payout.id}&interval=all`}
+      target="_blank"
+      className={cn(
+        buttonVariants({ variant: "secondary" }),
+        "flex h-7 items-center rounded-lg border px-2 text-sm",
+      )}
+    >
+      View all
+    </Link>
+  );
+
   return (
     <div className="flex h-full flex-col">
       <div className="sticky top-0 z-10 flex items-start justify-between border-b border-neutral-200 bg-white p-6">
@@ -223,21 +236,14 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
             <div className="p-6 pt-2">
               <Table {...commissionsTable} />
 
-              <div className="flex justify-end py-4">
-                <Link
-                  href={`/${slug}/programs/${programId}/commissions?payoutId=${payout.id}&interval=all`}
-                  target="_blank"
-                  className={cn(
-                    buttonVariants({ variant: "secondary" }),
-                    "flex h-7 items-center rounded-lg border px-2 text-sm",
-                  )}
-                >
-                  View all
-                </Link>
-              </div>
+              {payout.status === "pending" && (
+                <div className="flex justify-end py-4">
+                  <ViewAllPayoutsLink />
+                </div>
+              )}
             </div>
-            {payout.status === "pending" && (
-              <div className="sticky bottom-0 z-10 flex justify-end border-t border-neutral-200 bg-white px-6 py-4">
+            <div className="sticky bottom-0 z-10 flex justify-end border-t border-neutral-200 bg-white px-6 py-4">
+              {payout.status === "pending" ? (
                 <Button
                   type="button"
                   variant="secondary"
@@ -253,8 +259,10 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
                     });
                   }}
                 />
-              </div>
-            )}
+              ) : (
+                <ViewAllPayoutsLink />
+              )}
+            </div>
           </>
         ) : null}
       </div>
