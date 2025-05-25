@@ -148,8 +148,12 @@ function PayoutInvoiceSheetContent() {
       (p) => p.status === PayoutStatus.pending,
     )?.amount;
 
-    const fee = amount && amount * (selectedPaymentMethod?.fee ?? 0);
-    const total = amount && fee && amount + fee;
+    const fee =
+      amount === undefined
+        ? undefined
+        : amount * (selectedPaymentMethod?.fee ?? 0);
+    const total =
+      amount !== undefined && fee !== undefined ? amount + fee : undefined;
 
     return {
       Method: (
@@ -223,7 +227,7 @@ function PayoutInvoiceSheetContent() {
       "Transfer Time": (
         <div>
           {selectedPaymentMethod ? (
-            selectedPaymentMethod?.duration
+            selectedPaymentMethod.duration
           ) : (
             <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
           )}
@@ -366,6 +370,7 @@ function PayoutInvoiceSheetContent() {
           disabled={
             eligiblePayoutsCountLoading ||
             eligiblePayoutsLoading ||
+            !selectedPaymentMethod ||
             (typeof invoiceData.Amount === "string" &&
               invoiceData.Amount === "$0.00")
           }
