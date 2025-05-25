@@ -18,6 +18,7 @@ const confirmPayoutsSchema = z.object({
 
 // POST /api/cron/payouts/confirm
 // This route is used to confirm payouts for a given invoice
+// we're intentionally offloading this to a cron job to avoid blocking the main thread
 export async function POST(req: Request) {
   try {
     const rawBody = await req.text();
