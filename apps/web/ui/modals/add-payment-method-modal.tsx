@@ -1,7 +1,7 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import { DIRECT_DEBIT_PAYMENT_METHOD } from "@/lib/types";
+import { DirectDebitPaymentMethod } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import { AnimatedSizeContainer, GreekTemple, Modal } from "@dub/ui";
 import { useRouter } from "next/navigation";
@@ -9,7 +9,7 @@ import { CSSProperties, Dispatch, SetStateAction, useState } from "react";
 import { toast } from "sonner";
 
 const PAYMENT_METHODS: {
-  id: DIRECT_DEBIT_PAYMENT_METHOD;
+  id: DirectDebitPaymentMethod;
   location: string;
   method: string;
   icon: string;
@@ -63,7 +63,7 @@ function AddPaymentMethodModalInner({
   const { slug } = useWorkspace();
   const [isLoading, setIsLoading] = useState(false);
 
-  const addPaymentMethod = async (method: DIRECT_DEBIT_PAYMENT_METHOD) => {
+  const addPaymentMethod = async (method: DirectDebitPaymentMethod) => {
     setIsLoading(true);
 
     const response = await fetch(

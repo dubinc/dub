@@ -3,7 +3,7 @@
 import { DIRECT_DEBIT_PAYMENT_METHODS } from "@/lib/partners/constants";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { DIRECT_DEBIT_PAYMENT_METHOD } from "@/lib/types";
+import { DirectDebitPaymentMethod } from "@/lib/types";
 import { useAddPaymentMethodModal } from "@/ui/modals/add-payment-method-modal";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { Badge, Button, CreditCard, GreekTemple, MoneyBill2 } from "@dub/ui";
@@ -23,13 +23,13 @@ export default function PaymentMethods() {
   const regularPaymentMethods = paymentMethods?.filter(
     (pm) =>
       !DIRECT_DEBIT_PAYMENT_METHODS.includes(
-        pm.type as DIRECT_DEBIT_PAYMENT_METHOD,
+        pm.type as DirectDebitPaymentMethod,
       ),
   );
 
   const partnerPaymentMethods = paymentMethods?.filter((pm) =>
     DIRECT_DEBIT_PAYMENT_METHODS.includes(
-      pm.type as DIRECT_DEBIT_PAYMENT_METHOD,
+      pm.type as DirectDebitPaymentMethod,
     ),
   );
 

@@ -1,13 +1,14 @@
 import { createId } from "@/lib/api/create-id";
-import { PAYOUT_FEES } from "@/lib/partners/constants";
+import {
+  DIRECT_DEBIT_PAYMENT_METHODS,
+  PAYOUT_FEES,
+} from "@/lib/partners/constants";
 import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
 import PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
 import { prisma } from "@dub/prisma";
 import { Program, Project } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
-
-const allowedPaymentMethods = ["us_bank_account", "card", "link"];
 
 export async function confirmPayouts({
   workspace,
@@ -113,7 +114,7 @@ export async function confirmPayouts({
     await stripe.paymentIntents.create({
       amount: invoice.total,
       customer: workspace.stripeId!,
-      payment_method_types: allowedPaymentMethods,
+      payment_method_types: ["card", "link", ...DIRECT_DEBIT_PAYMENT_METHODS],
       payment_method: paymentMethod.id,
       currency: "usd",
       confirmation_method: "automatic",

@@ -480,5 +480,5 @@ export type ProgramMetrics = z.infer<typeof ProgramMetricsSchema>;
 
 export type PayoutMethod = "stripe" | "paypal";
 
-export type DIRECT_DEBIT_PAYMENT_METHOD =
+export type DirectDebitPaymentMethod =
   (typeof DIRECT_DEBIT_PAYMENT_METHODS)[number];
