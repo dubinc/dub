@@ -9,6 +9,12 @@ export const createQrBodySchema = z.object({
   styles: z.record(z.any()).optional(), // Json
   frameOptions: z.record(z.any()).optional(), // Json
   archived: z.boolean().optional(),
+  file: z
+    .string()
+    .nullish()
+    .describe(
+      "The file the link leads to",
+    ),
   link: createLinkBodySchema,
 });
 

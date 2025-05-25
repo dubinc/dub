@@ -84,17 +84,6 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
           !LINKED_QR_TYPES.includes(qrType.id) || qrType.id === EQRType.WEBSITE,
       );
 
-      const onSaveClick = useCallback(() => {
-        console.log('files');
-        handleSaveQR?.({
-          styles: options,
-          frameOptions: {
-            id: selectedSuggestedFrame,
-          },
-          qrType: selectedQRType,
-        })
-      }, []);
-
       const handleNextStep = () => {
         setStep((prev) => Math.min(prev + 1, 3));
       };
@@ -149,6 +138,17 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
         minimalFlow: true,
         handleContent,
       });
+
+      const onSaveClick = () => {
+        handleSaveQR?.({
+          styles: options,
+          frameOptions: {
+            id: selectedSuggestedFrame,
+          },
+          qrType: selectedQRType,
+          files,
+        })
+      };
 
       const typeStep = step === 1;
       const contentStep = step === 2;
