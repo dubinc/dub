@@ -878,6 +878,7 @@ function LocationPayoutRules({
                     const newgeoRules = { ...geoRules };
                     delete newgeoRules[key];
                     newgeoRules[option.value] = value;
+
                     setValue("geoRules", newgeoRules, {
                       shouldDirty: true,
                     });
@@ -922,19 +923,28 @@ function LocationPayoutRules({
                 />
               </div>
 
-              <input
-                type="text"
-                placeholder="0"
-                className="z-0 h-full grow rounded-r-md border border-neutral-300 text-sm placeholder-neutral-400 focus:z-[1] focus:border-neutral-500 focus:ring-neutral-500"
-                onKeyDown={handleMoneyKeyDown}
-                {...(key
-                  ? register(`geoRules.${key}`, {
-                      valueAsNumber: true,
-                      min: 0,
-                      onChange: handleMoneyInputChange,
-                    })
-                  : {})}
-              />
+              <div className="relative flex grow">
+                <span className="pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-3 text-sm text-neutral-400">
+                  $
+                </span>
+                <input
+                  type="text"
+                  placeholder="0"
+                  className="h-full w-full rounded-r-md border border-neutral-300 pl-6 pr-12 text-sm placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-1 focus:ring-inset focus:ring-neutral-500"
+                  onKeyDown={handleMoneyKeyDown}
+                  {...(key
+                    ? register(`geoRules.${key}`, {
+                        required: true,
+                        valueAsNumber: true,
+                        min: 0,
+                        onChange: handleMoneyInputChange,
+                      })
+                    : {})}
+                />
+                <span className="pointer-events-none absolute inset-y-0 right-0 z-10 flex items-center pr-3 text-sm text-neutral-400">
+                  USD
+                </span>
+              </div>
 
               <div className="pl-1.5">
                 <Button
