@@ -1,7 +1,6 @@
 import { cn } from "@dub/utils";
 import { Icon } from "@iconify/react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { useState } from "react";
 import { TWifiEncryptionOption } from "../constants/wifi-encryption-types.ts";
 
 export interface ISelectOption {
@@ -11,16 +10,14 @@ export interface ISelectOption {
 
 interface ISelectProps {
   options: TWifiEncryptionOption[];
+  value: ISelectOption | null;
   onChange?: (option: ISelectOption) => void;
 }
 
-export const Select = ({ options, onChange }: ISelectProps) => {
-  const [selectedOption, setSelectedOption] = useState<string>(
-    options[0]?.label || "",
-  );
+export const Select = ({ options, value, onChange }: ISelectProps) => {
+  const selectedLabel = value?.label ?? options[0]?.label ?? "";
 
   const handleSelect = (option: ISelectOption) => {
-    setSelectedOption(option.label);
     onChange?.(option);
   };
 
@@ -29,16 +26,14 @@ export const Select = ({ options, onChange }: ISelectProps) => {
       <DropdownMenu.Trigger>
         <div
           className={cn(
-            "border-border-300 flex h-11 w-full cursor-pointer items-center justify-between rounded-md border bg-white px-3 text-sm text-neutral-200 transition-colors",
+            "border-border-300 flex h-11 w-fit cursor-pointer items-center justify-between gap-3.5 rounded-md border bg-white px-3 text-sm text-neutral-200 transition-colors",
             "focus-within:border-secondary",
           )}
         >
-          <span>{selectedOption}</span>
+          <span>{selectedLabel}</span>
           <Icon
             icon="line-md:chevron-down"
-            className={cn(
-              "text-xl text-neutral-200 transition-transform duration-300",
-            )}
+            className="text-xl text-neutral-200 transition-transform duration-300"
           />
         </div>
       </DropdownMenu.Trigger>
@@ -54,14 +49,14 @@ export const Select = ({ options, onChange }: ISelectProps) => {
             className={cn(
               "hover:bg-secondary-100 flex h-9 w-full cursor-pointer items-center justify-between rounded-md bg-white p-3",
               {
-                "bg-secondary-100": selectedOption === option.label,
+                "bg-secondary-100": value?.id === option.id,
               },
             )}
             onClick={() => handleSelect(option)}
           >
             <span
               className={cn("text-neutral text-sm", {
-                "text-secondary": selectedOption === option.label,
+                "text-secondary": value?.id === option.id,
               })}
             >
               {option.label}

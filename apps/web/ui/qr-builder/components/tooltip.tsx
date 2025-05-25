@@ -19,11 +19,11 @@ export const TooltipComponent: FC<ITooltipProps> = ({
     collisionPadding={24}
     delayDuration={delayDuration}
     content={
-      <Text as="p" className="text-xs text-neutral-800">
+      <Text as="p" className="text-sm text-neutral-800">
         {tooltip}
       </Text>
     }
-    className="border-border-500 max-w-[200px] rounded-md border bg-white p-1 shadow-sm"
+    className="border-border-500 max-w-[200px] rounded-md border bg-white p-2 shadow-sm"
   >
     <HelpCircleIcon className="h-4 w-4 text-neutral-500" />
   </Tooltip>

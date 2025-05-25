@@ -50,6 +50,24 @@ export const QR_TYPES: QRType[] = [
       "Share important documents instantly! Link your PDF to a QR code and give people quick and easy access to menus, guides, brochures, or portfolios—anytime, anywhere.",
   },
   {
+    id: EQRType.WHATSAPP,
+    label: "Whatsapp",
+    info: "Start a WhatsApp chat instantly",
+    icon: "basil:whatsapp-outline",
+    img: QrWhatsappFull,
+    content:
+      "Start conversations instantly! Use a QR code to let customers, clients, or friends message you on WhatsApp with a single scan.",
+  },
+  {
+    id: EQRType.WIFI,
+    label: "Wifi",
+    icon: "streamline:wifi",
+    info: "Connect to a Wifi network",
+    img: QrWifiFull,
+    content:
+      "Instant Wifi access—no typing required! Use a QR code to let guests connect to your network effortlessly by scanning, making it perfect for homes, cafés, offices, and events.",
+  },
+  {
     id: EQRType.IMAGE,
     label: "Image",
     info: "Display an image or photo",
@@ -68,15 +86,6 @@ export const QR_TYPES: QRType[] = [
       "Bring your content to life! Use a QR code to instantly share videos—whether it's tutorials, trailers, promotions, or educational content—anytime, anywhere.",
   },
   {
-    id: EQRType.WHATSAPP,
-    label: "Whatsapp",
-    info: "Start a WhatsApp chat instantly",
-    icon: "basil:whatsapp-outline",
-    img: QrWhatsappFull,
-    content:
-      "Start conversations instantly! Use a QR code to let customers, clients, or friends message you on WhatsApp with a single scan.",
-  },
-  {
     id: EQRType.SOCIAL,
     label: "Social Media Link",
     info: "Open a website or landing page",
@@ -84,15 +93,6 @@ export const QR_TYPES: QRType[] = [
     img: QrSocialFull,
     content:
       "Grow your audience effortlessly! Use a QR code to share your social media profiles in one scan—making it easy for people to follow, connect, and engage with your content.",
-  },
-  {
-    id: EQRType.WIFI,
-    label: "Wifi",
-    icon: "streamline:wifi",
-    info: "Connect to a Wifi network",
-    img: QrWifiFull,
-    content:
-      "Instant Wifi access—no typing required! Use a QR code to let guests connect to your network effortlessly by scanning, making it perfect for homes, cafés, offices, and events.",
   },
   {
     id: EQRType.APP_LINK,

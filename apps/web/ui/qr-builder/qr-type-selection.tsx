@@ -28,11 +28,12 @@ export const QrTypeSelection: FC<IQrTypeSelection> = ({
           asChild
           className={cn(
             "text-neutral !border-border-500 w-42 group flex min-w-[254px] items-center justify-center gap-2 rounded-md border px-4 py-3.5 font-medium transition-colors [&_div:first-child]:flex [&_div:first-child]:flex-row [&_div:first-child]:items-center [&_div:first-child]:gap-3 md:[&_div:first-child]:flex-none md:[&_div:first-child]:gap-2 [&_div]:p-0",
-            "hover:bg-border-100 hover:text-neutral",
+            "hover:!bg-secondary-100 hover:!border-secondary group",
             "transition-all duration-300 ease-in-out",
             {
               "!bg-secondary-100 !border-secondary":
                 qrTypeActiveTab === type.id,
+              "!bg-background md:!bg-white": qrTypeActiveTab !== type.id,
             },
           )}
           onClick={() => onSelect(type.id)}
@@ -59,14 +60,17 @@ export const QrTypeSelection: FC<IQrTypeSelection> = ({
                   className="hidden h-5 w-5 flex-none md:flex"
                 />
                 <h3
-                  className={cn("text-neutral text-lg font-medium", {
-                    "!text-secondary": qrTypeActiveTab === type.id,
-                  })}
+                  className={cn(
+                    "text-neutral text-md group-hover:text-secondary font-medium md:text-lg",
+                    {
+                      "!text-secondary": qrTypeActiveTab === type.id,
+                    },
+                  )}
                 >
                   {type.label}
                 </h3>
               </Flex>
-              <p className="text-sm text-neutral-500">{type.info}</p>
+              <p className="text-xs text-neutral-500 md:text-sm">{type.info}</p>
             </Flex>
           </Flex>
         </Card>
