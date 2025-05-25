@@ -7,6 +7,7 @@ settings:
 overrides:
   '@radix-ui/react-dialog': 1.0.5
   '@radix-ui/react-popover': 1.0.7
+  chrono-node: 2.7.5
 
 importers:
 
@@ -876,7 +877,7 @@ importers:
         specifier: ^2.2.1
         version: 2.2.1
       chrono-node:
-        specifier: ^2.7.5
+        specifier: 2.7.5
         version: 2.7.5
       clsx:
         specifier: ^2.1.1
