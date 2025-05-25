@@ -1,7 +1,7 @@
 import { PayoutStatus } from "@dub/prisma/client";
 import { z } from "zod";
-import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
-import { PartnerSchema, PAYOUTS_MAX_PAGE_SIZE } from "./partners";
+import { getPaginationQuerySchema } from "./misc";
+import { PartnerSchema } from "./partners";
 import { ProgramSchema } from "./programs";
 
 export const createManualPayoutSchema = z.object({
@@ -19,6 +19,8 @@ export const createManualPayoutSchema = z.object({
     .nullable(),
 });
 
+export const PAYOUTS_MAX_PAGE_SIZE = 100;
+
 export const payoutsQuerySchema = z
   .object({
     status: z.nativeEnum(PayoutStatus).optional(),
@@ -26,7 +28,6 @@ export const payoutsQuerySchema = z
     programId: z.string().optional(),
     invoiceId: z.string().optional(),
     eligibility: z.enum(["eligible", "ineligible"]).optional(),
-    excludeCurrentMonth: booleanQuerySchema.optional(),
     sortBy: z
       .enum(["createdAt", "periodStart", "amount", "paidAt"])
       .default("amount"),

@@ -5,7 +5,6 @@ import {
   payoutsQuerySchema,
 } from "@/lib/zod/schemas/payouts";
 import { prisma } from "@dub/prisma";
-import { Commission } from "@prisma/client";
 import { NextResponse } from "next/server";
 import z from "zod";
 
@@ -29,7 +28,6 @@ export const GET = withWorkspace(
       sortOrder,
       page,
       pageSize,
-      excludeCurrentMonth,
     } = parsed;
 
     const now = new Date();
@@ -57,15 +55,6 @@ export const GET = withWorkspace(
       include: {
         partner: true,
         user: true,
-        ...(excludeCurrentMonth && {
-          commissions: {
-            where: {
-              createdAt: {
-                lt: currentMonthStart,
-              },
-            },
-          },
-        }),
       },
       skip: (page - 1) * pageSize,
       take: pageSize,
@@ -74,42 +63,6 @@ export const GET = withWorkspace(
       },
     });
 
-    const result = excludeCurrentMonth
-      ? excludeCurrentMonthCommissions({
-          payouts,
-          minPayoutAmount,
-        })
-      : payouts;
-
-    return NextResponse.json(z.array(PayoutResponseSchema).parse(result));
+    return NextResponse.json(z.array(PayoutResponseSchema).parse(payouts));
   },
 );
-
-// Exclude the current month's commissions from the payouts
-const excludeCurrentMonthCommissions = ({
-  payouts,
-  minPayoutAmount,
-}: {
-  payouts: (z.infer<typeof PayoutResponseSchema> & {
-    commissions: Commission[];
-  })[];
-  minPayoutAmount: number;
-}) => {
-  const allPayouts = payouts.map((payout) => {
-    // custom payouts are included by default
-    if (!payout.periodStart && !payout.periodEnd) {
-      return payout;
-    }
-
-    const newPayoutAmount = payout.commissions.reduce((acc, commission) => {
-      return acc + commission.earnings;
-    }, 0);
-
-    return {
-      ...payout,
-      amount: newPayoutAmount,
-    };
-  });
-
-  return allPayouts.filter((payout) => payout.amount >= minPayoutAmount);
-};

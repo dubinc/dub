@@ -2,12 +2,9 @@ import { confirmPayoutsAction } from "@/lib/actions/partners/confirm-payouts";
 import { PAYOUT_FEES } from "@/lib/partners/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
-import usePayouts from "@/lib/swr/use-payouts";
-import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { PayoutsCount } from "@/lib/types";
+import { PayoutResponse } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
-import { PayoutStatus } from "@dub/prisma/client";
 import {
   Button,
   buttonVariants,
@@ -26,12 +23,14 @@ import {
   capitalize,
   cn,
   currencyFormatter,
+  fetcher,
   OG_AVATAR_URL,
   truncate,
 } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import useSWR from "swr";
 
 function PayoutInvoiceSheetContent() {
   const { id: workspaceId, slug, plan, defaultProgramId } = useWorkspace();
@@ -74,30 +73,16 @@ function PayoutInvoiceSheetContent() {
   const [excludeCurrentMonth, setExcludeCurrentMonth] = useState(false);
 
   const {
-    payoutsCount: eligiblePayoutsCount,
-    loading: eligiblePayoutsCountLoading,
-  } = usePayoutsCount<PayoutsCount[]>({
-    groupBy: "status",
-    eligibility: "eligible",
-    ...(excludeCurrentMonth && {
-      excludeCurrentMonth: "true",
-    }),
-  });
-
-  const {
-    payouts: eligiblePayouts,
+    data: eligiblePayouts,
     error: eligiblePayoutsError,
-    loading: eligiblePayoutsLoading,
-  } = usePayouts({
-    query: {
-      status: "pending",
-      eligibility: "eligible",
-      sortBy: "amount",
-      ...(excludeCurrentMonth && {
-        excludeCurrentMonth: "true",
-      }),
-    },
-  });
+    isLoading: eligiblePayoutsLoading,
+  } = useSWR<PayoutResponse[]>(
+    `/api/programs/${defaultProgramId}/payouts/confirm?${new URLSearchParams({
+      workspaceId,
+      excludeCurrentMonth: excludeCurrentMonth ? "true" : "false",
+    } as Record<string, any>).toString()}`,
+    fetcher,
+  );
 
   const { executeAsync, isPending } = useAction(confirmPayoutsAction, {
     onSuccess: async () => {
@@ -144,9 +129,9 @@ function PayoutInvoiceSheetContent() {
   );
 
   const invoiceData = useMemo(() => {
-    const amount = eligiblePayoutsCount?.find(
-      (p) => p.status === PayoutStatus.pending,
-    )?.amount;
+    const amount = eligiblePayouts?.reduce((acc, payout) => {
+      return acc + payout.amount;
+    }, 0);
 
     const fee =
       amount === undefined
@@ -245,8 +230,7 @@ function PayoutInvoiceSheetContent() {
         ),
     };
   }, [
-    eligiblePayoutsCount,
-    eligiblePayoutsCountLoading,
+    eligiblePayouts,
     paymentMethods,
     selectedPaymentMethod,
     excludeCurrentMonth,
@@ -368,7 +352,6 @@ function PayoutInvoiceSheetContent() {
           variant="primary"
           loading={isPending}
           disabled={
-            eligiblePayoutsCountLoading ||
             eligiblePayoutsLoading ||
             !selectedPaymentMethod ||
             (typeof invoiceData.Amount === "string" &&
