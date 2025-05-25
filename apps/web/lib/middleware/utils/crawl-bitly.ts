@@ -4,14 +4,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { parse } from "./parse";
 
 export const crawlBitly = async (req: NextRequest) => {
-  const { domain, key } = parse(req);
+  const { domain, fullKey } = parse(req);
 
   // bitly doesn't support the following characters: ` ~ , . < > ; ‘ : “ / \ [ ] ^ { } ( ) = + ! * @ & $ £ ? % # |
   // @see: https://support.bitly.com/hc/en-us/articles/360030780892-What-characters-are-supported-when-customizing-links
   const invalidBitlyKeyRegex = /[`~,.<>;':"/\\[\]^{}()=+!*@&$£?%#|]/;
 
-  if (key && !invalidBitlyKeyRegex.test(key)) {
-    const link = await fetchBitlyLink({ domain, key });
+  if (fullKey && !invalidBitlyKeyRegex.test(fullKey)) {
+    const link = await fetchBitlyLink({ domain, key: fullKey });
     if (link) {
       return NextResponse.redirect(link.long_url, {
         headers: DUB_HEADERS,
