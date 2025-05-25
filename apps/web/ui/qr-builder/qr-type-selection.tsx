@@ -29,11 +29,11 @@ export const QrTypeSelection: FC<IQrTypeSelection> = ({
           className={cn(
             "text-neutral !border-border-500 w-42 group flex min-w-[254px] items-center justify-center gap-2 rounded-md border px-4 py-3.5 font-medium transition-colors [&_div:first-child]:flex [&_div:first-child]:flex-row [&_div:first-child]:items-center [&_div:first-child]:gap-3 md:[&_div:first-child]:flex-none md:[&_div:first-child]:gap-2 [&_div]:p-0",
             "hover:!bg-secondary-100 hover:!border-secondary group",
-            "!bg-background md:!bg-white",
             "transition-all duration-300 ease-in-out",
             {
               "!bg-secondary-100 !border-secondary":
                 qrTypeActiveTab === type.id,
+              "!bg-background md:!bg-white": qrTypeActiveTab !== type.id,
             },
           )}
           onClick={() => onSelect(type.id)}
