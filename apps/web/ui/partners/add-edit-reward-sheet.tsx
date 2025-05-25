@@ -950,7 +950,7 @@ function LocationPayoutRules({
                 type="button"
                 text={<Trash className="size-4" />}
                 variant="outline"
-                className="size-10 shrink-0 p-0 hover:bg-red-50 hover:text-red-600"
+                className="h-10 w-9 shrink-0 p-0 hover:bg-red-50 hover:text-red-600"
                 onClick={() => {
                   const newgeoRules = { ...geoRules };
                   delete newgeoRules[key];
