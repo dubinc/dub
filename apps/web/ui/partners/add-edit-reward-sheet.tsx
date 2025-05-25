@@ -111,8 +111,6 @@ function RewardSheetContent({
     "one-off" | "recurring"
   >("recurring");
 
-  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
-
   const {
     register,
     handleSubmit,
@@ -743,7 +741,7 @@ function RewardSheetContent({
 }
 
 // Temporarily hiding this in the UI for now – until more users ask for it
-function RewardLimitSection({
+function RewardLimit({
   event,
   register,
   watch,
@@ -824,8 +822,7 @@ function RewardLimitSection({
   );
 }
 
-// Geo rules for lead rewards
-function GeoRulesSection({
+function LocationPayoutRules({
   geoRules,
   setValue,
 }: {
