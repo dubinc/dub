@@ -7,6 +7,7 @@ import {
   TQRInputType,
 } from "@/ui/qr-builder/constants/qr-type-inputs-config.ts";
 import { Input } from "@dub/ui";
+import { cn } from "@dub/utils";
 import { Flex } from "@radix-ui/themes";
 import Cookies from "js-cookie";
 import { FC, ReactNode } from "react";
@@ -99,7 +100,12 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
     case "textarea":
       inputField = (
         <textarea
-          className="border-border-500 focus:border-secondary h-36 w-full rounded-md border p-3 text-base"
+          className={cn(
+            "border-border-500 focus:border-secondary h-36 w-full rounded-md border p-3 text-base",
+            {
+              "border-red-500": error,
+            },
+          )}
           placeholder={placeholder}
           maxLength={500}
           required
@@ -120,7 +126,9 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
               international
               defaultCountry={(Cookies.get("country") || "US") as Country}
               countrySelectComponent={CountrySelectAutocompleteComponent}
-              inputComponent={PhoneNumberInputComponent}
+              inputComponent={(props) => (
+                <PhoneNumberInputComponent {...props} hasError={!!error} />
+              )}
               className="w-full [&>div]:w-full"
             />
           )}
@@ -132,7 +140,12 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
       inputField = (
         <Input
           type={type}
-          className="border-border-500 focus:border-secondary h-11 w-full max-w-2xl rounded-md border p-3 text-base"
+          className={cn(
+            "border-border-500 focus:border-secondary h-11 w-full max-w-2xl rounded-md border p-3 text-base",
+            {
+              "border-red-500": error,
+            },
+          )}
           autoComplete={autoCompleteValue}
           placeholder={placeholder}
           onFocus={(e) => {

@@ -1,5 +1,5 @@
 import QRCodeStyling from "qr-code-styling";
-import { forwardRef, useEffect, useRef } from "react";
+import { forwardRef, RefObject, useEffect, useRef } from "react";
 
 interface QRCanvasProps {
   qrCode: QRCodeStyling | null;
@@ -13,7 +13,7 @@ export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
     const svgContainerRef = useRef<HTMLDivElement>(null);
 
     const canvasRef =
-      (ref as React.RefObject<HTMLCanvasElement>) || internalCanvasRef;
+      (ref as RefObject<HTMLCanvasElement>) || internalCanvasRef;
 
     useEffect(() => {
       if (!qrCode || !svgContainerRef.current || !canvasRef.current) return;
@@ -75,7 +75,7 @@ export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
             ref={canvasRef}
             width={width}
             height={height}
-            className="border-border-100 rounded-lg border bg-white"
+            className="border-border-100 rounded-lg border bg-white p-3"
           />
           <div ref={svgContainerRef} />
         </div>

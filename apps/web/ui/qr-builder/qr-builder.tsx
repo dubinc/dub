@@ -178,7 +178,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
       const hideDemoPlaceholderOnMobile = isMobile && typeStep;
       const qrBuilderContentWrapperRef = useRef<HTMLDivElement>(null);
       const qrBuilderButtonsWrapperRef = useRef<HTMLDivElement>(null);
-      const isMobileButtonsInViewport = useIsInViewport(
+      const navigationButtonsInViewport = useIsInViewport(
         qrBuilderButtonsWrapperRef,
         0.6,
         qrBuilderContentWrapperRef,
@@ -191,12 +191,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
             "border-border-500 mx-auto h-full w-full rounded-lg border bg-white transition-[height] duration-[300ms]",
           )}
         >
-          <Flex
-            direction="row"
-            align="center"
-            justify="start"
-            className="px-6 py-3"
-          >
+          <Flex align="center" justify="center" className="px-6 py-3">
             <Stepper
               currentStep={step}
               steps={[
@@ -208,17 +203,6 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                 { number: 3, label: "Customize QR" },
               ]}
             />
-            {!typeStep && (
-              <QrBuilderButtons
-                step={step}
-                onStepChange={setStep}
-                onSaveClick={onSaveClick}
-                validateFields={handleValidationAndContentSubmit}
-                size="3"
-                display={{ initial: "none", md: "flex" }}
-                className="pr-8"
-              />
-            )}
           </Flex>
 
           <div className="border-t-border-500 flex w-full flex-col items-stretch justify-between gap-4 border-t p-6 md:gap-6">
@@ -267,7 +251,6 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                         onStepChange={setStep}
                         onSaveClick={onSaveClick}
                         validateFields={handleValidationAndContentSubmit}
-                        display={{ initial: "flex", md: "none" }}
                       />
                     </div>
                   </FormProvider>
@@ -302,7 +285,6 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                       onStepChange={setStep}
                       onSaveClick={onSaveClick}
                       validateFields={handleValidationAndContentSubmit}
-                      display={{ initial: "flex", md: "none" }}
                     />
                   </div>
                 </Flex>
@@ -311,7 +293,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
               {!hideDemoPlaceholderOnMobile && (
                 <div
                   className={cn(
-                    "bg-background relative flex h-auto shrink-0 basis-2/5 items-end justify-center rounded-lg p-6 [&_svg]:h-[250px] md:[&_svg]:h-full",
+                    "bg-background relative flex h-auto shrink-0 basis-2/5 items-end justify-center rounded-lg p-6 [&_svg]:h-[200px] md:[&_svg]:h-full",
                     {
                       "items-start": customizationStep,
                     },
@@ -339,7 +321,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                           )}
                         </motion.div>
                       )}
-                      <div className="absolute left-1/2 top-[150px] h-[125px] w-[356px] -translate-x-1/2 bg-[linear-gradient(180deg,_rgba(255,255,255,0)_12.22%,_#FFFFFF_73.25%)] md:top-[249.72px] md:w-[400px]"></div>
+                      <div className="absolute left-1/2 top-[125px] h-[100px] w-[340px] -translate-x-1/2 bg-[linear-gradient(180deg,_rgba(255,255,255,0)_12.22%,_#FFFFFF_73.25%)] md:top-[249.72px] md:h-[125px] md:w-[400px]"></div>
                     </div>
                   )}
 
@@ -366,18 +348,20 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                           )}
                         >
                           <QRCanvas
-                            width={isMobile ? 250 : 300}
-                            height={isMobile ? 250 : 300}
+                            width={isMobile ? 200 : 300}
+                            height={isMobile ? 200 : 300}
                             qrCode={qrCode}
                           />
                         </div>
                       </motion.div>
-                      {homepageDemo && !isMobile && (
-                        <QrTabsDownloadButton
-                          onRegistrationClick={onSaveClick}
-                          isQrDisabled={isQrDisabled}
-                        />
-                      )}
+                      {homepageDemo &&
+                        !isMobile &&
+                        !navigationButtonsInViewport && (
+                          <QrTabsDownloadButton
+                            onRegistrationClick={onSaveClick}
+                            isQrDisabled={isQrDisabled}
+                          />
+                        )}
                     </div>
                   )}
                 </div>
@@ -403,7 +387,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
             </div>
           )}
 
-          {isMobile && !isMobileButtonsInViewport && !typeStep && (
+          {isMobile && !navigationButtonsInViewport && !typeStep && (
             <div className="border-border-500 sticky bottom-0 left-0 z-50 w-full border-t bg-white px-6 py-3 shadow-md">
               <QrBuilderButtons
                 step={step}

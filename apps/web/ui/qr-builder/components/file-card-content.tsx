@@ -11,6 +11,7 @@ import {
 import { TooltipComponent } from "@/ui/qr-builder/components/tooltip.tsx";
 import { EAcceptedFileType } from "@/ui/qr-builder/constants/qr-type-inputs-config.ts";
 import { getMaxSizeLabel } from "@/ui/qr-builder/helpers/get-max-size-label.ts";
+import { cn } from "@dub/utils/src";
 import { Button, Flex } from "@radix-ui/themes";
 import { CloudUpload, Upload, X } from "lucide-react";
 import { Dispatch, FC, SetStateAction, useEffect, useState } from "react";
@@ -72,7 +73,11 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
         accept={acceptedFileType}
         multiple={!isLogo}
       >
-        <FileUploadDropzone className="border-secondary-100">
+        <FileUploadDropzone
+          className={cn("border-secondary-100", {
+            "border-red-500": fileError || localFileError,
+          })}
+        >
           {isLogo ? (
             <div className="flex flex-row flex-wrap items-center gap-2 border-dotted text-center">
               <CloudUpload className="text-secondary size-5" />

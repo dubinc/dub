@@ -60,11 +60,11 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
                       icon={type.icon}
                       className={cn(
                         "h-7 w-7 flex-none",
-                        idx === 4
+                        idx === 2
                           ? "group-hover:[&>path]:fill-secondary [&>path]:fill-neutral-200"
                           : "group-hover:[&>g]:stroke-secondary group-hover:[&>path]:stroke-secondary [&>g]:stroke-neutral-200 [&>path]:stroke-neutral-200",
                         activeTab === type.id &&
-                          (idx === 4
+                          (idx === 2
                             ? "[&>path]:fill-secondary group-hover:[&>path]:fill-secondary"
                             : "[&>g]:stroke-secondary group-hover:[&>g]:stroke-secondary [&>path]:stroke-secondary group-hover:[&>path]:stroke-secondary"),
                       )}

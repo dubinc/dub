@@ -1,6 +1,5 @@
 import { cn } from "@dub/utils";
 import { Button, Flex, Responsive } from "@radix-ui/themes";
-import { ChevronLeft } from "lucide-react";
 import { FC } from "react";
 
 interface IQrBuilderButtonsProps {
@@ -62,18 +61,18 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
         size={size}
         variant="outline"
         color="blue"
-        className="flex min-h-10 self-center"
+        className="min-w-30 flex min-h-10 self-center"
         disabled={step <= minStep}
         onClick={handleBack}
       >
-        <ChevronLeft />
+        Back
       </Button>
 
       <Button
         type="submit"
         size={size}
         color="blue"
-        className="min-w-60 basis-3/4"
+        className="min-w-30"
         onClick={handleContinue}
       >
         {lastStep ? "Download QR Code" : "Continue"}
