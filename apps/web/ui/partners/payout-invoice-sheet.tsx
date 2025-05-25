@@ -1,4 +1,5 @@
 import { confirmPayoutsAction } from "@/lib/actions/partners/confirm-payouts";
+import { DIRECT_DEBIT_PAYMENT_METHOD_TYPES } from "@/lib/partners/constants";
 import { calculatePayoutFee } from "@/lib/payment-methods";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
@@ -66,12 +67,11 @@ const PAYMENT_METHODS = Object.freeze({
   },
 });
 
-
-type SelectPaymentMethod = typeof PAYMENT_METHODS[keyof typeof PAYMENT_METHODS] & {
-  id: string;
-  fee: number;
-  title: string;
-};
+type SelectPaymentMethod =
+  (typeof PAYMENT_METHODS)[keyof typeof PAYMENT_METHODS] & {
+    id: string;
+    fee: number;
+  };
 
 function PayoutInvoiceSheetContent() {
   const { queryParams } = useRouterStuff();
@@ -217,7 +217,7 @@ function PayoutInvoiceSheetContent() {
           <Tooltip
             content={
               <SimpleTooltipContent
-                title={`${Math.round(selectedPaymentMethod.fee * 100)}% processing fee.${selectedPaymentMethod.type !== "us_bank_account" ? " Switch to ACH for a reduced fee." : ""}`}
+                title={`${Math.round(selectedPaymentMethod.fee * 100)}% processing fee. ${!DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(selectedPaymentMethod.type as Stripe.PaymentMethod.Type) ? " Switch to Direct Debit for a reduced fee." : ""}`}
                 cta="Learn more"
                 href="https://d.to/payouts"
               />
