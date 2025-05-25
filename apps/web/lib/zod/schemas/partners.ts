@@ -14,7 +14,6 @@ import { ProgramEnrollmentSchema } from "./programs";
 import { parseUrlSchema } from "./utils";
 
 export const PARTNERS_MAX_PAGE_SIZE = 100;
-export const PAYOUTS_MAX_PAGE_SIZE = 100;
 
 export const exportPartnerColumns = [
   { id: "id", label: "ID", default: true },
