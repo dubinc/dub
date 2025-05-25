@@ -90,6 +90,8 @@ const PayoutTableInner = memo(
         if (payout) {
           setDetailsSheetState({ open: true, payout });
         }
+      } else {
+        setDetailsSheetState({ open: false, payout: null });
       }
     }, [searchParams, payouts]);
 

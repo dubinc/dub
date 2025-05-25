@@ -30,24 +30,12 @@ import {
   truncate,
 } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { useParams } from "next/navigation";
-import {
-  Dispatch,
-  Fragment,
-  SetStateAction,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
-interface PayoutInvoiceSheetProps {
-  setIsOpen: Dispatch<SetStateAction<boolean>>;
-}
-
-function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
-  const { programId } = useParams() as { programId: string };
-  const { id: workspaceId, slug, plan } = useWorkspace();
+function PayoutInvoiceSheetContent() {
+  const { id: workspaceId, slug, plan, defaultProgramId } = useWorkspace();
+  const { queryParams } = useRouterStuff();
   const { paymentMethods, loading: paymentMethodsLoading } =
     usePaymentMethods();
 
@@ -113,11 +101,13 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
 
   const { executeAsync, isPending } = useAction(confirmPayoutsAction, {
     onSuccess: async () => {
-      await mutatePrefix(`/api/programs/${programId}/payouts`);
+      await mutatePrefix(`/api/programs/${defaultProgramId}/payouts`);
       toast.success(
         "Payouts confirmed successfully! They will be processed soon.",
       );
-      setIsOpen(false);
+      queryParams({
+        del: "confirmPayouts",
+      });
     },
     onError({ error }) {
       toast.error(error.serverError);
@@ -154,12 +144,12 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
   );
 
   const invoiceData = useMemo(() => {
-    const amount =
-      eligiblePayoutsCount?.find((p) => p.status === PayoutStatus.pending)
-        ?.amount ?? 0;
+    const amount = eligiblePayoutsCount?.find(
+      (p) => p.status === PayoutStatus.pending,
+    )?.amount;
 
-    const fee = amount * (selectedPaymentMethod?.fee ?? 0);
-    const total = amount + fee;
+    const fee = amount && amount * (selectedPaymentMethod?.fee ?? 0);
+    const total = amount && fee && amount + fee;
 
     return {
       Method: (
@@ -198,31 +188,37 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
         </div>
       ),
 
-      Amount: currencyFormatter(amount / 100, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }),
+      Amount:
+        amount === undefined ? (
+          <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
+        ) : (
+          currencyFormatter(amount / 100, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })
+        ),
 
-      Fee: selectedPaymentMethod ? (
-        <Tooltip
-          content={
-            <SimpleTooltipContent
-              title={`${Math.round(selectedPaymentMethod.fee * 100)}% processing fee.${selectedPaymentMethod.type !== "us_bank_account" ? " Switch to ACH for a reduced fee." : ""}`}
-              cta="Learn more"
-              href="https://d.to/payouts"
-            />
-          }
-        >
-          <span className="underline decoration-dotted underline-offset-2">
-            {currencyFormatter(fee / 100, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}
-          </span>
-        </Tooltip>
-      ) : (
-        <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
-      ),
+      Fee:
+        selectedPaymentMethod && fee !== undefined ? (
+          <Tooltip
+            content={
+              <SimpleTooltipContent
+                title={`${Math.round(selectedPaymentMethod.fee * 100)}% processing fee.${selectedPaymentMethod.type !== "us_bank_account" ? " Switch to ACH for a reduced fee." : ""}`}
+                cta="Learn more"
+                href="https://d.to/payouts"
+              />
+            }
+          >
+            <span className="underline decoration-dotted underline-offset-2">
+              {currencyFormatter(fee / 100, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </span>
+          </Tooltip>
+        ) : (
+          <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
+        ),
 
       "Transfer Time": (
         <div>
@@ -234,10 +230,15 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
         </div>
       ),
 
-      Total: currencyFormatter(total / 100, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }),
+      Total:
+        total === undefined ? (
+          <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
+        ) : (
+          currencyFormatter(total / 100, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })
+        ),
     };
   }, [
     eligiblePayoutsCount,
@@ -390,13 +391,20 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
   );
 }
 
-export function PayoutInvoiceSheet({
-  isOpen,
-  setIsOpen,
-}: PayoutInvoiceSheetProps & {
-  isOpen: boolean;
-}) {
+export function PayoutInvoiceSheet() {
   const { queryParams } = useRouterStuff();
+  const [isOpen, setIsOpen] = useState(false);
+  const { searchParams } = useRouterStuff();
+
+  useEffect(() => {
+    const confirmPayouts = searchParams.get("confirmPayouts");
+
+    if (confirmPayouts) {
+      setIsOpen(true);
+    } else {
+      setIsOpen(false);
+    }
+  }, [searchParams]);
 
   return (
     <Sheet
@@ -404,23 +412,11 @@ export function PayoutInvoiceSheet({
       onOpenChange={setIsOpen}
       onClose={() => {
         queryParams({
-          del: ["payoutId", "confirmPayouts"],
-          scroll: false,
+          del: "confirmPayouts",
         });
       }}
     >
-      <PayoutInvoiceSheetContent setIsOpen={setIsOpen} />
+      <PayoutInvoiceSheetContent />
     </Sheet>
   );
-}
-
-export function usePayoutInvoiceSheet() {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return {
-    payoutInvoiceSheet: (
-      <PayoutInvoiceSheet isOpen={isOpen} setIsOpen={setIsOpen} />
-    ),
-    setIsOpen,
-  };
 }
