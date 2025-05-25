@@ -1,38 +1,13 @@
 "use client";
 
+import { DIRECT_DEBIT_PAYMENT_TYPES_INFO } from "@/lib/partners/constants";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { DirectDebitPaymentMethod } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import { AnimatedSizeContainer, GreekTemple, Modal } from "@dub/ui";
 import { useRouter } from "next/navigation";
 import { CSSProperties, Dispatch, SetStateAction, useState } from "react";
 import { toast } from "sonner";
-
-const PAYMENT_METHODS: {
-  id: DirectDebitPaymentMethod;
-  location: string;
-  method: string;
-  icon: string;
-}[] = [
-  {
-    id: "us_bank_account",
-    location: "US",
-    method: "ACH",
-    icon: "https://hatscripts.github.io/circle-flags/flags/us.svg",
-  },
-  {
-    id: "acss_debit",
-    location: "CA",
-    method: "ACSS Debit",
-    icon: "https://hatscripts.github.io/circle-flags/flags/ca.svg",
-  },
-  {
-    id: "sepa_debit",
-    location: "EU",
-    method: "SEPA Debit",
-    icon: "https://hatscripts.github.io/circle-flags/flags/eu.svg",
-  },
-];
+import Stripe from "stripe";
 
 function AddPaymentMethodModal({
   showAddPaymentMethodModal,
@@ -63,14 +38,16 @@ function AddPaymentMethodModalInner({
   const { slug } = useWorkspace();
   const [isLoading, setIsLoading] = useState(false);
 
-  const addPaymentMethod = async (method: DirectDebitPaymentMethod) => {
+  const addPaymentMethod = async (type: Stripe.PaymentMethod.Type) => {
     setIsLoading(true);
 
     const response = await fetch(
       `/api/workspaces/${slug}/billing/payment-methods`,
       {
         method: "POST",
-        body: JSON.stringify({ method }),
+        body: JSON.stringify({
+          method: type,
+        }),
       },
     );
 
@@ -117,17 +94,17 @@ function AddPaymentMethodModalInner({
             className="grid grid-cols-2 gap-4 sm:grid-cols-[repeat(var(--cols),minmax(0,1fr))]"
             style={
               {
-                "--cols": PAYMENT_METHODS.length,
+                "--cols": DIRECT_DEBIT_PAYMENT_TYPES_INFO.length,
               } as CSSProperties
             }
           >
-            {PAYMENT_METHODS.map(
-              ({ id, icon: Icon, location, method }, index) => (
+            {DIRECT_DEBIT_PAYMENT_TYPES_INFO.map(
+              ({ type, location, title, icon: Icon }, index) => (
                 <button
                   key={index}
                   type="button"
                   className="group flex flex-col items-center gap-4 rounded-lg bg-neutral-200/40 p-8 px-2 py-4 transition-colors duration-100 hover:bg-neutral-200/60"
-                  onClick={() => addPaymentMethod(id)}
+                  onClick={() => addPaymentMethod(type)}
                   disabled={isLoading}
                 >
                   <img
@@ -140,7 +117,7 @@ function AddPaymentMethodModalInner({
                       {location}
                     </span>
                     <span className="text-center text-xs font-medium text-neutral-700">
-                      {method}
+                      {title}
                     </span>
                   </div>
                 </button>

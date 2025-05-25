@@ -1,9 +1,11 @@
 "use client";
 
-import { DIRECT_DEBIT_PAYMENT_METHODS } from "@/lib/partners/constants";
+import {
+  DIRECT_DEBIT_PAYMENT_TYPES,
+  DirectDebitPaymentMethodType,
+} from "@/lib/partners/constants";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { DirectDebitPaymentMethod } from "@/lib/types";
 import { useAddPaymentMethodModal } from "@/ui/modals/add-payment-method-modal";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { Badge, Button, CreditCard, GreekTemple, MoneyBill2 } from "@dub/ui";
@@ -22,14 +24,14 @@ export default function PaymentMethods() {
 
   const regularPaymentMethods = paymentMethods?.filter(
     (pm) =>
-      !DIRECT_DEBIT_PAYMENT_METHODS.includes(
-        pm.type as DirectDebitPaymentMethod,
+      !DIRECT_DEBIT_PAYMENT_TYPES.includes(
+        pm.type as DirectDebitPaymentMethodType,
       ),
   );
 
   const partnerPaymentMethods = paymentMethods?.filter((pm) =>
-    DIRECT_DEBIT_PAYMENT_METHODS.includes(
-      pm.type as DirectDebitPaymentMethod,
+    DIRECT_DEBIT_PAYMENT_TYPES.includes(
+      pm.type as DirectDebitPaymentMethodType,
     ),
   );
 
@@ -126,7 +128,7 @@ const PaymentMethodCard = ({
   paymentMethod,
   forPayouts = false,
 }: {
-  type?: Stripe.PaymentMethod.Type;
+  type: Stripe.PaymentMethod.Type;
   paymentMethod?: Stripe.PaymentMethod;
   forPayouts?: boolean;
 }) => {
@@ -156,8 +158,8 @@ const PaymentMethodCard = ({
               <div className="flex items-center gap-2">
                 <p className="font-medium text-neutral-900">{title}</p>
                 {paymentMethod &&
-                  (DIRECT_DEBIT_PAYMENT_METHODS.includes(
-                    type as (typeof DIRECT_DEBIT_PAYMENT_METHODS)[number],
+                  (DIRECT_DEBIT_PAYMENT_TYPES.includes(
+                    type as DirectDebitPaymentMethodType,
                   ) ||
                     paymentMethod.link?.email) && (
                     <Badge className="border-transparent bg-green-200 text-[0.625rem] text-green-900">

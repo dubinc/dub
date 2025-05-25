@@ -19,8 +19,57 @@ export const PAYOUT_FEES = {
 
 export const DUB_MIN_PAYOUT_AMOUNT_CENTS = 10000;
 
-export const DIRECT_DEBIT_PAYMENT_METHODS = [
-  "us_bank_account",
-  "acss_debit",
-  "sepa_debit",
+// Direct debit payment types for Partner payout
+export const DIRECT_DEBIT_PAYMENT_TYPES_INFO: {
+  type: "us_bank_account" | "acss_debit" | "sepa_debit";
+  location: string;
+  title: string;
+  icon: string;
+  option: any;
+}[] = [
+  {
+    type: "us_bank_account",
+    location: "US",
+    title: "ACH",
+    icon: "https://hatscripts.github.io/circle-flags/flags/us.svg",
+    option: {},
+  },
+  {
+    type: "acss_debit",
+    location: "CA",
+    title: "ACSS Debit",
+    icon: "https://hatscripts.github.io/circle-flags/flags/ca.svg",
+    option: {
+      currency: "usd",
+      mandate_options: {
+        payment_schedule: "sporadic",
+        transaction_type: "business",
+      },
+    },
+  },
+  {
+    type: "sepa_debit",
+    location: "EU",
+    title: "SEPA Debit",
+    icon: "https://hatscripts.github.io/circle-flags/flags/eu.svg",
+    option: {},
+  },
+];
+
+export const DIRECT_DEBIT_PAYMENT_TYPES = DIRECT_DEBIT_PAYMENT_TYPES_INFO.map(
+  (type) => type.type,
+);
+
+export const PAYMENT_METHOD_TYPES = [
+  "card",
+  "link",
+  ...DIRECT_DEBIT_PAYMENT_TYPES,
 ] as const;
+
+export type PaymentMethodType =
+  | (typeof DIRECT_DEBIT_PAYMENT_TYPES)[number]
+  | "card"
+  | "link";
+
+export type DirectDebitPaymentMethodType =
+  (typeof DIRECT_DEBIT_PAYMENT_TYPES)[number];

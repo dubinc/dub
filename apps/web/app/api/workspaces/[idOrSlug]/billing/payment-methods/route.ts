@@ -1,27 +1,18 @@
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { DIRECT_DEBIT_PAYMENT_METHODS } from "@/lib/partners/constants";
+import {
+  DIRECT_DEBIT_PAYMENT_TYPES_INFO,
+  PAYMENT_METHOD_TYPES,
+} from "@/lib/partners/constants";
 import { stripe } from "@/lib/stripe";
 import { APP_DOMAIN } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 const addPaymentMethodSchema = z.object({
-  method: z.enum(["card", ...DIRECT_DEBIT_PAYMENT_METHODS]).optional(),
+  method: z.enum(PAYMENT_METHOD_TYPES).optional(),
 });
-
-const stripePaymentMethodOptions = {
-  us_bank_account: {},
-  acss_debit: {
-    currency: "usd",
-    mandate_options: {
-      payment_schedule: "sporadic",
-      transaction_type: "business",
-    },
-  },
-  sepa_debit: {},
-};
 
 // GET /api/workspaces/[idOrSlug]/billing/payment-methods - get all payment methods
 export const GET = withWorkspace(async ({ workspace }) => {
@@ -72,12 +63,16 @@ export const POST = withWorkspace(async ({ workspace, req }) => {
     return NextResponse.json({ url });
   }
 
+  const paymentMethodOption = DIRECT_DEBIT_PAYMENT_TYPES_INFO.find(
+    (type) => type.type === method,
+  )?.option;
+
   const { url } = await stripe.checkout.sessions.create({
     mode: "setup",
     customer: workspace.stripeId,
     payment_method_types: [method],
     payment_method_options: {
-      [method]: stripePaymentMethodOptions[method],
+      [method]: paymentMethodOption,
     },
     currency: "usd",
     success_url: `${APP_DOMAIN}/${workspace.slug}/settings/billing`,

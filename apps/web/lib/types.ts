@@ -21,7 +21,6 @@ import {
   FOLDER_PERMISSIONS,
   FOLDER_WORKSPACE_ACCESS,
 } from "./folder/constants";
-import { DIRECT_DEBIT_PAYMENT_METHODS } from "./partners/constants";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import { clickEventResponseSchema } from "./zod/schemas/clicks";
 import { CommissionResponseSchema } from "./zod/schemas/commissions";
@@ -479,6 +478,3 @@ export type ProgramData = z.infer<typeof programDataSchema>;
 export type ProgramMetrics = z.infer<typeof ProgramMetricsSchema>;
 
 export type PayoutMethod = "stripe" | "paypal";
-
-export type DirectDebitPaymentMethod =
-  (typeof DIRECT_DEBIT_PAYMENT_METHODS)[number];

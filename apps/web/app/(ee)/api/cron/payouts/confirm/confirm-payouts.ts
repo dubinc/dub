@@ -1,8 +1,5 @@
 import { createId } from "@/lib/api/create-id";
-import {
-  DIRECT_DEBIT_PAYMENT_METHODS,
-  PAYOUT_FEES,
-} from "@/lib/partners/constants";
+import { PAYMENT_METHOD_TYPES, PAYOUT_FEES } from "@/lib/partners/constants";
 import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
 import PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
@@ -114,7 +111,7 @@ export async function confirmPayouts({
     await stripe.paymentIntents.create({
       amount: invoice.total,
       customer: workspace.stripeId!,
-      payment_method_types: ["card", "link", ...DIRECT_DEBIT_PAYMENT_METHODS],
+      payment_method_types: PAYMENT_METHOD_TYPES,
       payment_method: paymentMethod.id,
       currency: "usd",
       confirmation_method: "automatic",
