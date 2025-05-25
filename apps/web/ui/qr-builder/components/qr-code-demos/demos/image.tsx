@@ -3,11 +3,13 @@ import { FC, useEffect, useState } from "react";
 import ImageDemoPlaceholder from "./placeholders/image-demo-placeholder.webp";
 
 interface IQRCodeDemoImageProps {
-  files: File[];
+  fileUploadImage: File[];
 }
 
-export const QRCodeDemoImage: FC<IQRCodeDemoImageProps> = ({ files }) => {
-  const image = files?.[0];
+export const QRCodeDemoImage: FC<IQRCodeDemoImageProps> = ({
+  fileUploadImage,
+}) => {
+  const image = fileUploadImage?.[0];
   const [imageUrl, setImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
