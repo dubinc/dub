@@ -1,6 +1,6 @@
 import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { getQRValidationSchema } from "@/ui/qr-builder/qr-validation-schema.ts";
-import { yupResolver } from "@hookform/resolvers/yup";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -29,7 +29,7 @@ export function useQRContentForm({
 
   const form = useForm<TQRFormValues>({
     defaultValues: initialInputValues,
-    resolver: yupResolver(schema),
+    resolver: zodResolver(schema),
     mode: "onBlur",
   });
 

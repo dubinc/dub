@@ -5,67 +5,64 @@ import {
   TQRInputType,
 } from "@/ui/qr-builder/constants/qr-type-inputs-config.ts";
 import { isValidPhoneNumber } from "react-phone-number-input";
-import * as Yup from "yup";
+import { z } from "zod";
 
-const FIELD_VALIDATION_RULES: Record<string, Yup.AnySchema> = {
-  websiteLink: Yup.string()
+const FIELD_VALIDATION_RULES: Record<string, z.ZodTypeAny> = {
+  websiteLink: z
+    .string()
     .trim()
     .min(1, ERROR_MESSAGES.input.emptyField)
-    .url(ERROR_MESSAGES.input.invalidURL)
-    .required(ERROR_MESSAGES.input.emptyField),
-  message: Yup.string()
+    .url(ERROR_MESSAGES.input.invalidURL),
+  message: z
+    .string()
     .trim()
     .min(1, ERROR_MESSAGES.input.emptyField)
-    .max(500, "Too long")
-    .required(ERROR_MESSAGES.input.emptyField),
-  number: Yup.string()
+    .max(500, "Message is too long"),
+  number: z
+    .string()
     .trim()
-    .required(ERROR_MESSAGES.input.emptyField)
-    .test({
-      message: "Invalid phone number",
-      test(value) {
+    .min(1, ERROR_MESSAGES.input.emptyField)
+    .refine(
+      (val) => {
         try {
-          return isValidPhoneNumber(value);
+          return isValidPhoneNumber(val);
         } catch {
           return false;
         }
       },
-    }),
-  file: Yup.mixed<File[]>().test(
-    "file-required",
-    ERROR_MESSAGES.file.noFileUploaded,
-    (value: File[]) => value && value.length > 0,
+      { message: "Invalid phone number" },
+    ),
+  file: z.preprocess(
+    (val) => (val === undefined ? [] : val),
+    z
+      .array(z.instanceof(File))
+      .refine((files) => files.length > 0, {
+        message: ERROR_MESSAGES.file.noFileUploaded,
+      }),
   ),
 };
 
-const getFieldValidation = (id: string, type?: TQRInputType): Yup.AnySchema => {
+const getFieldValidation = (id: string, type?: TQRInputType): z.ZodTypeAny => {
   if (type === "file") {
     return (
       FIELD_VALIDATION_RULES[id] ||
-      Yup.mixed().test(
-        "file-required",
-        ERROR_MESSAGES.file.noFileUploaded,
-        (value: File[]) => value && value.length > 0,
-      )
+      z.array(z.instanceof(File)).nonempty(ERROR_MESSAGES.file.noFileUploaded)
     );
   }
 
   return (
     FIELD_VALIDATION_RULES[id] ||
-    Yup.string()
-      .trim()
-      .min(1, ERROR_MESSAGES.input.emptyField)
-      .required(ERROR_MESSAGES.input.emptyField)
+    z.string().trim().min(1, ERROR_MESSAGES.input.emptyField)
   );
 };
 
 export function getQRValidationSchema(qrType: EQRType) {
   const inputConfigs = QR_TYPE_INPUTS_CONFIG[qrType];
-  const shape: Record<string, Yup.AnySchema> = {};
+  const shape: Record<string, z.ZodTypeAny> = {};
 
   inputConfigs?.forEach((input) => {
     shape[input.id] = getFieldValidation(input.id, input.type);
   });
 
-  return Yup.object().shape(shape);
+  return z.object(shape);
 }
