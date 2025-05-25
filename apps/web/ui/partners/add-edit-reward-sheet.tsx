@@ -33,6 +33,7 @@ import { cn, COUNTRIES, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
+  Fragment,
   SetStateAction,
   useEffect,
   useMemo,
@@ -863,103 +864,94 @@ function LocationPayoutRules({
   return (
     <div className="flex flex-col gap-3">
       {geoRules && Object.entries(geoRules).length > 0 && (
-        <div className="flex flex-col gap-3">
+        <div className="relative mb-2 grid grid-cols-[min-content_1fr_min-content] gap-y-2">
           {Object.entries(geoRules).map(([key, value]) => (
-            <div key={key} className="flex items-center gap-2">
-              <div className="flex min-w-0 flex-1 overflow-hidden rounded-md border border-neutral-200">
-                <div className="min-w-0 flex-[2]">
-                  <Combobox
-                    selected={
-                      key ? { value: key, label: COUNTRIES[key] } : null
+            <Fragment key={key}>
+              <div className="z-[1]">
+                <Combobox
+                  selected={key ? { value: key, label: COUNTRIES[key] } : null}
+                  setSelected={(option) => {
+                    if (!option) {
+                      return;
                     }
-                    setSelected={(option) => {
-                      if (!option) {
-                        return;
-                      }
 
-                      const newgeoRules = { ...geoRules };
-                      delete newgeoRules[key];
-                      newgeoRules[option.value] = value;
-                      setValue("geoRules", newgeoRules, {
-                        shouldDirty: true,
-                      });
-                    }}
-                    options={Object.entries(COUNTRIES)
-                      .filter(
-                        ([ck]) =>
-                          ck === key || !Object.keys(geoRules).includes(ck),
-                      )
-                      .map(([key, value]) => ({
-                        icon: (
-                          <img
-                            alt={value}
-                            src={`https://flag.vercel.app/m/${key}.svg`}
-                            className="mr-1 h-2.5 w-4"
-                          />
-                        ),
-                        value: key,
-                        label: value,
-                      }))}
-                    icon={
-                      key ? (
+                    const newgeoRules = { ...geoRules };
+                    delete newgeoRules[key];
+                    newgeoRules[option.value] = value;
+                    setValue("geoRules", newgeoRules, {
+                      shouldDirty: true,
+                    });
+                  }}
+                  options={Object.entries(COUNTRIES)
+                    .filter(
+                      ([ck]) =>
+                        ck === key || !Object.keys(geoRules).includes(ck),
+                    )
+                    .map(([key, value]) => ({
+                      icon: (
                         <img
-                          alt={COUNTRIES[key]}
+                          alt={value}
                           src={`https://flag.vercel.app/m/${key}.svg`}
-                          className="h-2.5 w-4"
+                          className="mr-1 h-2.5 w-4"
                         />
-                      ) : undefined
-                    }
-                    caret={true}
-                    placeholder="Country"
-                    searchPlaceholder="Search countries..."
-                    buttonProps={{
-                      className: cn(
-                        "w-full rounded-none border-none justify-start px-2.5 py-1 bg-transparent",
-                        "focus:ring-0 focus:border-none transition-none",
-                        !key && "text-neutral-600",
                       ),
-                    }}
-                    optionClassName="sm:max-w-[200px]"
-                  />
-                </div>
-
-                <div className="relative min-w-0 flex-1 border-l border-neutral-200">
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
-                    $
-                  </span>
-                  <input
-                    type="text"
-                    className="block w-full rounded-none border-none bg-transparent pl-6 pr-12 text-sm text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-0"
-                    onKeyDown={handleMoneyKeyDown}
-                    placeholder="0"
-                    {...(key
-                      ? register(`geoRules.${key}`, {
-                          valueAsNumber: true,
-                          min: 0,
-                          onChange: handleMoneyInputChange,
-                        })
-                      : {})}
-                  />
-                  <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
-                    USD
-                  </span>
-                </div>
+                      value: key,
+                      label: value,
+                    }))}
+                  icon={
+                    key ? (
+                      <img
+                        alt={COUNTRIES[key]}
+                        src={`https://flag.vercel.app/m/${key}.svg`}
+                        className="h-2.5 w-4"
+                      />
+                    ) : undefined
+                  }
+                  caret={true}
+                  placeholder="Country"
+                  searchPlaceholder="Search countries..."
+                  buttonProps={{
+                    className: cn(
+                      "w-32 sm:w-40 rounded-r-none border-r-transparent justify-start px-2.5",
+                      "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
+                      "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
+                      !key && "text-neutral-600",
+                    ),
+                  }}
+                  optionClassName="sm:max-w-[200px]"
+                />
               </div>
 
-              <Button
-                type="button"
-                text={<Trash className="size-4" />}
-                variant="outline"
-                className="h-10 w-9 shrink-0 p-0 hover:bg-red-50 hover:text-red-600"
-                onClick={() => {
-                  const newgeoRules = { ...geoRules };
-                  delete newgeoRules[key];
-                  setValue("geoRules", newgeoRules, {
-                    shouldDirty: true,
-                  });
-                }}
+              <input
+                type="text"
+                placeholder="0"
+                className="z-0 h-full grow rounded-r-md border border-neutral-300 text-sm placeholder-neutral-400 focus:z-[1] focus:border-neutral-500 focus:ring-neutral-500"
+                onKeyDown={handleMoneyKeyDown}
+                {...(key
+                  ? register(`geoRules.${key}`, {
+                      valueAsNumber: true,
+                      min: 0,
+                      onChange: handleMoneyInputChange,
+                    })
+                  : {})}
               />
-            </div>
+
+              <div className="pl-1.5">
+                <Button
+                  type="button"
+                  text={<Trash className="size-4" />}
+                  variant="outline"
+                  className="h-10 w-9 shrink-0 p-0 hover:bg-red-50 hover:text-red-600"
+                  onClick={() => {
+                    const newgeoRules = { ...geoRules };
+                    delete newgeoRules[key];
+                    setValue("geoRules", newgeoRules, {
+                      shouldDirty: true,
+                    });
+                  }}
+                />
+              </div>
+            </Fragment>
           ))}
         </div>
       )}
