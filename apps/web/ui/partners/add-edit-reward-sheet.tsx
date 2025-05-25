@@ -33,7 +33,6 @@ import { cn, COUNTRIES, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
-  Fragment,
   SetStateAction,
   useEffect,
   useMemo,
@@ -318,6 +317,16 @@ function RewardSheetContent({
 
     if (!isDefault && shouldOpenPartnerEligibility) {
       baseValues.push("partner-eligibility");
+    }
+
+    // Open the location payout rules accordion if:
+    // 1. No existing reward (new creation), OR
+    // 2. Existing reward with location payout rules exists
+    const shouldOpenLocationPayoutRules =
+      !reward || (reward && Object.keys(reward.geoRules || {}).length > 0);
+
+    if (shouldOpenLocationPayoutRules) {
+      baseValues.push("location-payout-rules");
     }
 
     return baseValues;
@@ -685,6 +694,26 @@ function RewardSheetContent({
                 </div>
               </ProgramSheetAccordionContent>
             </ProgramSheetAccordionItem>
+
+            {["click", "lead"].includes(selectedEvent) && (
+              <ProgramSheetAccordionItem value="location-payout-rules">
+                <ProgramSheetAccordionTrigger>
+                  Location Payout Rules
+                </ProgramSheetAccordionTrigger>
+                <ProgramSheetAccordionContent>
+                  <div className="space-y-4">
+                    <p className="text-sm text-neutral-600">
+                      Offer higher payouts for leads from selected countries
+                    </p>
+                    <LocationPayoutRules
+                      geoRules={geoRules}
+                      setValue={setValue}
+                      register={register}
+                    />
+                  </div>
+                </ProgramSheetAccordionContent>
+              </ProgramSheetAccordionItem>
+            )}
           </ProgramSheetAccordion>
         </div>
 
@@ -825,25 +854,20 @@ function RewardLimit({
 function LocationPayoutRules({
   geoRules,
   setValue,
+  register,
 }: {
   geoRules: Record<string, number> | null;
   setValue: UseFormSetValue<FormData>;
+  register: UseFormRegister<FormData>;
 }) {
   return (
-    <div className="grid grid-cols-1">
-      <div className="flex items-center gap-2">
-        <span className="block text-sm font-medium text-neutral-700">
-          Geo Targeting
-        </span>
-        <InfoTooltip content="Set different reward amounts for specific countries." />
-      </div>
-
-      <div className="mt-2">
-        {geoRules && Object.entries(geoRules).length > 0 && (
-          <div className="relative mb-2 grid grid-cols-[min-content_1fr_min-content] gap-y-2">
-            {Object.entries(geoRules).map(([key, value]) => (
-              <Fragment key={key}>
-                <div className="z-[1] flex items-center">
+    <div className="flex flex-col gap-3">
+      {geoRules && Object.entries(geoRules).length > 0 && (
+        <div className="flex flex-col gap-3">
+          {Object.entries(geoRules).map(([key, value]) => (
+            <div key={key} className="flex items-center gap-2">
+              <div className="flex min-w-0 flex-1 overflow-hidden rounded-md border border-neutral-200">
+                <div className="min-w-0 flex-[2]">
                   <Combobox
                     selected={
                       key ? { value: key, label: COUNTRIES[key] } : null
@@ -856,7 +880,6 @@ function LocationPayoutRules({
                       const newgeoRules = { ...geoRules };
                       delete newgeoRules[key];
                       newgeoRules[option.value] = value;
-
                       setValue("geoRules", newgeoRules, {
                         shouldDirty: true,
                       });
@@ -891,9 +914,8 @@ function LocationPayoutRules({
                     searchPlaceholder="Search countries..."
                     buttonProps={{
                       className: cn(
-                        "w-32 sm:w-40 rounded-r-none border-r-transparent justify-start px-2.5 h-9",
-                        "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
-                        "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
+                        "w-full rounded-none border-none justify-start px-2.5 py-1 bg-transparent",
+                        "focus:ring-0 focus:border-none transition-none",
                         !key && "text-neutral-600",
                       ),
                     }}
@@ -901,68 +923,61 @@ function LocationPayoutRules({
                   />
                 </div>
 
-                <div className="relative flex items-center">
+                <div className="relative min-w-0 flex-1 border-l border-neutral-200">
                   <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
                     $
                   </span>
                   <input
                     type="text"
-                    className={cn(
-                      "block h-9 w-full rounded-r-md border border-neutral-300 text-sm text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500",
-                      "pl-6 pr-12",
-                    )}
-                    value={value}
+                    className="block w-full rounded-none border-none bg-transparent pl-6 pr-12 text-sm text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-0"
                     onKeyDown={handleMoneyKeyDown}
-                    onChange={(e) => {
-                      const newValue = e.target.value;
-                      setValue(
-                        `geoRules`,
-                        {
-                          ...((geoRules as object) || {}),
-                          [key]: newValue ? parseFloat(newValue) : 0,
-                        },
-                        { shouldDirty: true },
-                      );
-                    }}
+                    placeholder="0"
+                    {...(key
+                      ? register(`geoRules.${key}`, {
+                          valueAsNumber: true,
+                          min: 0,
+                          onChange: handleMoneyInputChange,
+                        })
+                      : {})}
                   />
                   <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
                     USD
                   </span>
                 </div>
-                <div className="flex items-center pl-1.5">
-                  <Button
-                    variant="danger-outline"
-                    icon={<Trash className="size-4" />}
-                    className="bg-red-600/5 px-3 text-red-600 hover:bg-red-600/10 hover:text-red-700"
-                    onClick={() => {
-                      const newgeoRules = { ...geoRules };
-                      delete newgeoRules[key];
-                      setValue("geoRules", newgeoRules, {
-                        shouldDirty: true,
-                      });
-                    }}
-                  />
-                </div>
-              </Fragment>
-            ))}
-          </div>
-        )}
+              </div>
 
-        <Button
-          type="button"
-          variant="secondary"
-          icon={<Plus className="size-4" />}
-          text="Add location"
-          className="h-9"
-          onClick={() => {
-            const newgeoRules = { ...geoRules, "": 0 };
-            setValue("geoRules", newgeoRules, {
-              shouldDirty: true,
-            });
-          }}
-          disabled={!!geoRules && Object.keys(geoRules).includes("")}
-        />
-      </div>
+              <Button
+                type="button"
+                text={<Trash className="size-4" />}
+                variant="outline"
+                className="size-10 shrink-0 p-0 hover:bg-red-50 hover:text-red-600"
+                onClick={() => {
+                  const newgeoRules = { ...geoRules };
+                  delete newgeoRules[key];
+                  setValue("geoRules", newgeoRules, {
+                    shouldDirty: true,
+                  });
+                }}
+              />
+            </div>
+          ))}
+        </div>
+      )}
+
+      <Button
+        type="button"
+        variant="secondary"
+        icon={<Plus className="size-4" />}
+        text="Add location"
+        className="h-9 w-full"
+        onClick={() => {
+          const newgeoRules = { ...geoRules, "": 0 };
+          setValue("geoRules", newgeoRules, {
+            shouldDirty: true,
+          });
+        }}
+        disabled={!!geoRules && Object.keys(geoRules).includes("")}
+      />
     </div>
   );
 }
