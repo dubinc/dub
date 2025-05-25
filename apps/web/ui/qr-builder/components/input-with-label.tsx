@@ -126,10 +126,10 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
               international
               defaultCountry={(Cookies.get("country") || "US") as Country}
               countrySelectComponent={CountrySelectAutocompleteComponent}
-              inputComponent={(props) => (
-                <PhoneNumberInputComponent {...props} hasError={!!error} />
-              )}
-              className="w-full [&>div]:w-full"
+              inputComponent={PhoneNumberInputComponent}
+              className={cn("w-full [&>div]:w-full", {
+                "[&_input]:!border-red-500": !!error,
+              })}
             />
           )}
         />
