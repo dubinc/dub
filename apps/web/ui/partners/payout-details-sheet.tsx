@@ -236,23 +236,25 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
                 </Link>
               </div>
             </div>
-            <div className="sticky bottom-0 z-10 flex justify-end border-t border-neutral-200 bg-white px-6 py-4">
-              <Button
-                type="button"
-                variant="secondary"
-                loading={isLoading}
-                text="Confirm all pending payouts"
-                onClick={() => {
-                  queryParams({
-                    set: {
-                      confirmPayouts: "true",
-                    },
-                    del: "payoutId",
-                    scroll: false,
-                  });
-                }}
-              />
-            </div>
+            {payout.status === "pending" && (
+              <div className="sticky bottom-0 z-10 flex justify-end border-t border-neutral-200 bg-white px-6 py-4">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  loading={isLoading}
+                  text="Confirm all pending payouts"
+                  onClick={() => {
+                    queryParams({
+                      set: {
+                        confirmPayouts: "true",
+                      },
+                      del: "payoutId",
+                      scroll: false,
+                    });
+                  }}
+                />
+              </div>
+            )}
           </>
         ) : null}
       </div>
