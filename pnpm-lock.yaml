@@ -876,8 +876,8 @@ importers:
         specifier: ^2.2.1
         version: 2.2.1
       chrono-node:
-        specifier: ^2.8.1
-        version: 2.8.1
+        specifier: ^2.7.5
+        version: 2.7.5
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
@@ -6208,8 +6208,8 @@ packages:
     resolution: {integrity: sha512-p3KULyQg4S7NIHixdwbGX+nFHkoBiA4YQmyWtjb8XngSKV124nJmRysgAeujbUVb15vh+RvFUfCPqU7rXk+hZg==}
     engines: {node: '>=6.0'}
 
-  chrono-node@2.8.1:
-    resolution: {integrity: sha512-GrqzXzYH+MFmOJErGyWkgjnfOwcOKOdDFCKxhx7pXzdRRwfQehrhbOsO+ZpaKdF1VoXEvsuSHv49aflUfj7N8w==}
+  chrono-node@2.7.5:
+    resolution: {integrity: sha512-VJWqFN5rWmXVvXAxOD4i0jX8Tb4cLswaslyaAFhxM45zNXPsZleygPbgiaYBD7ORb9fj07zBgJb0Q6eKL+0iJg==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
 
   ci-info@2.0.0:
@@ -18787,7 +18787,7 @@ snapshots:
 
   chrome-trace-event@1.0.3: {}
 
-  chrono-node@2.8.1:
+  chrono-node@2.7.5:
     dependencies:
       dayjs: 1.11.13
 
