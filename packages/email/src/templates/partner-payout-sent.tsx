@@ -51,6 +51,7 @@ export function PartnerPayoutSent({
         year: "numeric",
         month: "short",
         day: "numeric",
+        timeZone: "UTC",
       })
     : null;
 
@@ -59,6 +60,7 @@ export function PartnerPayoutSent({
         year: "numeric",
         month: "short",
         day: "numeric",
+        timeZone: "UTC",
       })
     : null;
 

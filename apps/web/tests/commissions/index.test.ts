@@ -29,8 +29,6 @@ describe.sequential("/commissions/**", async () => {
       path: "/commissions",
       query: {
         status: "processed",
-        page: "1",
-        pageSize: "10",
         sortBy: "createdAt",
         sortOrder: "desc",
       },
