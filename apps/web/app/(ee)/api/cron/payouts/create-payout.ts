@@ -1,5 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { prisma } from "@dub/prisma";
+import { endOfMonth } from "date-fns";
 
 export const createPayout = async ({
   programId,
@@ -93,8 +94,7 @@ export const createPayout = async ({
 
   // end of the month of the latest commission date
   // e.g. if the latest sale is 2024-12-16, the periodEnd should be 2024-12-31
-  let periodEnd = commissions[commissions.length - 1].createdAt;
-  periodEnd = new Date(periodEnd.getFullYear(), periodEnd.getMonth() + 1);
+  const periodEnd = endOfMonth(commissions[commissions.length - 1].createdAt);
 
   await prisma.$transaction(async (tx) => {
     // check if the partner has another pending payout (take the latest entry)

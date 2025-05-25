@@ -1,6 +1,7 @@
 import { createId } from "@/lib/api/create-id";
 import { prisma } from "@dub/prisma";
 import { Program } from "@prisma/client";
+import { endOfMonth } from "date-fns";
 
 export async function splitPayouts({
   program,
@@ -62,17 +63,13 @@ export async function splitPayouts({
     // 1 - one for everything up until the end of the previous month
     // 2 - everything else in the current month will be left as pending (and excluded from the payout)
     if (previousCommissionsCount > 0) {
-      const periodEnd =
-        previousCommissions[previousCommissionsCount - 1].createdAt;
-
       await prisma.payout.update({
         where: {
           id: payout.id,
         },
         data: {
-          periodEnd: new Date(
-            periodEnd.getFullYear(),
-            periodEnd.getMonth() + 1,
+          periodEnd: endOfMonth(
+            previousCommissions[previousCommissionsCount - 1].createdAt,
           ),
           amount: previousCommissions.reduce(
             (total, commission) => total + commission.earnings,
@@ -82,18 +79,14 @@ export async function splitPayouts({
       });
 
       if (currentCommissionsCount > 0) {
-        const periodEnd =
-          currentCommissions[currentCommissions.length - 1].createdAt;
-
         const currentMonthPayout = await prisma.payout.create({
           data: {
             id: createId({ prefix: "po_" }),
             programId: program.id,
             partnerId: payout.partnerId,
             periodStart: currentCommissions[0].createdAt,
-            periodEnd: new Date(
-              periodEnd.getFullYear(),
-              periodEnd.getMonth() + 1,
+            periodEnd: endOfMonth(
+              currentCommissions[currentCommissions.length - 1].createdAt,
             ),
             amount: currentCommissions.reduce(
               (total, commission) => total + commission.earnings,
