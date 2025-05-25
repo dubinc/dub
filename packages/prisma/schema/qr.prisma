@@ -27,6 +27,8 @@ model Qr {
 
   workspaceId     String?
 
+  fileId          String?
+
   linkId          String?
   link            Link?      @relation(fields: [linkId], references: [id])
 

@@ -57,6 +57,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
       const [styleOptionActiveTab, setStyleOptionActiveActiveTab] =
         useState<string>("Frame");
       const [hoveredQRType, setHoveredQRType] = useState<EQRType | null>(null);
+      const [files, setFiles] = useState<File[]>([]);
 
       const {
         options,
@@ -84,15 +85,6 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
           !LINKED_QR_TYPES.includes(qrType.id) || qrType.id === EQRType.WEBSITE,
       );
 
-      const onSaveClick = () =>
-        handleSaveQR?.({
-          styles: options,
-          frameOptions: {
-            id: selectedSuggestedFrame,
-          },
-          qrType: selectedQRType,
-        });
-
       const handleNextStep = () => {
         setStep((prev) => Math.min(prev + 1, 3));
       };
@@ -119,9 +111,11 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
         }) => {
           // QR name is not needed for QR code generation
           const { qrName, ...filteredInputValues } = inputValues;
+          console.log(inputValues);
           setData(
             qrTypeDataHandlers[qrType]?.(filteredInputValues, isHiddenNetwork),
           );
+          setFiles(inputValues.files as File[]);
         },
         [setData],
       );
@@ -136,6 +130,17 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
         minimalFlow: true,
         handleContent,
       });
+
+      const onSaveClick = () => {
+        handleSaveQR?.({
+          styles: options,
+          frameOptions: {
+            id: selectedSuggestedFrame,
+          },
+          qrType: selectedQRType,
+          files,
+        });
+      };
 
       const typeStep = step === 1;
       const contentStep = step === 2;

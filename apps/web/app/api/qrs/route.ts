@@ -12,18 +12,19 @@ import {
   linkEventSchema,
 } from "@/lib/zod/schemas/links";
 import { createQrBodySchema } from "@/lib/zod/schemas/qrs";
-import { LOCALHOST_IP } from "@dub/utils";
+import { LOCALHOST_IP, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
+const crypto = require("crypto");
 
 // POST /api/qrs – create a new qr
 export const POST = withWorkspace(
   async ({ req, headers, session, workspace }) => {
-    console.log("POST /api/qrs мы же тут?");
     if (workspace) {
       throwIfLinksUsageExceeded(workspace);
     }
-    console.log("POST /api/qrs прошли проверку воркспейса?");
+
+    console.log('here create qr');
 
     const body = createQrBodySchema.parse(await parseRequestBody(req));
     console.log("POST /api/qrs body:", body);
@@ -40,8 +41,15 @@ export const POST = withWorkspace(
       }
     }
 
+    const fileId = crypto.randomUUID();
+
+    const linkData = {
+      ...body.link,
+      url: body.file ? `${R2_URL}/qrs-content/${fileId}` : body.link.url,
+    };
+
     const { link, error, code } = await processLink({
-      payload: body.link,
+      payload: linkData,
       workspace,
       ...(session && { userId: session.user.id }),
     });
@@ -68,8 +76,10 @@ export const POST = withWorkspace(
 
       const createdQr = await createQr(
         body,
+        createdLink.url,
         createdLink.id,
         createdLink.userId,
+        fileId,
       );
 
       return NextResponse.json(createdQr, {

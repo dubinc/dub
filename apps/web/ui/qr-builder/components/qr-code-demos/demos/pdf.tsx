@@ -17,9 +17,9 @@ const PdfViewer = dynamic(() => import("../pdf-viewer.tsx"), {
 });
 
 interface IQRCodeDemoPdfProps {
-  fileUploadPdf: File[];
+  files: File[];
 }
-export default function QRCodeDemoPdf({ fileUploadPdf }: IQRCodeDemoPdfProps) {
+export default function QRCodeDemoPdf({ files }: IQRCodeDemoPdfProps) {
   return (
     <svg
       width="270"
@@ -49,7 +49,7 @@ export default function QRCodeDemoPdf({ fileUploadPdf }: IQRCodeDemoPdfProps) {
         <g clipPath="url(#clip0_1608_2975)">
           <rect x="29" y="75" width="212" height="263" rx="12" fill="white" />
           <foreignObject x="29" y="75" width="212" height="263">
-            <PdfViewer file={fileUploadPdf?.[0]} />
+            <PdfViewer file={files?.[0]} />
           </foreignObject>
         </g>
       </g>
