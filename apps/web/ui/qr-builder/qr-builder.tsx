@@ -115,7 +115,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
           setData(
             qrTypeDataHandlers[qrType]?.(filteredInputValues, isHiddenNetwork),
           );
-          // setFiles(inputValues.files);
+          setFiles(inputValues.files as File[]);
         },
         [setData],
       );
@@ -132,16 +132,14 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
       });
 
       const onSaveClick = () => {
-        console.log('herererehrherherhehrehrhehrherhehrhehrehrhre');
-        console.log(data);
-        console.log(form);
-        // handleSaveQR?.({
-        //   styles: options,
-        //   frameOptions: {
-        //     id: selectedSuggestedFrame,
-        //   },
-        //   qrType: selectedQRType,
-        // });
+        handleSaveQR?.({
+          styles: options,
+          frameOptions: {
+            id: selectedSuggestedFrame,
+          },
+          qrType: selectedQRType,
+          files,
+        });
       };
 
       const typeStep = step === 1;

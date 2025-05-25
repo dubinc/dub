@@ -97,7 +97,7 @@ export const QR_TYPE_INPUTS_CONFIG: Record<
   [EQRType.IMAGE]: [
     getQRNameInput(EQRType.IMAGE),
     {
-      id: "fileUploadImage",
+      id: "files",
       label: "Image",
       type: "file",
       acceptedFileType: EAcceptedFileType.IMAGE,
@@ -107,7 +107,7 @@ export const QR_TYPE_INPUTS_CONFIG: Record<
   [EQRType.PDF]: [
     getQRNameInput(EQRType.PDF),
     {
-      id: "fileUploadPdf",
+      id: "files",
       label: "PDF",
       type: "file",
       acceptedFileType: EAcceptedFileType.PDF,
@@ -117,7 +117,7 @@ export const QR_TYPE_INPUTS_CONFIG: Record<
   [EQRType.VIDEO]: [
     getQRNameInput(EQRType.VIDEO),
     {
-      id: "fileUploadVideo",
+      id: "files",
       label: "Video",
       type: "file",
       acceptedFileType: EAcceptedFileType.VIDEO,
