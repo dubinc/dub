@@ -21,7 +21,7 @@ class StorageClient {
   }
 
   async upload(key: string, body: Blob | Buffer | string, opts?: imageOptions) {
-    let uploadBody;
+    let uploadBody: Blob | Buffer;
     if (typeof body === "string") {
       if (this.isBase64(body)) {
         uploadBody = this.base64ToArrayBuffer(body, opts);
@@ -34,8 +34,10 @@ class StorageClient {
       uploadBody = body;
     }
 
+    const contentLengthStr = uploadBody instanceof Blob ? uploadBody.size.toString() : uploadBody.length.toString();
+  
     const headers = {
-      "Content-Length": uploadBody.size.toString(),
+      "Content-Length": contentLengthStr,
       ...opts?.headers,
     };
     if (opts?.contentType) headers["Content-Type"] = opts.contentType;
