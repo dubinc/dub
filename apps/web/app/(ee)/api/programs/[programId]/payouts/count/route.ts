@@ -18,11 +18,6 @@ export const GET = withWorkspace(
       programId,
     });
 
-    const now = new Date();
-    const currentMonthStart = new Date(
-      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
-    );
-
     const where: Prisma.PayoutWhereInput = {
       programId,
       ...(partnerId && { partnerId }),
