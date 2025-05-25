@@ -84,14 +84,16 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
           !LINKED_QR_TYPES.includes(qrType.id) || qrType.id === EQRType.WEBSITE,
       );
 
-      const onSaveClick = () =>
+      const onSaveClick = useCallback(() => {
+        console.log('files');
         handleSaveQR?.({
           styles: options,
           frameOptions: {
             id: selectedSuggestedFrame,
           },
-          qrType: setSelectedQRType,
-        });
+          qrType: selectedQRType,
+        })
+      }, []);
 
       const handleNextStep = () => {
         setStep((prev) => Math.min(prev + 1, 3));

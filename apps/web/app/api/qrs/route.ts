@@ -19,11 +19,11 @@ import { NextResponse } from "next/server";
 // POST /api/qrs – create a new qr
 export const POST = withWorkspace(
   async ({ req, headers, session, workspace }) => {
-    console.log("POST /api/qrs мы же тут?");
     if (workspace) {
       throwIfLinksUsageExceeded(workspace);
     }
-    console.log("POST /api/qrs прошли проверку воркспейса?");
+
+    console.log('here create qr');
 
     const body = createQrBodySchema.parse(await parseRequestBody(req));
     console.log("POST /api/qrs body:", body);

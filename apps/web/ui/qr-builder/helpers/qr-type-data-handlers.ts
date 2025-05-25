@@ -38,4 +38,22 @@ export const qrTypeDataHandlers = {
   ) => {
     return `WIFI:T:${values.networkEncryption};S:${values.networkName};P:${values.networkPassword};H:${isHiddenNetwork};`;
   },
+  [EQRType.PDF]: (
+    values: Record<string, string>,
+    isHiddenNetwork: boolean,
+  ) => {
+    return crypto.randomUUID();
+  },
+  [EQRType.IMAGE]: (
+    values: Record<string, string>,
+    isHiddenNetwork: boolean,
+  ) => {
+    return crypto.randomUUID();
+  },
+  [EQRType.VIDEO]: (
+    values: Record<string, string>,
+    isHiddenNetwork: boolean,
+  ) => {
+    return crypto.randomUUID();
+  },
 };

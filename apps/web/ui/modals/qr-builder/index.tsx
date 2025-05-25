@@ -68,6 +68,9 @@ export function QRBuilderModal({
   const handleSaveQR = async (data: QRBuilderData) => {
     setIsProcessing(true);
 
+    console.log('handle save qr');
+    console.log(data);
+
     if (data.styles.data === DEFAULT_WEBSITE) {
       setIsProcessing(false);
       toast.error("Data of QR Code not found.");
