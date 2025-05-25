@@ -7,6 +7,7 @@ settings:
 overrides:
   '@radix-ui/react-dialog': 1.0.5
   '@radix-ui/react-popover': 1.0.7
+  chrono-node: 2.7.5
 
 importers:
 
@@ -876,7 +877,7 @@ importers:
         specifier: ^2.2.1
         version: 2.2.1
       chrono-node:
-        specifier: ^2.7.5
+        specifier: 2.7.5
         version: 2.7.5
       clsx:
         specifier: ^2.1.1
@@ -6598,9 +6599,6 @@ packages:
 
   date-fns@3.6.0:
     resolution: {integrity: sha512-fRHTG8g/Gif+kSh50gaGEdToemgfj74aRX3swtiouboip5JDLAyDE9F11nHMIcvOaXeOC6D7SpNhi7uFyB7Uww==}
-
-  dayjs@1.11.10:
-    resolution: {integrity: sha512-vjAczensTgRcqDERK0SR2XMwsF/tSvnvlv6VcF2GIhg6Sx4yOIt/irsr1RDJsKiIyBzJDpCoXiWWq28MqH2cnQ==}
 
   dayjs@1.11.13:
     resolution: {integrity: sha512-oaMBel6gjolK862uaPQOVTA7q3TZhuSvuMQAAglQDOWYO9A91IrAOUJEyKVlqJlHE0vq5p5UXxzdPfMH/x6xNg==}
@@ -18792,7 +18790,7 @@ snapshots:
 
   chrono-node@2.7.5:
     dependencies:
-      dayjs: 1.11.10
+      dayjs: 1.11.13
 
   ci-info@2.0.0: {}
 
@@ -19191,8 +19189,6 @@ snapshots:
       '@babel/runtime': 7.23.9
 
   date-fns@3.6.0: {}
-
-  dayjs@1.11.10: {}
 
   dayjs@1.11.13: {}
 

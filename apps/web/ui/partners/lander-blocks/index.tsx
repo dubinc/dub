@@ -4,6 +4,7 @@ import { AccordionBlock } from "@/ui/partners/lander-blocks/AccordionBlock";
 import { FilesBlock } from "@/ui/partners/lander-blocks/FilesBlock";
 import { ImageBlock } from "@/ui/partners/lander-blocks/ImageBlock";
 import { TextBlock } from "@/ui/partners/lander-blocks/TextBlock";
+import { EarningsCalculatorBlock } from "./earnings-calculator-block";
 
 export const BLOCK_COMPONENTS: Record<
   z.infer<typeof programLanderBlockSchema>["type"],
@@ -13,4 +14,5 @@ export const BLOCK_COMPONENTS: Record<
   text: TextBlock,
   files: FilesBlock,
   accordion: AccordionBlock,
+  "earnings-calculator": EarningsCalculatorBlock,
 };

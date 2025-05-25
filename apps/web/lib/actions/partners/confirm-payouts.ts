@@ -1,22 +1,17 @@
 "use server";
 
-import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
+import { qstash } from "@/lib/cron";
 import { DIRECT_DEBIT_PAYMENT_METHODS } from "@/lib/partners/constants";
-import { calculatePayoutFee } from "@/lib/payment-methods";
 import { stripe } from "@/lib/stripe";
-import { DIRECT_DEBIT_PAYMENT_METHOD } from "@/lib/types";
-import { sendEmail } from "@dub/email";
-import PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
-import { prisma } from "@dub/prisma";
-import { waitUntil } from "@vercel/functions";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import z from "zod";
 import { authActionClient } from "../safe-action";
 
 const confirmPayoutsSchema = z.object({
   workspaceId: z.string(),
   paymentMethodId: z.string(),
+  excludeCurrentMonth: z.boolean().optional().default(false),
 });
 
 const ALLOWED_PAYMENT_METHODS = [
@@ -30,20 +25,14 @@ export const confirmPayoutsAction = authActionClient
   .schema(confirmPayoutsSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { paymentMethodId } = parsedInput;
+    const { paymentMethodId, excludeCurrentMonth } = parsedInput;
 
-    const programId = getDefaultProgramIdOrThrow(workspace);
-
-    const { minPayoutAmount } = await getProgramOrThrow({
-      workspaceId: workspace.id,
-      programId,
-    });
+    getDefaultProgramIdOrThrow(workspace);
 
     if (!workspace.stripeId) {
       throw new Error("Workspace does not have a valid Stripe ID.");
     }
 
-    // Check the payout method is valid
     const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
 
     if (paymentMethod.customer !== workspace.stripeId) {
@@ -58,141 +47,19 @@ export const confirmPayoutsAction = authActionClient
       );
     }
 
-    const payouts = await prisma.payout.findMany({
-      where: {
-        programId,
-        status: "pending",
-        invoiceId: null, // just to be extra safe
-        amount: {
-          gte: minPayoutAmount,
-        },
-        partner: {
-          payoutsEnabledAt: {
-            not: null,
-          },
-        },
-      },
-      select: {
-        id: true,
-        amount: true,
-        periodStart: true,
-        periodEnd: true,
-        partner: {
-          select: {
-            email: true,
-          },
-        },
-        program: {
-          select: {
-            id: true,
-            name: true,
-            logo: true,
-          },
-        },
+    const qstashResponse = await qstash.publishJSON({
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/confirm`,
+      body: {
+        workspaceId: workspace.id,
+        userId: user.id,
+        paymentMethodId,
+        excludeCurrentMonth,
       },
     });
 
-    if (!payouts.length) {
-      throw new Error("No pending payouts found.");
+    if (qstashResponse.messageId) {
+      console.log(`Message sent to Qstash with id ${qstashResponse.messageId}`);
+    } else {
+      console.error("Error sending message to Qstash", qstashResponse);
     }
-
-    // Create the invoice for the payouts
-    const newInvoice = await prisma.$transaction(async (tx) => {
-      const amount = payouts.reduce(
-        (total, payout) => total + payout.amount,
-        0,
-      );
-
-      const fee =
-        amount * calculatePayoutFee(paymentMethod.type, workspace.plan);
-      const total = amount + fee;
-
-      // Generate the next invoice number
-      const totalInvoices = await tx.invoice.count({
-        where: {
-          workspaceId: workspace.id,
-        },
-      });
-      const paddedNumber = String(totalInvoices + 1).padStart(4, "0");
-      const invoiceNumber = `${workspace.invoicePrefix}-${paddedNumber}`;
-
-      const invoice = await tx.invoice.create({
-        data: {
-          id: createId({ prefix: "inv_" }),
-          number: invoiceNumber,
-          programId,
-          workspaceId: workspace.id,
-          amount,
-          fee,
-          total,
-        },
-      });
-
-      if (!invoice) {
-        throw new Error("Failed to create payout invoice.");
-      }
-
-      await stripe.paymentIntents.create({
-        amount: invoice.total,
-        customer: workspace.stripeId!,
-        payment_method_types: ALLOWED_PAYMENT_METHODS,
-        payment_method: paymentMethod.id,
-        currency: "usd",
-        confirmation_method: "automatic",
-        confirm: true,
-        transfer_group: invoice.id,
-        statement_descriptor: "Dub Partners",
-        description: `Dub Partners payout invoice (${invoice.id})`,
-      });
-
-      await tx.payout.updateMany({
-        where: {
-          id: {
-            in: payouts.map((p) => p.id),
-          },
-        },
-        data: {
-          invoiceId: invoice.id,
-          status: "processing",
-          userId: user.id,
-        },
-      });
-
-      return invoice;
-    });
-
-    waitUntil(
-      (async () => {
-        // Send emails to all the partners involved in the payouts if the payout method is direct debit
-        // Direct debit takes 4-5 business days to process
-        if (
-          newInvoice &&
-          DIRECT_DEBIT_PAYMENT_METHODS.includes(
-            paymentMethod.type as DIRECT_DEBIT_PAYMENT_METHOD,
-          )
-        ) {
-          await Promise.all(
-            payouts
-              .filter((payout) => payout.partner.email)
-              .map((payout) =>
-                sendEmail({
-                  subject: "You've got money coming your way!",
-                  email: payout.partner.email!,
-                  react: PartnerPayoutConfirmed({
-                    email: payout.partner.email!,
-                    program: payout.program,
-                    payout: {
-                      id: payout.id,
-                      amount: payout.amount,
-                      startDate: payout.periodStart,
-                      endDate: payout.periodEnd,
-                    },
-                  }),
-                  variant: "notifications",
-                }),
-              ),
-          );
-        }
-      })(),
-    );
   });
