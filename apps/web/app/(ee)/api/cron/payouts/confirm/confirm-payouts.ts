@@ -1,5 +1,9 @@
 import { createId } from "@/lib/api/create-id";
 import { PAYOUT_FEES } from "@/lib/partners/constants";
+import {
+  CUTOFF_PERIOD,
+  CUTOFF_PERIOD_TYPES,
+} from "@/lib/partners/cutoff-period";
 import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
 import PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
@@ -14,19 +18,14 @@ export async function confirmPayouts({
   program,
   userId,
   paymentMethodId,
-  excludeCurrentMonth,
+  cutoffPeriod,
 }: {
   workspace: Pick<Project, "id" | "stripeId" | "plan" | "invoicePrefix">;
   program: Pick<Program, "id" | "name" | "logo" | "minPayoutAmount">;
   userId: string;
   paymentMethodId: string;
-  excludeCurrentMonth: boolean;
+  cutoffPeriod?: CUTOFF_PERIOD_TYPES;
 }) {
-  const now = new Date();
-  const currentMonthStart = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
-  );
-
   const payouts = await prisma.payout.findMany({
     where: {
       programId: program.id,
@@ -40,7 +39,7 @@ export async function confirmPayouts({
           not: null,
         },
       },
-      ...(excludeCurrentMonth && {
+      ...(cutoffPeriod && {
         OR: [
           {
             periodStart: null,
@@ -48,7 +47,7 @@ export async function confirmPayouts({
           },
           {
             periodEnd: {
-              lte: currentMonthStart,
+              lte: CUTOFF_PERIOD.find((c) => c.id === cutoffPeriod)!.value,
             },
           },
         ],

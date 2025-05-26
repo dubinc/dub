@@ -1,5 +1,9 @@
 import { confirmPayoutsAction } from "@/lib/actions/partners/confirm-payouts";
 import { PAYOUT_FEES } from "@/lib/partners/constants";
+import {
+  CUTOFF_PERIOD,
+  CUTOFF_PERIOD_TYPES,
+} from "@/lib/partners/cutoff-period";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -8,7 +12,6 @@ import { X } from "@/ui/shared/icons";
 import {
   Button,
   buttonVariants,
-  Checkbox,
   CreditCard,
   Gear,
   GreekTemple,
@@ -24,6 +27,7 @@ import {
   cn,
   currencyFormatter,
   fetcher,
+  formatDate,
   OG_AVATAR_URL,
   truncate,
 } from "@dub/utils";
@@ -70,7 +74,8 @@ function PayoutInvoiceSheetContent() {
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
     useState<PaymentMethodWithFee | null>(null);
 
-  const [excludeCurrentMonth, setExcludeCurrentMonth] = useState(false);
+  const [cutoffPeriod, setCutoffPeriod] =
+    useState<CUTOFF_PERIOD_TYPES>("today");
 
   const {
     data: eligiblePayouts,
@@ -79,7 +84,7 @@ function PayoutInvoiceSheetContent() {
   } = useSWR<PayoutResponse[]>(
     `/api/programs/${defaultProgramId}/payouts/confirm?${new URLSearchParams({
       workspaceId,
-      excludeCurrentMonth: excludeCurrentMonth ? "true" : "false",
+      cutoffPeriod,
     } as Record<string, any>).toString()}`,
     fetcher,
   );
@@ -120,7 +125,7 @@ function PayoutInvoiceSheetContent() {
         ...paymentMethodsTypes[pm.type],
         id: pm.id,
         title: pm.link
-          ? `Link – ${truncate(pm.link.email, 16)}`
+          ? `Link – ${truncate(pm.link.email, 24)}`
           : pm.card
             ? `${capitalize(pm.card?.brand)} **** ${pm.card?.last4}`
             : `ACH **** ${pm.us_bank_account?.last4}`,
@@ -144,10 +149,10 @@ function PayoutInvoiceSheetContent() {
       Method: (
         <div className="flex items-center gap-2 pr-6">
           {paymentMethodsLoading ? (
-            <div className="h-[30px] w-full animate-pulse rounded-md bg-neutral-200" />
+            <div className="h-[26px] w-full animate-pulse rounded-md bg-neutral-200" />
           ) : (
             <select
-              className="h-auto flex-1 rounded-md border border-neutral-200 py-1.5 text-xs focus:border-neutral-600 focus:ring-neutral-600"
+              className="h-auto flex-1 rounded-md border border-neutral-200 py-1 text-xs focus:border-neutral-600 focus:ring-neutral-600"
               value={selectedPaymentMethod?.id || ""}
               onChange={(e) =>
                 setSelectedPaymentMethod(
@@ -168,13 +173,27 @@ function PayoutInvoiceSheetContent() {
             href={`/${slug}/settings/billing`}
             className={cn(
               buttonVariants({ variant: "secondary" }),
-              "flex items-center rounded-md border border-neutral-200 px-2 py-1.5 text-sm",
+              "flex items-center rounded-md border border-neutral-200 p-1 text-sm",
             )}
             target="_blank"
           >
             <Gear className="size-4" />
           </a>
         </div>
+      ),
+
+      "Cutoff Period": (
+        <select
+          value={cutoffPeriod}
+          className="h-auto w-fit rounded-md border border-neutral-200 py-1 text-xs focus:border-neutral-600 focus:ring-neutral-600"
+          onChange={(e) => setCutoffPeriod(e.target.value as any)}
+        >
+          {CUTOFF_PERIOD.map(({ id, label, value, default: isDefault }) => (
+            <option key={id} value={id} selected={isDefault}>
+              {label} ({formatDate(value)})
+            </option>
+          ))}
+        </select>
       ),
 
       Amount:
@@ -229,12 +248,7 @@ function PayoutInvoiceSheetContent() {
           })
         ),
     };
-  }, [
-    eligiblePayouts,
-    paymentMethods,
-    selectedPaymentMethod,
-    excludeCurrentMonth,
-  ]);
+  }, [eligiblePayouts, paymentMethods, selectedPaymentMethod, cutoffPeriod]);
 
   const table = useTable({
     data: eligiblePayouts || [],
@@ -305,44 +319,20 @@ function PayoutInvoiceSheetContent() {
           <div className="text-base font-medium text-neutral-900">
             Invoice details
           </div>
-          <div className="grid grid-cols-2 gap-3 text-sm">
+          <div className="grid grid-cols-3 gap-3 text-sm">
             {Object.entries(invoiceData).map(([key, value]) => (
               <Fragment key={key}>
-                <div className="flex items-end font-medium text-neutral-500">
+                <div className="flex items-center font-medium text-neutral-500">
                   {key}
                 </div>
-                <div className="text-neutral-800">{value}</div>
+                <div className="col-span-2 text-neutral-800">{value}</div>
               </Fragment>
             ))}
           </div>
         </div>
 
         <div className="p-6 pt-2">
-          <div className="rounded-xl bg-neutral-50">
-            <div className="group flex items-center gap-2 px-3 py-2">
-              <Checkbox
-                id="excludeCurrentMonth"
-                name="excludeCurrentMonth"
-                value="true"
-                checked={excludeCurrentMonth}
-                disabled={eligiblePayoutsLoading}
-                onCheckedChange={(checked) => {
-                  setExcludeCurrentMonth(
-                    checked === "indeterminate" ? false : checked,
-                  );
-                }}
-                className="focus-visible:border-black data-[state=checked]:bg-black data-[state=checked]:text-white"
-              />
-
-              <label
-                htmlFor="excludeCurrentMonth"
-                className="cursor-pointer text-sm font-normal leading-5 text-neutral-600"
-              >
-                Exclude current month
-              </label>
-            </div>
-            <Table {...table} />
-          </div>
+          <Table {...table} />
         </div>
       </div>
 
@@ -365,7 +355,7 @@ function PayoutInvoiceSheetContent() {
             await executeAsync({
               workspaceId,
               paymentMethodId: selectedPaymentMethod.id,
-              excludeCurrentMonth,
+              cutoffPeriod,
             });
           }}
           text={

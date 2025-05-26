@@ -1,12 +1,18 @@
 import { createId } from "@/lib/api/create-id";
+import {
+  CUTOFF_PERIOD,
+  CUTOFF_PERIOD_TYPES,
+} from "@/lib/partners/cutoff-period";
 import { prisma } from "@dub/prisma";
 import { Program } from "@prisma/client";
 import { endOfMonth } from "date-fns";
 
 export async function splitPayouts({
   program,
+  cutoffPeriod,
 }: {
   program: Pick<Program, "id" | "minPayoutAmount">;
+  cutoffPeriod: CUTOFF_PERIOD_TYPES;
 }) {
   const payouts = await prisma.payout.findMany({
     where: {
@@ -34,15 +40,13 @@ export async function splitPayouts({
     return;
   }
 
-  const now = new Date();
-  const currentMonthStart = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
-  );
-
+  const cutoffPeriodValue = CUTOFF_PERIOD.find(
+    (c) => c.id === cutoffPeriod,
+  )!.value;
   for (const payout of payouts) {
     const previousCommissions = payout.commissions
       .filter((commission) => {
-        return commission.createdAt < currentMonthStart;
+        return commission.createdAt < cutoffPeriodValue;
       })
       .sort((a, b) => {
         return a.createdAt.getTime() - b.createdAt.getTime();
@@ -50,7 +54,7 @@ export async function splitPayouts({
 
     const currentCommissions = payout.commissions
       .filter((commission) => {
-        return commission.createdAt >= currentMonthStart;
+        return commission.createdAt >= cutoffPeriodValue;
       })
       .sort((a, b) => {
         return a.createdAt.getTime() - b.createdAt.getTime();
