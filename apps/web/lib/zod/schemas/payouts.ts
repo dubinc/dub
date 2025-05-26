@@ -1,7 +1,7 @@
 import { PayoutStatus } from "@dub/prisma/client";
 import { z } from "zod";
 import { getPaginationQuerySchema } from "./misc";
-import { PartnerSchema, PAYOUTS_MAX_PAGE_SIZE } from "./partners";
+import { PartnerSchema } from "./partners";
 import { ProgramSchema } from "./programs";
 
 export const createManualPayoutSchema = z.object({
@@ -18,6 +18,8 @@ export const createManualPayoutSchema = z.object({
     .max(190, "Description must be less than 190 characters")
     .nullable(),
 });
+
+export const PAYOUTS_MAX_PAGE_SIZE = 100;
 
 export const payoutsQuerySchema = z
   .object({
@@ -40,6 +42,7 @@ export const payoutsCountQuerySchema = payoutsQuerySchema
     partnerId: true,
     eligibility: true,
     invoiceId: true,
+    excludeCurrentMonth: true,
   })
   .merge(
     z.object({

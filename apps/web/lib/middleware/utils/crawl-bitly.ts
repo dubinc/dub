@@ -1,34 +1,22 @@
 import { redis } from "@/lib/upstash";
-import z from "@/lib/zod";
-import { DUB_HEADERS, getUrlFromStringIfValid } from "@dub/utils";
+import { DUB_HEADERS } from "@dub/utils";
 import { NextRequest, NextResponse } from "next/server";
+import { parse } from "./parse";
 
-const workspaceId = "cm05wnnpo000711ztj05wwdbu";
-
-// GET /api/links/crawl/bitly – crawl a bitly link and redirect to the destination if exists
-export const GET = async (_req: NextRequest, { params }) => {
-  const { domain, key } = z
-    .object({
-      domain: z.string(),
-      key: z.string(),
-    })
-    .parse(params);
+export const crawlBitly = async (req: NextRequest) => {
+  const { domain, fullKey } = parse(req);
 
   // bitly doesn't support the following characters: ` ~ , . < > ; ‘ : “ / \ [ ] ^ { } ( ) = + ! * @ & $ £ ? % # |
   // @see: https://support.bitly.com/hc/en-us/articles/360030780892-What-characters-are-supported-when-customizing-links
   const invalidBitlyKeyRegex = /[`~,.<>;':"/\\[\]^{}()=+!*@&$£?%#|]/;
 
-  if (key && !invalidBitlyKeyRegex.test(key)) {
-    const link = await fetchBitlyLink({ domain, key });
+  if (fullKey && !invalidBitlyKeyRegex.test(fullKey)) {
+    const link = await fetchBitlyLink({ domain, key: fullKey });
     if (link) {
-      const sanitizedUrl = getUrlFromStringIfValid(link.long_url);
-
-      if (sanitizedUrl) {
-        return NextResponse.redirect(sanitizedUrl, {
-          headers: DUB_HEADERS,
-          status: 302,
-        });
-      }
+      return NextResponse.redirect(link.long_url, {
+        headers: DUB_HEADERS,
+        status: 302,
+      });
     }
   }
 
@@ -38,6 +26,8 @@ export const GET = async (_req: NextRequest, { params }) => {
   });
 };
 
+const BUFFER_WORKSPACE_ID = "cm05wnnpo000711ztj05wwdbu";
+
 async function fetchBitlyLink({
   domain,
   key,
@@ -45,10 +35,12 @@ async function fetchBitlyLink({
   domain: string;
   key: string;
 }) {
-  const apiKey = await redis.get<string>(`import:bitly:${workspaceId}`);
+  const apiKey = await redis.get<string>(`import:bitly:${BUFFER_WORKSPACE_ID}`);
 
   if (!apiKey) {
-    console.error(`[Bitly] No API key found for workspace ${workspaceId}`);
+    console.error(
+      `[Bitly] No API key found for workspace ${BUFFER_WORKSPACE_ID}`,
+    );
     return null;
   }
 

@@ -122,8 +122,7 @@ export const PATCH = withWorkspace(async ({ workspace, params, req }) => {
   if (commission.status === "processed" && commission.payoutId) {
     waitUntil(
       prisma.$transaction(async (tx) => {
-        const commissions = await tx.commission.groupBy({
-          by: ["payoutId"],
+        const commissionAggregate = await tx.commission.aggregate({
           where: {
             payoutId: commission.payoutId,
           },
@@ -132,7 +131,7 @@ export const PATCH = withWorkspace(async ({ workspace, params, req }) => {
           },
         });
 
-        const newPayoutAmount = commissions[0]._sum.earnings ?? 0;
+        const newPayoutAmount = commissionAggregate._sum.earnings ?? 0;
 
         if (newPayoutAmount === 0) {
           console.log(`Deleting payout ${commission.payoutId}`);
