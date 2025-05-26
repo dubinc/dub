@@ -187,7 +187,6 @@ function PayoutInvoiceSheetContent() {
           value={cutoffPeriod}
           className="h-auto w-fit rounded-md border border-neutral-200 py-1 text-xs focus:border-neutral-600 focus:ring-neutral-600"
           onChange={(e) => setCutoffPeriod(e.target.value)}
-          defaultValue="today"
         >
           {CUTOFF_PERIOD.map(({ id, label, value }) => (
             <option key={id} value={id}>
