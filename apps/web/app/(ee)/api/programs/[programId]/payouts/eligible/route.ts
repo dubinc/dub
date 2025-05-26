@@ -15,14 +15,14 @@ const confirmPayoutsQuerySchema = z.object({
 });
 
 /*
- * GET /api/programs/[programId]/payouts/confirm - get list of payouts to confirm
+ * GET /api/programs/[programId]/payouts/eligible - get list of eligible payouts
  *
- * We're splitting this out of /payouts because it's a special case that needs
+ * We're splitting this from /payouts because it's a special case that needs
  * to be handled differently:
  * - only include eligible payouts
  * - no pagination or filtering (we retrieve all pending payouts by default)
  * - sort by amount in descending order
- * - option to exclude current month's commissions
+ * - option to set a cutoff period to include commissions up to that date
  */
 
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {

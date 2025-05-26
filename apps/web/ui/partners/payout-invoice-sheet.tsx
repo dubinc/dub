@@ -82,7 +82,7 @@ function PayoutInvoiceSheetContent() {
     error: eligiblePayoutsError,
     isLoading: eligiblePayoutsLoading,
   } = useSWR<PayoutResponse[]>(
-    `/api/programs/${defaultProgramId}/payouts/confirm?${new URLSearchParams({
+    `/api/programs/${defaultProgramId}/payouts/eligible?${new URLSearchParams({
       workspaceId,
       cutoffPeriod,
     } as Record<string, any>).toString()}`,
@@ -296,7 +296,7 @@ function PayoutInvoiceSheetContent() {
     tdClassName: (id) => cn(id === "total" && "text-right", "border-l-0"),
     className: "[&_tr:last-child>td]:border-b-transparent",
     scrollWrapperClassName: "min-h-[40px]",
-    resourceName: (p) => `pending payout${p ? "s" : ""}`,
+    resourceName: (p) => `eligible payout${p ? "s" : ""}`,
     loading: eligiblePayoutsLoading,
     error: eligiblePayoutsError
       ? "Failed to load payouts for this invoice."
