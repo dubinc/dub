@@ -11,7 +11,7 @@ import { Input } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Flex } from "@radix-ui/themes";
 import Cookies from "js-cookie";
-import { FC, ReactNode } from "react";
+import { FC, ReactNode, useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import PhoneInput from "react-phone-number-input";
 import { Country } from "react-phone-number-input/input";
@@ -55,6 +55,14 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
     formState: { errors },
   } = useFormContext();
   const fieldId = getFormFieldId(id, type, label);
+  const [defaultCountry, setDefaultCountry] = useState<Country>("US");
+
+  useEffect(() => {
+    const cookieCountry = Cookies.get("country");
+    if (cookieCountry && cookieCountry.length === 2) {
+      setDefaultCountry(cookieCountry as Country);
+    }
+  }, []);
 
   const error = errors[fieldId]?.message as string;
 
@@ -126,7 +134,7 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
             <PhoneInput
               {...field}
               international
-              defaultCountry={(Cookies.get("country") || "US") as Country}
+              defaultCountry={defaultCountry}
               countrySelectComponent={CountrySelectAutocompleteComponent}
               inputComponent={PhoneNumberInputComponent}
               className={cn("w-full [&>div]:w-full", {
