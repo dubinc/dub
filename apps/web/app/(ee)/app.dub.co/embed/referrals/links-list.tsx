@@ -30,7 +30,7 @@ export function ReferralsEmbedLinksList({
   const [partnerLinks, setPartnerLinks] = useState<ReferralsEmbedLink[]>(links);
 
   const { data: refreshedLinks, isLoading } = useSWR<ReferralsEmbedLink[]>(
-    `/api/embed/referrals/links`,
+    "/api/embed/referrals/links",
     (url) =>
       fetcher(url, {
         headers: {
@@ -133,6 +133,15 @@ export function ReferralsEmbedLinksList({
           </>
         )}
         className="border-none md:min-h-fit"
+        addButton={
+          <Button
+            text="Create link"
+            variant="primary"
+            icon={<Plus2 className="size-4" />}
+            onClick={onCreateLink}
+            className="bg-bg-inverted h-9 rounded-md hover:bg-neutral-800"
+          />
+        }
       />
     ),
     thClassName: "border-l-0",

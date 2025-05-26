@@ -22,12 +22,14 @@ export function ReferralsEmbedQuickstart({
   onViewResources,
 }: {
   program: Program;
-  link: ReferralsEmbedLink;
+  link: ReferralsEmbedLink | undefined;
   onViewResources?: () => void;
 }) {
   const [copied, copyToClipboard] = useCopyToClipboard();
   const { isMobile } = useMediaQuery();
-  const payoutsDisabled = link.saleAmount === 0;
+
+  const copyLinkDisabled = !link;
+  const payoutsDisabled = !link || link.saleAmount === 0;
 
   const items = [
     {
@@ -36,8 +38,15 @@ export function ReferralsEmbedQuickstart({
       illustration: <ShareLink />,
       cta: (
         <Button
-          className={BUTTON_CLASSNAME}
-          onClick={() => copyToClipboard(link.shortLink)}
+          className={copyLinkDisabled ? "h-9 rounded-lg" : BUTTON_CLASSNAME}
+          onClick={() => {
+            if (link) {
+              copyToClipboard(link.shortLink);
+            }
+          }}
+          disabledTooltip={
+            copyLinkDisabled ? "You need to create a link first." : undefined
+          }
           text={copied ? "Copied link" : "Copy link"}
           icon={
             <div className="relative size-4">

@@ -101,10 +101,15 @@ export function ReferralsEmbedPageClient({
   const destinationDomain = program.url
     ? getDomainWithoutWWW(program.url)!
     : "";
-  const partnerLink = constructPartnerLink({
-    program,
-    linkKey: links[0].key,
-  });
+
+  const hasPartnerLinks = links.length > 0;
+
+  const partnerLink = hasPartnerLinks
+    ? constructPartnerLink({
+        program,
+        linkKey: links[0].key,
+      })
+    : undefined;
 
   return (
     <div
@@ -125,7 +130,7 @@ export function ReferralsEmbedPageClient({
             <input
               type="text"
               readOnly
-              value={getPrettyUrl(partnerLink)}
+              value={partnerLink ? getPrettyUrl(partnerLink) : "No link found"}
               className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default h-10 min-w-0 shrink grow rounded-md border px-3 text-sm focus:outline-none focus:ring-neutral-500"
             />
             <Button
@@ -156,9 +161,15 @@ export function ReferralsEmbedPageClient({
                   copyToClipboard(partnerLink);
                 }
               }}
+              disabledTooltip={
+                !hasPartnerLinks
+                  ? "You need to create a link first."
+                  : undefined
+              }
             />
           </div>
-          {program.linkStructure === "query" && (
+
+          {hasPartnerLinks && program.linkStructure === "query" && (
             <QueryLinkStructureHelpText
               program={program}
               linkKey={links[0].key}
@@ -233,7 +244,7 @@ export function ReferralsEmbedPageClient({
               {selectedTab === "Quickstart" ? (
                 <ReferralsEmbedQuickstart
                   program={program}
-                  link={links[0]}
+                  link={hasPartnerLinks ? links[0] : undefined}
                   onViewResources={
                     hasResources ? () => setSelectedTab("Resources") : undefined
                   }
