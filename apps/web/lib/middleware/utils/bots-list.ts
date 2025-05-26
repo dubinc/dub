@@ -46,6 +46,11 @@ export const UA_BOTS = [
   "perplexity", // Perplexity AI
   "Omigili", // Omigili
   "timpi", // Timpi.io
+
+  // more bots detected by Vercel
+  "node", // node-fetch/1.0 (+https://github.com/bitinn/node-fetch)
+  "ShortLinkTranslate",
+  "okhttp",
 ];
 
 export const IP_BOTS = [
@@ -90,12 +95,19 @@ export const IP_BOTS = [
   "35.185.193.22", // The Dalles
   "34.105.67.76", // The Dalles
   "154.28.229.7", // Ashburn
+
+  "207.46.13.111", // microsoft IP
 ];
 
 export const IP_RANGES_BOTS = [
-  "159.148.128.0/24", // weird bot activity from Miami
+  // weird bot activity from Miami
+  "159.148.128.0/24",
 
   // Expanse (Palo Alto Networks)
   "198.235.24.0/24",
   "205.210.31.0/24",
+
+  // odd traffic from Hong Kong (Aliexpress)
+  "47.238.13.0/24",
+  "47.238.14.0/24",
 ];

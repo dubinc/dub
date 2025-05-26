@@ -113,7 +113,7 @@ export default function EventsTable({
           id: "saleAmount",
           header: "Amount",
           accessorKey: "sale.amount",
-          size: 120,
+          size: 160,
           cell: ({ getValue }) => (
             <div className="flex items-center gap-2">
               <span>
