@@ -43,6 +43,7 @@ export async function splitPayouts({
   const cutoffPeriodValue = CUTOFF_PERIOD.find(
     (c) => c.id === cutoffPeriod,
   )!.value;
+
   for (const payout of payouts) {
     const previousCommissions = payout.commissions
       .filter((commission) => {

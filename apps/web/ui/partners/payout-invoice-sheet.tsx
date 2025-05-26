@@ -152,7 +152,7 @@ function PayoutInvoiceSheetContent() {
             <div className="h-[26px] w-full animate-pulse rounded-md bg-neutral-200" />
           ) : (
             <select
-              className="h-auto flex-1 rounded-md border border-neutral-200 py-1 text-xs focus:border-neutral-600 focus:ring-neutral-600"
+              className="h-auto flex-1 rounded-md border border-neutral-200 py-1.5 text-xs focus:border-neutral-600 focus:ring-neutral-600"
               value={selectedPaymentMethod?.id || ""}
               onChange={(e) =>
                 setSelectedPaymentMethod(
@@ -173,7 +173,7 @@ function PayoutInvoiceSheetContent() {
             href={`/${slug}/settings/billing`}
             className={cn(
               buttonVariants({ variant: "secondary" }),
-              "flex items-center rounded-md border border-neutral-200 p-1 text-sm",
+              "flex items-center rounded-md border border-neutral-200 p-1.5 text-sm",
             )}
             target="_blank"
           >
@@ -319,13 +319,15 @@ function PayoutInvoiceSheetContent() {
           <div className="text-base font-medium text-neutral-900">
             Invoice details
           </div>
-          <div className="grid grid-cols-3 gap-3 text-sm">
+          <div className="grid grid-cols-3 gap-2 text-sm">
             {Object.entries(invoiceData).map(([key, value]) => (
               <Fragment key={key}>
-                <div className="flex items-center font-medium text-neutral-500">
+                <div className="flex items-center py-0.5 font-medium text-neutral-500">
                   {key}
                 </div>
-                <div className="col-span-2 text-neutral-800">{value}</div>
+                <div className="col-span-2 flex items-center text-neutral-800">
+                  {value}
+                </div>
               </Fragment>
             ))}
           </div>

@@ -35,7 +35,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     programId,
   });
 
-  const payouts = await prisma.payout.findMany({
+  let payouts = await prisma.payout.findMany({
     where: {
       programId,
       status: "pending",
@@ -65,25 +65,25 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     },
   });
 
-  const filteredPayouts = payouts.map((payout) => {
-    // custom payouts are included by default
-    if (!payout.periodStart && !payout.periodEnd) {
-      return payout;
-    }
+  if (cutoffPeriod) {
+    payouts = payouts
+      .map((payout) => {
+        // custom payouts are included by default
+        if (!payout.periodStart && !payout.periodEnd) {
+          return payout;
+        }
 
-    const newPayoutAmount = payout.commissions.reduce((acc, commission) => {
-      return acc + commission.earnings;
-    }, 0);
+        const newPayoutAmount = payout.commissions.reduce((acc, commission) => {
+          return acc + commission.earnings;
+        }, 0);
 
-    return {
-      ...payout,
-      amount: newPayoutAmount,
-    };
-  });
+        return {
+          ...payout,
+          amount: newPayoutAmount,
+        };
+      })
+      .filter((payout) => payout.amount >= minPayoutAmount);
+  }
 
-  const result = filteredPayouts.filter(
-    (payout) => payout.amount >= minPayoutAmount,
-  );
-
-  return NextResponse.json(z.array(PayoutResponseSchema).parse(result));
+  return NextResponse.json(z.array(PayoutResponseSchema).parse(payouts));
 });

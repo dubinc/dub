@@ -41,6 +41,7 @@ export const CUTOFF_PERIOD = [
 export const CUTOFF_PERIOD_ENUM = z
   .enum(CUTOFF_PERIOD.map((c) => c.id) as [string, ...string[]])
   .optional()
-  .default("today");
+  // no need to pass cutoff period if it's today
+  .transform((value) => (value === "today" ? undefined : value));
 
 export type CUTOFF_PERIOD_TYPES = z.infer<typeof CUTOFF_PERIOD_ENUM>;

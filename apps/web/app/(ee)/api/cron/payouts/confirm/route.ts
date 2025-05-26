@@ -1,6 +1,7 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import z from "zod";
@@ -13,7 +14,7 @@ const confirmPayoutsSchema = z.object({
   workspaceId: z.string(),
   userId: z.string(),
   paymentMethodId: z.string(),
-  cutoffPeriod: z.string().optional(),
+  cutoffPeriod: CUTOFF_PERIOD_ENUM,
 });
 
 // POST /api/cron/payouts/confirm
