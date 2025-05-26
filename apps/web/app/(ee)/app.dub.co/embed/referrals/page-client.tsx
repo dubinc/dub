@@ -130,43 +130,50 @@ export function ReferralsEmbedPageClient({
             <input
               type="text"
               readOnly
-              value={partnerLink ? getPrettyUrl(partnerLink) : "No link found"}
+              value={
+                partnerLink ? getPrettyUrl(partnerLink) : "No referral link"
+              }
               className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default h-10 min-w-0 shrink grow rounded-md border px-3 text-sm focus:outline-none focus:ring-neutral-500"
             />
-            <Button
-              icon={
-                <div className="relative size-4">
-                  <div
-                    className={cn(
-                      "absolute inset-0 transition-[transform,opacity]",
-                      copied && "translate-y-1 opacity-0",
-                    )}
-                  >
-                    <Copy className="size-4" />
+            {hasPartnerLinks ? (
+              <Button
+                icon={
+                  <div className="relative size-4">
+                    <div
+                      className={cn(
+                        "absolute inset-0 transition-[transform,opacity]",
+                        copied && "translate-y-1 opacity-0",
+                      )}
+                    >
+                      <Copy className="size-4" />
+                    </div>
+                    <div
+                      className={cn(
+                        "absolute inset-0 transition-[transform,opacity]",
+                        !copied && "translate-y-1 opacity-0",
+                      )}
+                    >
+                      <Check className="size-4" />
+                    </div>
                   </div>
-                  <div
-                    className={cn(
-                      "absolute inset-0 transition-[transform,opacity]",
-                      !copied && "translate-y-1 opacity-0",
-                    )}
-                  >
-                    <Check className="size-4" />
-                  </div>
-                </div>
-              }
-              text={copied ? "Copied link" : "Copy link"}
-              className="xs:w-fit"
-              onClick={() => {
-                if (partnerLink) {
-                  copyToClipboard(partnerLink);
                 }
-              }}
-              disabledTooltip={
-                !hasPartnerLinks
-                  ? "You need to create a link first."
-                  : undefined
-              }
-            />
+                text={copied ? "Copied link" : "Copy link"}
+                className="xs:w-fit"
+                onClick={() => {
+                  if (partnerLink) {
+                    copyToClipboard(partnerLink);
+                  }
+                }}
+              />
+            ) : (
+              <Button
+                text="Create a link"
+                onClick={() => {
+                  setSelectedTab("Links");
+                }}
+                className="xs:w-fit"
+              />
+            )}
           </div>
 
           {hasPartnerLinks && program.linkStructure === "query" && (
@@ -245,9 +252,8 @@ export function ReferralsEmbedPageClient({
                 <ReferralsEmbedQuickstart
                   program={program}
                   link={hasPartnerLinks ? links[0] : undefined}
-                  onViewResources={
-                    hasResources ? () => setSelectedTab("Resources") : undefined
-                  }
+                  hasResources={hasResources}
+                  setSelectedTab={setSelectedTab}
                 />
               ) : selectedTab === "Earnings" ? (
                 <ReferralsEmbedEarnings salesCount={stats.sales} />
