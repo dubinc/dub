@@ -33,7 +33,7 @@ export const Rating: FC<IRatingProps> = ({ alignItems = "center" }) => {
         weight="regular"
         className="text-secondary-textMuted"
       >
-        <strong>3.318</strong> GetQR taken today!
+        <strong>3.318</strong> QR codes generated today!
       </Text>
     </div>
   );
