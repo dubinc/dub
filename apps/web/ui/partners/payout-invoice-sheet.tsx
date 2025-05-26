@@ -125,7 +125,10 @@ function PayoutInvoiceSheetContent() {
         const base = {
           ...paymentMethod,
           id: pm.id,
-          fee: calculatePayoutFee(pm.type, plan),
+          fee: calculatePayoutFee({
+            paymentMethod: pm.type,
+            plan,
+          }),
         };
 
         if (pm.link) {

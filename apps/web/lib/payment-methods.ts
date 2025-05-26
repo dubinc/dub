@@ -4,10 +4,13 @@ import {
   PAYOUT_FEES,
 } from "./partners/constants";
 
-export const calculatePayoutFee = (
-  paymentMethod: Stripe.PaymentMethod.Type,
-  plan: string | undefined,
-) => {
+export const calculatePayoutFee = ({
+  paymentMethod,
+  plan,
+}: {
+  paymentMethod: Stripe.PaymentMethod.Type;
+  plan: string | undefined;
+}) => {
   if (!paymentMethod) {
     return null;
   }
@@ -19,6 +22,6 @@ export const calculatePayoutFee = (
   }
 
   if (DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(paymentMethod)) {
-    return PAYOUT_FEES[planType].ach;
+    return PAYOUT_FEES[planType].direct_debit;
   }
 };

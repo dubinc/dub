@@ -6,18 +6,18 @@ export const CUSTOMER_PAGE_EVENTS_LIMIT = 8;
 
 export const PAYOUT_FEES = {
   business: {
-    ach: 0.07,
+    direct_debit: 0.07,
     card: 0.1,
   },
   advanced: {
-    ach: 0.05,
+    direct_debit: 0.05,
     card: 0.08,
   },
   enterprise: {
-    ach: 0.03,
+    direct_debit: 0.03,
     card: 0.06,
   },
-};
+} as const;
 
 export const DUB_MIN_PAYOUT_AMOUNT_CENTS = 10000;
 
