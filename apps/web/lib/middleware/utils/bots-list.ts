@@ -52,7 +52,7 @@ export const UA_BOTS = [
   "Omigili", // Omigili
   "timpi", // Timpi.io
 
-  // more bots detected by Vercel
+  // bots detected by Vercel
   "ShortLinkTranslate",
 
   // Additional legitimate crawlers from user-agents.net/bots
@@ -85,7 +85,6 @@ export const UA_BOTS = [
   "statuscake", // StatusCake
   "site24x7", // Site24x7
   "monitis", // Monitis
-  "keynote", // Keynote
   "gomez", // Gomez
   "neustar", // Neustar
   "catchpoint", // Catchpoint
@@ -93,13 +92,10 @@ export const UA_BOTS = [
   "speedcurve", // SpeedCurve
   "dareboost", // Dareboost
   "yellowlab", // YellowLab Tools
-  "w3c", // W3C validators
-  "validator", // various validators
   "linkchecker", // link checkers
   "deadlinkchecker", // dead link checker
   "brokenlinkcheck", // broken link checker
   "xenu", // Xenu link checker
-  "integrity", // Integrity link checker
   "scrutiny", // Scrutiny link checker
   "powermapper", // PowerMapper
   "siteimprove", // Siteimprove
