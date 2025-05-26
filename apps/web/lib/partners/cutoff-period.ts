@@ -14,7 +14,6 @@ export const CUTOFF_PERIOD = [
     id: "today",
     label: "Today",
     value: endOfDay(new Date()),
-    default: true,
   },
   {
     id: "lastMonth",
