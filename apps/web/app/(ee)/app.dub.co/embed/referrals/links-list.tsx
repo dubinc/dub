@@ -137,7 +137,6 @@ export function ReferralsEmbedLinksList({
           <Button
             text="Create link"
             variant="primary"
-            icon={<Plus2 className="size-4" />}
             onClick={onCreateLink}
             className="bg-bg-inverted h-9 rounded-md hover:bg-neutral-800"
           />
