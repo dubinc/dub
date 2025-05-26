@@ -28,7 +28,7 @@ export const QRCodeDemoWifi: FC<IQRCodeDemoWifiProps> = ({ networkName }) => {
       />
       <path
         d="M0 21.9718C0 9.83713 9.83712 0 21.9718 0H258C264.627 0 270 5.37258 270 12V207H0V21.9718Z"
-        fill="#0066CC"
+        fill="#11A65E"
       />
       <g filter="url(#filter0_d_1608_3216)">
         <path
@@ -36,7 +36,15 @@ export const QRCodeDemoWifi: FC<IQRCodeDemoWifiProps> = ({ networkName }) => {
           fill="white"
           shape-rendering="crispEdges"
         />
-        <rect x="29" y="39" width="212" height="148" rx="6" fill="#B8D3EE" />
+        <rect
+          x="29"
+          y="39"
+          width="212"
+          height="148"
+          rx="6"
+          fill="#71C69D
+"
+        />
         <path
           d="M114.061 126.958C125.228 115.791 144.77 115.791 155.936 126.958M171.29 110.208C150.252 91.5988 121.04 91.5988 98.707 110.208"
           stroke="white"
