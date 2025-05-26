@@ -1,6 +1,7 @@
 "use client";
 
 import { Button, useKeyboardShortcut } from "@dub/ui";
+import { Theme } from "@radix-ui/themes";
 
 import { mutatePrefix } from "@/lib/swr/mutate.ts";
 import useWorkspace from "@/lib/swr/use-workspace.ts";
@@ -176,12 +177,14 @@ export function QRBuilderModal({
           </button>
         </div>
 
-        <QrBuilder
-          isEdit={!!props}
-          isProcessing={isProcessing}
-          props={props}
-          handleSaveQR={handleSaveQR}
-        />
+        <Theme>
+          <QrBuilder
+            isEdit={!!props}
+            isProcessing={isProcessing}
+            props={props}
+            handleSaveQR={handleSaveQR}
+          />
+        </Theme>
       </div>
     </Modal>
   );

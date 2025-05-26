@@ -13,9 +13,9 @@ import { QrTabsDownloadButton } from "@/ui/qr-builder/qr-tabs-download-button.ts
 import { QrTabsStepTitle } from "@/ui/qr-builder/qr-tabs-step-title.tsx";
 import { QrTypeSelection } from "@/ui/qr-builder/qr-type-selection.tsx";
 import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
-import { ArrowTurnLeft, useMediaQuery } from "@dub/ui";
+import { ArrowTurnLeft, Button as DubButton, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { Button, Flex } from "@radix-ui/themes";
+import { Flex } from "@radix-ui/themes";
 import { motion } from "framer-motion";
 import {
   FC,
@@ -281,6 +281,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                     isQrDisabled={isQrDisabled}
                     isMobile={isMobile}
                     options={options}
+                    homepageDemo={homepageDemo}
                     handlers={handlers}
                   />
 
@@ -375,7 +376,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
           </div>
           {!homepageDemo && (
             <div className="-mt-2 flex items-center justify-end gap-2 border-t border-neutral-100 bg-neutral-50 p-4">
-              <Button
+              <DubButton
                 disabled={isProcessing}
                 loading={isProcessing}
                 text={
