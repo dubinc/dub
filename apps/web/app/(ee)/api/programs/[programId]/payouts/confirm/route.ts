@@ -1,15 +1,17 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { booleanQuerySchema } from "@/lib/zod/schemas/misc";
+import {
+  CUTOFF_PERIOD,
+  CUTOFF_PERIOD_ENUM,
+} from "@/lib/partners/cutoff-period";
 import { PayoutResponseSchema } from "@/lib/zod/schemas/payouts";
 import { prisma } from "@dub/prisma";
-import { Commission } from "@prisma/client";
 import { NextResponse } from "next/server";
 import z from "zod";
 
 const confirmPayoutsQuerySchema = z.object({
-  excludeCurrentMonth: booleanQuerySchema.optional(),
+  cutoffPeriod: CUTOFF_PERIOD_ENUM,
 });
 
 /*
@@ -26,19 +28,18 @@ const confirmPayoutsQuerySchema = z.object({
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
-  const { excludeCurrentMonth } = confirmPayoutsQuerySchema.parse(searchParams);
+  const { cutoffPeriod } = confirmPayoutsQuerySchema.parse(searchParams);
 
   const { minPayoutAmount } = await getProgramOrThrow({
     workspaceId: workspace.id,
     programId,
   });
 
-  const now = new Date();
-  const currentMonthStart = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
-  );
+  const cutoffPeriodValue = CUTOFF_PERIOD.find(
+    (c) => c.id === cutoffPeriod,
+  )?.value;
 
-  const payouts = await prisma.payout.findMany({
+  let payouts = await prisma.payout.findMany({
     where: {
       programId,
       status: "pending",
@@ -53,11 +54,11 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     },
     include: {
       partner: true,
-      ...(excludeCurrentMonth && {
+      ...(cutoffPeriodValue && {
         commissions: {
           where: {
             createdAt: {
-              lt: currentMonthStart,
+              lt: cutoffPeriodValue,
             },
           },
         },
@@ -68,41 +69,25 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     },
   });
 
-  const result = excludeCurrentMonth
-    ? excludeCurrentMonthCommissions({
-        payouts,
-        minPayoutAmount,
+  if (cutoffPeriodValue) {
+    payouts = payouts
+      .map((payout) => {
+        // custom payouts are included by default
+        if (!payout.periodStart && !payout.periodEnd) {
+          return payout;
+        }
+
+        const newPayoutAmount = payout.commissions.reduce((acc, commission) => {
+          return acc + commission.earnings;
+        }, 0);
+
+        return {
+          ...payout,
+          amount: newPayoutAmount,
+        };
       })
-    : payouts;
+      .filter((payout) => payout.amount >= minPayoutAmount);
+  }
 
-  return NextResponse.json(z.array(PayoutResponseSchema).parse(result));
+  return NextResponse.json(z.array(PayoutResponseSchema).parse(payouts));
 });
-
-// Exclude the current month's commissions from the payouts
-const excludeCurrentMonthCommissions = ({
-  payouts,
-  minPayoutAmount,
-}: {
-  payouts: (z.infer<typeof PayoutResponseSchema> & {
-    commissions: Commission[];
-  })[];
-  minPayoutAmount: number;
-}) => {
-  const allPayouts = payouts.map((payout) => {
-    // custom payouts are included by default
-    if (!payout.periodStart && !payout.periodEnd) {
-      return payout;
-    }
-
-    const newPayoutAmount = payout.commissions.reduce((acc, commission) => {
-      return acc + commission.earnings;
-    }, 0);
-
-    return {
-      ...payout,
-      amount: newPayoutAmount,
-    };
-  });
-
-  return allPayouts.filter((payout) => payout.amount >= minPayoutAmount);
-};
