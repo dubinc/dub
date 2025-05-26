@@ -13,12 +13,12 @@ import {
   Button,
   buttonVariants,
   CreditCard,
+  DynamicTooltipWrapper,
   Gear,
   GreekTemple,
   Sheet,
   SimpleTooltipContent,
   Table,
-  Tooltip,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
@@ -133,11 +133,15 @@ function PayoutInvoiceSheetContent() {
     [paymentMethods],
   );
 
-  const invoiceData = useMemo(() => {
-    const amount = eligiblePayouts?.reduce((acc, payout) => {
-      return acc + payout.amount;
-    }, 0);
+  const amount = useMemo(
+    () =>
+      eligiblePayouts?.reduce((acc, payout) => {
+        return acc + payout.amount;
+      }, 0),
+    [eligiblePayouts],
+  );
 
+  const invoiceData = useMemo(() => {
     const fee =
       amount === undefined
         ? undefined
@@ -145,110 +149,116 @@ function PayoutInvoiceSheetContent() {
     const total =
       amount !== undefined && fee !== undefined ? amount + fee : undefined;
 
-    return {
-      Method: (
-        <div className="flex items-center gap-2 pr-6">
-          {paymentMethodsLoading ? (
-            <div className="h-[26px] w-full animate-pulse rounded-md bg-neutral-200" />
-          ) : (
-            <select
-              className="h-auto flex-1 rounded-md border border-neutral-200 py-1.5 text-xs focus:border-neutral-600 focus:ring-neutral-600"
-              value={selectedPaymentMethod?.id || ""}
-              onChange={(e) =>
-                setSelectedPaymentMethod(
-                  paymentMethodsWithFee?.find(
-                    (pm) => pm.id === e.target.value,
-                  ) || null,
-                )
-              }
-            >
-              {paymentMethodsWithFee?.map(({ id, title }) => (
-                <option key={id} value={id}>
-                  {title}
-                </option>
-              ))}
-            </select>
-          )}
-          <a
-            href={`/${slug}/settings/billing`}
-            className={cn(
-              buttonVariants({ variant: "secondary" }),
-              "flex items-center rounded-md border border-neutral-200 p-1.5 text-sm",
+    return [
+      {
+        key: "Method",
+        value: (
+          <div className="flex items-center gap-2 pr-6">
+            {paymentMethodsLoading ? (
+              <div className="h-[26px] w-40 animate-pulse rounded-md bg-neutral-200" />
+            ) : (
+              <select
+                className="h-auto flex-1 rounded-md border border-neutral-200 py-1.5 text-xs focus:border-neutral-600 focus:ring-neutral-600"
+                value={selectedPaymentMethod?.id || ""}
+                onChange={(e) =>
+                  setSelectedPaymentMethod(
+                    paymentMethodsWithFee?.find(
+                      (pm) => pm.id === e.target.value,
+                    ) || null,
+                  )
+                }
+              >
+                {paymentMethodsWithFee?.map(({ id, title }) => (
+                  <option key={id} value={id}>
+                    {title}
+                  </option>
+                ))}
+              </select>
             )}
-            target="_blank"
-          >
-            <Gear className="size-4" />
-          </a>
-        </div>
-      ),
-
-      "Cutoff Period": (
-        <select
-          value={cutoffPeriod}
-          className="h-auto w-fit rounded-md border border-neutral-200 py-1 text-xs focus:border-neutral-600 focus:ring-neutral-600"
-          onChange={(e) => setCutoffPeriod(e.target.value)}
-        >
-          {CUTOFF_PERIOD.map(({ id, label, value }) => (
-            <option key={id} value={id}>
-              {label} ({formatDate(value)})
-            </option>
-          ))}
-        </select>
-      ),
-
-      Amount:
-        amount === undefined ? (
-          <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
-        ) : (
-          currencyFormatter(amount / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })
+            <a
+              href={`/${slug}/settings/billing`}
+              className={cn(
+                buttonVariants({ variant: "secondary" }),
+                "flex items-center rounded-md border border-neutral-200 p-1.5 text-sm",
+              )}
+              target="_blank"
+            >
+              <Gear className="size-4" />
+            </a>
+          </div>
         ),
-
-      Fee:
-        selectedPaymentMethod && fee !== undefined ? (
-          <Tooltip
-            content={
-              <SimpleTooltipContent
-                title={`${Math.round(selectedPaymentMethod.fee * 100)}% processing fee.${selectedPaymentMethod.type !== "us_bank_account" ? " Switch to ACH for a reduced fee." : ""}`}
-                cta="Learn more"
-                href="https://d.to/payouts"
-              />
-            }
+      },
+      {
+        key: "Cutoff Period",
+        value: (
+          <select
+            value={cutoffPeriod}
+            className="h-auto w-fit rounded-md border border-neutral-200 py-1 text-xs focus:border-neutral-600 focus:ring-neutral-600"
+            onChange={(e) => setCutoffPeriod(e.target.value)}
           >
-            <span className="underline decoration-dotted underline-offset-2">
-              {currencyFormatter(fee / 100, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </span>
-          </Tooltip>
-        ) : (
-          <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
+            {CUTOFF_PERIOD.map(({ id, label, value }) => (
+              <option key={id} value={id}>
+                {label} ({formatDate(value)})
+              </option>
+            ))}
+          </select>
         ),
-
-      "Transfer Time": (
-        <div>
-          {selectedPaymentMethod ? (
-            selectedPaymentMethod.duration
+        tooltipContent:
+          "Cutoff period in UTC. If set, only commissions accrued up to the cutoff period will be included in the payout invoice.",
+      },
+      {
+        key: "Amount",
+        value:
+          amount === undefined ? (
+            <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
+          ) : (
+            currencyFormatter(amount / 100, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })
+          ),
+      },
+      {
+        key: "Fee",
+        value:
+          selectedPaymentMethod && fee !== undefined ? (
+            currencyFormatter(fee / 100, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })
           ) : (
             <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
-          )}
-        </div>
-      ),
-
-      Total:
-        total === undefined ? (
-          <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
+          ),
+        tooltipContent: selectedPaymentMethod ? (
+          <SimpleTooltipContent
+            title={`${Math.round(selectedPaymentMethod.fee * 100)}% processing fee.${selectedPaymentMethod.type !== "us_bank_account" ? " Switch to ACH for a reduced fee." : ""}`}
+            cta="Learn more"
+            href="https://d.to/payouts"
+          />
+        ) : undefined,
+      },
+      {
+        key: "Transfer Time",
+        value: selectedPaymentMethod ? (
+          selectedPaymentMethod.duration
         ) : (
-          currencyFormatter(total / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })
+          <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
         ),
-    };
-  }, [eligiblePayouts, paymentMethods, selectedPaymentMethod, cutoffPeriod]);
+      },
+      {
+        key: "Total",
+        value:
+          total === undefined ? (
+            <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
+          ) : (
+            currencyFormatter(total / 100, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })
+          ),
+      },
+    ];
+  }, [amount, paymentMethods, selectedPaymentMethod, cutoffPeriod]);
 
   const table = useTable({
     data: eligiblePayouts || [],
@@ -320,10 +330,26 @@ function PayoutInvoiceSheetContent() {
             Invoice details
           </div>
           <div className="grid grid-cols-3 gap-2 text-sm">
-            {Object.entries(invoiceData).map(([key, value]) => (
+            {invoiceData.map(({ key, value, tooltipContent }) => (
               <Fragment key={key}>
-                <div className="flex items-center py-0.5 font-medium text-neutral-500">
-                  {key}
+                <div
+                  className={cn(
+                    "flex items-center py-0.5 font-medium text-neutral-500",
+                    tooltipContent &&
+                      "cursor-help underline decoration-dotted underline-offset-2",
+                  )}
+                >
+                  <DynamicTooltipWrapper
+                    tooltipProps={
+                      tooltipContent
+                        ? {
+                            content: tooltipContent,
+                          }
+                        : undefined
+                    }
+                  >
+                    {key}
+                  </DynamicTooltipWrapper>
                 </div>
                 <div className="col-span-2 flex items-center text-neutral-800">
                   {value}
@@ -344,10 +370,7 @@ function PayoutInvoiceSheetContent() {
           variant="primary"
           loading={isPending}
           disabled={
-            eligiblePayoutsLoading ||
-            !selectedPaymentMethod ||
-            (typeof invoiceData.Amount === "string" &&
-              invoiceData.Amount === "$0.00")
+            eligiblePayoutsLoading || !selectedPaymentMethod || amount === 0
           }
           onClick={async () => {
             if (!workspaceId || !selectedPaymentMethod) {
@@ -361,8 +384,11 @@ function PayoutInvoiceSheetContent() {
             });
           }}
           text={
-            typeof invoiceData.Amount === "string"
-              ? `Confirm ${invoiceData.Amount} payout`
+            amount && amount > 0
+              ? `Confirm ${currencyFormatter(amount / 100, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })} payout`
               : "Confirm payout"
           }
         />
