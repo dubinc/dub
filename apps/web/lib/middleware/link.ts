@@ -31,6 +31,7 @@ import { clickCache } from "../api/links/click-cache";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
 import { getPartnerAndDiscount } from "../planetscale/get-partner-discount";
+import { crawlBitly } from "./utils/crawl-bitly";
 import { resolveABTestURL } from "./utils/resolve-ab-test-url";
 
 export default async function LinkMiddleware(
@@ -88,11 +89,8 @@ export default async function LinkMiddleware(
     });
 
     if (!linkData) {
-      // TODO: remove this once everything is migrated over
       if (domain === "buff.ly") {
-        return NextResponse.rewrite(
-          new URL(`/api/links/crawl/bitly/${domain}/${key}`, req.url),
-        );
+        return await crawlBitly(req);
       }
 
       // check if domain has notFoundUrl configured

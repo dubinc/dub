@@ -9,14 +9,14 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(
   async ({ workspace, params, searchParams }) => {
     const { programId } = params;
-    const parsed = payoutsCountQuerySchema.parse(searchParams);
+
+    const { partnerId, groupBy, eligibility, status, invoiceId } =
+      payoutsCountQuerySchema.parse(searchParams);
 
     const { minPayoutAmount } = await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
     });
-
-    const { partnerId, groupBy, eligibility, status, invoiceId } = parsed;
 
     const where: Prisma.PayoutWhereInput = {
       programId,
