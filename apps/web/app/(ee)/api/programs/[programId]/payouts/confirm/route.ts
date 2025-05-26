@@ -35,6 +35,10 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     programId,
   });
 
+  const cutoffPeriodValue = CUTOFF_PERIOD.find(
+    (c) => c.id === cutoffPeriod,
+  )?.value;
+
   let payouts = await prisma.payout.findMany({
     where: {
       programId,
@@ -50,11 +54,11 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     },
     include: {
       partner: true,
-      ...(cutoffPeriod && {
+      ...(cutoffPeriodValue && {
         commissions: {
           where: {
             createdAt: {
-              lt: CUTOFF_PERIOD.find((c) => c.id === cutoffPeriod)!.value,
+              lt: cutoffPeriodValue,
             },
           },
         },
@@ -65,7 +69,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     },
   });
 
-  if (cutoffPeriod) {
+  if (cutoffPeriodValue) {
     payouts = payouts
       .map((payout) => {
         // custom payouts are included by default

@@ -26,6 +26,10 @@ export async function confirmPayouts({
   paymentMethodId: string;
   cutoffPeriod?: CUTOFF_PERIOD_TYPES;
 }) {
+  const cutoffPeriodValue = CUTOFF_PERIOD.find(
+    (c) => c.id === cutoffPeriod,
+  )?.value;
+
   const payouts = await prisma.payout.findMany({
     where: {
       programId: program.id,
@@ -39,7 +43,7 @@ export async function confirmPayouts({
           not: null,
         },
       },
-      ...(cutoffPeriod && {
+      ...(cutoffPeriodValue && {
         OR: [
           {
             periodStart: null,
@@ -47,7 +51,7 @@ export async function confirmPayouts({
           },
           {
             periodEnd: {
-              lte: CUTOFF_PERIOD.find((c) => c.id === cutoffPeriod)!.value,
+              lte: cutoffPeriodValue,
             },
           },
         ],
