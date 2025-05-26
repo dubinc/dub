@@ -55,7 +55,7 @@ export const UA_BOTS = [
   // more bots detected by Vercel
   "ShortLinkTranslate",
 
-  // Additional legitimate crawlers from user-agents.net/bots (non-bot/spider names only)
+  // Additional legitimate crawlers from user-agents.net/bots
   "BingPreview", // Bing link preview
   "facebookcatalog", // Facebook catalog crawler
   "Embedly", // Embedly link preview
