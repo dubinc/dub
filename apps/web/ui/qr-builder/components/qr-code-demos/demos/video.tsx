@@ -3,13 +3,11 @@ import { FC, useEffect, useState } from "react";
 import ImageDemoPlaceholder from "./placeholders/video-demo-placeholder.webp";
 
 interface IQRCodeDemoVideoProps {
-  files: File[];
+  filesVideo: File[];
 }
 
-export const QRCodeDemoVideo: FC<IQRCodeDemoVideoProps> = ({
-  files,
-}) => {
-  const file = files?.[0];
+export const QRCodeDemoVideo: FC<IQRCodeDemoVideoProps> = ({ filesVideo }) => {
+  const file = filesVideo?.[0];
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {

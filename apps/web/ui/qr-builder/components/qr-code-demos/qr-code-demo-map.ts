@@ -21,14 +21,14 @@ export const QRCodeDemoMap = {
   },
   [EQRType.PDF]: {
     Component: QRCodeDemoPdf,
-    propsKeys: ["files"],
+    propsKeys: ["filesPDF"],
   },
   [EQRType.IMAGE]: {
     Component: QRCodeDemoImage,
-    propsKeys: ["files"],
+    propsKeys: ["filesImage"],
   },
   [EQRType.VIDEO]: {
     Component: QRCodeDemoVideo,
-    propsKeys: ["files"],
+    propsKeys: ["filesVideo"],
   },
 };

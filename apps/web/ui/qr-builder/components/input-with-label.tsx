@@ -6,6 +6,7 @@ import {
   EAcceptedFileType,
   TQRInputType,
 } from "@/ui/qr-builder/constants/qr-type-inputs-config.ts";
+import { getFormFieldId } from "@/ui/qr-builder/helpers/get-form-field-id.ts";
 import { Input } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Flex } from "@radix-ui/themes";
@@ -53,14 +54,15 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
     trigger,
     formState: { errors },
   } = useFormContext();
+  const fieldId = getFormFieldId(id, type, label);
 
-  const error = errors[id]?.message as string;
+  const error = errors[fieldId]?.message as string;
 
   if (type === "file" && acceptedFileType && maxFileSize) {
     return (
       <Controller
-        key={id}
-        name={id}
+        key={fieldId}
+        name={fieldId}
         control={control}
         render={({
           field: { onChange, value = [] },
@@ -71,7 +73,7 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
             files={value}
             setFiles={(files) => {
               onChange(files);
-              trigger(id);
+              trigger(fieldId);
             }}
             acceptedFileType={acceptedFileType}
             maxFileSize={maxFileSize}
@@ -109,7 +111,7 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
           placeholder={placeholder}
           maxLength={500}
           required
-          {...register(id)}
+          {...register(fieldId)}
           {...props}
         />
       );
@@ -118,7 +120,7 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
     case "tel":
       inputField = (
         <Controller
-          name={id}
+          name={fieldId}
           control={control}
           render={({ field }) => (
             <PhoneInput
@@ -150,11 +152,11 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
           placeholder={placeholder}
           onFocus={(e) => {
             if (initFromPlaceholder && !e.target.value) {
-              setFormValue(id, placeholder);
+              setFormValue(fieldId, placeholder);
             }
           }}
           required
-          {...register(id)}
+          {...register(fieldId)}
           {...props}
         />
       );
