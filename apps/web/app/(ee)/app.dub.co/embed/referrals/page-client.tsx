@@ -102,14 +102,13 @@ export function ReferralsEmbedPageClient({
     ? getDomainWithoutWWW(program.url)!
     : "";
 
-  const hasPartnerLinks = links.length > 0;
-
-  const partnerLink = hasPartnerLinks
-    ? constructPartnerLink({
-        program,
-        linkKey: links[0].key,
-      })
-    : undefined;
+  const partnerLink =
+    links.length > 0
+      ? constructPartnerLink({
+          program,
+          linkKey: links[0].key,
+        })
+      : undefined;
 
   return (
     <div
@@ -135,7 +134,7 @@ export function ReferralsEmbedPageClient({
               }
               className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default h-10 min-w-0 shrink grow rounded-md border px-3 text-sm focus:outline-none focus:ring-neutral-500"
             />
-            {hasPartnerLinks ? (
+            {partnerLink ? (
               <Button
                 icon={
                   <div className="relative size-4">
@@ -160,9 +159,7 @@ export function ReferralsEmbedPageClient({
                 text={copied ? "Copied link" : "Copy link"}
                 className="xs:w-fit"
                 onClick={() => {
-                  if (partnerLink) {
-                    copyToClipboard(partnerLink);
-                  }
+                  copyToClipboard(partnerLink);
                 }}
               />
             ) : (
@@ -176,7 +173,7 @@ export function ReferralsEmbedPageClient({
             )}
           </div>
 
-          {hasPartnerLinks && program.linkStructure === "query" && (
+          {partnerLink && program.linkStructure === "query" && (
             <QueryLinkStructureHelpText
               program={program}
               linkKey={links[0].key}
@@ -251,7 +248,7 @@ export function ReferralsEmbedPageClient({
               {selectedTab === "Quickstart" ? (
                 <ReferralsEmbedQuickstart
                   program={program}
-                  link={hasPartnerLinks ? links[0] : undefined}
+                  link={partnerLink ? links[0] : undefined}
                   hasResources={hasResources}
                   setSelectedTab={setSelectedTab}
                 />
