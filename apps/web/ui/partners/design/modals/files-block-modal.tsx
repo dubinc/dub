@@ -229,7 +229,7 @@ function FilesBlockModalInner({
                           <textarea
                             id={`${id}-${field.id}-description`}
                             rows={2}
-                            maxLength={1000}
+                            maxLength={240}
                             placeholder="More information about the file"
                             className="block max-h-32 min-h-10 w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                             {...register(`items.${index}.description`)}

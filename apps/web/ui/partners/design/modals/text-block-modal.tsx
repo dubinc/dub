@@ -89,7 +89,7 @@ function TextBlockModalInner({
               <textarea
                 id={`${id}-content`}
                 rows={12}
-                maxLength={240}
+                maxLength={10000}
                 onKeyDown={handleKeyDown}
                 placeholder="Start typing (markdown supported)"
                 className={cn(
