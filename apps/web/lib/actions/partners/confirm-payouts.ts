@@ -3,6 +3,7 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { qstash } from "@/lib/cron";
 import { PAYMENT_METHOD_TYPES } from "@/lib/partners/constants";
+import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
 import { stripe } from "@/lib/stripe";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import z from "zod";
@@ -11,7 +12,7 @@ import { authActionClient } from "../safe-action";
 const confirmPayoutsSchema = z.object({
   workspaceId: z.string(),
   paymentMethodId: z.string(),
-  excludeCurrentMonth: z.boolean().optional().default(false),
+  cutoffPeriod: CUTOFF_PERIOD_ENUM,
 });
 
 // Confirm payouts
@@ -19,7 +20,7 @@ export const confirmPayoutsAction = authActionClient
   .schema(confirmPayoutsSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { paymentMethodId, excludeCurrentMonth } = parsedInput;
+    const { paymentMethodId, cutoffPeriod } = parsedInput;
 
     getDefaultProgramIdOrThrow(workspace);
 
@@ -47,7 +48,7 @@ export const confirmPayoutsAction = authActionClient
         workspaceId: workspace.id,
         userId: user.id,
         paymentMethodId,
-        excludeCurrentMonth,
+        cutoffPeriod,
       },
     });
 

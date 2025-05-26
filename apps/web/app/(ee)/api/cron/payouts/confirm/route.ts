@@ -1,6 +1,7 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import z from "zod";
@@ -13,7 +14,7 @@ const confirmPayoutsSchema = z.object({
   workspaceId: z.string(),
   userId: z.string(),
   paymentMethodId: z.string(),
-  excludeCurrentMonth: z.boolean().optional().default(false),
+  cutoffPeriod: CUTOFF_PERIOD_ENUM,
 });
 
 // POST /api/cron/payouts/confirm
@@ -25,7 +26,7 @@ export async function POST(req: Request) {
 
     await verifyQstashSignature({ req, rawBody });
 
-    const { workspaceId, userId, paymentMethodId, excludeCurrentMonth } =
+    const { workspaceId, userId, paymentMethodId, cutoffPeriod } =
       confirmPayoutsSchema.parse(JSON.parse(rawBody));
 
     const workspace = await prisma.project.findUniqueOrThrow({
@@ -40,9 +41,10 @@ export async function POST(req: Request) {
       },
     });
 
-    if (excludeCurrentMonth) {
+    if (cutoffPeriod) {
       await splitPayouts({
         program,
+        cutoffPeriod,
       });
     }
 
@@ -51,7 +53,7 @@ export async function POST(req: Request) {
       program,
       userId,
       paymentMethodId,
-      excludeCurrentMonth,
+      cutoffPeriod,
     });
 
     return new Response(`Payouts confirmed for program ${program.name}.`);
