@@ -60,8 +60,14 @@ export default function ConnectPayoutReminder({
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              You have pending rewards on Dub Partners, but you need to connect
-              your payout details (bank account) to receive them.
+              You have pending rewards on Dub Partners, but you need to{" "}
+              <Link
+                href="https://dub.co/help/article/receiving-payouts"
+                className="font-semibold text-black underline"
+              >
+                connect your payout details (bank account)
+              </Link>{" "}
+              to receive them.
             </Text>
 
             <Section className="mt-6 text-base">
