@@ -1,32 +1,51 @@
 "use client";
 
-import { RewardProps } from "@/lib/types";
+import useProgram from "@/lib/swr/use-program";
 import { programLanderEarningsCalculatorBlockSchema } from "@/lib/zod/schemas/program-lander";
 import { InvoiceDollar } from "@dub/ui";
 import NumberFlow from "@number-flow/react";
 import { useId, useState } from "react";
+import { useWatch } from "react-hook-form";
 import { z } from "zod";
+import { useBrandingFormContext } from "../design/branding-form";
 import { formatRewardDescription } from "../format-reward-description";
+import { BlockDescription } from "./BlockDescription";
 import { BlockTitle } from "./BlockTitle";
 
 export function EarningsCalculatorBlock({
   block,
-  brandColor,
-  reward,
+  showTitleAndDescription = true,
 }: {
   block: z.infer<typeof programLanderEarningsCalculatorBlockSchema>;
-  brandColor?: string;
-  reward?: Pick<RewardProps, "event" | "type" | "amount" | "maxDuration">;
+  showTitleAndDescription?: boolean;
 }) {
   const id = useId();
+  const { program } = useProgram();
+  const { control: brandingFormControl } = useBrandingFormContext();
+  const brandColor = useWatch({
+    control: brandingFormControl,
+    name: "brandColor",
+  });
+
+  const reward = program?.rewards?.find(
+    (r) => r.id === program?.defaultRewardId,
+  );
 
   const [value, setValue] = useState(10);
-  const revenue = value * (block.data.productPrice / 100);
+  const revenue = value * ((block.data.productPrice || 30_00) / 100);
 
   return reward && reward.event === "sale" ? (
-    <div>
-      <BlockTitle title={block.data.title} />
-      <div className="mt-5 overflow-hidden rounded-lg border border-neutral-200 bg-white">
+    <div className="space-y-5">
+      {showTitleAndDescription && (
+        <div className="space-y-2">
+          <BlockTitle title="Earnings calculator" />
+          <BlockDescription
+            description={`See how much you could earn by referring customers to ${program?.name || "our program"}.`}
+          />
+        </div>
+      )}
+
+      <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white">
         <div className="p-4 sm:p-8">
           <label
             htmlFor={`${id}-slider`}

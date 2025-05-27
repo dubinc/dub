@@ -11,9 +11,9 @@ export function FilesBlock({
   logo: string | null;
 }) {
   return (
-    <div>
+    <div className="space-y-5">
       <BlockTitle title={block.data.title} />
-      <div className="mt-5 grid grid-cols-1 gap-3">
+      <div className="grid grid-cols-1 gap-3">
         {block.data.items.map((file, idx) => (
           <a
             key={idx}

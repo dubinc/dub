@@ -104,121 +104,123 @@ function AccordionBlockModalInner({
           </div>
         </div>
 
-        <div
-          ref={scrollRef}
-          onScroll={updateScrollProgress}
-          className="scrollbar-hide relative -my-2 max-h-[calc(100vh-300px)] overflow-y-auto py-2"
-        >
-          <EditList
-            values={fields.map(({ id }) => id)}
-            onAdd={() => {
-              const id = uuid();
-
-              setValue(
-                "items",
-                [
-                  ...fields,
-                  {
-                    id,
-                    title: `Item ${fields.length + 1}`,
-                    content: "",
-                  },
-                ],
-                { shouldDirty: true },
-              );
-
-              return id;
-            }}
-            onReorder={(updated) =>
-              setValue(
-                "items",
-                updated.map((id) => fields.find((f) => f.id === id)!),
-                { shouldDirty: true },
-              )
-            }
+        <div className="relative -my-2">
+          <div
+            ref={scrollRef}
+            onScroll={updateScrollProgress}
+            className="scrollbar-hide relative max-h-[calc(100vh-300px)] overflow-y-auto py-2"
           >
-            {fields.map((field, index) => {
-              const fieldErrors = errors.items?.[index];
+            <EditList
+              values={fields.map(({ id }) => id)}
+              onAdd={() => {
+                const id = uuid();
 
-              return (
-                <EditListItem
-                  key={field.id}
-                  value={field.id}
-                  title={
-                    <span className="flex items-center gap-2">
-                      {field.title || "Item"}
-                      {(fieldErrors?.title || fieldErrors?.content) && (
-                        <CircleWarning className="size-3.5 text-red-600" />
-                      )}
-                    </span>
-                  }
-                  onRemove={
-                    fields.length > 1
-                      ? () =>
-                          setValue(
-                            "items",
-                            fields.filter(({ id }) => id !== field.id),
-                            { shouldDirty: true },
-                          )
-                      : undefined
-                  }
-                >
-                  <div className="flex flex-col gap-6">
-                    {/* Title */}
-                    <div>
-                      <label
-                        htmlFor={`${id}-${field.id}-title`}
-                        className="flex items-center gap-2 text-sm font-medium text-neutral-700"
-                      >
-                        Title
-                      </label>
-                      <div className="mt-2 rounded-md shadow-sm">
-                        <input
-                          id={`${id}-${field.id}-title`}
-                          type="text"
-                          placeholder="Title"
-                          className={cn(
-                            "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                            fieldErrors?.title &&
-                              "border-red-600 focus:border-red-500 focus:ring-red-600",
-                          )}
-                          {...register(`items.${index}.title`, {
-                            required: "Title is required",
-                          })}
-                        />
+                setValue(
+                  "items",
+                  [
+                    ...fields,
+                    {
+                      id,
+                      title: `Item ${fields.length + 1}`,
+                      content: "",
+                    },
+                  ],
+                  { shouldDirty: true },
+                );
+
+                return id;
+              }}
+              onReorder={(updated) =>
+                setValue(
+                  "items",
+                  updated.map((id) => fields.find((f) => f.id === id)!),
+                  { shouldDirty: true },
+                )
+              }
+            >
+              {fields.map((field, index) => {
+                const fieldErrors = errors.items?.[index];
+
+                return (
+                  <EditListItem
+                    key={field.id}
+                    value={field.id}
+                    title={
+                      <span className="flex items-center gap-2">
+                        {field.title || "Item"}
+                        {(fieldErrors?.title || fieldErrors?.content) && (
+                          <CircleWarning className="size-3.5 text-red-600" />
+                        )}
+                      </span>
+                    }
+                    onRemove={
+                      fields.length > 1
+                        ? () =>
+                            setValue(
+                              "items",
+                              fields.filter(({ id }) => id !== field.id),
+                              { shouldDirty: true },
+                            )
+                        : undefined
+                    }
+                  >
+                    <div className="flex flex-col gap-6">
+                      {/* Title */}
+                      <div>
+                        <label
+                          htmlFor={`${id}-${field.id}-title`}
+                          className="flex items-center gap-2 text-sm font-medium text-neutral-700"
+                        >
+                          Title
+                        </label>
+                        <div className="mt-2 rounded-md shadow-sm">
+                          <input
+                            id={`${id}-${field.id}-title`}
+                            type="text"
+                            placeholder="Title"
+                            className={cn(
+                              "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                              fieldErrors?.title &&
+                                "border-red-600 focus:border-red-500 focus:ring-red-600",
+                            )}
+                            {...register(`items.${index}.title`, {
+                              required: "Title is required",
+                            })}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Content */}
+                      <div>
+                        <label
+                          htmlFor={`${id}-${field.id}-content`}
+                          className="flex items-center gap-2 text-sm font-medium text-neutral-700"
+                        >
+                          Content
+                        </label>
+                        <div className="mt-2 rounded-md shadow-sm">
+                          <textarea
+                            id={`${id}-${field.id}-content`}
+                            rows={3}
+                            maxLength={1000}
+                            placeholder="Start typing"
+                            className={cn(
+                              "block max-h-32 min-h-16 w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                              fieldErrors?.content &&
+                                "border-red-600 focus:border-red-500 focus:ring-red-600",
+                            )}
+                            {...register(`items.${index}.content`, {
+                              required: "Content is required",
+                            })}
+                          />
+                        </div>
                       </div>
                     </div>
-
-                    {/* Content */}
-                    <div>
-                      <label
-                        htmlFor={`${id}-${field.id}-content`}
-                        className="flex items-center gap-2 text-sm font-medium text-neutral-700"
-                      >
-                        Content
-                      </label>
-                      <div className="mt-2 rounded-md shadow-sm">
-                        <textarea
-                          id={`${id}-${field.id}-content`}
-                          rows={3}
-                          maxLength={1000}
-                          placeholder="Start typing"
-                          className={cn(
-                            "block max-h-32 min-h-16 w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                            fieldErrors?.content &&
-                              "border-red-600 focus:border-red-500 focus:ring-red-600",
-                          )}
-                          {...register(`items.${index}.content`, {
-                            required: "Content is required",
-                          })}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </EditListItem>
-              );
-            })}
-          </EditList>
+                  </EditListItem>
+                );
+              })}
+            </EditList>
+          </div>
 
           {/* Bottom scroll fade */}
           <div

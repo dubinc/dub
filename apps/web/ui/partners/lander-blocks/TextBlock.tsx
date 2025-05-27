@@ -9,9 +9,9 @@ export function TextBlock({
   block: z.infer<typeof programLanderTextBlockSchema>;
 }) {
   return (
-    <div>
+    <div className="space-y-5">
       <BlockTitle title={block.data.title} />
-      <BlockMarkdown className="mt-5">{block.data.content}</BlockMarkdown>
+      <BlockMarkdown>{block.data.content}</BlockMarkdown>
     </div>
   );
 }
