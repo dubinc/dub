@@ -1,9 +1,11 @@
 import useWorkspace from "@/lib/swr/use-workspace";
+import { QRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { QrCodeControls } from "@/ui/qr-code/qr-code-controls.tsx";
 import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
 import { CardList, CursorRays, useMediaQuery } from "@dub/ui";
 import { cn, currencyFormatter, nFormatter } from "@dub/utils";
 import { Icon } from "@iconify/react";
+import { Flex, Text } from "@radix-ui/themes";
 import Link from "next/link";
 import { RefObject, useContext, useMemo, useRef } from "react";
 import { useShareDashboardModal } from "../modals/share-dashboard-modal";
@@ -11,11 +13,13 @@ import { useShareDashboardModal } from "../modals/share-dashboard-modal";
 interface QrCodeDetailsColumnProps {
   qrCode: ResponseQrCode;
   canvasRef: RefObject<HTMLCanvasElement>;
+  currentQrTypeInfo: QRType;
 }
 
 export function QrCodeDetailsColumn({
   qrCode,
   canvasRef,
+  currentQrTypeInfo,
 }: QrCodeDetailsColumnProps) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -25,7 +29,7 @@ export function QrCodeDetailsColumn({
       className="flex h-full items-start justify-end gap-6 md:items-center"
     >
       <div className="hidden md:flex">
-        <AnalyticsBadge qrCode={qrCode} />
+        <AnalyticsBadge qrCode={qrCode} currentQrTypeInfo={currentQrTypeInfo} />
       </div>
 
       <QrCodeControls qrCode={qrCode} canvasRef={canvasRef} />
@@ -33,7 +37,13 @@ export function QrCodeDetailsColumn({
   );
 }
 
-export function AnalyticsBadge({ qrCode }: { qrCode: ResponseQrCode }) {
+export function AnalyticsBadge({
+  qrCode,
+  currentQrTypeInfo,
+}: {
+  qrCode: ResponseQrCode;
+  currentQrTypeInfo: QRType;
+}) {
   const { slug, plan } = useWorkspace();
   const { domain, key, clicks } = qrCode.link;
 
@@ -79,17 +89,26 @@ export function AnalyticsBadge({ qrCode }: { qrCode: ResponseQrCode }) {
   return (
     <div className="flex flex-col items-center gap-3 md:flex-row lg:gap-4 xl:gap-6">
       {!isMobile && (
-        <div
-          className={cn(
-            "flex w-fit min-w-[58px] justify-center overflow-hidden rounded-md border border-neutral-200/10",
-            "bg-neutral-50 p-0.5 px-1 text-sm text-neutral-600 transition-colors hover:bg-neutral-100",
-            qrCode.link.archived
-              ? "bg-red-100 text-red-600"
-              : "bg-green-100 text-neutral-600",
-          )}
-        >
-          {qrCode.link.archived ? "Deactivated" : "Active"}
-        </div>
+        // <div
+        //   className={cn(
+        //     "flex w-fit min-w-[58px] justify-center overflow-hidden rounded-md border border-neutral-200/10",
+        //     "bg-neutral-50 p-0.5 px-1 text-sm text-neutral-600 transition-colors hover:bg-neutral-100",
+        //     qrCode.link.archived
+        //       ? "bg-red-100 text-red-600"
+        //       : "bg-green-100 text-neutral-600",
+        //   )}
+        // >
+        //   {qrCode.link.archived ? "Deactivated" : "Active"}
+        // </div>
+        <Flex direction="row" gap="1" align="center" justify="center">
+          <Icon
+            icon={currentQrTypeInfo!.icon!}
+            className="text-secondary text-lg"
+          />
+          <Text as="span" size="2" weight="bold" className="text-secondary">
+            {currentQrTypeInfo!.label!}
+          </Text>
+        </Flex>
       )}
       {isMobile ? (
         <Link

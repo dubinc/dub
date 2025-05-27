@@ -2,8 +2,7 @@
 
 import useDomain from "@/lib/swr/use-domain";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { EQRType, QR_TYPES } from "@/ui/qr-builder/constants/get-qr-config.ts";
-import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization.ts";
+import { QRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { QRCanvas } from "@/ui/qr-builder/qr-canvas.tsx";
 import { AnalyticsBadge } from "@/ui/qr-code/qr-code-details-column.tsx";
 import {
@@ -25,6 +24,7 @@ import {
 } from "@dub/utils";
 import { Icon } from "@iconify/react";
 import { Flex, Text } from "@radix-ui/themes";
+import QRCodeStyling from "qr-code-styling";
 import { memo, PropsWithChildren, RefObject, useContext, useRef } from "react";
 import { ResponseQrCode } from "./qr-codes-container";
 import { QrCodesDisplayContext } from "./qr-codes-display-provider";
@@ -32,21 +32,21 @@ import { QrCodesDisplayContext } from "./qr-codes-display-provider";
 interface QrCodeTitleColumnProps {
   qrCode: ResponseQrCode;
   canvasRef: RefObject<HTMLCanvasElement>;
+  builtQrCodeObject: QRCodeStyling | null;
+  currentQrTypeInfo: QRType;
 }
 
 export function QrCodeTitleColumn({
   qrCode,
   canvasRef,
+  builtQrCodeObject,
+  currentQrTypeInfo,
 }: QrCodeTitleColumnProps) {
   const { domain, key, createdAt, shortLink, archived, title } =
     qrCode?.link ?? {};
   const { isMobile } = useMediaQuery();
 
   const containerRef = useRef<HTMLDivElement>(null);
-
-  const { qrCode: qrCodeObject, selectedQRType } = useQrCustomization(qrCode);
-
-  const currentQrType = QR_TYPES.find((item) => item.id === selectedQRType);
 
   return (
     <div
@@ -57,7 +57,7 @@ export function QrCodeTitleColumn({
         <div className="flex flex-col items-center justify-center gap-1.5">
           <QRCanvas
             ref={canvasRef}
-            qrCode={qrCodeObject}
+            qrCode={builtQrCodeObject}
             width={isMobile ? 102 : 64}
             height={isMobile ? 102 : 64}
           />
@@ -74,7 +74,10 @@ export function QrCodeTitleColumn({
             </div>
           ) : (
             <div className="flex flex-col gap-2 md:hidden">
-              <AnalyticsBadge qrCode={qrCode} />
+              <AnalyticsBadge
+                qrCode={qrCode}
+                currentQrTypeInfo={currentQrTypeInfo}
+              />
             </div>
           )}
         </div>
@@ -87,39 +90,24 @@ export function QrCodeTitleColumn({
             justify="start"
             className="pt-1"
           >
-            <Flex direction="row" gap="1" align="center" justify="center">
-              <Icon
-                icon={currentQrType!.icon!}
-                className="text-secondary text-lg"
-              />
-              <Text as="span" size="2" weight="bold" className="text-secondary">
-                {currentQrType!.label!}
-              </Text>
+            <Text as="span" size="2" weight="bold">
+              QR Name
+            </Text>
+            <Flex direction="row" gap="2" align="center">
+              <span className="font-medium text-neutral-500">My Lovely QR</span>
+              <Tooltip content="Rename" delayDuration={150}>
+                <Icon
+                  icon="uil:edit"
+                  className="cursor-pointer text-neutral-500"
+                />
+              </Tooltip>
             </Flex>
-            {title ? (
-              <span
-                className={cn(
-                  "max-w-[180px] truncate text-sm font-semibold text-neutral-800",
-                  archived && "text-neutral-600",
-                )}
-              >
-                {title}
-              </span>
-            ) : qrCode.qrType !== EQRType.WIFI ? (
-              <ShortLinkWrapper
-                domain={domain}
-                linkKey={key}
-                link={qrCode.link}
-                linkClassname="block max-w-[180px] text-sm font-semibold text-neutral-800 truncate"
-                hideCopy
-              />
-            ) : null}
             <Tooltip
               className="block md:hidden"
               content={formatDateTime(createdAt)}
               delayDuration={150}
             >
-              <span className="inline-flex text-xs text-neutral-500 md:hidden">
+              <span className="font-medium text-neutral-500 md:hidden">
                 {timeAgo(createdAt)}
               </span>
             </Tooltip>
@@ -132,7 +120,7 @@ export function QrCodeTitleColumn({
 
       <div className="hidden flex-col gap-1 xl:flex">
         <Text as="span" size="2" weight="bold">
-          Your Link
+          {currentQrTypeInfo.yourContentColumnTitle}
         </Text>
         <Details link={qrCode.link} hideIcon />
       </div>
@@ -141,7 +129,7 @@ export function QrCodeTitleColumn({
           "hidden shrink-0 flex-col items-start justify-center gap-1 pl-6 md:flex",
         )}
       >
-        <Text as="span" size="2" weight="bold" className="text-neutral-800">
+        <Text as="span" size="2" weight="bold">
           Created
         </Text>
         <Tooltip content={formatDateTime(createdAt)} delayDuration={150}>
@@ -213,7 +201,7 @@ const Details = memo(
             : "hidden gap-1.5 opacity-0 group-data-[variant=loose]/card-list:flex group-data-[variant=loose]/card-list:opacity-100 md:gap-3",
         )}
       >
-        <div className="flex min-w-0 items-center gap-1">
+        <div className="flex min-w-0 items-center">
           {displayProperties.includes("url") &&
             !hideIcon &&
             (compact ? (
@@ -228,7 +216,7 @@ const Details = memo(
                 target="_blank"
                 rel="noopener noreferrer"
                 title={url}
-                className="max-w-[180px] truncate text-xs text-neutral-600 transition-colors hover:text-neutral-700 hover:underline hover:underline-offset-2 md:min-w-[180px]"
+                className="max-w-[180px] truncate font-medium text-neutral-500 transition-colors hover:text-neutral-700 hover:underline hover:underline-offset-2 md:min-w-[180px]"
               >
                 {getPrettyUrl(url)}
               </a>
@@ -242,6 +230,10 @@ const Details = memo(
               {link.description}
             </span>
           )}
+
+          <Tooltip content="Edit" delayDuration={150}>
+            <Icon icon="uil:edit" className="cursor-pointer text-neutral-500" />
+          </Tooltip>
         </div>
       </div>
     );
