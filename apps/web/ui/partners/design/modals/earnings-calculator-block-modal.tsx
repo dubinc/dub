@@ -10,7 +10,6 @@ import { Dispatch, SetStateAction, useId, useRef } from "react";
 import { Control, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { EarningsCalculatorBlock } from "../../lander-blocks/earnings-calculator-block";
-import { useBrandingFormContext } from "../branding-form";
 
 type EarningsCalculatorBlockData = z.infer<
   typeof programLanderEarningsCalculatorBlockSchema
@@ -89,45 +88,6 @@ function EarningsCalculatorBlockModalInner({
               className="scrollbar-hide relative -m-2 max-h-[calc(100vh-160px)] overflow-y-auto p-2"
             >
               <div className="flex flex-col gap-5">
-                {/* Title */}
-                <div>
-                  <label
-                    htmlFor={`${id}-title`}
-                    className="flex items-center gap-2 text-sm font-medium text-neutral-700"
-                  >
-                    Section heading
-                  </label>
-                  <div className="mt-2 rounded-md shadow-sm">
-                    <input
-                      id={`${id}-title`}
-                      type="text"
-                      placeholder="Earnings calculator"
-                      autoFocus={!isMobile}
-                      className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                      {...register("title")}
-                    />
-                  </div>
-                </div>
-
-                {/* Description */}
-                <div>
-                  <label
-                    htmlFor={`${id}-description`}
-                    className="flex items-center gap-2 text-sm font-medium text-neutral-700"
-                  >
-                    Section description
-                  </label>
-                  <div className="mt-2 rounded-md shadow-sm">
-                    <textarea
-                      id={`${id}-description`}
-                      placeholder="See how much you could earn"
-                      rows={2}
-                      className="block max-h-32 min-h-12 w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                      {...register("description")}
-                    />
-                  </div>
-                </div>
-
                 {/* Product price */}
                 <div>
                   <label
@@ -212,12 +172,6 @@ function Preview({
 }: {
   control: Control<EarningsCalculatorBlockData>;
 }) {
-  const { program } = useProgram();
-  const { control: brandingFormControl } = useBrandingFormContext();
-  const brandColor = useWatch({
-    control: brandingFormControl,
-    name: "brandColor",
-  });
   const productPrice = useWatch({ control, name: "productPrice" });
 
   return (
@@ -231,8 +185,6 @@ function Preview({
         },
       }}
       showTitleAndDescription={false}
-      reward={program?.rewards?.find((r) => r.id === program?.defaultRewardId)}
-      brandColor={brandColor ?? undefined}
     />
   );
 }
