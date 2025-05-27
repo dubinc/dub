@@ -7,6 +7,7 @@ interface IQrBuilderButtonsProps {
   step: number;
   onStepChange: (newStep: number) => void;
   onSaveClick: () => void;
+  onBackClick: () => void;
   validateFields: () => Promise<boolean>;
   maxStep?: number;
   minStep?: number;
@@ -21,6 +22,7 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
   onStepChange,
   onContinue,
   onSaveClick,
+  onBackClick,
   validateFields,
   maxStep = 3,
   minStep = 1,
@@ -32,6 +34,7 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
 
   const handleBack = () => {
     onStepChange(Math.max(step - 1, minStep));
+    onBackClick();
   };
 
   const handleContinue = async () => {

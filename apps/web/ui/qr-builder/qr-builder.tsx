@@ -86,8 +86,19 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
           !LINKED_QR_TYPES.includes(qrType.id) || qrType.id === EQRType.WEBSITE,
       );
 
+      const handleScroll = () => {
+        if (isMobile && qrBuilderContentWrapperRef.current) {
+          qrBuilderContentWrapperRef.current.style.scrollMargin = "60px";
+          qrBuilderContentWrapperRef.current.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        }
+      };
+
       const handleNextStep = () => {
         setStep((prev) => Math.min(prev + 1, 3));
+        handleScroll();
       };
 
       const handleSelectQRType = (type: EQRType) => {
@@ -118,6 +129,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
             qrTypeDataHandlers[qrType]?.(filteredInputValues, isHiddenNetwork),
           );
           setFiles(inputValues.files as File[]);
+          handleScroll();
         },
         [setData],
       );
@@ -193,31 +205,24 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
 
       const handleStepClick = useCallback(
         (newStep: number) => {
-          // Don't allow navigating to step 2 without selecting a QR type
           if (newStep === 2 && !selectedQRType) {
             setTypeSelectionError("Please select a QR code type to continue");
             return;
           }
 
-          // Clear error when selecting a valid step
           setTypeSelectionError("");
 
-          // Don't allow navigating to step 3 without completing content
           if (newStep === 3 && step === 2) {
-            // Validate form and only proceed if validation passes
             form.trigger().then((isValid) => {
               if (isValid) {
-                // Ensure content is processed
                 handleValidationAndContentSubmit();
                 setStep(newStep);
               }
             });
-            return; // Return early to prevent immediate navigation
+            return;
           }
 
-          // If we're navigating to step 2, trigger validation to show required fields
           if (newStep === 2) {
-            // This will trigger validation to show required fields
             form.trigger();
           }
 
@@ -225,6 +230,10 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
         },
         [selectedQRType, handleValidationAndContentSubmit, form, step],
       );
+
+      const onBackClick = () => {
+        handleScroll();
+      };
 
       return (
         <div
@@ -298,6 +307,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                         step={step}
                         onStepChange={setStep}
                         onSaveClick={onSaveClick}
+                        onBackClick={onBackClick}
                         validateFields={handleValidationAndContentSubmit}
                       />
                     </div>
@@ -333,6 +343,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                       step={step}
                       onStepChange={setStep}
                       onSaveClick={onSaveClick}
+                      onBackClick={onBackClick}
                       validateFields={handleValidationAndContentSubmit}
                     />
                   </div>
@@ -442,6 +453,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                 step={step}
                 onStepChange={setStep}
                 onSaveClick={onSaveClick}
+                onBackClick={onBackClick}
                 validateFields={handleValidationAndContentSubmit}
               />
             </div>
