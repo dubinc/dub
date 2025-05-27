@@ -21,7 +21,6 @@ export function EarningsCalculatorBlock({
 }) {
   const id = useId();
 
-  console.log({ program });
   const reward = program?.rewards?.find(
     (r) => r.id === program?.defaultRewardId,
   );
