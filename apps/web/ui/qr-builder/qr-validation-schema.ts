@@ -18,7 +18,7 @@ const FIELD_VALIDATION_RULES: Record<string, z.ZodTypeAny> = {
     .string()
     .trim()
     .min(1, ERROR_MESSAGES.input.emptyField)
-    .max(500, "Message is too long"),
+    .max(500, ERROR_MESSAGES.textarea.tooLong),
   number: z
     .union([z.string().trim(), z.undefined()])
     .transform((val) => val || "")
@@ -34,7 +34,7 @@ const FIELD_VALIDATION_RULES: Record<string, z.ZodTypeAny> = {
           return false;
         }
       },
-      { message: "Invalid phone number" },
+      { message: ERROR_MESSAGES.number.invalidPhoneNumber },
     ),
   file: z
     .union([
