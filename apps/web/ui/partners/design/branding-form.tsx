@@ -312,7 +312,9 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
     return [block, DESIGNER_BLOCKS.find((b) => b.id === block?.type)];
   }, [landerData, editingBlockId]);
 
-  const [touchedBlockId, setTouchedBlockId] = useState<string | null>(null);
+  const [touchedBlockId, setTouchedBlockId] = useState<string | "hero" | null>(
+    null,
+  );
 
   return (
     <>
@@ -393,7 +395,11 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
                 </div>
               </div>
             </header>
-            <div className="group relative mt-6">
+            <div
+              className="group relative mt-6"
+              data-touched={touchedBlockId === "hero"}
+              onClick={() => isMobile && setTouchedBlockId("hero")}
+            >
               <EditIndicatorGrid />
               <EditToolbar onEdit={() => setShowEditHeroModal(true)} />
               <div className="mx-auto max-w-screen-sm">
@@ -470,7 +476,7 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
                     <div
                       className={cn(
                         "pointer-events-none absolute inset-0 opacity-0",
-                        "transition-opacity duration-150 group-hover:opacity-100 group-has-[+div:hover]:opacity-100",
+                        "transition-opacity duration-150 group-hover:opacity-100 sm:group-has-[+div:hover]:opacity-100",
                         "group-has-[+div:data-touched=true]:opacity-100 group-data-[touched=true]:opacity-100",
                       )}
                     >
@@ -558,7 +564,7 @@ function EditToolbar({
   return (
     <div
       className={cn(
-        "pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-150",
+        "pointer-events-none absolute inset-0 z-[5] opacity-0 transition-opacity duration-150",
         "group-hover:pointer-events-auto group-hover:opacity-100",
         "group-data-[touched=true]:pointer-events-auto group-data-[touched=true]:opacity-100",
       )}
