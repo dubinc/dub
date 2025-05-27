@@ -201,7 +201,7 @@ export function ReferralsEmbedPageClient({
           </div>
           <div className="mt-4 flex justify-center md:absolute md:bottom-3 md:right-3 md:mt-0">
             <a
-              href="https://dub.partners"
+              href="https://dub.co/partners"
               target="_blank"
               className="hover:text-content-default text-content-subtle bg-bg-default border-border-subtle flex w-fit items-center gap-1.5 rounded-md border px-2 py-1 transition-colors duration-75"
             >
