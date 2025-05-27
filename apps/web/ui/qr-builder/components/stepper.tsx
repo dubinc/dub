@@ -13,7 +13,7 @@ interface IStepperProps {
 
 export default function Stepper({ steps, currentStep }: IStepperProps) {
   return (
-    <div className="flex w-full items-center justify-center">
+    <div className="flex w-full items-center justify-center md:w-3/4">
       {steps.map((step, index) => {
         const isCompleted = currentStep > step.number;
         const isActive = currentStep === step.number;
