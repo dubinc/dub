@@ -168,7 +168,7 @@ function BrandingFormInner({
               data-state={isSidePanelOpen ? "open" : "closed"}
               variant="secondary"
               icon={<Brush className="size-4" />}
-              className="hidden size-8 p-0 lg:flex"
+              className="size-8 p-0"
             />
           </div>
           <span className="text-center text-xs font-medium text-neutral-500">
@@ -192,10 +192,10 @@ function BrandingFormInner({
         </div>
         <div
           className={cn(
-            "grid h-[calc(100vh-186px)] grid-cols-1 transition-[grid-template-columns]",
+            "grid grid-cols-1 transition-[grid-template-columns,grid-template-rows] lg:h-[calc(100vh-186px)]",
             isSidePanelOpen
-              ? "lg:grid-cols-[240px_minmax(0,1fr)]"
-              : "lg:grid-cols-[0px_minmax(0,1fr)]",
+              ? "max-lg:grid-rows-[453px_minmax(0,1fr)] lg:grid-cols-[240px_minmax(0,1fr)]"
+              : "max-lg:grid-rows-[0px_minmax(0,1fr)] lg:grid-cols-[0px_minmax(0,1fr)]",
           )}
         >
           <div className="h-full overflow-hidden">
@@ -208,7 +208,7 @@ function BrandingFormInner({
               <BrandingSettingsForm />
             </div>
           </div>
-          <div className="h-full overflow-hidden px-4 pt-4">
+          <div className="h-full overflow-hidden px-2 pt-2 sm:px-4 sm:pt-4">
             <LanderPreview program={program} />
           </div>
         </div>
