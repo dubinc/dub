@@ -39,7 +39,7 @@ import { getFiles, setFiles } from './helpers/file-store.ts';
 interface IQRBuilderProps {
   props?: ResponseQrCode;
   homepageDemo?: boolean;
-  handleSaveQR?: (data: QRBuilderData) => void;
+  handleSaveQR?: (data: QRBuilderData) => Promise<void>;
   isProcessing?: boolean;
   isEdit?: boolean;
 }
@@ -115,9 +115,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
           setData(
             qrTypeDataHandlers[qrType]?.(filteredInputValues, isHiddenNetwork),
           );
-          console.log('hererehrehrherhehherhre');
-          console.log(inputValues.files);
-          setFiles(inputValues.files as File[]);
+          setFiles((inputValues.filesImage || inputValues.filesPDF || inputValues.filesVideo) as File[]);
         },
         [setData],
       );
@@ -141,6 +139,8 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
           },
           qrType: selectedQRType,
           files: getFiles() as File[],
+        }).then(() => {
+          setFiles(null);
         });
       };
 
