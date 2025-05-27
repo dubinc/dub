@@ -24,6 +24,7 @@ import {
   Tooltip,
   Trash,
   useLocalStorage,
+  useMediaQuery,
   useScroll,
   Wordmark,
 } from "@dub/ui";
@@ -267,6 +268,8 @@ function Drafts({
 }
 
 function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
+  const { isMobile } = useMediaQuery();
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrolled = useScroll(0, { container: scrollRef });
 
@@ -309,6 +312,8 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
     return [block, DESIGNER_BLOCKS.find((b) => b.id === block?.type)];
   }, [landerData, editingBlockId]);
 
+  const [touchedBlockId, setTouchedBlockId] = useState<string | null>(null);
+
   return (
     <>
       {editingBlock && editingBlockMeta && (
@@ -322,6 +327,7 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
                 data;
               return blocks;
             });
+            setTouchedBlockId(null);
           }}
         />
       )}
@@ -329,7 +335,12 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
       <AddBlockModal
         addIndex={addBlockIndex ?? 0}
         showAddBlockModal={addBlockIndex !== null}
-        setShowAddBlockModal={(show) => !show && setAddBlockIndex(null)}
+        setShowAddBlockModal={(show) => {
+          if (!show) {
+            setAddBlockIndex(null);
+            setTouchedBlockId(null);
+          }
+        }}
       />
       <PreviewWindow
         url={`${PARTNERS_DOMAIN}/${program?.slug}`}
@@ -423,7 +434,12 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
               {landerData?.blocks.map((block, idx) => {
                 const Component = BLOCK_COMPONENTS[block.type];
                 return Component ? (
-                  <div key={block.id} className="group relative py-10">
+                  <div
+                    key={block.id}
+                    className="group relative py-10"
+                    data-touched={touchedBlockId === block.id}
+                    onClick={() => isMobile && setTouchedBlockId(block.id)}
+                  >
                     <EditIndicatorGrid />
 
                     {/* Edit toolbar */}
@@ -455,6 +471,7 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
                       className={cn(
                         "pointer-events-none absolute inset-0 opacity-0",
                         "transition-opacity duration-150 group-hover:opacity-100 group-has-[+div:hover]:opacity-100",
+                        "group-has-[+div:data-touched=true]:opacity-100 group-data-[touched=true]:opacity-100",
                       )}
                     >
                       <div className="absolute inset-x-0 top-0 z-10 hidden group-first:block">
@@ -513,7 +530,12 @@ function AddBlockButton({ onClick }: { onClick: () => void }) {
 
 function EditIndicatorGrid() {
   return (
-    <div className="border-subtle pointer-events-none absolute inset-y-0 left-1/2 w-[1080px] max-w-[calc(100cqw-32px)] -translate-x-1/2 overflow-hidden rounded-xl border opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+    <div
+      className={cn(
+        "border-subtle pointer-events-none absolute inset-y-0 left-1/2 w-[1080px] max-w-[calc(100cqw-32px)] -translate-x-1/2 overflow-hidden rounded-xl border",
+        "opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-data-[touched=true]:opacity-100",
+      )}
+    >
       <Grid
         cellSize={60}
         className="text-border-subtle inset-[unset] left-1/2 top-1/2 h-[max(1200px,100%)] w-[1200px] -translate-x-1/2 -translate-y-1/2"
@@ -534,7 +556,13 @@ function EditToolbar({
   onDelete?: () => void;
 }) {
   return (
-    <div className="absolute inset-0 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+    <div
+      className={cn(
+        "pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-150",
+        "group-hover:pointer-events-auto group-hover:opacity-100",
+        "group-data-[touched=true]:pointer-events-auto group-data-[touched=true]:opacity-100",
+      )}
+    >
       <div className="absolute right-6 top-2">
         <div className="flex items-center rounded-md border border-neutral-200 bg-white p-1 shadow-sm">
           {onEdit && (
