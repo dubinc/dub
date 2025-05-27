@@ -27,7 +27,7 @@ function ProgramWelcomeModal({
 
   const NEXT_STEPS = [
     {
-      text: "Create a public landing page & application form",
+      text: "Create a public landing page for your program",
       href: `/${workspaceSlug}/programs/${programId}/branding`,
     },
     {
