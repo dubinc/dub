@@ -5,6 +5,7 @@ import { Button, useKeyboardShortcut } from "@dub/ui";
 import { mutatePrefix } from "@/lib/swr/mutate.ts";
 import useWorkspace from "@/lib/swr/use-workspace.ts";
 import { EQRType } from "@/ui/qr-builder/constants/get-qr-config";
+import { DEFAULT_WEBSITE } from "@/ui/qr-builder/constants/qr-type-inputs-placeholders.ts";
 import { QrBuilder } from "@/ui/qr-builder/qr-builder";
 import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
 import { X } from "@/ui/shared/icons";
@@ -21,6 +22,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import { fileToBase64 } from '@/ui/utils/file-to-base64';
 
 export type QRBuilderData = {
   styles: Options;
@@ -28,6 +30,7 @@ export type QRBuilderData = {
     id: string;
   };
   qrType: EQRType;
+  files: File[];
 };
 
 type QRBuilderModalProps = {
@@ -67,28 +70,34 @@ export function QRBuilderModal({
   const handleSaveQR = async (data: QRBuilderData) => {
     setIsProcessing(true);
 
-    if (data.styles.data === "https://www.getqr.com/") {
+    if (data.styles.data === DEFAULT_WEBSITE) {
       setIsProcessing(false);
       toast.error("Data of QR Code not found.");
     }
 
+    console.log('handle save qr');
+
     try {
+      const file = data.files[0];
+      const body = {
+        ...data,
+        data: data.styles.data,
+        file: file ? await fileToBase64(file) : undefined,
+        link: {
+          url: data.styles.data,
+          domain: SHORT_DOMAIN,
+          tagId: null,
+          tags: [],
+          webhookIds: [],
+        },
+      };
+
       const res = await fetch(endpoint.url, {
         method: endpoint.method,
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          ...data,
-          data: data.styles.data,
-          link: {
-            url: data.styles.data,
-            domain: SHORT_DOMAIN,
-            tagId: null,
-            tags: [],
-            webhookIds: [],
-          },
-        }),
+        body: JSON.stringify(body),
       });
 
       if (res.status === 200) {

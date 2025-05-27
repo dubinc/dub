@@ -1,192 +1,139 @@
-import { Button } from "@dub/ui";
-import { cn } from "@dub/utils";
-import { Icon } from "@iconify/react";
-import { AnimatePresence, motion } from "framer-motion";
-import { Dispatch, FC, SetStateAction } from "react";
-import { EQRType, FILE_QR_TYPES } from "../constants/get-qr-config.ts";
-import { getMaxSizeLabel } from "../helpers/get-max-size-label.ts";
-import { useFilePreview } from "../hooks/use-file-preview.ts";
+import {
+  FileUpload,
+  FileUploadDropzone,
+  FileUploadItem,
+  FileUploadItemDelete,
+  FileUploadItemMetadata,
+  FileUploadItemPreview,
+  FileUploadList,
+  FileUploadTrigger,
+} from "@/ui/qr-builder/components/file-upload.tsx";
+import { TooltipComponent } from "@/ui/qr-builder/components/tooltip.tsx";
+import { EAcceptedFileType } from "@/ui/qr-builder/constants/qr-type-inputs-config.ts";
+import { getMaxSizeLabel } from "@/ui/qr-builder/helpers/get-max-size-label.ts";
+import { cn } from "@dub/utils/src";
+import { Button, Flex } from "@radix-ui/themes";
+import { CloudUpload, Upload, X } from "lucide-react";
+import { Dispatch, FC, SetStateAction, useEffect, useState } from "react";
 
 interface IFileCardContentProps {
-  qrType: (typeof FILE_QR_TYPES)[number];
   files: File[];
   setFiles: Dispatch<SetStateAction<File[]>>;
+  acceptedFileType: EAcceptedFileType;
+  maxFileSize: number;
+  fileError: string;
   title?: string;
-  multiple?: boolean;
-  minimumFlow?: boolean;
   isLogo?: boolean;
-  isMobile?: boolean;
 }
+
 export const FileCardContent: FC<IFileCardContentProps> = ({
-  qrType,
   files,
   setFiles,
+  acceptedFileType,
+  maxFileSize,
+  fileError,
   title,
-  multiple = true,
-  minimumFlow = false,
   isLogo = false,
-  isMobile = false,
 }) => {
-  const {
-    fileInputRef,
-    dropzoneRef,
-    acceptFileTypes,
-    filePreviews,
-    handleFileChange,
-    handleDeleteFile,
-    handleUploadClick,
-    errorMessage,
-  } = useFilePreview(qrType, files, setFiles, multiple);
+  const [localFileError, setLocalFileError] = useState<string>("");
 
-  const isImageOrVideoFile =
-    qrType === EQRType.IMAGE || qrType === EQRType.VIDEO;
-  const fileTypeLabel =
-    qrType === EQRType.IMAGE
-      ? multiple
-        ? "Image(s)"
-        : "Image"
-      : qrType === EQRType.VIDEO
-        ? "Video(s)"
-        : "PDF(s)";
-  const { label } = getMaxSizeLabel(qrType, isLogo);
+  const onFileReject = (file: File, message: string) => {
+    setLocalFileError(message);
+  };
+
+  const onFileAccept = (file: File) => {
+    setLocalFileError("");
+  };
+
+  useEffect(() => {
+    if (files.length === 0) {
+      setLocalFileError("");
+    }
+  }, [files]);
 
   return (
-    <div className="flex w-full flex-col gap-4">
-      <div className="flex flex-col items-start gap-2">
-        <h3 className="text-neutral text-sm font-medium">
-          {title ??
-            (isImageOrVideoFile
-              ? `Upload one or more ${qrType}s`
-              : "Add one or more files")}
-        </h3>
-        <div
-          ref={dropzoneRef}
-          role="button"
-          className={cn(
-            "border-secondary flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed p-6 md:min-h-[128px]",
-            {
-              "h-[50px] flex-row-reverse justify-start px-1 md:min-h-[50px]":
-                minimumFlow,
-              "justify-between pl-3 pr-0": isLogo,
-            },
-          )}
-          onClick={handleUploadClick}
-        >
-          <input
-            name="files"
-            ref={fileInputRef}
-            accept={acceptFileTypes}
-            multiple={multiple}
-            type="file"
-            className="hidden"
-            onChange={handleFileChange}
+    <div className="flex w-full flex-col gap-2">
+      <Flex gap="2" align="center">
+        <h3 className="text-neutral text-sm font-medium">{`Upload your ${title}`}</h3>
+        {!isLogo && (
+          <TooltipComponent
+            tooltip={`People will be able to view this ${title} when they scan your QR code.`}
           />
-          <Button
-            variant="primary"
-            className={cn(
-              "bg-secondary hover:bg-secondary/90 h-9 max-w-[140px] rounded-md border-none px-6 py-[6px] text-xs font-medium text-white hover:ring-0 md:max-w-[160px] md:py-2 md:text-sm",
-              {
-                "bg-secondary-100 text-secondary hover:bg-secondary-100/90 h-[48px] w-[100px] rounded-l-none":
-                  isLogo,
-              },
-            )}
-            text={
-              isLogo
-                ? isMobile
-                  ? "Upload"
-                  : "Browse"
-                : `Upload ${fileTypeLabel}`
-            }
-          />
-          <p className="text-xs font-normal text-neutral-200 md:text-sm">
-            {minimumFlow
-              ? isMobile
-                ? `Upload a logo (JPG, JPEG, or PNG / ${label} max)`
-                : `Drag and drop or click to upload a logo (${label} max)`
-              : `Maximum size: ${label}`}
-          </p>
+        )}
+      </Flex>
 
-          {errorMessage && (
-            <p className="mt-1 text-xs font-medium text-red-500">
-              {errorMessage}
-            </p>
-          )}
-        </div>
-      </div>
-
-      {files.length > 0 && (
-        <motion.div
-          layout
-          className="mt-4 flex flex-col gap-3"
-          transition={{ duration: 0.3, ease: "easeInOut" }}
+      <FileUpload
+        maxFiles={1}
+        maxSize={maxFileSize}
+        className="w-full max-w-xl"
+        value={files}
+        onValueChange={setFiles}
+        onFileAccept={onFileAccept}
+        onFileReject={onFileReject}
+        accept={acceptedFileType}
+        multiple={!isLogo}
+      >
+        <FileUploadDropzone
+          className={cn("border-secondary-100", {
+            "border-red-500": fileError || localFileError,
+          })}
         >
-          <AnimatePresence mode="popLayout">
-            {files.map((file, index) => {
-              const preview = filePreviews[index];
-              return (
-                <motion.div
-                  key={file.name + index}
-                  layout
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{
-                    opacity: 0,
-                    height: 0,
-                    paddingTop: 0,
-                    paddingBottom: 0,
-                    marginTop: 0,
-                    marginBottom: 0,
-                  }}
-                  transition={{
-                    opacity: { duration: 0.2 },
-                    height: { duration: 0.4, ease: [0.4, 0, 0.2, 1] },
-                    paddingTop: { duration: 0.4 },
-                    paddingBottom: { duration: 0.4 },
-                    marginTop: { duration: 0.4 },
-                    marginBottom: { duration: 0.4 },
-                  }}
-                  className="flex items-center gap-3 overflow-hidden rounded-md border bg-white px-4 py-3"
+          {isLogo ? (
+            <div className="flex flex-row flex-wrap items-center gap-2 border-dotted text-center">
+              <CloudUpload className="text-secondary size-5" />
+              Drag and drop or
+              <FileUploadTrigger asChild>
+                <Button variant="outline" size="1" className="p-0">
+                  choose files
+                </Button>
+              </FileUploadTrigger>
+              to upload
+            </div>
+          ) : (
+            <>
+              <div className="flex flex-col items-center gap-1 text-center">
+                <div className="border-secondary-100 flex items-center justify-center rounded-full border p-2.5">
+                  <Upload className="text-secondary size-6" />
+                </div>
+                <p className="text-neutral text-sm font-medium">
+                  {`Drag & drop your ${title}`}
+                </p>
+                <p className="text-xs text-neutral-800">
+                  {`or click to browse (1 file, up to ${getMaxSizeLabel(maxFileSize)})`}
+                </p>
+              </div>
+              <FileUploadTrigger asChild>
+                <Button
+                  variant="solid"
+                  color="blue"
+                  size="2"
+                  className="mt-2 w-fit"
                 >
-                  <motion.div
-                    layout
-                    className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md"
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    {preview &&
-                      (preview.startsWith("pdf") ? (
-                        <Icon
-                          icon="hugeicons:pdf-02"
-                          className="h-[35px] w-[35px] text-neutral-200"
-                        />
-                      ) : file.type.startsWith("video/") ? (
-                        <video
-                          className="h-full w-full object-cover"
-                          src={preview}
-                        />
-                      ) : (
-                        <img
-                          src={preview}
-                          alt={`Preview ${index}`}
-                          className="h-full w-full object-cover"
-                        />
-                      ))}
-                  </motion.div>
+                  Browse files
+                </Button>
+              </FileUploadTrigger>
+            </>
+          )}
+        </FileUploadDropzone>
+        <FileUploadList>
+          {files.map((file, index) => (
+            <FileUploadItem key={index} value={file}>
+              <FileUploadItemPreview />
+              <FileUploadItemMetadata />
+              <FileUploadItemDelete asChild>
+                <Button variant="ghost" size="1">
+                  <X className="stroke-neutral-200" />
+                </Button>
+              </FileUploadItemDelete>
+            </FileUploadItem>
+          ))}
+        </FileUploadList>
+      </FileUpload>
 
-                  <span className="w-40 truncate text-sm font-medium leading-normal text-gray-700">
-                    {file.name}
-                  </span>
-                  <Icon
-                    role="button"
-                    icon="mage:trash"
-                    className="ml-auto shrink-0 cursor-pointer text-[20px] text-gray-500 hover:text-red-500"
-                    onClick={() => handleDeleteFile(index)}
-                  />
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
-        </motion.div>
+      {(localFileError || fileError) && (
+        <p className="text-xs font-medium text-red-500 md:text-sm">
+          {localFileError || fileError}
+        </p>
       )}
     </div>
   );

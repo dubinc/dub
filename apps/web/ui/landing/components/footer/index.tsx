@@ -34,6 +34,9 @@ export const Footer = () => (
               © GetQR - {new Date().getFullYear()}. All rights reserved. Create
               your own QR codes and promote your business or idea.
             </p>
+            {/*<p className="text-left text-sm text-neutral-200">*/}
+            {/*  30 N Gould St Ste R Sheridan, WY 82801 USA*/}
+            {/*</p>*/}
           </div>
           <Payments />
         </div>

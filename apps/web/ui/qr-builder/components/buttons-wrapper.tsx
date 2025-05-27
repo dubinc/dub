@@ -4,9 +4,8 @@ import { FC } from "react";
 
 interface IButtonsWrapperProps {
   qrType: string | null;
-  files: File[];
   handleNext: () => void;
-  disabled: boolean;
+  disabled?: boolean;
 }
 
 export const ButtonsWrapper: FC<IButtonsWrapperProps> = ({

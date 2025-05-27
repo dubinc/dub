@@ -1,95 +1,127 @@
+import {
+  DEFAULT_WEBSITE,
+  DEFAULT_WHATSAPP_MESSAGE,
+  DEFAULT_WIFI_NETWORK_NAME,
+} from "@/ui/qr-builder/constants/qr-type-inputs-placeholders.ts";
+import { getQRNameInput } from "@/ui/qr-builder/helpers/get-qr-name-input-id.ts";
 import { EQRType, FILE_QR_TYPES } from "./get-qr-config.ts";
+
+export type TQRInputType =
+  | "text"
+  | "url"
+  | "tel"
+  | "password"
+  | "textarea"
+  | "file";
+
+export enum EAcceptedFileType {
+  IMAGE = "image/*",
+  PDF = "application/pdf",
+  VIDEO = "video/*",
+}
+
+export type QRInputConfig = {
+  id: string;
+  label: string;
+  type: TQRInputType;
+  placeholder: string;
+  tooltip: string;
+  initFromPlaceholder?: boolean;
+  maxLength?: number;
+  acceptedFileType?: EAcceptedFileType;
+  maxFileSize?: number;
+};
+
+export const QR_NAME_INPUT: QRInputConfig = {
+  id: "qrName",
+  label: "Name your QR Code",
+  type: "text",
+  placeholder: "My QR Code",
+  tooltip: "Only you can see this. It helps you recognize your QR codes later.",
+  initFromPlaceholder: true,
+} as const;
 
 export const QR_TYPE_INPUTS_CONFIG: Record<
   Exclude<EQRType, (typeof FILE_QR_TYPES)[number]>,
-  {
-    id: string;
-    label: string;
-    type: string;
-    placeholder?: string;
-    maxLength?: number;
-  }[]
+  QRInputConfig[]
 > = {
   [EQRType.WEBSITE]: [
-    {
-      id: `qrName`,
-      label: "Enter Name of your QR Code",
-      type: "text",
-      placeholder: "Name of your QR Code",
-      isNotRequired: true,
-    },
+    getQRNameInput(EQRType.WEBSITE),
     {
       id: `websiteLink`,
       label: "Enter your website",
       type: "url",
-      placeholder: "https://www.getqr.com/",
-    },
-  ],
-  [EQRType.APP_LINK]: [
-    {
-      id: `qrName`,
-      label: "Enter Name of your QR Code",
-      type: "text",
-      placeholder: "Name of your QR Code",
-      isNotRequired: true,
-    },
-    {
-      id: `storeLink`,
-      label: "Store Link",
-      type: "url",
-      placeholder: "https://www.getqr.com/",
-    },
-  ],
-  [EQRType.SOCIAL]: [
-    {
-      id: `qrName`,
-      label: "Enter Name of your QR Code",
-      type: "text",
-      placeholder: "Name of your QR Code",
-      isNotRequired: true,
-    },
-    {
-      id: `socialLink`,
-      label: "Enter your Social Media Link",
-      type: "url",
-      placeholder: "https://www.getqr.com/",
-    },
-  ],
-  [EQRType.FEEDBACK]: [
-    {
-      id: `link`,
-      label: "Link",
-      type: "url",
-      placeholder: "https://www.getqr.com/",
+      placeholder: DEFAULT_WEBSITE,
+      tooltip: "This is the link people will open when they scan your QR code.",
     },
   ],
   [EQRType.WHATSAPP]: [
+    getQRNameInput(EQRType.WHATSAPP),
     {
       id: `number`,
-      label: "Your number",
+      label: "WhatsApp Number",
       type: "tel",
       placeholder: "Type your number",
+      tooltip:
+        "This is the number people will message on WhatsApp after scanning your QR code.",
     },
     {
       id: `message`,
-      label: "Message",
+      label: "Pre-typed Message",
       type: "textarea",
-      placeholder: "Type a welcome text...",
+      placeholder: DEFAULT_WHATSAPP_MESSAGE,
       maxLength: 160,
+      tooltip:
+        "This text will appear in the chat box — the user just needs to tap send.",
     },
   ],
   [EQRType.WIFI]: [
+    getQRNameInput(EQRType.WIFI),
     {
       id: `networkName`,
-      label: "Network name (SSID)",
+      label: "Wifi Network Name",
       type: "text",
-      placeholder: "Enter network name",
+      placeholder: DEFAULT_WIFI_NETWORK_NAME,
+      tooltip:
+        "This is the name of the Wi-Fi network you want to share. You can usually find it on the back of your router.",
     },
     {
       id: `networkPassword`,
       label: "Network password",
       type: "text",
-      placeholder: "Enter password",
+      placeholder: "ExtraToppings123",
+      tooltip:
+        "People will automatically connect using this password after scanning your QR code. Leave this blank if your network has no password.",
+    },
+  ],
+  [EQRType.IMAGE]: [
+    getQRNameInput(EQRType.IMAGE),
+    {
+      id: "files",
+      label: "Image",
+      type: "file",
+      acceptedFileType: EAcceptedFileType.IMAGE,
+      maxFileSize: 5 * 1024 * 1024,
+    },
+  ],
+  [EQRType.PDF]: [
+    getQRNameInput(EQRType.PDF),
+    {
+      id: "files",
+      label: "PDF",
+      type: "file",
+      acceptedFileType: EAcceptedFileType.PDF,
+      maxFileSize: 10 * 1024 * 1024,
+    },
+  ],
+  [EQRType.VIDEO]: [
+    getQRNameInput(EQRType.VIDEO),
+    {
+      id: "files",
+      label: "Video",
+      type: "file",
+      acceptedFileType: EAcceptedFileType.VIDEO,
+      maxFileSize: 50 * 1024 * 1024,
     },
   ],
 };

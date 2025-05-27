@@ -49,11 +49,11 @@ export const QRTabsPopover: FC<IQRTabsPopoverProps> = ({
                     icon={option.icon}
                     className={cn(
                       "h-5 w-5",
-                      idx === 1
+                      idx === 2
                         ? "group-hover:[&>path]:fill-secondary [&>path]:fill-neutral-200"
                         : "group-hover:[&>g]:stroke-secondary group-hover:[&>path]:stroke-secondary [&>g]:stroke-neutral-200 [&>path]:stroke-neutral-200",
                       selectedQrType?.id === option.id &&
-                        (idx === 1
+                        (idx === 2
                           ? "[&>path]:fill-secondary"
                           : "[&>g]:stroke-secondary [&>path]:stroke-secondary"),
                     )}

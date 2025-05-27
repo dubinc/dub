@@ -4,7 +4,7 @@ export type TWifiEncryptionOption = {
 };
 
 export const WIFI_ENCRYPTION_TYPES: TWifiEncryptionOption[] = [
-  { id: "WEP", label: "WEP" },
-  { id: "WPA", label: "WPA/WPA2" },
-  { id: "none", label: "none" },
+  { id: "WPA", label: "WPA/WPA2 (recommended)" },
+  { id: "WEP", label: "WEP (less common)" },
+  { id: "none", label: "No encryption (open network)" },
 ];

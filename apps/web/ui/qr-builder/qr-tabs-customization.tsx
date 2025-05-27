@@ -36,17 +36,16 @@ export const QrTabsCustomization: FC<QrTabsCustomizationProps> = ({
   setStyleOptionActiveActiveTab,
   selectedSuggestedFrame,
   selectedSuggestedLogo,
-  uploadedLogo,
   isQrDisabled,
   isMobile,
   options,
   handlers,
 }) => {
-  return (
+  return isMobile ? (
     <Tabs.Root
       value={styleOptionActiveTab}
       onValueChange={setStyleOptionActiveActiveTab}
-      className="flex w-full flex-col items-center justify-center gap-4"
+      className="text-neutral flex w-full flex-col items-center justify-center gap-4"
     >
       <Tabs.List className="flex w-full items-center gap-1 overflow-x-auto rounded-lg">
         {QR_STYLES_OPTIONS.map((tab) => (
@@ -99,15 +98,52 @@ export const QrTabsCustomization: FC<QrTabsCustomizationProps> = ({
           {tab.id === "logo" && (
             <LogoSelector
               selectedSuggestedLogo={selectedSuggestedLogo}
-              uploadedLogo={uploadedLogo}
               isQrDisabled={isQrDisabled}
               onSuggestedLogoSelect={handlers.onSuggestedLogoSelect}
               onUploadLogo={handlers.setUploadedLogoFile}
-              isMobile={isMobile}
             />
           )}
         </Tabs.Content>
       ))}
     </Tabs.Root>
+  ) : (
+    <div className="text-neutral flex w-full flex-col gap-8">
+      {QR_STYLES_OPTIONS.map((tab) => (
+        <div key={tab.id} className="flex w-full flex-col gap-4">
+          <h3 className="text-lg font-medium">{tab.label}</h3>
+          {tab.id === "frame" && (
+            <FrameSelector
+              selectedSuggestedFrame={selectedSuggestedFrame}
+              isQrDisabled={isQrDisabled}
+              onFrameSelect={handlers.onSuggestedFrameSelect}
+            />
+          )}
+          {tab.id === "style" && (
+            <StyleSelector
+              options={options}
+              isMobile={isMobile}
+              onDotsStyleChange={handlers.onDotsStyleChange}
+              onBorderColorChange={handlers.onBorderColorChange}
+              onBackgroundColorChange={handlers.onBackgroundColorChange}
+            />
+          )}
+          {tab.id === "shape" && (
+            <ShapeSelector
+              options={options}
+              onBorderStyleChange={handlers.onBorderStyleChange}
+              onCenterStyleChange={handlers.onCenterStyleChange}
+            />
+          )}
+          {tab.id === "logo" && (
+            <LogoSelector
+              selectedSuggestedLogo={selectedSuggestedLogo}
+              isQrDisabled={isQrDisabled}
+              onSuggestedLogoSelect={handlers.onSuggestedLogoSelect}
+              onUploadLogo={handlers.setUploadedLogoFile}
+            />
+          )}
+        </div>
+      ))}
+    </div>
   );
 };

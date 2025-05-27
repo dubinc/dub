@@ -1,26 +1,43 @@
 import { SUGGESTED_LOGOS } from "@/ui/qr-builder/constants/customization/logos.ts";
-import { FC } from "react";
-import { EQRType } from "../constants/get-qr-config.ts";
+import { EAcceptedFileType } from "@/ui/qr-builder/constants/qr-type-inputs-config.ts";
+import { FC, useEffect } from "react";
+import { Controller, FormProvider, useForm, useWatch } from "react-hook-form";
 import { FileCardContent } from "./file-card-content.tsx";
 import { StylePicker } from "./style-picker.tsx";
+
+const FILE_UPLOAD_FIELD_NAME = "fileUploadLogo";
+
+interface LogoFormValues {
+  fileUploadLogo: File[];
+}
 
 interface ILogoSelectorProps {
   isQrDisabled: boolean;
   selectedSuggestedLogo: string;
-  uploadedLogo: File | null;
   onSuggestedLogoSelect: (type: string, iconSrc?: string) => void;
   onUploadLogo: (file: File | null) => void;
-  isMobile: boolean;
 }
 
 export const LogoSelector: FC<ILogoSelectorProps> = ({
   isQrDisabled,
   selectedSuggestedLogo,
-  uploadedLogo,
   onSuggestedLogoSelect,
   onUploadLogo,
-  isMobile,
 }) => {
+  const methods = useForm<LogoFormValues>({
+    defaultValues: {
+      [FILE_UPLOAD_FIELD_NAME]: [],
+    },
+  });
+
+  const { control, trigger } = methods;
+  const uploadedLogoFiles = useWatch({ control, name: FILE_UPLOAD_FIELD_NAME });
+
+  useEffect(() => {
+    const lastFile = uploadedLogoFiles?.[uploadedLogoFiles.length - 1] || null;
+    onUploadLogo(lastFile);
+  }, [uploadedLogoFiles]);
+
   return (
     <div className="border-border-500 flex max-w-[540px] flex-col gap-4 rounded-lg border p-3">
       <StylePicker
@@ -29,6 +46,8 @@ export const LogoSelector: FC<ILogoSelectorProps> = ({
         selectedStyle={selectedSuggestedLogo}
         onSelect={(type, icon) => {
           if (!isQrDisabled) {
+            methods.setValue(FILE_UPLOAD_FIELD_NAME, []);
+            methods.trigger(FILE_UPLOAD_FIELD_NAME);
             onSuggestedLogoSelect(type, icon?.src);
           }
         }}
@@ -38,21 +57,34 @@ export const LogoSelector: FC<ILogoSelectorProps> = ({
         stylePickerWrapperClassName="[&_label]:text-sm"
         styleButtonClassName="[&_img]:h-10 [&_img]:w-10 p-2"
       />
-      <FileCardContent
-        qrType={EQRType.IMAGE}
-        files={uploadedLogo ? [uploadedLogo] : []}
-        setFiles={(files) => {
-          const incoming = typeof files === "function" ? files([]) : files;
-          const file = incoming[incoming.length - 1] || null;
-          onUploadLogo(file);
-          return file ? [file] : [];
-        }}
-        title="Upload your logo"
-        multiple={false}
-        minimumFlow
-        isLogo
-        isMobile={isMobile}
-      />
+      <FormProvider {...methods}>
+        <form>
+          <Controller
+            name={FILE_UPLOAD_FIELD_NAME}
+            control={control}
+            render={({
+              field: { onChange, value = [] },
+              fieldState: { error },
+            }) => (
+              <FileCardContent
+                title="logo"
+                files={value}
+                setFiles={(files) => {
+                  const incoming =
+                    typeof files === "function" ? files(value) : files;
+                  onChange(incoming);
+                  trigger(FILE_UPLOAD_FIELD_NAME);
+                  return incoming;
+                }}
+                fileError={error?.message || ""}
+                isLogo
+                acceptedFileType={EAcceptedFileType.IMAGE}
+                maxFileSize={2 * 1024 * 1024}
+              />
+            )}
+          />
+        </form>
+      </FormProvider>
     </div>
   );
 };

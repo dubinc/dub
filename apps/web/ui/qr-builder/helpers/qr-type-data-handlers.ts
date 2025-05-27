@@ -30,12 +30,32 @@ export const qrTypeDataHandlers = {
     isHiddenNetwork: boolean,
   ) => {
     const { number, message } = values;
-    return message ? `https://wa.me/${number}?text=${encodeURIComponent(message)}` : `https://wa.me/${number}`;
+    return message
+      ? `https://wa.me/${number}?text=${encodeURIComponent(message)}`
+      : `https://wa.me/${number}`;
   },
   [EQRType.WIFI]: (
     values: Record<string, string>,
     isHiddenNetwork: boolean,
   ) => {
     return `WIFI:T:${values.networkEncryption};S:${values.networkName};P:${values.networkPassword};H:${isHiddenNetwork};`;
+  },
+  [EQRType.PDF]: (
+    values: Record<string, string>,
+    isHiddenNetwork: boolean,
+  ) => {
+    return crypto.randomUUID();
+  },
+  [EQRType.IMAGE]: (
+    values: Record<string, string>,
+    isHiddenNetwork: boolean,
+  ) => {
+    return crypto.randomUUID();
+  },
+  [EQRType.VIDEO]: (
+    values: Record<string, string>,
+    isHiddenNetwork: boolean,
+  ) => {
+    return crypto.randomUUID();
   },
 };

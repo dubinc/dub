@@ -21,7 +21,7 @@ export const APP_HOSTNAMES = new Set([
 //       : "http://localhost:8888";
 
 // export const APP_DOMAIN = `https://app-${process.env.NEXT_PUBLIC_APP_DOMAIN}`;
-export const APP_DOMAIN = `${process.env.NEXT_PUBLIC_APP_DOMAIN}`;
+export const APP_DOMAIN = `https://${process.env.NEXT_PUBLIC_APP_DOMAIN}`;
 
 // export const APP_DOMAIN_WITH_NGROK =
 //   process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
@@ -33,6 +33,7 @@ export const APP_DOMAIN = `${process.env.NEXT_PUBLIC_APP_DOMAIN}`;
 export const APP_DOMAIN_WITH_NGROK = `https://app-${process.env.NEXT_PUBLIC_APP_DOMAIN}`;
 
 export const API_HOSTNAMES = new Set([
+  `${process.env.NEXT_PUBLIC_API_DOMAIN}`,
   `api-${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
   `api.${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
   `api-staging.${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
@@ -48,7 +49,7 @@ export const API_HOSTNAMES = new Set([
 //       : "http://api.localhost:8888";
 
 export const API_DOMAIN = process.env.NEXT_PUBLIC_API_DOMAIN
-  ? `${process.env.NEXT_PUBLIC_API_DOMAIN}`
+  ? `https://${process.env.NEXT_PUBLIC_API_DOMAIN}`
   : `https://api-${process.env.NEXT_PUBLIC_APP_DOMAIN}`;
 
 export const ADMIN_HOSTNAMES = new Set([

@@ -24,6 +24,7 @@ export enum EQRType {
 export type QRType = {
   id: EQRType;
   label: string;
+  info: string;
   icon: string;
   img: StaticImageData;
   content: string;
@@ -33,6 +34,7 @@ export const QR_TYPES: QRType[] = [
   {
     id: EQRType.WEBSITE,
     label: "Website",
+    info: "Open a website or landing page",
     icon: "streamline:web",
     img: QrWebsiteFull,
     content:
@@ -41,14 +43,34 @@ export const QR_TYPES: QRType[] = [
   {
     id: EQRType.PDF,
     label: "PDF",
+    info: "Open a PDF document",
     icon: "hugeicons:pdf-02",
     img: QrPDFFull,
     content:
       "Share important documents instantly! Link your PDF to a QR code and give people quick and easy access to menus, guides, brochures, or portfolios—anytime, anywhere.",
   },
   {
+    id: EQRType.WHATSAPP,
+    label: "Whatsapp",
+    info: "Start a WhatsApp chat instantly",
+    icon: "basil:whatsapp-outline",
+    img: QrWhatsappFull,
+    content:
+      "Start conversations instantly! Use a QR code to let customers, clients, or friends message you on WhatsApp with a single scan.",
+  },
+  {
+    id: EQRType.WIFI,
+    label: "Wifi",
+    icon: "streamline:wifi",
+    info: "Connect to a Wifi network",
+    img: QrWifiFull,
+    content:
+      "Instant Wifi access—no typing required! Use a QR code to let guests connect to your network effortlessly by scanning, making it perfect for homes, cafés, offices, and events.",
+  },
+  {
     id: EQRType.IMAGE,
-    label: "Images",
+    label: "Image",
+    info: "Display an image or photo",
     icon: "hugeicons:ai-image",
     img: QrImagesFull,
     content:
@@ -57,38 +79,25 @@ export const QR_TYPES: QRType[] = [
   {
     id: EQRType.VIDEO,
     label: "Video",
+    info: "Display a video with one scan",
     icon: "hugeicons:ai-video",
     img: QrVideosFull,
     content:
       "Bring your content to life! Use a QR code to instantly share videos—whether it's tutorials, trailers, promotions, or educational content—anytime, anywhere.",
   },
   {
-    id: EQRType.WHATSAPP,
-    label: "Whatsapp",
-    icon: "basil:whatsapp-outline",
-    img: QrWhatsappFull,
-    content:
-      "Start conversations instantly! Use a QR code to let customers, clients, or friends message you on WhatsApp with a single scan.",
-  },
-  {
     id: EQRType.SOCIAL,
     label: "Social Media Link",
+    info: "Open a website or landing page",
     icon: "solar:add-circle-broken",
     img: QrSocialFull,
     content:
       "Grow your audience effortlessly! Use a QR code to share your social media profiles in one scan—making it easy for people to follow, connect, and engage with your content.",
   },
   {
-    id: EQRType.WIFI,
-    label: "Wifi",
-    icon: "streamline:wifi",
-    img: QrWifiFull,
-    content:
-      "Instant Wi-Fi access—no typing required! Use a QR code to let guests connect to your network effortlessly by scanning, making it perfect for homes, cafés, offices, and events.",
-  },
-  {
     id: EQRType.APP_LINK,
     label: "App Link",
+    info: "Open a website or landing page",
     icon: "meteor-icons:link",
     img: QrAppLinkFull,
     content:
@@ -97,6 +106,7 @@ export const QR_TYPES: QRType[] = [
   {
     id: EQRType.FEEDBACK,
     label: "Feedback Request",
+    info: "Open a website or landing page",
     icon: "hugeicons:bubble-chat-favourite",
     img: QrFeedbackFull,
     content:
