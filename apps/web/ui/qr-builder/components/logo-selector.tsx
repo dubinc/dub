@@ -54,7 +54,6 @@ export const LogoSelector: FC<ILogoSelectorProps> = ({
         optionsWrapperClassName={`${
           isQrDisabled ? "pointer-events-none cursor-not-allowed" : ""
         }`}
-        stylePickerWrapperClassName="[&_label]:text-sm"
         styleButtonClassName="[&_img]:h-10 [&_img]:w-10 p-2"
       />
       <FormProvider {...methods}>

@@ -30,7 +30,7 @@ export const StylePicker: FC<IStylePickerProps> = ({
 }) => {
   return (
     <div className={cn("flex flex-col gap-2", stylePickerWrapperClassName)}>
-      {!minimalFlow && <label className="font-medium">{label}</label>}
+      <label className="text-sm font-medium">{label}</label>
       <ScrollArea.Root type="auto" className="relative w-full overflow-hidden">
         <ScrollArea.Viewport className="overflow-x-auto">
           <div

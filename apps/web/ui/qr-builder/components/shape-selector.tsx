@@ -25,7 +25,6 @@ export const ShapeSelector: FC<IShapeSelectorProps> = ({
           styleOptions={BORDER_STYLES}
           selectedStyle={options.cornersSquareOptions?.type ?? "square"}
           onSelect={(type) => onBorderStyleChange(type as CornerSquareType)}
-          stylePickerWrapperClassName="[&_label]:text-sm"
           optionsWrapperClassName="gap-2 md:flex-nowrap"
           iconSize={30}
           styleButtonClassName="[&_img]:h-5 [&_img]:w-5 p-3.5"
@@ -35,7 +34,6 @@ export const ShapeSelector: FC<IShapeSelectorProps> = ({
           styleOptions={CENTER_STYLES}
           selectedStyle={options.cornersDotOptions?.type ?? "square"}
           onSelect={(type) => onCenterStyleChange(type as CornerDotType)}
-          stylePickerWrapperClassName="[&_label]:text-sm"
           optionsWrapperClassName="gap-2 md:flex-nowrap"
           iconSize={30}
           styleButtonClassName="[&_img]:h-5 [&_img]:w-5 p-3.5"

@@ -22,7 +22,7 @@ export const FrameSelector: FC<IFrameSelectorProps> = ({
 
   return (
     <StylePicker
-      label="Frames"
+      label="Frame around QR code"
       styleOptions={FRAMES}
       selectedStyle={selectedSuggestedFrame}
       onSelect={(type) => {
