@@ -478,14 +478,7 @@ function LanderPreview({ program }: { program: ProgramWithLanderDataProps }) {
                       {...{ inert: "" }}
                     >
                       <div className="px-6">
-                        <Component
-                          block={block}
-                          logo={program.logo}
-                          brandColor={brandColor}
-                          reward={program.rewards?.find(
-                            (r) => r.id === program.defaultRewardId,
-                          )}
-                        />
+                        <Component block={block} program={program} />
                       </div>
                     </div>
                   </div>

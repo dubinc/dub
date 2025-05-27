@@ -10,6 +10,7 @@ import { Dispatch, SetStateAction, useId, useRef } from "react";
 import { Control, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { EarningsCalculatorBlock } from "../../lander-blocks/earnings-calculator-block";
+import { useBrandingFormContext } from "../branding-form";
 
 type EarningsCalculatorBlockData = z.infer<
   typeof programLanderEarningsCalculatorBlockSchema
@@ -174,6 +175,15 @@ function Preview({
 }) {
   const productPrice = useWatch({ control, name: "productPrice" });
 
+  const { program } = useProgram();
+  const { control: brandingFormControl } = useBrandingFormContext();
+  const brandColor = useWatch({
+    control: brandingFormControl,
+    name: "brandColor",
+  });
+
+  if (!program) return null;
+
   return (
     <EarningsCalculatorBlock
       block={{
@@ -184,6 +194,7 @@ function Preview({
             Math.min(Math.max(productPrice || 0, 0), MAX_PRODUCT_PRICE) * 100,
         },
       }}
+      program={{ ...program, brandColor }}
       showTitleAndDescription={false}
     />
   );

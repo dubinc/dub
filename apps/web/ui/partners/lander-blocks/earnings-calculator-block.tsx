@@ -1,32 +1,27 @@
 "use client";
 
-import useProgram from "@/lib/swr/use-program";
+import { ProgramProps } from "@/lib/types";
 import { programLanderEarningsCalculatorBlockSchema } from "@/lib/zod/schemas/program-lander";
 import { InvoiceDollar } from "@dub/ui";
 import NumberFlow from "@number-flow/react";
 import { useId, useState } from "react";
-import { useWatch } from "react-hook-form";
 import { z } from "zod";
-import { useBrandingFormContext } from "../design/branding-form";
 import { formatRewardDescription } from "../format-reward-description";
 import { BlockDescription } from "./BlockDescription";
 import { BlockTitle } from "./BlockTitle";
 
 export function EarningsCalculatorBlock({
   block,
+  program,
   showTitleAndDescription = true,
 }: {
   block: z.infer<typeof programLanderEarningsCalculatorBlockSchema>;
+  program: ProgramProps;
   showTitleAndDescription?: boolean;
 }) {
   const id = useId();
-  const { program } = useProgram();
-  const { control: brandingFormControl } = useBrandingFormContext();
-  const brandColor = useWatch({
-    control: brandingFormControl,
-    name: "brandColor",
-  });
 
+  console.log({ program });
   const reward = program?.rewards?.find(
     (r) => r.id === program?.defaultRewardId,
   );
@@ -67,7 +62,7 @@ export function EarningsCalculatorBlock({
             value={value}
             onChange={(e) => setValue(Number(e.target.value))}
             className="mt-4 w-full"
-            style={{ accentColor: brandColor || "black" }}
+            style={{ accentColor: program.brandColor || "black" }}
           />
           <div className="mt-2 flex items-center gap-1">
             <InvoiceDollar className="size-3.5 text-neutral-400" />
@@ -79,7 +74,7 @@ export function EarningsCalculatorBlock({
         <div className="relative border-t border-neutral-200">
           <div
             className="absolute inset-0 opacity-5"
-            style={{ backgroundColor: brandColor || "black" }}
+            style={{ backgroundColor: program.brandColor || "black" }}
           />
           <div className="flex flex-col items-center justify-center p-4 font-semibold text-neutral-800/60 sm:p-6">
             <span>You can earn</span>

@@ -1,3 +1,4 @@
+import { ProgramProps } from "@/lib/types";
 import { programLanderFilesBlockSchema } from "@/lib/zod/schemas/program-lander";
 import { ArrowUpRight, Download } from "@dub/ui/icons";
 import { z } from "zod";
@@ -5,10 +6,10 @@ import { BlockTitle } from "./BlockTitle";
 
 export function FilesBlock({
   block,
-  logo,
+  program,
 }: {
   block: z.infer<typeof programLanderFilesBlockSchema>;
-  logo: string | null;
+  program: ProgramProps;
 }) {
   return (
     <div className="space-y-5">
@@ -24,8 +25,12 @@ export function FilesBlock({
             <div className="flex min-w-0 items-center gap-4">
               <div className="shrink-0 rounded-full border border-neutral-200">
                 <div className="rounded-full border border-white bg-gradient-to-t from-neutral-100 p-1 md:p-2">
-                  {logo ? (
-                    <img src={logo} alt="" className="size-4 rounded-full" />
+                  {program.logo ? (
+                    <img
+                      src={program.logo}
+                      alt=""
+                      className="size-4 rounded-full"
+                    />
                   ) : (
                     <Download className="size-4" />
                   )}
