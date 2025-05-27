@@ -30,7 +30,10 @@ export function PageClient() {
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: async () => {
-      await mutate(`/api/programs?workspaceId=${workspaceId}`);
+      await Promise.all([
+        mutateWorkspace(),
+        mutate(`/api/programs?workspaceId=${workspaceId}`),
+      ]);
     },
     onError: ({ error }) => {
       toast.error(error.serverError);

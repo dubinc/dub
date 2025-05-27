@@ -14,7 +14,7 @@ export default function PartnerAuthLayout({
       </div>
       <div className="relative z-10 mt-10 flex w-full flex-col items-center justify-center px-3 text-center md:px-8">
         <Link
-          href="https://dub.partners"
+          href="https://dub.co/partners"
           target="_blank"
           className="animate-slide-up-fade relative flex w-auto flex-col items-center [--offset:10px] [animation-duration:1.3s] [animation-fill-mode:both]"
         >

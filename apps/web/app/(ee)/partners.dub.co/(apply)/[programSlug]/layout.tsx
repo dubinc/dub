@@ -67,7 +67,7 @@ export default async function ApplyLayout({
         {/* Footer */}
         <footer className="mt-14 flex flex-col items-center gap-4 py-6 text-center text-xs text-neutral-500">
           <Link
-            href="https://dub.partners"
+            href="https://dub.co/partners"
             target="_blank"
             className="flex items-center gap-1.5 whitespace-nowrap"
           >

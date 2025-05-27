@@ -28,7 +28,7 @@ export async function PartnerBanner({
         </a>{" "}
         uses{" "}
         <a
-          href="https://dub.partners"
+          href="https://dub.co/partners"
           target="_blank"
           className="font-semibold underline-offset-2 transition-colors hover:underline"
         >
