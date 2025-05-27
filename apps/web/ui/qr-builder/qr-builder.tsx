@@ -58,6 +58,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
         useState<string>("Frame");
       const [hoveredQRType, setHoveredQRType] = useState<EQRType | null>(null);
       const [files, setFiles] = useState<File[]>([]);
+      const [typeSelectionError, setTypeSelectionError] = useState<string>("");
 
       const {
         options,
@@ -91,6 +92,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
 
       const handleSelectQRType = (type: EQRType) => {
         console.log("type", type);
+        setTypeSelectionError("");
         setSelectedQRType(type);
         handleNextStep();
       };
@@ -189,6 +191,41 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
         qrBuilderContentWrapperRef,
       );
 
+      const handleStepClick = useCallback(
+        (newStep: number) => {
+          // Don't allow navigating to step 2 without selecting a QR type
+          if (newStep === 2 && !selectedQRType) {
+            setTypeSelectionError("Please select a QR code type to continue");
+            return;
+          }
+
+          // Clear error when selecting a valid step
+          setTypeSelectionError("");
+
+          // Don't allow navigating to step 3 without completing content
+          if (newStep === 3 && step === 2) {
+            // Validate form and only proceed if validation passes
+            form.trigger().then((isValid) => {
+              if (isValid) {
+                // Ensure content is processed
+                handleValidationAndContentSubmit();
+                setStep(newStep);
+              }
+            });
+            return; // Return early to prevent immediate navigation
+          }
+
+          // If we're navigating to step 2, trigger validation to show required fields
+          if (newStep === 2) {
+            // This will trigger validation to show required fields
+            form.trigger();
+          }
+
+          setStep(newStep);
+        },
+        [selectedQRType, handleValidationAndContentSubmit, form, step],
+      );
+
       return (
         <div
           ref={qrBuilderContentWrapperRef}
@@ -207,6 +244,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                 { number: 2, label: "Complete Content" },
                 { number: 3, label: "Customize QR" },
               ]}
+              onStepClick={handleStepClick}
             />
           </Flex>
 
@@ -231,6 +269,11 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                     onSelect={handleSelectQRType}
                     onHover={handleHoverQRType}
                   />
+                  {typeSelectionError && (
+                    <div className="text-sm font-medium text-red-500">
+                      {typeSelectionError}
+                    </div>
+                  )}
                 </Flex>
               )}
 
