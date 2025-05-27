@@ -7,26 +7,39 @@ import NumberFlow from "@number-flow/react";
 import { useId, useState } from "react";
 import { z } from "zod";
 import { formatRewardDescription } from "../format-reward-description";
+import { BlockDescription } from "./BlockDescription";
 import { BlockTitle } from "./BlockTitle";
 
 export function EarningsCalculatorBlock({
   block,
   brandColor,
   reward,
+  showTitleAndDescription = true,
 }: {
   block: z.infer<typeof programLanderEarningsCalculatorBlockSchema>;
   brandColor?: string;
   reward?: Pick<RewardProps, "event" | "type" | "amount" | "maxDuration">;
+  showTitleAndDescription?: boolean;
 }) {
   const id = useId();
 
   const [value, setValue] = useState(10);
-  const revenue = value * (block.data.productPrice / 100);
+  const revenue = value * ((block.data.productPrice || 30_00) / 100);
 
   return reward && reward.event === "sale" ? (
-    <div>
-      <BlockTitle title={block.data.title} />
-      <div className="mt-5 overflow-hidden rounded-lg border border-neutral-200 bg-white">
+    <div className="space-y-5">
+      {showTitleAndDescription && (
+        <div className="space-y-2">
+          <BlockTitle title={block.data.title || "Earnings calculator"} />
+          <BlockDescription
+            description={
+              block.data.description || "See how much you could earn"
+            }
+          />
+        </div>
+      )}
+
+      <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white">
         <div className="p-4 sm:p-8">
           <label
             htmlFor={`${id}-slider`}
