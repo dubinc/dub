@@ -1,6 +1,6 @@
 import { cn } from "@dub/utils";
 import { Button, Flex, Responsive } from "@radix-ui/themes";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Loader2 } from "lucide-react";
 import { FC } from "react";
 
 interface IQrBuilderButtonsProps {
@@ -15,6 +15,8 @@ interface IQrBuilderButtonsProps {
   className?: string;
   size?: Responsive<"3" | "4" | "1" | "2"> | undefined;
   display?: Responsive<"none" | "inline-flex" | "flex"> | undefined;
+  isEdit?: boolean;
+  isProcessing?: boolean;
 }
 
 export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
@@ -29,6 +31,8 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
   className,
   size = "4",
   display = "flex",
+  isEdit = false,
+  isProcessing = false,
 }) => {
   const lastStep = step === maxStep;
 
@@ -54,6 +58,12 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
     }
   };
 
+  const buttonText = lastStep
+    ? isEdit
+      ? "Save changes"
+      : "Download QR Code"
+    : "Continue";
+
   return (
     <Flex
       justify="between"
@@ -66,7 +76,7 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
         variant="outline"
         color="blue"
         className="flex min-h-10 min-w-0 shrink"
-        disabled={step <= minStep}
+        disabled={step <= minStep || isProcessing}
         onClick={handleBack}
       >
         <Flex gap="2" align="center" justify="center">
@@ -80,8 +90,12 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
         color="blue"
         className="grow basis-3/4"
         onClick={handleContinue}
+        disabled={isProcessing}
       >
-        {lastStep ? "Download QR Code" : "Continue"}
+        <Flex align="center" justify="center" gap="2">
+          {isProcessing && <Loader2 className="h-4 w-4 animate-spin" />}
+          {buttonText}
+        </Flex>
       </Button>
     </Flex>
   );

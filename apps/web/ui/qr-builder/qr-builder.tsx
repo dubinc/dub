@@ -13,7 +13,7 @@ import { QrTabsDownloadButton } from "@/ui/qr-builder/qr-tabs-download-button.ts
 import { QrTabsStepTitle } from "@/ui/qr-builder/qr-tabs-step-title.tsx";
 import { QrTypeSelection } from "@/ui/qr-builder/qr-type-selection.tsx";
 import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
-import { ArrowTurnLeft, Button as DubButton, useMediaQuery } from "@dub/ui";
+import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Flex } from "@radix-ui/themes";
 import { motion } from "framer-motion";
@@ -309,6 +309,8 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                         onSaveClick={onSaveClick}
                         onBackClick={onBackClick}
                         validateFields={handleValidationAndContentSubmit}
+                        isEdit={isEdit}
+                        isProcessing={isProcessing}
                       />
                     </div>
                   </FormProvider>
@@ -320,7 +322,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                   gap="4"
                   direction="column"
                   align="start"
-                  justify="start"
+                  justify="between"
                   className="w-full"
                 >
                   <QrTabsCustomization
@@ -345,6 +347,8 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                       onSaveClick={onSaveClick}
                       onBackClick={onBackClick}
                       validateFields={handleValidationAndContentSubmit}
+                      isEdit={isEdit}
+                      isProcessing={isProcessing}
                     />
                   </div>
                 </Flex>
@@ -428,24 +432,6 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
               )}
             </Flex>
           </div>
-          {!homepageDemo && (
-            <div className="-mt-2 flex items-center justify-end gap-2 border-t border-neutral-100 bg-neutral-50 p-4">
-              <DubButton
-                disabled={isProcessing}
-                loading={isProcessing}
-                text={
-                  <span className="flex items-center gap-2">
-                    {isEdit ? "Save changes" : "Create QR"}
-                    <div className="rounded border border-white/20 p-1">
-                      <ArrowTurnLeft className="size-3.5" />
-                    </div>
-                  </span>
-                }
-                className="h-8 w-fit pl-2.5 pr-1.5"
-                onClick={onSaveClick}
-              />
-            </div>
-          )}
 
           {isMobile && !navigationButtonsInViewport && !typeStep && (
             <div className="border-border-500 sticky bottom-0 left-0 z-50 w-full border-t bg-white px-6 py-3 shadow-md">
@@ -455,6 +441,8 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                 onSaveClick={onSaveClick}
                 onBackClick={onBackClick}
                 validateFields={handleValidationAndContentSubmit}
+                isEdit={isEdit}
+                isProcessing={isProcessing}
               />
             </div>
           )}

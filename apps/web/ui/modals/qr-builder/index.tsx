@@ -11,6 +11,7 @@ import { QrBuilder } from "@/ui/qr-builder/qr-builder";
 import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
 import { X } from "@/ui/shared/icons";
 import QRIcon from "@/ui/shared/icons/qr.tsx";
+import { fileToBase64 } from "@/ui/utils/file-to-base64";
 import { Modal } from "@dub/ui";
 import { SHORT_DOMAIN } from "@dub/utils/src";
 import { useParams } from "next/navigation";
@@ -23,7 +24,6 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { fileToBase64 } from '@/ui/utils/file-to-base64';
 
 export type QRBuilderData = {
   styles: Options;
@@ -76,7 +76,7 @@ export function QRBuilderModal({
       toast.error("Data of QR Code not found.");
     }
 
-    console.log('handle save qr');
+    console.log("handle save qr");
 
     try {
       const file = data.files[0];
@@ -161,7 +161,7 @@ export function QRBuilderModal({
         <div className="flex w-full items-center justify-between gap-2 px-6 py-4">
           <div className="flex items-center gap-2">
             <QRIcon className="text-primary h-5 w-5" />
-            <h3 className="!mt-0 max-w-sm truncate text-lg font-medium">
+            <h3 className="!mt-0 max-w-xs truncate text-lg font-medium">
               {props ? `Edit QR - ${props.title ?? props.id}` : "New QR"}
             </h3>
           </div>
