@@ -464,7 +464,7 @@ export type FolderWithPermissions = {
 
 export type FolderSummary = Pick<
   Folder,
-  "id" | "name" | "accessLevel" | "linkCount"
+  "id" | "name" | "accessLevel" | "type"
 >;
 
 // Rewards

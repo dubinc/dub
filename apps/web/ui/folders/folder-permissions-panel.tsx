@@ -8,15 +8,16 @@ import {
   useCheckFolderPermission,
   useFolderPermissions,
 } from "@/lib/swr/use-folder-permissions";
+import useLinksCount from "@/lib/swr/use-links-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Folder, FolderUser } from "@/lib/types";
 import { FolderUserRole } from "@dub/prisma/client";
 import { Avatar, BlurImage, Button, Tooltip, TooltipContent } from "@dub/ui";
 import { Globe, UserCheck } from "@dub/ui/icons";
-import { cn, fetcher, nFormatter, OG_AVATAR_URL } from "@dub/utils";
+import { cn, fetcher, nFormatter, OG_AVATAR_URL, pluralize } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
 import { Drawer } from "vaul";
@@ -31,7 +32,7 @@ import { RequestFolderEditAccessButton } from "./request-edit-button";
 interface FolderPermissionsPanelProps {
   showPanel: boolean;
   setShowPanel: (showPanel: boolean) => void;
-  folder: Pick<Folder, "id" | "name" | "accessLevel" | "linkCount">;
+  folder: Pick<Folder, "id" | "name" | "accessLevel">;
   onSuccess?: () => void;
 }
 
@@ -68,6 +69,22 @@ const FolderPermissionsPanel = ({
       keepPreviousData: true,
     },
   );
+  const { data: folderLinksCount, loading } = useLinksCount<
+    {
+      folderId: string;
+      _count: number;
+    }[]
+  >({ query: { groupBy: "folderId" } });
+
+  const folderLinkCount = useMemo(() => {
+    return (
+      folderLinksCount?.find(
+        ({ folderId }) =>
+          folderId === folder.id ||
+          (folder.id === "unsorted" && folderId === null),
+      )?._count || 0
+    );
+  }, [folderLinksCount, folder.id]);
 
   const updateWorkspaceAccessLevel = async (accessLevel: string) => {
     setIsUpdating(true);
@@ -177,8 +194,8 @@ const FolderPermissionsPanel = ({
                   <div className="mt-1.5 flex items-center gap-1 text-neutral-500">
                     <Globe className="size-3.5" />
                     <span className="text-sm font-normal">
-                      {nFormatter(folder.linkCount)} link
-                      {folder.linkCount !== 1 && "s"}
+                      {nFormatter(folderLinkCount, { full: true })}{" "}
+                      {pluralize("link", folderLinkCount)}
                     </span>
                   </div>
                 </div>
@@ -272,7 +289,7 @@ const FolderUserRow = ({
   folder,
 }: {
   user: FolderUser;
-  folder: Pick<Folder, "id" | "name" | "accessLevel" | "linkCount">;
+  folder: Pick<Folder, "id" | "name" | "accessLevel">;
 }) => {
   const { data: session } = useSession();
   const { id: workspaceId } = useWorkspace();
@@ -363,7 +380,7 @@ const FolderUserPlaceholder = () => (
 );
 
 export function useFolderPermissionsPanel(
-  folder: Pick<Folder, "id" | "name" | "accessLevel" | "linkCount">,
+  folder: Pick<Folder, "id" | "name" | "accessLevel" | "type">,
 ) {
   const [showFolderPermissionsPanel, setShowFolderPermissionsPanel] =
     useState(false);
