@@ -11,6 +11,7 @@ import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { endOfMonth, startOfMonth, subMonths } from "date-fns";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 /*
   This route is used to send program reports to partners.
@@ -19,21 +20,31 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
+const schema = z.object({
+  skip: z.number().optional().default(0),
+});
+
 // GET/POST /api/cron/partner-program-summary
 async function handler(req: Request) {
   try {
+    let skip = 0;
+
     if (req.method === "GET") {
       await verifyVercelSignature(req);
     } else if (req.method === "POST") {
+      const rawBody = await req.text();
+      const result = schema.parse(JSON.parse(rawBody));
+      skip = result.skip;
+
       await verifyQstashSignature({
         req,
-        rawBody: await req.text(),
+        rawBody,
       });
     }
 
     const programs = await prisma.program.findMany({
-      take: 1, // TODO: Fix this
-      skip: 0, // TODO: Fix this
+      take: 1,
+      skip,
       orderBy: {
         createdAt: "asc",
       },
@@ -51,6 +62,7 @@ async function handler(req: Request) {
     }
 
     const program = programs[0];
+    skip += 1;
 
     const programEnrollments = await prisma.programEnrollment.findMany({
       where: {
@@ -198,7 +210,9 @@ async function handler(req: Request) {
     await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partner-program-summary`,
       method: "POST",
-      body: {},
+      body: {
+        skip,
+      },
     });
 
     return NextResponse.json("Ok");
