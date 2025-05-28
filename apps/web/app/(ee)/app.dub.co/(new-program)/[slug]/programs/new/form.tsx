@@ -82,9 +82,12 @@ export function Form() {
 
     try {
       const response = await fetch(
-        `/api/workspaces/${workspaceId}/programs/upload-logo`,
+        `/api/workspaces/${workspaceId}/upload-url`,
         {
           method: "POST",
+          body: JSON.stringify({
+            folder: "program-logos",
+          }),
         },
       );
 
