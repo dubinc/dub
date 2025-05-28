@@ -15,12 +15,14 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-const STATS_ICONS = {
+const ICONS = {
   clicks: "https://react.email/static/atmos-vacuum-canister.jpg",
   leads: "https://react.email/static/atmos-vacuum-canister.jpg",
   sales: "https://react.email/static/atmos-vacuum-canister.jpg",
   earnings: "https://react.email/static/atmos-vacuum-canister.jpg",
 } as const;
+
+type Icon = keyof typeof ICONS;
 
 export function PartnerProgramSummary({
   program = {
@@ -175,7 +177,7 @@ export function PartnerProgramSummary({
 }
 
 const Stats = ({ title, value }: { title: string; value: number }) => {
-  const icon = STATS_ICONS[title.toLowerCase() as keyof typeof STATS_ICONS];
+  const icon = ICONS[title.toLowerCase() as Icon];
 
   return (
     <div className="flex flex-row items-center gap-3 bg-white p-0">
