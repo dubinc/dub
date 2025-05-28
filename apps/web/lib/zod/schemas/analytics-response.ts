@@ -460,4 +460,13 @@ export const analyticsResponse = {
         .default(0),
     })
     .openapi({ ref: "AnalyticsUTMContents" }),
+
+  partners: z
+    .object({
+      partnerId: z.string().describe("The ID of the partner"),
+      clicks: z.number().describe("The total number of clicks").default(0),
+      leads: z.number().describe("The total number of leads").default(0),
+      sales: z.number().describe("The total number of sales").default(0),
+    })
+    .openapi({ ref: "AnalyticsPartners" }),
 } as const;

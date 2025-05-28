@@ -32,7 +32,7 @@ export function PartnerProgramSummary({
   },
   partner = {
     email: "panic@thedis.co",
-    enrolledAt: new Date(),
+    createdAt: new Date(),
   },
   currentMonth: monthlyPerformance = {
     clicks: 100,
@@ -54,7 +54,7 @@ export function PartnerProgramSummary({
   };
   partner: {
     email: string | null;
-    enrolledAt: Date;
+    createdAt: Date;
   };
   currentMonth: {
     clicks: number;
@@ -150,7 +150,7 @@ export function PartnerProgramSummary({
                     </div>
                     <div className="text-xs font-medium text-neutral-500">
                       Partner since{" "}
-                      {formatDateTime(partner.enrolledAt, {
+                      {formatDateTime(partner.createdAt, {
                         month: "long",
                         year: "numeric",
                         day: "numeric",

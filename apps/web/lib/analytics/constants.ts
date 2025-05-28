@@ -133,6 +133,7 @@ export const VALID_ANALYTICS_ENDPOINTS = [
   "utm_campaigns",
   "utm_terms",
   "utm_contents",
+  "partners",
 ] as const;
 
 export const SINGULAR_ANALYTICS_ENDPOINTS = {
