@@ -5,7 +5,7 @@ import {
 import { FolderAccessLevel } from "@/lib/types";
 import z from "@/lib/zod";
 import { FolderType, FolderUserRole } from "@dub/prisma/client";
-import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
+import { getPaginationQuerySchema } from "./misc";
 
 const workspaceFolderAccess = z
   .enum(
@@ -27,10 +27,6 @@ export const FolderSchema = z.object({
   name: z.string().describe("The name of the folder."),
   type: z.enum(Object.keys(FolderType) as [FolderType, ...FolderType[]]),
   accessLevel: workspaceFolderAccess,
-  linkCount: z
-    .number()
-    .describe("The number of links in the folder.")
-    .default(0),
   createdAt: z.date().describe("The date the folder was created."),
   updatedAt: z.date().describe("The date the folder was updated."),
 });
@@ -48,9 +44,6 @@ export const listFoldersQuerySchema = z
       .string()
       .optional()
       .describe("The search term to filter the folders by."),
-    includeLinkCount: booleanQuerySchema
-      .optional()
-      .describe("Whether to include the link count in the response."),
   })
   .merge(getPaginationQuerySchema({ pageSize: FOLDERS_MAX_PAGE_SIZE }));
 
