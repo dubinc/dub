@@ -54,7 +54,7 @@ const PayoutTableInner = memo(
     const { id: workspaceId } = useWorkspace();
     const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
-    const sortBy = searchParams.get("sortBy") || "amount";
+    const sortBy = searchParams.get("sortBy") || "periodEnd";
     const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
     const { payoutsCount, error: countError } = usePayoutsCount<number>();
@@ -66,7 +66,7 @@ const PayoutTableInner = memo(
     } = useSWR<PayoutResponse[]>(
       program?.id
         ? `/api/programs/${program.id}/payouts${getQueryString(
-            { workspaceId, sortBy, sortOrder },
+            { workspaceId },
             {
               exclude: ["payoutId"],
             },
