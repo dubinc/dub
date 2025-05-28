@@ -1,4 +1,4 @@
-import { DUB_WORDMARK, nFormatter } from "@dub/utils";
+import { DUB_WORDMARK, formatDateTime, nFormatter } from "@dub/utils";
 import {
   Body,
   Container,
@@ -32,6 +32,7 @@ export function PartnerProgramSummary({
   },
   partner = {
     email: "panic@thedis.co",
+    enrolledAt: new Date(),
   },
   currentMonth: monthlyPerformance = {
     clicks: 100,
@@ -53,6 +54,7 @@ export function PartnerProgramSummary({
   };
   partner: {
     email: string | null;
+    enrolledAt: Date;
   };
   currentMonth: {
     clicks: number;
@@ -132,46 +134,73 @@ export function PartnerProgramSummary({
               Here's a summary of your activity for the month of {currentMonth}.
             </Text>
 
-            <Section className="space-y-6 rounded-xl border border-solid border-neutral-200 p-6">
-              <Section>
-                <Heading
-                  as="h4"
-                  className="mt-0 text-base font-semibold leading-6 text-neutral-800"
-                >
-                  Monthly Stats
-                </Heading>
+            <Section className="rounded-xl border border-solid border-neutral-200">
+              <Section className="rounded-t-xl border-b border-neutral-200 bg-neutral-50 px-6 py-4">
+                <div className="flex items-center gap-4">
+                  <Img
+                    src={program.logo || DUB_WORDMARK}
+                    alt={program.name}
+                    height="32"
+                    width="32"
+                  />
 
-                <div className="grid grid-cols-2 gap-x-3 gap-y-8">
-                  {monthlyStats.map((stat) => (
-                    <Stats key={stat.title} {...stat} />
-                  ))}
+                  <div>
+                    <div className="text-base font-semibold leading-tight text-neutral-800">
+                      {program.name}
+                    </div>
+                    <div className="text-xs font-medium text-neutral-500">
+                      Partner since{" "}
+                      {formatDateTime(partner.enrolledAt, {
+                        month: "long",
+                        year: "numeric",
+                        day: "numeric",
+                      })}
+                    </div>
+                  </div>
                 </div>
               </Section>
 
-              <Hr className="mx-0 my-8 w-full border border-neutral-200" />
+              <Section className="space-y-6 p-6">
+                <Section>
+                  <Heading
+                    as="h4"
+                    className="mt-0 text-base font-semibold leading-6 text-neutral-800"
+                  >
+                    Monthly Stats
+                  </Heading>
 
-              <Section>
-                <Heading
-                  as="h4"
-                  className="mt-0 text-base font-semibold leading-6 text-neutral-800"
-                >
-                  All-time Performance
-                </Heading>
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-8">
+                    {monthlyStats.map((stat) => (
+                      <Stats key={stat.title} {...stat} />
+                    ))}
+                  </div>
+                </Section>
 
-                <div className="grid grid-cols-2 gap-x-3 gap-y-8">
-                  {lifetimeStats.map((stat) => (
-                    <Stats key={stat.title} {...stat} />
-                  ))}
-                </div>
-              </Section>
+                <Hr className="mx-0 my-8 w-full border border-neutral-200" />
 
-              <Section className="mt-8 text-center">
-                <Link
-                  href={`https://partners.dub.co/programs/${program.slug}`}
-                  className="box-border block w-full rounded-lg bg-black px-0 py-4 text-center text-sm font-semibold leading-none text-white no-underline"
-                >
-                  View dashboard
-                </Link>
+                <Section>
+                  <Heading
+                    as="h4"
+                    className="mt-0 text-base font-semibold leading-6 text-neutral-800"
+                  >
+                    All-time Performance
+                  </Heading>
+
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-8">
+                    {lifetimeStats.map((stat) => (
+                      <Stats key={stat.title} {...stat} />
+                    ))}
+                  </div>
+                </Section>
+
+                <Section className="mt-8 text-center">
+                  <Link
+                    href={`https://partners.dub.co/programs/${program.slug}`}
+                    className="box-border block w-full rounded-lg bg-black px-0 py-4 text-center text-sm font-semibold leading-none text-white no-underline"
+                  >
+                    View dashboard
+                  </Link>
+                </Section>
               </Section>
             </Section>
 
