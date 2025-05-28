@@ -1,4 +1,9 @@
-import { DUB_WORDMARK, formatDateTime, nFormatter } from "@dub/utils";
+import {
+  currencyFormatter,
+  DUB_WORDMARK,
+  formatDate,
+  nFormatter,
+} from "@dub/utils";
 import {
   Body,
   Column,
@@ -74,38 +79,44 @@ export function PartnerProgramSummary({
   const monthlyStats = [
     {
       title: "Clicks",
-      value: previousMonth.clicks,
+      value: nFormatter(previousMonth.clicks),
     },
     {
       title: "Leads",
-      value: previousMonth.leads,
+      value: nFormatter(previousMonth.leads),
     },
     {
       title: "Sales",
-      value: previousMonth.sales,
+      value: nFormatter(previousMonth.sales),
     },
     {
       title: "Earnings",
-      value: previousMonth.earnings,
+      value: currencyFormatter(previousMonth.earnings / 100, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }),
     },
   ];
 
   const lifetimeStats = [
     {
       title: "Clicks",
-      value: lifetime.clicks,
+      value: nFormatter(lifetime.clicks),
     },
     {
       title: "Leads",
-      value: lifetime.leads,
+      value: nFormatter(lifetime.leads),
     },
     {
       title: "Sales",
-      value: lifetime.sales,
+      value: nFormatter(lifetime.sales),
     },
     {
       title: "Earnings",
-      value: lifetime.earnings,
+      value: currencyFormatter(lifetime.earnings / 100, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }),
     },
   ];
 
@@ -149,11 +160,7 @@ export function PartnerProgramSummary({
                     </div>
                     <div className="text-xs font-medium text-neutral-500">
                       Partner since{" "}
-                      {formatDateTime(partner.createdAt, {
-                        month: "long",
-                        year: "numeric",
-                        day: "numeric",
-                      })}
+                      {formatDate(partner.createdAt, { month: "short" })}
                     </div>
                   </div>
                 </div>
@@ -208,7 +215,7 @@ const StatsGrid = ({
 }: {
   stats: {
     title: string;
-    value: number;
+    value: number | string;
   }[];
 }) => {
   return (
@@ -221,10 +228,10 @@ const StatsGrid = ({
             ...(startIndex === 2 && { marginTop: "32px" }),
           }}
         >
-          <Column style={{ width: "50%", paddingRight: "12px" }}>
+          <Column width="50%">
             <Stats {...stats[startIndex]} />
           </Column>
-          <Column style={{ width: "50%" }}>
+          <Column width="50%">
             <Stats {...stats[startIndex + 1]} />
           </Column>
         </Row>
@@ -233,21 +240,20 @@ const StatsGrid = ({
   );
 };
 
-const Stats = ({ title, value }: { title: string; value: number }) => {
+const Stats = ({ title, value }: { title: string; value: number | string }) => {
   const icon = ICONS[title.toLowerCase() as Icon];
 
   return (
-    <div className="flex flex-row items-center gap-3 bg-white p-0">
-      <div className="flex h-12 w-12 items-center justify-center rounded-md bg-neutral-100">
-        <img src={icon} alt={title} className="h-4 w-4" />
+    <div className="flex flex-row items-center bg-white p-0">
+      <div className="flex rounded-md bg-neutral-100 p-3">
+        <Img src={icon} alt={title} className="h-4 w-4" />
       </div>
-
-      <div className="flex flex-col justify-center">
-        <p className="mb-1 mt-0 text-left text-xs font-medium text-neutral-500">
+      <div className="ml-3">
+        <p className="mb-0 mt-0 text-left text-xs font-medium text-neutral-500">
           {title}
         </p>
         <p className="m-0 text-left text-lg font-medium text-neutral-800">
-          {nFormatter(value)}
+          {value}
         </p>
       </div>
     </div>
