@@ -1,4 +1,5 @@
 import { checkAccountExistsAction } from "@/lib/actions/check-account-exists";
+import { showMessage } from "@/ui/auth/helpers";
 import { Button, Input, useMediaQuery } from "@dub/ui";
 import { InputPassword } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
@@ -8,10 +9,18 @@ import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useContext, useState } from "react";
-import { toast } from "sonner";
+import { MessageType } from "../../../app/app.dub.co/(auth)/auth.modal.tsx";
 import { errorCodes, LoginFormContext } from "./login-form";
 
-export const EmailSignIn = ({ redirectTo }: { redirectTo?: string }) => {
+export const EmailSignIn = ({
+  redirectTo,
+  authModal,
+  setAuthModalMessage,
+}: {
+  redirectTo?: string;
+  authModal?: boolean;
+  setAuthModalMessage?: (message: string | null, type: MessageType) => void;
+}) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams?.get("next");
@@ -21,7 +30,7 @@ export const EmailSignIn = ({ redirectTo }: { redirectTo?: string }) => {
 
   const {
     showPasswordField,
-    setShowPasswordField,
+    // setShowPasswordField,
     setClickedMethod,
     authMethod,
     setAuthMethod,
@@ -32,9 +41,11 @@ export const EmailSignIn = ({ redirectTo }: { redirectTo?: string }) => {
 
   const { executeAsync, isPending } = useAction(checkAccountExistsAction, {
     onError: ({ error }) => {
-      toast.error(error.serverError);
+      showMessage(error.serverError, "error", authModal, setAuthModalMessage);
     },
   });
+
+  console.log("[showMessage] email sign in", email);
 
   return (
     <>
@@ -60,7 +71,12 @@ export const EmailSignIn = ({ redirectTo }: { redirectTo?: string }) => {
 
             if (!accountExists) {
               setClickedMethod(undefined);
-              toast.error("No account found with that email address.");
+              showMessage(
+                "No account found with that email address.",
+                "error",
+                authModal,
+                setAuthModalMessage,
+              );
               return;
             }
           }
@@ -77,7 +93,12 @@ export const EmailSignIn = ({ redirectTo }: { redirectTo?: string }) => {
 
           if (!accountExists) {
             setClickedMethod(undefined);
-            toast.error("No account found with that email address.");
+            showMessage(
+              "No account found with that email address.",
+              "error",
+              authModal,
+              setAuthModalMessage,
+            );
             return;
           }
 
@@ -96,9 +117,19 @@ export const EmailSignIn = ({ redirectTo }: { redirectTo?: string }) => {
 
           if (!response.ok && response.error) {
             if (errorCodes[response.error]) {
-              toast.error(errorCodes[response.error]);
+              showMessage(
+                errorCodes[response.error],
+                "error",
+                authModal,
+                setAuthModalMessage,
+              );
             } else {
-              toast.error(response.error);
+              showMessage(
+                response.error,
+                "error",
+                authModal,
+                setAuthModalMessage,
+              );
             }
 
             setClickedMethod(undefined);
@@ -108,7 +139,12 @@ export const EmailSignIn = ({ redirectTo }: { redirectTo?: string }) => {
           setLastUsedAuthMethod("email");
 
           if (provider === "email") {
-            toast.success("Email sent - check your inbox!");
+            showMessage(
+              "Email sent - check your inbox!",
+              "success",
+              authModal,
+              setAuthModalMessage,
+            );
             setEmail("");
             setClickedMethod(undefined);
             return;

@@ -1,5 +1,6 @@
 "use client";
 
+import { MessageType } from "../../../app/app.dub.co/(auth)/auth.modal.tsx";
 import { SignUpEmail } from "./signup-email";
 import { SignUpOAuth } from "./signup-oauth";
 
@@ -9,8 +10,12 @@ export const SignUpForm = ({
     "google",
     // "github"
   ],
+  authModal,
+  setAuthModalMessage,
 }: {
   methods?: ("email" | "google")[];
+  authModal?: boolean;
+  setAuthModalMessage?: (message: string | null, type: MessageType) => void;
   // "github"
 }) => {
   return (
@@ -25,7 +30,7 @@ export const SignUpForm = ({
           <div className="border-border-500 grow basis-0 border-b" />
         </div>
       )}
-      {methods.includes("email") && <SignUpEmail />}
+      {methods.includes("email") && <SignUpEmail authModal={authModal} setAuthModalMessage={setAuthModalMessage} />}
     </div>
   );
 };

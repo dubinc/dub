@@ -2,8 +2,9 @@
 
 import { LoginContent } from "@/ui/auth/login/login-content";
 import { SignUpContent } from "@/ui/auth/register/signup-content";
-import { X } from "@/ui/shared/icons";
 import { Modal } from "@dub/ui";
+import { AnimatePresence, motion } from "framer-motion";
+import { CheckCircle, X, XCircle } from "lucide-react";
 import {
   Dispatch,
   SetStateAction,
@@ -14,6 +15,8 @@ import {
 import { ConsentNotice } from "./consent-notice.tsx";
 
 export type AuthType = "login" | "signup";
+
+export type MessageType = "success" | "error" | null;
 
 type AuthModalProps = {
   showAuthModal: boolean;
@@ -29,6 +32,25 @@ export function AuthModal({
   const handleClose = useCallback(() => {
     setShowAuthModal(false);
   }, [setShowAuthModal]);
+
+  const [message, setMessage] = useState<string | null>(null);
+  const [messageType, setMessageType] = useState<MessageType>(null);
+  console.log("[AuthModal] message", message);
+
+  const setAuthModalMessage = useCallback(
+    (msg: string | null, type: MessageType) => {
+      setMessage(msg);
+      setMessageType(type);
+
+      if (type === "success" && msg) {
+        setTimeout(() => {
+          setMessage(null);
+          setMessageType(null);
+        }, 5000);
+      }
+    },
+    [],
+  );
 
   return (
     <Modal
@@ -47,11 +69,41 @@ export function AuthModal({
           </button>
         </div>
 
+        <AnimatePresence>
+          {message && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className={`mx-6 mb-2 rounded-md px-3 py-2 text-sm ${
+                messageType === "success"
+                  ? "text-primary bg-primary-300 border-primary border"
+                  : "border border-red-100 bg-red-50 text-red-700"
+              }`}
+            >
+              <div className="flex items-center">
+                <div className="mr-2 flex-shrink-0">
+                  {messageType === "success" ? (
+                    <CheckCircle className="text-primary h-4 w-4" />
+                  ) : (
+                    <XCircle className="h-4 w-4 text-red-500" />
+                  )}
+                </div>
+                <p>{message}</p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <div className="flex-1 overflow-y-auto p-6 pb-3 pt-0">
           {authType === "login" ? (
-            <LoginContent authModal />
+            <LoginContent authModal setAuthModalMessage={setAuthModalMessage} />
           ) : (
-            <SignUpContent authModal />
+            <SignUpContent
+              authModal
+              setAuthModalMessage={setAuthModalMessage}
+            />
           )}
         </div>
 

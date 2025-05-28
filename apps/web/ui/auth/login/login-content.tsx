@@ -3,12 +3,17 @@
 import LoginForm from "@/ui/auth/login/login-form.tsx";
 import { cn } from "@dub/utils/src";
 import Link from "next/link";
+import { MessageType } from "../../../app/app.dub.co/(auth)/auth.modal.tsx";
 
 type LoginContentProps = {
   authModal?: boolean;
+  setAuthModalMessage?: (message: string | null, type: MessageType) => void;
 };
 
-export function LoginContent({ authModal = false }: LoginContentProps) {
+export function LoginContent({
+  authModal = false,
+  setAuthModalMessage,
+}: LoginContentProps) {
   return (
     <>
       <div
@@ -31,7 +36,10 @@ export function LoginContent({ authModal = false }: LoginContentProps) {
             "px-0 py-4 sm:px-0": authModal,
           })}
         >
-          <LoginForm />
+          <LoginForm
+            setAuthModalMessage={setAuthModalMessage}
+            authModal={authModal}
+          />
         </div>
       </div>
       <p
