@@ -218,7 +218,7 @@ const Stats = ({ title, value }: { title: string; value: number }) => {
   return (
     <div className="flex flex-row items-center gap-3 bg-white p-0">
       <div className="flex h-12 w-12 items-center justify-center rounded-md bg-neutral-100">
-        <img src={icon} alt={title} className="h-6 w-6" />
+        <img src={icon} alt={title} className="h-4 w-4" />
       </div>
 
       <div className="flex flex-col justify-center">
