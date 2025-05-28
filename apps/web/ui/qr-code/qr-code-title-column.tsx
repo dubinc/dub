@@ -6,6 +6,7 @@ import { EQRType, QR_TYPES } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization.ts";
 import { QRCanvas } from "@/ui/qr-builder/qr-canvas.tsx";
 import { AnalyticsBadge } from "@/ui/qr-code/qr-code-details-column.tsx";
+import { QrCodesListContext } from "@/ui/qr-code/qr-codes-container.tsx";
 import {
   ArrowTurnRight2,
   CopyButton,
@@ -41,6 +42,7 @@ export function QrCodeTitleColumn({
   const { domain, key, createdAt, shortLink, archived, title } =
     qrCode?.link ?? {};
   const { isMobile } = useMediaQuery();
+  const { isTrialOver } = useContext(QrCodesListContext);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -62,7 +64,7 @@ export function QrCodeTitleColumn({
             height={isMobile ? 102 : 64}
           />
 
-          {archived ? (
+          {archived || isTrialOver ? (
             <div
               className={cn(
                 "flex w-full justify-center overflow-hidden rounded-md border border-neutral-200/10 md:hidden",
@@ -136,18 +138,20 @@ export function QrCodeTitleColumn({
         </Text>
         <Details link={qrCode.link} hideIcon />
       </div>
-      <div
-        className={cn(
-          "hidden shrink-0 flex-col items-start justify-center gap-1 pl-6 md:flex",
-        )}
-      >
-        <Text as="span" size="2" weight="bold" className="text-neutral-800">
-          Created
-        </Text>
-        <Tooltip content={formatDateTime(createdAt)} delayDuration={150}>
-          <span className="text-neutral-500">{timeAgo(createdAt)}</span>
-        </Tooltip>
-      </div>
+      {!isTrialOver && (
+        <div
+          className={cn(
+            "hidden shrink-0 flex-col items-start justify-center gap-1 pl-6 md:flex",
+          )}
+        >
+          <Text as="span" size="2" weight="bold" className="text-neutral-800">
+            Created
+          </Text>
+          <Tooltip content={formatDateTime(createdAt)} delayDuration={150}>
+            <span className="text-neutral-500">{timeAgo(createdAt)}</span>
+          </Tooltip>
+        </div>
+      )}
     </div>
   );
 }

@@ -12,7 +12,7 @@ import QrCodeSort from "@/ui/qr-code/qr-code-sort.tsx";
 import QrCodesContainer from "@/ui/qr-code/qr-codes-container.tsx";
 import { QrCodesDisplayProvider } from "@/ui/qr-code/qr-codes-display-provider.tsx";
 import { useQrCodeFilters } from "@/ui/qr-code/use-qr-code-filters.tsx";
-import { ThreeDots } from "@/ui/shared/icons";
+import { AlertCircleFill, ThreeDots } from "@/ui/shared/icons";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
   Button,
@@ -23,7 +23,8 @@ import {
   Tooltip,
   TooltipContent,
 } from "@dub/ui";
-import { Download, TableIcon } from "@dub/ui/icons";
+import { Download, ShieldAlert, TableIcon } from "@dub/ui/icons";
+import { motion } from "framer-motion";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
@@ -34,6 +35,9 @@ import {
   useEffect,
   useState,
 } from "react";
+
+// @TODO: Replace hardcoded trial status with actual logic
+const isTrialOver = true;
 
 export default function WorkspaceLinksClient() {
   const { data: session } = useSession();
@@ -55,8 +59,10 @@ export default function WorkspaceLinksClient() {
 }
 
 function WorkspaceLinks() {
+  const router = useRouter();
   const { isValidating } = useQrs();
   const searchParams = useSearchParams();
+  const { slug } = useWorkspace();
 
   const { filters, activeFilters, onRemove, onRemoveAll } = useQrCodeFilters();
 
@@ -74,109 +80,171 @@ function WorkspaceLinks() {
     <>
       {/*<AddEditTagModal />*/}
       <QRBuilderModal />
+
       <div className="flex w-full items-center pt-2">
         <MaxWidthWrapper className="flex flex-col gap-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-2 lg:flex-nowrap">
-            <div className="flex w-full grow gap-2 md:w-auto">
-              {/* @USEFUL_FEATURE: links table filters */}
-              {/*<div className="grow basis-0 md:grow-0">*/}
-              {/*  <Filter.Select*/}
-              {/*    filters={filters}*/}
-              {/*    activeFilters={activeFilters}*/}
-              {/*    onSelect={onSelect}*/}
-              {/*    onRemove={onRemove}*/}
-              {/*    onSearchChange={setSearch}*/}
-              {/*    onSelectedFilterChange={setSelectedFilter}*/}
-              {/*    className="w-full"*/}
-              {/*    emptyState={{*/}
-              {/*      tagIds: (*/}
-              {/*        <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">*/}
-              {/*          <div className="flex items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50 p-3">*/}
-              {/*            <Tag className="size-6 text-neutral-700" />*/}
-              {/*          </div>*/}
-              {/*          <p className="mt-2 font-medium text-neutral-950">*/}
-              {/*            No tags found*/}
-              {/*          </p>*/}
-              {/*          <p className="mx-auto mt-1 w-full max-w-[180px] text-neutral-700">*/}
-              {/*            Add tags to organize your links*/}
-              {/*          </p>*/}
-              {/*          <div>*/}
-              {/*            <Button*/}
-              {/*              className="mt-1 h-8"*/}
-              {/*              onClick={() => setShowAddEditTagModal(true)}*/}
-              {/*              text="Add tag"*/}
-              {/*            />*/}
-              {/*          </div>*/}
-              {/*        </div>*/}
-              {/*      ),*/}
-              {/*      domain: (*/}
-              {/*        <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">*/}
-              {/*          <div className="flex items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50 p-3">*/}
-              {/*            <Globe className="size-6 text-neutral-700" />*/}
-              {/*          </div>*/}
-              {/*          <p className="mt-2 font-medium text-neutral-950">*/}
-              {/*            No domains found*/}
-              {/*          </p>*/}
-              {/*          <p className="mx-auto mt-1 w-full max-w-[180px] text-neutral-700">*/}
-              {/*            Add a custom domain to match your brand*/}
-              {/*          </p>*/}
-              {/*          <div>*/}
-              {/*            <Button*/}
-              {/*              className="mt-1 h-8"*/}
-              {/*              onClick={() =>*/}
-              {/*                router.push(`/${slug}/settings/domains`)*/}
-              {/*              }*/}
-              {/*              text="Add domain"*/}
-              {/*            />*/}
-              {/*          </div>*/}
-              {/*        </div>*/}
-              {/*      ),*/}
-              {/*    }}*/}
-              {/*  />*/}
-              {/*</div>*/}
-              {/* @USEFUL_FEATURE: link table display settings */}
-              {/*<div className="grow basis-0 md:grow-0">*/}
-              {/*  <LinkDisplay />*/}
-              {/*</div>*/}
-              <div className="grow basis-0 md:grow-0">
-                <QrCodeSort />
-              </div>
-            </div>
-            <div className="flex gap-x-2 max-md:w-full">
-              <div className="w-full md:w-56 lg:w-64">
-                <SearchBoxPersisted
-                  loading={isValidating}
-                  inputClassName="h-10"
-                />
+          {isTrialOver && (
+            <>
+              <div className="flex rounded-lg border border-red-200 bg-red-50 p-3">
+                <div className="flex w-full items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <AlertCircleFill className="h-6 w-6 shrink-0 text-red-500" />
+                    <p className="text-sm font-medium text-red-700">
+                      All your dynamic QR codes have been deactivated. To
+                      reactivate them, subscribe to one of our plans.
+                    </p>
+                  </div>
+                  <Button
+                    variant="primary"
+                    className="bg-secondary hover:bg-secondary-800 text-md basis-[30%] whitespace-nowrap px-3 py-1.5 text-white"
+                    onClick={() => router.push(`/${slug}/plans`)}
+                    text="Subscribe now"
+                  />
+                </div>
               </div>
 
-              {
-                isLoading ? (
-                  <div className="flex grow-0 animate-pulse items-center space-x-2">
-                    <div className="h-10 w-24 rounded-md bg-neutral-200" />
-                    <div className="h-10 w-10 rounded-md bg-neutral-200" />
-                  </div>
-                ) : canCreateLinks ? (
-                  <>
-                    <div className="grow-0">
-                      <CreateQRButton />
+              <div className="w-full rounded-lg border border-red-200 bg-gradient-to-r from-red-100 to-red-50">
+                <div className="px-4 py-3">
+                  <div className="flex w-full items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <motion.div
+                        animate={{
+                          scale: [1, 1.1, 1],
+                        }}
+                        transition={{
+                          repeat: Infinity,
+                          duration: 2,
+                          ease: "easeInOut",
+                        }}
+                        className="flex items-center justify-center"
+                      >
+                        <ShieldAlert className="h-6 w-6 shrink-0 text-red-500" />
+                      </motion.div>
+                      <p className="text-sm font-medium text-red-700">
+                        All your dynamic QR codes have been deactivated. To
+                        reactivate them, subscribe to one of our plans.
+                      </p>
                     </div>
-                    {/* @USEFUL_FEATURE: more links next to Create QR button */}
-                    {/*<MoreLinkOptions />*/}
-                  </>
-                ) : null
-                // (
-                //     <div className="w-fit">
-                //       <RequestFolderEditAccessButton
-                //           folderId={folderId!}
-                //           workspaceId={workspaceId!}
-                //           variant="primary"
-                //       />
-                //     </div>
-                // )
-              }
+                    <motion.div
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
+                    >
+                      <Button
+                        variant="primary"
+                        className="bg-secondary hover:bg-secondary-800 text-md whitespace-nowrap font-medium text-white"
+                        onClick={() => router.push(`/${slug}/plans`)}
+                        text="Restore access"
+                      />
+                    </motion.div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {!isTrialOver && (
+            <div className="flex flex-wrap items-center justify-between gap-2 lg:flex-nowrap">
+              <div className="flex w-full grow gap-2 md:w-auto">
+                {/* @USEFUL_FEATURE: links table filters */}
+                {/*<div className="grow basis-0 md:grow-0">*/}
+                {/*  <Filter.Select*/}
+                {/*    filters={filters}*/}
+                {/*    activeFilters={activeFilters}*/}
+                {/*    onSelect={onSelect}*/}
+                {/*    onRemove={onRemove}*/}
+                {/*    onSearchChange={setSearch}*/}
+                {/*    onSelectedFilterChange={setSelectedFilter}*/}
+                {/*    className="w-full"*/}
+                {/*    emptyState={{*/}
+                {/*      tagIds: (*/}
+                {/*        <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">*/}
+                {/*          <div className="flex items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50 p-3">*/}
+                {/*            <Tag className="size-6 text-neutral-700" />*/}
+                {/*          </div>*/}
+                {/*          <p className="mt-2 font-medium text-neutral-950">*/}
+                {/*            No tags found*/}
+                {/*          </p>*/}
+                {/*          <p className="mx-auto mt-1 w-full max-w-[180px] text-neutral-700">*/}
+                {/*            Add tags to organize your links*/}
+                {/*          </p>*/}
+                {/*          <div>*/}
+                {/*            <Button*/}
+                {/*              className="mt-1 h-8"*/}
+                {/*              onClick={() => setShowAddEditTagModal(true)}*/}
+                {/*              text="Add tag"*/}
+                {/*            />*/}
+                {/*          </div>*/}
+                {/*        </div>*/}
+                {/*      ),*/}
+                {/*      domain: (*/}
+                {/*        <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">*/}
+                {/*          <div className="flex items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50 p-3">*/}
+                {/*            <Globe className="size-6 text-neutral-700" />*/}
+                {/*          </div>*/}
+                {/*          <p className="mt-2 font-medium text-neutral-950">*/}
+                {/*            No domains found*/}
+                {/*          </p>*/}
+                {/*          <p className="mx-auto mt-1 w-full max-w-[180px] text-neutral-700">*/}
+                {/*            Add a custom domain to match your brand*/}
+                {/*          </p>*/}
+                {/*          <div>*/}
+                {/*            <Button*/}
+                {/*              className="mt-1 h-8"*/}
+                {/*              onClick={() =>*/}
+                {/*                router.push(`/${slug}/settings/domains`)*/}
+                {/*              }*/}
+                {/*              text="Add domain"*/}
+                {/*            />*/}
+                {/*          </div>*/}
+                {/*        </div>*/}
+                {/*      ),*/}
+                {/*    }}*/}
+                {/*  />*/}
+                {/*</div>*/}
+                {/* @USEFUL_FEATURE: link table display settings */}
+                {/*<div className="grow basis-0 md:grow-0">*/}
+                {/*  <LinkDisplay />*/}
+                {/*</div>*/}
+                <div className="grow basis-0 md:grow-0">
+                  <QrCodeSort />
+                </div>
+              </div>
+              <div className="flex gap-x-2 max-md:w-full">
+                <div className="w-full md:w-56 lg:w-64">
+                  <SearchBoxPersisted
+                    loading={isValidating}
+                    inputClassName="h-10"
+                  />
+                </div>
+
+                {
+                  isLoading ? (
+                    <div className="flex grow-0 animate-pulse items-center space-x-2">
+                      <div className="h-10 w-24 rounded-md bg-neutral-200" />
+                      <div className="h-10 w-10 rounded-md bg-neutral-200" />
+                    </div>
+                  ) : canCreateLinks ? (
+                    <>
+                      <div className="grow-0">
+                        <CreateQRButton />
+                      </div>
+                      {/* @USEFUL_FEATURE: more links next to Create QR button */}
+                      {/*<MoreLinkOptions />*/}
+                    </>
+                  ) : null
+                  // (
+                  //     <div className="w-fit">
+                  //       <RequestFolderEditAccessButton
+                  //           folderId={folderId!}
+                  //           workspaceId={workspaceId!}
+                  //           variant="primary"
+                  //       />
+                  //     </div>
+                  // )
+                }
+              </div>
             </div>
-          </div>
+          )}
           <Filter.List
             filters={filters}
             activeFilters={activeFilters}
@@ -188,7 +256,10 @@ function WorkspaceLinks() {
 
       <div className="mt-3">
         <QrCodesContainer
-          CreateQrCodeButton={canCreateLinks ? CreateQRButton : () => <></>}
+          CreateQrCodeButton={
+            canCreateLinks && !isTrialOver ? CreateQRButton : () => <></>
+          }
+          isTrialOver={isTrialOver}
         />
       </div>
     </>

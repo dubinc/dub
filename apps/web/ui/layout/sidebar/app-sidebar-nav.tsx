@@ -76,11 +76,11 @@ const NAV_AREAS: SidebarNavAreas<{
             // href: "/statistics", // @TODO: Add statistics page`,
             href: `/${slug}/analytics${pathname === `/${slug}/analytics` ? "" : queryString}`,
           },
-          // {
-          //   name: "Plans and Payments",
-          //   icon: () => <Icon icon="ion:card-outline" className="h-5 w-5" />,
-          //   href: "/plans", // @TODO: Add plans and payments page
-          // },
+          {
+            name: "Plans and Payments",
+            icon: () => <Icon icon="ion:card-outline" className="h-5 w-5" />,
+            href: "/plans", // @TODO: Add plans and payments page
+          },
           // {
           //   name: "Account",
           //   icon: () => (
