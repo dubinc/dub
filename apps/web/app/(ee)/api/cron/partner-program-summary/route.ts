@@ -54,6 +54,13 @@ async function handler(req: Request) {
       where: {
         programId: program.id,
         status: "approved",
+        links: {
+          some: {
+            leads: {
+              gt: 0,
+            },
+          },
+        },
       },
       select: {
         partner: {
@@ -118,14 +125,7 @@ async function handler(req: Request) {
       }),
     ]);
 
-    if (earningsLifetime.length === 0) {
-      console.log(`No commissions found for program ${program.id}.`);
-      return NextResponse.json(
-        `No commissions found for program ${program.id}.`,
-      );
-    }
-
-    const stats = partners.map((partner) => {
+    const summary = partners.map((partner) => {
       const earningsMonthly = earningsPreviousMonth.find(
         (commission) => commission.partnerId === partner.id,
       );
@@ -136,21 +136,27 @@ async function handler(req: Request) {
 
       return {
         partner,
-        earningsPreviousMonth: earningsMonthly?._sum.earnings ?? 0,
-        earningsLifetime: earningsTotal?._sum.earnings ?? 0,
+        currentMonth: {
+          clicks: 0,
+          leads: 0,
+          sales: 0,
+          earnings: earningsMonthly?._sum.earnings ?? 0,
+        },
+        lifetime: {
+          clicks: 0,
+          leads: 0,
+          sales: 0,
+          earnings: earningsTotal?._sum.earnings ?? 0,
+        },
       };
     });
 
-    if (stats.length === 0) {
-      console.log(`No stats found for program ${program.id}.`);
-      return NextResponse.json(`No stats found for program ${program.id}.`);
-    }
+    console.log("summary", summary);
 
-    console.log(stats);
-    return;
+    return NextResponse.json("Ok");
 
     await Promise.allSettled(
-      stats.map(({ partner, earningsPreviousMonth, earningsLifetime }) => {
+      summary.map(({ partner, currentMonth, lifetime }) => {
         limiter.schedule(() =>
           sendEmail({
             subject: `${program.name} partner program summary`,
@@ -158,18 +164,8 @@ async function handler(req: Request) {
             react: PartnerProgramSummary({
               program,
               partner,
-              currentMonth: {
-                clicks: 0,
-                leads: 0,
-                sales: 0,
-                earnings: earningsPreviousMonth,
-              },
-              lifetime: {
-                clicks: 0,
-                leads: 0,
-                sales: 0,
-                earnings: earningsLifetime,
-              },
+              currentMonth,
+              lifetime,
             }),
           }),
         );
