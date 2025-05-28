@@ -43,17 +43,10 @@ export const POST = withAdmin(async ({ req }) => {
   );
 
   waitUntil(
-    Promise.allSettled(
+    Promise.all(
       user.projects.map(({ project }) => deleteWorkspaceAdmin(project)),
     ).then(async () => {
-      await Promise.allSettled([
-        // delete user
-        prisma.user.delete({
-          where: {
-            id: user.id,
-          },
-        }),
-        // if the user has a custom avatar, delete it
+      await Promise.all([
         user.image &&
           isStored(user.image) &&
           storage.delete(user.image.replace(`${R2_URL}/`, "")),
@@ -63,6 +56,13 @@ export const POST = withAdmin(async ({ req }) => {
           value: email,
         }),
       ]);
+
+      // delete user
+      await prisma.user.delete({
+        where: {
+          id: user.id,
+        },
+      });
     }),
   );
 
