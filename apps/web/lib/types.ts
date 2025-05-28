@@ -462,10 +462,7 @@ export type FolderWithPermissions = {
   permissions: FolderPermission[];
 };
 
-export type FolderSummary = Pick<
-  Folder,
-  "id" | "name" | "accessLevel" | "type"
->;
+export type FolderSummary = Pick<Folder, "id" | "name" | "accessLevel">;
 
 // Rewards
 

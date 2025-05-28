@@ -365,7 +365,7 @@ const FolderUserPlaceholder = () => (
 );
 
 export function useFolderPermissionsPanel(
-  folder: Pick<Folder, "id" | "name" | "accessLevel" | "type">,
+  folder: Pick<Folder, "id" | "name" | "accessLevel">,
 ) {
   const [showFolderPermissionsPanel, setShowFolderPermissionsPanel] =
     useState(false);
