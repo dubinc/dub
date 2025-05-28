@@ -1,16 +1,15 @@
 "use client";
 
+import { useFolderLinkCount } from "@/lib/swr/use-folder-link-count";
 import {
   useCheckFolderPermission,
   useFolderPermissions,
 } from "@/lib/swr/use-folder-permissions";
-import useLinksCount from "@/lib/swr/use-links-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Folder } from "@/lib/types";
 import { Globe } from "@dub/ui/icons";
 import { cn, nFormatter, pluralize } from "@dub/utils";
 import Link from "next/link";
-import { useMemo } from "react";
 import { FolderActions } from "./folder-actions";
 import { FolderIcon } from "./folder-icon";
 import { RequestFolderEditAccessButton } from "./request-edit-button";
@@ -80,24 +79,9 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
 };
 
 function FolderLinksCount({ folder }: { folder: Folder }) {
-  const { data: folderLinksCount, loading } = useLinksCount<
-    {
-      folderId: string;
-      _count: number;
-    }[]
-  >({ query: { groupBy: "folderId" } });
-
-  const folderLinkCount = useMemo(() => {
-    return (
-      folderLinksCount?.find(
-        ({ folderId }) =>
-          folderId === folder.id ||
-          (folder.id === "unsorted" && folderId === null),
-      )?._count || 0
-    );
-  }, [folderLinksCount, folder.id]);
-
-  console.log({ folderLinkCount });
+  const { folderLinkCount, loading } = useFolderLinkCount({
+    folderId: folder.id,
+  });
 
   return (
     <div className="mt-1.5 flex items-center gap-1 text-neutral-500">

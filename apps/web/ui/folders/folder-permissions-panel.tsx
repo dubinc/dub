@@ -4,11 +4,11 @@ import {
   FOLDER_WORKSPACE_ACCESS,
 } from "@/lib/folder/constants";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { useFolderLinkCount } from "@/lib/swr/use-folder-link-count";
 import {
   useCheckFolderPermission,
   useFolderPermissions,
 } from "@/lib/swr/use-folder-permissions";
-import useLinksCount from "@/lib/swr/use-links-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Folder, FolderUser } from "@/lib/types";
 import { FolderUserRole } from "@dub/prisma/client";
@@ -17,7 +17,7 @@ import { Globe, UserCheck } from "@dub/ui/icons";
 import { cn, fetcher, nFormatter, OG_AVATAR_URL, pluralize } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
 import { Drawer } from "vaul";
@@ -69,22 +69,7 @@ const FolderPermissionsPanel = ({
       keepPreviousData: true,
     },
   );
-  const { data: folderLinksCount, loading } = useLinksCount<
-    {
-      folderId: string;
-      _count: number;
-    }[]
-  >({ query: { groupBy: "folderId" } });
-
-  const folderLinkCount = useMemo(() => {
-    return (
-      folderLinksCount?.find(
-        ({ folderId }) =>
-          folderId === folder.id ||
-          (folder.id === "unsorted" && folderId === null),
-      )?._count || 0
-    );
-  }, [folderLinksCount, folder.id]);
+  const { folderLinkCount } = useFolderLinkCount({ folderId: folder.id });
 
   const updateWorkspaceAccessLevel = async (accessLevel: string) => {
     setIsUpdating(true);
