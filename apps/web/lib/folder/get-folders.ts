@@ -1,16 +1,19 @@
 import { prisma } from "@dub/prisma";
+import { FolderType } from "@prisma/client";
 import { FOLDERS_MAX_PAGE_SIZE } from "../zod/schemas/folders";
 
 export const getFolders = async ({
   workspaceId,
   userId,
   search,
+  type,
   pageSize = FOLDERS_MAX_PAGE_SIZE,
   page = 1,
 }: {
   workspaceId: string;
   userId: string;
   search?: string;
+  type?: FolderType;
   pageSize?: number;
   page?: number;
 }) => {
@@ -45,6 +48,7 @@ export const getFolders = async ({
           contains: search,
         },
       }),
+      type,
     },
     select: {
       id: true,
