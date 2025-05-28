@@ -4,6 +4,7 @@ import { sendOtpAction } from "@/lib/actions/send-otp";
 import z from "@/lib/zod";
 import { signUpSchema } from "@/lib/zod/schemas/auth";
 import { showMessage } from "@/ui/auth/helpers";
+import { ERegistrationStep } from "@/ui/auth/register/constants";
 import { Button, Input } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import { useForm } from "react-hook-form";
@@ -36,7 +37,7 @@ export const SignUpEmail = ({
     onSuccess: () => {
       setEmail(getValues("email"));
       setPassword(getValues("password"));
-      setStep("verify");
+      setStep(ERegistrationStep.VERIFY);
     },
     onError: ({ error }) => {
       showMessage(

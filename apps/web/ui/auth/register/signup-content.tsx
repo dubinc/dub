@@ -2,7 +2,9 @@
 
 import { cn, truncate } from "@dub/utils";
 import Link from "next/link";
+import { useEffect } from "react";
 import { MessageType } from "../../../app/app.dub.co/(auth)/auth.modal.tsx";
+import { ERegistrationStep } from "./constants";
 import { RegisterProvider, useRegisterContext } from "./context";
 import { SignUpForm } from "./signup-form";
 import { VerifyEmailForm } from "./verify-email-form";
@@ -10,6 +12,7 @@ import { VerifyEmailForm } from "./verify-email-form";
 type SignUpContentProps = {
   authModal?: boolean;
   setAuthModalMessage?: (message: string | null, type: MessageType) => void;
+  onStepChange?: (step: ERegistrationStep) => void;
 };
 
 function SignUpStep({ authModal = false }) {
@@ -79,8 +82,18 @@ function VerifyStep({ authModal = false, setAuthModalMessage }) {
   );
 }
 
-function RegisterContent({ authModal = false, setAuthModalMessage }) {
+function RegisterContent({
+  authModal = false,
+  setAuthModalMessage,
+  onStepChange,
+}) {
   const { step } = useRegisterContext();
+
+  useEffect(() => {
+    if (onStepChange) {
+      onStepChange(step);
+    }
+  }, [step, onStepChange]);
 
   return (
     <>
@@ -90,7 +103,7 @@ function RegisterContent({ authModal = false, setAuthModalMessage }) {
             !authModal,
         })}
       >
-        {step === "signup" ? (
+        {step === ERegistrationStep.SIGNUP ? (
           <SignUpStep authModal={authModal} />
         ) : (
           <VerifyStep
@@ -101,7 +114,7 @@ function RegisterContent({ authModal = false, setAuthModalMessage }) {
       </div>
       <p
         className={cn("mt-4 text-center text-sm text-neutral-500", {
-          "text-xs": step === "verify",
+          "text-xs": authModal && step === ERegistrationStep.VERIFY,
         })}
       >
         Already have an account?&nbsp;
@@ -119,12 +132,14 @@ function RegisterContent({ authModal = false, setAuthModalMessage }) {
 export function SignUpContent({
   authModal = false,
   setAuthModalMessage,
+  onStepChange,
 }: SignUpContentProps) {
   return (
     <RegisterProvider>
       <RegisterContent
         authModal={authModal}
         setAuthModalMessage={setAuthModalMessage}
+        onStepChange={onStepChange}
       />
     </RegisterProvider>
   );

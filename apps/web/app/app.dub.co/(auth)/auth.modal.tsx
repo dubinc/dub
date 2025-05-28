@@ -2,6 +2,7 @@
 
 import { LoginContent } from "@/ui/auth/login/login-content";
 import { SignUpContent } from "@/ui/auth/register/signup-content";
+import { ERegistrationStep } from "@/ui/auth/register/constants";
 import { Modal } from "@dub/ui";
 import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle, X, XCircle } from "lucide-react";
@@ -35,6 +36,9 @@ export function AuthModal({
 
   const [message, setMessage] = useState<string | null>(null);
   const [messageType, setMessageType] = useState<MessageType>(null);
+  const [registrationStep, setRegistrationStep] = useState<ERegistrationStep>(
+    ERegistrationStep.SIGNUP,
+  );
   console.log("[AuthModal] message", message);
 
   const setAuthModalMessage = useCallback(
@@ -51,6 +55,10 @@ export function AuthModal({
     },
     [],
   );
+
+  const updateStep = useCallback((step: ERegistrationStep) => {
+    setRegistrationStep(step);
+  }, []);
 
   return (
     <Modal
@@ -103,11 +111,14 @@ export function AuthModal({
             <SignUpContent
               authModal
               setAuthModalMessage={setAuthModalMessage}
+              onStepChange={updateStep}
             />
           )}
         </div>
 
-        {authType === "signup" && <ConsentNotice />}
+        {authType === "signup" && registrationStep === ERegistrationStep.SIGNUP && (
+          <ConsentNotice />
+        )}
       </div>
     </Modal>
   );

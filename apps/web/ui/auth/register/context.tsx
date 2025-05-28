@@ -1,14 +1,15 @@
 "use client";
 
 import React, { createContext, useContext, useState } from "react";
+import { ERegistrationStep } from "./constants";
 
 interface RegisterContextType {
   email: string;
   password: string;
-  step: "signup" | "verify";
+  step: ERegistrationStep;
   setEmail: (email: string) => void;
   setPassword: (password: string) => void;
-  setStep: (step: "signup" | "verify") => void;
+  setStep: (step: ERegistrationStep) => void;
 }
 
 const RegisterContext = createContext<RegisterContextType | undefined>(
@@ -20,7 +21,7 @@ export const RegisterProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [step, setStep] = useState<"signup" | "verify">("signup");
+  const [step, setStep] = useState<ERegistrationStep>(ERegistrationStep.SIGNUP);
 
   return (
     <RegisterContext.Provider
