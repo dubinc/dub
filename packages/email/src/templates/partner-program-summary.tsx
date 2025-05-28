@@ -135,7 +135,7 @@ export function PartnerProgramSummary({
             </Text>
 
             <Section className="rounded-xl border border-solid border-neutral-200 bg-neutral-50">
-              <Section className="rounded-t-xl px-6 py-4">
+              <Section className="rounded-t-xl px-6 py-5">
                 <div className="flex items-center gap-4">
                   <Img
                     src={program.logo || DUB_WORDMARK}
