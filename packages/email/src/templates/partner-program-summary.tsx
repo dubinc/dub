@@ -1,4 +1,4 @@
-import { DUB_WORDMARK } from "@dub/utils";
+import { DUB_WORDMARK, nFormatter } from "@dub/utils";
 import {
   Body,
   Container,
@@ -115,7 +115,7 @@ export function PartnerProgramSummary({
       <Preview>{`Your ${currentMonth} performance report for ${program.name} program.`}</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
-          <Container className="mx-auto my-10 max-w-[600px] space-y-10 rounded border border-solid border-neutral-200 px-10 py-5">
+          <Container className="space-y-10px-10 mx-auto my-10 max-w-[600px] py-5">
             <Section className="mt-8">
               <Img
                 src={program.logo || DUB_WORDMARK}
@@ -128,49 +128,51 @@ export function PartnerProgramSummary({
               {program.name} partner program monthly summary
             </Heading>
 
-            <Text className="text-sm text-neutral-600">
+            <Text className="mt-1 text-sm text-neutral-600">
               Here's a summary of your activity for the month of {currentMonth}.
             </Text>
 
-            <Section className="mb-8">
-              <Heading
-                as="h4"
-                className="text-base font-semibold leading-6 text-neutral-800"
-              >
-                Monthly Stats
-              </Heading>
+            <Section className="space-y-6 rounded-xl border border-solid border-neutral-200 p-6">
+              <Section>
+                <Heading
+                  as="h4"
+                  className="mt-0 text-base font-semibold leading-6 text-neutral-800"
+                >
+                  Monthly Stats
+                </Heading>
 
-              <div className="grid grid-cols-2 gap-x-3 gap-y-8">
-                {monthlyStats.map((stat) => (
-                  <Stats key={stat.title} {...stat} />
-                ))}
-              </div>
-            </Section>
+                <div className="grid grid-cols-2 gap-x-3 gap-y-8">
+                  {monthlyStats.map((stat) => (
+                    <Stats key={stat.title} {...stat} />
+                  ))}
+                </div>
+              </Section>
 
-            <Hr className="mx-0 w-full border border-neutral-200" />
+              <Hr className="mx-0 my-8 w-full border border-neutral-200" />
 
-            <Section className="mb-8">
-              <Heading
-                as="h4"
-                className="text-base font-semibold leading-6 text-neutral-800"
-              >
-                All-time Performance
-              </Heading>
+              <Section>
+                <Heading
+                  as="h4"
+                  className="mt-0 text-base font-semibold leading-6 text-neutral-800"
+                >
+                  All-time Performance
+                </Heading>
 
-              <div className="grid grid-cols-2 gap-x-3 gap-y-8">
-                {lifetimeStats.map((stat) => (
-                  <Stats key={stat.title} {...stat} />
-                ))}
-              </div>
-            </Section>
+                <div className="grid grid-cols-2 gap-x-3 gap-y-8">
+                  {lifetimeStats.map((stat) => (
+                    <Stats key={stat.title} {...stat} />
+                  ))}
+                </div>
+              </Section>
 
-            <Section className="mt-8 text-center">
-              <Link
-                href={`https://partners.dub.co/programs/${program.slug}`}
-                className="box-border block w-full rounded-lg bg-black px-0 py-4 text-center text-sm font-semibold leading-none text-white no-underline"
-              >
-                View dashboard
-              </Link>
+              <Section className="mt-8 text-center">
+                <Link
+                  href={`https://partners.dub.co/programs/${program.slug}`}
+                  className="box-border block w-full rounded-lg bg-black px-0 py-4 text-center text-sm font-semibold leading-none text-white no-underline"
+                >
+                  View dashboard
+                </Link>
+              </Section>
             </Section>
 
             <Footer email={partner.email!} />
@@ -195,7 +197,7 @@ const Stats = ({ title, value }: { title: string; value: number }) => {
           {title}
         </p>
         <p className="m-0 text-left text-lg font-medium text-neutral-800">
-          {value}
+          {nFormatter(value)}
         </p>
       </div>
     </div>
