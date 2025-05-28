@@ -23,12 +23,14 @@ type AuthModalProps = {
   showAuthModal: boolean;
   setShowAuthModal: Dispatch<SetStateAction<boolean>>;
   authType: AuthType;
+  setAuthType: Dispatch<SetStateAction<AuthType>>;
 };
 
 export function AuthModal({
   showAuthModal,
   setShowAuthModal,
   authType,
+  setAuthType,
 }: AuthModalProps) {
   const handleClose = useCallback(() => {
     setShowAuthModal(false);
@@ -59,6 +61,10 @@ export function AuthModal({
   const updateStep = useCallback((step: ERegistrationStep) => {
     setRegistrationStep(step);
   }, []);
+
+  const switchAuthType = useCallback((type: AuthType) => {
+    setAuthType(type);
+  }, [setAuthType]);
 
   return (
     <Modal
@@ -105,20 +111,45 @@ export function AuthModal({
         </AnimatePresence>
 
         <div className="flex-1 overflow-y-auto p-6 pb-3 pt-0">
-          {authType === "login" ? (
-            <LoginContent authModal setAuthModalMessage={setAuthModalMessage} />
-          ) : (
-            <SignUpContent
-              authModal
-              setAuthModalMessage={setAuthModalMessage}
-              onStepChange={updateStep}
-            />
-          )}
+          <AnimatePresence mode="wait">
+            {authType === "login" ? (
+              <motion.div
+                key="login"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <LoginContent 
+                  authModal 
+                  setAuthModalMessage={setAuthModalMessage}
+                  switchAuthType={switchAuthType} 
+                />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="signup"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <SignUpContent
+                  authModal
+                  setAuthModalMessage={setAuthModalMessage}
+                  onStepChange={updateStep}
+                  switchAuthType={switchAuthType}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
-        {authType === "signup" && registrationStep === ERegistrationStep.SIGNUP && (
-          <ConsentNotice />
-        )}
+        <AnimatePresence>
+          {authType === "signup" && registrationStep === ERegistrationStep.SIGNUP && (
+            <ConsentNotice key="consent-notice" />
+          )}
+        </AnimatePresence>
       </div>
     </Modal>
   );
@@ -139,6 +170,7 @@ export function useAuthModal() {
         showAuthModal={showAuthModal}
         setShowAuthModal={setShowAuthModal}
         authType={authType}
+        setAuthType={setAuthType}
       />
     );
   }, [showAuthModal, setShowAuthModal, authType, setAuthType]);

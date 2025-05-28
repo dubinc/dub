@@ -1,9 +1,13 @@
 "use client";
 
 import { cn, truncate } from "@dub/utils";
+import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { useEffect } from "react";
-import { MessageType } from "../../../app/app.dub.co/(auth)/auth.modal.tsx";
+import {
+  AuthType,
+  MessageType,
+} from "../../../app/app.dub.co/(auth)/auth.modal.tsx";
 import { ERegistrationStep } from "./constants";
 import { RegisterProvider, useRegisterContext } from "./context";
 import { SignUpForm } from "./signup-form";
@@ -13,11 +17,23 @@ type SignUpContentProps = {
   authModal?: boolean;
   setAuthModalMessage?: (message: string | null, type: MessageType) => void;
   onStepChange?: (step: ERegistrationStep) => void;
+  switchAuthType?: (type: AuthType) => void;
+};
+
+const contentVariants = {
+  hidden: { opacity: 0, x: 20 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.3, ease: "easeOut" } },
+  exit: { opacity: 0, x: -20, transition: { duration: 0.2 } },
 };
 
 function SignUpStep({ authModal = false }) {
   return (
-    <>
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+      variants={contentVariants}
+    >
       <div
         className={cn(
           "border-border-500 border-b bg-white pb-6 pt-8 text-center",
@@ -43,7 +59,7 @@ function SignUpStep({ authModal = false }) {
       >
         <SignUpForm authModal={authModal} />
       </div>
-    </>
+    </motion.div>
   );
 }
 
@@ -51,7 +67,12 @@ function VerifyStep({ authModal = false, setAuthModalMessage }) {
   const { email } = useRegisterContext();
 
   return (
-    <>
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+      variants={contentVariants}
+    >
       <div
         className={cn(
           "border-border-500 flex flex-col items-center justify-center gap-3 border-b bg-white px-4 pb-6 pt-8 text-center sm:px-16",
@@ -78,7 +99,7 @@ function VerifyStep({ authModal = false, setAuthModalMessage }) {
           setAuthModalMessage={setAuthModalMessage}
         />
       </div>
-    </>
+    </motion.div>
   );
 }
 
@@ -86,6 +107,7 @@ function RegisterContent({
   authModal = false,
   setAuthModalMessage,
   onStepChange,
+  switchAuthType,
 }) {
   const { step } = useRegisterContext();
 
@@ -97,34 +119,52 @@ function RegisterContent({
 
   return (
     <>
-      <div
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
         className={cn("w-full max-w-md overflow-hidden", {
           "border-border-500 border-y sm:rounded-2xl sm:border sm:shadow-sm":
             !authModal,
         })}
       >
-        {step === ERegistrationStep.SIGNUP ? (
-          <SignUpStep authModal={authModal} />
-        ) : (
-          <VerifyStep
-            authModal={authModal}
-            setAuthModalMessage={setAuthModalMessage}
-          />
-        )}
-      </div>
-      <p
+        <AnimatePresence mode="wait">
+          {step === ERegistrationStep.SIGNUP ? (
+            <SignUpStep key="signup" authModal={authModal} />
+          ) : (
+            <VerifyStep
+              key="verify"
+              authModal={authModal}
+              setAuthModalMessage={setAuthModalMessage}
+            />
+          )}
+        </AnimatePresence>
+      </motion.div>
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
         className={cn("mt-4 text-center text-sm text-neutral-500", {
           "text-xs": authModal && step === ERegistrationStep.VERIFY,
         })}
       >
         Already have an account?&nbsp;
-        <Link
-          href="/login"
-          className="hover:text-neutral font-semibold text-neutral-500 underline underline-offset-2 transition-colors"
-        >
-          Log in
-        </Link>
-      </p>
+        {authModal ? (
+          <button
+            onClick={() => switchAuthType && switchAuthType("login")}
+            className="hover:text-neutral font-semibold text-neutral-500 underline underline-offset-2 transition-colors"
+          >
+            Log in
+          </button>
+        ) : (
+          <Link
+            href="/login"
+            className="hover:text-neutral font-semibold text-neutral-500 underline underline-offset-2 transition-colors"
+          >
+            Log in
+          </Link>
+        )}
+      </motion.p>
     </>
   );
 }
@@ -133,6 +173,7 @@ export function SignUpContent({
   authModal = false,
   setAuthModalMessage,
   onStepChange,
+  switchAuthType,
 }: SignUpContentProps) {
   return (
     <RegisterProvider>
@@ -140,6 +181,7 @@ export function SignUpContent({
         authModal={authModal}
         setAuthModalMessage={setAuthModalMessage}
         onStepChange={onStepChange}
+        switchAuthType={switchAuthType}
       />
     </RegisterProvider>
   );
