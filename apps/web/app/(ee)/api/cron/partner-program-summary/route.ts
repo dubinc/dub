@@ -162,7 +162,7 @@ async function handler(req: Request) {
 
         return {
           partner,
-          currentMonth: {
+          previousMonth: {
             clicks: analyticsMonthly?.clicks ?? 0,
             leads: analyticsMonthly?.leads ?? 0,
             sales: analyticsMonthly?.sales ?? 0,
@@ -179,7 +179,7 @@ async function handler(req: Request) {
       .filter(({ lifetime }) => lifetime.leads > 0);
 
     await Promise.allSettled(
-      summary.map(({ partner, currentMonth, lifetime }) => {
+      summary.map(({ partner, previousMonth, lifetime }) => {
         limiter.schedule(() =>
           sendEmail({
             subject: `${program.name} partner program summary`,
@@ -187,7 +187,7 @@ async function handler(req: Request) {
             react: PartnerProgramSummary({
               program,
               partner,
-              currentMonth,
+              previousMonth,
               lifetime,
             }),
           }),

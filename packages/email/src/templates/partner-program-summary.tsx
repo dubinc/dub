@@ -34,13 +34,13 @@ export function PartnerProgramSummary({
     email: "panic@thedis.co",
     createdAt: new Date(),
   },
-  currentMonth: monthlyPerformance = {
+  previousMonth = {
     clicks: 100,
     leads: 100,
     sales: 100,
     earnings: 100,
   },
-  lifetime: lifetimePerformance = {
+  lifetime = {
     clicks: 200,
     leads: 200,
     sales: 200,
@@ -56,7 +56,7 @@ export function PartnerProgramSummary({
     email: string | null;
     createdAt: Date;
   };
-  currentMonth: {
+  previousMonth: {
     clicks: number;
     leads: number;
     sales: number;
@@ -72,38 +72,38 @@ export function PartnerProgramSummary({
   const monthlyStats = [
     {
       title: "Clicks",
-      value: monthlyPerformance.clicks,
+      value: previousMonth.clicks,
     },
     {
       title: "Leads",
-      value: monthlyPerformance.leads,
+      value: previousMonth.leads,
     },
     {
       title: "Sales",
-      value: monthlyPerformance.sales,
+      value: previousMonth.sales,
     },
     {
       title: "Earnings",
-      value: monthlyPerformance.earnings,
+      value: previousMonth.earnings,
     },
   ];
 
   const lifetimeStats = [
     {
       title: "Clicks",
-      value: lifetimePerformance.clicks,
+      value: lifetime.clicks,
     },
     {
       title: "Leads",
-      value: lifetimePerformance.leads,
+      value: lifetime.leads,
     },
     {
       title: "Sales",
-      value: lifetimePerformance.sales,
+      value: lifetime.sales,
     },
     {
       title: "Earnings",
-      value: lifetimePerformance.earnings,
+      value: lifetime.earnings,
     },
   ];
 
