@@ -4,7 +4,6 @@ import {
   QR_TYPE_INPUTS_CONFIG,
   TQRInputType,
 } from "@/ui/qr-builder/constants/qr-type-inputs-config.ts";
-import { getFormFieldId } from "@/ui/qr-builder/helpers/get-form-field-id.ts";
 import { isValidPhoneNumber } from "react-phone-number-input";
 import { z } from "zod";
 
@@ -71,8 +70,7 @@ export function getQRValidationSchema(qrType: EQRType) {
   const shape: Record<string, z.ZodTypeAny> = {};
 
   inputConfigs?.forEach((input) => {
-    const key = getFormFieldId(input.id, input.type, input.label);
-    shape[key] = getFieldValidation(key, input.type);
+    shape[input.id] = getFieldValidation(input.id, input.type);
   });
 
   return z.object(shape);

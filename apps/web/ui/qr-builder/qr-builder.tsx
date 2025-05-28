@@ -34,11 +34,12 @@ import {
   QR_TYPES,
 } from "./constants/get-qr-config.ts";
 import { useQrCustomization } from "./hooks/use-qr-customization.ts";
+import { getFiles, setFiles } from './helpers/file-store.ts';
 
 interface IQRBuilderProps {
   props?: ResponseQrCode;
   homepageDemo?: boolean;
-  handleSaveQR?: (data: QRBuilderData) => void;
+  handleSaveQR?: (data: QRBuilderData) => Promise<void>;
   isProcessing?: boolean;
   isEdit?: boolean;
 }
@@ -57,7 +58,6 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
       const [styleOptionActiveTab, setStyleOptionActiveActiveTab] =
         useState<string>("Frame");
       const [hoveredQRType, setHoveredQRType] = useState<EQRType | null>(null);
-      const [files, setFiles] = useState<File[]>([]);
       const [typeSelectionError, setTypeSelectionError] = useState<string>("");
 
       const {
@@ -128,7 +128,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
           setData(
             qrTypeDataHandlers[qrType]?.(filteredInputValues, isHiddenNetwork),
           );
-          setFiles(inputValues.files as File[]);
+          setFiles((inputValues.filesImage || inputValues.filesPDF || inputValues.filesVideo) as File[]);
           handleScroll();
         },
         [setData],
@@ -152,7 +152,9 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
             id: selectedSuggestedFrame,
           },
           qrType: selectedQRType,
-          files,
+          files: getFiles() as File[],
+        }).then(() => {
+          setFiles(null);
         });
       };
 
