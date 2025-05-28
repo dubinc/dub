@@ -1,6 +1,7 @@
 import { DUB_WORDMARK, formatDateTime, nFormatter } from "@dub/utils";
 import {
   Body,
+  Column,
   Container,
   Head,
   Heading,
@@ -9,6 +10,7 @@ import {
   Img,
   Link,
   Preview,
+  Row,
   Section,
   Tailwind,
   Text,
@@ -107,23 +109,19 @@ export function PartnerProgramSummary({
     },
   ];
 
-  const currentMonth = new Date().toLocaleString("en-US", {
+  const month = new Date().toLocaleString("en-US", {
     month: "long",
   });
 
   return (
     <Html>
       <Head />
-      <Preview>{`Your ${currentMonth} performance report for ${program.name} program.`}</Preview>
+      <Preview>{`Your ${month} performance report for ${program.name} program.`}</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
-          <Container className="space-y-10px-10 mx-auto my-10 max-w-[600px] py-5">
+          <Container className="mx-auto my-10 max-w-[600px] space-y-10 px-3 py-5">
             <Section className="mt-8">
-              <Img
-                src={program.logo || DUB_WORDMARK}
-                height="32"
-                alt={program.name}
-              />
+              <Img src={DUB_WORDMARK} height="32" alt={program.name} />
             </Section>
 
             <Heading className="mx-0 mt-[40px] p-0 text-lg font-medium text-black">
@@ -131,17 +129,18 @@ export function PartnerProgramSummary({
             </Heading>
 
             <Text className="mt-1 text-sm text-neutral-600">
-              Here's a summary of your activity for the month of {currentMonth}.
+              Here's a summary of your activity for the month of {month}
             </Text>
 
-            <Section className="rounded-xl border border-solid border-neutral-200 bg-neutral-50">
+            <Section className="mt-10 rounded-xl border border-solid border-neutral-200 bg-neutral-50">
               <Section className="rounded-t-xl px-6 py-5">
-                <div className="flex items-center gap-4">
+                <div className="flex items-center">
                   <Img
                     src={program.logo || DUB_WORDMARK}
                     alt={program.name}
                     height="32"
                     width="32"
+                    className="mr-4 rounded-md"
                   />
 
                   <div>
@@ -169,11 +168,7 @@ export function PartnerProgramSummary({
                     Monthly Stats
                   </Heading>
 
-                  <div className="grid grid-cols-2 gap-x-3 gap-y-8">
-                    {monthlyStats.map((stat) => (
-                      <Stats key={stat.title} {...stat} />
-                    ))}
-                  </div>
+                  <StatsGrid stats={monthlyStats} />
                 </Section>
 
                 <Hr className="mx-0 my-8 w-full border border-neutral-200" />
@@ -186,11 +181,7 @@ export function PartnerProgramSummary({
                     All-time Performance
                   </Heading>
 
-                  <div className="grid grid-cols-2 gap-x-3 gap-y-8">
-                    {lifetimeStats.map((stat) => (
-                      <Stats key={stat.title} {...stat} />
-                    ))}
-                  </div>
+                  <StatsGrid stats={lifetimeStats} />
                 </Section>
 
                 <Section className="mt-8 text-center">
@@ -211,6 +202,36 @@ export function PartnerProgramSummary({
     </Html>
   );
 }
+
+const StatsGrid = ({
+  stats,
+}: {
+  stats: {
+    title: string;
+    value: number;
+  }[];
+}) => {
+  return (
+    <>
+      {[0, 2].map((startIndex) => (
+        <Row
+          key={startIndex}
+          style={{
+            width: "100%",
+            ...(startIndex === 2 && { marginTop: "32px" }),
+          }}
+        >
+          <Column style={{ width: "50%", paddingRight: "12px" }}>
+            <Stats {...stats[startIndex]} />
+          </Column>
+          <Column style={{ width: "50%" }}>
+            <Stats {...stats[startIndex + 1]} />
+          </Column>
+        </Row>
+      ))}
+    </>
+  );
+};
 
 const Stats = ({ title, value }: { title: string; value: number }) => {
   const icon = ICONS[title.toLowerCase() as Icon];
