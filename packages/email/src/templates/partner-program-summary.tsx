@@ -31,6 +31,45 @@ const ICONS = {
 
 type Icon = keyof typeof ICONS;
 
+const percentStateMap = {
+  positive: {
+    color: "bg-green-50 text-green-700",
+    sign: "+",
+  },
+  negative: {
+    color: "bg-red-50 text-red-700",
+    sign: "",
+  },
+  neutral: {
+    color: "bg-neutral-50 text-neutral-700",
+    sign: "",
+  },
+};
+
+function getPercentChange(current: number, previous: number) {
+  if (previous === 0) {
+    return current === 0 ? 0 : 100;
+  }
+
+  return Math.round(((current - previous) / Math.abs(previous)) * 100);
+}
+
+function getPercentState(percent?: number) {
+  if (typeof percent !== "number") {
+    return percentStateMap.neutral;
+  }
+
+  if (percent > 0) {
+    return percentStateMap.positive;
+  }
+
+  if (percent < 0) {
+    return percentStateMap.negative;
+  }
+
+  return percentStateMap.neutral;
+}
+
 export function PartnerProgramSummary({
   program = {
     name: "Acme",
@@ -40,6 +79,12 @@ export function PartnerProgramSummary({
   partner = {
     email: "panic@thedis.co",
     createdAt: new Date(),
+  },
+  comparisonMonth = {
+    clicks: 200,
+    leads: 300,
+    sales: 50,
+    earnings: 100,
   },
   previousMonth = {
     clicks: 100,
@@ -63,6 +108,12 @@ export function PartnerProgramSummary({
     email: string | null;
     createdAt: Date;
   };
+  comparisonMonth: {
+    clicks: number;
+    leads: number;
+    sales: number;
+    earnings: number;
+  };
   previousMonth: {
     clicks: number;
     leads: number;
@@ -80,14 +131,17 @@ export function PartnerProgramSummary({
     {
       title: "Clicks",
       value: nFormatter(previousMonth.clicks),
+      percent: getPercentChange(previousMonth.clicks, comparisonMonth.clicks),
     },
     {
       title: "Leads",
       value: nFormatter(previousMonth.leads),
+      percent: getPercentChange(previousMonth.leads, comparisonMonth.leads),
     },
     {
       title: "Sales",
       value: nFormatter(previousMonth.sales),
+      percent: getPercentChange(previousMonth.sales, comparisonMonth.sales),
     },
     {
       title: "Earnings",
@@ -95,6 +149,10 @@ export function PartnerProgramSummary({
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }),
+      percent: getPercentChange(
+        previousMonth.earnings,
+        comparisonMonth.earnings,
+      ),
     },
   ];
 
@@ -216,6 +274,7 @@ const StatsGrid = ({
   stats: {
     title: string;
     value: number | string;
+    percent?: number;
   }[];
 }) => {
   return (
@@ -240,8 +299,17 @@ const StatsGrid = ({
   );
 };
 
-const Stats = ({ title, value }: { title: string; value: number | string }) => {
+const Stats = ({
+  title,
+  value,
+  percent,
+}: {
+  title: string;
+  value: number | string;
+  percent?: number;
+}) => {
   const icon = ICONS[title.toLowerCase() as Icon];
+  const { color, sign } = getPercentState(percent);
 
   return (
     <div className="flex flex-row items-center bg-white p-0">
@@ -252,9 +320,20 @@ const Stats = ({ title, value }: { title: string; value: number | string }) => {
         <p className="mb-0 mt-0 text-left text-xs font-medium text-neutral-500">
           {title}
         </p>
-        <p className="m-0 text-left text-lg font-medium text-neutral-800">
-          {value}
-        </p>
+        <div className="flex items-center">
+          <p className="m-0 text-left text-lg font-medium text-neutral-800">
+            {value}
+          </p>
+
+          {typeof percent === "number" && (
+            <Text
+              className={`m-0 ml-2 rounded text-xs font-medium ${color} m-auto px-1.5 py-0.5`}
+            >
+              {sign}
+              {percent}%
+            </Text>
+          )}
+        </div>
       </div>
     </div>
   );

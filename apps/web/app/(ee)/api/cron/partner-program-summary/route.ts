@@ -95,24 +95,34 @@ async function handler(req: Request) {
     }
 
     const partners = programEnrollments.map((enrollment) => enrollment.partner);
-    const previousMonth = subMonths(new Date(), 1);
+    const comparisonMonth = subMonths(new Date(), 2); // month before last
+    const previousMonth = subMonths(new Date(), 1); // last month
 
     // Find the clicks, leads, sales analytics
-    const [analyticsPreviousMonth, analyticsLifetime] = await Promise.all([
-      getAnalytics({
-        event: "composite",
-        groupBy: "partners",
-        programId: program.id,
-        start: startOfMonth(previousMonth),
-        end: endOfMonth(previousMonth),
-      }),
+    const [baselineMonthAnalytics, previousMonthAnalytics, lifetimeAnalytics] =
+      await Promise.all([
+        getAnalytics({
+          event: "composite",
+          groupBy: "partners",
+          programId: program.id,
+          start: startOfMonth(comparisonMonth),
+          end: endOfMonth(comparisonMonth),
+        }),
 
-      getAnalytics({
-        event: "composite",
-        groupBy: "partners",
-        programId: program.id,
-      }),
-    ]);
+        getAnalytics({
+          event: "composite",
+          groupBy: "partners",
+          programId: program.id,
+          start: startOfMonth(previousMonth),
+          end: endOfMonth(previousMonth),
+        }),
+
+        getAnalytics({
+          event: "composite",
+          groupBy: "partners",
+          programId: program.id,
+        }),
+      ]);
 
     // Find the earnings
     const commissionWhere: Prisma.CommissionWhereInput = {
@@ -157,33 +167,43 @@ async function handler(req: Request) {
     let summary = partners
       .map((partner) => {
         const earningsMonthly = earningsPreviousMonth.find(
-          (commission) => commission.partnerId === partner.id,
+          (c) => c.partnerId === partner.id,
         );
 
         const earningsTotal = earningsLifetime.find(
-          (commission) => commission.partnerId === partner.id,
+          (c) => c.partnerId === partner.id,
         );
 
-        const analyticsMonthly = analyticsPreviousMonth.find(
-          (analytics) => analytics.partnerId === partner.id,
+        const comparisonMonth = baselineMonthAnalytics.find(
+          (a) => a.partnerId === partner.id,
         );
 
-        const analyticsTotal = analyticsLifetime.find(
-          (analytics) => analytics.partnerId === partner.id,
+        const previousMonth = previousMonthAnalytics.find(
+          (a) => a.partnerId === partner.id,
+        );
+
+        const lifeTime = lifetimeAnalytics.find(
+          (a) => a.partnerId === partner.id,
         );
 
         return {
           partner,
+          comparisonMonth: {
+            clicks: comparisonMonth?.clicks ?? 0,
+            leads: comparisonMonth?.leads ?? 0,
+            sales: comparisonMonth?.sales ?? 0,
+            earnings: earningsMonthly?._sum.earnings ?? 0, // TODO: Fix this
+          },
           previousMonth: {
-            clicks: analyticsMonthly?.clicks ?? 0,
-            leads: analyticsMonthly?.leads ?? 0,
-            sales: analyticsMonthly?.sales ?? 0,
+            clicks: previousMonth?.clicks ?? 0,
+            leads: previousMonth?.leads ?? 0,
+            sales: previousMonth?.sales ?? 0,
             earnings: earningsMonthly?._sum.earnings ?? 0,
           },
           lifetime: {
-            clicks: analyticsTotal?.clicks ?? 0,
-            leads: analyticsTotal?.leads ?? 0,
-            sales: analyticsTotal?.sales ?? 0,
+            clicks: lifeTime?.clicks ?? 0,
+            leads: lifeTime?.leads ?? 0,
+            sales: lifeTime?.sales ?? 0,
             earnings: earningsTotal?._sum.earnings ?? 0,
           },
         };
@@ -191,7 +211,7 @@ async function handler(req: Request) {
       .filter(({ lifetime }) => lifetime.leads > 0);
 
     await Promise.allSettled(
-      summary.map(({ partner, previousMonth, lifetime }) => {
+      summary.map(({ partner, comparisonMonth, previousMonth, lifetime }) => {
         limiter.schedule(() =>
           sendEmail({
             subject: `${program.name} partner program summary`,
@@ -199,6 +219,7 @@ async function handler(req: Request) {
             react: PartnerProgramSummary({
               program,
               partner,
+              comparisonMonth,
               previousMonth,
               lifetime,
             }),
