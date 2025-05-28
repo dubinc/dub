@@ -6,7 +6,6 @@ import {
   EAcceptedFileType,
   TQRInputType,
 } from "@/ui/qr-builder/constants/qr-type-inputs-config.ts";
-import { getFormFieldId } from "@/ui/qr-builder/helpers/get-form-field-id.ts";
 import { Input } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Flex } from "@radix-ui/themes";
@@ -54,7 +53,6 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
     trigger,
     formState: { errors },
   } = useFormContext();
-  const fieldId = getFormFieldId(id, type, label);
   const [defaultCountry, setDefaultCountry] = useState<Country>("US");
 
   useEffect(() => {
@@ -64,13 +62,13 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
     }
   }, []);
 
-  const error = errors[fieldId]?.message as string;
+  const error = errors[id]?.message as string;
 
   if (type === "file" && acceptedFileType && maxFileSize) {
     return (
       <Controller
-        key={fieldId}
-        name={fieldId}
+        key={id}
+        name={id}
         control={control}
         render={({
           field: { onChange, value = [] },
@@ -81,7 +79,7 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
             files={value}
             setFiles={(files) => {
               onChange(files);
-              trigger(fieldId);
+              trigger(id);
             }}
             acceptedFileType={acceptedFileType}
             maxFileSize={maxFileSize}
@@ -119,7 +117,7 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
           placeholder={placeholder}
           maxLength={500}
           required
-          {...register(fieldId)}
+          {...register(id)}
           {...props}
         />
       );
@@ -128,7 +126,7 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
     case "tel":
       inputField = (
         <Controller
-          name={fieldId}
+          name={id}
           control={control}
           render={({ field }) => (
             <PhoneInput
@@ -160,11 +158,11 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
           placeholder={placeholder}
           onFocus={(e) => {
             if (initFromPlaceholder && !e.target.value) {
-              setFormValue(fieldId, placeholder);
+              setFormValue(id, placeholder);
             }
           }}
           required
-          {...register(fieldId)}
+          {...register(id)}
           {...props}
         />
       );
