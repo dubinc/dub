@@ -25,11 +25,7 @@ export function PayoutStatsAndSettings() {
           </div>
           {partner && !partner.payoutsEnabledAt && (
             <ConnectPayoutButton
-              text={
-                partner?.supportedPayoutMethod === "stripe"
-                  ? "Connect Bank Account"
-                  : "Connect PayPal"
-              }
+              text="Connect bank account"
               className="h-8 w-fit px-3"
               variant="primary"
             />

@@ -54,7 +54,7 @@ const PayoutTableInner = memo(
     const { id: workspaceId } = useWorkspace();
     const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
-    const sortBy = searchParams.get("sortBy") || "amount";
+    const sortBy = searchParams.get("sortBy") || "periodEnd";
     const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
     const { payoutsCount, error: countError } = usePayoutsCount<number>();
@@ -103,7 +103,7 @@ const PayoutTableInner = memo(
       error: error || countError ? "Failed to load payouts" : undefined,
       columns: [
         {
-          id: "periodStart",
+          id: "periodEnd",
           header: "Period",
           accessorFn: (d) => formatPeriod(d),
         },
@@ -209,7 +209,7 @@ const PayoutTableInner = memo(
       ],
       pagination,
       onPaginationChange: setPagination,
-      sortableColumns: ["periodStart", "amount", "paidAt"],
+      sortableColumns: ["periodEnd", "amount", "paidAt"],
       sortBy,
       sortOrder,
       onSortChange: ({ sortBy, sortOrder }) =>

@@ -3,10 +3,10 @@
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { programLanderEarningsCalculatorBlockSchema } from "@/lib/zod/schemas/program-lander";
-import { Button, Modal, useMediaQuery } from "@dub/ui";
+import { Button, Modal, useMediaQuery, useScrollProgress } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
-import { Dispatch, SetStateAction, useId } from "react";
+import { Dispatch, SetStateAction, useId, useRef } from "react";
 import { Control, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { EarningsCalculatorBlock } from "../../lander-blocks/earnings-calculator-block";
@@ -60,6 +60,9 @@ function EarningsCalculatorBlockModalInner({
     },
   });
 
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
+
   return (
     <>
       <div className="p-4 pt-3">
@@ -67,7 +70,7 @@ function EarningsCalculatorBlockModalInner({
           {defaultValues ? "Edit" : "Add"} earnings calculator
         </h3>
         <form
-          className="mt-4 flex flex-col gap-6"
+          className="mt-4"
           onSubmit={(e) => {
             e.stopPropagation();
             handleSubmit(async (data) => {
@@ -79,77 +82,73 @@ function EarningsCalculatorBlockModalInner({
             })(e);
           }}
         >
-          {/* Title */}
-          <div>
-            <label
-              htmlFor={`${id}-title`}
-              className="flex items-center gap-2 text-sm font-medium text-neutral-700"
+          <div className="relative">
+            <div
+              ref={scrollRef}
+              onScroll={updateScrollProgress}
+              className="scrollbar-hide relative -m-2 max-h-[calc(100vh-160px)] overflow-y-auto p-2"
             >
-              Section heading
-            </label>
-            <div className="mt-2 rounded-md shadow-sm">
-              <input
-                id={`${id}-title`}
-                type="text"
-                placeholder="Earnings calculator"
-                autoFocus={!isMobile}
-                className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                {...register("title")}
-              />
-            </div>
-          </div>
+              <div className="flex flex-col gap-5">
+                {/* Product price */}
+                <div>
+                  <label
+                    htmlFor={`${id}-price`}
+                    className="flex items-center gap-2 text-sm font-medium text-neutral-700"
+                  >
+                    Average product price
+                  </label>
+                  <div className="relative mt-2 rounded-md shadow-sm">
+                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
+                      $
+                    </span>
+                    <input
+                      id={`${id}-price`}
+                      type="text"
+                      placeholder="30"
+                      autoFocus={!isMobile}
+                      className={cn(
+                        "block w-full rounded-md border-neutral-300 pl-6 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                        errors.productPrice &&
+                          "border-red-600 focus:border-red-500 focus:ring-red-600",
+                      )}
+                      {...register("productPrice", {
+                        required: true,
+                        valueAsNumber: true,
+                        min: 0,
+                        max: MAX_PRODUCT_PRICE,
+                      })}
+                    />
+                  </div>
+                </div>
 
-          {/* Product price */}
-          <div>
-            <label
-              htmlFor={`${id}-price`}
-              className="flex items-center gap-2 text-sm font-medium text-neutral-700"
-            >
-              Average product price
-            </label>
-            <div className="relative mt-2 rounded-md shadow-sm">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
-                $
-              </span>
-              <input
-                id={`${id}-price`}
-                type="text"
-                placeholder="30"
-                autoFocus={!isMobile}
-                className={cn(
-                  "block w-full rounded-md border-neutral-300 pl-6 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                  errors.productPrice &&
-                    "border-red-600 focus:border-red-500 focus:ring-red-600",
-                )}
-                {...register("productPrice", {
-                  required: true,
-                  valueAsNumber: true,
-                  min: 0,
-                  max: MAX_PRODUCT_PRICE,
-                })}
-              />
+                <div className="flex flex-col gap-2.5">
+                  <div>
+                    <span className="text-content-emphasis text-sm font-medium">
+                      Preview
+                    </span>
+                    <p className="text-xs text-neutral-500">
+                      This is calculated using your{" "}
+                      <Link
+                        href={`/${workspaceSlug}/programs/${program!.id}/settings/rewards`}
+                        target="_blank"
+                        className="underline hover:text-neutral-600"
+                      >
+                        default program reward
+                      </Link>
+                    </p>
+                  </div>
+                  <Preview control={control} />
+                </div>
+              </div>
             </div>
-          </div>
 
-          <div className="flex flex-col gap-2.5">
-            <div>
-              <span className="text-content-emphasis text-sm font-medium">
-                Preview
-              </span>
-              <p className="text-xs text-neutral-500">
-                This is calculated using your{" "}
-                <Link
-                  href={`/${workspaceSlug}/programs/${program!.id}/settings/rewards`}
-                  target="_blank"
-                >
-                  default program reward
-                </Link>
-              </p>
-            </div>
-            <Preview control={control} />
+            {/* Bottom scroll fade */}
+            <div
+              className="pointer-events-none absolute bottom-0 left-0 hidden h-16 w-full bg-gradient-to-t from-white sm:block"
+              style={{ opacity: 1 - Math.pow(scrollProgress, 2) }}
+            />
           </div>
-
-          <div className="flex items-center justify-end gap-2">
+          <div className="mt-6 flex items-center justify-end gap-2">
             <Button
               onClick={() => setShowModal(false)}
               variant="secondary"
@@ -174,32 +173,29 @@ function Preview({
 }: {
   control: Control<EarningsCalculatorBlockData>;
 }) {
+  const productPrice = useWatch({ control, name: "productPrice" });
+
   const { program } = useProgram();
   const { control: brandingFormControl } = useBrandingFormContext();
   const brandColor = useWatch({
     control: brandingFormControl,
     name: "brandColor",
   });
-  const productPrice = useWatch({ control, name: "productPrice" });
 
-  console.log(productPrice);
+  if (!program) return null;
 
   return (
-    <div className="-mt-4">
-      <EarningsCalculatorBlock
-        block={{
-          id: "",
-          type: "earnings-calculator",
-          data: {
-            productPrice:
-              Math.min(Math.max(productPrice || 0, 0), MAX_PRODUCT_PRICE) * 100,
-          },
-        }}
-        reward={program?.rewards?.find(
-          (r) => r.id === program?.defaultRewardId,
-        )}
-        brandColor={brandColor ?? undefined}
-      />
-    </div>
+    <EarningsCalculatorBlock
+      block={{
+        id: "",
+        type: "earnings-calculator",
+        data: {
+          productPrice:
+            Math.min(Math.max(productPrice || 0, 0), MAX_PRODUCT_PRICE) * 100,
+        },
+      }}
+      program={{ ...program, brandColor }}
+      showTitleAndDescription={false}
+    />
   );
 }

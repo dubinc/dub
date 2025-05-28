@@ -18,7 +18,7 @@ import {
   useTable,
 } from "@dub/ui";
 import { InvoiceDollar, MoneyBill2 } from "@dub/ui/icons";
-import { OG_AVATAR_URL, formatPeriod } from "@dub/utils";
+import { OG_AVATAR_URL, formatDate, formatPeriod } from "@dub/utils";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { PayoutDetailsSheet } from "./payout-details-sheet";
@@ -28,7 +28,7 @@ export function PayoutTable() {
   const { partner } = usePartnerProfile();
   const { queryParams, searchParams } = useRouterStuff();
 
-  const sortBy = searchParams.get("sortBy") || "periodStart";
+  const sortBy = searchParams.get("sortBy") || "periodEnd";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const { payouts, error, loading } = usePartnerPayouts();
@@ -59,7 +59,7 @@ export function PayoutTable() {
     error: error ? "Failed to load payouts" : undefined,
     columns: [
       {
-        id: "periodStart",
+        id: "periodEnd",
         header: "Period",
         accessorFn: (d) => formatPeriod(d),
       },
@@ -91,6 +91,16 @@ export function PayoutTable() {
             "-"
           );
         },
+      },
+      {
+        id: "paidAt",
+        header: "Paid",
+        cell: ({ row }) =>
+          row.original.paidAt
+            ? formatDate(row.original.paidAt, {
+                month: "short",
+              })
+            : "-",
       },
       {
         id: "amount",
@@ -125,6 +135,7 @@ export function PayoutTable() {
     ],
     pagination,
     onPaginationChange: setPagination,
+    sortableColumns: ["periodEnd", "amount", "paidAt"],
     sortBy,
     sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>

@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 const programLanderBlockTitleSchema = z.string().optional();
+const programLanderBlockDescriptionSchema = z.string().optional();
 
 export const programLanderBlockCommonSchema = z.object({
   id: z.string(),
@@ -62,7 +63,6 @@ export const programLanderEarningsCalculatorBlockSchema =
   programLanderBlockCommonSchema.extend({
     type: z.literal("earnings-calculator"),
     data: z.object({
-      title: programLanderBlockTitleSchema,
       productPrice: z.number(),
     }),
   });

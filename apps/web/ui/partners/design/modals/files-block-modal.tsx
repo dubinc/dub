@@ -106,141 +106,143 @@ function FilesBlockModalInner({
             </div>
           </div>
 
-          <div
-            ref={scrollRef}
-            onScroll={updateScrollProgress}
-            className="scrollbar-hide relative -my-2 max-h-[calc(100vh-300px)] overflow-y-auto py-2"
-          >
-            <EditList
-              values={fields.map(({ id }) => id)}
-              onAdd={() => {
-                const id = uuid();
-
-                setValue(
-                  "items",
-                  [
-                    ...fields,
-                    {
-                      id,
-                      name: `File ${fields.length + 1}`,
-                      description: "",
-                      url: "",
-                    },
-                  ],
-                  { shouldDirty: true },
-                );
-
-                return id;
-              }}
-              onReorder={(updated) =>
-                setValue(
-                  "items",
-                  updated.map((id) => fields.find((f) => f.id === id)!),
-                  { shouldDirty: true },
-                )
-              }
+          <div className="relative -my-2">
+            <div
+              ref={scrollRef}
+              onScroll={updateScrollProgress}
+              className="scrollbar-hide relative max-h-[calc(100vh-300px)] overflow-y-auto py-2"
             >
-              {fields.map((field, index) => {
-                const fieldErrors = errors.items?.[index];
+              <EditList
+                values={fields.map(({ id }) => id)}
+                onAdd={() => {
+                  const id = uuid();
 
-                return (
-                  <EditListItem
-                    key={field.id}
-                    value={field.id}
-                    title={
-                      <span className="flex items-center gap-2">
-                        {field.name || "File"}
-                        {(fieldErrors?.url || fieldErrors?.name) && (
-                          <CircleWarning className="size-3.5 text-red-600" />
-                        )}
-                      </span>
-                    }
-                    onRemove={
-                      fields.length > 1
-                        ? () =>
-                            setValue(
-                              "items",
-                              fields.filter(({ id }) => id !== field.id),
-                              { shouldDirty: true },
-                            )
-                        : undefined
-                    }
-                  >
-                    <div className="flex flex-col gap-6">
-                      {/* Name */}
-                      <div>
-                        <label
-                          htmlFor={`${id}-${field.id}-name`}
-                          className="flex items-center gap-2 text-sm font-medium text-neutral-700"
-                        >
-                          Display name
-                        </label>
-                        <div className="mt-2 rounded-md shadow-sm">
-                          <input
-                            id={`${id}-${field.id}-name`}
-                            type="text"
-                            placeholder="Brand assets"
-                            className={cn(
-                              "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                              fieldErrors?.name &&
-                                "border-red-600 focus:border-red-500 focus:ring-red-600",
-                            )}
-                            {...register(`items.${index}.name`, {
-                              required: "Display name is required",
-                            })}
-                          />
+                  setValue(
+                    "items",
+                    [
+                      ...fields,
+                      {
+                        id,
+                        name: `File ${fields.length + 1}`,
+                        description: "",
+                        url: "",
+                      },
+                    ],
+                    { shouldDirty: true },
+                  );
+
+                  return id;
+                }}
+                onReorder={(updated) =>
+                  setValue(
+                    "items",
+                    updated.map((id) => fields.find((f) => f.id === id)!),
+                    { shouldDirty: true },
+                  )
+                }
+              >
+                {fields.map((field, index) => {
+                  const fieldErrors = errors.items?.[index];
+
+                  return (
+                    <EditListItem
+                      key={field.id}
+                      value={field.id}
+                      title={
+                        <span className="flex items-center gap-2">
+                          {field.name || "File"}
+                          {(fieldErrors?.url || fieldErrors?.name) && (
+                            <CircleWarning className="size-3.5 text-red-600" />
+                          )}
+                        </span>
+                      }
+                      onRemove={
+                        fields.length > 1
+                          ? () =>
+                              setValue(
+                                "items",
+                                fields.filter(({ id }) => id !== field.id),
+                                { shouldDirty: true },
+                              )
+                          : undefined
+                      }
+                    >
+                      <div className="flex flex-col gap-6">
+                        {/* Name */}
+                        <div>
+                          <label
+                            htmlFor={`${id}-${field.id}-name`}
+                            className="flex items-center gap-2 text-sm font-medium text-neutral-700"
+                          >
+                            Display name
+                          </label>
+                          <div className="mt-2 rounded-md shadow-sm">
+                            <input
+                              id={`${id}-${field.id}-name`}
+                              type="text"
+                              placeholder="Brand assets"
+                              className={cn(
+                                "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                                fieldErrors?.name &&
+                                  "border-red-600 focus:border-red-500 focus:ring-red-600",
+                              )}
+                              {...register(`items.${index}.name`, {
+                                required: "Display name is required",
+                              })}
+                            />
+                          </div>
+                        </div>
+
+                        {/* URL */}
+                        <div>
+                          <label
+                            htmlFor={`${id}-${field.id}-url`}
+                            className="flex items-center gap-2 text-sm font-medium text-neutral-700"
+                          >
+                            File URL
+                          </label>
+                          <div className="mt-2 rounded-md shadow-sm">
+                            <input
+                              id={`${id}-${field.id}-url`}
+                              type="text"
+                              placeholder="https://example.com/file.pdf"
+                              className={cn(
+                                "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                                fieldErrors?.url &&
+                                  "border-red-600 focus:border-red-500 focus:ring-red-600",
+                              )}
+                              {...register(`items.${index}.url`, {
+                                required: "File URL is required",
+                              })}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Description */}
+                        <div>
+                          <label
+                            htmlFor={`${id}-${field.id}-description`}
+                            className="flex items-center gap-2 text-sm font-medium text-neutral-700"
+                          >
+                            Description
+                          </label>
+                          <div className="mt-2 rounded-md shadow-sm">
+                            <textarea
+                              id={`${id}-${field.id}-description`}
+                              rows={2}
+                              maxLength={240}
+                              placeholder="More information about the file"
+                              className="block max-h-32 min-h-10 w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                              {...register(`items.${index}.description`)}
+                            />
+                          </div>
                         </div>
                       </div>
-
-                      {/* URL */}
-                      <div>
-                        <label
-                          htmlFor={`${id}-${field.id}-url`}
-                          className="flex items-center gap-2 text-sm font-medium text-neutral-700"
-                        >
-                          File URL
-                        </label>
-                        <div className="mt-2 rounded-md shadow-sm">
-                          <input
-                            id={`${id}-${field.id}-url`}
-                            type="text"
-                            placeholder="https://example.com/file.pdf"
-                            className={cn(
-                              "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                              fieldErrors?.url &&
-                                "border-red-600 focus:border-red-500 focus:ring-red-600",
-                            )}
-                            {...register(`items.${index}.url`, {
-                              required: "File URL is required",
-                            })}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Description */}
-                      <div>
-                        <label
-                          htmlFor={`${id}-${field.id}-description`}
-                          className="flex items-center gap-2 text-sm font-medium text-neutral-700"
-                        >
-                          Description
-                        </label>
-                        <div className="mt-2 rounded-md shadow-sm">
-                          <textarea
-                            id={`${id}-${field.id}-description`}
-                            rows={2}
-                            maxLength={240}
-                            placeholder="More information about the file"
-                            className="block max-h-32 min-h-10 w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                            {...register(`items.${index}.description`)}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </EditListItem>
-                );
-              })}
-            </EditList>
+                    </EditListItem>
+                  );
+                })}
+              </EditList>
+            </div>
 
             {/* Bottom scroll fade */}
             <div

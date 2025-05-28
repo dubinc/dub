@@ -88,7 +88,7 @@ const NAV_AREAS: SidebarNavAreas<{
                     },
                     {
                       name: "Payouts",
-                      href: `/${slug}/programs/${defaultProgramId}/payouts?status=pending`,
+                      href: `/${slug}/programs/${defaultProgramId}/payouts?status=pending&sortBy=amount`,
                     },
                     {
                       name: "Branding",
