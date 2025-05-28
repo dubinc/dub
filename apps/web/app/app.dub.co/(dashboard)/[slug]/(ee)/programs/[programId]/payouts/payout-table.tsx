@@ -66,7 +66,7 @@ const PayoutTableInner = memo(
     } = useSWR<PayoutResponse[]>(
       program?.id
         ? `/api/programs/${program.id}/payouts${getQueryString(
-            { workspaceId },
+            { workspaceId, sortBy, sortOrder },
             {
               exclude: ["payoutId"],
             },
@@ -103,7 +103,7 @@ const PayoutTableInner = memo(
       error: error || countError ? "Failed to load payouts" : undefined,
       columns: [
         {
-          id: "periodStart",
+          id: "periodEnd",
           header: "Period",
           accessorFn: (d) => formatPeriod(d),
         },
@@ -209,7 +209,7 @@ const PayoutTableInner = memo(
       ],
       pagination,
       onPaginationChange: setPagination,
-      sortableColumns: ["periodStart", "amount", "paidAt"],
+      sortableColumns: ["periodEnd", "amount", "paidAt"],
       sortBy,
       sortOrder,
       onSortChange: ({ sortBy, sortOrder }) =>
