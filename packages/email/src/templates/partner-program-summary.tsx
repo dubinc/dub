@@ -33,13 +33,13 @@ export function PartnerProgramSummary({
   partner = {
     email: "panic@thedis.co",
   },
-  monthlyPerformance = {
+  currentMonth: monthlyPerformance = {
     clicks: 100,
     leads: 100,
     sales: 100,
     earnings: 100,
   },
-  lifetimePerformance = {
+  lifetime: lifetimePerformance = {
     clicks: 200,
     leads: 200,
     sales: 200,
@@ -48,19 +48,19 @@ export function PartnerProgramSummary({
 }: {
   program: {
     name: string;
-    logo: string;
+    logo: string | null;
     slug: string;
   };
   partner: {
-    email: string;
+    email: string | null;
   };
-  monthlyPerformance: {
+  currentMonth: {
     clicks: number;
     leads: number;
     sales: number;
     earnings: number;
   };
-  lifetimePerformance: {
+  lifetime: {
     clicks: number;
     leads: number;
     sales: number;
@@ -105,26 +105,31 @@ export function PartnerProgramSummary({
     },
   ];
 
+  const currentMonth = new Date().toLocaleString("en-US", {
+    month: "long",
+  });
+
   return (
     <Html>
       <Head />
-      <Preview>
-        Your application to join {program.name}'s partner program has been
-        approved!
-      </Preview>
+      <Preview>{`Your ${currentMonth} performance report for ${program.name} program.`}</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] space-y-10 rounded border border-solid border-neutral-200 px-10 py-5">
             <Section className="mt-8">
-              <Img src={program.logo} height="32" alt={program.name} />
+              <Img
+                src={program.logo || DUB_WORDMARK}
+                height="32"
+                alt={program.name}
+              />
             </Section>
 
             <Heading className="mx-0 mt-[40px] p-0 text-lg font-medium text-black">
-              Partner program weekly report
+              {program.name} partner program monthly summary
             </Heading>
 
             <Text className="text-sm text-neutral-600">
-              Here's a summary of your activity for the week of Apr 1-8, 2025.
+              Here's a summary of your activity for the month of {currentMonth}.
             </Text>
 
             <Section className="mb-8">
@@ -132,7 +137,7 @@ export function PartnerProgramSummary({
                 as="h4"
                 className="text-base font-semibold leading-6 text-neutral-800"
               >
-                Weekly Stats
+                Monthly Stats
               </Heading>
 
               <div className="grid grid-cols-2 gap-x-3 gap-y-8">
@@ -168,7 +173,7 @@ export function PartnerProgramSummary({
               </Link>
             </Section>
 
-            <Footer email={partner.email} />
+            <Footer email={partner.email!} />
           </Container>
         </Body>
       </Tailwind>
