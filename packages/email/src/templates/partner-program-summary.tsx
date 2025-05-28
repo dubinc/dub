@@ -134,8 +134,8 @@ export function PartnerProgramSummary({
               Here's a summary of your activity for the month of {currentMonth}.
             </Text>
 
-            <Section className="rounded-xl border border-solid border-neutral-200">
-              <Section className="rounded-t-xl border-b border-neutral-200 bg-neutral-50 px-6 py-4">
+            <Section className="rounded-xl border border-solid border-neutral-200 bg-neutral-50">
+              <Section className="rounded-t-xl px-6 py-4">
                 <div className="flex items-center gap-4">
                   <Img
                     src={program.logo || DUB_WORDMARK}
@@ -160,7 +160,7 @@ export function PartnerProgramSummary({
                 </div>
               </Section>
 
-              <Section className="space-y-6 p-6">
+              <Section className="space-y-6 rounded-xl border-t border-solid border-neutral-200 bg-white p-6">
                 <Section>
                   <Heading
                     as="h4"
