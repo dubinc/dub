@@ -7,7 +7,7 @@ export function useFolderLinkCount({ folderId }: { folderId: string | null }) {
       folderId: string;
       _count: number;
     }[]
-  >({ query: { groupBy: "folderId" } });
+  >({ query: { groupBy: "folderId" }, ignoreParams: true });
 
   const folderLinkCount = useMemo(() => {
     return (

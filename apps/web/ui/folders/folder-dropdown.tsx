@@ -228,7 +228,9 @@ export const FolderDropdown = ({
         optionRight={(option) =>
           option.meta && "linksCount" in option.meta ? (
             <span className="text-xs text-neutral-500">
-              {nFormatter(option.meta.linksCount, { full: true })}
+              {option.meta.type === "mega"
+                ? "10,000+"
+                : nFormatter(option.meta.linksCount, { full: true })}
             </span>
           ) : undefined
         }

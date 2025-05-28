@@ -8,7 +8,7 @@ import {
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Folder } from "@/lib/types";
 import { Globe } from "@dub/ui/icons";
-import { cn, nFormatter, pluralize } from "@dub/utils";
+import { nFormatter, pluralize } from "@dub/utils";
 import Link from "next/link";
 import { FolderActions } from "./folder-actions";
 import { FolderIcon } from "./folder-icon";
@@ -32,12 +32,7 @@ export const FolderCard = ({ folder }: { folder: Folder }) => {
   const isDefault = isDefaultFolder({ folder, defaultFolderId });
 
   return (
-    <div
-      className={cn(
-        "hover:drop-shadow-card-hover relative flex flex-col justify-between rounded-xl border border-neutral-200 bg-white px-5 py-4 transition-all duration-200 sm:h-36",
-        folder.type === "mega" && "sm:h-32",
-      )}
-    >
+    <div className="hover:drop-shadow-card-hover relative flex flex-col justify-between rounded-xl border border-neutral-200 bg-white px-5 py-4 transition-all duration-200 sm:h-36">
       <Link
         href={`/${workspaceSlug}${unsortedLinks ? "" : `?folderId=${folder.id}`}`}
         className="absolute inset-0 h-full w-full"
@@ -92,7 +87,7 @@ function FolderLinksCount({ folder }: { folder: Folder }) {
       ) : (
         <span className="text-sm font-normal">
           {folder.type === "mega"
-            ? "1,000+ links"
+            ? "10,000+ links"
             : `${nFormatter(folderLinkCount, { full: true })} ${pluralize(
                 "link",
                 folderLinkCount,
