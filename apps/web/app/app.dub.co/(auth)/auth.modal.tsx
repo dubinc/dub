@@ -1,8 +1,8 @@
 "use client";
 
 import { LoginContent } from "@/ui/auth/login/login-content";
-import { SignUpContent } from "@/ui/auth/register/signup-content";
 import { ERegistrationStep } from "@/ui/auth/register/constants";
+import { SignUpContent } from "@/ui/auth/register/signup-content";
 import { Modal } from "@dub/ui";
 import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle, X, XCircle } from "lucide-react";
@@ -41,7 +41,6 @@ export function AuthModal({
   const [registrationStep, setRegistrationStep] = useState<ERegistrationStep>(
     ERegistrationStep.SIGNUP,
   );
-  console.log("[AuthModal] message", message);
 
   const setAuthModalMessage = useCallback(
     (msg: string | null, type: MessageType) => {
@@ -62,9 +61,12 @@ export function AuthModal({
     setRegistrationStep(step);
   }, []);
 
-  const switchAuthType = useCallback((type: AuthType) => {
-    setAuthType(type);
-  }, [setAuthType]);
+  const switchAuthType = useCallback(
+    (type: AuthType) => {
+      setAuthType(type);
+    },
+    [setAuthType],
+  );
 
   return (
     <Modal
@@ -120,10 +122,10 @@ export function AuthModal({
                 exit={{ opacity: 0, x: 20 }}
                 transition={{ duration: 0.3 }}
               >
-                <LoginContent 
-                  authModal 
+                <LoginContent
+                  authModal
                   setAuthModalMessage={setAuthModalMessage}
-                  switchAuthType={switchAuthType} 
+                  switchAuthType={switchAuthType}
                 />
               </motion.div>
             ) : (
@@ -146,9 +148,10 @@ export function AuthModal({
         </div>
 
         <AnimatePresence>
-          {authType === "signup" && registrationStep === ERegistrationStep.SIGNUP && (
-            <ConsentNotice key="consent-notice" />
-          )}
+          {authType === "signup" &&
+            registrationStep === ERegistrationStep.SIGNUP && (
+              <ConsentNotice key="consent-notice" />
+            )}
         </AnimatePresence>
       </div>
     </Modal>

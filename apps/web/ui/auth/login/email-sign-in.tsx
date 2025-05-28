@@ -45,8 +45,6 @@ export const EmailSignIn = ({
     },
   });
 
-  console.log("[showMessage] email sign in", email);
-
   return (
     <>
       <form

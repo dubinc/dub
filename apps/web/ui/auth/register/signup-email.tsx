@@ -51,8 +51,6 @@ export const SignUpEmail = ({
     },
   });
 
-  console.log("sendOtpAction", sendOtpAction);
-  console.log("sendOtpAction step", step);
   return (
     <form onSubmit={handleSubmit(async (data) => await executeAsync(data))}>
       <div className="flex flex-col space-y-4">
