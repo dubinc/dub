@@ -269,7 +269,7 @@ async function handler(req: Request) {
             sendEmail({
               subject: `${program.name} partner program summary`,
               // email: partner.email!,
-              email: "kiran@dub.co",
+              email: partner.email!,
               react: PartnerProgramSummary({
                 program,
                 partner,
