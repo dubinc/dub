@@ -1,4 +1,5 @@
 import Stripe from "stripe";
+import { PaymentMethodOption } from "../types";
 
 export const PAYOUTS_SHEET_ITEMS_LIMIT = 10;
 export const REFERRALS_EMBED_EARNINGS_LIMIT = 8;
@@ -27,7 +28,7 @@ export const DIRECT_DEBIT_PAYMENT_TYPES_INFO: {
   location: string;
   title: string;
   icon: string;
-  option: any;
+  option: PaymentMethodOption;
 }[] = [
   {
     type: "us_bank_account",
@@ -42,7 +43,7 @@ export const DIRECT_DEBIT_PAYMENT_TYPES_INFO: {
     title: "ACSS Debit",
     icon: "https://hatscripts.github.io/circle-flags/flags/ca.svg",
     option: {
-      currency: "usd",
+      currency: "cad",
       mandate_options: {
         payment_schedule: "sporadic",
         transaction_type: "business",

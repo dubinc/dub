@@ -17,6 +17,10 @@ export const calculatePayoutFee = ({
 
   const planType = plan?.split(" ")[0] ?? "business";
 
+  if (!Object.keys(PAYOUT_FEES).includes(planType)) {
+    return null;
+  }
+
   if (["link", "card"].includes(paymentMethod)) {
     return PAYOUT_FEES[planType].card;
   }
