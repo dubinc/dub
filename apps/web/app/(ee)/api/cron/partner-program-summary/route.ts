@@ -61,6 +61,7 @@ async function handler(req: Request) {
       return NextResponse.json("No programs found.");
     }
 
+    // Consider a program can have many partners, we only process one program at a time
     const program = programs[0];
     skip += 1;
 
@@ -215,7 +216,8 @@ async function handler(req: Request) {
         limiter.schedule(() =>
           sendEmail({
             subject: `${program.name} partner program summary`,
-            email: partner.email!,
+            // email: partner.email!,
+            email: "kiran@dub.co",
             react: PartnerProgramSummary({
               program,
               partner,
