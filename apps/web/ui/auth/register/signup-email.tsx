@@ -3,16 +3,24 @@
 import { sendOtpAction } from "@/lib/actions/send-otp";
 import z from "@/lib/zod";
 import { signUpSchema } from "@/lib/zod/schemas/auth";
+import { showMessage } from "@/ui/auth/helpers";
+import { ERegistrationStep } from "@/ui/auth/register/constants";
 import { Button, Input } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
+import { MessageType } from "../../../app/app.dub.co/(auth)/auth.modal.tsx";
 import { useRegisterContext } from "./context";
 
 type SignUpProps = z.infer<typeof signUpSchema>;
 
-export const SignUpEmail = () => {
-  const { setStep, setEmail, setPassword } = useRegisterContext();
+export const SignUpEmail = ({
+  authModal,
+  setAuthModalMessage,
+}: {
+  authModal?: boolean;
+  setAuthModalMessage?: (message: string | null, type: MessageType) => void;
+}) => {
+  const { setStep, setEmail, setPassword, step } = useRegisterContext();
 
   const {
     register,
@@ -29,13 +37,16 @@ export const SignUpEmail = () => {
     onSuccess: () => {
       setEmail(getValues("email"));
       setPassword(getValues("password"));
-      setStep("verify");
+      setStep(ERegistrationStep.VERIFY);
     },
     onError: ({ error }) => {
-      toast.error(
+      showMessage(
         error.serverError ||
           error.validationErrors?.email?.[0] ||
           error.validationErrors?.password?.[0],
+        "error",
+        authModal,
+        setAuthModalMessage,
       );
     },
   });
