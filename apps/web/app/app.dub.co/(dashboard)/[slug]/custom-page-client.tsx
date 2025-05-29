@@ -90,14 +90,15 @@ function WorkspaceLinks() {
                   <div className="flex flex-col items-center gap-2 md:flex-row md:items-center">
                     <AlertCircleFill className="h-5 w-5 shrink-0 text-red-500 md:h-6 md:w-6" />
                     <p className="text-center text-sm font-medium text-red-700 md:text-left">
-                      All your dynamic QR codes have been deactivated. To reactivate them, subscribe to one of our plans.
+                      Your dynamic QR codes are temporarily deactivated. To
+                      restore them, please upgrade to one of our plans.
                     </p>
                   </div>
                   <Button
                     variant="primary"
                     className="bg-secondary hover:bg-secondary-800 w-full whitespace-nowrap px-3 py-1.5 text-sm text-white md:w-auto"
                     onClick={() => router.push(`/${slug}/plans`)}
-                    text="Subscribe now"
+                    text="Restore access"
                   />
                 </div>
               </div>
@@ -120,7 +121,8 @@ function WorkspaceLinks() {
                         <ShieldAlert className="h-5 w-5 shrink-0 text-red-500 md:h-6 md:w-6" />
                       </motion.div>
                       <p className="text-center text-sm font-medium text-red-700 md:text-left">
-                        All your dynamic QR codes have been deactivated. To reactivate them, subscribe to one of our plans.
+                        Your dynamic QR codes are temporarily deactivated. To
+                        restore them, please upgrade to one of our plans.
                       </p>
                     </div>
                     <motion.div
@@ -130,7 +132,7 @@ function WorkspaceLinks() {
                     >
                       <Button
                         variant="primary"
-                        className="bg-secondary hover:bg-secondary-800 w-full whitespace-nowrap font-medium text-sm text-white md:w-auto"
+                        className="bg-secondary hover:bg-secondary-800 w-full whitespace-nowrap text-sm font-medium text-white md:w-auto"
                         onClick={() => router.push(`/${slug}/plans`)}
                         text="Restore access"
                       />
