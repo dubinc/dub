@@ -15,7 +15,7 @@ import { z } from "zod";
 
 /**
  * This route handles the monthly partner program summary emails for partners.
- * Scheduled to run once every month on the 1st day of the month to send the previous month's summary.
+ * Scheduled to run at 1 AM on the 1st day of every month to send the previous month's summary.
  *
  * 1. Processing Flow:
  *    - Processes one program at a time (paginated)
@@ -261,14 +261,11 @@ async function handler(req: Request) {
         })
         .filter(({ lifetime }) => lifetime.leads > 0);
 
-      console.log(summary);
-
       await Promise.allSettled(
         summary.map(({ partner, comparisonMonth, previousMonth, lifetime }) => {
           limiter.schedule(() =>
             sendEmail({
               subject: `${program.name} partner program summary`,
-              // email: partner.email!,
               email: partner.email!,
               react: PartnerProgramSummary({
                 program,
