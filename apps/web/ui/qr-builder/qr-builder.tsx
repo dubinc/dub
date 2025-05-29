@@ -33,8 +33,8 @@ import {
   LINKED_QR_TYPES,
   QR_TYPES,
 } from "./constants/get-qr-config.ts";
+import { getFiles, setFiles } from "./helpers/file-store.ts";
 import { useQrCustomization } from "./hooks/use-qr-customization.ts";
-import { getFiles, setFiles } from './helpers/file-store.ts';
 
 interface IQRBuilderProps {
   props?: ResponseQrCode;
@@ -128,7 +128,11 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
           setData(
             qrTypeDataHandlers[qrType]?.(filteredInputValues, isHiddenNetwork),
           );
-          setFiles((inputValues.filesImage || inputValues.filesPDF || inputValues.filesVideo) as File[]);
+          setFiles(
+            (inputValues.filesImage ||
+              inputValues.filesPDF ||
+              inputValues.filesVideo) as File[],
+          );
           handleScroll();
         },
         [setData],
@@ -313,6 +317,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                         validateFields={handleValidationAndContentSubmit}
                         isEdit={isEdit}
                         isProcessing={isProcessing}
+                        homePageDemo={homepageDemo}
                       />
                     </div>
                   </FormProvider>
@@ -351,6 +356,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                       validateFields={handleValidationAndContentSubmit}
                       isEdit={isEdit}
                       isProcessing={isProcessing}
+                      homePageDemo={homepageDemo}
                     />
                   </div>
                 </Flex>
@@ -445,6 +451,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                 validateFields={handleValidationAndContentSubmit}
                 isEdit={isEdit}
                 isProcessing={isProcessing}
+                homePageDemo={homepageDemo}
               />
             </div>
           )}
