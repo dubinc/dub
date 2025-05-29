@@ -79,7 +79,7 @@ export function QRBuilderModal({
     console.log("handle save qr");
 
     try {
-      const file = data.files[0];
+      const file = data.files && data.files.length > 0 ? data.files[0] : null;
       const body = {
         ...data,
         data: data.styles.data,
