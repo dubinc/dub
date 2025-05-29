@@ -28,43 +28,38 @@ export const QRCodeDemoWifi: FC<IQRCodeDemoWifiProps> = ({ networkName }) => {
       />
       <path
         d="M0 21.9718C0 9.83713 9.83712 0 21.9718 0H258C264.627 0 270 5.37258 270 12V207H0V21.9718Z"
-        fill="#11A65E"
+        fill="#006666"
       />
       <g filter="url(#filter0_d_1608_3216)">
         <path
           d="M15 39C15 31.268 21.268 25 29 25H241C248.732 25 255 31.268 255 39V319H15V39Z"
           fill="white"
-          shape-rendering="crispEdges"
+          shapeRendering="crispEdges"
         />
-        <rect
-          x="29"
-          y="39"
-          width="212"
-          height="148"
-          rx="6"
-          fill="#71C69D
-"
-        />
+        <rect x="29" y="39" width="212" height="148" rx="6" fill="#D3E1E1" />
         <path
           d="M114.061 126.958C125.228 115.791 144.77 115.791 155.936 126.958M171.29 110.208C150.252 91.5988 121.04 91.5988 98.707 110.208"
-          stroke="white"
-          stroke-width="8.375"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+          stroke="#006666"
+          opacity="0.2"
+          strokeWidth="8.375"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
         <path
           d="M79.166 93.4581C114.43 63.6822 155.568 63.6822 190.833 93.4581"
-          stroke="white"
-          stroke-width="8.375"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+          stroke="#006666"
+          opacity="0.2"
+          strokeWidth="8.375"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
         <path
           d="M135 154.875C139.625 154.875 143.375 151.125 143.375 146.5C143.375 141.875 139.625 138.125 135 138.125C130.375 138.125 126.625 141.875 126.625 146.5C126.625 151.125 130.375 154.875 135 154.875Z"
-          stroke="white"
-          stroke-width="8.375"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+          stroke="#006666"
+          opacity="0.2"
+          strokeWidth="8.375"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
         <foreignObject
           x="41"
@@ -90,7 +85,7 @@ export const QRCodeDemoWifi: FC<IQRCodeDemoWifiProps> = ({ networkName }) => {
           width="264"
           height="318"
           filterUnits="userSpaceOnUse"
-          color-interpolation-filters="sRGB"
+          colorInterpolation-filters="sRGB"
         >
           <feFlood flood-opacity="0" result="BackgroundImageFix" />
           <feColorMatrix

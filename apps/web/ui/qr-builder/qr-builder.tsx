@@ -365,7 +365,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
               {!hideDemoPlaceholderOnMobile && (
                 <div
                   className={cn(
-                    "bg-background relative flex h-auto shrink-0 basis-2/5 items-end justify-center rounded-lg px-6 pb-0 pt-3 md:p-6 [&_svg]:h-[200px] md:[&_svg]:h-full",
+                    "bg-background relative flex h-auto shrink-0 basis-2/5 items-start justify-center rounded-lg px-6 pb-0 pt-3 md:p-6 [&_svg]:h-[200px] md:[&_svg]:h-full",
                     {
                       "items-start": customizationStep,
                     },
@@ -393,7 +393,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                           )}
                         </motion.div>
                       )}
-                      <div className="absolute left-1/2 top-[125px] h-[76px] w-[340px] -translate-x-1/2 bg-[linear-gradient(180deg,_rgba(255,255,255,0)_12.22%,_#FFFFFF_73.25%)] md:top-[249.72px] md:h-[126px] md:w-[400px]"></div>
+                      <div className="absolute inset-x-0 bottom-0 h-1/5 bg-[linear-gradient(180deg,_rgba(255,255,255,0)_0%,_rgba(255,255,255,0.1)_30%,_rgba(255,255,255,0.4)_70%,_rgba(255,255,255,0.8)_100%)] backdrop-blur-[1px]"></div>
                     </div>
                   )}
 
