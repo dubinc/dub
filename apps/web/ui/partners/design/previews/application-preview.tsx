@@ -3,7 +3,7 @@ import { Button, useScroll, Wordmark } from "@dub/ui";
 import { cn, PARTNERS_DOMAIN } from "@dub/utils";
 import { CSSProperties, useRef } from "react";
 import { useWatch } from "react-hook-form";
-import { LanderRewards } from "../../lander-rewards";
+import { LanderRewards } from "../../lander/lander-rewards";
 import { ProgramApplicationForm } from "../../lander/program-application-form";
 import { useBrandingFormContext } from "../branding-form";
 import { PreviewWindow } from "../preview-window";
@@ -68,7 +68,7 @@ export function ApplicationPreview({
             </div>
           </header>
           <div className="mx-auto max-w-screen-sm">
-            <div className="p-6">
+            <div className="px-6">
               <div className="grid grid-cols-1 gap-5 sm:pt-20">
                 <p className="font-mono text-xs font-medium uppercase text-[var(--brand)]">
                   Affiliate Program
@@ -82,7 +82,7 @@ export function ApplicationPreview({
               </div>
             </div>
           </div>
-          <div className="mx-auto max-w-screen-sm">
+          <div className="mx-auto mt-6 max-w-screen-sm">
             <div className="px-6">
               {/* Program details grid */}
               <LanderRewards
