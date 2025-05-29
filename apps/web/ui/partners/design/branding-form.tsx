@@ -27,6 +27,7 @@ import { KeyedMutator } from "swr";
 import { z } from "zod";
 import { BrandingSettingsForm } from "./branding-settings-form";
 import { PreviewWindow } from "./preview-window";
+import { ApplicationPreview } from "./previews/application-preview";
 import { LanderPreview } from "./previews/lander-preview";
 
 export type BrandingFormData = {
@@ -86,7 +87,7 @@ const PREVIEW_TABS = [
   {
     value: "application",
     label: "Application form",
-    component: Placeholder,
+    component: ApplicationPreview,
   },
   {
     value: "partner-portal",

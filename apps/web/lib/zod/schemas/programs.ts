@@ -41,6 +41,7 @@ export const ProgramSchema = z.object({
   supportEmail: z.string().nullish(),
   helpUrl: z.string().nullish(),
   termsUrl: z.string().nullish(),
+  ageVerification: z.number().nullish(),
 });
 
 export const ProgramWithLanderDataSchema = ProgramSchema.extend({
