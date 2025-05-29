@@ -54,6 +54,13 @@ export function TrialExpiredModal({
       className="border-border-500 max-w-lg p-0"
     >
       <div className="border-border-500 relative p-4 sm:p-6 md:p-8">
+        <button
+          onClick={handleClose}
+          className="absolute hidden rounded-full p-1 transition-colors hover:bg-neutral-100 md:right-2 md:top-1.5 md:block"
+        >
+          <X className="h-5 w-5 text-neutral-500 hover:text-neutral-700" />
+        </button>
+
         <div className="flex flex-col items-center space-y-4 text-center sm:space-y-6">
           <div className="space-y-3">
             <h2 className="text-neutral text-xl font-bold tracking-tight sm:text-2xl">
@@ -112,20 +119,12 @@ export function TrialExpiredModal({
               To keep using GetQR without limits, please upgrade to a paid plan.
             </p>
 
-            <div className="flex w-full gap-3 sm:gap-4">
-              <Button
-                text="Close"
-                variant="secondary"
-                className="text-neutral h-10 flex-1 text-sm font-medium sm:h-12 sm:text-base"
-                onClick={handleClose}
-              />
-              <Button
-                text="Restore Access"
-                variant="primary"
-                className="bg-secondary hover:bg-secondary-800 h-10 flex-1 text-sm font-medium sm:h-12 sm:text-base"
-                onClick={handleRestoreAccess}
-              />
-            </div>
+            <Button
+              text="Restore Access"
+              variant="primary"
+              className="bg-secondary hover:bg-secondary-800 h-10 w-full text-sm font-medium sm:h-12 sm:text-base"
+              onClick={handleRestoreAccess}
+            />
           </div>
         </div>
       </div>
