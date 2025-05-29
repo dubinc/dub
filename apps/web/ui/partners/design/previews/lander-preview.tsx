@@ -3,7 +3,7 @@
 import { ProgramLanderData, ProgramWithLanderDataProps } from "@/lib/types";
 import { useEditHeroModal } from "@/ui/partners/design/modals/edit-hero-modal";
 import { PreviewWindow } from "@/ui/partners/design/preview-window";
-import { BLOCK_COMPONENTS } from "@/ui/partners/lander-blocks";
+import { BLOCK_COMPONENTS } from "@/ui/partners/lander/blocks";
 import { LanderHero } from "@/ui/partners/lander/lander-hero";
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import {
