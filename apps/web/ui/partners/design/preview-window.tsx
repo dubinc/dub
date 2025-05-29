@@ -8,13 +8,23 @@ import { toast } from "sonner";
 export function PreviewWindow({
   url,
   scrollRef,
+  className,
   children,
-}: PropsWithChildren<{ url: string; scrollRef?: RefObject<HTMLDivElement> }>) {
+}: PropsWithChildren<{
+  url: string;
+  scrollRef?: RefObject<HTMLDivElement>;
+  className?: string;
+}>) {
   const [_, copyToClipboard] = useCopyToClipboard();
 
   return (
-    <div className="flex size-full flex-col overflow-hidden rounded-t-xl border-x border-t border-neutral-200 bg-white shadow-md">
-      <div className="flex items-center justify-between gap-2 border-b border-neutral-200 px-4 py-2.5">
+    <div
+      className={cn(
+        "flex size-full flex-col overflow-hidden rounded-t-xl border-x border-t border-neutral-200 bg-white shadow-md",
+        className,
+      )}
+    >
+      <div className="flex items-center justify-between gap-2 border-b border-neutral-200 bg-white px-4 py-2.5">
         <div className="hidden grow basis-0 items-center gap-2 sm:flex">
           {[...Array(3)].map((_, idx) => (
             <div

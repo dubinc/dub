@@ -29,6 +29,7 @@ import { BrandingSettingsForm } from "./branding-settings-form";
 import { PreviewWindow } from "./preview-window";
 import { ApplicationPreview } from "./previews/application-preview";
 import { LanderPreview } from "./previews/lander-preview";
+import { PortalPreview } from "./previews/portal-preview";
 
 export type BrandingFormData = {
   landerData: z.infer<typeof programLanderSchema>;
@@ -92,7 +93,7 @@ const PREVIEW_TABS = [
   {
     value: "partner-portal",
     label: "Partner portal",
-    component: Placeholder,
+    component: PortalPreview,
   },
   {
     value: "embed",
