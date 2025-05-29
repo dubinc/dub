@@ -39,6 +39,8 @@ function ImportShortModal({
 
   const folderId = searchParams.get("folderId");
 
+  const [hasEncounteredError, setHasEncounteredError] = useState(false);
+
   const {
     data: domains,
     isLoading,
@@ -50,10 +52,12 @@ function ImportShortModal({
     fetcher,
     {
       onError: (err) => {
+        setHasEncounteredError(true);
         if (err.message !== "No Short.io access token found") {
           toast.error(err.message);
         }
       },
+      onSuccess: () => setHasEncounteredError(false),
     },
   );
 
@@ -83,6 +87,9 @@ function ImportShortModal({
 
   const { isMobile } = useMediaQuery();
 
+  // Only show loading if we haven't encountered an error before and workspaceId exists
+  const shouldShowLoading = (isLoading && !hasEncounteredError) || !workspaceId;
+
   return (
     <Modal
       showModal={showImportShortModal}
@@ -111,7 +118,7 @@ function ImportShortModal({
       </div>
 
       <div className="flex flex-col space-y-6 bg-neutral-50 px-4 py-8 text-left sm:px-16">
-        {isLoading || !workspaceId ? (
+        {shouldShowLoading ? (
           <div className="flex flex-col items-center justify-center space-y-4 bg-none">
             <LoadingSpinner />
             <p className="text-sm text-neutral-500">Connecting to Short.io</p>
@@ -147,7 +154,7 @@ function ImportShortModal({
                   {
                     loading: "Adding links to import queue...",
                     success:
-                      "Successfully added links to import queue! You can now safely navigate from this tab – we will send you an email when your links have been fully imported.",
+                      "Successfully added links to import queue! You can now safely navigate from this tab – we will send you an email when your links have been fully imported.",
                     error: "Error adding links to import queue",
                   },
                 );
@@ -239,7 +246,8 @@ function ImportShortModal({
                   await mutate();
                   toast.success("Successfully added API key");
                 } else {
-                  toast.error("Error adding API key");
+                  const body = await res.json();
+                  toast.error(body.error?.message || "Error adding API key");
                 }
                 setSubmitting(false);
               });
@@ -267,6 +275,10 @@ function ImportShortModal({
                 autoFocus={!isMobile}
                 type="text"
                 placeholder="sk_xxxxxxxxxxxxxxxx"
+                minLength={19}
+                maxLength={19}
+                pattern="sk_[A-Za-z0-9]{16}"
+                title="Please enter a valid Short.io API key"
                 autoComplete="off"
                 required
                 className="mt-1 block w-full appearance-none rounded-md border border-neutral-300 px-3 py-2 placeholder-neutral-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
