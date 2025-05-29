@@ -21,7 +21,7 @@ function FeatureItem({ text }: IFeatureItemProps) {
       <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-red-100 bg-red-50 sm:h-8 sm:w-8">
         <X className="h-3 w-3 stroke-2 text-red-500 sm:h-4 sm:w-4" />
       </div>
-      <span className="text-left text-sm leading-relaxed text-gray-700 sm:text-base">
+      <span className="text-left text-sm leading-relaxed text-neutral-700 sm:text-base">
         {text}
       </span>
     </li>
@@ -51,12 +51,12 @@ export function TrialExpiredModal({
     <Modal
       showModal={showModal}
       setShowModal={setShowModal}
-      className="max-w-lg p-0"
+      className="border-border-500 max-w-lg p-0"
     >
-      <div className="relative p-4 sm:p-6 md:p-8">
+      <div className="border-border-500 relative p-4 sm:p-6 md:p-8">
         <div className="flex flex-col items-center space-y-4 text-center sm:space-y-6">
           <div className="space-y-3">
-            <h2 className="text-xl font-bold tracking-tight text-gray-900 sm:text-2xl">
+            <h2 className="text-neutral text-xl font-bold tracking-tight sm:text-2xl">
               Your free access has ended — it's time to upgrade
             </h2>
           </div>
@@ -90,9 +90,9 @@ export function TrialExpiredModal({
 
           <div className="w-full space-y-3 sm:space-y-4">
             <div className="text-left">
-              <p className="text-sm leading-relaxed text-gray-600 sm:text-base">
+              <p className="text-sm leading-relaxed text-neutral-800 sm:text-base">
                 <span className="font-medium">After </span>
-                <span className="font-bold text-gray-900">{trialEndDate}</span>
+                <span className="text-neutral font-bold">{trialEndDate}</span>
                 <span className="font-medium">
                   , access to the following features has been disabled:
                 </span>
@@ -108,7 +108,7 @@ export function TrialExpiredModal({
           </div>
 
           <div className="w-full space-y-3 pt-2 sm:space-y-4">
-            <p className="text-left text-sm font-medium leading-relaxed text-gray-700 sm:text-base">
+            <p className="text-left text-sm font-medium leading-relaxed text-neutral-700 md:text-center md:text-base">
               To keep using GetQR without limits, please upgrade to a paid plan.
             </p>
 
@@ -116,13 +116,13 @@ export function TrialExpiredModal({
               <Button
                 text="Close"
                 variant="secondary"
-                className="h-10 flex-1 text-sm font-medium sm:h-12 sm:text-base"
+                className="text-neutral h-10 flex-1 text-sm font-medium sm:h-12 sm:text-base"
                 onClick={handleClose}
               />
               <Button
                 text="Restore Access"
                 variant="primary"
-                className="bg-secondary shadow-secondary/25 hover:bg-secondary-800 h-10 flex-1 text-sm font-medium shadow-lg sm:h-12 sm:text-base"
+                className="bg-secondary hover:bg-secondary-800 h-10 flex-1 text-sm font-medium sm:h-12 sm:text-base"
                 onClick={handleRestoreAccess}
               />
             </div>
