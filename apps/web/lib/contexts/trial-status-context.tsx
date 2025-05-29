@@ -12,7 +12,7 @@ const TrialStatusContext = createContext<TrialStatusContextType | undefined>(
 );
 
 export function TrialStatusProvider({ children }: { children: ReactNode }) {
-  const [isTrialOver, setIsTrialOver] = useState<boolean>(true);
+  const [isTrialOver, setIsTrialOver] = useState<boolean>(false);
 
   return (
     <TrialStatusContext.Provider value={{ isTrialOver, setIsTrialOver }}>
