@@ -98,6 +98,7 @@ export function PartnerProgramSummary({
     sales: 200,
     earnings: 200,
   },
+  reportingMonth = "May",
 }: {
   program: {
     name: string;
@@ -126,6 +127,7 @@ export function PartnerProgramSummary({
     sales: number;
     earnings: number;
   };
+  reportingMonth: string;
 }) {
   const monthlyStats = [
     {
@@ -178,14 +180,10 @@ export function PartnerProgramSummary({
     },
   ];
 
-  const month = new Date().toLocaleString("en-US", {
-    month: "long",
-  });
-
   return (
     <Html>
       <Head />
-      <Preview>{`Your ${month} performance report for ${program.name} program.`}</Preview>
+      <Preview>{`Your ${reportingMonth} performance report for ${program.name} program.`}</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] space-y-10 px-3 py-5">
@@ -198,7 +196,8 @@ export function PartnerProgramSummary({
             </Heading>
 
             <Text className="mt-1 text-sm text-neutral-600">
-              Here's a summary of your activity for the month of {month}
+              Here's a summary of your activity for the month of{" "}
+              {reportingMonth}
             </Text>
 
             <Section className="mt-10 rounded-xl border border-solid border-neutral-200 bg-neutral-50">

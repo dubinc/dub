@@ -9,7 +9,7 @@ import { PartnerProgramSummary } from "@dub/email/templates/partner-program-summ
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import { Prisma } from "@prisma/client";
-import { endOfMonth, startOfMonth, subMonths } from "date-fns";
+import { endOfMonth, format, startOfMonth, subMonths } from "date-fns";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -80,6 +80,7 @@ async function handler(req: Request) {
 
     const comparisonMonth = subMonths(new Date(), 2);
     const previousMonth = subMonths(new Date(), 1);
+    const reportingMonth = format(previousMonth, "MMMM");
 
     console.log(`Sending program summary for ${program.id}`, {
       comparisonMonth,
@@ -262,17 +263,16 @@ async function handler(req: Request) {
         .filter(({ lifetime }) => lifetime.leads > 0);
 
       await Promise.allSettled(
-        summary.map(({ partner, comparisonMonth, previousMonth, lifetime }) => {
+        summary.map(({ partner, ...rest }) => {
           limiter.schedule(() =>
             sendEmail({
-              subject: `${program.name} partner program summary`,
+              subject: `Your ${reportingMonth} performance report for ${program.name} program`,
               email: partner.email!,
               react: PartnerProgramSummary({
                 program,
                 partner,
-                comparisonMonth,
-                previousMonth,
-                lifetime,
+                ...rest,
+                reportingMonth,
               }),
             }),
           );
