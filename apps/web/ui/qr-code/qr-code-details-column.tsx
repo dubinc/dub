@@ -22,9 +22,9 @@ export function QrCodeDetailsColumn({
   return (
     <div
       ref={ref}
-      className="flex h-full flex-col items-start justify-start gap-6 xl:flex-row xl:items-center xl:justify-end"
+      className="flex h-full flex-col items-start justify-start gap-6 lg:flex-row lg:items-center lg:justify-end"
     >
-      <div className="hidden gap-3 lg:gap-4 xl:flex xl:gap-6">
+      <div className="hidden gap-3 lg:flex lg:gap-4 lg:gap-6">
         <QrCardType currentQrTypeInfo={currentQrTypeInfo} />
         {qrCode.link.archived ? (
           <QRCardStatus archived={qrCode.link.archived} />
@@ -33,11 +33,7 @@ export function QrCodeDetailsColumn({
         )}
       </div>
 
-      <QrCodeControls
-        qrCode={qrCode}
-        canvasRef={canvasRef}
-        currentQrTypeInfo={currentQrTypeInfo}
-      />
+      <QrCodeControls qrCode={qrCode} canvasRef={canvasRef} />
     </div>
   );
 }

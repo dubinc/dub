@@ -22,19 +22,19 @@ export function QRCardTitle({ value }: { value: string }) {
   };
 
   return (
-    <Flex direction="row" gap="2" align="center" className="h-[26px] min-w-0">
+    <Flex direction="row" gap="1" align="center" className="h-[26px] min-w-0">
       {isEdit ? (
         <QrCodeRename initialName={value} onSave={handleSave} />
       ) : (
         <>
-          <span className="min-w-0 truncate font-bold text-neutral-500 xl:font-medium">
+          <span className="text-neutral min-w-0 truncate font-bold lg:font-medium lg:text-neutral-500">
             My Lovely QR
           </span>
           <Tooltip content="Rename" delayDuration={150}>
             <div className="shrink-0 p-1">
               <Icon
                 icon="uil:edit"
-                className="cursor-pointer text-neutral-500"
+                className="text-secondary cursor-pointer"
                 onClick={onEditClick}
               />
             </div>

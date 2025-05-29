@@ -32,7 +32,7 @@ export const QRCardDetails = memo(
             : "gap-1.5 opacity-100 md:gap-3",
         )}
       >
-        <div className="flex min-w-0 items-center gap-2">
+        <div className="flex min-w-0 items-center gap-1">
           <a
             href={url}
             target="_blank"
@@ -47,7 +47,7 @@ export const QRCardDetails = memo(
             <div className="shrink-0 p-1">
               <Icon
                 icon="uil:edit"
-                className="cursor-pointer text-neutral-500"
+                className="text-secondary cursor-pointer"
                 onClick={onEditClick}
               />
             </div>

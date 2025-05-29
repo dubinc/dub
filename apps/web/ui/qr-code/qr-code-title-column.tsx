@@ -6,6 +6,7 @@ import { QRCardAnalyticsBadge } from "@/ui/qr-code/qr-code-card-analytics-badge.
 import { QRCardDetails } from "@/ui/qr-code/qr-code-card-details.tsx";
 import { QRCardStatus } from "@/ui/qr-code/qr-code-card-status.tsx";
 import { QRCardTitle } from "@/ui/qr-code/qr-code-card-title.tsx";
+import { QrCardType } from "@/ui/qr-code/qr-code-card-type.tsx";
 import { Tooltip, useMediaQuery } from "@dub/ui";
 import { cn, formatDateTime, timeAgo } from "@dub/utils";
 import { Text } from "@radix-ui/themes";
@@ -35,25 +36,35 @@ export function QrCodeTitleColumn({
   return (
     <div
       ref={containerRef}
-      className="flex h-full min-w-0 flex-row items-start gap-2"
+      className="flex h-full min-w-0 flex-row items-start gap-4"
     >
       <div className="flex flex-col gap-2">
         <QRCanvas
           ref={canvasRef}
           qrCode={builtQrCodeObject}
-          width={width! < 1280 ? 90 : 64}
-          height={width! < 1280 ? 90 : 64}
+          width={width! < 1024 ? 90 : 64}
+          height={width! < 1024 ? 90 : 64}
         />
         {archived ? (
-          <QRCardStatus className="xl:hidden" archived={archived} />
+          <QRCardStatus className="lg:hidden" archived={archived} />
         ) : (
-          <QRCardAnalyticsBadge className="xl:hidden" qrCode={qrCode} />
+          <QRCardAnalyticsBadge className="lg:hidden" qrCode={qrCode} />
         )}
       </div>
 
-      <div className="flex h-full min-w-0 flex-col gap-3 xl:flex-row xl:gap-6">
+      <div className="flex h-full w-full min-w-0 flex-col gap-1.5 lg:flex-row lg:justify-around lg:gap-8 xl:gap-12">
+        <QrCardType
+          className="flex lg:hidden"
+          currentQrTypeInfo={currentQrTypeInfo}
+        />
+
         <div className="flex min-w-0 flex-col justify-center gap-1 whitespace-nowrap">
-          <Text as="span" size="2" weight="bold" className="hidden xl:block">
+          <Text
+            as="span"
+            size="2"
+            weight="bold"
+            className="hidden whitespace-nowrap lg:block"
+          >
             QR Name
           </Text>
           <QRCardTitle
@@ -62,8 +73,13 @@ export function QrCodeTitleColumn({
           />
         </div>
 
-        <div className="flex min-w-0 flex-col justify-center gap-1">
-          <Text as="span" size="2" weight="bold" className="hidden xl:block">
+        <div className="order-last flex min-w-0 flex-col justify-center gap-1 lg:order-none">
+          <Text
+            as="span"
+            size="2"
+            weight="bold"
+            className="hidden whitespace-nowrap lg:block"
+          >
             {currentQrTypeInfo.yourContentColumnTitle}
           </Text>
           <QRCardDetails link={qrCode.link} hideIcon />
@@ -74,7 +90,12 @@ export function QrCodeTitleColumn({
             "flex shrink-0 flex-col items-start justify-center gap-1",
           )}
         >
-          <Text as="span" size="2" weight="bold" className="hidden xl:block">
+          <Text
+            as="span"
+            size="2"
+            weight="bold"
+            className="hidden whitespace-nowrap lg:block"
+          >
             Created
           </Text>
           <Tooltip content={formatDateTime(createdAt)} delayDuration={150}>

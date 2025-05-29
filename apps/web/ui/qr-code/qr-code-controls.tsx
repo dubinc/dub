@@ -7,9 +7,7 @@ import {
 } from "@/ui/modals/archive-qr-modal.tsx";
 import { useDeleteQRModal } from "@/ui/modals/delete-qr-modal.tsx";
 import { useQRBuilder } from "@/ui/modals/qr-builder";
-import { QRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization";
-import { QrCardType } from "@/ui/qr-code/qr-code-card-type.tsx";
 import {
   QrCodesListContext,
   ResponseQrCode,
@@ -34,14 +32,9 @@ import { ThreeDots } from "../shared/icons";
 interface QrCodeControlsProps {
   qrCode: ResponseQrCode;
   canvasRef?: React.RefObject<HTMLCanvasElement>;
-  currentQrTypeInfo: QRType;
 }
 
-export function QrCodeControls({
-  qrCode,
-  canvasRef,
-  currentQrTypeInfo,
-}: QrCodeControlsProps) {
+export function QrCodeControls({ qrCode, canvasRef }: QrCodeControlsProps) {
   const { id: workspaceId } = useWorkspace();
   const { hovered } = useContext(CardList.Card.Context);
   const searchParams = useSearchParams();
@@ -95,7 +88,7 @@ export function QrCodeControls({
   );
 
   return (
-    <div className="flex flex-col-reverse items-end justify-end gap-2 xl:flex-row xl:items-center">
+    <div className="flex flex-col-reverse items-end justify-end gap-2 lg:flex-row lg:items-center">
       <QRBuilderModal />
       <ArchiveQRModal />
       <DeleteLinkModal />
@@ -106,108 +99,102 @@ export function QrCodeControls({
             className={cn(
               "h-8 w-8 px-1.5 outline-none transition-all duration-200",
               "border-transparent data-[state=open]:border-neutral-200/40 data-[state=open]:ring-neutral-200/40 sm:group-hover/card:data-[state=closed]:border-neutral-200/10",
-              "border-border-500 border xl:border-none",
+              "border-border-500 border lg:border-none",
             )}
             icon={<Download className="h-5 w-5 shrink-0" />}
           />
         </DownloadPopover>
       )}
-      <div className="flex gap-2">
-        <QrCardType
-          className="flex xl:hidden [&_span]:hidden"
-          currentQrTypeInfo={currentQrTypeInfo}
-        />
-        <Popover
-          content={
-            <div className="w-full sm:w-48">
-              <div className="grid gap-px p-2">
-                <Button
-                  text="Edit"
-                  variant="outline"
-                  onClick={() => {
-                    setOpenPopover(false);
-                    setShowQRBuilderModal(true);
-                  }}
-                  icon={<PenWriting className="size-4" />}
-                  shortcut="E"
-                  className="h-9 px-2 font-medium"
-                  disabledTooltip={
-                    !canManageLink
-                      ? "You don't have permission to update this link."
-                      : undefined
-                  }
-                />
-              </div>
-              <div className="border-t border-neutral-200/10" />
-              <div className="grid gap-px p-2">
-                <Button
-                  text={qrCode.link.archived ? "Unpause" : "Pause"}
-                  variant="outline"
-                  onClick={async () => {
-                    setArchiving(true);
-                    const res = await sendArchiveRequest({
-                      qrId: qrCode.id,
-                      archive: !qrCode.link.archived,
-                      workspaceId,
-                    });
-
-                    if (!res.ok) {
-                      const { error } = await res.json();
-                      toast.error(error.message);
-                      setArchiving(false);
-                      return;
-                    }
-
-                    mutatePrefix(["/api/qrs", "/api/links"]);
-                    toast.success(
-                      `Successfully ${qrCode.link.archived ? "unpaused" : "paused"} QR code!`,
-                    );
-                    setOpenPopover(false);
-                    setArchiving(false);
-                  }}
-                  icon={<BoxArchive className="size-4" />}
-                  shortcut="A"
-                  className="h-9 px-2 font-medium"
-                  disabledTooltip={
-                    !canManageLink
-                      ? "You don't have permission to archive this link."
-                      : undefined
-                  }
-                  loading={archiving}
-                />
-
-                <Button
-                  text="Delete"
-                  variant="danger-outline"
-                  onClick={() => {
-                    setOpenPopover(false);
-                    setShowDeleteQRModal(true);
-                  }}
-                  icon={<Delete className="size-4" />}
-                  shortcut="X"
-                  className="h-9 px-2 font-medium"
-                />
-              </div>
+      <Popover
+        content={
+          <div className="w-full sm:w-48">
+            <div className="grid gap-px p-2">
+              <Button
+                text="Edit"
+                variant="outline"
+                onClick={() => {
+                  setOpenPopover(false);
+                  setShowQRBuilderModal(true);
+                }}
+                icon={<PenWriting className="size-4" />}
+                shortcut="E"
+                className="h-9 px-2 font-medium"
+                disabledTooltip={
+                  !canManageLink
+                    ? "You don't have permission to update this link."
+                    : undefined
+                }
+              />
             </div>
-          }
-          align="end"
-          openPopover={openPopover}
-          setOpenPopover={setOpenPopover}
-        >
-          <Button
-            variant="secondary"
-            className={cn(
-              "h-8 w-8 px-1.5 outline-none transition-all duration-200",
-              "border-transparent data-[state=open]:border-neutral-200/40 data-[state=open]:ring-neutral-200/40 sm:group-hover/card:data-[state=closed]:border-neutral-200/10",
-              "border-border-500 border xl:border-none",
-            )}
-            icon={<ThreeDots className="h-5 w-5 shrink-0" />}
-            onClick={() => {
-              setOpenPopover(!openPopover);
-            }}
-          />
-        </Popover>
-      </div>
+            <div className="border-t border-neutral-200/10" />
+            <div className="grid gap-px p-2">
+              <Button
+                text={qrCode.link.archived ? "Unpause" : "Pause"}
+                variant="outline"
+                onClick={async () => {
+                  setArchiving(true);
+                  const res = await sendArchiveRequest({
+                    qrId: qrCode.id,
+                    archive: !qrCode.link.archived,
+                    workspaceId,
+                  });
+
+                  if (!res.ok) {
+                    const { error } = await res.json();
+                    toast.error(error.message);
+                    setArchiving(false);
+                    return;
+                  }
+
+                  mutatePrefix(["/api/qrs", "/api/links"]);
+                  toast.success(
+                    `Successfully ${qrCode.link.archived ? "unpaused" : "paused"} QR code!`,
+                  );
+                  setOpenPopover(false);
+                  setArchiving(false);
+                }}
+                icon={<BoxArchive className="size-4" />}
+                shortcut="A"
+                className="h-9 px-2 font-medium"
+                disabledTooltip={
+                  !canManageLink
+                    ? "You don't have permission to archive this link."
+                    : undefined
+                }
+                loading={archiving}
+              />
+
+              <Button
+                text="Delete"
+                variant="danger-outline"
+                onClick={() => {
+                  setOpenPopover(false);
+                  setShowDeleteQRModal(true);
+                }}
+                icon={<Delete className="size-4" />}
+                shortcut="X"
+                className="h-9 px-2 font-medium"
+              />
+            </div>
+          </div>
+        }
+        align="end"
+        openPopover={openPopover}
+        setOpenPopover={setOpenPopover}
+      >
+        <Button
+          variant="secondary"
+          className={cn(
+            "h-8 w-8 px-1.5 outline-none transition-all duration-200",
+            "border-transparent data-[state=open]:border-neutral-200/40 data-[state=open]:ring-neutral-200/40 sm:group-hover/card:data-[state=closed]:border-neutral-200/10",
+            "border-border-500 border lg:border-none",
+          )}
+          icon={<ThreeDots className="h-5 w-5 shrink-0" />}
+          onClick={() => {
+            setOpenPopover(!openPopover);
+          }}
+        />
+      </Popover>
     </div>
   );
 }
