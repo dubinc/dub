@@ -115,7 +115,7 @@ NODE count_sales
 SQL >
 
     %
-    SELECT wl.partner_id, COUNT(*) AS sales
+    SELECT wl.partner_id, COUNT(*) AS sales, sum(amount) as saleAmount
     FROM dub_sale_events AS se
     JOIN workspace_links AS wl ON se.link_id = wl.link_id
     WHERE
@@ -160,7 +160,7 @@ SQL >
 NODE count_composite
 SQL >
 
-    SELECT c.partner_id as partner_id, clicks, leads, sales
+    SELECT c.partner_id as partner_id, clicks, leads, sales, saleAmount
     FROM count_clicks AS c
     LEFT JOIN count_leads AS l ON c.partner_id = l.partner_id
     LEFT JOIN count_sales AS s ON c.partner_id = s.partner_id
