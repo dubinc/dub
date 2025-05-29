@@ -16,24 +16,21 @@ export const Header = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              onClick={() => showModal("login")}
-            >
+            <Button variant="ghost" onClick={() => showModal("login")}>
               <Text size="3" weight="medium" className="text-neutral">
                 Log In
               </Text>
             </Button>
 
-            <Button
-              variant="solid"
-              color="blue"
-              onClick={() => showModal("signup")}
-            >
-              <Text size="3" weight="medium">
-                Sign Up
-              </Text>
-            </Button>
+            {/*<Button*/}
+            {/*  variant="solid"*/}
+            {/*  color="blue"*/}
+            {/*  onClick={() => showModal("signup")}*/}
+            {/*>*/}
+            {/*  <Text size="3" weight="medium">*/}
+            {/*    Sign Up*/}
+            {/*  </Text>*/}
+            {/*</Button>*/}
           </div>
         </nav>
       </header>
