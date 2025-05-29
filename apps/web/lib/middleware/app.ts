@@ -48,7 +48,7 @@ export default async function AppMiddleware(req: NextRequest) {
       ),
       {
         headers: {
-          "Set-Cookie": `country=${country}; Path=/; HttpOnly; Secure; SameSite=Strict;`,
+          "Set-Cookie": `country=${country}; Path=/; Secure; SameSite=Strict;`,
         },
       },
     );
@@ -118,7 +118,7 @@ export default async function AppMiddleware(req: NextRequest) {
   // otherwise, rewrite the path to /app
   return NextResponse.rewrite(new URL(`/app.dub.co${fullPath}`, req.url), {
     headers: {
-      "Set-Cookie": `country=${country}; Path=/; HttpOnly; Secure; SameSite=Strict;`,
+      "Set-Cookie": `country=${country}; Path=/; Secure; SameSite=Strict;`,
     },
   });
 }

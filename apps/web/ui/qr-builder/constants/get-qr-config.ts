@@ -53,6 +53,26 @@ export const QR_TYPES: QRType[] = [
     yourContentColumnTitle: "Your PDF",
   },
   {
+    id: EQRType.WHATSAPP,
+    label: "Whatsapp",
+    info: "Start a WhatsApp chat instantly",
+    icon: "basil:whatsapp-outline",
+    img: QrWhatsappFull,
+    content:
+      "Start conversations instantly! Use a QR code to let customers, clients, or friends message you on WhatsApp with a single scan.",
+    yourContentColumnTitle: "Your Number",
+  },
+  {
+    id: EQRType.WIFI,
+    label: "Wifi",
+    icon: "streamline:wifi",
+    info: "Connect to a Wifi network",
+    img: QrWifiFull,
+    content:
+      "Instant Wifi access—no typing required! Use a QR code to let guests connect to your network effortlessly by scanning, making it perfect for homes, cafés, offices, and events.",
+    yourContentColumnTitle: "Wifi Name",
+  },
+  {
     id: EQRType.IMAGE,
     label: "Image",
     info: "Display an image or photo",
@@ -73,16 +93,6 @@ export const QR_TYPES: QRType[] = [
     yourContentColumnTitle: "Your Video",
   },
   {
-    id: EQRType.WHATSAPP,
-    label: "Whatsapp",
-    info: "Start a WhatsApp chat instantly",
-    icon: "basil:whatsapp-outline",
-    img: QrWhatsappFull,
-    content:
-      "Start conversations instantly! Use a QR code to let customers, clients, or friends message you on WhatsApp with a single scan.",
-    yourContentColumnTitle: "Your Number",
-  },
-  {
     id: EQRType.SOCIAL,
     label: "Social Media Link",
     info: "Open a website or landing page",
@@ -91,16 +101,6 @@ export const QR_TYPES: QRType[] = [
     content:
       "Grow your audience effortlessly! Use a QR code to share your social media profiles in one scan—making it easy for people to follow, connect, and engage with your content.",
     yourContentColumnTitle: "Your Link",
-  },
-  {
-    id: EQRType.WIFI,
-    label: "Wifi",
-    icon: "streamline:wifi",
-    info: "Connect to a Wifi network",
-    img: QrWifiFull,
-    content:
-      "Instant Wifi access—no typing required! Use a QR code to let guests connect to your network effortlessly by scanning, making it perfect for homes, cafés, offices, and events.",
-    yourContentColumnTitle: "Wifi Name",
   },
   {
     id: EQRType.APP_LINK,

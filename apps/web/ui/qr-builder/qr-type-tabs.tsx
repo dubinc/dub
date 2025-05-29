@@ -28,7 +28,6 @@ interface QrTypeTabsProps {
 }
 
 export const QrTypeTabs = ({
-  options,
   qrCode,
   uploadedLogo,
   selectedSuggestedLogo,
@@ -60,7 +59,9 @@ export const QrTypeTabs = ({
     }) => {
       // QR name is not needed for QR code generation
       const { qrName, ...filteredInputValues } = inputValues;
-      setData(qrTypeDataHandlers[qrType](filteredInputValues, isHiddenNetwork));
+      setData(
+        qrTypeDataHandlers[qrType]?.(filteredInputValues, isHiddenNetwork),
+      );
     },
     [setData],
   );
@@ -89,11 +90,11 @@ export const QrTypeTabs = ({
               icon={type.icon}
               className={cn(
                 "h-5 w-5 flex-none",
-                idx === 4
+                idx === 2
                   ? "group-hover:[&>path]:fill-neutral [&>path]:fill-neutral-200"
                   : "group-hover:[&>g]:stroke-neutral group-hover:[&>path]:stroke-neutral [&>g]:stroke-neutral-200 [&>path]:stroke-neutral-200",
                 qrTypeActiveTab === type.id &&
-                  (idx === 4
+                  (idx === 2
                     ? "[&>path]:fill-secondary group-hover:[&>path]:fill-secondary"
                     : "[&>g]:stroke-secondary group-hover:[&>g]:stroke-secondary [&>path]:stroke-secondary group-hover:[&>path]:stroke-secondary"),
               )}

@@ -1,15 +1,7 @@
-import { EQRType } from "../constants/get-qr-config.ts";
-
-export const getMaxSizeLabel = (qrType: EQRType, isLogo = false) => {
-  if (isLogo && qrType === EQRType.IMAGE) {
-    return { size: 2 * 1024 * 1024, label: "2MB" };
-  }
-
-  const maxSizes: Partial<Record<EQRType, { size: number; label: string }>> = {
-    [EQRType.IMAGE]: { size: 15 * 1024 * 1024, label: "15MB" },
-    [EQRType.VIDEO]: { size: 300 * 1024 * 1024, label: "300MB" },
-    [EQRType.PDF]: { size: 100 * 1024 * 1024, label: "100MB" },
-  };
-
-  return maxSizes[qrType] || { size: 0, label: "Unsupported size" };
+export const getMaxSizeLabel = (bytes: number): string => {
+  const sizes = ["Bytes", "KB", "MB", "GB"];
+  if (bytes === 0) return "0 Bytes";
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  const formattedSize = parseFloat((bytes / Math.pow(1024, i)).toFixed(2));
+  return `${formattedSize} ${sizes[i]}`;
 };

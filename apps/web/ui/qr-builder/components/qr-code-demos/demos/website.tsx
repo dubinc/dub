@@ -56,6 +56,7 @@ export const QRCodeDemoWebsite: FC<IQRCodeDemoWebsiteProps> = ({
               textOverflow: "ellipsis",
               pointerEvents: "none",
             }}
+            readOnly
           />
         </div>
       </foreignObject>

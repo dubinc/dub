@@ -12,7 +12,7 @@ export const QrTabsDownloadButton: FC<IQrTabsDownloadButtonProps> = ({
 }) => {
   return (
     <Button
-      size={{ initial: "4", sm: "3" }}
+      size="4"
       color={"blue"}
       variant="solid"
       disabled={isQrDisabled}

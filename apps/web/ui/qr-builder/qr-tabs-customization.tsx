@@ -1,6 +1,6 @@
 import { cn } from "@dub/utils";
 import * as Tabs from "@radix-ui/react-tabs";
-import { Dispatch, FC, SetStateAction } from "react";
+import { FC } from "react";
 
 import { FrameSelector } from "@/ui/qr-builder/components/frame-selector.tsx";
 import { LogoSelector } from "@/ui/qr-builder/components/logo-selector.tsx";
@@ -29,8 +29,6 @@ interface QrTabsCustomizationProps {
     onSuggestedLogoSelect: (type: string, src?: string) => void;
     setUploadedLogoFile: (file: File | null) => void;
   };
-  fileError: string;
-  setFileError: Dispatch<SetStateAction<string>>;
 }
 
 export const QrTabsCustomization: FC<QrTabsCustomizationProps> = ({
@@ -38,13 +36,10 @@ export const QrTabsCustomization: FC<QrTabsCustomizationProps> = ({
   setStyleOptionActiveActiveTab,
   selectedSuggestedFrame,
   selectedSuggestedLogo,
-  uploadedLogo,
   isQrDisabled,
   isMobile,
   options,
   handlers,
-  fileError,
-  setFileError,
 }) => {
   return isMobile ? (
     <Tabs.Root
@@ -103,12 +98,9 @@ export const QrTabsCustomization: FC<QrTabsCustomizationProps> = ({
           {tab.id === "logo" && (
             <LogoSelector
               selectedSuggestedLogo={selectedSuggestedLogo}
-              uploadedLogo={uploadedLogo}
               isQrDisabled={isQrDisabled}
               onSuggestedLogoSelect={handlers.onSuggestedLogoSelect}
               onUploadLogo={handlers.setUploadedLogoFile}
-              fileError={fileError}
-              setFileError={setFileError}
             />
           )}
         </Tabs.Content>
@@ -145,12 +137,9 @@ export const QrTabsCustomization: FC<QrTabsCustomizationProps> = ({
           {tab.id === "logo" && (
             <LogoSelector
               selectedSuggestedLogo={selectedSuggestedLogo}
-              uploadedLogo={uploadedLogo}
               isQrDisabled={isQrDisabled}
               onSuggestedLogoSelect={handlers.onSuggestedLogoSelect}
               onUploadLogo={handlers.setUploadedLogoFile}
-              fileError={fileError}
-              setFileError={setFileError}
             />
           )}
         </div>

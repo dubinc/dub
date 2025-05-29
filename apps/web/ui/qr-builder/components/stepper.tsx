@@ -13,7 +13,7 @@ interface IStepperProps {
 
 export default function Stepper({ steps, currentStep }: IStepperProps) {
   return (
-    <div className="flex w-full items-start justify-start md:w-[70%] md:items-center">
+    <div className="flex w-full items-center justify-center">
       {steps.map((step, index) => {
         const isCompleted = currentStep > step.number;
         const isActive = currentStep === step.number;
@@ -22,10 +22,7 @@ export default function Stepper({ steps, currentStep }: IStepperProps) {
         return (
           <div
             key={step.number}
-            className={cn(
-              "flex items-center",
-              isLast ? "flex-0 md:flex-1" : "flex-1",
-            )}
+            className={cn("flex items-center", isLast ? "flex-0" : "flex-1")}
           >
             <div className="flex flex-col items-center">
               <div className="relative flex h-6 w-6 items-center justify-center transition-all duration-300 ease-in-out">

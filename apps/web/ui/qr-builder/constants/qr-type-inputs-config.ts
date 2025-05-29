@@ -3,19 +3,33 @@ import {
   DEFAULT_WHATSAPP_MESSAGE,
   DEFAULT_WIFI_NETWORK_NAME,
 } from "@/ui/qr-builder/constants/qr-type-inputs-placeholders.ts";
+import { getQRNameInput } from "@/ui/qr-builder/helpers/get-qr-name-input-id.ts";
 import { EQRType, FILE_QR_TYPES } from "./get-qr-config.ts";
 
-export type QRInputType = "text" | "url" | "tel" | "password" | "textarea";
+export type TQRInputType =
+  | "text"
+  | "url"
+  | "tel"
+  | "password"
+  | "textarea"
+  | "file";
+
+export enum EAcceptedFileType {
+  IMAGE = "image/*",
+  PDF = "application/pdf",
+  VIDEO = "video/*",
+}
 
 export type QRInputConfig = {
   id: string;
   label: string;
-  type: QRInputType;
+  type: TQRInputType;
   placeholder: string;
-  tooltip?: string;
+  tooltip: string;
   initFromPlaceholder?: boolean;
   maxLength?: number;
-  isNotRequired?: boolean;
+  acceptedFileType?: EAcceptedFileType;
+  maxFileSize?: number;
 };
 
 export const QR_NAME_INPUT: QRInputConfig = {
@@ -32,7 +46,7 @@ export const QR_TYPE_INPUTS_CONFIG: Record<
   QRInputConfig[]
 > = {
   [EQRType.WEBSITE]: [
-    QR_NAME_INPUT,
+    getQRNameInput(EQRType.WEBSITE),
     {
       id: `websiteLink`,
       label: "Enter your website",
@@ -41,46 +55,8 @@ export const QR_TYPE_INPUTS_CONFIG: Record<
       tooltip: "This is the link people will open when they scan your QR code.",
     },
   ],
-  // [EQRType.APP_LINK]: [
-  //   {
-  //     id: `qrName`,
-  //     label: "Enter Name of your QR Code",
-  //     type: "text",
-  //     placeholder: "Name of your QR Code",
-  //     isNotRequired: true,
-  //   },
-  //   {
-  //     id: `storeLink`,
-  //     label: "Store Link",
-  //     type: "url",
-  //     placeholder: "https://www.getqr.com/",
-  //   },
-  // ],
-  // [EQRType.SOCIAL]: [
-  //   {
-  //     id: `qrName`,
-  //     label: "Enter Name of your QR Code",
-  //     type: "text",
-  //     placeholder: "Name of your QR Code",
-  //     isNotRequired: true,
-  //   },
-  //   {
-  //     id: `socialLink`,
-  //     label: "Enter your Social Media Link",
-  //     type: "url",
-  //     placeholder: "https://www.getqr.com/",
-  //   },
-  // ],
-  // [EQRType.FEEDBACK]: [
-  //   {
-  //     id: `link`,
-  //     label: "Link",
-  //     type: "url",
-  //     placeholder: "https://www.getqr.com/",
-  //   },
-  // ],
   [EQRType.WHATSAPP]: [
-    QR_NAME_INPUT,
+    getQRNameInput(EQRType.WHATSAPP),
     {
       id: `number`,
       label: "WhatsApp Number",
@@ -100,7 +76,7 @@ export const QR_TYPE_INPUTS_CONFIG: Record<
     },
   ],
   [EQRType.WIFI]: [
-    QR_NAME_INPUT,
+    getQRNameInput(EQRType.WIFI),
     {
       id: `networkName`,
       label: "Wifi Network Name",
@@ -116,6 +92,36 @@ export const QR_TYPE_INPUTS_CONFIG: Record<
       placeholder: "ExtraToppings123",
       tooltip:
         "People will automatically connect using this password after scanning your QR code. Leave this blank if your network has no password.",
+    },
+  ],
+  [EQRType.IMAGE]: [
+    getQRNameInput(EQRType.IMAGE),
+    {
+      id: "filesImage",
+      label: "Image",
+      type: "file",
+      acceptedFileType: EAcceptedFileType.IMAGE,
+      maxFileSize: 5 * 1024 * 1024,
+    },
+  ],
+  [EQRType.PDF]: [
+    getQRNameInput(EQRType.PDF),
+    {
+      id: "filesPDF",
+      label: "PDF",
+      type: "file",
+      acceptedFileType: EAcceptedFileType.PDF,
+      maxFileSize: 20 * 1024 * 1024,
+    },
+  ],
+  [EQRType.VIDEO]: [
+    getQRNameInput(EQRType.VIDEO),
+    {
+      id: "filesVideo",
+      label: "Video",
+      type: "file",
+      acceptedFileType: EAcceptedFileType.VIDEO,
+      maxFileSize: 50 * 1024 * 1024,
     },
   ],
 };
