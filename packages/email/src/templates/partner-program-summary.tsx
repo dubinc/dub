@@ -23,10 +23,10 @@ import {
 import { Footer } from "../components/footer";
 
 const ICONS = {
-  clicks: "https://react.email/static/atmos-vacuum-canister.jpg",
-  leads: "https://react.email/static/atmos-vacuum-canister.jpg",
-  sales: "https://react.email/static/atmos-vacuum-canister.jpg",
-  earnings: "https://react.email/static/atmos-vacuum-canister.jpg",
+  clicks: "https://assets.dub.co/icons/clicks.png",
+  leads: "https://assets.dub.co/icons/leads.png",
+  sales: "https://assets.dub.co/icons/sales.png",
+  earnings: "https://assets.dub.co/icons/earnings.png",
 } as const;
 
 type Icon = keyof typeof ICONS;
