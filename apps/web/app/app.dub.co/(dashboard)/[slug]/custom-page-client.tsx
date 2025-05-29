@@ -86,27 +86,26 @@ function WorkspaceLinks() {
           {isTrialOver && (
             <>
               <div className="flex rounded-lg border border-red-200 bg-red-50 p-3">
-                <div className="flex w-full items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <AlertCircleFill className="h-6 w-6 shrink-0 text-red-500" />
-                    <p className="text-sm font-medium text-red-700">
-                      All your dynamic QR codes have been deactivated. To
-                      reactivate them, subscribe to one of our plans.
+                <div className="flex w-full flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                  <div className="flex flex-col items-center gap-2 md:flex-row md:items-center">
+                    <AlertCircleFill className="h-5 w-5 shrink-0 text-red-500 md:h-6 md:w-6" />
+                    <p className="text-center text-sm font-medium text-red-700 md:text-left">
+                      All your dynamic QR codes have been deactivated. To reactivate them, subscribe to one of our plans.
                     </p>
                   </div>
                   <Button
                     variant="primary"
-                    className="bg-secondary hover:bg-secondary-800 text-md basis-[30%] whitespace-nowrap px-3 py-1.5 text-white"
+                    className="bg-secondary hover:bg-secondary-800 w-full whitespace-nowrap px-3 py-1.5 text-sm text-white md:w-auto"
                     onClick={() => router.push(`/${slug}/plans`)}
                     text="Subscribe now"
                   />
                 </div>
               </div>
 
-              <div className="w-full rounded-lg border border-red-200 bg-gradient-to-r from-red-100 to-red-50">
-                <div className="px-4 py-3">
-                  <div className="flex w-full items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
+              <div className="w-full rounded-lg border border-red-200 bg-gradient-to-b from-red-100 to-red-50 md:bg-gradient-to-r">
+                <div className="px-3 py-3 md:px-4">
+                  <div className="flex w-full flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <div className="flex flex-col items-center gap-2 md:flex-row md:items-center md:gap-3">
                       <motion.div
                         animate={{
                           scale: [1, 1.1, 1],
@@ -118,20 +117,20 @@ function WorkspaceLinks() {
                         }}
                         className="flex items-center justify-center"
                       >
-                        <ShieldAlert className="h-6 w-6 shrink-0 text-red-500" />
+                        <ShieldAlert className="h-5 w-5 shrink-0 text-red-500 md:h-6 md:w-6" />
                       </motion.div>
-                      <p className="text-sm font-medium text-red-700">
-                        All your dynamic QR codes have been deactivated. To
-                        reactivate them, subscribe to one of our plans.
+                      <p className="text-center text-sm font-medium text-red-700 md:text-left">
+                        All your dynamic QR codes have been deactivated. To reactivate them, subscribe to one of our plans.
                       </p>
                     </div>
                     <motion.div
                       whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.97 }}
+                      className="w-full md:w-auto"
                     >
                       <Button
                         variant="primary"
-                        className="bg-secondary hover:bg-secondary-800 text-md whitespace-nowrap font-medium text-white"
+                        className="bg-secondary hover:bg-secondary-800 w-full whitespace-nowrap font-medium text-sm text-white md:w-auto"
                         onClick={() => router.push(`/${slug}/plans`)}
                         text="Restore access"
                       />
