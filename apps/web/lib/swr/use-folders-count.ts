@@ -4,10 +4,10 @@ import useSWR from "swr";
 import useWorkspace from "./use-workspace";
 
 export default function useFoldersCount({
-  includeParams = false,
+  includeParams = [],
   query,
 }: {
-  includeParams?: boolean;
+  includeParams?: string[];
   query?: Record<string, any>;
 } = {}) {
   const { id: workspaceId, plan } = useWorkspace();
@@ -16,7 +16,7 @@ export default function useFoldersCount({
 
   const qs = getQueryString(
     { workspaceId, ...query },
-    { include: includeParams ? ["search"] : [] },
+    { include: includeParams },
   );
 
   const { data, error } = useSWR<number>(

@@ -12,7 +12,7 @@ import { NextResponse } from "next/server";
 export const POST = withAdmin(async ({ req }) => {
   const { email } = await req.json();
 
-  const user = await prisma.user.findUnique({
+  const user = await prisma.user.findUniqueOrThrow({
     where: {
       email,
     },
@@ -38,29 +38,32 @@ export const POST = withAdmin(async ({ req }) => {
     },
   });
 
-  if (!user?.email) {
-    return new Response("No user found", { status: 404 });
-  }
+  console.log(
+    `Found user ${user.email} with ${user.projects.length} workspaces`,
+  );
 
   waitUntil(
-    Promise.allSettled([
-      ...user.projects.map(({ project }) => deleteWorkspaceAdmin(project)),
+    Promise.all(
+      user.projects.map(({ project }) => deleteWorkspaceAdmin(project)),
+    ).then(async () => {
+      await Promise.all([
+        user.image &&
+          isStored(user.image) &&
+          storage.delete(user.image.replace(`${R2_URL}/`, "")),
+        unsubscribe({ email }),
+        updateConfig({
+          key: "emails",
+          value: email,
+        }),
+      ]);
+
       // delete user
-      prisma.user.delete({
+      await prisma.user.delete({
         where: {
           id: user.id,
         },
-      }),
-      // if the user has a custom avatar, delete it
-      user.image &&
-        isStored(user.image) &&
-        storage.delete(user.image.replace(`${R2_URL}/`, "")),
-      unsubscribe({ email }),
-      updateConfig({
-        key: "emails",
-        value: email,
-      }),
-    ]),
+      });
+    }),
   );
 
   return NextResponse.json({ success: true });
