@@ -25,11 +25,12 @@ export const FoldersPageClient = () => {
 
   const { AddFolderButton, AddFolderModal } = useAddFolderModal();
 
-  const { data: foldersCount } = useFoldersCount({
-    includeParams: true,
-  });
   const { folders, loading, isValidating } = useFolders({
-    includeParams: true,
+    includeParams: ["search", "page"],
+  });
+
+  const { data: foldersCount } = useFoldersCount({
+    includeParams: ["search", "page"],
   });
 
   const showAllLinkFolder =
@@ -47,7 +48,7 @@ export const FoldersPageClient = () => {
               loading={isValidating}
               onChangeDebounced={(t) => {
                 if (t) {
-                  queryParams({ set: { search: t } });
+                  queryParams({ set: { search: t }, del: "page" });
                 } else {
                   queryParams({ del: "search" });
                 }
