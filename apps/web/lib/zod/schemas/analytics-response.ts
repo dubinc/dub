@@ -461,7 +461,7 @@ export const analyticsResponse = {
     })
     .openapi({ ref: "AnalyticsUTMContents" }),
 
-  partners: z
+  partnerId: z
     .object({
       partnerId: z.string().describe("The ID of the partner"),
       clicks: z.number().describe("The total number of clicks").default(0),
