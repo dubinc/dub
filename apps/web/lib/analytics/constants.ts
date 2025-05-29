@@ -133,7 +133,7 @@ export const VALID_ANALYTICS_ENDPOINTS = [
   "utm_campaigns",
   "utm_terms",
   "utm_contents",
-  "partners",
+  "partnerId",
 ] as const;
 
 export const SINGULAR_ANALYTICS_ENDPOINTS = {
@@ -152,6 +152,7 @@ export const SINGULAR_ANALYTICS_ENDPOINTS = {
   utm_campaigns: "utm_campaign",
   utm_terms: "utm_term",
   utm_contents: "utm_content",
+  partnerId: "partnerId",
 };
 
 export const VALID_ANALYTICS_FILTERS = [
@@ -182,6 +183,7 @@ export const VALID_ANALYTICS_FILTERS = [
   "utm_campaign",
   "utm_term",
   "utm_content",
+  "partnerId",
 ];
 
 // possible analytics filters for a given linkId

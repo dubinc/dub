@@ -92,7 +92,7 @@ async function handler(req: Request) {
       await Promise.all([
         getAnalytics({
           event: "composite",
-          groupBy: "partners",
+          groupBy: "partnerId",
           programId: program.id,
           start: startOfMonth(comparisonMonth),
           end: endOfMonth(comparisonMonth),
@@ -100,7 +100,7 @@ async function handler(req: Request) {
 
         getAnalytics({
           event: "composite",
-          groupBy: "partners",
+          groupBy: "partnerId",
           programId: program.id,
           start: startOfMonth(previousMonth),
           end: endOfMonth(previousMonth),
@@ -108,7 +108,7 @@ async function handler(req: Request) {
 
         getAnalytics({
           event: "composite",
-          groupBy: "partners",
+          groupBy: "partnerId",
           programId: program.id,
         }),
       ]);
