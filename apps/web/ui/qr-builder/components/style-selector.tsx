@@ -32,7 +32,7 @@ export const StyleSelector: FC<IStyleSelectorProps> = ({
         styleOptions={DOTS_STYLES}
         selectedStyle={options.dotsOptions?.type ?? "square"}
         onSelect={(type) => onDotsStyleChange(type as DotType)}
-        stylePickerWrapperClassName={cn("[&_label]:text-sm", {
+        stylePickerWrapperClassName={cn("", {
           "border border-border-500 p-3 rounded-lg": isMobile,
         })}
         optionsWrapperClassName="gap-2 md:flex-nowrap"

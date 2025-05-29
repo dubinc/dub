@@ -19,6 +19,7 @@ interface QrTabsCustomizationProps {
   isQrDisabled: boolean;
   isMobile: boolean;
   options: Options;
+  homepageDemo?: boolean;
   handlers: {
     onSuggestedFrameSelect: (type: string) => void;
     onDotsStyleChange: (type: DotType) => void;
@@ -39,9 +40,10 @@ export const QrTabsCustomization: FC<QrTabsCustomizationProps> = ({
   isQrDisabled,
   isMobile,
   options,
+  homepageDemo = false,
   handlers,
 }) => {
-  return isMobile ? (
+  return isMobile || !homepageDemo ? (
     <Tabs.Root
       value={styleOptionActiveTab}
       onValueChange={setStyleOptionActiveActiveTab}

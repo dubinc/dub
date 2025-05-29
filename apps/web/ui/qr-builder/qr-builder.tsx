@@ -13,9 +13,9 @@ import { QrTabsDownloadButton } from "@/ui/qr-builder/qr-tabs-download-button.ts
 import { QrTabsStepTitle } from "@/ui/qr-builder/qr-tabs-step-title.tsx";
 import { QrTypeSelection } from "@/ui/qr-builder/qr-type-selection.tsx";
 import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
-import { ArrowTurnLeft, useMediaQuery } from "@dub/ui";
+import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { Button, Flex } from "@radix-ui/themes";
+import { Flex } from "@radix-ui/themes";
 import { motion } from "framer-motion";
 import {
   FC,
@@ -58,6 +58,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
       const [styleOptionActiveTab, setStyleOptionActiveActiveTab] =
         useState<string>("Frame");
       const [hoveredQRType, setHoveredQRType] = useState<EQRType | null>(null);
+      const [typeSelectionError, setTypeSelectionError] = useState<string>("");
 
       const {
         options,
@@ -85,12 +86,24 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
           !LINKED_QR_TYPES.includes(qrType.id) || qrType.id === EQRType.WEBSITE,
       );
 
+      const handleScroll = () => {
+        if (isMobile && qrBuilderContentWrapperRef.current) {
+          qrBuilderContentWrapperRef.current.style.scrollMargin = "60px";
+          qrBuilderContentWrapperRef.current.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        }
+      };
+
       const handleNextStep = () => {
         setStep((prev) => Math.min(prev + 1, 3));
+        handleScroll();
       };
 
       const handleSelectQRType = (type: EQRType) => {
         console.log("type", type);
+        setTypeSelectionError("");
         setSelectedQRType(type);
         handleNextStep();
       };
@@ -116,6 +129,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
             qrTypeDataHandlers[qrType]?.(filteredInputValues, isHiddenNetwork),
           );
           setFiles((inputValues.filesImage || inputValues.filesPDF || inputValues.filesVideo) as File[]);
+          handleScroll();
         },
         [setData],
       );
@@ -191,6 +205,38 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
         qrBuilderContentWrapperRef,
       );
 
+      const handleStepClick = useCallback(
+        (newStep: number) => {
+          if (newStep === 2 && !selectedQRType) {
+            setTypeSelectionError("Please select a QR code type to continue");
+            return;
+          }
+
+          setTypeSelectionError("");
+
+          if (newStep === 3 && step === 2) {
+            form.trigger().then((isValid) => {
+              if (isValid) {
+                handleValidationAndContentSubmit();
+                setStep(newStep);
+              }
+            });
+            return;
+          }
+
+          if (newStep === 2) {
+            form.trigger();
+          }
+
+          setStep(newStep);
+        },
+        [selectedQRType, handleValidationAndContentSubmit, form, step],
+      );
+
+      const onBackClick = () => {
+        handleScroll();
+      };
+
       return (
         <div
           ref={qrBuilderContentWrapperRef}
@@ -209,6 +255,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                 { number: 2, label: "Complete Content" },
                 { number: 3, label: "Customize QR" },
               ]}
+              onStepClick={handleStepClick}
             />
           </Flex>
 
@@ -233,6 +280,11 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                     onSelect={handleSelectQRType}
                     onHover={handleHoverQRType}
                   />
+                  {typeSelectionError && (
+                    <div className="text-sm font-medium text-red-500">
+                      {typeSelectionError}
+                    </div>
+                  )}
                 </Flex>
               )}
 
@@ -257,7 +309,10 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                         step={step}
                         onStepChange={setStep}
                         onSaveClick={onSaveClick}
+                        onBackClick={onBackClick}
                         validateFields={handleValidationAndContentSubmit}
+                        isEdit={isEdit}
+                        isProcessing={isProcessing}
                       />
                     </div>
                   </FormProvider>
@@ -269,7 +324,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                   gap="4"
                   direction="column"
                   align="start"
-                  justify="start"
+                  justify="between"
                   className="w-full"
                 >
                   <QrTabsCustomization
@@ -283,6 +338,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                     isQrDisabled={isQrDisabled}
                     isMobile={isMobile}
                     options={options}
+                    homepageDemo={homepageDemo}
                     handlers={handlers}
                   />
 
@@ -291,7 +347,10 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                       step={step}
                       onStepChange={setStep}
                       onSaveClick={onSaveClick}
+                      onBackClick={onBackClick}
                       validateFields={handleValidationAndContentSubmit}
+                      isEdit={isEdit}
+                      isProcessing={isProcessing}
                     />
                   </div>
                 </Flex>
@@ -300,7 +359,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
               {!hideDemoPlaceholderOnMobile && (
                 <div
                   className={cn(
-                    "bg-background relative flex h-auto shrink-0 basis-2/5 items-end justify-center rounded-lg p-6 [&_svg]:h-[200px] md:[&_svg]:h-full",
+                    "bg-background relative flex h-auto shrink-0 basis-2/5 items-end justify-center rounded-lg px-6 pb-0 pt-3 md:p-6 [&_svg]:h-[200px] md:[&_svg]:h-full",
                     {
                       "items-start": customizationStep,
                     },
@@ -328,7 +387,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                           )}
                         </motion.div>
                       )}
-                      <div className="absolute left-1/2 top-[125px] h-[100px] w-[340px] -translate-x-1/2 bg-[linear-gradient(180deg,_rgba(255,255,255,0)_12.22%,_#FFFFFF_73.25%)] md:top-[249.72px] md:h-[125px] md:w-[400px]"></div>
+                      <div className="absolute left-1/2 top-[125px] h-[76px] w-[340px] -translate-x-1/2 bg-[linear-gradient(180deg,_rgba(255,255,255,0)_12.22%,_#FFFFFF_73.25%)] md:top-[249.72px] md:h-[126px] md:w-[400px]"></div>
                     </div>
                   )}
 
@@ -375,24 +434,6 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
               )}
             </Flex>
           </div>
-          {!homepageDemo && (
-            <div className="-mt-2 flex items-center justify-end gap-2 border-t border-neutral-100 bg-neutral-50 p-4">
-              <Button
-                disabled={isProcessing}
-                loading={isProcessing}
-                text={
-                  <span className="flex items-center gap-2">
-                    {isEdit ? "Save changes" : "Create QR"}
-                    <div className="rounded border border-white/20 p-1">
-                      <ArrowTurnLeft className="size-3.5" />
-                    </div>
-                  </span>
-                }
-                className="h-8 w-fit pl-2.5 pr-1.5"
-                onClick={onSaveClick}
-              />
-            </div>
-          )}
 
           {isMobile && !navigationButtonsInViewport && !typeStep && (
             <div className="border-border-500 sticky bottom-0 left-0 z-50 w-full border-t bg-white px-6 py-3 shadow-md">
@@ -400,7 +441,10 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                 step={step}
                 onStepChange={setStep}
                 onSaveClick={onSaveClick}
+                onBackClick={onBackClick}
                 validateFields={handleValidationAndContentSubmit}
+                isEdit={isEdit}
+                isProcessing={isProcessing}
               />
             </div>
           )}

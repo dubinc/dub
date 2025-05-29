@@ -17,34 +17,45 @@ const FIELD_VALIDATION_RULES: Record<string, z.ZodTypeAny> = {
     .string()
     .trim()
     .min(1, ERROR_MESSAGES.input.emptyField)
-    .max(500, "Message is too long"),
+    .max(500, ERROR_MESSAGES.textarea.tooLong),
   number: z
-    .string()
-    .trim()
-    .min(1, ERROR_MESSAGES.input.emptyField)
+    .union([z.string().trim(), z.undefined()])
+    .transform((val) => val || "")
+    .refine((val) => val.length > 0, {
+      message: ERROR_MESSAGES.input.emptyField,
+    })
     .refine(
       (val) => {
+        if (!val) return false;
         try {
           return isValidPhoneNumber(val);
         } catch {
           return false;
         }
       },
-      { message: "Invalid phone number" },
+      { message: ERROR_MESSAGES.number.invalidPhoneNumber },
     ),
-  file: z.preprocess(
-    (val) => (val === undefined ? [] : val),
-    z.array(z.instanceof(File)).refine((files) => files.length > 0, {
+  file: z
+    .union([
+      z.array(z.instanceof(File)).min(1, ERROR_MESSAGES.file.noFileUploaded),
+      z.undefined(),
+    ])
+    .transform((val) => val || [])
+    .refine((files) => files.length > 0, {
       message: ERROR_MESSAGES.file.noFileUploaded,
     }),
-  ),
 };
 
 const getFieldValidation = (id: string, type?: TQRInputType): z.ZodTypeAny => {
   if (type === "file") {
     return (
       FIELD_VALIDATION_RULES[id] ||
-      z.array(z.instanceof(File)).nonempty(ERROR_MESSAGES.file.noFileUploaded)
+      z
+        .union([z.array(z.instanceof(File)), z.undefined()])
+        .transform((val) => val || [])
+        .refine((files) => files.length > 0, {
+          message: ERROR_MESSAGES.file.noFileUploaded,
+        })
     );
   }
 

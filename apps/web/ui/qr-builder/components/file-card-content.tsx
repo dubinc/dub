@@ -14,7 +14,14 @@ import { getMaxSizeLabel } from "@/ui/qr-builder/helpers/get-max-size-label.ts";
 import { cn } from "@dub/utils/src";
 import { Button, Flex } from "@radix-ui/themes";
 import { CloudUpload, Upload, X } from "lucide-react";
-import { Dispatch, FC, SetStateAction, useEffect, useState } from "react";
+import {
+  Dispatch,
+  FC,
+  SetStateAction,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 interface IFileCardContentProps {
   files: File[];
@@ -36,6 +43,8 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
   isLogo = false,
 }) => {
   const [localFileError, setLocalFileError] = useState<string>("");
+  const fileItemRef = useRef<HTMLDivElement | null>(null);
+  const hadFileBeforeRef = useRef<boolean>(false);
 
   const onFileReject = (file: File, message: string) => {
     setLocalFileError(message);
@@ -45,10 +54,43 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
     setLocalFileError("");
   };
 
+  const scrollToFileItem = () => {
+    setTimeout(() => {
+      if (fileItemRef.current) {
+        const rect = fileItemRef.current.getBoundingClientRect();
+
+        const viewportHeight = window.innerHeight;
+
+        const stickyButtonsHeight = 70;
+
+        if (rect.bottom > viewportHeight - stickyButtonsHeight) {
+          window.scrollBy({
+            top: rect.bottom - (viewportHeight - stickyButtonsHeight) + 20,
+            behavior: "smooth",
+          });
+        } else if (rect.top < 0) {
+          fileItemRef.current.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        }
+      }
+    }, 100);
+  };
+
   useEffect(() => {
-    if (files.length === 0) {
+    const hasFile = files.length > 0;
+    const didFileJustAppear = hasFile && !hadFileBeforeRef.current;
+
+    if (didFileJustAppear) {
+      scrollToFileItem();
+    }
+
+    if (!hasFile) {
       setLocalFileError("");
     }
+
+    hadFileBeforeRef.current = hasFile;
   }, [files]);
 
   return (
@@ -117,7 +159,13 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
         </FileUploadDropzone>
         <FileUploadList>
           {files.map((file, index) => (
-            <FileUploadItem key={index} value={file}>
+            <FileUploadItem
+              key={index}
+              value={file}
+              ref={(el) => {
+                fileItemRef.current = el;
+              }}
+            >
               <FileUploadItemPreview />
               <FileUploadItemMetadata />
               <FileUploadItemDelete asChild>

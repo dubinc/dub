@@ -30,23 +30,31 @@ export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
 
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        canvas.style.width = `${width}px`;
+        canvas.style.height = `${height}px`;
+
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        const img = new Image();
+        try {
+          const serializer = new XMLSerializer();
+          const svgString = serializer.serializeToString(svg);
+          const svgURL =
+            "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgString);
 
-        img.onload = () => {
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          URL.revokeObjectURL(img.src);
-        };
-
-        const svgData = new XMLSerializer().serializeToString(svg);
-        const svgBlob = new Blob([svgData], {
-          type: "image/svg+xml;charset=utf-8",
-        });
-        const svgUrl = URL.createObjectURL(svgBlob);
-
-        img.src = svgUrl;
+          const img = new Image();
+          img.onload = () => {
+            ctx.save();
+            ctx.scale(dpr, dpr);
+            ctx.drawImage(img, 0, 0, width, height);
+            ctx.restore();
+          };
+          img.src = svgURL;
+        } catch (err) {
+          console.error("SVG render failed:", err);
+        }
       };
 
       const initialRenderTimeout = setTimeout(renderSVGToCanvas, 100);
