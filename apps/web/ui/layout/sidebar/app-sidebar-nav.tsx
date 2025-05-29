@@ -1,5 +1,6 @@
 "use client";
 
+import { useTrialExpiredModal } from "@/lib/hooks/use-trial-expired-modal";
 import usePrograms from "@/lib/swr/use-programs";
 import { useRouterStuff } from "@dub/ui";
 import {
@@ -21,10 +22,13 @@ import { Icon } from "@iconify/react";
 import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import { useParams, usePathname } from "next/navigation";
-import { ReactNode, useMemo } from "react";
+import { MouseEvent, ReactNode, useMemo } from "react";
 import { LinesY } from "./icons/lines-y";
 import { SidebarNav, SidebarNavAreas } from "./sidebar-nav";
 import { WorkspaceDropdown } from "./workspace-dropdown";
+
+// @TODO: Replace hardcoded trial status with actual logic
+const isTrialOver = true;
 
 const NAV_AREAS: SidebarNavAreas<{
   slug: string;
@@ -33,9 +37,17 @@ const NAV_AREAS: SidebarNavAreas<{
   programs?: { id: string }[];
   session?: Session | null;
   showNews?: boolean;
+  setShowTrialExpiredModal?: (show: boolean) => void;
 }> = {
   // Top-level
-  default: ({ slug, pathname, queryString, programs, showNews }) => ({
+  default: ({
+    slug,
+    pathname,
+    queryString,
+    programs,
+    showNews,
+    setShowTrialExpiredModal,
+  }) => ({
     showSwitcher: false,
     showNews,
     direction: "left",
@@ -66,20 +78,32 @@ const NAV_AREAS: SidebarNavAreas<{
           {
             name: "My QR Codes",
             icon: () => <Icon icon="mage:qr-code" className="h-5 w-5" />,
-            href: `/${slug}`,
+            href: isTrialOver ? "#" : `/${slug}`,
             exact: true,
-            // href: "/", // @TODO: Add my QR codes page
+            onClick: isTrialOver
+              ? (e: MouseEvent) => {
+                  e.preventDefault();
+                  setShowTrialExpiredModal?.(true);
+                }
+              : undefined,
           },
           {
             name: "Statistics",
             icon: () => <Icon icon="streamline:graph" className="h-5 w-5" />,
-            // href: "/statistics", // @TODO: Add statistics page`,
-            href: `/${slug}/analytics${pathname === `/${slug}/analytics` ? "" : queryString}`,
+            href: isTrialOver
+              ? "#"
+              : `/${slug}/analytics${pathname === `/${slug}/analytics` ? "" : queryString}`,
+            onClick: isTrialOver
+              ? (e: MouseEvent) => {
+                  e.preventDefault();
+                  setShowTrialExpiredModal?.(true);
+                }
+              : undefined,
           },
           {
             name: "Plans and Payments",
             icon: () => <Icon icon="ion:card-outline" className="h-5 w-5" />,
-            href: "/plans", // @TODO: Add plans and payments page
+            href: `/${slug}/plans`, // Link to plans page
           },
           // {
           //   name: "Account",
@@ -278,6 +302,8 @@ export function AppSidebarNav({
   const { getQueryString } = useRouterStuff();
   const { data: session } = useSession();
   const { programs } = usePrograms();
+  const { setShowTrialExpiredModal, TrialExpiredModalCallback } =
+    useTrialExpiredModal();
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
@@ -288,34 +314,38 @@ export function AppSidebarNav({
   }, [slug, pathname]);
 
   return (
-    <SidebarNav
-      areas={NAV_AREAS}
-      currentArea={currentArea}
-      data={{
-        slug: slug || "",
-        pathname,
-        queryString: getQueryString(undefined, {
-          include: ["folderId", "tagIds", "domain"],
-        }),
-        programs,
-        session: session || undefined,
-        showNews: pathname.startsWith(`/${slug}/programs/`) ? false : true,
-      }}
-      toolContent={toolContent}
-      newsContent={newsContent}
-      switcher={<WorkspaceDropdown />}
-      // bottom={
-      //   <div className="p-3">
-      //     <Link
-      //       className="text-content-inverted hover:bg-inverted hover:ring-border-subtle bordbg-secondary bg-secondary flex h-9 items-center justify-center rounded-md border px-4 text-sm text-white transition-all hover:ring-4 dark:border-white dark:bg-white"
-      //       href={"/upgrade"} // @TODO: Add upgrade page
-      //     >
-      //       Upgrade
-      //     </Link>
-      //     {/*<UserSurveyButton />*/}
-      //     {/*<Usage />*/}
-      //   </div>
-      // }
-    />
+    <>
+      <TrialExpiredModalCallback />
+      <SidebarNav
+        areas={NAV_AREAS}
+        currentArea={currentArea}
+        data={{
+          slug: slug || "",
+          pathname,
+          queryString: getQueryString(undefined, {
+            include: ["folderId", "tagIds", "domain"],
+          }),
+          programs,
+          session: session || undefined,
+          showNews: pathname.startsWith(`/${slug}/programs/`) ? false : true,
+          setShowTrialExpiredModal,
+        }}
+        toolContent={toolContent}
+        newsContent={newsContent}
+        switcher={<WorkspaceDropdown />}
+        // bottom={
+        //   <div className="p-3">
+        //     <Link
+        //       className="text-content-inverted hover:bg-inverted hover:ring-border-subtle bordbg-secondary bg-secondary flex h-9 items-center justify-center rounded-md border px-4 text-sm text-white transition-all hover:ring-4 dark:border-white dark:bg-white"
+        //       href={"/upgrade"} // @TODO: Add upgrade page
+        //     >
+        //       Upgrade
+        //     </Link>
+        //     {/*<UserSurveyButton />*/}
+        //     {/*<Usage />*/}
+        //   </div>
+        // }
+      />
+    </>
   );
 }
