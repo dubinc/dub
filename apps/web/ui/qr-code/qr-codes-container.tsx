@@ -9,6 +9,7 @@ import { CursorRays, QRCode as QRCodeIcon } from "@dub/ui/icons";
 import { useSearchParams } from "next/navigation";
 import {
   Dispatch,
+  ReactNode,
   SetStateAction,
   createContext,
   useContext,
@@ -24,8 +25,10 @@ export type ResponseQrCode = QRProps & {
 
 export default function QrCodesContainer({
   CreateQrCodeButton,
+  isTrialOver = false,
 }: {
-  CreateQrCodeButton: () => JSX.Element;
+  CreateQrCodeButton: () => ReactNode;
+  isTrialOver?: boolean;
 }) {
   const {
     viewMode,
@@ -42,6 +45,7 @@ export default function QrCodesContainer({
         qrCodes={qrs}
         loading={isValidating}
         compact={viewMode === "rows"}
+        isTrialOver={isTrialOver}
       />
     </MaxWidthWrapper>
   );
@@ -50,9 +54,11 @@ export default function QrCodesContainer({
 export const QrCodesListContext = createContext<{
   openMenuQrCodeId: string | null;
   setOpenMenuQrCodeId: Dispatch<SetStateAction<string | null>>;
+  isTrialOver?: boolean;
 }>({
   openMenuQrCodeId: null,
   setOpenMenuQrCodeId: () => {},
+  isTrialOver: false,
 });
 
 function QrCodesList({
@@ -61,12 +67,14 @@ function QrCodesList({
   // count,
   loading,
   compact,
+  isTrialOver = false,
 }: {
-  CreateQrCodeButton: () => JSX.Element;
+  CreateQrCodeButton: () => ReactNode;
   qrCodes?: ResponseQrCode[];
   count?: number;
   loading?: boolean;
   compact: boolean;
+  isTrialOver?: boolean;
 }) {
   const searchParams = useSearchParams();
 
@@ -85,7 +93,7 @@ function QrCodesList({
     <>
       {!qrCodes || qrCodes.length ? (
         <QrCodesListContext.Provider
-          value={{ openMenuQrCodeId, setOpenMenuQrCodeId }}
+          value={{ openMenuQrCodeId, setOpenMenuQrCodeId, isTrialOver }}
         >
           {/* Cards */}
           <CardList variant={compact ? "compact" : "loose"} loading={loading}>

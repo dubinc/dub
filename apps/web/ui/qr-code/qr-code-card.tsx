@@ -1,13 +1,14 @@
 import { useQRBuilder } from "@/ui/modals/qr-builder";
-import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
+import { QrCodesListContext, ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
 import { CardList, useMediaQuery } from "@dub/ui";
-import { useRef } from "react";
+import { useContext, useRef } from "react";
 import { QrCodeDetailsColumn } from "./qr-code-details-column.tsx";
 import { QrCodeTitleColumn } from "./qr-code-title-column.tsx";
 
 export function QrCodeCard({ qrCode }: { qrCode: ResponseQrCode }) {
   const { isMobile } = useMediaQuery();
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { isTrialOver } = useContext(QrCodesListContext);
 
   const { setShowQRBuilderModal, QRBuilderModal } = useQRBuilder({
     props: qrCode,
@@ -24,7 +25,11 @@ export function QrCodeCard({ qrCode }: { qrCode: ResponseQrCode }) {
         <div className="h-full min-w-0 grow">
           <QrCodeTitleColumn qrCode={qrCode} canvasRef={canvasRef} />
         </div>
-        <QrCodeDetailsColumn qrCode={qrCode} canvasRef={canvasRef} />
+        <QrCodeDetailsColumn 
+          qrCode={qrCode} 
+          canvasRef={canvasRef} 
+          isTrialOver={isTrialOver} 
+        />
       </CardList.Card>
     </>
   );

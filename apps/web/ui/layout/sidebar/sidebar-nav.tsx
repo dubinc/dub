@@ -18,6 +18,7 @@ export type NavItemCommon = {
   name: string;
   href: string;
   exact?: boolean;
+  onClick?: (e: React.MouseEvent) => void;
 };
 
 export type NavSubItemType = NavItemCommon;
@@ -155,7 +156,7 @@ export function SidebarNav<T extends Record<any, any>>({
 }
 
 function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
-  const { name, href, exact } = item;
+  const { name, href, exact, onClick } = item;
 
   const Icon = "icon" in item ? item.icon : undefined;
   const items = "items" in item ? item.items : undefined;
@@ -178,6 +179,7 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
         data-active={isActive}
         onPointerEnter={() => setHovered(true)}
         onPointerLeave={() => setHovered(false)}
+        onClick={onClick}
         className={cn(
           "hover:bg-border-100 active:bg-secondary-100 group flex items-center gap-2.5 rounded-md p-2 text-sm leading-none text-neutral-600 transition-[background-color,color,font-weight] duration-75",
           "outline-none focus-visible:ring-2 focus-visible:ring-black/50",

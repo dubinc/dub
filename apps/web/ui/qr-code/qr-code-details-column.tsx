@@ -11,11 +11,13 @@ import { useShareDashboardModal } from "../modals/share-dashboard-modal";
 interface QrCodeDetailsColumnProps {
   qrCode: ResponseQrCode;
   canvasRef: RefObject<HTMLCanvasElement>;
+  isTrialOver?: boolean;
 }
 
 export function QrCodeDetailsColumn({
   qrCode,
   canvasRef,
+  isTrialOver = false,
 }: QrCodeDetailsColumnProps) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -25,7 +27,7 @@ export function QrCodeDetailsColumn({
       className="flex h-full items-start justify-end gap-6 md:items-center"
     >
       <div className="hidden md:flex">
-        <AnalyticsBadge qrCode={qrCode} />
+        <AnalyticsBadge qrCode={qrCode} isTrialOver={isTrialOver} />
       </div>
 
       <QrCodeControls qrCode={qrCode} canvasRef={canvasRef} />
@@ -33,7 +35,7 @@ export function QrCodeDetailsColumn({
   );
 }
 
-export function AnalyticsBadge({ qrCode }: { qrCode: ResponseQrCode }) {
+export function AnalyticsBadge({ qrCode, isTrialOver = false }: { qrCode: ResponseQrCode; isTrialOver?: boolean }) {
   const { slug, plan } = useWorkspace();
   const { domain, key, clicks } = qrCode.link;
 
@@ -83,12 +85,12 @@ export function AnalyticsBadge({ qrCode }: { qrCode: ResponseQrCode }) {
           className={cn(
             "flex w-fit min-w-[58px] justify-center overflow-hidden rounded-md border border-neutral-200/10",
             "bg-neutral-50 p-0.5 px-1 text-sm text-neutral-600 transition-colors hover:bg-neutral-100",
-            qrCode.link.archived
+            qrCode.link.archived || isTrialOver
               ? "bg-red-100 text-red-600"
               : "bg-green-100 text-neutral-600",
           )}
         >
-          {qrCode.link.archived ? "Deactivated" : "Active"}
+          {qrCode.link.archived || isTrialOver ? "Deactivated" : "Active"}
         </div>
       )}
       {isMobile ? (

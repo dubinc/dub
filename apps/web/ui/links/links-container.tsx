@@ -24,8 +24,10 @@ export type ResponseLink = ExpandedLinkProps & {
 
 export default function LinksContainer({
   CreateLinkButton,
+  isTrialOver = false,
 }: {
   CreateLinkButton: () => JSX.Element;
+  isTrialOver?: boolean;
 }) {
   const {
     viewMode,
@@ -44,6 +46,7 @@ export default function LinksContainer({
         count={count}
         loading={isValidating}
         compact={viewMode === "rows"}
+        isTrialOver={isTrialOver}
       />
     </MaxWidthWrapper>
   );
@@ -52,9 +55,11 @@ export default function LinksContainer({
 export const LinksListContext = createContext<{
   openMenuLinkId: string | null;
   setOpenMenuLinkId: Dispatch<SetStateAction<string | null>>;
+  isTrialOver?: boolean;
 }>({
   openMenuLinkId: null,
   setOpenMenuLinkId: () => {},
+  isTrialOver: false,
 });
 
 function LinksList({
@@ -63,12 +68,14 @@ function LinksList({
   // count,
   loading,
   compact,
+  isTrialOver = false,
 }: {
   CreateLinkButton: () => JSX.Element;
   links?: ResponseLink[];
   count?: number;
   loading?: boolean;
   compact: boolean;
+  isTrialOver?: boolean;
 }) {
   const searchParams = useSearchParams();
 
@@ -89,7 +96,7 @@ function LinksList({
     <>
       {!links || links.length ? (
         <LinksListContext.Provider
-          value={{ openMenuLinkId, setOpenMenuLinkId }}
+          value={{ openMenuLinkId, setOpenMenuLinkId, isTrialOver }}
         >
           {/* Cards */}
           <CardList variant={compact ? "compact" : "loose"} loading={loading}>
