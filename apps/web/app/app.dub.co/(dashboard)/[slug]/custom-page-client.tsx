@@ -1,5 +1,6 @@
 "use client";
 
+import { useTrialStatus } from "@/lib/contexts/trial-status-context";
 import {
   useCheckFolderPermission,
   useFolderPermissions,
@@ -20,6 +21,7 @@ import {
   IconMenu,
   MaxWidthWrapper,
   Popover,
+  Switch,
   Tooltip,
   TooltipContent,
 } from "@dub/ui";
@@ -35,9 +37,6 @@ import {
   useEffect,
   useState,
 } from "react";
-
-// @TODO: Replace hardcoded trial status with actual logic
-const isTrialOver = true;
 
 export default function WorkspaceLinksClient() {
   const { data: session } = useSession();
@@ -64,6 +63,8 @@ function WorkspaceLinks() {
   const searchParams = useSearchParams();
   const { slug } = useWorkspace();
 
+  const { isTrialOver, setIsTrialOver } = useTrialStatus();
+
   const { filters, activeFilters, onRemove, onRemoveAll } = useQrCodeFilters();
 
   const folderId = searchParams.get("folderId");
@@ -83,6 +84,13 @@ function WorkspaceLinks() {
 
       <div className="flex w-full items-center pt-2">
         <MaxWidthWrapper className="flex flex-col gap-y-3">
+          {/*@TODO: Remove toggle when trial logic is implemented*/}
+          <div className="flex items-center justify-start gap-2">
+            <span className="text-sm font-medium text-neutral-700">
+              Trial Over:
+            </span>
+            <Switch checked={isTrialOver} fn={setIsTrialOver} />
+          </div>
           {isTrialOver && (
             <div className="w-full rounded-lg border border-red-200 bg-red-100">
               <div className="px-3 py-3 md:px-4">
@@ -122,7 +130,6 @@ function WorkspaceLinks() {
               </div>
             </div>
           )}
-
           {!isTrialOver && (
             <div className="flex flex-wrap items-center justify-between gap-2 lg:flex-nowrap">
               <div className="flex w-full grow gap-2 md:w-auto">

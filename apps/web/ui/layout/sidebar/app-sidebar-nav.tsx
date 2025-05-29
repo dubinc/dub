@@ -1,6 +1,7 @@
 "use client";
 
 import { useTrialExpiredModal } from "@/lib/hooks/use-trial-expired-modal";
+import { useTrialStatus } from "@/lib/contexts/trial-status-context";
 import usePrograms from "@/lib/swr/use-programs";
 import { useRouterStuff } from "@dub/ui";
 import {
@@ -27,9 +28,6 @@ import { LinesY } from "./icons/lines-y";
 import { SidebarNav, SidebarNavAreas } from "./sidebar-nav";
 import { WorkspaceDropdown } from "./workspace-dropdown";
 
-// @TODO: Replace hardcoded trial status with actual logic
-const isTrialOver = true;
-
 const NAV_AREAS: SidebarNavAreas<{
   slug: string;
   pathname: string;
@@ -38,6 +36,7 @@ const NAV_AREAS: SidebarNavAreas<{
   session?: Session | null;
   showNews?: boolean;
   setShowTrialExpiredModal?: (show: boolean) => void;
+  isTrialOver: boolean;
 }> = {
   // Top-level
   default: ({
@@ -47,6 +46,7 @@ const NAV_AREAS: SidebarNavAreas<{
     programs,
     showNews,
     setShowTrialExpiredModal,
+    isTrialOver,
   }) => ({
     showSwitcher: false,
     showNews,
@@ -304,6 +304,7 @@ export function AppSidebarNav({
   const { programs } = usePrograms();
   const { setShowTrialExpiredModal, TrialExpiredModalCallback } =
     useTrialExpiredModal();
+  const { isTrialOver } = useTrialStatus();
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
@@ -329,6 +330,7 @@ export function AppSidebarNav({
           session: session || undefined,
           showNews: pathname.startsWith(`/${slug}/programs/`) ? false : true,
           setShowTrialExpiredModal,
+          isTrialOver,
         }}
         toolContent={toolContent}
         newsContent={newsContent}
