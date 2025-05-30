@@ -55,7 +55,7 @@ export const ProgramHelpSupport = memo(() => {
             className="size-4 rounded-md"
           />
         )}
-        <p className="text-sm font-medium text-neutral-900">Help & Support</p>
+        <p className="text-sm font-medium text-neutral-900">Help & support</p>
       </div>
       <div className="grid p-1">
         {supportItems.map(({ icon: Icon, label, href }) => (
