@@ -2,7 +2,7 @@
 
 import { ProgramWithLanderDataProps } from "@/lib/types";
 import { OG_AVATAR_URL, PARTNERS_DOMAIN, truncate } from "@dub/utils";
-import { useId } from "react";
+import { CSSProperties, useId } from "react";
 import { useWatch } from "react-hook-form";
 import { useBrandingFormContext } from "../branding-form";
 import { PreviewWindow } from "../preview-window";
@@ -21,9 +21,16 @@ export function PortalPreview({
   };
 
   return (
-    <div className="scrollbar-hide -mx-2 h-full w-auto overflow-y-auto px-2 pb-4">
+    <div
+      className="scrollbar-hide -mx-2 h-full w-auto overflow-y-auto px-2 pb-4 text-[var(--brand)]"
+      style={
+        {
+          "--brand": brandColor || "#000000",
+        } as CSSProperties
+      }
+    >
       <PreviewWindow
-        url={`${PARTNERS_DOMAIN}/${program?.slug}`}
+        url={`${PARTNERS_DOMAIN}/programs/${program?.slug}`}
         className="h-auto rounded-b-xl bg-neutral-100"
         contentClassName="overflow-y-hidden"
       >
@@ -36,7 +43,7 @@ export function PortalPreview({
             xmlnsXlink="http://www.w3.org/1999/xlink"
             fill="none"
             viewBox="0 0 869 690"
-            className="h-auto w-full [&_*]:tracking-[-0.02em]"
+            className="h-auto w-full [&_*]:tracking-[-0.035em]"
           >
             <defs>
               <path
@@ -357,6 +364,7 @@ export function PortalPreview({
                     height="131.491"
                     x="188.695"
                     y="54.029"
+                    opacity="0.5"
                     fill={`url(#${id}-grid)`}
                   />
                   <path fill={`url(#${id}-aq)`} d="M188 54h615v131H189z" />
@@ -469,7 +477,9 @@ export function PortalPreview({
                     fill="#737373"
                     fontSize="5.91"
                     fontWeight="500"
-                    style={{ whiteSpace: "pre" }}
+                    style={{
+                      whiteSpace: "pre",
+                    }}
                   >
                     <tspan x="743.397" y="173.556">
                       Powered by
@@ -581,7 +591,8 @@ export function PortalPreview({
                         cx="721.273"
                         cy="120.063"
                         r="22.02"
-                        fill="#171717"
+                        fill="currentColor"
+                        opacity="0.5"
                       ></circle>
                     </g>
                     {/* Big logo */}
@@ -611,7 +622,8 @@ export function PortalPreview({
                     <ellipse
                       cx="722.553"
                       cy="120.066"
-                      fill="#737373"
+                      fill="currentColor"
+                      opacity="0.4"
                       rx="150.3"
                       ry="158.749"
                     ></ellipse>
@@ -620,7 +632,8 @@ export function PortalPreview({
                     <ellipse
                       cx="150.3"
                       cy="120.139"
-                      fill="#737373"
+                      fill="currentColor"
+                      opacity="0.7"
                       rx="150.3"
                       ry="120.139"
                       transform="matrix(1 0 0 -1 572.254 249.368)"
@@ -693,13 +706,13 @@ export function PortalPreview({
                   </mask>
                   <g mask={`url(#${id}-H)`}>
                     <path
-                      fill="#262626"
+                      fill="currentColor"
                       d="m535.639 294.779-47.886 8.902q-.251.046-.506.03l-47.882-3.07-48.137 2.469-48.137-.617-47.934-3.38a2 2 0 0 0-.404.011l-47.936 6.146-48.137 2.469v8.022h385.095v-24.068z"
                       opacity="0.2"
                     ></path>
                   </g>
                   <path
-                    stroke="#262626"
+                    stroke="currentColor"
                     strokeLinejoin="round"
                     strokeWidth="0.768"
                     d="m198.937 307.941 48.094-3.115 47.805-5.705q.289-.035.58-.014l47.803 3.367 48.094.522 48.095-2.091 47.737 2.595q.357.02.708-.044l47.743-8.541 48.094-3.126"
@@ -768,7 +781,7 @@ export function PortalPreview({
                     cx="244.513"
                     cy="305.095"
                     r="2.817"
-                    fill="#262626"
+                    fill="currentColor"
                     stroke="#fff"
                     strokeWidth="1.024"
                   ></circle>
@@ -1159,13 +1172,13 @@ export function PortalPreview({
                   </mask>
                   <g mask={`url(#${id}-T)`}>
                     <path
-                      fill="#262626"
+                      fill="currentColor"
                       d="m353.034 442.357-21.34 8.647a2.05 2.05 0 0 1-1.053.13l-21.285-2.974a2 2 0 0 0-.511-.007l-21.828 2.44-22.084-.617-21.648-3.327a2 2 0 0 0-.862.052l-21.499 6.008q-.159.043-.324.063l-21.92 2.45v8.023h176.673v-24.069l-21.833 3.051q-.251.035-.486.13"
                       opacity="0.2"
                     ></path>
                   </g>
                   <path
-                    stroke="#262626"
+                    stroke="currentColor"
                     strokeLinejoin="round"
                     strokeWidth="0.768"
                     d="m198.937 455.425 22.041-3.115 21.427-5.58a3.1 3.1 0 0 1 1.241-.063l21.415 3.29 22.041.523 21.715-2.06q.327-.03.652.008l20.953 2.484a3.06 3.06 0 0 0 1.479-.189l20.993-8.194q.332-.13.686-.18l21.688-3.076"
@@ -1252,7 +1265,7 @@ export function PortalPreview({
                     cx="245.025"
                     cy="447.458"
                     r="2.817"
-                    fill="#262626"
+                    fill="currentColor"
                     stroke="#fff"
                     strokeWidth="1.024"
                   ></circle>
@@ -1304,13 +1317,13 @@ export function PortalPreview({
                   </mask>
                   <g mask={`url(#${id}-X)`}>
                     <path
-                      fill="#262626"
+                      fill="currentColor"
                       d="m561.969 442.357-21.341 8.647c-.333.135-.696.18-1.052.13l-21.285-2.974a2 2 0 0 0-.511-.007l-21.829 2.44-22.084-.617-21.647-3.327a2 2 0 0 0-.862.052l-21.499 6.008a2 2 0 0 1-.324.063l-21.92 2.45v8.023h176.673v-24.069l-21.833 3.051q-.251.035-.486.13"
                       opacity="0.2"
                     ></path>
                   </g>
                   <path
-                    stroke="#262626"
+                    stroke="currentColor"
                     strokeLinejoin="round"
                     strokeWidth="0.768"
                     d="m407.871 455.425 22.042-3.115 21.427-5.58a3.1 3.1 0 0 1 1.241-.063l21.414 3.29 22.042.523 21.715-2.06a3 3 0 0 1 .652.008l20.952 2.484a3.06 3.06 0 0 0 1.479-.189l20.993-8.194q.332-.13.686-.18l21.688-3.076"
@@ -1397,7 +1410,7 @@ export function PortalPreview({
                     cx="453.96"
                     cy="447.458"
                     r="2.817"
-                    fill="#262626"
+                    fill="currentColor"
                     stroke="#fff"
                     strokeWidth="1.024"
                   ></circle>
@@ -1449,13 +1462,13 @@ export function PortalPreview({
                   </mask>
                   <g mask={`url(#${id}-ab)`}>
                     <path
-                      fill="#262626"
+                      fill="currentColor"
                       d="m770.903 442.357-21.34 8.647a2.05 2.05 0 0 1-1.053.13l-21.285-2.974a2 2 0 0 0-.511-.007l-21.828 2.44-22.084-.617-21.648-3.327a2 2 0 0 0-.862.052l-21.499 6.008q-.159.043-.324.063l-21.92 2.45v8.023h176.673v-24.069l-21.833 3.051q-.251.035-.486.13"
                       opacity="0.2"
                     ></path>
                   </g>
                   <path
-                    stroke="#262626"
+                    stroke="currentColor"
                     strokeLinejoin="round"
                     strokeWidth="0.768"
                     d="m616.806 455.425 22.041-3.115 21.427-5.58a3.1 3.1 0 0 1 1.241-.063l21.415 3.29 22.041.523 21.715-2.06q.327-.03.652.008l20.953 2.484a3.06 3.06 0 0 0 1.479-.189l20.993-8.194q.332-.13.686-.18l21.688-3.076"
@@ -1542,7 +1555,7 @@ export function PortalPreview({
                     cx="662.894"
                     cy="447.458"
                     r="2.817"
-                    fill="#262626"
+                    fill="currentColor"
                     stroke="#fff"
                     strokeWidth="1.024"
                   ></circle>
