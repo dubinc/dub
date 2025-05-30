@@ -27,7 +27,6 @@ import { KeyedMutator } from "swr";
 import { z } from "zod";
 import { BrandingSettingsForm } from "./branding-settings-form";
 import { PreviewWindow } from "./preview-window";
-import { ApplicationPreview } from "./previews/application-preview";
 import { LanderPreview } from "./previews/lander-preview";
 import { PortalPreview } from "./previews/portal-preview";
 
@@ -84,11 +83,6 @@ const PREVIEW_TABS = [
     value: "landing",
     label: "Landing page",
     component: LanderPreview,
-  },
-  {
-    value: "application",
-    label: "Application form",
-    component: ApplicationPreview,
   },
   {
     value: "partner-portal",
@@ -186,7 +180,7 @@ function BrandingFormInner({
             />
           </div>
           <div className="">
-            <div className="@[600px]:block hidden">
+            <div className="@[480px]:block hidden">
               <ToggleGroup
                 className="rounded-lg bg-neutral-50 p-0.5"
                 indicatorClassName="rounded-md bg-white"
@@ -198,7 +192,7 @@ function BrandingFormInner({
                 }}
               />
             </div>
-            <div className="@[600px]:hidden">
+            <div className="@[480px]:hidden">
               <Popover
                 openPopover={isTabPopoverOpen}
                 setOpenPopover={setIsTabPopoverOpen}

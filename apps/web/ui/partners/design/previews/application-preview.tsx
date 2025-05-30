@@ -8,6 +8,7 @@ import { ProgramApplicationForm } from "../../lander/program-application-form";
 import { useBrandingFormContext } from "../branding-form";
 import { PreviewWindow } from "../preview-window";
 
+// Currently unused, but will be needed when we add form customization
 export function ApplicationPreview({
   program,
 }: {
