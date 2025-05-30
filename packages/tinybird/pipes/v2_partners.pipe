@@ -3,26 +3,13 @@ SQL >
 
     %
         SELECT link_id, partner_id
-        FROM
-            {% if defined(isMegaFolder) and Boolean(isMegaFolder) == 1 %} dub_links_metadata_latest
-            {% else %} dub_regular_links_metadata_latest
-            {% end %} FINAL
+        FROM dub_regular_links_metadata_latest FINAL
         WHERE
             deleted == 0 AND partner_id != ''
             {% if defined(workspaceId) %} AND workspace_id = {{ workspaceId }} {% end %}
             {% if defined(programId) %} AND program_id = {{ programId }} {% end %}
             {% if defined(partnerId) %} AND partner_id = {{ partnerId }} {% end %}
             {% if defined(tenantId) %} AND tenant_id = {{ tenantId }} {% end %}
-            {% if defined(folderIds) %} AND folder_id IN {{ Array(folderIds, 'String') }}
-            {% elif defined(folderId) %} AND folder_id = {{ folderId }}
-            {% end %}
-            {% if defined(domain) %} AND domain IN {{ Array(domain, 'String') }} {% end %}
-            {% if defined(tagIds) %}
-                AND arrayIntersect(tag_ids, {{ Array(tagIds, 'String') }}) != []
-            {% end %}
-            {% if defined(root) %}
-                {% if Boolean(root) == 1 %} AND key = '_root' {% else %} AND key != '_root' {% end %}
-            {% end %}
 
 
 
