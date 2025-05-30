@@ -1,15 +1,17 @@
 import { useQRBuilder } from "@/ui/modals/qr-builder";
+import { QrCodesListContext, ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
 import { QR_TYPES } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization.ts";
 import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
 import { CardList, useMediaQuery } from "@dub/ui";
-import { useRef } from "react";
+import { useContext, useRef } from "react";
 import { QrCodeDetailsColumn } from "./qr-code-details-column.tsx";
 import { QrCodeTitleColumn } from "./qr-code-title-column.tsx";
 
 export function QrCodeCard({ qrCode }: { qrCode: ResponseQrCode }) {
   const { isMobile } = useMediaQuery();
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { isTrialOver } = useContext(QrCodesListContext);
 
   const { setShowQRBuilderModal, QRBuilderModal } = useQRBuilder({
     props: qrCode,
@@ -42,6 +44,7 @@ export function QrCodeCard({ qrCode }: { qrCode: ResponseQrCode }) {
           qrCode={qrCode}
           canvasRef={canvasRef}
           currentQrTypeInfo={currentQrTypeInfo}
+          isTrialOver={isTrialOver}
         />
       </CardList.Card>
     </>

@@ -5,7 +5,9 @@ import globeAndMail from "@/ui/landing/assets/svg/globe-and-mail.svg";
 import msn from "@/ui/landing/assets/svg/msn.svg";
 import yahoo from "@/ui/landing/assets/svg/yahoo.svg";
 import { ClientOnly } from "@dub/ui";
-import { Suspense } from "react";
+import { ReactNode, Suspense } from "react";
+import { AuthType } from "../../app/app.dub.co/(auth)/auth.modal.tsx";
+import { ConsentNotice } from "../../app/app.dub.co/(auth)/consent-notice.tsx";
 
 // const logos = [
 //   "vercel",
@@ -23,12 +25,16 @@ import { Suspense } from "react";
 // ];
 
 interface AuthLayoutProps {
-  children: React.ReactNode;
+  children: ReactNode;
+  authType?: AuthType;
 }
 
 const news = [fox, globeAndMail, yahoo, barchart, benzinga, msn];
 
-export const AuthLayout = ({ children }: AuthLayoutProps) => {
+export const AuthLayout = ({
+  children,
+  authType = "login",
+}: AuthLayoutProps) => {
   return (
     // <div className="grid w-full grid-cols-1 md:grid-cols-5">
     <div className="h-full w-full">
@@ -43,22 +49,26 @@ export const AuthLayout = ({ children }: AuthLayoutProps) => {
           {/*<p className="text-xs text-neutral-600">*/}
           {/*  © {new Date().getFullYear()} GetQR.*/}
           {/*</p>*/}
-          <div className="flex gap-3 text-center text-xs text-neutral-500 underline underline-offset-2">
-            <a
-              href="/privacy-policy"
-              // target="_blank"
-              className="hover:text-neutral-800"
-            >
-              Privacy Policy
-            </a>
-            <a
-              href="/eula"
-              // target="_blank"
-              className="hover:text-neutral-800"
-            >
-              Terms & Conditions
-            </a>
-          </div>
+          {authType === "login" ? (
+            <div className="flex gap-3 text-center text-xs text-neutral-500 underline underline-offset-2">
+              <a
+                href="/privacy-policy"
+                // target="_blank"
+                className="hover:text-neutral-800"
+              >
+                Privacy Policy
+              </a>
+              <a
+                href="/eula"
+                // target="_blank"
+                className="hover:text-neutral-800"
+              >
+                Terms & Conditions
+              </a>
+            </div>
+          ) : (
+            <ConsentNotice />
+          )}
         </div>
       </div>
 

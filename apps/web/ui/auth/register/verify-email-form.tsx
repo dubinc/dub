@@ -1,6 +1,7 @@
 "use client";
 
 import { createUserAccountAction } from "@/lib/actions/create-user-account";
+import { showMessage } from "@/ui/auth/helpers";
 import { QRBuilderData } from "@/ui/modals/qr-builder";
 import {
   AnimatedSizeContainer,
@@ -15,11 +16,17 @@ import { signIn } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { toast } from "sonner";
+import { MessageType } from "../../../app/app.dub.co/(auth)/auth.modal.tsx";
 import { useRegisterContext } from "./context";
 import { ResendOtp } from "./resend-otp";
 
-export const VerifyEmailForm = () => {
+export const VerifyEmailForm = ({
+  authModal = false,
+  setAuthModalMessage,
+}: {
+  authModal?: boolean;
+  setAuthModalMessage?: (message: string | null, type: MessageType) => void;
+}) => {
   const router = useRouter();
   const { isMobile } = useMediaQuery();
   const [code, setCode] = useState("");
@@ -32,7 +39,12 @@ export const VerifyEmailForm = () => {
 
   const { executeAsync, isPending } = useAction(createUserAccountAction, {
     async onSuccess() {
-      toast.success("Account created! Redirecting to dashboard...");
+      showMessage(
+        "Account created! Redirecting to dashboard...",
+        "success",
+        authModal,
+        setAuthModalMessage,
+      );
       setIsRedirecting(true);
       setQrDataToCreate(null);
       const response = await signIn("credentials", {
@@ -45,13 +57,16 @@ export const VerifyEmailForm = () => {
         // router.push("/onboarding");
         router.push(`/${slugify(email)}?onboarded=true`);
       } else {
-        toast.error(
+        showMessage(
           "Failed to sign in with credentials. Please try again or contact support.",
+          "error",
+          authModal,
+          setAuthModalMessage,
         );
       }
     },
     onError({ error }) {
-      toast.error(error.serverError);
+      showMessage(error.serverError, "error", authModal, setAuthModalMessage);
       setCode("");
       setIsInvalidCode(true);
     },
@@ -125,7 +140,11 @@ export const VerifyEmailForm = () => {
           </div>
         </form>
 
-        <ResendOtp email={email} />
+        <ResendOtp
+          email={email}
+          authModal={authModal}
+          setAuthModalMessage={setAuthModalMessage}
+        />
       </AnimatedSizeContainer>
     </div>
   );

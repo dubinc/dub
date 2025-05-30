@@ -1,20 +1,36 @@
 "use client";
 
 import { sendOtpAction } from "@/lib/actions/send-otp";
+import { showMessage } from "@/ui/auth/helpers";
 import { LoadingSpinner } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useEffect, useState } from "react";
+import { MessageType } from "../../../app/app.dub.co/(auth)/auth.modal.tsx";
 
-export const ResendOtp = ({ email }: { email: string }) => {
+export const ResendOtp = ({ 
+  email,
+  authModal,
+  setAuthModalMessage
+}: { 
+  email: string;
+  authModal?: boolean;
+  setAuthModalMessage?: (message: string | null, type: MessageType) => void;
+}) => {
   const [delaySeconds, setDelaySeconds] = useState(0);
   const [state, setState] = useState<"default" | "success" | "error">(
     "default",
   );
 
   const { executeAsync, isPending } = useAction(sendOtpAction, {
-    onSuccess: () => setState("success"),
-    onError: () => setState("error"),
+    onSuccess: () => {
+      setState("success");
+      showMessage("Code resent successfully", "success", authModal, setAuthModalMessage);
+    },
+    onError: () => {
+      setState("error");
+      showMessage("Failed to resend code", "error", authModal, setAuthModalMessage);
+    },
   });
 
   useEffect(() => {

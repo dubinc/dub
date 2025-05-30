@@ -12,6 +12,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import { MessageType } from "../../../app/app.dub.co/(auth)/auth.modal.tsx";
 import { EmailSignIn } from "./email-sign-in";
 import { GoogleButton } from "./google-button";
 
@@ -67,9 +68,13 @@ export const LoginFormContext = createContext<{
 export default function LoginForm({
   methods = [...authMethods],
   redirectTo,
+  authModal,
+  setAuthModalMessage,
 }: {
   methods?: AuthMethod[];
   redirectTo?: string;
+  authModal?: boolean;
+  setAuthModalMessage?: (message: string | null, type: MessageType) => void;
 }) {
   const searchParams = useSearchParams();
   const [showPasswordField, setShowPasswordField] = useState(false);
@@ -92,12 +97,20 @@ export default function LoginForm({
   useEffect(() => {
     const error = searchParams?.get("error");
     if (error) {
-      toast.error(
-        errorCodes[error] ||
-          "An unexpected error occurred. Please try again later.",
-      );
+      if (authModal && setAuthModalMessage) {
+        setAuthModalMessage(
+          errorCodes[error] ||
+            "An unexpected error occurred. Please try again later.",
+          "error",
+        );
+      } else {
+        toast.error(
+          errorCodes[error] ||
+            "An unexpected error occurred. Please try again later.",
+        );
+      }
     }
-  }, [searchParams]);
+  }, [searchParams, authModal, setAuthModalMessage]);
 
   // Reset the state when leaving the page
   useEffect(() => () => setClickedMethod(undefined), []);
@@ -118,7 +131,7 @@ export default function LoginForm({
     {
       method: "email",
       component: EmailSignIn,
-      props: { redirectTo },
+      props: { redirectTo, authModal, setAuthModalMessage },
     },
     // {
     //   method: "saml",
@@ -197,7 +210,7 @@ export default function LoginForm({
                 )
                 .map((provider) => (
                   <div key={provider.method}>
-                    <provider.component />
+                    <provider.component {...provider.props} />
                   </div>
                 ))
             )}

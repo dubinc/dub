@@ -22,7 +22,7 @@ export const FrameSelector: FC<IFrameSelectorProps> = ({
 
   return (
     <StylePicker
-      label="Frames"
+      label="Frame around QR code"
       styleOptions={FRAMES}
       selectedStyle={selectedSuggestedFrame}
       onSelect={(type) => {
@@ -30,11 +30,11 @@ export const FrameSelector: FC<IFrameSelectorProps> = ({
           onFrameSelect(type);
         }
       }}
-      stylePickerWrapperClassName="border h-full border-border-500 p-3 rounded-lg gap-5"
+      stylePickerWrapperClassName="border h-full border-border-500 p-3 rounded-lg"
       optionsWrapperClassName={`gap-2 ${
         isQrDisabled ? "pointer-events-none cursor-not-allowed" : ""
       }`}
-      styleButtonClassName="[&_img]:h-12 [&_img]:w-12 p-2"
+      styleButtonClassName="[&_img]:h-[60px] [&_img]:w-[60px] p-2"
       minimalFlow
     />
   );

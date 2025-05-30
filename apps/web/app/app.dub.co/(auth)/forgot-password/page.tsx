@@ -25,7 +25,7 @@ export default function ForgotPasswordPage() {
           href="/login"
           className="hover:text-neutral font-semibold text-neutral-500 underline underline-offset-2 transition-colors"
         >
-          Sign in
+          Log in
         </Link>
       </p>
     </AuthLayout>

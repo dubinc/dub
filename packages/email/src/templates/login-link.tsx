@@ -43,14 +43,14 @@ export function LoginLink({
               Welcome to Dub.co!
             </Text>
             <Text className="text-sm leading-6 text-black">
-              Please click the magic link below to sign in to your account.
+              Please click the magic link below to log in to your account.
             </Text>
             <Section className="my-8 text-center">
               <Link
                 className="rounded-full bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
                 href={url}
               >
-                Sign in
+                Log in
               </Link>
             </Section>
             <Text className="text-sm leading-6 text-black">

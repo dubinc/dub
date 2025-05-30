@@ -10,11 +10,13 @@ interface QrCodeDetailsColumnProps {
   qrCode: ResponseQrCode;
   canvasRef: RefObject<HTMLCanvasElement>;
   currentQrTypeInfo: QRType;
+  isTrialOver?: boolean;
 }
 
 export function QrCodeDetailsColumn({
   qrCode,
   canvasRef,
+  isTrialOver = false,
   currentQrTypeInfo,
 }: QrCodeDetailsColumnProps) {
   const ref = useRef<HTMLDivElement>(null);
@@ -27,9 +29,9 @@ export function QrCodeDetailsColumn({
       <div className="hidden gap-3 lg:flex lg:gap-4 lg:gap-6">
         <QrCardType currentQrTypeInfo={currentQrTypeInfo} />
         {qrCode.link.archived ? (
-          <QRCardStatus archived={qrCode.link.archived} />
+          <QRCardStatus archived={qrCode.link.archived} isTrialOver={isTrialOver} />
         ) : (
-          <QRCardAnalyticsBadge qrCode={qrCode} />
+          <QRCardAnalyticsBadge qrCode={qrCode} isTrialOver={isTrialOver} />
         )}
       </div>
 

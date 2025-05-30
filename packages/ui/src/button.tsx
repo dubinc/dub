@@ -1,6 +1,6 @@
 import { cn } from "@dub/utils";
 import { VariantProps, cva } from "class-variance-authority";
-import { ReactNode, forwardRef } from "react";
+import { ButtonHTMLAttributes, ReactNode, forwardRef } from "react";
 import { LoadingSpinner } from "./icons";
 import { Tooltip } from "./tooltip";
 
@@ -28,7 +28,7 @@ export const buttonVariants = cva("transition-all", {
 });
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   text?: ReactNode | string;
   textWrapperClassName?: string;

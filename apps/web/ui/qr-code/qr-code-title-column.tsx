@@ -2,6 +2,28 @@
 
 import { QRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { QRCanvas } from "@/ui/qr-builder/qr-canvas.tsx";
+import { AnalyticsBadge } from "@/ui/qr-code/qr-code-details-column.tsx";
+import { QrCodesListContext } from "@/ui/qr-code/qr-codes-container.tsx";
+import {
+  ArrowTurnRight2,
+  CopyButton,
+  Tooltip,
+  TooltipContent,
+  useInViewport,
+  useMediaQuery,
+} from "@dub/ui";
+import { ArrowRight } from "@dub/ui/icons";
+import {
+  cn,
+  formatDateTime,
+  getPrettyUrl,
+  isDubDomain,
+  linkConstructor,
+  timeAgo,
+} from "@dub/utils";
+import { Icon } from "@iconify/react";
+import { Flex, Text } from "@radix-ui/themes";
+import { memo, PropsWithChildren, RefObject, useContext, useRef } from "react";
 import { QRCardAnalyticsBadge } from "@/ui/qr-code/qr-code-card-analytics-badge.tsx";
 import { QRCardDetails } from "@/ui/qr-code/qr-code-card-details.tsx";
 import { QRCardStatus } from "@/ui/qr-code/qr-code-card-status.tsx";
@@ -29,6 +51,7 @@ export function QrCodeTitleColumn({
 }: QrCodeTitleColumnProps) {
   const { domain, key, createdAt, shortLink, archived, title } =
     qrCode?.link ?? {};
+  const { isTrialOver } = useContext(QrCodesListContext);
   const { width } = useMediaQuery();
 
   const containerRef = useRef<HTMLDivElement>(null);

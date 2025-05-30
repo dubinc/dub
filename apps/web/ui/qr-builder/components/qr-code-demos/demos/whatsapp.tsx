@@ -30,7 +30,7 @@ export const QRCodeDemoWhatsapp: FC<IQRCodeDemoWhatsappProps> = ({
 
   return (
     <div className="flex h-full items-center justify-center">
-      <div className="relative flex h-[200px] w-[200px] flex-col overflow-hidden rounded-[14px] md:h-[352px] md:w-[270px] md:rounded-[22px]">
+      <div className="relative flex h-[200px] w-[200px] flex-col overflow-hidden rounded-t-[14px] md:h-[352px] md:w-[270px] md:rounded-t-[22px]">
         <div className="flex h-[40px] items-center bg-[#115740] px-2 md:h-16 md:px-3">
           <div className="mr-1 md:mr-2">
             <svg
