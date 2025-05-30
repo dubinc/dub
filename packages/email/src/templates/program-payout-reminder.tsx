@@ -66,9 +66,9 @@ export function ProgramPayoutReminder({
               keep your program running smooth and your partners happy.
             </Text>
 
-            <Section className="rounded-lg border border-solid border-neutral-200 p-6">
+            <Section className="rounded-lg border border-solid border-neutral-200 p-4">
               <Row>
-                <Column>
+                <Column className="w-1/2">
                   <Stats
                     title="Pending payouts"
                     icon=""
@@ -78,7 +78,8 @@ export function ProgramPayoutReminder({
                     })}
                   />
                 </Column>
-                <Column>
+
+                <Column className="w-1/2">
                   <Stats
                     title="Partners"
                     icon=""
@@ -115,19 +116,20 @@ const Stats = ({
   icon: string;
 }) => {
   return (
-    <div className="flex w-fit flex-row items-center bg-white">
-      <div className="flex h-10 w-10 rounded-md bg-neutral-100">
+    <Row className="flex">
+      <Column className="flex h-10 w-10 rounded-md bg-neutral-100" align="left">
         <Img src={icon} alt={title} className="m-auto block h-4 w-4" />
-      </div>
-      <div className="ml-3">
-        <p className="m-0 text-left text-xs font-medium text-neutral-500">
+      </Column>
+      <Column className="w-3" />
+      <Column align="left" className="flex-1">
+        <Text className="m-0 text-left text-xs font-medium text-neutral-500">
           {title}
-        </p>
-        <p className="m-0 text-left text-lg font-medium text-neutral-800">
+        </Text>
+        <Text className="m-0 text-left text-lg font-medium text-neutral-800">
           {value}
-        </p>
-      </div>
-    </div>
+        </Text>
+      </Column>
+    </Row>
   );
 };
 
