@@ -114,6 +114,7 @@ export const invitePartnerAction = authActionClient
           email,
           program: {
             name: program.name,
+            slug: program.slug,
             logo: program.logo,
           },
         }),
