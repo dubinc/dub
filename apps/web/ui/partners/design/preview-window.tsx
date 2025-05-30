@@ -9,11 +9,13 @@ export function PreviewWindow({
   url,
   scrollRef,
   className,
+  contentClassName,
   children,
 }: PropsWithChildren<{
   url: string;
   scrollRef?: RefObject<HTMLDivElement>;
   className?: string;
+  contentClassName?: string;
 }>) {
   const [_, copyToClipboard] = useCopyToClipboard();
 
@@ -68,7 +70,10 @@ export function PreviewWindow({
         </div>
       </div>
       <div
-        className="scrollbar-hide @container grow overflow-y-auto"
+        className={cn(
+          "scrollbar-hide @container grow overflow-y-auto",
+          contentClassName,
+        )}
         ref={scrollRef}
       >
         {children}
