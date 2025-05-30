@@ -85,7 +85,7 @@ export function PortalPreview({
                   height="16.387"
                   x="9.718"
                   y="36.376"
-                  href={program.logo || `${OG_AVATAR_URL}${program.name}`}
+                  href={logo || `${OG_AVATAR_URL}${program.name}`}
                   clipPath="inset(0% round 32px)"
                 />
                 <circle
@@ -590,7 +590,7 @@ export function PortalPreview({
                       height="40.968"
                       x="700.789"
                       y="99.58"
-                      href={program.logo || `${OG_AVATAR_URL}${program.name}`}
+                      href={logo || `${OG_AVATAR_URL}${program.name}`}
                       clipPath="inset(0% round 80px)"
                     />
                     <rect
