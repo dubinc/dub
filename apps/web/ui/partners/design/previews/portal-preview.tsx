@@ -14,8 +14,8 @@ export function PortalPreview({
 }) {
   const id = useId();
 
-  const { setValue, getValues } = useBrandingFormContext();
-  const { landerData, brandColor, logo, wordmark } = {
+  const { getValues } = useBrandingFormContext();
+  const { brandColor, logo } = {
     ...useWatch(),
     ...getValues(),
   };
@@ -575,6 +575,7 @@ export function PortalPreview({
                       </g>
                     </g>
                     <g filter={`url(#${id}-z)`}>
+                      {/* Rounded rectangle behind large logo */}
                       <path
                         fill={`url(#${id}-A)`}
                         d="M680.305 87.29a8.194 8.194 0 0 1 8.194-8.194h65.548a8.193 8.193 0 0 1 8.193 8.193v65.548a8.193 8.193 0 0 1-8.193 8.194h-65.548a8.194 8.194 0 0 1-8.194-8.194z"
