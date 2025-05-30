@@ -34,8 +34,7 @@ type PayloadItem = {
   creationDate: Date;
 };
 
-const FRAMER_WORKSPACE_ID = "xxx";
-// TODO: delete when migration is complete
+const FRAMER_WORKSPACE_ID = "clsvopiw0000ejy0grp821me0";
 const CACHE_KEY = "framerMigratedExternalIdEventNames";
 const DOMAIN = "framer.link";
 
