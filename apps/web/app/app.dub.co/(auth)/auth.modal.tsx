@@ -74,7 +74,7 @@ export function AuthModal({
       setShowModal={setShowAuthModal}
       className="border-border-500 bg-neutral-50"
     >
-      <div className="relative flex h-full flex-col">
+      <div className="relative flex flex-col">
         <div className="flex items-center justify-end px-6 pb-0 pt-4">
           <button
             type="button"
@@ -112,7 +112,7 @@ export function AuthModal({
           )}
         </AnimatePresence>
 
-        <div className="flex-1 overflow-y-auto p-6 pb-3 pt-0">
+        <div className="p-6 pb-3 pt-0">
           <AnimatePresence mode="wait">
             {authType === "login" ? (
               <motion.div

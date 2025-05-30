@@ -5,12 +5,12 @@ import { QrBuilder } from "@/ui/qr-builder/qr-builder.tsx";
 import { QrTabsTitle } from "@/ui/qr-builder/qr-tabs-title.tsx";
 import { Rating } from "@/ui/qr-rating/rating.tsx";
 import { useLocalStorage, useMediaQuery } from "@dub/ui";
-import { useRouter } from "next/navigation";
 import { forwardRef, useEffect } from "react";
+import { useAuthModal } from "../../../../app/app.dub.co/(auth)/auth.modal.tsx";
 import { LogoScrollingBanner } from "./components/logo-scrolling-banner.tsx";
 
 export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
-  const router = useRouter();
+  const { AuthModal, showModal } = useAuthModal();
 
   const [localQrDataToCreate, setLocalQrDataToCreate] =
     useLocalStorage<QRBuilderData | null>(`qr-data-to-create`, null);
@@ -47,7 +47,7 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
 
   const handleSaveQR = (data: QRBuilderData) => {
     setLocalQrDataToCreate(data);
-    router.push("/register");
+    showModal("signup");
   };
 
   return (
@@ -64,6 +64,8 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
 
         {!isMobile && <LogoScrollingBanner />}
       </div>
+
+      <AuthModal />
     </section>
   );
 });
