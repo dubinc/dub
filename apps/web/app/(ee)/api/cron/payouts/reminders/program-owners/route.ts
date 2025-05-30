@@ -95,15 +95,14 @@ export async function GET(req: Request) {
         limiter.schedule(() =>
           sendEmail({
             subject: `Payouts ready to be confirmed for ${program.name}`,
-            // email: user.email!,
-            email: "kiran@dub.co",
+            email: user.email!,
             react: ProgramPayoutReminder({
               email: user.email!,
               workspace,
               program,
               payout,
             }),
-           // variant: "notifications",
+            variant: "notifications",
           }),
         ),
       ),
