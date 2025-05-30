@@ -1,8 +1,10 @@
 import { useQRBuilder } from "@/ui/modals/qr-builder";
-import { QrCodesListContext, ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
 import { QR_TYPES } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization.ts";
-import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
+import {
+  QrCodesListContext,
+  ResponseQrCode,
+} from "@/ui/qr-code/qr-codes-container.tsx";
 import { CardList, useMediaQuery } from "@dub/ui";
 import { useContext, useRef } from "react";
 import { QrCodeDetailsColumn } from "./qr-code-details-column.tsx";
@@ -38,6 +40,7 @@ export function QrCodeCard({ qrCode }: { qrCode: ResponseQrCode }) {
             canvasRef={canvasRef}
             builtQrCodeObject={builtQrCodeObject}
             currentQrTypeInfo={currentQrTypeInfo}
+            isTrialOver={isTrialOver}
           />
         </div>
         <QrCodeDetailsColumn

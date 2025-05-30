@@ -2,28 +2,6 @@
 
 import { QRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { QRCanvas } from "@/ui/qr-builder/qr-canvas.tsx";
-import { AnalyticsBadge } from "@/ui/qr-code/qr-code-details-column.tsx";
-import { QrCodesListContext } from "@/ui/qr-code/qr-codes-container.tsx";
-import {
-  ArrowTurnRight2,
-  CopyButton,
-  Tooltip,
-  TooltipContent,
-  useInViewport,
-  useMediaQuery,
-} from "@dub/ui";
-import { ArrowRight } from "@dub/ui/icons";
-import {
-  cn,
-  formatDateTime,
-  getPrettyUrl,
-  isDubDomain,
-  linkConstructor,
-  timeAgo,
-} from "@dub/utils";
-import { Icon } from "@iconify/react";
-import { Flex, Text } from "@radix-ui/themes";
-import { memo, PropsWithChildren, RefObject, useContext, useRef } from "react";
 import { QRCardAnalyticsBadge } from "@/ui/qr-code/qr-code-card-analytics-badge.tsx";
 import { QRCardDetails } from "@/ui/qr-code/qr-code-card-details.tsx";
 import { QRCardStatus } from "@/ui/qr-code/qr-code-card-status.tsx";
@@ -41,6 +19,7 @@ interface QrCodeTitleColumnProps {
   canvasRef: RefObject<HTMLCanvasElement>;
   builtQrCodeObject: QRCodeStyling | null;
   currentQrTypeInfo: QRType;
+  isTrialOver?: boolean;
 }
 
 export function QrCodeTitleColumn({
@@ -48,10 +27,10 @@ export function QrCodeTitleColumn({
   canvasRef,
   builtQrCodeObject,
   currentQrTypeInfo,
+  isTrialOver,
 }: QrCodeTitleColumnProps) {
   const { domain, key, createdAt, shortLink, archived, title } =
     qrCode?.link ?? {};
-  const { isTrialOver } = useContext(QrCodesListContext);
   const { width } = useMediaQuery();
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -68,8 +47,11 @@ export function QrCodeTitleColumn({
           width={width! < 1024 ? 90 : 64}
           height={width! < 1024 ? 90 : 64}
         />
-        {archived ? (
-          <QRCardStatus className="lg:hidden" archived={archived} />
+        {archived || archived ? (
+          <QRCardStatus
+            className="lg:hidden"
+            archived={archived || isTrialOver}
+          />
         ) : (
           <QRCardAnalyticsBadge className="lg:hidden" qrCode={qrCode} />
         )}
@@ -113,17 +95,21 @@ export function QrCodeTitleColumn({
             "flex shrink-0 flex-col items-start justify-center gap-1",
           )}
         >
-          <Text
-            as="span"
-            size="2"
-            weight="bold"
-            className="hidden whitespace-nowrap lg:block"
-          >
-            Created
-          </Text>
-          <Tooltip content={formatDateTime(createdAt)} delayDuration={150}>
-            <span className="text-neutral-500">{timeAgo(createdAt)}</span>
-          </Tooltip>
+          {!isTrialOver && (
+            <>
+              <Text
+                as="span"
+                size="2"
+                weight="bold"
+                className="hidden whitespace-nowrap lg:block"
+              >
+                Created
+              </Text>
+              <Tooltip content={formatDateTime(createdAt)} delayDuration={150}>
+                <span className="text-neutral-500">{timeAgo(createdAt)}</span>
+              </Tooltip>
+            </>
+          )}
         </div>
       </div>
     </div>
