@@ -115,19 +115,23 @@ const Stats = ({
   icon: string;
 }) => {
   return (
-    <div className="flex flex-row items-center bg-white p-0">
-      <div className="flex rounded-md bg-neutral-100 p-4">
-        <Img src={icon} alt={title} className="h-4 w-4" />
+    <div className="flex w-fit flex-row items-center border border-neutral-200 bg-white">
+      <div className="flex h-10 w-10 items-center justify-center rounded-md bg-neutral-100">
+        <Img
+          src={
+            icon || "https://avatars.githubusercontent.com/u/153106492?s=24&v=4"
+          }
+          alt={title}
+          className="h-4 w-4"
+        />
       </div>
       <div className="ml-3">
-        <p className="mb-0 mt-0 text-left text-xs font-medium text-neutral-500">
+        <p className="m-0 text-left text-xs font-medium text-neutral-500">
           {title}
         </p>
-        <div className="flex items-center">
-          <p className="m-0 text-left text-lg font-medium text-neutral-800">
-            {value}
-          </p>
-        </div>
+        <p className="m-0 text-left text-lg font-medium text-neutral-800">
+          {value}
+        </p>
       </div>
     </div>
   );
