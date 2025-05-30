@@ -232,39 +232,38 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
             <LoadingSpinner />
           </div>
         ) : commissions && commissions.length > 0 ? (
-          <>
-            <div className="p-6 pt-2">
-              <Table {...commissionsTable} />
+          <div className="p-6 pt-2">
+            <Table {...commissionsTable} />
 
-              {payout.status === "pending" && (
-                <div className="flex justify-end py-4">
-                  <ViewAllPayoutsLink />
-                </div>
-              )}
-            </div>
-            <div className="sticky bottom-0 z-10 flex justify-end border-t border-neutral-200 bg-white px-6 py-4">
-              {payout.status === "pending" ? (
-                <Button
-                  type="button"
-                  variant="secondary"
-                  loading={isLoading}
-                  text="Confirm all pending payouts"
-                  onClick={() => {
-                    queryParams({
-                      set: {
-                        confirmPayouts: "true",
-                      },
-                      del: "payoutId",
-                      scroll: false,
-                    });
-                  }}
-                />
-              ) : (
+            {payout.status === "pending" && (
+              <div className="flex justify-end py-4">
                 <ViewAllPayoutsLink />
-              )}
-            </div>
-          </>
+              </div>
+            )}
+          </div>
         ) : null}
+      </div>
+
+      {/* Always render the sticky bottom section */}
+      <div className="sticky bottom-0 z-10 flex justify-end border-t border-neutral-200 bg-white px-6 py-4">
+        {payout.status === "pending" ? (
+          <Button
+            type="button"
+            variant="secondary"
+            text="Confirm all pending payouts"
+            onClick={() => {
+              queryParams({
+                set: {
+                  confirmPayouts: "true",
+                },
+                del: "payoutId",
+                scroll: false,
+              });
+            }}
+          />
+        ) : (
+          <ViewAllPayoutsLink />
+        )}
       </div>
     </div>
   );
