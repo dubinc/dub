@@ -88,7 +88,7 @@ export function QrCodeControls({ qrCode, canvasRef }: QrCodeControlsProps) {
   );
 
   return (
-    <div className="flex justify-end gap-2">
+    <div className="flex flex-col-reverse items-end justify-end gap-2 lg:flex-row lg:items-center">
       <QRBuilderModal />
       <ArchiveQRModal />
       <DeleteLinkModal />
@@ -97,9 +97,9 @@ export function QrCodeControls({ qrCode, canvasRef }: QrCodeControlsProps) {
           <Button
             variant="secondary"
             className={cn(
-              "h-8 px-1.5 outline-none transition-all duration-200",
+              "h-8 w-8 px-1.5 outline-none transition-all duration-200",
               "border-transparent data-[state=open]:border-neutral-200/40 data-[state=open]:ring-neutral-200/40 sm:group-hover/card:data-[state=closed]:border-neutral-200/10",
-              "border-border-500 border md:border-none",
+              "border-border-500 border lg:border-none",
             )}
             icon={<Download className="h-5 w-5 shrink-0" />}
           />
@@ -185,9 +185,9 @@ export function QrCodeControls({ qrCode, canvasRef }: QrCodeControlsProps) {
         <Button
           variant="secondary"
           className={cn(
-            "h-8 px-1.5 outline-none transition-all duration-200",
+            "h-8 w-8 px-1.5 outline-none transition-all duration-200",
             "border-transparent data-[state=open]:border-neutral-200/40 data-[state=open]:ring-neutral-200/40 sm:group-hover/card:data-[state=closed]:border-neutral-200/10",
-            "border-border-500 border md:border-none",
+            "border-border-500 border lg:border-none",
           )}
           icon={<ThreeDots className="h-5 w-5 shrink-0" />}
           onClick={() => {
