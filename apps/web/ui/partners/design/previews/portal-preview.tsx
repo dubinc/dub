@@ -720,13 +720,19 @@ export function PortalPreview({
                   </mask>
                   <g mask={`url(#${id}-H)`}>
                     <path
-                      fill="currentColor"
+                      fill={
+                        brandColor
+                          ? "currentColor"
+                          : `url(#${id}-color-gradient)`
+                      }
                       d="m535.639 294.779-47.886 8.902q-.251.046-.506.03l-47.882-3.07-48.137 2.469-48.137-.617-47.934-3.38a2 2 0 0 0-.404.011l-47.936 6.146-48.137 2.469v8.022h385.095v-24.068z"
                       opacity="0.2"
                     ></path>
                   </g>
                   <path
-                    stroke="currentColor"
+                    stroke={
+                      brandColor ? "currentColor" : `url(#${id}-color-gradient)`
+                    }
                     strokeLinejoin="round"
                     strokeWidth="0.768"
                     d="m198.937 307.941 48.094-3.115 47.805-5.705q.289-.035.58-.014l47.803 3.367 48.094.522 48.095-2.091 47.737 2.595q.357.02.708-.044l47.743-8.541 48.094-3.126"
@@ -1186,13 +1192,19 @@ export function PortalPreview({
                   </mask>
                   <g mask={`url(#${id}-T)`}>
                     <path
-                      fill="currentColor"
+                      fill={
+                        brandColor
+                          ? "currentColor"
+                          : `url(#${id}-color-gradient)`
+                      }
                       d="m353.034 442.357-21.34 8.647a2.05 2.05 0 0 1-1.053.13l-21.285-2.974a2 2 0 0 0-.511-.007l-21.828 2.44-22.084-.617-21.648-3.327a2 2 0 0 0-.862.052l-21.499 6.008q-.159.043-.324.063l-21.92 2.45v8.023h176.673v-24.069l-21.833 3.051q-.251.035-.486.13"
                       opacity="0.2"
                     ></path>
                   </g>
                   <path
-                    stroke="currentColor"
+                    stroke={
+                      brandColor ? "currentColor" : `url(#${id}-color-gradient)`
+                    }
                     strokeLinejoin="round"
                     strokeWidth="0.768"
                     d="m198.937 455.425 22.041-3.115 21.427-5.58a3.1 3.1 0 0 1 1.241-.063l21.415 3.29 22.041.523 21.715-2.06q.327-.03.652.008l20.953 2.484a3.06 3.06 0 0 0 1.479-.189l20.993-8.194q.332-.13.686-.18l21.688-3.076"
@@ -1331,13 +1343,19 @@ export function PortalPreview({
                   </mask>
                   <g mask={`url(#${id}-X)`}>
                     <path
-                      fill="currentColor"
+                      fill={
+                        brandColor
+                          ? "currentColor"
+                          : `url(#${id}-color-gradient)`
+                      }
                       d="m561.969 442.357-21.341 8.647c-.333.135-.696.18-1.052.13l-21.285-2.974a2 2 0 0 0-.511-.007l-21.829 2.44-22.084-.617-21.647-3.327a2 2 0 0 0-.862.052l-21.499 6.008a2 2 0 0 1-.324.063l-21.92 2.45v8.023h176.673v-24.069l-21.833 3.051q-.251.035-.486.13"
                       opacity="0.2"
                     ></path>
                   </g>
                   <path
-                    stroke="currentColor"
+                    stroke={
+                      brandColor ? "currentColor" : `url(#${id}-color-gradient)`
+                    }
                     strokeLinejoin="round"
                     strokeWidth="0.768"
                     d="m407.871 455.425 22.042-3.115 21.427-5.58a3.1 3.1 0 0 1 1.241-.063l21.414 3.29 22.042.523 21.715-2.06a3 3 0 0 1 .652.008l20.952 2.484a3.06 3.06 0 0 0 1.479-.189l20.993-8.194q.332-.13.686-.18l21.688-3.076"
@@ -1476,13 +1494,19 @@ export function PortalPreview({
                   </mask>
                   <g mask={`url(#${id}-ab)`}>
                     <path
-                      fill="currentColor"
+                      fill={
+                        brandColor
+                          ? "currentColor"
+                          : `url(#${id}-color-gradient)`
+                      }
                       d="m770.903 442.357-21.34 8.647a2.05 2.05 0 0 1-1.053.13l-21.285-2.974a2 2 0 0 0-.511-.007l-21.828 2.44-22.084-.617-21.648-3.327a2 2 0 0 0-.862.052l-21.499 6.008q-.159.043-.324.063l-21.92 2.45v8.023h176.673v-24.069l-21.833 3.051q-.251.035-.486.13"
                       opacity="0.2"
                     ></path>
                   </g>
                   <path
-                    stroke="currentColor"
+                    stroke={
+                      brandColor ? "currentColor" : `url(#${id}-color-gradient)`
+                    }
                     strokeLinejoin="round"
                     strokeWidth="0.768"
                     d="m616.806 455.425 22.041-3.115 21.427-5.58a3.1 3.1 0 0 1 1.241-.063l21.415 3.29 22.041.523 21.715-2.06q.327-.03.652.008l20.953 2.484a3.06 3.06 0 0 0 1.479-.189l20.993-8.194q.332-.13.686-.18l21.688-3.076"
@@ -3034,6 +3058,20 @@ export function PortalPreview({
                 <stop stopColor="#FAFAFA" />
                 <stop offset="0.489" stopColor="#FAFAFA" />
                 <stop offset="1" stopColor="#FAFAFA" stopOpacity="0" />
+              </linearGradient>
+              {/* Rainbow chart line gradient */}
+              <linearGradient
+                id={`${id}-color-gradient`}
+                x1="0"
+                x2="1"
+                gradientUnits="objectBoundingBox"
+              >
+                <stop offset="0%" stop-color="#7D3AEC" stop-opacity="1"></stop>
+                <stop
+                  offset="100%"
+                  stop-color="#DA2778"
+                  stop-opacity="1"
+                ></stop>
               </linearGradient>
             </defs>
           </svg>
