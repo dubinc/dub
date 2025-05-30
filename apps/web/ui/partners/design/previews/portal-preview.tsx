@@ -21,10 +21,10 @@ export function PortalPreview({
   };
 
   return (
-    <div className="scrollbar-hide size-full overflow-y-auto">
+    <div className="scrollbar-hide -mx-2 h-full w-auto overflow-y-auto px-2 pb-4">
       <PreviewWindow
         url={`${PARTNERS_DOMAIN}/${program?.slug}`}
-        className="h-auto bg-neutral-100"
+        className="h-auto rounded-b-xl bg-neutral-100"
         contentClassName="overflow-y-hidden"
       >
         <div
@@ -354,6 +354,15 @@ export function PortalPreview({
                     fill="#FAFAFA"
                     rx="4.097"
                   ></rect>
+                  <rect
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="614.513"
+                    height="131.491"
+                    x="188.695"
+                    y="54.029"
+                    fill={`url(#${id}-grid)`}
+                  />
+                  <path fill={`url(#${id}-aq)`} d="M188 54h615v131H189z" />
                   <text
                     xmlSpace="preserve"
                     fill="#262626"
@@ -2349,6 +2358,41 @@ export function PortalPreview({
               ></path>
             </g>
             <defs>
+              <pattern
+                xmlns="http://www.w3.org/2000/svg"
+                id={`${id}-smallGrid`}
+                width="10.2425"
+                height="10.2425"
+                patternUnits="userSpaceOnUse"
+              >
+                <path
+                  d="M 10.2425 0 L 0 0 0 10.2425"
+                  fill="none"
+                  stroke="#0004"
+                  strokeWidth="0.5"
+                />
+              </pattern>
+              <pattern
+                xmlns="http://www.w3.org/2000/svg"
+                id={`${id}-grid`}
+                width="81.94"
+                height="81.94"
+                patternUnits="userSpaceOnUse"
+                x="-6"
+                y="-3"
+              >
+                <rect
+                  width="81.94"
+                  height="81.94"
+                  fill={`url(#${id}-smallGrid)`}
+                />
+                <path
+                  d="M 81.94 0 L 0 0 0 81.94"
+                  fill="none"
+                  stroke="#0001"
+                  strokeWidth="1"
+                />
+              </pattern>
               <clipPath id={`${id}-a`}>
                 <path fill="#fff" d="M.5.771h868v688.457H.5z"></path>
               </clipPath>
@@ -2885,8 +2929,8 @@ export function PortalPreview({
                 y2="79.096"
                 gradientUnits="userSpaceOnUse"
               >
-                <stop stopColor="#fff" stopOpacity="0.23"></stop>
-                <stop offset="1" stopColor="#fff" stopOpacity="0.3"></stop>
+                <stop stopColor="#fff" stopOpacity="0.46"></stop>
+                <stop offset="1" stopColor="#fff" stopOpacity="0.6"></stop>
               </linearGradient>
               <linearGradient
                 id={`${id}-C`}
@@ -2954,6 +2998,18 @@ export function PortalPreview({
                 <stop offset="0.73" stopColor="#fff"></stop>
                 <stop offset="1" stopColor="#fff" stopOpacity="0"></stop>
               </radialGradient>
+              <linearGradient
+                id={`${id}-aq`}
+                x1="188"
+                x2="700"
+                y1="410"
+                y2="25.44"
+                gradientUnits="userSpaceOnUse"
+              >
+                <stop stopColor="#FAFAFA" />
+                <stop offset="0.489" stopColor="#FAFAFA" />
+                <stop offset="1" stopColor="#FAFAFA" stopOpacity="0.5" />
+              </linearGradient>
             </defs>
           </svg>
         </div>
