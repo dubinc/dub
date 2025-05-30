@@ -1,7 +1,7 @@
 "use client";
 
-import { useTrialExpiredModal } from "@/lib/hooks/use-trial-expired-modal";
 import { useTrialStatus } from "@/lib/contexts/trial-status-context";
+import { useTrialExpiredModal } from "@/lib/hooks/use-trial-expired-modal";
 import usePrograms from "@/lib/swr/use-programs";
 import { useRouterStuff } from "@dub/ui";
 import {
@@ -100,11 +100,11 @@ const NAV_AREAS: SidebarNavAreas<{
                 }
               : undefined,
           },
-          {
-            name: "Plans and Payments",
-            icon: () => <Icon icon="ion:card-outline" className="h-5 w-5" />,
-            href: `/${slug}/plans`, // Link to plans page
-          },
+          // {
+          //   name: "Plans and Payments",
+          //   icon: () => <Icon icon="ion:card-outline" className="h-5 w-5" />,
+          //   href: `/${slug}/plans`, // Link to plans page
+          // },
           // {
           //   name: "Account",
           //   icon: () => (

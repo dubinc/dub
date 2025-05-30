@@ -6,11 +6,13 @@ import { Icon as IconifyIcon } from "@iconify/react";
 import { LogOut } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { ComponentPropsWithoutRef, ElementType, useState } from "react";
 
 export default function UserDropdown() {
   const { data: session } = useSession();
   const [openPopover, setOpenPopover] = useState(false);
+  const { slug } = useParams() as { slug?: string };
 
   return (
     <Popover
@@ -41,6 +43,18 @@ export default function UserDropdown() {
               />
             )}
             href="/account/settings"
+            onClick={() => setOpenPopover(false)}
+          />
+          <UserOption
+            as={Link}
+            label="Plans and Payments"
+            icon={() => (
+              <IconifyIcon
+                className="h-4 w-4 text-neutral-200"
+                icon="ion:card-outline"
+              />
+            )}
+            href={`/${slug}/plans`}
             onClick={() => setOpenPopover(false)}
           />
           {session?.user?.["dubPartnerId"] && (
