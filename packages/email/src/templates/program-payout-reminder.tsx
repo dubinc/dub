@@ -66,7 +66,7 @@ export function ProgramPayoutReminder({
               keep your program running smooth and your partners happy.
             </Text>
 
-            <Container className="rounded-lg border border-solid border-neutral-200 p-6">
+            <Section className="rounded-lg border border-solid border-neutral-200 p-6">
               <Row>
                 <Column>
                   <Stats
@@ -95,7 +95,7 @@ export function ProgramPayoutReminder({
                   Review and confirm payouts
                 </Link>
               </Section>
-            </Container>
+            </Section>
 
             <Footer email={email} />
           </Container>
@@ -115,15 +115,9 @@ const Stats = ({
   icon: string;
 }) => {
   return (
-    <div className="flex w-fit flex-row items-center border border-neutral-200 bg-white">
-      <div className="flex h-10 w-10 items-center justify-center rounded-md bg-neutral-100">
-        <Img
-          src={
-            icon || "https://avatars.githubusercontent.com/u/153106492?s=24&v=4"
-          }
-          alt={title}
-          className="h-4 w-4"
-        />
+    <div className="flex w-fit flex-row items-center bg-white">
+      <div className="flex h-10 w-10 rounded-md bg-neutral-100">
+        <Img src={icon} alt={title} className="m-auto block h-4 w-4" />
       </div>
       <div className="ml-3">
         <p className="m-0 text-left text-xs font-medium text-neutral-500">
