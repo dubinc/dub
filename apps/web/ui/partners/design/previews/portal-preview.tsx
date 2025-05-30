@@ -364,7 +364,7 @@ export function PortalPreview({
                     height="131.491"
                     x="188.695"
                     y="54.029"
-                    opacity="0.5"
+                    opacity="0.2"
                     fill={`url(#${id}-grid)`}
                   />
                   <path fill={`url(#${id}-aq)`} d="M188 54h615v131H189z" />
@@ -591,7 +591,7 @@ export function PortalPreview({
                         cx="721.273"
                         cy="120.063"
                         r="22.02"
-                        fill="currentColor"
+                        fill="#f00"
                         opacity="0.5"
                       ></circle>
                     </g>
@@ -619,25 +619,39 @@ export function PortalPreview({
                     filter={`url(#${id}-D)`}
                     style={{ mixBlendMode: "soft-light" }}
                   >
-                    <ellipse
-                      cx="722.553"
-                      cy="120.066"
-                      fill="currentColor"
-                      opacity="0.4"
-                      rx="150.3"
-                      ry="158.749"
-                    ></ellipse>
+                    {brandColor && (
+                      <ellipse
+                        cx="722.553"
+                        cy="120.066"
+                        fill="currentColor"
+                        opacity="0.4"
+                        rx="150.3"
+                        ry="158.749"
+                      />
+                    )}
                   </g>
                   <g filter={`url(#${id}-E)`} opacity="0.15">
-                    <ellipse
-                      cx="150.3"
-                      cy="120.139"
-                      fill="currentColor"
-                      opacity="0.7"
-                      rx="150.3"
-                      ry="120.139"
-                      transform="matrix(1 0 0 -1 572.254 249.368)"
-                    ></ellipse>
+                    {brandColor ? (
+                      <ellipse
+                        cx="150.3"
+                        cy="120.139"
+                        fill="currentColor"
+                        opacity="0.7"
+                        rx="150.3"
+                        ry="120.139"
+                        transform="matrix(1 0 0 -1 572.254 249.368)"
+                      />
+                    ) : (
+                      <foreignObject width="250" height="250" x="596" y="-6">
+                        <div
+                          className="size-full rounded-full saturate-150"
+                          style={{
+                            background:
+                              "conic-gradient(from -66deg at 50% 50%, #855afc -32deg, red 63deg, #eab308 158deg, #5cff80 240deg, #855afc 328deg, red 423deg)",
+                          }}
+                        ></div>
+                      </foreignObject>
+                    )}
                   </g>
                 </g>
                 <rect
@@ -2940,8 +2954,8 @@ export function PortalPreview({
                 y2="79.096"
                 gradientUnits="userSpaceOnUse"
               >
-                <stop stopColor="#fff" stopOpacity="0.46"></stop>
-                <stop offset="1" stopColor="#fff" stopOpacity="0.6"></stop>
+                <stop stopColor="#fff" stopOpacity="1"></stop>
+                <stop offset="1" stopColor="#fff" stopOpacity="1"></stop>
               </linearGradient>
               <linearGradient
                 id={`${id}-C`}
@@ -3019,7 +3033,7 @@ export function PortalPreview({
               >
                 <stop stopColor="#FAFAFA" />
                 <stop offset="0.489" stopColor="#FAFAFA" />
-                <stop offset="1" stopColor="#FAFAFA" stopOpacity="0.5" />
+                <stop offset="1" stopColor="#FAFAFA" stopOpacity="0" />
               </linearGradient>
             </defs>
           </svg>
