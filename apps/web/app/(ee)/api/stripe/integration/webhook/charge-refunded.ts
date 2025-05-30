@@ -11,6 +11,7 @@ export async function chargeRefunded(event: Stripe.Event) {
     livemode: event.livemode,
   });
 
+  // Charge doesn't have invoice property, so we need to get the invoice from the payment intent
   const invoicePayments = await stripe.invoicePayments.list(
     {
       payment: {
