@@ -1,7 +1,7 @@
 "use client";
 
 import { ProgramWithLanderDataProps } from "@/lib/types";
-import { PARTNERS_DOMAIN, truncate } from "@dub/utils";
+import { OG_AVATAR_URL, PARTNERS_DOMAIN, truncate } from "@dub/utils";
 import { useId } from "react";
 import { useWatch } from "react-hook-form";
 import { useBrandingFormContext } from "../branding-form";
@@ -76,21 +76,18 @@ export function PortalPreview({
                 <path d="M97.57 11.355h-5.69a.455.455 0 0 0-.455.455v.455c0 .252.204.455.455.455h5.69a.455.455 0 0 0 .456-.455v-.455a.455.455 0 0 0-.456-.455"></path>
               </g>
               <g clipPath={`url(#${id}-c)`}>
-                <path
-                  fill="#615FFF"
-                  d="M104.967 13.062a6.146 6.146 0 1 1 12.291 0 6.146 6.146 0 0 1-12.291 0"
-                ></path>
-                <path fill="#0F0" d="M104.967 6.917h12.29v12.29h-12.29z"></path>
+                <circle cx="111.113" cy="13.062" r="6.146" fill="#ccc" />
               </g>
               <g clipPath={`url(#${id}-d)`}>
-                <rect
+                {/* Little logo */}
+                <image
                   width="16.387"
                   height="16.387"
                   x="9.718"
                   y="36.376"
-                  fill="red"
-                  rx="8.194"
-                ></rect>
+                  href={program.logo || `${OG_AVATAR_URL}${program.name}`}
+                  clipPath="inset(0% round 32px)"
+                />
                 <circle
                   cx="17.911"
                   cy="44.57"
@@ -587,14 +584,15 @@ export function PortalPreview({
                         fill="#171717"
                       ></circle>
                     </g>
-                    <rect
+                    {/* Big logo */}
+                    <image
                       width="40.968"
                       height="40.968"
                       x="700.789"
                       y="99.58"
-                      fill="red"
-                      rx="20.484"
-                    ></rect>
+                      href={program.logo || `${OG_AVATAR_URL}${program.name}`}
+                      clipPath="inset(0% round 80px)"
+                    />
                     <rect
                       width="40.456"
                       height="40.456"
