@@ -32,6 +32,14 @@ import { z } from "zod";
 
 export const dynamic = "force-dynamic";
 
+type AnalyticsResponse = {
+  partnerId: string;
+  clicks: number;
+  leads: number;
+  sales: number;
+  saleAmount: number;
+};
+
 const schema = z.object({
   skip: z.number().optional().default(0),
 });
@@ -74,7 +82,7 @@ async function handler(req: Request) {
       return NextResponse.json("No more programs found.");
     }
 
-    // Consider a program can have many partners, we only process one program at a time
+    // Since a program can have many partners, we process only one program at a time
     const program = programs[0];
     programSkip += programsTake;
 
@@ -90,6 +98,7 @@ async function handler(req: Request) {
     // Find the clicks, leads, sales analytics
     const [baselineMonthAnalytics, previousMonthAnalytics, lifetimeAnalytics] =
       await Promise.all([
+        // 2 months ago
         getAnalytics({
           event: "composite",
           groupBy: "partnerId",
@@ -98,6 +107,7 @@ async function handler(req: Request) {
           end: endOfMonth(comparisonMonth),
         }),
 
+        // 1 month ago
         getAnalytics({
           event: "composite",
           groupBy: "partnerId",
@@ -106,6 +116,7 @@ async function handler(req: Request) {
           end: endOfMonth(previousMonth),
         }),
 
+        // Lifetime
         getAnalytics({
           event: "composite",
           groupBy: "partnerId",
@@ -113,7 +124,7 @@ async function handler(req: Request) {
         }),
       ]);
 
-    const partnersTake = 1;
+    const partnersTake = 500;
     let partnersSkip = 0;
 
     // Process 500 partners at a time for a program
@@ -141,6 +152,11 @@ async function handler(req: Request) {
         },
         take: partnersTake,
         skip: partnersSkip,
+        orderBy: {
+          partner: {
+            createdAt: "asc",
+          },
+        },
       });
 
       if (programEnrollments.length === 0) {
@@ -168,75 +184,83 @@ async function handler(req: Request) {
         },
       };
 
-      const [
-        baselineMonthEarnings, // Earnings 2 months ago (to compare with previous month)
-        previousMonthEarnings, // Earnings 1 month ago,
-        lifetimeEarnings, // All-time earnings
-      ] = await Promise.all([
-        prisma.commission.groupBy({
-          by: ["partnerId"],
-          where: {
-            ...commissionWhere,
-            createdAt: {
-              gte: startOfMonth(comparisonMonth),
-              lte: endOfMonth(comparisonMonth),
+      const [baselineMonthEarnings, previousMonthEarnings, lifetimeEarnings] =
+        await Promise.all([
+          // Earnings 2 months ago (to compare with previous month)
+          prisma.commission.groupBy({
+            by: ["partnerId"],
+            where: {
+              ...commissionWhere,
+              createdAt: {
+                gte: startOfMonth(comparisonMonth),
+                lte: endOfMonth(comparisonMonth),
+              },
             },
-          },
-          _sum: {
-            earnings: true,
-          },
-        }),
-
-        prisma.commission.groupBy({
-          by: ["partnerId"],
-          where: {
-            ...commissionWhere,
-            createdAt: {
-              gte: startOfMonth(previousMonth),
-              lte: endOfMonth(previousMonth),
+            _sum: {
+              earnings: true,
             },
-          },
-          _sum: {
-            earnings: true,
-          },
-        }),
+          }),
 
-        prisma.commission.groupBy({
-          by: ["partnerId"],
-          where: {
-            ...commissionWhere,
-          },
-          _sum: {
-            earnings: true,
-          },
-        }),
-      ]);
+          // Earnings 1 month ago,
+          prisma.commission.groupBy({
+            by: ["partnerId"],
+            where: {
+              ...commissionWhere,
+              createdAt: {
+                gte: startOfMonth(previousMonth),
+                lte: endOfMonth(previousMonth),
+              },
+            },
+            _sum: {
+              earnings: true,
+            },
+          }),
+
+          // All-time earnings
+          prisma.commission.groupBy({
+            by: ["partnerId"],
+            where: {
+              ...commissionWhere,
+            },
+            _sum: {
+              earnings: true,
+            },
+          }),
+        ]);
+
+      const baselineEarningsMap = new Map(
+        baselineMonthEarnings.map((e) => [e.partnerId, e]),
+      );
+
+      const previousEarningsMap = new Map(
+        previousMonthEarnings.map((e) => [e.partnerId, e]),
+      );
+
+      const lifetimeEarningsMap = new Map(
+        lifetimeEarnings.map((e) => [e.partnerId, e]),
+      );
+
+      const baselineAnalyticsMap: Map<string, AnalyticsResponse> = new Map(
+        baselineMonthAnalytics.map((a) => [a.partnerId, a]),
+      );
+
+      const previousAnalyticsMap: Map<string, AnalyticsResponse> = new Map(
+        previousMonthAnalytics.map((a) => [a.partnerId, a]),
+      );
+
+      const lifetimeAnalyticsMap: Map<string, AnalyticsResponse> = new Map(
+        lifetimeAnalytics.map((a) => [a.partnerId, a]),
+      );
 
       let summary = partners
         .map((partner) => {
-          const _baselineMonthEarnings = baselineMonthEarnings.find(
-            (c) => c.partnerId === partner.id,
-          );
+          const _baselineMonthEarnings = baselineEarningsMap.get(partner.id);
+          const _previousMonthEarnings = previousEarningsMap.get(partner.id);
+          const _lifetimeEarnings = lifetimeEarningsMap.get(partner.id);
 
-          const _previousMonthEarnings = previousMonthEarnings.find(
-            (c) => c.partnerId === partner.id,
-          );
-
-          const _lifetimeEarnings = lifetimeEarnings.find(
-            (c) => c.partnerId === partner.id,
-          );
-
-          const _baselineMonthAnalytics = baselineMonthAnalytics.find(
-            (a: { partnerId: string }) => a.partnerId === partner.id,
-          );
-
-          const _previousMonthAnalytics = previousMonthAnalytics.find(
-            (a: { partnerId: string }) => a.partnerId === partner.id,
-          );
-
-          const _lifetimeAnalytics = lifetimeAnalytics.find(
-            (a: { partnerId: string }) => a.partnerId === partner.id,
-          );
+          const _baselineMonthAnalytics = baselineAnalyticsMap.get(partner.id);
+          const _previousMonthAnalytics = previousAnalyticsMap.get(partner.id);
+          const _lifetimeAnalytics = lifetimeAnalyticsMap.get(partner.id);
 
           return {
             partner,
