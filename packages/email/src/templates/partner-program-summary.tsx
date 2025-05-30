@@ -38,7 +38,7 @@ const percentStateMap = {
   },
   negative: {
     color: "bg-red-50 text-red-700",
-    sign: "",
+    sign: "-",
   },
   neutral: {
     color: "bg-neutral-50 text-neutral-700",
@@ -229,7 +229,7 @@ export function PartnerProgramSummary({
                     as="h4"
                     className="mt-0 text-base font-semibold leading-6 text-neutral-800"
                   >
-                    Monthly Stats
+                    {reportingMonth} Stats
                   </Heading>
 
                   <StatsGrid stats={monthlyStats} />
@@ -329,7 +329,7 @@ const Stats = ({
               className={`m-0 ml-2 rounded text-xs font-medium ${color} m-auto px-1.5 py-0.5`}
             >
               {sign}
-              {percent}%
+              {Math.abs(percent)}%
             </Text>
           )}
         </div>
