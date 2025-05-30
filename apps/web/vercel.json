@@ -38,7 +38,7 @@
     },
     {
       "path": "/api/cron/payouts/reminders/program-owners",
-      "schedule": "0 9 * * *"
+      "schedule": "0 9 24 * *"
     }
   ],
   "functions": {

@@ -9,7 +9,7 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 
 // This route is used to send reminders to program owners about pending payouts
-// Runs a week before the end of the month
+// Runs on the 24th day of the month at 9:00 AM
 // GET /api/cron/payouts/reminders/program-owners
 export async function GET(req: Request) {
   try {
