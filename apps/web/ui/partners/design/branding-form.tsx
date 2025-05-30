@@ -15,7 +15,7 @@ import {
   useLocalStorage,
   useRouterStuff,
 } from "@dub/ui";
-import { cn, PARTNERS_DOMAIN } from "@dub/utils";
+import { cn } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
@@ -26,7 +26,7 @@ import { toast } from "sonner";
 import { KeyedMutator } from "swr";
 import { z } from "zod";
 import { BrandingSettingsForm } from "./branding-settings-form";
-import { PreviewWindow } from "./preview-window";
+import { EmbedPreview } from "./previews/embed-preview";
 import { LanderPreview } from "./previews/lander-preview";
 import { PortalPreview } from "./previews/portal-preview";
 
@@ -72,12 +72,6 @@ export function BrandingForm() {
   );
 }
 
-const Placeholder = ({ program }: { program: ProgramWithLanderDataProps }) => (
-  <PreviewWindow url={`${PARTNERS_DOMAIN}/${program?.slug}`}>
-    <div className="flex justify-center py-8">WIP</div>
-  </PreviewWindow>
-);
-
 const PREVIEW_TABS = [
   {
     value: "landing",
@@ -92,7 +86,7 @@ const PREVIEW_TABS = [
   {
     value: "embed",
     label: "Embed",
-    component: Placeholder,
+    component: EmbedPreview,
   },
 ];
 

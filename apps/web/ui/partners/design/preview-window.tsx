@@ -8,12 +8,14 @@ import { toast } from "sonner";
 export function PreviewWindow({
   url,
   scrollRef,
+  showViewButton = true,
   className,
   contentClassName,
   children,
 }: PropsWithChildren<{
   url: string;
   scrollRef?: RefObject<HTMLDivElement>;
+  showViewButton?: boolean;
   className?: string;
   contentClassName?: string;
 }>) {
@@ -56,17 +58,19 @@ export function PreviewWindow({
           </div>
         </button>
         <div className="flex grow basis-0 justify-end">
-          <Link
-            href={url}
-            target="_blank"
-            className={cn(
-              buttonVariants({ variant: "secondary" }),
-              "flex h-7 w-fit items-center gap-1 rounded-md border px-2 text-sm",
-            )}
-          >
-            View
-            <ArrowUpRight className="size-3" />
-          </Link>
+          {showViewButton && (
+            <Link
+              href={url}
+              target="_blank"
+              className={cn(
+                buttonVariants({ variant: "secondary" }),
+                "flex h-7 w-fit items-center gap-1 rounded-md border px-2 text-sm",
+              )}
+            >
+              View
+              <ArrowUpRight className="size-3" />
+            </Link>
+          )}
         </div>
       </div>
       <div

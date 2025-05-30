@@ -21,21 +21,19 @@ export function PortalPreview({
   };
 
   return (
-    <div
-      className="scrollbar-hide -mx-2 h-full w-auto overflow-y-auto px-2 pb-4 text-[var(--brand)]"
-      style={
-        {
-          "--brand": brandColor || "#000000",
-        } as CSSProperties
-      }
-    >
+    <div className="scrollbar-hide -mx-2 h-full w-auto overflow-y-auto px-2 pb-4">
       <PreviewWindow
         url={`${PARTNERS_DOMAIN}/programs/${program?.slug}`}
         className="h-auto rounded-b-xl bg-neutral-100"
         contentClassName="overflow-y-hidden"
       >
         <div
-          className="relative z-0 mx-auto w-full select-none"
+          className="relative z-0 mx-auto w-full select-none text-[var(--brand)]"
+          style={
+            {
+              "--brand": brandColor || "#000000",
+            } as CSSProperties
+          }
           role="presentation"
         >
           <svg
