@@ -420,7 +420,7 @@ export function PortalPreview({
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="0.768"
-                    d="M417.775 97.186h-.455a.91.91 0 0 1-.91-.91v-2.504a.91.91 0 0 1 .91-.91h3.414a.91.91 0 0 1 .91.91v.455m.455 4.325h-3.414a.91.91 0 0 1-.91-.91v-2.504a.91.91 0 0 1 .91-.91h3.414a.91.91 0 0 1 .911.91v2.503a.91.91 0 0 1-.911.91"
+                    d="M415.275 97.186h-.455a.91.91 0 0 1-.91-.91v-2.504a.91.91 0 0 1 .91-.91h3.414a.91.91 0 0 1 .91.91v.455m.455 4.325h-3.414a.91.91 0 0 1-.91-.91v-2.504a.91.91 0 0 1 .91-.91h3.414a.91.91 0 0 1 .911.91v2.503a.91.91 0 0 1-.911.91"
                   ></path>
                   <text
                     xmlSpace="preserve"
@@ -429,7 +429,7 @@ export function PortalPreview({
                     fontWeight="600"
                     style={{ whiteSpace: "pre" }}
                   >
-                    <tspan x="425.756" y="98.314">
+                    <tspan x="423.256" y="98.314">
                       Copy link
                     </tspan>
                   </text>
