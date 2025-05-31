@@ -47,8 +47,8 @@ const schema = z.object({
 // GET/POST /api/cron/partner-program-summary
 async function handler(req: Request) {
   try {
-    const programsTake = 1;
     let programSkip = 0;
+    const programsTake = 1;
 
     if (req.method === "GET") {
       await verifyVercelSignature(req);
@@ -64,16 +64,16 @@ async function handler(req: Request) {
     }
 
     const programs = await prisma.program.findMany({
-      take: programsTake,
-      skip: programSkip,
-      orderBy: {
-        createdAt: "asc",
-      },
       select: {
         id: true,
         name: true,
         logo: true,
         slug: true,
+      },
+      skip: programSkip,
+      take: programsTake,
+      orderBy: {
+        createdAt: "asc",
       },
     });
 
@@ -86,11 +86,10 @@ async function handler(req: Request) {
     const program = programs[0];
     programSkip += programsTake;
 
-    const comparisonMonth = subMonths(new Date(), 2);
-    const previousMonth = subMonths(new Date(), 1);
-    const reportingMonth = format(previousMonth, "MMMM");
+    const comparisonMonth = startOfMonth(subMonths(new Date(), 2));
+    const previousMonth = startOfMonth(subMonths(new Date(), 1));
 
-    console.log(`Sending program summary for ${program.id}`, {
+    console.log(`Sending program summary for ${program.slug}`, {
       comparisonMonth,
       previousMonth,
     });
@@ -103,7 +102,7 @@ async function handler(req: Request) {
           event: "composite",
           groupBy: "partnerId",
           programId: program.id,
-          start: startOfMonth(comparisonMonth),
+          start: comparisonMonth,
           end: endOfMonth(comparisonMonth),
         }),
 
@@ -112,7 +111,7 @@ async function handler(req: Request) {
           event: "composite",
           groupBy: "partnerId",
           programId: program.id,
-          start: startOfMonth(previousMonth),
+          start: previousMonth,
           end: endOfMonth(previousMonth),
         }),
 
@@ -124,6 +123,22 @@ async function handler(req: Request) {
         }),
       ]);
 
+    const partnerIdsToProcess = Array.from(
+      new Set([
+        ...baselineMonthAnalytics
+          .map((a) => a.partnerId)
+          .filter((id) => id !== null),
+        ...previousMonthAnalytics
+          .map((a) => a.partnerId)
+          .filter((id) => id !== null),
+        ...lifetimeAnalytics
+          .map((a) => a.partnerId)
+          .filter((id) => id !== null),
+      ]),
+    );
+
+    console.log(`Found ${partnerIdsToProcess.length} partners to process.`);
+
     const partnersTake = 500;
     let partnersSkip = 0;
 
@@ -132,12 +147,13 @@ async function handler(req: Request) {
       const programEnrollments = await prisma.programEnrollment.findMany({
         where: {
           programId: program.id,
-          status: "approved",
-          links: {
-            some: {
-              leads: {
-                gt: 0,
-              },
+          // only select partners that have stats
+          partnerId: {
+            in: partnerIdsToProcess,
+          },
+          partner: {
+            users: {
+              some: {},
             },
           },
         },
@@ -153,11 +169,11 @@ async function handler(req: Request) {
         take: partnersTake,
         skip: partnersSkip,
         orderBy: {
-          partner: {
-            createdAt: "asc",
-          },
+          createdAt: "asc",
         },
       });
+
+      console.log(`Found ${programEnrollments.length} active partners.`);
 
       if (programEnrollments.length === 0) {
         console.log(`No more active partners found for program ${program.id}.`);
@@ -192,7 +208,7 @@ async function handler(req: Request) {
             where: {
               ...commissionWhere,
               createdAt: {
-                gte: startOfMonth(comparisonMonth),
+                gte: comparisonMonth,
                 lte: endOfMonth(comparisonMonth),
               },
             },
@@ -207,7 +223,7 @@ async function handler(req: Request) {
             where: {
               ...commissionWhere,
               createdAt: {
-                gte: startOfMonth(previousMonth),
+                gte: previousMonth,
                 lte: endOfMonth(previousMonth),
               },
             },
@@ -252,39 +268,41 @@ async function handler(req: Request) {
         lifetimeAnalytics.map((a) => [a.partnerId, a]),
       );
 
-      let summary = partners
-        .map((partner) => {
-          const _baselineMonthEarnings = baselineEarningsMap.get(partner.id);
-          const _previousMonthEarnings = previousEarningsMap.get(partner.id);
-          const _lifetimeEarnings = lifetimeEarningsMap.get(partner.id);
+      let summary = partners.map((partner) => {
+        const _baselineMonthEarnings = baselineEarningsMap.get(partner.id);
+        const _previousMonthEarnings = previousEarningsMap.get(partner.id);
+        const _lifetimeEarnings = lifetimeEarningsMap.get(partner.id);
 
-          const _baselineMonthAnalytics = baselineAnalyticsMap.get(partner.id);
-          const _previousMonthAnalytics = previousAnalyticsMap.get(partner.id);
-          const _lifetimeAnalytics = lifetimeAnalyticsMap.get(partner.id);
+        const _baselineMonthAnalytics = baselineAnalyticsMap.get(partner.id);
+        const _previousMonthAnalytics = previousAnalyticsMap.get(partner.id);
+        const _lifetimeAnalytics = lifetimeAnalyticsMap.get(partner.id);
 
-          return {
-            partner,
-            comparisonMonth: {
-              clicks: _baselineMonthAnalytics?.clicks ?? 0,
-              leads: _baselineMonthAnalytics?.leads ?? 0,
-              sales: _baselineMonthAnalytics?.sales ?? 0,
-              earnings: _baselineMonthEarnings?._sum.earnings ?? 0,
-            },
-            previousMonth: {
-              clicks: _previousMonthAnalytics?.clicks ?? 0,
-              leads: _previousMonthAnalytics?.leads ?? 0,
-              sales: _previousMonthAnalytics?.sales ?? 0,
-              earnings: _previousMonthEarnings?._sum.earnings ?? 0,
-            },
-            lifetime: {
-              clicks: _lifetimeAnalytics?.clicks ?? 0,
-              leads: _lifetimeAnalytics?.leads ?? 0,
-              sales: _lifetimeAnalytics?.sales ?? 0,
-              earnings: _lifetimeEarnings?._sum.earnings ?? 0,
-            },
-          };
-        })
-        .filter(({ lifetime }) => lifetime.leads > 0);
+        return {
+          partner,
+          comparisonMonth: {
+            clicks: _baselineMonthAnalytics?.clicks ?? 0,
+            leads: _baselineMonthAnalytics?.leads ?? 0,
+            sales: _baselineMonthAnalytics?.sales ?? 0,
+            earnings: _baselineMonthEarnings?._sum.earnings ?? 0,
+          },
+          previousMonth: {
+            clicks: _previousMonthAnalytics?.clicks ?? 0,
+            leads: _previousMonthAnalytics?.leads ?? 0,
+            sales: _previousMonthAnalytics?.sales ?? 0,
+            earnings: _previousMonthEarnings?._sum.earnings ?? 0,
+          },
+          lifetime: {
+            clicks: _lifetimeAnalytics?.clicks ?? 0,
+            leads: _lifetimeAnalytics?.leads ?? 0,
+            sales: _lifetimeAnalytics?.sales ?? 0,
+            earnings: _lifetimeEarnings?._sum.earnings ?? 0,
+          },
+        };
+      });
+
+      console.log(`Found ${summary.length} partners to send summary to.`);
+
+      const reportingMonth = format(previousMonth, "MMM yyyy");
 
       await Promise.allSettled(
         summary.map(({ partner, ...rest }) => {
@@ -296,7 +314,11 @@ async function handler(req: Request) {
                 program,
                 partner,
                 ...rest,
-                reportingMonth,
+                reportingPeriod: {
+                  month: reportingMonth,
+                  start: previousMonth.toISOString(),
+                  end: endOfMonth(previousMonth).toISOString(),
+                },
               }),
             }),
           );

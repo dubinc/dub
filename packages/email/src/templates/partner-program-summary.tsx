@@ -1,5 +1,6 @@
 import {
   currencyFormatter,
+  DUB_LOGO,
   DUB_WORDMARK,
   formatDate,
   nFormatter,
@@ -23,10 +24,10 @@ import {
 import { Footer } from "../components/footer";
 
 const ICONS = {
-  clicks: "https://assets.dub.co/icons/clicks.png",
-  leads: "https://assets.dub.co/icons/leads.png",
-  sales: "https://assets.dub.co/icons/sales.png",
-  earnings: "https://assets.dub.co/icons/earnings.png",
+  clicks: "https://assets.dub.co/misc/icons/nucleo/cursor-rays.png",
+  leads: "https://assets.dub.co/misc/icons/nucleo/user-plus.png",
+  sales: "https://assets.dub.co/misc/icons/nucleo/invoice-dollar.png",
+  earnings: "https://assets.dub.co/misc/icons/nucleo/money-bills.png",
 } as const;
 
 type Icon = keyof typeof ICONS;
@@ -73,7 +74,7 @@ function getPercentState(percent?: number) {
 export function PartnerProgramSummary({
   program = {
     name: "Acme",
-    logo: DUB_WORDMARK,
+    logo: DUB_LOGO,
     slug: "acme",
   },
   partner = {
@@ -98,7 +99,11 @@ export function PartnerProgramSummary({
     sales: 200,
     earnings: 200,
   },
-  reportingMonth = "May",
+  reportingPeriod = {
+    month: "May 2025",
+    start: "2025-05-01T00:00:00.000Z",
+    end: "2025-05-31T23:59:59.999Z",
+  },
 }: {
   program: {
     name: string;
@@ -127,7 +132,11 @@ export function PartnerProgramSummary({
     sales: number;
     earnings: number;
   };
-  reportingMonth: string;
+  reportingPeriod: {
+    month: string;
+    start: string;
+    end: string;
+  };
 }) {
   const monthlyStats = [
     {
@@ -183,7 +192,7 @@ export function PartnerProgramSummary({
   return (
     <Html>
       <Head />
-      <Preview>{`Your ${reportingMonth} performance report for ${program.name} program.`}</Preview>
+      <Preview>{`Your ${reportingPeriod.month} performance report for ${program.name} program.`}</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] space-y-10 px-3 py-5">
@@ -192,15 +201,11 @@ export function PartnerProgramSummary({
             </Section>
 
             <Heading className="mx-0 mt-[40px] p-0 text-lg font-medium text-black">
-              {program.name} partner program monthly summary
+              {program.name} partner program monthly summary (
+              {reportingPeriod.month})
             </Heading>
 
-            <Text className="mt-1 text-sm text-neutral-600">
-              Here's a summary of your activity for the month of{" "}
-              {reportingMonth}
-            </Text>
-
-            <Section className="mt-10 rounded-xl border border-solid border-neutral-200 bg-neutral-50">
+            <Section className="mt-6 rounded-xl border border-solid border-neutral-200 bg-neutral-50">
               <Section className="rounded-t-xl px-6 py-5">
                 <div className="flex items-center">
                   <Img
@@ -229,7 +234,7 @@ export function PartnerProgramSummary({
                     as="h4"
                     className="mt-0 text-base font-semibold leading-6 text-neutral-800"
                   >
-                    {reportingMonth} Stats
+                    Stats for {reportingPeriod.month} (vs previous month)
                   </Heading>
 
                   <StatsGrid stats={monthlyStats} />
@@ -250,7 +255,7 @@ export function PartnerProgramSummary({
 
                 <Section className="mt-8 text-center">
                   <Link
-                    href={`https://partners.dub.co/programs/${program.slug}`}
+                    href={`https://partners.dub.co/programs/${program.slug}?start=${reportingPeriod.start}&end=${reportingPeriod.end}`}
                     className="box-border block w-full rounded-lg bg-black px-0 py-4 text-center text-sm font-semibold leading-none text-white no-underline"
                   >
                     View dashboard
@@ -313,7 +318,7 @@ const Stats = ({
   return (
     <div className="flex flex-row items-center bg-white p-0">
       <div className="flex rounded-md bg-neutral-100 p-3">
-        <Img src={icon} alt={title} className="h-4 w-4" />
+        <Img src={icon} alt={title} className="h-4 w-4" draggable={false} />
       </div>
       <div className="ml-3">
         <p className="mb-0 mt-0 text-left text-xs font-medium text-neutral-500">
