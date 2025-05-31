@@ -1,7 +1,8 @@
 "use client";
 
+import { getLinkStructureOptions } from "@/lib/partners/get-link-structure-options";
 import { ProgramWithLanderDataProps } from "@/lib/types";
-import { OG_AVATAR_URL, truncate } from "@dub/utils";
+import { OG_AVATAR_URL } from "@dub/utils";
 import { CSSProperties, useId } from "react";
 import { useWatch } from "react-hook-form";
 import { useBrandingFormContext } from "../branding-form";
@@ -20,6 +21,10 @@ export function EmbedPreview({
     ...useWatch(),
     ...getValues(),
   };
+
+  const partnerLink = getLinkStructureOptions({
+    domain: program.domain,
+  }).find(({ id }) => id === program.linkStructure)?.example;
 
   return (
     <div className="scrollbar-hide @container -mx-2 h-full w-auto overflow-y-auto px-2 pb-4">
@@ -130,8 +135,7 @@ export function EmbedPreview({
                       style={{ whiteSpace: "pre" }}
                     >
                       <tspan x="60" y="109.091">
-                        {truncate(program?.domain, 20)}
-                        /stey
+                        {partnerLink}
                       </tspan>
                     </text>
                     <path
@@ -154,7 +158,7 @@ export function EmbedPreview({
                       style={{ whiteSpace: "pre" }}
                     >
                       <tspan x="384.482" y="109.091">
-                        Share link
+                        Copy link
                       </tspan>
                     </text>
                     <text

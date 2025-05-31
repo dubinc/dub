@@ -79,13 +79,13 @@ const PREVIEW_TABS = [
     component: LanderPreview,
   },
   {
-    value: "partner-portal",
+    value: "portal",
     label: "Partner portal",
     component: PortalPreview,
   },
   {
     value: "embed",
-    label: "Embed",
+    label: "Referral embed",
     component: EmbedPreview,
   },
 ];

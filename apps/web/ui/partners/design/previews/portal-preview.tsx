@@ -1,5 +1,6 @@
 "use client";
 
+import { getLinkStructureOptions } from "@/lib/partners/get-link-structure-options";
 import { ProgramWithLanderDataProps } from "@/lib/types";
 import { OG_AVATAR_URL, PARTNERS_DOMAIN, truncate } from "@dub/utils";
 import { CSSProperties, useId } from "react";
@@ -19,6 +20,10 @@ export function PortalPreview({
     ...useWatch(),
     ...getValues(),
   };
+
+  const partnerLink = getLinkStructureOptions({
+    domain: program.domain,
+  }).find(({ id }) => id === program.linkStructure)?.example;
 
   return (
     <div className="scrollbar-hide -mx-2 h-full w-auto overflow-y-auto px-2 pb-4">
@@ -403,8 +408,7 @@ export function PortalPreview({
                     style={{ whiteSpace: "pre" }}
                   >
                     <tspan x="207.13" y="98.314">
-                      {truncate(program?.domain, 24)}
-                      /stey
+                      {partnerLink}
                     </tspan>
                   </text>
                   <g clipPath={`url(#${id}-q)`}>
@@ -428,7 +432,7 @@ export function PortalPreview({
                     style={{ whiteSpace: "pre" }}
                   >
                     <tspan x="412.256" y="98.314">
-                      Share link
+                      Copy link
                     </tspan>
                   </text>
                   <text
