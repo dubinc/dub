@@ -237,6 +237,7 @@ async function invitePartner({
         email: partner.email,
         program: {
           name: program.name,
+          slug: program.slug,
           logo: program.logo,
         },
       }),
