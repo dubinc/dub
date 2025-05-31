@@ -20,11 +20,6 @@ const determinePipeName = (groupBy: AnalyticsFilters["groupBy"]) => {
   if (UTM_TAGS_PLURAL_LIST.includes(groupBy)) {
     return "v2_utms";
   }
-
-  if (groupBy === "partnerId") {
-    return "v2_partners";
-  }
-
   return `v2_${groupBy}`;
 };
 

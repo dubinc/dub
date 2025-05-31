@@ -126,6 +126,7 @@ export const VALID_ANALYTICS_ENDPOINTS = [
   "triggers",
   "referers",
   "referer_urls",
+  "top_partners",
   "top_links",
   "top_urls",
   "utm_sources",
@@ -133,7 +134,6 @@ export const VALID_ANALYTICS_ENDPOINTS = [
   "utm_campaigns",
   "utm_terms",
   "utm_contents",
-  "partnerId",
 ] as const;
 
 export const SINGULAR_ANALYTICS_ENDPOINTS = {
@@ -152,7 +152,6 @@ export const SINGULAR_ANALYTICS_ENDPOINTS = {
   utm_campaigns: "utm_campaign",
   utm_terms: "utm_term",
   utm_contents: "utm_content",
-  partnerId: "partnerId",
 };
 
 export const VALID_ANALYTICS_FILTERS = [
@@ -172,8 +171,9 @@ export const VALID_ANALYTICS_FILTERS = [
   "referer",
   "refererUrl",
   "url",
-  "tagId",
+  "partnerId",
   "folderId",
+  "tagId",
   "tagIds",
   "customerId",
   "qr", // deprecated, but keeping for now for backwards compatibility
@@ -183,7 +183,6 @@ export const VALID_ANALYTICS_FILTERS = [
   "utm_campaign",
   "utm_term",
   "utm_content",
-  "partnerId",
 ];
 
 // possible analytics filters for a given linkId

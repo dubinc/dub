@@ -19,7 +19,7 @@ describe.runIf(env.CI).sequential("GET /analytics", async () => {
           groupBy,
           workspaceId,
           interval: "30d",
-          ...(groupBy !== "partnerId"
+          ...(groupBy !== "top_partners"
             ? {
                 domain: "dub.sh",
                 key: "checkly-check",

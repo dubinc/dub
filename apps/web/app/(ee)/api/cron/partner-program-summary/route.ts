@@ -99,7 +99,7 @@ async function handler(req: Request) {
       // 2 months ago
       getAnalytics({
         event: "composite",
-        groupBy: "partnerId",
+        groupBy: "top_partners",
         programId: program.id,
         start: previousMonth,
         end: endOfMonth(previousMonth),
@@ -108,7 +108,7 @@ async function handler(req: Request) {
       // 1 month ago
       getAnalytics({
         event: "composite",
-        groupBy: "partnerId",
+        groupBy: "top_partners",
         programId: program.id,
         start: currentMonth,
         end: endOfMonth(currentMonth),

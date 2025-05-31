@@ -460,8 +460,7 @@ export const analyticsResponse = {
         .default(0),
     })
     .openapi({ ref: "AnalyticsUTMContents" }),
-
-  partnerId: z
+  top_partners: z
     .object({
       partnerId: z.string().describe("The ID of the partner"),
       clicks: z.number().describe("The total number of clicks").default(0),
