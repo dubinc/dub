@@ -8,23 +8,48 @@ pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
 
 interface PdfViewerSVGProps {
   file?: File;
+  url?: string;
 }
 
-export default function PdfViewer({ file }: PdfViewerSVGProps) {
+export default function PdfViewer({ file, url }: PdfViewerSVGProps) {
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!file) {
+    if (!file && !url) {
       setImageDataUrl(null);
       return;
     }
 
-    const reader = new FileReader();
+    const loadPdf = async () => {
+      try {
+        let loadingTask;
 
-    reader.onload = async () => {
-      const typedArray = new Uint8Array(reader.result as ArrayBuffer);
-      const loadingTask = pdfjs.getDocument({ data: typedArray });
+        if (url) {
+          loadingTask = pdfjs.getDocument(url);
+        } else if (file) {
+          const reader = new FileReader();
 
+          reader.onload = async () => {
+            const typedArray = new Uint8Array(reader.result as ArrayBuffer);
+            const loadingTask = pdfjs.getDocument({ data: typedArray });
+
+            await renderPdf(loadingTask);
+          };
+
+          reader.readAsArrayBuffer(file);
+          return;
+        }
+
+        if (loadingTask) {
+          await renderPdf(loadingTask);
+        }
+      } catch (err) {
+        console.error("PDF load error:", err);
+        setImageDataUrl(null);
+      }
+    };
+
+    const renderPdf = async (loadingTask: any) => {
       try {
         const pdf = await loadingTask.promise;
         const page = await pdf.getPage(1);
@@ -49,8 +74,8 @@ export default function PdfViewer({ file }: PdfViewerSVGProps) {
       }
     };
 
-    reader.readAsArrayBuffer(file);
-  }, [file]);
+    loadPdf();
+  }, [file, url]);
 
   return (
     <>
