@@ -139,10 +139,10 @@ async function handler(req: Request) {
 
     console.log(`Found ${partnerIdsToProcess.length} partners to process.`);
 
-    const partnersTake = 500;
     let partnersSkip = 0;
+    const partnersTake = 100;
 
-    // Process 500 partners at a time for a program
+    // Process 100 partners at a time for a program
     while (true) {
       const programEnrollments = await prisma.programEnrollment.findMany({
         where: {
@@ -166,8 +166,8 @@ async function handler(req: Request) {
             },
           },
         },
-        take: partnersTake,
         skip: partnersSkip,
+        take: partnersTake,
         orderBy: {
           createdAt: "asc",
         },
