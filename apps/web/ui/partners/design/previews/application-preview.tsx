@@ -18,7 +18,7 @@ export function ApplicationPreview({
   const scrolled = useScroll(0, { container: scrollRef });
 
   const { setValue, getValues } = useBrandingFormContext();
-  const { landerData, brandColor, logo, wordmark } = {
+  const { brandColor, logo, wordmark } = {
     ...useWatch(),
     ...getValues(),
   };
@@ -52,6 +52,7 @@ export function ApplicationPreview({
                   <img
                     className="max-h-7 max-w-32"
                     src={(wordmark ?? logo) as string}
+                    alt={program.name ?? "Program logo"}
                   />
                 ) : (
                   <Wordmark className="h-7" />

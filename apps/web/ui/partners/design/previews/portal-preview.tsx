@@ -411,18 +411,16 @@ export function PortalPreview({
                       {partnerLink}
                     </tspan>
                   </text>
-                  <g clipPath={`url(#${id}-q)`}>
-                    <path
-                      stroke="#737373"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="0.768"
-                      d="M385.275 97.186h-.455a.91.91 0 0 1-.91-.91v-2.504a.91.91 0 0 1 .91-.91h3.414a.91.91 0 0 1 .91.91v.455m.455 4.325h-3.414a.91.91 0 0 1-.91-.91v-2.504a.91.91 0 0 1 .91-.91h3.414a.91.91 0 0 1 .911.91v2.503a.91.91 0 0 1-.911.91"
-                    ></path>
-                  </g>
                   <path
                     fill="#171717"
-                    d="M405.645 88.537a3.073 3.073 0 0 1 3.073-3.072h41.145a3.07 3.07 0 0 1 3.072 3.072v14.339a3.07 3.07 0 0 1-3.072 3.073h-41.145a3.073 3.073 0 0 1-3.073-3.073z"
+                    d="M405.645 88.537a3.073 3.073 0 0 1 3.073-3.072h52a3.07 3.07 0 0 1 3.072 3.072v14.339a3.07 3.07 0 0 1-3.072 3.073h-52a3.073 3.073 0 0 1-3.073-3.073z"
+                  ></path>
+                  <path
+                    stroke="#fff"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="0.768"
+                    d="M417.775 97.186h-.455a.91.91 0 0 1-.91-.91v-2.504a.91.91 0 0 1 .91-.91h3.414a.91.91 0 0 1 .91.91v.455m.455 4.325h-3.414a.91.91 0 0 1-.91-.91v-2.504a.91.91 0 0 1 .91-.91h3.414a.91.91 0 0 1 .911.91v2.503a.91.91 0 0 1-.911.91"
                   ></path>
                   <text
                     xmlSpace="preserve"
@@ -431,7 +429,7 @@ export function PortalPreview({
                     fontWeight="600"
                     style={{ whiteSpace: "pre" }}
                   >
-                    <tspan x="412.256" y="98.314">
+                    <tspan x="425.756" y="98.314">
                       Copy link
                     </tspan>
                   </text>
