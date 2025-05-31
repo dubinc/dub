@@ -37,6 +37,10 @@
       "schedule": "0 14 * * *"
     },
     {
+      "path": "/api/cron/partner-program-summary",
+      "schedule": "0 13 1 * *"
+    },
+    {
       "path": "/api/cron/payouts/reminders/program-owners",
       "schedule": "0 9 24 * *"
     }
