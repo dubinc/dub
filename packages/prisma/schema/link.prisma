@@ -90,4 +90,5 @@ model Link {
   @@index([programId, partnerId]) // for getting a referral link (programId + partnerId)
   @@index(folderId) // used in /api/folders
   @@index(userId) // for relation to User table
+  @@index([domain, createdAt]) // used for deleting old links
 }
