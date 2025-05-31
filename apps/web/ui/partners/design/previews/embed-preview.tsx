@@ -1,7 +1,7 @@
 "use client";
 
 import { ProgramWithLanderDataProps } from "@/lib/types";
-import { OG_AVATAR_URL } from "@dub/utils";
+import { OG_AVATAR_URL, truncate } from "@dub/utils";
 import { CSSProperties, useId } from "react";
 import { useWatch } from "react-hook-form";
 import { useBrandingFormContext } from "../branding-form";
@@ -59,7 +59,7 @@ export function EmbedPreview({
               {/* Inner shadow on top of studs */}
               <div className="absolute inset-0 overflow-hidden rounded-xl shadow-[0_12px_20px_0_#00000026_inset,0_2px_5px_0_#00000026_inset,0_2px_13px_2px_#FFFFFF59]" />
 
-              <div className="@[800px]:-translate-y-10 @[800px]:translate-x-10 @[800px]:rotate-[2.4deg] relative overflow-hidden rounded-xl border border-neutral-200 bg-white drop-shadow-lg">
+              <div className="@[800px]:-translate-y-10 @[800px]:translate-x-10 @[800px]:rotate-[2.4deg] relative overflow-hidden rounded-xl border border-black/10 bg-white drop-shadow-lg">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   xmlnsXlink="http://www.w3.org/1999/xlink"
@@ -68,12 +68,11 @@ export function EmbedPreview({
                   className="h-auto w-full [&_*]:tracking-[-0.035em]"
                 >
                   <defs>
-                    <path id="N" fill="#fff" d="M0 0h16v16H0z" />
+                    <path id={`${id}-N`} fill="#fff" d="M0 0h16v16H0z" />
                   </defs>
                   <path fill="#fff" d="M.5.5h1030v897H.5z" />
-                  <path stroke="#E5E7EB" d="M.5.5h1030v897H.5z" />
-                  <g clipPath="url(#a)">
-                    {/* <path fill="url(#l)" d="M24 24h983v258H24z" /> */}
+                  <g clipPath={`url(#${id}-a)`}>
+                    {/* Hero background */}
                     <rect
                       width="983"
                       height="258"
@@ -82,6 +81,18 @@ export function EmbedPreview({
                       fill="#FAFAFA"
                       rx="8"
                     />
+                    {/* Grid */}
+                    <rect
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="983"
+                      height="258"
+                      x="24"
+                      y="24"
+                      opacity="0.5"
+                      fill={`url(#${id}-grid)`}
+                    />
+                    {/* Grid gradient cover */}
+                    <path fill={`url(#${id}-aq)`} d="M24 24h983v258H24z" />
                     <text
                       xmlSpace="preserve"
                       fill="#262626"
@@ -119,7 +130,8 @@ export function EmbedPreview({
                       style={{ whiteSpace: "pre" }}
                     >
                       <tspan x="60" y="109.091">
-                        PROGRAM_DOMAIN/derek-forbes
+                        {truncate(program?.domain, 20)}
+                        /stey
                       </tspan>
                     </text>
                     <path
@@ -157,19 +169,6 @@ export function EmbedPreview({
                         Rewards
                       </tspan>
                     </text>
-                    <text
-                      xmlSpace="preserve"
-                      fill="#404040"
-                      fontSize="12"
-                      fontWeight="500"
-                      letterSpacing="-.02em"
-                      style={{ whiteSpace: "pre" }}
-                      textDecoration="underline"
-                    >
-                      <tspan x="372" y="190.364">
-                        Terms of service
-                      </tspan>
-                    </text>
                     <path
                       fill="#fff"
                       d="M54 208.5h404a5.5 5.5 0 0 1 5.5 5.5v38a5.5 5.5 0 0 1-5.5 5.5H54a5.5 5.5 0 0 1-5.5-5.5v-38a5.5 5.5 0 0 1 5.5-5.5"
@@ -178,7 +177,7 @@ export function EmbedPreview({
                       stroke="#E5E5E5"
                       d="M54 208.5h404a5.5 5.5 0 0 1 5.5 5.5v38a5.5 5.5 0 0 1-5.5 5.5H54a5.5 5.5 0 0 1-5.5-5.5v-38a5.5 5.5 0 0 1 5.5-5.5Z"
                     />
-                    <g filter="url(#b)">
+                    <g filter={`url(#${id}-b)`}>
                       <rect
                         width="108.522"
                         height="21"
@@ -211,7 +210,7 @@ export function EmbedPreview({
                       />
                     </g>
                     <mask
-                      id="d"
+                      id={`${id}-d`}
                       width="319"
                       height="319"
                       x="685"
@@ -219,16 +218,21 @@ export function EmbedPreview({
                       maskUnits="userSpaceOnUse"
                       style={{ maskType: "alpha" }}
                     >
-                      <circle cx="844.5" cy="153.5" r="159.5" fill="url(#c)" />
+                      <circle
+                        cx="844.5"
+                        cy="153.5"
+                        r="159.5"
+                        fill={`url(#${id}-c)`}
+                      />
                     </mask>
-                    <g mask="url(#d)">
-                      <g filter="url(#e)">
+                    <g mask={`url(#${id}-d)`}>
+                      <g filter={`url(#${id}-e)`}>
                         <rect
                           width="40"
                           height="40"
                           x="705"
                           y="53"
-                          fill="url(#f)"
+                          fill={`url(#${id}-f)`}
                           rx="8"
                         />
                         <rect
@@ -252,13 +256,13 @@ export function EmbedPreview({
                           <path d="M716.944 78.278V67.722c2.663 1.194 5.076 1.357 8.056 0s5.393-1.389 8.056 0v10.556c-2.663-1.39-5.076-1.357-8.056 0s-5.393 1.193-8.056 0" />
                         </g>
                       </g>
-                      <g filter="url(#g)">
+                      <g filter={`url(#${id}-g)`}>
                         <rect
                           width="40"
                           height="40"
                           x="945"
                           y="213"
-                          fill="url(#h)"
+                          fill={`url(#${id}-h)`}
                           rx="8"
                         />
                         <rect
@@ -282,9 +286,9 @@ export function EmbedPreview({
                           <path d="M972.639 232.389v5.805a2.444 2.444 0 0 1-2.445 2.445h-10.388a2.444 2.444 0 0 1-2.445-2.445v-10.388a2.444 2.444 0 0 1 2.445-2.445h5.805m6.417-2.444v6.111m3.055-3.056h-6.111" />
                         </g>
                       </g>
-                      <g filter="url(#i)">
+                      <g filter={`url(#${id}-i)`}>
                         <path
-                          fill="url(#j)"
+                          fill={`url(#${id}-j)`}
                           d="M767 89c0-8.837 7.163-16 16-16h128c8.837 0 16 7.163 16 16v128c0 8.837-7.163 16-16 16H783c-8.837 0-16-7.163-16-16z"
                         />
                       </g>
@@ -294,52 +298,54 @@ export function EmbedPreview({
                         strokeWidth="0.75"
                         d="M767 89c0-8.837 7.163-16 16-16h128c8.837 0 16 7.163 16 16v128c0 8.837-7.163 16-16 16H783c-8.837 0-16-7.163-16-16z"
                       />
-                      <g filter="url(#k)">
-                        <rect
+                      <g filter={`url(#${id}-k)`}>
+                        {/* Big logo */}
+                        <image
                           width="80"
                           height="80"
                           x="807"
                           y="113"
-                          fill="red"
-                          rx="40"
+                          href={logo || `${OG_AVATAR_URL}${program.name}`}
+                          clipPath="inset(0% round 80px)"
                         />
                       </g>
                     </g>
                     <g
-                      filter="url(#m)"
-                      opacity="0.8"
+                      filter={`url(#${id}-n)`}
+                      opacity="0.5"
                       style={{ mixBlendMode: "soft-light" }}
                     >
-                      <ellipse
-                        cx="717.5"
-                        cy="153.002"
-                        fill="#737373"
-                        rx="293.5"
-                        ry="310"
-                      />
+                      {brandColor && (
+                        <ellipse
+                          cx="847"
+                          cy="153"
+                          fill="currentColor"
+                          rx="293.5"
+                          ry="310"
+                        />
+                      )}
                     </g>
-                    <g
-                      filter="url(#n)"
-                      opacity="0.8"
-                      style={{ mixBlendMode: "soft-light" }}
-                    >
-                      <ellipse
-                        cx="717.5"
-                        cy="153.002"
-                        fill="#737373"
-                        rx="293.5"
-                        ry="310"
-                      />
-                    </g>
-                    <g filter="url(#o)" opacity="0.3">
-                      <ellipse
-                        cx="293.5"
-                        cy="234.602"
-                        fill="#737373"
-                        rx="293.5"
-                        ry="234.602"
-                        transform="matrix(1 0 0 -1 424.001 405.498)"
-                      />
+                    <g filter={`url(#${id}-o)`} opacity="0.15">
+                      {brandColor ? (
+                        <ellipse
+                          cx="847"
+                          cy="153"
+                          fill="currentColor"
+                          opacity="0.7"
+                          rx="293.5"
+                          ry="234.602"
+                        />
+                      ) : (
+                        <foreignObject width="400" height="400" x="647" y="-47">
+                          <div
+                            className="size-full rounded-full saturate-150"
+                            style={{
+                              background:
+                                "conic-gradient(from -66deg at 50% 50%, #855afc -32deg, red 63deg, #eab308 158deg, #5cff80 240deg, #855afc 328deg, red 423deg)",
+                            }}
+                          ></div>
+                        </foreignObject>
+                      )}
                     </g>
                   </g>
                   <rect
@@ -366,13 +372,13 @@ export function EmbedPreview({
                     stroke="#E5E5E5"
                     rx="7.5"
                   />
-                  <mask id="p" fill="#fff">
+                  <mask id={`${id}-p`} fill="#fff">
                     <path d="M24 298h222.333v112H24z" />
                   </mask>
                   <path
                     fill="#E5E5E5"
                     d="M246.333 298h-1v112h2V298z"
-                    mask="url(#p)"
+                    mask={`url(#${id}-p)`}
                   />
                   <text
                     xmlSpace="preserve"
@@ -398,7 +404,7 @@ export function EmbedPreview({
                     </tspan>
                   </text>
                   <mask
-                    id="r"
+                    id={`${id}-r`}
                     width="191"
                     height="52"
                     x="40"
@@ -407,32 +413,38 @@ export function EmbedPreview({
                     style={{ maskType: "alpha" }}
                   >
                     <path
-                      fill="url(#q)"
+                      fill={`url(#${id}-q)`}
                       d="M0 0h190.333v52H0z"
                       transform="translate(40 348)"
                     />
                   </mask>
-                  <g mask="url(#r)">
+                  <g mask={`url(#${id}-r)`}>
                     <path
-                      fill="#0F0"
+                      fill={
+                        brandColor
+                          ? "currentColor"
+                          : `url(#${id}-color-gradient)`
+                      }
                       d="M206.625 359.026 182.75 376.5l-23.875-6.026L135 375.295l-23.875-1.205-23.875-6.628-23.875 12.051-23.875 4.82V400h191v-47z"
                       opacity="0.15"
                     />
                   </g>
                   <path
-                    stroke="#0F0"
+                    stroke={
+                      brandColor ? "currentColor" : `url(#${id}-color-gradient)`
+                    }
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="1.5"
                     d="m40 384.729 23.7-6.06a1 1 0 0 0 .178-.064l23.37-11.009c.216-.102.462-.123.693-.059l23.324 6.484a1 1 0 0 0 .225.036l23.57 1.011q.107.005.212-.013l23.496-4.033q.19-.032.379.008l23.174 4.972c.274.058.559 0 .787-.161l23.283-16.443q.151-.106.329-.152l23.613-6.058"
                   />
-                  <mask id="s" fill="#fff">
+                  <mask id={`${id}-s`} fill="#fff">
                     <path d="M246.333 298h222.334v112H246.333z" />
                   </mask>
                   <path
                     fill="#E5E5E5"
                     d="M468.667 298h-1v112h2V298z"
-                    mask="url(#s)"
+                    mask={`url(#${id}-s)`}
                   />
                   <text
                     xmlSpace="preserve"
@@ -458,7 +470,7 @@ export function EmbedPreview({
                     </tspan>
                   </text>
                   <mask
-                    id="u"
+                    id={`${id}-u`}
                     width="191"
                     height="52"
                     x="262"
@@ -467,20 +479,26 @@ export function EmbedPreview({
                     style={{ maskType: "alpha" }}
                   >
                     <path
-                      fill="url(#t)"
+                      fill={`url(#${id}-t)`}
                       d="M0 0h190.333v52H0z"
                       transform="translate(262.333 348)"
                     />
                   </mask>
-                  <g mask="url(#u)">
+                  <g mask={`url(#${id}-u)`}>
                     <path
-                      fill="#0F0"
+                      fill={
+                        brandColor
+                          ? "currentColor"
+                          : `url(#${id}-color-gradient)`
+                      }
                       d="M428.958 359.026 405.083 376.5l-23.875-6.026-23.875 4.821-23.875-1.205-23.875-6.628-23.875 12.051-23.875 4.82V400h191v-47z"
                       opacity="0.15"
                     />
                   </g>
                   <path
-                    stroke="#0F0"
+                    stroke={
+                      brandColor ? "currentColor" : `url(#${id}-color-gradient)`
+                    }
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="1.5"
@@ -510,7 +528,7 @@ export function EmbedPreview({
                     </tspan>
                   </text>
                   <mask
-                    id="w"
+                    id={`${id}-w`}
                     width="191"
                     height="52"
                     x="484"
@@ -519,20 +537,26 @@ export function EmbedPreview({
                     style={{ maskType: "alpha" }}
                   >
                     <path
-                      fill="url(#v)"
+                      fill={`url(#${id}-v)`}
                       d="M0 0h190.333v52H0z"
                       transform="translate(484.667 348)"
                     />
                   </mask>
-                  <g mask="url(#w)">
+                  <g mask={`url(#${id}-w)`}>
                     <path
-                      fill="#0F0"
+                      fill={
+                        brandColor
+                          ? "currentColor"
+                          : `url(#${id}-color-gradient)`
+                      }
                       d="M651.292 359.026 627.417 376.5l-23.875-6.026-23.875 4.821-23.875-1.205-23.875-6.628-23.875 12.051-23.875 4.82V400h191v-47z"
                       opacity="0.15"
                     />
                   </g>
                   <path
-                    stroke="#0F0"
+                    stroke={
+                      brandColor ? "currentColor" : `url(#${id}-color-gradient)`
+                    }
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="1.5"
@@ -633,14 +657,14 @@ export function EmbedPreview({
                       $0.00
                     </tspan>
                   </text>
-                  <mask id="x" fill="#fff">
+                  <mask id={`${id}-x`} fill="#fff">
                     <path d="M24 426h983v55H24z" />
                   </mask>
                   <path fill="#fff" d="M24 426h983v55H24z" />
                   <path
                     fill="#E5E5E5"
                     d="M1007 481v-1H24v2h983z"
-                    mask="url(#x)"
+                    mask={`url(#${id}-x)`}
                   />
                   <text
                     xmlSpace="preserve"
@@ -821,7 +845,7 @@ export function EmbedPreview({
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="1.5"
-                    clipPath="url(#y)"
+                    clipPath={`url(#${id}-y)`}
                   >
                     <path d="M244.133 565.237a5.55 5.55 0 0 0-4.747-2.681 5.553 5.553 0 0 0-5.553 5.553c0 1.01.274 1.955.746 2.771.329.618-.04 2.077-.746 2.782.958.052 2.22-.38 2.783-.746a5.5 5.5 0 0 0 1.745.65c.1.019.207.015.308.029" />
                     <path d="M244.5 567.441a4 4 0 0 1 4 4c0 .728-.197 1.408-.537 1.996-.237.445.029 1.496.537 2.005-.69.037-1.598-.275-2.004-.537a4.03 4.03 0 0 1-1.997.538 4 4 0 1 1 0-8z" />
@@ -847,7 +871,7 @@ export function EmbedPreview({
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="1.5"
-                    clipPath="url(#z)"
+                    clipPath={`url(#${id}-z)`}
                   >
                     <path d="m138.722 598.111 6.015 3.318a.89.89 0 0 0 .859 0l6.015-3.318M150.278 603l2.222 2.222-2.222 2.222" />
                     <path d="M151.611 601.235v-3.568c0-.982-.795-1.778-1.778-1.778H140.5c-.982 0-1.778.796-1.778 1.778v6.666c0 .982.796 1.778 1.778 1.778h5.521m6.479-.889h-4.444" />
@@ -936,7 +960,7 @@ export function EmbedPreview({
                     stroke="#E6E6E6"
                     rx="6"
                   />
-                  <g clipPath="url(#A)">
+                  <g clipPath={`url(#${id}-A)`}>
                     <path
                       stroke="#737373"
                       strokeLinecap="round"
@@ -995,7 +1019,7 @@ export function EmbedPreview({
                     strokeWidth="1.5"
                     d="M239.167 627.444H236.5a.89.89 0 0 0-.889.889V631c0 .491.398.889.889.889h2.667a.89.89 0 0 0 .889-.889v-2.667a.89.89 0 0 0-.889-.889m6.666 0h-2.666a.89.89 0 0 0-.889.889V631c0 .491.398.889.889.889h2.666a.89.89 0 0 0 .889-.889v-2.667a.89.89 0 0 0-.889-.889m-6.666 6.667H236.5a.89.89 0 0 0-.889.889v2.667c0 .491.398.889.889.889h2.667a.89.89 0 0 0 .889-.889V635a.89.89 0 0 0-.889-.889"
                   />
-                  <mask id="B" fill="#fff">
+                  <mask id={`${id}-B`} fill="#fff">
                     <path d="M238.5 629h-1.333v1.333h1.333z" />
                   </mask>
                   <path
@@ -1003,9 +1027,9 @@ export function EmbedPreview({
                     stroke="#737373"
                     strokeWidth="2"
                     d="M238.5 629h-1.333v1.333h1.333z"
-                    mask="url(#B)"
+                    mask={`url(#${id}-B)`}
                   />
-                  <mask id="C" fill="#fff">
+                  <mask id={`${id}-C`} fill="#fff">
                     <path d="M245.167 629h-1.334v1.333h1.334z" />
                   </mask>
                   <path
@@ -1013,9 +1037,9 @@ export function EmbedPreview({
                     stroke="#737373"
                     strokeWidth="2"
                     d="M245.167 629h-1.334v1.333h1.334z"
-                    mask="url(#C)"
+                    mask={`url(#${id}-C)`}
                   />
-                  <mask id="D" fill="#fff">
+                  <mask id={`${id}-D`} fill="#fff">
                     <path d="M238.5 635.667h-1.333V637h1.333z" />
                   </mask>
                   <path
@@ -1023,9 +1047,9 @@ export function EmbedPreview({
                     stroke="#737373"
                     strokeWidth="2"
                     d="M238.5 635.667h-1.333V637h1.333z"
-                    mask="url(#D)"
+                    mask={`url(#${id}-D)`}
                   />
-                  <mask id="E" fill="#fff">
+                  <mask id={`${id}-E`} fill="#fff">
                     <path d="M247.389 637.889h-1.333v1.333h1.333z" />
                   </mask>
                   <path
@@ -1033,9 +1057,9 @@ export function EmbedPreview({
                     stroke="#737373"
                     strokeWidth="2"
                     d="M247.389 637.889h-1.333v1.333h1.333z"
-                    mask="url(#E)"
+                    mask={`url(#${id}-E)`}
                   />
-                  <mask id="F" fill="#fff">
+                  <mask id={`${id}-F`} fill="#fff">
                     <path d="M246.056 636.556h-1.334v1.333h1.334z" />
                   </mask>
                   <path
@@ -1043,9 +1067,9 @@ export function EmbedPreview({
                     stroke="#737373"
                     strokeWidth="2"
                     d="M246.056 636.556h-1.334v1.333h1.334z"
-                    mask="url(#F)"
+                    mask={`url(#${id}-F)`}
                   />
-                  <mask id="G" fill="#fff">
+                  <mask id={`${id}-G`} fill="#fff">
                     <path d="M247.389 635.222h-1.333v1.334h1.333z" />
                   </mask>
                   <path
@@ -1053,9 +1077,9 @@ export function EmbedPreview({
                     stroke="#737373"
                     strokeWidth="2"
                     d="M247.389 635.222h-1.333v1.334h1.333z"
-                    mask="url(#G)"
+                    mask={`url(#${id}-G)`}
                   />
-                  <mask id="H" fill="#fff">
+                  <mask id={`${id}-H`} fill="#fff">
                     <path d="M244.722 637.889h-1.778v1.333h1.778z" />
                   </mask>
                   <path
@@ -1063,9 +1087,9 @@ export function EmbedPreview({
                     stroke="#737373"
                     strokeWidth="2"
                     d="M244.722 637.889h-1.778v1.333h1.778z"
-                    mask="url(#H)"
+                    mask={`url(#${id}-H)`}
                   />
-                  <mask id="I" fill="#fff">
+                  <mask id={`${id}-I`} fill="#fff">
                     <path d="M242.944 635.222h-1.333v2.667h1.333z" />
                   </mask>
                   <path
@@ -1073,9 +1097,9 @@ export function EmbedPreview({
                     stroke="#737373"
                     strokeWidth="2"
                     d="M242.944 635.222h-1.333v2.667h1.333z"
-                    mask="url(#I)"
+                    mask={`url(#${id}-I)`}
                   />
-                  <mask id="J" fill="#fff">
+                  <mask id={`${id}-J`} fill="#fff">
                     <path d="M246.056 633.889h-3.112v1.333h3.112z" />
                   </mask>
                   <path
@@ -1083,7 +1107,7 @@ export function EmbedPreview({
                     stroke="#737373"
                     strokeWidth="2"
                     d="M246.056 633.889h-3.112v1.333h3.112z"
-                    mask="url(#J)"
+                    mask={`url(#${id}-J)`}
                   />
                   <text
                     xmlSpace="preserve"
@@ -1122,7 +1146,7 @@ export function EmbedPreview({
                     stroke="#E5E5E5"
                     d="M66 798.5h254.333a5.5 5.5 0 0 1 5.5 5.5v28a5.5 5.5 0 0 1-5.5 5.5H66a5.5 5.5 0 0 1-5.5-5.5v-28a5.5 5.5 0 0 1 5.5-5.5Z"
                   />
-                  <g clipPath="url(#K)">
+                  <g clipPath={`url(#${id}-K)`}>
                     <path
                       stroke="#fff"
                       strokeLinecap="round"
@@ -1175,13 +1199,14 @@ export function EmbedPreview({
                     stroke="#E6E6E6"
                     rx="19"
                   />
-                  <rect
+                  {/* Success kit logo */}
+                  <image
                     width="30"
                     height="30"
                     x="500.5"
                     y="586"
-                    fill="red"
-                    rx="15"
+                    href={logo || `${OG_AVATAR_URL}${program.name}`}
+                    clipPath="inset(0% round 80px)"
                   />
                   <rect
                     width="31"
@@ -1227,7 +1252,7 @@ export function EmbedPreview({
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="1.5"
-                    clipPath="url(#L)"
+                    clipPath={`url(#${id}-L)`}
                   >
                     <path d="M491.611 562h1.778m-1.778 2.667h4m4.365-3.111h-3.032a.89.89 0 0 1-.888-.889v-3.021" />
                     <path d="M500.056 566v-4.076a.9.9 0 0 0-.261-.629l-3.479-3.479a.9.9 0 0 0-.628-.26h-4.966c-.982 0-1.778.796-1.778 1.777v9.334c0 .981.796 1.777 1.778 1.777h4.488m2.174-.444 1.43 1.333 3.019-4" />
@@ -1351,13 +1376,14 @@ export function EmbedPreview({
                     stroke="#E6E6E6"
                     rx="5.5"
                   />
-                  <rect
+                  {/* Success kit logo */}
+                  <image
                     width="14"
                     height="14"
                     x="788.833"
                     y="557"
-                    fill="red"
-                    rx="7"
+                    href={logo || `${OG_AVATAR_URL}${program.name}`}
+                    clipPath="inset(0% round 80px)"
                   />
                   <path
                     fill="#0A2540"
@@ -1383,7 +1409,7 @@ export function EmbedPreview({
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="0.952"
-                    clipPath="url(#M)"
+                    clipPath={`url(#${id}-M)`}
                   >
                     <path d="M791.373 609.143v-1.905m2.063 0v-1.905m0 5.715v-1.905" />
                   </g>
@@ -1471,7 +1497,7 @@ export function EmbedPreview({
                   </text>
                   <defs>
                     <filter
-                      id="b"
+                      id={`${id}-b`}
                       width="112.522"
                       height="25"
                       x="880.885"
@@ -1505,7 +1531,7 @@ export function EmbedPreview({
                       />
                     </filter>
                     <filter
-                      id="e"
+                      id={`${id}-e`}
                       width="40.75"
                       height="40.75"
                       x="704.625"
@@ -1539,7 +1565,7 @@ export function EmbedPreview({
                       />
                     </filter>
                     <filter
-                      id="g"
+                      id={`${id}-g`}
                       width="40.75"
                       height="40.75"
                       x="944.625"
@@ -1573,7 +1599,7 @@ export function EmbedPreview({
                       />
                     </filter>
                     <filter
-                      id="i"
+                      id={`${id}-i`}
                       width="160.75"
                       height="160.75"
                       x="766.625"
@@ -1607,7 +1633,7 @@ export function EmbedPreview({
                       />
                     </filter>
                     <filter
-                      id="k"
+                      id={`${id}-k`}
                       width="100"
                       height="100"
                       x="797"
@@ -1635,7 +1661,7 @@ export function EmbedPreview({
                       />
                     </filter>
                     <filter
-                      id="m"
+                      id={`${id}-n`}
                       width="787"
                       height="820"
                       x="324"
@@ -1655,27 +1681,7 @@ export function EmbedPreview({
                       />
                     </filter>
                     <filter
-                      id="n"
-                      width="787"
-                      height="820"
-                      x="324"
-                      y="-256.998"
-                      colorInterpolationFilters="sRGB"
-                      filterUnits="userSpaceOnUse"
-                    >
-                      <feFlood floodOpacity="0" result="BackgroundImageFix" />
-                      <feBlend
-                        in="SourceGraphic"
-                        in2="BackgroundImageFix"
-                        result="shape"
-                      />
-                      <feGaussianBlur
-                        result="effect1_foregroundBlur_20_283"
-                        stdDeviation="50"
-                      />
-                    </filter>
-                    <filter
-                      id="o"
+                      id={`${id}-o`}
                       width="827"
                       height="709.205"
                       x="304.001"
@@ -1695,7 +1701,7 @@ export function EmbedPreview({
                       />
                     </filter>
                     <linearGradient
-                      id="f"
+                      id={`${id}-f`}
                       x1="725"
                       x2="725"
                       y1="93"
@@ -1706,7 +1712,7 @@ export function EmbedPreview({
                       <stop offset="1" stopColor="#fff" stopOpacity="0.3" />
                     </linearGradient>
                     <linearGradient
-                      id="h"
+                      id={`${id}-h`}
                       x1="965"
                       x2="965"
                       y1="253"
@@ -1717,18 +1723,18 @@ export function EmbedPreview({
                       <stop offset="1" stopColor="#fff" stopOpacity="0.3" />
                     </linearGradient>
                     <linearGradient
-                      id="j"
+                      id={`${id}-j`}
                       x1="847"
                       x2="847"
                       y1="233"
                       y2="73"
                       gradientUnits="userSpaceOnUse"
                     >
-                      <stop stopColor="#fff" stopOpacity="0.23" />
-                      <stop offset="1" stopColor="#fff" stopOpacity="0.3" />
+                      <stop stopColor="#fff" stopOpacity="1.0" />
+                      <stop offset="1" stopColor="#fff" stopOpacity="1.0" />
                     </linearGradient>
                     <linearGradient
-                      id="l"
+                      id={`${id}-l`}
                       x1="467.582"
                       x2="858.35"
                       y1="153"
@@ -1739,7 +1745,7 @@ export function EmbedPreview({
                       <stop offset="1" stopColor="#FAFAFA" stopOpacity="0" />
                     </linearGradient>
                     <linearGradient
-                      id="q"
+                      id={`${id}-q`}
                       x1="95.167"
                       x2="95.167"
                       y1="0"
@@ -1750,7 +1756,7 @@ export function EmbedPreview({
                       <stop offset="0.955" stopColor="#fff" stopOpacity="0" />
                     </linearGradient>
                     <linearGradient
-                      id="t"
+                      id={`${id}-t`}
                       x1="95.167"
                       x2="95.167"
                       y1="0"
@@ -1761,7 +1767,7 @@ export function EmbedPreview({
                       <stop offset="0.955" stopColor="#fff" stopOpacity="0" />
                     </linearGradient>
                     <linearGradient
-                      id="v"
+                      id={`${id}-v`}
                       x1="95.167"
                       x2="95.167"
                       y1="0"
@@ -1771,7 +1777,7 @@ export function EmbedPreview({
                       <stop offset="0.2" stopColor="#fff" />
                       <stop offset="0.955" stopColor="#fff" stopOpacity="0" />
                     </linearGradient>
-                    <clipPath id="a">
+                    <clipPath id={`${id}-a`}>
                       <rect
                         width="983"
                         height="258"
@@ -1781,29 +1787,44 @@ export function EmbedPreview({
                         rx="8"
                       />
                     </clipPath>
-                    <clipPath id="y">
-                      <use xlinkHref="#N" transform="translate(233.167 561)" />
+                    <clipPath id={`${id}-y`}>
+                      <use
+                        xlinkHref={`#${id}-N`}
+                        transform="translate(233.167 561)"
+                      />
                     </clipPath>
-                    <clipPath id="z">
-                      <use xlinkHref="#N" transform="translate(137.167 593)" />
+                    <clipPath id={`${id}-z`}>
+                      <use
+                        xlinkHref={`#${id}-N`}
+                        transform="translate(137.167 593)"
+                      />
                     </clipPath>
-                    <clipPath id="A">
-                      <use xlinkHref="#N" transform="translate(169.167 625)" />
+                    <clipPath id={`${id}-A`}>
+                      <use
+                        xlinkHref={`#${id}-N`}
+                        transform="translate(169.167 625)"
+                      />
                     </clipPath>
-                    <clipPath id="K">
-                      <use xlinkHref="#N" transform="translate(151.167 810)" />
+                    <clipPath id={`${id}-K`}>
+                      <use
+                        xlinkHref={`#${id}-N`}
+                        transform="translate(151.167 810)"
+                      />
                     </clipPath>
-                    <clipPath id="L">
-                      <use xlinkHref="#N" transform="translate(486.5 556)" />
+                    <clipPath id={`${id}-L`}>
+                      <use
+                        xlinkHref={`#${id}-N`}
+                        transform="translate(486.5 556)"
+                      />
                     </clipPath>
-                    <clipPath id="M">
+                    <clipPath id={`${id}-M`}>
                       <path
                         fill="#fff"
                         d="M788.833 604.381h7.619V612h-7.619z"
                       />
                     </clipPath>
                     <radialGradient
-                      id="c"
+                      id={`${id}-c`}
                       cx="0"
                       cy="0"
                       r="1"
@@ -1813,6 +1834,63 @@ export function EmbedPreview({
                       <stop offset="0.73" stopColor="#fff" />
                       <stop offset="1" stopColor="#fff" stopOpacity="0" />
                     </radialGradient>
+                    <pattern
+                      id={`${id}-smallGrid`}
+                      width="20"
+                      height="20"
+                      patternUnits="userSpaceOnUse"
+                    >
+                      <path
+                        d="M 20 0 L 0 0 0 20"
+                        fill="none"
+                        stroke="#0004"
+                        strokeWidth="0.5"
+                      />
+                    </pattern>
+                    <pattern
+                      id={`${id}-grid`}
+                      width="160"
+                      height="160"
+                      patternUnits="userSpaceOnUse"
+                      x="-14"
+                      y="-8"
+                    >
+                      <rect
+                        width="160"
+                        height="160"
+                        fill={`url(#${id}-smallGrid)`}
+                      />
+                      <path
+                        d="M 160 0 L 0 0 0 160"
+                        fill="none"
+                        stroke="#0001"
+                        strokeWidth="1"
+                      />
+                    </pattern>
+
+                    {/* Grid gradient cover */}
+                    <linearGradient
+                      id={`${id}-aq`}
+                      x1="188"
+                      x2="700"
+                      y1="410"
+                      y2="25.44"
+                      gradientUnits="userSpaceOnUse"
+                    >
+                      <stop stopColor="#FAFAFA" />
+                      <stop offset="0.489" stopColor="#FAFAFA" />
+                      <stop offset="1" stopColor="#FAFAFA" stopOpacity="0" />
+                    </linearGradient>
+                    {/* Rainbow chart line gradient */}
+                    <linearGradient
+                      id={`${id}-color-gradient`}
+                      x1="0"
+                      x2="1"
+                      gradientUnits="objectBoundingBox"
+                    >
+                      <stop offset="0%" stopColor="#7D3AEC" stopOpacity="1" />
+                      <stop offset="100%" stopColor="#DA2778" stopOpacity="1" />
+                    </linearGradient>
                   </defs>
                 </svg>
               </div>

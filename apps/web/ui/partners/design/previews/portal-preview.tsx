@@ -362,7 +362,7 @@ export function PortalPreview({
                     height="131.491"
                     x="188.695"
                     y="54.029"
-                    opacity="0.2"
+                    opacity="0.25"
                     fill={`url(#${id}-grid)`}
                   />
                   <path fill={`url(#${id}-aq)`} d="M188 54h615v131H189z" />
@@ -3065,12 +3065,8 @@ export function PortalPreview({
                 x2="1"
                 gradientUnits="objectBoundingBox"
               >
-                <stop offset="0%" stop-color="#7D3AEC" stop-opacity="1"></stop>
-                <stop
-                  offset="100%"
-                  stop-color="#DA2778"
-                  stop-opacity="1"
-                ></stop>
+                <stop offset="0%" stopColor="#7D3AEC" stopOpacity="1"></stop>
+                <stop offset="100%" stopColor="#DA2778" stopOpacity="1"></stop>
               </linearGradient>
             </defs>
           </svg>
