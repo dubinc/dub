@@ -15,7 +15,7 @@ import { z } from "zod";
 
 /**
  * This route handles the monthly partner program summary emails for partners.
- * Scheduled to run at 1 AM on the 1st day of every month to send the previous month's summary.
+ * Scheduled to run at 1 PM UTC on the 1st day of every month to send the previous month's summary.
  *
  * 1. Processing Flow:
  *    - Processes one program at a time (paginated)
