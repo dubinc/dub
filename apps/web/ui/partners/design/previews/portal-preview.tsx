@@ -452,6 +452,18 @@ export function PortalPreview({
                     strokeWidth="0.512"
                     d="M204.057 147.882h245.806a2.816 2.816 0 0 1 2.816 2.816v19.46a2.816 2.816 0 0 1-2.816 2.816H204.057a2.816 2.816 0 0 1-2.816-2.816v-19.46a2.816 2.816 0 0 1 2.816-2.816Z"
                   ></path>
+                  <text
+                    xmlSpace="preserve"
+                    fill="#999"
+                    fontSize="8.194"
+                    fontWeight="600"
+                    letterSpacing="-.02em"
+                    style={{ whiteSpace: "pre" }}
+                  >
+                    <tspan x="210" y="161">
+                      ...
+                    </tspan>
+                  </text>
                   <rect
                     width="56.288"
                     height="11.097"

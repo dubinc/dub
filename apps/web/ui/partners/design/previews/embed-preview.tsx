@@ -177,6 +177,18 @@ export function EmbedPreview({
                       stroke="#E5E5E5"
                       d="M54 208.5h404a5.5 5.5 0 0 1 5.5 5.5v38a5.5 5.5 0 0 1-5.5 5.5H54a5.5 5.5 0 0 1-5.5-5.5v-38a5.5 5.5 0 0 1 5.5-5.5Z"
                     />
+                    <text
+                      xmlSpace="preserve"
+                      fill="#999"
+                      fontSize="16"
+                      fontWeight="600"
+                      letterSpacing="-.02em"
+                      style={{ whiteSpace: "pre" }}
+                    >
+                      <tspan x="62" y="234">
+                        ...
+                      </tspan>
+                    </text>
                     <g filter={`url(#${id}-b)`}>
                       <rect
                         width="108.522"
