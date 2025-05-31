@@ -24,9 +24,9 @@ import { z } from "zod";
  *
  * 2. Data Collection:
  *    - Gathers analytics for three time periods:
- *      * Baseline month (2 months ago) - for comparison
- *      * Previous month (1 month ago) - current reporting period
- *      * Lifetime - all-time stats
+ *      * Current month (1 month ago) - current reporting period (from Tinybird)
+ *      * Previous month (2 months ago) - previous reporting period for comparison (from Tinybird)
+ *      * Lifetime - all-time stats (from MySQL)
  *    - Collects metrics: clicks, leads, sales, and earnings
  */
 
@@ -86,74 +86,59 @@ async function handler(req: Request) {
     const program = programs[0];
     programSkip += programsTake;
 
-    const comparisonMonth = startOfMonth(subMonths(new Date(), 2));
-    const previousMonth = startOfMonth(subMonths(new Date(), 1));
+    const previousMonth = startOfMonth(subMonths(new Date(), 2));
+    const currentMonth = startOfMonth(subMonths(new Date(), 1));
 
     console.log(`Sending program summary for ${program.slug}`, {
-      comparisonMonth,
       previousMonth,
+      currentMonth,
     });
 
     // Find the clicks, leads, sales analytics
-    const [baselineMonthAnalytics, previousMonthAnalytics, lifetimeAnalytics] =
-      await Promise.all([
-        // 2 months ago
-        getAnalytics({
-          event: "composite",
-          groupBy: "partnerId",
-          programId: program.id,
-          start: comparisonMonth,
-          end: endOfMonth(comparisonMonth),
-        }),
+    const [previousMonthAnalytics, currentMonthAnalytics] = await Promise.all([
+      // 2 months ago
+      getAnalytics({
+        event: "composite",
+        groupBy: "partnerId",
+        programId: program.id,
+        start: previousMonth,
+        end: endOfMonth(previousMonth),
+      }),
 
-        // 1 month ago
-        getAnalytics({
-          event: "composite",
-          groupBy: "partnerId",
-          programId: program.id,
-          start: previousMonth,
-          end: endOfMonth(previousMonth),
-        }),
-
-        // Lifetime
-        getAnalytics({
-          event: "composite",
-          groupBy: "partnerId",
-          programId: program.id,
-        }),
-      ]);
-
-    const partnerIdsToProcess = Array.from(
-      new Set([
-        ...baselineMonthAnalytics
-          .map((a) => a.partnerId)
-          .filter((id) => id !== null),
-        ...previousMonthAnalytics
-          .map((a) => a.partnerId)
-          .filter((id) => id !== null),
-        ...lifetimeAnalytics
-          .map((a) => a.partnerId)
-          .filter((id) => id !== null),
-      ]),
-    );
-
-    console.log(`Found ${partnerIdsToProcess.length} partners to process.`);
+      // 1 month ago
+      getAnalytics({
+        event: "composite",
+        groupBy: "partnerId",
+        programId: program.id,
+        start: currentMonth,
+        end: endOfMonth(currentMonth),
+      }),
+    ]);
 
     let partnersSkip = 0;
     const partnersTake = 100;
 
-    // Process 100 partners at a time for a program
+    /*
+      Process 100 partners at a time for a program that match the criteria:
+      - is currently approved
+      - has signed up for partners.dub.co
+      - has links that have at least 1 total click
+    */
     while (true) {
       const programEnrollments = await prisma.programEnrollment.findMany({
         where: {
           programId: program.id,
-          // only select partners that have stats
-          partnerId: {
-            in: partnerIdsToProcess,
-          },
+          status: "approved",
           partner: {
             users: {
               some: {},
+            },
+          },
+          links: {
+            some: {
+              clicks: {
+                gt: 0,
+              },
             },
           },
         },
@@ -165,6 +150,13 @@ async function handler(req: Request) {
               createdAt: true,
             },
           },
+          links: {
+            select: {
+              clicks: true,
+              leads: true,
+              sales: true,
+            },
+          },
         },
         skip: partnersSkip,
         take: partnersTake,
@@ -173,7 +165,9 @@ async function handler(req: Request) {
         },
       });
 
-      console.log(`Found ${programEnrollments.length} active partners.`);
+      console.log(
+        `Found ${programEnrollments.length} active partners that have signed up for partners.dub.co and have links with at least 1 total click.`,
+      );
 
       if (programEnrollments.length === 0) {
         console.log(`No more active partners found for program ${program.id}.`);
@@ -200,7 +194,7 @@ async function handler(req: Request) {
         },
       };
 
-      const [baselineMonthEarnings, previousMonthEarnings, lifetimeEarnings] =
+      const [previousMonthEarnings, currentMonthEarnings, lifetimeEarnings] =
         await Promise.all([
           // Earnings 2 months ago (to compare with previous month)
           prisma.commission.groupBy({
@@ -208,8 +202,8 @@ async function handler(req: Request) {
             where: {
               ...commissionWhere,
               createdAt: {
-                gte: comparisonMonth,
-                lte: endOfMonth(comparisonMonth),
+                gte: previousMonth,
+                lte: endOfMonth(previousMonth),
               },
             },
             _sum: {
@@ -223,8 +217,8 @@ async function handler(req: Request) {
             where: {
               ...commissionWhere,
               createdAt: {
-                gte: previousMonth,
-                lte: endOfMonth(previousMonth),
+                gte: currentMonth,
+                lte: endOfMonth(currentMonth),
               },
             },
             _sum: {
@@ -244,52 +238,57 @@ async function handler(req: Request) {
           }),
         ]);
 
-      const baselineEarningsMap = new Map(
-        baselineMonthEarnings.map((e) => [e.partnerId, e]),
-      );
-
       const previousEarningsMap = new Map(
         previousMonthEarnings.map((e) => [e.partnerId, e]),
+      );
+
+      const currentEarningsMap = new Map(
+        currentMonthEarnings.map((e) => [e.partnerId, e]),
       );
 
       const lifetimeEarningsMap = new Map(
         lifetimeEarnings.map((e) => [e.partnerId, e]),
       );
 
-      const baselineAnalyticsMap: Map<string, AnalyticsResponse> = new Map(
-        baselineMonthAnalytics.map((a) => [a.partnerId, a]),
-      );
-
       const previousAnalyticsMap: Map<string, AnalyticsResponse> = new Map(
         previousMonthAnalytics.map((a) => [a.partnerId, a]),
       );
 
-      const lifetimeAnalyticsMap: Map<string, AnalyticsResponse> = new Map(
-        lifetimeAnalytics.map((a) => [a.partnerId, a]),
+      const currentAnalyticsMap: Map<string, AnalyticsResponse> = new Map(
+        currentMonthAnalytics.map((a) => [a.partnerId, a]),
       );
 
       let summary = partners.map((partner) => {
-        const _baselineMonthEarnings = baselineEarningsMap.get(partner.id);
-        const _previousMonthEarnings = previousEarningsMap.get(partner.id);
-        const _lifetimeEarnings = lifetimeEarningsMap.get(partner.id);
-
-        const _baselineMonthAnalytics = baselineAnalyticsMap.get(partner.id);
+        // get previous and current month analytics from Tinybird
         const _previousMonthAnalytics = previousAnalyticsMap.get(partner.id);
-        const _lifetimeAnalytics = lifetimeAnalyticsMap.get(partner.id);
+        const _currentMonthAnalytics = currentAnalyticsMap.get(partner.id);
+        // get lifetime analytics from MySQL
+        const _lifetimeAnalytics = programEnrollments
+          .find((enrollment) => enrollment.partner.id === partner.id)
+          ?.links.reduce((acc, link) => ({
+            clicks: acc.clicks + link.clicks,
+            leads: acc.leads + link.leads,
+            sales: acc.sales + link.sales,
+          }));
+
+        // get earnings data from MySQL
+        const _previousMonthEarnings = previousEarningsMap.get(partner.id);
+        const _currentMonthEarnings = currentEarningsMap.get(partner.id);
+        const _lifetimeEarnings = lifetimeEarningsMap.get(partner.id);
 
         return {
           partner,
-          comparisonMonth: {
-            clicks: _baselineMonthAnalytics?.clicks ?? 0,
-            leads: _baselineMonthAnalytics?.leads ?? 0,
-            sales: _baselineMonthAnalytics?.sales ?? 0,
-            earnings: _baselineMonthEarnings?._sum.earnings ?? 0,
-          },
           previousMonth: {
             clicks: _previousMonthAnalytics?.clicks ?? 0,
             leads: _previousMonthAnalytics?.leads ?? 0,
             sales: _previousMonthAnalytics?.sales ?? 0,
             earnings: _previousMonthEarnings?._sum.earnings ?? 0,
+          },
+          currentMonth: {
+            clicks: _currentMonthAnalytics?.clicks ?? 0,
+            leads: _currentMonthAnalytics?.leads ?? 0,
+            sales: _currentMonthAnalytics?.sales ?? 0,
+            earnings: _currentMonthEarnings?._sum.earnings ?? 0,
           },
           lifetime: {
             clicks: _lifetimeAnalytics?.clicks ?? 0,
@@ -301,8 +300,22 @@ async function handler(req: Request) {
       });
 
       console.log(`Found ${summary.length} partners to send summary to.`);
+      console.table(
+        summary.map((s) => ({
+          partner: s.partner.email,
+          program: program.name,
+          currentClicks: s.currentMonth.clicks,
+          currentLeads: s.currentMonth.leads,
+          currentSales: s.currentMonth.sales,
+          currentEarnings: s.currentMonth.earnings,
+          lifetimeClicks: s.lifetime.clicks,
+          lifetimeLeads: s.lifetime.leads,
+          lifetimeSales: s.lifetime.sales,
+          lifetimeEarnings: s.lifetime.earnings,
+        })),
+      );
 
-      const reportingMonth = format(previousMonth, "MMM yyyy");
+      const reportingMonth = format(currentMonth, "MMM yyyy");
 
       await Promise.allSettled(
         summary.map(({ partner, ...rest }) => {
@@ -316,8 +329,8 @@ async function handler(req: Request) {
                 ...rest,
                 reportingPeriod: {
                   month: reportingMonth,
-                  start: previousMonth.toISOString(),
-                  end: endOfMonth(previousMonth).toISOString(),
+                  start: currentMonth.toISOString(),
+                  end: endOfMonth(currentMonth).toISOString(),
                 },
               }),
             }),

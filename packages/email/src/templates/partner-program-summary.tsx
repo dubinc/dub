@@ -81,13 +81,13 @@ export function PartnerProgramSummary({
     email: "panic@thedis.co",
     createdAt: new Date(),
   },
-  comparisonMonth = {
+  previousMonth = {
     clicks: 200,
     leads: 300,
     sales: 50,
     earnings: 100,
   },
-  previousMonth = {
+  currentMonth = {
     clicks: 100,
     leads: 100,
     sales: 100,
@@ -114,13 +114,13 @@ export function PartnerProgramSummary({
     email: string | null;
     createdAt: Date;
   };
-  comparisonMonth: {
+  previousMonth: {
     clicks: number;
     leads: number;
     sales: number;
     earnings: number;
   };
-  previousMonth: {
+  currentMonth: {
     clicks: number;
     leads: number;
     sales: number;
@@ -141,29 +141,26 @@ export function PartnerProgramSummary({
   const monthlyStats = [
     {
       title: "Clicks",
-      value: nFormatter(previousMonth.clicks),
-      percent: getPercentChange(previousMonth.clicks, comparisonMonth.clicks),
+      value: nFormatter(currentMonth.clicks),
+      percent: getPercentChange(currentMonth.clicks, previousMonth.clicks),
     },
     {
       title: "Leads",
-      value: nFormatter(previousMonth.leads),
-      percent: getPercentChange(previousMonth.leads, comparisonMonth.leads),
+      value: nFormatter(currentMonth.leads),
+      percent: getPercentChange(currentMonth.leads, previousMonth.leads),
     },
     {
       title: "Sales",
-      value: nFormatter(previousMonth.sales),
-      percent: getPercentChange(previousMonth.sales, comparisonMonth.sales),
+      value: nFormatter(currentMonth.sales),
+      percent: getPercentChange(currentMonth.sales, previousMonth.sales),
     },
     {
       title: "Earnings",
-      value: currencyFormatter(previousMonth.earnings / 100, {
+      value: currencyFormatter(currentMonth.earnings / 100, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }),
-      percent: getPercentChange(
-        previousMonth.earnings,
-        comparisonMonth.earnings,
-      ),
+      percent: getPercentChange(currentMonth.earnings, previousMonth.earnings),
     },
   ];
 
