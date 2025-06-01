@@ -9,7 +9,7 @@ import Link from "next/link";
 import { Dispatch, SetStateAction, useId, useRef } from "react";
 import { Control, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
-import { EarningsCalculatorBlock } from "../../lander-blocks/earnings-calculator-block";
+import { EarningsCalculatorBlock } from "../../lander/blocks/earnings-calculator-block";
 import { useBrandingFormContext } from "../branding-form";
 
 type EarningsCalculatorBlockData = z.infer<

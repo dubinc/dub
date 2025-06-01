@@ -1,7 +1,7 @@
 "use client";
 
 import { createProgramApplicationAction } from "@/lib/actions/partners/create-program-application";
-import { Program } from "@dub/prisma/client";
+import { ProgramProps } from "@/lib/types";
 import { Button, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useSession } from "next-auth/react";
@@ -24,11 +24,13 @@ type FormData = {
 
 export function ProgramApplicationForm({
   program,
+  preview = false,
 }: {
   program: Pick<
-    Program,
+    ProgramProps,
     "id" | "slug" | "name" | "termsUrl" | "ageVerification"
   >;
+  preview?: boolean;
 }) {
   const { isMobile } = useMediaQuery();
   const router = useRouter();
@@ -43,11 +45,11 @@ export function ProgramApplicationForm({
   } = useForm<FormData>();
 
   useEffect(() => {
-    if (session?.user) {
-      setValue("name", session.user.name ?? "");
-      setValue("email", session.user.email ?? "");
-    }
-  }, [session?.user, setValue]);
+    if (preview || !session?.user) return;
+
+    setValue("name", session.user.name ?? "");
+    setValue("email", session.user.email ?? "");
+  }, [preview, session?.user, setValue]);
 
   const { executeAsync, isPending } = useAction(
     createProgramApplicationAction,

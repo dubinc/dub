@@ -6,9 +6,9 @@ import { InvoiceDollar } from "@dub/ui";
 import NumberFlow from "@number-flow/react";
 import { useId, useState } from "react";
 import { z } from "zod";
-import { formatRewardDescription } from "../format-reward-description";
-import { BlockDescription } from "./BlockDescription";
-import { BlockTitle } from "./BlockTitle";
+import { formatRewardDescription } from "../../format-reward-description";
+import { BlockDescription } from "./block-description";
+import { BlockTitle } from "./block-title";
 
 export function EarningsCalculatorBlock({
   block,
