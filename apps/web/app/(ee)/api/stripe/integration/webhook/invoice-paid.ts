@@ -33,6 +33,7 @@ export async function invoicePaid(event: Stripe.Event) {
       stripeAccountId,
       livemode: event.livemode,
     });
+
     const dubCustomerId = connectedCustomer?.metadata.dubCustomerId;
 
     if (dubCustomerId) {
@@ -100,11 +101,15 @@ export async function invoicePaid(event: Stripe.Event) {
 
   const eventId = nanoid(16);
 
+  // if the invoice has no subscription, it's a one-time payment
+  const isOneTimePayment = invoice.lines.data.some(
+    (line) => line.parent?.subscription_item_details === null,
+  );
+
   const saleData = {
     ...leadEvent.data[0],
     event_id: eventId,
-    // if the invoice has no subscription, it's a one-time payment
-    event_name: !invoice.subscription ? "Purchase" : "Invoice paid",
+    event_name: isOneTimePayment ? "Purchase" : "Invoice paid",
     payment_processor: "stripe",
     amount: invoice.amount_paid,
     currency: invoice.currency,
