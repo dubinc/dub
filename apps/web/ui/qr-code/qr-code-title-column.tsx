@@ -47,11 +47,8 @@ export function QrCodeTitleColumn({
           width={width! < 1024 ? 90 : 64}
           height={width! < 1024 ? 90 : 64}
         />
-        {archived || archived ? (
-          <QRCardStatus
-            className="lg:hidden"
-            archived={archived || isTrialOver}
-          />
+        {archived || isTrialOver ? (
+          <QRCardStatus className="lg:hidden" archived />
         ) : (
           <QRCardAnalyticsBadge className="lg:hidden" qrCode={qrCode} />
         )}

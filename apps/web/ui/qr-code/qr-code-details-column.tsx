@@ -26,10 +26,10 @@ export function QrCodeDetailsColumn({
       ref={ref}
       className="flex h-full flex-col items-start justify-start gap-6 lg:flex-row lg:items-center lg:justify-end"
     >
-      <div className="hidden gap-3 lg:flex lg:gap-4 lg:gap-6">
+      <div className="hidden gap-3 lg:flex lg:gap-6">
         <QrCardType currentQrTypeInfo={currentQrTypeInfo} />
-        {qrCode.link.archived ? (
-          <QRCardStatus archived={qrCode.link.archived || isTrialOver} />
+        {qrCode.link.archived || isTrialOver ? (
+          <QRCardStatus archived />
         ) : (
           <QRCardAnalyticsBadge qrCode={qrCode} />
         )}
