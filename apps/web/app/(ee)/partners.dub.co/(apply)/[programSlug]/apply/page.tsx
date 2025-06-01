@@ -1,9 +1,9 @@
 import { getProgram } from "@/lib/fetchers/get-program";
+import { ProgramApplicationForm } from "@/ui/partners/lander/program-application-form";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import { notFound } from "next/navigation";
 import { CSSProperties } from "react";
 import { Header } from "../header";
-import { ProgramApplicationForm } from "./form";
 
 export default async function ApplicationPage({
   params: { programSlug },
