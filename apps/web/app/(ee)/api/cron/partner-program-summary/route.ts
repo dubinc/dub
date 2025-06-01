@@ -5,7 +5,7 @@ import { limiter } from "@/lib/cron/limiter";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { sendEmail } from "@dub/email";
-import { PartnerProgramSummary } from "@dub/email/templates/partner-program-summary";
+import PartnerProgramSummary from "@dub/email/templates/partner-program-summary";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import { Prisma } from "@prisma/client";
@@ -333,6 +333,7 @@ async function handler(req: Request) {
                   end: endOfMonth(currentMonth).toISOString(),
                 },
               }),
+              variant: "notifications",
             }),
           );
         }),
