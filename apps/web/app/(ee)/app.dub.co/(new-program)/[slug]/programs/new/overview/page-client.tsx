@@ -10,35 +10,21 @@ import { Button } from "@dub/ui";
 import { Pencil } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 
 export function PageClient() {
-  const router = useRouter();
   const {
     getValues,
     formState: { isSubmitting, isSubmitSuccessful },
   } = useFormContext<ProgramData>();
-  const {
-    id: workspaceId,
-    slug: workspaceSlug,
-    defaultProgramId,
-    mutate: mutateWorkspace,
-  } = useWorkspace();
+
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
   const data = getValues();
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
-    onSuccess: async () => {
-      console.log("Mutating workspace...");
-      await mutateWorkspace();
-      console.log("Redirecting to program...");
-      router.push(
-        `/${workspaceSlug}/programs/${defaultProgramId}?onboarded-program=true`,
-      );
-    },
     onError: ({ error }) => {
       toast.error(error.serverError);
     },
