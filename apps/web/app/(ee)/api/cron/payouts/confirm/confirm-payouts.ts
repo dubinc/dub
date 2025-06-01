@@ -1,17 +1,19 @@
 import { createId } from "@/lib/api/create-id";
-import { PAYOUT_FEES } from "@/lib/partners/constants";
+import {
+  DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
+  PAYMENT_METHOD_TYPES,
+} from "@/lib/partners/constants";
 import {
   CUTOFF_PERIOD,
   CUTOFF_PERIOD_TYPES,
 } from "@/lib/partners/cutoff-period";
+import { calculatePayoutFee } from "@/lib/payment-methods";
 import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
 import PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
 import { prisma } from "@dub/prisma";
 import { Program, Project } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
-
-const allowedPaymentMethods = ["us_bank_account", "card", "link"];
 
 export async function confirmPayouts({
   workspace,
@@ -82,9 +84,10 @@ export async function confirmPayouts({
 
     const fee =
       amount *
-      PAYOUT_FEES[workspace.plan?.split(" ")[0] ?? "business"][
-        paymentMethod.type === "us_bank_account" ? "ach" : "card"
-      ];
+      calculatePayoutFee({
+        paymentMethod: paymentMethod.type,
+        plan: workspace.plan,
+      });
 
     const total = amount + fee;
 
@@ -116,7 +119,7 @@ export async function confirmPayouts({
     await stripe.paymentIntents.create({
       amount: invoice.total,
       customer: workspace.stripeId!,
-      payment_method_types: allowedPaymentMethods,
+      payment_method_types: PAYMENT_METHOD_TYPES,
       payment_method: paymentMethod.id,
       currency: "usd",
       confirmation_method: "automatic",
@@ -144,9 +147,12 @@ export async function confirmPayouts({
 
   waitUntil(
     (async () => {
-      // Send emails to all the partners involved in the payouts if the payout method is ACH
-      // ACH takes 4 business days to process
-      if (newInvoice && paymentMethod.type === "us_bank_account") {
+      // Send emails to all the partners involved in the payouts if the payout method is Direct Debit
+      // Direct Debit takes 4 business days to process
+      if (
+        newInvoice &&
+        DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(paymentMethod.type)
+      ) {
         await Promise.all(
           payouts
             .filter((payout) => payout.partner.email)

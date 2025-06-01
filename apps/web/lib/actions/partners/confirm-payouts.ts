@@ -2,6 +2,7 @@
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { qstash } from "@/lib/cron";
+import { PAYMENT_METHOD_TYPES } from "@/lib/partners/constants";
 import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
 import { stripe } from "@/lib/stripe";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
@@ -13,8 +14,6 @@ const confirmPayoutsSchema = z.object({
   paymentMethodId: z.string(),
   cutoffPeriod: CUTOFF_PERIOD_ENUM,
 });
-
-const allowedPaymentMethods = ["us_bank_account", "card", "link"];
 
 // Confirm payouts
 export const confirmPayoutsAction = authActionClient
@@ -35,9 +34,11 @@ export const confirmPayoutsAction = authActionClient
       throw new Error("Invalid payout method.");
     }
 
-    if (!allowedPaymentMethods.includes(paymentMethod.type)) {
+    if (!PAYMENT_METHOD_TYPES.includes(paymentMethod.type)) {
       throw new Error(
-        "We only support ACH and Card for now. Please update your payout method to one of these.",
+        `We only support ${PAYMENT_METHOD_TYPES.join(
+          ", ",
+        )} for now. Please update your payout method to one of these.`,
       );
     }
 
