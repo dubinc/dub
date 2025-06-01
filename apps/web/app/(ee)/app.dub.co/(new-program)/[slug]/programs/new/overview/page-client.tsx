@@ -13,7 +13,6 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
-import { mutate } from "swr";
 
 export function PageClient() {
   const {
@@ -30,10 +29,7 @@ export function PageClient() {
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: async () => {
-      await Promise.all([
-        mutateWorkspace(),
-        mutate(`/api/programs?workspaceId=${workspaceId}`),
-      ]);
+      await mutateWorkspace();
     },
     onError: ({ error }) => {
       toast.error(error.serverError);
