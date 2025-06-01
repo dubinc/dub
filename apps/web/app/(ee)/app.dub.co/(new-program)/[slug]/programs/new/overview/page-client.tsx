@@ -10,6 +10,7 @@ import { Button } from "@dub/ui";
 import { Pencil } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
@@ -22,6 +23,7 @@ export function PageClient() {
   const {
     id: workspaceId,
     slug: workspaceSlug,
+    defaultProgramId,
     mutate: mutateWorkspace,
   } = useWorkspace();
 
@@ -30,6 +32,7 @@ export function PageClient() {
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: async () => {
       await mutateWorkspace();
+      redirect(`/${workspaceSlug}/programs/${defaultProgramId}`);
     },
     onError: ({ error }) => {
       toast.error(error.serverError);

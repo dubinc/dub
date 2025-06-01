@@ -25,11 +25,11 @@ export const onboardProgramAction = authActionClient
     }
 
     if (data.step === "create-program") {
-      const program = await createProgram({
+      await createProgram({
         workspace,
         user,
       });
-      redirect(`/${workspace.slug}/programs/${program.id}`);
+      return;
     }
 
     await saveOnboardingProgress({

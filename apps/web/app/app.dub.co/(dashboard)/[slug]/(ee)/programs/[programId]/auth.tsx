@@ -8,7 +8,7 @@ import { cn } from "@dub/utils";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ReactNode, useEffect } from "react";
+import { ReactNode } from "react";
 
 export default function ProgramAuth({ children }: { children: ReactNode }) {
   const {
@@ -19,18 +19,6 @@ export default function ProgramAuth({ children }: { children: ReactNode }) {
     loading,
     mutate: mutateWorkspace,
   } = useWorkspace();
-
-  useEffect(() => {
-    const refreshWorkspaceProgramId = async () => {
-      if (!defaultProgramId) {
-        console.log(
-          "No default program ID found for workspace, refreshing once...",
-        );
-        await mutateWorkspace();
-      }
-    };
-    refreshWorkspaceProgramId();
-  }, [defaultProgramId]);
 
   if (loading) {
     return <LayoutLoader />;
