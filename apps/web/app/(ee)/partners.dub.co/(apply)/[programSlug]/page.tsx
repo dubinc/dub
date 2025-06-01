@@ -1,8 +1,8 @@
 import { getProgram } from "@/lib/fetchers/get-program";
 import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
-import { BLOCK_COMPONENTS } from "@/ui/partners/lander-blocks";
-import { LanderHero } from "@/ui/partners/lander-hero";
-import { LanderRewards } from "@/ui/partners/lander-rewards";
+import { BLOCK_COMPONENTS } from "@/ui/partners/lander/blocks";
+import { LanderHero } from "@/ui/partners/lander/lander-hero";
+import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import { notFound } from "next/navigation";
 import { CSSProperties } from "react";
 import { ApplyButton } from "./apply-button";
