@@ -6,7 +6,7 @@ import { storage } from "../../lib/storage";
 async function main() {
   const program = await prisma.program.update({
     where: {
-      id: "prog_1JWPQAS26W456Y108JH10D9CW",
+      id: "prog_1JWPQVFEH62AMWCNZ1P20SGDT",
     },
     data: {
       defaultRewardId: null,

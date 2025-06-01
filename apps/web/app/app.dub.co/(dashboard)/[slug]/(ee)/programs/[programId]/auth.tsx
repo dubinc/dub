@@ -8,23 +8,41 @@ import { cn } from "@dub/utils";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 
 export default function ProgramAuth({ children }: { children: ReactNode }) {
-  const { slug, plan, defaultProgramId, partnersEnabled, loading } =
-    useWorkspace();
+  const {
+    slug,
+    plan,
+    defaultProgramId,
+    partnersEnabled,
+    loading,
+    mutate: mutateWorkspace,
+  } = useWorkspace();
+
+  useEffect(() => {
+    const refreshWorkspaceProgramId = async () => {
+      if (!defaultProgramId) {
+        console.log(
+          "No default program ID found for workspace, refreshing once...",
+        );
+        await mutateWorkspace();
+      }
+    };
+    refreshWorkspaceProgramId();
+  }, [defaultProgramId]);
 
   if (loading) {
     return <LayoutLoader />;
   }
 
   // after Dub Partners goes GA, we can combine this with the upgrade CTA below
-  if (
-    partnersEnabled === false ||
-    !defaultProgramId ||
-    defaultProgramId === ""
-  ) {
-    redirect(`/${slug}`);
+  if (!defaultProgramId) {
+    if (partnersEnabled) {
+      redirect(`/${slug}/programs/new`);
+    } else {
+      redirect(`/${slug}`);
+    }
   }
 
   if (!getPlanCapabilities(plan).canManageProgram) {
