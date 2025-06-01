@@ -1,4 +1,4 @@
-import { LinkifyTooltipContent } from "@dub/ui";
+import { LinkifyTooltipContent, SimpleTooltipContent } from "@dub/ui";
 import {
   CircleCheck,
   CircleHalfDottedClock,
@@ -20,16 +20,26 @@ export const CommissionStatusBadges = {
     variant: "pending",
     className: "text-orange-600 bg-orange-100",
     icon: CircleHalfDottedClock,
-    tooltip: (data: CommissionTooltipDataProps) =>
-      `This commission is pending and will be eligible for payout after the program's ${data.holdingPeriodDays}-day holding period.`,
+    tooltip: (data: CommissionTooltipDataProps) => (
+      <SimpleTooltipContent
+        title={`This commission is pending and will be eligible for payout after the program's ${data.holdingPeriodDays}-day holding period.`}
+        cta="Learn more."
+        href="https://dub.co/help/article/receiving-payouts"
+      />
+    ),
   },
   processed: {
     label: "Processed",
     variant: "new",
     className: "text-blue-600 bg-blue-100",
     icon: CircleHalfDottedClock,
-    tooltip: (data: CommissionTooltipDataProps) =>
-      `This commission has been processed and will be paid out once your payout total reaches the program's minimum payout amount of ${currencyFormatter(data.minPayoutAmount / 100)}.`,
+    tooltip: (data: CommissionTooltipDataProps) => (
+      <SimpleTooltipContent
+        title={`This commission has been processed and will be paid out once your payout total reaches the program's minimum payout amount of ${currencyFormatter(data.minPayoutAmount / 100)}.`}
+        cta="Learn more."
+        href="https://dub.co/help/article/receiving-payouts"
+      />
+    ),
   },
   paid: {
     label: "Paid",

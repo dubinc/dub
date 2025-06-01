@@ -50,6 +50,7 @@ export async function POST(req: Request) {
           slug: application.program.slug,
         },
       }),
+      variant: "notifications",
     });
 
     await qstash.publishJSON({

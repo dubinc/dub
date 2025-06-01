@@ -4,12 +4,13 @@ import usePartnerPayouts from "@/lib/swr/use-partner-payouts";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerPayoutResponse } from "@/lib/types";
-import { AmountRowItem } from "@/ui/partners/amount-row-item";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
+import { PayoutStatus } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Filter,
+  SimpleTooltipContent,
   StatusBadge,
   Table,
   Tooltip,
@@ -18,7 +19,12 @@ import {
   useTable,
 } from "@dub/ui";
 import { InvoiceDollar, MoneyBill2 } from "@dub/ui/icons";
-import { OG_AVATAR_URL, formatDate, formatPeriod } from "@dub/utils";
+import {
+  OG_AVATAR_URL,
+  currencyFormatter,
+  formatDate,
+  formatPeriod,
+} from "@dub/utils";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { PayoutDetailsSheet } from "./payout-details-sheet";
@@ -213,4 +219,43 @@ export function PayoutTable() {
       </div>
     </>
   );
+}
+
+function AmountRowItem({
+  amount,
+  status,
+  payoutsEnabled,
+  minPayoutAmount,
+}: {
+  amount: number;
+  status: PayoutStatus;
+  payoutsEnabled: boolean;
+  minPayoutAmount: number;
+}) {
+  const display = currencyFormatter(amount / 100, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  if (status === PayoutStatus.pending && amount < minPayoutAmount) {
+    return (
+      <Tooltip
+        content={
+          <SimpleTooltipContent
+            title={`This program's minimum payout amount is ${currencyFormatter(
+              minPayoutAmount / 100,
+            )}. This payout will be accrued and processed during the next payout period.`}
+            cta="Learn more."
+            href="https://dub.co/help/article/receiving-payouts"
+          />
+        }
+      >
+        <span className="cursor-help truncate text-neutral-400 underline decoration-dotted underline-offset-2">
+          {display}
+        </span>
+      </Tooltip>
+    );
+  }
+
+  return display;
 }
