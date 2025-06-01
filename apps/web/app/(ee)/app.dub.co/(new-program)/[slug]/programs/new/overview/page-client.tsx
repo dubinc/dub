@@ -19,18 +19,12 @@ export function PageClient() {
     getValues,
     formState: { isSubmitting, isSubmitSuccessful },
   } = useFormContext<ProgramData>();
-  const {
-    id: workspaceId,
-    slug: workspaceSlug,
-    mutate: mutateWorkspace,
-  } = useWorkspace();
+
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
   const data = getValues();
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
-    onSuccess: async () => {
-      await mutateWorkspace();
-    },
     onError: ({ error }) => {
       toast.error(error.serverError);
     },

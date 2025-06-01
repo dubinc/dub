@@ -12,7 +12,7 @@ export default async function Programs({
     },
     select: {
       partnersEnabled: true,
-      programs: true,
+      defaultProgramId: true,
     },
   });
 
@@ -20,13 +20,13 @@ export default async function Programs({
     notFound();
   }
 
-  if (workspace.programs.length === 0) {
+  if (!workspace.defaultProgramId) {
     if (workspace.partnersEnabled) {
       redirect(`/${params.slug}/programs/new`);
     } else {
-      notFound();
+      redirect(`/${params.slug}`);
     }
   }
 
-  redirect(`/${params.slug}/programs/${workspace.programs[0].id}`);
+  redirect(`/${params.slug}/programs/${workspace.defaultProgramId}`);
 }
