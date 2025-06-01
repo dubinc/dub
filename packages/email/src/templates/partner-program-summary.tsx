@@ -71,7 +71,7 @@ function getPercentState(percent?: number) {
   return percentStateMap.neutral;
 }
 
-export function PartnerProgramSummary({
+export default function PartnerProgramSummary({
   program = {
     name: "Acme",
     logo: DUB_LOGO,
@@ -339,5 +339,3 @@ const Stats = ({
     </div>
   );
 };
-
-export default PartnerProgramSummary;

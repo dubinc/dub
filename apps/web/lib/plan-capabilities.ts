@@ -8,5 +8,6 @@ export const getPlanCapabilities = (
     canAddFolder: !!plan && !["free"].includes(plan),
     canManageFolderPermissions: !!plan && !["free", "pro"].includes(plan), // default access level is write
     canManageCustomers: !!plan && !["free", "pro"].includes(plan),
+    canManageProgram: !!plan && !["free", "pro"].includes(plan),
   };
 };
