@@ -10,12 +10,13 @@ import { Button } from "@dub/ui";
 import { Pencil } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 
 export function PageClient() {
+  const router = useRouter();
   const {
     getValues,
     formState: { isSubmitting, isSubmitSuccessful },
@@ -31,8 +32,12 @@ export function PageClient() {
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: async () => {
+      console.log("Mutating workspace...");
       await mutateWorkspace();
-      redirect(`/${workspaceSlug}/programs/${defaultProgramId}`);
+      console.log("Redirecting to program...");
+      router.push(
+        `/${workspaceSlug}/programs/${defaultProgramId}?onboarded-program=true`,
+      );
     },
     onError: ({ error }) => {
       toast.error(error.serverError);

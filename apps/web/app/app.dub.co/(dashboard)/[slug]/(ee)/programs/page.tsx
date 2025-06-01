@@ -24,7 +24,7 @@ export default async function Programs({
     if (workspace.partnersEnabled) {
       redirect(`/${params.slug}/programs/new`);
     } else {
-      notFound();
+      redirect(`/${params.slug}`);
     }
   }
 

@@ -11,14 +11,8 @@ import { redirect } from "next/navigation";
 import { ReactNode } from "react";
 
 export default function ProgramAuth({ children }: { children: ReactNode }) {
-  const {
-    slug,
-    plan,
-    defaultProgramId,
-    partnersEnabled,
-    loading,
-    mutate: mutateWorkspace,
-  } = useWorkspace();
+  const { slug, plan, defaultProgramId, partnersEnabled, loading } =
+    useWorkspace();
 
   if (loading) {
     return <LayoutLoader />;
