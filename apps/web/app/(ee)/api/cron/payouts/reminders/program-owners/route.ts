@@ -2,7 +2,7 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { limiter } from "@/lib/cron/limiter";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { sendEmail } from "@dub/email";
-import { ProgramPayoutReminder } from "@dub/email/templates/program-payout-reminder";
+import ProgramPayoutReminder from "@dub/email/templates/program-payout-reminder";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 

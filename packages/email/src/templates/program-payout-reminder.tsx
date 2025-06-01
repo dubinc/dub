@@ -19,7 +19,7 @@ import { Footer } from "../components/footer";
 // TODO:
 // Fix the icons
 
-export function ProgramPayoutReminder({
+export default function ProgramPayoutReminder({
   email = "panic@thedis.co",
   workspace = {
     slug: "acme",
@@ -132,5 +132,3 @@ const Stats = ({
     </Row>
   );
 };
-
-export default ProgramPayoutReminder;
