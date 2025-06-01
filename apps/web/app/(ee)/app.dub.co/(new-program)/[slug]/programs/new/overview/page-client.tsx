@@ -13,28 +13,18 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
-import { mutate } from "swr";
 
 export function PageClient() {
   const {
     getValues,
     formState: { isSubmitting, isSubmitSuccessful },
   } = useFormContext<ProgramData>();
-  const {
-    id: workspaceId,
-    slug: workspaceSlug,
-    mutate: mutateWorkspace,
-  } = useWorkspace();
+
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
   const data = getValues();
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
-    onSuccess: async () => {
-      await Promise.all([
-        mutateWorkspace(),
-        mutate(`/api/programs?workspaceId=${workspaceId}`),
-      ]);
-    },
     onError: ({ error }) => {
       toast.error(error.serverError);
     },

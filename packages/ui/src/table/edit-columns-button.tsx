@@ -1,10 +1,12 @@
-import { Button, Gear, Popover } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Table } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { useState } from "react";
+import { Button } from "../button";
+import { Gear } from "../icons";
+import { Popover } from "../popover";
 
-export default function EditColumnsButton({ table }: { table: Table<any> }) {
+export function EditColumnsButton({ table }: { table: Table<any> }) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
