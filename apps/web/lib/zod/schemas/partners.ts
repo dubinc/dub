@@ -244,8 +244,11 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
       .number()
       .default(0)
       .describe(
-        "The total earnings/commissions accrued by the partner's links.",
-      ),
+        "DEPRECATED: The total earnings/commissions accrued by the partner's links.",
+      )
+      .openapi({
+        deprecated: true,
+      }),
   })
   .extend({
     applicationId: z

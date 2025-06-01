@@ -286,7 +286,6 @@ const ResizableTableRow = memo(
 }) => JSX.Element;
 
 export function Table<T>({
-  columns,
   data,
   loading,
   error,

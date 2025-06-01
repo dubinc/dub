@@ -296,8 +296,14 @@ export const PLANS = [
         },
       },
       {
-        id: "email",
-        text: "Branded email domains",
+        id: "api",
+        text: "Partners API",
+        tooltip: {
+          title:
+            "Leverage our partners API to build a bespoke, white-labeled referral program that lives within your app.",
+          cta: "Learn more.",
+          href: "https://dub.co/docs/api-reference/endpoint/create-a-partner",
+        },
       },
       {
         id: "slack",
