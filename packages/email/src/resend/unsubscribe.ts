@@ -1,8 +1,11 @@
-import { resend, RESEND_AUDIENCES } from ".";
+import { resend } from "./client";
+import { RESEND_AUDIENCES } from "./constants";
 
 export async function unsubscribe({ email }: { email: string }) {
   if (!resend) {
-    console.error("Resend client is not properly initialized. Skipping operation.");
+    console.error(
+      "Resend client is not properly initialized. Skipping operation.",
+    );
     return;
   }
 
