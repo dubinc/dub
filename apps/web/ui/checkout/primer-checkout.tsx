@@ -132,11 +132,6 @@ const CheckoutFormComponent: FC<ICheckoutFormComponentProps> = (props) => {
       return;
     }
 
-    console.log(
-      "Initializing Primer with token:",
-      clientToken.substring(0, 20) + "...",
-    );
-
     try {
       const instance = await Primer.showUniversalCheckout(clientToken, {
         container: "#checkout-container",
