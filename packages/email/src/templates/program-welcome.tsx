@@ -65,7 +65,7 @@ export function ProgramWelcome({
               is created and ready to share with your partners.
             </Text>
 
-            <Section className="rounded-xl border border-solid border-neutral-200 bg-neutral-50 px-6 py-4">
+            <Section className="mt-10 rounded-xl border border-solid border-neutral-200 bg-neutral-50 px-6 py-4">
               <Row>
                 <Column width={10}>
                   <Img
@@ -93,7 +93,7 @@ export function ProgramWelcome({
             </Section>
 
             <Heading
-              className="mt-5 text-base font-semibold leading-6 text-neutral-900"
+              className="my-7 text-base font-semibold leading-6 text-neutral-900"
               as="h3"
             >
               Getting started
@@ -101,8 +101,60 @@ export function ProgramWelcome({
 
             <Text className="text-sm leading-5 text-neutral-800">
               1. <span className="font-medium">Customize your dashboard</span> -
-              Make it yours. <span>Update the logo and colors</span> to give
-              your partners a fully branded experience.
+              Make it yours.{" "}
+              <Link
+                href="https://partners.dub.co/settings/branding"
+                className="font-semibold text-neutral-800 underline underline-offset-2"
+              >
+                Update the logo and colors
+              </Link>{" "}
+              to give your partners a fully branded experience.
+            </Text>
+
+            <Text className="text-sm leading-5 text-neutral-800">
+              2. <span className="font-medium">Invite partners</span> - Bring
+              your friends, family, and VIP customers to your program; to{" "}
+              <Link
+                href="https://partners.dub.co/settings/branding"
+                className="font-semibold text-neutral-800 underline underline-offset-2"
+              >
+                turn fans into advocates
+              </Link>
+              .
+            </Text>
+
+            <Text className="text-sm leading-5 text-neutral-800">
+              3. <span className="font-medium">Build your landing page</span> -
+              <Link
+                href="https://partners.dub.co/settings/branding"
+                className="font-semibold text-neutral-800 underline underline-offset-2"
+              >
+                Add content
+              </Link>{" "}
+              to help new partners quickly understand your brand and what makes
+              it great.
+            </Text>
+
+            <Text className="text-sm leading-5 text-neutral-800">
+              4. <span className="font-medium">Share your program page</span> -
+              No need to wait. Even with minimal content, it’s ready to share
+              and easy for anyone to join.
+            </Text>
+
+            <Text className="text-sm leading-5 text-neutral-800">
+              5.{" "}
+              <span className="font-medium">
+                Add more rewards and discounts
+              </span>{" "}
+              -{" "}
+              <Link
+                href="https://partners.dub.co/settings/branding"
+                className="font-semibold text-neutral-800 underline underline-offset-2"
+              >
+                Add more rewards
+              </Link>{" "}
+              for clicks, leads, and sales. You can also add discounts for new
+              customers.
             </Text>
 
             <Footer email={email} marketing />
