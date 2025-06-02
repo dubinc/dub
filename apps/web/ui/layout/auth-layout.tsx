@@ -1,13 +1,12 @@
 import { ClientOnly } from "@dub/ui";
-import { Suspense } from "react";
+import { PropsWithChildren, Suspense } from "react";
 
-interface AuthLayoutProps {
-  children: React.ReactNode;
-}
-
-export const AuthLayout = ({ children }: AuthLayoutProps) => {
+export const AuthLayout = ({
+  showTerms = false,
+  children,
+}: PropsWithChildren<{ showTerms?: boolean }>) => {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-between">
+    <div className="flex min-h-screen w-full flex-col items-center justify-between">
       {/* Empty div to help center main content */}
       <div className="grow basis-0">
         <div className="h-20" />
@@ -18,24 +17,26 @@ export const AuthLayout = ({ children }: AuthLayoutProps) => {
       </ClientOnly>
 
       <div className="flex grow basis-0 flex-col justify-end">
-        <p className="px-20 py-8 text-center text-xs font-medium text-neutral-500 md:px-0">
-          By continuing, you agree to Dub&rsquo;s{" "}
-          <a
-            href="https://dub.co/legal/terms"
-            target="_blank"
-            className="font-semibold text-neutral-600 hover:text-neutral-800"
-          >
-            Terms of Service
-          </a>{" "}
-          and{" "}
-          <a
-            href="https://dub.co/legal/privacy"
-            target="_blank"
-            className="font-semibold text-neutral-600 hover:text-neutral-800"
-          >
-            Privacy Policy
-          </a>
-        </p>
+        {showTerms && (
+          <p className="px-20 py-8 text-center text-xs font-medium text-neutral-500 md:px-0">
+            By continuing, you agree to Dub&rsquo;s{" "}
+            <a
+              href="https://dub.co/legal/terms"
+              target="_blank"
+              className="font-semibold text-neutral-600 hover:text-neutral-800"
+            >
+              Terms of Service
+            </a>{" "}
+            and{" "}
+            <a
+              href="https://dub.co/legal/privacy"
+              target="_blank"
+              className="font-semibold text-neutral-600 hover:text-neutral-800"
+            >
+              Privacy Policy
+            </a>
+          </p>
+        )}
       </div>
     </div>
   );

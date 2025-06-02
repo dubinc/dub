@@ -10,7 +10,7 @@ export const metadata = constructMetadata({
 
 export default function LoginPage() {
   return (
-    <AuthLayout>
+    <AuthLayout showTerms>
       <div className="w-full max-w-sm">
         <h3 className="text-center text-xl font-semibold">
           Log in to your Dub account
