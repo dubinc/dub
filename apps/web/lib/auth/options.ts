@@ -4,9 +4,7 @@ import { isStored, storage } from "@/lib/storage";
 import { UserProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { sendEmail } from "@dub/email";
-import { subscribe } from "@dub/email/resend/subscribe";
 import { LoginLink } from "@dub/email/templates/login-link";
-import { WelcomeEmail } from "@dub/email/templates/welcome-email";
 import { prisma } from "@dub/prisma";
 import { PrismaClient } from "@dub/prisma/client";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
@@ -19,7 +17,9 @@ import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { createId } from "../api/create-id";
+import { qstash } from "../cron";
 import { completeProgramApplications } from "../partners/complete-program-applications";
 import { FRAMER_API_HOST } from "./constants";
 import {
@@ -524,20 +524,13 @@ export const authOptions: NextAuthOptions = {
         ) {
           waitUntil(
             Promise.allSettled([
-              subscribe({ email, name: user.name || undefined }),
-              sendEmail({
-                email,
-                replyTo: "steven.tey@dub.co",
-                subject: "Welcome to Dub!",
-                react: WelcomeEmail({
-                  email,
-                  name: user.name || null,
-                }),
-                // send the welcome email 5 minutes after the user signed up
-                scheduledAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
-                variant: "marketing",
-              }),
               trackLead(user),
+              qstash.publishJSON({
+                url: `${APP_DOMAIN_WITH_NGROK}/api/cron/welcome-user`,
+                // trigger welcome workflow 15 minutes after the user signed up
+                delay: 15 * 60,
+                body: { userId: user.id },
+              }),
             ]),
           );
         }
