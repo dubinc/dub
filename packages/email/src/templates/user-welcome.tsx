@@ -18,24 +18,14 @@ import { Footer } from "../components/footer";
 export function UserWelcome({
   name = "John Doe",
   email = "panic@thedis.co",
-  workspace = {
-    name: "Acme",
-    slug: "acme",
-  },
 }: {
   name: string | null;
   email: string;
-  workspace: {
-    name: string;
-    slug: string;
-  };
 }) {
-  const workspaceUrl = `https://app.dub.co/${workspace.slug}`;
-
   return (
     <Html>
       <Head />
-      <Preview>Your Dub workspace is ready to go</Preview>
+      <Preview>Your Dub account is ready to go</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] px-10 py-5">
@@ -48,8 +38,8 @@ export function UserWelcome({
             </Heading>
 
             <Text className="text-sm leading-5 text-neutral-600">
-              Your {workspace.name} workspace is ready. Time to shorten, share,
-              and start tracking links like a pro.
+              Your Dub account is ready. Time to shorten, share, and start
+              tracking links like a pro.
             </Text>
 
             <Hr className="my-6 border-b border-neutral-200" />
@@ -64,14 +54,14 @@ export function UserWelcome({
             <Text className="mb-4 text-sm leading-5 text-neutral-800">
               1. <span className="font-medium">Set up your domain</span> - Add a{" "}
               <Link
-                href={`${workspaceUrl}/settings/domains`}
+                href="https://dub.co/help/article/how-to-add-custom-domain"
                 className="font-semibold text-neutral-800 underline underline-offset-2"
               >
                 custom domain
               </Link>{" "}
               or claim{" "}
               <Link
-                href={`${workspaceUrl}/settings/domains`}
+                href="https://dub.co/help/article/free-dot-link-domain"
                 className="font-semibold text-neutral-800 underline underline-offset-2"
               >
                 a free .link
@@ -82,7 +72,7 @@ export function UserWelcome({
             <Text className="mb-4 text-sm leading-5 text-neutral-800">
               2. <span className="font-medium">View analytics</span> - Monitor{" "}
               <Link
-                href={`${workspaceUrl}/analytics`}
+                href="https://dub.co/help/article/dub-analytics"
                 className="font-semibold text-neutral-800 underline underline-offset-2"
               >
                 click data
@@ -94,7 +84,7 @@ export function UserWelcome({
               3. <span className="font-medium">Track conversions</span> - Track
               leads and sales with our built-in{" "}
               <Link
-                href={`${workspaceUrl}/events`}
+                href="https://dub.co/help/article/dub-conversions"
                 className="font-semibold text-neutral-800 underline underline-offset-2"
               >
                 conversion tools
@@ -115,10 +105,10 @@ export function UserWelcome({
 
             <Section className="my-10">
               <Link
-                href={workspaceUrl}
+                href="https://app.dub.co?newWorkspace=true"
                 className="box-border h-10 w-fit rounded-lg bg-black px-4 py-3 text-center text-sm leading-none text-white no-underline"
               >
-                Go to your dashboard
+                Create a new workspace
               </Link>
             </Section>
 
