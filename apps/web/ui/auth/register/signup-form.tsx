@@ -1,5 +1,6 @@
 "use client";
 
+import { AuthMethodsSeparator } from "../auth-methods-separator";
 import { SignUpEmail } from "./signup-email";
 import { SignUpOAuth } from "./signup-oauth";
 
@@ -11,15 +12,7 @@ export const SignUpForm = ({
   return (
     <div className="flex flex-col gap-3">
       {methods.includes("email") && <SignUpEmail />}
-      {methods.length && (
-        <div className="my-2 flex flex-shrink items-center justify-center gap-2">
-          <div className="grow basis-0 border-b border-neutral-300" />
-          <span className="text-xs font-normal uppercase leading-none text-neutral-500">
-            or
-          </span>
-          <div className="grow basis-0 border-b border-neutral-300" />
-        </div>
-      )}
+      {methods.length && <AuthMethodsSeparator />}
       <SignUpOAuth methods={methods} />
     </div>
   );

@@ -11,19 +11,19 @@ export const metadata = constructMetadata({
 export default function LoginPage() {
   return (
     <AuthLayout>
-      <div className="w-full max-w-md overflow-hidden border-y border-neutral-200 sm:rounded-2xl sm:border sm:shadow-sm">
-        <div className="border-b border-neutral-200 bg-white pb-6 pt-8 text-center">
-          <h3 className="text-lg font-semibold">Sign in to your Dub account</h3>
-        </div>
-        <div className="bg-neutral-50 px-4 py-8 sm:px-16">
+      <div className="w-full max-w-sm">
+        <h3 className="text-center text-xl font-semibold">
+          Log in to your Dub account
+        </h3>
+        <div className="mt-8">
           <LoginForm />
         </div>
       </div>
-      <p className="mt-4 text-center text-sm text-neutral-500">
+      <p className="mt-6 text-center text-sm font-medium text-neutral-500">
         Don't have an account?&nbsp;
         <Link
           href="register"
-          className="font-semibold text-neutral-500 underline underline-offset-2 transition-colors hover:text-black"
+          className="font-semibold text-neutral-700 transition-colors hover:text-neutral-900"
         >
           Sign up
         </Link>

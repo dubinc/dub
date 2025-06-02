@@ -28,13 +28,13 @@ function SignUp() {
           <SignUpForm />
         </div>
       </div>
-      <p className="mt-4 text-center text-sm text-neutral-500">
+      <p className="mt-6 text-center text-sm font-medium text-neutral-500">
         Already have an account?&nbsp;
         <Link
           href="/login"
-          className="font-semibold text-neutral-500 underline underline-offset-2 transition-colors hover:text-black"
+          className="font-semibold text-neutral-700 transition-colors hover:text-neutral-900"
         >
-          Sign in
+          Log in
         </Link>
       </p>
     </>

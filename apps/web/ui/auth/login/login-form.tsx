@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatedSizeContainer, useLocalStorage } from "@dub/ui";
+import { AnimatedSizeContainer, Button, useLocalStorage } from "@dub/ui";
 import { useSearchParams } from "next/navigation";
 import {
   ComponentType,
@@ -12,6 +12,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import { AuthMethodsSeparator } from "../auth-methods-separator";
 import { EmailSignIn } from "./email-sign-in";
 import { GitHubButton } from "./github-button";
 import { GoogleButton } from "./google-button";
@@ -155,7 +156,7 @@ export default function LoginForm({
         <AnimatedSizeContainer height>
           <div className="flex flex-col gap-3 p-1">
             {authMethod && (
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-3">
                 {AuthMethodComponent && (
                   <AuthMethodComponent {...currentAuthProvider?.props} />
                 )}
@@ -171,25 +172,17 @@ export default function LoginForm({
                       </span>
                     </div>
                   )}
-                <div className="my-2 flex flex-shrink items-center justify-center gap-2">
-                  <div className="grow basis-0 border-b border-neutral-300" />
-                  <span className="text-xs font-normal uppercase leading-none text-neutral-500">
-                    or
-                  </span>
-                  <div className="grow basis-0 border-b border-neutral-300" />
-                </div>
+                <AuthMethodsSeparator />
               </div>
             )}
 
             {showEmailPasswordOnly ? (
-              <div className="mt-2 text-center text-sm text-neutral-500">
-                <button
-                  type="button"
+              <div className="mt-2">
+                <Button
+                  variant="secondary"
                   onClick={() => setShowPasswordField(false)}
-                  className="font-semibold text-neutral-500 transition-colors hover:text-black"
-                >
-                  Continue with another method
-                </button>
+                  text="Continue with another method"
+                />
               </div>
             ) : (
               authProviders
