@@ -203,6 +203,10 @@ export default function PlansContent() {
                 text: `Subscribe to ${selectedPlan.name}`,
               }}
             />
+
+            <Text as="p" size="1" className="text-center text-neutral-800">
+              🔒 Secure payment • Cancel anytime • No hidden fees
+            </Text>
           </div>
         </Flex>
       </div>
