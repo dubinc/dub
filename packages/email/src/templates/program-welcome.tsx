@@ -23,20 +23,29 @@ import { Footer } from "../components/footer";
 
 export function ProgramWelcome({
   email = "panic@thedis.co",
+  workspace = {
+    slug: "acme",
+  },
   program = {
+    id: "prog_CYCu7IMAapjkRpTnr8F1azjN",
+    slug: "acme",
     name: "Acme",
     logo: DUB_LOGO,
-    slug: "acme",
   },
 }: {
   email: string;
-  program: {
-    name: string;
-    logo: string | null;
+  workspace: {
     slug: string;
   };
+  program: {
+    id: string;
+    slug: string;
+    name: string;
+    logo: string | null;
+  };
 }) {
-  const programUrl = `https://partners.dub.co/${program.slug}`;
+  const programLandingUrl = `https://partners.dub.co/${program.slug}`;
+  const programDashboardUrl = `https://app.dub.co/${workspace.slug}/programs/${program.id}`;
 
   return (
     <Html>
@@ -82,10 +91,10 @@ export function ProgramWelcome({
                   </Text>
 
                   <Link
-                    href={programUrl}
+                    href={programLandingUrl}
                     className="m-0 text-xs font-medium text-neutral-800 underline"
                   >
-                    {getPrettyUrl(programUrl)}
+                    {getPrettyUrl(programLandingUrl)}
                   </Link>
                 </Column>
               </Row>
@@ -102,7 +111,7 @@ export function ProgramWelcome({
               1. <span className="font-medium">Customize your dashboard</span> -
               Make it yours.{" "}
               <Link
-                href="https://partners.dub.co/settings/branding"
+                href={`${programDashboardUrl}/branding`}
                 className="font-semibold text-neutral-800 underline underline-offset-2"
               >
                 Update the logo and colors
@@ -114,7 +123,7 @@ export function ProgramWelcome({
               2. <span className="font-medium">Invite partners</span> - Bring
               your friends, family, and VIP customers to your program; to{" "}
               <Link
-                href="https://partners.dub.co/settings/branding"
+                href={`${programDashboardUrl}/partners`}
                 className="font-semibold text-neutral-800 underline underline-offset-2"
               >
                 turn fans into advocates
@@ -123,9 +132,9 @@ export function ProgramWelcome({
             </Text>
 
             <Text className="mb-4 text-sm leading-5 text-neutral-800">
-              3. <span className="font-medium">Build your landing page</span> -
+              3. <span className="font-medium">Build your landing page</span> -{" "}
               <Link
-                href="https://partners.dub.co/settings/branding"
+                href={`${programDashboardUrl}/branding`}
                 className="font-semibold text-neutral-800 underline underline-offset-2"
               >
                 Add content
@@ -147,7 +156,7 @@ export function ProgramWelcome({
               </span>{" "}
               -{" "}
               <Link
-                href="https://partners.dub.co/settings/branding"
+                href={`${programDashboardUrl}/settings/rewards`}
                 className="font-semibold text-neutral-800 underline underline-offset-2"
               >
                 Add more rewards
@@ -158,7 +167,7 @@ export function ProgramWelcome({
 
             <Section className="my-10">
               <Link
-                href={`https://partners.dub.co/programs/${program.slug}`}
+                href={programDashboardUrl}
                 className="box-border h-10 w-fit rounded-lg bg-black px-4 py-3 text-center text-sm leading-none text-white no-underline"
               >
                 Go to your dashboard
