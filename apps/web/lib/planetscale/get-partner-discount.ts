@@ -8,6 +8,8 @@ interface QueryResult {
   amount: number;
   type: "percentage" | "flat";
   maxDuration: number | null;
+  couponId: string | null;
+  couponTestId: string | null;
 }
 
 // Get partner and discount info for a partner link
@@ -35,7 +37,9 @@ export const getPartnerAndDiscount = async ({
       COALESCE(Discount.id, ProgramDiscount.id) as discountId,
       COALESCE(Discount.amount, ProgramDiscount.amount) as amount,
       COALESCE(Discount.type, ProgramDiscount.type) as type,
-      COALESCE(Discount.maxDuration, ProgramDiscount.maxDuration) as maxDuration
+      COALESCE(Discount.maxDuration, ProgramDiscount.maxDuration) as maxDuration,
+      COALESCE(Discount.couponId, ProgramDiscount.couponId) as couponId,
+      COALESCE(Discount.couponTestId, ProgramDiscount.couponTestId) as couponTestId
     FROM ProgramEnrollment
     LEFT JOIN Partner ON Partner.id = ProgramEnrollment.partnerId
     LEFT JOIN Discount ON Discount.id = ProgramEnrollment.discountId
@@ -70,6 +74,8 @@ export const getPartnerAndDiscount = async ({
           amount: result.amount,
           type: result.type,
           maxDuration: result.maxDuration,
+          couponId: result.couponId,
+          couponTestId: result.couponTestId,
         }
       : null,
   };
