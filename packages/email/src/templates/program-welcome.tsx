@@ -77,7 +77,7 @@ export function ProgramWelcome({
                 </Column>
 
                 <Column>
-                  <Text className="m-0 text-base text-sm font-semibold text-neutral-800">
+                  <Text className="text-md m-0 text-base font-semibold leading-none text-neutral-800">
                     {program.name}
                   </Text>
 
@@ -140,7 +140,7 @@ export function ProgramWelcome({
               and easy for anyone to join.
             </Text>
 
-            <Text className="text-sm leading-5 text-neutral-800">
+            <Text className="mb-0 text-sm leading-5 text-neutral-800">
               5.{" "}
               <span className="font-medium">
                 Add more rewards and discounts
@@ -155,6 +155,15 @@ export function ProgramWelcome({
               for clicks, leads, and sales. You can also add discounts for new
               customers.
             </Text>
+
+            <Section className="my-10">
+              <Link
+                href={`https://partners.dub.co/programs/${program.slug}`}
+                className="box-border h-10 w-fit rounded-lg bg-black px-4 py-3 text-center text-sm leading-none text-white no-underline"
+              >
+                Go to your dashboard
+              </Link>
+            </Section>
 
             <Footer email={email} marketing />
           </Container>
