@@ -14,7 +14,9 @@ export const PlansHeading: FC<IPlansHeading> = ({ isTrialOver }) => {
         align="center"
         className="text-neutral"
       >
-        {isTrialOver ? "Your free trial has ended" : "Upgrade your plan"}
+        {isTrialOver
+          ? "Your free trial has ended"
+          : "Choose a plan that fits you best"}
       </Heading>
       <Heading
         as="h2"
@@ -25,7 +27,7 @@ export const PlansHeading: FC<IPlansHeading> = ({ isTrialOver }) => {
       >
         {isTrialOver
           ? "Your QR codes are paused - reactivate them instantly with a plan that fits your needs"
-          : "Upgrade your plan"}
+          : "Upgrade now to keep your QR codes active after the trial ends — cancel anytime"}
       </Heading>
     </Flex>
   );

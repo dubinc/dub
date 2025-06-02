@@ -56,7 +56,7 @@ export const PopularQrInfo: FC<IPopularQrInfo> = ({
               size={{ initial: "1", md: "2" }}
               className="text-neutral-800"
             >
-              Your QR Code Name:
+              QR Code Name:
             </Text>
             <Text
               as="span"
