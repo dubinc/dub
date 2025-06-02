@@ -2,7 +2,7 @@ import { resend, RESEND_AUDIENCES } from ".";
 
 export async function unsubscribe({ email }: { email: string }) {
   if (!resend) {
-    console.error("RESEND_API_KEY is not set in the .env. Skipping.");
+    console.error("Resend client is not properly initialized. Skipping operation.");
     return;
   }
 
