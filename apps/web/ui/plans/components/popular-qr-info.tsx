@@ -35,8 +35,8 @@ export const PopularQrInfo: FC<IPopularQrInfo> = ({
       <div className="border-border-200 h-px w-full border-t" />
 
       <Flex
-        direction={{ initial: "column", md: "row" }}
-        align={{ initial: "center", md: "start" }}
+        direction="row"
+        align="start"
         gap={{ initial: "4", md: "6" }}
         className="[&_svg:first-child]:h-[180px] [&_svg:first-child]:w-[138px] md:[&_svg:first-child]:h-[209px] md:[&_svg:first-child]:w-[158px]"
       >
