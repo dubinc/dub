@@ -119,7 +119,10 @@ export interface RedisLinkProps {
   programId?: string;
   partnerId?: string;
   partner?: Pick<PartnerProps, "id" | "name" | "image">;
-  discount?: Pick<DiscountProps, "id" | "amount" | "type" | "maxDuration">;
+  discount?: Pick<
+    DiscountProps,
+    "id" | "amount" | "type" | "maxDuration" | "couponId" | "couponTestId"
+  >;
   testVariants?: z.infer<typeof ABTestVariantsSchema>;
   testCompletedAt?: Date;
 }

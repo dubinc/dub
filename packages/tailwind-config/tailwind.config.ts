@@ -15,9 +15,6 @@ const config: Config = {
     extend: {
       screens: {
         xs: "420px",
-        highdpi: {
-          raw: "only screen and (min-resolution: 2dppx)",
-        },
       },
       typography: {
         DEFAULT: {
