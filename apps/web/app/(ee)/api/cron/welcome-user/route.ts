@@ -69,7 +69,9 @@ export async function POST(req: Request) {
         }),
     ]);
 
-    return new Response("Link deleted.", { status: 200 });
+    return new Response("Welcome email sent and user subscribed.", {
+      status: 200,
+    });
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }
