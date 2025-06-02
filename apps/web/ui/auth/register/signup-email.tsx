@@ -43,24 +43,33 @@ export const SignUpEmail = () => {
 
   return (
     <form onSubmit={handleSubmit(async (data) => await executeAsync(data))}>
-      <div className="flex flex-col space-y-4">
-        <Input
-          type="email"
-          placeholder="Work Email"
-          autoComplete="email"
-          required
-          readOnly={!errors.email && lockEmail}
-          {...register("email")}
-          error={errors.email?.message}
-        />
-        <Input
-          type="password"
-          placeholder="Password"
-          required
-          {...register("password")}
-          error={errors.password?.message}
-          minLength={8}
-        />
+      <div className="flex flex-col gap-y-6">
+        <label>
+          <span className="text-content-emphasis mb-2 block text-sm font-medium leading-none">
+            Email
+          </span>
+          <Input
+            type="email"
+            placeholder="panic@thedis.co"
+            autoComplete="email"
+            required
+            readOnly={!errors.email && lockEmail}
+            {...register("email")}
+            error={errors.email?.message}
+          />
+        </label>
+        <label>
+          <span className="text-content-emphasis mb-2 block text-sm font-medium leading-none">
+            Password
+          </span>
+          <Input
+            type="password"
+            required
+            {...register("password")}
+            error={errors.password?.message}
+            minLength={8}
+          />
+        </label>
         <Button
           type="submit"
           text={isPending ? "Submitting..." : "Sign Up"}
