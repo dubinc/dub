@@ -52,6 +52,7 @@ export function ProgramWelcome({
             <Heading
               className="text-lg font-semibold leading-7 text-neutral-900"
               mt="28"
+              as="h2"
             >
               Congratulations on creating a program!
             </Heading>
@@ -91,8 +92,18 @@ export function ProgramWelcome({
               </Row>
             </Section>
 
+            <Heading
+              className="mt-5 text-base font-semibold leading-6 text-neutral-900"
+              as="h3"
+            >
+              Getting started
+            </Heading>
 
-
+            <Text className="text-sm leading-5 text-neutral-800">
+              1. <span className="font-medium">Customize your dashboard</span> -
+              Make it yours. <span>Update the logo and colors</span> to give
+              your partners a fully branded experience.
+            </Text>
 
             <Footer email={email} marketing />
           </Container>
