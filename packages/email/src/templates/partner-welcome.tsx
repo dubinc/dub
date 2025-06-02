@@ -13,6 +13,7 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
+import { Fragment } from "react";
 import { Footer } from "../components/footer";
 
 const topPrograms = [
@@ -64,7 +65,7 @@ export function PartnerWelcome({
   email: string;
 }) {
   const topProgramsLinks = topPrograms.map((program, index) => (
-    <>
+    <Fragment key={program.slug}>
       <Link
         href={`${DUB_PARTNERS_URL}/programs/${program.slug}`}
         className="font-semibold text-neutral-800 underline underline-offset-2"
@@ -72,7 +73,7 @@ export function PartnerWelcome({
         {program.name}
       </Link>
       {index < topPrograms.length - 1 ? ", " : ""}
-    </>
+    </Fragment>
   ));
 
   return (
