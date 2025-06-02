@@ -1,4 +1,5 @@
-import { resend, RESEND_AUDIENCES } from ".";
+import { resend } from "./client";
+import { RESEND_AUDIENCES } from "./constants";
 
 export async function subscribe({
   email,
@@ -10,7 +11,9 @@ export async function subscribe({
   audience?: keyof typeof RESEND_AUDIENCES;
 }) {
   if (!resend) {
-    console.error("Resend client is not initialized. This may be due to a missing or invalid RESEND_API_KEY in the .env file. Skipping.");
+    console.error(
+      "Resend client is not initialized. This may be due to a missing or invalid RESEND_API_KEY in the .env file. Skipping.",
+    );
     return;
   }
 
