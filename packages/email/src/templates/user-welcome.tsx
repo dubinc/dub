@@ -34,7 +34,7 @@ export function UserWelcome({
             </Section>
 
             <Heading className="mx-0 my-6 p-0 text-lg font-medium text-black">
-              Welcome {name}!
+              Welcome{name && `, ${name}`}!
             </Heading>
 
             <Text className="text-sm leading-5 text-neutral-600">
