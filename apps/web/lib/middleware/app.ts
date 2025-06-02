@@ -37,7 +37,7 @@ export default async function AppMiddleware(req: NextRequest) {
     path !== "/privacy-policy" &&
     !path.startsWith("/help") &&
     // helps, terms and policy
-
+    path !== "/qr-disabled" &&
     !path.startsWith("/auth/reset-password/") &&
     !path.startsWith("/share/")
   ) {
