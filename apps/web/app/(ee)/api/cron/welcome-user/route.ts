@@ -26,7 +26,6 @@ export async function POST(req: Request) {
         name: true,
         email: true,
         partners: true,
-        projects: true,
       },
     });
 
@@ -40,33 +39,26 @@ export async function POST(req: Request) {
     }
 
     const isPartner = user.partners.length > 0;
-    const isWorkspaceOwner = user.projects.length > 0;
 
     await Promise.all([
-      isPartner &&
-        subscribe({
-          email: user.email,
-          name: user.name || undefined,
-          audience: "partners.dub.co",
-        }),
-      isWorkspaceOwner &&
-        subscribe({
-          email: user.email,
-          name: user.name || undefined,
-          audience: "app.dub.co",
-        }),
+      subscribe({
+        email: user.email,
+        name: user.name || undefined,
+        audience: isPartner ? "partners.dub.co" : "app.dub.co",
+      }),
       // TODO: Add partners.dub.co welcome email
-      isWorkspaceOwner &&
-        sendEmail({
-          email: user.email,
-          replyTo: "steven.tey@dub.co",
-          subject: "Welcome to Dub!",
-          react: WelcomeEmail({
+      isPartner
+        ? undefined
+        : sendEmail({
             email: user.email,
-            name: user.name,
+            replyTo: "steven.tey@dub.co",
+            subject: "Welcome to Dub!",
+            react: WelcomeEmail({
+              email: user.email,
+              name: user.name,
+            }),
+            variant: "marketing",
           }),
-          variant: "marketing",
-        }),
     ]);
 
     return new Response("Welcome email sent and user subscribed.", {
