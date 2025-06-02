@@ -59,6 +59,8 @@ export default function PlansContent() {
     console.error("Payment failed:", error);
   };
 
+  const totalCharge = selectedPlan.price * selectedPlan.duration;
+
   return (
     <div className="flex w-full flex-col items-center justify-center gap-6 md:gap-8">
       <PlansHeading isTrialOver={isTrialOver} />
@@ -186,8 +188,8 @@ export default function PlansContent() {
             </RadioGroup.Root>
 
             <Text as="p" size="1" className="text-neutral-800">
-              You’ll be charged US$119.94 today. Renews every{" "}
-              {selectedPlan.name.toLowerCase()} months. Cancel anytime.
+              You'll be charged US${totalCharge.toFixed(2)} today. Renews every{" "}
+              {selectedPlan.name.toLowerCase()}. Cancel anytime.
             </Text>
 
             <CheckoutFormComponent

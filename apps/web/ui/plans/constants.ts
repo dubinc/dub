@@ -21,6 +21,7 @@ export interface IPricingPlan {
   paymentPlan: TPaymentPlan;
   savings?: string;
   originalPrice?: number;
+  duration: number; // duration in months
 }
 
 export const PRICING_PLANS: IPricingPlan[] = [
@@ -34,6 +35,7 @@ export const PRICING_PLANS: IPricingPlan[] = [
     paymentPlan: "ANNUAL",
     savings: "50% SAVE",
     originalPrice: 39.99,
+    duration: 12,
   },
   {
     id: "semester",
@@ -45,6 +47,7 @@ export const PRICING_PLANS: IPricingPlan[] = [
     paymentPlan: "SEMESTER",
     savings: "25% SAVE",
     originalPrice: 39.99,
+    duration: 6,
   },
   {
     id: "quarterly",
@@ -54,6 +57,7 @@ export const PRICING_PLANS: IPricingPlan[] = [
     interval: "month",
     description: "Billed quarterly",
     paymentPlan: "QUARTERLY",
+    duration: 3,
   },
 ];
 
