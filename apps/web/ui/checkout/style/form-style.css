@@ -1,6 +1,6 @@
-/*#primer-checkout-scene-credit-card-form iframe {*/
-/*  height: 48px !important;*/
-/*}*/
+#primer-checkout-scene-credit-card-form iframe {
+  height: 48px !important;
+}
 
 #primer-checkout-credit-card-button {
   height: 48px !important;

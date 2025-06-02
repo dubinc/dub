@@ -506,15 +506,13 @@ const CheckoutFormComponent: FC<ICheckoutFormComponentProps> = (props) => {
           )}
 
           <Button
-            id={"primer-checkout-credit-card-button"}
+            id="primer-checkout-credit-card-button"
             isDisabled={isLoading && !error?.isActive}
             onClick={handleSubmit}
-            className={"w-full"}
+            className={"min-h-[48px] w-full text-white"}
             startContent={submitBtn?.icon}
-            style={{ color: "#fff", minHeight: "48px" }}
-          >
-            {submitBtn?.text || "Pay"}
-          </Button>
+            text={submitBtn?.text || "Pay"}
+          />
         </div>
       )}
 
