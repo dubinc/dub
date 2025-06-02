@@ -2,6 +2,7 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { sendEmail } from "@dub/email";
 import { subscribe } from "@dub/email/resend/subscribe";
+import { PartnerWelcome } from "@dub/email/templates/partner-welcome";
 import { UserWelcome } from "@dub/email/templates/user-welcome";
 import { prisma } from "@dub/prisma";
 
@@ -11,6 +12,8 @@ export const dynamic = "force-dynamic";
     This route is used to send a welcome email to new users + subscribe them to the corresponding Resend audience
     It is called by QStash 15 minutes after a user is created.
 */
+
+// POST /api/cron/welcome-user
 export async function POST(req: Request) {
   try {
     const rawBody = await req.text();
@@ -30,12 +33,12 @@ export async function POST(req: Request) {
     });
 
     if (!user) {
-      return new Response("User not found. Skipping...", { status: 200 });
+      return new Response("User not found. Skipping...");
     }
 
     // this shouldn't happen but just in case
     if (!user.email) {
-      return new Response("User email not found. Skipping...", { status: 200 });
+      return new Response("User email not found. Skipping...");
     }
 
     const isPartner = user.partners.length > 0;
@@ -46,9 +49,18 @@ export async function POST(req: Request) {
         name: user.name || undefined,
         audience: isPartner ? "partners.dub.co" : "app.dub.co",
       }),
-      // TODO: Add partners.dub.co welcome email
+
       isPartner
-        ? undefined
+        ? sendEmail({
+            email: user.email,
+            replyTo: "steven.tey@dub.co",
+            subject: "Welcome to Dub Partner!",
+            react: PartnerWelcome({
+              email: user.email,
+              name: user.name,
+            }),
+            variant: "marketing",
+          })
         : sendEmail({
             email: user.email,
             replyTo: "steven.tey@dub.co",
@@ -61,9 +73,7 @@ export async function POST(req: Request) {
           }),
     ]);
 
-    return new Response("Welcome email sent and user subscribed.", {
-      status: 200,
-    });
+    return new Response("Welcome email sent and user subscribed.");
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }

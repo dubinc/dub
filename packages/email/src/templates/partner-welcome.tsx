@@ -57,15 +57,11 @@ const topPrograms = [
 const DUB_PARTNERS_URL = "https://partners.dub.co";
 
 export function PartnerWelcome({
+  name = "John Doe",
   email = "panic@thedis.co",
-  partner = {
-    name: "John Doe",
-  },
 }: {
+  name: string | null;
   email: string;
-  partner: {
-    name: string;
-  };
 }) {
   const topProgramsLinks = topPrograms.map((program, index) => (
     <>
@@ -91,7 +87,7 @@ export function PartnerWelcome({
             </Section>
 
             <Heading className="mx-0 my-6 p-0 text-lg font-medium text-black">
-              Welcome {partner.name}!
+              Welcome {name}!
             </Heading>
 
             <Text className="text-sm leading-5 text-neutral-600">
