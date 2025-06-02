@@ -2,7 +2,7 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { sendEmail } from "@dub/email";
 import { subscribe } from "@dub/email/resend/subscribe";
-import { WelcomeEmail } from "@dub/email/templates/welcome-email";
+import { UserWelcome } from "@dub/email/templates/user-welcome";
 import { prisma } from "@dub/prisma";
 
 export const dynamic = "force-dynamic";
@@ -53,7 +53,7 @@ export async function POST(req: Request) {
             email: user.email,
             replyTo: "steven.tey@dub.co",
             subject: "Welcome to Dub!",
-            react: WelcomeEmail({
+            react: UserWelcome({
               email: user.email,
               name: user.name,
             }),

@@ -14,7 +14,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export function WelcomeEmail({
+export function UserWelcome({
   name = "Brendon Urie",
   email = "panic@thedis.co",
 }: {
@@ -99,4 +99,4 @@ export function WelcomeEmail({
   );
 }
 
-export default WelcomeEmail;
+export default UserWelcome;
