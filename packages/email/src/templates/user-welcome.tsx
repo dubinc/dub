@@ -35,7 +35,7 @@ export function UserWelcome({
   return (
     <Html>
       <Head />
-      <Preview>You're officially a Dub Partner</Preview>
+      <Preview>Your Dub workspace is ready to go</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] px-10 py-5">
