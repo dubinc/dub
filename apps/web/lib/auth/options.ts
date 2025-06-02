@@ -500,41 +500,46 @@ export const authOptions: NextAuthOptions = {
   },
   events: {
     async signIn(message) {
-      if (message.isNewUser) {
-        const email = message.user.email as string;
-        const user = await prisma.user.findUnique({
-          where: { email },
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            image: true,
-            createdAt: true,
-          },
-        });
-        if (!user) {
-          return;
-        }
-        // only send the welcome email if the user was created in the last 10s
-        // (this is a workaround because the `isNewUser` flag is triggered when a user does `dangerousEmailAccountLinking`)
-        if (
-          user.createdAt &&
-          new Date(user.createdAt).getTime() > Date.now() - 10000 &&
-          process.env.NEXT_PUBLIC_IS_DUB
-        ) {
-          waitUntil(
-            Promise.allSettled([
-              trackLead(user),
-              qstash.publishJSON({
-                url: `${APP_DOMAIN_WITH_NGROK}/api/cron/welcome-user`,
-                // trigger welcome workflow 15 minutes after the user signed up
-                delay: 15 * 60,
-                body: { userId: user.id },
-              }),
-            ]),
-          );
-        }
+      console.log("signIn", message);
+      const email = message.user.email as string;
+      const user = await prisma.user.findUnique({
+        where: { email },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          image: true,
+          createdAt: true,
+        },
+      });
+      if (!user) {
+        console.log(
+          `User ${message.user.email} not found, skipping welcome workflow...`,
+        );
+        return;
       }
+      // only process new user workflow if the user was created in the last 15s (newly created user)
+      if (
+        user.createdAt &&
+        new Date(user.createdAt).getTime() > Date.now() - 15000
+      ) {
+        console.log(
+          `New user ${user.email} created,  triggering welcome workflow...`,
+        );
+        waitUntil(
+          Promise.allSettled([
+            // track lead if dub_id cookie is present
+            trackLead(user),
+            // trigger welcome workflow 15 minutes after the user signed up
+            qstash.publishJSON({
+              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/welcome-user`,
+              delay: 15 * 60,
+              body: { userId: user.id },
+            }),
+          ]),
+        );
+      }
+
       // lazily backup user avatar to R2
       const currentImage = message.user.image;
       if (currentImage && !isStored(currentImage)) {
