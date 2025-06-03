@@ -1,5 +1,6 @@
 "use client";
 
+import { DubPartnersBanner } from "@/ui/auth/dub-partners-banner";
 import {
   RegisterProvider,
   useRegisterContext,
@@ -27,16 +28,20 @@ function SignUp() {
         <div className="mt-8">
           <SignUpForm />
         </div>
+        <p className="mt-6 text-center text-sm font-medium text-neutral-500">
+          Already have an account?&nbsp;
+          <Link
+            href="/login"
+            className="font-semibold text-neutral-700 transition-colors hover:text-neutral-900"
+          >
+            Log in
+          </Link>
+        </p>
+
+        <div className="mt-12 w-full">
+          <DubPartnersBanner variant="register" />
+        </div>
       </div>
-      <p className="mt-6 text-center text-sm font-medium text-neutral-500">
-        Already have an account?&nbsp;
-        <Link
-          href="/login"
-          className="font-semibold text-neutral-700 transition-colors hover:text-neutral-900"
-        >
-          Log in
-        </Link>
-      </p>
     </>
   );
 }
