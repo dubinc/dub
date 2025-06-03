@@ -87,6 +87,9 @@ importers:
       '@planetscale/database':
         specifier: ^1.18.0
         version: 1.18.0
+      '@primer-io/checkout-web':
+        specifier: ^2.54.0
+        version: 2.54.0
       '@prisma/client':
         specifier: 5.18.0
         version: 5.18.0(prisma@5.18.0)
@@ -102,6 +105,9 @@ importers:
       '@radix-ui/react-navigation-menu':
         specifier: ^1.2.3
         version: 1.2.3(@types/react-dom@18.2.14)(@types/react@18.2.48)(react-dom@18.2.0)(react@18.2.0)
+      '@radix-ui/react-radio-group':
+        specifier: ^1.2.2
+        version: 1.3.3(@types/react-dom@18.2.14)(@types/react@18.2.48)(react-dom@18.2.0)(react@18.2.0)
       '@radix-ui/react-scroll-area':
         specifier: ^1.2.3
         version: 1.2.3(@types/react-dom@18.2.14)(@types/react@18.2.48)(react-dom@18.2.0)(react@18.2.0)
@@ -5944,6 +5950,10 @@ packages:
       '@pnpm/config.env-replace': 1.1.0
       '@pnpm/network.ca-file': 1.0.2
       config-chain: 1.1.13
+    dev: false
+
+  /@primer-io/checkout-web@2.54.0:
+    resolution: {integrity: sha512-XNeMoYTar9H7vmcxLFV87Yx67icP/aeUC49mFB5F/YIn45okg37/CSZsNV0kSwy1gbhrbg25Wc8tEUHtSLlJXA==}
     dev: false
 
   /@prisma/adapter-planetscale@5.18.0(@planetscale/database@1.18.0):
