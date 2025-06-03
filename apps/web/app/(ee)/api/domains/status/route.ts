@@ -1,6 +1,9 @@
 import { withWorkspace } from "@/lib/auth";
 import { searchDomainsAvailability } from "@/lib/dynadot/search-domains";
-import { searchDomainSchema } from "@/lib/zod/schemas/domains";
+import {
+  DomainStatusSchema,
+  searchDomainSchema,
+} from "@/lib/zod/schemas/domains";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
@@ -17,13 +20,16 @@ export const GET = withWorkspace(
     });
 
     if (domainOnDub) {
-      return NextResponse.json([
-        {
-          domain: domainOnDub.slug,
-          available: false,
-          price: null,
-        },
-      ]);
+      return NextResponse.json(
+        DomainStatusSchema.array().parse([
+          {
+            domain: domainOnDub.slug,
+            available: false,
+            price: null,
+            premium: null,
+          },
+        ]),
+      );
     }
 
     // search for the domain on Dynadot
