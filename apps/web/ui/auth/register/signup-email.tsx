@@ -3,10 +3,11 @@
 import { sendOtpAction } from "@/lib/actions/send-otp";
 import z from "@/lib/zod";
 import { signUpSchema } from "@/lib/zod/schemas/auth";
+import { PasswordRequirements } from "@/ui/shared/password-requirements";
 import { Button, Input, useMediaQuery } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import { FormEvent, useCallback, useState } from "react";
-import { useForm } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useRegisterContext } from "./context";
 
@@ -20,16 +21,18 @@ export const SignUpEmail = () => {
 
   const [showPassword, setShowPassword] = useState(false);
 
+  const form = useForm<SignUpProps>({
+    defaultValues: {
+      email,
+    },
+  });
+
   const {
     register,
     handleSubmit,
     formState: { errors },
     getValues,
-  } = useForm<SignUpProps>({
-    defaultValues: {
-      email,
-    },
-  });
+  } = form;
 
   const { executeAsync, isPending } = useAction(sendOtpAction, {
     onSuccess: () => {
@@ -93,6 +96,9 @@ export const SignUpEmail = () => {
               error={errors.password?.message}
               minLength={8}
             />
+            <FormProvider {...form}>
+              <PasswordRequirements />
+            </FormProvider>
           </label>
         )}
         <Button
