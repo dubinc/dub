@@ -192,6 +192,9 @@ export const searchDomainSchema = z.object({
 export const DomainStatusSchema = z.object({
   domain: z.string().describe("The domain name."),
   available: z.boolean().describe("Whether the domain is available."),
-  price: z.string().describe("The price description."),
-  premium: z.boolean().describe("Whether the domain is a premium domain."),
+  price: z.string().nullable().describe("The price description."),
+  premium: z
+    .boolean()
+    .nullable()
+    .describe("Whether the domain is a premium domain."),
 });
