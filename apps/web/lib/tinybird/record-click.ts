@@ -149,7 +149,7 @@ export async function recordClick({
 
   const hasWebhooks = webhookIds && webhookIds.length > 0;
 
-  const [, , , , workspaceRows] = await Promise.allSettled([
+  const response = await Promise.allSettled([
     fetchWithRetry(
       `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_click_events&wait=true`,
       {
@@ -193,6 +193,14 @@ export async function recordClick({
         )
       : null,
   ]);
+
+  // Find the rejected promises and log them
+  if (response.some((result) => result.status === "rejected")) {
+    const errors = response.filter((result) => result.status === "rejected");
+    console.error("[Record click] - Rejected promises", errors);
+  }
+
+  const [, , , , workspaceRows] = response;
 
   const workspace =
     workspaceRows.status === "fulfilled" &&
