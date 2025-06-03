@@ -204,6 +204,8 @@ export const RegisterDomainSchema = z.object({
   status: z.string().describe("The status of the domain registration."),
   expiration: z
     .number()
-    .describe("The expiration date of the domain.")
+    .describe(
+      "The expiration timestamp of the domain (Unix timestamp in milliseconds).",
+    )
     .nullable(),
 });
