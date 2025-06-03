@@ -32,7 +32,7 @@ export const registerDomain = async ({ domain }: { domain: string }) => {
   const searchParams = new URLSearchParams({
     domain,
     command: "register",
-    duration: "1", // TODO: Is this month or year?
+    duration: "1",
     currency: "USD",
     coupon: DYNADOT_COUPON,
     key: DYNADOT_API_KEY,
