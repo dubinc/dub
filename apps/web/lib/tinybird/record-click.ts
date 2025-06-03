@@ -4,7 +4,6 @@ import {
   capitalize,
   fetchWithRetry,
   getDomainWithoutWWW,
-  log,
 } from "@dub/utils";
 import { EU_COUNTRY_CODES } from "@dub/utils/src/constants/countries";
 import { geolocation, ipAddress } from "@vercel/functions";
@@ -81,13 +80,13 @@ export async function recordClick({
 
   // by default, we deduplicate clicks for a domain + key pair from the same IP address – only record 1 click per hour
   // we only need to do these if skipRatelimit is not true (we skip it in /api/track/:path endpoints)
-  // if (!skipRatelimit) {
-  //   // here, we check if the clickId is cached in Redis within the last hour
-  //   const cachedClickId = await clickCache.get({ domain, key, ip });
-  //   if (cachedClickId) {
-  //     return null;
-  //   }
-  // }
+  if (!skipRatelimit) {
+    // here, we check if the clickId is cached in Redis within the last hour
+    const cachedClickId = await clickCache.get({ domain, key, ip });
+    if (cachedClickId) {
+      return null;
+    }
+  }
 
   const isQr = detectQr(req);
 
@@ -195,15 +194,10 @@ export async function recordClick({
       : null,
   ]);
 
-  // Alert Slack if any of the promises are rejected
+  // Find the rejected promises and log them
   if (response.some((result) => result.status === "rejected")) {
     const errors = response.filter((result) => result.status === "rejected");
-
-    await log({
-      message: `[Record click] - ${errors.map((error) => error.reason).join(", ")}`,
-      type: "errors",
-      mention: true,
-    });
+    console.error("[Record click] - Rejected promises", errors);
   }
 
   const [, , , , workspaceRows] = response;
