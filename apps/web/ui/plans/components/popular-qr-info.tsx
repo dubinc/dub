@@ -28,8 +28,8 @@ export const PopularQrInfo: FC<IPopularQrInfo> = ({
     >
       <Heading
         as="h2"
-        align={{ initial: "center", lg: "left" }}
-        size={{ initial: "3", lg: "4" }}
+        align="left"
+        size={{ initial: "2", lg: "4" }}
         className="text-neutral"
       >
         Your most popular QR code is now Deactivated

@@ -30,7 +30,7 @@ export const PricingPlanCard: FC<IPricingPlanCardProps> = ({
       <div className="flex w-full flex-row items-center justify-between lg:hidden">
         <Flex direction="column">
           <Flex direction="row" align="center" gap="2">
-            <Text as="span" weight="bold" className="text-neutral text-[13px]">
+            <Text as="span" size="2" weight="bold" className="text-neutral">
               {plan.name}
             </Text>
             {plan.savings && (
@@ -39,16 +39,13 @@ export const PricingPlanCard: FC<IPricingPlanCardProps> = ({
                 justify="center"
                 className="border-secondary rounded-[60px] border bg-[rgba(0,122,255,0.04)] px-2 py-1"
               >
-                <Text
-                  as="span"
-                  className="text-secondary text-[10px] font-medium"
-                >
+                <Text as="span" size="1" className="text-secondary font-medium">
                   {plan.savings}
                 </Text>
               </Flex>
             )}
           </Flex>
-          <Text as="span" className="text-[10px] text-neutral-800">
+          <Text as="span" size="1" className="text-neutral-800">
             {plan.description}
           </Text>
         </Flex>
@@ -59,18 +56,15 @@ export const PricingPlanCard: FC<IPricingPlanCardProps> = ({
             align={{ initial: "center", lg: "end" }}
             gap="1"
           >
-            <Text as="span" weight="bold" className="text-neutral text-[13px]">
+            <Text as="span" size="2" weight="bold" className="text-neutral">
               US ${plan.price.toFixed(2)}
             </Text>
-            <Text as="span" className="text-[10px] text-neutral-800 lg:text-xs">
+            <Text as="span" size="1" className="text-neutral-800">
               /month
             </Text>
           </Flex>
           {plan.originalPrice && (
-            <Text
-              as="span"
-              className="text-[10px] text-neutral-800 line-through lg:text-xs"
-            >
+            <Text as="span" size="1" className="text-neutral-800 line-through">
               ${plan.originalPrice.toFixed(2)}
             </Text>
           )}

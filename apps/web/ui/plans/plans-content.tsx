@@ -88,18 +88,18 @@ export default function PlansContent() {
 
         <Flex
           direction="column"
-          className="border-border-500 gap-4 rounded-lg border p-3 lg:flex-1 lg:gap-[18px] lg:px-6 lg:py-4"
+          className="border-border-500 gap-4 rounded-lg px-0 py-3 lg:flex-1 lg:gap-[18px] lg:border lg:px-6 lg:py-4"
         >
           <Heading
             as="h2"
             align={{ initial: "center", lg: "left" }}
-            size={{ initial: "3", lg: "4" }}
+            size="4"
             className="text-neutral"
           >
             Choose Your Plan
           </Heading>
 
-          <div className="border-border-500 h-px w-full border-t" />
+          <div className="border-border-500 hidden h-px w-full border-t lg:block" />
 
           <div className="flex flex-col justify-center gap-2 lg:gap-4">
             <RadioGroup.Root
@@ -119,7 +119,7 @@ export default function PlansContent() {
               ))}
             </RadioGroup.Root>
 
-            <Text as="p" className="text-[10px] text-neutral-800 lg:text-xs">
+            <Text as="p" size="1" className="text-neutral-800">
               You'll be charged US${totalCharge.toFixed(2)} today. Renews every{" "}
               {selectedPlan.name.toLowerCase()}. Cancel anytime.
             </Text>
@@ -138,10 +138,7 @@ export default function PlansContent() {
               />
             </div>
 
-            <Text
-              as="p"
-              className="text-center text-[10px] text-neutral-800 lg:text-xs"
-            >
+            <Text as="p" size="1" className="text-center text-neutral-800">
               🔒 Secure payment • Cancel anytime • No hidden fees
             </Text>
           </div>
