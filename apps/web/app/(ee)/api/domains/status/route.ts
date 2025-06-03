@@ -7,7 +7,7 @@ import {
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
-// GET /api/domains/status - checks the availability status of a single domain
+// GET /api/domains/status - checks the availability status of one or more domains
 export const GET = withWorkspace(
   async ({ searchParams }) => {
     let { domains } = searchDomainSchema.parse(searchParams);
