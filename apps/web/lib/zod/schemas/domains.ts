@@ -168,3 +168,12 @@ export const transferDomainBodySchema = z.object({
     .transform((v) => normalizeWorkspaceId(v))
     .describe("The ID of the new workspace to transfer the domain to."),
 });
+
+export const registerDomainBodySchema = z.object({
+  domain: z
+    .string()
+    .min(1, "Domain to register is required.")
+    .endsWith(".link")
+    .transform((domain) => domain.toLowerCase())
+    .describe("The domain to claim. We only support .link domains for now."),
+});

@@ -20,29 +20,33 @@ export async function claimDotLinkDomain({
   domain,
   workspace,
   userId,
+  skipWorkspaceChecks = false,
 }: {
   domain: string;
   workspace: WorkspaceWithUsers;
   userId: string;
+  skipWorkspaceChecks?: boolean; // when used in /api/domains/register
 }) {
-  if (workspace.plan === "free")
-    throw new DubApiError({
-      code: "forbidden",
-      message: "Free workspaces cannot register .link domains.",
-    });
+  if (!skipWorkspaceChecks) {
+    if (workspace.plan === "free")
+      throw new DubApiError({
+        code: "forbidden",
+        message: "Free workspaces cannot register .link domains.",
+      });
 
-  if (!workspace.stripeId) {
-    throw new DubApiError({
-      code: "forbidden",
-      message: "You cannot register a .link domain on a free trial.",
-    });
-  }
+    if (!workspace.stripeId) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "You cannot register a .link domain on a free trial.",
+      });
+    }
 
-  if (workspace.id !== ACME_WORKSPACE_ID && workspace.dotLinkClaimed) {
-    throw new DubApiError({
-      code: "forbidden",
-      message: "Workspace is limited to one free .link domain.",
-    });
+    if (workspace.id !== ACME_WORKSPACE_ID && workspace.dotLinkClaimed) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "Workspace is limited to one free .link domain.",
+      });
+    }
   }
 
   const customDomainTerms = await get("customDomainTerms");
@@ -65,11 +69,15 @@ export async function claimDotLinkDomain({
   const [response, totalDomains, matchingUnverifiedDomain] = await Promise.all([
     // register the domain
     registerDomain({ domain }),
+
+    // count the number of domains in the workspace
     prisma.domain.count({
       where: {
         projectId: workspace.id,
       },
     }),
+
+    // find the unverified domain that matches the domain
     prisma.domain.findFirst({
       where: {
         slug: domain,
@@ -110,6 +118,7 @@ export async function claimDotLinkDomain({
         },
       },
     }),
+
     // Create the root link
     createLink({
       ...DEFAULT_LINK_PROPS,
@@ -132,10 +141,15 @@ export async function claimDotLinkDomain({
           domain,
         },
       }),
+
       // add domain to Vercel
       addDomainToVercel(domain),
+
       // send email to workspace owners
-      sendDomainClaimedEmails({ workspace, domain }),
+      !skipWorkspaceChecks
+        ? sendDomainClaimedEmails({ workspace, domain })
+        : Promise.resolve(),
+
       // update workspace to set dotLinkClaimed to true
       prisma.project.update({
         where: {
