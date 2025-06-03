@@ -92,10 +92,7 @@ export const PayoutStats = memo(() => {
           </div>
         </div>
         {partner && !partner.payoutsEnabledAt && (
-          <ConnectPayoutButton
-            className="mt-4 h-9 w-full"
-            text="Connect bank account"
-          />
+          <ConnectPayoutButton className="mt-4 h-9 w-full" />
         )}
       </div>
     </AnimatedSizeContainer>

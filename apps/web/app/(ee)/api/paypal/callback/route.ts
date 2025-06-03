@@ -2,7 +2,7 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { getSession } from "@/lib/auth";
 import { paypalOAuth } from "@/lib/paypal/oauth";
 import { prisma } from "@dub/prisma";
-import { getSearchParams } from "@dub/utils";
+import { getSearchParams, PARTNERS_DOMAIN } from "@dub/utils";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
@@ -22,7 +22,7 @@ export const GET = async (req: Request) => {
     !req.headers.get("host")?.includes("localhost")
   ) {
     return redirect(
-      `http://partners.localhost:8888/api/paypal/callback?${searchParams.toString()}`,
+      `${PARTNERS_DOMAIN}/api/paypal/callback?${searchParams.toString()}`,
     );
   }
 
