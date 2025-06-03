@@ -84,7 +84,7 @@ function MarkPayoutPaidModalInner({
           }
           autoFocus
           loading={isExecuting || hasSucceeded}
-          text="Mark as paid"
+          text="Mark payout as paid"
           className="h-8 w-fit px-3"
         />
       </div>

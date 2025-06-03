@@ -4,32 +4,32 @@ import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutResponse } from "@/lib/types";
-import { AmountRowItem } from "@/ui/partners/amount-row-item";
-import { useMarkPayoutPaidModal } from "@/ui/partners/mark-payout-paid-modal";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PayoutDetailsSheet } from "@/ui/partners/payout-details-sheet";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
+import { PayoutStatus } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
-  Button,
   Filter,
-  Icon,
-  Popover,
   StatusBadge,
   Table,
   Tooltip,
+  TooltipContent,
   usePagination,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { CircleCheck, Dots, MoneyBill2 } from "@dub/ui/icons";
-import { cn, formatDate, formatDateTime, OG_AVATAR_URL } from "@dub/utils";
+import { MoneyBill2 } from "@dub/ui/icons";
+import {
+  currencyFormatter,
+  formatDate,
+  formatDateTime,
+  OG_AVATAR_URL,
+} from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
 import { fetcher } from "@dub/utils/src/functions/fetcher";
-import { Row } from "@tanstack/react-table";
-import { Command } from "cmdk";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { memo, useEffect, useState } from "react";
 import useSWR from "swr";
 import { usePayoutFilters } from "./use-payout-filters";
@@ -54,7 +54,7 @@ const PayoutTableInner = memo(
     const { id: workspaceId } = useWorkspace();
     const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
-    const sortBy = searchParams.get("sortBy") || "amount";
+    const sortBy = searchParams.get("sortBy") || "periodEnd";
     const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
     const { payoutsCount, error: countError } = usePayoutsCount<number>();
@@ -103,7 +103,7 @@ const PayoutTableInner = memo(
       error: error || countError ? "Failed to load payouts" : undefined,
       columns: [
         {
-          id: "periodStart",
+          id: "periodEnd",
           header: "Period",
           accessorFn: (d) => formatPeriod(d),
         },
@@ -197,19 +197,10 @@ const PayoutTableInner = memo(
             />
           ),
         },
-        // Menu
-        {
-          id: "menu",
-          enableHiding: false,
-          minSize: 43,
-          size: 43,
-          maxSize: 43,
-          cell: ({ row }) => <RowMenuButton row={row} />,
-        },
       ],
       pagination,
       onPaginationChange: setPagination,
-      sortableColumns: ["periodStart", "amount", "paidAt"],
+      sortableColumns: ["periodEnd", "amount", "paidAt"],
       sortBy,
       sortOrder,
       onSortChange: ({ sortBy, sortOrder }) =>
@@ -297,72 +288,53 @@ const PayoutTableInner = memo(
   },
 );
 
-function RowMenuButton({ row }: { row: Row<PayoutResponse> }) {
-  const router = useRouter();
-  const { slug, programId } = useParams();
-  const [isOpen, setIsOpen] = useState(false);
-
-  const { setShowMarkPayoutPaidModal, MarkPayoutPaidModal } =
-    useMarkPayoutPaidModal({
-      payout: row.original,
-    });
-
-  const isPayable = ["pending", "failed"].includes(row.original.status);
-
-  if (!isPayable) return null;
-
-  return (
-    <>
-      <MarkPayoutPaidModal />
-      <Popover
-        openPopover={isOpen}
-        setOpenPopover={setIsOpen}
-        content={
-          <Command tabIndex={0} loop className="focus:outline-none">
-            <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm sm:w-auto sm:min-w-[140px]">
-              <MenuItem
-                icon={CircleCheck}
-                label="Mark as paid"
-                onSelect={() => {
-                  setShowMarkPayoutPaidModal(true);
-                  setIsOpen(false);
-                }}
-              />
-            </Command.List>
-          </Command>
-        }
-        align="end"
-      >
-        <Button
-          type="button"
-          className="h-8 whitespace-nowrap px-2"
-          variant="outline"
-          icon={<Dots className="h-4 w-4 shrink-0" />}
-        />
-      </Popover>
-    </>
-  );
-}
-
-function MenuItem({
-  icon: IconComp,
-  label,
-  onSelect,
+function AmountRowItem({
+  amount,
+  status,
+  payoutsEnabled,
+  minPayoutAmount,
 }: {
-  icon: Icon;
-  label: string;
-  onSelect: () => void;
+  amount: number;
+  status: PayoutStatus;
+  payoutsEnabled: boolean;
+  minPayoutAmount: number;
 }) {
-  return (
-    <Command.Item
-      className={cn(
-        "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm text-neutral-600",
-        "data-[selected=true]:bg-neutral-100",
-      )}
-      onSelect={onSelect}
-    >
-      <IconComp className="size-4 shrink-0 text-neutral-500" />
-      {label}
-    </Command.Item>
-  );
+  const { slug, programId } = useParams();
+  const display = currencyFormatter(amount / 100, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  if (status === PayoutStatus.pending) {
+    if (amount < minPayoutAmount) {
+      return (
+        <Tooltip
+          content={
+            <TooltipContent
+              title={`Your program's minimum payout amount is ${currencyFormatter(
+                minPayoutAmount / 100,
+              )}. This payout will be accrued and processed during the next payout period.`}
+              cta="Update minimum payout amount"
+              href={`/${slug}/programs/${programId}/settings/rewards`}
+              target="_blank"
+            />
+          }
+        >
+          <span className="cursor-help truncate text-neutral-400 underline decoration-dotted underline-offset-2">
+            {display}
+          </span>
+        </Tooltip>
+      );
+    } else if (!payoutsEnabled) {
+      return (
+        <Tooltip content="This partner does not have payouts enabled, which means they will not be able to receive any payouts from this program.">
+          <span className="cursor-help truncate text-neutral-400 underline decoration-dotted underline-offset-2">
+            {display}
+          </span>
+        </Tooltip>
+      );
+    }
+  }
+
+  return display;
 }

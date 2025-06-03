@@ -1,7 +1,7 @@
 import { programLanderTextBlockSchema } from "@/lib/zod/schemas/program-lander";
 import { z } from "zod";
-import { BlockMarkdown } from "./BlockMarkdown";
-import { BlockTitle } from "./BlockTitle";
+import { BlockMarkdown } from "./block-markdown";
+import { BlockTitle } from "./block-title";
 
 export function TextBlock({
   block,

@@ -2,11 +2,12 @@ import { unsortedLinks } from "@/lib/folder/constants";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useFolder from "@/lib/swr/use-folder";
 import useFolders from "@/lib/swr/use-folders";
+import useLinksCount from "@/lib/swr/use-links-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderSummary } from "@/lib/types";
 import { FOLDERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/folders";
 import { Button, Combobox, TooltipContent, useRouterStuff } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, nFormatter } from "@dub/utils";
 import { ChevronsUpDown } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -62,6 +63,13 @@ export const FolderDropdown = ({
     if (folders && !useAsync && folders.length >= FOLDERS_MAX_PAGE_SIZE)
       setUseAsync(true);
   }, [folders, useAsync]);
+
+  const { data: folderLinksCount } = useLinksCount<
+    {
+      folderId: string;
+      _count: number;
+    }[]
+  >({ query: { groupBy: "folderId" }, ignoreParams: true });
 
   const [openPopover, setOpenPopover] = useState(false);
 
@@ -122,7 +130,15 @@ export const FolderDropdown = ({
         value: folder.id,
         label: folder.name,
         icon: <FolderIcon className="mr-1" folder={folder} shape="square" />,
-        meta: folder,
+        meta: {
+          ...folder,
+          linksCount:
+            folderLinksCount?.find(
+              ({ folderId }) =>
+                folderId === folder.id ||
+                (folder.id === "unsorted" && folderId === null),
+            )?._count || 0,
+        },
         first: folder.id === "unsorted",
       })),
       {
@@ -210,10 +226,12 @@ export const FolderDropdown = ({
           ) : undefined
         }
         optionRight={(option) =>
-          option.value === "unsorted" ? (
-            <div className="rounded bg-neutral-100 p-1">
-              <div className="text-xs font-normal text-black">Unsorted</div>
-            </div>
+          option.meta && option.meta.linksCount ? (
+            <span className="text-xs text-neutral-500">
+              {option.meta.type === "mega"
+                ? "10,000+"
+                : nFormatter(option.meta.linksCount, { full: true })}
+            </span>
           ) : undefined
         }
         caret={

@@ -1,5 +1,5 @@
 import { DiscountProps, RewardProps } from "@/lib/types";
-import { ProgramRewardList } from "./program-reward-list";
+import { ProgramRewardList } from "../program-reward-list";
 
 export function LanderRewards({
   program,

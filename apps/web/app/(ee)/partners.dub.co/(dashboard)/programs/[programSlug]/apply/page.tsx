@@ -1,7 +1,7 @@
 import { getProgram } from "@/lib/fetchers/get-program";
 import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { PageContent } from "@/ui/layout/page-content";
-import { BLOCK_COMPONENTS } from "@/ui/partners/lander-blocks";
+import { BLOCK_COMPONENTS } from "@/ui/partners/lander/blocks";
 import { BackLink } from "@/ui/shared/back-link";
 import { MaxWidthWrapper } from "@dub/ui";
 import { notFound } from "next/navigation";

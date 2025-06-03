@@ -126,6 +126,7 @@ export const VALID_ANALYTICS_ENDPOINTS = [
   "triggers",
   "referers",
   "referer_urls",
+  "top_partners",
   "top_links",
   "top_urls",
   "utm_sources",
@@ -170,8 +171,9 @@ export const VALID_ANALYTICS_FILTERS = [
   "referer",
   "refererUrl",
   "url",
-  "tagId",
+  "partnerId",
   "folderId",
+  "tagId",
   "tagIds",
   "customerId",
   "qr", // deprecated, but keeping for now for backwards compatibility

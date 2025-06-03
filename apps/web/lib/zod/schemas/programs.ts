@@ -37,10 +37,11 @@ export const ProgramSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
 
-  // Help & Support
+  // Help & support
   supportEmail: z.string().nullish(),
   helpUrl: z.string().nullish(),
   termsUrl: z.string().nullish(),
+  ageVerification: z.number().nullish(),
 });
 
 export const ProgramWithLanderDataSchema = ProgramSchema.extend({
@@ -71,7 +72,7 @@ export const updateProgramSchema = z.object({
     }),
   linkStructure: z.nativeEnum(LinkStructure),
 
-  // Help & Support
+  // Help & support
   supportEmail: z.string().email().max(255).nullish(),
   helpUrl: z.string().url().max(500).nullish(),
   termsUrl: z.string().url().max(500).nullish(),
