@@ -169,11 +169,29 @@ export const transferDomainBodySchema = z.object({
     .describe("The ID of the new workspace to transfer the domain to."),
 });
 
-export const registerDomainBodySchema = z.object({
+export const registerDomainSchema = z.object({
   domain: z
     .string()
     .min(1, "Domain to register is required.")
     .endsWith(".link")
     .transform((domain) => domain.toLowerCase())
-    .describe("The domain to claim. We only support .link domains for now."),
+    .describe("The domain to claim. We only support .link domains for now.")
+    .openapi({ example: "acme.link" }),
+});
+
+export const searchDomainSchema = z.object({
+  domain: z
+    .string()
+    .min(1, "Domain to search is required.")
+    .endsWith(".link")
+    .transform((domain) => domain.toLowerCase())
+    .describe("The domain to search. We only support .link domains for now.")
+    .openapi({ example: "acme.link" }),
+});
+
+export const DomainStatusSchema = z.object({
+  domain: z.string().describe("The domain name."),
+  available: z.boolean().describe("Whether the domain is available."),
+  price: z.string().describe("The price description."),
+  premium: z.boolean().describe("Whether the domain is a premium domain."),
 });
