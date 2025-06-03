@@ -14,13 +14,15 @@ const variants = {
   },
 };
 
-export function DubPartnersBanner({
-  variant,
+export function AuthAlternativeBanner({
+  text,
+  cta,
+  href,
 }: {
-  variant: "login" | "register";
+  text: string;
+  cta: string;
+  href: string;
 }) {
-  const { text, href, cta } = variants[variant];
-
   return (
     <Link
       href={href}

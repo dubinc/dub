@@ -1,6 +1,6 @@
 "use client";
 
-import { DubPartnersBanner } from "@/ui/auth/dub-partners-banner";
+import { AuthAlternativeBanner } from "@/ui/auth/auth-alternative-banner";
 import {
   RegisterProvider,
   useRegisterContext,
@@ -39,7 +39,11 @@ function SignUp() {
         </p>
 
         <div className="mt-12 w-full">
-          <DubPartnersBanner variant="register" />
+          <AuthAlternativeBanner
+            text="Looking for a Dub Partner account?"
+            cta="Sign up at partners.dub.co"
+            href="https://partners.dub.co/register"
+          />
         </div>
       </div>
     </>

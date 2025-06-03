@@ -1,4 +1,4 @@
-import { DubPartnersBanner } from "@/ui/auth/dub-partners-banner";
+import { AuthAlternativeBanner } from "@/ui/auth/auth-alternative-banner";
 import LoginForm from "@/ui/auth/login/login-form";
 import { AuthLayout } from "@/ui/layout/auth-layout";
 import { APP_DOMAIN, constructMetadata } from "@dub/utils";
@@ -30,7 +30,11 @@ export default function LoginPage() {
         </p>
 
         <div className="mt-12 w-full">
-          <DubPartnersBanner variant="login" />
+          <AuthAlternativeBanner
+            text="Looking for your Dub Partner account?"
+            cta="Log in at partners.dub.co"
+            href="https://partners.dub.co/login"
+          />
         </div>
       </div>
     </AuthLayout>

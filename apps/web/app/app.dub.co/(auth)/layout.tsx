@@ -49,9 +49,9 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       <div className="relative flex min-h-screen w-full justify-center">
         <Link
           href="/"
-          className="absolute left-1/2 top-3 z-10 -translate-x-1/2"
+          className="absolute left-1/2 top-4 z-10 -translate-x-1/2"
         >
-          <Wordmark className="h-6" />
+          <Wordmark className="h-8" />
         </Link>
         {children}
       </div>
