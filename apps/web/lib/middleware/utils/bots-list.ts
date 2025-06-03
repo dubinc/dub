@@ -27,7 +27,7 @@ export const UA_BOTS = [
   "yandex", // Yandex crawler
   "MetaInspector", // metatags.io
   "iframely", // https://iframely.com/docs/about (used by Notion, Linear)
-  "H1cbA69", // internal links/metatags API
+  "HeadlessChrome", // headless chrome
 
   // new
   "ia_archiver",

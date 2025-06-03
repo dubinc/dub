@@ -35,7 +35,7 @@ export const POST = async (req: Request) => {
     return new Response("Unsupported event, skipping...");
   }
 
-  console.info(`Paypal webhook received: ${body.event_type}`, body);
+  console.info(`[Paypal] Webhook received: ${body.event_type}`, body);
 
   try {
     switch (body.event_type) {
