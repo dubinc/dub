@@ -35,10 +35,23 @@ export async function POST(req: Request) {
       },
     });
 
-    if (!application)
+    if (!application) {
       return new Response(
         `Application ${applicationId} without partner not found. Skipping...`,
       );
+    }
+
+    const programEnrollment = await prisma.programEnrollment.findFirst({
+      where: {
+        applicationId: application.id,
+      },
+    });
+
+    if (programEnrollment) {
+      return new Response(
+        `Partner with applicationId ${application.id} has already been enrolled in program ${application.program.name}. Skipping...`,
+      );
+    }
 
     await sendEmail({
       subject: `Complete your application for ${application.program.name}`,
