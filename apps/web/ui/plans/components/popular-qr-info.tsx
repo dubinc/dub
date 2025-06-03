@@ -32,7 +32,9 @@ export const PopularQrInfo: FC<IPopularQrInfo> = ({
         size={{ initial: "2", lg: "4" }}
         className="text-neutral"
       >
-        Your most popular QR code is now Deactivated
+        {isTrialOver
+          ? "Your most popular QR code is now Deactivated"
+          : "Make sure this QR stays active"}
       </Heading>
 
       <div className="border-border-200 h-px w-full border-t" />
