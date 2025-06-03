@@ -1,6 +1,6 @@
-import { queueDomainDeletion } from "@/lib/api/domains/queue";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
+import { limiter } from "@/lib/cron/limiter";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird/record-link";
@@ -43,8 +43,13 @@ export async function POST(req: Request) {
           },
         },
       },
-      take: 100, // TODO: We can adjust this number based on the performance
+      take: 100,
+      orderBy: {
+        createdAt: "desc",
+      },
     });
+
+    console.log(`Found ${links.length} links to delete`);
 
     if (links.length === 0) {
       return new Response("No more links to delete. Exiting...");
@@ -55,13 +60,16 @@ export async function POST(req: Request) {
       linkCache.deleteMany(links),
 
       // Record link in Tinybird
-      // TODO: Maybe we can just delete these links instead?
       recordLink(links),
 
       // Remove image from R2 storage if it exists
       links
         .filter((link) => link.image?.startsWith(`${R2_URL}/images/${link.id}`))
-        .map((link) => storage.delete(link.image!.replace(`${R2_URL}/`, ""))),
+        .map((link) =>
+          limiter.schedule(() =>
+            storage.delete(link.image!.replace(`${R2_URL}/`, "")),
+          ),
+        ),
 
       // Remove the link from MySQL
       prisma.link.deleteMany({
@@ -101,26 +109,26 @@ export async function POST(req: Request) {
 
     console.log("remainingLinks", remainingLinks);
 
-    if (remainingLinks > 0) {
-      await queueDomainDeletion({
-        domain,
-        delay: 2,
-      });
-      return new Response(
-        `Deleted ${links.length} links, ${remainingLinks} remaining. Starting next batch...`,
-      );
-    }
+    // if (remainingLinks > 0) {
+    //   await queueDomainDeletion({
+    //     domain,
+    //     delay: 2,
+    //   });
+    //   return new Response(
+    //     `Deleted ${links.length} links, ${remainingLinks} remaining. Starting next batch...`,
+    //   );
+    // }
 
-    // After all links are deleted, delete the domain and image
-    await Promise.all([
-      prisma.domain.delete({
-        where: {
-          slug: domain,
-        },
-      }),
-      domainRecord.logo &&
-        storage.delete(domainRecord.logo.replace(`${R2_URL}/`, "")),
-    ]);
+    // // After all links are deleted, delete the domain and image
+    // await Promise.all([
+    //   prisma.domain.delete({
+    //     where: {
+    //       slug: domain,
+    //     },
+    //   }),
+    //   domainRecord.logo &&
+    //     storage.delete(domainRecord.logo.replace(`${R2_URL}/`, "")),
+    // ]);
 
     return new Response(
       `Deleted ${links.length} links, no more links remaining. Domain deleted.`,
