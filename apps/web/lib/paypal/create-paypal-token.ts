@@ -40,7 +40,7 @@ export async function createPaypalToken() {
   const data = await response.json();
 
   if (!response.ok) {
-    console.error("Failed to create PayPal token.", data);
+    console.error("[PayPal] Failed to create PayPal token.", data);
     throw new Error("Failed to create PayPal token.");
   }
 
