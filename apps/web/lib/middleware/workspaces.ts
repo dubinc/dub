@@ -14,7 +14,7 @@ export default async function WorkspacesMiddleware(
 
   if (defaultWorkspace) {
     let redirectPath = path;
-    if (["/", "/login", "/register", "/workspaces"].includes(path)) {
+    if (["/", "/login", "/register", "/landing", "/workspaces"].includes(path)) {
       redirectPath = "";
     } else if (isTopLevelSettingsRedirect(path)) {
       redirectPath = `/settings/${path}`;
