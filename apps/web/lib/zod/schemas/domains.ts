@@ -180,13 +180,32 @@ export const registerDomainSchema = z.object({
 });
 
 export const searchDomainSchema = z.object({
-  domain: z
-    .string()
-    .min(1, "Domain to search is required.")
-    .endsWith(".link")
-    .transform((domain) => domain.toLowerCase())
-    .describe("The domain to search. We only support .link domains for now.")
-    .openapi({ example: "acme.link" }),
+  domains: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .transform((domains) =>
+      domains
+        .map((domain) => domain.toLowerCase())
+        .filter((domain) => domain.endsWith(".link")),
+    )
+    .describe("The domains to search. We only support .link domains for now.")
+    .openapi({
+      param: {
+        style: "form",
+        explode: false,
+      },
+      anyOf: [
+        {
+          type: "string",
+        },
+        {
+          type: "array",
+          items: {
+            type: "string",
+          },
+        },
+      ],
+    }),
 });
 
 export const DomainStatusSchema = z.object({

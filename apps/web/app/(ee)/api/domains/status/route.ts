@@ -10,33 +10,48 @@ import { NextResponse } from "next/server";
 // GET /api/domains/status - checks the availability status of a single domain
 export const GET = withWorkspace(
   async ({ searchParams }) => {
-    const { domain } = searchDomainSchema.parse(searchParams);
+    let { domains } = searchDomainSchema.parse(searchParams);
 
-    const domainOnDub = await prisma.domain.findUnique({
+    const domainsOnDub = await prisma.domain.findMany({
       where: {
-        slug: domain,
+        slug: {
+          in: domains,
+        },
         verified: true,
+      },
+      select: {
+        slug: true,
       },
     });
 
-    if (domainOnDub) {
+    if (domainsOnDub.length === domains.length) {
       return NextResponse.json(
-        DomainStatusSchema.array().parse([
-          {
-            domain: domainOnDub.slug,
+        DomainStatusSchema.array().parse(
+          domains.map((domain) => ({
+            domain,
             available: false,
             price: null,
             premium: null,
-          },
-        ]),
+          })),
+        ),
       );
     }
 
+    domains = domains.filter(
+      (domain) => !domainsOnDub.some((d) => d.slug === domain),
+    );
+
+    const domainsToSearch = domains.reduce(
+      (acc, domain, index) => {
+        acc[`domain${index}`] = domain;
+        return acc;
+      },
+      {} as Record<string, string>,
+    );
+
     // search for the domain on Dynadot
     const response = await searchDomainsAvailability({
-      domains: {
-        domain0: domain,
-      },
+      domains: domainsToSearch,
     });
 
     return NextResponse.json(response);
