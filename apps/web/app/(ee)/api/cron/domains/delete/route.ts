@@ -1,3 +1,4 @@
+import { queueDomainDeletion } from "@/lib/api/domains/queue";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { limiter } from "@/lib/cron/limiter";
@@ -109,26 +110,26 @@ export async function POST(req: Request) {
 
     console.log("remainingLinks", remainingLinks);
 
-    // if (remainingLinks > 0) {
-    //   await queueDomainDeletion({
-    //     domain,
-    //     delay: 2,
-    //   });
-    //   return new Response(
-    //     `Deleted ${links.length} links, ${remainingLinks} remaining. Starting next batch...`,
-    //   );
-    // }
+    if (remainingLinks > 0) {
+      await queueDomainDeletion({
+        domain,
+        delay: 2,
+      });
+      return new Response(
+        `Deleted ${links.length} links, ${remainingLinks} remaining. Starting next batch...`,
+      );
+    }
 
-    // // After all links are deleted, delete the domain and image
-    // await Promise.all([
-    //   prisma.domain.delete({
-    //     where: {
-    //       slug: domain,
-    //     },
-    //   }),
-    //   domainRecord.logo &&
-    //     storage.delete(domainRecord.logo.replace(`${R2_URL}/`, "")),
-    // ]);
+    // After all links are deleted, delete the domain and image
+    await Promise.all([
+      prisma.domain.delete({
+        where: {
+          slug: domain,
+        },
+      }),
+      domainRecord.logo &&
+        storage.delete(domainRecord.logo.replace(`${R2_URL}/`, "")),
+    ]);
 
     return new Response(
       `Deleted ${links.length} links, no more links remaining. Domain deleted.`,
