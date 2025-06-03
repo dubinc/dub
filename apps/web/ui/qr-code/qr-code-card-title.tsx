@@ -22,7 +22,7 @@ export function QRCardTitle({ qrCode }: { qrCode: ResponseQrCode }) {
 
     await updateQr(qrCode.id, {
       title: newValue,
-      data: qrCode.data, // передаем существующий URL
+      data: qrCode.data,
     });
   };
 
@@ -31,7 +31,7 @@ export function QRCardTitle({ qrCode }: { qrCode: ResponseQrCode }) {
   return (
     <Flex direction="row" gap="1" align="center" className="h-[26px] min-w-0">
       {isEdit ? (
-        <QrCodeRename initialName={displayValue} onSave={handleSave} />
+        <QrCodeRename initialName={qrCode.title || ""} onSave={handleSave} />
       ) : (
         <>
           <span className="text-neutral min-w-0 truncate font-bold lg:font-medium lg:text-neutral-500">

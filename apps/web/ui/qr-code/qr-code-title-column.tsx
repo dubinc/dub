@@ -81,7 +81,7 @@ export function QrCodeTitleColumn({
           >
             {currentQrTypeInfo.yourContentColumnTitle}
           </Text>
-          <QRCardDetails link={qrCode.link} hideIcon />
+          <QRCardDetails qrCode={qrCode} />
         </div>
 
         <div

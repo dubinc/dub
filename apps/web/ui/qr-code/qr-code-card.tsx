@@ -31,7 +31,7 @@ export function QrCodeCard({ qrCode }: { qrCode: ResponseQrCode }) {
       <QRBuilderModal />
       <CardList.Card
         key={qrCode.id}
-        onClick={isMobile ? undefined : () => setShowQRBuilderModal(true)}
+        // onClick={isMobile ? undefined : () => setShowQRBuilderModal(true)}
         innerClassName="h-full flex items-center gap-5 sm:gap-8 text-sm"
       >
         <div className="h-full min-w-0 grow">
