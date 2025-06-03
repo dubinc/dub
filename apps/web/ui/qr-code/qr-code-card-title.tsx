@@ -3,32 +3,39 @@ import { cn } from "@dub/utils/src";
 import { Icon } from "@iconify/react";
 import { Button, Flex } from "@radix-ui/themes";
 import { useState } from "react";
+import { useQrSave } from "./hooks/use-qr-save";
+import { ResponseQrCode } from "./qr-codes-container";
 
-export function QRCardTitle({ value }: { value: string }) {
+export function QRCardTitle({ qrCode }: { qrCode: ResponseQrCode }) {
   const [isEdit, setIsEdit] = useState(false);
+  const { updateQr } = useQrSave();
 
   const onEditClick = (e: React.MouseEvent<SVGSVGElement>) => {
     e.stopPropagation();
     setIsEdit(true);
   };
 
-  const handleSave = (newValue: string) => {
+  const handleSave = async (newValue: string) => {
     setIsEdit(false);
 
-    if (newValue === value) return;
+    if (newValue === (qrCode.title || "")) return;
 
-    // request to change title
-    return;
+    await updateQr(qrCode.id, {
+      title: newValue,
+      data: qrCode.data, // передаем существующий URL
+    });
   };
+
+  const displayValue = qrCode.title || "Untitled QR";
 
   return (
     <Flex direction="row" gap="1" align="center" className="h-[26px] min-w-0">
       {isEdit ? (
-        <QrCodeRename initialName={value} onSave={handleSave} />
+        <QrCodeRename initialName={displayValue} onSave={handleSave} />
       ) : (
         <>
           <span className="text-neutral min-w-0 truncate font-bold lg:font-medium lg:text-neutral-500">
-            My Lovely QR
+            {displayValue}
           </span>
           <Tooltip content="Rename" delayDuration={150}>
             <div className="shrink-0 p-1">

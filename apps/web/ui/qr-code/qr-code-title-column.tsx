@@ -69,10 +69,7 @@ export function QrCodeTitleColumn({
           >
             QR Name
           </Text>
-          <QRCardTitle
-            // value={title}
-            value="My Lovely QR"
-          />
+          <QRCardTitle qrCode={qrCode} />
         </div>
 
         <div className="order-last flex min-w-0 flex-col justify-center gap-1 lg:order-none">
