@@ -3,8 +3,9 @@
 import { sendOtpAction } from "@/lib/actions/send-otp";
 import z from "@/lib/zod";
 import { signUpSchema } from "@/lib/zod/schemas/auth";
-import { Button, Input } from "@dub/ui";
+import { Button, Input, useMediaQuery } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
+import { FormEvent, useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useRegisterContext } from "./context";
@@ -12,8 +13,12 @@ import { useRegisterContext } from "./context";
 type SignUpProps = z.infer<typeof signUpSchema>;
 
 export const SignUpEmail = () => {
+  const { isMobile } = useMediaQuery();
+
   const { setStep, setEmail, setPassword, email, lockEmail } =
     useRegisterContext();
+
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -41,8 +46,24 @@ export const SignUpEmail = () => {
     },
   });
 
+  const onSubmit = useCallback(
+    (e: FormEvent) => {
+      const { email, password } = getValues();
+
+      if (email && !password && !showPassword) {
+        e.preventDefault();
+        e.stopPropagation();
+        setShowPassword(true);
+        return;
+      }
+
+      handleSubmit(async (data) => await executeAsync(data))(e);
+    },
+    [getValues, showPassword, handleSubmit, executeAsync],
+  );
+
   return (
-    <form onSubmit={handleSubmit(async (data) => await executeAsync(data))}>
+    <form onSubmit={onSubmit}>
       <div className="flex flex-col gap-y-6">
         <label>
           <span className="text-content-emphasis mb-2 block text-sm font-medium leading-none">
@@ -54,22 +75,26 @@ export const SignUpEmail = () => {
             autoComplete="email"
             required
             readOnly={!errors.email && lockEmail}
+            autoFocus={!isMobile && !showPassword && !lockEmail}
             {...register("email")}
             error={errors.email?.message}
           />
         </label>
-        <label>
-          <span className="text-content-emphasis mb-2 block text-sm font-medium leading-none">
-            Password
-          </span>
-          <Input
-            type="password"
-            required
-            {...register("password")}
-            error={errors.password?.message}
-            minLength={8}
-          />
-        </label>
+        {showPassword && (
+          <label>
+            <span className="text-content-emphasis mb-2 block text-sm font-medium leading-none">
+              Password
+            </span>
+            <Input
+              type="password"
+              required
+              autoFocus={!isMobile}
+              {...register("password")}
+              error={errors.password?.message}
+              minLength={8}
+            />
+          </label>
+        )}
         <Button
           type="submit"
           text={isPending ? "Submitting..." : "Sign Up"}
