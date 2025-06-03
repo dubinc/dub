@@ -88,7 +88,7 @@ export function RegisterDomainForm({
     setIsRegistering(true);
 
     const baseUrl = saveOnly
-      ? "/api/domains/saved"
+      ? "/api/domains/client/saved"
       : "/api/domains/client/register";
 
     const response = await fetch(
