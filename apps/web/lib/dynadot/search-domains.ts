@@ -24,10 +24,10 @@ export const searchDomainsAvailability = async ({
 }) => {
   const searchParams = new URLSearchParams({
     ...domains,
-    key: DYNADOT_API_KEY,
     command: "search",
     show_price: "1",
     currency: "USD",
+    key: DYNADOT_API_KEY,
   });
 
   const response = await fetch(

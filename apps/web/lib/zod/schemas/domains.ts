@@ -198,3 +198,12 @@ export const DomainStatusSchema = z.object({
     .nullable()
     .describe("Whether the domain is a premium domain."),
 });
+
+export const RegisterDomainSchema = z.object({
+  domain: z.string().describe("The domain name."),
+  status: z.string().describe("The status of the domain registration."),
+  expiration: z
+    .number()
+    .describe("The expiration date of the domain.")
+    .nullable(),
+});

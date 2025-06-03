@@ -112,7 +112,7 @@ export async function claimDotLinkDomain({
         registeredDomain: {
           create: {
             slug: domain,
-            expiresAt: new Date(response.RegisterResponse.Expiration || ""),
+            expiresAt: new Date(response.expiration || ""),
             projectId: workspace.id,
           },
         },
@@ -135,7 +135,6 @@ export async function claimDotLinkDomain({
     Promise.all([
       qstash.publishJSON({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/domains/configure-dns`,
-        // delete after 3 mins
         delay: 3 * 60,
         body: {
           domain,

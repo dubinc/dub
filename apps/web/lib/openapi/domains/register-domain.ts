@@ -1,5 +1,8 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import { DomainSchema, registerDomainSchema } from "@/lib/zod/schemas/domains";
+import {
+  RegisterDomainSchema,
+  registerDomainSchema,
+} from "@/lib/zod/schemas/domains";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 
 export const registerDomain: ZodOpenApiOperationObject = {
@@ -20,7 +23,7 @@ export const registerDomain: ZodOpenApiOperationObject = {
       description: "The domain was registered.",
       content: {
         "application/json": {
-          schema: DomainSchema,
+          schema: RegisterDomainSchema,
         },
       },
     },
