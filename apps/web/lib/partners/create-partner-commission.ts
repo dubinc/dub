@@ -23,7 +23,10 @@ export const createPartnerCommission = async ({
 }: {
   // we optionally let the caller pass in a reward to avoid a db call
   // (e.g. in aggregate-clicks route)
-  reward?: RewardProps | null;
+  reward?: Pick<
+    RewardProps,
+    "type" | "amount" | "maxDuration" | "maxAmount"
+  > | null;
   event: EventType;
   partnerId: string;
   programId: string;
@@ -52,6 +55,10 @@ export const createPartnerCommission = async ({
   }
 
   let status: CommissionStatus = "pending";
+  let finalReward: Pick<
+    RewardProps,
+    "type" | "amount" | "maxDuration" | "maxAmount"
+  > = reward;
 
   if (event === "sale") {
     const firstCommission = await prisma.commission.findFirst({
@@ -66,11 +73,25 @@ export const createPartnerCommission = async ({
     });
 
     if (firstCommission) {
+      // if the first commission has a reward type, amount, and max duration, we need to use that reward
+      if (
+        firstCommission.rewardType &&
+        firstCommission.rewardAmount &&
+        firstCommission.rewardMaxDuration
+      ) {
+        finalReward = {
+          ...reward,
+          type: firstCommission.rewardType,
+          amount: firstCommission.rewardAmount,
+          maxDuration: firstCommission.rewardMaxDuration,
+        };
+      }
+
       // for reward types with a max duration, we need to check if the first commission is within the max duration
       // if its beyond the max duration, we should not create a new commission
-      if (typeof reward.maxDuration === "number") {
+      if (typeof finalReward.maxDuration === "number") {
         // One-time sale reward
-        if (reward.maxDuration === 0) {
+        if (finalReward.maxDuration === 0) {
           console.log(
             `Partner ${partnerId} is only eligible for first-sale commissions, skipping commission creation...`,
           );
@@ -84,7 +105,7 @@ export const createPartnerCommission = async ({
             firstCommission.createdAt,
           );
 
-          if (monthsDifference >= reward.maxDuration) {
+          if (monthsDifference >= finalReward.maxDuration) {
             console.log(
               `Partner ${partnerId} has reached max duration for ${event} event, skipping commission creation...`,
             );
@@ -106,16 +127,16 @@ export const createPartnerCommission = async ({
   let earnings =
     event === "sale"
       ? calculateSaleEarnings({
-          reward,
+          reward: finalReward,
           sale: {
             quantity,
             amount,
           },
         })
-      : reward.amount * quantity;
+      : finalReward.amount * quantity;
 
   // handle rewards with max reward amount limit
-  if (reward.maxAmount) {
+  if (finalReward.maxAmount) {
     const totalRewards = await prisma.commission.aggregate({
       where: {
         earnings: {
@@ -134,14 +155,14 @@ export const createPartnerCommission = async ({
     });
 
     const totalEarnings = totalRewards._sum.earnings || 0;
-    if (totalEarnings >= reward.maxAmount) {
+    if (totalEarnings >= finalReward.maxAmount) {
       console.log(
         `Partner ${partnerId} has reached max reward amount for ${event} event, skipping commission creation...`,
       );
       return;
     }
 
-    const remainingRewardAmount = reward.maxAmount - totalEarnings;
+    const remainingRewardAmount = finalReward.maxAmount - totalEarnings;
     earnings = Math.max(0, Math.min(earnings, remainingRewardAmount));
   }
 
