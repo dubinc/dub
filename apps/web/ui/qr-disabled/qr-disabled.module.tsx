@@ -10,7 +10,8 @@ export const QrDisabledModule: FC = () => {
   return (
     <Flex
       direction="column"
-      align="start"
+      align="center"
+      justify="start"
       className="bg-primary-100 h-[calc(100vh-51px)] w-full px-3 py-6"
     >
       <Flex
