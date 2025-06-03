@@ -6,7 +6,6 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
-import EditColumnsButton from "@/ui/analytics/events/edit-columns-button";
 import { useBanPartnerModal } from "@/ui/partners/ban-partner-modal";
 import { PartnerApplicationSheet } from "@/ui/partners/partner-application-sheet";
 import { PartnerDetailsSheet } from "@/ui/partners/partner-details-sheet";
@@ -18,6 +17,7 @@ import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
   AnimatedSizeContainer,
   Button,
+  EditColumnsButton,
   Filter,
   Icon,
   MoneyBill2,

@@ -73,13 +73,14 @@ export function ApplicationPreview({
             <div className="px-6">
               <div className="grid grid-cols-1 gap-5 sm:pt-20">
                 <p className="font-mono text-xs font-medium uppercase text-[var(--brand)]">
-                  Affiliate Program
+                  {program.name} Affiliate Program
                 </p>
                 <h1 className="text-4xl font-semibold">
-                  {program.name} application
+                  Apply to {program.name} Affiliate Program
                 </h1>
                 <p className="text-base text-neutral-700">
-                  Submit your application to join the affiliate program.
+                  Submit your application to join the {program.name} affiliate
+                  program and start earning commissions for your referrals.
                 </p>
               </div>
             </div>

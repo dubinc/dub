@@ -43,6 +43,8 @@ const trackClickResponseSchema = z.object({
     amount: true,
     type: true,
     maxDuration: true,
+    couponId: true,
+    couponTestId: true,
   }).nullish(),
 });
 
@@ -134,7 +136,15 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
       clickId,
       ...(isPartnerLink && {
         partner,
-        discount,
+        discount: discount
+          ? {
+              ...discount,
+              // Support backwards compatibility with old cache format
+              // We could potentially remove after 24 hours
+              couponId: discount?.couponId ?? null,
+              couponTestId: discount?.couponTestId ?? null,
+            }
+          : null,
       }),
     });
 

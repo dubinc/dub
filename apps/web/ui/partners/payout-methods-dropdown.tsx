@@ -1,7 +1,7 @@
 "use client";
 
-import { createAccountLinkAction } from "@/lib/actions/partners/create-account-link";
 import { generatePaypalOAuthUrl } from "@/lib/actions/partners/generate-paypal-oauth-url";
+import { generateStripeAccountLink } from "@/lib/actions/partners/generate-stripe-account-link";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerProps } from "@/lib/types";
 import {
@@ -31,7 +31,7 @@ export function PayoutMethodsDropdown() {
     );
 
   const { executeAsync: executeStripeAsync, isPending: isStripePending } =
-    useAction(createAccountLinkAction, {
+    useAction(generateStripeAccountLink, {
       onSuccess: ({ data }) => {
         if (!data?.url) {
           toast.error("Unable to create account link. Please contact support.");

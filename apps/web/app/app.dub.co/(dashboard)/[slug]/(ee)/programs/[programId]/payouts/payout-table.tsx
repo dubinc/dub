@@ -4,25 +4,32 @@ import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutResponse } from "@/lib/types";
-import { AmountRowItem } from "@/ui/partners/amount-row-item";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PayoutDetailsSheet } from "@/ui/partners/payout-details-sheet";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
+import { PayoutStatus } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Filter,
   StatusBadge,
   Table,
   Tooltip,
+  TooltipContent,
   usePagination,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
 import { MoneyBill2 } from "@dub/ui/icons";
-import { formatDate, formatDateTime, OG_AVATAR_URL } from "@dub/utils";
+import {
+  currencyFormatter,
+  formatDate,
+  formatDateTime,
+  OG_AVATAR_URL,
+} from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
 import { fetcher } from "@dub/utils/src/functions/fetcher";
+import { useParams } from "next/navigation";
 import { memo, useEffect, useState } from "react";
 import useSWR from "swr";
 import { usePayoutFilters } from "./use-payout-filters";
@@ -280,3 +287,54 @@ const PayoutTableInner = memo(
     );
   },
 );
+
+function AmountRowItem({
+  amount,
+  status,
+  payoutsEnabled,
+  minPayoutAmount,
+}: {
+  amount: number;
+  status: PayoutStatus;
+  payoutsEnabled: boolean;
+  minPayoutAmount: number;
+}) {
+  const { slug, programId } = useParams();
+  const display = currencyFormatter(amount / 100, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  if (status === PayoutStatus.pending) {
+    if (amount < minPayoutAmount) {
+      return (
+        <Tooltip
+          content={
+            <TooltipContent
+              title={`Your program's minimum payout amount is ${currencyFormatter(
+                minPayoutAmount / 100,
+              )}. This payout will be accrued and processed during the next payout period.`}
+              cta="Update minimum payout amount"
+              href={`/${slug}/programs/${programId}/settings/rewards`}
+              target="_blank"
+            />
+          }
+        >
+          <span className="cursor-help truncate text-neutral-400 underline decoration-dotted underline-offset-2">
+            {display}
+          </span>
+        </Tooltip>
+      );
+    } else if (!payoutsEnabled) {
+      return (
+        <Tooltip content="This partner does not have payouts enabled, which means they will not be able to receive any payouts from this program.">
+          <span className="cursor-help truncate text-neutral-400 underline decoration-dotted underline-offset-2">
+            {display}
+          </span>
+        </Tooltip>
+      );
+    }
+  }
+
+  return display;
+}

@@ -8,6 +8,7 @@ import EmptyState from "@/ui/shared/empty-state";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import {
   CopyText,
+  EditColumnsButton,
   LinkLogo,
   Table,
   Tooltip,
@@ -36,7 +37,6 @@ import useSWR from "swr";
 import { AnalyticsContext } from "../analytics-provider";
 import ContinentIcon from "../continent-icon";
 import DeviceIcon from "../device-icon";
-import EditColumnsButton from "./edit-columns-button";
 import { EventsContext } from "./events-provider";
 import { EXAMPLE_EVENTS_DATA } from "./example-data";
 import { RowMenuButton } from "./row-menu-button";
