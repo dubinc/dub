@@ -1,7 +1,7 @@
 "use client";
 
-import { createAccountLinkAction } from "@/lib/actions/partners/create-account-link";
 import { generatePaypalOAuthUrl } from "@/lib/actions/partners/generate-paypal-oauth-url";
+import { generateStripeAccountLink } from "@/lib/actions/partners/generate-stripe-account-link";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { Button, ButtonProps } from "@dub/ui";
 import { CONNECT_SUPPORTED_COUNTRIES } from "@dub/utils";
@@ -13,7 +13,7 @@ export function ConnectPayoutButton(props: ButtonProps) {
   const { partner } = usePartnerProfile();
 
   const { executeAsync: executeStripeAsync, isPending: isStripePending } =
-    useAction(createAccountLinkAction, {
+    useAction(generateStripeAccountLink, {
       onSuccess: ({ data }) => {
         if (!data?.url) {
           toast.error("Unable to create account link. Please contact support.");
@@ -48,15 +48,19 @@ export function ConnectPayoutButton(props: ButtonProps) {
       return;
     }
 
-    if (partner.supportedPayoutMethod === "paypal") {
-      await executePaypalAsync();
-    } else if (partner.supportedPayoutMethod === "stripe") {
-      await executeStripeAsync();
-    } else {
-      toast.error("Unable to connect payout method. Please contact support.");
+    if (!partner.country) {
+      toast.error(
+        "You haven't set your country yet. Please go to partners.dub.co/settings to set your country.",
+      );
+      return;
     }
-    await executeStripeAsync();
-  }, [executeStripeAsync, partner]);
+
+    if (!CONNECT_SUPPORTED_COUNTRIES.includes(partner.country)) {
+      await executePaypalAsync();
+    } else {
+      await executeStripeAsync();
+    }
+  }, [executeStripeAsync, executePaypalAsync, partner]);
 
   return (
     <Button
