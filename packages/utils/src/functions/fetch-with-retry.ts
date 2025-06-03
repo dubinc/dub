@@ -50,7 +50,7 @@ export async function fetchWithRetry(
         } catch {
           errorMessage = `HTTP error ${response.status}`;
         }
-        console.error(errorMessage);
+        console.error(`fetchWithRetry error: ${errorMessage}`);
         throw new Error(errorMessage);
       }
     } catch (error) {
@@ -60,7 +60,7 @@ export async function fetchWithRetry(
       // If this is the last retry, throw the error
       if (i === maxRetries - 1) {
         const errMsg = `Failed after ${maxRetries} retries. Last error: ${lastError.message}`;
-        console.error(errMsg);
+        console.error(`fetchWithRetry error: ${errMsg}`);
         throw new Error(errMsg);
       }
 
