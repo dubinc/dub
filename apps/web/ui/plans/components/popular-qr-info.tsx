@@ -1,9 +1,8 @@
-import { PLAN_FEATURES } from "@/ui/plans/constants.ts";
+import { PlansFeatures } from "@/ui/plans/components/plans-features.tsx";
 import { capitalizeFirstLetter } from "@/ui/plans/utils.ts";
 import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
 import { cn } from "@dub/utils/src";
 import { Flex, Heading, Text } from "@radix-ui/themes";
-import { Check } from "lucide-react";
 import { FC } from "react";
 
 interface IPopularQrInfo {
@@ -22,11 +21,12 @@ export const PopularQrInfo: FC<IPopularQrInfo> = ({
   return (
     <Flex
       direction="column"
-      className="border-border-500 gap-[18px] rounded-xl border p-4 md:flex-1 md:px-6 md:py-4"
+      className="border-border-500 gap-3 rounded-xl border p-3 lg:flex-1 lg:gap-[18px] lg:px-6 lg:py-4"
     >
       <Heading
         as="h2"
-        size={{ initial: "3", md: "4" }}
+        align={{ initial: "center", lg: "left" }}
+        size={{ initial: "3", lg: "4" }}
         className="text-neutral"
       >
         Your most popular QR code is now Deactivated
@@ -37,30 +37,32 @@ export const PopularQrInfo: FC<IPopularQrInfo> = ({
       <Flex
         direction="row"
         align="start"
-        gap={{ initial: "4", md: "6" }}
-        className="[&_svg:first-child]:h-[180px] [&_svg:first-child]:w-[138px] md:[&_svg:first-child]:h-[209px] md:[&_svg:first-child]:w-[158px]"
+        gap={{ initial: "4", lg: "6" }}
+        className="[&_svg:first-child]:h-[180px] [&_svg:first-child]:w-[138px] lg:[&_svg:first-child]:h-[209px] lg:[&_svg:first-child]:w-[158px]"
       >
-        <div className="flex-shrink-0">
+        <div className="relative flex-shrink-0">
           <qrCodeDemo.Component {...demoProps} />
+
+          <div className="absolute bottom-0 left-1/2 h-[80px] w-[158px] -translate-x-1/2 bg-gradient-to-t from-white via-white/75 to-transparent" />
         </div>
 
         <Flex
           direction="column"
-          gap={{ initial: "2", md: "3" }}
+          gap={{ initial: "2", lg: "3" }}
           justify="center"
           className="w-full flex-1"
         >
           <Flex direction="column" gap="1">
             <Text
               as="span"
-              size={{ initial: "1", md: "2" }}
+              size={{ initial: "1", lg: "2" }}
               className="text-neutral-800"
             >
               QR Code Name:
             </Text>
             <Text
               as="span"
-              size={{ initial: "1", md: "2" }}
+              size={{ initial: "1", lg: "2" }}
               weight="bold"
               className="text-neutral"
             >
@@ -71,14 +73,14 @@ export const PopularQrInfo: FC<IPopularQrInfo> = ({
           <Flex direction="column" gap="1">
             <Text
               as="span"
-              size={{ initial: "1", md: "2" }}
+              size={{ initial: "1", lg: "2" }}
               className="text-neutral-800"
             >
               Type:
             </Text>
             <Text
               as="span"
-              size={{ initial: "1", md: "2" }}
+              size={{ initial: "1", lg: "2" }}
               weight="bold"
               className="text-neutral"
             >
@@ -89,14 +91,14 @@ export const PopularQrInfo: FC<IPopularQrInfo> = ({
           <Flex direction="column" gap="1">
             <Text
               as="span"
-              size={{ initial: "1", md: "2" }}
+              size={{ initial: "1", lg: "2" }}
               className="text-neutral-800"
             >
               Number of scans:
             </Text>
             <Text
               as="span"
-              size={{ initial: "1", md: "2" }}
+              size={{ initial: "1", lg: "2" }}
               weight="bold"
               className="text-neutral"
             >
@@ -107,7 +109,7 @@ export const PopularQrInfo: FC<IPopularQrInfo> = ({
           <Flex direction="column" gap="1">
             <Text
               as="span"
-              size={{ initial: "1", md: "2" }}
+              size={{ initial: "1", lg: "2" }}
               className="text-neutral-800"
             >
               QR Code Status:
@@ -121,7 +123,7 @@ export const PopularQrInfo: FC<IPopularQrInfo> = ({
               )}
             >
               <span
-                className={cn("text-primary text-xs font-medium md:text-sm", {
+                className={cn("text-primary text-xs font-medium lg:text-sm", {
                   "text-red-600": isTrialOver,
                 })}
               >
@@ -130,35 +132,10 @@ export const PopularQrInfo: FC<IPopularQrInfo> = ({
             </div>
           </Flex>
         </Flex>
-      </Flex>
 
-      <Flex
-        direction="column"
-        align="center"
-        justify="center"
-        gap={{ initial: "2", md: "3" }}
-        className="bg-primary-200 rounded-lg p-3 md:p-3.5"
-      >
-        {PLAN_FEATURES.map((feature, index) => (
-          <Flex
-            key={index}
-            direction="row"
-            align="center"
-            className="w-full gap-1.5"
-          >
-            <Check
-              className="text-primary h-4 w-4 md:h-[18px] md:w-[18px]"
-              strokeWidth={2}
-            />
-            <Text
-              as="span"
-              size={{ initial: "1", md: "2" }}
-              className="text-neutral"
-            >
-              {feature}
-            </Text>
-          </Flex>
-        ))}
+        <div className="hidden lg:block">
+          <PlansFeatures />
+        </div>
       </Flex>
     </Flex>
   );

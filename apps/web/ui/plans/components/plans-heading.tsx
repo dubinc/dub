@@ -10,7 +10,7 @@ export const PlansHeading: FC<IPlansHeading> = ({ isTrialOver }) => {
     <Flex gap="3" direction="column">
       <Heading
         as="h1"
-        size={{ initial: "6", md: "7" }}
+        size={{ initial: "5", lg: "7" }}
         align="center"
         className="text-neutral"
       >
@@ -20,7 +20,7 @@ export const PlansHeading: FC<IPlansHeading> = ({ isTrialOver }) => {
       </Heading>
       <Heading
         as="h2"
-        size={{ initial: "3", md: "4" }}
+        size={{ initial: "2", lg: "4" }}
         align="center"
         weight="regular"
         className="text-neutral"

@@ -7,6 +7,7 @@ import {
   ICheckoutFormSuccess,
 } from "@/ui/checkout/interface";
 import CheckoutFormComponent from "@/ui/checkout/primer-checkout";
+import { PlansFeatures } from "@/ui/plans/components/plans-features.tsx";
 import { PlansHeading } from "@/ui/plans/components/plans-heading.tsx";
 import { PopularQrInfo } from "@/ui/plans/components/popular-qr-info.tsx";
 import {
@@ -62,10 +63,10 @@ export default function PlansContent() {
   const totalCharge = selectedPlan.price * selectedPlan.duration;
 
   return (
-    <div className="flex w-full flex-col items-center justify-center gap-6 md:gap-8">
+    <div className="flex w-full flex-col items-center justify-center gap-4 lg:gap-8">
       <PlansHeading isTrialOver={isTrialOver} />
 
-      <div className="flex w-full flex-col gap-6 md:flex-row md:items-start md:gap-8">
+      <div className="flex w-full flex-col gap-4 lg:flex-row lg:items-start lg:gap-8">
         <PopularQrInfo
           qrCodeDemo={qrCodeDemo}
           demoProps={demoProps}
@@ -75,11 +76,12 @@ export default function PlansContent() {
 
         <Flex
           direction="column"
-          className="border-border-500 gap-[18px] rounded-lg border p-4 md:flex-1 md:px-6 md:py-4"
+          className="border-border-500 gap-4 rounded-lg border p-3 lg:flex-1 lg:gap-[18px] lg:px-6 lg:py-4"
         >
           <Heading
             as="h2"
-            size={{ initial: "3", md: "4" }}
+            align={{ initial: "center", lg: "left" }}
+            size={{ initial: "3", lg: "4" }}
             className="text-neutral"
           >
             Choose Your Plan
@@ -87,19 +89,19 @@ export default function PlansContent() {
 
           <div className="border-border-500 h-px w-full border-t" />
 
-          <div className="flex flex-col justify-center gap-3 md:gap-4">
+          <div className="flex flex-col justify-center gap-2 lg:gap-4">
             <RadioGroup.Root
               value={selectedPlan.id}
               onValueChange={(value) => {
                 const plan = PRICING_PLANS.find((p) => p.id === value);
                 if (plan) setSelectedPlan(plan);
               }}
-              className="flex flex-col gap-3"
+              className="flex flex-col gap-2"
             >
               {PRICING_PLANS.map((plan) => (
                 <label
                   key={plan.id}
-                  className={`flex cursor-pointer flex-col gap-2 rounded-lg border px-4 py-3 md:flex-row md:items-center md:gap-3.5 md:px-6 md:py-3.5 ${
+                  className={`flex cursor-pointer flex-row gap-3 rounded-lg border px-4 py-3 lg:items-center lg:gap-3.5 lg:px-6 lg:py-3.5 ${
                     selectedPlan.id === plan.id
                       ? "border-secondary bg-background"
                       : "border-border-500"
@@ -108,7 +110,7 @@ export default function PlansContent() {
                   <div className="flex flex-row items-center gap-3">
                     <RadioGroup.Item
                       value={plan.id}
-                      className="data-[state=checked]:border-secondary relative h-5 w-5 flex-shrink-0 rounded-full border-2 border-neutral-200 outline-none focus:ring-0 md:h-[22px] md:w-[22px]"
+                      className="data-[state=checked]:border-secondary relative h-[18px] w-[18px] flex-shrink-0 rounded-full border-2 border-neutral-200 outline-none focus:ring-0 lg:h-[22px] lg:w-[22px]"
                     >
                       <RadioGroup.Indicator className="flex h-full w-full items-center justify-center">
                         <div className="bg-secondary absolute bottom-[22.73%] left-[22.73%] right-[22.73%] top-[22.73%] rounded-full" />
@@ -118,36 +120,50 @@ export default function PlansContent() {
                     <Flex
                       direction="column"
                       justify="center"
-                      className="min-w-0 flex-1 gap-px md:w-[140px] md:flex-shrink-0"
+                      className="min-w-0 flex-1 gap-px lg:w-[140px] lg:flex-shrink-0"
                     >
                       <Text
                         as="span"
-                        size="2"
                         weight="bold"
-                        className="text-neutral whitespace-nowrap"
+                        className="text-neutral whitespace-nowrap text-[13px] lg:text-sm"
                       >
                         {plan.name}
                       </Text>
                       <Text
                         as="span"
-                        size="1"
-                        className="whitespace-nowrap text-neutral-800"
+                        className="whitespace-nowrap text-[10px] text-neutral-800 lg:text-xs"
                       >
                         {plan.description}
                       </Text>
                     </Flex>
                   </div>
 
-                  <div className="flex flex-row items-center justify-between gap-2 md:min-w-0 md:flex-1 md:gap-4">
-                    <div className="flex justify-start md:w-[100px] md:justify-center">
+                  <Flex
+                    direction="row"
+                    align={{ initial: "start", lg: "center" }}
+                    justify="between"
+                    gap={{ initial: "2", lg: "4" }}
+                    className="lg:min-w-0 lg:flex-1"
+                  >
+                    <Flex
+                      justify={{ initial: "start", lg: "center" }}
+                      className="lg:w-[100px]"
+                    >
                       {plan.savings && (
-                        <div className="border-secondary flex flex-shrink-0 items-center justify-center rounded-[60px] border bg-[rgba(0,122,255,0.04)] px-2 py-1 md:px-3">
-                          <span className="text-secondary whitespace-nowrap text-xs font-medium leading-5 md:text-sm">
+                        <Flex
+                          align="center"
+                          justify="center"
+                          className="border-secondary flex-shrink-0 rounded-[60px] border bg-[rgba(0,122,255,0.04)] px-2 py-1 lg:px-3"
+                        >
+                          <Text
+                            as="span"
+                            className="text-secondary whitespace-nowrap text-[10px] font-medium leading-5 lg:text-sm"
+                          >
                             {plan.savings}
-                          </span>
-                        </div>
+                          </Text>
+                        </Flex>
                       )}
-                    </div>
+                    </Flex>
 
                     <Flex
                       direction="column"
@@ -158,16 +174,14 @@ export default function PlansContent() {
                       <Flex direction="row" align="center" gap="1">
                         <Text
                           as="span"
-                          size="2"
                           weight="bold"
-                          className="text-neutral whitespace-nowrap"
+                          className="text-neutral whitespace-nowrap text-[13px] lg:text-sm"
                         >
                           US ${plan.price.toFixed(2)}
                         </Text>
                         <Text
                           as="span"
-                          size="1"
-                          className="whitespace-nowrap text-neutral-800"
+                          className="whitespace-nowrap text-[10px] text-neutral-800 lg:text-xs"
                         >
                           /month
                         </Text>
@@ -175,19 +189,18 @@ export default function PlansContent() {
                       {plan.originalPrice && (
                         <Text
                           as="span"
-                          size="1"
-                          className="whitespace-nowrap text-neutral-800 line-through"
+                          className="whitespace-nowrap text-[10px] text-neutral-800 line-through lg:text-xs"
                         >
                           ${plan.originalPrice.toFixed(2)}
                         </Text>
                       )}
                     </Flex>
-                  </div>
+                  </Flex>
                 </label>
               ))}
             </RadioGroup.Root>
 
-            <Text as="p" size="1" className="text-neutral-800">
+            <Text as="p" className="text-[10px] text-neutral-800 lg:text-xs">
               You'll be charged US${totalCharge.toFixed(2)} today. Renews every{" "}
               {selectedPlan.name.toLowerCase()}. Cancel anytime.
             </Text>
@@ -204,11 +217,18 @@ export default function PlansContent() {
               }}
             />
 
-            <Text as="p" size="1" className="text-center text-neutral-800">
+            <Text
+              as="p"
+              className="text-center text-[10px] text-neutral-800 lg:text-xs"
+            >
               🔒 Secure payment • Cancel anytime • No hidden fees
             </Text>
           </div>
         </Flex>
+
+        <div className="block pb-6 lg:hidden">
+          <PlansFeatures />
+        </div>
       </div>
     </div>
   );
