@@ -48,7 +48,6 @@ export function ConnectPayoutButton(props: ButtonProps) {
       return;
     }
 
-    // TODO: Uncomment this once PayPal connection is ready
     if (partner.supportedPayoutMethod === "paypal") {
       await executePaypalAsync();
     } else if (partner.supportedPayoutMethod === "stripe") {
