@@ -1,6 +1,7 @@
 import { PlansFeatures } from "@/ui/plans/components/plans-features.tsx";
 import { capitalizeFirstLetter } from "@/ui/plans/utils.ts";
 import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
+import { Button } from "@dub/ui";
 import { cn } from "@dub/utils/src";
 import { Flex, Heading, Text } from "@radix-ui/themes";
 import { FC } from "react";
@@ -10,6 +11,7 @@ interface IPopularQrInfo {
   demoProps: any;
   mostScannedQR: ResponseQrCode | null;
   isTrialOver: boolean;
+  handleScroll: () => void;
 }
 
 export const PopularQrInfo: FC<IPopularQrInfo> = ({
@@ -17,6 +19,7 @@ export const PopularQrInfo: FC<IPopularQrInfo> = ({
   demoProps,
   mostScannedQR,
   isTrialOver,
+  handleScroll,
 }) => {
   return (
     <Flex
@@ -132,11 +135,17 @@ export const PopularQrInfo: FC<IPopularQrInfo> = ({
             </div>
           </Flex>
         </Flex>
-
-        <div className="hidden lg:block">
-          <PlansFeatures />
-        </div>
       </Flex>
+
+      <div className="hidden lg:block">
+        <PlansFeatures />
+      </div>
+
+      <Button
+        className="block lg:hidden"
+        text={isTrialOver ? "Restore QR Code" : "Upgrade Plan"}
+        onClick={handleScroll}
+      />
     </Flex>
   );
 };
