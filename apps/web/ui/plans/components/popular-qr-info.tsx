@@ -33,7 +33,7 @@ export const PopularQrInfo: FC<IPopularQrInfo> = ({
         className="text-neutral"
       >
         {isTrialOver
-          ? "Your most popular QR code is now Deactivated"
+          ? "Your most popular QR code is now deactivated"
           : "Make sure this QR stays active"}
       </Heading>
 
