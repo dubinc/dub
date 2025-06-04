@@ -3,7 +3,7 @@ import { limiter } from "@/lib/cron/limiter";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { DUB_MIN_PAYOUT_AMOUNT_CENTS } from "@/lib/partners/constants";
 import { sendEmail } from "@dub/email";
-import ProgramPayoutReminder from "@dub/email/templates/program-payout-reminder";
+import { ProgramPayoutReminder } from "@dub/email/templates/program-payout-reminder";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
@@ -82,6 +82,7 @@ export async function GET(req: Request) {
     const programsWithPayouts = await Promise.all(
       programs.map(async (program) => {
         let payoutDetails = payouts.find((p) => p.programId === program.id);
+
         if (!payoutDetails) {
           const pendingPayouts = await prisma.payout.aggregate({
             where: {
@@ -98,8 +99,10 @@ export async function GET(req: Request) {
               _all: true,
             },
           });
+
           payoutDetails = pendingPayouts[0];
         }
+
         const workspace = program.workspace;
 
         return workspace.users.map(({ user }) => ({
@@ -139,7 +142,9 @@ export async function GET(req: Request) {
       ),
     );
 
-    return NextResponse.json(`Sent reminders for ${programs.length} programs.`);
+    return NextResponse.json(
+      `Sent reminders for ${programsWithPayouts.length} programs.`,
+    );
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }
