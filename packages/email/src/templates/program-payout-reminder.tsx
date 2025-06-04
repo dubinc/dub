@@ -16,9 +16,6 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-// TODO:
-// Fix the icons
-
 export default function ProgramPayoutReminder({
   email = "panic@thedis.co",
   workspace = {
@@ -49,7 +46,10 @@ export default function ProgramPayoutReminder({
   return (
     <Html>
       <Head />
-      <Preview>Payouts ready to be confirmed for {program.name}</Preview>
+      <Preview>
+        {payout.partnersCount.toString()} partners awaiting your payout for{" "}
+        {program.name}
+      </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] px-10 py-5">
@@ -58,20 +58,22 @@ export default function ProgramPayoutReminder({
             </Section>
 
             <Heading className="mx-0 p-0 text-lg font-medium text-neutral-800">
-              Payouts ready to be confirmed for {program.name}
+              {payout.partnersCount} partners awaiting your payout for{" "}
+              {program.name}
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              There are payouts ready to be paid out. Completing these on time
-              keep your program running smooth and your partners happy.
+              There are {payout.partnersCount} partners ready to be paid out for{" "}
+              {program.name}. Completing these on time will keep your program
+              running smooth and your partners happy.
             </Text>
 
             <Section className="rounded-lg border border-solid border-neutral-200 p-4">
               <Row>
                 <Column className="w-1/2">
                   <Stats
-                    title="Pending payouts"
-                    icon=""
+                    title="Total payout amount"
+                    icon="https://assets.dub.co/misc/icons/nucleo/money-bills.png"
                     value={currencyFormatter(payout.amount / 100, {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
@@ -81,8 +83,8 @@ export default function ProgramPayoutReminder({
 
                 <Column className="w-1/2">
                   <Stats
-                    title="Partners"
-                    icon=""
+                    title="Partners awaiting payout"
+                    icon="https://assets.dub.co/misc/icons/nucleo/users.png"
                     value={payout.partnersCount}
                   />
                 </Column>

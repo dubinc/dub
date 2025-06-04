@@ -1,6 +1,7 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { limiter } from "@/lib/cron/limiter";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
+import { DUB_MIN_PAYOUT_AMOUNT_CENTS } from "@/lib/partners/constants";
 import { sendEmail } from "@dub/email";
 import ProgramPayoutReminder from "@dub/email/templates/program-payout-reminder";
 import { prisma } from "@dub/prisma";
@@ -19,6 +20,9 @@ export async function GET(req: Request) {
       by: ["programId"],
       where: {
         status: "pending",
+        amount: {
+          gte: DUB_MIN_PAYOUT_AMOUNT_CENTS,
+        },
       },
       _sum: {
         amount: true,
@@ -94,7 +98,7 @@ export async function GET(req: Request) {
       programsWithPayouts.map(({ workspace, user, program, payout }) =>
         limiter.schedule(() =>
           sendEmail({
-            subject: `Payouts ready to be confirmed for ${program.name}`,
+            subject: `${payout.partnersCount} partners awaiting your payout for ${program.name}`,
             email: user.email!,
             react: ProgramPayoutReminder({
               email: user.email!,
