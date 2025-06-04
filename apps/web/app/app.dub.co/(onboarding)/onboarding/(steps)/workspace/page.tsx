@@ -4,7 +4,7 @@ import { Form } from "./form";
 export default function Workspace() {
   return (
     <StepPage
-      title="Create a workspace"
+      title="Create your workspace"
       description={
         <a
           href="https://dub.co/help/article/what-is-a-workspace"
