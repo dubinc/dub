@@ -9,7 +9,7 @@ interface KeyProps {
   ip: string | undefined;
 }
 
-class ClickCache {
+class RecordClickCache {
   async set({ domain, key, ip, clickId }: KeyProps & { clickId: string }) {
     return await redis.set(this._createKey({ domain, key, ip }), clickId, {
       ex: CACHE_EXPIRATION,
@@ -25,4 +25,4 @@ class ClickCache {
   }
 }
 
-export const clickCache = new ClickCache();
+export const recordClickCache = new RecordClickCache();
