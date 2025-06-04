@@ -54,6 +54,34 @@ export async function GET(req: Request) {
       },
     });
 
+    for (const program of programsWithCustomMinPayouts) {
+      console.log(
+        `Manually calculating pending payout for program ${program.id} which has a custom min payout amount of ${program.minPayoutAmount}`,
+      );
+
+      const pendingPayout = await prisma.payout.aggregate({
+        where: {
+          programId: program.id,
+          status: "pending",
+          amount: {
+            gte: program.minPayoutAmount,
+          },
+        },
+        _sum: {
+          amount: true,
+        },
+        _count: {
+          _all: true,
+        },
+      });
+
+      pendingPayouts.push({
+        programId: program.id,
+        _sum: pendingPayout._sum,
+        _count: pendingPayout._count,
+      });
+    }
+
     if (!pendingPayouts.length) {
       return NextResponse.json("No pending payouts found. Skipping...");
     }
@@ -112,29 +140,9 @@ export async function GET(req: Request) {
 
     const programsWithPendingPayoutsToNotify = await Promise.all(
       programs.map(async (program) => {
-        let payoutDetails = payoutsToNotify.find(
+        const payoutDetails = payoutsToNotify.find(
           (p) => p.programId === program.id,
         );
-
-        if (!payoutDetails) {
-          const pendingPayouts = await prisma.payout.aggregate({
-            where: {
-              programId: program.id,
-              status: "pending",
-              amount: {
-                gte: program.minPayoutAmount,
-              },
-            },
-            _sum: {
-              amount: true,
-            },
-            _count: {
-              _all: true,
-            },
-          });
-
-          payoutDetails = pendingPayouts[0];
-        }
 
         const workspace = program.workspace;
 
