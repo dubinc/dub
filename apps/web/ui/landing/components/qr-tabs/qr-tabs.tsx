@@ -45,7 +45,7 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
     };
   }, [isMobile]);
 
-  const handleSaveQR = (data: QRBuilderData) => {
+  const handleSaveQR = async (data: QRBuilderData) => {
     setLocalQrDataToCreate(data);
     showModal("signup");
   };
