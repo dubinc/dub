@@ -94,9 +94,17 @@ export const POST = withWorkspace(
       }
 
       if (!clickData) {
-        const cachedClickData = await redis.get<ClickData>(
-          `clickCache:${clickId}`,
-        );
+        // revert after 5 mins
+        const cachedClickData = await redis
+          .mget<
+            ClickData[]
+          >([`clickIdCache:${clickId}`, `clickCache:${clickId}`])
+          .then(([clickIdCache, clickCache]) => {
+            if (clickIdCache) {
+              return clickIdCache;
+            }
+            return clickCache;
+          });
 
         if (cachedClickData) {
           clickData = {
