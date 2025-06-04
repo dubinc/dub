@@ -7,7 +7,7 @@ import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramProps } from "@/lib/types";
 import { HOLDING_PERIOD_DAYS } from "@/lib/zod/schemas/programs";
-import { Button, Tooltip, TooltipContent } from "@dub/ui";
+import { Button, DynamicTooltipWrapper, TooltipContent } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useForm } from "react-hook-form";
@@ -56,8 +56,6 @@ export function RewardSettings() {
     });
   };
 
-  const isEnterpriseFeature = plan !== "enterprise";
-
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <div className="rounded-lg border border-neutral-200 bg-white">
@@ -101,54 +99,43 @@ export function RewardSettings() {
                     $
                   </span>
 
-                  {isEnterpriseFeature ? (
-                    <Tooltip
-                      content={
-                        <TooltipContent
-                          title="Minimum payout amount customization is only available on Enterprise plans. The default minimum payout amount is $100."
-                          cta="Contact sales"
-                          href="https://dub.co/enterprise"
-                          target="_blank"
-                        />
-                      }
-                    >
-                      <div>
-                        <input
-                          className={cn(
-                            "block w-full rounded-md border-neutral-300 pl-6 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                            errors.minPayoutAmount &&
-                              "border-red-600 pr-7 focus:border-red-500 focus:ring-red-600",
+                  <DynamicTooltipWrapper
+                    tooltipProps={
+                      plan !== "enterprise"
+                        ? {
+                            content: (
+                              <TooltipContent
+                                title="Minimum payout amount customization is only available on Enterprise plans. The default minimum payout amount on Dub is $100."
+                                cta="Contact sales"
+                                href="https://dub.co/enterprise"
+                                target="_blank"
+                              />
+                            ),
+                          }
+                        : undefined
+                    }
+                  >
+                    <div>
+                      <input
+                        className={cn(
+                          "block w-full rounded-md border-neutral-300 pl-6 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                          errors.minPayoutAmount &&
+                            "border-red-600 pr-7 focus:border-red-500 focus:ring-red-600",
+                          plan !== "enterprise" &&
                             "cursor-not-allowed bg-neutral-50 text-neutral-400",
-                          )}
-                          {...register("minPayoutAmount", {
-                            required: true,
-                            valueAsNumber: true,
-                            min: 100,
-                            onChange: handleMoneyInputChange,
-                          })}
-                          onKeyDown={handleMoneyKeyDown}
-                          placeholder="100"
-                          disabled={true}
-                        />
-                      </div>
-                    </Tooltip>
-                  ) : (
-                    <input
-                      className={cn(
-                        "block w-full rounded-md border-neutral-300 pl-6 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                        errors.minPayoutAmount &&
-                          "border-red-600 pr-7 focus:border-red-500 focus:ring-red-600",
-                      )}
-                      {...register("minPayoutAmount", {
-                        required: true,
-                        valueAsNumber: true,
-                        min: 100,
-                        onChange: handleMoneyInputChange,
-                      })}
-                      onKeyDown={handleMoneyKeyDown}
-                      placeholder="100"
-                    />
-                  )}
+                        )}
+                        {...register("minPayoutAmount", {
+                          required: true,
+                          valueAsNumber: true,
+                          min: 100,
+                          onChange: handleMoneyInputChange,
+                        })}
+                        onKeyDown={handleMoneyKeyDown}
+                        placeholder="100"
+                        disabled={plan !== "enterprise"}
+                      />
+                    </div>
+                  </DynamicTooltipWrapper>
 
                   <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
                     USD
@@ -164,17 +151,7 @@ export function RewardSettings() {
             variant="primary"
             className="h-8 w-fit"
             loading={isSubmitting}
-            disabled={!isDirty || !isValid || isEnterpriseFeature}
-            {...(isEnterpriseFeature && {
-              disabledTooltip: (
-                <TooltipContent
-                  title="Some reward settings are only available on Enterprise plans. Upgrade to customize all settings."
-                  cta="Contact sales"
-                  href="https://dub.co/enterprise"
-                  target="_blank"
-                />
-              ),
-            })}
+            disabled={!isDirty || !isValid}
           />
         </div>
       </div>
