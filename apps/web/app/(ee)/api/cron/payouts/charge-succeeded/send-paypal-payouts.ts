@@ -49,7 +49,7 @@ export async function sendPaypalPayouts({
   const data = await response.json();
 
   if (!response.ok) {
-    console.error("Error creating PayPal batch payout", data);
+    console.error("[PayPal] Error creating PayPal batch payout", data);
 
     await log({
       message: `Error creating PayPal batch payout. Invoice ID: ${invoiceId}. Error: ${JSON.stringify(

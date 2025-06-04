@@ -77,10 +77,6 @@ export function ProgramApplicationForm({
       },
       onError({ error }) {
         toast.error(error.serverError);
-
-        setError("root.serverError", {
-          message: error.serverError,
-        });
       },
     },
   );
@@ -90,10 +86,16 @@ export function ProgramApplicationForm({
   return (
     <form
       onSubmit={handleSubmit(async (data) => {
-        await executeAsync({
+        const result = await executeAsync({
           ...data,
           programId: program.id,
         });
+
+        if (!result || result.serverError || result.validationErrors) {
+          setError("root.serverError", {
+            message: "Error submitting application.",
+          });
+        }
       })}
       className="flex flex-col gap-6"
     >
