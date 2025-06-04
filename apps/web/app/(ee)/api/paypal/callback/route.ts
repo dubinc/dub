@@ -1,4 +1,3 @@
-import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { getSession } from "@/lib/auth";
 import { paypalOAuth } from "@/lib/paypal/oauth";
 import { prisma } from "@dub/prisma";
@@ -26,22 +25,17 @@ export const GET = async (req: Request) => {
     );
   }
 
-  try {
-    if (!session?.user.id) {
-      throw new DubApiError({
-        code: "unauthorized",
-        message:
-          "Unauthorized. You must be logged in https://partners.dub.co to continue.",
-      });
-    }
+  if (!session?.user.id) {
+    redirect(`${PARTNERS_DOMAIN}/login`);
+  }
 
+  let error: string | null = null;
+
+  try {
     const { defaultPartnerId } = session.user;
 
     if (!defaultPartnerId) {
-      throw new DubApiError({
-        code: "not_found",
-        message: "Partner profile not found.",
-      });
+      throw new Error("partner_not_found");
     }
 
     const { code, state } = oAuthCallbackSchema.parse(getSearchParams(req.url));
@@ -52,10 +46,7 @@ export const GET = async (req: Request) => {
     });
 
     if (!isStateValid) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "Invalid state",
-      });
+      throw new Error("invalid_state");
     }
 
     const accessToken = await paypalOAuth.exchangeCodeForToken({
@@ -67,11 +58,7 @@ export const GET = async (req: Request) => {
     });
 
     if (!paypalUser.email_verified) {
-      throw new DubApiError({
-        code: "bad_request",
-        message:
-          "PayPal email address is not verified. Please verify your email address in PayPal and try again https://partners.dub.co",
-      });
+      throw new Error("paypal_email_not_verified");
     }
 
     const { partner } = await prisma.partnerUser.findUniqueOrThrow({
@@ -101,8 +88,14 @@ export const GET = async (req: Request) => {
     // TODO:
     // Send an email to the partner to inform them that their PayPal account has been connected
   } catch (e) {
-    return handleAndReturnErrorResponse(e);
+    console.error(e);
+
+    if (e instanceof Error) {
+      error = e.message;
+    }
   }
 
-  redirect("/settings/payouts");
+  redirect(
+    `/settings/payouts${error ? `?error=${encodeURIComponent(error)}` : ""}`,
+  );
 };
