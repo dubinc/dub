@@ -66,8 +66,13 @@ export const GET = async (req: Request) => {
       token: accessToken,
     });
 
-    // TODO:
-    // Should we check if the paypal email is verified?
+    if (!paypalUser.email_verified) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "PayPal email address is not verified. Please verify your email address in PayPal and try again https://partners.dub.co",
+      });
+    }
 
     const { partner } = await prisma.partnerUser.findUniqueOrThrow({
       where: {
@@ -95,7 +100,7 @@ export const GET = async (req: Request) => {
 
     // TODO:
     // Send an email to the partner to inform them that their PayPal account has been connected
-  } catch (e: any) {
+  } catch (e) {
     return handleAndReturnErrorResponse(e);
   }
 
