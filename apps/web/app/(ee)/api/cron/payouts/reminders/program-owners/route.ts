@@ -16,12 +16,23 @@ export async function GET(req: Request) {
   try {
     await verifyVercelSignature(req);
 
+    const programsWithCustomMinPayouts = await prisma.program.findMany({
+      where: {
+        minPayoutAmount: {
+          gt: DUB_MIN_PAYOUT_AMOUNT_CENTS,
+        },
+      },
+    });
+
     const payouts = await prisma.payout.groupBy({
       by: ["programId"],
       where: {
         status: "pending",
         amount: {
           gte: DUB_MIN_PAYOUT_AMOUNT_CENTS,
+        },
+        programId: {
+          notIn: programsWithCustomMinPayouts.map((p) => p.id),
         },
       },
       _sum: {
@@ -68,11 +79,28 @@ export async function GET(req: Request) {
       return NextResponse.json("No programs found. Skipping...");
     }
 
-    const payoutsMap = new Map(payouts.map((p) => [p.programId, p]));
-
-    const programsWithPayouts = programs
-      .map((program) => {
-        const payout = payoutsMap.get(program.id);
+    const programsWithPayouts = await Promise.all(
+      programs.map(async (program) => {
+        let payoutDetails = payouts.find((p) => p.programId === program.id);
+        if (!payoutDetails) {
+          const pendingPayouts = await prisma.payout.groupBy({
+            by: ["programId"],
+            where: {
+              status: "pending",
+              amount: {
+                gte: program.minPayoutAmount,
+              },
+              programId: program.id,
+            },
+            _sum: {
+              amount: true,
+            },
+            _count: {
+              _all: true,
+            },
+          });
+          payoutDetails = pendingPayouts[0];
+        }
         const workspace = program.workspace;
 
         return workspace.users.map(({ user }) => ({
@@ -87,12 +115,12 @@ export async function GET(req: Request) {
             name: program.name,
           },
           payout: {
-            amount: payout?._sum?.amount ?? 0,
-            partnersCount: payout?._count?._all ?? 0,
+            amount: payoutDetails?._sum?.amount ?? 0,
+            partnersCount: payoutDetails?._count?._all ?? 0,
           },
         }));
-      })
-      .flat();
+      }),
+    ).then((p) => p.flat());
 
     await Promise.all(
       programsWithPayouts.map(({ workspace, user, program, payout }) =>
