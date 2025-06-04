@@ -1,19 +1,6 @@
 import { DotsPattern } from "@dub/ui";
 import Link from "next/link";
 
-const variants = {
-  login: {
-    text: "Looking for your Dub Partner account?",
-    cta: "Log in at partners.dub.co",
-    href: "https://partners.dub.co/login",
-  },
-  register: {
-    text: "Looking for a Dub Partner account?",
-    cta: "Sign up at partners.dub.co",
-    href: "https://partners.dub.co/register",
-  },
-};
-
 export function AuthAlternativeBanner({
   text,
   cta,

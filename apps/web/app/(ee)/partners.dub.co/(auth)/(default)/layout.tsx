@@ -1,6 +1,5 @@
 import { Grid, Wordmark } from "@dub/ui";
 import { cn } from "@dub/utils";
-import Link from "next/link";
 
 export default function PartnerAuthLayout({
   children,
@@ -46,13 +45,14 @@ export default function PartnerAuthLayout({
         ))}
       </div>
       <div className="relative flex min-h-screen w-full justify-center">
-        <Link
+        <a
           href="https://dub.co/partners"
+          target="_blank"
           className="absolute left-1/2 top-4 z-10 flex -translate-x-1/2 flex-col items-center"
         >
           <Wordmark className="h-8" />
           <span className="text-sm font-medium text-neutral-700">Partners</span>
-        </Link>
+        </a>
         {children}
       </div>
     </>
