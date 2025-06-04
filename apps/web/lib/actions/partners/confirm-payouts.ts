@@ -1,11 +1,9 @@
 "use server";
 
-import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { qstash } from "@/lib/cron";
 import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
 import { stripe } from "@/lib/stripe";
-import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK, getFirstAndLastDay } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import z from "zod";
 import { authActionClient } from "../safe-action";
 
@@ -24,29 +22,11 @@ export const confirmPayoutsAction = authActionClient
     const { workspace, user } = ctx;
     const { paymentMethodId, cutoffPeriod } = parsedInput;
 
-    const programId = getDefaultProgramIdOrThrow(workspace);
-
     if (!workspace.stripeId) {
       throw new Error("Workspace does not have a valid Stripe ID.");
     }
 
-    const { firstDay } = getFirstAndLastDay(workspace.billingCycleStart);
-    const totalPaidPayouts = await prisma.invoice.aggregate({
-      where: {
-        programId,
-        createdAt: {
-          gte: new Date(firstDay),
-        },
-      },
-      _sum: {
-        amount: true,
-      },
-    });
-
-    if (
-      totalPaidPayouts._sum?.amount &&
-      totalPaidPayouts._sum.amount > workspace.payoutsLimit
-    ) {
+    if (workspace.payoutsUsage >= workspace.payoutsLimit) {
       throw new Error("Payouts limit exceeded.");
     }
 

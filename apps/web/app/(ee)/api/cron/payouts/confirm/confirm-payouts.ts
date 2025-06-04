@@ -9,7 +9,6 @@ import { sendEmail } from "@dub/email";
 import PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
 import { prisma } from "@dub/prisma";
 import { Program, Project } from "@prisma/client";
-import { waitUntil } from "@vercel/functions";
 
 const allowedPaymentMethods = ["us_bank_account", "card", "link"];
 
@@ -139,36 +138,43 @@ export async function confirmPayouts({
       },
     });
 
+    await tx.project.update({
+      where: {
+        id: workspace.id,
+      },
+      data: {
+        payoutsUsage: {
+          increment: amount,
+        },
+      },
+    });
+
     return invoice;
   });
 
-  waitUntil(
-    (async () => {
-      // Send emails to all the partners involved in the payouts if the payout method is ACH
-      // ACH takes 4 business days to process
-      if (newInvoice && paymentMethod.type === "us_bank_account") {
-        await Promise.all(
-          payouts
-            .filter((payout) => payout.partner.email)
-            .map((payout) =>
-              sendEmail({
-                subject: "You've got money coming your way!",
-                email: payout.partner.email!,
-                react: PartnerPayoutConfirmed({
-                  email: payout.partner.email!,
-                  program,
-                  payout: {
-                    id: payout.id,
-                    amount: payout.amount,
-                    startDate: payout.periodStart,
-                    endDate: payout.periodEnd,
-                  },
-                }),
-                variant: "notifications",
-              }),
-            ),
-        );
-      }
-    })(),
-  );
+  // Send emails to all the partners involved in the payouts if the payout method is ACH
+  // ACH takes 4 business days to process
+  if (newInvoice && paymentMethod.type === "us_bank_account") {
+    await Promise.all(
+      payouts
+        .filter((payout) => payout.partner.email)
+        .map((payout) =>
+          sendEmail({
+            subject: "You've got money coming your way!",
+            email: payout.partner.email!,
+            react: PartnerPayoutConfirmed({
+              email: payout.partner.email!,
+              program,
+              payout: {
+                id: payout.id,
+                amount: payout.amount,
+                startDate: payout.periodStart,
+                endDate: payout.periodEnd,
+              },
+            }),
+            variant: "notifications",
+          }),
+        ),
+    );
+  }
 }

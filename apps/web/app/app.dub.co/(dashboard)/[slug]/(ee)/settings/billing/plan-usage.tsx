@@ -42,6 +42,7 @@ export default function PlanUsage() {
     linksUsage,
     linksLimit,
     totalLinks,
+    payoutsUsage,
     payoutsLimit,
     domains,
     domainsLimit,
@@ -101,7 +102,7 @@ export default function PlanUsage() {
         id: "payouts",
         icon: CircleDollar,
         title: "Partner payouts",
-        usage: 123456, // update
+        usage: payoutsUsage,
         limit: payoutsLimit,
         unit: "$",
         requiresUpgrade: plan === "free" || plan === "pro",
