@@ -12,7 +12,7 @@ const schema = z.object({
     .describe("The domain to claim. We only support .link domains for now."),
 });
 
-// POST /api/domains/register - register a domain
+// POST /api/domains/client/register - register a domain (internal use only)
 export const POST = withWorkspace(
   async ({ searchParams, workspace, session }) => {
     const { domain } = schema.parse(searchParams);
