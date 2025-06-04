@@ -71,12 +71,14 @@ export const createPartnerCommission = async ({
     if (firstCommission) {
       // use reward details from the first sale to lock in original terms.
       // ensures historical consistency if the reward configuration has changed since the commission was created
-      reward = {
-        ...reward,
-        type: firstCommission.rewardType!,
-        amount: firstCommission.rewardAmount!,
-        maxDuration: firstCommission.rewardMaxDuration,
-      };
+      if (firstCommission.rewardType) {
+        reward = {
+          ...reward,
+          type: firstCommission.rewardType!,
+          amount: firstCommission.rewardAmount!,
+          maxDuration: firstCommission.rewardMaxDuration,
+        };
+      }
 
       // for reward types with a max duration, we need to check if the first commission is within the max duration
       // if its beyond the max duration, we should not create a new commission
