@@ -39,11 +39,10 @@ export default function PlanUsage() {
     defaultProgramId,
     usage,
     usageLimit,
-    salesUsage,
-    salesLimit,
     linksUsage,
     linksLimit,
     totalLinks,
+    payoutsLimit,
     domains,
     domainsLimit,
     foldersUsage,
@@ -99,11 +98,11 @@ export default function PlanUsage() {
         limit: linksLimit,
       },
       {
-        id: "revenue",
+        id: "payouts",
         icon: CircleDollar,
-        title: "Revenue tracked",
-        usage: salesUsage,
-        limit: salesLimit,
+        title: "Partner payouts",
+        usage: 123456, // update
+        limit: payoutsLimit,
         unit: "$",
         requiresUpgrade: plan === "free" || plan === "pro",
       },
@@ -123,9 +122,8 @@ export default function PlanUsage() {
     usageLimit,
     linksUsage,
     linksLimit,
+    payoutsLimit,
     totalLinks,
-    salesUsage,
-    salesLimit,
   ]);
 
   return (

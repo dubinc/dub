@@ -20,7 +20,7 @@ export const PLANS = [
     limits: {
       links: 25,
       clicks: 1000,
-      sales: 0,
+      payouts: 0,
       domains: 3,
       tags: 5,
       folders: 0,
@@ -54,7 +54,7 @@ export const PLANS = [
     limits: {
       links: 1_000,
       clicks: 50_000,
-      sales: 0,
+      payouts: 0,
       domains: 10,
       tags: 25,
       folders: 3,
@@ -141,7 +141,7 @@ export const PLANS = [
     limits: {
       links: 10_000,
       clicks: 250_000,
-      sales: 25_000_00,
+      payouts: 2_500_00,
       domains: 100,
       tags: INFINITY_NUMBER,
       folders: 20,
@@ -239,7 +239,7 @@ export const PLANS = [
     limits: {
       links: 50_000,
       clicks: 1_000_000,
-      sales: 100_000_00,
+      payouts: 15_000_00,
       domains: 250,
       tags: INFINITY_NUMBER,
       folders: 50,
@@ -320,7 +320,7 @@ export const PLANS = [
     limits: {
       links: 250000,
       clicks: 5000000,
-      sales: 1000000_00,
+      payouts: 1000000_00,
       domains: 1000,
       tags: INFINITY_NUMBER,
       folders: INFINITY_NUMBER,
