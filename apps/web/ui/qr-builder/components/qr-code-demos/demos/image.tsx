@@ -57,7 +57,7 @@ export const QRCodeDemoImage: FC<IQRCodeDemoImageProps> = ({ filesImage }) => {
         textAnchor="middle"
         dominantBaseline="middle"
         style={{
-          fontFamily: "Inter",
+          fontFamily: "Inter, sans-serif",
           fontStyle: "normal",
           fontWeight: 600,
           fontSize: "16px",

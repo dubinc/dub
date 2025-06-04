@@ -50,7 +50,7 @@ export default function QRCodeDemoPdf({ filesPDF }: IQRCodeDemoPdfProps) {
         textAnchor="middle"
         dominantBaseline="middle"
         style={{
-          fontFamily: "Inter",
+          fontFamily: "Inter, sans-serif",
           fontStyle: "normal",
           fontWeight: 600,
           fontSize: "16px",

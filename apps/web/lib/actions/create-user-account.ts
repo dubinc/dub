@@ -8,6 +8,7 @@ import { ratelimit, redis } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { generateRandomString } from "@dub/utils/src";
 import slugify from "@sindresorhus/slugify";
+import crypto from "crypto";
 import { nanoid } from "nanoid";
 import { flattenValidationErrors } from "next-safe-action";
 import { createId, getIP } from "../api/utils";
@@ -165,6 +166,8 @@ export const createUserAccountAction = actionClient
         try {
           const createdLink = await createLink(link);
 
+          const fileId = crypto.randomUUID();
+
           await createQr(
             {
               ...qrDataToCreate,
@@ -173,8 +176,10 @@ export const createUserAccountAction = actionClient
               // @ts-ignore
               data: qrDataToCreate.styles.data,
             },
+            createdLink.url,
             createdLink.id,
             createdLink.userId,
+            fileId,
           );
         } catch (error) {
           throw new DubApiError({
