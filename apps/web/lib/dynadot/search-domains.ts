@@ -1,6 +1,6 @@
 import z from "@/lib/zod";
-import { prisma } from "@dub/prisma";
 import { DubApiError } from "../api/errors";
+import { DomainStatusSchema } from "../zod/schemas/domains";
 import { DYNADOT_API_KEY, DYNADOT_BASE_URL } from "./constants";
 
 const schema = z.object({
@@ -18,35 +18,16 @@ const schema = z.object({
 });
 
 export const searchDomainsAvailability = async ({
-  domain,
+  domains,
 }: {
-  domain: string;
+  domains: Record<string, string>;
 }) => {
-  const domainOnDub = await prisma.domain.findUnique({
-    where: {
-      slug: domain,
-      verified: true,
-    },
-  });
-  if (domainOnDub) {
-    return [
-      {
-        domain: domainOnDub.slug,
-        available: false,
-        price: null,
-      },
-    ];
-  }
-
   const searchParams = new URLSearchParams({
-    key: DYNADOT_API_KEY,
-    domain0: domain,
-    domain1: `get${domain}`,
-    domain2: `try${domain}`,
-    domain3: `use${domain}`,
+    ...domains,
     command: "search",
     show_price: "1",
     currency: "USD",
+    key: DYNADOT_API_KEY,
   });
 
   const response = await fetch(
@@ -74,8 +55,9 @@ export const searchDomainsAvailability = async ({
     });
   }
 
-  return data.SearchResponse.SearchResults.map((result) => {
+  const result = data.SearchResponse.SearchResults.map((result) => {
     const premium = result.Price && /is\s+a Premium Domain/.test(result.Price);
+
     return {
       domain: result.DomainName,
       available: result.Available === "yes" && !premium,
@@ -83,4 +65,6 @@ export const searchDomainsAvailability = async ({
       premium,
     };
   });
+
+  return DomainStatusSchema.array().parse(result);
 };

@@ -1,7 +1,7 @@
 import { generateRandomName } from "@/lib/names";
 import { OG_AVATAR_URL, nanoid } from "@dub/utils";
 
-export const randomId = () => nanoid(24);
+export const randomId = (length = 24) => nanoid(length);
 
 // Generate random customer data
 export const randomCustomer = () => {
