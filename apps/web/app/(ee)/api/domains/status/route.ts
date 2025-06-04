@@ -17,7 +17,8 @@ export const GET = withWorkspace(
     if (domains.length === 0) {
       throw new DubApiError({
         code: "bad_request",
-        message: "You must provide at least one domain to check.",
+        message:
+          "You must provide at least one domain to check. We only support .link domains for now.",
       });
     }
 
