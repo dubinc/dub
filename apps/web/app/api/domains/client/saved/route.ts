@@ -12,7 +12,7 @@ const schema = z.object({
     .describe("We only support .link domains for now."),
 });
 
-// POST /api/domains/saved - save a domain for future registration (e.g. after onboarding)
+// POST /api/domains/client/saved - save a domain for future registration (e.g. after onboarding)
 export const POST = withWorkspace(
   async ({ searchParams, workspace, session }) => {
     const { domain } = schema.parse(searchParams);
