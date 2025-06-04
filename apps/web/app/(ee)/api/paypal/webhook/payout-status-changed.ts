@@ -41,7 +41,7 @@ export async function payoutStatusChanged(event: any) {
 
   if (!payout) {
     console.log(
-      `Payout not found for invoice ${invoiceId} and partner ${paypalEmail}`,
+      `[PayPal] Payout not found for invoice ${invoiceId} and partner ${paypalEmail}`,
     );
     return;
   }
@@ -49,7 +49,7 @@ export async function payoutStatusChanged(event: any) {
   if (body.event_type === "PAYMENT.PAYOUTS-ITEM.SUCCEEDED") {
     if (payout.status === "completed") {
       console.log(
-        `Payout already completed for invoice ${invoiceId} and partner ${paypalEmail}`,
+        `[PayPal] Payout already completed for invoice ${invoiceId} and partner ${paypalEmail}`,
       );
       return;
     }
