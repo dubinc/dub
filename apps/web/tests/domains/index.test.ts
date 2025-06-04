@@ -109,31 +109,34 @@ describe.sequential("/domains/**", async () => {
   test("GET /domains/status", async () => {
     const domains = [
       "getacme.link", // expected to be unavailable
-      `acme${randomId(3)}.link`, // expected to be available
+      `acme${randomId(3).toLowerCase()}.link`, // expected to be available
     ];
 
     const { status, data: domainStatuses } = await http.get<
       z.infer<typeof DomainStatusSchema>[]
     >({
-      path: `/domains/status?domains=${domains.join(",")}`,
-      query: { workspaceId: workspace.id },
+      path: "/domains/status",
+      query: {
+        workspaceId: workspace.id,
+        domains: domains.join(","),
+      },
     });
 
     expect(status).toEqual(200);
     expect(domainStatuses).toHaveLength(2);
-
-    expect(domainStatuses).toContainEqual({
-      domain: domains[0],
-      available: false,
-      price: null,
-      premium: null,
-    });
-
-    expect(domainStatuses).toContainEqual({
-      domain: domains[1],
-      available: true,
-      price: expect.any(String),
-      premium: expect.any(Boolean),
-    });
+    expect(domainStatuses).toEqual([
+      {
+        domain: domains[0],
+        available: false,
+        price: null,
+        premium: null,
+      },
+      {
+        domain: domains[1],
+        available: true,
+        price: expect.any(String),
+        premium: expect.any(Boolean),
+      },
+    ]);
   });
 });
