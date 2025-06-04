@@ -1,5 +1,4 @@
 import { createId } from "@/lib/api/create-id";
-import { determineCustomerDiscount } from "@/lib/api/customers/determine-customer-discount";
 import { transformCustomer } from "@/lib/api/customers/transform-customer";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -138,28 +137,7 @@ export const GET = withWorkspace(
         },
         distinct: ["customerId"],
       });
-
-      const firstPurchaseMap = new Map(
-        firstPurchases.map((purchase) => [purchase.customerId, purchase]),
-      );
-
-      customers.forEach((customer) => {
-        discounts.set(
-          customer.id,
-          determineCustomerDiscount({
-            customerLink: customer.link,
-            firstPurchase: firstPurchaseMap.get(customer.id),
-          }),
-        );
-      });
     }
-
-    const processedCustomers = customers.map((customer) => {
-      return {
-        ...customer,
-        discount: discounts.get(customer.id),
-      };
-    });
 
     const responseSchema = includeExpandedFields
       ? CustomerEnrichedSchema.merge(
@@ -170,7 +148,7 @@ export const GET = withWorkspace(
       : CustomerSchema;
 
     return NextResponse.json(
-      responseSchema.array().parse(processedCustomers.map(transformCustomer)),
+      responseSchema.array().parse(customers.map(transformCustomer)),
     );
   },
   {
