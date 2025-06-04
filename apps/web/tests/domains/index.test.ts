@@ -120,19 +120,20 @@ describe.sequential("/domains/**", async () => {
     });
 
     expect(status).toEqual(200);
-    expect(domainStatuses).toContainEqual([
-      {
-        domain: domains[0],
-        available: false,
-        price: null,
-        premium: null,
-      },
-      {
-        domain: domains[1],
-        available: true,
-        price: expect.any(String),
-        premium: expect.any(Boolean),
-      },
-    ]);
+    expect(domainStatuses).toHaveLength(2);
+
+    expect(domainStatuses).toContainEqual({
+      domain: domains[0],
+      available: false,
+      price: null,
+      premium: null,
+    });
+
+    expect(domainStatuses).toContainEqual({
+      domain: domains[1],
+      available: true,
+      price: expect.any(String),
+      premium: expect.any(Boolean),
+    });
   });
 });
