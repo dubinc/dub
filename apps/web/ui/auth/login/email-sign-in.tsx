@@ -1,8 +1,6 @@
 import { checkAccountExistsAction } from "@/lib/actions/check-account-exists";
 import { Button, Input, useMediaQuery } from "@dub/ui";
-import { InputPassword } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
-import { Mail } from "lucide-react";
 import { signIn } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
@@ -117,31 +115,47 @@ export const EmailSignIn = ({ next }: { next?: string }) => {
             router.push(response?.url || finalNext || "/workspaces");
           }
         }}
-        className="flex flex-col gap-y-3"
+        className="flex flex-col gap-y-6"
       >
         {authMethod === "email" && (
-          <input
-            id="email"
-            name="email"
-            autoFocus={!isMobile && !showPasswordField}
-            type="email"
-            placeholder="panic@thedis.co"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            size={1}
-            className={cn(
-              "block w-full min-w-0 appearance-none rounded-md border border-neutral-300 px-3 py-2 placeholder-neutral-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm",
-              {
-                "pr-10": isPending,
-              },
-            )}
-          />
+          <label>
+            <span className="text-content-emphasis mb-2 block text-sm font-medium leading-none">
+              Email
+            </span>
+            <input
+              id="email"
+              name="email"
+              autoFocus={!isMobile && !showPasswordField}
+              type="email"
+              placeholder="panic@thedis.co"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              size={1}
+              className={cn(
+                "block w-full min-w-0 appearance-none rounded-md border border-neutral-300 px-3 py-2 placeholder-neutral-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm",
+                {
+                  "pr-10": isPending,
+                },
+              )}
+            />
+          </label>
         )}
 
         {showPasswordField && (
-          <div>
+          <label>
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-content-emphasis block text-sm font-medium leading-none">
+                Password
+              </span>
+              <Link
+                href={`/forgot-password?email=${encodeURIComponent(email)}`}
+                className="text-content-subtle hover:text-content-emphasis text-xs leading-none underline underline-offset-2 transition-colors"
+              >
+                Forgot password?
+              </Link>
+            </div>
             <Input
               type="password"
               autoFocus={!isMobile}
@@ -149,19 +163,11 @@ export const EmailSignIn = ({ next }: { next?: string }) => {
               placeholder="Password (optional)"
               onChange={(e) => setPassword(e.target.value)}
             />
-          </div>
+          </label>
         )}
 
         <Button
-          text={`Continue with ${password ? "Password" : "Email"}`}
-          variant="secondary"
-          icon={
-            password ? (
-              <InputPassword className="size-4 text-neutral-600" />
-            ) : (
-              <Mail className="size-4 text-neutral-600" />
-            )
-          }
+          text={`Log in with ${password ? "password" : "email"}`}
           {...(authMethod !== "email" && {
             type: "button",
             onClick: (e) => {
@@ -174,14 +180,6 @@ export const EmailSignIn = ({ next }: { next?: string }) => {
           disabled={clickedMethod && clickedMethod !== "email"}
         />
       </form>
-      {showPasswordField && (
-        <Link
-          href={`/forgot-password?email=${encodeURIComponent(email)}`}
-          className="text-center text-xs text-neutral-500 transition-colors hover:text-black"
-        >
-          Forgot password?
-        </Link>
-      )}
     </>
   );
 };

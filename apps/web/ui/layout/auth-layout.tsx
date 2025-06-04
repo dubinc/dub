@@ -1,84 +1,42 @@
-import { BlurImage, ClientOnly } from "@dub/ui";
-import { Suspense } from "react";
+import { ClientOnly } from "@dub/ui";
+import { PropsWithChildren, Suspense } from "react";
 
-const logos = [
-  "vercel",
-  "perplexity",
-  "prisma",
-  "tinybird",
-  "hashnode",
-  "cal",
-  "vercel",
-  "perplexity",
-  "prisma",
-  "tinybird",
-  "hashnode",
-  "cal",
-];
-
-interface AuthLayoutProps {
-  children: React.ReactNode;
-}
-
-export const AuthLayout = ({ children }: AuthLayoutProps) => {
+export const AuthLayout = ({
+  showTerms = false,
+  children,
+}: PropsWithChildren<{ showTerms?: boolean }>) => {
   return (
-    <div className="grid w-full grid-cols-1 md:grid-cols-5">
-      <div className="col-span-1 flex min-h-screen flex-col items-center justify-between border-r border-neutral-200 bg-white/10 shadow-[inset_10px_-50px_94px_0_rgb(199,199,199,0.2)] backdrop-blur sm:col-span-3">
-        <div className="flex h-full w-full flex-col items-center justify-center">
-          <ClientOnly className="relative flex w-full flex-col items-center justify-center">
-            <Suspense>{children}</Suspense>
-          </ClientOnly>
-        </div>
+    <div className="flex min-h-screen w-full flex-col items-center justify-between">
+      {/* Empty div to help center main content */}
+      <div className="grow basis-0">
+        <div className="h-24" />
+      </div>
 
-        <div className="grid gap-2 pb-8 pt-4">
-          <p className="text-xs text-neutral-600">
-            © {new Date().getFullYear()} Dub Technologies, Inc.
-          </p>
-          <div className="flex gap-3 text-center text-xs text-neutral-500 underline underline-offset-2">
-            <a
-              href="https://dub.co/legal/privacy"
-              target="_blank"
-              className="hover:text-neutral-800"
-            >
-              Privacy Policy
-            </a>
+      <ClientOnly className="relative flex w-full flex-col items-center justify-center px-4">
+        <Suspense>{children}</Suspense>
+      </ClientOnly>
+
+      <div className="flex grow basis-0 flex-col justify-end">
+        {showTerms && (
+          <p className="px-20 py-8 text-center text-xs font-medium text-neutral-500 md:px-0">
+            By continuing, you agree to Dub&rsquo;s{" "}
             <a
               href="https://dub.co/legal/terms"
               target="_blank"
-              className="hover:text-neutral-800"
+              className="font-semibold text-neutral-600 hover:text-neutral-800"
             >
               Terms of Service
+            </a>{" "}
+            and{" "}
+            <a
+              href="https://dub.co/legal/privacy"
+              target="_blank"
+              className="font-semibold text-neutral-600 hover:text-neutral-800"
+            >
+              Privacy Policy
             </a>
-          </div>
-        </div>
-      </div>
-
-      <div className="hidden h-full flex-col justify-center space-y-12 overflow-hidden md:col-span-2 md:flex">
-        <div className="ml-12 h-1/2 w-[140%] rounded-xl border border-neutral-200 p-2 shadow-xl">
-          <BlurImage
-            alt="Dub Analytics"
-            src="https://assets.dub.co/changelog/new-dashboard.jpg"
-            width={2400}
-            height={1260}
-            className="aspect-[2400/1260] h-full rounded-lg border border-neutral-200 object-cover object-left-top"
-          />
-        </div>
-        <a
-          href="https://dub.co/customers"
-          target="_blank"
-          className="animate-infinite-scroll flex items-center space-x-4"
-        >
-          {logos.map((logo, idx) => (
-            <BlurImage
-              alt={`${logo} logo`}
-              key={idx}
-              src={`https://assets.dub.co/clients/${logo}.svg`}
-              width={520}
-              height={182}
-              className="h-12 grayscale transition-all hover:grayscale-0"
-            />
-          ))}
-        </a>
+          </p>
+        )}
       </div>
     </div>
   );

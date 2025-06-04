@@ -27,7 +27,7 @@ import {
 } from "next/server";
 import { linkCache } from "../api/links/cache";
 import { isCaseSensitiveDomain } from "../api/links/case-sensitivity";
-import { clickCache } from "../api/links/click-cache";
+import { recordClickCache } from "../api/links/record-click-cache";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
 import { getPartnerAndDiscount } from "../planetscale/get-partner-discount";
@@ -250,7 +250,7 @@ export default async function LinkMiddleware(
     if (shouldPassClickId) {
       const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
 
-      clickId = (await clickCache.get({ domain, key, ip })) || undefined;
+      clickId = (await recordClickCache.get({ domain, key, ip })) || undefined;
     }
 
     // if there's still no clickId, generate a new one

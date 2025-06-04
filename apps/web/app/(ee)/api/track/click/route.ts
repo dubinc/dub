@@ -1,7 +1,7 @@
 import { verifyAnalyticsAllowedHostnames } from "@/lib/analytics/verify-analytics-allowed-hostnames";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
-import { clickCache } from "@/lib/api/links/click-cache";
+import { recordClickCache } from "@/lib/api/links/record-click-cache";
 import { parseRequestBody } from "@/lib/api/utils";
 import { getWorkspaceViaEdge } from "@/lib/planetscale";
 import { getLinkWithPartner } from "@/lib/planetscale/get-link-with-partner";
@@ -60,7 +60,7 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
     let [cachedClickId, cachedLink] = await redis.mget<
       [string, RedisLinkProps]
     >([
-      clickCache._createKey({ domain, key, ip }),
+      recordClickCache._createKey({ domain, key, ip }),
       linkCache._createKey({ domain, key }),
     ]);
 
