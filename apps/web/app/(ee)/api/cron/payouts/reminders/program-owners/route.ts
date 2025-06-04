@@ -45,6 +45,11 @@ export async function GET(req: Request) {
         programId: {
           notIn: programsWithCustomMinPayouts.map((p) => p.id),
         },
+        partner: {
+          payoutsEnabledAt: {
+            not: null,
+          },
+        },
       },
       _sum: {
         amount: true,
@@ -65,6 +70,11 @@ export async function GET(req: Request) {
           status: "pending",
           amount: {
             gte: program.minPayoutAmount,
+          },
+          partner: {
+            payoutsEnabledAt: {
+              not: null,
+            },
           },
         },
         _sum: {
