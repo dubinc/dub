@@ -5,7 +5,18 @@ export default function Domain() {
   return (
     <StepPage
       title="Add a custom domain"
-      description="Take your links to the next level with your own branding."
+      description={
+        <>
+          Brand your short links and{" "}
+          <a
+            href="https://dub.co/blog/custom-domains"
+            target="_blank"
+            className="underline transition-colors hover:text-neutral-700"
+          >
+            increase trust
+          </a>
+        </>
+      }
       className="max-w-none"
     >
       <DefaultDomainSelector />
