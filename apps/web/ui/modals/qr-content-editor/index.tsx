@@ -1,12 +1,16 @@
 "use client";
 
 import { EQRType, QR_TYPES } from "@/ui/qr-builder/constants/get-qr-config.ts";
+import { qrTypeDataHandlers } from "@/ui/qr-builder/helpers/qr-type-data-handlers.ts";
 import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization.ts";
 import { QRCodeContentBuilder } from "@/ui/qr-builder/qr-code-content-builder.tsx";
+import { getQRValidationSchema } from "@/ui/qr-builder/qr-validation-schema.ts";
+import { useQrSave } from "@/ui/qr-code/hooks/use-qr-save.ts";
 import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
 import { X } from "@/ui/shared/icons";
 import QRIcon from "@/ui/shared/icons/qr.tsx";
 import { Button, Modal } from "@dub/ui";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Theme } from "@radix-ui/themes";
 import {
   Dispatch,
@@ -42,11 +46,7 @@ const getModalTitle = (qrType: EQRType): string => {
   }
 };
 
-export type QRContentEditorData = {
-  title?: string;
-  url?: string;
-  // TODO: Добавить другие поля для редактирования
-};
+export type QRContentEditorData = Record<string, string | File[] | undefined>;
 
 type QRContentEditorModalProps = {
   qrCode?: ResponseQrCode;
@@ -69,9 +69,14 @@ export function QRContentEditorModal({
   )!;
 
   const { initialInputValues } = useQrCustomization(qrCode);
+  const { updateQr } = useQrSave();
 
-  const methods = useForm({
+  const validationSchema = getQRValidationSchema(selectedQRType);
+
+  const methods = useForm<QRContentEditorData>({
     defaultValues: {},
+    resolver: zodResolver(validationSchema),
+    mode: "onBlur",
   });
 
   useEffect(() => {
@@ -79,9 +84,22 @@ export function QRContentEditorModal({
       console.log("Setting initial values:", initialInputValues);
       console.log("QR Code data:", qrCode?.data);
       console.log("QR Code type:", selectedQRType);
-      methods.reset(initialInputValues);
+
+      const valuesWithQrName = {
+        ...initialInputValues,
+        [`qrName-${selectedQRType}`]: qrCode?.title || "QR Code",
+      };
+
+      console.log("Values with qrName:", valuesWithQrName);
+      methods.reset(valuesWithQrName);
     }
-  }, [initialInputValues, methods, qrCode?.data, selectedQRType]);
+  }, [
+    initialInputValues,
+    methods,
+    qrCode?.data,
+    selectedQRType,
+    qrCode?.title,
+  ]);
 
   const [isHiddenNetwork, setIsHiddenNetwork] = useState(false);
 
@@ -91,15 +109,59 @@ export function QRContentEditorModal({
     }
   }, [initialInputValues?.isHiddenNetwork]);
 
-  const handleSaveQR = async (data: any) => {
+  const handleSaveQR = async (formData: QRContentEditorData) => {
+    if (!qrCode?.id) {
+      toast.error("QR Code ID not found");
+      return;
+    }
+
     setIsProcessing(true);
 
     try {
-      // TODO: Implement actual save logic
-      console.log("Saving QR data:", data);
-      toast.success("QR code updated successfully");
-      setShowQRContentEditorModal(false);
+      console.log("Form data:", formData);
+      console.log("QR Type:", selectedQRType);
+      console.log("Hidden network:", isHiddenNetwork);
+
+      const { qrName, ...filteredFormData } = formData;
+
+      if (selectedQRType === EQRType.WHATSAPP && filteredFormData.number) {
+        filteredFormData.number = (filteredFormData.number as string).replace(
+          /^\+/,
+          "",
+        );
+      }
+
+      const qrDataString = qrTypeDataHandlers[selectedQRType]?.(
+        filteredFormData as Record<string, string>,
+        isHiddenNetwork,
+      );
+
+      console.log("Generated QR data string:", qrDataString);
+
+      if (!qrDataString) {
+        toast.error("Failed to generate QR data");
+        return;
+      }
+
+      const updateData = {
+        data: qrDataString,
+        qrType: selectedQRType,
+        // Добавляем файлы если они есть
+        ...(formData.filesImage && { files: formData.filesImage as File[] }),
+        ...(formData.filesPDF && { files: formData.filesPDF as File[] }),
+        ...(formData.filesVideo && { files: formData.filesVideo as File[] }),
+      };
+
+      console.log("Sending update data:", updateData);
+
+      const success = await updateQr(qrCode.id, updateData);
+
+      if (success) {
+        setShowQRContentEditorModal(false);
+        // toast.success уже показывается в useQrSave
+      }
     } catch (error) {
+      console.error("Failed to update QR code:", error);
       toast.error("Failed to update QR code");
     } finally {
       setIsProcessing(false);
@@ -114,11 +176,28 @@ export function QRContentEditorModal({
     }
   };
 
-  const validateFields = () => {
-    // TODO: Implement field validation
-    const formData = methods.getValues();
-    console.log("Form data to save:", formData);
-    handleSaveQR(formData);
+  const validateFields = async () => {
+    console.log("Validating form...");
+    const isValid = await methods.trigger();
+    console.log("Form validation result:", isValid);
+
+    if (isValid) {
+      const formData = methods.getValues();
+      console.log("Form data to save:", formData);
+      handleSaveQR(formData);
+    } else {
+      const errors = methods.formState.errors;
+      console.log("Validation errors:", errors);
+
+      const firstError = Object.values(errors)[0];
+      if (firstError?.message) {
+        toast.error(firstError.message as string);
+      }
+    }
+  };
+
+  const handleValidateFields = () => {
+    validateFields();
   };
 
   const handleHiddenNetworkChange = (checked: boolean) => {
@@ -160,7 +239,7 @@ export function QRContentEditorModal({
                 qrType={selectedQRType}
                 isHiddenNetwork={isHiddenNetwork}
                 onHiddenNetworkChange={handleHiddenNetworkChange}
-                validateFields={validateFields}
+                validateFields={handleValidateFields}
                 minimalFlow={true}
                 hideNameField={true}
               />
@@ -176,7 +255,7 @@ export function QRContentEditorModal({
                 />
                 <Button
                   type="button"
-                  onClick={validateFields}
+                  onClick={() => validateFields()}
                   loading={isProcessing}
                   text="Save Changes"
                 />
