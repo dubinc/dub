@@ -6,11 +6,7 @@ import { WorkspaceWithUsers } from "@/lib/types";
 import { sendEmail } from "@dub/email";
 import { DomainClaimed } from "@dub/email/templates/domain-claimed";
 import { prisma } from "@dub/prisma";
-import {
-  ACME_WORKSPACE_ID,
-  APP_DOMAIN_WITH_NGROK,
-  DEFAULT_LINK_PROPS,
-} from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, DEFAULT_LINK_PROPS } from "@dub/utils";
 import { get } from "@vercel/edge-config";
 import { waitUntil } from "@vercel/functions";
 import { addDomainToVercel } from "./add-domain-vercel";
@@ -41,10 +37,10 @@ export async function claimDotLinkDomain({
       });
     }
 
-    if (workspace.id !== ACME_WORKSPACE_ID && workspace.dotLinkClaimed) {
+    if (workspace.dotLinkClaimed) {
       throw new DubApiError({
         code: "forbidden",
-        message: "Workspace is limited to one free .link domain.",
+        message: "You are limited to one free .link domain per workspace.",
       });
     }
   }
