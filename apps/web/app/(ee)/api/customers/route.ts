@@ -118,27 +118,6 @@ export const GET = withWorkspace(
         : {}),
     })) as CustomerResponse[];
 
-    const discounts: Map<string, Discount | null> = new Map();
-
-    if (includeExpandedFields) {
-      const firstPurchases = await prisma.commission.findMany({
-        where: {
-          customerId: {
-            in: customers.map((customer) => customer.id),
-          },
-          type: "sale",
-        },
-        select: {
-          customerId: true,
-          createdAt: true,
-        },
-        orderBy: {
-          createdAt: "asc",
-        },
-        distinct: ["customerId"],
-      });
-    }
-
     const responseSchema = includeExpandedFields
       ? CustomerEnrichedSchema.merge(
           z.object({
@@ -147,9 +126,11 @@ export const GET = withWorkspace(
         )
       : CustomerSchema;
 
-    return NextResponse.json(
-      responseSchema.array().parse(customers.map(transformCustomer)),
-    );
+    const response = responseSchema
+      .array()
+      .parse(customers.map(transformCustomer));
+
+    return NextResponse.json(response);
   },
   {
     requiredPlan: [
