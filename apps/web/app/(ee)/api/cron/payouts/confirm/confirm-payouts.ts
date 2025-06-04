@@ -1,4 +1,5 @@
 import { createId } from "@/lib/api/create-id";
+import { limiter } from "@/lib/cron/limiter";
 import { PAYOUT_FEES } from "@/lib/partners/constants";
 import {
   CUTOFF_PERIOD,
@@ -153,27 +154,29 @@ export async function confirmPayouts({
   });
 
   // Send emails to all the partners involved in the payouts if the payout method is ACH
-  // ACH takes 4 business days to process
+  // This is because ACH takes 4 business days to process, so we want to give partners a heads up
   if (newInvoice && paymentMethod.type === "us_bank_account") {
     await Promise.all(
       payouts
         .filter((payout) => payout.partner.email)
         .map((payout) =>
-          sendEmail({
-            subject: "You've got money coming your way!",
-            email: payout.partner.email!,
-            react: PartnerPayoutConfirmed({
+          limiter.schedule(() =>
+            sendEmail({
+              subject: "You've got money coming your way!",
               email: payout.partner.email!,
-              program,
-              payout: {
-                id: payout.id,
-                amount: payout.amount,
-                startDate: payout.periodStart,
-                endDate: payout.periodEnd,
-              },
+              react: PartnerPayoutConfirmed({
+                email: payout.partner.email!,
+                program,
+                payout: {
+                  id: payout.id,
+                  amount: payout.amount,
+                  startDate: payout.periodStart,
+                  endDate: payout.periodEnd,
+                },
+              }),
+              variant: "notifications",
             }),
-            variant: "notifications",
-          }),
+          ),
         ),
     );
   }
