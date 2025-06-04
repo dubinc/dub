@@ -21,6 +21,11 @@ const REQUIREMENTS: {
   },
 ];
 
+/**
+ * Component to display the password requirements and whether they are each met for a password field.
+ *
+ * Note: This component must be used within a FormProvider context.
+ */
 export const PasswordRequirements = memo(function PasswordRequirements({
   field = "password",
   className,
@@ -34,12 +39,12 @@ export const PasswordRequirements = memo(function PasswordRequirements({
   const password = useWatch({ name: field });
 
   return (
-    <div className={cn("mt-2 flex flex-wrap items-center gap-3", className)}>
+    <ul className={cn("mt-2 flex flex-wrap items-center gap-3", className)}>
       {REQUIREMENTS.map(({ name, check }) => {
         const checked = password?.length && check(password);
 
         return (
-          <div
+          <li
             key={name}
             className={cn(
               "flex items-center gap-1 text-xs text-neutral-400 transition-colors",
@@ -54,9 +59,9 @@ export const PasswordRequirements = memo(function PasswordRequirements({
               )}
             />
             <span>{name}</span>
-          </div>
+          </li>
         );
       })}
-    </div>
+    </ul>
   );
 });
