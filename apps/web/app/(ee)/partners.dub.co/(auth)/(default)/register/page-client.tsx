@@ -54,7 +54,7 @@ function SignUp({ program }: { program?: PartialProgram }) {
 
         <div className="mt-12 w-full">
           <AuthAlternativeBanner
-            text="Looking for a Dub workspace account?"
+            text="Looking for your Dub workspace account?"
             cta="Sign up at app.dub.co"
             href="https://app.dub.co/register"
           />
