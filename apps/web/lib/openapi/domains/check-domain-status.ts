@@ -9,8 +9,9 @@ import { ZodOpenApiOperationObject } from "zod-openapi";
 export const checkDomainStatus: ZodOpenApiOperationObject = {
   operationId: "checkDomainStatus",
   "x-speakeasy-name-override": "checkStatus",
-  summary: "Check a domain availability",
-  description: "Check if a domain name is available for purchase.",
+  summary: "Check the availability of one or more domains",
+  description:
+    "Check if a domain name is available for purchase. You can check multiple domains at once.",
   requestParams: {
     query: searchDomainSchema,
   },
