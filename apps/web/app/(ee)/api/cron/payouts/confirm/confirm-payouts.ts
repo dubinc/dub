@@ -156,7 +156,7 @@ export async function confirmPayouts({
   // Send emails to all the partners involved in the payouts if the payout method is ACH
   // This is because ACH takes 4 business days to process, so we want to give partners a heads up
   if (newInvoice && paymentMethod.type === "us_bank_account") {
-    await Promise.all(
+    await Promise.allSettled(
       payouts
         .filter((payout) => payout.partner.email)
         .map((payout) =>
