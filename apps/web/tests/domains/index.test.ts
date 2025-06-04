@@ -1,5 +1,7 @@
+import { DomainStatusSchema } from "@/lib/zod/schemas/domains";
 import { Domain } from "@dub/prisma/client";
 import { describe, expect, onTestFinished, test } from "vitest";
+import { z } from "zod";
 import { randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 
@@ -102,5 +104,35 @@ describe.sequential("/domains/**", async () => {
       ...expectedDomain,
       ...toUpdate,
     });
+  });
+
+  test("GET /domains/status", async () => {
+    const domains = [
+      "getacme.link", // existing one
+      `acme${randomId(3)}.link`, // expected to be available
+    ];
+
+    const { status, data: domainStatuses } = await http.get<
+      z.infer<typeof DomainStatusSchema>[]
+    >({
+      path: `/domains/status?domains=${domains.join(",")}`,
+      query: { workspaceId: workspace.id },
+    });
+
+    expect(status).toEqual(200);
+    expect(domainStatuses).toContainEqual([
+      {
+        domain: domains[0],
+        available: false,
+        price: null,
+        premium: null,
+      },
+      {
+        domain: domains[1],
+        available: true,
+        price: expect.any(String),
+        premium: expect.any(Boolean),
+      },
+    ]);
   });
 });
