@@ -26,8 +26,8 @@ const resourceEmptyStates: Record<
   },
   revenue: {
     icon: CircleDollar,
-    title: "Revenue Tracked",
-    description: "No revenue has been tracked in the current billing cycle.",
+    title: "Partner payouts",
+    description: "No payouts have been sent in the current billing cycle.",
   },
 };
 
