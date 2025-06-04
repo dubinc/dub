@@ -83,14 +83,13 @@ export async function GET(req: Request) {
       programs.map(async (program) => {
         let payoutDetails = payouts.find((p) => p.programId === program.id);
         if (!payoutDetails) {
-          const pendingPayouts = await prisma.payout.groupBy({
-            by: ["programId"],
+          const pendingPayouts = await prisma.payout.aggregate({
             where: {
+              programId: program.id,
               status: "pending",
               amount: {
                 gte: program.minPayoutAmount,
               },
-              programId: program.id,
             },
             _sum: {
               amount: true,
