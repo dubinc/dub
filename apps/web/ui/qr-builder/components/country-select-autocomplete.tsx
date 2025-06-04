@@ -39,8 +39,10 @@ export const CountrySelectAutocompleteComponent = ({
   }, [options]);
 
   const filteredOptions = useMemo(() => {
-    return sortedOptions.filter((option) =>
-      option.label.toLowerCase().includes(search.toLowerCase()),
+    return sortedOptions.filter(
+      (option) =>
+        option.value.toLowerCase().includes(search.toLowerCase()) ||
+        option.label.toLowerCase().includes(search.toLowerCase()),
     );
   }, [sortedOptions, search]);
 
@@ -64,12 +66,12 @@ export const CountrySelectAutocompleteComponent = ({
       setOpenPopover={setOpen}
       disableDrawer
       content={
-        <Command className="w-full max-w-36 rounded-md bg-white text-base shadow-md">
+        <Command className="w-full max-w-36 basis-1/3 rounded-md bg-white text-base shadow-md">
           <Command.Input
             value={search}
             onValueChange={setSearch}
             placeholder="Search..."
-            className="focus:border-secondary border-b-border-500 w-auto max-w-36 rounded-md rounded-b-none border-x-0 border-b border-t-0 px-3 py-2 text-sm text-neutral-800 focus:border-b-0"
+            className="focus:border-secondary border-b-border-500 w-auto max-w-36 basis-1/3 rounded-md rounded-b-none border-x-0 border-b border-t-0 px-3 py-2 text-sm text-neutral-800 focus:border-b-0"
             disabled={disabled}
           />
 
@@ -113,7 +115,7 @@ export const CountrySelectAutocompleteComponent = ({
       <button
         type="button"
         className={cn(
-          "border-border-500 flex h-11 w-full max-w-36 items-center justify-between gap-2 rounded-md rounded-l-md rounded-r-none border border-r-0 bg-white px-3 py-2 text-sm",
+          "border-border-500 flex h-11 w-full max-w-36 basis-1/3 items-center justify-between gap-2 rounded-md rounded-l-md rounded-r-none border border-r-0 bg-white px-3 py-2 text-sm",
           disabled && "cursor-not-allowed opacity-50",
           className,
         )}
