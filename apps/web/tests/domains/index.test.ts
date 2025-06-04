@@ -109,7 +109,7 @@ describe.sequential("/domains/**", async () => {
   test("GET /domains/status", async () => {
     const domains = [
       "getacme.link", // expected to be unavailable
-      `acme${randomId(3).toLowerCase()}.link`, // expected to be available
+      `acme-${randomId(4).toLowerCase()}.link`, // expected to be available
     ];
 
     const { status, data: domainStatuses } = await http.get<
