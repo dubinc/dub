@@ -16,7 +16,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export default function ProgramPayoutReminder({
+export function ProgramPayoutReminder({
   email = "panic@thedis.co",
   workspace = {
     slug: "acme",
@@ -134,3 +134,5 @@ const Stats = ({
     </Row>
   );
 };
+
+export default ProgramPayoutReminder;
