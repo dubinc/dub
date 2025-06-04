@@ -53,69 +53,67 @@ export const VerifyEmailForm = () => {
 
   return (
     <div className="flex flex-col gap-3">
-      <AnimatedSizeContainer height>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            executeAsync({ email, password, code });
-          }}
-        >
-          <div>
-            <OTPInput
-              maxLength={6}
-              value={code}
-              onChange={(code) => {
-                setIsInvalidCode(false);
-                setCode(code);
-              }}
-              autoFocus={!isMobile}
-              containerClassName="group flex items-center justify-center"
-              render={({ slots }) => (
-                <div className="flex items-center">
-                  {slots.map(({ char, isActive, hasFakeCaret }, idx) => (
-                    <div
-                      key={idx}
-                      className={cn(
-                        "relative flex h-14 w-10 items-center justify-center text-xl",
-                        "border-y border-r border-neutral-200 bg-white first:rounded-l-lg first:border-l last:rounded-r-lg",
-                        "ring-0 transition-all",
-                        isActive &&
-                          "z-10 border border-neutral-500 ring-2 ring-neutral-200",
-                        isInvalidCode && "border-red-500 ring-red-200",
-                      )}
-                    >
-                      {char}
-                      {hasFakeCaret && (
-                        <div className="animate-caret-blink pointer-events-none absolute inset-0 flex items-center justify-center">
-                          <div className="h-5 w-px bg-black" />
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-              onComplete={() => {
-                executeAsync({ email, password, code });
-              }}
-            />
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          executeAsync({ email, password, code });
+        }}
+      >
+        <div>
+          <OTPInput
+            maxLength={6}
+            value={code}
+            onChange={(code) => {
+              setIsInvalidCode(false);
+              setCode(code);
+            }}
+            autoFocus={!isMobile}
+            render={({ slots }) => (
+              <div className="flex w-full items-center justify-between">
+                {slots.map(({ char, isActive, hasFakeCaret }, idx) => (
+                  <div
+                    key={idx}
+                    className={cn(
+                      "relative flex h-14 w-12 items-center justify-center text-xl",
+                      "rounded-lg border border-neutral-200 bg-white ring-0 transition-all",
+                      isActive &&
+                        "z-10 border border-neutral-800 ring-2 ring-neutral-200",
+                      isInvalidCode && "border-red-500 ring-red-200",
+                    )}
+                  >
+                    {char}
+                    {hasFakeCaret && (
+                      <div className="animate-caret-blink pointer-events-none absolute inset-0 flex items-center justify-center">
+                        <div className="h-5 w-px bg-black" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+            onComplete={() => {
+              executeAsync({ email, password, code });
+            }}
+          />
+          <AnimatedSizeContainer height>
             {isInvalidCode && (
-              <p className="mt-2 text-center text-sm text-red-500">
+              <p className="pt-3 text-center text-xs font-medium text-red-500">
                 Invalid code. Please try again.
               </p>
             )}
+          </AnimatedSizeContainer>
 
-            <Button
-              className="mt-8"
-              text={isPending ? "Verifying..." : "Continue"}
-              type="submit"
-              loading={isPending || isRedirecting}
-              disabled={!code || code.length < 6}
-            />
-          </div>
-        </form>
+          <Button
+            className="mt-8"
+            text={isPending ? "Verifying..." : "Continue"}
+            type="submit"
+            loading={isPending || isRedirecting}
+            disabled={!code || code.length < 6}
+          />
+        </div>
+      </form>
 
-        <ResendOtp email={email} />
-      </AnimatedSizeContainer>
+      <ResendOtp email={email} />
     </div>
   );
 };
