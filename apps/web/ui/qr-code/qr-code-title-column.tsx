@@ -54,13 +54,13 @@ export function QrCodeTitleColumn({
         )}
       </div>
 
-      <div className="flex h-full w-full min-w-0 flex-col gap-1.5 lg:flex-row lg:justify-around lg:gap-8 xl:gap-12">
+      <div className="flex h-full w-full min-w-0 flex-col gap-1.5 lg:flex-row lg:justify-start lg:gap-8 xl:gap-12">
         <QrCardType
           className="flex lg:hidden"
           currentQrTypeInfo={currentQrTypeInfo}
         />
 
-        <div className="flex min-w-0 flex-col justify-center gap-1 whitespace-nowrap">
+        <div className="flex min-w-0 flex-col justify-center gap-1 whitespace-nowrap lg:w-[120px] lg:shrink-0">
           <Text
             as="span"
             size="2"
@@ -72,7 +72,7 @@ export function QrCodeTitleColumn({
           <QRCardTitle qrCode={qrCode} />
         </div>
 
-        <div className="order-last flex min-w-0 flex-col justify-center gap-1 lg:order-none">
+        <div className="order-last flex min-w-0 flex-col justify-center gap-1 lg:order-none lg:flex-1 lg:shrink-0">
           <Text
             as="span"
             size="2"
@@ -86,7 +86,7 @@ export function QrCodeTitleColumn({
 
         <div
           className={cn(
-            "flex shrink-0 flex-col items-start justify-center gap-1",
+            "flex min-w-0 flex-col items-start justify-center gap-1 lg:flex-1 lg:shrink-0",
           )}
         >
           {!isTrialOver && (

@@ -96,7 +96,7 @@ export function useQrCustomization(initialData?: ResponseQrCode) {
 
           if (number) {
             return {
-              number,
+              number: `+${number}`,
               message,
             };
           }
@@ -104,7 +104,7 @@ export function useQrCustomization(initialData?: ResponseQrCode) {
           const numberMatch = data.match(/\d+/);
           if (numberMatch) {
             return {
-              number: numberMatch[0],
+              number: `+${numberMatch[0]}`,
               message: "",
             };
           }
