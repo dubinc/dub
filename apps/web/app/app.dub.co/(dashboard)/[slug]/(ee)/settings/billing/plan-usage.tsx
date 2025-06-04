@@ -8,8 +8,8 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import SubscriptionMenu from "@/ui/workspaces/subscription-menu";
 import { buttonVariants, Icon, Tooltip, useRouterStuff } from "@dub/ui";
 import {
-  CircleDollar,
   CirclePercentage,
+  CreditCard,
   CrownSmall,
   CursorRays,
   Folder5,
@@ -98,15 +98,6 @@ export default function PlanUsage() {
         usage: linksUsage,
         limit: linksLimit,
       },
-      {
-        id: "payouts",
-        icon: CircleDollar,
-        title: "Partner payouts",
-        usage: payoutsUsage,
-        limit: payoutsLimit,
-        unit: "$",
-        requiresUpgrade: plan === "free" || plan === "pro",
-      },
     ];
     if (totalLinks && totalLinks > 10_000) {
       // Find the links tab and move it to the first position
@@ -117,15 +108,7 @@ export default function PlanUsage() {
       }
     }
     return tabs;
-  }, [
-    plan,
-    usage,
-    usageLimit,
-    linksUsage,
-    linksLimit,
-    payoutsLimit,
-    totalLinks,
-  ]);
+  }, [plan, usage, usageLimit, linksUsage, linksLimit, totalLinks]);
 
   return (
     <div className="rounded-lg border border-neutral-200 bg-white">
@@ -169,7 +152,7 @@ export default function PlanUsage() {
       </div>
       <div className="grid grid-cols-[minmax(0,1fr)] divide-y divide-neutral-200 border-t border-neutral-200">
         <div>
-          <div className="grid gap-4 p-6 sm:grid-cols-3 md:p-8 lg:gap-6">
+          <div className="grid gap-4 p-6 sm:grid-cols-2 md:p-8 lg:gap-6">
             {usageTabs.map((tab) => (
               <UsageTabCard key={tab.id} {...tab} />
             ))}
@@ -215,7 +198,7 @@ export default function PlanUsage() {
           />
         </div>
         {partnersEnabled && (
-          <div className="grid grid-cols-1 gap-[1px] overflow-hidden rounded-b-lg bg-neutral-200 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-[1px] overflow-hidden rounded-b-lg bg-neutral-200 md:grid-cols-3">
             <UsageCategory
               title="Partners"
               icon={Users6}
@@ -224,6 +207,18 @@ export default function PlanUsage() {
               href={
                 defaultProgramId
                   ? `/${slug}/programs/${defaultProgramId}/partners`
+                  : undefined
+              }
+            />
+            <UsageCategory
+              title="Partner payouts"
+              icon={CreditCard}
+              usage={payoutsUsage ? payoutsUsage / 100 : undefined}
+              usageLimit={payoutsLimit}
+              unit="$"
+              href={
+                defaultProgramId
+                  ? `/${slug}/programs/${defaultProgramId}/payouts`
                   : undefined
               }
             />
@@ -402,8 +397,9 @@ function UsageCategory(data: {
   usage?: number | string;
   usageLimit?: number;
   href?: string;
+  unit?: string;
 }) {
-  let { title, icon: Icon, usage, usageLimit, href } = data;
+  let { title, icon: Icon, usage, usageLimit, unit, href } = data;
 
   const As = href ? Link : "div";
 
@@ -423,6 +419,7 @@ function UsageCategory(data: {
       <div className="flex items-center gap-1.5 text-sm font-medium text-neutral-800">
         {usage || usage === 0 ? (
           <p>
+            {unit && <span>{unit}</span>}
             {typeof usage === "number"
               ? nFormatter(usage, { full: true })
               : usage}
