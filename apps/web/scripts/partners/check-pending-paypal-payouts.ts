@@ -2,9 +2,6 @@ import { prisma } from "@dub/prisma";
 import { CONNECT_SUPPORTED_COUNTRIES, currencyFormatter } from "@dub/utils";
 import "dotenv-flow/config";
 
-const email = "xxx";
-
-// update partner country
 async function main() {
   const payouts = await prisma.payout.findMany({
     where: {

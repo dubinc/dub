@@ -88,7 +88,6 @@ export async function claimDotLinkDomain({
 
     await markDomainAsDeleted({
       domain: slug,
-      workspaceId: projectId!,
     });
   }
 
