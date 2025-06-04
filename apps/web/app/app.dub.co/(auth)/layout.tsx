@@ -1,7 +1,6 @@
 import Toolbar from "@/ui/layout/toolbar/toolbar";
 import { Grid, Wordmark } from "@dub/ui";
 import { cn } from "@dub/utils";
-import Link from "next/link";
 import { ReactNode } from "react";
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
@@ -47,12 +46,13 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       </div>
 
       <div className="relative flex min-h-screen w-full justify-center">
-        <Link
-          href="/"
+        <a
+          href="https://dub.co"
+          target="_blank"
           className="absolute left-1/2 top-4 z-10 -translate-x-1/2"
         >
           <Wordmark className="h-8" />
-        </Link>
+        </a>
         {children}
       </div>
     </>

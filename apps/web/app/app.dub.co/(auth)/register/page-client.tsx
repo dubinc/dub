@@ -40,7 +40,7 @@ function SignUp() {
 
         <div className="mt-12 w-full">
           <AuthAlternativeBanner
-            text="Looking for a Dub Partner account?"
+            text="Looking for your Dub partner account?"
             cta="Sign up at partners.dub.co"
             href="https://partners.dub.co/register"
           />
