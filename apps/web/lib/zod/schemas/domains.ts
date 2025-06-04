@@ -168,3 +168,63 @@ export const transferDomainBodySchema = z.object({
     .transform((v) => normalizeWorkspaceId(v))
     .describe("The ID of the new workspace to transfer the domain to."),
 });
+
+export const registerDomainSchema = z.object({
+  domain: z
+    .string()
+    .min(1, "Domain to register is required.")
+    .endsWith(".link")
+    .transform((domain) => domain.toLowerCase())
+    .describe("The domain to claim. We only support .link domains for now.")
+    .openapi({ example: "acme.link" }),
+});
+
+export const searchDomainSchema = z.object({
+  domains: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .transform((domains) =>
+      domains
+        .map((domain) => domain.toLowerCase())
+        .filter((domain) => domain.endsWith(".link")),
+    )
+    .describe("The domains to search. We only support .link domains for now.")
+    .openapi({
+      param: {
+        style: "form",
+        explode: false,
+      },
+      anyOf: [
+        {
+          type: "string",
+        },
+        {
+          type: "array",
+          items: {
+            type: "string",
+          },
+        },
+      ],
+    }),
+});
+
+export const DomainStatusSchema = z.object({
+  domain: z.string().describe("The domain name."),
+  available: z.boolean().describe("Whether the domain is available."),
+  price: z.string().nullable().describe("The price description."),
+  premium: z
+    .boolean()
+    .nullable()
+    .describe("Whether the domain is a premium domain."),
+});
+
+export const RegisterDomainSchema = z.object({
+  domain: z.string().describe("The domain name."),
+  status: z.string().describe("The status of the domain registration."),
+  expiration: z
+    .number()
+    .describe(
+      "The expiration timestamp of the domain (Unix timestamp in milliseconds).",
+    )
+    .nullable(),
+});
