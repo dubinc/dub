@@ -286,7 +286,7 @@ function UsageTabCard({
       : [usageProp, limitProp];
 
   const loading = usage === undefined || limit === undefined;
-  const unlimited = limit !== undefined && limit >= INFINITY_NUMBER;
+  const unlimited = limitProp !== undefined && limitProp >= INFINITY_NUMBER; // using limitProp here cause payouts is divided by 100
   const warning = !loading && !unlimited && usage >= limit * 0.9;
   const remaining = !loading && !unlimited ? Math.max(0, limit - usage) : 0;
 
