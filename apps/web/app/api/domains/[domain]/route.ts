@@ -184,7 +184,6 @@ export const DELETE = withWorkspace(
 
     await markDomainAsDeleted({
       domain,
-      workspaceId: workspace.id,
     });
 
     return NextResponse.json({ slug: domain });

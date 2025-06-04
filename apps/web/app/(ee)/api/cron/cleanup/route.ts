@@ -110,7 +110,6 @@ export async function GET(req: Request) {
         domains.map(({ slug }) =>
           markDomainAsDeleted({
             domain: slug,
-            workspaceId: E2E_WORKSPACE_ID,
           }),
         ),
       );
