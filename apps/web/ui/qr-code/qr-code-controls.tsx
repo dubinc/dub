@@ -13,17 +13,10 @@ import {
   ResponseQrCode,
 } from "@/ui/qr-code/qr-codes-container.tsx";
 import { useQrDownload } from "@/ui/qr-code/use-qr-download";
-import {
-  Button,
-  CardList,
-  PenWriting,
-  Photo,
-  Popover,
-  useKeyboardShortcut,
-} from "@dub/ui";
+import { Button, CardList, Photo, Popover, useKeyboardShortcut } from "@dub/ui";
 import { BoxArchive, Download } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
-import { Delete } from "lucide-react";
+import { Delete, Palette, RefreshCw } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { PropsWithChildren, RefObject, useContext, useState } from "react";
 import { toast } from "sonner";
@@ -53,8 +46,27 @@ export function QrCodeControls({ qrCode, canvasRef }: QrCodeControlsProps) {
     props: qrCode,
   });
 
-  const { setShowQRBuilderModal, QRBuilderModal } = useQRBuilder({
+  const {
+    setShowQRBuilderModal: setShowQREditModal,
+    QRBuilderModal: QREditModal,
+  } = useQRBuilder({
     props: qrCode,
+  });
+
+  const {
+    setShowQRBuilderModal: setShowQRTypeModal,
+    QRBuilderModal: QRTypeModal,
+  } = useQRBuilder({
+    props: qrCode,
+    initialStep: 1, // Этап выбора типа QR кода
+  });
+
+  const {
+    setShowQRBuilderModal: setShowQRCustomizeModal,
+    QRBuilderModal: QRCustomizeModal,
+  } = useQRBuilder({
+    props: qrCode,
+    initialStep: 3, // Этап кастомизации дизайна
   });
 
   const [archiving, setArchiving] = useState<boolean>(false);
@@ -72,7 +84,7 @@ export function QrCodeControls({ qrCode, canvasRef }: QrCodeControlsProps) {
       setOpenPopover(false);
       switch (e.key) {
         case "e":
-          canManageLink && setShowQRBuilderModal(true);
+          canManageLink && setShowQREditModal(true);
           break;
         case "a":
           canManageLink && setShowArchiveQRModal(true);
@@ -89,7 +101,9 @@ export function QrCodeControls({ qrCode, canvasRef }: QrCodeControlsProps) {
 
   return (
     <div className="flex flex-col-reverse items-end justify-end gap-2 lg:flex-row lg:items-center">
-      <QRBuilderModal />
+      <QREditModal />
+      <QRTypeModal />
+      <QRCustomizeModal />
       <ArchiveQRModal />
       <DeleteLinkModal />
       {canvasRef && (
@@ -108,17 +122,47 @@ export function QrCodeControls({ qrCode, canvasRef }: QrCodeControlsProps) {
       <Popover
         content={
           <div className="w-full sm:w-48">
-            <div className="grid gap-px p-2">
+            <div className="grid gap-1 p-2">
+              {/*<Button*/}
+              {/*  text="Edit"*/}
+              {/*  variant="outline"*/}
+              {/*  onClick={() => {*/}
+              {/*    setOpenPopover(false);*/}
+              {/*    setShowQREditModal(true);*/}
+              {/*  }}*/}
+              {/*  icon={<PenWriting className="size-4" />}*/}
+              {/*  shortcut="E"*/}
+              {/*  className="h-9 px-2 font-medium justify-start w-full"*/}
+              {/*  disabledTooltip={*/}
+              {/*    !canManageLink*/}
+              {/*      ? "You don't have permission to update this link."*/}
+              {/*      : undefined*/}
+              {/*  }*/}
+              {/*/>*/}
               <Button
-                text="Edit"
+                text="Change QR Type"
                 variant="outline"
                 onClick={() => {
                   setOpenPopover(false);
-                  setShowQRBuilderModal(true);
+                  setShowQRTypeModal(true);
                 }}
-                icon={<PenWriting className="size-4" />}
-                shortcut="E"
-                className="h-9 px-2 font-medium"
+                icon={<RefreshCw className="size-4" />}
+                className="h-9 w-full justify-start px-2 font-medium"
+                disabledTooltip={
+                  !canManageLink
+                    ? "You don't have permission to update this link."
+                    : undefined
+                }
+              />
+              <Button
+                text="Customize QR"
+                variant="outline"
+                onClick={() => {
+                  setOpenPopover(false);
+                  setShowQRCustomizeModal(true);
+                }}
+                icon={<Palette className="size-4" />}
+                className="h-9 w-full justify-start px-2 font-medium"
                 disabledTooltip={
                   !canManageLink
                     ? "You don't have permission to update this link."
@@ -127,7 +171,7 @@ export function QrCodeControls({ qrCode, canvasRef }: QrCodeControlsProps) {
               />
             </div>
             <div className="border-t border-neutral-200/10" />
-            <div className="grid gap-px p-2">
+            <div className="grid gap-1 p-2">
               <Button
                 text={qrCode.link.archived ? "Unpause" : "Pause"}
                 variant="outline"
@@ -155,7 +199,7 @@ export function QrCodeControls({ qrCode, canvasRef }: QrCodeControlsProps) {
                 }}
                 icon={<BoxArchive className="size-4" />}
                 shortcut="A"
-                className="h-9 px-2 font-medium"
+                className="h-9 w-full justify-start px-2 font-medium"
                 disabledTooltip={
                   !canManageLink
                     ? "You don't have permission to archive this link."
@@ -173,7 +217,7 @@ export function QrCodeControls({ qrCode, canvasRef }: QrCodeControlsProps) {
                 }}
                 icon={<Delete className="size-4" />}
                 shortcut="X"
-                className="h-9 px-2 font-medium"
+                className="h-9 w-full justify-start px-2 font-medium"
               />
             </div>
           </div>
@@ -214,9 +258,9 @@ function DownloadPopover({
   return (
     <Popover
       content={
-        <div className="grid p-1 sm:min-w-48">
+        <div className="grid gap-1 p-2 sm:min-w-48">
           <button
-            className="flex items-center gap-2 rounded-md p-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100"
+            className="flex w-full items-center justify-start gap-2 rounded-md p-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100"
             onClick={() => {
               downloadQrCode("svg");
               setOpenPopover(false);
@@ -226,7 +270,7 @@ function DownloadPopover({
             <span>Download SVG</span>
           </button>
           <button
-            className="flex items-center gap-2 rounded-md p-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100"
+            className="flex w-full items-center justify-start gap-2 rounded-md p-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100"
             onClick={() => {
               downloadQrCode("png");
               setOpenPopover(false);
@@ -236,7 +280,7 @@ function DownloadPopover({
             <span>Download PNG</span>
           </button>
           <button
-            className="flex items-center gap-2 rounded-md p-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100"
+            className="flex w-full items-center justify-start gap-2 rounded-md p-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100"
             onClick={() => {
               downloadQrCode("jpg");
               setOpenPopover(false);

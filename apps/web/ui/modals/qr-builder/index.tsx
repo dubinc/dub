@@ -36,6 +36,7 @@ type QRBuilderModalProps = {
   setShowQRBuilderModal: Dispatch<SetStateAction<boolean>>;
   isProcessing: boolean;
   setIsProcessing: Dispatch<SetStateAction<boolean>>;
+  initialStep?: number;
 };
 
 export function QRBuilderModal({
@@ -44,6 +45,7 @@ export function QRBuilderModal({
   setShowQRBuilderModal,
   isProcessing,
   setIsProcessing,
+  initialStep,
 }: QRBuilderModalProps) {
   const { createQr, updateQr } = useQrSave();
 
@@ -109,6 +111,7 @@ export function QRBuilderModal({
             isProcessing={isProcessing}
             props={props}
             handleSaveQR={handleSaveQR}
+            initialStep={initialStep}
           />
         </Theme>
       </div>
@@ -131,8 +134,8 @@ export function CreateQRButton(props: CreateQRButtonProps) {
   );
 }
 
-export function useQRBuilder(data?: { props?: ResponseQrCode }) {
-  const { props } = data ?? {};
+export function useQRBuilder(data?: { props?: ResponseQrCode; initialStep?: number }) {
+  const { props, initialStep } = data ?? {};
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [showQRBuilderModal, setShowQRBuilderModal] = useState(false);
@@ -145,6 +148,7 @@ export function useQRBuilder(data?: { props?: ResponseQrCode }) {
         setShowQRBuilderModal={setShowQRBuilderModal}
         isProcessing={isProcessing}
         setIsProcessing={setIsProcessing}
+        initialStep={initialStep}
       />
     );
   }, [
@@ -153,6 +157,7 @@ export function useQRBuilder(data?: { props?: ResponseQrCode }) {
     setShowQRBuilderModal,
     isProcessing,
     setIsProcessing,
+    initialStep,
   ]);
 
   const CreateQRButtonCallback = useCallback(() => {
