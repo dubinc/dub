@@ -9,12 +9,23 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-// This route is used to send reminders to program owners about pending payouts
-// Runs on the 24th day of the month at 9:00 AM
 // GET /api/cron/payouts/reminders/program-owners
+// This route is used to send reminders to program owners about pending payouts
+// Runs every weekday at 1:00 PM UTC between 25th of current month and 5th of next month
+// Cron expression: 0 13 25-31,1-5 * * (runs daily at 1:00 PM UTC on days 25-31 and 1-5, filtered for weekdays in code)
 export async function GET(req: Request) {
   try {
     await verifyVercelSignature(req);
+
+    // Only run on weekdays (Monday = 1, Friday = 5)
+    const today = new Date();
+    const dayOfWeek = today.getUTCDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+      return NextResponse.json(
+        "Skipping execution on weekend. Only runs on weekdays.",
+      );
+    }
 
     const programsWithCustomMinPayouts = await prisma.program.findMany({
       where: {
@@ -24,7 +35,7 @@ export async function GET(req: Request) {
       },
     });
 
-    const payouts = await prisma.payout.groupBy({
+    const pendingPayouts = await prisma.payout.groupBy({
       by: ["programId"],
       where: {
         status: "pending",
@@ -43,14 +54,34 @@ export async function GET(req: Request) {
       },
     });
 
-    if (!payouts.length) {
+    if (!pendingPayouts.length) {
       return NextResponse.json("No pending payouts found. Skipping...");
     }
+
+    const recentPaidInvoices = await prisma.invoice.findMany({
+      where: {
+        programId: {
+          in: pendingPayouts.map((p) => p.programId),
+        },
+        // take invoices from the last 2 weeks
+        createdAt: {
+          gte: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
+        },
+      },
+    });
+
+    // only send notifications for programs that have not paid out any invoices in the last week
+    const payoutsToNotify = pendingPayouts.filter((p) => {
+      const recentPaidInvoicesForProgram = recentPaidInvoices.filter(
+        (i) => i.programId === p.programId,
+      );
+      return recentPaidInvoicesForProgram.length === 0;
+    });
 
     const programs = await prisma.program.findMany({
       where: {
         id: {
-          in: payouts.map((p) => p.programId),
+          in: payoutsToNotify.map((p) => p.programId),
         },
       },
       include: {
@@ -79,9 +110,11 @@ export async function GET(req: Request) {
       return NextResponse.json("No programs found. Skipping...");
     }
 
-    const programsWithPayouts = await Promise.all(
+    const programsWithPendingPayoutsToNotify = await Promise.all(
       programs.map(async (program) => {
-        let payoutDetails = payouts.find((p) => p.programId === program.id);
+        let payoutDetails = payoutsToNotify.find(
+          (p) => p.programId === program.id,
+        );
 
         if (!payoutDetails) {
           const pendingPayouts = await prisma.payout.aggregate({
@@ -124,26 +157,29 @@ export async function GET(req: Request) {
       }),
     ).then((p) => p.flat());
 
+    console.table(programsWithPendingPayoutsToNotify);
+
     await Promise.all(
-      programsWithPayouts.map(({ workspace, user, program, payout }) =>
-        limiter.schedule(() =>
-          sendEmail({
-            subject: `${payout.partnersCount} partners awaiting your payout for ${program.name}`,
-            email: user.email!,
-            react: ProgramPayoutReminder({
+      programsWithPendingPayoutsToNotify.map(
+        ({ workspace, user, program, payout }) =>
+          limiter.schedule(() =>
+            sendEmail({
+              subject: `${payout.partnersCount} partners awaiting your payout for ${program.name}`,
               email: user.email!,
-              workspace,
-              program,
-              payout,
+              react: ProgramPayoutReminder({
+                email: user.email!,
+                workspace,
+                program,
+                payout,
+              }),
+              variant: "notifications",
             }),
-            variant: "notifications",
-          }),
-        ),
+          ),
       ),
     );
 
     return NextResponse.json(
-      `Sent reminders for ${programsWithPayouts.length} programs.`,
+      `Sent reminders for ${programsWithPendingPayoutsToNotify.length} programs with pending payouts.`,
     );
   } catch (error) {
     return handleAndReturnErrorResponse(error);
