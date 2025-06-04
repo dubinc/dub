@@ -9,7 +9,7 @@ export const AuthLayout = ({
     <div className="flex min-h-screen w-full flex-col items-center justify-between">
       {/* Empty div to help center main content */}
       <div className="grow basis-0">
-        <div className="h-20" />
+        <div className="h-24" />
       </div>
 
       <ClientOnly className="relative flex w-full flex-col items-center justify-center px-4">
