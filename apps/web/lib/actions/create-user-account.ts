@@ -6,7 +6,7 @@ import { createQr } from "@/lib/api/qrs/create-qr.ts";
 import { WorkspaceProps } from "@/lib/types.ts";
 import { ratelimit, redis } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
-import { generateRandomString } from "@dub/utils/src";
+import { generateRandomString, R2_URL } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import crypto from "crypto";
 import { nanoid } from "nanoid";
@@ -34,6 +34,7 @@ const qrDataToCreateSchema = z.object({
     "app",
     "feedback",
   ]),
+  file: z.string().nullish().describe("The file the link leads to"),
 });
 
 const schema = signUpSchema.extend({
@@ -144,10 +145,16 @@ export const createUserAccountAction = actionClient
         },
       });
 
+      console.log("[createUserAccountAction] qrDataToCreate", qrDataToCreate);
+
       if (qrDataToCreate !== null) {
+        const fileId = crypto.randomUUID();
+
         const { link, error, code } = await processLink({
           payload: {
-            url: qrDataToCreate!.styles!.data! as string,
+            url: qrDataToCreate?.file
+              ? `${R2_URL}/qrs-content/${fileId}`
+              : (qrDataToCreate!.styles!.data! as string),
           },
           workspace: workspaceResponse as Pick<
             WorkspaceProps,
@@ -165,8 +172,7 @@ export const createUserAccountAction = actionClient
 
         try {
           const createdLink = await createLink(link);
-
-          const fileId = crypto.randomUUID();
+          console.log("[createUserAccountAction] createdLink", createdLink);
 
           await createQr(
             {

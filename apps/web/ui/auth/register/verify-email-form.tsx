@@ -3,6 +3,8 @@
 import { createUserAccountAction } from "@/lib/actions/create-user-account";
 import { showMessage } from "@/ui/auth/helpers";
 import { QRBuilderData } from "@/ui/modals/qr-builder";
+import { getFiles } from "@/ui/qr-builder/helpers/file-store.ts";
+import { fileToBase64 } from "@/ui/utils/file-to-base64.ts";
 import {
   AnimatedSizeContainer,
   Button,
@@ -37,6 +39,21 @@ export const VerifyEmailForm = ({
   const [qrDataToCreate, setQrDataToCreate] =
     useLocalStorage<QRBuilderData | null>("qr-data-to-create", null);
 
+  const processQrDataForServerAction = async () => {
+    if (!qrDataToCreate) return null;
+
+    const files = getFiles();
+    if (!files || files.length === 0) {
+      return { ...qrDataToCreate, file: null };
+    }
+
+    const firstFile = files[0];
+    const base64Content = (await fileToBase64(firstFile)) as string;
+
+    return { ...qrDataToCreate, file: base64Content };
+  };
+
+  console.log("[qrDataToCreate] qrDataToCreate", qrDataToCreate);
   const { executeAsync, isPending } = useAction(createUserAccountAction, {
     async onSuccess() {
       showMessage(
@@ -79,11 +96,27 @@ export const VerifyEmailForm = ({
 
   return (
     <div className="flex flex-col gap-3">
+      {/*<div>debug {processedQrDataToCreate?.files?.length}</div>*/}
       <AnimatedSizeContainer height>
         <form
-          onSubmit={(e) => {
+          // onSubmit={(e) => {
+          //   e.preventDefault();
+          //   executeAsync({ email, password, code, qrDataToCreate });
+          // }}
+          onSubmit={async (e) => {
             e.preventDefault();
-            executeAsync({ email, password, code, qrDataToCreate });
+            const processedQrDataToCreate =
+              await processQrDataForServerAction();
+            console.log(
+              "[qrDataToCreate] processedQrDataToCreate",
+              processedQrDataToCreate,
+            );
+            executeAsync({
+              email,
+              password,
+              code,
+              qrDataToCreate: processedQrDataToCreate,
+            });
           }}
         >
           <div>
@@ -120,8 +153,27 @@ export const VerifyEmailForm = ({
                   ))}
                 </div>
               )}
-              onComplete={() => {
-                executeAsync({ email, password, code, qrDataToCreate });
+              // onComplete={() => {
+              //   executeAsync({
+              //     email,
+              //     password,
+              //     code,
+              //     qrDataToCreate,
+              //   });
+              // }}
+              onComplete={async () => {
+                const processedQrDataToCreate =
+                  await processQrDataForServerAction();
+                console.log(
+                  "[qrDataToCreate] processedQrDataToCreate onComplete",
+                  processedQrDataToCreate,
+                );
+                executeAsync({
+                  email,
+                  password,
+                  code,
+                  qrDataToCreate: processedQrDataToCreate,
+                });
               }}
             />
             {isInvalidCode && (

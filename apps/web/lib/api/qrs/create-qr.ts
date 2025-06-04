@@ -1,16 +1,34 @@
+import { storage } from "@/lib/storage";
 import { NewQrProps } from "@/lib/types";
+import {
+  EQRType,
+  FILE_QR_TYPES,
+} from "@/ui/qr-builder/constants/get-qr-config";
 import { prisma } from "@dub/prisma";
 import { createId } from "../utils";
-import { EQRType, FILE_QR_TYPES } from '@/ui/qr-builder/constants/get-qr-config';
-import { storage } from '@/lib/storage';
-import { R2_URL } from '@dub/utils';
 
-export async function createQr({ data, qrType, title, description, styles, frameOptions, file }: NewQrProps, url: string, linkId: string, userId: string | null, fileId: string) {
+export async function createQr(
+  { data, qrType, title, description, styles, frameOptions, file }: NewQrProps,
+  url: string,
+  linkId: string,
+  userId: string | null,
+  fileId: string,
+) {
+  console.log(
+    "creating QR",
+    data,
+    qrType,
+    title,
+    description,
+    styles,
+    frameOptions,
+    file,
+  );
   const qr = await prisma.qr.create({
     data: {
       id: createId({ prefix: "qr_" }),
       qrType,
-      data: qrType === 'wifi' ? data : url,
+      data: qrType === "wifi" ? data : url,
       title,
       description,
       styles,
