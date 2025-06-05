@@ -70,9 +70,27 @@ export default async function LinkMiddleware(
   if (!link) {
     const linkData = await getLinkViaEdge(domain, key);
 
+    // Check user restrictions
+    if (linkData?.userId) {
+      const isRestricted = (linkData.userCreatedAt && 
+        Math.floor((Date.now() - new Date(linkData.userCreatedAt).getTime()) / (1000 * 60 * 60 * 24)) > 10) || 
+        (linkData.totalUserClicks >= 30);
+
+      if (isRestricted) {
+        return NextResponse.redirect(new URL(`/restricted-access`, req.url), {
+          headers: {
+            ...DUB_HEADERS,
+            "X-Robots-Tag": "googlebot: noindex",
+          },
+          status: 302,
+        });
+      }
+    }
+
     if (!linkData) {
       // check if domain has notFoundUrl configured
       const domainData = await getDomainViaEdge(domain);
+
       if (domainData?.notFoundUrl) {
         return NextResponse.redirect(domainData.notFoundUrl, {
           headers: {
