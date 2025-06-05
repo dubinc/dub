@@ -105,11 +105,9 @@ export async function chargeFailed(event: Stripe.Event) {
       description: `Dub Partners payout failure fee for invoice ${invoice.id}`,
     });
 
-    log({
-      message: `Charged a failure fee of $${PAYOUT_FAILURE_FEE_CENTS / 100} to ${workspace.slug}.`,
-      type: "errors",
-      mention: true,
-    });
+    console.log(
+      `Charged a failure fee of $${PAYOUT_FAILURE_FEE_CENTS / 100} to ${workspace.slug}.`,
+    );
   }
 
   waitUntil(
