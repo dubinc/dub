@@ -1,4 +1,5 @@
 import { ResetPasswordForm } from "@/ui/auth/reset-password-form";
+import { AuthLayout } from "@/ui/layout/auth-layout";
 import EmptyState from "@/ui/shared/empty-state";
 import { prisma } from "@dub/prisma";
 import { InputPassword } from "@dub/ui";
@@ -16,30 +17,27 @@ export default async function ResetPasswordPage({ params: { token } }: Props) {
 
   if (!validToken) {
     return (
-      <div className="my-10 md:mt-16 lg:mt-20">
+      <AuthLayout>
         <EmptyState
           icon={InputPassword}
           title="Invalid Reset Token"
           description="The password reset token is invalid or expired. Please request a new one."
         />
-      </div>
+      </AuthLayout>
     );
   }
 
   return (
-    <div className="mx-auto my-10 w-full max-w-md md:mt-16 lg:mt-20">
-      <div className="rounded-lg border border-neutral-200 bg-white p-8 pb-10">
-        <h1 className="text-lg font-medium text-neutral-800">
+    <AuthLayout>
+      <div className="w-full max-w-sm">
+        <h3 className="text-center text-xl font-semibold">
           Reset your password
-        </h1>
-        <p className="mt-3 text-sm text-neutral-500">
-          Enter a new password for your account.
-        </p>
-        <div className="mt-8 text-left">
+        </h3>
+        <div className="mt-8">
           <ResetPasswordForm />
         </div>
       </div>
-    </div>
+    </AuthLayout>
   );
 }
 

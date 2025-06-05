@@ -26,6 +26,11 @@ export const GET = withAdmin(async ({ searchParams }) => {
               in: DUB_DOMAINS_ARRAY,
             },
           }),
+      ...(!search && {
+        createdAt: {
+          gte: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30), // 30 days ago
+        },
+      }),
       OR: [
         {
           userId: {

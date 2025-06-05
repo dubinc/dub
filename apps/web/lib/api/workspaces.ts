@@ -120,7 +120,6 @@ export async function deleteWorkspaceAdmin(
     customDomains.map(({ slug }) =>
       markDomainAsDeleted({
         domain: slug,
-        workspaceId: workspace.id,
       }),
     ),
   );
