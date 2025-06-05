@@ -213,9 +213,7 @@ export default function PlanUsage() {
             <UsageCategory
               title="Partner payouts"
               icon={CreditCard}
-              usage={
-                payoutsUsage !== undefined ? payoutsUsage / 100 : undefined
-              }
+              usage={payoutsUsage}
               usageLimit={payoutsLimit}
               unit="$"
               href={
@@ -421,9 +419,10 @@ function UsageCategory(data: {
       <div className="flex items-center gap-1.5 text-sm font-medium text-neutral-800">
         {usage || usage === 0 ? (
           <p>
-            {unit && <span>{unit}</span>}
             {typeof usage === "number"
-              ? nFormatter(usage, { full: true })
+              ? `${unit ?? ""}${nFormatter(usage / (unit === "$" ? 100 : 1), {
+                  full: true,
+                })}`
               : usage}
           </p>
         ) : (
@@ -435,7 +434,12 @@ function UsageCategory(data: {
             <p className="text-neutral-500">
               {usageLimit && usageLimit >= INFINITY_NUMBER
                 ? "∞"
-                : nFormatter(usageLimit, { full: true })}
+                : `${unit ?? ""}${nFormatter(
+                    usageLimit / (unit === "$" ? 100 : 1),
+                    {
+                      full: true,
+                    },
+                  )}`}
             </p>
           </>
         )}
