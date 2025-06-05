@@ -1,5 +1,5 @@
 import { StepPage } from "../step-page";
-// import { Form } from "./form";
+import { Form } from "./form";
 
 export default function Usage() {
   return (
@@ -7,7 +7,7 @@ export default function Usage() {
       title="Monthly usage"
       description="We'll help recommend the best plan"
     >
-      {/* <Form /> */}
+      <Form />
       <div className="h-48" />
       <p className="text-center text-sm font-medium text-neutral-500">
         Need more usage?{" "}
