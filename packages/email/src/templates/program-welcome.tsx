@@ -21,7 +21,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export function ProgramWelcome({
+export default function ProgramWelcome({
   email = "panic@thedis.co",
   workspace = {
     slug: "acme",
@@ -181,5 +181,3 @@ export function ProgramWelcome({
     </Html>
   );
 }
-
-export default ProgramWelcome;
