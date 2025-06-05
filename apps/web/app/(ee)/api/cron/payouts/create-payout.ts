@@ -166,6 +166,7 @@ export const createPayout = async ({
       },
       data: {
         amount: newPayoutAmount,
+        periodEnd,
       },
     });
   });

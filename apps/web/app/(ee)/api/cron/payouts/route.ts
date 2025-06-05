@@ -6,7 +6,8 @@ import { createPayout } from "./create-payout";
 
 export const dynamic = "force-dynamic";
 
-// This route is used to calculate payouts for the commissions.
+// This route is used to aggregate pending commissions
+// that are past the program holding period into a single payout.
 // Runs once every hour (0 * * * *)
 // GET /api/cron/payouts
 export async function GET(req: Request) {
