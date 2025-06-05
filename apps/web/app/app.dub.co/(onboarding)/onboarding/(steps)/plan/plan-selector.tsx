@@ -8,7 +8,7 @@ import NumberFlow from "@number-flow/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { CSSProperties, useState } from "react";
 
-const plans = [PRO_PLAN, BUSINESS_PLAN, ADVANCED_PLAN];
+export const PLAN_SELECTOR_PLANS = [PRO_PLAN, BUSINESS_PLAN, ADVANCED_PLAN];
 
 export function PlanSelector() {
   const [period, setPeriod] = useState<"monthly" | "yearly">("yearly");
@@ -47,7 +47,7 @@ export function PlanSelector() {
             } as CSSProperties
           }
         >
-          {plans.map((plan) => (
+          {PLAN_SELECTOR_PLANS.map((plan) => (
             <div
               key={plan.name}
               className="flex flex-col rounded-lg border border-neutral-200 bg-white p-6 pb-8"
@@ -94,7 +94,7 @@ export function PlanSelector() {
                 <button
                   type="button"
                   className="h-full w-fit rounded-lg bg-neutral-100 px-2.5 transition-colors duration-75 hover:bg-neutral-200/80 active:bg-neutral-200 disabled:opacity-30 lg:hidden"
-                  disabled={mobilePlanIndex >= plans.length - 1}
+                  disabled={mobilePlanIndex >= PLAN_SELECTOR_PLANS.length - 1}
                   onClick={() => setMobilePlanIndex(mobilePlanIndex + 1)}
                 >
                   <ChevronRight className="size-5 text-neutral-800" />

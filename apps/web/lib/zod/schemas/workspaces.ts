@@ -163,7 +163,15 @@ export const WorkspaceSchemaExtended = WorkspaceSchema.extend({
   ),
 });
 
+export const OnboardingUsageSchema = z.object({
+  links: z.number(),
+  clicks: z.number(),
+  conversions: z.boolean(),
+  partners: z.boolean(),
+});
+
 export const workspaceStoreKeys = z.enum([
+  "onboardingUsage", // json
   "programOnboarding", // json
   "conversionsOnboarding", // boolean
   "dotLinkOfferDismissed", // string
