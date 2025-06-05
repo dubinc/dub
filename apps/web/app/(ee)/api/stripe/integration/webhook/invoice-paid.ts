@@ -157,9 +157,6 @@ export async function invoicePaid(event: Stripe.Event) {
         usage: {
           increment: 1,
         },
-        salesUsage: {
-          increment: invoice.amount_paid,
-        },
       },
     }),
 
