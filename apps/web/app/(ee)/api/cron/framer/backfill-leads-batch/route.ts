@@ -6,6 +6,7 @@ import { generateRandomName } from "@/lib/names";
 import {
   recordLeadWithTimestamp,
   recordSaleWithTimestamp,
+  tb,
 } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import z from "@/lib/zod";
@@ -37,6 +38,16 @@ type PayloadItem = {
 const FRAMER_WORKSPACE_ID = "clsvopiw0000ejy0grp821me0";
 const CACHE_KEY = "framerMigratedExternalIdEventNames";
 const DOMAIN = "framer.link";
+
+const getFramerLeadEvents = tb.buildPipe({
+  pipe: "get_framer_lead_events",
+  parameters: z.object({
+    linkIds: z
+      .union([z.string(), z.array(z.string())])
+      .transform((v) => (Array.isArray(v) ? v : v.split(","))),
+  }),
+  data: z.any(),
+});
 
 // POST /api/cron/framer/backfill-leads-batch
 export const POST = withWorkspace(async ({ req, workspace }) => {
@@ -80,22 +91,51 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
       }),
     ]);
 
+    const { data: existingLeadEventsForLinks } = await getFramerLeadEvents({
+      linkIds: links.map((l) => l.id),
+    });
+
+    const existingCustomers = await prisma.customer.findMany({
+      where: {
+        externalId: {
+          in: originalPayload.map((p) => p.externalId),
+        },
+      },
+    });
+
     let validEntries: PayloadItem[] = [];
-    let invalidEntries: (PayloadItem & { error: string })[] = [];
+    let invalidEntries: (PayloadItem & { error: string; clickId?: string })[] =
+      [];
 
     originalPayload.map((p, index) => {
-      if (existsResults[index]) {
+      const existingLinkData = links.find((l) => l.key === p.via);
+      const existingCustomerData = existingCustomers.find(
+        (c) => c.externalId === p.externalId,
+      );
+
+      if (!existingLinkData) {
         invalidEntries.push({
           ...p,
-          error: "Already backfilled.",
+          error: `Link for via tag ${p.via} not found.`,
         });
         return;
       }
 
-      if (!links.some((l) => l.key === p.via)) {
+      if (existsResults[index]) {
+        // get the lead event data for the existing customer
+        const leadEventData = existingLeadEventsForLinks.find(
+          (e) =>
+            e.link_id === existingLinkData.id &&
+            e.customer_id === existingCustomerData?.id &&
+            e.event_name === p.eventName,
+        );
+
+        console.log({ leadEventData });
+
         invalidEntries.push({
           ...p,
-          error: `Link for via tag ${p.via} not found.`,
+          error: "Already backfilled.",
+          clickId: leadEventData?.click_id,
         });
         return;
       }
