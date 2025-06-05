@@ -57,7 +57,7 @@ const topPrograms = [
 
 const DUB_PARTNERS_URL = "https://partners.dub.co";
 
-export function PartnerWelcome({
+export default function PartnerWelcome({
   name = "John Doe",
   email = "panic@thedis.co",
 }: {
@@ -163,5 +163,3 @@ export function PartnerWelcome({
     </Html>
   );
 }
-
-export default PartnerWelcome;

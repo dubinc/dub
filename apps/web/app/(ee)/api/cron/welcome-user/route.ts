@@ -2,8 +2,8 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { sendEmail } from "@dub/email";
 import { subscribe } from "@dub/email/resend/subscribe";
-import { PartnerWelcome } from "@dub/email/templates/partner-welcome";
-import { UserWelcome } from "@dub/email/templates/user-welcome";
+import PartnerWelcome from "@dub/email/templates/partner-welcome";
+import UserWelcome from "@dub/email/templates/user-welcome";
 import { prisma } from "@dub/prisma";
 
 export const dynamic = "force-dynamic";
