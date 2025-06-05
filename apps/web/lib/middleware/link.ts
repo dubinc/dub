@@ -27,6 +27,7 @@ import { linkCache } from "../api/links/cache";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
 import { hasEmptySearchParams } from "./utils/has-empty-search-params";
+import { conn } from "../planetscale/connection";
 
 export default async function LinkMiddleware(
   req: NextRequest,
@@ -72,6 +73,35 @@ export default async function LinkMiddleware(
 
   console.log('link cache', link);
 
+  if (link) {
+    // If link is from cache, we still need to check total clicks and registration date
+    const { rows } = await conn.execute(
+      `SELECT l.*, u.createdAt as userCreatedAt,
+        (SELECT SUM(clicks) FROM Link WHERE userId = l.userId) as totalUserClicks
+       FROM Link l 
+       LEFT JOIN User u ON l.userId = u.id
+       WHERE l.id = ?`,
+      [link.id]
+    );
+    
+    const linkData = rows?.[0];
+    if (linkData?.userId) {
+      const totalUserClicks = linkData.totalUserClicks || 0;
+      const daysSinceRegistration = linkData.userCreatedAt ? 
+        Math.floor((Date.now() - new Date(linkData.userCreatedAt).getTime()) / (1000 * 60 * 60 * 24)) : 0;
+
+      if (totalUserClicks > 30 || daysSinceRegistration > 10) {
+        return NextResponse.redirect(new URL(`/restricted-access`, req.url), {
+          headers: {
+            ...DUB_HEADERS,
+            "X-Robots-Tag": "googlebot: noindex",
+          },
+          status: 302,
+        });
+      }
+    }
+  }
+
   if (!link) {
     const linkData = await getLinkViaEdge(domain, key);
 
@@ -79,11 +109,10 @@ export default async function LinkMiddleware(
 
     // Check user restrictions
     if (linkData?.userId) {
-      const isRestricted = (linkData.userCreatedAt && 
-        Math.floor((Date.now() - new Date(linkData.userCreatedAt).getTime()) / (1000 * 60 * 60 * 24)) > 10) || 
-        (linkData.totalUserClicks >= 30);
-
-      if (isRestricted) {
+      const daysSinceRegistration = linkData.userCreatedAt ? 
+        Math.floor((Date.now() - new Date(linkData.userCreatedAt).getTime()) / (1000 * 60 * 60 * 24)) : 0;
+      
+      if (linkData.totalUserClicks > 30 || daysSinceRegistration > 10) {
         return NextResponse.redirect(new URL(`/restricted-access`, req.url), {
           headers: {
             ...DUB_HEADERS,
