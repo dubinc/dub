@@ -88,19 +88,23 @@ export async function chargeFailed(event: Stripe.Event) {
   }
 
   const paymentMethod = paymentMethods.data[0];
+  const shouldChargeFailureFee =
+    charge.payment_method_details?.type === "ach_debit";
 
-  // Charge the failure fee to the workspace
-  await stripe.paymentIntents.create({
-    amount: PAYOUT_FAILURE_FEE_CENTS,
-    customer: workspace.stripeId,
-    payment_method_types: ["card"],
-    payment_method: paymentMethod.id,
-    currency: "usd",
-    confirmation_method: "automatic",
-    confirm: true,
-    statement_descriptor: "Dub Partners",
-    description: `Dub Partners payout failure fee for invoice ${invoice.id}`,
-  });
+  // Charge failure fee for ACH payment failures
+  if (shouldChargeFailureFee) {
+    await stripe.paymentIntents.create({
+      amount: PAYOUT_FAILURE_FEE_CENTS,
+      customer: workspace.stripeId,
+      payment_method_types: ["card"],
+      payment_method: paymentMethod.id,
+      currency: "usd",
+      confirmation_method: "automatic",
+      confirm: true,
+      statement_descriptor: "Dub Partners",
+      description: `Dub Partners payout failure fee for invoice ${invoice.id}`,
+    });
+  }
 
   waitUntil(
     (async () => {
@@ -115,8 +119,10 @@ export async function chargeFailed(event: Stripe.Event) {
         },
         payout: {
           amount,
-          failureFee: PAYOUT_FAILURE_FEE_CENTS,
-          cardLast4: paymentMethod.card?.last4 || "",
+          ...(shouldChargeFailureFee && {
+            failureFee: PAYOUT_FAILURE_FEE_CENTS,
+            cardLast4: paymentMethod.card?.last4 || "",
+          }),
         },
       }));
 

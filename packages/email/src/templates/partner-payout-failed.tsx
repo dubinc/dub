@@ -36,8 +36,8 @@ export default function PartnerPayoutFailed({
   };
   payout: {
     amount: number; // in cents
-    failureFee: number; // in cents
-    cardLast4: string;
+    failureFee?: number; // in cents
+    cardLast4?: string;
   };
   email: string;
 }) {
@@ -75,13 +75,15 @@ export default function PartnerPayoutFailed({
               and will need to be confirmed again.
             </Text>
 
-            <Text className="text-sm leading-6 text-neutral-600">
-              We've charged a{" "}
-              <span className="font-semibold text-neutral-800">
-                ${payout.failureFee / 100} payment failure fee
-              </span>{" "}
-              to your card ending in {payout.cardLast4}.
-            </Text>
+            {payout.failureFee && payout.cardLast4 && (
+              <Text className="text-sm leading-6 text-neutral-600">
+                We've charged a{" "}
+                <span className="font-semibold text-neutral-800">
+                  ${payout.failureFee / 100} payment failure fee
+                </span>{" "}
+                to your card ending in {payout.cardLast4}.
+              </Text>
+            )}
 
             <Text className="text-sm leading-6 text-neutral-600">
               Please update your payment info to avoid disruption.
