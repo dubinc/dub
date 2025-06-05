@@ -77,8 +77,8 @@ const config: Config = {
       keyframes: {
         // Modal
         "scale-in": {
-          "0%": { transform: "scale(0.95)" },
-          "100%": { transform: "scale(1)" },
+          "0%": { transform: "scale(var(--from-scale,0.95))" },
+          "100%": { transform: "scale(var(--to-scale,1))" },
         },
         "fade-in": {
           "0%": { opacity: "0" },
