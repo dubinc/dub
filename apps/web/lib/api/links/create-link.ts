@@ -35,32 +35,32 @@ export async function createLink(link: ProcessedLinkProps) {
   } = link;
 
   // Check user restrictions if userId is provided
-  // if (userId) {
-  //   const user = await prisma.user.findUnique({
-  //     where: { id: userId },
-  //     select: { 
-  //       createdAt: true,
-  //     }
-  //   });
+  if (userId) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { 
+        createdAt: true,
+      }
+    });
 
-  //   if (user) {
-  //     const daysSinceRegistration = Math.floor((Date.now() - user.createdAt.getTime()) / (1000 * 60 * 60 * 24));
+    if (user) {
+      const daysSinceRegistration = Math.floor((Date.now() - user.createdAt.getTime()) / (1000 * 60 * 60 * 24));
       
-  //     // Get total clicks for all user's links
-  //     const totalClicks = await prisma.link.aggregate({
-  //       where: { userId },
-  //       _sum: {
-  //         clicks: true
-  //       }
-  //     });
+      // Get total clicks for all user's links
+      const totalClicks = await prisma.link.aggregate({
+        where: { userId },
+        _sum: {
+          clicks: true
+        }
+      });
 
-  //     const totalUserClicks = totalClicks._sum.clicks || 0;
+      const totalUserClicks = totalClicks._sum.clicks || 0;
 
-  //     if (daysSinceRegistration > 10 || totalUserClicks >= 30) {
-  //       throw new Error("Access restricted: Account age over 10 days or exceeded 30 total clicks limit.");
-  //     }
-  //   }
-  // }
+      if (daysSinceRegistration > 10 || totalUserClicks >= 30) {
+        throw new Error("Access restricted: Account age over 10 days or exceeded 30 total clicks limit.");
+      }
+    }
+  }
 
   const combinedTagIds = combineTagIds(link);
 
