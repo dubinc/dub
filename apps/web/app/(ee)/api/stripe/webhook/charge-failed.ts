@@ -16,7 +16,7 @@ export async function chargeFailed(event: Stripe.Event) {
     failure_message: failedReason,
   } = charge;
 
-  log({
+  await log({
     message: `Partner payout failed for invoice ${invoiceId}.`,
     type: "errors",
     mention: true,
