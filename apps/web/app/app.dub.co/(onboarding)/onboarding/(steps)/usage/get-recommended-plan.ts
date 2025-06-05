@@ -15,8 +15,8 @@ export function getRecommendedPlan({
     (plan) =>
       (!conversions || !hasConversions(plan.name.toLowerCase())) &&
       (!partners || !hasPartners(plan.name.toLowerCase())) &&
-      links < plan.limits.links &&
-      clicks < plan.limits.clicks,
+      links <= plan.limits.links &&
+      clicks <= plan.limits.clicks,
   ).sort((a, b) => (a.price.monthly ?? 0) - (b.price.monthly ?? 0));
 
   return plans?.[0]?.name?.toLowerCase() ?? "enterprise";
