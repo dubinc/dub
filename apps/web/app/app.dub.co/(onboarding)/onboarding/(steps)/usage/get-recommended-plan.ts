@@ -13,8 +13,8 @@ export function getRecommendedPlan({
 
   const plans = PLAN_SELECTOR_PLANS.filter(
     (plan) =>
-      (!conversions || !hasConversions(plan.name.toLowerCase())) &&
-      (!partners || !hasPartners(plan.name.toLowerCase())) &&
+      (!conversions || hasConversions(plan.name.toLowerCase())) &&
+      (!partners || hasPartners(plan.name.toLowerCase())) &&
       links <= plan.limits.links &&
       clicks <= plan.limits.clicks,
   ).sort((a, b) => (a.price.monthly ?? 0) - (b.price.monthly ?? 0));
