@@ -19,12 +19,12 @@ const relevantEvents = new Set([
 
 // POST /api/stripe/integration/webhook – listen to Stripe webhooks (for Stripe Integration)
 export const POST = withAxiom(async (req: Request) => {
-  // Skip the request with query params version=latest
-  // We'll remove this once we're ready to go live
-  if (req.url.includes("version=latest")) {
-    return new Response(
-      "Ignore the request from the new webhook with ?version=latest",
-    );
+  const url = new URL(req.url);
+  const version = url.searchParams.get("version");
+
+  // Skip the older webhook without query params
+  if (!version) {
+    return new Response("Ignore the events from the older webhook.");
   }
 
   const buf = await req.text();
