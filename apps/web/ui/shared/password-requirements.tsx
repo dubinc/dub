@@ -54,8 +54,11 @@ export const PasswordRequirements = memo(function PasswordRequirements({
             <CircleCheckFill
               className={cn(
                 "size-2.5 transition-opacity",
-                !checked &&
-                  (errors[field] ? "text-red-600" : "text-neutral-200"),
+                checked
+                  ? "animate-scale-in [--from-scale:1] [--to-scale:1.2] [animation-direction:alternate] [animation-duration:150ms] [animation-iteration-count:2] [animation-timing-function:ease-in-out]"
+                  : errors[field]
+                    ? "text-red-600"
+                    : "text-neutral-200",
               )}
             />
             <span>{name}</span>
