@@ -92,7 +92,7 @@ export const updateUsage = async () => {
             usage: 0,
           }),
           linksUsage: 0,
-          salesUsage: 0,
+          payoutsUsage: 0,
           aiUsage: 0,
           sentEmails: {
             deleteMany: {
