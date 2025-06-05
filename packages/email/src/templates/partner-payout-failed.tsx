@@ -22,8 +22,8 @@ export default function PartnerPayoutFailed({
     name: "Acme",
   },
   payout = {
-    amount: 224.12,
-    failureFee: 10,
+    amount: 530000,
+    failureFee: 1000,
     cardLast4: "01234",
   },
   email = "panic@thedis.co",
@@ -35,13 +35,13 @@ export default function PartnerPayoutFailed({
     name: string;
   };
   payout: {
-    amount: number;
-    failureFee: number;
+    amount: number; // in cents
+    failureFee: number; // in cents
     cardLast4: string;
   };
   email: string;
 }) {
-  const payoutAmount = currencyFormatter(payout.amount, {
+  const payoutAmount = currencyFormatter(payout.amount / 100, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
@@ -78,7 +78,7 @@ export default function PartnerPayoutFailed({
             <Text className="text-sm leading-6 text-neutral-600">
               We've charged a{" "}
               <span className="font-semibold text-neutral-800">
-                ${payout.failureFee} payment failure fee
+                ${payout.failureFee / 100} payment failure fee
               </span>{" "}
               to your card ending in {payout.cardLast4}.
             </Text>

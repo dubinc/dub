@@ -17,4 +17,6 @@ export const PAYOUT_FEES = {
   },
 };
 
-export const DUB_MIN_PAYOUT_AMOUNT_CENTS = 10000;
+export const DUB_MIN_PAYOUT_AMOUNT_CENTS = 10000; // 100 USD
+
+export const PAYOUT_FAILURE_FEE_CENTS = 1000; // 10 USD
