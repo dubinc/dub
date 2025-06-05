@@ -89,7 +89,7 @@ export async function chargeFailed(event: Stripe.Event) {
 
   const paymentMethod = paymentMethods.data[0];
   const shouldChargeFailureFee =
-    charge.payment_method_details?.type === "ach_debit";
+    charge.payment_method_details?.type === "us_bank_account";
 
   // Charge failure fee for ACH payment failures
   if (shouldChargeFailureFee) {
@@ -103,6 +103,12 @@ export async function chargeFailed(event: Stripe.Event) {
       confirm: true,
       statement_descriptor: "Dub Partners",
       description: `Dub Partners payout failure fee for invoice ${invoice.id}`,
+    });
+
+    log({
+      message: `Charged a failure fee of $${PAYOUT_FAILURE_FEE_CENTS / 100} to ${workspace.slug}.`,
+      type: "errors",
+      mention: true,
     });
   }
 
