@@ -131,6 +131,25 @@ export async function recordClick({
 
   const hasWebhooks = webhookIds && webhookIds.length > 0;
 
+  // First, get the link and total user clicks
+  const [linkRows] = await Promise.all([
+    conn.execute(
+      `SELECT l.*, 
+        (SELECT SUM(clicks) FROM Link WHERE userId = l.userId) as totalUserClicks
+       FROM Link l 
+       WHERE l.id = ?`,
+      [linkId]
+    ),
+  ]);
+
+  const link = linkRows.rows?.[0];
+  if (!link) return null;
+
+  // Check if user has exceeded total clicks limit
+  if (link.userId && link.totalUserClicks >= 30) {
+    return null;
+  }
+
   const [, , , , workspaceRows] = await Promise.all([
     fetch(
       `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_click_events&wait=true`,
