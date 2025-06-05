@@ -19,16 +19,15 @@ export function PlanSelector() {
       <div className="flex justify-center">
         <ToggleGroup
           options={[
-            { value: "monthly", label: "Pay monthly" },
+            { value: "monthly", label: "Monthly" },
             {
               value: "yearly",
-              label: "Pay yearly",
-              badge: <Badge variant="blue">Save 20%</Badge>,
+              label: "Yearly (2 months free)",
             },
           ]}
-          className="border-none"
-          optionClassName="normal-case"
-          indicatorClassName="border-none bg-neutral-200/70"
+          className="overflow-hidden rounded-lg bg-neutral-100 p-0.5"
+          indicatorClassName="rounded-md bg-white shadow-md"
+          optionClassName="text-xs py-2 px-5 normal-case"
           selected={period}
           selectAction={(period) => setPeriod(period as "monthly" | "yearly")}
         />
