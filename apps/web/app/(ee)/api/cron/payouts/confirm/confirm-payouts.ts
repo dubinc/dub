@@ -1,4 +1,5 @@
 import { createId } from "@/lib/api/create-id";
+import { limiter } from "@/lib/cron/limiter";
 import {
   DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
   PAYMENT_METHOD_TYPES,
@@ -13,7 +14,6 @@ import { sendEmail } from "@dub/email";
 import PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
 import { prisma } from "@dub/prisma";
 import { Program, Project } from "@prisma/client";
-import { waitUntil } from "@vercel/functions";
 
 export async function confirmPayouts({
   workspace,
@@ -142,39 +142,48 @@ export async function confirmPayouts({
       },
     });
 
+    await tx.project.update({
+      where: {
+        id: workspace.id,
+      },
+      data: {
+        payoutsUsage: {
+          increment: amount,
+        },
+      },
+    });
+
     return invoice;
   });
 
-  waitUntil(
-    (async () => {
-      // Send emails to all the partners involved in the payouts if the payout method is Direct Debit
-      // Direct Debit takes 4 business days to process
-      if (
-        newInvoice &&
-        DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(paymentMethod.type)
-      ) {
-        await Promise.all(
-          payouts
-            .filter((payout) => payout.partner.email)
-            .map((payout) =>
-              sendEmail({
-                subject: "You've got money coming your way!",
+  // Send emails to all the partners involved in the payouts if the payout method is Direct Debit
+  // This is because Direct Debit takes 4 business days to process, so we want to give partners a heads up
+  if (
+    newInvoice &&
+    DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(paymentMethod.type)
+  ) {
+    await Promise.allSettled(
+      payouts
+        .filter((payout) => payout.partner.email)
+        .map((payout) =>
+          limiter.schedule(() =>
+            sendEmail({
+              subject: "You've got money coming your way!",
+              email: payout.partner.email!,
+              react: PartnerPayoutConfirmed({
                 email: payout.partner.email!,
-                react: PartnerPayoutConfirmed({
-                  email: payout.partner.email!,
-                  program,
-                  payout: {
-                    id: payout.id,
-                    amount: payout.amount,
-                    startDate: payout.periodStart,
-                    endDate: payout.periodEnd,
-                  },
-                }),
-                variant: "notifications",
+                program,
+                payout: {
+                  id: payout.id,
+                  amount: payout.amount,
+                  startDate: payout.periodStart,
+                  endDate: payout.periodEnd,
+                },
               }),
-            ),
-        );
-      }
-    })(),
-  );
+              variant: "notifications",
+            }),
+          ),
+        ),
+    );
+  }
 }

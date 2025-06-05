@@ -1,6 +1,5 @@
 "use server";
 
-import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { qstash } from "@/lib/cron";
 import { PAYMENT_METHOD_TYPES } from "@/lib/partners/constants";
 import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
@@ -22,10 +21,12 @@ export const confirmPayoutsAction = authActionClient
     const { workspace, user } = ctx;
     const { paymentMethodId, cutoffPeriod } = parsedInput;
 
-    getDefaultProgramIdOrThrow(workspace);
-
     if (!workspace.stripeId) {
       throw new Error("Workspace does not have a valid Stripe ID.");
+    }
+
+    if (workspace.payoutsUsage >= workspace.payoutsLimit) {
+      throw new Error("Payouts limit exceeded.");
     }
 
     const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);

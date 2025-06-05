@@ -7,7 +7,7 @@ export const CUSTOMER_PAGE_EVENTS_LIMIT = 8;
 
 export const PAYOUT_FEES = {
   business: {
-    direct_debit: 0.07,
+    direct_debit: 0.05,
     card: 0.1,
   },
   advanced: {
