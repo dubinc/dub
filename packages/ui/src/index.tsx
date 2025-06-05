@@ -12,6 +12,7 @@ export * from "./carousel";
 export * from "./checkbox";
 export * from "./combobox";
 export * from "./date-picker";
+export * from "./dots-pattern";
 export * from "./dub-status-badge";
 export * from "./empty-state";
 export * from "./file-upload";

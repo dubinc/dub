@@ -2,20 +2,23 @@
 
 import z from "@/lib/zod";
 import { resetPasswordSchema } from "@/lib/zod/schemas/auth";
-import { Button, Input, Label } from "@dub/ui";
+import { Button, Input } from "@dub/ui";
 import { useParams, useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { PasswordRequirements } from "../shared/password-requirements";
 
 export const ResetPasswordForm = () => {
   const router = useRouter();
   const { token } = useParams<{ token: string }>();
 
+  const form = useForm<z.infer<typeof resetPasswordSchema>>();
+
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<z.infer<typeof resetPasswordSchema>>();
+  } = form;
 
   const onSubmit = handleSubmit(async (data) => {
     try {
@@ -43,30 +46,28 @@ export const ResetPasswordForm = () => {
 
   return (
     <>
-      <form className="flex flex-col gap-5" onSubmit={onSubmit}>
+      <form className="flex w-full flex-col gap-6" onSubmit={onSubmit}>
         <input type="hidden" value={token} {...register("token")} />
 
-        <div className="grid w-full max-w-sm items-center gap-2">
-          <Label htmlFor="password">Password</Label>
+        <label>
+          <span className="text-content-emphasis mb-2 block text-sm font-medium leading-none">
+            Password
+          </span>
           <Input
             type="password"
             {...register("password")}
             required
             autoComplete="new-password"
           />
-          {errors.password && (
-            <span
-              className="block text-sm text-red-500"
-              role="alert"
-              aria-live="assertive"
-            >
-              {errors.password.message}
-            </span>
-          )}
-        </div>
+          <FormProvider {...form}>
+            <PasswordRequirements />
+          </FormProvider>
+        </label>
 
-        <div className="grid w-full max-w-sm items-center gap-2">
-          <Label htmlFor="confirmPassword">Confirm Password</Label>
+        <label>
+          <span className="text-content-emphasis mb-2 block text-sm font-medium leading-none">
+            Confirm password
+          </span>
           <Input
             type="password"
             {...register("confirmPassword")}
@@ -82,7 +83,7 @@ export const ResetPasswordForm = () => {
               {errors.confirmPassword.message}
             </span>
           )}
-        </div>
+        </label>
 
         <Button
           text="Reset Password"

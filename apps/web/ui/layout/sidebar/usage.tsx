@@ -3,7 +3,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import ManageSubscriptionButton from "@/ui/workspaces/manage-subscription-button";
 import { AnimatedSizeContainer, buttonVariants, Icon } from "@dub/ui";
-import { CircleDollar, CursorRays, Hyperlink } from "@dub/ui/icons";
+import { CursorRays, Hyperlink } from "@dub/ui/icons";
 import {
   cn,
   getFirstAndLastDay,
@@ -17,7 +17,6 @@ import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { CSSProperties, forwardRef, useMemo, useState } from "react";
-import { ConversionsOnboarding } from "./conversions/conversions-onboarding";
 
 export function Usage() {
   const { slug } = useParams() as { slug?: string };
@@ -31,8 +30,7 @@ function UsageInner() {
     usageLimit,
     linksUsage,
     linksLimit,
-    salesUsage,
-    salesLimit,
+    payoutsLimit,
     billingCycleStart,
     plan,
     slug,
@@ -63,19 +61,16 @@ function UsageInner() {
       [
         [usage, usageLimit],
         [linksUsage, linksLimit],
-        [salesUsage, salesLimit],
       ].map(
         ([usage, limit]) =>
           usage !== undefined &&
           limit !== undefined &&
           usage / Math.max(0, usage, limit) >= 0.9,
       ),
-    [usage, usageLimit, linksUsage, linksLimit, salesUsage, salesLimit],
+    [usage, usageLimit, linksUsage, linksLimit],
   );
 
   const warning = warnings.some((w) => w);
-
-  const [salesRef, setSalesRef] = useState<HTMLDivElement | null>(null);
 
   return loading || usage !== undefined ? (
     <>
@@ -108,21 +103,7 @@ function UsageInner() {
               nextPlanLimit={nextPlan?.limits.links}
               warning={warnings[1]}
             />
-            {salesLimit && salesLimit > 0 ? (
-              <UsageRow
-                ref={setSalesRef}
-                icon={CircleDollar}
-                label="Sales"
-                usage={salesUsage}
-                limit={salesLimit}
-                showNextPlan={hovered}
-                nextPlanLimit={nextPlan?.limits.sales}
-                warning={warnings[2]}
-              />
-            ) : null}
           </div>
-
-          <ConversionsOnboarding referenceElement={salesRef} />
 
           <div className="mt-3">
             {loading ? (

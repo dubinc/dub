@@ -104,7 +104,6 @@ export const handleDomainUpdates = async ({
     return await Promise.allSettled([
       markDomainAsDeleted({
         domain,
-        workspaceId: workspace.id,
       }).then(async () => {
         // if the deleted domain was primary, make another domain primary
         if (primary) {

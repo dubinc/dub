@@ -10,7 +10,7 @@ import {
 } from "@dub/utils";
 import { authPartnerActionClient } from "../safe-action";
 
-export const createAccountLinkAction = authPartnerActionClient.action(
+export const generateStripeAccountLink = authPartnerActionClient.action(
   async ({ ctx }) => {
     let { partner } = ctx;
 
@@ -31,7 +31,7 @@ export const createAccountLinkAction = authPartnerActionClient.action(
       // guard against unsupported countries
       if (!CONNECT_SUPPORTED_COUNTRIES.includes(partner.country)) {
         throw new Error(
-          `Your current country (${COUNTRIES[partner.country]}) is not supported for Stripe Connect. Please go to partners.dub.co/settings to update your country, or contact support.`,
+          `Your current country (${COUNTRIES[partner.country]}) is not supported for Stripe payouts. Please go to partners.dub.co/settings to update your country, or contact support.`,
         );
       }
       // create a new account

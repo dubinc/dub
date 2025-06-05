@@ -44,7 +44,9 @@ export const getLinkWithPartner = async ({
         COALESCE(PartnerDiscount.id, ProgramDiscount.id) as discountId,
         COALESCE(PartnerDiscount.amount, ProgramDiscount.amount) as discountAmount,
         COALESCE(PartnerDiscount.type, ProgramDiscount.type) as discountType,
-        COALESCE(PartnerDiscount.maxDuration, ProgramDiscount.maxDuration) as discountMaxDuration
+        COALESCE(PartnerDiscount.maxDuration, ProgramDiscount.maxDuration) as discountMaxDuration,
+        COALESCE(PartnerDiscount.couponId, ProgramDiscount.couponId) as discountCouponId,
+        COALESCE(PartnerDiscount.couponTestId, ProgramDiscount.couponTestId) as discountCouponTestId
        FROM Link
        LEFT JOIN ProgramEnrollment ON ProgramEnrollment.programId = Link.programId AND ProgramEnrollment.partnerId = Link.partnerId
        LEFT JOIN Partner ON Partner.id = ProgramEnrollment.partnerId
@@ -72,6 +74,8 @@ export const getLinkWithPartner = async ({
     discountAmount,
     discountType,
     discountMaxDuration,
+    discountCouponId,
+    discountCouponTestId,
     ...rest
   } = link;
 
@@ -93,6 +97,8 @@ export const getLinkWithPartner = async ({
             amount: discountAmount,
             type: discountType,
             maxDuration: discountMaxDuration,
+            couponId: discountCouponId,
+            couponTestId: discountCouponTestId,
           }
         : null,
   };

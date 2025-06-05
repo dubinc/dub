@@ -64,7 +64,7 @@ export function EmbedPreview({
               {/* Inner shadow on top of studs */}
               <div className="absolute inset-0 overflow-hidden rounded-xl shadow-[0_12px_20px_0_#00000026_inset,0_2px_5px_0_#00000026_inset,0_2px_13px_2px_#FFFFFF59]" />
 
-              <div className="highdpi:@[800px]:-translate-y-10 highdpi:@[800px]:translate-x-10 highdpi:@[800px]:rotate-[2.4deg] relative overflow-hidden rounded-xl border border-black/10 bg-white drop-shadow-lg">
+              <div className="@[800px]:-translate-y-10 @[800px]:translate-x-10 [@media(min-resolution:2dppx)]:@[800px]:rotate-[2.4deg] relative overflow-hidden rounded-xl border border-black/10 bg-white drop-shadow-lg">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   xmlnsXlink="http://www.w3.org/1999/xlink"

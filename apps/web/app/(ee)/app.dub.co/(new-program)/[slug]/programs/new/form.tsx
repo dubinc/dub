@@ -134,7 +134,7 @@ export function Form() {
           Company name
         </label>
         <p className="mb-4 mt-1 text-sm text-neutral-600">
-          The name of the company you're setting up the program for
+          The name of your company
         </p>
         <Input
           {...register("name", { required: true })}
