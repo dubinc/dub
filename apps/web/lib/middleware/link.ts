@@ -65,10 +65,17 @@ export default async function LinkMiddleware(
     });
   }
 
+  console.log('link middleware');
+  console.log(domain, key);
+
   let link = await linkCache.get({ domain, key });
+
+  console.log('link cache', link);
 
   if (!link) {
     const linkData = await getLinkViaEdge(domain, key);
+
+    console.log('link data', linkData);
 
     // Check user restrictions
     if (linkData?.userId) {
