@@ -6,6 +6,7 @@ import { generateRandomName } from "@/lib/names";
 import {
   recordLeadWithTimestamp,
   recordSaleWithTimestamp,
+  tb,
 } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import z from "@/lib/zod";
@@ -37,6 +38,16 @@ type PayloadItem = {
 const FRAMER_WORKSPACE_ID = "clsvopiw0000ejy0grp821me0";
 const CACHE_KEY = "framerMigratedExternalIdEventNames";
 const DOMAIN = "framer.link";
+
+const getFramerLeadEvents = tb.buildPipe({
+  pipe: "get_framer_lead_events",
+  parameters: z.object({
+    linkIds: z
+      .union([z.string(), z.array(z.string())])
+      .transform((v) => (Array.isArray(v) ? v : v.split(","))),
+  }),
+  data: z.any(),
+});
 
 // POST /api/cron/framer/backfill-leads-batch
 export const POST = withWorkspace(async ({ req, workspace }) => {
@@ -80,22 +91,34 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
       }),
     ]);
 
+    const { data: leadEventsForLinks } = await getFramerLeadEvents({
+      linkIds: links.map((l) => l.id),
+    });
+
     let validEntries: PayloadItem[] = [];
-    let invalidEntries: (PayloadItem & { error: string })[] = [];
+    let invalidEntries: (PayloadItem & { error: string; clickId?: string })[] =
+      [];
 
     originalPayload.map((p, index) => {
-      if (existsResults[index]) {
+      const linkData = links.find((l) => l.key === p.via);
+
+      if (!linkData) {
         invalidEntries.push({
           ...p,
-          error: "Already backfilled.",
+          error: `Link for via tag ${p.via} not found.`,
         });
         return;
       }
 
-      if (!links.some((l) => l.key === p.via)) {
+      if (existsResults[index]) {
+        const clickId = leadEventsForLinks.find(
+          (e) => e.link_id === linkData.id && e.event_name === p.eventName,
+        )?.click_id;
+
         invalidEntries.push({
           ...p,
-          error: `Link for via tag ${p.via} not found.`,
+          error: "Already backfilled.",
+          clickId,
         });
         return;
       }

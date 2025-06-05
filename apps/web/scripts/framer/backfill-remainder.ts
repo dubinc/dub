@@ -14,7 +14,9 @@ import z from "../../lib/zod";
 const getFramerLeadEvents = tb.buildPipe({
   pipe: "get_framer_lead_events",
   parameters: z.object({
-    linkId: z.string(),
+    linkIds: z
+      .union([z.string(), z.array(z.string())])
+      .transform((v) => (Array.isArray(v) ? v : v.split(","))),
   }),
   data: z.any(),
 });
@@ -69,7 +71,7 @@ async function processFramerData(linkToBackfill: {
         );
 
         const { data: leadEvents } = await getFramerLeadEvents({
-          linkId: linkToBackfill.linkId,
+          linkIds: linkToBackfill.linkId,
         });
 
         const customerIdsSet = new Set(
