@@ -405,7 +405,7 @@ describe.sequential("POST /links", async () => {
     });
   });
 
-  test("custom social media cards", async () => {
+  test("custom link previews", async () => {
     const title = "custom title";
     const description = "custom description";
 
