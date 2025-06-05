@@ -91,8 +91,16 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
       }),
     ]);
 
-    const { data: leadEventsForLinks } = await getFramerLeadEvents({
+    const { data: existingLeadEventsForLinks } = await getFramerLeadEvents({
       linkIds: links.map((l) => l.id),
+    });
+
+    const existingCustomers = await prisma.customer.findMany({
+      where: {
+        externalId: {
+          in: originalPayload.map((p) => p.externalId),
+        },
+      },
     });
 
     let validEntries: PayloadItem[] = [];
@@ -100,9 +108,12 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
       [];
 
     originalPayload.map((p, index) => {
-      const linkData = links.find((l) => l.key === p.via);
+      const existingLinkData = links.find((l) => l.key === p.via);
+      const existingCustomerData = existingCustomers.find(
+        (c) => c.externalId === p.externalId,
+      );
 
-      if (!linkData) {
+      if (!existingLinkData) {
         invalidEntries.push({
           ...p,
           error: `Link for via tag ${p.via} not found.`,
@@ -111,14 +122,20 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
       }
 
       if (existsResults[index]) {
-        const clickId = leadEventsForLinks.find(
-          (e) => e.link_id === linkData.id && e.event_name === p.eventName,
-        )?.click_id;
+        // get the lead event data for the existing customer
+        const leadEventData = existingLeadEventsForLinks.find(
+          (e) =>
+            e.link_id === existingLinkData.id &&
+            e.customer_id === existingCustomerData?.id &&
+            e.event_name === p.eventName,
+        );
+
+        console.log({ leadEventData });
 
         invalidEntries.push({
           ...p,
           error: "Already backfilled.",
-          clickId,
+          clickId: leadEventData?.click_id,
         });
         return;
       }
