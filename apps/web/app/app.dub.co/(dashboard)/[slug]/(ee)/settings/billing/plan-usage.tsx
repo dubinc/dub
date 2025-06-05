@@ -213,7 +213,9 @@ export default function PlanUsage() {
             <UsageCategory
               title="Partner payouts"
               icon={CreditCard}
-              usage={payoutsUsage ? payoutsUsage / 100 : undefined}
+              usage={
+                payoutsUsage !== undefined ? payoutsUsage / 100 : undefined
+              }
               usageLimit={payoutsLimit}
               unit="$"
               href={
