@@ -8,7 +8,6 @@ import { ratelimit, redis } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { generateRandomString, R2_URL } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
-import crypto from "crypto";
 import { nanoid } from "nanoid";
 import { flattenValidationErrors } from "next-safe-action";
 import { createId, getIP } from "../api/utils";
@@ -34,7 +33,7 @@ const qrDataToCreateSchema = z.object({
     "app",
     "feedback",
   ]),
-  file: z.string().nullish().describe("The file the link leads to"),
+  file: z.string().nullish().describe("The file ID for the uploaded content"),
 });
 
 const schema = signUpSchema.extend({
@@ -148,12 +147,10 @@ export const createUserAccountAction = actionClient
       console.log("[createUserAccountAction] qrDataToCreate", qrDataToCreate);
 
       if (qrDataToCreate !== null) {
-        const fileId = crypto.randomUUID();
-
         const { link, error, code } = await processLink({
           payload: {
             url: qrDataToCreate?.file
-              ? `${R2_URL}/qrs-content/${fileId}`
+              ? `${R2_URL}/qrs-content/${qrDataToCreate.file}`
               : (qrDataToCreate!.styles!.data! as string),
           },
           workspace: workspaceResponse as Pick<
@@ -185,7 +182,8 @@ export const createUserAccountAction = actionClient
             createdLink.url,
             createdLink.id,
             createdLink.userId,
-            fileId,
+            qrDataToCreate?.file,
+            true,
           );
         } catch (error) {
           throw new DubApiError({

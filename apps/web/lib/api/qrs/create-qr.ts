@@ -13,6 +13,7 @@ export async function createQr(
   linkId: string,
   userId: string | null,
   fileId: string,
+  homePageDemo?: boolean,
 ) {
   console.log(
     "creating QR",
@@ -23,6 +24,7 @@ export async function createQr(
     styles,
     frameOptions,
     file,
+    (homePageDemo = false),
   );
   const qr = await prisma.qr.create({
     data: {
@@ -39,7 +41,7 @@ export async function createQr(
     },
   });
 
-  if (FILE_QR_TYPES.includes(qrType as EQRType) && file) {
+  if (FILE_QR_TYPES.includes(qrType as EQRType) && file && !homePageDemo) {
     await storage.upload(`qrs-content/${fileId}`, file);
   }
 

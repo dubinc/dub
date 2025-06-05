@@ -4,7 +4,6 @@ import { createUserAccountAction } from "@/lib/actions/create-user-account";
 import { showMessage } from "@/ui/auth/helpers";
 import { QRBuilderData } from "@/ui/modals/qr-builder";
 import { getFiles } from "@/ui/qr-builder/helpers/file-store.ts";
-import { fileToBase64 } from "@/ui/utils/file-to-base64.ts";
 import {
   AnimatedSizeContainer,
   Button,
@@ -35,6 +34,7 @@ export const VerifyEmailForm = ({
   const { email, password } = useRegisterContext();
   const [isInvalidCode, setIsInvalidCode] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   const [qrDataToCreate, setQrDataToCreate] =
     useLocalStorage<QRBuilderData | null>("qr-data-to-create", null);
@@ -47,13 +47,40 @@ export const VerifyEmailForm = ({
       return { ...qrDataToCreate, file: null };
     }
 
-    const firstFile = files[0];
-    const base64Content = (await fileToBase64(firstFile)) as string;
+    try {
+      setIsUploading(true);
+      const firstFile = files[0];
 
-    return { ...qrDataToCreate, file: base64Content };
+      // Create form data
+      const formData = new FormData();
+      formData.append("file", firstFile);
+
+      // Upload file through our server endpoint
+      const response = await fetch("/api/qrs/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to upload file");
+      }
+
+      const { fileId } = await response.json();
+      return { ...qrDataToCreate, file: fileId };
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      showMessage(
+        "Failed to upload file. Please try again.",
+        "error",
+        authModal,
+        setAuthModalMessage,
+      );
+      return null;
+    } finally {
+      setIsUploading(false);
+    }
   };
 
-  console.log("[qrDataToCreate] qrDataToCreate", qrDataToCreate);
   const { executeAsync, isPending } = useAction(createUserAccountAction, {
     async onSuccess() {
       showMessage(
@@ -71,7 +98,6 @@ export const VerifyEmailForm = ({
       });
 
       if (response?.ok) {
-        // router.push("/onboarding");
         router.push(`/${slugify(email)}?onboarded=true`);
       } else {
         showMessage(
@@ -96,27 +122,19 @@ export const VerifyEmailForm = ({
 
   return (
     <div className="flex flex-col gap-3">
-      {/*<div>debug {processedQrDataToCreate?.files?.length}</div>*/}
       <AnimatedSizeContainer height>
         <form
-          // onSubmit={(e) => {
-          //   e.preventDefault();
-          //   executeAsync({ email, password, code, qrDataToCreate });
-          // }}
           onSubmit={async (e) => {
             e.preventDefault();
-            const processedQrDataToCreate =
-              await processQrDataForServerAction();
-            console.log(
-              "[qrDataToCreate] processedQrDataToCreate",
-              processedQrDataToCreate,
-            );
-            executeAsync({
-              email,
-              password,
-              code,
-              qrDataToCreate: processedQrDataToCreate,
-            });
+            const processedQrDataToCreate = await processQrDataForServerAction();
+            if (processedQrDataToCreate) {
+              executeAsync({
+                email,
+                password,
+                code,
+                qrDataToCreate: processedQrDataToCreate,
+              });
+            }
           }}
         >
           <div>
@@ -153,27 +171,16 @@ export const VerifyEmailForm = ({
                   ))}
                 </div>
               )}
-              // onComplete={() => {
-              //   executeAsync({
-              //     email,
-              //     password,
-              //     code,
-              //     qrDataToCreate,
-              //   });
-              // }}
               onComplete={async () => {
-                const processedQrDataToCreate =
-                  await processQrDataForServerAction();
-                console.log(
-                  "[qrDataToCreate] processedQrDataToCreate onComplete",
-                  processedQrDataToCreate,
-                );
-                executeAsync({
-                  email,
-                  password,
-                  code,
-                  qrDataToCreate: processedQrDataToCreate,
-                });
+                const processedQrDataToCreate = await processQrDataForServerAction();
+                if (processedQrDataToCreate) {
+                  executeAsync({
+                    email,
+                    password,
+                    code,
+                    qrDataToCreate: processedQrDataToCreate,
+                  });
+                }
               }}
             />
             {isInvalidCode && (
@@ -184,10 +191,16 @@ export const VerifyEmailForm = ({
 
             <Button
               className="border-border-500 mt-8"
-              text={isPending ? "Verifying..." : "Continue"}
+              text={
+                isUploading
+                  ? "Uploading file..."
+                  : isPending
+                  ? "Verifying..."
+                  : "Continue"
+              }
               type="submit"
-              loading={isPending || isRedirecting}
-              disabled={!code || code.length < 6}
+              loading={isPending || isRedirecting || isUploading}
+              disabled={!code || code.length < 6 || isUploading}
             />
           </div>
         </form>
