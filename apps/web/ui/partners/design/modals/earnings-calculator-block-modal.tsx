@@ -43,8 +43,7 @@ function EarningsCalculatorBlockModalInner({
   const id = useId();
   const { isMobile } = useMediaQuery();
 
-  const { slug: workspaceSlug } = useWorkspace();
-  const { program } = useProgram();
+  const { slug: workspaceSlug, defaultProgramId } = useWorkspace();
 
   const {
     handleSubmit,
@@ -129,7 +128,7 @@ function EarningsCalculatorBlockModalInner({
                     <p className="text-xs text-neutral-500">
                       This is calculated using your{" "}
                       <Link
-                        href={`/${workspaceSlug}/programs/${program!.id}/settings/rewards`}
+                        href={`/${workspaceSlug}/programs/${defaultProgramId}/settings/rewards`}
                         target="_blank"
                         className="underline hover:text-neutral-600"
                       >
