@@ -24,7 +24,7 @@ export async function createQr(
     styles,
     frameOptions,
     file,
-    (homePageDemo = false),
+    homePageDemo,
   );
   const qr = await prisma.qr.create({
     data: {
