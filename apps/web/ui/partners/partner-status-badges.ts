@@ -36,7 +36,7 @@ export const PartnerStatusBadges = {
   declined: {
     label: "Declined",
     variant: "neutral",
-    className: "text-neutral-600 bg-neutral-100",
+    className: "text-neutral-500 bg-neutral-100",
     icon: EnvelopeAlert,
   },
   banned: {
@@ -48,7 +48,7 @@ export const PartnerStatusBadges = {
   archived: {
     label: "Archived",
     variant: "neutral",
-    className: "text-neutral-600 bg-neutral-100",
+    className: "text-neutral-500 bg-neutral-100",
     icon: BoxArchive,
   },
 };

@@ -7,6 +7,7 @@ import usePartner from "@/lib/swr/use-partner";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
+import { useArchivePartnerModal } from "@/ui/partners/archive-partner-modal";
 import { useBanPartnerModal } from "@/ui/partners/ban-partner-modal";
 import { PartnerApplicationSheet } from "@/ui/partners/partner-application-sheet";
 import { PartnerDetailsSheet } from "@/ui/partners/partner-details-sheet";
@@ -30,6 +31,7 @@ import {
   useTable,
 } from "@dub/ui";
 import {
+  BoxArchive,
   Dots,
   EnvelopeArrowRight,
   LoadingSpinner,
@@ -351,6 +353,11 @@ function RowMenuButton({
   const { slug, programId } = useParams();
   const [isOpen, setIsOpen] = useState(false);
 
+  const { ArchivePartnerModal, setShowArchivePartnerModal } =
+    useArchivePartnerModal({
+      partner: row.original,
+    });
+
   const { BanPartnerModal, setShowBanPartnerModal } = useBanPartnerModal({
     partner: row.original,
   });
@@ -387,6 +394,7 @@ function RowMenuButton({
 
   return (
     <>
+      <ArchivePartnerModal />
       <BanPartnerModal />
       <UnbanPartnerModal />
       <Popover
@@ -394,7 +402,7 @@ function RowMenuButton({
         setOpenPopover={setIsOpen}
         content={
           <Command tabIndex={0} loop className="focus:outline-none">
-            <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[130px]">
+            <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
               {row.original.status === "invited" ? (
                 <>
                   <MenuItem
@@ -441,11 +449,24 @@ function RowMenuButton({
                 <>
                   <MenuItem
                     icon={MoneyBill2}
-                    label="View sales"
+                    label="View commissions"
                     onSelect={() => {
                       router.push(
-                        `/${slug}/programs/${programId}/sales?partnerId=${row.original.id}&interval=all`,
+                        `/${slug}/programs/${programId}/commissions?partnerId=${row.original.id}&interval=all`,
                       );
+                      setIsOpen(false);
+                    }}
+                  />
+
+                  <MenuItem
+                    icon={BoxArchive}
+                    label={
+                      row.original.status === "archived"
+                        ? "Unarchive partner"
+                        : "Archive partner"
+                    }
+                    onSelect={() => {
+                      setShowArchivePartnerModal(true);
                       setIsOpen(false);
                     }}
                   />
