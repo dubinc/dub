@@ -192,7 +192,7 @@ const NAV_AREAS: SidebarNavAreas<{
   }),
 
   // User settings
-  userSettings: ({ session, slug }) => ({
+  userSettings: ({ slug }) => ({
     title: "Settings",
     backHref: `/${slug}`,
     content: [

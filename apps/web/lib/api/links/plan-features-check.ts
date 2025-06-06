@@ -29,7 +29,7 @@ export const proFeaturesCheck = (payload: NewLinkProps) => {
   ) {
     const proFeaturesString = combineWords(
       [
-        proxy && "custom social media cards",
+        proxy && "custom link previews",
         password && "password protection",
         rewrite && "link cloaking",
         expiresAt && "link expiration",
