@@ -39,7 +39,7 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
 
     if (qrType !== EQRType.WIFI) {
       return QR_TYPE_INPUTS_CONFIG[qrType].map((field, index) => (
-        <div 
+        <div
           key={index}
           className={hideNameField && index === 0 ? "hidden" : ""}
         >
@@ -57,7 +57,7 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
     return (
       <>
         {QR_TYPE_INPUTS_CONFIG[qrType].map((field, index) => (
-          <div 
+          <div
             key={index}
             className={hideNameField && index === 0 ? "hidden" : ""}
           >
@@ -92,7 +92,7 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
                   options={WIFI_ENCRYPTION_TYPES}
                   value={
                     WIFI_ENCRYPTION_TYPES.find((opt) => opt.id === value) ??
-                    null
+                    WIFI_ENCRYPTION_TYPES[0]
                   }
                   onChange={(option) => {
                     onChange(option.id);
