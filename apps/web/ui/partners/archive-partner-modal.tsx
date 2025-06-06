@@ -27,9 +27,15 @@ function ArchivePartnerModal({
   const { id: workspaceId } = useWorkspace();
   const { programId } = useParams<{ programId: string }>();
 
+  const actionText = partner.status === "archived" ? "unarchive" : "archive";
+  const actionDescription =
+    partner.status === "archived"
+      ? "This will show the partner in your partners list again."
+      : "This will hide the partner from your partners list. All their links will still work, and they will still earn commissions.";
+
   const { executeAsync, isPending } = useAction(archivePartnerAction, {
     onSuccess: async () => {
-      toast.success("Partner archived successfully!");
+      toast.success(`Partner ${actionText}d successfully!`);
       setShowArchivePartnerModal(false);
       mutatePrefix("/api/partners");
     },
@@ -48,12 +54,6 @@ function ArchivePartnerModal({
       partnerId: partner.id,
     });
   }, [executeAsync, partner.id, programId, workspaceId]);
-
-  const actionText = partner.status === "archived" ? "unarchive" : "archive";
-  const actionDescription =
-    partner.status === "archived"
-      ? "This will show the partner in your partners list again."
-      : "This will hide the partner from your partners list. All their links will still work, and they will still earn commissions.";
 
   return (
     <Modal
