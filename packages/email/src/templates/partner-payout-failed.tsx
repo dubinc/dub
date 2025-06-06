@@ -24,7 +24,7 @@ export default function PartnerPayoutFailed({
   payout = {
     amount: 530000,
     failureFee: 1000,
-    cardLast4: "01234",
+    cardLast4: "1234",
   },
   email = "panic@thedis.co",
 }: {
@@ -77,16 +77,21 @@ export default function PartnerPayoutFailed({
 
             {payout.failureFee && payout.cardLast4 && (
               <Text className="text-sm leading-6 text-neutral-600">
-                We've charged a{" "}
+                To cover the cost of the failed payout, we've charged a{" "}
                 <span className="font-semibold text-neutral-800">
                   ${payout.failureFee / 100} payment failure fee
                 </span>{" "}
-                to your card ending in {payout.cardLast4}.
+                to your card ending in{" "}
+                <span className="font-semibold text-purple-600">
+                  {payout.cardLast4}
+                </span>
+                .
               </Text>
             )}
 
             <Text className="text-sm leading-6 text-neutral-600">
-              Please update your payment info to avoid disruption.
+              Please update your direct debit details at your earliest
+              convenience to ensure that your partners are paid on time.
             </Text>
 
             <Section className="my-8">
