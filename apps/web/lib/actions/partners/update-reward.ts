@@ -5,22 +5,30 @@ import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { updateRewardSchema } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import { authActionClient } from "../safe-action";
 
 export const updateRewardAction = authActionClient
   .schema(updateRewardSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { rewardId, partnerIds, amount, maxDuration, type, maxAmount } =
-      parsedInput;
-
-    const programId = getDefaultProgramIdOrThrow(workspace);
+    const {
+      rewardId,
+      partnerIds,
+      amount,
+      maxDuration,
+      type,
+      maxAmount,
+      geoRules,
+    } = parsedInput;
 
     if (maxAmount && maxAmount < amount) {
       throw new Error(
         "Max reward amount cannot be less than the reward amount.",
       );
     }
+
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
     const reward = await getRewardOrThrow(
       {
@@ -31,6 +39,10 @@ export const updateRewardAction = authActionClient
         includePartnersCount: true,
       },
     );
+
+    if (geoRules && reward.event === "sale") {
+      throw new Error("Geo specific rules are not allowed for sale rewards.");
+    }
 
     let programEnrollments: { id: string }[] = [];
 
@@ -79,6 +91,9 @@ export const updateRewardAction = authActionClient
         amount,
         maxDuration,
         maxAmount,
+        ...(["click", "lead"].includes(reward.event) && {
+          geoRules: geoRules || Prisma.JsonNull,
+        }),
         ...(programEnrollments && {
           partners: {
             deleteMany: {},

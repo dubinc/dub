@@ -21,15 +21,19 @@ import {
   AnimatedSizeContainer,
   Button,
   CircleCheckFill,
+  Combobox,
   InfoTooltip,
+  Plus,
   Sheet,
   Switch,
   Tooltip,
+  Trash,
 } from "@dub/ui";
-import { cn, pluralize } from "@dub/utils";
+import { cn, COUNTRIES, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
+  Fragment,
   SetStateAction,
   useEffect,
   useMemo,
@@ -125,6 +129,13 @@ function RewardSheetContent({
       amount: reward?.type === "flat" ? reward.amount / 100 : reward?.amount,
       maxAmount: reward?.maxAmount ? reward.maxAmount / 100 : null,
       partnerIds: null,
+      geoRules: reward?.geoRules
+        ? Object.fromEntries(
+            Object.entries(reward.geoRules as Record<string, number>).map(
+              ([key, value]) => [key, (value || 0) / 100],
+            ),
+          )
+        : {},
     },
   });
 
@@ -136,9 +147,10 @@ function RewardSheetContent({
     }
   }, [reward]);
 
-  const [amount, type, partnerIds = []] = watch([
+  const [amount, type, geoRules = {}, partnerIds = []] = watch([
     "amount",
     "type",
+    "geoRules",
     "partnerIds",
   ]);
 
@@ -251,6 +263,14 @@ function RewardSheetContent({
       maxDuration:
         Infinity === Number(data.maxDuration) ? null : data.maxDuration,
       maxAmount: data.maxAmount ? data.maxAmount * 100 : null,
+      geoRules: data.geoRules
+        ? Object.fromEntries(
+            Object.entries(data.geoRules).map(([country, amount]) => [
+              country,
+              amount * 100,
+            ]),
+          )
+        : null,
     };
 
     if (!reward) {
@@ -298,6 +318,16 @@ function RewardSheetContent({
 
     if (!isDefault && shouldOpenPartnerEligibility) {
       baseValues.push("partner-eligibility");
+    }
+
+    // Open the location payout rules accordion if:
+    // 1. No existing reward (new creation), OR
+    // 2. Existing reward with location payout rules exists
+    const shouldOpenLocationPayoutRules =
+      !reward || (reward && Object.keys(reward.geoRules || {}).length > 0);
+
+    if (shouldOpenLocationPayoutRules) {
+      baseValues.push("location-payout-rules");
     }
 
     return baseValues;
@@ -665,6 +695,26 @@ function RewardSheetContent({
                 </div>
               </ProgramSheetAccordionContent>
             </ProgramSheetAccordionItem>
+
+            {["click", "lead"].includes(selectedEvent) && (
+              <ProgramSheetAccordionItem value="location-payout-rules">
+                <ProgramSheetAccordionTrigger>
+                  Location Payout Rules
+                </ProgramSheetAccordionTrigger>
+                <ProgramSheetAccordionContent>
+                  <div className="space-y-4">
+                    <p className="text-sm text-neutral-600">
+                      Offer higher payouts for leads from selected countries
+                    </p>
+                    <LocationPayoutRules
+                      geoRules={geoRules}
+                      setValue={setValue}
+                      register={register}
+                    />
+                  </div>
+                </ProgramSheetAccordionContent>
+              </ProgramSheetAccordionItem>
+            )}
           </ProgramSheetAccordion>
         </div>
 
@@ -721,7 +771,7 @@ function RewardSheetContent({
 }
 
 // Temporarily hiding this in the UI for now – until more users ask for it
-function RewardLimitSection({
+function RewardLimit({
   event,
   register,
   watch,
@@ -798,6 +848,138 @@ function RewardLimitSection({
           )}
         </AnimatedSizeContainer>
       </div>
+    </div>
+  );
+}
+
+function LocationPayoutRules({
+  geoRules,
+  setValue,
+  register,
+}: {
+  geoRules: Record<string, number> | null;
+  setValue: UseFormSetValue<FormData>;
+  register: UseFormRegister<FormData>;
+}) {
+  return (
+    <div className="flex flex-col gap-3">
+      {geoRules && Object.entries(geoRules).length > 0 && (
+        <div className="relative mb-2 grid grid-cols-[min-content_1fr_min-content] gap-y-2">
+          {Object.entries(geoRules).map(([key, value]) => (
+            <Fragment key={key}>
+              <div className="z-[1]">
+                <Combobox
+                  selected={key ? { value: key, label: COUNTRIES[key] } : null}
+                  setSelected={(option) => {
+                    if (!option) {
+                      return;
+                    }
+
+                    const newgeoRules = { ...geoRules };
+                    delete newgeoRules[key];
+                    newgeoRules[option.value] = value;
+
+                    setValue("geoRules", newgeoRules, {
+                      shouldDirty: true,
+                    });
+                  }}
+                  options={Object.entries(COUNTRIES)
+                    .filter(
+                      ([ck]) =>
+                        ck === key || !Object.keys(geoRules).includes(ck),
+                    )
+                    .map(([key, value]) => ({
+                      icon: (
+                        <img
+                          alt={value}
+                          src={`https://flag.vercel.app/m/${key}.svg`}
+                          className="mr-1 h-2.5 w-4"
+                        />
+                      ),
+                      value: key,
+                      label: value,
+                    }))}
+                  icon={
+                    key ? (
+                      <img
+                        alt={COUNTRIES[key]}
+                        src={`https://flag.vercel.app/m/${key}.svg`}
+                        className="h-2.5 w-4"
+                      />
+                    ) : undefined
+                  }
+                  caret={true}
+                  placeholder="Country"
+                  searchPlaceholder="Search countries..."
+                  buttonProps={{
+                    className: cn(
+                      "w-32 sm:w-40 rounded-r-none border-r-transparent justify-start px-2.5",
+                      "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
+                      "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
+                      !key && "text-neutral-600",
+                    ),
+                  }}
+                  optionClassName="sm:max-w-[200px]"
+                />
+              </div>
+
+              <div className="relative flex grow">
+                <span className="pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-3 text-sm text-neutral-400">
+                  $
+                </span>
+                <input
+                  type="text"
+                  placeholder="0"
+                  className="h-full w-full rounded-r-md border border-neutral-300 pl-6 pr-12 text-sm placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-1 focus:ring-inset focus:ring-neutral-500"
+                  onKeyDown={handleMoneyKeyDown}
+                  {...(key
+                    ? register(`geoRules.${key}`, {
+                        required: true,
+                        valueAsNumber: true,
+                        min: 0,
+                        onChange: handleMoneyInputChange,
+                      })
+                    : {})}
+                />
+                <span className="pointer-events-none absolute inset-y-0 right-0 z-10 flex items-center pr-3 text-sm text-neutral-400">
+                  USD
+                </span>
+              </div>
+
+              <div className="pl-1.5">
+                <Button
+                  type="button"
+                  text={<Trash className="size-4" />}
+                  variant="outline"
+                  className="h-10 w-9 shrink-0 p-0 hover:bg-red-50 hover:text-red-600"
+                  onClick={() => {
+                    const newgeoRules = { ...geoRules };
+                    delete newgeoRules[key];
+                    setValue("geoRules", newgeoRules, {
+                      shouldDirty: true,
+                    });
+                  }}
+                />
+              </div>
+            </Fragment>
+          ))}
+        </div>
+      )}
+
+      <Button
+        type="button"
+        variant="secondary"
+        icon={<Plus className="size-4" />}
+        text="Add location"
+        className="h-9 w-full"
+        onClick={() => {
+          const newgeoRules = { ...geoRules, "": 0 };
+          setValue("geoRules", newgeoRules, {
+            shouldDirty: true,
+          });
+        }}
+        disabled={!!geoRules && Object.keys(geoRules).includes("")}
+      />
     </div>
   );
 }
