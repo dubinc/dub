@@ -290,7 +290,7 @@ function DownloadPopover({
   return (
     <Popover
       content={
-        <div className="grid gap-1 p-2 sm:min-w-48">
+        <div className="grid w-full justify-start gap-1 p-2 sm:min-w-48">
           <button
             className="flex w-full items-center justify-start gap-2 rounded-md p-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100"
             onClick={() => {
