@@ -144,8 +144,6 @@ export const createUserAccountAction = actionClient
         },
       });
 
-      console.log("[createUserAccountAction] qrDataToCreate", qrDataToCreate);
-
       if (qrDataToCreate !== null) {
         const { link, error, code } = await processLink({
           payload: {
@@ -169,7 +167,6 @@ export const createUserAccountAction = actionClient
 
         try {
           const createdLink = await createLink(link);
-          console.log("[createUserAccountAction] createdLink", createdLink);
 
           await createQr(
             {
