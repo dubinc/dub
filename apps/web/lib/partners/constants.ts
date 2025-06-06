@@ -21,6 +21,7 @@ export const PAYOUT_FEES = {
 } as const;
 
 export const DUB_MIN_PAYOUT_AMOUNT_CENTS = 10000;
+export const PAYOUT_FAILURE_FEE_CENTS = 1000; // 10 USD
 
 // Direct debit payment types for Partner payout
 export const DIRECT_DEBIT_PAYMENT_TYPES_INFO: {
