@@ -1,6 +1,5 @@
 import { getRandomKey } from "@/lib/planetscale";
 import { ProcessedLinkProps } from "@/lib/types";
-import { Prisma } from "@dub/prisma/client";
 import { DubApiError } from "../errors";
 import { createLink } from "./create-link";
 
@@ -24,10 +23,12 @@ export async function createLinkWithKeyRetry({
     try {
       return await createLink(link);
     } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === "P2002"
-      ) {
+      const isDuplicateKey =
+        error instanceof DubApiError &&
+        error.code === "conflict" &&
+        error.message.includes("Duplicate key");
+
+      if (isDuplicateKey) {
         // If the key was specified by the user (not randomly generated), we shouldn't retry
         if (!isRandomKey) {
           throw new DubApiError({
