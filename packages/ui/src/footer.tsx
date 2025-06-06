@@ -59,6 +59,7 @@ const navigation = {
       target: "_blank",
     },
     { name: "About", href: "/about" },
+    { name: "Careers", href: "/careers" },
     { name: "Brand", href: "/brand" },
     { name: "Contact", href: "/contact" },
   ],

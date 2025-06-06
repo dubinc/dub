@@ -215,7 +215,7 @@ async function createCommission({
     pending: "pending",
     due: "pending",
     paid: "paid",
-    voided: "duplicate",
+    voided: "canceled",
   };
 
   await Promise.all([

@@ -3,15 +3,15 @@
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutsCount } from "@/lib/types";
-import { usePayoutInvoiceSheet } from "@/ui/partners/payout-invoice-sheet";
+import { PayoutInvoiceSheet } from "@/ui/partners/payout-invoice-sheet";
 import { PayoutStatus } from "@dub/prisma/client";
-import { Button, buttonVariants, Tooltip } from "@dub/ui";
+import { Button, buttonVariants, Tooltip, useRouterStuff } from "@dub/ui";
 import { cn, currencyFormatter } from "@dub/utils";
 import Link from "next/link";
 
 export function PayoutStats() {
   const { slug } = useWorkspace();
-  const { payoutInvoiceSheet, setIsOpen } = usePayoutInvoiceSheet();
+  const { queryParams } = useRouterStuff();
 
   const { payoutsCount, loading } = usePayoutsCount<PayoutsCount[]>({
     groupBy: "status",
@@ -53,7 +53,7 @@ export function PayoutStats() {
 
   return (
     <>
-      {payoutInvoiceSheet}
+      <PayoutInvoiceSheet />
       <div className="grid grid-cols-1 divide-neutral-200 rounded-lg border border-neutral-200 bg-neutral-50 max-sm:divide-y sm:grid-cols-2 sm:divide-x">
         <div className="flex flex-col p-4">
           <div className="flex justify-between gap-5">
@@ -63,7 +63,14 @@ export function PayoutStats() {
             <Button
               text="Confirm payouts"
               className="h-7 w-fit px-2"
-              onClick={() => setIsOpen(true)}
+              onClick={() => {
+                queryParams({
+                  set: {
+                    confirmPayouts: "true",
+                  },
+                  scroll: false,
+                });
+              }}
               disabled={eligiblePayoutsLoading || confirmButtonDisabled}
               disabledTooltip={
                 confirmButtonDisabled

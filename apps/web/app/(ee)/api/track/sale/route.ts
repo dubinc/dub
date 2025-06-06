@@ -185,9 +185,6 @@ export const POST = withWorkspace(
               usage: {
                 increment: 1,
               },
-              salesUsage: {
-                increment: amount,
-              },
             },
           }),
           // update customer sales count

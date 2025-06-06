@@ -64,7 +64,7 @@ function EmbedInlineLoading({ themeOptions }: { themeOptions: ThemeOptions }) {
             <div className="bg-bg-muted h-6 w-40 rounded-md" />
           </div>
           <a
-            href="https://dub.partners"
+            href="https://dub.co/partners"
             target="_blank"
             className="hover:text-content-default text-content-subtle mt-4 flex items-center justify-center gap-1.5 transition-colors duration-75 md:absolute md:bottom-3 md:right-3 md:mt-0 md:translate-x-0"
           >

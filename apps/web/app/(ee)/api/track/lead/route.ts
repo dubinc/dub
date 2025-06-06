@@ -95,7 +95,7 @@ export const POST = withWorkspace(
 
       if (!clickData) {
         const cachedClickData = await redis.get<ClickData>(
-          `clickCache:${clickId}`,
+          `clickIdCache:${clickId}`,
         );
 
         if (cachedClickData) {

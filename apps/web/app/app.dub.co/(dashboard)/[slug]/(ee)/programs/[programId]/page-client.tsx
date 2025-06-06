@@ -5,7 +5,7 @@ import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import { buttonVariants, Grid, useRouterStuff } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
-import { redirect, useParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { CommissionTable } from "./commissions/commission-table";
 import { OverviewChart } from "./overview-chart";
 import { PendingPayouts } from "./pending-payouts";
@@ -16,10 +16,6 @@ export default function ProgramOverviewPageClient() {
   const { program } = useProgram();
   const { slug, programId } = useParams();
   const { getQueryString } = useRouterStuff();
-
-  if (!program) {
-    redirect(`/${slug}`);
-  }
 
   return (
     <div className="mb-10">
@@ -45,7 +41,7 @@ export default function ProgramOverviewPageClient() {
             <div className="relative flex grow flex-col justify-end">
               <div className="relative p-5 pt-10">
                 <div className="absolute inset-0 bg-neutral-800 [mask-image:linear-gradient(to_bottom,transparent,black_30%)]" />
-                {program.rewards?.[0] && (
+                {program?.rewards?.[0] && (
                   <div className="relative">
                     <h4 className="text-sm font-semibold text-neutral-200">
                       Rewards

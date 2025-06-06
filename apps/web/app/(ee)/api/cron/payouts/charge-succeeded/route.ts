@@ -10,6 +10,8 @@ export const dynamic = "force-dynamic";
 
 // POST /api/cron/payouts/charge-succeeded
 // This route is used to process the charge-succeeded event from Stripe
+// we're intentionally offloading this to a cron job to avoid blocking the main thread
+// so that we can return a 200 to Stripe immediately
 export async function POST(req: Request) {
   try {
     const rawBody = await req.text();

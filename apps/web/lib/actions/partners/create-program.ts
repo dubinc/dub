@@ -12,6 +12,7 @@ import { prisma } from "@dub/prisma";
 import { generateRandomString, nanoid, R2_URL } from "@dub/utils";
 import { Program, Project, User } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { redirect } from "next/navigation";
 
 // Create a program from the onboarding data
 export const createProgram = async ({
@@ -71,35 +72,59 @@ export const createProgram = async ({
   });
 
   // create a new program
-  const program = await prisma.program.create({
-    data: {
-      id: createId({ prefix: "prog_" }),
-      workspaceId: workspace.id,
-      name,
-      slug: workspace.slug,
-      domain,
-      url,
-      defaultFolderId: programFolder.id,
-      linkStructure,
-      supportEmail,
-      helpUrl,
-      termsUrl,
-      ...(type &&
-        amount && {
-          rewards: {
-            create: {
-              id: createId({ prefix: "rw_" }),
-              type,
-              amount,
-              maxDuration,
-              event: defaultRewardType,
+  const program = await prisma.$transaction(async (tx) => {
+    const programData = await tx.program.create({
+      data: {
+        id: createId({ prefix: "prog_" }),
+        workspaceId: workspace.id,
+        name,
+        slug: workspace.slug,
+        domain,
+        url,
+        defaultFolderId: programFolder.id,
+        linkStructure,
+        supportEmail,
+        helpUrl,
+        termsUrl,
+        ...(type &&
+          amount && {
+            rewards: {
+              create: {
+                id: createId({ prefix: "rw_" }),
+                type,
+                amount,
+                maxDuration,
+                event: defaultRewardType,
+              },
             },
-          },
+          }),
+      },
+      include: {
+        rewards: true,
+      },
+    });
+
+    await tx.project.update({
+      where: {
+        id: workspace.id,
+      },
+      data: {
+        defaultProgramId: programData.id,
+        foldersUsage: {
+          increment: 1,
+        },
+        store: {
+          ...store,
+          programOnboarding: undefined,
+        },
+        // if the workspace doesn't have an invoice prefix, generate one
+        ...(!workspace.invoicePrefix && {
+          invoicePrefix: generateRandomString(8),
         }),
-    },
-    include: {
-      rewards: true,
-    },
+      },
+    });
+
+    return programData;
   });
 
   const logoUrl = uploadedLogo
@@ -123,42 +148,20 @@ export const createProgram = async ({
     });
   }
 
-  // invite the partners
-  if (partners && partners.length > 0) {
-    await Promise.all(
-      partners.map((partner) =>
-        invitePartner({
-          workspace,
-          program,
-          partner,
-          userId: user.id,
-        }),
-      ),
-    );
-  }
-
   waitUntil(
-    Promise.all([
-      prisma.project.update({
-        where: {
-          id: workspace.id,
-        },
-        data: {
-          defaultProgramId: program.id,
-          foldersUsage: {
-            increment: 1,
-          },
-          store: {
-            ...store,
-            programOnboarding: undefined,
-          },
-          // if the workspace doesn't have an invoice prefix, generate one
-          ...(!workspace.invoicePrefix && {
-            invoicePrefix: generateRandomString(8),
-          }),
-        },
-      }),
-
+    Promise.allSettled([
+      // invite partners
+      ...(partners && partners.length > 0
+        ? partners.map((partner) =>
+            invitePartner({
+              workspace,
+              program,
+              partner,
+              userId: user.id,
+            }),
+          )
+        : []),
+      // update the program with the logo and default reward
       prisma.program.update({
         where: {
           id: program.id,
@@ -171,13 +174,14 @@ export const createProgram = async ({
         },
       }),
 
+      // delete the temporary uploaded logo
       uploadedLogo &&
         isStored(uploadedLogo) &&
         storage.delete(uploadedLogo.replace(`${R2_URL}/`, "")),
     ]),
   );
 
-  return program;
+  redirect(`/${workspace.slug}/programs/${program.id}?onboarded-program=true`);
 };
 
 // Invite a partner to the program
@@ -237,6 +241,7 @@ async function invitePartner({
         email: partner.email,
         program: {
           name: program.name,
+          slug: program.slug,
           logo: program.logo,
         },
       }),

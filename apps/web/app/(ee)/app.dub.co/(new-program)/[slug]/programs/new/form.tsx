@@ -82,9 +82,12 @@ export function Form() {
 
     try {
       const response = await fetch(
-        `/api/workspaces/${workspaceId}/programs/upload-logo`,
+        `/api/workspaces/${workspaceId}/upload-url`,
         {
           method: "POST",
+          body: JSON.stringify({
+            folder: "program-logos",
+          }),
         },
       );
 
@@ -131,7 +134,7 @@ export function Form() {
           Company name
         </label>
         <p className="mb-4 mt-1 text-sm text-neutral-600">
-          The name of the company you're setting up the program for
+          The name of your company
         </p>
         <Input
           {...register("name", { required: true })}

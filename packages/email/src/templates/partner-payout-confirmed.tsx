@@ -52,6 +52,7 @@ export default function PartnerPayoutConfirmed({
         year: "numeric",
         month: "short",
         day: "numeric",
+        timeZone: "UTC",
       })
     : null;
 
@@ -60,6 +61,7 @@ export default function PartnerPayoutConfirmed({
         year: "numeric",
         month: "short",
         day: "numeric",
+        timeZone: "UTC",
       })
     : null;
 

@@ -2,10 +2,14 @@
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getFolderOrThrow } from "@/lib/folder/get-folder-or-throw";
+import { DUB_MIN_PAYOUT_AMOUNT_CENTS } from "@/lib/partners/constants";
 import { isStored, storage } from "@/lib/storage";
+import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
 import { updateProgramSchema } from "../../zod/schemas/programs";
@@ -16,6 +20,7 @@ const schema = updateProgramSchema.partial().extend({
   logo: z.string().nullish(),
   wordmark: z.string().nullish(),
   brandColor: z.string().nullish(),
+  landerData: programLanderSchema.nullish(),
 });
 
 export const updateProgramAction = authActionClient
@@ -23,20 +28,21 @@ export const updateProgramAction = authActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
     const {
-      defaultFolderId,
       name,
-      holdingPeriodDays,
-      minPayoutAmount,
-      cookieLength,
-      domain,
-      url,
       logo,
       wordmark,
       brandColor,
+      landerData,
+      domain,
+      url,
       linkStructure,
       supportEmail,
       helpUrl,
       termsUrl,
+      holdingPeriodDays,
+      minPayoutAmount,
+      cookieLength,
+      defaultFolderId,
     } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -72,30 +78,55 @@ export const updateProgramAction = authActionClient
       },
       data: {
         name,
-        cookieLength,
-        holdingPeriodDays,
-        minPayoutAmount,
-        domain,
-        url,
-        brandColor,
         logo: logoUrl ?? undefined,
         wordmark: wordmarkUrl ?? undefined,
-        defaultFolderId,
+        brandColor,
+        landerData: landerData === null ? Prisma.JsonNull : landerData,
+        domain,
+        url,
         linkStructure,
         supportEmail,
         helpUrl,
         termsUrl,
+        cookieLength,
+        holdingPeriodDays,
+        minPayoutAmount:
+          workspace.plan === "enterprise"
+            ? minPayoutAmount
+            : DUB_MIN_PAYOUT_AMOUNT_CENTS,
+        defaultFolderId,
       },
     });
 
-    // Delete old logo/wordmark if they were updated
     waitUntil(
       Promise.all([
+        // Delete old logo/wordmark if they were updated
         ...(logoUrl && program.logo
           ? [storage.delete(program.logo.replace(`${R2_URL}/`, ""))]
           : []),
         ...(wordmarkUrl && program.wordmark
           ? [storage.delete(program.wordmark.replace(`${R2_URL}/`, ""))]
+          : []),
+
+        /*
+         Revalidate public pages if the following fields were updated:
+         - name
+         - logo
+         - wordmark
+         - brand color
+         - lander data
+        */
+        ...(name !== program.name ||
+        logoUrl ||
+        wordmarkUrl ||
+        brandColor !== program.brandColor ||
+        landerData
+          ? [
+              revalidatePath(`/partners.dub.co/${program.slug}`),
+              revalidatePath(`/partners.dub.co/${program.slug}/apply`),
+              revalidatePath(`/partners.dub.co/${program.slug}/apply/form`),
+              revalidatePath(`/partners.dub.co/${program.slug}/apply/success`),
+            ]
           : []),
       ]),
     );
