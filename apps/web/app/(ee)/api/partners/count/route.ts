@@ -112,33 +112,26 @@ export const GET = withWorkspace(
             },
           },
           _count: true,
+          orderBy: {
+            _count: {
+              rewardId: "desc",
+            },
+          },
         }),
         prisma.reward.findMany({
           where: {
             programId,
           },
         }),
-        // prisma.programEnrollment.count({
-        //   where: {
-        //     rewards: {
-        //       none: {},
-        //     },
-        //   },
-        // }),
       ]);
 
-      const partnersWithReward = allRewards
-        .map((reward) => {
-          const partnerCount = customRewardsPartners.find(
-            (p) => p.rewardId === reward.id,
-          )?._count;
-
-          return {
-            ...reward,
-            partnersCount: partnerCount,
-          };
-        })
-        .sort((a, b) => (b.partnersCount ?? 0) - (a.partnersCount ?? 0));
+      const partnersWithReward = customRewardsPartners.map((p) => {
+        const reward = allRewards.find((r) => r.id === p.rewardId);
+        return {
+          ...reward,
+          partnersCount: p._count,
+        };
+      });
 
       return NextResponse.json(partnersWithReward);
     }
