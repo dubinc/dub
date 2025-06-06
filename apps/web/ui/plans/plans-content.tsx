@@ -7,6 +7,7 @@ import {
   ICheckoutFormSuccess,
 } from "@/ui/checkout/interface";
 import CheckoutFormComponent from "@/ui/checkout/primer-checkout";
+import { FAQSection } from "@/ui/landing/components/faq-section/faq-section.tsx";
 import { PlansFeatures } from "@/ui/plans/components/plans-features.tsx";
 import { PlansHeading } from "@/ui/plans/components/plans-heading.tsx";
 import { PopularQrInfo } from "@/ui/plans/components/popular-qr-info.tsx";
@@ -96,7 +97,7 @@ export default function PlansContent() {
             size="4"
             className="text-neutral"
           >
-            Choose your plan
+            {isTrialOver ? "Choose your plan" : "Update your plan"}
           </Heading>
 
           <div className="border-border-500 hidden h-px w-full border-t lg:block" />
@@ -133,7 +134,9 @@ export default function PlansContent() {
                 handleCheckoutSuccess={handlePaymentSuccess}
                 handleCheckoutError={handlePaymentError}
                 submitBtn={{
-                  text: `Subscribe to ${selectedPlan.name}`,
+                  text: isTrialOver
+                    ? `Subscribe to ${selectedPlan.name}`
+                    : "Update plan",
                 }}
               />
             </div>
@@ -148,6 +151,7 @@ export default function PlansContent() {
           <PlansFeatures />
         </div>
       </div>
+      <FAQSection />
     </div>
   );
 }
