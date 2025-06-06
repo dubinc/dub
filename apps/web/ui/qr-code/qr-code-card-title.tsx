@@ -2,16 +2,30 @@ import { Input, Tooltip } from "@dub/ui";
 import { cn } from "@dub/utils/src";
 import { Icon } from "@iconify/react";
 import { Button, Flex } from "@radix-ui/themes";
-import { useState } from "react";
+import { FC, useState } from "react";
 import { useQrSave } from "./hooks/use-qr-save";
 import { ResponseQrCode } from "./qr-codes-container";
 
-export function QRCardTitle({ qrCode }: { qrCode: ResponseQrCode }) {
+interface IQRCardTitle {
+  qrCode: ResponseQrCode;
+  isTrialOver?: boolean;
+  setShowTrialExpiredModal?: (show: boolean) => void;
+}
+
+export const QRCardTitle: FC<IQRCardTitle> = ({
+  qrCode,
+  isTrialOver,
+  setShowTrialExpiredModal,
+}) => {
   const [isEdit, setIsEdit] = useState(false);
   const { updateQr } = useQrSave();
 
   const onEditClick = (e: React.MouseEvent<SVGSVGElement>) => {
     e.stopPropagation();
+    if (isTrialOver) {
+      setShowTrialExpiredModal?.(true);
+      return;
+    }
     setIsEdit(true);
   };
 
@@ -50,7 +64,7 @@ export function QRCardTitle({ qrCode }: { qrCode: ResponseQrCode }) {
       )}
     </Flex>
   );
-}
+};
 
 function QrCodeRename({
   initialName,

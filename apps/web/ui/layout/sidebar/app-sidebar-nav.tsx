@@ -78,14 +78,8 @@ const NAV_AREAS: SidebarNavAreas<{
           {
             name: "My QR Codes",
             icon: () => <Icon icon="mage:qr-code" className="h-5 w-5" />,
-            href: isTrialOver ? "#" : `/${slug}`,
+            href: `/${slug}`,
             exact: true,
-            onClick: isTrialOver
-              ? (e: MouseEvent) => {
-                  e.preventDefault();
-                  setShowTrialExpiredModal?.(true);
-                }
-              : undefined,
           },
           {
             name: "Statistics",

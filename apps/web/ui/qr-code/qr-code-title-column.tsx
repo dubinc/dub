@@ -20,6 +20,7 @@ interface QrCodeTitleColumnProps {
   builtQrCodeObject: QRCodeStyling | null;
   currentQrTypeInfo: QRType;
   isTrialOver?: boolean;
+  setShowTrialExpiredModal?: (show: boolean) => void;
 }
 
 export function QrCodeTitleColumn({
@@ -28,6 +29,7 @@ export function QrCodeTitleColumn({
   builtQrCodeObject,
   currentQrTypeInfo,
   isTrialOver,
+  setShowTrialExpiredModal,
 }: QrCodeTitleColumnProps) {
   const { domain, key, createdAt, shortLink, archived, title } =
     qrCode?.link ?? {};
@@ -69,7 +71,11 @@ export function QrCodeTitleColumn({
           >
             QR Name
           </Text>
-          <QRCardTitle qrCode={qrCode} />
+          <QRCardTitle
+            qrCode={qrCode}
+            isTrialOver={isTrialOver}
+            setShowTrialExpiredModal={setShowTrialExpiredModal}
+          />
         </div>
 
         <div className="order-last flex min-w-0 flex-col justify-center gap-1 lg:order-none lg:flex-1 lg:shrink-0">
@@ -81,7 +87,11 @@ export function QrCodeTitleColumn({
           >
             {currentQrTypeInfo.yourContentColumnTitle}
           </Text>
-          <QRCardDetails qrCode={qrCode} />
+          <QRCardDetails
+            qrCode={qrCode}
+            isTrialOver={isTrialOver}
+            setShowTrialExpiredModal={setShowTrialExpiredModal}
+          />
         </div>
 
         <div
@@ -89,21 +99,19 @@ export function QrCodeTitleColumn({
             "flex min-w-0 flex-col items-start justify-center gap-1 lg:flex-1 lg:shrink-0",
           )}
         >
-          {!isTrialOver && (
-            <>
-              <Text
-                as="span"
-                size="2"
-                weight="bold"
-                className="hidden whitespace-nowrap lg:block"
-              >
-                Created
-              </Text>
-              <Tooltip content={formatDateTime(createdAt)} delayDuration={150}>
-                <span className="text-neutral-500">{timeAgo(createdAt)}</span>
-              </Tooltip>
-            </>
-          )}
+          <>
+            <Text
+              as="span"
+              size="2"
+              weight="bold"
+              className="hidden whitespace-nowrap lg:block"
+            >
+              Created
+            </Text>
+            <Tooltip content={formatDateTime(createdAt)} delayDuration={150}>
+              <span className="text-neutral-500">{timeAgo(createdAt)}</span>
+            </Tooltip>
+          </>
         </div>
       </div>
     </div>
