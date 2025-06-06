@@ -1,5 +1,4 @@
-import { DubApiError } from "@/lib/api/errors";
-import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { partnersCountQuerySchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
@@ -9,20 +8,7 @@ import { NextResponse } from "next/server";
 // GET /api/partners/count - get the count of partners for a program
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
-    const { programId } = searchParams;
-
-    if (!programId) {
-      throw new DubApiError({
-        code: "bad_request",
-        message:
-          "Program ID not found. Did you forget to include a `programId` query parameter?",
-      });
-    }
-
-    const program = await getProgramOrThrow({
-      workspaceId: workspace.id,
-      programId,
-    });
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
     const { groupBy, status, country, rewardId, search, ids } =
       partnersCountQuerySchema.parse(searchParams);
@@ -130,10 +116,6 @@ export const GET = withWorkspace(
         prisma.reward.findMany({
           where: {
             programId,
-            // TODO: remove this once we can filter by that too
-            id: {
-              not: program.defaultRewardId ?? undefined,
-            },
           },
         }),
         // prisma.programEnrollment.count({

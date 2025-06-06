@@ -28,7 +28,6 @@ import {
   formatDateTimeSmart,
   nFormatter,
 } from "@dub/utils";
-import { useParams } from "next/navigation";
 import { memo } from "react";
 import useSWR from "swr";
 import { useCommissionFilters } from "./use-commission-filters";
@@ -51,7 +50,6 @@ const CommissionTableInner = memo(
     setSearch,
     setSelectedFilter,
   }: { limit?: number } & ReturnType<typeof useCommissionFilters>) => {
-    const { programId } = useParams();
     const { id: workspaceId, slug } = useWorkspace();
     const { pagination, setPagination } = usePagination(limit);
     const { queryParams, getQueryString, searchParamsObj } = useRouterStuff();

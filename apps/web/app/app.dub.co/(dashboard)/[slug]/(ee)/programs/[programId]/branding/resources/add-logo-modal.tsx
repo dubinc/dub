@@ -6,7 +6,6 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, FileUpload, Modal } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { useParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -44,12 +43,8 @@ function AddLogoModal(props: AddLogoModalProps) {
 }
 
 function AddLogoModalInner({ setShowAddLogoModal }: AddLogoModalProps) {
-  const { programId } = useParams();
   const { id: workspaceId } = useWorkspace();
-  const { mutate } = useProgramResources({
-    workspaceId: workspaceId!,
-    programId: programId as string,
-  });
+  const { mutate } = useProgramResources();
 
   const {
     register,
@@ -94,7 +89,6 @@ function AddLogoModalInner({ setShowAddLogoModal }: AddLogoModalProps) {
         onSubmit={handleSubmit(async (data: LogoFormData) => {
           await executeAsync({
             workspaceId: workspaceId!,
-            programId: programId as string,
             name: data.name,
             resourceType: "logo",
             file: data.file,

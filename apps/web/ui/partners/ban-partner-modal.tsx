@@ -9,7 +9,6 @@ import {
 import { Button, Modal } from "@dub/ui";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { useParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -35,7 +34,6 @@ function BanPartnerModal({
   partner: Pick<PartnerProps, "id" | "name" | "email" | "image">;
 }) {
   const { id: workspaceId } = useWorkspace();
-  const { programId } = useParams<{ programId: string }>();
 
   const {
     register,
@@ -64,7 +62,7 @@ function BanPartnerModal({
 
   const onSubmit = useCallback(
     async (data: BanPartnerFormData) => {
-      if (!workspaceId || !programId || !partner.id) {
+      if (!workspaceId || !partner.id) {
         return;
       }
 
@@ -74,17 +72,14 @@ function BanPartnerModal({
         partnerId: partner.id,
       });
     },
-    [executeAsync, partner.id, programId, workspaceId],
+    [executeAsync, partner.id, workspaceId],
   );
 
   const isDisabled = useMemo(() => {
     return (
-      !workspaceId ||
-      !programId ||
-      !partner.id ||
-      confirm !== `confirm ban ${partner.name}`
+      !workspaceId || !partner.id || confirm !== `confirm ban ${partner.name}`
     );
-  }, [workspaceId, programId, partner.id, reason, confirm]);
+  }, [workspaceId, partner.id, reason, confirm]);
 
   return (
     <Modal

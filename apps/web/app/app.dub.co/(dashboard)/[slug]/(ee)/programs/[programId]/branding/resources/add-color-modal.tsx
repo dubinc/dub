@@ -6,7 +6,6 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, Modal } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { useParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -46,12 +45,8 @@ function AddColorModal(props: AddColorModalProps) {
 const DEFAULT_COLORS = ["#dc2626", "#84cc16", "#14b8a6", "#0ea5e9", "#d946ef"];
 
 function AddColorModalInner({ setShowAddColorModal }: AddColorModalProps) {
-  const { programId } = useParams();
   const { id: workspaceId } = useWorkspace();
-  const { mutate } = useProgramResources({
-    workspaceId: workspaceId!,
-    programId: programId as string,
-  });
+  const { mutate } = useProgramResources();
   const [hexInputValue, setHexInputValue] = useState("#000000");
 
   const {
@@ -111,7 +106,6 @@ function AddColorModalInner({ setShowAddColorModal }: AddColorModalProps) {
         onSubmit={handleSubmit(async (data: ColorFormData) => {
           await executeAsync({
             workspaceId: workspaceId!,
-            programId: programId as string,
             name: data.name,
             resourceType: "color",
             color: data.color,

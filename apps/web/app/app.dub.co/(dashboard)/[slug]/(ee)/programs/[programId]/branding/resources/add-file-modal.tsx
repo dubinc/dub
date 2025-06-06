@@ -6,7 +6,6 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, FileContent, FileUpload, Modal } from "@dub/ui";
 import { cn, truncate } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { useParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -44,12 +43,8 @@ function AddFileModal(props: AddFileModalProps) {
 }
 
 function AddFileModalInner({ setShowAddFileModal }: AddFileModalProps) {
-  const { programId } = useParams();
   const { id: workspaceId } = useWorkspace();
-  const { mutate } = useProgramResources({
-    workspaceId: workspaceId!,
-    programId: programId as string,
-  });
+  const { mutate } = useProgramResources();
 
   const {
     register,
@@ -96,7 +91,6 @@ function AddFileModalInner({ setShowAddFileModal }: AddFileModalProps) {
         onSubmit={handleSubmit(async (data: FileFormData) => {
           await executeAsync({
             workspaceId: workspaceId!,
-            programId: programId as string,
             name: data.name,
             resourceType: "file",
             file: data.file,

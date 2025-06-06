@@ -9,20 +9,15 @@ import { ResourceSection } from "@/ui/partners/resources/resource-section";
 import { FileContent } from "@dub/ui";
 import { capitalize, formatFileSize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import { useAddColorModal } from "./add-color-modal";
 import { useAddFileModal } from "./add-file-modal";
 import { useAddLogoModal } from "./add-logo-modal";
 
 export function ProgramResourcesPageClient() {
-  const { programId } = useParams();
   const { id: workspaceId } = useWorkspace();
 
-  const { resources, mutate, isLoading, isValidating } = useProgramResources({
-    workspaceId: workspaceId!,
-    programId: programId as string,
-  });
+  const { resources, mutate, isLoading, isValidating } = useProgramResources();
   const { setShowAddLogoModal, AddLogoModal } = useAddLogoModal();
   const { setShowAddColorModal, AddColorModal } = useAddColorModal();
   const { setShowAddFileModal, AddFileModal } = useAddFileModal();
@@ -45,7 +40,6 @@ export function ProgramResourcesPageClient() {
   ) => {
     const result = await executeAsync({
       workspaceId: workspaceId as string,
-      programId: programId as string,
       resourceType,
       resourceId,
     });
