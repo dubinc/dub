@@ -16,7 +16,7 @@ import { Footer } from "../components/footer";
 
 export const REFERRAL_CLICKS_QUOTA_BONUS = 500;
 
-export function NewReferralSignup({
+export default function NewReferralSignup({
   email = "panic@thedis.co",
   workspace = {
     name: "Acme, Inc",
@@ -80,5 +80,3 @@ export function NewReferralSignup({
     </Html>
   );
 }
-
-export default NewReferralSignup;

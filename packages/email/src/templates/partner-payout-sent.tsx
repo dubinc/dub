@@ -14,7 +14,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export function PartnerPayoutSent({
+export default function PartnerPayoutSent({
   email = "panic@thedis.co",
   program = {
     id: "prog_CYCu7IMAapjkRpTnr8F1azjN",
@@ -116,5 +116,3 @@ export function PartnerPayoutSent({
     </Html>
   );
 }
-
-export default PartnerPayoutSent;

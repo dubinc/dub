@@ -14,7 +14,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export function NewSaleAlertPartner({
+export default function NewSaleAlertPartner({
   email = "panic@thedis.co",
   partner = {
     id: "pn_OfewI1Faaf5pV8QH3mha8L7S",
@@ -116,5 +116,3 @@ export function NewSaleAlertPartner({
     </Html>
   );
 }
-
-export default NewSaleAlertPartner;

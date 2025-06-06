@@ -14,7 +14,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export function EmailUpdated({
+export default function EmailUpdated({
   oldEmail = "panic@thedis.co",
   newEmail = "panic@thedis.co",
 }: {
@@ -56,5 +56,3 @@ export function EmailUpdated({
     </Html>
   );
 }
-
-export default EmailUpdated;

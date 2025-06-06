@@ -15,7 +15,7 @@ import {
 import { WorkspaceProps } from "../../../../apps/web/lib/types";
 import { Footer } from "../components/footer";
 
-export function LinksLimitAlert({
+export default function LinksLimitAlert({
   email = "panic@thedis.co",
   workspace = {
     id: "ckqf1q3xw0000gk5u2q1q2q1q",
@@ -118,5 +118,3 @@ export function LinksLimitAlert({
     </Html>
   );
 }
-
-export default LinksLimitAlert;

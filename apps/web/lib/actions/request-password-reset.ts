@@ -2,7 +2,7 @@
 
 import { ratelimit } from "@/lib/upstash";
 import { sendEmail } from "@dub/email";
-import { ResetPasswordLink } from "@dub/email/templates/reset-password-link";
+import ResetPasswordLink from "@dub/email/templates/reset-password-link";
 import { prisma } from "@dub/prisma";
 import { randomBytes } from "crypto";
 import { flattenValidationErrors } from "next-safe-action";

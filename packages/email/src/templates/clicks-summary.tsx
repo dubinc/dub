@@ -18,7 +18,7 @@ import {
 import { Link2, MousePointerClick } from "lucide-react";
 import { Footer } from "../components/footer";
 
-export function ClicksSummary({
+export default function ClicksSummary({
   email = "panic@thedis.co",
   workspaceName = "Acme",
   workspaceSlug = "acme",
@@ -183,5 +183,3 @@ export function ClicksSummary({
     </Html>
   );
 }
-
-export default ClicksSummary;

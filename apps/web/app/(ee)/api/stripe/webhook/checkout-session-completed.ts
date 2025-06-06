@@ -6,7 +6,7 @@ import { WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { Invite } from "@/lib/zod/schemas/invites";
 import { sendEmail } from "@dub/email";
-import { UpgradeEmail } from "@dub/email/templates/upgrade-email";
+import UpgradeEmail from "@dub/email/templates/upgrade-email";
 import { prisma } from "@dub/prisma";
 import { User } from "@dub/prisma/client";
 import { getPlanFromPriceId, log } from "@dub/utils";

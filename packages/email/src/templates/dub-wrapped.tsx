@@ -18,7 +18,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export function DubWrapped({
+export default function DubWrapped({
   email = "panic@thedis.co",
   workspace = {
     name: "Dub",
@@ -373,5 +373,3 @@ const StatTable = ({
     </Section>
   );
 };
-
-export default DubWrapped;

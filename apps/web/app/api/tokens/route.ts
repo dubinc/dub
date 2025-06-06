@@ -7,7 +7,7 @@ import { generateRandomName } from "@/lib/names";
 import { ratelimit } from "@/lib/upstash";
 import { createTokenSchema, tokenSchema } from "@/lib/zod/schemas/token";
 import { sendEmail } from "@dub/email";
-import { APIKeyCreated } from "@dub/email/templates/api-key-created";
+import APIKeyCreated from "@dub/email/templates/api-key-created";
 import { prisma } from "@dub/prisma";
 import { Prisma, User } from "@dub/prisma/client";
 import { getCurrentPlan, nanoid } from "@dub/utils";
