@@ -51,11 +51,9 @@ export const VerifyEmailForm = ({
       setIsUploading(true);
       const firstFile = files[0];
 
-      // Create form data
       const formData = new FormData();
       formData.append("file", firstFile);
 
-      // Upload file through our server endpoint
       const response = await fetch("/api/qrs/upload", {
         method: "POST",
         body: formData,
@@ -126,7 +124,8 @@ export const VerifyEmailForm = ({
         <form
           onSubmit={async (e) => {
             e.preventDefault();
-            const processedQrDataToCreate = await processQrDataForServerAction();
+            const processedQrDataToCreate =
+              await processQrDataForServerAction();
             if (processedQrDataToCreate) {
               executeAsync({
                 email,
@@ -172,7 +171,8 @@ export const VerifyEmailForm = ({
                 </div>
               )}
               onComplete={async () => {
-                const processedQrDataToCreate = await processQrDataForServerAction();
+                const processedQrDataToCreate =
+                  await processQrDataForServerAction();
                 if (processedQrDataToCreate) {
                   executeAsync({
                     email,
@@ -195,8 +195,8 @@ export const VerifyEmailForm = ({
                 isUploading
                   ? "Uploading file..."
                   : isPending
-                  ? "Verifying..."
-                  : "Continue"
+                    ? "Verifying..."
+                    : "Continue"
               }
               type="submit"
               loading={isPending || isRedirecting || isUploading}
