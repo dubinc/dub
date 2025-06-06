@@ -36,11 +36,11 @@ const DefaultDiscount = () => {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="inline-flex items-center gap-2 text-lg font-semibold text-neutral-900">
-              Referral Discount <Badge variant="gray">Default</Badge>
+              Default Referral Discount
             </h2>
             <p className="mt-1 text-sm text-neutral-600">
-              The discount offered to all customers when referred by your
-              partners
+              Discounts offered to customers when referred by all partners in
+              your program
             </p>
           </div>
         </div>
@@ -97,7 +97,8 @@ const AdditionalDiscounts = () => {
               Additional Referral Discounts
             </h2>
             <p className="mt-1 text-sm text-neutral-600">
-              Add additional discounts for your referred customers
+              Custom discounts for specific partners that override the default
+              discount
             </p>
           </div>
           <Button
@@ -130,10 +131,10 @@ const AdditionalDiscounts = () => {
             </div>
             <div className="flex flex-col items-center gap-1 px-4 text-center">
               <p className="text-base font-medium text-neutral-900">
-                Additional Discounts
+                Additional referral discounts
               </p>
               <p className="text-sm text-neutral-600">
-                No additional discounts have been added yet
+                No additional referral discounts have been created yet
               </p>
             </div>
           </div>
