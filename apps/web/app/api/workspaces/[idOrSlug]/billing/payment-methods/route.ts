@@ -2,6 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import {
+  DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
   DIRECT_DEBIT_PAYMENT_TYPES_INFO,
   PAYMENT_METHOD_TYPES,
 } from "@/lib/partners/constants";
@@ -26,14 +27,14 @@ export const GET = withWorkspace(async ({ workspace }) => {
       customer: workspace.stripeId,
     });
 
-    // reorder to put ACH first
-    const ach = paymentMethods.data.find(
-      (method) => method.type === "us_bank_account",
+    // reorder to put direct debit first
+    const directDebit = paymentMethods.data.find((method) =>
+      DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(method.type),
     );
 
     return NextResponse.json([
-      ...(ach ? [ach] : []),
-      ...paymentMethods.data.filter((method) => method.id !== ach?.id),
+      ...(directDebit ? [directDebit] : []),
+      ...paymentMethods.data.filter((method) => method.id !== directDebit?.id),
     ]);
   } catch (error) {
     console.error(error);
