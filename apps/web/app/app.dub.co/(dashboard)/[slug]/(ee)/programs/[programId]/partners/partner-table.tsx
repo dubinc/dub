@@ -3,6 +3,7 @@
 import { deleteProgramInviteAction } from "@/lib/actions/partners/delete-program-invite";
 import { resendProgramInviteAction } from "@/lib/actions/partners/resend-program-invite";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import usePartner from "@/lib/swr/use-partner";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
@@ -56,7 +57,6 @@ import { partnersColumns, useColumnVisibility } from "./use-column-visibility";
 import { usePartnerFilters } from "./use-partner-filters";
 
 export function PartnerTable() {
-  const { programId } = useParams();
   const { id: workspaceId } = useWorkspace();
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
@@ -82,7 +82,6 @@ export function PartnerTable() {
     `/api/partners${getQueryString(
       {
         workspaceId,
-        programId,
         includeExpandedFields: "true",
       },
       { exclude: ["partnerId"] },
@@ -536,33 +535,22 @@ function useCurrentPartner({
   partners?: EnrolledPartnerProps[];
   partnerId: string | null;
 }) {
-  const { id: workspaceId } = useWorkspace();
-  const { programId } = useParams();
-
   let currentPartner = partnerId
     ? partners?.find(({ id }) => id === partnerId)
     : null;
 
-  const { data: currentPartnersFetched, isLoading } = useSWR<
-    EnrolledPartnerProps[]
-  >(
-    partners &&
-      partnerId &&
-      !currentPartner &&
-      `/api/partners?${new URLSearchParams({
-        workspaceId: workspaceId!,
-        programId: programId.toString(),
-        ids: partnerId,
-        includeExpandedFields: "true",
-      })}`,
-    fetcher,
+  const { partner: fetchedPartner, loading: isLoading } = usePartner(
+    {
+      partnerId: partners && partnerId && !currentPartner ? partnerId : null,
+    },
     {
       keepPreviousData: true,
     },
   );
 
-  if (!currentPartner && currentPartnersFetched?.[0]?.id === partnerId)
-    currentPartner = currentPartnersFetched[0];
+  if (!currentPartner && fetchedPartner?.id === partnerId) {
+    currentPartner = fetchedPartner;
+  }
 
   return { currentPartner, isLoading };
 }
