@@ -16,21 +16,20 @@ export async function GET(req: Request) {
 
     const [currentBalance, pendingPayouts] = await Promise.all([
       stripe.balance.retrieve(),
-      prisma.payout.findMany({
+      prisma.payout.aggregate({
         where: {
           status: "processing",
+        },
+        _sum: {
+          amount: true,
         },
       }),
     ]);
 
     let reservedBalance = 50000; // keep at least $500 in the account
 
-    if (pendingPayouts.length) {
-      const totalPendingPayouts = pendingPayouts.reduce(
-        (acc, payout) => acc + payout.amount,
-        0,
-      );
-
+    const totalPendingPayouts = pendingPayouts._sum.amount;
+    if (totalPendingPayouts) {
       // add the pending payouts to the reserved balance (to make sure we have enough balance
       // to pay out partners when chargeSucceeded webhook is triggered)
       reservedBalance += totalPendingPayouts;
@@ -44,6 +43,12 @@ export async function GET(req: Request) {
 
     const balanceToWithdraw =
       currentBalance.available[0].amount - reservedBalance;
+
+    if (balanceToWithdraw <= 10000) {
+      return NextResponse.json({
+        message: "Balance to withdraw is less than $100, skipping...",
+      });
+    }
 
     const createPayout = await stripe.payouts.create({
       amount: balanceToWithdraw,
