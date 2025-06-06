@@ -79,7 +79,6 @@ function WorkspaceLinks() {
 
   return (
     <>
-      {/*<AddEditTagModal />*/}
       <QRBuilderModal />
 
       <div className="flex w-full items-center pt-2">

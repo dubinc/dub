@@ -10,7 +10,12 @@ interface IQRCardType {
 
 export function QrCardType({ className, currentQrTypeInfo }: IQRCardType) {
   return (
-    <div className={cn("flex flex-row items-center gap-1", className)}>
+    <div
+      className={cn(
+        "flex flex-row items-center gap-1 lg:w-[100px] lg:justify-center",
+        className,
+      )}
+    >
       <Icon icon={currentQrTypeInfo!.icon!} className="text-primary text-lg" />
       <Text as="span" size="2" weight="bold" className="text-primary">
         {currentQrTypeInfo!.label!}

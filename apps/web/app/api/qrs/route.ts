@@ -76,7 +76,7 @@ export const POST = withWorkspace(
 
       const createdQr = await createQr(
         body,
-        createdLink.url,
+        createdLink.shortLink,
         createdLink.id,
         createdLink.userId,
         fileId,

@@ -19,6 +19,7 @@ interface IQRContentBuilderProps {
   onHiddenNetworkChange: (checked: boolean) => void;
   validateFields: () => void;
   minimalFlow?: boolean;
+  hideNameField?: boolean;
 }
 
 export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
@@ -27,6 +28,7 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
   onHiddenNetworkChange,
   validateFields,
   minimalFlow = false,
+  hideNameField = false,
 }) => {
   const { isMobile } = useMediaQuery();
 
@@ -37,25 +39,33 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
 
     if (qrType !== EQRType.WIFI) {
       return QR_TYPE_INPUTS_CONFIG[qrType].map((field, index) => (
-        <InputWithLabel
-          id={field.id}
+        <div 
           key={index}
-          minimalFlow={minimalFlow}
-          initFromPlaceholder={field.initFromPlaceholder}
-          tooltip={field.tooltip}
-          {...field}
-        />
+          className={hideNameField && index === 0 ? "hidden" : ""}
+        >
+          <InputWithLabel
+            id={field.id}
+            minimalFlow={minimalFlow}
+            initFromPlaceholder={field.initFromPlaceholder}
+            tooltip={field.tooltip}
+            {...field}
+          />
+        </div>
       ));
     }
 
     return (
       <>
         {QR_TYPE_INPUTS_CONFIG[qrType].map((field, index) => (
-          <InputWithLabel
+          <div 
             key={index}
-            initFromPlaceholder={field.initFromPlaceholder}
-            {...field}
-          />
+            className={hideNameField && index === 0 ? "hidden" : ""}
+          >
+            <InputWithLabel
+              initFromPlaceholder={field.initFromPlaceholder}
+              {...field}
+            />
+          </div>
         ))}
         <Flex
           direction="column"
@@ -70,7 +80,7 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
               </label>
               <TooltipComponent
                 tooltip={
-                  "Most routers today use WPA/WPA2. If you’re not sure, choose this. You can also check on your router label."
+                  "Most routers today use WPA/WPA2. If you're not sure, choose this. You can also check on your router label."
                 }
               />
             </Flex>
@@ -99,7 +109,7 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
             />
             <TooltipComponent
               tooltip={
-                "Enable this if your Wifi is hidden and doesn’t appear when people search for networks."
+                "Enable this if your Wifi is hidden and doesn't appear when people search for networks."
               }
             />
           </Flex>

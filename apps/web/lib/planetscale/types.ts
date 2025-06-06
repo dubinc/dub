@@ -18,6 +18,9 @@ export interface EdgeLinkProps {
   publicStats: number;
   expiredUrl: string | null;
   createdAt: string;
+  userId: string | null;
+  userCreatedAt: string | null;
+  totalUserClicks: number;
 }
 
 export interface EdgeDomainProps {

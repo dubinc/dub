@@ -96,7 +96,7 @@ export default function PlansContent() {
             size="4"
             className="text-neutral"
           >
-            Choose Your Plan
+            Choose your plan
           </Heading>
 
           <div className="border-border-500 hidden h-px w-full border-t lg:block" />
