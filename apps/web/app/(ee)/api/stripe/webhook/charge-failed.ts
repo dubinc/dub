@@ -16,16 +16,16 @@ export async function chargeFailed(event: Stripe.Event) {
     failure_message: failedReason,
   } = charge;
 
+  if (!invoiceId) {
+    console.log("No transfer group found, skipping...");
+    return;
+  }
+
   await log({
     message: `Partner payout failed for invoice ${invoiceId}.`,
     type: "errors",
     mention: true,
   });
-
-  if (!invoiceId) {
-    console.log("No transfer group found, skipping...");
-    return;
-  }
 
   // Mark the invoice as failed
   const invoice = await prisma.invoice.update({

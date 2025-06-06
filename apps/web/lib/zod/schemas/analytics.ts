@@ -66,7 +66,7 @@ export const analyticsPathParamsSchema = z.object({
   endpoint: oldAnalyticsEndpoints.optional(),
 });
 
-// Query schema for /api/analytics endpoint
+// Query schema for GET /analytics and GET /events endpoints
 export const analyticsQuerySchema = z
   .object({
     event: analyticsEvents,
@@ -75,16 +75,23 @@ export const analyticsQuerySchema = z
       .string()
       .optional()
       .describe("The domain to filter analytics for."),
-    key: z.string().optional().describe("The short link slug."),
+    key: z
+      .string()
+      .optional()
+      .describe(
+        "The slug of the short link to retrieve analytics for. Must be used along with the corresponding `domain` of the short link to fetch analytics for a specific short link.",
+      ),
     linkId: z
       .string()
       .optional()
-      .describe("The unique ID of the short link on Dub."),
+      .describe(
+        "The unique ID of the short link on Dub to retrieve analytics for.",
+      ),
     externalId: z
       .string()
       .optional()
       .describe(
-        "This is the ID of the link in the your database. Must be prefixed with 'ext_' when passed as a query parameter.",
+        "The ID of the link in the your database. Must be prefixed with 'ext_' when passed as a query parameter.",
       ),
     tenantId: z
       .string()
