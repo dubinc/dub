@@ -182,9 +182,18 @@ export async function bulkCreateLinks({
         );
       }
 
-      createdLinksData.forEach((link, idx) => {
-        const originalLink = links[idx];
-        if (!originalLink) return;
+      createdLinksData.forEach((link) => {
+        const originalLinkIndex = shortLinkToIndexMap.get(link.shortLink);
+
+        if (originalLinkIndex === undefined) {
+          return;
+        }
+
+        const originalLink = links[originalLinkIndex];
+
+        if (!originalLink) {
+          return;
+        }
 
         const { tagId, tagIds, tagNames } = originalLink;
         const combinedTagIds = combineTagIds({ tagId, tagIds });
@@ -224,9 +233,18 @@ export async function bulkCreateLinks({
     if (hasWebhooks) {
       const linkWebhooksToCreate: { linkId: string; webhookId: string }[] = [];
 
-      createdLinksData.forEach((link, idx) => {
-        const originalLink = links[idx];
-        if (!originalLink?.webhookIds?.length) return;
+      createdLinksData.forEach((link) => {
+        const originalLinkIndex = shortLinkToIndexMap.get(link.shortLink);
+
+        if (originalLinkIndex === undefined) {
+          return;
+        }
+
+        const originalLink = links[originalLinkIndex];
+
+        if (!originalLink?.webhookIds?.length) {
+          return;
+        }
 
         originalLink.webhookIds.forEach((webhookId) => {
           linkWebhooksToCreate.push({
