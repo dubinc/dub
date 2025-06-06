@@ -75,17 +75,18 @@ export default function PartnerPayoutFailed({
               and will need to be confirmed again.
             </Text>
 
-            {payout.failureFee && payout.cardLast4 && (
+            {payout.failureFee && (
               <Text className="text-sm leading-6 text-neutral-600">
                 To cover the cost of the failed payout, we've charged a{" "}
                 <span className="font-semibold text-neutral-800">
                   ${payout.failureFee / 100} payment failure fee
-                </span>{" "}
-                to your card ending in{" "}
-                <span className="font-semibold text-purple-600">
-                  {payout.cardLast4}
                 </span>
-                .
+                {payout.cardLast4 &&
+                  ` to your card ending in ${(
+                    <span className="font-semibold text-purple-600">
+                      {payout.cardLast4}
+                    </span>
+                  )}.`}
               </Text>
             )}
 

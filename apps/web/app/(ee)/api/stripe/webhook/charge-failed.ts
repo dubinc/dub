@@ -77,37 +77,50 @@ export async function chargeFailed(event: Stripe.Event) {
     return;
   }
 
-  const paymentMethods = await stripe.paymentMethods.list({
-    customer: workspace.stripeId,
-    type: "card",
-  });
-
-  if (paymentMethods.data.length === 0) {
-    console.log("No valid payment methods found for workspace, skipping...");
-    return;
-  }
-
-  const paymentMethod = paymentMethods.data[0];
-  const shouldChargeFailureFee =
-    charge.payment_method_details?.type === "us_bank_account";
+  let cardLast4: string | undefined;
+  let chargedFailureFee = false;
 
   // Charge failure fee for ACH payment failures
-  if (shouldChargeFailureFee) {
-    await stripe.paymentIntents.create({
-      amount: PAYOUT_FAILURE_FEE_CENTS,
-      customer: workspace.stripeId,
-      payment_method_types: ["card"],
-      payment_method: paymentMethod.id,
-      currency: "usd",
-      confirmation_method: "automatic",
-      confirm: true,
-      statement_descriptor: "Dub Partners",
-      description: `Dub Partners payout failure fee for invoice ${invoice.id}`,
-    });
+  if (charge.payment_method_details?.type === "us_bank_account") {
+    const [cards, links] = await Promise.all([
+      stripe.paymentMethods.list({
+        customer: workspace.stripeId,
+        type: "card",
+      }),
+      stripe.paymentMethods.list({
+        customer: workspace.stripeId,
+        type: "link",
+      }),
+    ]);
 
-    console.log(
-      `Charged a failure fee of $${PAYOUT_FAILURE_FEE_CENTS / 100} to ${workspace.slug}.`,
-    );
+    if (cards.data.length === 0 && links.data.length === 0) {
+      console.log("No valid payment methods found for workspace, skipping...");
+      return;
+    }
+
+    const paymentMethod = cards.data[0] || links.data[0];
+
+    if (paymentMethod) {
+      cardLast4 = paymentMethod.card?.last4;
+
+      await stripe.paymentIntents.create({
+        amount: PAYOUT_FAILURE_FEE_CENTS,
+        customer: workspace.stripeId,
+        payment_method_types: ["card", "link"],
+        payment_method: paymentMethod.id,
+        currency: "usd",
+        confirmation_method: "automatic",
+        confirm: true,
+        statement_descriptor: "Dub Partners",
+        description: `Dub Partners payout failure fee for invoice ${invoice.id}`,
+      });
+
+      chargedFailureFee = true;
+
+      console.log(
+        `Charged a failure fee of $${PAYOUT_FAILURE_FEE_CENTS / 100} to ${workspace.slug}.`,
+      );
+    }
   }
 
   waitUntil(
@@ -123,9 +136,9 @@ export async function chargeFailed(event: Stripe.Event) {
         },
         payout: {
           amount,
-          ...(shouldChargeFailureFee && {
+          ...(chargedFailureFee && {
             failureFee: PAYOUT_FAILURE_FEE_CENTS,
-            cardLast4: paymentMethod.card?.last4 || "",
+            cardLast4,
           }),
         },
       }));
