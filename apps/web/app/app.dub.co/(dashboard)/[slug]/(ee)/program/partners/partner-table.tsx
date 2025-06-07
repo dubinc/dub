@@ -350,7 +350,7 @@ function RowMenuButton({
   workspaceId: string;
 }) {
   const router = useRouter();
-  const { slug, programId } = useParams();
+  const { slug } = useParams();
   const [isOpen, setIsOpen] = useState(false);
 
   const { ArchivePartnerModal, setShowArchivePartnerModal } =
@@ -452,7 +452,7 @@ function RowMenuButton({
                     label="View commissions"
                     onSelect={() => {
                       router.push(
-                        `/${slug}/programs/${programId}/commissions?partnerId=${row.original.id}&interval=all`,
+                        `/${slug}/program/commissions?partnerId=${row.original.id}&interval=all`,
                       );
                       setIsOpen(false);
                     }}

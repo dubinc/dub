@@ -37,7 +37,7 @@ type PayoutDetailsSheetProps = {
 };
 
 function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
-  const { id: workspaceId, slug, defaultProgramId } = useWorkspace();
+  const { id: workspaceId, slug } = useWorkspace();
   const { queryParams } = useRouterStuff();
 
   const {
@@ -60,7 +60,7 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
     return {
       Partner: (
         <a
-          href={`/${slug}/programs/${defaultProgramId}/partners?partnerId=${payout.partner.id}`}
+          href={`/${slug}/program/partners?partnerId=${payout.partner.id}`}
           target="_blank"
           className="group flex items-center gap-0.5"
         >
@@ -183,7 +183,7 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
 
   const ViewAllPayoutsLink = () => (
     <Link
-      href={`/${slug}/programs/${defaultProgramId}/commissions?payoutId=${payout.id}&interval=all`}
+      href={`/${slug}/program/commissions?payoutId=${payout.id}&interval=all`}
       target="_blank"
       className={cn(
         buttonVariants({ variant: "secondary" }),

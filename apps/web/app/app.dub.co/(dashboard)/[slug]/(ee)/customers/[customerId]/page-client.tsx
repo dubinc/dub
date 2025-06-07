@@ -238,7 +238,7 @@ const PartnerEarningsTable = memo(
             ? undefined
             : totalCommissions?.all?.count ?? commissions?.length
         }
-        viewAllHref={`/${slug}/programs/${programId}/commissions?customerId=${customerId}`}
+        viewAllHref={`/${slug}/program/commissions?customerId=${customerId}`}
         isLoading={isComissionsLoading}
       />
     );

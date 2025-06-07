@@ -1,17 +1,10 @@
 "use client";
 
 import { TabSelect } from "@dub/ui";
-import { useRouter, useSelectedLayoutSegment } from "next/navigation";
+import { useParams, useSelectedLayoutSegment } from "next/navigation";
 
-export function ProgramSettingsHeader({
-  slug,
-  programId,
-}: {
-  slug: string;
-  programId: string;
-}) {
-  const router = useRouter();
-
+export function ProgramSettingsHeader() {
+  const { slug } = useParams();
   const selectedLayoutSegment = useSelectedLayoutSegment();
   const page = selectedLayoutSegment === null ? "" : selectedLayoutSegment;
 
@@ -24,22 +17,22 @@ export function ProgramSettingsHeader({
             {
               id: "rewards",
               label: "Rewards",
-              href: `/${slug}/programs/${programId}/settings/rewards`,
+              href: `/${slug}/program/settings/rewards`,
             },
             {
               id: "discounts",
               label: "Discounts",
-              href: `/${slug}/programs/${programId}/settings/discounts`,
+              href: `/${slug}/program/settings/discounts`,
             },
             {
               id: "links",
               label: "Links",
-              href: `/${slug}/programs/${programId}/settings/links`,
+              href: `/${slug}/program/settings/links`,
             },
             {
               id: "communication",
               label: "Communication",
-              href: `/${slug}/programs/${programId}/settings/communication`,
+              href: `/${slug}/program/settings/communication`,
             },
           ]}
           selected={page}

@@ -299,7 +299,7 @@ function AmountRowItem({
   payoutsEnabled: boolean;
   minPayoutAmount: number;
 }) {
-  const { slug, programId } = useParams();
+  const { slug } = useParams();
   const display = currencyFormatter(amount / 100, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
@@ -315,7 +315,7 @@ function AmountRowItem({
                 minPayoutAmount / 100,
               )}. This payout will be accrued and processed during the next payout period.`}
               cta="Update minimum payout amount"
-              href={`/${slug}/programs/${programId}/settings/rewards`}
+              href={`/${slug}/program/settings/rewards`}
               target="_blank"
             />
           }

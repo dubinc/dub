@@ -8,16 +8,18 @@ import { useParams } from "next/navigation";
 import useSWR from "swr";
 
 export function PendingPayouts() {
-  const { slug, programId } = useParams();
-  const { id: workspaceId } = useWorkspace();
+  const { slug } = useParams();
+  const { id: workspaceId, defaultProgramId } = useWorkspace();
 
   const { data: payouts, error } = useSWR<PayoutResponse[]>(
-    `/api/programs/${programId}/payouts?${new URLSearchParams({
-      workspaceId: workspaceId!,
-      status: "pending",
-      sortBy: "amount",
-      pageSize: "5",
-    }).toString()}`,
+    workspaceId &&
+      defaultProgramId &&
+      `/api/programs/${defaultProgramId}/payouts?${new URLSearchParams({
+        workspaceId: workspaceId!,
+        status: "pending",
+        sortBy: "amount",
+        pageSize: "5",
+      }).toString()}`,
     fetcher,
   );
 
@@ -31,7 +33,7 @@ export function PendingPayouts() {
         </h2>
 
         <Link
-          href={`/${slug}/programs/${programId}/payouts?status=pending&sortBy=amount`}
+          href={`/${slug}/program/payouts?status=pending&sortBy=amount`}
           className={cn(
             buttonVariants({ variant: "secondary" }),
             "flex h-7 items-center rounded-lg border px-2 text-sm",

@@ -23,12 +23,12 @@ export function ProgramBrandingTabs({
         {
           value: "elements",
           label: "Brand elements",
-          href: `/${slug}/programs/${programId}/branding`,
+          href: `/${slug}/program/branding`,
         },
         {
           value: "resources",
           label: "Brand assets",
-          href: `/${slug}/programs/${programId}/branding/resources`,
+          href: `/${slug}/program/branding/resources`,
         },
       ]}
       selected={page}

@@ -13,7 +13,7 @@ interface PartnerCount {
 }
 
 export function PartnerStats() {
-  const { slug, programId } = useParams();
+  const { slug } = useParams();
   const { queryParams } = useRouterStuff();
 
   const { partnersCount, error } = usePartnersCount<PartnerCount[]>({
@@ -37,7 +37,7 @@ export function PartnerStats() {
     <div className="xs:grid-cols-4 xs:divide-x xs:divide-y-0 grid divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200">
       <ProgramStatsFilter
         label="All"
-        href={`/${slug}/programs/${programId}/partners`}
+        href={`/${slug}/program/partners`}
         count={all}
         icon={Users}
         iconClassName="text-neutral-600 bg-neutral-100"

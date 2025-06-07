@@ -14,7 +14,7 @@ import { TopPartners } from "./top-partners";
 
 export default function ProgramOverviewPageClient() {
   const { program } = useProgram();
-  const { slug, programId } = useParams();
+  const { slug } = useParams();
   const { getQueryString } = useRouterStuff();
 
   return (
@@ -29,7 +29,7 @@ export default function ProgramOverviewPageClient() {
                 Program
               </h3>
               <Link
-                href={`/${slug}/programs/${programId}/settings`}
+                href={`/${slug}/program/settings`}
                 className={cn(
                   buttonVariants({ variant: "secondary" }),
                   "flex h-7 items-center rounded-md border px-2 text-sm",
@@ -73,7 +73,7 @@ export default function ProgramOverviewPageClient() {
           </h2>
 
           <Link
-            href={`/${slug}/programs/${programId}/commissions${getQueryString()}`}
+            href={`/${slug}/program/commissions${getQueryString()}`}
             className={cn(
               buttonVariants({ variant: "secondary" }),
               "flex h-8 items-center rounded-lg border px-2 text-sm",

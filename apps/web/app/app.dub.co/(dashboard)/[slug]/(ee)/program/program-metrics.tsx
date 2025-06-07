@@ -20,7 +20,7 @@ export function ProgramMetrics() {
       <Stat
         icon={Check2}
         label="Sales"
-        tab="sales"
+        tab="commissions" // TODO update to program analytics sales tab
         value={metrics?.commissionsCount}
         error={error}
       />
@@ -28,7 +28,7 @@ export function ProgramMetrics() {
         icon={CircleDollar}
         label="Commissions"
         value={metrics?.commissions}
-        tab="sales"
+        tab="commissions"
         error={error}
         isCurrency
       />
@@ -59,12 +59,12 @@ function Stat({
   error: boolean;
   isCurrency?: boolean;
 }) {
-  const { slug, programId } = useParams();
+  const { slug } = useParams();
   const isLoading = value === undefined && !error;
 
   return (
     <Link
-      href={`/${slug}/programs/${programId}/${tab}`}
+      href={`/${slug}/program/${tab}`}
       className="flex flex-row items-center gap-x-4 gap-y-5 p-3 transition-colors hover:bg-neutral-50 md:flex-col md:items-start lg:p-5"
     >
       <div className="flex size-10 items-center justify-center rounded-md bg-neutral-100">

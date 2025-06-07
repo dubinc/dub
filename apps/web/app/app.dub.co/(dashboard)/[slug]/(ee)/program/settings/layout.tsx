@@ -10,10 +10,7 @@ export default function ProgramSettingsLayout({
   return (
     <PageContent title="Program Configuration">
       <MaxWidthWrapper>
-        <ProgramSettingsHeader
-          slug={params.slug}
-          programId={params.programId}
-        />
+        <ProgramSettingsHeader />
         <div className="mb-10 mt-8 grid grid-cols-1 gap-8">{children}</div>
       </MaxWidthWrapper>
     </PageContent>

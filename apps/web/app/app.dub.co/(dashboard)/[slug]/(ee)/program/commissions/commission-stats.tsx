@@ -8,7 +8,7 @@ import { Users } from "@dub/ui/icons";
 import { useParams } from "next/navigation";
 
 export function CommissionStats() {
-  const { slug, programId } = useParams();
+  const { slug } = useParams();
   const { queryParams } = useRouterStuff();
   const { commissionsCount, error } = useCommissionsCount({
     exclude: ["status", "page"],
@@ -18,7 +18,7 @@ export function CommissionStats() {
     <div className="xs:grid-cols-4 xs:divide-x xs:divide-y-0 grid divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200">
       <ProgramStatsFilter
         label="All"
-        href={`/${slug}/programs/${programId}/commissions`}
+        href={`/${slug}/program/commissions`}
         count={commissionsCount?.all.count}
         amount={commissionsCount?.all.earnings}
         icon={Users}
