@@ -17,7 +17,7 @@ export default function UserId() {
           <div className="flex flex-col space-y-3">
             <h2 className="text-xl font-medium">Your User ID</h2>
             <p className="text-sm text-neutral-500">
-              This is your unique account identifier on Dub.
+              This is your unique account identifier on GetQR.com.
             </p>
           </div>
           {session?.user?.id ? (
