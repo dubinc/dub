@@ -24,7 +24,6 @@ import {
 } from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
 import Link from "next/link";
-import { useParams } from "next/navigation";
 import { Dispatch, Fragment, SetStateAction, useMemo, useState } from "react";
 import useSWR from "swr";
 import { CommissionTypeIcon } from "./comission-type-icon";
@@ -39,7 +38,6 @@ type PayoutDetailsSheetProps = {
 
 function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
   const { id: workspaceId, slug } = useWorkspace();
-  const { programId } = useParams() as { programId: string };
   const { queryParams } = useRouterStuff();
 
   const {
@@ -62,7 +60,7 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
     return {
       Partner: (
         <a
-          href={`/${slug}/programs/${programId}/partners?partnerId=${payout.partner.id}`}
+          href={`/${slug}/program/partners?partnerId=${payout.partner.id}`}
           target="_blank"
           className="group flex items-center gap-0.5"
         >
@@ -185,7 +183,7 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
 
   const ViewAllPayoutsLink = () => (
     <Link
-      href={`/${slug}/programs/${programId}/commissions?payoutId=${payout.id}&interval=all`}
+      href={`/${slug}/program/commissions?payoutId=${payout.id}&interval=all`}
       target="_blank"
       className={cn(
         buttonVariants({ variant: "secondary" }),

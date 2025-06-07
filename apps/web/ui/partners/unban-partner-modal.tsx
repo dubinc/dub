@@ -5,7 +5,6 @@ import { PartnerProps } from "@/lib/types";
 import { Button, Modal } from "@dub/ui";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { useParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -30,7 +29,6 @@ function UnbanPartnerModal({
   partner: Pick<PartnerProps, "id" | "name" | "email" | "image">;
 }) {
   const { id: workspaceId } = useWorkspace();
-  const { programId } = useParams<{ programId: string }>();
 
   const {
     register,
@@ -57,7 +55,7 @@ function UnbanPartnerModal({
   });
 
   const onSubmit = useCallback(async () => {
-    if (!workspaceId || !programId || !partner.id) {
+    if (!workspaceId || !partner.id) {
       return;
     }
 
@@ -65,16 +63,13 @@ function UnbanPartnerModal({
       workspaceId,
       partnerId: partner.id,
     });
-  }, [executeAsync, partner.id, programId, workspaceId]);
+  }, [executeAsync, partner.id, workspaceId]);
 
   const isDisabled = useMemo(() => {
     return (
-      !workspaceId ||
-      !programId ||
-      !partner.id ||
-      confirm !== `confirm unban ${partner.name}`
+      !workspaceId || !partner.id || confirm !== `confirm unban ${partner.name}`
     );
-  }, [workspaceId, programId, partner.id, confirm]);
+  }, [workspaceId, partner.id, confirm]);
 
   return (
     <Modal

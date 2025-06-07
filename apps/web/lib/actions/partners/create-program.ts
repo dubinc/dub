@@ -181,7 +181,7 @@ export const createProgram = async ({
     ]),
   );
 
-  redirect(`/${workspace.slug}/programs/${program.id}?onboarded-program=true`);
+  redirect(`/${workspace.slug}/program?onboarded-program=true`);
 };
 
 // Invite a partner to the program

@@ -5,7 +5,6 @@ import { EnrolledPartnerProps } from "@/lib/types";
 import { Button, Modal } from "@dub/ui";
 import { capitalize, OG_AVATAR_URL } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { useParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -24,8 +23,7 @@ function ArchivePartnerModal({
   setShowArchivePartnerModal: Dispatch<SetStateAction<boolean>>;
   partner: EnrolledPartnerProps;
 }) {
-  const { id: workspaceId } = useWorkspace();
-  const { programId } = useParams<{ programId: string }>();
+  const { id: workspaceId, defaultProgramId } = useWorkspace();
 
   const actionText = partner.status === "archived" ? "unarchive" : "archive";
   const actionDescription =
@@ -45,7 +43,7 @@ function ArchivePartnerModal({
   });
 
   const handleArchive = useCallback(async () => {
-    if (!workspaceId || !programId || !partner.id) {
+    if (!workspaceId || !partner.id) {
       return;
     }
 
@@ -53,7 +51,7 @@ function ArchivePartnerModal({
       workspaceId,
       partnerId: partner.id,
     });
-  }, [executeAsync, partner.id, programId, workspaceId]);
+  }, [executeAsync, partner.id, workspaceId]);
 
   return (
     <Modal
