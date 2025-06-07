@@ -23,7 +23,10 @@ export const createPartnerCommission = async ({
 }: {
   // we optionally let the caller pass in a reward to avoid a db call
   // (e.g. in aggregate-clicks route)
-  reward?: RewardProps | null;
+  reward?: Pick<
+    RewardProps,
+    "type" | "amount" | "maxDuration" | "maxAmount"
+  > | null;
   event: EventType;
   partnerId: string;
   programId: string;
@@ -66,6 +69,17 @@ export const createPartnerCommission = async ({
     });
 
     if (firstCommission) {
+      // use reward details from the first sale to lock in original terms.
+      // ensures historical consistency if the reward configuration has changed since the commission was created
+      if (firstCommission.rewardType) {
+        reward = {
+          ...reward,
+          type: firstCommission.rewardType!,
+          amount: firstCommission.rewardAmount!,
+          maxDuration: firstCommission.rewardMaxDuration,
+        };
+      }
+
       // for reward types with a max duration, we need to check if the first commission is within the max duration
       // if its beyond the max duration, we should not create a new commission
       if (typeof reward.maxDuration === "number") {
@@ -162,6 +176,9 @@ export const createPartnerCommission = async ({
         earnings,
         status,
         createdAt,
+        rewardType: reward.type,
+        rewardAmount: reward.amount,
+        rewardMaxDuration: reward.maxDuration,
       },
     });
 
