@@ -3,9 +3,11 @@
 import { deleteProgramInviteAction } from "@/lib/actions/partners/delete-program-invite";
 import { resendProgramInviteAction } from "@/lib/actions/partners/resend-program-invite";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import usePartner from "@/lib/swr/use-partner";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
+import { useArchivePartnerModal } from "@/ui/partners/archive-partner-modal";
 import { useBanPartnerModal } from "@/ui/partners/ban-partner-modal";
 import { PartnerApplicationSheet } from "@/ui/partners/partner-application-sheet";
 import { PartnerDetailsSheet } from "@/ui/partners/partner-details-sheet";
@@ -29,6 +31,7 @@ import {
   useTable,
 } from "@dub/ui";
 import {
+  BoxArchive,
   Dots,
   EnvelopeArrowRight,
   LoadingSpinner,
@@ -56,7 +59,6 @@ import { partnersColumns, useColumnVisibility } from "./use-column-visibility";
 import { usePartnerFilters } from "./use-partner-filters";
 
 export function PartnerTable() {
-  const { programId } = useParams();
   const { id: workspaceId } = useWorkspace();
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
@@ -82,7 +84,6 @@ export function PartnerTable() {
     `/api/partners${getQueryString(
       {
         workspaceId,
-        programId,
         includeExpandedFields: "true",
       },
       { exclude: ["partnerId"] },
@@ -352,6 +353,11 @@ function RowMenuButton({
   const { slug, programId } = useParams();
   const [isOpen, setIsOpen] = useState(false);
 
+  const { ArchivePartnerModal, setShowArchivePartnerModal } =
+    useArchivePartnerModal({
+      partner: row.original,
+    });
+
   const { BanPartnerModal, setShowBanPartnerModal } = useBanPartnerModal({
     partner: row.original,
   });
@@ -388,6 +394,7 @@ function RowMenuButton({
 
   return (
     <>
+      <ArchivePartnerModal />
       <BanPartnerModal />
       <UnbanPartnerModal />
       <Popover
@@ -395,7 +402,7 @@ function RowMenuButton({
         setOpenPopover={setIsOpen}
         content={
           <Command tabIndex={0} loop className="focus:outline-none">
-            <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[130px]">
+            <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
               {row.original.status === "invited" ? (
                 <>
                   <MenuItem
@@ -442,11 +449,24 @@ function RowMenuButton({
                 <>
                   <MenuItem
                     icon={MoneyBill2}
-                    label="View sales"
+                    label="View commissions"
                     onSelect={() => {
                       router.push(
-                        `/${slug}/programs/${programId}/sales?partnerId=${row.original.id}&interval=all`,
+                        `/${slug}/programs/${programId}/commissions?partnerId=${row.original.id}&interval=all`,
                       );
+                      setIsOpen(false);
+                    }}
+                  />
+
+                  <MenuItem
+                    icon={BoxArchive}
+                    label={
+                      row.original.status === "archived"
+                        ? "Unarchive partner"
+                        : "Archive partner"
+                    }
+                    onSelect={() => {
+                      setShowArchivePartnerModal(true);
                       setIsOpen(false);
                     }}
                   />
@@ -536,33 +556,22 @@ function useCurrentPartner({
   partners?: EnrolledPartnerProps[];
   partnerId: string | null;
 }) {
-  const { id: workspaceId } = useWorkspace();
-  const { programId } = useParams();
-
   let currentPartner = partnerId
     ? partners?.find(({ id }) => id === partnerId)
     : null;
 
-  const { data: currentPartnersFetched, isLoading } = useSWR<
-    EnrolledPartnerProps[]
-  >(
-    partners &&
-      partnerId &&
-      !currentPartner &&
-      `/api/partners?${new URLSearchParams({
-        workspaceId: workspaceId!,
-        programId: programId.toString(),
-        ids: partnerId,
-        includeExpandedFields: "true",
-      })}`,
-    fetcher,
+  const { partner: fetchedPartner, loading: isLoading } = usePartner(
+    {
+      partnerId: partners && partnerId && !currentPartner ? partnerId : null,
+    },
     {
       keepPreviousData: true,
     },
   );
 
-  if (!currentPartner && currentPartnersFetched?.[0]?.id === partnerId)
-    currentPartner = currentPartnersFetched[0];
+  if (!currentPartner && fetchedPartner?.id === partnerId) {
+    currentPartner = fetchedPartner;
+  }
 
   return { currentPartner, isLoading };
 }

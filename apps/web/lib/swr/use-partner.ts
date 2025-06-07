@@ -6,20 +6,17 @@ import useWorkspace from "./use-workspace";
 export default function usePartner(
   {
     partnerId,
-    programId,
   }: {
     partnerId: string | null;
-    programId: string | null;
   },
   swrOptions: SWRConfiguration = {},
 ) {
   const { id: workspaceId } = useWorkspace();
 
   const { data, isLoading, error } = useSWR<EnrolledPartnerProps>(
-    partnerId && programId && workspaceId
+    partnerId && workspaceId
       ? `/api/partners/${partnerId}?${new URLSearchParams({
           workspaceId,
-          programId,
         } as Record<string, any>).toString()}`
       : undefined,
     fetcher,

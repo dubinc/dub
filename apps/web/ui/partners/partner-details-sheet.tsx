@@ -45,7 +45,9 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
     useCreatePayoutSheet({ nested: true, partnerId: partner.id });
 
   const showPartnerDetails =
-    partner.status === "approved" || partner.status === "banned";
+    partner.status === "approved" ||
+    partner.status === "banned" ||
+    partner.status === "archived";
 
   return (
     <div className="flex h-full flex-col">
