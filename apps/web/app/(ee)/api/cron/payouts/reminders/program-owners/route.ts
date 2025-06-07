@@ -165,7 +165,6 @@ export async function GET(req: Request) {
             email: user.email,
           },
           program: {
-            id: program.id,
             name: program.name,
           },
           payout: {

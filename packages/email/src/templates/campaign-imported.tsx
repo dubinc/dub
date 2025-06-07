@@ -21,7 +21,6 @@ export function CampaignImported({
     slug: "acme",
   },
   program = {
-    id: "prog_CYCu7IMAapjkRpTnr8F1azjN",
     name: "Cal",
   },
 }: {
@@ -31,7 +30,6 @@ export function CampaignImported({
     slug: string;
   };
   program: {
-    id: string;
     name: string;
   };
 }) {
@@ -51,7 +49,7 @@ export function CampaignImported({
             <Text className="text-sm leading-6 text-black">
               We have successfully imported your {provider} campaign{" "}
               <Link
-                href={`https://app.dub.co/${workspace.slug}/programs/${program.id}/partners`}
+                href={`https://app.dub.co/${workspace.slug}/program/partners`}
                 className="font-medium text-blue-600 no-underline"
               >
                 {program.name}↗
