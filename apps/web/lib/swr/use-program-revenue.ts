@@ -1,5 +1,4 @@
 import { fetcher } from "@dub/utils";
-import { useParams } from "next/navigation";
 import useSWR from "swr";
 import { DUB_PARTNERS_ANALYTICS_INTERVAL } from "../analytics/constants";
 import { PartnerAnalyticsFilters } from "../analytics/types";
@@ -13,8 +12,7 @@ interface Revenue {
 export default function useProgramRevenue(
   params?: PartnerAnalyticsFilters & { enabled: boolean },
 ) {
-  const { programId } = useParams();
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, defaultProgramId } = useWorkspace();
 
   const searchParams = new URLSearchParams({
     event: params?.event ?? "composite",
@@ -30,8 +28,8 @@ export default function useProgramRevenue(
   });
 
   const { data, error } = useSWR<Revenue[]>(
-    params?.enabled
-      ? `/api/programs/${programId}/revenue?${searchParams.toString()}`
+    params?.enabled && workspaceId && defaultProgramId
+      ? `/api/programs/${defaultProgramId}/revenue?${searchParams.toString()}`
       : null,
     fetcher,
     {
@@ -42,6 +40,6 @@ export default function useProgramRevenue(
   return {
     data,
     error,
-    loading: programId && !data && !error ? true : false,
+    loading: !data && !error ? true : false,
   };
 }

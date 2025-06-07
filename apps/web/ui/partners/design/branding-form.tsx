@@ -19,7 +19,6 @@ import { cn } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
@@ -39,8 +38,7 @@ export function useBrandingFormContext() {
 }
 
 export function BrandingForm() {
-  const { programId } = useParams();
-
+  const { defaultProgramId } = useWorkspace();
   const { program, mutate, loading } = useProgram<ProgramWithLanderDataProps>(
     {
       query: { includeLanderData: true },
@@ -51,7 +49,7 @@ export function BrandingForm() {
   );
 
   const [draft, setDraft] = useLocalStorage<BrandingFormData | null>(
-    `program-lander-${programId}`,
+    `program-lander-${defaultProgramId}`,
     null,
   );
 
