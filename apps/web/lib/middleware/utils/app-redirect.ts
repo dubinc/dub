@@ -22,24 +22,33 @@ export const appRedirect = (path: string) => {
     return path.replace(upgradeRegex, "/$1/settings/billing/upgrade");
 
   // Redirect "/[slug]/programs/prog_[id]/:path*" to "/[slug]/program/:path*"
-  const programRegex = /^\/([^\/]+)\/programs\/prog_[^\/]+\/(.*)$/;
-  if (programRegex.test(path))
-    return path.replace(programRegex, "/$1/program/$2");
+  const programPagesRegex = /^\/([^\/]+)\/programs\/prog_[^\/]+\/(.*)$/;
+  if (programPagesRegex.test(path))
+    return path.replace(programPagesRegex, "/$1/program/$2");
 
-  // Redirect "program/settings" to "program/settings/rewards" (first tab)
+  // Redirect "/[slug]/programs/:path*" to "/[slug]/program/:path*" (including root path)
+  const programRootRegex = /^\/([^\/]+)\/programs(?:\/(.*))?$/;
+  if (programRootRegex.test(path))
+    return path.replace(
+      programRootRegex,
+      (_match, slug, subPath) =>
+        `/${slug}/program${subPath ? `/${subPath}` : ""}`,
+    );
+
+  // Redirect "/[slug]/program/settings" to "/[slug]/program/settings/rewards" (first tab)
   const programSettingsRegex = /\/program\/settings$/;
   if (programSettingsRegex.test(path))
     return path.replace(programSettingsRegex, "/program/settings/rewards");
 
-  // Redirect "program/settings/branding" to "program/branding"
+  // Redirect "/[slug]/program/settings/branding" to "/[slug]/program/branding"
   const programSettingsBrandingRegex = /\/program\/settings\/branding$/;
   if (programSettingsBrandingRegex.test(path))
     return path.replace(programSettingsBrandingRegex, "/program/branding");
 
   // Redirect "/[slug]/program/sales" to "/[slug]/program/commissions"
-  const salesRegex = /^\/([^\/]+)\/program\/sales$/;
-  if (salesRegex.test(path))
-    return path.replace(salesRegex, "/$1/program/commissions");
+  const programSalesRegex = /^\/([^\/]+)\/program\/sales$/;
+  if (programSalesRegex.test(path))
+    return path.replace(programSalesRegex, "/$1/program/commissions");
 
   return null;
 };
