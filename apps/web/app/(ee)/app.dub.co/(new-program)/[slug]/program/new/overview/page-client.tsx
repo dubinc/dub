@@ -83,7 +83,7 @@ export function PageClient() {
     {
       title: "Reward",
       content: reward ? <ProgramRewardDescription reward={reward} /> : null,
-      href: `/${workspaceSlug}/programs/new/rewards`,
+      href: `/${workspaceSlug}/program/new/rewards`,
     },
     {
       title: "Referral link type",
@@ -91,12 +91,12 @@ export function PageClient() {
         domain: data.domain,
         url: data.url,
       }).find(({ id }) => id === data.linkStructure)?.example,
-      href: `/${workspaceSlug}/programs/new`,
+      href: `/${workspaceSlug}/program/new`,
     },
     {
       title: "Destination URL",
       content: data.url,
-      href: `/${workspaceSlug}/programs/new`,
+      href: `/${workspaceSlug}/program/new`,
     },
   ] as const;
 

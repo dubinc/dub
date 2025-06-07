@@ -56,7 +56,7 @@ export function Form() {
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
-      router.push(`/${workspaceSlug}/programs/new/rewards`);
+      router.push(`/${workspaceSlug}/program/new/rewards`);
       mutate();
     },
     onError: ({ error }) => {

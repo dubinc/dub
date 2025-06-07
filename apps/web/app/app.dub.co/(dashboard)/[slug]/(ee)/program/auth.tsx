@@ -37,7 +37,7 @@ export default function ProgramAuth({ children }: { children: ReactNode }) {
   if (!defaultProgramId) {
     refreshWorkspace().then(() => {
       if (partnersEnabled) {
-        router.push(`/${slug}/programs/new`);
+        router.push(`/${slug}/program/new`);
       } else {
         router.push(`/${slug}`);
       }
