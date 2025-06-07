@@ -33,9 +33,7 @@ export function ImportExportButtons() {
               <ImportOption
                 onClick={() => {
                   setOpenPopover(false);
-                  router.push(
-                    `/${slug}/programs/${program?.id}/partners?import=rewardful`,
-                  );
+                  router.push(`/${slug}/program/partners?import=rewardful`);
                 }}
               >
                 <IconMenu

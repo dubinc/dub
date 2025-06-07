@@ -190,7 +190,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                 </div>
 
                 <a
-                  href={`/${slug}/programs/${program?.id}/settings/links`}
+                  href={`/${slug}/program/settings/links`}
                   target="_blank"
                   className="text-sm text-neutral-500 underline-offset-2 hover:underline"
                 >
