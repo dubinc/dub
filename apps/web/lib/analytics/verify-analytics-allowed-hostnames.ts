@@ -14,10 +14,36 @@ export const verifyAnalyticsAllowedHostnames = ({
   const sourceUrl = source ? new URL(source) : null;
   const hostname = sourceUrl?.hostname;
 
-  console.log("allowedHostnames", allowedHostnames);
-  console.log("hostname", hostname);
+  if (!hostname) {
+    console.log("No hostname found in request. Denying request ❌", {
+      allowedHostnames,
+    });
+    return false;
+  }
 
-  return true;
+  // Check for exact matches first (including root domain)
+  if (allowedHostnames.includes(hostname)) {
+    return true;
+  }
 
-  // return hostname && allowedHostnames.includes(hostname);
+  // Check for wildcard subdomain matches
+  const wildcardMatches = allowedHostnames
+    .filter((domain) => domain.startsWith("*."))
+    .map((domain) => domain.slice(2)); // Remove the "*.", leaving just the domain
+
+  for (const domain of wildcardMatches) {
+    // Check if the hostname ends with the domain and is not the root domain
+    if (hostname.endsWith(domain) && hostname !== domain) {
+      return true;
+    }
+  }
+
+  console.log(
+    `Hostname ${hostname} does not match any allowed patterns. Denying request ❌`,
+    {
+      allowedHostnames,
+    },
+  );
+
+  return false;
 };
