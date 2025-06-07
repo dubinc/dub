@@ -168,12 +168,9 @@ function WorkspaceList({
       if (link) {
         // if we're on a link page, navigate back to the workspace root
         return `/${slug}/links`;
-      } else if (programId) {
-        // if we're on a program page, navigate to the program page
-        return `/${slug}/programs`;
       } else {
         // else, we keep the path but remove all query params
-        return pathname?.replace(selected.slug, slug).split("?")[0] || "/";
+        return pathname.replace(selected.slug, slug).split("?")[0] || "/";
       }
     },
     [link, programId, pathname, selected.slug],

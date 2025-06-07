@@ -20,7 +20,7 @@ function ProgramWelcomeModal({
   showProgramWelcomeModal: boolean;
   setShowProgramWelcomeModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { slug: workspaceSlug, programId } = useParams();
+  const { slug: workspaceSlug } = useParams();
   const { queryParams } = useRouterStuff();
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
@@ -28,7 +28,7 @@ function ProgramWelcomeModal({
   const NEXT_STEPS = [
     {
       text: "Create a public landing page for your program",
-      href: `/${workspaceSlug}/programs/${programId}/branding`,
+      href: `/${workspaceSlug}/program/branding`,
     },
     {
       text: "Set up a bank account for partner payouts",
