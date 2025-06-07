@@ -7,16 +7,11 @@ import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { MaxWidthWrapper } from "@dub/ui";
 import { FileContent, FileZip2, Palette2, Post } from "@dub/ui/icons";
 import { formatFileSize } from "@dub/utils";
-import { useParams } from "next/navigation";
 
 const emptyStateIcons = [Post, Palette2, FileZip2];
 
 export function ResourcesPageClient() {
-  const { programSlug } = useParams();
-
-  const { resources, isLoading, isValidating } = useProgramResources({
-    programId: programSlug as string,
-  });
+  const { resources, isLoading, isValidating } = useProgramResources();
 
   const isEmpty =
     !isLoading &&

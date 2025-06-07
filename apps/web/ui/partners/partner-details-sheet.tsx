@@ -166,7 +166,7 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
                   {
                     id: "commissions",
                     label: "Commissions",
-                    href: `/${slug}/programs/${defaultProgramId}/commissions?partnerId=${partner.id}`,
+                    href: `/${slug}/program/commissions?partnerId=${partner.id}`,
                     target: "_blank",
                   },
                 ]}
@@ -214,7 +214,7 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
 }
 
 function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
-  const { slug, defaultProgramId } = useWorkspace();
+  const { slug } = useWorkspace();
 
   const {
     payouts,
@@ -258,7 +258,7 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
     ],
     onRowClick: (row) => {
       window.open(
-        `/${slug}/programs/${defaultProgramId}/payouts?payoutId=${row.original.id}`,
+        `/${slug}/program/payouts?payoutId=${row.original.id}`,
         "_blank",
       );
     },
@@ -275,7 +275,7 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
       <Table {...table} />
       <div className="mt-2 flex justify-end">
         <Link
-          href={`/${slug}/programs/${defaultProgramId}/payouts?partnerId=${partner.id}`}
+          href={`/${slug}/program/payouts?partnerId=${partner.id}`}
           target="_blank"
           className={cn(
             buttonVariants({ variant: "secondary" }),
