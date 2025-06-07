@@ -59,11 +59,13 @@ async function main() {
   console.table(linksToCreate);
   console.log(`Found ${linksToCreate.length} links to create`);
 
-  const res = await bulkCreateLinks({
+  const { validLinks, invalidLinks } = await bulkCreateLinks({
     links: linksToCreate,
     skipRedisCache: true,
   });
-  console.log(`Created ${res.length} links`);
+
+  console.log(`Created ${validLinks.length} links`);
+  console.log(`Failed to create ${invalidLinks.length} links`);
 }
 
 main().catch(console.error);
