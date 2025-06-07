@@ -1,23 +1,24 @@
 import { confirmPayoutsAction } from "@/lib/actions/partners/confirm-payouts";
 import { PAYOUT_FEES } from "@/lib/partners/constants";
+import {
+  CUTOFF_PERIOD,
+  CUTOFF_PERIOD_TYPES,
+} from "@/lib/partners/cutoff-period";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
-import usePayouts from "@/lib/swr/use-payouts";
-import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { PayoutsCount } from "@/lib/types";
+import { PayoutResponse } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
-import { PayoutStatus } from "@dub/prisma/client";
 import {
   Button,
   buttonVariants,
   CreditCard,
+  DynamicTooltipWrapper,
   Gear,
   GreekTemple,
   Sheet,
   SimpleTooltipContent,
   Table,
-  Tooltip,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
@@ -25,28 +26,19 @@ import {
   capitalize,
   cn,
   currencyFormatter,
+  fetcher,
+  formatDate,
   OG_AVATAR_URL,
   truncate,
 } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { useParams } from "next/navigation";
-import {
-  Dispatch,
-  Fragment,
-  SetStateAction,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import useSWR from "swr";
 
-interface PayoutInvoiceSheetProps {
-  setIsOpen: Dispatch<SetStateAction<boolean>>;
-}
-
-function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
-  const { programId } = useParams() as { programId: string };
-  const { id: workspaceId, slug, plan } = useWorkspace();
+function PayoutInvoiceSheetContent() {
+  const { id: workspaceId, slug, plan, defaultProgramId } = useWorkspace();
+  const { queryParams } = useRouterStuff();
   const { paymentMethods, loading: paymentMethodsLoading } =
     usePaymentMethods();
 
@@ -82,33 +74,30 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
     useState<PaymentMethodWithFee | null>(null);
 
-  const {
-    payoutsCount: eligiblePayoutsCount,
-    loading: eligiblePayoutsCountLoading,
-  } = usePayoutsCount<PayoutsCount[]>({
-    groupBy: "status",
-    eligibility: "eligible",
-  });
+  const [cutoffPeriod, setCutoffPeriod] =
+    useState<CUTOFF_PERIOD_TYPES>("today");
 
   const {
-    payouts: eligiblePayouts,
+    data: eligiblePayouts,
     error: eligiblePayoutsError,
-    loading: eligiblePayoutsLoading,
-  } = usePayouts({
-    query: {
-      status: "pending",
-      eligibility: "eligible",
-      sortBy: "amount",
-    },
-  });
+    isLoading: eligiblePayoutsLoading,
+  } = useSWR<PayoutResponse[]>(
+    `/api/programs/${defaultProgramId}/payouts/eligible?${new URLSearchParams({
+      workspaceId,
+      cutoffPeriod,
+    } as Record<string, any>).toString()}`,
+    fetcher,
+  );
 
   const { executeAsync, isPending } = useAction(confirmPayoutsAction, {
     onSuccess: async () => {
-      await mutatePrefix(`/api/programs/${programId}/payouts`);
+      await mutatePrefix(`/api/programs/${defaultProgramId}/payouts`);
       toast.success(
         "Payouts confirmed successfully! They will be processed soon.",
       );
-      setIsOpen(false);
+      queryParams({
+        del: "confirmPayouts",
+      });
     },
     onError({ error }) {
       toast.error(error.serverError);
@@ -136,7 +125,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
         ...paymentMethodsTypes[pm.type],
         id: pm.id,
         title: pm.link
-          ? `Link – ${truncate(pm.link.email, 16)}`
+          ? `Link – ${truncate(pm.link.email, 24)}`
           : pm.card
             ? `${capitalize(pm.card?.brand)} **** ${pm.card?.last4}`
             : `ACH **** ${pm.us_bank_account?.last4}`,
@@ -144,118 +133,133 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
     [paymentMethods],
   );
 
+  const amount = useMemo(
+    () =>
+      eligiblePayouts?.reduce((acc, payout) => {
+        return acc + payout.amount;
+      }, 0),
+    [eligiblePayouts],
+  );
+
   const invoiceData = useMemo(() => {
-    if (eligiblePayoutsCountLoading) {
-      return {
-        Method: (
-          <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
-        ),
-        Amount: (
-          <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
-        ),
-        Fee: (
-          <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
-        ),
-        Duration: (
-          <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
-        ),
-        Total: (
-          <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
-        ),
-      };
-    }
+    const fee =
+      amount === undefined
+        ? undefined
+        : amount * (selectedPaymentMethod?.fee ?? 0);
+    const total =
+      amount !== undefined && fee !== undefined ? amount + fee : undefined;
 
-    const amount =
-      eligiblePayoutsCount?.find((p) => p.status === PayoutStatus.pending)
-        ?.amount ?? 0;
-
-    const fee = amount * (selectedPaymentMethod?.fee ?? 0);
-    const total = amount + fee;
-
-    return {
-      Method: (
-        <div className="flex items-center gap-2 pr-6">
-          {paymentMethodsLoading ? (
-            <div className="h-[30px] w-full animate-pulse rounded-md bg-neutral-200" />
-          ) : (
-            <select
-              className="h-auto flex-1 rounded-md border border-neutral-200 py-1.5 text-xs focus:border-neutral-600 focus:ring-neutral-600"
-              value={selectedPaymentMethod?.id || ""}
-              onChange={(e) =>
-                setSelectedPaymentMethod(
-                  paymentMethodsWithFee?.find(
-                    (pm) => pm.id === e.target.value,
-                  ) || null,
-                )
-              }
-            >
-              {paymentMethodsWithFee?.map(({ id, title }) => (
-                <option key={id} value={id}>
-                  {title}
-                </option>
-              ))}
-            </select>
-          )}
-          <a
-            href={`/${slug}/settings/billing`}
-            className={cn(
-              buttonVariants({ variant: "secondary" }),
-              "flex items-center rounded-md border border-neutral-200 px-2 py-1.5 text-sm",
+    return [
+      {
+        key: "Method",
+        value: (
+          <div className="flex items-center gap-2 pr-6">
+            {paymentMethodsLoading ? (
+              <div className="h-[26px] w-40 animate-pulse rounded-md bg-neutral-200" />
+            ) : (
+              <select
+                className="h-auto flex-1 rounded-md border border-neutral-200 py-1.5 text-xs focus:border-neutral-600 focus:ring-neutral-600"
+                value={selectedPaymentMethod?.id || ""}
+                onChange={(e) =>
+                  setSelectedPaymentMethod(
+                    paymentMethodsWithFee?.find(
+                      (pm) => pm.id === e.target.value,
+                    ) || null,
+                  )
+                }
+              >
+                {paymentMethodsWithFee?.map(({ id, title }) => (
+                  <option key={id} value={id}>
+                    {title}
+                  </option>
+                ))}
+              </select>
             )}
-            target="_blank"
+            <a
+              href={`/${slug}/settings/billing`}
+              className={cn(
+                buttonVariants({ variant: "secondary" }),
+                "flex items-center rounded-md border border-neutral-200 p-1.5 text-sm",
+              )}
+              target="_blank"
+            >
+              <Gear className="size-4" />
+            </a>
+          </div>
+        ),
+      },
+      {
+        key: "Cutoff Period",
+        value: (
+          <select
+            value={cutoffPeriod}
+            className="h-auto w-fit rounded-md border border-neutral-200 py-1 text-xs focus:border-neutral-600 focus:ring-neutral-600"
+            onChange={(e) => setCutoffPeriod(e.target.value)}
           >
-            <Gear className="size-4" />
-          </a>
-        </div>
-      ),
-
-      Amount: currencyFormatter(amount / 100, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }),
-
-      Fee: selectedPaymentMethod ? (
-        <Tooltip
-          content={
-            <SimpleTooltipContent
-              title={`${Math.round(selectedPaymentMethod.fee * 100)}% processing fee.${selectedPaymentMethod.type !== "us_bank_account" ? " Switch to ACH for a reduced fee." : ""}`}
-              cta="Learn more"
-              href="https://d.to/payouts"
-            />
-          }
-        >
-          <span className="underline decoration-dotted underline-offset-2">
-            {currencyFormatter(fee / 100, {
+            {CUTOFF_PERIOD.map(({ id, label, value }) => (
+              <option key={id} value={id}>
+                {label} ({formatDate(value)})
+              </option>
+            ))}
+          </select>
+        ),
+        tooltipContent:
+          "Cutoff period in UTC. If set, only commissions accrued up to the cutoff period will be included in the payout invoice.",
+      },
+      {
+        key: "Amount",
+        value:
+          amount === undefined ? (
+            <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
+          ) : (
+            currencyFormatter(amount / 100, {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
-            })}
-          </span>
-        </Tooltip>
-      ) : (
-        <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
-      ),
-
-      Duration: (
-        <div>
-          {selectedPaymentMethod ? (
-            selectedPaymentMethod?.duration
+            })
+          ),
+      },
+      {
+        key: "Fee",
+        value:
+          selectedPaymentMethod && fee !== undefined ? (
+            currencyFormatter(fee / 100, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })
           ) : (
             <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
-          )}
-        </div>
-      ),
+          ),
+        tooltipContent: selectedPaymentMethod ? (
+          <SimpleTooltipContent
+            title={`${Math.round(selectedPaymentMethod.fee * 100)}% processing fee.${selectedPaymentMethod.type !== "us_bank_account" ? " Switch to ACH for a reduced fee." : ""}`}
+            cta="Learn more"
+            href="https://d.to/payouts"
+          />
+        ) : undefined,
+      },
+      {
+        key: "Transfer Time",
+        value: selectedPaymentMethod ? (
+          selectedPaymentMethod.duration
+        ) : (
+          <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
+        ),
+      },
+      {
+        key: "Total",
+        value:
+          total === undefined ? (
+            <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
+          ) : (
+            currencyFormatter(total / 100, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })
+          ),
+      },
+    ];
+  }, [amount, paymentMethods, selectedPaymentMethod, cutoffPeriod]);
 
-      Total: currencyFormatter(total / 100, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }),
-    };
-  }, [
-    eligiblePayoutsCount,
-    eligiblePayoutsCountLoading,
-    paymentMethods,
-    selectedPaymentMethod,
-  ]);
   const table = useTable({
     data: eligiblePayouts || [],
     columns: [
@@ -292,7 +296,7 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
     tdClassName: (id) => cn(id === "total" && "text-right", "border-l-0"),
     className: "[&_tr:last-child>td]:border-b-transparent",
     scrollWrapperClassName: "min-h-[40px]",
-    resourceName: (p) => `pending payout${p ? "s" : ""}`,
+    resourceName: (p) => `eligible payout${p ? "s" : ""}`,
     loading: eligiblePayoutsLoading,
     error: eligiblePayoutsError
       ? "Failed to load payouts for this invoice."
@@ -306,31 +310,50 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
   }, [eligiblePayouts]);
 
   return (
-    <>
-      <div>
-        <div className="flex items-start justify-between border-b border-neutral-200 p-6">
-          <Sheet.Title className="text-xl font-semibold">
-            Payout invoice
-          </Sheet.Title>
-          <Sheet.Close asChild>
-            <Button
-              variant="outline"
-              icon={<X className="size-5" />}
-              className="h-auto w-fit p-1"
-            />
-          </Sheet.Close>
-        </div>
+    <div className="flex h-full flex-col">
+      <div className="flex items-start justify-between border-b border-neutral-200 p-6">
+        <Sheet.Title className="text-xl font-semibold">
+          Payout invoice
+        </Sheet.Title>
+        <Sheet.Close asChild>
+          <Button
+            variant="outline"
+            icon={<X className="size-5" />}
+            className="h-auto w-fit p-1"
+          />
+        </Sheet.Close>
+      </div>
+
+      <div className="flex-1 overflow-y-auto">
         <div className="flex flex-col gap-4 p-6">
           <div className="text-base font-medium text-neutral-900">
             Invoice details
           </div>
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            {Object.entries(invoiceData).map(([key, value]) => (
+          <div className="grid grid-cols-3 gap-2 text-sm">
+            {invoiceData.map(({ key, value, tooltipContent }) => (
               <Fragment key={key}>
-                <div className="flex items-end font-medium text-neutral-500">
-                  {key}
+                <div
+                  className={cn(
+                    "flex items-center py-0.5 font-medium text-neutral-500",
+                    tooltipContent &&
+                      "cursor-help underline decoration-dotted underline-offset-2",
+                  )}
+                >
+                  <DynamicTooltipWrapper
+                    tooltipProps={
+                      tooltipContent
+                        ? {
+                            content: tooltipContent,
+                          }
+                        : undefined
+                    }
+                  >
+                    {key}
+                  </DynamicTooltipWrapper>
                 </div>
-                <div className="text-neutral-800">{value}</div>
+                <div className="col-span-2 flex items-center text-neutral-800">
+                  {value}
+                </div>
               </Fragment>
             ))}
           </div>
@@ -340,67 +363,66 @@ function PayoutInvoiceSheetContent({ setIsOpen }: PayoutInvoiceSheetProps) {
           <Table {...table} />
         </div>
       </div>
-      <div className="flex grow flex-col justify-end">
-        <div className="flex items-center justify-end gap-2 border-t border-neutral-200 p-5">
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => setIsOpen(false)}
-            text="Close"
-            className="w-fit"
-          />
-          <Button
-            type="button"
-            variant="primary"
-            loading={isPending}
-            onClick={async () => {
-              if (!workspaceId || !selectedPaymentMethod) {
-                return;
-              }
 
-              await executeAsync({
-                workspaceId,
-                programId,
-                paymentMethodId: selectedPaymentMethod.id,
-              });
-            }}
-            text="Confirm payout"
-            className="w-fit"
-          />
-        </div>
+      <div className="flex items-center justify-end gap-2 border-t border-neutral-200 p-5">
+        <Button
+          type="button"
+          variant="primary"
+          loading={isPending}
+          disabled={
+            eligiblePayoutsLoading || !selectedPaymentMethod || amount === 0
+          }
+          onClick={async () => {
+            if (!workspaceId || !selectedPaymentMethod) {
+              return;
+            }
+
+            await executeAsync({
+              workspaceId,
+              paymentMethodId: selectedPaymentMethod.id,
+              cutoffPeriod,
+            });
+          }}
+          text={
+            amount && amount > 0
+              ? `Confirm ${currencyFormatter(amount / 100, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })} payout`
+              : "Confirm payout"
+          }
+        />
       </div>
-    </>
+    </div>
   );
 }
 
-export function PayoutInvoiceSheet({
-  isOpen,
-  setIsOpen,
-}: PayoutInvoiceSheetProps & {
-  isOpen: boolean;
-}) {
+export function PayoutInvoiceSheet() {
   const { queryParams } = useRouterStuff();
+  const [isOpen, setIsOpen] = useState(false);
+  const { searchParams } = useRouterStuff();
+
+  useEffect(() => {
+    const confirmPayouts = searchParams.get("confirmPayouts");
+
+    if (confirmPayouts) {
+      setIsOpen(true);
+    } else {
+      setIsOpen(false);
+    }
+  }, [searchParams]);
 
   return (
     <Sheet
       open={isOpen}
       onOpenChange={setIsOpen}
       onClose={() => {
-        queryParams({ del: "payoutId", scroll: false });
+        queryParams({
+          del: "confirmPayouts",
+        });
       }}
     >
-      <PayoutInvoiceSheetContent setIsOpen={setIsOpen} />
+      <PayoutInvoiceSheetContent />
     </Sheet>
   );
-}
-
-export function usePayoutInvoiceSheet() {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return {
-    payoutInvoiceSheet: (
-      <PayoutInvoiceSheet isOpen={isOpen} setIsOpen={setIsOpen} />
-    ),
-    setIsOpen,
-  };
 }

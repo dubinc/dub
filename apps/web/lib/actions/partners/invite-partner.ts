@@ -4,6 +4,7 @@ import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-par
 import { createPartnerLink } from "@/lib/api/partners/create-partner-link";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { invitePartnerSchema } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
 import { PartnerInvite } from "@dub/email/templates/partner-invite";
@@ -17,8 +18,9 @@ export const invitePartnerAction = authActionClient
   .schema(invitePartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { programId, name, email, linkId, rewardId, discountId } =
-      parsedInput;
+    const { name, email, linkId, rewardId, discountId } = parsedInput;
+
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
     let [program, link, , ,] = await Promise.all([
       getProgramOrThrow({
@@ -112,6 +114,7 @@ export const invitePartnerAction = authActionClient
           email,
           program: {
             name: program.name,
+            slug: program.slug,
             logo: program.logo,
           },
         }),

@@ -7,7 +7,6 @@ import { authActionClient } from "../safe-action";
 
 const rejectPartnerSchema = z.object({
   workspaceId: z.string(),
-  programId: z.string(),
   partnerId: z.string(),
 });
 
@@ -43,6 +42,4 @@ export const rejectPartnerAction = authActionClient
     });
 
     // TODO: [partners] Notify partner of rejection?
-
-    return { ok: true };
   });

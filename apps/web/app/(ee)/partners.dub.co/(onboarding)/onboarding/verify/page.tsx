@@ -1,4 +1,7 @@
+import { getSession } from "@/lib/auth";
 import { ConnectPayoutButton } from "@/ui/partners/connect-payout-button";
+import { prisma } from "@dub/prisma";
+import { CONNECT_SUPPORTED_COUNTRIES } from "@dub/utils";
 import Link from "next/link";
 import { Suspense } from "react";
 
@@ -7,7 +10,7 @@ export default function OnboardingVerificationPage() {
     <div className="relative mx-auto my-10 flex w-full max-w-[416px] flex-col items-center md:mt-14">
       <div className="absolute inset-0 bg-white/60 [mask-composite:intersect] [mask-image:linear-gradient(90deg,transparent,black_10%,black_90%,transparent),linear-gradient(transparent,black_10%,black_90%,transparent)]" />
       <h1 className="animate-slide-up-fade text-lg font-medium [--offset:8px] [animation-delay:250ms] [animation-duration:1s] [animation-fill-mode:both]">
-        Payout information
+        Connect your bank account
       </h1>
       <div className="animate-slide-up-fade relative mt-8 w-full [--offset:10px] [animation-delay:500ms] [animation-duration:1s] [animation-fill-mode:both]">
         <Suspense fallback={<PayoutSkeleton />}>
@@ -45,11 +48,20 @@ function PayoutProvider({ provider }: { provider: "stripe" | "paypal" }) {
         <div className="bg-white px-6 py-4 text-sm text-neutral-600">
           We use {label} to ensure you get paid on time and to keep your
           personal bank details secure. Click <strong>Save and continue</strong>{" "}
-          to setup your payouts account.
+          to connect your bank account.
           <br />
           <br />
           You can complete this at a later date, but won't be able to collect
           any payouts until it's completed.
+          <br />
+          <br />
+          <a
+            href="https://dub.co/help/article/receiving-payouts"
+            target="_blank"
+            className="cursor-help text-sm text-neutral-500 underline decoration-dotted underline-offset-2 transition-colors hover:text-neutral-800"
+          >
+            Learn more about receiving payouts on Dub.
+          </a>
         </div>
       </div>
       <div className="mt-10 grid gap-4">
@@ -94,16 +106,15 @@ function PayoutSkeleton() {
 }
 
 async function PayoutRSC() {
-  // TODO: Uncomment this once PayPal connection is ready
-  // const { user } = await getSession();
-  // const partner = await prisma.partner.findUnique({
-  //   where: {
-  //     email: user.email,
-  //   },
-  // });
-  // const provider = partner?.country && CONNECT_SUPPORTED_COUNTRIES.includes(partner.country)
-  //   ? "stripe"
-  //   : "paypal";
-  const provider = "stripe";
+  const { user } = await getSession();
+  const partner = await prisma.partner.findUnique({
+    where: {
+      email: user.email,
+    },
+  });
+  const provider =
+    partner?.country && CONNECT_SUPPORTED_COUNTRIES.includes(partner.country)
+      ? "stripe"
+      : "paypal";
   return <PayoutProvider provider={provider} />;
 }

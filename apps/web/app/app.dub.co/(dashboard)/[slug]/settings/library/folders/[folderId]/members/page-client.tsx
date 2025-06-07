@@ -6,6 +6,7 @@ import {
   FOLDER_WORKSPACE_ACCESS,
 } from "@/lib/folder/constants";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { useFolderLinkCount } from "@/lib/swr/use-folder-link-count";
 import {
   useCheckFolderPermission,
   useFolderPermissions,
@@ -16,7 +17,7 @@ import { FolderIcon } from "@/ui/folders/folder-icon";
 import { RequestFolderEditAccessButton } from "@/ui/folders/request-edit-button";
 import { FolderUserRole } from "@dub/prisma/client";
 import { Avatar, BlurImage, Globe } from "@dub/ui";
-import { cn, fetcher, nFormatter, OG_AVATAR_URL } from "@dub/utils";
+import { cn, fetcher, nFormatter, OG_AVATAR_URL, pluralize } from "@dub/utils";
 import { ChevronLeft } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
@@ -48,6 +49,8 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
     `/api/folders/${folderId}?workspaceId=${workspace.id}`,
     fetcher,
   );
+
+  const { folderLinkCount } = useFolderLinkCount({ folderId });
 
   const {
     data: users,
@@ -120,8 +123,8 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
                   <div className="flex items-center gap-1">
                     <Globe className="size-3.5 text-neutral-500" />
                     <span className="text-[13px] font-normal leading-[14.30px] text-neutral-500">
-                      {nFormatter(folder.linkCount)} link
-                      {folder.linkCount !== 1 && "s"}
+                      {nFormatter(folderLinkCount, { full: true })}
+                      {pluralize("link", folderLinkCount)}
                     </span>
                   </div>
                 </div>

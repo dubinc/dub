@@ -1,20 +1,21 @@
 import { fetcher } from "@dub/utils";
+import { useParams } from "next/navigation";
 import useSWR from "swr";
 import { z } from "zod";
 import { programResourcesSchema } from "../zod/schemas/program-resources";
+import useWorkspace from "./use-workspace";
 
 export type ProgramResourcesProps = z.infer<typeof programResourcesSchema>;
 
-export default function useProgramResources(
-  props: { workspaceId: string; programId: string } | { programId: string },
-) {
-  const endpoint =
-    props.programId &&
-    ("workspaceId" in props
-      ? props.workspaceId
-        ? `/api/programs/${props.programId}/resources?workspaceId=${props.workspaceId}`
-        : null
-      : `/api/partner-profile/programs/${props.programId}/resources`);
+export default function useProgramResources() {
+  const { programSlug } = useParams();
+  const { id: workspaceId, defaultProgramId } = useWorkspace();
+
+  const endpoint = programSlug
+    ? `/api/partner-profile/programs/${programSlug}/resources`
+    : defaultProgramId
+      ? `/api/programs/${defaultProgramId}/resources?workspaceId=${workspaceId}`
+      : null;
 
   const {
     data: resources,
@@ -32,6 +33,6 @@ export default function useProgramResources(
     error,
     mutate,
     isValidating,
-    isLoading: Boolean(props.programId && !resources && !error),
+    isLoading: Boolean(!resources && !error),
   };
 }

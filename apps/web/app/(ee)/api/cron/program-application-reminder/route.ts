@@ -18,13 +18,13 @@ export async function POST(req: Request) {
     const application = await prisma.programApplication.findFirst({
       where: {
         id: applicationId,
-        enrollment: null,
         // Only send reminders for applications that were created less than 3 days ago
         createdAt: {
           gt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
         },
       },
       include: {
+        enrollment: true,
         program: {
           select: {
             id: true,
@@ -35,10 +35,41 @@ export async function POST(req: Request) {
       },
     });
 
-    if (!application)
+    if (!application) {
       return new Response(
-        `Application ${applicationId} without partner not found. Skipping...`,
+        `Application ${applicationId} not found. Skipping...`,
       );
+    }
+
+    if (application.enrollment) {
+      return new Response(
+        `Partner with applicationId ${application.id} has already been enrolled in program ${application.program.name}. Skipping...`,
+      );
+    }
+
+    const programEnrollment = await prisma.programEnrollment.findFirst({
+      where: {
+        programId: application.program.id,
+        partner: {
+          email: application.email,
+        },
+      },
+    });
+
+    if (programEnrollment) {
+      await prisma.programEnrollment.update({
+        where: {
+          id: programEnrollment.id,
+        },
+        data: {
+          applicationId: application.id,
+        },
+      });
+
+      return new Response(
+        `Partner with email ${application.email} has already been enrolled in program ${application.program.name}. Updated applicationId to ${application.id} and skipping...`,
+      );
+    }
 
     await sendEmail({
       subject: `Complete your application for ${application.program.name}`,
@@ -50,6 +81,7 @@ export async function POST(req: Request) {
           slug: application.program.slug,
         },
       }),
+      variant: "notifications",
     });
 
     await qstash.publishJSON({

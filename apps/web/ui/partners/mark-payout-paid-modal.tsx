@@ -4,7 +4,6 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutResponse } from "@/lib/types";
 import { Button, Modal } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
-import { useParams } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -36,8 +35,7 @@ function MarkPayoutPaidModalInner({
   setShowMarkPayoutPaidModal,
   payout,
 }: Omit<MarkPayoutPaidModalProps, "showMarkPayoutPaidModal">) {
-  const { id: workspaceId } = useWorkspace();
-  const { programId } = useParams();
+  const { id: workspaceId, defaultProgramId } = useWorkspace();
 
   const { execute, isExecuting, hasSucceeded } = useAction(
     markPayoutPaidAction,
@@ -45,7 +43,7 @@ function MarkPayoutPaidModalInner({
       onSuccess: () => {
         toast.success("Payout updated successfully!");
         setShowMarkPayoutPaidModal(false);
-        mutatePrefix(`/api/programs/${programId}/payouts`);
+        mutatePrefix(`/api/programs/${defaultProgramId}/payouts`);
       },
       onError: () => {
         toast.error("Failed to update payout");
@@ -79,13 +77,12 @@ function MarkPayoutPaidModalInner({
           onClick={() =>
             execute({
               workspaceId: workspaceId!,
-              programId: programId as string,
               payoutId: payout.id,
             })
           }
           autoFocus
           loading={isExecuting || hasSucceeded}
-          text="Mark as paid"
+          text="Mark payout as paid"
           className="h-8 w-fit px-3"
         />
       </div>

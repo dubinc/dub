@@ -1,5 +1,4 @@
 import { fetcher } from "@dub/utils";
-import { useParams } from "next/navigation";
 import useSWR from "swr";
 import { z } from "zod";
 import { PayoutResponse } from "../types";
@@ -11,14 +10,15 @@ export default function usePayouts({
 }: {
   query?: z.input<typeof payoutsQuerySchema>;
 } = {}) {
-  const { programId } = useParams();
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, defaultProgramId } = useWorkspace();
 
   const { data: payouts, error } = useSWR<PayoutResponse[]>(
-    `/api/programs/${programId}/payouts?${new URLSearchParams({
-      workspaceId: workspaceId,
-      ...query,
-    } as Record<string, any>).toString()}`,
+    workspaceId &&
+      defaultProgramId &&
+      `/api/programs/${defaultProgramId}/payouts?${new URLSearchParams({
+        workspaceId: workspaceId,
+        ...query,
+      } as Record<string, any>).toString()}`,
     fetcher,
   );
 

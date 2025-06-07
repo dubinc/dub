@@ -314,9 +314,6 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         usage: {
           increment: clickEvent ? 2 : 1,
         },
-        salesUsage: {
-          increment: charge.amount_total!,
-        },
       },
     }),
 

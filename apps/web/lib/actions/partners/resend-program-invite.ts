@@ -1,5 +1,6 @@
 "use server";
 
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { sendEmail } from "@dub/email";
 import { PartnerInvite } from "@dub/email/templates/partner-invite";
 import { prisma } from "@dub/prisma";
@@ -8,15 +9,16 @@ import { authActionClient } from "../safe-action";
 
 const resendProgramInviteSchema = z.object({
   workspaceId: z.string(),
-  programId: z.string(),
   partnerId: z.string(),
 });
 
 export const resendProgramInviteAction = authActionClient
   .schema(resendProgramInviteSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { programId, partnerId } = parsedInput;
+    const { partnerId } = parsedInput;
     const { workspace } = ctx;
+
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
     const { program, partner, ...programEnrollment } =
       await prisma.programEnrollment.findUniqueOrThrow({
@@ -31,10 +33,6 @@ export const resendProgramInviteAction = authActionClient
           partner: true,
         },
       });
-
-    if (program.workspaceId !== workspace.id) {
-      throw new Error("Program not found.");
-    }
 
     if (programEnrollment.status !== "invited") {
       throw new Error("Invite not found.");
@@ -58,6 +56,7 @@ export const resendProgramInviteAction = authActionClient
           email: partner.email!,
           program: {
             name: program.name,
+            slug: program.slug,
             logo: program.logo,
           },
         }),

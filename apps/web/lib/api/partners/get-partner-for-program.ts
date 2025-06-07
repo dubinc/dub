@@ -55,7 +55,6 @@ export async function getPartnerForProgram({
     WHERE 
       pe.partnerId = ${partnerId}
       AND pe.programId = ${programId}
-      AND pe.status NOT IN ('rejected', 'banned')
   `;
 
   if (!partner?.[0]) return null;

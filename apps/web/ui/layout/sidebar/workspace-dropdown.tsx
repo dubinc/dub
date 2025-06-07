@@ -9,9 +9,9 @@ import {
   Popover,
   useScrollProgress,
 } from "@dub/ui";
-import { Book2, Check2, Plus } from "@dub/ui/icons";
+import { Check2, Gear, Plus, UserPlus } from "@dub/ui/icons";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
-import { ChevronsUpDown, HelpCircle } from "lucide-react";
+import { ChevronsUpDown } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
@@ -139,21 +139,6 @@ function WorkspaceDropdownPlaceholder() {
   );
 }
 
-const LINKS = [
-  {
-    name: "Help Center",
-    icon: HelpCircle,
-    href: "https://dub.co/help",
-    target: "_blank",
-  },
-  {
-    name: "Documentation",
-    icon: Book2,
-    href: "https://dub.co/docs",
-    target: "_blank",
-  },
-];
-
 function WorkspaceList({
   selected,
   workspaces,
@@ -180,15 +165,12 @@ function WorkspaceList({
 
   const href = useCallback(
     (slug: string) => {
-      if (link || selected.slug === "/") {
+      if (link) {
         // if we're on a link page, navigate back to the workspace root
-        return `/${slug}`;
-      } else if (programId) {
-        // if we're on a program page, navigate to the program page
-        return `/${slug}/programs`;
+        return `/${slug}/links`;
       } else {
         // else, we keep the path but remove all query params
-        return pathname?.replace(selected.slug, slug).split("?")[0] || "/";
+        return pathname.replace(selected.slug, slug).split("?")[0] || "/";
       }
     },
     [link, programId, pathname, selected.slug],
@@ -201,31 +183,59 @@ function WorkspaceList({
         onScroll={updateScrollProgress}
         className="relative max-h-80 w-full space-y-0.5 overflow-auto rounded-lg bg-white text-base sm:w-64 sm:text-sm"
       >
-        <div className="flex flex-col gap-0.5 border-b border-neutral-200 p-2">
-          {LINKS.map(({ name, icon: Icon, href, target }) => (
-            <Link
-              key={name}
-              href={href}
-              target={target}
-              className={cn(
-                "flex items-center gap-x-4 rounded-md px-2.5 py-2 transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80",
-                "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
+        {/* Current workspace section */}
+        <div className="border-b border-neutral-200 p-2">
+          <div className="flex items-center gap-x-2.5 rounded-md p-2">
+            <BlurImage
+              src={selected.image || `${OG_AVATAR_URL}${selected.name}`}
+              width={28}
+              height={28}
+              alt={selected.name}
+              className="size-8 shrink-0 overflow-hidden rounded-full"
+            />
+            <div className="min-w-0">
+              <div className="truncate text-sm font-medium leading-5 text-neutral-900">
+                {selected.name}
+              </div>
+              {selected.slug !== "/" && (
+                <div
+                  className={cn(
+                    "truncate text-xs capitalize leading-tight",
+                    getPlanColor(selected.plan),
+                  )}
+                >
+                  {selected.plan}
+                </div>
               )}
+            </div>
+          </div>
+
+          {/* Settings and Invite members options */}
+          <div className="mt-2 flex flex-col gap-0.5">
+            <Link
+              href={`/${selected.slug}/settings`}
+              className="flex w-full items-center gap-x-2 rounded-md px-2 py-1.5 text-neutral-700 outline-none transition-all duration-75 hover:bg-neutral-200/50 focus-visible:ring-2 focus-visible:ring-black/50 active:bg-neutral-200/80"
               onClick={() => setOpenPopover(false)}
             >
-              <Icon className="size-4 text-neutral-500" />
-              <span className="block truncate text-neutral-600">{name}</span>
+              <Gear className="size-4 text-neutral-500" />
+              <span className="block truncate text-sm">Settings</span>
             </Link>
-          ))}
-        </div>
-        <div className="p-2">
-          <div className="flex items-center justify-between pb-1">
-            <p className="px-1 text-xs font-medium text-neutral-500">
-              Workspaces
-            </p>
+            <Link
+              href={`/${selected.slug}/settings/people`}
+              className="flex w-full items-center gap-x-2 rounded-md px-2 py-1.5 text-neutral-700 outline-none transition-all duration-75 hover:bg-neutral-200/50 focus-visible:ring-2 focus-visible:ring-black/50 active:bg-neutral-200/80"
+              onClick={() => setOpenPopover(false)}
+            >
+              <UserPlus className="size-4 text-neutral-500" />
+              <span className="block truncate text-sm">Invite members</span>
+            </Link>
           </div>
+        </div>
+
+        {/* Workspaces section */}
+        <div className="p-2">
+          <p className="p-1 text-xs font-medium text-neutral-500">Workspaces</p>
           <div className="flex flex-col gap-0.5">
-            {workspaces.map(({ id, name, slug, logo, plan }) => {
+            {workspaces.map(({ id, name, slug, logo }) => {
               const isActive = selected.slug === slug;
               return (
                 <Link
@@ -245,23 +255,11 @@ function WorkspaceList({
                     width={28}
                     height={28}
                     alt={id}
-                    className="size-7 shrink-0 overflow-hidden rounded-full"
+                    className="size-6 shrink-0 overflow-hidden rounded-full"
                   />
-                  <div>
-                    <span className="block truncate text-sm leading-5 text-neutral-900 sm:max-w-[140px]">
-                      {name}
-                    </span>
-                    {slug !== "/" && (
-                      <div
-                        className={cn(
-                          "truncate text-xs capitalize leading-tight",
-                          getPlanColor(plan),
-                        )}
-                      >
-                        {plan}
-                      </div>
-                    )}
-                  </div>
+                  <span className="block truncate text-sm leading-5 text-neutral-900 sm:max-w-[140px]">
+                    {name}
+                  </span>
                   {selected.slug === slug ? (
                     <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-black">
                       <Check2 className="size-4" aria-hidden="true" />
@@ -278,7 +276,7 @@ function WorkspaceList({
               }}
               className="group flex w-full cursor-pointer items-center gap-x-2 rounded-md p-2 text-neutral-700 transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80"
             >
-              <Plus className="mx-1.5 size-4 text-neutral-500" />
+              <Plus className="ml-1.5 size-4 text-neutral-500" />
               <span className="block truncate">Create new workspace</span>
             </button>
           </div>

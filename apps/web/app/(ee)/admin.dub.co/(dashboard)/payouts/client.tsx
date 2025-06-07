@@ -48,15 +48,9 @@ export default function PayoutsPageClient() {
   const { data: { invoices, timeseriesData } = {}, isLoading } = useSWR<{
     invoices: InvoiceData[];
     timeseriesData: TimeseriesData[];
-  }>(
-    `/api/admin/payouts${getQueryString({
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    })}`,
-    fetcher,
-    {
-      keepPreviousData: true,
-    },
-  );
+  }>(`/api/admin/payouts${getQueryString()}`, fetcher, {
+    keepPreviousData: true,
+  });
 
   const tabs: Tab[] = [
     {
@@ -113,9 +107,12 @@ export default function PayoutsPageClient() {
     columns: [
       {
         id: "date",
-        header: "Payment Date",
+        header: "Payment Date (UTC)",
         accessorKey: "date",
-        cell: ({ row }) => formatDateTime(row.original.date),
+        cell: ({ row }) =>
+          formatDateTime(row.original.date, {
+            timeZone: "UTC",
+          }),
       },
       {
         id: "program",
@@ -267,6 +264,7 @@ export default function PayoutsPageClient() {
                           interval,
                           start,
                           end,
+                          timezone: "UTC",
                         })}
                       </p>
                       <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-4 py-3 text-sm">

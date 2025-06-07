@@ -153,14 +153,12 @@ function DiscountSheetContent({
     const payload = {
       ...data,
       workspaceId,
-      programId: program.id,
       amount: data.type === "flat" ? data.amount * 100 : data.amount || 0,
       maxDuration:
         Number(data.maxDuration) === Infinity ? null : data.maxDuration,
     };
 
     if (!discount) {
-      console.log("payload", payload);
       await createDiscount(payload);
     } else {
       await updateDiscount({
@@ -181,7 +179,6 @@ function DiscountSheetContent({
 
     await deleteDiscount({
       workspaceId,
-      programId: program.id,
       discountId: discount.id,
     });
   };

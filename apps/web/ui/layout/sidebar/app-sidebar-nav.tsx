@@ -23,7 +23,6 @@ import { ReactNode, useMemo } from "react";
 import UserSurveyButton from "../user-survey";
 import { ConnectedDots4 } from "./icons/connected-dots4";
 import { CursorRays } from "./icons/cursor-rays";
-import { Gear } from "./icons/gear";
 import { Hyperlink } from "./icons/hyperlink";
 import { LinesY } from "./icons/lines-y";
 import { User } from "./icons/user";
@@ -67,54 +66,44 @@ const NAV_AREAS: SidebarNavAreas<{
             icon: User,
             href: `/${slug}/customers`,
           },
-          {
-            name: "Settings",
-            icon: Gear,
-            href: `/${slug}/settings`,
-          },
-        ],
-      },
-      ...(defaultProgramId
-        ? [
-            {
-              name: "Programs",
-              items: [
+          ...(defaultProgramId
+            ? [
                 {
-                  name: "Affiliate",
+                  name: "Program",
                   icon: ConnectedDots4,
-                  href: `/${slug}/programs/${defaultProgramId}`,
+                  href: `/${slug}/program`,
                   items: [
                     {
                       name: "Overview",
-                      href: `/${slug}/programs/${defaultProgramId}`,
+                      href: `/${slug}/program`,
                       exact: true,
                     },
                     {
                       name: "Partners",
-                      href: `/${slug}/programs/${defaultProgramId}/partners`,
+                      href: `/${slug}/program/partners`,
                     },
                     {
                       name: "Commissions",
-                      href: `/${slug}/programs/${defaultProgramId}/commissions`,
+                      href: `/${slug}/program/commissions`,
                     },
                     {
                       name: "Payouts",
-                      href: `/${slug}/programs/${defaultProgramId}/payouts?status=pending`,
+                      href: `/${slug}/program/payouts?status=pending&sortBy=amount`,
                     },
                     {
-                      name: "Resources",
-                      href: `/${slug}/programs/${defaultProgramId}/resources`,
+                      name: "Branding",
+                      href: `/${slug}/program/branding`,
                     },
                     {
                       name: "Configuration",
-                      href: `/${slug}/programs/${defaultProgramId}/settings`,
+                      href: `/${slug}/program/settings`,
                     },
                   ],
                 },
-              ],
-            },
-          ]
-        : []),
+              ]
+            : []),
+        ],
+      },
     ],
   }),
 
@@ -203,7 +192,7 @@ const NAV_AREAS: SidebarNavAreas<{
   }),
 
   // User settings
-  userSettings: ({ session, slug }) => ({
+  userSettings: ({ slug }) => ({
     title: "Settings",
     backHref: `/${slug}`,
     content: [
@@ -264,7 +253,7 @@ export function AppSidebarNav({
           include: ["folderId", "tagIds"],
         }),
         session: session || undefined,
-        showNews: pathname.startsWith(`/${slug}/programs/`) ? false : true,
+        showNews: pathname.startsWith(`/${slug}/program`) ? false : true,
         defaultProgramId: defaultProgramId || undefined,
       }}
       toolContent={toolContent}

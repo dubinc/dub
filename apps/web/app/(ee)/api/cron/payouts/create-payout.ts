@@ -1,6 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { prisma } from "@dub/prisma";
-import { Payout } from "@dub/prisma/client";
+import { endOfMonth } from "date-fns";
 
 export const createPayout = async ({
   programId,
@@ -51,91 +51,67 @@ export const createPayout = async ({
 
   const { holdingPeriodDays } = programEnrollment.program;
 
-  await prisma.$transaction(async (tx) => {
-    const commissions = await tx.commission.findMany({
-      where: {
-        earnings: {
-          gt: 0,
+  const commissions = await prisma.commission.findMany({
+    where: {
+      earnings: {
+        gt: 0,
+      },
+      programId,
+      partnerId,
+      status: "pending",
+      payoutId: null,
+      // Only process commissions that were created before the holding period
+      ...(holdingPeriodDays > 0 && {
+        createdAt: {
+          lt: new Date(Date.now() - holdingPeriodDays * 24 * 60 * 60 * 1000),
         },
-        programId,
-        partnerId,
-        status: "pending",
-        payoutId: null,
-        // Only process commissions that were created before the holding period
-        ...(holdingPeriodDays > 0 && {
-          createdAt: {
-            lt: new Date(Date.now() - holdingPeriodDays * 24 * 60 * 60 * 1000),
-          },
-        }),
-      },
-      select: {
-        id: true,
-        createdAt: true,
-        earnings: true,
-      },
-      orderBy: {
-        createdAt: "asc",
-      },
-    });
+      }),
+    },
+    select: {
+      id: true,
+      createdAt: true,
+      earnings: true,
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+  });
 
-    if (!commissions.length) {
-      console.log("No pending commissions found for processing payout.", {
-        programId,
-        partnerId,
-        holdingPeriodDays,
-      });
-
-      return;
-    }
-
-    // earliest commission date
-    const periodStart = commissions[0].createdAt;
-
-    // end of the month of the latest commission date
-    // e.g. if the latest sale is 2024-12-16, the periodEnd should be 2024-12-31
-    let periodEnd = commissions[commissions.length - 1].createdAt;
-    periodEnd = new Date(periodEnd.getFullYear(), periodEnd.getMonth() + 1);
-
-    const totalAmount = commissions.reduce(
-      (total, { earnings }) => total + earnings,
-      0,
+  if (commissions.length === 0) {
+    console.log(
+      `No pending commissions found for partner ${partnerId} in program ${programId}.`,
     );
 
-    if (totalAmount === 0) {
-      console.log("Total amount is 0, skipping payout.", {
-        programId,
-        partnerId,
-        totalAmount,
-      });
+    return;
+  }
 
-      return;
-    }
+  console.log(
+    `Found ${commissions.length} pending commissions for partner ${partnerId} in program ${programId}.`,
+  );
 
-    // check if the partner has another pending payout
-    const existingPayout = await tx.payout.findFirst({
+  // earliest commission date
+  const periodStart = commissions[0].createdAt;
+
+  // end of the month of the latest commission date
+  // e.g. if the latest sale is 2024-12-16, the periodEnd should be 2024-12-31
+  const periodEnd = endOfMonth(commissions[commissions.length - 1].createdAt);
+
+  await prisma.$transaction(async (tx) => {
+    // check if the partner has another pending payout (take the latest entry)
+    let payout = await tx.payout.findFirst({
       where: {
         programId,
         partnerId,
         status: "pending",
       },
+      orderBy: {
+        createdAt: "desc",
+      },
     });
 
-    let payout: Payout | null = null;
-
-    if (existingPayout) {
-      payout = await tx.payout.update({
-        where: {
-          id: existingPayout.id,
-        },
-        data: {
-          amount: {
-            increment: totalAmount,
-          },
-          periodEnd,
-          description: existingPayout.description ?? "Dub Partners payout",
-        },
-      });
-    } else {
+    // if the partner has no pending payout, create a new one
+    if (!payout) {
+      console.log("No existing payout found, creating new one.");
       payout = await tx.payout.create({
         data: {
           id: createId({ prefix: "po_" }),
@@ -143,16 +119,14 @@ export const createPayout = async ({
           partnerId,
           periodStart,
           periodEnd,
-          amount: totalAmount,
           description: "Dub Partners payout",
         },
       });
     }
 
-    if (!payout) {
-      throw new Error("Payout not created.");
-    }
+    console.log(`Payout ID to use: ${payout.id}`);
 
+    // update the commissions to processed and set the payoutId
     await tx.commission.updateMany({
       where: {
         id: {
@@ -165,6 +139,35 @@ export const createPayout = async ({
       },
     });
 
-    console.log("Payout created", payout);
+    console.log(
+      `Updated ${commissions.length} commissions to processed and set payoutId to ${payout.id}.`,
+    );
+
+    // get the total earnings for the commissions in the payout
+    const commissionAggregate = await tx.commission.aggregate({
+      where: {
+        payoutId: payout.id,
+      },
+      _sum: {
+        earnings: true,
+      },
+    });
+
+    const newPayoutAmount = commissionAggregate._sum.earnings ?? 0;
+
+    console.log(
+      `Updating aggregated earnings for payout ${payout.id}: ${newPayoutAmount}`,
+    );
+
+    // update the payout amount
+    await tx.payout.update({
+      where: {
+        id: payout.id,
+      },
+      data: {
+        amount: newPayoutAmount,
+        periodEnd,
+      },
+    });
   });
 };

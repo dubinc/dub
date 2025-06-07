@@ -17,7 +17,7 @@ export default function CustomPartnerAuthLayout({
       <div className="flex flex-col justify-end">
         <div className="relative flex w-full flex-col items-center justify-center gap-2 py-10 pb-6">
           <a
-            href="https://dub.partners"
+            href="https://dub.co/partners"
             target="_blank"
             className="mt-4 flex items-center justify-center gap-1.5 text-neutral-500 transition-colors duration-75 hover:text-neutral-700"
           >

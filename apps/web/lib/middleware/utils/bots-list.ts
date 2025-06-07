@@ -1,6 +1,17 @@
 export const UA_BOTS = [
+  // generic bot UA name patterns
   "bot", // most bots
   "crawler", // most crawlers
+  "spider", // most spiders
+  "http", // HTTP clients and libraries (e.g., Apache-HttpClient, Go-http-client, etc.)
+  "scraper", // most scrapers
+  "fetch", // most fetch libraries
+  "curl", // most curl libraries
+  "wget", // most wget libraries
+  "python", // most python libraries
+  "node", // most node libraries – e.g. node-fetch/1.0 (+https://github.com/bitinn/node-fetch)
+  "ruby", // most ruby libraries
+
   "chatgpt", // ChatGPT
   "bluesky", // Bluesky crawler
   "facebookexternalhit", // Facebook crawler
@@ -15,9 +26,8 @@ export const UA_BOTS = [
   "slurp", // Slurp crawler
   "yandex", // Yandex crawler
   "MetaInspector", // metatags.io
-  "Go-http-client", // Go-http-client/1.1 is a bot: https://user-agents.net/string/go-http-client-1-1
   "iframely", // https://iframely.com/docs/about (used by Notion, Linear)
-  "H1cbA69", // internal links/metatags API
+  "HeadlessChrome", // headless chrome
 
   // new
   "ia_archiver",
@@ -26,7 +36,6 @@ export const UA_BOTS = [
   "vkShare",
   "Slackbot",
   "Tumblr",
-  "python",
   "FeedBurner",
   "upptime",
   "Hyperping",
@@ -39,13 +48,58 @@ export const UA_BOTS = [
   "anthropic-ai", // Anthropic AI
   "Claude-Web", // Claude AI
   "Applebot-Extended", // Applebot Extended
-  "Bytespider", // Bytespider
-  "CCBot", // Common Crawl
-  "ChatGPT-User", // ChatGPT User
-  "cohere", // Cohere AI
   "perplexity", // Perplexity AI
   "Omigili", // Omigili
   "timpi", // Timpi.io
+
+  // bots detected by Vercel
+  "ShortLinkTranslate",
+
+  // Additional legitimate crawlers from user-agents.net/bots
+  "BingPreview", // Bing link preview
+  "facebookcatalog", // Facebook catalog crawler
+  "Embedly", // Embedly link preview
+  "Scrapy", // Scrapy web scraping framework
+  "axios", // axios HTTP client library
+  "Guzzle", // PHP Guzzle HTTP client
+  "Postman", // Postman API client
+  "Insomnia", // Insomnia REST client
+  "Newman", // Newman (Postman CLI runner)
+  "Qwantify", // Qwant search engine
+  "Wayback", // Wayback Machine
+  "heritrix", // Heritrix web crawler
+  "nutch", // Apache Nutch
+  "seokicks", // SEOkicks robot
+  "sistrix", // Sistrix crawler
+  "searchmetrics", // Searchmetrics
+  "linkdex", // Linkdex
+  "opensiteexplorer", // Open Site Explorer
+  "spyfu", // SpyFu
+  "serpstat", // Serpstat
+  "cognitiveseo", // CognitiveSEO
+  "seobility", // Seobility
+  "seositecheckup", // SeoSiteCheckup
+  "woorank", // WooRank
+  "gtmetrix", // GTmetrix
+  "pingdom", // Pingdom
+  "statuscake", // StatusCake
+  "site24x7", // Site24x7
+  "monitis", // Monitis
+  "gomez", // Gomez
+  "neustar", // Neustar
+  "catchpoint", // Catchpoint
+  "webpagetest", // WebPageTest
+  "speedcurve", // SpeedCurve
+  "dareboost", // Dareboost
+  "yellowlab", // YellowLab Tools
+  "linkchecker", // link checkers
+  "deadlinkchecker", // dead link checker
+  "brokenlinkcheck", // broken link checker
+  "xenu", // Xenu link checker
+  "scrutiny", // Scrutiny link checker
+  "powermapper", // PowerMapper
+  "siteimprove", // Siteimprove
+  "monsido", // Monsido
 ];
 
 export const IP_BOTS = [
@@ -90,12 +144,19 @@ export const IP_BOTS = [
   "35.185.193.22", // The Dalles
   "34.105.67.76", // The Dalles
   "154.28.229.7", // Ashburn
+
+  "207.46.13.111", // microsoft IP
 ];
 
 export const IP_RANGES_BOTS = [
-  "159.148.128.0/24", // weird bot activity from Miami
+  // weird bot activity from Miami
+  "159.148.128.0/24",
 
   // Expanse (Palo Alto Networks)
   "198.235.24.0/24",
   "205.210.31.0/24",
+
+  // odd traffic from Hong Kong (Aliexpress)
+  "47.238.13.0/24",
+  "47.238.14.0/24",
 ];

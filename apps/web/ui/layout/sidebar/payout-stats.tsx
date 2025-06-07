@@ -6,7 +6,12 @@ import { PayoutsCount } from "@/lib/types";
 import { ConnectPayoutButton } from "@/ui/partners/connect-payout-button";
 import { AlertCircleFill } from "@/ui/shared/icons";
 import { PayoutStatus } from "@dub/prisma/client";
-import { AnimatedSizeContainer, MoneyBills2, Tooltip } from "@dub/ui";
+import {
+  AnimatedSizeContainer,
+  MoneyBills2,
+  SimpleTooltipContent,
+  Tooltip,
+} from "@dub/ui";
 import { currencyFormatter } from "@dub/utils";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
@@ -36,9 +41,13 @@ export const PayoutStats = memo(() => {
             <div className="flex items-center gap-2">
               {partner && !partner.payoutsEnabledAt && (
                 <Tooltip
-                  content={`You need to set up your ${
-                    partner.stripeConnectId ? "Stripe" : "PayPal"
-                  } payouts account to be able to receive payouts from the programs you are enrolled in.`}
+                  content={
+                    <SimpleTooltipContent
+                      title="You need to connect your bank account to be able to receive payouts from the programs you are enrolled in."
+                      cta="Learn more"
+                      href="https://dub.co/help/article/receiving-payouts"
+                    />
+                  }
                   side="right"
                 >
                   <div>
@@ -83,10 +92,7 @@ export const PayoutStats = memo(() => {
           </div>
         </div>
         {partner && !partner.payoutsEnabledAt && (
-          <ConnectPayoutButton
-            className="mt-4 h-9 w-full"
-            text={`Connect ${partner.supportedPayoutMethod === "stripe" ? "Stripe" : "PayPal"}`}
-          />
+          <ConnectPayoutButton className="mt-4 h-9 w-full" />
         )}
       </div>
     </AnimatedSizeContainer>

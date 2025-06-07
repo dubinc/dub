@@ -1,6 +1,5 @@
 import { PAYOUTS_SHEET_ITEMS_LIMIT } from "@/lib/partners/constants";
 import usePayouts from "@/lib/swr/use-payouts";
-import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { ThreeDots, X } from "@/ui/shared/icons";
@@ -39,15 +38,16 @@ type PartnerDetailsSheetProps = {
 type Tab = "payouts" | "links";
 
 function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
-  const { slug } = useWorkspace();
-  const { program } = useProgram();
+  const { slug, defaultProgramId } = useWorkspace();
   const [tab, setTab] = useState<Tab>("links");
 
   const { createPayoutSheet, setIsOpen: setCreatePayoutSheetOpen } =
     useCreatePayoutSheet({ nested: true, partnerId: partner.id });
 
   const showPartnerDetails =
-    partner.status === "approved" || partner.status === "banned";
+    partner.status === "approved" ||
+    partner.status === "banned" ||
+    partner.status === "archived";
 
   return (
     <div className="flex h-full flex-col">
@@ -134,7 +134,7 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
 
           {/* <div className="xs:grid-cols-2 mt-4 grid grid-cols-1 gap-3">
             <Link
-              href={`/${slug}/analytics?programId=${program!.id}&partnerId=${partner.id}&interval=all`}
+              href={`/${slug}/analytics?programId=${defaultProgramId}&partnerId=${partner.id}&interval=all`}
               target="_blank"
               className={cn(
                 buttonVariants({ variant: "secondary" }),
@@ -145,7 +145,7 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
               Analytics
             </Link>
             <Link
-              href={`/${slug}/events?programId=${program!.id}&partnerId=${partner.id}&interval=all`}
+              href={`/${slug}/events?programId=${defaultProgramId}&partnerId=${partner.id}&interval=all`}
               target="_blank"
               className={cn(
                 buttonVariants({ variant: "secondary" }),
@@ -166,7 +166,7 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
                   {
                     id: "commissions",
                     label: "Commissions",
-                    href: `/${slug}/programs/${program!.id}/commissions?partnerId=${partner.id}`,
+                    href: `/${slug}/program/commissions?partnerId=${partner.id}`,
                     target: "_blank",
                   },
                 ]}
@@ -215,7 +215,6 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
 
 function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
   const { slug } = useWorkspace();
-  const { program } = useProgram();
 
   const {
     payouts,
@@ -259,7 +258,7 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
     ],
     onRowClick: (row) => {
       window.open(
-        `/${slug}/programs/${program!.id}/payouts?payoutId=${row.original.id}`,
+        `/${slug}/program/payouts?payoutId=${row.original.id}`,
         "_blank",
       );
     },
@@ -276,7 +275,7 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
       <Table {...table} />
       <div className="mt-2 flex justify-end">
         <Link
-          href={`/${slug}/programs/${program!.id}/payouts?partnerId=${partner.id}`}
+          href={`/${slug}/program/payouts?partnerId=${partner.id}`}
           target="_blank"
           className={cn(
             buttonVariants({ variant: "secondary" }),

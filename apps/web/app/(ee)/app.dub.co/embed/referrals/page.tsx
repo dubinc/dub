@@ -38,12 +38,8 @@ async function ReferralsEmbedRSC({
 function EmbedInlineLoading({ themeOptions }: { themeOptions: ThemeOptions }) {
   return (
     <div
-      style={
-        themeOptions.backgroundColor
-          ? { backgroundColor: themeOptions.backgroundColor }
-          : undefined
-      }
-      className="bg-bg-default flex min-h-screen flex-col"
+      style={{ backgroundColor: themeOptions.backgroundColor || "transparent" }}
+      className="flex min-h-screen flex-col"
     >
       <div className="p-5">
         <div className="border-border-default relative flex flex-col overflow-hidden rounded-lg border p-4 md:p-6">
@@ -68,7 +64,7 @@ function EmbedInlineLoading({ themeOptions }: { themeOptions: ThemeOptions }) {
             <div className="bg-bg-muted h-6 w-40 rounded-md" />
           </div>
           <a
-            href="https://dub.partners"
+            href="https://dub.co/partners"
             target="_blank"
             className="hover:text-content-default text-content-subtle mt-4 flex items-center justify-center gap-1.5 transition-colors duration-75 md:absolute md:bottom-3 md:right-3 md:mt-0 md:translate-x-0"
           >
