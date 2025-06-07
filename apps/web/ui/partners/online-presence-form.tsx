@@ -143,9 +143,8 @@ export function OnlinePresenceForm({
                   icon={Globe}
                   onClick={async () => {
                     try {
-                      const result = await updateOnlinePresenceAction({
-                        website: getValues("website"),
-                      });
+                      const result =
+                        await updateOnlinePresenceAction(getValues());
 
                       if (
                         !result?.data?.website ||
