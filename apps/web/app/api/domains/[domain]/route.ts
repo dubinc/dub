@@ -151,10 +151,8 @@ export const PATCH = withWorkspace(
 
             // trigger the queue to rename the redis keys and update the links in Tinybird
             queueDomainUpdate({
-              workspaceId: workspace.id,
               oldDomain: domain,
               newDomain: newDomain,
-              page: 1,
             }),
           ]);
         }
@@ -186,7 +184,6 @@ export const DELETE = withWorkspace(
 
     await markDomainAsDeleted({
       domain,
-      workspaceId: workspace.id,
     });
 
     return NextResponse.json({ slug: domain });

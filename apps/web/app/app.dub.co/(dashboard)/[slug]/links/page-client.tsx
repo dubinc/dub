@@ -7,7 +7,7 @@ import {
 import { useIsMegaFolder } from "@/lib/swr/use-is-mega-folder";
 import useLinks from "@/lib/swr/use-links";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { STORE_KEYS, useWorkspaceStore } from "@/lib/swr/use-workspace-store";
+import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { RequestFolderEditAccessButton } from "@/ui/folders/request-edit-button";
 import LinkDisplay from "@/ui/links/link-display";
 import LinksContainer from "@/ui/links/links-container";
@@ -82,7 +82,7 @@ function WorkspaceLinks() {
   );
 
   const [dotLinkOfferDismissed, _, { loading: loadingDotLinkOfferDismissed }] =
-    useWorkspaceStore<string>(STORE_KEYS.dotLinkOfferDismissed);
+    useWorkspaceStore<string>("dotLinkOfferDismissed");
 
   const [showedDotLinkModal, setShowedDotLinkModal] = useState(false);
   const { setShowDotLinkOfferModal, DotLinkOfferModal } =

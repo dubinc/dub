@@ -40,6 +40,7 @@ export const GET = withWorkspace(
           ...workspace,
           id: prefixWorkspaceId(workspace.id),
           domains,
+          flags,
         }),
       },
       { headers },

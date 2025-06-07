@@ -5,23 +5,16 @@ import useSWR, { SWRConfiguration } from "swr";
 import useWorkspace from "./use-workspace";
 
 export default function useFolders({
-  includeParams = false,
-  includeLinkCount = false,
+  includeParams = [],
   query,
   options,
 }: {
-  includeParams?: boolean;
-  includeLinkCount?: boolean;
+  includeParams?: string[];
   query?: Record<string, any>;
   options?: SWRConfiguration;
 } = {}) {
   const { id: workspaceId, plan } = useWorkspace();
   const { getQueryString } = useRouterStuff();
-
-  const qs = getQueryString(
-    { workspaceId, ...query },
-    { include: includeParams ? undefined : [] },
-  );
 
   const {
     data: folders,
@@ -29,7 +22,10 @@ export default function useFolders({
     isLoading,
   } = useSWR<Folder[]>(
     workspaceId && plan !== "free"
-      ? `/api/folders${qs}${includeLinkCount ? "&includeLinkCount=true" : ""}`
+      ? `/api/folders${getQueryString(
+          { workspaceId, ...query },
+          { include: includeParams },
+        )}`
       : null,
     fetcher,
     {

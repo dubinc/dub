@@ -20,6 +20,7 @@ import {
   LinkBuilderProvider,
   LinkFormData,
 } from "@/ui/links/link-builder/link-builder-provider";
+import { LinkCreatorInfo } from "@/ui/links/link-builder/link-creator-info";
 import { LinkFeatureButtons } from "@/ui/links/link-builder/link-feature-buttons";
 import { LinkPartnerDetails } from "@/ui/links/link-builder/link-partner-details";
 import { LinkPreview } from "@/ui/links/link-builder/link-preview";
@@ -89,7 +90,7 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
   const router = useRouter();
   const workspace = useWorkspace();
 
-  const { isDesktop, isMobile } = useMediaQuery();
+  const { isDesktop } = useMediaQuery();
   const [copied, copyToClipboard] = useCopyToClipboard();
 
   const { control, handleSubmit, reset, getValues } =
@@ -129,7 +130,6 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
 
   const { partner, loading: isLoadingPartner } = usePartner({
     partnerId: link?.partnerId ?? null,
-    programId: link?.programId ?? null,
   });
 
   const [isChangingLink, setIsChangingLink] = useState(false);
@@ -241,8 +241,9 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
                 <LinkPartnerDetails link={link} partner={partner} />
               </div>
             )}
+            {/* Creator info at the bottom (desktop only) */}
+            {isDesktop && <LinkCreatorInfo link={link} />}
           </div>
-
           {isDesktop && (
             <>
               <div className="grow" />
@@ -261,6 +262,7 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
             <div className="py-4 lg:px-4 lg:py-6">
               <LinkPreview />
             </div>
+            {!isDesktop && <LinkCreatorInfo link={link} />}
           </div>
         </div>
         {!isDesktop && (

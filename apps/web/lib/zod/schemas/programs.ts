@@ -7,6 +7,7 @@ import { LinkStructure, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { z } from "zod";
 import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
+import { programLanderSchema } from "./program-lander";
 import { RewardSchema } from "./rewards";
 import { parseDateSchema } from "./utils";
 
@@ -36,10 +37,15 @@ export const ProgramSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
 
-  // Help & Support
+  // Help & support
   supportEmail: z.string().nullish(),
   helpUrl: z.string().nullish(),
   termsUrl: z.string().nullish(),
+  ageVerification: z.number().nullish(),
+});
+
+export const ProgramWithLanderDataSchema = ProgramSchema.extend({
+  landerData: programLanderSchema.nullish(),
 });
 
 export const updateProgramSchema = z.object({
@@ -66,7 +72,7 @@ export const updateProgramSchema = z.object({
     }),
   linkStructure: z.nativeEnum(LinkStructure),
 
-  // Help & Support
+  // Help & support
   supportEmail: z.string().email().max(255).nullish(),
   helpUrl: z.string().url().max(500).nullish(),
   termsUrl: z.string().url().max(500).nullish(),
@@ -85,12 +91,22 @@ export const ProgramPartnerLinkSchema = LinkSchema.pick({
 });
 
 export const ProgramEnrollmentSchema = z.object({
-  partnerId: z.string(),
-  tenantId: z.string().nullable(),
-  programId: z.string(),
+  partnerId: z.string().describe("The partner's unique ID on Dub."),
+  tenantId: z
+    .string()
+    .nullable()
+    .describe(
+      "The partner's unique ID within your database. Can be useful for associating the partner with a user in your database and retrieving/update their data in the future.",
+    ),
+  programId: z.string().describe("The program's unique ID on Dub."),
   program: ProgramSchema,
-  status: z.nativeEnum(ProgramEnrollmentStatus),
-  links: z.array(ProgramPartnerLinkSchema).nullable(),
+  status: z
+    .nativeEnum(ProgramEnrollmentStatus)
+    .describe("The status of the partner's enrollment in the program."),
+  links: z
+    .array(ProgramPartnerLinkSchema)
+    .nullable()
+    .describe("The partner's referral links in this program."),
   rewards: z.array(RewardSchema).nullish(),
   discount: DiscountSchema.nullish(),
   createdAt: z.date(),
@@ -101,6 +117,10 @@ export const ProgramInviteSchema = z.object({
   email: z.string(),
   shortLink: z.string(),
   createdAt: z.date(),
+});
+
+export const getProgramQuerySchema = z.object({
+  includeLanderData: z.coerce.boolean().optional(),
 });
 
 export const getProgramMetricsQuerySchema = z.object({

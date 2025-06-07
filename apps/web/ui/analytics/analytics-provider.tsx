@@ -94,7 +94,7 @@ export default function AnalyticsProvider({
 }>) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const { id: workspaceId, slug } = useWorkspace();
+  const { id: workspaceId, slug, domains } = useWorkspace();
 
   const [requiresUpgrade, setRequiresUpgrade] = useState(false);
 
@@ -189,13 +189,14 @@ export default function AnalyticsProvider({
       return {
         basePath: "analytics",
         baseApiPath: "/api/admin/analytics",
+        eventsApiPath: "/api/admin/events",
         domain: domainSlug,
       };
     } else if (slug) {
       return {
         basePath: `/${slug}/analytics`,
-        baseApiPath: `/api/analytics`,
-        eventsApiPath: `/api/events`,
+        baseApiPath: "/api/analytics",
+        eventsApiPath: "/api/events",
         domain: domainSlug,
       };
     } else if (partner?.id && programSlug) {
@@ -232,6 +233,26 @@ export default function AnalyticsProvider({
     selectedTab,
   ]);
 
+  /*
+    If explicitly set, use the value
+    If not set:
+      - Show root domain links if:
+        - it's filtered by a link, or
+        - the workspace has more than 50 domains
+        - is admin page
+        - is filtered by a folder or tag
+      - Otherwise, hide root domain links
+  */
+  const root = searchParams.get("root")
+    ? searchParams.get("root") === "true"
+    : (domain && key) ||
+        (domains && domains.length > 50) ||
+        adminPage ||
+        folderId ||
+        tagIds
+      ? undefined
+      : "false";
+
   const queryString = useMemo(() => {
     const availableFilterParams = VALID_ANALYTICS_FILTERS.reduce(
       (acc, filter) => ({
@@ -251,6 +272,7 @@ export default function AnalyticsProvider({
         end && { start: start.toISOString(), end: end.toISOString() }),
       ...(interval && { interval }),
       ...(tagIds && { tagIds }),
+      ...(root && { root: root.toString() }),
       event: selectedTab,
       ...(folderId && { folderId }),
       ...(customerId && { customerId }),
@@ -264,6 +286,7 @@ export default function AnalyticsProvider({
     start,
     end,
     tagIds,
+    root,
     selectedTab,
     folderId,
     customerId,

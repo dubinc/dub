@@ -1,13 +1,16 @@
 import { IntegrationLogo } from "@/ui/integrations/integration-logo";
+import LayoutLoader from "@/ui/layout/layout-loader";
+import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { BackLink } from "@/ui/shared/back-link";
 import { prisma } from "@dub/prisma";
-import { Avatar } from "@dub/ui";
+import { Avatar, ConnectedDots } from "@dub/ui";
 import { cn, formatDate, truncate } from "@dub/utils";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default function EnabledIntegrationsPage({
   params,
@@ -22,7 +25,7 @@ export default function EnabledIntegrationsPage({
       <h1 className="text-2xl font-semibold tracking-tight text-black">
         Enabled Integrations
       </h1>
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<LayoutLoader />}>
         <EnabledIntegrationsPageRSC slug={params.slug} />
       </Suspense>
     </div>
@@ -54,6 +57,22 @@ async function EnabledIntegrationsPageRSC({ slug }: { slug: string }) {
       },
     },
   });
+
+  if (!integrations || integrations.length === 0) {
+    return (
+      <AnimatedEmptyState
+        title="No integrations enabled"
+        description="When you enable an integration, it will appear here."
+        cardContent={
+          <>
+            <ConnectedDots className="size-4 text-neutral-700" />
+            <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+          </>
+        }
+        className="min-h-[400px]"
+      />
+    );
+  }
 
   return (
     <ul className="flex flex-col gap-2">
@@ -99,11 +118,7 @@ async function EnabledIntegrationsPageRSC({ slug }: { slug: string }) {
                       ) : null}
                       {formatDate(installation.createdAt, {
                         month: "short",
-                        year:
-                          installation.createdAt.getFullYear() ===
-                          new Date().getFullYear()
-                            ? undefined
-                            : "numeric",
+                        year: "numeric",
                       })}
                     </span>
                   )}

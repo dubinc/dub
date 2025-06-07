@@ -13,6 +13,7 @@ interface GetLinkParams {
   externalId?: string;
   domain?: string;
   key?: string;
+  includeUser?: boolean;
   includeWebhooks?: boolean;
 }
 
@@ -23,6 +24,7 @@ export const getLinkOrThrow = async (params: GetLinkParams) => {
     domain,
     key,
     externalId,
+    includeUser = false,
     includeWebhooks = false,
   } = params;
   let link: Link | null = null;
@@ -48,6 +50,7 @@ export const getLinkOrThrow = async (params: GetLinkParams) => {
       },
       include: {
         webhooks: includeWebhooks,
+        user: includeUser,
       },
     });
   }
@@ -68,6 +71,7 @@ export const getLinkOrThrow = async (params: GetLinkParams) => {
       },
       include: {
         webhooks: includeWebhooks,
+        user: includeUser,
       },
     });
   }

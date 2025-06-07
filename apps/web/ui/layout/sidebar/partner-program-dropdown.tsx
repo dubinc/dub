@@ -74,20 +74,23 @@ export function PartnerProgramDropdown() {
       <Popover
         content={
           <div className="w-full sm:w-64">
-            {programEnrollments && programEnrollments.length > 0 && (
-              <div className="border-b border-neutral-200">
-                <ProgramList
-                  selectedProgram={selectedProgram}
-                  programs={programEnrollments
-                    .filter(
-                      (programEnrollment) =>
-                        programEnrollment.status === "approved",
-                    )
-                    .map((programEnrollment) => programEnrollment.program)}
-                  setOpenPopover={setOpenPopover}
-                />
-              </div>
-            )}
+            {programEnrollments &&
+              programEnrollments.filter(
+                (programEnrollment) => programEnrollment.status === "approved",
+              ).length > 0 && (
+                <div className="border-b border-neutral-200">
+                  <ProgramList
+                    selectedProgram={selectedProgram}
+                    programs={programEnrollments
+                      .filter(
+                        (programEnrollment) =>
+                          programEnrollment.status === "approved",
+                      )
+                      .map((programEnrollment) => programEnrollment.program)}
+                    setOpenPopover={setOpenPopover}
+                  />
+                </div>
+              )}
             <div className="p-2">
               <Link
                 className={cn(

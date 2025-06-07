@@ -1,6 +1,7 @@
 import { Button, Modal, useRouterStuff, useScrollProgress } from "@dub/ui";
 import { STAGGER_CHILD_VARIANTS } from "@dub/utils";
 import { motion } from "framer-motion";
+import { useParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -12,29 +13,6 @@ import {
 import { CheckCircleFill } from "../shared/icons";
 import { ModalHero } from "../shared/modal-hero";
 
-const NEXT_STEPS = [
-  {
-    text: "Set up a bank account for payouts",
-    href: "https://dub.co/help/article/how-to-set-up-bank-account",
-  },
-  {
-    text: "Create custom rewards for your partners",
-    href: "https://dub.co/help/article/partner-rewards",
-  },
-  {
-    text: "Create dual-sided incentives",
-    href: "https://dub.co/help/article/dual-sided-incentives",
-  },
-  {
-    text: "Invite more partners to your program",
-    href: "https://dub.co/help/article/inviting-partners",
-  },
-  {
-    text: "Set up a program application form",
-    href: "https://dub.co/help/article/inviting-partners#via-a-branded-application-form",
-  },
-];
-
 function ProgramWelcomeModal({
   showProgramWelcomeModal,
   setShowProgramWelcomeModal,
@@ -42,9 +20,25 @@ function ProgramWelcomeModal({
   showProgramWelcomeModal: boolean;
   setShowProgramWelcomeModal: Dispatch<SetStateAction<boolean>>;
 }) {
+  const { slug: workspaceSlug } = useParams();
   const { queryParams } = useRouterStuff();
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
+
+  const NEXT_STEPS = [
+    {
+      text: "Create a public landing page for your program",
+      href: `/${workspaceSlug}/program/branding`,
+    },
+    {
+      text: "Set up a bank account for partner payouts",
+      href: "https://dub.co/help/article/how-to-set-up-bank-account",
+    },
+    {
+      text: "Invite more partners to your program",
+      href: "https://dub.co/help/article/inviting-partners",
+    },
+  ];
 
   return (
     <Modal

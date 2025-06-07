@@ -73,7 +73,7 @@ type CalendarProps =
 
 function Calendar({
   mode = "single",
-  weekStartsOn = 1,
+  weekStartsOn = 0,
   numberOfMonths = 1,
   showYearNavigation = false,
   disableNavigation,

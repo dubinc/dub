@@ -1,6 +1,7 @@
+import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
-import { z } from "zod";
+import z from "../zod";
 import { getCustomersCountQuerySchema } from "../zod/schemas/customers";
 import useWorkspace from "./use-workspace";
 
@@ -12,12 +13,21 @@ export default function useCustomersCount<T = number>({
   enabled?: boolean;
 } = {}) {
   const { id: workspaceId } = useWorkspace();
+  const { getQueryString } = useRouterStuff();
 
   const { data, error } = useSWR<T>(
     enabled &&
       workspaceId &&
-      `/api/customers/count?${new URLSearchParams({ workspaceId, ...query })}`,
+      `/api/customers/count${getQueryString(
+        { workspaceId, ...query },
+        {
+          include: ["linkId", "country", "search"],
+        },
+      )}`,
     fetcher,
+    {
+      keepPreviousData: true,
+    },
   );
 
   return {

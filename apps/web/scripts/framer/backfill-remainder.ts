@@ -5,10 +5,18 @@ import * as Papa from "papaparse";
 import { tb } from "../../lib/tinybird/client";
 import z from "../../lib/zod";
 
+/*
+  Script to convert framer-combined.csv that Framer gave us
+  into framer_remaining_events_final_final.csv
+  (script 1 of 3 for Framer backfill)
+*/
+
 const getFramerLeadEvents = tb.buildPipe({
   pipe: "get_framer_lead_events",
   parameters: z.object({
-    linkId: z.string(),
+    linkIds: z
+      .union([z.string(), z.array(z.string())])
+      .transform((v) => (Array.isArray(v) ? v : v.split(","))),
   }),
   data: z.any(),
 });
@@ -63,7 +71,7 @@ async function processFramerData(linkToBackfill: {
         );
 
         const { data: leadEvents } = await getFramerLeadEvents({
-          linkId: linkToBackfill.linkId,
+          linkIds: linkToBackfill.linkId,
         });
 
         const customerIdsSet = new Set(
@@ -112,9 +120,9 @@ async function processFramerData(linkToBackfill: {
         console.log(
           `Found ${eventsToBackfill.length} events to backfill for ${linkToBackfill.via} (${linkToBackfill.linkId})`,
         );
-        // append to framer_remaining_events_final.csv
+        // append to framer_remaining_events_final_final.csv
         fs.appendFileSync(
-          "framer_remaining_events_final.csv",
+          "framer_remaining_events_final_final.csv",
           Papa.unparse(eventsToBackfill),
         );
         resolve();

@@ -3,16 +3,13 @@
 import { useAction } from "next-safe-action/hooks";
 import { useEffect, useState } from "react";
 import { mutate } from "swr";
+import { z } from "zod";
 import { updateWorkspaceStore } from "../actions/update-workspace-store";
+import { workspaceStoreKeys } from "../zod/schemas/workspaces";
 import useWorkspace from "./use-workspace";
 
-export const STORE_KEYS = {
-  conversionsOnboarding: "conversionsOnboarding",
-  dotLinkOfferDismissed: "dotLinkOfferDismissed",
-};
-
 export function useWorkspaceStore<T>(
-  key: string,
+  key: z.infer<typeof workspaceStoreKeys>,
 ): [
   T | undefined,
   (value: T) => Promise<void>,
@@ -38,7 +35,12 @@ export function useWorkspaceStore<T>(
 
   const setItem = async (value: T) => {
     setItemState(value);
-    await executeAsync({ key, value, workspaceId: workspaceId! });
+
+    await executeAsync({
+      key,
+      value,
+      workspaceId: workspaceId!,
+    });
   };
 
   const mutateWorkspace = () => {

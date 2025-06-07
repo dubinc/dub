@@ -6,6 +6,7 @@ import {
   WorkspaceSchema,
   createWorkspaceSchema,
 } from "@/lib/zod/schemas/workspaces";
+import { subscribe } from "@dub/email/resend/subscribe";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import {
@@ -142,19 +143,26 @@ export const POST = withSession(async ({ req, session }) => {
       },
     );
 
-    // if the user has no default workspace, set the new workspace as the default
-    if (session.user["defaultWorkspace"] === null) {
-      waitUntil(
-        prisma.user.update({
-          where: {
-            id: session.user.id,
-          },
-          data: {
-            defaultWorkspace: workspace.slug,
-          },
+    waitUntil(
+      Promise.allSettled([
+        // if the user has no default workspace, set the new workspace as the default
+        session.user["defaultWorkspace"] === null &&
+          prisma.user.update({
+            where: {
+              id: session.user.id,
+            },
+            data: {
+              defaultWorkspace: workspace.slug,
+            },
+          }),
+        // Subscribe the user to the app.dub.co Resend audience
+        subscribe({
+          email: session.user.email,
+          name: session.user.name || undefined,
+          audience: "app.dub.co",
         }),
-      );
-    }
+      ]),
+    );
 
     return NextResponse.json(
       WorkspaceSchema.parse({

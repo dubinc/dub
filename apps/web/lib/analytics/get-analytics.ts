@@ -15,6 +15,14 @@ import {
 import { AnalyticsFilters } from "./types";
 import { getStartEndDates } from "./utils/get-start-end-dates";
 
+// Determine the pipe name based on the groupBy parameter
+const determinePipeName = (groupBy: AnalyticsFilters["groupBy"]) => {
+  if (UTM_TAGS_PLURAL_LIST.includes(groupBy)) {
+    return "v2_utms";
+  }
+  return `v2_${groupBy}`;
+};
+
 // Fetch data for /api/analytics
 export const getAnalytics = async (params: AnalyticsFilters) => {
   let {
@@ -94,7 +102,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
 
   // Create a Tinybird pipe
   const pipe = tb.buildPipe({
-    pipe: `v2_${UTM_TAGS_PLURAL_LIST.includes(groupBy) ? "utms" : groupBy}`,
+    pipe: determinePipeName(groupBy),
     parameters: analyticsFilterTB,
     data:
       groupBy === "top_links" || UTM_TAGS_PLURAL_LIST.includes(groupBy)
