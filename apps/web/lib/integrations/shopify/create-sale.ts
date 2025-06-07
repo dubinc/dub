@@ -91,9 +91,6 @@ export async function createShopifySale({
         usage: {
           increment: 1,
         },
-        salesUsage: {
-          increment: amount,
-        },
       },
     }),
 

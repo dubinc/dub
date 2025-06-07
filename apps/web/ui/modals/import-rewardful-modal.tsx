@@ -69,7 +69,7 @@ function ImportRewardfulModal({
       toast.success(
         "Successfully added campaigns to import queue! We will send you an email when your campaigns have been fully imported.",
       );
-      router.push(`/${slug}/programs/${program?.id}/partners`);
+      router.push(`/${slug}/program/partners`);
     },
   });
 

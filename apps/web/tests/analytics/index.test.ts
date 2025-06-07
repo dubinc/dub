@@ -5,11 +5,6 @@ import { describe, expect, test } from "vitest";
 import { env } from "../utils/env";
 import { IntegrationHarness } from "../utils/integration";
 
-const filter = {
-  domain: "dub.sh",
-  key: "checkly-check",
-  interval: "30d",
-};
 describe.runIf(env.CI).sequential("GET /analytics", async () => {
   const h = new IntegrationHarness();
   const { workspace, http } = await h.init();
@@ -19,7 +14,18 @@ describe.runIf(env.CI).sequential("GET /analytics", async () => {
     test(`by ${groupBy}`, async () => {
       const { status, data } = await http.get<any[]>({
         path: `/analytics`,
-        query: { event: "composite", groupBy, workspaceId, ...filter },
+        query: {
+          event: "composite",
+          groupBy,
+          workspaceId,
+          interval: "30d",
+          ...(groupBy !== "top_partners"
+            ? {
+                domain: "dub.sh",
+                key: "checkly-check",
+              }
+            : {}),
+        },
       });
 
       const responseSchema =

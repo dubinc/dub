@@ -1,5 +1,5 @@
 import { Grid, Wordmark } from "@dub/ui";
-import Link from "next/link";
+import { cn } from "@dub/utils";
 
 export default function PartnerAuthLayout({
   children,
@@ -7,52 +7,54 @@ export default function PartnerAuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen flex-col">
-      <div className="fixed inset-0 [mask-image:radial-gradient(60%_60%_at_50%_0%,black,transparent)]">
-        <Grid className="text-neutral-200" />
-        <div className="absolute inset-0 -translate-y-1/2 -scale-x-100 bg-[conic-gradient(from_-32deg,#f00_0deg,#EAB308_99deg,#5CFF80_162deg,#00FFF9_216deg,#3A8BFD_288deg,#855AFC_360deg)] opacity-25 blur-[200px]" />
+    <>
+      <div className="absolute inset-0 isolate overflow-hidden bg-white">
+        {/* Grid */}
+        <div
+          className={cn(
+            "absolute inset-y-0 left-1/2 w-[1200px] -translate-x-1/2",
+            "[mask-composite:intersect] [mask-image:linear-gradient(black,transparent_320px),linear-gradient(90deg,transparent,black_5%,black_95%,transparent)]",
+          )}
+        >
+          <Grid
+            cellSize={60}
+            patternOffset={[0.75, 0]}
+            className="text-neutral-200"
+          />
+        </div>
+
+        {/* Gradient */}
+        {[...Array(2)].map((_, idx) => (
+          <div
+            key={idx}
+            className={cn(
+              "absolute left-1/2 top-6 size-[80px] -translate-x-1/2 -translate-y-1/2 scale-x-[1.6]",
+              idx === 0 ? "mix-blend-overlay" : "opacity-10",
+            )}
+          >
+            {[...Array(idx === 0 ? 2 : 1)].map((_, idx) => (
+              <div
+                key={idx}
+                className={cn(
+                  "absolute -inset-16 mix-blend-overlay blur-[50px] saturate-[2]",
+                  "bg-[conic-gradient(from_90deg,#F00_5deg,#EAB308_63deg,#5CFF80_115deg,#1E00FF_170deg,#855AFC_220deg,#3A8BFD_286deg,#F00_360deg)]",
+                )}
+              />
+            ))}
+          </div>
+        ))}
       </div>
-      <div className="relative z-10 mt-10 flex w-full flex-col items-center justify-center px-3 text-center md:px-8">
-        <Link
+      <div className="relative flex min-h-screen w-full justify-center">
+        <a
           href="https://dub.co/partners"
           target="_blank"
-          className="animate-slide-up-fade relative flex w-auto flex-col items-center [--offset:10px] [animation-duration:1.3s] [animation-fill-mode:both]"
+          className="absolute left-1/2 top-4 z-10 flex -translate-x-1/2 flex-col items-center"
         >
-          <Wordmark className="relative h-10" />
+          <Wordmark className="h-8" />
           <span className="text-sm font-medium text-neutral-700">Partners</span>
-        </Link>
+        </a>
         {children}
       </div>
-      <div className="flex grow flex-col justify-end">
-        <div className="relative flex w-full flex-col items-center justify-center gap-2 py-10 pb-6">
-          <p className="text-xs text-neutral-600">
-            © {new Date().getFullYear()} Dub Technologies, Inc.
-          </p>
-          <div className="flex gap-3 text-center text-xs text-neutral-500 underline underline-offset-2">
-            <a
-              href="https://dub.co/legal/privacy"
-              target="_blank"
-              className="hover:text-neutral-800"
-            >
-              Privacy Policy
-            </a>
-            <a
-              href="https://dub.co/legal/terms"
-              target="_blank"
-              className="hover:text-neutral-800"
-            >
-              Terms of Service
-            </a>
-            <a
-              href="https://app.dub.co"
-              target="_blank"
-              className="hover:text-neutral-800"
-            >
-              app.dub.co
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
+    </>
   );
 }

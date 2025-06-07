@@ -38,6 +38,9 @@ export async function POST(req: Request) {
         domain: oldDomain,
       },
       take: 100,
+      orderBy: {
+        createdAt: "desc",
+      },
     });
 
     if (linksToUpdate.length === 0) {

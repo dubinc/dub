@@ -35,7 +35,7 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
   }
 
   if (defaultProgramId) {
-    router.push(`/${workspaceSlug}/programs/${defaultProgramId}`);
+    router.push(`/${workspaceSlug}/program`);
   }
 
   return (

@@ -1,4 +1,4 @@
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { PARTNERS_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { AuthorizationCode } from "simple-oauth2";
 import { v4 as uuidv4 } from "uuid";
 import { redis } from "../upstash/redis";
@@ -10,13 +10,12 @@ interface AccessToken {
   };
 }
 
-interface UserInfo {
+interface PayPalUserInfo {
   email: string;
-  verified: boolean;
-  email_verified: boolean;
+  email_verified: boolean; // Indicates whether the user's paypal email address is verified.
 }
 
-const REDIRECT_URI = `${APP_DOMAIN_WITH_NGROK}/api/paypal/callback`;
+const REDIRECT_URI = `${PARTNERS_DOMAIN_WITH_NGROK}/api/paypal/callback`;
 const STATE_CACHE_PREFIX = "paypal:oauth:state:";
 
 export class PayPalOAuth {
@@ -49,7 +48,7 @@ export class PayPalOAuth {
     const state = uuidv4();
 
     await redis.set(`${STATE_CACHE_PREFIX}${state}`, dubUserId, {
-      ex: 60 * 2, // 2 minutes
+      ex: 60 * 5, // 5 minutes
     });
 
     return this.oauth2.authorizeURL({
@@ -89,7 +88,7 @@ export class PayPalOAuth {
       },
     );
 
-    const data = (await response.json()) as UserInfo;
+    const data = (await response.json()) as PayPalUserInfo;
 
     if (!response.ok) {
       throw new Error("Failed to fetch user info from PayPal.", {
