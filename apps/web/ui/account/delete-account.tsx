@@ -12,9 +12,12 @@ export default function DeleteAccountSection() {
       <div className="flex flex-col space-y-3 p-5 sm:p-10">
         <h2 className="text-xl font-medium">Delete Account</h2>
         <p className="text-sm text-neutral-500">
+          {/*Permanently delete your {process.env.NEXT_PUBLIC_APP_NAME} account,*/}
+          {/*all of your workspaces, links and their respective stats. This action*/}
+          {/*cannot be undone - please proceed with caution.*/}
           Permanently delete your {process.env.NEXT_PUBLIC_APP_NAME} account,
-          all of your workspaces, links and their respective stats. This action
-          cannot be undone - please proceed with caution.
+          QRs and their respective stats. This action cannot be undone - please
+          proceed with caution.
         </p>
       </div>
       <div className="border-b border-red-600" />
@@ -22,7 +25,7 @@ export default function DeleteAccountSection() {
       <div className="flex items-center justify-end p-3 sm:px-10">
         <div>
           <Button
-            text="Delete Account"
+            text="Delete account"
             variant="danger"
             onClick={() => setShowDeleteAccountModal(true)}
           />
