@@ -1,5 +1,4 @@
-import { DubApiError } from "@/lib/api/errors";
-import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { partnersCountQuerySchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
@@ -9,20 +8,7 @@ import { NextResponse } from "next/server";
 // GET /api/partners/count - get the count of partners for a program
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
-    const { programId } = searchParams;
-
-    if (!programId) {
-      throw new DubApiError({
-        code: "bad_request",
-        message:
-          "Program ID not found. Did you forget to include a `programId` query parameter?",
-      });
-    }
-
-    const program = await getProgramOrThrow({
-      workspaceId: workspace.id,
-      programId,
-    });
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
     const { groupBy, status, country, rewardId, search, ids } =
       partnersCountQuerySchema.parse(searchParams);
@@ -53,7 +39,7 @@ export const GET = withWorkspace(
               }),
             },
             every: {
-              status: status || { notIn: ["rejected", "banned"] },
+              status: status || { notIn: ["rejected", "banned", "archived"] },
             },
           },
           ...commonWhere,
@@ -116,7 +102,7 @@ export const GET = withWorkspace(
           where: {
             programEnrollment: {
               programId,
-              status: status || { notIn: ["rejected", "banned"] },
+              status: status || { notIn: ["rejected", "banned", "archived"] },
               partner: {
                 ...(country && {
                   country,
@@ -126,37 +112,26 @@ export const GET = withWorkspace(
             },
           },
           _count: true,
+          orderBy: {
+            _count: {
+              rewardId: "desc",
+            },
+          },
         }),
         prisma.reward.findMany({
           where: {
             programId,
-            // TODO: remove this once we can filter by that too
-            id: {
-              not: program.defaultRewardId ?? undefined,
-            },
           },
         }),
-        // prisma.programEnrollment.count({
-        //   where: {
-        //     rewards: {
-        //       none: {},
-        //     },
-        //   },
-        // }),
       ]);
 
-      const partnersWithReward = allRewards
-        .map((reward) => {
-          const partnerCount = customRewardsPartners.find(
-            (p) => p.rewardId === reward.id,
-          )?._count;
-
-          return {
-            ...reward,
-            partnersCount: partnerCount,
-          };
-        })
-        .sort((a, b) => (b.partnersCount ?? 0) - (a.partnersCount ?? 0));
+      const partnersWithReward = customRewardsPartners.map((p) => {
+        const reward = allRewards.find((r) => r.id === p.rewardId);
+        return {
+          ...reward,
+          partnersCount: p._count,
+        };
+      });
 
       return NextResponse.json(partnersWithReward);
     }
@@ -165,7 +140,7 @@ export const GET = withWorkspace(
     const count = await prisma.programEnrollment.count({
       where: {
         programId,
-        status: status || { notIn: ["rejected", "banned"] },
+        status: status || { notIn: ["rejected", "banned", "archived"] },
         ...(rewardId && {
           rewards: {
             some: {

@@ -1,3 +1,4 @@
+import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { stripeAppClient } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
 import type Stripe from "stripe";
@@ -61,6 +62,8 @@ export async function chargeRefunded(event: Stripe.Event) {
       status: true,
       payoutId: true,
       earnings: true,
+      partnerId: true,
+      programId: true,
     },
   });
 
@@ -101,6 +104,12 @@ export async function chargeRefunded(event: Stripe.Event) {
       status: "refunded",
       payoutId: null,
     },
+  });
+
+  // sync total commissions for the partner in the program
+  await syncTotalCommissions({
+    partnerId: commission.partnerId,
+    programId: commission.programId,
   });
 
   return `Commission ${commission.id} updated to status "refunded"`;

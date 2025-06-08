@@ -26,7 +26,6 @@ export default function NewSaleAlertProgramOwner({
     slug: "acme",
   },
   program = {
-    id: "prog_CYCu7IMAapjkRpTnr8F1azjN",
     name: "Acme",
     logo: DUB_WORDMARK,
     holdingPeriodDays: 30,
@@ -50,7 +49,6 @@ export default function NewSaleAlertProgramOwner({
     slug: string;
   };
   program: {
-    id: string;
     name: string;
     logo: string | null;
     holdingPeriodDays: number;
@@ -65,7 +63,7 @@ export default function NewSaleAlertProgramOwner({
     earnings: number;
   };
 }) {
-  const salesLink = `https://app.dub.co/${workspace.slug}/programs/${program.id}/sales?partnerId=${partner.id}`;
+  const salesLink = `https://app.dub.co/${workspace.slug}/program/commissions?partnerId=${partner.id}`;
   const notificationPreferencesLink = `https://app.dub.co/${workspace.slug}/settings/notifications`;
 
   const saleAmountInDollars = currencyFormatter(sale.amount / 100, {

@@ -1,8 +1,10 @@
 import { prisma } from "@dub/prisma";
 import { CommissionStatus, EventType } from "@dub/prisma/client";
 import { log } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { differenceInMonths } from "date-fns";
 import { createId } from "../api/create-id";
+import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { calculateSaleEarnings } from "../api/sales/calculate-sale-earnings";
 import { RewardProps } from "../types";
 import { determinePartnerReward } from "./determine-partner-reward";
@@ -164,6 +166,13 @@ export const createPartnerCommission = async ({
         createdAt,
       },
     });
+
+    waitUntil(
+      syncTotalCommissions({
+        partnerId,
+        programId,
+      }),
+    );
 
     return commission;
   } catch (error) {

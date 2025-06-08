@@ -17,11 +17,9 @@ import { Footer } from "../components/footer";
 export default function NewSaleAlertPartner({
   email = "panic@thedis.co",
   partner = {
-    id: "pn_OfewI1Faaf5pV8QH3mha8L7S",
     referralLink: "https://refer.dub.co/steven",
   },
   program = {
-    id: "prog_CYCu7IMAapjkRpTnr8F1azjN",
     name: "Acme",
     slug: "acme",
     logo: DUB_WORDMARK,
@@ -33,11 +31,9 @@ export default function NewSaleAlertPartner({
 }: {
   email: string;
   partner: {
-    id: string;
     referralLink: string;
   };
   program: {
-    id: string;
     name: string;
     slug: string;
     logo: string | null;
