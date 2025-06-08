@@ -84,7 +84,6 @@ export function PartnerTable() {
     `/api/partners${getQueryString(
       {
         workspaceId,
-        includeExpandedFields: "true",
       },
       { exclude: ["partnerId"] },
     )}`,
