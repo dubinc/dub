@@ -19,6 +19,10 @@ export const syncTotalCommissions = async ({
       _sum: { earnings: true },
     });
 
+    console.log(
+      `Updating total commissions for partner ${partnerId} in program ${programId} to ${totalCommissions._sum.earnings || 0}`,
+    );
+
     return await tx.programEnrollment.update({
       where: {
         partnerId_programId: { partnerId, programId },
