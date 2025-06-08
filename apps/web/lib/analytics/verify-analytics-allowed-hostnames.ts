@@ -32,8 +32,8 @@ export const verifyAnalyticsAllowedHostnames = ({
     .map((domain) => domain.slice(2)); // Remove the "*.", leaving just the domain
 
   for (const domain of wildcardMatches) {
-    // Check if the hostname ends with the domain and is not the root domain
-    if (hostname.endsWith(domain) && hostname !== domain) {
+    // Allow only proper subdomains: ensure hostname ends with ".domain"
+    if (hostname.endsWith(`.${domain}`)) {
       return true;
     }
   }

@@ -47,6 +47,7 @@ describe("analytics allowed hostnames", () => {
         "https://otherdomain.com",
         "https://blog.otherdomain.com",
         "https://example.com.evil.com",
+        "https://testexample.com",
       ];
 
       testCases.forEach((referer) => {
@@ -115,6 +116,7 @@ describe("analytics allowed hostnames", () => {
         "https://otherdomain.com",
         "https://blog.otherdomain.com",
         "https://example.com.evil.com",
+        "https://testexample.com",
       ];
 
       testCases.forEach((referer) => {
