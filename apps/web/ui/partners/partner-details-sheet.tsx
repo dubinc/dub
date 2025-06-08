@@ -107,9 +107,9 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
                 ],
                 [
                   "Commissions",
-                  !partner.commissions
+                  !partner.totalCommissions
                     ? "-"
-                    : currencyFormatter(partner.commissions / 100, {
+                    : currencyFormatter(partner.totalCommissions / 100, {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                       }),

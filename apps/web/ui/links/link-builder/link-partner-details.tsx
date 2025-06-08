@@ -63,7 +63,7 @@ export function LinkPartnerDetails({
           ["Revenue", partner ? formatCurrency(partner.saleAmount) : undefined],
           [
             "Commissions",
-            partner ? formatCurrency(partner.commissions) : undefined,
+            partner ? formatCurrency(partner.totalCommissions) : undefined,
           ],
           [
             "Net revenue",

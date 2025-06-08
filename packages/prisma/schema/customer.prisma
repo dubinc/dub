@@ -11,8 +11,8 @@ model Customer {
   clickedAt DateTime?
   country   String?
 
-  sales     Int       @default(0)
-  saleAmount Int       @default(0)
+  sales      Int @default(0)
+  saleAmount Int @default(0)
 
   projectId        String
   projectConnectId String?
