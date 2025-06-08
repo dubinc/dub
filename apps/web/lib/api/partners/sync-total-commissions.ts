@@ -8,29 +8,24 @@ export const syncTotalCommissions = async ({
   partnerId: string;
   programId: string;
 }) => {
-  const totalCommissions = await prisma.commission.aggregate({
-    where: {
-      earnings: {
-        gt: 0,
-      },
-      programId,
-      partnerId,
-      status: {
-        in: ["pending", "processed", "paid"],
-      },
-    },
-    _sum: { earnings: true },
-  });
-
-  return await prisma.programEnrollment.update({
-    where: {
-      partnerId_programId: {
-        partnerId,
+  return await prisma.$transaction(async (tx) => {
+    const totalCommissions = await tx.commission.aggregate({
+      where: {
+        earnings: { gt: 0 },
         programId,
+        partnerId,
+        status: { in: ["pending", "processed", "paid"] },
       },
-    },
-    data: {
-      totalCommissions: totalCommissions._sum.earnings || 0,
-    },
+      _sum: { earnings: true },
+    });
+
+    return await tx.programEnrollment.update({
+      where: {
+        partnerId_programId: { partnerId, programId },
+      },
+      data: {
+        totalCommissions: totalCommissions._sum.earnings || 0,
+      },
+    });
   });
 };

@@ -1,3 +1,4 @@
+import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { stripeAppClient } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
 import type Stripe from "stripe";
@@ -94,31 +95,22 @@ export async function chargeRefunded(event: Stripe.Event) {
     }
   }
 
-  await Promise.all([
-    // update the commission status to refunded
-    prisma.commission.update({
-      where: {
-        id: commission.id,
-      },
-      data: {
-        status: "refunded",
-        payoutId: null,
-      },
-    }),
-    prisma.programEnrollment.update({
-      where: {
-        partnerId_programId: {
-          partnerId: commission.partnerId,
-          programId: commission.programId,
-        },
-      },
-      data: {
-        totalCommissions: {
-          decrement: commission.earnings,
-        },
-      },
-    }),
-  ]);
+  // update the commission status to refunded
+  await prisma.commission.update({
+    where: {
+      id: commission.id,
+    },
+    data: {
+      status: "refunded",
+      payoutId: null,
+    },
+  });
+
+  // sync total commissions for the partner in the program
+  await syncTotalCommissions({
+    partnerId: commission.partnerId,
+    programId: commission.programId,
+  });
 
   return `Commission ${commission.id} updated to status "refunded"`;
 }

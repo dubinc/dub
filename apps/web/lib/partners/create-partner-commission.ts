@@ -4,6 +4,7 @@ import { log } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { differenceInMonths } from "date-fns";
 import { createId } from "../api/create-id";
+import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { calculateSaleEarnings } from "../api/sales/calculate-sale-earnings";
 import { RewardProps } from "../types";
 import { determinePartnerReward } from "./determine-partner-reward";
@@ -167,9 +168,9 @@ export const createPartnerCommission = async ({
     });
 
     waitUntil(
-      prisma.programEnrollment.update({
-        where: { partnerId_programId: { partnerId, programId } },
-        data: { totalCommissions: { increment: earnings } },
+      syncTotalCommissions({
+        partnerId,
+        programId,
       }),
     );
 
