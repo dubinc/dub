@@ -29,7 +29,6 @@ export function PartnerApplicationReceived({
       "This is a text field the applicant can fill out with details about the question asked above.",
   },
   program = {
-    id: "prog_CYCu7IMAapjkRpTnr8F1azjN",
     name: "Acme",
   },
   workspace = {
@@ -47,14 +46,13 @@ export function PartnerApplicationReceived({
     comments: string | null;
   };
   program: {
-    id: string;
     name: string;
   };
   workspace: {
     slug: string;
   };
 }) {
-  const applicationUrl = `https://app.dub.co/${workspace.slug}/programs/${program.id}/partners?status=pending&partnerId=${partner.id}`;
+  const applicationUrl = `https://app.dub.co/${workspace.slug}/program/partners?status=pending&partnerId=${partner.id}`;
 
   return (
     <Html>
