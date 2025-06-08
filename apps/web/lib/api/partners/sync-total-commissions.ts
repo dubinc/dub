@@ -15,6 +15,9 @@ export const syncTotalCommissions = async ({
       },
       programId,
       partnerId,
+      status: {
+        in: ["pending", "processed", "paid"],
+      },
     },
     _sum: { earnings: true },
   });
