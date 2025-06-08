@@ -134,7 +134,7 @@ export async function getPartners(filters: PartnerFilters) {
       leads: Number(partner.totalLeads),
       sales: Number(partner.totalSales),
       saleAmount: Number(partner.totalSaleAmount),
-      commissions: Number(partner.totalCommissions),
+      totalCommissions: Number(partner.totalCommissions),
       netRevenue: Number(partner.netRevenue),
       links: partner.links.filter((link: any) => link !== null),
     };

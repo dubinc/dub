@@ -195,11 +195,11 @@ export function PartnerTable() {
             : "-",
       },
       {
-        id: "commissions",
+        id: "totalCommissions",
         header: "Commissions",
         accessorFn: (d) =>
           d.status !== "pending"
-            ? currencyFormatter(d.commissions / 100, {
+            ? currencyFormatter(d.totalCommissions / 100, {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               })
