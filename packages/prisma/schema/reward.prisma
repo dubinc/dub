@@ -9,18 +9,23 @@ model Reward {
   amount      Int            @default(0)
   maxDuration Int? // in months (0 -> not recurring, null -> infinite)
   maxAmount   Int? // how much a partner can receive payouts (in cents)
+  default     Boolean        @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  defaultForProgram Program?        @relation("ProgramDefaultReward")
-  program           Program         @relation(fields: [programId], references: [id], onDelete: Cascade)
-  partners          PartnerReward[]
+  defaultForProgram  Program?            @relation("ProgramDefaultReward")
+  program            Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
+  partners           PartnerReward[]
+  partnerClickReward ProgramEnrollment[] @relation("PartnerClickReward")
+  partnerLeadReward  ProgramEnrollment[] @relation("PartnerLeadReward")
+  partnerSaleReward  ProgramEnrollment[] @relation("PartnerSaleReward")
 
   @@index(programId)
   @@index(event) // used in /api/cron/aggregate-clicks
 }
 
+// TODO: Remove this table
 model PartnerReward {
   id                  String @id @default(cuid())
   programEnrollmentId String
@@ -29,8 +34,7 @@ model PartnerReward {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  programEnrollment ProgramEnrollment @relation(fields: [programEnrollmentId], references: [id], onDelete: Cascade)
-  reward            Reward            @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+  reward Reward @relation(fields: [rewardId], references: [id], onDelete: Cascade)
 
   @@unique([programEnrollmentId, rewardId])
   @@index(rewardId)
