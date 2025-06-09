@@ -86,7 +86,9 @@ export function QrCodeTitleColumn({
 
         <div
           className={cn(
-            "flex min-w-0 flex-col items-start justify-center gap-1 lg:flex-1 lg:shrink-0",
+            "flex min-w-0 flex-col items-start justify-center gap-1",
+            "lg:hidden",
+            "xl:flex xl:flex-1 xl:shrink-0",
           )}
         >
           {!isTrialOver && (
