@@ -1,3 +1,4 @@
+import { QRCode } from "@/ui/shared/qr-code";
 import { Button, CopyButton, Modal } from "@dub/ui";
 import { OTPInput } from "input-otp";
 import { useCallback, useMemo, useState } from "react";
@@ -35,13 +36,10 @@ const EnableTwoFactorAuthModal = ({
           enter the 6 digit code that the app provides to continue. You can also
           copy the secret below and paste it into your app.
         </p>
-        <img
-          src={qrCodeUrl}
-          alt="Authenticator QR Code"
-          className="mx-auto rounded-lg border bg-white p-2 shadow"
-          width={180}
-          height={180}
-        />
+
+        <div className="mx-auto rounded-lg border bg-white p-1 shadow">
+          <QRCode url={qrCodeUrl} scale={2} />
+        </div>
 
         <div className="flex items-center gap-2 rounded bg-neutral-100 px-3 py-2">
           <span className="select-all font-mono text-sm">{secret}</span>

@@ -1,6 +1,6 @@
 "use server";
 
-import { totpSecret } from "@/lib/auth/totp";
+import { generateTOTPQRCode, totpSecret } from "@/lib/auth/totp";
 import { prisma } from "@dub/prisma";
 import { authUserActionClient } from "../safe-action";
 
@@ -36,9 +36,18 @@ export const enableTwoFactorAuthAction = authUserActionClient.action(
       },
     });
 
+    const qrCodeUrl = generateTOTPQRCode({
+      secret,
+      label: user.email,
+    });
+
+    if (!qrCodeUrl) {
+      throw new Error("Failed to generate 2FA QR code URL.");
+    }
+
     return {
       secret,
-      qrCodeUrl: `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=otpauth://totp/Example:email@example.com?secret=${secret}&issuer=Example`,
+      qrCodeUrl,
     };
   },
 );

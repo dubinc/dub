@@ -1,14 +1,28 @@
 import * as OTPAuth from "otpauth";
 
-export const totp = new OTPAuth.TOTP({
+const options = {
   issuer: "Dub",
-  label: "Alice",
   algorithm: "SHA1",
   digits: 6,
   period: 30,
-  secret: "US3WHSG7X5KAPV27VANWKQHF3SH3HULL", // TODO: Replace this and read from env
-});
+};
 
 export const totpSecret = new OTPAuth.Secret({
-  size: 32,
+  size: 20, // 160 bits = 32 characters
 });
+
+export const generateTOTPQRCode = ({
+  secret,
+  label,
+}: {
+  secret: string;
+  label: string;
+}) => {
+  const totp = new OTPAuth.TOTP({
+    ...options,
+    secret,
+    label,
+  });
+
+  return totp.toString();
+};
