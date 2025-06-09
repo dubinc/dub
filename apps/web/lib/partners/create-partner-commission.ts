@@ -71,7 +71,7 @@ export const createPartnerCommission = async ({
     });
 
     if (firstCommission) {
-      // use reward details from the first sale to lock in original terms.
+      // use reward details from the first sale to lock in original terms (if exists)
       // ensures historical consistency if the reward configuration has changed since the commission was created
       if (firstCommission.rewardType) {
         reward = {
