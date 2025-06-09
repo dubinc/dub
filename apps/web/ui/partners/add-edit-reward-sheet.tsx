@@ -124,6 +124,7 @@ function RewardSheetContent({
         : Infinity,
       amount: reward?.type === "flat" ? reward.amount / 100 : reward?.amount,
       maxAmount: reward?.maxAmount ? reward.maxAmount / 100 : null,
+      isDefault: isDefault || false,
       partnerIds: null,
     },
   });
@@ -329,60 +330,6 @@ function RewardSheetContent({
             type="multiple"
             defaultValue={defaultAccordionValues}
           >
-            {isDefault && !hasDefaultReward && (
-              <ProgramSheetAccordionItem value="reward-type">
-                <ProgramSheetAccordionTrigger>
-                  Reward Type
-                </ProgramSheetAccordionTrigger>
-                <ProgramSheetAccordionContent>
-                  <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-                    {DEFAULT_REWARD_TYPES.map((rewardType) => {
-                      const isSelected = selectedEvent === rewardType.key;
-
-                      const labelContent = (
-                        <label
-                          key={rewardType.label}
-                          className={cn(
-                            "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
-                            "transition-all duration-150",
-                            isSelected &&
-                              "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
-                          )}
-                        >
-                          <input
-                            type="radio"
-                            value={rewardType.label}
-                            className="hidden"
-                            checked={isSelected}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setValue("event", rewardType.key);
-                                setValue("type", "flat");
-                              }
-                            }}
-                          />
-                          <div className="flex grow flex-col text-sm">
-                            <span className="font-medium">
-                              {rewardType.label}
-                            </span>
-                            <span>{rewardType.description}</span>
-                          </div>
-                          <CircleCheckFill
-                            className={cn(
-                              "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
-                              isSelected && "scale-100 opacity-100",
-                            )}
-                          />
-                        </label>
-                      );
-
-                      return labelContent;
-                    })}
-                  </div>
-                </ProgramSheetAccordionContent>
-              </ProgramSheetAccordionItem>
-            )}
-
             {!isDefault && (
               <ProgramSheetAccordionItem value="partner-eligibility">
                 <ProgramSheetAccordionTrigger>

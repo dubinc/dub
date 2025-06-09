@@ -6,7 +6,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 // GET /api/programs/[programId]/rewards - get all rewards for a program
-export const GET = withWorkspace(async ({ workspace, params }) => {
+export const GET = withWorkspace(async ({ workspace }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
   const rewards = await prisma.reward.findMany({

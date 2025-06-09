@@ -1,19 +1,12 @@
 "use client";
 
-import useProgram from "@/lib/swr/use-program";
 import useRewards from "@/lib/swr/use-rewards";
 import type { RewardProps } from "@/lib/types";
 import { useRewardSheet } from "@/ui/partners/add-edit-reward-sheet";
 import { REWARD_EVENTS } from "@/ui/partners/constants";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { EventType } from "@dub/prisma/client";
-import {
-  Badge,
-  Button,
-  MoneyBill,
-  Popover,
-  useKeyboardShortcut,
-} from "@dub/ui";
+import { Badge, Button, Popover, useKeyboardShortcut } from "@dub/ui";
 import { pluralize } from "@dub/utils";
 import { Gift } from "lucide-react";
 import { useState } from "react";
@@ -21,24 +14,26 @@ import { useState } from "react";
 export function Rewards() {
   return (
     <div className="flex flex-col gap-6">
-      <DefaultReward />
+      <DefaultRewards />
       <AdditionalRewards />
     </div>
   );
 }
 
-const DefaultReward = () => {
-  const { program } = useProgram();
+const DefaultRewards = () => {
   const { rewards, loading } = useRewards();
 
-  const defaultReward =
-    program?.defaultRewardId &&
-    rewards?.find((r) => r.id === program.defaultRewardId);
+  const defaultClickReward = rewards?.find(
+    (r) => r.event === "click" && r.default,
+  );
 
-  const { RewardSheet, setIsOpen } = useRewardSheet({
-    event: "lead",
-    isDefault: true,
-  });
+  const defaultLeadReward = rewards?.find(
+    (r) => r.event === "lead" && r.default,
+  );
+
+  const defaultSaleReward = rewards?.find(
+    (r) => r.event === "sale" && r.default,
+  );
 
   return (
     <div className="rounded-lg border border-neutral-200 bg-white">
@@ -54,41 +49,85 @@ const DefaultReward = () => {
           </div>
         </div>
         {loading ? (
-          <RewardSkeleton />
-        ) : defaultReward ? (
-          <Reward reward={defaultReward} />
+          <>
+            <RewardSkeleton />
+            <RewardSkeleton />
+            <RewardSkeleton />
+          </>
         ) : (
-          <div className="flex items-center justify-between gap-4 rounded-lg bg-neutral-50 p-4">
-            <div className="flex items-center gap-4">
-              <div className="flex size-10 items-center justify-center rounded-full border border-neutral-300">
-                <MoneyBill className="size-5" />
-              </div>
-              <p className="text-sm text-neutral-600">
-                No default reward created
-              </p>
-            </div>
-            <Button
-              text="Create default reward"
-              variant="primary"
-              className="h-9 w-fit"
-              onClick={() => setIsOpen(true)}
-            />
-          </div>
+          <>
+            <DefaultReward reward={defaultSaleReward} event="sale" />
+            <DefaultReward reward={defaultLeadReward} event="lead" />
+            <DefaultReward reward={defaultClickReward} event="click" />
+          </>
         )}
-
-        {RewardSheet}
       </div>
     </div>
   );
 };
 
+const DefaultReward = ({
+  reward,
+  event,
+}: {
+  reward: RewardProps | undefined;
+  event: EventType;
+}) => {
+  const { RewardSheet, setIsOpen } = useRewardSheet({
+    event,
+    reward,
+    isDefault: true,
+  });
+
+  const Icon = REWARD_EVENTS[event].icon;
+
+  return (
+    <>
+      <div
+        className="flex cursor-pointer items-center gap-4 rounded-lg border border-neutral-200 p-4 transition-all hover:border-neutral-300"
+        onClick={() => setIsOpen(true)}
+      >
+        <div className="flex size-10 items-center justify-center rounded-full border border-neutral-200 bg-white">
+          <Icon className="size-4 text-neutral-600" />
+        </div>
+        <div className="flex flex-1 items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-normal">
+              {reward ? (
+                <ProgramRewardDescription
+                  reward={reward}
+                  hideIfZero={false}
+                  amountClassName="text-blue-600"
+                />
+              ) : (
+                <span className="text-sm font-normal text-neutral-600">
+                  No {event} reward configured
+                </span>
+              )}
+            </span>
+          </div>
+
+          {reward ? (
+            <Badge variant="gray">All partners</Badge>
+          ) : (
+            <Button
+              text="Create"
+              variant="primary"
+              className="h-9 w-fit"
+              onClick={() => setIsOpen(true)}
+            />
+          )}
+        </div>
+      </div>
+      {RewardSheet}
+    </>
+  );
+};
+
 const AdditionalRewards = () => {
-  const { program } = useProgram();
   const { rewards, loading } = useRewards();
 
-  const additionalRewards = rewards?.filter(
-    (reward) => reward.id !== program?.defaultRewardId,
-  );
+  const additionalRewards = rewards?.filter((reward) => !reward.default);
 
   return (
     <div className="rounded-lg border border-neutral-200 bg-white">
