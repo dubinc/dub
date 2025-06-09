@@ -83,6 +83,7 @@ export function WorkspaceDropdown() {
             setOpenPopover={setOpenPopover}
           />
         }
+        side="right"
         align="start"
         openPopover={openPopover}
         setOpenPopover={setOpenPopover}
@@ -90,38 +91,18 @@ export function WorkspaceDropdown() {
         <button
           onClick={() => setOpenPopover(!openPopover)}
           className={cn(
-            "flex w-full items-center justify-between rounded-lg p-1.5 text-left text-sm transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80 data-[state=open]:bg-neutral-200/80",
+            "flex size-12 items-center justify-center rounded-lg p-1.5 text-left text-sm transition-all duration-75",
+            "hover:bg-bg-inverted/5 active:bg-bg-inverted/10 data-[state=open]:bg-bg-inverted/10",
             "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
           )}
         >
-          <div className="flex min-w-0 items-center gap-x-2.5 pr-2">
-            <BlurImage
-              src={selected.image}
-              referrerPolicy="no-referrer"
-              width={28}
-              height={28}
-              alt={selected.id || selected.name}
-              className="h-7 w-7 flex-none shrink-0 overflow-hidden rounded-full"
-            />
-            <div className={cn(key ? "hidden" : "block", "min-w-0 sm:block")}>
-              <div className="truncate text-sm font-medium leading-5 text-neutral-900">
-                {selected.name}
-              </div>
-              {selected.slug !== "/" && (
-                <div
-                  className={cn(
-                    "truncate text-xs capitalize leading-tight",
-                    getPlanColor(selected.plan),
-                  )}
-                >
-                  {selected.plan}
-                </div>
-              )}
-            </div>
-          </div>
-          <ChevronsUpDown
-            className="size-4 shrink-0 text-neutral-400"
-            aria-hidden="true"
+          <BlurImage
+            src={selected.image}
+            referrerPolicy="no-referrer"
+            width={28}
+            height={28}
+            alt={selected.id || selected.name}
+            className="size-7 flex-none shrink-0 overflow-hidden rounded-full"
           />
         </button>
       </Popover>

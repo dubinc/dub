@@ -84,6 +84,9 @@ export function SidebarNav<T extends Record<any, any>>({
               <NavWordmark className="h-6" isInApp />
             </Link>
             <div className="flex flex-col gap-4">
+              {areas[currentArea](data).showSwitcher && switcher && (
+                <div>{switcher}</div>
+              )}
               {groups(data).map((group) => (
                 <NavGroupItem key={group.name} group={group} />
               ))}
@@ -102,18 +105,13 @@ export function SidebarNav<T extends Record<any, any>>({
               //
               <div className="relative w-full grow">
                 {Object.entries(areas).map(([area, areaConfig]) => {
-                  const { content, showSwitcher, showNews, direction } =
-                    areaConfig(data);
+                  const { content, showNews, direction } = areaConfig(data);
                   return (
                     <Area
                       key={area}
                       visible={area === currentArea}
                       direction={direction ?? "right"}
                     >
-                      {showSwitcher && switcher && (
-                        <div className="pt-2">{switcher}</div>
-                      )}
-
                       <div className="flex flex-col gap-4 pt-4">
                         {content.map(({ name, items }, idx) => (
                           <div key={idx} className="flex flex-col gap-0.5">
