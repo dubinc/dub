@@ -33,8 +33,7 @@ export const verifyAnalyticsAllowedHostnames = ({
 
   for (const domain of wildcardMatches) {
     // Allow only proper subdomains: ensure hostname ends with ".domain.com"
-    // or the hostname is exactly the domain
-    if (hostname.endsWith(`.${domain}`) || hostname === domain) {
+    if (hostname.endsWith(`.${domain}`)) {
       return true;
     }
   }
