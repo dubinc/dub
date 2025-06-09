@@ -307,7 +307,6 @@ export default async function LinkMiddleware(
   // - it's a partner link
   // - it's not coming from Google Ads
   const isGoogleClick = isGoogleAdsClick({ url: req.url });
-  const shouldPassVia = isPartnerLink && !isGoogleClick;
 
   ev.waitUntil(
     (async () => {
@@ -360,7 +359,7 @@ export default async function LinkMiddleware(
             getFinalUrl(url, {
               req,
               ...(shouldPassClickId && { clickId }),
-              ...(shouldPassVia && { via: key }),
+              ...(isPartnerLink && { via: key }),
             }),
           )}`,
           req.url,
@@ -398,7 +397,7 @@ export default async function LinkMiddleware(
             getFinalUrl(url, {
               req,
               ...(shouldPassClickId && { clickId }),
-              ...(shouldPassVia && { via: key }),
+              ...(isPartnerLink && { via: key }),
             }),
           )}`,
           req.url,
@@ -436,7 +435,7 @@ export default async function LinkMiddleware(
         getFinalUrl(ios, {
           req,
           ...(shouldPassClickId && { clickId }),
-          ...(shouldPassVia && { via: key }),
+          ...(isPartnerLink && { via: key }),
         }),
         {
           headers: {
@@ -470,7 +469,7 @@ export default async function LinkMiddleware(
         getFinalUrl(android, {
           req,
           ...(shouldPassClickId && { clickId }),
-          ...(shouldPassVia && { via: key }),
+          ...(isPartnerLink && { via: key }),
         }),
         {
           headers: {
@@ -504,7 +503,7 @@ export default async function LinkMiddleware(
         getFinalUrl(geo[country], {
           req,
           ...(shouldPassClickId && { clickId }),
-          ...(shouldPassVia && { via: key }),
+          ...(isPartnerLink && { via: key }),
         }),
         {
           headers: {
@@ -538,7 +537,7 @@ export default async function LinkMiddleware(
         getFinalUrl(url, {
           req,
           ...(shouldPassClickId && { clickId }),
-          ...(shouldPassVia && { via: key }),
+          ...(isPartnerLink && { via: key }),
         }),
         {
           headers: {
