@@ -42,6 +42,9 @@ export type SidebarNavAreas<T extends Record<any, any>> = Record<
   }
 >;
 
+/**
+ * @deprecated use SidebarNav instead
+ */
 export function SidebarNavOld<T extends Record<any, any>>({
   areas,
   currentArea,

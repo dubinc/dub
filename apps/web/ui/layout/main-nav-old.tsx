@@ -12,6 +12,9 @@ import {
 } from "react";
 import { SideNavContext } from "./main-nav";
 
+/**
+ * @deprecated use MainNav instead
+ */
 export function MainNavOld({
   children,
   sidebar: Sidebar,

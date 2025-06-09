@@ -20,6 +20,9 @@ import {
   useState,
 } from "react";
 
+/**
+ * @deprecated use UserDropdown instead
+ */
 export default function UserDropdownOld() {
   const { data: session } = useSession();
   const { partner } = usePartnerProfile();
