@@ -93,7 +93,7 @@ export function WelcomeEmailPartner({
             <Section className="mb-8">
               <Link
                 className="rounded-lg bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                href="https://app.dub.co"
+                href="https://partners.dub.co"
               >
                 Go to your dashboard
               </Link>
