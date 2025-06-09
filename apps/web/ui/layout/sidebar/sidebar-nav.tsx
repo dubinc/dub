@@ -91,7 +91,9 @@ export function SidebarNav<T extends Record<any, any>>({
           </div>
           <div className="flex flex-col items-center gap-4 py-4">
             <Suspense fallback={null}>{toolContent}</Suspense>
-            <UserDropdown />
+            <div className="flex size-12 items-center justify-center">
+              <UserDropdown />
+            </div>
           </div>
         </div>
         <div className="size-full overflow-hidden py-1.5 pr-1.5">

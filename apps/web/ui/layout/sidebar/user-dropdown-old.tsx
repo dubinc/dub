@@ -20,7 +20,7 @@ import {
   useState,
 } from "react";
 
-export default function UserDropdown() {
+export default function UserDropdownOld() {
   const { data: session } = useSession();
   const { partner } = usePartnerProfile();
   const [openPopover, setOpenPopover] = useState(false);
@@ -101,10 +101,10 @@ export default function UserDropdown() {
         {session?.user ? (
           <Avatar
             user={session.user}
-            className="size-7 border-none duration-75 sm:size-7"
+            className="size-6 border-none duration-75 sm:size-6"
           />
         ) : (
-          <div className="size-7 animate-pulse rounded-full bg-neutral-100" />
+          <div className="size-6 animate-pulse rounded-full bg-neutral-100 sm:size-6" />
         )}
       </button>
     </Popover>
