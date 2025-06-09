@@ -102,17 +102,22 @@ export function SidebarNav<T extends Record<any, any>>({
         <div className="size-full overflow-hidden py-1.5 pr-1.5">
           <div className="scrollbar-hide relative flex size-full flex-col overflow-y-auto overflow-x-hidden rounded-2xl bg-neutral-100">
             <div className="relative flex grow flex-col p-3 text-neutral-500">
-              //
               <div className="relative w-full grow">
                 {Object.entries(areas).map(([area, areaConfig]) => {
-                  const { content, showNews, direction } = areaConfig(data);
+                  const { title, content, showNews, direction } =
+                    areaConfig(data);
                   return (
                     <Area
                       key={area}
                       visible={area === currentArea}
                       direction={direction ?? "right"}
                     >
-                      <div className="flex flex-col gap-4 pt-4">
+                      {title && (
+                        <span className="text-content-emphasis mb-3 block px-3 py-1 text-lg font-semibold">
+                          {title}
+                        </span>
+                      )}
+                      <div className="flex flex-col gap-4">
                         {content.map(({ name, items }, idx) => (
                           <div key={idx} className="flex flex-col gap-0.5">
                             {name && (
@@ -126,9 +131,7 @@ export function SidebarNav<T extends Record<any, any>>({
                           </div>
                         ))}
                       </div>
-
                       {currentArea === "default" && <CreateProgramCard />}
-
                       <AnimatePresence>
                         {showNews && (
                           <motion.div
