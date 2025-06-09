@@ -1,6 +1,7 @@
 "use client";
 
 import { enableTwoFactorAuthAction } from "@/lib/actions/auth/enable-two-factor-auth";
+import useUser from "@/lib/swr/use-user";
 import { useEnableTwoFactorAuthModal } from "@/ui/modals/enable-two-factor-auth-modal";
 import { Button } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
@@ -8,6 +9,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 export const TwoFactorAuth = () => {
+  const { user, loading } = useUser();
   const [secret, setSecret] = useState("");
   const [qrCodeUrl, setQrCodeUrl] = useState("");
 
@@ -60,11 +62,19 @@ export const TwoFactorAuth = () => {
                 Verify.
               </div>
             </div>
+
             <Button
-              text="Enable Two-factor"
+              text={
+                loading
+                  ? "Loading..."
+                  : user?.twoFactorConfirmedAt
+                    ? "Disable Two-factor"
+                    : "Enable Two-factor"
+              }
               type="button"
               className="ml-4 w-fit"
               loading={isPending}
+              disabled={loading}
               onClick={async () => {
                 await executeAsync();
               }}

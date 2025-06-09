@@ -9,6 +9,7 @@ const schema = z.object({
   token: z.string().length(6, "Code must be 6 digits"),
 });
 
+// Confirm 2FA for an user
 export const confirmTwoFactorAuthAction = authUserActionClient
   .schema(schema)
   .action(async ({ ctx, parsedInput }) => {
