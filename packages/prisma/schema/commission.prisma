@@ -1,3 +1,8 @@
+enum CommissionType {
+  percentage
+  flat
+}
+
 enum CommissionStatus {
   pending
   processed
