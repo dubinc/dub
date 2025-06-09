@@ -12,7 +12,7 @@ export const verifyAnalyticsAllowedHostnames = ({
 
   const source = req.headers.get("referer") || req.headers.get("origin");
   const sourceUrl = source ? new URL(source) : null;
-  const hostname = sourceUrl?.hostname;
+  const hostname = sourceUrl?.hostname.replace(/^www\./, "");
 
   if (!hostname) {
     console.log("No hostname found in request. Denying request ❌", {
