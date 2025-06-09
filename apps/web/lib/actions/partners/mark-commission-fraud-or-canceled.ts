@@ -1,7 +1,9 @@
 "use server";
 
+import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
 
@@ -102,4 +104,11 @@ export const markCommissionFraudOrCanceledAction = authActionClient
         payoutId: null,
       },
     });
+
+    waitUntil(
+      syncTotalCommissions({
+        partnerId: commission.partnerId,
+        programId,
+      }),
+    );
   });

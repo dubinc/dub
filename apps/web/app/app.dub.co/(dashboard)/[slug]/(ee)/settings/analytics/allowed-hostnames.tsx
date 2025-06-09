@@ -52,16 +52,21 @@ const AddHostnameForm = () => {
     customPermissionDescription: "add hostnames",
   });
 
+  const isValidHostname = (hostname: string) => {
+    return (
+      validDomainRegex.test(hostname) ||
+      hostname === "localhost" ||
+      hostname.startsWith("*.")
+    );
+  };
+
   const addHostname = async () => {
     if (allowedHostnames?.includes(hostname)) {
       toast.error("Hostname already exists.");
       return;
     }
 
-    const isHostnameValid =
-      validDomainRegex.test(hostname) || hostname === "localhost";
-
-    if (!isHostnameValid) {
+    if (!isValidHostname(hostname)) {
       toast.error("Enter a valid domain.");
       return;
     }
@@ -90,9 +95,6 @@ const AddHostnameForm = () => {
     setHostname("");
   };
 
-  const isHostnameValid =
-    validDomainRegex.test(hostname) || hostname === "localhost";
-
   return (
     <form
       className="flex items-end gap-2"
@@ -108,7 +110,7 @@ const AddHostnameForm = () => {
           value={hostname}
           onChange={(e) => setHostname(e.target.value)}
           autoComplete="off"
-          placeholder="example.com"
+          placeholder="example.com or *.example.com"
           className={cn(
             "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
           )}
@@ -119,7 +121,7 @@ const AddHostnameForm = () => {
         text="Add Hostname"
         variant="primary"
         onClick={addHostname}
-        disabled={!isHostnameValid || hostname.length === 0}
+        disabled={!isValidHostname(hostname) || hostname.length === 0}
         loading={processing}
         className="w-40"
         disabledTooltip={permissionsError || undefined}
