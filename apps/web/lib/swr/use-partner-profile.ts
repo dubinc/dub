@@ -1,18 +1,11 @@
 import { fetcher } from "@dub/utils";
 import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
 import useSWR from "swr";
 import { PartnerProps } from "../types";
 
 export default function usePartnerProfile() {
   const { data: session, status } = useSession();
-  const partnerId = session?.user?.["defaultPartnerId"];
-
-  const [isPartnerPage, setIsPartnerPage] = useState(false);
-
-  useEffect(() => {
-    setIsPartnerPage(window.location.hostname.startsWith("partners"));
-  }, []);
+  const defaultPartnerId = session?.user?.["defaultPartnerId"];
 
   const {
     data: partner,
@@ -20,7 +13,7 @@ export default function usePartnerProfile() {
     isLoading,
     mutate,
   } = useSWR<PartnerProps>(
-    isPartnerPage && partnerId && "/api/partner-profile",
+    defaultPartnerId && "/api/partner-profile",
     fetcher,
     {
       dedupingInterval: 60000,

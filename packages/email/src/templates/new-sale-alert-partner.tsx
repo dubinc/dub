@@ -17,11 +17,9 @@ import { Footer } from "../components/footer";
 export function NewSaleAlertPartner({
   email = "panic@thedis.co",
   partner = {
-    id: "pn_OfewI1Faaf5pV8QH3mha8L7S",
     referralLink: "https://refer.dub.co/steven",
   },
   program = {
-    id: "prog_CYCu7IMAapjkRpTnr8F1azjN",
     name: "Acme",
     slug: "acme",
     logo: DUB_WORDMARK,
@@ -33,11 +31,9 @@ export function NewSaleAlertPartner({
 }: {
   email: string;
   partner: {
-    id: string;
     referralLink: string;
   };
   program: {
-    id: string;
     name: string;
     slug: string;
     logo: string | null;
@@ -47,7 +43,7 @@ export function NewSaleAlertPartner({
     earnings: number;
   };
 }) {
-  const linkToSale = `https://partners.dub.co/programs/${program.slug}/earnings`;
+  const linkToEarnings = `https://partners.dub.co/programs/${program.slug}/earnings`;
 
   const earningsInDollars = currencyFormatter(sale.earnings / 100, {
     minimumFractionDigits: 2,
@@ -78,7 +74,7 @@ export function NewSaleAlertPartner({
             </Section>
 
             <Heading className="mx-0 my-7 p-0 text-lg font-medium text-black">
-              You just made a {earningsInDollars} referral sale!
+              You just made a {earningsInDollars} referral commission!
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
@@ -104,9 +100,9 @@ export function NewSaleAlertPartner({
             <Section className="mb-12 mt-8">
               <Link
                 className="rounded-lg bg-neutral-900 px-4 py-3 text-[12px] font-semibold text-white no-underline"
-                href={linkToSale}
+                href={linkToEarnings}
               >
-                View sale
+                View earnings
               </Link>
             </Section>
             <Footer email={email} />

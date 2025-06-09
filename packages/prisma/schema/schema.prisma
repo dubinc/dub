@@ -42,6 +42,7 @@ model User {
   folders               FolderUser[]
   folderAccessRequests  FolderAccessRequest[]
   utmTemplates          UtmTemplate[]
+  payouts               Payout[]
 
   @@index(source)
   @@index(defaultWorkspace)

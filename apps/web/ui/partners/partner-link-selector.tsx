@@ -2,7 +2,7 @@ import useLink from "@/lib/swr/use-link";
 import useLinks from "@/lib/swr/use-links";
 import useProgram from "@/lib/swr/use-program";
 import { LinkProps } from "@/lib/types";
-import { Combobox, LinkLogo } from "@dub/ui";
+import { Combobox, LinkLogo, Tooltip } from "@dub/ui";
 import { ArrowTurnRight2 } from "@dub/ui/icons";
 import { cn, getApexDomain, linkConstructor } from "@dub/utils";
 import { useMemo, useState } from "react";
@@ -25,15 +25,19 @@ const getLinkOption = (link: LinkProps) => ({
 export function PartnerLinkSelector({
   selectedLinkId,
   setSelectedLinkId,
+  partnerId,
   showDestinationUrl = true,
   onCreate,
   error,
+  optional = false,
 }: {
   selectedLinkId: string | null;
   setSelectedLinkId: (id: string) => void;
+  partnerId?: string | null;
   showDestinationUrl?: boolean;
   onCreate?: (search: string) => Promise<boolean>;
   error?: boolean;
+  optional?: boolean;
 }) {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
@@ -41,9 +45,13 @@ export function PartnerLinkSelector({
 
   const { links } = useLinks(
     {
+      folderId: program?.defaultFolderId ?? undefined,
       domain: program?.domain ?? undefined,
       search: debouncedSearch,
-      sort: "clicks", // need to specify this to avoid the ?sort= param in the URL overriding the default
+      ...(partnerId && { partnerId }),
+      includeDashboard: false,
+      includeWebhooks: false,
+      includeUser: false,
     },
     {
       keepPreviousData: false,
@@ -75,7 +83,9 @@ export function PartnerLinkSelector({
           selectedLinkId && !selectedLink ? (
             <div className="h-4 w-32 animate-pulse rounded bg-neutral-200" />
           ) : (
-            `Select${onCreate ? " or create" : ""} referral link`
+            `Select${onCreate ? " or create" : ""} referral link${
+              optional ? " (optional)" : ""
+            }`
           )
         }
         searchPlaceholder={onCreate ? "Search or create link..." : "Search..."}
@@ -100,15 +110,27 @@ export function PartnerLinkSelector({
       {selectedLink?.url && showDestinationUrl && (
         <div className="ml-2 mt-2 flex items-center gap-1 text-xs text-neutral-500">
           <ArrowTurnRight2 className="size-3 shrink-0" />
-          <span className="min-w-0 truncate">
-            Destination URL:{" "}
-            <a
-              href={selectedLink.url}
-              target="_blank"
-              className="underline-offset-2 hover:underline"
+          <span className="flex min-w-0 items-center gap-1 whitespace-nowrap">
+            <span>Destination URL:</span>
+            <Tooltip
+              align="end"
+              alignOffset={-10}
+              sideOffset={9}
+              delayDuration={300}
+              content={
+                <div className="line-clamp-4 max-w-[495px] overflow-hidden break-all p-2.5 text-xs text-neutral-600">
+                  {selectedLink.url}
+                </div>
+              }
             >
-              {selectedLink.url}
-            </a>
+              <a
+                href={selectedLink.url}
+                target="_blank"
+                className="min-w-0 truncate underline-offset-2 hover:underline"
+              >
+                {selectedLink.url}
+              </a>
+            </Tooltip>
           </span>
         </div>
       )}

@@ -1,7 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { validateAllowedHostnames } from "@/lib/api/validate-allowed-hostnames";
-import { workspaceCache } from "@/lib/api/workspace-cache";
 import { prefixWorkspaceId } from "@/lib/api/workspace-id";
 import { deleteWorkspace } from "@/lib/api/workspaces";
 import { withWorkspace } from "@/lib/auth";
@@ -41,11 +40,7 @@ export const GET = withWorkspace(
           ...workspace,
           id: prefixWorkspaceId(workspace.id),
           domains,
-          // TODO: Remove this once Folders goes GA
-          flags: {
-            ...flags,
-            linkFolders: flags.linkFolders || workspace.partnersEnabled,
-          },
+          flags,
         }),
       },
       { headers },
@@ -111,22 +106,9 @@ export const PATCH = withWorkspace(
         });
       }
 
-      waitUntil(
-        (async () => {
-          if (logoUploaded && workspace.logo) {
-            await storage.delete(workspace.logo.replace(`${R2_URL}/`, ""));
-          }
-
-          if (validHostnames) {
-            workspaceCache.set({
-              id: workspace.id,
-              data: {
-                allowedHostnames: validHostnames,
-              },
-            });
-          }
-        })(),
-      );
+      if (logoUploaded && workspace.logo) {
+        waitUntil(storage.delete(workspace.logo.replace(`${R2_URL}/`, "")));
+      }
 
       return NextResponse.json(
         WorkspaceSchema.parse({

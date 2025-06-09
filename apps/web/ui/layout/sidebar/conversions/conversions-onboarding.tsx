@@ -1,7 +1,8 @@
 "use client";
 
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { STORE_KEYS, useWorkspaceStore } from "@/lib/swr/use-workspace-store";
+import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { X } from "@/ui/shared/icons";
 import { Book2Small, useMediaQuery } from "@dub/ui";
 import { useConversionOnboardingModal } from "./conversions-onboarding-modal";
@@ -14,16 +15,18 @@ export function ConversionsOnboarding({
 }) {
   const { isMobile } = useMediaQuery();
 
-  const { salesUsage, salesLimit, loading } = useWorkspace({
+  const { plan, loading } = useWorkspace({
     swrOpts: { keepPreviousData: true },
   });
+
+  const { canTrackConversions } = getPlanCapabilities(plan);
 
   const [
     conversionsOnboarding,
     setConversionsOnboarding,
     { loading: loadingConversionsOnboarding },
   ] = useWorkspaceStore<undefined | "nav-button" | "dismissed">(
-    STORE_KEYS.conversionsOnboarding,
+    "conversionsOnboarding",
   );
 
   const { setShowConversionOnboardingModal, conversionOnboardingModal } =
@@ -33,9 +36,7 @@ export function ConversionsOnboarding({
     !loading &&
     !loadingConversionsOnboarding &&
     conversionsOnboarding !== "dismissed" &&
-    salesUsage === 0 &&
-    salesLimit &&
-    salesLimit > 0;
+    canTrackConversions;
 
   if (!showConversionsOnboarding) return null;
 

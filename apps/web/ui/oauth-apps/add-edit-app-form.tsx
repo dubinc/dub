@@ -9,13 +9,14 @@ import {
   InfoTooltip,
   LoadingSpinner,
   Switch,
+  useEnterSubmit,
 } from "@dub/ui";
 import { cn, nanoid } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { Reorder } from "framer-motion";
 import { Paperclip, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -61,6 +62,9 @@ export default function AddOAuthAppForm({
     action: "oauth_apps.write",
     role,
   });
+
+  const formRef = useRef<HTMLFormElement>(null);
+  const { handleKeyDown } = useEnterSubmit(formRef);
 
   useEffect(() => {
     if (oAuthApp) {
@@ -143,12 +147,12 @@ export default function AddOAuthAppForm({
   const handleUpload = async (file: File) => {
     setScreenshots((prev) => [...prev, { file, uploading: true }]);
 
-    const response = await fetch(
-      `/api/oauth/apps/upload-url?workspaceId=${workspaceId}`,
-      {
-        method: "POST",
-      },
-    );
+    const response = await fetch(`/api/workspaces/${workspaceId}/upload-url`, {
+      method: "POST",
+      body: JSON.stringify({
+        folder: "integration-screenshots",
+      }),
+    });
 
     if (!response.ok) {
       toast.error("Failed to get signed URL for screenshot upload.");
@@ -203,6 +207,7 @@ export default function AddOAuthAppForm({
   return (
     <>
       <form
+        ref={formRef}
         onSubmit={onSubmit}
         className="flex flex-col space-y-5 pb-20 text-left"
       >
@@ -298,6 +303,7 @@ export default function AddOAuthAppForm({
               onChange={(e) => {
                 setData({ ...data, description: e.target.value });
               }}
+              onKeyDown={handleKeyDown}
               disabled={!canManageApp}
             />
           </div>
@@ -324,6 +330,7 @@ export default function AddOAuthAppForm({
               onChange={(e) => {
                 setData({ ...data, readme: e.target.value });
               }}
+              onKeyDown={handleKeyDown}
               disabled={!canManageApp}
             />
           </div>

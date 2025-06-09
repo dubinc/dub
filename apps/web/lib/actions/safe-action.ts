@@ -2,6 +2,7 @@ import { prisma } from "@dub/prisma";
 import { createSafeActionClient } from "next-safe-action";
 import { normalizeWorkspaceId } from "../api/workspace-id";
 import { getSession } from "../auth";
+import { PlanProps } from "../types";
 
 export const actionClient = createSafeActionClient({
   handleServerError: (e) => {
@@ -63,14 +64,17 @@ export const authActionClient = actionClient.use(
       },
     });
 
-    if (!workspace || !workspace.users) {
+    if (!workspace || !workspace.users || workspace.users.length === 0) {
       throw new Error("Workspace not found.");
     }
 
     return next({
       ctx: {
         user: session.user,
-        workspace,
+        workspace: {
+          ...workspace,
+          plan: workspace.plan as PlanProps,
+        },
       },
     });
   },

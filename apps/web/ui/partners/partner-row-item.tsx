@@ -1,16 +1,23 @@
 import { PartnerProps } from "@/lib/types";
 import { GreekTemple, Tooltip } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { DICEBEAR_AVATAR_URL } from "@dub/utils/src/constants";
+import { OG_AVATAR_URL } from "@dub/utils/src/constants";
 import { CircleMinus } from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 
 export function PartnerRowItem({
   partner,
   showPayoutsEnabled = true,
+  showPermalink = true,
 }: {
-  partner: Pick<PartnerProps, "name" | "image" | "payoutsEnabledAt">;
+  partner: Pick<PartnerProps, "id" | "name" | "image" | "payoutsEnabledAt">;
   showPayoutsEnabled?: boolean;
+  showPermalink?: boolean;
 }) {
+  const { slug } = useParams();
+  const As = showPermalink ? Link : "div";
+
   return (
     <div className="flex items-center gap-2">
       {showPayoutsEnabled ? (
@@ -43,7 +50,7 @@ export function PartnerRowItem({
         >
           <div className="relative shrink-0">
             <img
-              src={partner.image || `${DICEBEAR_AVATAR_URL}${partner.name}`}
+              src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
               alt={partner.name}
               className="size-5 rounded-full"
             />
@@ -57,14 +64,22 @@ export function PartnerRowItem({
         </Tooltip>
       ) : (
         <img
-          src={partner.image || `${DICEBEAR_AVATAR_URL}${partner.name}`}
+          src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
           alt={partner.name}
           className="size-5 shrink-0 rounded-full"
         />
       )}
-      <div className="min-w-0 truncate" title={partner.name}>
+      <As
+        href={`/${slug}/program/partners?partnerId=${partner.id}`}
+        {...(showPermalink && { target: "_blank" })}
+        className={cn(
+          "min-w-0 truncate",
+          showPermalink && "cursor-alias decoration-dotted hover:underline",
+        )}
+        title={partner.name}
+      >
         {partner.name}
-      </div>
+      </As>
     </div>
   );
 }

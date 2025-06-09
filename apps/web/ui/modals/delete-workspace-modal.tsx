@@ -61,7 +61,7 @@ function DeleteWorkspaceModal({
         <h3 className="text-lg font-medium">Delete Workspace</h3>
         <p className="text-center text-sm text-neutral-500">
           Warning: This will permanently delete your workspace, custom domain,
-          and all associated links and their respective stats.
+          and all associated links and their respective analytics.
         </p>
       </div>
 
@@ -93,6 +93,7 @@ function DeleteWorkspaceModal({
               autoFocus={!isMobile}
               autoComplete="off"
               pattern={slug}
+              required
               disabled={!isOwner}
               className={cn(
                 "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
@@ -158,13 +159,13 @@ export function useDeleteWorkspaceModal() {
         setShowDeleteWorkspaceModal={setShowDeleteWorkspaceModal}
       />
     );
-  }, [showDeleteWorkspaceModal, setShowDeleteWorkspaceModal]);
+  }, [showDeleteWorkspaceModal]);
 
   return useMemo(
     () => ({
       setShowDeleteWorkspaceModal,
       DeleteWorkspaceModal: DeleteWorkspaceModalCallback,
     }),
-    [setShowDeleteWorkspaceModal, DeleteWorkspaceModalCallback],
+    [DeleteWorkspaceModalCallback],
   );
 }

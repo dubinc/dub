@@ -1,9 +1,10 @@
 model Project {
-  id         String  @id @default(cuid())
-  name       String
-  slug       String  @unique
-  logo       String?
-  inviteCode String? @unique
+  id               String  @id @default(cuid())
+  name             String
+  slug             String  @unique
+  logo             String?
+  inviteCode       String? @unique
+  defaultProgramId String? @unique // default affiliate program ID for the workspace
 
   plan              String    @default("free")
   stripeId          String?   @unique // Stripe subscription ID
@@ -21,8 +22,9 @@ model Project {
   usageLimit   Int @default(1000)
   linksUsage   Int @default(0)
   linksLimit   Int @default(25)
-  salesUsage   Int @default(0)
-  salesLimit   Int @default(0)
+  payoutsUsage Int @default(0)
+  payoutsLimit Int @default(0)
+
   domainsLimit Int @default(3)
   tagsLimit    Int @default(5)
   foldersUsage Int @default(0)

@@ -1,9 +1,8 @@
-import { isReservedKey } from "@/lib/edge-config";
 import z from "@/lib/zod";
-import { DEFAULT_REDIRECTS, validSlugRegex } from "@dub/utils";
+import { DEFAULT_REDIRECTS, RESERVED_SLUGS, validSlugRegex } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { DomainSchema } from "./domains";
-import { planSchema, roleSchema } from "./misc";
+import { planSchema, roleSchema, uploadedImageSchema } from "./misc";
 
 export const workspaceIdSchema = z.object({
   workspaceId: z
@@ -49,15 +48,15 @@ export const WorkspaceSchema = z
     usageLimit: z.number().describe("The usage limit of the workspace."),
     linksUsage: z.number().describe("The links usage of the workspace."),
     linksLimit: z.number().describe("The links limit of the workspace."),
-    salesUsage: z
+    payoutsUsage: z
       .number()
       .describe(
-        "The dollar amount of tracked revenue in the current billing cycle (in cents).",
+        "The dollar amount of partner payouts processed in the current billing cycle (in cents).",
       ),
-    salesLimit: z
+    payoutsLimit: z
       .number()
       .describe(
-        "The limit of tracked revenue in the current billing cycle (in cents).",
+        "The max dollar amount of partner payouts that can be processed within a billing cycle (in cents).",
       ),
     domainsLimit: z.number().describe("The domains limit of the workspace."),
     tagsLimit: z.number().describe("The tags limit of the workspace."),
@@ -134,10 +133,13 @@ export const createWorkspaceSchema = z.object({
     .max(48, "Slug must be less than 48 characters")
     .transform((v) => slugify(v))
     .refine((v) => validSlugRegex.test(v), { message: "Invalid slug format" })
-    .refine(async (v) => !((await isReservedKey(v)) || DEFAULT_REDIRECTS[v]), {
-      message: "Cannot use reserved slugs",
-    }),
-  logo: z.string().optional(),
+    .refine(
+      async (v) => !(RESERVED_SLUGS.includes(v) || DEFAULT_REDIRECTS[v]),
+      {
+        message: "Cannot use reserved slugs",
+      },
+    ),
+  logo: uploadedImageSchema.nullish(),
   conversionEnabled: z.boolean().optional(),
 });
 
@@ -153,9 +155,16 @@ export const notificationTypes = z.enum([
 ]);
 
 export const WorkspaceSchemaExtended = WorkspaceSchema.extend({
+  defaultProgramId: z.string().nullable(),
   users: z.array(
     WorkspaceSchema.shape.users.element.extend({
       workspacePreferences: z.record(z.any()).nullish(),
     }),
   ),
 });
+
+export const workspaceStoreKeys = z.enum([
+  "programOnboarding", // json
+  "conversionsOnboarding", // boolean
+  "dotLinkOfferDismissed", // string
+]);

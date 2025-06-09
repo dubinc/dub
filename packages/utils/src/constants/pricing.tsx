@@ -20,7 +20,7 @@ export const PLANS = [
     limits: {
       links: 25,
       clicks: 1000,
-      sales: 0,
+      payouts: 0,
       domains: 3,
       tags: 5,
       folders: 0,
@@ -54,7 +54,7 @@ export const PLANS = [
     limits: {
       links: 1_000,
       clicks: 50_000,
-      sales: 0,
+      payouts: 0,
       domains: 10,
       tags: 25,
       folders: 3,
@@ -98,6 +98,12 @@ export const PLANS = [
       {
         id: "folders",
         text: "Link folders",
+        tooltip: {
+          title:
+            "Organize and manage access to your links on Dub using folders.",
+          cta: "Learn more.",
+          href: "https://dub.co/help/article/link-folders",
+        },
       },
       {
         id: "deeplinks",
@@ -135,13 +141,13 @@ export const PLANS = [
     limits: {
       links: 10_000,
       clicks: 250_000,
-      sales: 25_000_00,
+      payouts: 2_500_00,
       domains: 100,
       tags: INFINITY_NUMBER,
       folders: 20,
       users: 10,
       ai: 1000,
-      api: 3000,
+      api: 1200,
       retention: "3-year",
     },
     featureTitle: "Everything in Pro, plus:",
@@ -159,13 +165,13 @@ export const PLANS = [
         text: "3-year analytics retention",
       },
       {
-        id: "sales",
-        text: "$25K tracked sales/mo",
+        id: "payouts",
+        text: "$2.5K partner payouts/mo",
         tooltip: {
           title:
-            "Use Dub Conversions to track how your link clicks are converting to signups and sales. Limits are based on the total sale amount tracked within a given month.",
+            "Send payouts to your partners with 1-click (or automate it completely) – all across the world.",
           cta: "Learn more.",
-          href: "https://d.to/conversions",
+          href: "https://dub.co/help/article/partner-payouts",
         },
       },
       {
@@ -192,12 +198,17 @@ export const PLANS = [
         },
       },
       {
-        id: "payouts",
-        text: "1-click global payouts",
+        id: "tests",
+        text: "A/B testing (beta)",
+      },
+      {
+        id: "roles",
+        text: "Customer insights",
         tooltip: {
-          title: "Send payouts to 180+ countries in 1-click.",
+          title:
+            "Get real-time insights into your customers' behavior and preferences.",
           cta: "Learn more.",
-          href: "https://dub.co/help/article/partner-payouts",
+          href: "https://dub.co/help/article/customer-insights",
         },
       },
       {
@@ -210,10 +221,6 @@ export const PLANS = [
           href: "https://dub.co/docs/concepts/webhooks/introduction",
         },
       },
-      {
-        id: "tests",
-        text: "A/B testing",
-      },
     ] as PlanFeature[],
   },
   {
@@ -222,7 +229,6 @@ export const PLANS = [
       monthly: 300,
       yearly: 250,
       ids: [
-        // 2025 pricing
         "price_1R8Xw4AlJJEpqkPV6nwdink9", //  yearly
         "price_1R3j0qAlJJEpqkPVkfGNXRwb", // monthly
         "price_1R8XztAlJJEpqkPVnHmIU2tf", // yearly (test),
@@ -232,7 +238,7 @@ export const PLANS = [
     limits: {
       links: 50_000,
       clicks: 1_000_000,
-      sales: 100_000_00,
+      payouts: 15_000_00,
       domains: 250,
       tags: INFINITY_NUMBER,
       folders: 50,
@@ -256,13 +262,13 @@ export const PLANS = [
         text: "5-year analytics retention",
       },
       {
-        id: "sales",
-        text: "$100K tracked sales/mo",
+        id: "payouts",
+        text: "$15K partner payouts/mo",
         tooltip: {
           title:
-            "Use Dub Conversions to track how your link clicks are converting to signups and sales. Limits are based on the total sale amount tracked within a given month.",
+            "Send payouts to your partners with 1-click (or automate it completely) – all across the world.",
           cta: "Learn more.",
-          href: "https://d.to/conversions",
+          href: "https://dub.co/help/article/partner-payouts",
         },
       },
       {
@@ -270,25 +276,24 @@ export const PLANS = [
         text: "20 users",
       },
       {
-        id: "roles",
-        text: "Folders RBAC",
-      },
-      {
         id: "whitelabel",
         text: "White-labeling support",
-      },
-      {
-        id: "volume",
-        text: "Lower payout fees",
         tooltip: {
-          title: "Lower fees associated with Partner payouts.",
+          title:
+            "Embed a white-labeled referral dashboard directly in your app in just a few lines of code.",
           cta: "Learn more.",
-          href: "https://dub.co/help/article/partner-payouts",
+          href: "https://dub.co/docs/partners/white-labeling",
         },
       },
       {
-        id: "email",
-        text: "Branded email domains",
+        id: "api",
+        text: "Partners API",
+        tooltip: {
+          title:
+            "Leverage our partners API to build a bespoke, white-labeled referral program that lives within your app.",
+          cta: "Learn more.",
+          href: "https://dub.co/docs/api-reference/endpoint/create-a-partner",
+        },
       },
       {
         id: "slack",
@@ -305,7 +310,7 @@ export const PLANS = [
     limits: {
       links: 250000,
       clicks: 5000000,
-      sales: 1000000_00,
+      payouts: INFINITY_NUMBER,
       domains: 1000,
       tags: INFINITY_NUMBER,
       folders: INFINITY_NUMBER,

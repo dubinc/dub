@@ -17,6 +17,10 @@ export const getFinalUrl = (
   // get the query params of the target url
   const urlObj = redirectionUrl ? new URL(redirectionUrl) : new URL(url);
 
+  if (via) {
+    urlObj.searchParams.set("via", via);
+  }
+
   if (clickId) {
     /*
        custom query param for stripe payment links + Dub Conversions
@@ -34,10 +38,6 @@ export const getFinalUrl = (
     } else if (!searchParams.has("dub-no-track")) {
       urlObj.searchParams.set("dub_id", clickId);
     }
-  }
-
-  if (via) {
-    urlObj.searchParams.set("via", via);
   }
 
   // if there are no query params, then return the target url as is (no need to parse it)

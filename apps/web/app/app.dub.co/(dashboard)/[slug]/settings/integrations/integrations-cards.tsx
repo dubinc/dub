@@ -12,12 +12,11 @@ const CATEGORY_ORDER = [
   "Payments",
   "Automations",
   "Analytics",
-  "Productivity",
-  "Social Scheduling",
-  "CMS",
-  "Forms",
+  "Scheduling",
   "Authentication",
-  "Dub",
+  "Social Media",
+  "Productivity",
+  "CMS",
   "Miscellaneous",
 ] as const;
 

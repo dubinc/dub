@@ -1,18 +1,6 @@
-import { DUB_FOUNDING_DATE } from "@dub/utils";
+import { THE_BEGINNING_OF_TIME } from "@dub/utils";
 
-export const intervals = [
-  "24h",
-  "7d",
-  "30d",
-  "90d",
-  "1y",
-  "mtd",
-  "qtd",
-  "ytd",
-  "all",
-] as const;
-
-export const eventIntervals = [
+export const DATE_RANGE_INTERVAL_PRESETS = [
   "24h",
   "7d",
   "30d",
@@ -119,8 +107,7 @@ export const INTERVAL_DATA: Record<
     granularity: "month",
   },
   all: {
-    // Dub.co founding date
-    startDate: DUB_FOUNDING_DATE,
+    startDate: THE_BEGINNING_OF_TIME,
     granularity: "month",
   },
 };
@@ -139,6 +126,7 @@ export const VALID_ANALYTICS_ENDPOINTS = [
   "triggers",
   "referers",
   "referer_urls",
+  "top_partners",
   "top_links",
   "top_urls",
   "utm_sources",
@@ -183,9 +171,11 @@ export const VALID_ANALYTICS_FILTERS = [
   "referer",
   "refererUrl",
   "url",
-  "tagId",
+  "partnerId",
   "folderId",
+  "tagId",
   "tagIds",
+  "customerId",
   "qr", // deprecated, but keeping for now for backwards compatibility
   "root",
   "utm_source",

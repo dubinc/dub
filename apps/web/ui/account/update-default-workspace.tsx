@@ -1,41 +1,20 @@
 "use client";
 
-import useWorkspaces from "@/lib/swr/use-workspaces";
-import { Button, InputSelect, InputSelectItemProps } from "@dub/ui";
-import { DICEBEAR_AVATAR_URL } from "@dub/utils";
+import { WorkspaceSelector } from "@/ui/workspaces/workspace-selector";
+import { Button } from "@dub/ui";
 import { useSession } from "next-auth/react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function UpdateDefaultWorkspace() {
   const { data: session, update } = useSession();
-  const { workspaces } = useWorkspaces();
-
-  const selectOptions = useMemo(() => {
-    return workspaces
-      ? workspaces.map((workspace) => ({
-          id: workspace.slug,
-          value: workspace.name,
-          image: workspace.logo || `${DICEBEAR_AVATAR_URL}${workspace.name}`,
-          disabled: workspace.slug === session?.user?.["defaultWorkspace"],
-          label:
-            workspace.slug === session?.user?.["defaultWorkspace"]
-              ? "Current"
-              : "",
-        }))
-      : [];
-  }, [workspaces, session]);
-
-  const [selectedWorkspace, setSelectedWorkspace] =
-    useState<InputSelectItemProps | null>(null);
+  const [selectedWorkspace, setSelectedWorkspace] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
-    setSelectedWorkspace(
-      selectOptions.find(
-        (option) => option.id === session?.user?.["defaultWorkspace"],
-      ) || null,
-    );
-  }, [selectOptions, session]);
+    setSelectedWorkspace(session?.user?.["defaultWorkspace"] || null);
+  }, [session]);
 
   const [saving, setSaving] = useState(false);
 
@@ -47,7 +26,7 @@ export default function UpdateDefaultWorkspace() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        defaultWorkspace: selectedWorkspace?.id || undefined,
+        defaultWorkspace: selectedWorkspace || undefined,
       }),
     });
 
@@ -79,11 +58,9 @@ export default function UpdateDefaultWorkspace() {
           Choose the workspace to show by default when you sign in.
         </p>
         <div className="mt-1 max-w-md">
-          <InputSelect
-            items={selectOptions}
-            selectedItem={selectedWorkspace}
-            setSelectedItem={setSelectedWorkspace}
-            adjustForMobile
+          <WorkspaceSelector
+            selectedWorkspace={selectedWorkspace || ""}
+            setSelectedWorkspace={setSelectedWorkspace}
           />
         </div>
       </div>
@@ -102,7 +79,7 @@ export default function UpdateDefaultWorkspace() {
             loading={saving}
             disabled={
               !selectedWorkspace ||
-              selectedWorkspace.id === session?.user?.["defaultWorkspace"]
+              selectedWorkspace === session?.user?.["defaultWorkspace"]
             }
           />
         </div>

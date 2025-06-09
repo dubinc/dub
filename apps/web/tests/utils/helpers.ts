@@ -1,7 +1,7 @@
 import { generateRandomName } from "@/lib/names";
-import { DICEBEAR_AVATAR_URL, nanoid } from "@dub/utils";
+import { OG_AVATAR_URL, nanoid } from "@dub/utils";
 
-export const randomId = () => nanoid(24);
+export const randomId = (length = 24) => nanoid(length);
 
 // Generate random customer data
 export const randomCustomer = () => {
@@ -12,7 +12,7 @@ export const randomCustomer = () => {
     externalId,
     name: customerName,
     email: `${customerName.split(" ").join(".").toLowerCase()}@example.com`,
-    avatar: `${DICEBEAR_AVATAR_URL}${externalId}`,
+    avatar: `${OG_AVATAR_URL}${externalId}`,
   };
 };
 

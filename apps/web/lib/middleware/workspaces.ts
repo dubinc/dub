@@ -1,6 +1,6 @@
 import { UserProps } from "@/lib/types";
 import { NextRequest, NextResponse } from "next/server";
-import { parse } from "./utils";
+import { isValidInternalRedirect, parse } from "./utils";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";
 import { isTopLevelSettingsRedirect } from "./utils/is-top-level-settings-redirect";
 
@@ -8,7 +8,15 @@ export default async function WorkspacesMiddleware(
   req: NextRequest,
   user: UserProps,
 ) {
-  const { path, searchParamsString } = parse(req);
+  const { path, searchParamsObj, searchParamsString } = parse(req);
+
+  // Handle ?next= query param with proper validation to prevent open redirects
+  if (
+    searchParamsObj.next &&
+    isValidInternalRedirect(searchParamsObj.next, req.url)
+  ) {
+    return NextResponse.redirect(new URL(searchParamsObj.next, req.url));
+  }
 
   const defaultWorkspace = await getDefaultWorkspace(user);
 
@@ -21,7 +29,7 @@ export default async function WorkspacesMiddleware(
     }
     return NextResponse.redirect(
       new URL(
-        `/${defaultWorkspace}${redirectPath}${searchParamsString}`,
+        `/${defaultWorkspace}${redirectPath || "/links"}${searchParamsString}`,
         req.url,
       ),
     );

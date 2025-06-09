@@ -3,10 +3,15 @@
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PayoutsCount } from "@/lib/types";
-import StripeConnectButton from "@/ui/partners/stripe-connect-button";
+import { ConnectPayoutButton } from "@/ui/partners/connect-payout-button";
 import { AlertCircleFill } from "@/ui/shared/icons";
 import { PayoutStatus } from "@dub/prisma/client";
-import { AnimatedSizeContainer, MoneyBills2, Tooltip } from "@dub/ui";
+import {
+  AnimatedSizeContainer,
+  MoneyBills2,
+  SimpleTooltipContent,
+  Tooltip,
+} from "@dub/ui";
 import { currencyFormatter } from "@dub/utils";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
@@ -36,7 +41,13 @@ export const PayoutStats = memo(() => {
             <div className="flex items-center gap-2">
               {partner && !partner.payoutsEnabledAt && (
                 <Tooltip
-                  content="You need to set up your Stripe payouts account to be able to receive payouts from the programs you are enrolled in."
+                  content={
+                    <SimpleTooltipContent
+                      title="You need to connect your bank account to be able to receive payouts from the programs you are enrolled in."
+                      cta="Learn more"
+                      href="https://dub.co/help/article/receiving-payouts"
+                    />
+                  }
                   side="right"
                 >
                   <div>
@@ -81,10 +92,7 @@ export const PayoutStats = memo(() => {
           </div>
         </div>
         {partner && !partner.payoutsEnabledAt && (
-          <StripeConnectButton
-            className="mt-4 h-9 w-full"
-            text="Connect payouts"
-          />
+          <ConnectPayoutButton className="mt-4 h-9 w-full" />
         )}
       </div>
     </AnimatedSizeContainer>

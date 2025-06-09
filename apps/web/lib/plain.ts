@@ -8,13 +8,16 @@ export const plain = new PlainClient({
 type PlainUser = Pick<Session["user"], "id" | "name" | "email">;
 
 export const upsertPlainCustomer = async (user: PlainUser) => {
+  const fullName = user.name ?? user.email;
+  const shortName = user.name ?? user.email.split("@")[0];
+
   return await plain.upsertCustomer({
     identifier: {
       externalId: user.id,
     },
     onCreate: {
-      fullName: user.name,
-      shortName: user.name,
+      fullName,
+      shortName,
       email: {
         email: user.email,
         isVerified: true,
@@ -32,8 +35,12 @@ export const createPlainThread = async ({
   user: PlainUser;
 } & Omit<CreateThreadInput, "customerIdentifier">) => {
   let plainCustomerId: string | undefined;
+  if (!user.email) {
+    throw new Error("User email is required");
+  }
+
   const plainCustomer = await plain.getCustomerByEmail({
-    email: user.email ?? "",
+    email: user.email,
   });
 
   if (plainCustomer.data) {
@@ -41,8 +48,8 @@ export const createPlainThread = async ({
   } else {
     const { data } = await upsertPlainCustomer({
       id: user.id,
-      name: user.name ?? "",
-      email: user.email ?? "",
+      name: user.name,
+      email: user.email,
     });
     if (data) {
       plainCustomerId = data.customer.id;

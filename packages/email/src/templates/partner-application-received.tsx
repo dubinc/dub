@@ -1,4 +1,4 @@
-import { DICEBEAR_AVATAR_URL, DUB_WORDMARK } from "@dub/utils";
+import { DUB_WORDMARK, OG_AVATAR_URL } from "@dub/utils";
 import {
   Body,
   Container,
@@ -29,7 +29,6 @@ export function PartnerApplicationReceived({
       "This is a text field the applicant can fill out with details about the question asked above.",
   },
   program = {
-    id: "prog_CYCu7IMAapjkRpTnr8F1azjN",
     name: "Acme",
   },
   workspace = {
@@ -47,14 +46,13 @@ export function PartnerApplicationReceived({
     comments: string | null;
   };
   program: {
-    id: string;
     name: string;
   };
   workspace: {
     slug: string;
   };
 }) {
-  const applicationUrl = `https://app.dub.co/${workspace.slug}/programs/${program.id}/partners?partnerId=${partner.id}`;
+  const applicationUrl = `https://app.dub.co/${workspace.slug}/program/partners?status=pending&partnerId=${partner.id}`;
 
   return (
     <Html>
@@ -92,10 +90,7 @@ export function PartnerApplicationReceived({
                   <div>
                     <div className="relative w-fit">
                       <Img
-                        src={
-                          partner.image ||
-                          `${DICEBEAR_AVATAR_URL}${partner.name}`
-                        }
+                        src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
                         width="48"
                         height="48"
                         alt={partner.name}

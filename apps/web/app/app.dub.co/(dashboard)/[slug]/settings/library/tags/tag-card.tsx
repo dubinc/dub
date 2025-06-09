@@ -98,7 +98,7 @@ export function TagCard({
         <div className="flex items-center gap-5 sm:gap-8 md:gap-12">
           {linksCount !== undefined && (
             <Link
-              href={`/${slug}?tagIds=${tag.id}`}
+              href={`/${slug}/links?tagIds=${tag.id}`}
               className="whitespace-nowrap rounded-md border border-neutral-200 bg-neutral-50 px-2 py-0.5 text-sm text-neutral-800 transition-colors hover:bg-neutral-100"
             >
               {nFormatter(linksCount || 0)} {pluralize("link", linksCount || 0)}

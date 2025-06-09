@@ -1,6 +1,7 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { qstash } from "@/lib/cron";
 import { createDiscountSchema } from "@/lib/zod/schemas/discount";
@@ -13,15 +14,10 @@ export const createDiscountAction = authActionClient
   .schema(createDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const {
-      programId,
-      partnerIds,
-      amount,
-      type,
-      maxDuration,
-      couponId,
-      couponTestId,
-    } = parsedInput;
+    const { partnerIds, amount, type, maxDuration, couponId, couponTestId } =
+      parsedInput;
+
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
     const program = await getProgramOrThrow({
       workspaceId: workspace.id,
@@ -102,7 +98,7 @@ export const createDiscountAction = authActionClient
 
     waitUntil(
       qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/sync-discounts`,
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
         body: {
           programId,
           discountId: discount.id,

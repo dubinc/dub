@@ -25,7 +25,7 @@ export const PLAN_COMPARE_FEATURES: {
 }[] = [
   {
     category: "Links",
-    href: "https://dub.co/home", // TODO: update to https://dub.co/links
+    href: "https://dub.co/links",
     features: [
       {
         text: () => (
@@ -187,8 +187,8 @@ export const PLAN_COMPARE_FEATURES: {
           advanced: true,
           enterprise: true,
         },
-        text: "Real-time events stream",
-        href: "https://dub.co/help/article/real-time-events-stream",
+        text: "Conversion tracking",
+        href: "https://dub.co/help/article/dub-conversions",
       },
       {
         check: {
@@ -197,8 +197,18 @@ export const PLAN_COMPARE_FEATURES: {
           advanced: true,
           enterprise: true,
         },
-        text: "Conversion tracking",
-        href: "https://dub.co/help/article/dub-conversions",
+        text: "Customer insights",
+        href: "https://dub.co/help/article/customer-insights",
+      },
+      {
+        check: {
+          default: false,
+          business: true,
+          advanced: true,
+          enterprise: true,
+        },
+        text: "Real-time events stream",
+        href: "https://dub.co/help/article/real-time-events-stream",
       },
     ],
   },
@@ -214,7 +224,17 @@ export const PLAN_COMPARE_FEATURES: {
           enterprise: true,
         },
         text: "Partner management",
-        href: "https://dub.co/help/article/dub-partners",
+        href: "https://dub.co/partners",
+      },
+      {
+        check: {
+          default: false,
+          business: true,
+          advanced: true,
+          enterprise: true,
+        },
+        text: "Automated global payouts",
+        href: "https://dub.co/help/article/partner-payouts",
       },
       {
         check: {
@@ -225,15 +245,15 @@ export const PLAN_COMPARE_FEATURES: {
         },
         text: ({ id, plan }) =>
           id === "free" || id === "pro" ? (
-            "No tracked sales"
+            "No partner payouts"
           ) : (
             <>
               <strong>
                 {plan.name === "Enterprise"
                   ? "Unlimited"
-                  : `$${nFormatter(plan.limits.sales / 100)}`}
+                  : `$${nFormatter(plan.limits.payouts / 100)}`}
               </strong>{" "}
-              tracked sales
+              partner payouts
               {plan.name === "Enterprise" ? "" : "/mo"}
             </>
           ),
@@ -245,25 +265,15 @@ export const PLAN_COMPARE_FEATURES: {
           advanced: true,
           enterprise: true,
         },
-        text: "1-click global payouts",
-        href: "https://dub.co/help/article/partner-payouts",
-      },
-      {
-        check: {
-          default: false,
-          business: true,
-          advanced: true,
-          enterprise: true,
-        },
         text: ({ id }) =>
           id === "free" || id === "pro" ? (
-            "No payouts"
+            "No partner payouts"
           ) : (
             <>
               <strong>
                 {
                   {
-                    business: "7%",
+                    business: "5%",
                     advanced: "5%",
                     enterprise: "3%",
                   }[id]
@@ -292,7 +302,7 @@ export const PLAN_COMPARE_FEATURES: {
           enterprise: true,
         },
         text: "White-labeling support",
-        href: "https://dub.co/help/article/dub-partners#white-labeled-in-app-dashboard",
+        href: "https://dub.co/docs/partners/white-labeling",
       },
       {
         check: {
@@ -301,7 +311,8 @@ export const PLAN_COMPARE_FEATURES: {
           advanced: true,
           enterprise: true,
         },
-        text: "Branded email domains",
+        text: "Partners API",
+        href: "https://dub.co/docs/api-reference/endpoint/create-a-partner",
       },
     ],
   },
@@ -368,7 +379,7 @@ export const PLAN_COMPARE_FEATURES: {
             <strong>
               {id === "enterprise"
                 ? "Custom"
-                : nFormatter(plan.limits.api) + "/min"}
+                : nFormatter(plan.limits.api, { full: true }) + "/min"}
             </strong>{" "}
             rate limit
           </>
@@ -437,7 +448,7 @@ export const PLAN_COMPARE_FEATURES: {
   },
   {
     category: "Support",
-    href: "https://dub.co/help", // TODO: update to https://dub.co/contact/support
+    href: "https://dub.co/contact/support",
     features: [
       {
         text: ({ id }) => (

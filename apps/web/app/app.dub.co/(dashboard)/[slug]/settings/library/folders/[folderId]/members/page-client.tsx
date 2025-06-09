@@ -6,6 +6,7 @@ import {
   FOLDER_WORKSPACE_ACCESS,
 } from "@/lib/folder/constants";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { useFolderLinkCount } from "@/lib/swr/use-folder-link-count";
 import {
   useCheckFolderPermission,
   useFolderPermissions,
@@ -16,7 +17,7 @@ import { FolderIcon } from "@/ui/folders/folder-icon";
 import { RequestFolderEditAccessButton } from "@/ui/folders/request-edit-button";
 import { FolderUserRole } from "@dub/prisma/client";
 import { Avatar, BlurImage, Globe } from "@dub/ui";
-import { cn, DICEBEAR_AVATAR_URL, fetcher, nFormatter } from "@dub/utils";
+import { cn, fetcher, nFormatter, OG_AVATAR_URL, pluralize } from "@dub/utils";
 import { ChevronLeft } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
@@ -48,6 +49,8 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
     `/api/folders/${folderId}?workspaceId=${workspace.id}`,
     fetcher,
   );
+
+  const { folderLinkCount } = useFolderLinkCount({ folderId });
 
   const {
     data: users,
@@ -120,8 +123,8 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
                   <div className="flex items-center gap-1">
                     <Globe className="size-3.5 text-neutral-500" />
                     <span className="text-[13px] font-normal leading-[14.30px] text-neutral-500">
-                      {nFormatter(folder.linkCount)} link
-                      {folder.linkCount !== 1 && "s"}
+                      {nFormatter(folderLinkCount, { full: true })}
+                      {pluralize("link", folderLinkCount)}
                     </span>
                   </div>
                 </div>
@@ -130,10 +133,7 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
               {canUpdateFolder && !isLoadingPermissions && (
                 <div className="relative flex items-center">
                   <BlurImage
-                    src={
-                      workspace.logo ||
-                      `${DICEBEAR_AVATAR_URL}${workspace.name}`
-                    }
+                    src={workspace.logo || `${OG_AVATAR_URL}${workspace.name}`}
                     alt={workspace.name || "Workspace logo"}
                     className="absolute left-2 size-6 shrink-0 overflow-hidden rounded-full"
                     width={20}

@@ -1,6 +1,7 @@
 "use server";
 
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { qstash } from "@/lib/cron";
 import { redis } from "@/lib/upstash";
@@ -12,7 +13,6 @@ import { authActionClient } from "../safe-action";
 
 const deleteDiscountSchema = z.object({
   workspaceId: z.string(),
-  programId: z.string(),
   discountId: z.string(),
 });
 
@@ -20,7 +20,9 @@ export const deleteDiscountAction = authActionClient
   .schema(deleteDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { programId, discountId } = parsedInput;
+    const { discountId } = parsedInput;
+
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
     const program = await getProgramOrThrow({
       workspaceId: workspace.id,
@@ -97,7 +99,7 @@ export const deleteDiscountAction = authActionClient
     if (deletedDiscountId) {
       waitUntil(
         qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/sync-discounts`,
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
           body: {
             programId,
             discountId,

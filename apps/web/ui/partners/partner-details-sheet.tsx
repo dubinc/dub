@@ -1,6 +1,5 @@
-import { SHEET_MAX_ITEMS } from "@/lib/partners/constants";
+import { PAYOUTS_SHEET_ITEMS_LIMIT } from "@/lib/partners/constants";
 import usePayouts from "@/lib/swr/use-payouts";
-import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { ThreeDots, X } from "@/ui/shared/icons";
@@ -39,15 +38,16 @@ type PartnerDetailsSheetProps = {
 type Tab = "payouts" | "links";
 
 function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
-  const { slug } = useWorkspace();
-  const { program } = useProgram();
+  const { slug, defaultProgramId } = useWorkspace();
   const [tab, setTab] = useState<Tab>("links");
 
   const { createPayoutSheet, setIsOpen: setCreatePayoutSheetOpen } =
     useCreatePayoutSheet({ nested: true, partnerId: partner.id });
 
   const showPartnerDetails =
-    partner.status === "approved" || partner.status === "banned";
+    partner.status === "approved" ||
+    partner.status === "banned" ||
+    partner.status === "archived";
 
   return (
     <div className="flex h-full flex-col">
@@ -107,9 +107,9 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
                 ],
                 [
                   "Commissions",
-                  !partner.commissions
+                  !partner.totalCommissions
                     ? "-"
-                    : currencyFormatter(partner.commissions / 100, {
+                    : currencyFormatter(partner.totalCommissions / 100, {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                       }),
@@ -134,7 +134,7 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
 
           {/* <div className="xs:grid-cols-2 mt-4 grid grid-cols-1 gap-3">
             <Link
-              href={`/${slug}/analytics?programId=${program!.id}&partnerId=${partner.id}&interval=all`}
+              href={`/${slug}/analytics?programId=${defaultProgramId}&partnerId=${partner.id}&interval=all`}
               target="_blank"
               className={cn(
                 buttonVariants({ variant: "secondary" }),
@@ -145,7 +145,7 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
               Analytics
             </Link>
             <Link
-              href={`/${slug}/events?programId=${program!.id}&partnerId=${partner.id}&interval=all`}
+              href={`/${slug}/events?programId=${defaultProgramId}&partnerId=${partner.id}&interval=all`}
               target="_blank"
               className={cn(
                 buttonVariants({ variant: "secondary" }),
@@ -164,9 +164,10 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
                   { id: "links", label: "Links" },
                   { id: "payouts", label: "Payouts" },
                   {
-                    id: "sales",
-                    label: "Sales",
-                    href: `/${slug}/programs/${program!.id}/sales?partnerId=${partner.id}`,
+                    id: "commissions",
+                    label: "Commissions",
+                    href: `/${slug}/program/commissions?partnerId=${partner.id}`,
+                    target: "_blank",
                   },
                 ]}
                 selected={tab}
@@ -214,14 +215,13 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
 
 function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
   const { slug } = useWorkspace();
-  const { program } = useProgram();
 
   const {
     payouts,
     error: payoutsError,
     loading,
   } = usePayouts({
-    query: { partnerId: partner.id, pageSize: SHEET_MAX_ITEMS },
+    query: { partnerId: partner.id, pageSize: PAYOUTS_SHEET_ITEMS_LIMIT },
   });
 
   const table = useTable({
@@ -258,7 +258,7 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
     ],
     onRowClick: (row) => {
       window.open(
-        `/${slug}/programs/${program!.id}/payouts?payoutId=${row.original.id}`,
+        `/${slug}/program/payouts?payoutId=${row.original.id}`,
         "_blank",
       );
     },
@@ -275,7 +275,7 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
       <Table {...table} />
       <div className="mt-2 flex justify-end">
         <Link
-          href={`/${slug}/programs/${program!.id}/payouts?partnerId=${partner.id}`}
+          href={`/${slug}/program/payouts?partnerId=${partner.id}`}
           target="_blank"
           className={cn(
             buttonVariants({ variant: "secondary" }),
@@ -313,28 +313,56 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
         id: "shortLink",
         header: "Link",
         cell: ({ row }) => (
-          <b className="font-medium text-black">
+          <Link
+            href={`/${slug}/links/${row.original.domain}/${row.original.key}`}
+            target="_blank"
+            className="cursor-alias font-medium text-black decoration-dotted hover:underline"
+          >
             {getPrettyUrl(row.original.shortLink)}
-          </b>
+          </Link>
         ),
       },
       {
         header: "Clicks",
-        accessorFn: (d) => nFormatter(d.clicks),
         size: 1,
         minSize: 1,
+        cell: ({ row }) => (
+          <Link
+            href={`/${slug}/events?event=clicks&interval=all&domain=${row.original.domain}&key=${row.original.key}`}
+            target="_blank"
+            className="block w-full cursor-alias decoration-dotted hover:underline"
+          >
+            {nFormatter(row.original.clicks)}
+          </Link>
+        ),
       },
       {
         header: "Leads",
-        accessorFn: (d) => nFormatter(d.leads),
         size: 1,
         minSize: 1,
+        cell: ({ row }) => (
+          <Link
+            href={`/${slug}/events?event=leads&interval=all&domain=${row.original.domain}&key=${row.original.key}`}
+            target="_blank"
+            className="block w-full cursor-alias decoration-dotted hover:underline"
+          >
+            {nFormatter(row.original.leads)}
+          </Link>
+        ),
       },
       {
         header: "Sales",
-        accessorFn: (d) => nFormatter(d.sales),
         size: 1,
         minSize: 1,
+        cell: ({ row }) => (
+          <Link
+            href={`/${slug}/events?event=sales&interval=all&domain=${row.original.domain}&key=${row.original.key}`}
+            target="_blank"
+            className="block w-full cursor-alias decoration-dotted hover:underline"
+          >
+            {nFormatter(row.original.sales)}
+          </Link>
+        ),
       },
       {
         header: "Revenue",
@@ -345,14 +373,20 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
           }),
         size: 1,
         minSize: 1,
+        cell: ({ row }) => (
+          <Link
+            href={`/${slug}/events?event=sales&interval=all&domain=${row.original.domain}&key=${row.original.key}`}
+            target="_blank"
+            className="block w-full cursor-alias decoration-dotted hover:underline"
+          >
+            {currencyFormatter(row.original.saleAmount / 100, {
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0,
+            })}
+          </Link>
+        ),
       },
     ],
-    onRowClick: (row) => {
-      window.open(
-        `/${slug}/events?domain=${row.original.domain}&key=${row.original.key}&interval=all`,
-        "_blank",
-      );
-    },
     resourceName: (p) => `link${p ? "s" : ""}`,
     thClassName: (id) =>
       cn(id === "total" && "[&>div]:justify-end", "border-l-0"),

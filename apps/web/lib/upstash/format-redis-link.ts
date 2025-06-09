@@ -1,5 +1,7 @@
+import { z } from "zod";
 import { ExpandedLink } from "../api/links/utils/transform-link";
 import { RedisLinkProps } from "../types";
+import { ABTestVariantsSchema } from "../zod/schemas/links";
 
 export function formatRedisLink(link: ExpandedLink): RedisLinkProps {
   const {
@@ -21,6 +23,8 @@ export function formatRedisLink(link: ExpandedLink): RedisLinkProps {
     partnerId,
     partner,
     discount,
+    testVariants,
+    testCompletedAt,
   } = link;
 
   const webhookIds = webhooks?.map(({ webhookId }) => webhookId) ?? [];
@@ -49,7 +53,8 @@ export function formatRedisLink(link: ExpandedLink): RedisLinkProps {
       partner: {
         id: partner.id,
         name: partner.name,
-        image: partner.image,
+        image:
+          partner.image || `https://api.dub.co/og/avatar?seed=${partner.id}`,
       },
     }),
     ...(discount && {
@@ -58,7 +63,15 @@ export function formatRedisLink(link: ExpandedLink): RedisLinkProps {
         amount: discount.amount,
         type: discount.type,
         maxDuration: discount.maxDuration,
+        couponId: discount.couponId,
+        couponTestId: discount.couponTestId,
       },
+    }),
+    ...(Boolean(
+      testVariants && testCompletedAt && new Date(testCompletedAt) > new Date(),
+    ) && {
+      testVariants: testVariants as z.infer<typeof ABTestVariantsSchema>,
+      testCompletedAt: new Date(testCompletedAt!),
     }),
   };
 }

@@ -2,6 +2,7 @@
 
 import { DubApiError } from "@/lib/api/errors";
 import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { prisma } from "@dub/prisma";
 import { z } from "zod";
@@ -9,7 +10,6 @@ import { authActionClient } from "../safe-action";
 
 const schema = z.object({
   workspaceId: z.string(),
-  programId: z.string(),
   rewardId: z.string(),
 });
 
@@ -17,7 +17,9 @@ export const deleteRewardAction = authActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { programId, rewardId } = parsedInput;
+    const { rewardId } = parsedInput;
+
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
     const program = await getProgramOrThrow({
       workspaceId: workspace.id,

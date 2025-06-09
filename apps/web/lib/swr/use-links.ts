@@ -42,7 +42,17 @@ export default function useLinks(
             ...opts,
           },
           {
-            exclude: ["import", "upgrade", "newLink"],
+            include: [
+              "folderId",
+              "tagIds",
+              "domain",
+              "userId",
+              "search",
+              "page",
+              "sortBy",
+              "sortOrder",
+              "showArchived",
+            ],
           },
         )}`
       : admin

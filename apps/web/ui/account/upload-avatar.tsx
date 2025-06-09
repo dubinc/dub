@@ -33,8 +33,8 @@ export default function UploadAvatar() {
             await update();
             toast.success("Successfully updated your profile picture!");
           } else {
-            const errorMessage = await res.text();
-            toast.error(errorMessage || "Something went wrong");
+            const { error } = await res.json();
+            toast.error(error.message);
           }
         });
       }}

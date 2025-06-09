@@ -1,13 +1,11 @@
 "use client";
 
-import { SHOW_EMBEEDED_REFERRALS } from "@/lib/embed/constants";
-import usePrograms from "@/lib/swr/use-programs";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { useRouterStuff } from "@dub/ui";
 import {
   Books2,
   CircleInfo,
   ConnectedDots,
-  ConnectedDots4,
   CubeSettings,
   Gear2,
   Gift,
@@ -23,10 +21,11 @@ import { useSession } from "next-auth/react";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
 import UserSurveyButton from "../user-survey";
+import { ConnectedDots4 } from "./icons/connected-dots4";
 import { CursorRays } from "./icons/cursor-rays";
-import { Gear } from "./icons/gear";
 import { Hyperlink } from "./icons/hyperlink";
 import { LinesY } from "./icons/lines-y";
+import { User } from "./icons/user";
 import { SidebarNav, SidebarNavAreas } from "./sidebar-nav";
 import { Usage } from "./usage";
 import { WorkspaceDropdown } from "./workspace-dropdown";
@@ -35,12 +34,12 @@ const NAV_AREAS: SidebarNavAreas<{
   slug: string;
   pathname: string;
   queryString: string;
-  programs?: { id: string }[];
+  defaultProgramId?: string;
   session?: Session | null;
   showNews?: boolean;
 }> = {
   // Top-level
-  default: ({ slug, pathname, queryString, programs, showNews }) => ({
+  default: ({ slug, pathname, queryString, defaultProgramId, showNews }) => ({
     showSwitcher: true,
     showNews,
     direction: "left",
@@ -50,8 +49,7 @@ const NAV_AREAS: SidebarNavAreas<{
           {
             name: "Links",
             icon: Hyperlink,
-            href: `/${slug}${pathname === `/${slug}` ? "" : queryString}`,
-            exact: true,
+            href: `/${slug}/links${pathname === `/${slug}/links` ? "" : queryString}`,
           },
           {
             name: "Analytics",
@@ -64,53 +62,48 @@ const NAV_AREAS: SidebarNavAreas<{
             href: `/${slug}/events${pathname === `/${slug}/events` ? "" : queryString}`,
           },
           {
-            name: "Settings",
-            icon: Gear,
-            href: `/${slug}/settings`,
+            name: "Customers",
+            icon: User,
+            href: `/${slug}/customers`,
           },
-        ],
-      },
-      ...(programs?.length
-        ? [
-            {
-              name: "Programs",
-              items: [
+          ...(defaultProgramId
+            ? [
                 {
-                  name: "Affiliate",
+                  name: "Program",
                   icon: ConnectedDots4,
-                  href: `/${slug}/programs/${programs[0].id}`,
+                  href: `/${slug}/program`,
                   items: [
                     {
                       name: "Overview",
-                      href: `/${slug}/programs/${programs[0].id}`,
+                      href: `/${slug}/program`,
                       exact: true,
                     },
                     {
                       name: "Partners",
-                      href: `/${slug}/programs/${programs[0].id}/partners`,
+                      href: `/${slug}/program/partners`,
                     },
                     {
-                      name: "Sales",
-                      href: `/${slug}/programs/${programs[0].id}/sales`,
+                      name: "Commissions",
+                      href: `/${slug}/program/commissions`,
                     },
                     {
                       name: "Payouts",
-                      href: `/${slug}/programs/${programs[0].id}/payouts`,
+                      href: `/${slug}/program/payouts?status=pending&sortBy=amount`,
                     },
                     {
-                      name: "Resources",
-                      href: `/${slug}/programs/${programs[0].id}/resources`,
+                      name: "Branding",
+                      href: `/${slug}/program/branding`,
                     },
                     {
                       name: "Configuration",
-                      href: `/${slug}/programs/${programs[0].id}/settings`,
+                      href: `/${slug}/program/settings`,
                     },
                   ],
                 },
-              ],
-            },
-          ]
-        : []),
+              ]
+            : []),
+        ],
+      },
     ],
   }),
 
@@ -141,7 +134,7 @@ const NAV_AREAS: SidebarNavAreas<{
           {
             name: "Library",
             icon: Books2,
-            href: `/${slug}/settings/library`,
+            href: `/${slug}/settings/library/folders`,
           },
           {
             name: "People",
@@ -199,7 +192,7 @@ const NAV_AREAS: SidebarNavAreas<{
   }),
 
   // User settings
-  userSettings: ({ session, slug }) => ({
+  userSettings: ({ slug }) => ({
     title: "Settings",
     backHref: `/${slug}`,
     content: [
@@ -217,15 +210,11 @@ const NAV_AREAS: SidebarNavAreas<{
             icon: ShieldCheck,
             href: "/account/settings/security",
           },
-          ...(SHOW_EMBEEDED_REFERRALS
-            ? [
-                {
-                  name: "Referrals",
-                  icon: Gift,
-                  href: "/account/settings/referrals",
-                },
-              ]
-            : []),
+          {
+            name: "Referrals",
+            icon: Gift,
+            href: "/account/settings/referrals",
+          },
         ],
       },
     ],
@@ -243,7 +232,7 @@ export function AppSidebarNav({
   const pathname = usePathname();
   const { getQueryString } = useRouterStuff();
   const { data: session } = useSession();
-  const { programs } = usePrograms();
+  const { defaultProgramId } = useWorkspace();
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
@@ -263,9 +252,9 @@ export function AppSidebarNav({
         queryString: getQueryString(undefined, {
           include: ["folderId", "tagIds"],
         }),
-        programs,
         session: session || undefined,
-        showNews: pathname.startsWith(`/${slug}/programs/`) ? false : true,
+        showNews: pathname.startsWith(`/${slug}/program`) ? false : true,
+        defaultProgramId: defaultProgramId || undefined,
       }}
       toolContent={toolContent}
       newsContent={newsContent}

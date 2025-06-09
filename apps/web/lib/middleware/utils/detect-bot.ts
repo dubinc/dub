@@ -1,6 +1,7 @@
 import { ipAddress } from "@vercel/functions";
 import { userAgent } from "next/server";
-import { IP_BOTS, UA_BOTS } from "./bots-list";
+import { IP_BOTS, IP_RANGES_BOTS, UA_BOTS } from "./bots-list";
+import { isIpInRange } from "./is-ip-in-range";
 
 export const detectBot = (req: Request) => {
   const searchParams = new URL(req.url).searchParams;
@@ -23,9 +24,11 @@ export const detectBot = (req: Request) => {
     return false;
   }
 
-  if (ip.includes("/")) {
-    ip = ip.split("/")[0];
+  // Check exact IP matches
+  if (IP_BOTS.includes(ip)) {
+    return true;
   }
 
-  return IP_BOTS.includes(ip);
+  // Check CIDR ranges
+  return IP_RANGES_BOTS.some((range) => isIpInRange(ip, range));
 };

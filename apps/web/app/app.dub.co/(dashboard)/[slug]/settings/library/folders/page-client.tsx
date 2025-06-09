@@ -3,7 +3,6 @@
 import { unsortedLinks } from "@/lib/folder/constants";
 import useFolders from "@/lib/swr/use-folders";
 import useFoldersCount from "@/lib/swr/use-folders-count";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { Folder } from "@/lib/types";
 import { FOLDERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/folders";
 import { FolderCard } from "@/ui/folders/folder-card";
@@ -11,7 +10,7 @@ import { FolderCardPlaceholder } from "@/ui/folders/folder-card-placeholder";
 import { useAddFolderModal } from "@/ui/modals/add-folder-modal";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { PaginationControls, usePagination, useRouterStuff } from "@dub/ui";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 const allLinkFolder: Folder = {
   type: "default",
@@ -21,26 +20,21 @@ const allLinkFolder: Folder = {
 };
 
 export const FoldersPageClient = () => {
-  const router = useRouter();
-  const { flags } = useWorkspace();
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
 
   const { AddFolderButton, AddFolderModal } = useAddFolderModal();
 
-  const { data: foldersCount } = useFoldersCount({
-    includeParams: true,
-  });
   const { folders, loading, isValidating } = useFolders({
-    includeParams: true,
+    includeParams: ["search", "page"],
+  });
+
+  const { data: foldersCount } = useFoldersCount({
+    includeParams: ["search", "page"],
   });
 
   const showAllLinkFolder =
     !searchParams.get("search") || folders?.length === 0;
-
-  if (flags && !flags.linkFolders) {
-    router.push("/settings");
-  }
 
   const { pagination, setPagination } = usePagination(FOLDERS_MAX_PAGE_SIZE);
 
@@ -54,7 +48,7 @@ export const FoldersPageClient = () => {
               loading={isValidating}
               onChangeDebounced={(t) => {
                 if (t) {
-                  queryParams({ set: { search: t } });
+                  queryParams({ set: { search: t }, del: "page" });
                 } else {
                   queryParams({ del: "search" });
                 }

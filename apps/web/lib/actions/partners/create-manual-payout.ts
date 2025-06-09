@@ -1,42 +1,27 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
-import { DubApiError } from "@/lib/api/errors";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { createManualPayoutSchema } from "@/lib/zod/schemas/payouts";
 import { prisma } from "@dub/prisma";
-import { PayoutType } from "@prisma/client";
 import { authActionClient } from "../safe-action";
 
-const schema = createManualPayoutSchema;
-
 export const createManualPayoutAction = authActionClient
-  .schema(schema)
+  .schema(createManualPayoutSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { programId, partnerId, amount, description } = parsedInput;
+    const { partnerId, amount, description } = parsedInput;
 
-    const programEnrollment = await prisma.programEnrollment.findUniqueOrThrow({
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
+    await prisma.programEnrollment.findUniqueOrThrow({
       where: {
         partnerId_programId: {
           partnerId,
           programId,
         },
       },
-      select: {
-        program: {
-          select: {
-            workspaceId: true,
-          },
-        },
-      },
     });
-
-    if (programEnrollment.program.workspaceId !== workspace.id) {
-      throw new DubApiError({
-        code: "not_found",
-        message: "Program not found",
-      });
-    }
 
     const amountInCents = amount || 0;
 
@@ -45,7 +30,6 @@ export const createManualPayoutAction = authActionClient
         id: createId({ prefix: "po_" }),
         programId,
         partnerId,
-        type: PayoutType.custom,
         amount: amountInCents,
         description,
       },

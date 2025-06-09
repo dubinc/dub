@@ -18,12 +18,14 @@ export function PartnerInvite({
   email = "panic@thedis.co",
   program = {
     name: "Acme",
+    slug: "acme",
     logo: DUB_WORDMARK,
   },
 }: {
   email: string;
   program: {
     name: string;
+    slug: string;
     logo: string | null;
   };
 }) {
@@ -49,7 +51,7 @@ export function PartnerInvite({
             <Text className="text-sm leading-6 text-neutral-600">
               {program.name} uses{" "}
               <Link
-                href="https://dub.co/help/article/dub-partners"
+                href="https://dub.co/partners"
                 target="_blank"
                 className="font-semibold text-neutral-800 underline underline-offset-2"
               >
@@ -62,7 +64,7 @@ export function PartnerInvite({
             <Section className="mb-12 mt-8">
               <Link
                 className="rounded-lg bg-neutral-900 px-4 py-3 text-[12px] font-semibold text-white no-underline"
-                href="https://partners.dub.co/register"
+                href={`https://partners.dub.co/${program.slug}/register`}
               >
                 Accept Invite
               </Link>

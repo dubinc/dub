@@ -5,10 +5,10 @@ import useSWR from "swr";
 import useWorkspace from "./use-workspace";
 
 export function useFolderPermissions() {
-  const { id, plan, flags } = useWorkspace();
+  const { id, plan } = useWorkspace();
 
   const { data, error, isLoading, mutate } = useSWR<FolderWithPermissions[]>(
-    id && flags?.linkFolders && plan !== "free" && plan !== "pro"
+    id && plan !== "free" && plan !== "pro"
       ? `/api/folders/permissions?workspaceId=${id}`
       : null,
     fetcher,

@@ -23,8 +23,10 @@ import {
   getDomainWithoutWWW,
   getPrettyUrl,
   linkConstructor,
+  regexEscape,
 } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
+import { useParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -167,6 +169,7 @@ function PartnerLinkModalContent({
   isDefaultLink?: boolean;
   setShowPartnerLinkModal: Dispatch<SetStateAction<boolean>>;
 }) {
+  const { programSlug } = useParams();
   const { programEnrollment } = useProgramEnrollment();
   const destinationDomain =
     getDomainWithoutWWW(programEnrollment?.program?.url || "https://dub.co") ??
@@ -179,7 +182,10 @@ function PartnerLinkModalContent({
   const form = useForm<PartnerLinkFormData>({
     defaultValues: link
       ? {
-          url: link.url.replace(`https://${destinationDomain}/`, ""),
+          url: link.url.replace(
+            new RegExp(`^https?:\/\/${regexEscape(destinationDomain)}\/?`),
+            "",
+          ),
           key: link.key,
           comments: link.comments ?? "",
         }
@@ -248,7 +254,10 @@ function PartnerLinkModalContent({
             return;
           }
 
-          await mutateSuffix(`/links`);
+          await Promise.all([
+            mutateSuffix(`/api/partner-profile/programs/${programSlug}`),
+            mutateSuffix("/links"),
+          ]);
 
           if (!link) {
             try {

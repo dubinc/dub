@@ -4,6 +4,7 @@ import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { CommissionStatus, Program } from "@prisma/client";
 import { createId } from "../api/create-id";
+import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { getLeadEvent } from "../tinybird";
 import { recordSaleWithTimestamp } from "../tinybird/record-sale";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
@@ -215,7 +216,7 @@ async function createCommission({
     pending: "pending",
     due: "pending",
     paid: "paid",
-    voided: "duplicate",
+    voided: "canceled",
   };
 
   await Promise.all([
@@ -250,6 +251,7 @@ async function createCommission({
       timestamp: new Date(sale.created_at).toISOString(),
     }),
 
+    // update link stats
     prisma.link.update({
       where: { id: customerFound.linkId },
       data: {
@@ -257,5 +259,19 @@ async function createCommission({
         saleAmount: { increment: sale.sale_amount_cents },
       },
     }),
+
+    // update customer stats
+    prisma.customer.update({
+      where: { id: customerFound.id },
+      data: {
+        sales: { increment: 1 },
+        saleAmount: { increment: sale.sale_amount_cents },
+      },
+    }),
   ]);
+
+  await syncTotalCommissions({
+    partnerId: customerFound.link.partnerId,
+    programId: program.id,
+  });
 }

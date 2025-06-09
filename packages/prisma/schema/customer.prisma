@@ -11,6 +11,9 @@ model Customer {
   clickedAt DateTime?
   country   String?
 
+  sales      Int @default(0)
+  saleAmount Int @default(0)
+
   projectId        String
   projectConnectId String?
   createdAt        DateTime @default(now())
@@ -22,6 +25,10 @@ model Customer {
 
   @@unique([projectId, externalId])
   @@unique([projectConnectId, externalId])
+  @@index([projectId, createdAt])
+  @@index([projectId, saleAmount])
+  @@index([projectId, email, externalId, name])
   @@index(externalId)
   @@index(linkId)
+  @@index(country)
 }

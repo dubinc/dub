@@ -1,5 +1,6 @@
 import z from "@/lib/zod";
 import { DubApiError } from "../api/errors";
+import { RegisterDomainSchema } from "../zod/schemas/domains";
 import { DYNADOT_API_KEY, DYNADOT_BASE_URL, DYNADOT_COUPON } from "./constants";
 
 /*
@@ -22,14 +23,19 @@ const schema = z.object({
   }),
 });
 
+const ERROR_CODES = {
+  not_available: "Domain not available.",
+  system_busy: "System is busy. Please try again.",
+};
+
 export const registerDomain = async ({ domain }: { domain: string }) => {
   const searchParams = new URLSearchParams({
-    key: DYNADOT_API_KEY,
-    domain: domain,
+    domain,
     command: "register",
-    duration: "1", // TODO: Is this month or year?
+    duration: "1",
     currency: "USD",
     coupon: DYNADOT_COUPON,
+    key: DYNADOT_API_KEY,
   });
 
   const response = await fetch(
@@ -52,18 +58,19 @@ export const registerDomain = async ({ domain }: { domain: string }) => {
 
   const { Status, Error } = data.RegisterResponse;
 
-  const errorCodes = {
-    error: Error,
-    not_available: "Domain not available.",
-    system_busy: "System is busy. Please try again.",
-  };
-
   if (Status !== "success") {
     throw new DubApiError({
       code: "bad_request",
-      message: `Failed to register domain: ${errorCodes[Status] || "Please try again."}`,
+      message:
+        Error ||
+        ERROR_CODES[Status] ||
+        "Failed to register domain. Please try again.",
     });
   }
 
-  return data;
+  return RegisterDomainSchema.parse({
+    domain,
+    status: Status,
+    expiration: data.RegisterResponse.Expiration,
+  });
 };

@@ -32,7 +32,7 @@ export function usePartnerEarningsTimeseries(
               }),
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         },
-        { include: ["type", "linkId", "customerId", "status"] },
+        { include: ["type", "linkId", "customerId", "status", "payoutId"] },
       )}`,
     fetcher,
     {

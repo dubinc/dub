@@ -1,5 +1,6 @@
 "use client";
 
+import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { updateOnlinePresenceAction } from "@/lib/actions/partners/update-online-presence";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
@@ -71,6 +72,7 @@ export function OnlinePresenceForm({
     setError,
     getValues,
     handleSubmit,
+    reset,
     formState: { errors, isSubmitting, isSubmitSuccessful },
   } = form;
 
@@ -83,15 +85,9 @@ export function OnlinePresenceForm({
       else mutate("/api/partner-profile");
     },
     onError: ({ error }) => {
-      if (error.serverError) {
-        toast.error(error.serverError);
-      } else {
-        toast.error("Failed to update online presence.");
-      }
+      toast.error(parseActionError(error, "Failed to update online presence"));
 
-      setError("root.serverError", {
-        message: error.serverError,
-      });
+      reset(form.getValues(), { keepErrors: true });
     },
   });
 
@@ -101,11 +97,6 @@ export function OnlinePresenceForm({
   } | null>(null);
 
   const startVerification = useOAuthVerification(variant);
-
-  const enableTikTokVerification =
-    partner?.email === "integrations-testing@tiktok.com";
-
-  console.log({ enableTikTokVerification, partnerEmail: partner?.email });
 
   return (
     <>
@@ -152,9 +143,8 @@ export function OnlinePresenceForm({
                   icon={Globe}
                   onClick={async () => {
                     try {
-                      const result = await updateOnlinePresenceAction({
-                        website: getValues("website"),
-                      });
+                      const result =
+                        await updateOnlinePresenceAction(getValues());
 
                       if (
                         !result?.data?.website ||
@@ -356,9 +346,6 @@ export function OnlinePresenceForm({
                   onClick={() =>
                     startVerification("tiktok", getValues("tiktok"))
                   }
-                  {...(!enableTikTokVerification && {
-                    disabledTooltip: "TikTok verification is coming soon.",
-                  })}
                 />
               }
             />
