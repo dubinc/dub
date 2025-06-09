@@ -7,7 +7,6 @@ import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgram from "@/lib/swr/use-program";
 import useRewardPartners from "@/lib/swr/use-reward-partners";
-import useRewards from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { RewardProps } from "@/lib/types";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
@@ -24,7 +23,6 @@ import {
   InfoTooltip,
   Sheet,
   Switch,
-  Tooltip,
 } from "@dub/ui";
 import { cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
@@ -63,45 +61,15 @@ interface RewardSheetProps {
 
 type FormData = z.infer<typeof createRewardSchema>;
 
-const PARTNER_TYPES = [
-  {
-    key: "all",
-    label: "All Partners",
-    description: "Everyone is eligible",
-  },
-  {
-    key: "specific",
-    label: "Specific Partners",
-    description: "Select who is eligible",
-  },
-] as const;
-
-const DEFAULT_REWARD_TYPES = [
-  {
-    key: "lead",
-    label: "Lead",
-    description: "For sign ups and leads",
-  },
-  {
-    key: "sale",
-    label: "Sale",
-    description: "For sales and subscriptions",
-  },
-] as const;
-
 function RewardSheetContent({
   setIsOpen,
   event,
   reward,
   isDefault,
 }: RewardSheetProps) {
-  const { rewards } = useRewards();
   const { id: workspaceId } = useWorkspace();
   const formRef = useRef<HTMLFormElement>(null);
   const { program, mutate: mutateProgram } = useProgram();
-
-  const [selectedPartnerType, setSelectedPartnerType] =
-    useState<(typeof PARTNER_TYPES)[number]["key"]>("all");
 
   const [commissionStructure, setCommissionStructure] = useState<
     "one-off" | "recurring"
@@ -144,38 +112,6 @@ function RewardSheetContent({
   ]);
 
   const selectedEvent = watch("event");
-
-  const hasProgramWideClickReward = rewards?.some(
-    (reward) => reward.event === "click" && reward.partnersCount === 0,
-  );
-
-  const hasProgramWideLeadReward = rewards?.some(
-    (reward) => reward.event === "lead" && reward.partnersCount === 0,
-  );
-
-  const hasProgramWideSaleReward = rewards?.some(
-    (reward) => reward.event === "sale" && reward.partnersCount === 0,
-  );
-
-  useEffect(() => {
-    if (reward) {
-      setSelectedPartnerType(reward.partnersCount === 0 ? "all" : "specific");
-    } else if (
-      (selectedEvent === "click" && hasProgramWideClickReward) ||
-      (selectedEvent === "lead" && hasProgramWideLeadReward) ||
-      (selectedEvent === "sale" && hasProgramWideSaleReward)
-    ) {
-      setSelectedPartnerType("specific");
-    } else {
-      setSelectedPartnerType("all");
-    }
-  }, [
-    reward,
-    selectedEvent,
-    hasProgramWideClickReward,
-    hasProgramWideLeadReward,
-    hasProgramWideSaleReward,
-  ]);
 
   const { data: rewardPartners, loading: isLoadingRewardPartners } =
     useRewardPartners({
@@ -279,14 +215,6 @@ function RewardSheetContent({
     });
   };
 
-  const buttonDisabled =
-    amount == null ||
-    (selectedPartnerType === "specific" &&
-      (!partnerIds || partnerIds.length === 0));
-
-  const hasDefaultReward = !!program?.defaultRewardId;
-  const canDeleteReward = reward && program?.defaultRewardId !== reward.id;
-
   // Determine which accordions should be open by default
   const defaultAccordionValues = useMemo(() => {
     const baseValues = ["reward-type", "commission-structure", "payout-amount"];
@@ -302,7 +230,9 @@ function RewardSheetContent({
     }
 
     return baseValues;
-  }, [reward, isDefault, selectedPartnerType]);
+  }, [reward, isDefault]);
+
+  const canDeleteReward = reward && !reward.default;
 
   return (
     <>
@@ -337,94 +267,15 @@ function RewardSheetContent({
                 </ProgramSheetAccordionTrigger>
                 <ProgramSheetAccordionContent>
                   <div className="space-y-4">
-                    <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-                      {PARTNER_TYPES.map((partnerType) => {
-                        const isSelected =
-                          selectedPartnerType === partnerType.key;
-
-                        const isDisabled =
-                          (partnerType.key === "all" &&
-                            ((selectedEvent === "click" &&
-                              hasProgramWideClickReward) ||
-                              (selectedEvent === "lead" &&
-                                hasProgramWideLeadReward) ||
-                              (selectedEvent === "sale" &&
-                                hasProgramWideSaleReward))) ||
-                          !!reward;
-
-                        const tooltipContent = isDisabled
-                          ? reward
-                            ? "Partner type cannot be changed for existing rewards"
-                            : `You can only have one program-wide ${selectedEvent} reward.`
-                          : undefined;
-
-                        const labelContent = (
-                          <label
-                            key={partnerType.label}
-                            className={cn(
-                              "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
-                              "transition-all duration-150",
-                              isSelected &&
-                                "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
-                              (isDisabled || !!reward) &&
-                                "cursor-not-allowed opacity-60 hover:bg-white",
-                            )}
-                          >
-                            <input
-                              type="radio"
-                              value={partnerType.label}
-                              className="hidden"
-                              checked={isSelected}
-                              disabled={isDisabled}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setSelectedPartnerType(partnerType.key);
-
-                                  if (partnerType.key === "all") {
-                                    setValue("partnerIds", null);
-                                  }
-                                }
-                              }}
-                            />
-                            <div className="flex grow flex-col text-sm">
-                              <span className="font-medium">
-                                {partnerType.label}
-                              </span>
-                              <span>{partnerType.description}</span>
-                            </div>
-                            <CircleCheckFill
-                              className={cn(
-                                "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
-                                isSelected && "scale-100 opacity-100",
-                              )}
-                            />
-                          </label>
-                        );
-
-                        return isDisabled ? (
-                          <Tooltip
-                            key={partnerType.label}
-                            content={tooltipContent}
-                          >
-                            {labelContent}
-                          </Tooltip>
-                        ) : (
-                          labelContent
-                        );
-                      })}
-                    </div>
-
-                    {selectedPartnerType === "specific" && program?.id && (
-                      <div className="pt-4">
-                        <RewardPartnersTable
-                          partnerIds={partnerIds || []}
-                          setPartnerIds={(value: string[]) => {
-                            setValue("partnerIds", value);
-                          }}
-                          rewardPartners={rewardPartners || []}
-                          loading={isLoadingRewardPartners}
-                        />
-                      </div>
+                    {!isDefault && (
+                      <RewardPartnersTable
+                        partnerIds={partnerIds || []}
+                        setPartnerIds={(value: string[]) => {
+                          setValue("partnerIds", value);
+                        }}
+                        rewardPartners={rewardPartners || []}
+                        loading={isLoadingRewardPartners}
+                      />
                     )}
                   </div>
                 </ProgramSheetAccordionContent>
@@ -626,9 +477,9 @@ function RewardSheetContent({
                 loading={isDeleting}
                 disabled={!canDeleteReward || isCreating || isUpdating}
                 disabledTooltip={
-                  program?.defaultRewardId === reward.id
-                    ? "This is a default reward and cannot be deleted."
-                    : undefined
+                  canDeleteReward
+                    ? undefined
+                    : "This is a default reward and cannot be deleted."
                 }
               />
             )}
@@ -651,13 +502,7 @@ function RewardSheetContent({
               className="w-fit"
               loading={isCreating || isUpdating}
               disabled={
-                buttonDisabled || isDeleting || isCreating || isUpdating
-              }
-              disabledTooltip={
-                selectedPartnerType === "specific" &&
-                (!partnerIds || partnerIds.length === 0)
-                  ? "Please select at least one partner"
-                  : undefined
+                amount == null || isDeleting || isCreating || isUpdating
               }
             />
           </div>

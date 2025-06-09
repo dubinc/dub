@@ -29,10 +29,8 @@ export const updateRewardAction = authActionClient
       programId,
     });
 
-    let programEnrollments: { id: string }[] = [];
-
     if (partnerIds && partnerIds.length > 0) {
-      programEnrollments = await prisma.programEnrollment.findMany({
+      const programEnrollments = await prisma.programEnrollment.findMany({
         where: {
           programId,
           partnerId: {
@@ -40,12 +38,13 @@ export const updateRewardAction = authActionClient
           },
         },
         select: {
-          id: true,
+          partnerId: true,
         },
       });
 
       const invalidPartnerIds = partnerIds.filter(
-        (id) => !programEnrollments.some((enrollment) => enrollment.id === id),
+        (id) =>
+          !programEnrollments.some((enrollment) => enrollment.partnerId === id),
       );
 
       if (invalidPartnerIds.length > 0) {
