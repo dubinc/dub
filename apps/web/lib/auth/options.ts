@@ -500,7 +500,6 @@ export const authOptions: NextAuthOptions = {
   },
   events: {
     async signIn(message) {
-      console.log("signIn", message);
       const email = message.user.email as string;
       const user = await prisma.user.findUnique({
         where: { email },
