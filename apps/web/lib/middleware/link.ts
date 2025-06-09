@@ -173,6 +173,19 @@ export default async function LinkMiddleware(
   // - it's a partner link
   const shouldPassClickId = trackConversion || isPartnerLink;
 
+  // record partner activity if the link is a partner link and the click is from Google Ads
+  const isGoogleClick = isGoogleAdsClick({ url: req.url });
+  if (isPartnerLink && isGoogleClick) {
+    ev.waitUntil(
+      recordPartnerActivity({
+        program_id: programId!,
+        partner_id: partnerId!,
+        url: req.url,
+        activity: "google-ads",
+      }),
+    );
+  }
+
   // by default, we only index default dub domain links (e.g. dub.sh)
   // everything else is not indexed by default, unless the user has explicitly set it to be indexed
   const shouldIndex = isDubDomain(domain) || doIndex === true;
@@ -302,24 +315,6 @@ export default async function LinkMiddleware(
 
   const { country } =
     process.env.VERCEL === "1" && req.geo ? req.geo : LOCALHOST_GEO_DATA;
-
-  // we only pass the via param if:
-  // - it's a partner link
-  // - it's not coming from Google Ads
-  const isGoogleClick = isGoogleAdsClick({ url: req.url });
-
-  ev.waitUntil(
-    (async () => {
-      if (isPartnerLink && isGoogleClick) {
-        recordPartnerActivity({
-          program_id: programId!,
-          partner_id: partnerId!,
-          url: req.url,
-          activity: "google-ads",
-        });
-      }
-    })(),
-  );
 
   // rewrite to proxy page (/proxy/[domain]/[key]) if it's a bot and proxy is enabled
   if (isBot && proxy) {
