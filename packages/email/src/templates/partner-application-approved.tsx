@@ -16,7 +16,7 @@ import {
 import { ReactNode } from "react";
 import { Footer } from "../components/footer";
 
-export function PartnerApplicationApproved({
+export default function PartnerApplicationApproved({
   program = {
     name: "Acme",
     logo: DUB_WORDMARK,
@@ -165,5 +165,3 @@ export function PartnerApplicationApproved({
     </Html>
   );
 }
-
-export default PartnerApplicationApproved;

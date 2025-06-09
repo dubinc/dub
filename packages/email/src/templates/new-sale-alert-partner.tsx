@@ -14,7 +14,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export function NewSaleAlertPartner({
+export default function NewSaleAlertPartner({
   email = "panic@thedis.co",
   partner = {
     referralLink: "https://refer.dub.co/steven",
@@ -112,5 +112,3 @@ export function NewSaleAlertPartner({
     </Html>
   );
 }
-
-export default NewSaleAlertPartner;

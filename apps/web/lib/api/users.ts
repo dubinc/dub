@@ -1,7 +1,7 @@
 import { Session, hashToken } from "@/lib/auth";
 import { Role, WorkspaceWithUsers } from "@/lib/types";
 import { sendEmail } from "@dub/email";
-import { WorkspaceInvite } from "@dub/email/templates/workspace-invite";
+import WorkspaceInvite from "@dub/email/templates/workspace-invite";
 import { prisma } from "@dub/prisma";
 import { TWO_WEEKS_IN_SECONDS } from "@dub/utils";
 import { randomBytes } from "crypto";

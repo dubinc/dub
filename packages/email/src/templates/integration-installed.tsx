@@ -14,7 +14,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export function IntegrationInstalled({
+export default function IntegrationInstalled({
   email = "panic@thedis.co",
   workspace = {
     name: "Acme, Inc",
@@ -67,5 +67,3 @@ export function IntegrationInstalled({
     </Html>
   );
 }
-
-export default IntegrationInstalled;

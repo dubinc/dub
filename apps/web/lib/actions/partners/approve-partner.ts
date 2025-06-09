@@ -11,7 +11,7 @@ import {
 } from "@/lib/zod/schemas/partners";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { sendEmail } from "@dub/email";
-import { PartnerApplicationApproved } from "@dub/email/templates/partner-application-approved";
+import PartnerApplicationApproved from "@dub/email/templates/partner-application-approved";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { getLinkOrThrow } from "../../api/links/get-link-or-throw";

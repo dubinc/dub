@@ -15,7 +15,7 @@ import {
 import { Footer } from "../components/footer";
 import { WorkspaceProps } from "../types";
 
-export function DomainTransferred({
+export default function DomainTransferred({
   email = "panic@thedis.co",
   domain = "dub.sh",
   newWorkspace = { name: "Dub", slug: "dub" },
@@ -59,5 +59,3 @@ export function DomainTransferred({
     </Html>
   );
 }
-
-export default DomainTransferred;

@@ -1,5 +1,5 @@
 import { sendEmail } from "@dub/email";
-import { NewReferralSignup } from "@dub/email/templates/new-referral-signup";
+import NewReferralSignup from "@dub/email/templates/new-referral-signup";
 import { prisma } from "@dub/prisma";
 import { LeadCreatedEvent } from "dub/models/components";
 
