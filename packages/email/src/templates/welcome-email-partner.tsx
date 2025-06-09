@@ -36,8 +36,8 @@ export function WelcomeEmailPartner({
               Welcome{name ? ` ${name}` : ""}!
             </Heading>
             <Text className="mb-8 text-sm leading-6 text-gray-600">
-              You're officially a Dub Partner—time to start earning rewards and
-              and turning referrals into rewards.
+              You're officially a Dub Partner – time to start earning rewards by
+              referring your audience to the brands you work with.
             </Text>
 
             <Hr />
