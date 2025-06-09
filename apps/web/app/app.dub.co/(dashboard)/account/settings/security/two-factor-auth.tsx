@@ -2,6 +2,7 @@
 
 import { enableTwoFactorAuthAction } from "@/lib/actions/auth/enable-two-factor-auth";
 import useUser from "@/lib/swr/use-user";
+import { useDisableTwoFactorAuthModal } from "@/ui/modals/disable-two-factor-auth-modal";
 import { useEnableTwoFactorAuthModal } from "@/ui/modals/enable-two-factor-auth-modal";
 import { Button } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
@@ -9,7 +10,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 export const TwoFactorAuth = () => {
-  const { user, loading } = useUser();
+  const { user, loading, mutate } = useUser();
   const [secret, setSecret] = useState("");
   const [qrCodeUrl, setQrCodeUrl] = useState("");
 
@@ -20,28 +21,36 @@ export const TwoFactorAuth = () => {
       onSuccess: () => {
         setSecret("");
         setQrCodeUrl("");
+        mutate();
       },
     });
 
-  const { executeAsync, isPending } = useAction(enableTwoFactorAuthAction, {
-    onSuccess: async ({ data }) => {
-      if (!data) {
-        toast.error("Failed to enable 2FA. Please try again.");
-        return;
-      }
+  const { DisableTwoFactorAuthModal, setShowDisableTwoFactorAuthModal } =
+    useDisableTwoFactorAuthModal();
 
-      setSecret(data.secret);
-      setQrCodeUrl(data.qrCodeUrl);
-      setShowEnableTwoFactorAuthModal(true);
+  const { executeAsync: enable2FA, isPending: isEnabling } = useAction(
+    enableTwoFactorAuthAction,
+    {
+      onSuccess: async ({ data }) => {
+        if (!data) {
+          toast.error("Failed to enable 2FA. Please try again.");
+          return;
+        }
+
+        setSecret(data.secret);
+        setQrCodeUrl(data.qrCodeUrl);
+        setShowEnableTwoFactorAuthModal(true);
+      },
+      onError({ error }) {
+        toast.error(error.serverError);
+      },
     },
-    onError({ error }) {
-      toast.error(error.serverError);
-    },
-  });
+  );
 
   return (
     <>
       <EnableTwoFactorAuthModal />
+      <DisableTwoFactorAuthModal />
       <div className="rounded-lg border border-neutral-200 bg-white">
         <div className="flex flex-col gap-3 border-b border-neutral-200 p-5 sm:p-10">
           <h2 className="text-xl font-medium">Two-factor Authentication</h2>
@@ -71,12 +80,17 @@ export const TwoFactorAuth = () => {
                     ? "Disable Two-factor"
                     : "Enable Two-factor"
               }
+              variant={user?.twoFactorConfirmedAt ? "danger" : "primary"}
               type="button"
               className="ml-4 w-fit"
-              loading={isPending}
+              loading={isEnabling}
               disabled={loading}
               onClick={async () => {
-                await executeAsync();
+                if (user?.twoFactorConfirmedAt) {
+                  setShowDisableTwoFactorAuthModal(true);
+                } else {
+                  await enable2FA();
+                }
               }}
             />
           </div>
