@@ -17,33 +17,14 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
           createdAt: "asc",
         },
       },
+      ...(searchParams.includeRewardsDiscounts && {
+        clickReward: { include: { partnerClickReward: true } },
+        leadReward: { include: { partnerLeadReward: true } },
+        saleReward: { include: { partnerSaleReward: true } },
+      }),
       program: searchParams.includeRewardsDiscounts
         ? {
             include: {
-              rewards: {
-                where: {
-                  OR: [
-                    // program-wide rewards
-                    {
-                      partners: {
-                        none: {},
-                      },
-                    },
-
-                    // partner-specific rewards
-                    {
-                      partners: {
-                        some: {
-                          programEnrollment: {
-                            partnerId: partner.id,
-                          },
-                        },
-                      },
-                    },
-                  ],
-                },
-              },
-
               discounts: {
                 where: {
                   OR: [
@@ -79,7 +60,14 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     ],
   });
 
-  return NextResponse.json(
-    z.array(ProgramEnrollmentSchema).parse(programEnrollments),
-  );
+  const response = programEnrollments.map((enrollment) => {
+    const { clickReward, leadReward, saleReward, ...rest } = enrollment;
+
+    return {
+      ...rest,
+      rewards: [saleReward, leadReward, clickReward].filter(Boolean),
+    };
+  });
+
+  return NextResponse.json(z.array(ProgramEnrollmentSchema).parse(response));
 });

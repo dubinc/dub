@@ -12,10 +12,10 @@ export default async function ApplicationPage({
 }) {
   const program = await getProgram({
     slug: programSlug,
-    include: ["rewards", "defaultDiscount"],
+    include: ["defaultRewards", "defaultDiscount"],
   });
 
-  if (!program || !program.defaultRewardId) {
+  if (!program) {
     notFound();
   }
 
