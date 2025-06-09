@@ -22,11 +22,7 @@ export const GET = withWorkspace(
         message: "Partner not found.",
       });
 
-    return NextResponse.json(
-      EnrolledPartnerSchema.omit({
-        links: true,
-      }).parse(partner),
-    );
+    return NextResponse.json(EnrolledPartnerSchema.parse(partner));
   },
   {
     requiredPlan: [
