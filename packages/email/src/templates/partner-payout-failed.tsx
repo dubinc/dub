@@ -81,12 +81,16 @@ export default function PartnerPayoutFailed({
                 <span className="font-semibold text-neutral-800">
                   ${payout.failureFee / 100} payment failure fee
                 </span>
-                {payout.cardLast4 &&
-                  ` to your card ending in ${(
+                {payout.cardLast4 && (
+                  <>
+                    {" "}
+                    to your card ending in{" "}
                     <span className="font-semibold text-purple-600">
                       {payout.cardLast4}
                     </span>
-                  )}.`}
+                  </>
+                )}
+                .
               </Text>
             )}
 

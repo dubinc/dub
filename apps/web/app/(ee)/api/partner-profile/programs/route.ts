@@ -11,6 +11,12 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
       partnerId: partner.id,
     },
     include: {
+      links: {
+        take: 1,
+        orderBy: {
+          createdAt: "asc",
+        },
+      },
       program: searchParams.includeRewardsDiscounts
         ? {
             include: {
@@ -62,16 +68,15 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
             },
           }
         : true,
-      links: {
-        take: 1,
-        orderBy: {
-          createdAt: "asc",
-        },
+    },
+    orderBy: [
+      {
+        totalCommissions: "desc",
       },
-    },
-    orderBy: {
-      createdAt: "asc",
-    },
+      {
+        createdAt: "asc",
+      },
+    ],
   });
 
   return NextResponse.json(

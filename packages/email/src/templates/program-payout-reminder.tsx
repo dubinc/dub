@@ -22,7 +22,6 @@ export default function ProgramPayoutReminder({
     slug: "acme",
   },
   program = {
-    id: "prog_CYCu7IMAapjkRpTnr8F1azjN",
     name: "Acme",
   },
   payout = {
@@ -35,7 +34,6 @@ export default function ProgramPayoutReminder({
     slug: string;
   };
   program: {
-    id: string;
     name: string;
   };
   payout: {
@@ -94,7 +92,7 @@ export default function ProgramPayoutReminder({
 
               <Section className="mt-6 text-center">
                 <Link
-                  href={`https://app.dub.co/${workspace.slug}/programs/${program.id}/payouts?status=pending&sortBy=amount&confirmPayouts=true`}
+                  href={`https://app.dub.co/${workspace.slug}/program/payouts?status=pending&sortBy=amount&confirmPayouts=true`}
                   className="box-border block w-full rounded-lg bg-black px-0 py-4 text-center text-sm leading-none text-white no-underline"
                 >
                   Review and confirm payouts
