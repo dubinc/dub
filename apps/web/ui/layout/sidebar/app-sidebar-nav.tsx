@@ -7,10 +7,14 @@ import {
   CircleInfo,
   ConnectedDots,
   CubeSettings,
+  Gauge6,
   Gear2,
   Gift,
   Globe,
+  InvoiceDollar,
   Key,
+  MoneyBills2,
+  Paintbrush,
   Receipt2,
   ShieldCheck,
   Users6,
@@ -21,25 +25,55 @@ import { useSession } from "next-auth/react";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
 import UserSurveyButton from "../user-survey";
+import { Compass } from "./icons/compass";
 import { ConnectedDots4 } from "./icons/connected-dots4";
 import { CursorRays } from "./icons/cursor-rays";
 import { Hyperlink } from "./icons/hyperlink";
 import { LinesY } from "./icons/lines-y";
 import { User } from "./icons/user";
-import { SidebarNav, SidebarNavAreas } from "./sidebar-nav";
+import { SidebarNav, SidebarNavAreas, SidebarNavGroups } from "./sidebar-nav";
 import { Usage } from "./usage";
 import { WorkspaceDropdown } from "./workspace-dropdown";
 
-const NAV_AREAS: SidebarNavAreas<{
+type SidebarNavData = {
   slug: string;
   pathname: string;
   queryString: string;
   defaultProgramId?: string;
   session?: Session | null;
   showNews?: boolean;
-}> = {
+};
+
+const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
+  slug,
+  pathname,
+  queryString,
+  defaultProgramId,
+}) => [
+  {
+    name: "Short Links",
+    icon: Compass,
+    href: `/${slug}/links${pathname === `/${slug}/links` ? "" : queryString}`,
+    active:
+      pathname.startsWith(`/${slug}`) &&
+      !pathname.startsWith(`/${slug}/program`),
+  },
+  ...(defaultProgramId
+    ? [
+        {
+          name: "Programs",
+          icon: ConnectedDots4,
+          href: `/${slug}/program`,
+          active: pathname.startsWith(`/${slug}/program`),
+        },
+      ]
+    : []),
+];
+
+const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
   // Top-level
   default: ({ slug, pathname, queryString, defaultProgramId, showNews }) => ({
+    title: "Short Links",
     showSwitcher: true,
     showNews,
     direction: "left",
@@ -66,42 +100,51 @@ const NAV_AREAS: SidebarNavAreas<{
             icon: User,
             href: `/${slug}/customers`,
           },
-          ...(defaultProgramId
-            ? [
-                {
-                  name: "Program",
-                  icon: ConnectedDots4,
-                  href: `/${slug}/program`,
-                  items: [
-                    {
-                      name: "Overview",
-                      href: `/${slug}/program`,
-                      exact: true,
-                    },
-                    {
-                      name: "Partners",
-                      href: `/${slug}/program/partners`,
-                    },
-                    {
-                      name: "Commissions",
-                      href: `/${slug}/program/commissions`,
-                    },
-                    {
-                      name: "Payouts",
-                      href: `/${slug}/program/payouts?status=pending&sortBy=amount`,
-                    },
-                    {
-                      name: "Branding",
-                      href: `/${slug}/program/branding`,
-                    },
-                    {
-                      name: "Configuration",
-                      href: `/${slug}/program/settings`,
-                    },
-                  ],
-                },
-              ]
-            : []),
+        ],
+      },
+    ],
+  }),
+
+  // Program
+  program: ({ slug, showNews }) => ({
+    title: "Program",
+    showSwitcher: true,
+    showNews,
+    direction: "left",
+    content: [
+      {
+        items: [
+          {
+            name: "Overview",
+            icon: Gauge6,
+            href: `/${slug}/program`,
+            exact: true,
+          },
+          {
+            name: "Partners",
+            icon: Users6,
+            href: `/${slug}/program/partners`,
+          },
+          {
+            name: "Commissions",
+            icon: InvoiceDollar,
+            href: `/${slug}/program/commissions`,
+          },
+          {
+            name: "Payouts",
+            icon: MoneyBills2,
+            href: `/${slug}/program/payouts?status=pending&sortBy=amount`,
+          },
+          {
+            name: "Branding",
+            icon: Paintbrush,
+            href: `/${slug}/program/branding`,
+          },
+          {
+            name: "Configuration",
+            icon: Gear2,
+            href: `/${slug}/program/settings`,
+          },
         ],
       },
     ],
@@ -239,11 +282,14 @@ export function AppSidebarNav({
       ? "userSettings"
       : pathname.startsWith(`/${slug}/settings`)
         ? "workspaceSettings"
-        : "default";
+        : pathname.startsWith(`/${slug}/program`)
+          ? "program"
+          : "default";
   }, [slug, pathname]);
 
   return (
     <SidebarNav
+      groups={NAV_GROUPS}
       areas={NAV_AREAS}
       currentArea={currentArea}
       data={{

@@ -1,7 +1,7 @@
 import { AnimatedSizeContainer, ClientOnly, Icon, NavWordmark } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, ChevronLeft } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -27,6 +27,17 @@ export type NavItemType = NavItemCommon & {
   items?: NavSubItemType[];
 };
 
+export type NavGroupType = {
+  name: string;
+  icon: Icon;
+  href: string;
+  active: boolean;
+};
+
+export type SidebarNavGroups<T extends Record<any, any>> = (
+  args: T,
+) => NavGroupType[];
+
 export type SidebarNavAreas<T extends Record<any, any>> = Record<
   string,
   (args: T) => {
@@ -43,6 +54,7 @@ export type SidebarNavAreas<T extends Record<any, any>> = Record<
 >;
 
 export function SidebarNav<T extends Record<any, any>>({
+  groups,
   areas,
   currentArea,
   data,
@@ -51,6 +63,7 @@ export function SidebarNav<T extends Record<any, any>>({
   switcher,
   bottom,
 }: {
+  groups: SidebarNavGroups<T>;
   areas: SidebarNavAreas<T>;
   currentArea: string;
   data: T;
@@ -60,98 +73,111 @@ export function SidebarNav<T extends Record<any, any>>({
   bottom?: ReactNode;
 }) {
   return (
-    <ClientOnly className="scrollbar-hide relative flex h-full w-full flex-col overflow-y-auto overflow-x-hidden">
-      <nav className="relative flex grow flex-col p-3 text-neutral-500">
-        <div className="relative flex items-start justify-between gap-1 pb-3">
-          {Object.entries(areas).map(([area, areaConfig]) => {
-            const { title, backHref } = areaConfig(data);
-
-            return (
-              <Link
-                key={area}
-                href={backHref ?? "/"}
-                className={cn(
-                  "rounded-md px-1 outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-black/50",
-                  area === currentArea
-                    ? "relative opacity-100"
-                    : "pointer-events-none absolute opacity-0",
-                  (!title || !backHref) && "mb-1",
-                )}
-                aria-hidden={area !== currentArea ? true : undefined}
-                {...{ inert: area !== currentArea ? "" : undefined }}
-              >
-                {title && backHref ? (
-                  <div className="py group -my-1 -ml-1 flex items-center gap-2 py-2 pr-1 text-sm font-medium text-neutral-900">
-                    <ChevronLeft className="size-4 text-neutral-500 transition-transform duration-100 group-hover:-translate-x-0.5" />
-                    {title}
-                  </div>
-                ) : (
-                  <NavWordmark className="h-6" isInApp />
-                )}
-              </Link>
-            );
-          })}
-          <div className="hidden items-center gap-3 md:flex">
-            <Suspense fallback={null}>{toolContent}</Suspense>
-            <UserDropdown />
+    <ClientOnly className="size-full">
+      <nav className="grid size-full grid-cols-[80px_1fr]">
+        <div className="flex flex-col items-center p-2">
+          <Link
+            href=""
+            className="rounded-md px-1 py-5 outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-black/50"
+          >
+            <NavWordmark className="h-6" isInApp />
+          </Link>
+          <div className="flex flex-col gap-4">
+            {groups(data).map((group) => (
+              <NavGroupItem key={group.name} group={group} />
+            ))}
           </div>
         </div>
-        <div className="relative w-full grow">
-          {Object.entries(areas).map(([area, areaConfig]) => {
-            const { content, showSwitcher, showNews, direction } =
-              areaConfig(data);
-            return (
-              <Area
-                key={area}
-                visible={area === currentArea}
-                direction={direction ?? "right"}
-              >
-                {showSwitcher && switcher && (
-                  <div className="pt-2">{switcher}</div>
-                )}
-
-                <div className="flex flex-col gap-4 pt-4">
-                  {content.map(({ name, items }, idx) => (
-                    <div key={idx} className="flex flex-col gap-0.5">
-                      {name && (
-                        <div className="mb-2 pl-1 text-sm text-neutral-500">
-                          {name}
-                        </div>
-                      )}
-                      {items.map((item) => (
-                        <NavItem key={item.name} item={item} />
-                      ))}
-                    </div>
-                  ))}
+        <div className="size-full overflow-hidden py-1.5 pr-1.5">
+          <div className="scrollbar-hide relative flex size-full flex-col overflow-y-auto overflow-x-hidden rounded-2xl bg-neutral-100">
+            <div className="relative flex grow flex-col p-3 text-neutral-500">
+              <div className="relative flex items-start justify-between gap-1 pb-3">
+                <div className="hidden items-center gap-3 md:flex">
+                  <Suspense fallback={null}>{toolContent}</Suspense>
+                  <UserDropdown />
                 </div>
-
-                {currentArea === "default" && <CreateProgramCard />}
-
-                <AnimatePresence>
-                  {showNews && (
-                    <motion.div
-                      className="-mx-3 flex grow flex-col justify-end"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 10 }}
-                      transition={{
-                        duration: 0.1,
-                        ease: "easeInOut",
-                      }}
+              </div>
+              <div className="relative w-full grow">
+                {Object.entries(areas).map(([area, areaConfig]) => {
+                  const { content, showSwitcher, showNews, direction } =
+                    areaConfig(data);
+                  return (
+                    <Area
+                      key={area}
+                      visible={area === currentArea}
+                      direction={direction ?? "right"}
                     >
-                      {newsContent}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </Area>
-            );
-          })}
+                      {showSwitcher && switcher && (
+                        <div className="pt-2">{switcher}</div>
+                      )}
+
+                      <div className="flex flex-col gap-4 pt-4">
+                        {content.map(({ name, items }, idx) => (
+                          <div key={idx} className="flex flex-col gap-0.5">
+                            {name && (
+                              <div className="mb-2 pl-1 text-sm text-neutral-500">
+                                {name}
+                              </div>
+                            )}
+                            {items.map((item) => (
+                              <NavItem key={item.name} item={item} />
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+
+                      {currentArea === "default" && <CreateProgramCard />}
+
+                      <AnimatePresence>
+                        {showNews && (
+                          <motion.div
+                            className="-mx-3 flex grow flex-col justify-end"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 10 }}
+                            transition={{
+                              duration: 0.1,
+                              ease: "easeInOut",
+                            }}
+                          >
+                            {newsContent}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </Area>
+                  );
+                })}
+              </div>
+            </div>
+            {bottom && (
+              <div className="relative flex flex-col justify-end">{bottom}</div>
+            )}
+          </div>
         </div>
       </nav>
-      {bottom && (
-        <div className="relative flex flex-col justify-end">{bottom}</div>
-      )}
     </ClientOnly>
+  );
+}
+
+function NavGroupItem({
+  group: { name, icon: Icon, href, active },
+}: {
+  group: NavGroupType;
+}) {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <Link
+      href={href}
+      onPointerEnter={() => setHovered(true)}
+      onPointerLeave={() => setHovered(false)}
+      className={cn(
+        "flex size-12 items-center justify-center rounded-lg transition-colors duration-150",
+        active ? "bg-white" : "hover:bg-bg-inverted/5 active:bg-bg-inverted/10",
+      )}
+    >
+      <Icon className="text-content-default size-5" data-hovered={hovered} />
+    </Link>
   );
 }
 
