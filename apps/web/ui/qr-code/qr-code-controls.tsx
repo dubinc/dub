@@ -198,6 +198,12 @@ export function QrCodeControls({
                 text={qrCode.link.archived ? "Unpause" : "Pause"}
                 variant="outline"
                 onClick={async () => {
+                  if (isTrialOver) {
+                    setShowTrialExpiredModal?.(true);
+                    setOpenPopover(false);
+                    return;
+                  }
+
                   setArchiving(true);
                   const res = await sendArchiveRequest({
                     qrId: qrCode.id,
