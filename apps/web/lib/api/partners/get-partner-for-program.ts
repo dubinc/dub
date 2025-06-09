@@ -24,11 +24,32 @@ export async function getPartnerForProgram({
       COALESCE(metrics.totalSales, 0) as totalSales,
       COALESCE(metrics.totalSaleAmount, 0) as totalSaleAmount,
       COALESCE(pe.totalCommissions, 0) as totalCommissions,
-      COALESCE(metrics.totalSaleAmount, 0) - COALESCE(pe.totalCommissions, 0) as netRevenue
+      COALESCE(metrics.totalSaleAmount, 0) - COALESCE(pe.totalCommissions, 0) as netRevenue,
+      COALESCE(
+        JSON_ARRAYAGG(
+          IF(l.id IS NOT NULL,
+            JSON_OBJECT(
+              'id', l.id,
+              'domain', l.domain,
+              'key', l.\`key\`,
+              'shortLink', l.shortLink,
+              'url', l.url,
+              'clicks', CAST(l.clicks AS SIGNED),
+              'leads', CAST(l.leads AS SIGNED),
+              'sales', CAST(l.sales AS SIGNED),
+              'saleAmount', CAST(l.saleAmount AS SIGNED)
+            ),
+            NULL
+          )
+        ),
+        JSON_ARRAY()
+      ) as links
     FROM 
       ProgramEnrollment pe 
     INNER JOIN 
       Partner p ON p.id = pe.partnerId 
+    LEFT JOIN Link l ON l.programId = pe.programId 
+      AND l.partnerId = pe.partnerId
     LEFT JOIN (
       SELECT 
         partnerId,
@@ -44,6 +65,8 @@ export async function getPartnerForProgram({
     WHERE 
       pe.partnerId = ${partnerId}
       AND pe.programId = ${programId}
+    GROUP BY 
+      p.id, pe.id, metrics.totalClicks, metrics.totalLeads, metrics.totalSales, metrics.totalSaleAmount, pe.totalCommissions
   `;
 
   if (!partner?.[0]) return null;
