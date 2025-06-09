@@ -15,7 +15,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export function WelcomeEmail({
+export function WelcomeEmailPartner({
   name = "Brendon Urie",
   email = "panic@thedis.co",
 }: {
@@ -36,8 +36,8 @@ export function WelcomeEmail({
               Welcome{name ? ` ${name}` : ""}!
             </Heading>
             <Text className="mb-8 text-sm leading-6 text-gray-600">
-              Thank you for signing up for Dub! You can now start creating short
-              links, track conversions, and explore our API.
+              You're officially a Dub Partner – time to start earning rewards by
+              referring your audience to the brands you work with.
             </Text>
 
             <Hr />
@@ -48,72 +48,52 @@ export function WelcomeEmail({
 
             <Text className="mb-4 text-sm leading-6 text-gray-600">
               <strong className="font-medium text-black">
-                1. Set up your domain
+                1. Join a program
               </strong>
-              :{" "}
+              : If you haven't already, join an affiliate program, or enroll in
+              our own{" "}
               <Link
-                href="https://dub.co/help/article/how-to-add-custom-domain"
+                href="https://partners.dub.co/programs/dub/apply"
                 className="font-semibold text-black underline underline-offset-4"
               >
-                Add a custom domain
+                Dub Affiliate Program
               </Link>{" "}
-              or{" "}
-              <Link
-                href="https://dub.co/help/article/free-dot-link-domain"
-                className="font-semibold text-black underline underline-offset-4"
-              >
-                claim a free .link domain
-              </Link>{" "}
-              and start creating your short links.
+              to earn 30% for every sale you refer.
             </Text>
 
             <Text className="mb-4 text-sm leading-6 text-gray-600">
               <strong className="font-medium text-black">
-                2. View analytics
+                2. Create referral links
               </strong>
-              : Monitor{" "}
-              <Link
-                href="https://dub.co/help/article/dub-analytics"
-                className="font-semibold text-black underline underline-offset-4"
-              >
-                click data
-              </Link>{" "}
-              in real time to see what's working.
+              : Once you've joined a program, you can start sharing and creating
+              additional referral links.
             </Text>
 
             <Text className="mb-4 text-sm leading-6 text-gray-600">
               <strong className="font-medium text-black">
-                3. Track conversions
+                3. Track your performance
               </strong>
-              : Measure how your links convert to signups and sales with our
-              built-in{" "}
-              <Link
-                href="https://dub.co/help/article/dub-conversions"
-                className="font-semibold text-black underline underline-offset-4"
-              >
-                conversion tracking API
-              </Link>
-              .
+              : Monitor traffic and earnings with real-time analytics
             </Text>
 
             <Text className="mb-8 text-sm leading-6 text-gray-600">
               <strong className="font-medium text-black">
-                4. Explore the API
+                4. Set up payouts
               </strong>
               :{" "}
               <Link
-                href="https://dub.co/docs/introduction"
+                href="https://partners.dub.co/settings/payouts"
                 className="font-semibold text-black underline underline-offset-4"
               >
-                Check out our docs
+                Connect a payout method
               </Link>{" "}
-              for programmatic link creation.
+              to get paid for your referrals.
             </Text>
 
             <Section className="mb-8">
               <Link
                 className="rounded-lg bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                href="https://app.dub.co"
+                href="https://partners.dub.co"
               >
                 Go to your dashboard
               </Link>
@@ -127,4 +107,4 @@ export function WelcomeEmail({
   );
 }
 
-export default WelcomeEmail;
+export default WelcomeEmailPartner;
