@@ -20,15 +20,19 @@ export function EarningsCalculatorBlock({
   showTitleAndDescription?: boolean;
 }) {
   const id = useId();
+  const [value, setValue] = useState(10);
 
-  const reward = program?.rewards?.find(
-    (r) => r.id === program?.defaultRewardId,
+  const saleReward = program?.rewards?.find(
+    (r) => r.default && r.event === "sale",
   );
 
-  const [value, setValue] = useState(10);
+  if (!saleReward) {
+    return null;
+  }
+
   const revenue = value * ((block.data.productPrice || 30_00) / 100);
 
-  return reward && reward.event === "sale" ? (
+  return (
     <div className="space-y-5">
       {showTitleAndDescription && (
         <div className="space-y-2">
@@ -66,7 +70,7 @@ export function EarningsCalculatorBlock({
           <div className="mt-2 flex items-center gap-1">
             <InvoiceDollar className="size-3.5 text-neutral-400" />
             <p className="text-xs text-neutral-500">
-              {formatRewardDescription({ reward })}
+              {formatRewardDescription({ reward: saleReward })}
             </p>
           </div>
         </div>
@@ -79,9 +83,9 @@ export function EarningsCalculatorBlock({
             <span>You can earn</span>
             <NumberFlow
               value={Math.floor(
-                reward.type === "flat"
-                  ? reward.amount / 100
-                  : revenue * (reward.amount / 100),
+                saleReward.type === "flat"
+                  ? saleReward.amount / 100
+                  : revenue * (saleReward.amount / 100),
               )}
               className="text-4xl font-medium text-neutral-800"
               prefix="$"
@@ -91,5 +95,5 @@ export function EarningsCalculatorBlock({
         </div>
       </div>
     </div>
-  ) : null;
+  );
 }

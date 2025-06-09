@@ -2,7 +2,7 @@
 
 import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { REWARD_TYPE_TO_TABLE_COLUMN } from "@/lib/zod/schemas/rewards";
+import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
@@ -35,7 +35,7 @@ export const deleteRewardAction = authActionClient
       },
     });
 
-    const columnName = REWARD_TYPE_TO_TABLE_COLUMN[reward.event];
+    const columnName = REWARD_EVENT_COLUMN_MAPPING[reward.event];
 
     await prisma.programEnrollment.updateMany({
       where: {

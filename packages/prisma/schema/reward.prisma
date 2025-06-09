@@ -21,6 +21,7 @@ model Reward {
   partnerLeadReward  ProgramEnrollment[] @relation("PartnerLeadReward")
   partnerSaleReward  ProgramEnrollment[] @relation("PartnerSaleReward")
 
+  @@unique([programId, default])
   @@index(programId)
   @@index(event) // used in /api/cron/aggregate-clicks
 }

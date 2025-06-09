@@ -3,7 +3,7 @@
 import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import {
-  REWARD_TYPE_TO_TABLE_COLUMN,
+  REWARD_EVENT_COLUMN_MAPPING,
   updateRewardSchema,
 } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
@@ -67,7 +67,7 @@ export const updateRewardAction = authActionClient
     });
 
     if (!reward.default) {
-      const columnName = REWARD_TYPE_TO_TABLE_COLUMN[reward.event];
+      const columnName = REWARD_EVENT_COLUMN_MAPPING[reward.event];
 
       await prisma.programEnrollment.updateMany({
         where: {

@@ -7,10 +7,12 @@ import {
   CreatePartnerProps,
   ProgramPartnerLinkProps,
   ProgramProps,
+  RewardProps,
   WorkspaceProps,
 } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
+import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
 import { Prisma, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
@@ -25,24 +27,21 @@ export const createAndEnrollPartner = async ({
   workspace,
   link,
   partner,
-  rewardId,
+  reward,
   discountId,
   tenantId,
   status = "approved",
   skipEnrollmentCheck = false,
   enrolledAt,
 }: {
-  program: Pick<
-    ProgramProps,
-    "id" | "defaultFolderId" | "defaultRewardId" | "defaultDiscountId"
-  >;
+  program: Pick<ProgramProps, "id" | "defaultFolderId" | "defaultDiscountId">;
   workspace: Pick<WorkspaceProps, "id" | "webhookEnabled">;
   link: ProgramPartnerLinkProps;
   partner: Pick<
     CreatePartnerProps,
     "email" | "name" | "image" | "country" | "description"
   >;
-  rewardId?: string;
+  reward?: Pick<RewardProps, "id" | "event">;
   discountId?: string;
   tenantId?: string;
   status?: ProgramEnrollmentStatus;
@@ -97,14 +96,9 @@ export const createAndEnrollPartner = async ({
             id: link.id,
           },
         },
-        ...(rewardId &&
-          rewardId !== program.defaultRewardId && {
-            rewards: {
-              create: {
-                rewardId,
-              },
-            },
-          }),
+        ...(reward && {
+          [REWARD_EVENT_COLUMN_MAPPING[reward.event]]: reward.id,
+        }),
         ...(discountId &&
           discountId !== program.defaultDiscountId && {
             discountId,

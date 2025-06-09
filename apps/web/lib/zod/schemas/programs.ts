@@ -22,7 +22,6 @@ export const ProgramSchema = z.object({
   domain: z.string().nullable(),
   url: z.string().nullable(),
   cookieLength: z.number(),
-  defaultRewardId: z.string().nullable(),
   defaultDiscountId: z.string().nullable(),
   rewards: z.array(RewardSchema).nullish(),
   holdingPeriodDays: z.number(),

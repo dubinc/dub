@@ -1,5 +1,5 @@
+import { getDefaultReward } from "@/lib/fetchers/get-default-reward";
 import { getProgram } from "@/lib/fetchers/get-program";
-import { getReward } from "@/lib/fetchers/get-reward";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
@@ -17,11 +17,17 @@ export async function generateMetadata({
 }) {
   const program = await getProgram({ slug: programSlug });
 
-  if (!program || !program.defaultRewardId) {
+  if (!program) {
     notFound();
   }
 
-  const reward = await getReward({ id: program.defaultRewardId });
+  const reward = await getDefaultReward({
+    programId: program.id,
+  });
+
+  if (!reward) {
+    notFound();
+  }
 
   return constructMetadata({
     title: `${program.name} Affiliate Program`,

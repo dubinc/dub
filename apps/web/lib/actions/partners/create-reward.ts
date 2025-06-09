@@ -4,7 +4,7 @@ import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import {
   createRewardSchema,
-  REWARD_TYPE_TO_TABLE_COLUMN,
+  REWARD_EVENT_COLUMN_MAPPING,
 } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
 import { authActionClient } from "../safe-action";
@@ -71,27 +71,6 @@ export const createRewardAction = authActionClient
           `Invalid partner IDs provided: ${invalidPartnerIds.join(", ")}`,
         );
       }
-
-      // only one partner-specific reward is allowed for each event for a partner
-      const existingRewardCount = await prisma.partnerReward.count({
-        where: {
-          reward: {
-            event,
-            programId,
-          },
-          programEnrollment: {
-            partnerId: {
-              in: partnerIds,
-            },
-          },
-        },
-      });
-
-      if (existingRewardCount > 0) {
-        throw new Error(
-          `Some of these partners already have an existing partner-specific ${event} reward. Remove those partners to continue.`,
-        );
-      }
     }
 
     const reward = await prisma.reward.create({
@@ -107,8 +86,6 @@ export const createRewardAction = authActionClient
       },
     });
 
-    const columnName = REWARD_TYPE_TO_TABLE_COLUMN[reward.event];
-
     await prisma.programEnrollment.updateMany({
       where: {
         programId,
@@ -120,7 +97,7 @@ export const createRewardAction = authActionClient
           }),
       },
       data: {
-        [columnName]: reward.id,
+        [REWARD_EVENT_COLUMN_MAPPING[reward.event]]: reward.id,
       },
     });
   });

@@ -2,7 +2,7 @@ import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import {
-  REWARD_TYPE_TO_TABLE_COLUMN,
+  REWARD_EVENT_COLUMN_MAPPING,
   rewardPartnersQuerySchema,
 } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
@@ -21,7 +21,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
 
   const partners = await prisma.programEnrollment.findMany({
     where: {
-      [REWARD_TYPE_TO_TABLE_COLUMN[reward.event]]: rewardId,
+      [REWARD_EVENT_COLUMN_MAPPING[reward.event]]: rewardId,
     },
     select: {
       partner: {

@@ -32,10 +32,11 @@ export async function GET(req: NextRequest) {
 
   const program = await getProgramViaEdge({ slug });
 
-  if (!program)
+  if (!program) {
     return new Response(`Program not found`, {
       status: 404,
     });
+  }
 
   const logo = program.wordmark || program.logo;
   const brandColor = program.brandColor || "#000000";

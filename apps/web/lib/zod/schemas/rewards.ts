@@ -69,7 +69,7 @@ export const rewardPartnersQuerySchema = z
     }),
   );
 
-export const REWARD_TYPE_TO_TABLE_COLUMN = Object.freeze({
+export const REWARD_EVENT_COLUMN_MAPPING = Object.freeze({
   click: "clickRewardId",
   lead: "leadRewardId",
   sale: "saleRewardId",
