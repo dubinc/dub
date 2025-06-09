@@ -30,6 +30,12 @@ import { trackLead } from "./track-lead";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 
+const redirectToTwoFactorAuth = (userId: string) => {
+  // TODO:
+  // Encode the user id in the URL using jwt and a secret
+  return `/auth/two-factor-challenge?userId=${userId}`;
+};
+
 const CustomPrismaAdapter = (p: PrismaClient) => {
   return {
     ...PrismaAdapter(p),
@@ -273,9 +279,8 @@ export const authOptions: NextAuthOptions = {
           },
         });
 
-        // Two-factor check
         if (user.twoFactorConfirmedAt) {
-          console.log("Two-factor enabled");
+          throw new Error("two-factor-required");
         }
 
         return {
@@ -284,6 +289,41 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           image: user.image,
         };
+      },
+    }),
+
+    // Two-factor challenge
+    CredentialsProvider({
+      id: "2fa",
+      name: "Two-factor challenge",
+      type: "credentials",
+      credentials: {
+        code: { type: "text" },
+        token: { type: "text" }, // the user's access token from the previous step
+      },
+      async authorize(credentials, req) {
+        if (!credentials) {
+          throw new Error("no-credentials");
+        }
+
+        const { code, token } = credentials;
+
+        if (!code || !token) {
+          throw new Error("no-credentials");
+        }
+
+        // TODO:
+        // Rate limit the request
+
+        // Decode the token and verify the token authenticity
+        // Find the user from the token
+        // Check if the two-factor is enabled for the user
+        // Check if the secret exists
+        // Verify the code against the secret
+        // If successful, return the user
+        // If not, throw an error
+
+        return null;
       },
     }),
 
