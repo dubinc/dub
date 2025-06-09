@@ -1,9 +1,11 @@
 "use server";
 
-import { DubApiError } from "@/lib/api/errors";
 import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { updateRewardSchema } from "@/lib/zod/schemas/rewards";
+import {
+  REWARD_TYPE_TO_TABLE_COLUMN,
+  updateRewardSchema,
+} from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
 import { authActionClient } from "../safe-action";
 
@@ -22,26 +24,14 @@ export const updateRewardAction = authActionClient
       );
     }
 
-    const reward = await getRewardOrThrow(
-      {
-        rewardId,
-        programId,
-      },
-      {
-        includePartnersCount: true,
-      },
-    );
+    const reward = await getRewardOrThrow({
+      rewardId,
+      programId,
+    });
 
     let programEnrollments: { id: string }[] = [];
 
     if (partnerIds && partnerIds.length > 0) {
-      if (reward.partnersCount === 0) {
-        throw new DubApiError({
-          code: "bad_request",
-          message: "Cannot add partners to a program-wide reward.",
-        });
-      }
-
       programEnrollments = await prisma.programEnrollment.findMany({
         where: {
           programId,
@@ -54,19 +44,14 @@ export const updateRewardAction = authActionClient
         },
       });
 
-      if (programEnrollments.length !== partnerIds.length) {
-        throw new DubApiError({
-          code: "bad_request",
-          message: "Invalid partner IDs provided.",
-        });
-      }
-    } else {
-      if (reward.partnersCount && reward.partnersCount > 0) {
-        throw new DubApiError({
-          code: "bad_request",
-          message:
-            "At least one partner must be selected for a partner-specific reward.",
-        });
+      const invalidPartnerIds = partnerIds.filter(
+        (id) => !programEnrollments.some((enrollment) => enrollment.id === id),
+      );
+
+      if (invalidPartnerIds.length > 0) {
+        throw new Error(
+          `Invalid partner IDs provided: ${invalidPartnerIds.join(", ")}`,
+        );
       }
     }
 
@@ -79,16 +64,24 @@ export const updateRewardAction = authActionClient
         amount,
         maxDuration,
         maxAmount,
-        ...(programEnrollments && {
-          partners: {
-            deleteMany: {},
-            createMany: {
-              data: programEnrollments.map(({ id }) => ({
-                programEnrollmentId: id,
-              })),
-            },
-          },
-        }),
       },
     });
+
+    if (!reward.default) {
+      const columnName = REWARD_TYPE_TO_TABLE_COLUMN[reward.event];
+
+      await prisma.programEnrollment.updateMany({
+        where: {
+          programId,
+          ...(partnerIds && {
+            partnerId: {
+              in: partnerIds,
+            },
+          }),
+        },
+        data: {
+          [columnName]: reward.id,
+        },
+      });
+    }
   });
