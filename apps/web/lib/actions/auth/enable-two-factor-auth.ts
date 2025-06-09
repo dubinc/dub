@@ -1,6 +1,6 @@
 "use server";
 
-import { generateTOTPQRCode, totpSecret } from "@/lib/auth/totp";
+import { getTOTPInstance, totpSecret } from "@/lib/auth/totp";
 import { prisma } from "@dub/prisma";
 import { authUserActionClient } from "../safe-action";
 
@@ -36,10 +36,12 @@ export const enableTwoFactorAuthAction = authUserActionClient.action(
       },
     });
 
-    const qrCodeUrl = generateTOTPQRCode({
+    const totp = getTOTPInstance({
       secret,
       label: user.email,
     });
+
+    const qrCodeUrl = totp.toString();
 
     if (!qrCodeUrl) {
       throw new Error("Failed to generate 2FA QR code URL.");

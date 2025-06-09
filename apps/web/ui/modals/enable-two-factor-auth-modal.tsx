@@ -1,7 +1,10 @@
+import { confirmTwoFactorAuthAction } from "@/lib/actions/auth/confirm-two-factor-auth";
 import { QRCode } from "@/ui/shared/qr-code";
 import { Button, CopyButton, Modal } from "@dub/ui";
 import { OTPInput } from "input-otp";
+import { useAction } from "next-safe-action/hooks";
 import { useCallback, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 interface EnableTwoFactorAuthModalProps {
   showModal: boolean;
@@ -18,13 +21,31 @@ const EnableTwoFactorAuthModal = ({
   secret,
   qrCodeUrl,
 }: EnableTwoFactorAuthModalProps) => {
-  const [code, setCode] = useState("");
+  const [token, setToken] = useState("");
   const [touched, setTouched] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string>();
+  const [error, setError] = useState<string | undefined>(undefined);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    //
+  const { executeAsync, isPending } = useAction(confirmTwoFactorAuthAction, {
+    onSuccess: () => {
+      toast.success("Two-factor authentication enabled successfully!");
+      setShowModal(false);
+      onSuccess?.();
+    },
+    onError: (error) => {
+      setError(
+        error.error.serverError || "Failed to validate code. Please try again.",
+      );
+    },
+  });
+
+  const confirmTwoFactorAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setTouched(true);
+    setError(undefined);
+
+    await executeAsync({
+      token,
+    });
   };
 
   return (
@@ -47,20 +68,20 @@ const EnableTwoFactorAuthModal = ({
         </div>
 
         <form
-          onSubmit={handleSubmit}
+          onSubmit={confirmTwoFactorAuth}
           className="flex w-full flex-col items-center gap-4"
         >
           <OTPInput
             maxLength={6}
-            value={code}
-            onChange={setCode}
+            value={token}
+            onChange={setToken}
             autoFocus
             render={({ slots }) => (
               <div className="flex w-full items-center justify-between gap-2">
                 {slots.map(({ char, isActive, hasFakeCaret }, idx) => (
                   <div
                     key={idx}
-                    className={`relative flex h-14 w-12 items-center justify-center rounded-lg border bg-white text-xl transition-all ${isActive ? "z-10 border-neutral-800 ring-2 ring-neutral-200" : "border-neutral-200"} ${(touched && code.length < 6) || error ? "border-red-500 ring-red-200" : ""}`}
+                    className={`relative flex h-14 w-12 items-center justify-center rounded-lg border bg-white text-xl transition-all ${isActive ? "z-10 border-neutral-800 ring-2 ring-neutral-200" : "border-neutral-200"} ${(touched && token.length < 6) || error ? "border-red-500 ring-red-200" : ""}`}
                   >
                     {char}
                     {hasFakeCaret && (
@@ -75,17 +96,17 @@ const EnableTwoFactorAuthModal = ({
           />
 
           {error && (
-            <p className="pt-2 text-center text-xs font-medium text-red-500">
+            <p className="pt-2 text-center text-sm font-medium text-red-500">
               {error}
             </p>
           )}
 
           <Button
             className="mt-2 w-full"
-            text={loading ? "Verifying..." : "Confirm"}
+            text={isPending ? "Verifying..." : "Confirm"}
             type="submit"
-            loading={loading}
-            disabled={code.length < 6 || loading}
+            loading={isPending}
+            disabled={token.length < 6}
           />
         </form>
       </div>

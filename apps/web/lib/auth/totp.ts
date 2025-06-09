@@ -11,18 +11,16 @@ export const totpSecret = new OTPAuth.Secret({
   size: 20, // 160 bits = 32 characters
 });
 
-export const generateTOTPQRCode = ({
+export const getTOTPInstance = ({
   secret,
   label,
 }: {
   secret: string;
   label: string;
 }) => {
-  const totp = new OTPAuth.TOTP({
+  return new OTPAuth.TOTP({
     ...options,
     secret,
     label,
   });
-
-  return totp.toString();
 };
