@@ -4,7 +4,7 @@ import { ProgramCustomerPageClient } from "./page-client";
 
 export default function ProgramCustomer() {
   return (
-    <PageContent hideReferButton>
+    <PageContent showControls>
       <MaxWidthWrapper className="flex flex-col gap-6">
         <ProgramCustomerPageClient />
       </MaxWidthWrapper>

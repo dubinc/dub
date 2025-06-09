@@ -75,28 +75,29 @@ export function SidebarNav<T extends Record<any, any>>({
   return (
     <ClientOnly className="size-full">
       <nav className="grid size-full grid-cols-[80px_1fr]">
-        <div className="flex flex-col items-center p-2">
-          <Link
-            href=""
-            className="rounded-md px-1 py-5 outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-black/50"
-          >
-            <NavWordmark className="h-6" isInApp />
-          </Link>
-          <div className="flex flex-col gap-4">
-            {groups(data).map((group) => (
-              <NavGroupItem key={group.name} group={group} />
-            ))}
+        <div className="flex flex-col items-center justify-between">
+          <div className="flex flex-col items-center p-2">
+            <Link
+              href=""
+              className="rounded-md px-1 py-5 outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-black/50"
+            >
+              <NavWordmark className="h-6" isInApp />
+            </Link>
+            <div className="flex flex-col gap-4">
+              {groups(data).map((group) => (
+                <NavGroupItem key={group.name} group={group} />
+              ))}
+            </div>
+          </div>
+          <div className="flex flex-col items-center gap-4 py-4">
+            <Suspense fallback={null}>{toolContent}</Suspense>
+            <UserDropdown />
           </div>
         </div>
         <div className="size-full overflow-hidden py-1.5 pr-1.5">
           <div className="scrollbar-hide relative flex size-full flex-col overflow-y-auto overflow-x-hidden rounded-2xl bg-neutral-100">
             <div className="relative flex grow flex-col p-3 text-neutral-500">
-              <div className="relative flex items-start justify-between gap-1 pb-3">
-                <div className="hidden items-center gap-3 md:flex">
-                  <Suspense fallback={null}>{toolContent}</Suspense>
-                  <UserDropdown />
-                </div>
-              </div>
+              //
               <div className="relative w-full grow">
                 {Object.entries(areas).map(([area, areaConfig]) => {
                   const { content, showSwitcher, showNews, direction } =

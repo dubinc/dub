@@ -5,7 +5,7 @@ import { EarningsTablePartner } from "./earnings-table";
 
 export default function ProgramEarning() {
   return (
-    <PageContent title="Earnings" hideReferButton>
+    <PageContent title="Earnings" showControls>
       <MaxWidthWrapper className="flex flex-col gap-6">
         <EarningsCompositeChart />
         <EarningsTablePartner />

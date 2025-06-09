@@ -5,7 +5,7 @@ import { Folder, Globe } from "@dub/ui/icons";
 
 export default function MarketplacePage() {
   return (
-    <PageContent title="Marketplace" hideReferButton>
+    <PageContent title="Marketplace" showControls>
       <MaxWidthWrapper>
         <AnimatedEmptyState
           title="Marketplace"

@@ -6,7 +6,7 @@ export default function ProgramPage() {
   return (
     <PageContent
       title="Overview"
-      hideReferButton
+      showControls
       titleControls={<HideProgramDetailsButton />}
     >
       <ProgramPageClient />

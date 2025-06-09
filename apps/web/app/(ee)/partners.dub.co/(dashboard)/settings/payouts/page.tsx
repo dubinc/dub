@@ -5,7 +5,7 @@ import { PayoutTable } from "./payout-table";
 
 export default function PartnersPayoutsSettings() {
   return (
-    <PageContent title="Payouts" hideReferButton>
+    <PageContent title="Payouts" showControls>
       <MaxWidthWrapper className="grid grid-cols-1 gap-4">
         <PayoutStatsAndSettings />
         <PayoutTable />

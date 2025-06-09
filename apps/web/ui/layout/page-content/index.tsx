@@ -4,7 +4,6 @@ import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { PropsWithChildren, ReactNode } from "react";
 import { HelpButtonRSC } from "../sidebar/help-button-rsc";
-import { ReferButton } from "../sidebar/refer-button";
 import UserDropdown from "../sidebar/user-dropdown";
 import { NavButton } from "./nav-button";
 
@@ -13,7 +12,7 @@ export function PageContent({
   titleBackButtonLink,
   titleControls,
   description,
-  hideReferButton,
+  showControls,
   className,
   contentWrapperClassName,
   children,
@@ -22,7 +21,7 @@ export function PageContent({
   titleBackButtonLink?: string;
   titleControls?: ReactNode;
   description?: ReactNode;
-  hideReferButton?: boolean;
+  showControls?: boolean;
   className?: string;
   contentWrapperClassName?: string;
 }>) {
@@ -69,11 +68,12 @@ export function PageContent({
           {titleControls && (
             <div className="hidden md:block">{titleControls}</div>
           )}
-          <div className="flex items-center gap-4 md:hidden">
-            {!hideReferButton && <ReferButton />}
-            <HelpButtonRSC />
-            <UserDropdown />
-          </div>
+          {showControls && (
+            <div className="flex items-center gap-4 md:hidden">
+              <HelpButtonRSC variant="old" />
+              <UserDropdown />
+            </div>
+          )}
         </div>
       </MaxWidthWrapper>
       <div

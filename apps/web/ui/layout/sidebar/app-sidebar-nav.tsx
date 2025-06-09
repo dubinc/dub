@@ -32,7 +32,6 @@ import { Hyperlink } from "./icons/hyperlink";
 import { LinesY } from "./icons/lines-y";
 import { User } from "./icons/user";
 import { SidebarNav, SidebarNavAreas, SidebarNavGroups } from "./sidebar-nav";
-import { Usage } from "./usage";
 import { WorkspaceDropdown } from "./workspace-dropdown";
 
 type SidebarNavData = {
@@ -305,12 +304,7 @@ export function AppSidebarNav({
       toolContent={toolContent}
       newsContent={newsContent}
       switcher={<WorkspaceDropdown />}
-      bottom={
-        <>
-          <UserSurveyButton />
-          <Usage />
-        </>
-      }
+      bottom={<UserSurveyButton />}
     />
   );
 }

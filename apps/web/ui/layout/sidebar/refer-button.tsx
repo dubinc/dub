@@ -20,9 +20,9 @@ export function ReferButton({
       <Link
         ref={affiliatePopupEnabled ? setLinkRef : undefined}
         href="/account/settings/referrals"
-        className="animate-fade-in size-4 shrink-0 rounded-full"
+        className="animate-fade-in hover:bg-bg-inverted/5 active:bg-bg-inverted/10 flex size-12 shrink-0 items-center justify-center rounded-lg transition-colors duration-150"
       >
-        <Gift className="size-4" />
+        <Gift className="text-content-default size-5" />
       </Link>
       {affiliatePopupEnabled && width && width >= 768 && (
         <AffiliateProgramPopupWrapper referenceElement={linkRef} />
