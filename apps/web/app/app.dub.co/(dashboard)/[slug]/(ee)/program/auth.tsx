@@ -3,6 +3,7 @@
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
 import LayoutLoader from "@/ui/layout/layout-loader";
+import { PageContent } from "@/ui/layout/page-content";
 import { Badge, buttonVariants } from "@dub/ui";
 import { capitalize, cn, nFormatter } from "@dub/utils";
 import Link from "next/link";
@@ -36,7 +37,11 @@ export default function ProgramAuth({ children }: { children: ReactNode }) {
   if (!defaultProgramId && partnersEnabled) redirect(`/${slug}/program/new`);
 
   if (!getPlanCapabilities(plan).canManageProgram) {
-    return <UpgradeCTA />;
+    return (
+      <PageContent>
+        <UpgradeCTA />
+      </PageContent>
+    );
   }
 
   return children;
@@ -79,8 +84,8 @@ const UpgradeCTA = () => {
   const { canManageProgram } = getPlanCapabilities(plan);
 
   return (
-    <div className="flex min-h-[calc(100vh-10px)] flex-col items-center justify-center gap-6 px-4 py-10">
-      <div className="grid w-fit grid-cols-2 overflow-hidden px-4 [mask-image:linear-gradient(black,transparent)]">
+    <div className="flex min-h-[calc(100vh-60px)] flex-col items-center justify-center gap-6 overflow-hidden px-4 py-10">
+      <div className="grid w-max grid-cols-2 overflow-hidden px-4 [mask-image:linear-gradient(black,transparent)]">
         {EXAMPLE_PARTNERS.map((partner, idx) => (
           <ExamplePartnerCell key={idx} partner={partner} />
         ))}
