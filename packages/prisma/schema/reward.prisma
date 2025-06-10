@@ -1,7 +1,6 @@
 model Reward {
-  id        String @id @default(cuid())
-  programId String
-
+  id          String         @id @default(cuid())
+  programId   String
   name        String?
   description String?
   event       EventType
@@ -17,8 +16,7 @@ model Reward {
   clickRewardEnrollments ProgramEnrollment[] @relation("ClickRewardEnrollments")
   partners               PartnerReward[]
 
-  @@index(programId)
-  @@index(event) // used in /api/cron/aggregate-clicks
+  @@unique([programId, event])
 }
 
 // TODO: Remove this table
