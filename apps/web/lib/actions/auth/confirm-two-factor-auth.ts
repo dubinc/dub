@@ -1,7 +1,10 @@
 "use server";
 
 import { getTOTPInstance } from "@/lib/auth/totp";
+import { sendEmail } from "@dub/email";
+import TwoFactorEnabled from "@dub/email/templates/two-factor-enabled";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { authUserActionClient } from "../safe-action";
 
@@ -58,4 +61,13 @@ export const confirmTwoFactorAuthAction = authUserActionClient
         twoFactorConfirmedAt: new Date(),
       },
     });
+
+    waitUntil(
+      sendEmail({
+        subject: "Two Factor authentication enabled",
+        email: user.email,
+        react: TwoFactorEnabled({ email: user.email }),
+        variant: "notifications",
+      }),
+    );
   });

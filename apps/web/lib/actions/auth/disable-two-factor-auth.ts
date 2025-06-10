@@ -1,6 +1,9 @@
 "use server";
 
+import { sendEmail } from "@dub/email";
+import TwoFactorDisabled from "@dub/email/templates/two-factor-disabled";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { authUserActionClient } from "../safe-action";
 
 // Disable 2FA for an user
@@ -28,5 +31,14 @@ export const disableTwoFactorAuthAction = authUserActionClient.action(
         twoFactorRecoveryCodes: null,
       },
     });
+
+    waitUntil(
+      sendEmail({
+        subject: "Two Factor authentication disabled",
+        email: user.email,
+        react: TwoFactorDisabled({ email: user.email }),
+        variant: "notifications",
+      }),
+    );
   },
 );
