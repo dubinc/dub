@@ -96,40 +96,46 @@ export const GET = withWorkspace(
 
     // Get partner count by reward
     if (groupBy === "rewardId") {
-      const [customRewardsPartners, allRewards] = await Promise.all([
-        prisma.partnerReward.groupBy({
-          by: ["rewardId"],
-          where: {
-            programEnrollment: {
-              programId,
-              status: status || { notIn: ["rejected", "banned", "archived"] },
-              partner: {
-                ...(country && {
-                  country,
-                }),
-                ...commonWhere,
-              },
-            },
-          },
-          _count: true,
-          orderBy: {
-            _count: {
-              rewardId: "desc",
-            },
-          },
-        }),
+      const [rewards, rewardsCounts] = await Promise.all([
         prisma.reward.findMany({
           where: {
             programId,
+            default: false,
+          },
+          orderBy: {
+            createdAt: "desc",
           },
         }),
+
+        prisma.$queryRaw<{ id: string; partnersCount: number }[]>`
+          SELECT clickRewardId AS id, COUNT(*) AS partnersCount
+          FROM ProgramEnrollment
+          WHERE clickRewardId IS NOT NULL
+          GROUP BY clickRewardId
+
+          UNION ALL
+
+          SELECT leadRewardId AS id, COUNT(*) AS partnersCount
+          FROM ProgramEnrollment
+          WHERE leadRewardId IS NOT NULL
+          GROUP BY leadRewardId
+
+          UNION ALL
+
+          SELECT saleRewardId AS id, COUNT(*) AS partnersCount
+          FROM ProgramEnrollment
+          WHERE saleRewardId IS NOT NULL
+          GROUP BY saleRewardId
+        `,
       ]);
 
-      const partnersWithReward = customRewardsPartners.map((p) => {
-        const reward = allRewards.find((r) => r.id === p.rewardId);
+      const partnersWithReward = rewards.map((reward) => {
+        const partnersCount =
+          rewardsCounts.find((r) => r.id === reward.id)?.partnersCount ?? 0;
+
         return {
           ...reward,
-          partnersCount: p._count,
+          partnersCount: Number(partnersCount),
         };
       });
 
