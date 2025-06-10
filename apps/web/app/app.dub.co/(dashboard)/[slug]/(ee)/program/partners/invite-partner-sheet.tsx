@@ -24,7 +24,7 @@ import { cn } from "@dub/utils/src";
 import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, memo, SetStateAction, useMemo, useState } from "react";
+import { Dispatch, memo, SetStateAction, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -52,13 +52,6 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
   } = useForm<InvitePartnerFormData>();
 
   const [name, email, linkId] = watch(["name", "email", "linkId"]);
-
-  // sort rewards by event
-  // const sortedRewards = useMemo(() => {
-  //   return rewards?.sort((a, b) => {
-  //     return a.event.localeCompare(b.event);
-  //   });
-  // }, [rewards]);
 
   const { executeAsync, isPending } = useAction(invitePartnerAction, {
     onSuccess: async () => {

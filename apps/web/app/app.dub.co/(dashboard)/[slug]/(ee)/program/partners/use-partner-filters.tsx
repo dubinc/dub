@@ -88,48 +88,64 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
               right: nFormatter(_count, { full: true }),
             })) ?? [],
       },
-      {
-        key: "saleRewardId",
-        icon: InvoiceDollar,
-        label: "Sale reward",
-        options:
-          saleRewardsCount?.map((reward) => {
-            return {
-              value: reward.id,
-              label: reward.name || formatRewardDescription({ reward }),
-              icon: <InvoiceDollar className="size-4 bg-transparent" />,
-              right: nFormatter(reward.partnersCount, { full: true }),
-            };
-          }) ?? [],
-      },
-      {
-        key: "leadRewardId",
-        icon: UserPlus,
-        label: "Lead reward",
-        options:
-          leadRewardsCount?.map((reward) => {
-            return {
-              value: reward.id,
-              label: reward.name || formatRewardDescription({ reward }),
-              icon: <UserPlus className="size-4 bg-transparent" />,
-              right: nFormatter(reward.partnersCount, { full: true }),
-            };
-          }) ?? [],
-      },
-      {
-        key: "clickRewardId",
-        icon: CursorRays,
-        label: "Click reward",
-        options:
-          clickRewardsCount?.map((reward) => {
-            return {
-              value: reward.id,
-              label: reward.name || formatRewardDescription({ reward }),
-              icon: <CursorRays className="size-4 bg-transparent" />,
-              right: nFormatter(reward.partnersCount, { full: true }),
-            };
-          }) ?? [],
-      },
+
+      ...(saleRewardsCount && saleRewardsCount.length > 0
+        ? [
+            {
+              key: "saleRewardId",
+              icon: InvoiceDollar,
+              label: "Sale reward",
+              options:
+                saleRewardsCount?.map((reward) => {
+                  return {
+                    value: reward.id,
+                    label: reward.name || formatRewardDescription({ reward }),
+                    icon: <InvoiceDollar className="size-4 bg-transparent" />,
+                    right: nFormatter(reward.partnersCount, { full: true }),
+                  };
+                }) ?? [],
+            },
+          ]
+        : []),
+
+      ...(leadRewardsCount && leadRewardsCount.length > 0
+        ? [
+            {
+              key: "leadRewardId",
+              icon: UserPlus,
+              label: "Lead reward",
+              options:
+                leadRewardsCount?.map((reward) => {
+                  return {
+                    value: reward.id,
+                    label: reward.name || formatRewardDescription({ reward }),
+                    icon: <UserPlus className="size-4 bg-transparent" />,
+                    right: nFormatter(reward.partnersCount, { full: true }),
+                  };
+                }) ?? [],
+            },
+          ]
+        : []),
+
+      ...(clickRewardsCount && clickRewardsCount.length > 0
+        ? [
+            {
+              key: "clickRewardId",
+              icon: CursorRays,
+              label: "Click reward",
+              options:
+                clickRewardsCount?.map((reward) => {
+                  return {
+                    value: reward.id,
+                    label: reward.name || formatRewardDescription({ reward }),
+                    icon: <CursorRays className="size-4 bg-transparent" />,
+                    right: nFormatter(reward.partnersCount, { full: true }),
+                  };
+                }) ?? [],
+            },
+          ]
+        : []),
+
       {
         key: "status",
         icon: CircleDotted,
