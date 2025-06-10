@@ -84,16 +84,16 @@ export function SidebarNav<T extends Record<any, any>>({
 }) {
   return (
     <ClientOnly className="size-full">
-      <nav className="grid size-full grid-cols-[80px_1fr]">
+      <nav className="grid size-full grid-cols-[64px_1fr]">
         <div className="flex flex-col items-center justify-between">
           <div className="flex flex-col items-center p-2">
             <Link
               href=""
-              className="rounded-md px-1 py-5 outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-black/50"
+              className="rounded-md px-1 py-[18px] outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-black/50"
             >
-              <NavWordmark className="h-6" isInApp />
+              <NavWordmark className="h-5" isInApp />
             </Link>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3">
               {areas[currentArea](data).showSwitcher && switcher && (
                 <div>{switcher}</div>
               )}
@@ -102,7 +102,7 @@ export function SidebarNav<T extends Record<any, any>>({
               ))}
             </div>
           </div>
-          <div className="flex flex-col items-center gap-4 py-4">
+          <div className="flex flex-col items-center gap-3 py-3">
             <Suspense fallback={null}>{toolContent}</Suspense>
             <div className="flex size-12 items-center justify-center">
               <UserDropdown />
