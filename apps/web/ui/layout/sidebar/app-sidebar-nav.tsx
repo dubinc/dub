@@ -106,7 +106,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
 
   // Program
   program: ({ slug, showNews }) => ({
-    title: "Program",
+    title: "Partner Program",
     showSwitcher: true,
     showNews,
     direction: "left",

@@ -210,22 +210,14 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
         onPointerEnter={() => setHovered(true)}
         onPointerLeave={() => setHovered(false)}
         className={cn(
-          "group flex items-center gap-2.5 rounded-md p-2 text-sm leading-none text-neutral-600 transition-[background-color,color,font-weight] duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80",
+          "text-content-default group flex items-center gap-2.5 rounded-lg p-2 text-sm leading-none transition-[background-color,color,font-weight] duration-75",
           "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
-          isActive &&
-            !items &&
-            "bg-blue-100/50 font-medium text-blue-600 hover:bg-blue-100/80 active:bg-blue-100",
+          isActive && !items
+            ? "bg-white"
+            : "hover:bg-bg-inverted/5 active:bg-bg-inverted/10",
         )}
       >
-        {Icon && (
-          <Icon
-            className={cn(
-              "size-4 text-neutral-500 transition-colors duration-75",
-              !items && "group-data-[active=true]:text-blue-600",
-            )}
-            data-hovered={hovered}
-          />
-        )}
+        {Icon && <Icon className="size-4" data-hovered={hovered} />}
         {name}
         {items && (
           <div className="flex grow justify-end">
