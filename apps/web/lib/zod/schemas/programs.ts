@@ -46,6 +46,7 @@ export const ProgramSchema = z.object({
 
 export const ProgramWithLanderDataSchema = ProgramSchema.extend({
   landerData: programLanderSchema.nullish(),
+  landerPublishedAt: z.date().nullish(),
 });
 
 export const updateProgramSchema = z.object({
