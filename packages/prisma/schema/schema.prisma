@@ -28,7 +28,7 @@ model User {
   defaultWorkspace String? // slug of the user's default workspace
   defaultPartnerId String? // the user's default partner ID
 
-  twoFactorSecret        String?
+  twoFactorSecret        String?   @unique
   twoFactorConfirmedAt   DateTime?
   twoFactorRecoveryCodes String? // comma separated list
 
