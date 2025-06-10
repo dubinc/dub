@@ -72,6 +72,7 @@ export function AuthModal({
     <Modal
       showModal={showAuthModal}
       setShowModal={setShowAuthModal}
+      preventDefaultClose
       className="border-border-500 bg-neutral-50"
     >
       <div className="relative flex flex-col">

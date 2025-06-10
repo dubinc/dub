@@ -10,8 +10,6 @@ export const PlansHeading: FC<IPlansHeading> = ({ isTrialOver }) => {
     <Flex gap="3" direction="column" className="mt-[14px] lg:mt-[22px]">
       <Heading
         as="h1"
-        // size={{ initial: "7", sm: "8", md: "9" }}
-        // size={{ initial: "5", lg: "7" }}
         size={{ initial: "7", lg: "8" }}
         align="center"
         className="text-neutral"
@@ -34,7 +32,6 @@ export const PlansHeading: FC<IPlansHeading> = ({ isTrialOver }) => {
       </Heading>
       <Heading
         as="h2"
-        // size={{ initial: "2", lg: "4" }}
         size={{ initial: "3", lg: "5" }}
         align="center"
         weight="regular"
@@ -42,7 +39,7 @@ export const PlansHeading: FC<IPlansHeading> = ({ isTrialOver }) => {
       >
         {isTrialOver
           ? "Your QR codes are paused - reactivate them instantly with a plan that fits your needs"
-          : "Upgrade now to keep your QR codes active after the trial ends — cancel anytime"}
+          : "You’re currently on a paid plan. Adjust your preferences anytime — no commitment"}
       </Heading>
     </Flex>
   );

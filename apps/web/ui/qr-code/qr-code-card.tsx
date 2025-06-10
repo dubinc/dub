@@ -1,3 +1,4 @@
+import { useTrialExpiredModal } from "@/lib/hooks/use-trial-expired-modal.tsx";
 import { QR_TYPES } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization.ts";
 import {
@@ -12,6 +13,8 @@ import { QrCodeTitleColumn } from "./qr-code-title-column.tsx";
 export function QrCodeCard({ qrCode }: { qrCode: ResponseQrCode }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { isTrialOver } = useContext(QrCodesListContext);
+  const { setShowTrialExpiredModal, TrialExpiredModalCallback } =
+    useTrialExpiredModal();
 
   const { qrCode: builtQrCodeObject, selectedQRType } =
     useQrCustomization(qrCode);
@@ -22,6 +25,7 @@ export function QrCodeCard({ qrCode }: { qrCode: ResponseQrCode }) {
 
   return (
     <>
+      <TrialExpiredModalCallback />
       <CardList.Card
         key={qrCode.id}
         innerClassName="h-full flex items-center gap-5 sm:gap-8 text-sm"
@@ -33,6 +37,7 @@ export function QrCodeCard({ qrCode }: { qrCode: ResponseQrCode }) {
             builtQrCodeObject={builtQrCodeObject}
             currentQrTypeInfo={currentQrTypeInfo}
             isTrialOver={isTrialOver}
+            setShowTrialExpiredModal={setShowTrialExpiredModal}
           />
         </div>
         <QrCodeDetailsColumn
@@ -40,6 +45,7 @@ export function QrCodeCard({ qrCode }: { qrCode: ResponseQrCode }) {
           canvasRef={canvasRef}
           currentQrTypeInfo={currentQrTypeInfo}
           isTrialOver={isTrialOver}
+          setShowTrialExpiredModal={setShowTrialExpiredModal}
         />
       </CardList.Card>
     </>

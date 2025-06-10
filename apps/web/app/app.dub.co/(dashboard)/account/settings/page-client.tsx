@@ -1,7 +1,6 @@
 "use client";
 
 import DeleteAccountSection from "@/ui/account/delete-account";
-import UpdateSubscription from "@/ui/account/update-subscription";
 import UploadAvatar from "@/ui/account/upload-avatar";
 import UserId from "@/ui/account/user-id";
 import { Form } from "@dub/ui";
@@ -52,7 +51,8 @@ export default function SettingsPageClient() {
           defaultValue: session?.user?.email || undefined,
           placeholder: "panic@thedis.co",
         }}
-        helpText={<UpdateSubscription />}
+        // helpText={<UpdateSubscription />}
+        helpText={""}
         handleSubmit={(data) =>
           fetch("/api/user", {
             method: "PATCH",

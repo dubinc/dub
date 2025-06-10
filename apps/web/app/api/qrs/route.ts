@@ -24,7 +24,7 @@ export const POST = withWorkspace(
       throwIfLinksUsageExceeded(workspace);
     }
 
-    console.log('here create qr');
+    console.log("here create qr");
 
     const body = createQrBodySchema.parse(await parseRequestBody(req));
     console.log("POST /api/qrs body:", body);
