@@ -21,6 +21,7 @@ import {
   PaperPlane,
   Receipt2,
   ShieldCheck,
+  Sliders,
   Tag,
   UserPlus,
   Users2,
@@ -184,6 +185,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "All Partners",
             icon: Users2,
             href: `/${slug}/program/partners`,
+            exact: true,
           },
           {
             name: "Partner Directory",
@@ -222,7 +224,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           },
           {
             name: "Link Settings",
-            icon: Gear2,
+            icon: Sliders,
             href: `/${slug}/program/settings/links`,
           },
           {
