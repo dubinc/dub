@@ -11,13 +11,15 @@ interface QrCodeDetailsColumnProps {
   canvasRef: RefObject<HTMLCanvasElement>;
   currentQrTypeInfo: QRType;
   isTrialOver?: boolean;
+  setShowTrialExpiredModal?: (show: boolean) => void;
 }
 
 export function QrCodeDetailsColumn({
   qrCode,
   canvasRef,
-  isTrialOver = false,
   currentQrTypeInfo,
+  isTrialOver,
+  setShowTrialExpiredModal,
 }: QrCodeDetailsColumnProps) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -35,7 +37,12 @@ export function QrCodeDetailsColumn({
         )}
       </div>
 
-      <QrCodeControls qrCode={qrCode} canvasRef={canvasRef} />
+      <QrCodeControls
+        qrCode={qrCode}
+        canvasRef={canvasRef}
+        isTrialOver={isTrialOver}
+        setShowTrialExpiredModal={setShowTrialExpiredModal}
+      />
     </div>
   );
 }

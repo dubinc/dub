@@ -73,7 +73,17 @@ const getDisplayContent = (qrCode: ResponseQrCode): string => {
 };
 
 export const QRCardDetails = memo(
-  ({ qrCode, compact }: { qrCode: ResponseQrCode; compact?: boolean }) => {
+  ({
+    qrCode,
+    compact,
+    isTrialOver,
+    setShowTrialExpiredModal,
+  }: {
+    qrCode: ResponseQrCode;
+    compact?: boolean;
+    isTrialOver?: boolean;
+    setShowTrialExpiredModal?: (show: boolean) => void;
+  }) => {
     const displayContent = getDisplayContent(qrCode);
     const qrType = qrCode.qrType as EQRType;
 
@@ -84,6 +94,10 @@ export const QRCardDetails = memo(
 
     const onEditClick = (e: React.MouseEvent<SVGSVGElement>) => {
       e.stopPropagation();
+      if (isTrialOver) {
+        setShowTrialExpiredModal?.(true);
+        return;
+      }
       setShowQRContentEditorModal(true);
     };
 

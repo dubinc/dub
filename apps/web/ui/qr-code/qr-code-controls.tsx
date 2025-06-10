@@ -24,10 +24,17 @@ import { ThreeDots } from "../shared/icons";
 
 interface QrCodeControlsProps {
   qrCode: ResponseQrCode;
-  canvasRef?: React.RefObject<HTMLCanvasElement>;
+  canvasRef?: RefObject<HTMLCanvasElement>;
+  isTrialOver?: boolean;
+  setShowTrialExpiredModal?: (show: boolean) => void;
 }
 
-export function QrCodeControls({ qrCode, canvasRef }: QrCodeControlsProps) {
+export function QrCodeControls({
+  qrCode,
+  canvasRef,
+  isTrialOver,
+  setShowTrialExpiredModal,
+}: QrCodeControlsProps) {
   const { id: workspaceId } = useWorkspace();
   const { hovered } = useContext(CardList.Card.Context);
   const searchParams = useSearchParams();
@@ -107,7 +114,12 @@ export function QrCodeControls({ qrCode, canvasRef }: QrCodeControlsProps) {
       <ArchiveQRModal />
       <DeleteLinkModal />
       {canvasRef && (
-        <DownloadPopover qrCode={qrCode} canvasRef={canvasRef}>
+        <DownloadPopover
+          qrCode={qrCode}
+          canvasRef={canvasRef}
+          isTrialOver={isTrialOver}
+          setShowTrialExpiredModal={setShowTrialExpiredModal}
+        >
           <Button
             variant="secondary"
             className={cn(
@@ -144,6 +156,10 @@ export function QrCodeControls({ qrCode, canvasRef }: QrCodeControlsProps) {
                 variant="outline"
                 onClick={() => {
                   setOpenPopover(false);
+                  if (isTrialOver) {
+                    setShowTrialExpiredModal?.(true);
+                    return;
+                  }
                   setShowQRTypeModal(true);
                 }}
                 icon={<RefreshCw className="size-4" />}
@@ -159,6 +175,12 @@ export function QrCodeControls({ qrCode, canvasRef }: QrCodeControlsProps) {
                 variant="outline"
                 onClick={() => {
                   setOpenPopover(false);
+
+                  if (isTrialOver) {
+                    setShowTrialExpiredModal?.(true);
+                    return;
+                  }
+
                   setShowQRCustomizeModal(true);
                 }}
                 icon={<Palette className="size-4" />}
@@ -176,6 +198,12 @@ export function QrCodeControls({ qrCode, canvasRef }: QrCodeControlsProps) {
                 text={qrCode.link.archived ? "Unpause" : "Pause"}
                 variant="outline"
                 onClick={async () => {
+                  if (isTrialOver) {
+                    setShowTrialExpiredModal?.(true);
+                    setOpenPopover(false);
+                    return;
+                  }
+
                   setArchiving(true);
                   const res = await sendArchiveRequest({
                     qrId: qrCode.id,
@@ -213,6 +241,12 @@ export function QrCodeControls({ qrCode, canvasRef }: QrCodeControlsProps) {
                 variant="danger-outline"
                 onClick={() => {
                   setOpenPopover(false);
+
+                  if (isTrialOver) {
+                    setShowTrialExpiredModal?.(true);
+                    return;
+                  }
+
                   setShowDeleteQRModal(true);
                 }}
                 icon={<Delete className="size-4" />}
@@ -246,10 +280,14 @@ export function QrCodeControls({ qrCode, canvasRef }: QrCodeControlsProps) {
 function DownloadPopover({
   qrCode,
   canvasRef,
+  isTrialOver = false,
+  setShowTrialExpiredModal,
   children,
 }: PropsWithChildren<{
   qrCode: ResponseQrCode;
   canvasRef: RefObject<HTMLCanvasElement>;
+  isTrialOver?: boolean;
+  setShowTrialExpiredModal?: (show: boolean) => void;
 }>) {
   const [openPopover, setOpenPopover] = useState(false);
   const { qrCode: qrCodeObject } = useQrCustomization(qrCode);
@@ -258,7 +296,7 @@ function DownloadPopover({
   return (
     <Popover
       content={
-        <div className="grid gap-1 p-2 sm:min-w-48">
+        <div className="grid w-full justify-start gap-1 p-2 sm:min-w-48">
           <button
             className="flex w-full items-center justify-start gap-2 rounded-md p-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100"
             onClick={() => {
@@ -292,7 +330,14 @@ function DownloadPopover({
         </div>
       }
       openPopover={openPopover}
-      setOpenPopover={setOpenPopover}
+      setOpenPopover={() => {
+        if (isTrialOver) {
+          setShowTrialExpiredModal?.(true);
+          return;
+        }
+
+        setOpenPopover(!openPopover);
+      }}
     >
       {children}
     </Popover>

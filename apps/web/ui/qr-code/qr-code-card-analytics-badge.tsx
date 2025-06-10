@@ -38,7 +38,7 @@ export function QRCardAnalyticsBadge({
   return (
     <div
       className={cn(
-        "flex flex-col items-center gap-3 md:flex-row lg:gap-4 xl:gap-6",
+        "flex flex-col items-center justify-center gap-3 md:flex-row lg:w-[130px] lg:gap-4 xl:gap-6",
         className,
       )}
     >
