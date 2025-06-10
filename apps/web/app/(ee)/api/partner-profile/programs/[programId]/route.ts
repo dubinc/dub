@@ -12,8 +12,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     includeRewards: true,
   });
 
-  const { partnerId, programId, clickReward, leadReward, saleReward } =
-    programEnrollment;
+  const { partnerId, programId, rewards } = programEnrollment;
 
   const discount = await determinePartnerDiscount({
     partnerId,
@@ -23,7 +22,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
   return NextResponse.json(
     ProgramEnrollmentSchema.parse({
       ...programEnrollment,
-      rewards: [saleReward, leadReward, clickReward].filter(Boolean),
+      rewards,
       discount,
     }),
   );

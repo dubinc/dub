@@ -1,5 +1,5 @@
 import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { Prisma, Reward } from "@dub/prisma/client";
 import { DubApiError } from "../errors";
 
 export async function getProgramEnrollmentOrThrow({
@@ -18,11 +18,6 @@ export async function getProgramEnrollmentOrThrow({
         createdAt: "asc",
       },
     },
-    ...(includeRewards && {
-      clickReward: true,
-      leadReward: true,
-      saleReward: true,
-    }),
   };
 
   const programEnrollment = programId.startsWith("prog_")
@@ -63,8 +58,28 @@ export async function getProgramEnrollmentOrThrow({
     });
   }
 
+  // Find the rewards for the program enrollment
+  let rewards: Reward[] = [];
+
+  if (includeRewards) {
+    const partnerRewardIds = [
+      programEnrollment.clickRewardId,
+      programEnrollment.leadRewardId,
+      programEnrollment.saleRewardId,
+    ].filter((id) => id !== null);
+
+    rewards = await prisma.reward.findMany({
+      where: {
+        id: {
+          in: partnerRewardIds,
+        },
+      },
+    });
+  }
+
   return {
     ...programEnrollment,
+    ...(includeRewards && { rewards }),
     links,
   };
 }

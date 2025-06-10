@@ -1,6 +1,7 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { ProgramEnrollmentSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
+import { Reward } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -17,11 +18,6 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
           createdAt: "asc",
         },
       },
-      ...(searchParams.includeRewardsDiscounts && {
-        clickReward: { include: { partnerClickReward: true } },
-        leadReward: { include: { partnerLeadReward: true } },
-        saleReward: { include: { partnerSaleReward: true } },
-      }),
       program: searchParams.includeRewardsDiscounts
         ? {
             include: {
@@ -60,12 +56,42 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     ],
   });
 
-  const response = programEnrollments.map((enrollment) => {
-    const { clickReward, leadReward, saleReward, ...rest } = enrollment;
+  let rewards: Reward[] = [];
 
+  if (searchParams.includeRewardsDiscounts) {
+    const partnerRewardIds = programEnrollments
+      .map(({ clickRewardId, leadRewardId, saleRewardId }) => [
+        clickRewardId,
+        leadRewardId,
+        saleRewardId,
+      ])
+      .flat()
+      .filter((id): id is string => id !== null);
+
+    rewards = await prisma.reward.findMany({
+      where: {
+        id: {
+          in: partnerRewardIds,
+        },
+      },
+      orderBy: {
+        event: "desc",
+      },
+    });
+  }
+
+  const programRewardsMap = rewards.reduce(
+    (acc, reward) => {
+      acc[reward.programId] = [...(acc[reward.programId] || []), reward];
+      return acc;
+    },
+    {} as Record<string, Reward[]>,
+  );
+
+  const response = programEnrollments.map((enrollment) => {
     return {
-      ...rest,
-      rewards: [saleReward, leadReward, clickReward].filter(Boolean),
+      ...enrollment,
+      rewards: programRewardsMap[enrollment.programId] || [],
     };
   });
 
