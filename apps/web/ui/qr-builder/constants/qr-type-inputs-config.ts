@@ -101,7 +101,7 @@ export const QR_TYPE_INPUTS_CONFIG: Record<
       label: "Image",
       type: "file",
       acceptedFileType: EAcceptedFileType.IMAGE,
-      maxFileSize: 5 * 1024 * 1024,
+      maxFileSize: 5 * 1024 * 1024, // 5 MB
     },
   ],
   [EQRType.PDF]: [
@@ -111,7 +111,7 @@ export const QR_TYPE_INPUTS_CONFIG: Record<
       label: "PDF",
       type: "file",
       acceptedFileType: EAcceptedFileType.PDF,
-      maxFileSize: 20 * 1024 * 1024,
+      maxFileSize: 20 * 1024 * 1024, // 20 MB
     },
   ],
   [EQRType.VIDEO]: [
@@ -121,7 +121,7 @@ export const QR_TYPE_INPUTS_CONFIG: Record<
       label: "Video",
       type: "file",
       acceptedFileType: EAcceptedFileType.VIDEO,
-      maxFileSize: 50 * 1024 * 1024,
+      maxFileSize: 50 * 1024 * 1024, // 50 MB
     },
   ],
 };

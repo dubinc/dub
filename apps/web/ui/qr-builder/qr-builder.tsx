@@ -159,7 +159,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
           qrType: selectedQRType,
           files: getFiles() as File[],
         }).then(() => {
-          setFiles(null);
+          // setFiles(null);
         });
       };
 
