@@ -1,6 +1,10 @@
 import { CreateEmailOptions } from "resend";
 import { resend, sendEmailViaResend } from "./resend";
 import { sendViaNodeMailer } from "./send-via-nodemailer";
+import { sendViaMailchimp, Var } from "./send-via-mailchimp";
+import { MAILCHIMP_TEMPLATES } from "./constants";
+
+export { MAILCHIMP_TEMPLATES };
 
 export const sendEmail = async ({
   email,
@@ -12,11 +16,21 @@ export const sendEmail = async ({
   react,
   scheduledAt,
   marketing,
+  template,
+  vars,
 }: Omit<CreateEmailOptions, "to" | "from"> & {
   email: string;
   from?: string;
   marketing?: boolean;
+  template?: string;
+  vars?: Var[];
 }) => {
+  // If template is provided, use Mailchimp
+  if (template && process.env.MAILCHIMP_API_KEY) {
+    return await sendViaMailchimp(template, email, vars);
+  }
+
+  // Otherwise, follow the existing provider logic
   if (resend) {
     return await sendEmailViaResend({
       email,
@@ -46,6 +60,6 @@ export const sendEmail = async ({
   }
 
   console.info(
-    "Email sending failed: Neither SMTP nor Resend is configured. Please set up at least one email service to send emails.",
+    "Email sending failed: No email service is configured. Please set up at least one email service (Mailchimp, Resend, or SMTP) to send emails.",
   );
 };
