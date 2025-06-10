@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { prisma } from "@dub/prisma";
 import { chunk } from "@dub/utils";
 import "dotenv-flow/config";
