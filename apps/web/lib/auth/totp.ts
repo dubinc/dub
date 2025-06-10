@@ -7,9 +7,13 @@ const options = {
   period: 30,
 };
 
-export const totpSecret = new OTPAuth.Secret({
-  size: 20, // 160 bits = 32 characters
-});
+export const generateTOTPSecret = () => {
+  const secret = new OTPAuth.Secret({
+    size: 20, // 160 bits = 32 characters
+  });
+
+  return secret.base32;
+};
 
 export const getTOTPInstance = ({
   secret,
