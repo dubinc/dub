@@ -1,17 +1,39 @@
 "use client";
 
+import { errorCodes } from "@/ui/auth/login/login-form";
 import { Button, Input, useMediaQuery } from "@dub/ui";
-import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { FormEvent, useState } from "react";
+import { toast } from "sonner";
 
 export const TwoFactorChallengeForm = () => {
-  const router = useRouter();
   const { isMobile } = useMediaQuery();
   const [code, setCode] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const submit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    //
+    setLoading(true);
+
+    const response = await signIn("two-factor-challenge", {
+      code,
+      redirect: false,
+      callbackUrl: "/",
+    });
+
+    setLoading(false);
+
+    if (!response) {
+      return;
+    }
+
+    if (!response.ok && response.error) {
+      if (errorCodes[response.error]) {
+        toast.error(errorCodes[response.error]);
+      } else {
+        toast.error(response.error);
+      }
+    }
   };
 
   return (
@@ -26,11 +48,18 @@ export const TwoFactorChallengeForm = () => {
               type="text"
               autoFocus={!isMobile}
               value={code}
-              placeholder="123456"
+              placeholder="012345"
+              pattern="[0-9]*"
               onChange={(e) => setCode(e.target.value)}
+              maxLength={6}
             />
           </label>
-          <Button type="submit" text="Verify code" disabled={code.length < 6} />
+          <Button
+            type="submit"
+            text={loading ? "Verifying..." : "Verify code"}
+            disabled={code.length < 6}
+            loading={loading}
+          />
         </div>
       </form>
     </div>

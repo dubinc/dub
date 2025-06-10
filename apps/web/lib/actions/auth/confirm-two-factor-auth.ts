@@ -36,16 +36,11 @@ export const confirmTwoFactorAuthAction = authUserActionClient
 
     const totp = getTOTPInstance({
       secret: currentUser.twoFactorSecret,
-      label: user.email,
     });
 
     const delta = totp.validate({
       token,
       window: 1,
-    });
-
-    console.log({
-      delta,
     });
 
     // If delta is null, the token is invalid

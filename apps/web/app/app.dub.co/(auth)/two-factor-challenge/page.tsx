@@ -1,5 +1,8 @@
+import { TWO_FA_COOKIE_NAME } from "@/lib/auth/constants";
 import { AuthLayout } from "@/ui/layout/auth-layout";
 import { constructMetadata } from "@dub/utils";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { TwoFactorChallengeForm } from "./form";
 
 export const metadata = constructMetadata({
@@ -7,6 +10,12 @@ export const metadata = constructMetadata({
 });
 
 export default function TwoFactorChallengePage() {
+  const cookie = cookies().get(TWO_FA_COOKIE_NAME);
+
+  if (!cookie) {
+    redirect("/login");
+  }
+
   return (
     <AuthLayout>
       <div className="w-full max-w-sm">

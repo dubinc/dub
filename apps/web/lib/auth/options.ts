@@ -12,28 +12,47 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { waitUntil } from "@vercel/functions";
 import { User, type NextAuthOptions } from "next-auth";
 import { AdapterUser } from "next-auth/adapters";
-import { JWT } from "next-auth/jwt";
+import { decode, encode, JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
+import { cookies } from "next/headers";
 import { createId } from "../api/create-id";
 import { qstash } from "../cron";
 import { completeProgramApplications } from "../partners/complete-program-applications";
-import { FRAMER_API_HOST } from "./constants";
+import { FRAMER_API_HOST, TWO_FA_COOKIE_NAME } from "./constants";
 import {
   exceededLoginAttemptsThreshold,
   incrementLoginAttempts,
 } from "./lock-account";
 import { validatePassword } from "./password";
+import { getTOTPInstance } from "./totp";
 import { trackLead } from "./track-lead";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 
-const redirectToTwoFactorAuth = (userId: string) => {
-  // TODO:
-  // Encode the user id in the URL using jwt and a secret
-  return `/auth/two-factor-challenge?userId=${userId}`;
+const setTwoFactorAuthCookie = async (user: Pick<User, "id" | "email">) => {
+  const token = await encode({
+    secret: process.env.NEXTAUTH_SECRET as string,
+    maxAge: 2 * 60,
+    token: {
+      sub: user.id,
+      email: user.email,
+      purpose: "2fa",
+      iat: Math.floor(Date.now() / 1000),
+    },
+  });
+
+  cookies().set({
+    name: TWO_FA_COOKIE_NAME,
+    value: token,
+    path: "/",
+    httpOnly: true,
+    secure: VERCEL_DEPLOYMENT,
+    expires: new Date(Date.now() + 2 * 60 * 1000),
+    sameSite: "lax",
+  });
 };
 
 const CustomPrismaAdapter = (p: PrismaClient) => {
@@ -280,6 +299,7 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (user.twoFactorConfirmedAt) {
+          await setTwoFactorAuthCookie(user);
           throw new Error("two-factor-required");
         }
 
@@ -294,36 +314,97 @@ export const authOptions: NextAuthOptions = {
 
     // Two-factor challenge
     CredentialsProvider({
-      id: "2fa",
+      id: "two-factor-challenge",
       name: "Two-factor challenge",
       type: "credentials",
       credentials: {
         code: { type: "text" },
-        token: { type: "text" }, // the user's access token from the previous step
       },
       async authorize(credentials, req) {
         if (!credentials) {
           throw new Error("no-credentials");
         }
 
-        const { code, token } = credentials;
+        const { code } = credentials;
 
-        if (!code || !token) {
+        if (!code) {
           throw new Error("no-credentials");
         }
 
         // TODO:
         // Rate limit the request
 
-        // Decode the token and verify the token authenticity
-        // Find the user from the token
-        // Check if the two-factor is enabled for the user
-        // Check if the secret exists
-        // Verify the code against the secret
-        // If successful, return the user
-        // If not, throw an error
+        const cookie = cookies().get(TWO_FA_COOKIE_NAME);
 
-        return null;
+        if (!cookie) {
+          throw new Error("no-2fa-token");
+        }
+
+        cookies().delete(TWO_FA_COOKIE_NAME);
+
+        const decoded = await decode({
+          token: cookie.value,
+          secret: process.env.NEXTAUTH_SECRET as string,
+        });
+
+        if (!decoded) {
+          throw new Error("invalid-2fa-token");
+        }
+
+        const { sub, email } = decoded;
+
+        const user = await prisma.user.findUnique({
+          where: {
+            id: sub,
+            email: email as string,
+          },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+            twoFactorConfirmedAt: true,
+            twoFactorSecret: true,
+          },
+        });
+
+        if (!user) {
+          console.error("User not found", { sub, email });
+          throw new Error("invalid-credentials");
+        }
+
+        if (!user.twoFactorConfirmedAt) {
+          console.error("Two-factor not confirmed", { sub, email });
+          throw new Error("invalid-credentials");
+        }
+
+        if (!user.twoFactorSecret) {
+          console.error("Two-factor secret not found", { sub, email });
+          throw new Error("invalid-credentials");
+        }
+
+        const totp = getTOTPInstance({
+          secret: user.twoFactorSecret,
+        });
+
+        const delta = totp.validate({
+          token: code,
+          window: 1,
+        });
+
+        console.log("totp delta", delta);
+
+        if (delta === null) {
+          console.error("Invalid 2FA code entered", { sub, email });
+          throw new Error("invalid-2fa-code");
+        }
+
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          image: user.image,
+        };
       },
     }),
 

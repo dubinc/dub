@@ -16,7 +16,7 @@ export const getTOTPInstance = ({
   label,
 }: {
   secret: string;
-  label: string;
+  label?: string;
 }) => {
   return new OTPAuth.TOTP({
     ...options,

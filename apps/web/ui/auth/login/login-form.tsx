@@ -43,6 +43,13 @@ export const errorCodes = {
     "There was an issue signing you in. Please ensure your provider settings are correct.",
   OAuthCallback:
     "We faced a problem while processing the response from the OAuth provider. Please try again.",
+
+  // 2FA
+  "two-factor-required": "Please enter your two-factor code.",
+  "no-2fa-token": "Auth session expired. Please start the login process again.",
+  "invalid-2fa-token":
+    "Auth session expired. Please start the login process again.",
+  "invalid-2fa-code": "The code you entered is incorrect. Please try again.",
 };
 
 export const LoginFormContext = createContext<{
