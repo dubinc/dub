@@ -39,7 +39,11 @@ export function useBrandingFormContext() {
 
 export function BrandingForm() {
   const { defaultProgramId } = useWorkspace();
-  const { program, mutate, loading } = useProgram<ProgramWithLanderDataProps>(
+  const {
+    program,
+    mutate: mutateProgram,
+    loading,
+  } = useProgram<ProgramWithLanderDataProps>(
     {
       query: { includeLanderData: true },
     },
@@ -63,7 +67,7 @@ export function BrandingForm() {
   return (
     <BrandingFormInner
       program={program}
-      mutate={mutate}
+      mutateProgram={mutateProgram}
       draft={draft}
       setDraft={setDraft}
     />
@@ -90,12 +94,12 @@ const PREVIEW_TABS = [
 
 function BrandingFormInner({
   program,
-  mutate,
+  mutateProgram,
   draft,
   setDraft,
 }: {
   program: ProgramWithLanderDataProps;
-  mutate: KeyedMutator<ProgramWithLanderDataProps>;
+  mutateProgram: KeyedMutator<ProgramWithLanderDataProps>;
   draft: BrandingFormData | null;
   setDraft: (draft: BrandingFormData | null) => void;
 }) {
@@ -120,13 +124,17 @@ function BrandingFormInner({
     handleSubmit,
     reset,
     setError,
-    formState: { isDirty, isSubmitting },
+    formState: { isDirty, isSubmitting, isSubmitSuccessful },
+    getValues,
   } = form;
 
-  const { executeAsync } = useAction(updateProgramAction, {
+  const { executeAsync, isPending } = useAction(updateProgramAction, {
     async onSuccess() {
+      await mutateProgram();
       toast.success("Program updated successfully.");
-      mutate();
+      // Reset form state to clear isSubmitSuccessful
+      const currentValues = getValues();
+      reset(currentValues);
     },
     onError({ error }) {
       console.error(error);
@@ -146,6 +154,12 @@ function BrandingFormInner({
 
   const [isTabPopoverOpen, setIsTabPopoverOpen] = useState(false);
 
+  // Disable publish button when:
+  // - there are no changes
+  // - the program lander is already published
+  const disablePublishButton =
+    !isDirty && program.landerPublishedAt ? true : false;
+
   return (
     <form
       onSubmit={handleSubmit(async (data) => {
@@ -153,9 +167,6 @@ function BrandingFormInner({
           workspaceId: workspaceId!,
           ...data,
         });
-
-        // Reset isDirty state
-        reset(data);
       })}
       className="overflow-hidden rounded-lg border border-neutral-200 bg-neutral-100"
     >
@@ -227,8 +238,8 @@ function BrandingFormInner({
               type="submit"
               variant="primary"
               text="Publish"
-              loading={isSubmitting}
-              disabled={!isDirty}
+              loading={isPending || isSubmitting || isSubmitSuccessful}
+              disabled={disablePublishButton}
               className="h-8 w-fit px-3"
             />
           </div>
