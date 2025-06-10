@@ -53,9 +53,15 @@ export const QRBuilderStepsTitles = [
 
 export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
   forwardRef(
-    ({ props, homepageDemo, handleSaveQR, isProcessing, isEdit, initialStep }, ref) => {
+    (
+      { props, homepageDemo, handleSaveQR, isProcessing, isEdit, initialStep },
+      ref,
+    ) => {
       const { isMobile } = useMediaQuery();
-      const [step, setStep] = useState<number>(initialStep || 1);
+      const [step, setStep] = useState<number>(() => {
+        if (isProcessing) return 3;
+        return initialStep || 1;
+      });
       const [styleOptionActiveTab, setStyleOptionActiveActiveTab] =
         useState<string>("Frame");
       const [hoveredQRType, setHoveredQRType] = useState<EQRType | null>(null);
