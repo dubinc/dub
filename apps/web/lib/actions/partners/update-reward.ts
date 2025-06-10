@@ -7,6 +7,7 @@ import {
   updateRewardSchema,
 } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
 export const updateRewardAction = authActionClient
@@ -67,20 +68,20 @@ export const updateRewardAction = authActionClient
     });
 
     if (!reward.default) {
-      const columnName = REWARD_EVENT_COLUMN_MAPPING[reward.event];
-
-      await prisma.programEnrollment.updateMany({
-        where: {
-          programId,
-          ...(partnerIds && {
-            partnerId: {
-              in: partnerIds,
-            },
-          }),
-        },
-        data: {
-          [columnName]: reward.id,
-        },
-      });
+      waitUntil(
+        prisma.programEnrollment.updateMany({
+          where: {
+            programId,
+            ...(partnerIds && {
+              partnerId: {
+                in: partnerIds,
+              },
+            }),
+          },
+          data: {
+            [REWARD_EVENT_COLUMN_MAPPING[reward.event]]: reward.id,
+          },
+        }),
+      );
     }
   });
