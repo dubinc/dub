@@ -8,6 +8,9 @@ import {
   CircleInfo,
   ConnectedDots,
   CubeSettings,
+  DiamondTurnRight,
+  Discount,
+  Folder,
   Gauge6,
   Gear2,
   Gift,
@@ -15,8 +18,11 @@ import {
   InvoiceDollar,
   Key,
   MoneyBills2,
+  PaperPlane,
   Receipt2,
   ShieldCheck,
+  Tag,
+  UserPlus,
   Users2,
   Users6,
   Webhook,
@@ -86,7 +92,7 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
 
 const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
   // Top-level
-  default: ({ slug, pathname, queryString, defaultProgramId, showNews }) => ({
+  default: ({ slug, pathname, queryString, showNews }) => ({
     title: "Short Links",
     showSwitcher: true,
     showNews,
@@ -99,6 +105,16 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             icon: Hyperlink,
             href: `/${slug}/links${pathname === `/${slug}/links` ? "" : queryString}`,
           },
+          {
+            name: "Domains",
+            icon: Globe,
+            href: `/${slug}/domains`,
+          },
+        ],
+      },
+      {
+        name: "Insights",
+        items: [
           {
             name: "Analytics",
             icon: LinesY,
@@ -113,6 +129,26 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Customers",
             icon: User,
             href: `/${slug}/customers`,
+          },
+        ],
+      },
+      {
+        name: "Library",
+        items: [
+          {
+            name: "Folders",
+            icon: Folder,
+            href: `/${slug}/library/folders`,
+          },
+          {
+            name: "Tags",
+            icon: Tag,
+            href: `/${slug}/library/tags`,
+          },
+          {
+            name: "UTM Templates",
+            icon: DiamondTurnRight,
+            href: `/${slug}/library/utm`,
           },
         ],
       },
@@ -135,19 +171,49 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             exact: true,
           },
           {
-            name: "Partners",
+            name: "Payouts",
+            icon: MoneyBills2,
+            href: `/${slug}/program/payouts?status=pending&sortBy=amount`,
+          },
+        ],
+      },
+      {
+        name: "Partners",
+        items: [
+          {
+            name: "All Partners",
             icon: Users2,
             href: `/${slug}/program/partners`,
           },
+          {
+            name: "Partner Directory",
+            icon: UserPlus,
+            href: `/${slug}/program/partners`,
+          },
+        ],
+      },
+      {
+        name: "Insights",
+        items: [
           {
             name: "Commissions",
             icon: InvoiceDollar,
             href: `/${slug}/program/commissions`,
           },
+        ],
+      },
+      {
+        name: "Configuration",
+        items: [
           {
-            name: "Payouts",
-            icon: MoneyBills2,
-            href: `/${slug}/program/payouts?status=pending&sortBy=amount`,
+            name: "Rewards",
+            icon: Gift,
+            href: `/${slug}/program/settings/rewards`,
+          },
+          {
+            name: "Discounts",
+            icon: Discount,
+            href: `/${slug}/program/settings/discounts`,
           },
           {
             name: "Branding",
@@ -155,9 +221,14 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: `/${slug}/program/branding`,
           },
           {
-            name: "Configuration",
+            name: "Link Settings",
             icon: Gear2,
-            href: `/${slug}/program/settings`,
+            href: `/${slug}/program/settings/links`,
+          },
+          {
+            name: "Communication",
+            icon: PaperPlane,
+            href: `/${slug}/program/settings/communication`,
           },
         ],
       },
