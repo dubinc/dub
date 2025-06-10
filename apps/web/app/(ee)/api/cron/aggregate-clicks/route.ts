@@ -35,7 +35,7 @@ export async function GET(req: Request) {
         event: "click",
       },
       include: {
-        partnerClickReward: true,
+        clickRewardEnrollments: true,
       },
     });
 
@@ -45,8 +45,11 @@ export async function GET(req: Request) {
       });
     }
 
-    for (const { programId, partnerClickReward, ...reward } of clickRewards) {
-      const partnerIds = partnerClickReward.map(({ partnerId }) => partnerId);
+    for (const clickReward of clickRewards) {
+      const { programId, clickRewardEnrollments, ...reward } = clickReward;
+      const partnerIds = clickRewardEnrollments.map(
+        ({ partnerId }) => partnerId,
+      );
 
       if (!partnerIds || partnerIds.length === 0) {
         console.log("No partnerIds found for program", { programId });

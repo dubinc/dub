@@ -53,9 +53,8 @@ model Program {
   ageVerification   Int?
   linkStructure     LinkStructure @default(short)
   linkParameter     String? // null for SHORT, "via" for QUERY, "refer" for PATH
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
 
   workspace       Project              @relation(fields: [workspaceId], references: [id])
   primaryDomain   Domain?              @relation(fields: [domain], references: [slug], onUpdate: Cascade)
@@ -66,7 +65,6 @@ model Program {
   links           Link[]
   commissions     Commission[]
   rewards         Reward[]
-  defaultReward   Reward?              @relation("ProgramDefaultReward", fields: [defaultRewardId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   discounts       Discount[]           @relation("ProgramDiscounts")
   defaultDiscount Discount?            @relation("ProgramDefaultDiscount", fields: [defaultDiscountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
@@ -96,9 +94,7 @@ model ProgramEnrollment {
   links       Link[]
   discount    Discount?           @relation(fields: [discountId], references: [id])
   application ProgramApplication? @relation(fields: [applicationId], references: [id])
-  clickReward Reward?             @relation("PartnerClickReward", fields: [clickRewardId], references: [id])
-  leadReward  Reward?             @relation("PartnerLeadReward", fields: [leadRewardId], references: [id])
-  saleReward  Reward?             @relation("PartnerSaleReward", fields: [saleRewardId], references: [id])
+  clickReward Reward?             @relation("ClickRewardEnrollments", fields: [clickRewardId], references: [id])
 
   @@unique([partnerId, programId])
   @@unique([tenantId, programId])

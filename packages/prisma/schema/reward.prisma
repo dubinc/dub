@@ -10,16 +10,11 @@ model Reward {
   maxDuration Int? // in months (0 -> not recurring, null -> infinite)
   maxAmount   Int? // how much a partner can receive payouts (in cents)
   default     Boolean        @default(false)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  defaultForProgram  Program?            @relation("ProgramDefaultReward")
-  program            Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
-  partners           PartnerReward[]
-  partnerClickReward ProgramEnrollment[] @relation("PartnerClickReward")
-  partnerLeadReward  ProgramEnrollment[] @relation("PartnerLeadReward")
-  partnerSaleReward  ProgramEnrollment[] @relation("PartnerSaleReward")
+  program                Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
+  clickRewardEnrollments ProgramEnrollment[] @relation("ClickRewardEnrollments")
 
   @@index(programId)
   @@index(event) // used in /api/cron/aggregate-clicks
@@ -33,8 +28,6 @@ model PartnerReward {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  reward Reward @relation(fields: [rewardId], references: [id], onDelete: Cascade)
 
   @@unique([programEnrollmentId, rewardId])
   @@index(rewardId)
