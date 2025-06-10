@@ -34,7 +34,7 @@ export const getReferralsEmbedData = async (token: string) => {
     programEnrollment.clickRewardId,
     programEnrollment.leadRewardId,
     programEnrollment.saleRewardId,
-  ].filter((id) => id !== null);
+  ].filter((id): id is string => id !== null);
 
   const [rewards, discount, commissions] = await Promise.all([
     prisma.reward.findMany({
