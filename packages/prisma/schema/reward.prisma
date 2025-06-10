@@ -15,6 +15,7 @@ model Reward {
 
   program                Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
   clickRewardEnrollments ProgramEnrollment[] @relation("ClickRewardEnrollments")
+  partners               PartnerReward[]
 
   @@index(programId)
   @@index(event) // used in /api/cron/aggregate-clicks
@@ -28,6 +29,8 @@ model PartnerReward {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  reward Reward @relation(fields: [rewardId], references: [id], onDelete: Cascade)
 
   @@unique([programEnrollmentId, rewardId])
   @@index(rewardId)
