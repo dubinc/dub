@@ -4,9 +4,9 @@ import { Flex, Heading, Text } from "@radix-ui/themes";
 import Image from "next/image";
 import Link from "next/link";
 import { FC } from "react";
-import QrDisabledIcon from "./assets/qr-disabled.svg";
+import QrCompleteSetupIcon from "./assets/qr-complete-setup.svg";
 
-export const QrDisabledModule: FC = () => {
+export const QrCompleteSetupModule: FC = () => {
   return (
     <Flex
       direction="column"
@@ -27,10 +27,10 @@ export const QrDisabledModule: FC = () => {
         >
           <Flex justify="center" align="center">
             <Image
-              src={QrDisabledIcon}
+              src={QrCompleteSetupIcon}
               alt="Disabled QR Code"
               width={216}
-              height={280}
+              height={336}
               className="object-contain"
               priority
             />
@@ -50,21 +50,28 @@ export const QrDisabledModule: FC = () => {
               size="4"
               className="text-neutral text-center leading-[120%] tracking-[0.02em]"
             >
-              This QR code has been temporarily disabled
+              Just one step left to activate your QR code
             </Heading>
 
             <Flex direction="column" align="center">
-              <Text as="p" size="2" className="text-neutral-800">
-                Are you the owner?
-              </Text>
-              <Text as="span" size="2" className="text-neutral-800">
-                <Link href="/login" className="text-secondary">
-                  Log in
-                </Link>{" "}
-                to activate it again
+              <Text as="p" size="2" align="center" className="text-neutral-800">
+                Customize the design and press “Download QR Code” to make it
+                active.
               </Text>
             </Flex>
           </Flex>
+        </Flex>
+        <Flex direction="column" align="center">
+          <Text as="p" size="2" className="text-neutral-200">
+            Need help?
+          </Text>
+          <Text as="span" size="2" className="text-neutral-200">
+            Visit{" "}
+            <Link href="/login" className="text-secondary">
+              help.getqr.com
+            </Link>{" "}
+            to get all the answers you need.
+          </Text>
         </Flex>
       </Flex>
     </Flex>
