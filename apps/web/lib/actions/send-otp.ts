@@ -1,7 +1,7 @@
 "use server";
 
 import { ratelimit, redis } from "@/lib/upstash";
-import { sendEmail } from "@dub/email";
+import { sendEmail, MAILCHIMP_TEMPLATES } from "@dub/email";
 import { VerifyEmail } from "@dub/email/templates/verify-email";
 import { prisma } from "@dub/prisma";
 import { get } from "@vercel/edge-config";
@@ -90,10 +90,10 @@ export const sendOtpAction = actionClient
       sendEmail({
         subject: `${process.env.NEXT_PUBLIC_APP_NAME}: OTP to verify your account`,
         email,
-        react: VerifyEmail({
-          email,
-          code,
-        }),
+        template: MAILCHIMP_TEMPLATES.SIGNUP_CODE,
+        vars: [
+          { name: "code", content: code },
+        ],
       }),
     ])
       .then((data) => {
