@@ -1,6 +1,6 @@
 "use server";
 
-import { getTOTPInstance, totpSecret } from "@/lib/auth/totp";
+import { generateTOTPSecret, getTOTPInstance } from "@/lib/auth/totp";
 import { prisma } from "@dub/prisma";
 import { authUserActionClient } from "../safe-action";
 
@@ -19,7 +19,7 @@ export const enableTwoFactorAuthAction = authUserActionClient.action(
       throw new Error("2FA is already enabled for your account.");
     }
 
-    const secret = totpSecret.base32;
+    const secret = generateTOTPSecret();
 
     if (!secret) {
       throw new Error("Failed to generate 2FA secret.");
