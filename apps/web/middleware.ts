@@ -43,6 +43,11 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
 
   AxiomMiddleware(req, ev);
 
+  // Special handling for public routes
+  if (path === "/qr-complete-setup" || path === "/qr-disabled") {
+    return AppMiddleware(req);
+  }
+
   // for App
   if (APP_HOSTNAMES.has(domain)) {
     console.log('middleware here1');

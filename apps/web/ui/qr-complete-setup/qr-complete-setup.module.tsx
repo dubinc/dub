@@ -67,7 +67,7 @@ export const QrCompleteSetupModule: FC = () => {
           </Text>
           <Text as="span" size="2" className="text-neutral-200">
             Visit{" "}
-            <Link href="/login" className="text-secondary">
+            <Link href="/help" className="text-secondary">
               help.getqr.com
             </Link>{" "}
             to get all the answers you need.
