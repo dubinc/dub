@@ -79,7 +79,7 @@ const UpgradeCTA = () => {
   const { canManageProgram } = getPlanCapabilities(plan);
 
   return (
-    <div className="flex min-h-[calc(100vh-6px)] flex-col items-center justify-center gap-6 px-4 py-10">
+    <div className="flex min-h-[calc(100vh-10px)] flex-col items-center justify-center gap-6 px-4 py-10">
       <div className="grid w-fit grid-cols-2 overflow-hidden px-4 [mask-image:linear-gradient(black,transparent)]">
         {EXAMPLE_PARTNERS.map((partner, idx) => (
           <ExamplePartnerCell key={idx} partner={partner} />
