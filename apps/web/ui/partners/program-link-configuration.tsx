@@ -1,5 +1,3 @@
-import { getLinkStructureOptions } from "@/lib/partners/get-link-structure-options";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainVerificationStatusProps } from "@/lib/types";
 import DomainConfiguration from "@/ui/domains/domain-configuration";
 import { DomainSelector } from "@/ui/domains/domain-selector";
@@ -7,26 +5,23 @@ import { InfoTooltip, Input, LinkLogo, SimpleTooltipContent } from "@dub/ui";
 import { ArrowTurnRight2 } from "@dub/ui/icons";
 import { fetcher, getApexDomain, getPrettyUrl } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  Path,
-  PathValue,
-  UseFormRegister,
-  UseFormSetValue,
-} from "react-hook-form";
 import useSWRImmutable from "swr/immutable";
+import useWorkspace from "@/lib/swr/use-workspace";
+import { getLinkStructureOptions } from "@/lib/partners/get-link-structure-options";
 
-interface ProgramLinkConfigurationProps<
-  T extends { domain: string; url: string | null },
-> {
+interface ProgramLinkConfigurationProps {
   domain: string | null;
   url: string | null;
-  register: UseFormRegister<T>;
-  setValue: UseFormSetValue<T>;
+  onDomainChange: (domain: string) => void;
+  onUrlChange: (url: string) => void;
 }
 
-export function ProgramLinkConfiguration<
-  T extends { domain: string; url: string | null },
->({ domain, url, register, setValue }: ProgramLinkConfigurationProps<T>) {
+export function ProgramLinkConfiguration({
+  domain,
+  url,
+  onDomainChange,
+  onUrlChange,
+}: ProgramLinkConfigurationProps) {
   const { id: workspaceId } = useWorkspace();
 
   const { data: verificationData } = useSWRImmutable<{
@@ -65,9 +60,7 @@ export function ProgramLinkConfiguration<
 
         <DomainSelector
           selectedDomain={domain || ""}
-          setSelectedDomain={(domain) =>
-            setValue("domain" as Path<T>, domain as PathValue<T, Path<T>>)
-          }
+          setSelectedDomain={onDomainChange}
         />
 
         <p className="text-xs font-normal text-neutral-500">
@@ -97,7 +90,8 @@ export function ProgramLinkConfiguration<
           Destination URL
         </label>
         <Input
-          {...register("url" as Path<T>, { required: true })}
+          value={url || ""}
+          onChange={(e) => onUrlChange(e.target.value)}
           type="url"
           placeholder="https://dub.co"
           className="max-w-full"

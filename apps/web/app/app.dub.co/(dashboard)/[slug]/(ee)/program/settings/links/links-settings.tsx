@@ -11,7 +11,7 @@ import { Badge, Button } from "@dub/ui";
 import { CircleCheckFill, LoadingSpinner } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { useForm, UseFormRegister, UseFormSetValue } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { SettingsRow } from "../settings-row";
@@ -71,17 +71,6 @@ function LinksSettingsForm({ program }: { program: ProgramProps }) {
 
   const [domain, url] = watch(["domain", "url"]);
 
-  // Create a wrapper for register and setValue that only includes the fields needed by ProgramLinkConfiguration
-  const linkConfigRegister = register as unknown as UseFormRegister<{
-    domain: string;
-    url: string | null;
-  }>;
-
-  const linkConfigSetValue = setValue as unknown as UseFormSetValue<{
-    domain: string;
-    url: string | null;
-  }>;
-
   return (
     <form
       className="rounded-lg border border-neutral-200 bg-white"
@@ -102,8 +91,12 @@ function LinksSettingsForm({ program }: { program: ProgramProps }) {
               <ProgramLinkConfiguration
                 domain={domain}
                 url={url}
-                register={linkConfigRegister}
-                setValue={linkConfigSetValue}
+                onDomainChange={(domain) =>
+                  setValue("domain", domain, { shouldDirty: true })
+                }
+                onUrlChange={(url) =>
+                  setValue("url", url, { shouldDirty: true })
+                }
               />
             </div>
           </div>

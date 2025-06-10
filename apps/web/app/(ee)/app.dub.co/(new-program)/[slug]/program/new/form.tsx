@@ -159,8 +159,10 @@ export function Form() {
         <ProgramLinkConfiguration
           domain={domain}
           url={url}
-          register={register}
-          setValue={setValue}
+          onDomainChange={(domain) =>
+            setValue("domain", domain, { shouldDirty: true })
+          }
+          onUrlChange={(url) => setValue("url", url, { shouldDirty: true })}
         />
       </div>
 
