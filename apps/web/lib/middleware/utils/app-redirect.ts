@@ -1,4 +1,5 @@
 import { RESERVED_SLUGS } from "@dub/utils";
+import { cookies } from "next/headers";
 
 const APP_REDIRECTS = {
   "/account": "/account/settings",
@@ -11,10 +12,22 @@ export const appRedirect = (path: string) => {
   if (APP_REDIRECTS[path]) {
     return APP_REDIRECTS[path];
   }
-  // Redirect "/[slug]" to "/[slug]/links"
+
+  // Redirect "/[slug]" to "/[slug]/[product]"
   const rootRegex = /^\/([^\/]+)$/;
-  if (rootRegex.test(path) && !RESERVED_SLUGS.includes(path.split("/")[1]))
-    return path.replace(rootRegex, "/$1/links");
+  if (rootRegex.test(path) && !RESERVED_SLUGS.includes(path.split("/")[1])) {
+    // Determine product from cookie (default to links)
+    let product = "links";
+
+    const productCookie = cookies().get(
+      `dub_product:${path.split("/")[1]}`,
+    )?.value;
+
+    if (productCookie && ["links", "program"].includes(productCookie))
+      product = `/${productCookie}`;
+
+    return path.replace(rootRegex, `/$1/${product}`);
+  }
 
   // Redirect "/[slug]/upgrade" to "/[slug]/settings/billing/upgrade"
   const upgradeRegex = /^\/([^\/]+)\/upgrade$/;

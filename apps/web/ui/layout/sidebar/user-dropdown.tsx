@@ -77,7 +77,7 @@ export default function UserDropdown() {
           <UserOption
             as="button"
             type="button"
-            label="Logout"
+            label="Log out"
             icon={LogOut}
             onClick={() =>
               signOut({

@@ -42,6 +42,8 @@ type SidebarNavData = {
   showNews?: boolean;
 };
 
+const FIVE_YEARS_SECONDS = 60 * 60 * 24 * 365 * 5;
+
 const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
   slug,
   pathname,
@@ -58,6 +60,10 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     active:
       pathname.startsWith(`/${slug}`) &&
       !pathname.startsWith(`/${slug}/program`),
+
+    onClick: () => {
+      document.cookie = `dub_product:${slug}=links;path=/;max-age=${FIVE_YEARS_SECONDS}`;
+    },
   },
   {
     name: "Partner Program",
@@ -67,6 +73,12 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     icon: ConnectedDots4,
     href: `/${slug}/program`,
     active: pathname.startsWith(`/${slug}/program`),
+
+    onClick: defaultProgramId
+      ? () => {
+          document.cookie = `dub_product:${slug}=program;path=/;max-age=${FIVE_YEARS_SECONDS}`;
+        }
+      : undefined,
   },
 ];
 

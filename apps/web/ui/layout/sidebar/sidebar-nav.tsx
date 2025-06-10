@@ -38,6 +38,7 @@ export type NavGroupType = {
   icon: Icon;
   href: string;
   active: boolean;
+  onClick?: () => void;
 
   description: string;
   learnMoreHref?: string;
@@ -180,7 +181,7 @@ export function NavGroupTooltip({
   children,
 }: PropsWithChildren<{
   name: string;
-  description: string;
+  description?: string;
   learnMoreHref?: string;
   disabled?: boolean;
 }>) {
@@ -193,27 +194,29 @@ export function NavGroupTooltip({
       content={
         <div>
           <span>{name}</span>
-          <motion.div
-            initial={{ opacity: 0, width: 0, height: 0 }}
-            animate={{ opacity: 1, width: "auto", height: "auto" }}
-            transition={{ delay: 0.5, duration: 0.25, type: "spring" }}
-            className="overflow-hidden"
-          >
-            <div className="w-44 py-1 text-xs tracking-tight">
-              <p className="text-content-muted">{description}</p>
-              {learnMoreHref && (
-                <div className="mt-2.5">
-                  <Link
-                    href={learnMoreHref}
-                    target="_blank"
-                    className="font-semibold text-white underline"
-                  >
-                    Learn more
-                  </Link>
-                </div>
-              )}
-            </div>
-          </motion.div>
+          {description && (
+            <motion.div
+              initial={{ opacity: 0, width: 0, height: 0 }}
+              animate={{ opacity: 1, width: "auto", height: "auto" }}
+              transition={{ delay: 0.5, duration: 0.25, type: "spring" }}
+              className="overflow-hidden"
+            >
+              <div className="w-44 py-1 text-xs tracking-tight">
+                <p className="text-content-muted">{description}</p>
+                {learnMoreHref && (
+                  <div className="mt-2.5">
+                    <Link
+                      href={learnMoreHref}
+                      target="_blank"
+                      className="font-semibold text-white underline"
+                    >
+                      Learn more
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
         </div>
       }
     >
@@ -223,7 +226,15 @@ export function NavGroupTooltip({
 }
 
 function NavGroupItem({
-  group: { name, description, learnMoreHref, icon: Icon, href, active },
+  group: {
+    name,
+    description,
+    learnMoreHref,
+    icon: Icon,
+    href,
+    active,
+    onClick,
+  },
 }: {
   group: NavGroupType;
 }) {
@@ -240,6 +251,7 @@ function NavGroupItem({
           href={href}
           onPointerEnter={() => setHovered(true)}
           onPointerLeave={() => setHovered(false)}
+          onClick={onClick}
           className={cn(
             "flex size-12 items-center justify-center rounded-lg transition-colors duration-150",
             active

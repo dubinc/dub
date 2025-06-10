@@ -1,4 +1,5 @@
 import { UserProps } from "@/lib/types";
+import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { isValidInternalRedirect, parse } from "./utils";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";
@@ -27,9 +28,22 @@ export default async function WorkspacesMiddleware(
     } else if (isTopLevelSettingsRedirect(path)) {
       redirectPath = `/settings/${path}`;
     }
+
+    if (!redirectPath) {
+      // Determine product from cookie (default to links)
+      redirectPath = "/links";
+
+      const productCookie = cookies().get(
+        `dub_product:${defaultWorkspace}`,
+      )?.value;
+
+      if (productCookie && ["links", "program"].includes(productCookie))
+        redirectPath = `/${productCookie}`;
+    }
+
     return NextResponse.redirect(
       new URL(
-        `/${defaultWorkspace}${redirectPath || "/links"}${searchParamsString}`,
+        `/${defaultWorkspace}${redirectPath}${searchParamsString}`,
         req.url,
       ),
     );
