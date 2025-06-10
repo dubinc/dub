@@ -30,6 +30,18 @@ export const GET = withWorkspace(
       }),
     };
 
+    const commonRewardWhere: Prisma.ProgramEnrollmentWhereInput = {
+      ...(clickRewardId && {
+        clickRewardId,
+      }),
+      ...(leadRewardId && {
+        leadRewardId,
+      }),
+      ...(saleRewardId && {
+        saleRewardId,
+      }),
+    };
+
     // Get partner count by country
     if (groupBy === "country") {
       const partners = await prisma.partner.groupBy({
@@ -38,27 +50,7 @@ export const GET = withWorkspace(
           programs: {
             some: {
               programId,
-              ...(clickRewardId && {
-                rewards: {
-                  some: {
-                    clickRewardId,
-                  },
-                },
-              }),
-              ...(leadRewardId && {
-                rewards: {
-                  some: {
-                    leadRewardId,
-                  },
-                },
-              }),
-              ...(saleRewardId && {
-                rewards: {
-                  some: {
-                    saleRewardId,
-                  },
-                },
-              }),
+              ...commonRewardWhere,
             },
             every: {
               status: status || { notIn: ["rejected", "banned", "archived"] },
@@ -83,15 +75,7 @@ export const GET = withWorkspace(
         by: ["status"],
         where: {
           programId,
-          ...(clickRewardId && {
-            clickRewardId,
-          }),
-          ...(leadRewardId && {
-            leadRewardId,
-          }),
-          ...(saleRewardId && {
-            saleRewardId,
-          }),
+          ...commonRewardWhere,
           partner: {
             ...(country && {
               country,
@@ -172,15 +156,7 @@ export const GET = withWorkspace(
       where: {
         programId,
         status: status || { notIn: ["rejected", "banned", "archived"] },
-        ...(clickRewardId && {
-          clickRewardId,
-        }),
-        ...(leadRewardId && {
-          leadRewardId,
-        }),
-        ...(saleRewardId && {
-          saleRewardId,
-        }),
+        ...commonRewardWhere,
         partner: {
           ...(country && {
             country,
