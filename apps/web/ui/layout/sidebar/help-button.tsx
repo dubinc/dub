@@ -47,7 +47,8 @@ export function HelpButton({
                 ]
               : [
                   "text-content-default flex size-11 shrink-0 items-center justify-center rounded-lg",
-                  "hover:bg-bg-inverted/5 active:bg-bg-inverted/10 transition-colors duration-150",
+                  "hover:bg-bg-inverted/5 active:bg-bg-inverted/10 data-[state=open]:bg-bg-inverted/10 transition-colors duration-150",
+                  "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
                 ],
           )}
         >

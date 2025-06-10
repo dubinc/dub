@@ -94,7 +94,8 @@ export default function UserDropdown() {
       <button
         onClick={() => setOpenPopover(!openPopover)}
         className={cn(
-          "group relative rounded-full ring-offset-1 ring-offset-neutral-100 transition-all hover:ring-2 hover:ring-black/10 active:ring-black/15 data-[state='open']:ring-black/15",
+          "group relative flex size-11 items-center justify-center rounded-lg transition-all",
+          "hover:bg-bg-inverted/5 active:bg-bg-inverted/10 data-[state=open]:bg-bg-inverted/10 transition-colors duration-150",
           "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
         )}
       >

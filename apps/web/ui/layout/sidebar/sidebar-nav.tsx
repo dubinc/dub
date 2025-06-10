@@ -87,12 +87,14 @@ export function SidebarNav<T extends Record<any, any>>({
       <nav className="grid size-full grid-cols-[64px_1fr]">
         <div className="flex flex-col items-center justify-between">
           <div className="flex flex-col items-center p-2">
-            <Link
-              href="/"
-              className="rounded-md px-1 py-[18px] outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-black/50"
-            >
-              <NavWordmark className="h-5" isInApp />
-            </Link>
+            <div className="py-1.5">
+              <Link
+                href="/"
+                className="block rounded-lg px-1 py-3 outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-black/50"
+              >
+                <NavWordmark className="h-5" isInApp />
+              </Link>
+            </div>
             <div className="flex flex-col gap-3">
               {areas[currentArea](data).showSwitcher && switcher && (
                 <div>{switcher}</div>
@@ -254,6 +256,7 @@ function NavGroupItem({
           onClick={onClick}
           className={cn(
             "flex size-11 items-center justify-center rounded-lg transition-colors duration-150",
+            "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
             active
               ? "bg-white"
               : "hover:bg-bg-inverted/5 active:bg-bg-inverted/10",
