@@ -91,7 +91,7 @@ export function WorkspaceDropdown() {
         <button
           onClick={() => setOpenPopover(!openPopover)}
           className={cn(
-            "flex size-12 items-center justify-center rounded-lg p-1.5 text-left text-sm transition-all duration-75",
+            "flex size-11 items-center justify-center rounded-lg p-1.5 text-left text-sm transition-all duration-75",
             "hover:bg-bg-inverted/5 active:bg-bg-inverted/10 data-[state=open]:bg-bg-inverted/10",
             "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
           )}

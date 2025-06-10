@@ -253,7 +253,7 @@ function NavGroupItem({
           onPointerLeave={() => setHovered(false)}
           onClick={onClick}
           className={cn(
-            "flex size-12 items-center justify-center rounded-lg transition-colors duration-150",
+            "flex size-11 items-center justify-center rounded-lg transition-colors duration-150",
             active
               ? "bg-white"
               : "hover:bg-bg-inverted/5 active:bg-bg-inverted/10",
