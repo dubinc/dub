@@ -1,4 +1,4 @@
-import { reorderTopProgramRewards } from "@/lib/partners/reorder-top-program-rewards";
+import { sortRewardsByEvent } from "@/lib/partners/reorder-top-program-rewards";
 import { DiscountProps, ProgramProps } from "@/lib/types";
 import {
   ProgramSchema,
@@ -17,13 +17,11 @@ export const getProgramOrThrow = async (
   },
   {
     includeDefaultDiscount = false,
-    includeDefaultReward = false,
-    includeRewards = false,
+    includeDefaultRewards = false,
     includeLanderData = false,
   }: {
     includeDefaultDiscount?: boolean;
-    includeDefaultReward?: boolean;
-    includeRewards?: boolean;
+    includeDefaultRewards?: boolean;
     includeLanderData?: boolean;
   } = {},
 ) => {
@@ -32,20 +30,14 @@ export const getProgramOrThrow = async (
       id: programId,
       workspaceId,
     },
-
     include: {
       ...(includeDefaultDiscount && {
         defaultDiscount: true,
       }),
-      ...(includeDefaultReward && {
-        defaultReward: true,
-      }),
-      ...(includeRewards && {
+      ...(includeDefaultRewards && {
         rewards: {
           where: {
-            partners: {
-              none: {}, // program-wide rewards only
-            },
+            default: true,
           },
         },
       }),
@@ -63,8 +55,8 @@ export const getProgramOrThrow = async (
     includeLanderData ? ProgramWithLanderDataSchema : ProgramSchema
   ).parse({
     ...program,
-    ...(includeRewards && program.rewards?.length
-      ? { rewards: reorderTopProgramRewards(program.rewards as any) }
+    ...(includeDefaultRewards && program.rewards?.length
+      ? { rewards: sortRewardsByEvent(program.rewards as any) }
       : {}),
     ...(includeDefaultDiscount && program.defaultDiscount
       ? { discounts: [program.defaultDiscount] }
