@@ -188,7 +188,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           {
             name: "Partner Directory",
             icon: UserPlus,
-            href: `/${slug}/program/partners`,
+            href: `/${slug}/program/partners/directory`,
           },
         ],
       },
