@@ -44,7 +44,12 @@ const DisableTwoFactorAuthModal = ({
       </div>
 
       <div className="bg-neutral-50">
-        <form onSubmit={() => disable2FA()}>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            disable2FA();
+          }}
+        >
           <div className="flex justify-end gap-2 border-t border-neutral-200 px-4 py-4 sm:px-6">
             <Button
               type="button"

@@ -186,9 +186,9 @@ export interface UserProps {
   defaultPartnerId?: string;
   isMachine: boolean;
   hasPassword: boolean;
-  provider: string | null;  
+  provider: string | null;
   twoFactorConfirmedAt: Date | null;
-  twoFactorRecoveryCodes: string[] | null;
+  twoFactorRecoveryCodes: string | null;
 }
 
 export interface WorkspaceUserProps extends UserProps {

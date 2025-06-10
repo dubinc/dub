@@ -3,7 +3,7 @@ import { QRCode } from "@/ui/shared/qr-code";
 import { Button, CopyButton, Modal } from "@dub/ui";
 import { OTPInput } from "input-otp";
 import { useAction } from "next-safe-action/hooks";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 interface EnableTwoFactorAuthModalProps {
@@ -24,6 +24,14 @@ const EnableTwoFactorAuthModal = ({
   const [token, setToken] = useState("");
   const [touched, setTouched] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (showModal) {
+      setToken("");
+      setTouched(false);
+      setError(undefined);
+    }
+  }, [showModal]);
 
   const { executeAsync, isPending } = useAction(confirmTwoFactorAuthAction, {
     onSuccess: () => {

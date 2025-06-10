@@ -331,16 +331,19 @@ export const authOptions: NextAuthOptions = {
           throw new Error("no-credentials");
         }
 
-        // TODO:
-        // Rate limit the request
-
         const cookie = cookies().get(TWO_FA_COOKIE_NAME);
 
         if (!cookie) {
           throw new Error("no-2fa-token");
         }
 
-        cookies().delete(TWO_FA_COOKIE_NAME);
+        const { success } = await ratelimit(5, "24 h").limit(
+          `2fa-challenge:${cookie.value}`,
+        );
+
+        if (!success) {
+          throw new Error("too-many-2fa-attempts"); // TODO: add to errorCodes
+        }
 
         const decoded = await decode({
           token: cookie.value,
@@ -350,6 +353,8 @@ export const authOptions: NextAuthOptions = {
         if (!decoded) {
           throw new Error("invalid-2fa-token");
         }
+
+        cookies().delete(TWO_FA_COOKIE_NAME);
 
         const { sub, email } = decoded;
 
@@ -391,8 +396,6 @@ export const authOptions: NextAuthOptions = {
           token: code,
           window: 1,
         });
-
-        console.log("totp delta", delta);
 
         if (delta === null) {
           console.error("Invalid 2FA code entered", { sub, email });
