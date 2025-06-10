@@ -1,3 +1,5 @@
+import { getLinkStructureOptions } from "@/lib/partners/get-link-structure-options";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainVerificationStatusProps } from "@/lib/types";
 import DomainConfiguration from "@/ui/domains/domain-configuration";
 import { DomainSelector } from "@/ui/domains/domain-selector";
@@ -6,14 +8,13 @@ import { ArrowTurnRight2 } from "@dub/ui/icons";
 import { fetcher, getApexDomain, getPrettyUrl } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import useSWRImmutable from "swr/immutable";
-import useWorkspace from "@/lib/swr/use-workspace";
-import { getLinkStructureOptions } from "@/lib/partners/get-link-structure-options";
 
 interface ProgramLinkConfigurationProps {
   domain: string | null;
   url: string | null;
   onDomainChange: (domain: string) => void;
   onUrlChange: (url: string) => void;
+  hideLinkPreview?: boolean;
 }
 
 export function ProgramLinkConfiguration({
@@ -21,6 +22,7 @@ export function ProgramLinkConfiguration({
   url,
   onDomainChange,
   onUrlChange,
+  hideLinkPreview,
 }: ProgramLinkConfigurationProps) {
   const { id: workspaceId } = useWorkspace();
 
@@ -103,7 +105,7 @@ export function ProgramLinkConfiguration({
       </div>
 
       <AnimatePresence>
-        {domain && (
+        {domain && !hideLinkPreview && (
           <motion.div
             key="referral-link-preview"
             initial={{ height: 0, opacity: 0 }}

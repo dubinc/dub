@@ -97,6 +97,7 @@ function LinksSettingsForm({ program }: { program: ProgramProps }) {
                 onUrlChange={(url) =>
                   setValue("url", url, { shouldDirty: true })
                 }
+                hideLinkPreview
               />
             </div>
           </div>
