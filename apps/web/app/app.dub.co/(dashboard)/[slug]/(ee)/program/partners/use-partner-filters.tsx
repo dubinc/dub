@@ -1,11 +1,16 @@
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { RewardProps } from "@/lib/types";
-import { REWARD_EVENTS } from "@/ui/partners/constants";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { useRouterStuff } from "@dub/ui";
-import { CircleDotted, FlagWavy, Gift } from "@dub/ui/icons";
+import {
+  CircleDotted,
+  CursorRays,
+  FlagWavy,
+  InvoiceDollar,
+  UserPlus,
+} from "@dub/ui/icons";
 import { cn, COUNTRIES, nFormatter } from "@dub/utils";
 import { useMemo } from "react";
 
@@ -33,13 +38,31 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
     groupBy: "status",
   });
 
-  const { partnersCount: rewardsCount } = usePartnersCount<
+  const { partnersCount: clickRewardsCount } = usePartnersCount<
     | (RewardProps & {
         partnersCount: number;
       })[]
     | undefined
   >({
-    groupBy: "rewardId",
+    groupBy: "clickRewardId",
+  });
+
+  const { partnersCount: leadRewardsCount } = usePartnersCount<
+    | (RewardProps & {
+        partnersCount: number;
+      })[]
+    | undefined
+  >({
+    groupBy: "leadRewardId",
+  });
+
+  const { partnersCount: saleRewardsCount } = usePartnersCount<
+    | (RewardProps & {
+        partnersCount: number;
+      })[]
+    | undefined
+  >({
+    groupBy: "saleRewardId",
   });
 
   const filters = useMemo(
@@ -66,16 +89,43 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
             })) ?? [],
       },
       {
-        key: "rewardId",
-        icon: Gift,
-        label: "Reward",
+        key: "saleRewardId",
+        icon: InvoiceDollar,
+        label: "Sale reward",
         options:
-          rewardsCount?.map((reward) => {
-            const Icon = REWARD_EVENTS[reward.event].icon;
+          saleRewardsCount?.map((reward) => {
             return {
               value: reward.id,
               label: reward.name || formatRewardDescription({ reward }),
-              icon: <Icon className="size-4 bg-transparent" />,
+              icon: <InvoiceDollar className="size-4 bg-transparent" />,
+              right: nFormatter(reward.partnersCount, { full: true }),
+            };
+          }) ?? [],
+      },
+      {
+        key: "leadRewardId",
+        icon: UserPlus,
+        label: "Lead reward",
+        options:
+          leadRewardsCount?.map((reward) => {
+            return {
+              value: reward.id,
+              label: reward.name || formatRewardDescription({ reward }),
+              icon: <UserPlus className="size-4 bg-transparent" />,
+              right: nFormatter(reward.partnersCount, { full: true }),
+            };
+          }) ?? [],
+      },
+      {
+        key: "clickRewardId",
+        icon: CursorRays,
+        label: "Click reward",
+        options:
+          clickRewardsCount?.map((reward) => {
+            return {
+              value: reward.id,
+              label: reward.name || formatRewardDescription({ reward }),
+              icon: <CursorRays className="size-4 bg-transparent" />,
               right: nFormatter(reward.partnersCount, { full: true }),
             };
           }) ?? [],
@@ -103,16 +153,27 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
           }) ?? [],
       },
     ],
-    [countriesCount, statusCount, rewardsCount],
+    [
+      countriesCount,
+      statusCount,
+      clickRewardsCount,
+      leadRewardsCount,
+      saleRewardsCount,
+    ],
   );
 
   const activeFilters = useMemo(() => {
-    const { status, country, rewardId } = searchParamsObj;
+    const { status, country, clickRewardId, leadRewardId, saleRewardId } =
+      searchParamsObj;
 
     return [
       ...(status ? [{ key: "status", value: status }] : []),
       ...(country ? [{ key: "country", value: country }] : []),
-      ...(rewardId ? [{ key: "rewardId", value: rewardId }] : []),
+      ...(clickRewardId
+        ? [{ key: "clickRewardId", value: clickRewardId }]
+        : []),
+      ...(leadRewardId ? [{ key: "leadRewardId", value: leadRewardId }] : []),
+      ...(saleRewardId ? [{ key: "saleRewardId", value: saleRewardId }] : []),
     ];
   }, [searchParamsObj]);
 
@@ -131,7 +192,14 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
 
   const onRemoveAll = () =>
     queryParams({
-      del: ["status", "country", "rewardId", "search"],
+      del: [
+        "status",
+        "country",
+        "clickRewardId",
+        "leadRewardId",
+        "saleRewardId",
+        "search",
+      ],
     });
 
   const searchQuery = useMemo(
