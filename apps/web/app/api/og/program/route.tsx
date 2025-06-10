@@ -1,4 +1,5 @@
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
+import { sortRewardsByEvent } from "@/lib/partners/reorder-top-program-rewards";
 import { getProgramViaEdge } from "@/lib/planetscale/get-program-via-edge";
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
@@ -13,6 +14,7 @@ const DARK_CELLS = [
   [53, 1],
 ];
 
+// GET - /api/og/program?slug=
 export async function GET(req: NextRequest) {
   const [interMedium, interSemibold] = await Promise.all([
     fetch(new URL("@/styles/Inter-Medium.ttf", import.meta.url)).then((res) =>
@@ -25,10 +27,11 @@ export async function GET(req: NextRequest) {
 
   const slug = req.nextUrl.searchParams.get("slug");
 
-  if (!slug)
+  if (!slug) {
     return new Response("Missing 'slug' parameter", {
       status: 400,
     });
+  }
 
   const program = await getProgramViaEdge({ slug });
 
@@ -40,6 +43,9 @@ export async function GET(req: NextRequest) {
 
   const logo = program.wordmark || program.logo;
   const brandColor = program.brandColor || "#000000";
+
+  const rewards = sortRewardsByEvent(program.rewards);
+  const reward = rewards?.length > 0 ? rewards[0] : null;
 
   return new ImageResponse(
     (
@@ -118,7 +124,7 @@ export async function GET(req: NextRequest) {
             {`Join the ${program.name} affiliate program`}
           </div>
           <div tw="mt-10 flex">
-            {program.rewardAmount && program.rewardType && (
+            {reward && (
               <div tw="w-full flex items-center rounded-md bg-neutral-100 border border-neutral-200 p-8 text-2xl">
                 {/* @ts-ignore */}
                 <InvoiceDollar tw="w-8 h-8 mr-4" />
@@ -127,19 +133,15 @@ export async function GET(req: NextRequest) {
                   style={{ fontFamily: "Inter Semibold" }}
                 >
                   {constructRewardAmount({
-                    amount: program.rewardAmount,
-                    type: program.rewardType as any,
+                    amount: reward.amount,
+                    type: reward.type,
                   })}{" "}
-                  per {program.rewardEvent}
+                  per {reward.event}
                 </strong>
-                {program.rewardMaxDuration === null ? (
+                {reward.maxDuration === null ? (
                   "for the customer's lifetime"
-                ) : program.rewardMaxDuration &&
-                  program.rewardMaxDuration > 1 ? (
-                  <>
-                    , and again every month for {program.rewardMaxDuration}{" "}
-                    months
-                  </>
+                ) : reward.maxDuration && reward.maxDuration > 1 ? (
+                  <>, and again every month for {reward.maxDuration} months</>
                 ) : null}
               </div>
             )}

@@ -48,9 +48,10 @@ export interface EdgeProgramProps {
   wordmark: string | null;
   brandColor: string | null;
   landerData: any;
-  defaultRewardId: string | null;
-  rewardEvent: string | null;
-  rewardType: string | null;
-  rewardAmount: number | null;
-  rewardMaxDuration: number | null;
+  rewards: {
+    event: "click" | "lead" | "sale";
+    type: "percentage" | "flat";
+    amount: number;
+    maxDuration: number | null;
+  }[];
 }
