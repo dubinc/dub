@@ -1,28 +1,32 @@
 import { getLinkStructureOptions } from "@/lib/partners/get-link-structure-options";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { DomainVerificationStatusProps, ProgramData } from "@/lib/types";
+import { DomainVerificationStatusProps } from "@/lib/types";
 import DomainConfiguration from "@/ui/domains/domain-configuration";
 import { DomainSelector } from "@/ui/domains/domain-selector";
 import { InfoTooltip, Input, LinkLogo, SimpleTooltipContent } from "@dub/ui";
 import { ArrowTurnRight2 } from "@dub/ui/icons";
 import { fetcher, getApexDomain, getPrettyUrl } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { UseFormRegister, UseFormSetValue } from "react-hook-form";
+import {
+  Path,
+  PathValue,
+  UseFormRegister,
+  UseFormSetValue,
+} from "react-hook-form";
 import useSWRImmutable from "swr/immutable";
 
-interface ProgramLinkConfigurationProps {
+interface ProgramLinkConfigurationProps<
+  T extends { domain: string; url: string | null },
+> {
   domain: string | null;
   url: string | null;
-  register: UseFormRegister<ProgramData>;
-  setValue: UseFormSetValue<ProgramData>;
+  register: UseFormRegister<T>;
+  setValue: UseFormSetValue<T>;
 }
 
-export function ProgramLinkConfiguration({
-  domain,
-  url,
-  register,
-  setValue,
-}: ProgramLinkConfigurationProps) {
+export function ProgramLinkConfiguration<
+  T extends { domain: string; url: string | null },
+>({ domain, url, register, setValue }: ProgramLinkConfigurationProps<T>) {
   const { id: workspaceId } = useWorkspace();
 
   const { data: verificationData } = useSWRImmutable<{
@@ -61,7 +65,9 @@ export function ProgramLinkConfiguration({
 
         <DomainSelector
           selectedDomain={domain || ""}
-          setSelectedDomain={(domain) => setValue("domain", domain)}
+          setSelectedDomain={(domain) =>
+            setValue("domain" as Path<T>, domain as PathValue<T, Path<T>>)
+          }
         />
 
         <p className="text-xs font-normal text-neutral-500">
@@ -91,7 +97,7 @@ export function ProgramLinkConfiguration({
           Destination URL
         </label>
         <Input
-          {...register("url", { required: true })}
+          {...register("url" as Path<T>, { required: true })}
           type="url"
           placeholder="https://dub.co"
           className="max-w-full"

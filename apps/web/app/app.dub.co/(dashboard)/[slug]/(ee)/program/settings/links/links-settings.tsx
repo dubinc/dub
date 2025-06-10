@@ -2,16 +2,16 @@
 
 import { updateProgramAction } from "@/lib/actions/partners/update-program";
 import { getLinkStructureOptions } from "@/lib/partners/get-link-structure-options";
-import useDomains from "@/lib/swr/use-domains";
 import useFolders from "@/lib/swr/use-folders";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramProps } from "@/lib/types";
+import { ProgramLinkConfiguration } from "@/ui/partners/program-link-configuration";
 import { Badge, Button } from "@dub/ui";
 import { CircleCheckFill, LoadingSpinner } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { useForm } from "react-hook-form";
+import { useForm, UseFormRegister, UseFormSetValue } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { SettingsRow } from "../settings-row";
@@ -41,14 +41,12 @@ function LinksSettingsForm({ program }: { program: ProgramProps }) {
   const { id: workspaceId } = useWorkspace();
   const { folders, loading: loadingFolders } = useFolders();
 
-  const { activeWorkspaceDomains: domains, loading: loadingDomains } =
-    useDomains();
-
   const {
     register,
     handleSubmit,
     reset,
     watch,
+    setValue,
     formState: { isDirty, isValid, isSubmitting },
   } = useForm<FormData>({
     mode: "onBlur",
@@ -67,9 +65,22 @@ function LinksSettingsForm({ program }: { program: ProgramProps }) {
       mutate(`/api/programs/${program.id}?workspaceId=${workspaceId}`);
     },
     onError({ error }) {
-      toast.error("Failed to update program.");
+      toast.error(error.serverError || "Failed to update program.");
     },
   });
+
+  const [domain, url] = watch(["domain", "url"]);
+
+  // Create a wrapper for register and setValue that only includes the fields needed by ProgramLinkConfiguration
+  const linkConfigRegister = register as unknown as UseFormRegister<{
+    domain: string;
+    url: string | null;
+  }>;
+
+  const linkConfigSetValue = setValue as unknown as UseFormSetValue<{
+    domain: string;
+    url: string | null;
+  }>;
 
   return (
     <form
@@ -86,55 +97,14 @@ function LinksSettingsForm({ program }: { program: ProgramProps }) {
     >
       <div className="divide-y divide-neutral-200 px-6">
         <SettingsRow heading="Default Referral Link">
-          <div className="flex flex-col gap-6">
-            <div>
-              <label
-                htmlFor="domain"
-                className="text-sm font-medium text-neutral-800"
-              >
-                Custom domain
-              </label>
-              <div className="relative mt-2 rounded-md shadow-sm">
-                <select
-                  className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                  {...register("domain", {
-                    required: true,
-                  })}
-                  disabled={loadingDomains}
-                >
-                  <option value="">Select a domain</option>
-                  {domains?.map((domain) => (
-                    <option
-                      value={domain.slug}
-                      key={domain.slug}
-                      selected={domain.slug === program.domain}
-                    >
-                      {domain.slug}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label
-                htmlFor="url"
-                className="text-sm font-medium text-neutral-800"
-              >
-                Destination URL
-              </label>
-              <div className="mt-2 rounded-md shadow-sm">
-                <input
-                  type="url"
-                  placeholder="https://example.com"
-                  className={cn(
-                    "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                  )}
-                  {...register("url", {
-                    required: true,
-                  })}
-                />
-              </div>
+          <div className="grid grid-cols-2 gap-6">
+            <div className="col-span-2">
+              <ProgramLinkConfiguration
+                domain={domain}
+                url={url}
+                register={linkConfigRegister}
+                setValue={linkConfigSetValue}
+              />
             </div>
           </div>
         </SettingsRow>
