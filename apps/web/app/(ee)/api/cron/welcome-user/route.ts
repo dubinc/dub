@@ -47,19 +47,6 @@ export async function POST(req: Request) {
         name: user.name || undefined,
         audience: isPartner ? "partners.dub.co" : "app.dub.co",
       }),
-      // // TODO: Add partners.dub.co welcome email
-      // isPartner
-      //   ? undefined
-      //   : sendEmail({
-      //       email: user.email,
-      //       replyTo: "steven.tey@dub.co",
-      //       subject: "Welcome to Dub!",
-      //       react: WelcomeEmail({
-      //         email: user.email,
-      //         name: user.name,
-      //       }),
-      //       variant: "marketing",
-      //     }),
       sendEmail({
         email: user.email,
         replyTo: "steven.tey@dub.co",

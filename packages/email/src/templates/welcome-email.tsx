@@ -33,7 +33,7 @@ export function WelcomeEmail({
               <Img src={DUB_WORDMARK} height="32" alt="Dub" />
             </Section>
             <Heading className="mx-0 my-7 p-0 text-xl font-semibold text-black">
-              Welcome{name ? ` ${name}` : ""}!
+              Welcome {name || "to Dub"}!
             </Heading>
             <Text className="mb-8 text-sm leading-6 text-gray-600">
               Thank you for signing up for Dub! You can now start creating short
