@@ -35,8 +35,8 @@ export const createRewardAction = authActionClient
     if (isDefault) {
       const defaultReward = await prisma.reward.findFirst({
         where: {
-          event,
           programId,
+          event,
           default: true,
         },
       });
