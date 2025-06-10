@@ -37,8 +37,6 @@ export const determinePartnerReward = async ({
 
   const partnerReward = partnerEnrollment[rewardType];
 
-  console.log("Found partner reward", partnerReward);
-
   if (!partnerReward || partnerReward.amount === 0) {
     return null;
   }
