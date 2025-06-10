@@ -3,12 +3,11 @@
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
 import LayoutLoader from "@/ui/layout/layout-loader";
-import { buttonVariants } from "@dub/ui";
-import { cn } from "@dub/utils";
-import Image from "next/image";
+import { Badge, buttonVariants } from "@dub/ui";
+import { capitalize, cn, nFormatter } from "@dub/utils";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { ReactNode, useState } from "react";
+import { redirect, useRouter } from "next/navigation";
+import { ReactNode, useEffect, useState } from "react";
 
 export default function ProgramAuth({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -21,28 +20,20 @@ export default function ProgramAuth({ children }: { children: ReactNode }) {
     mutate: mutateWorkspace,
   } = useWorkspace();
 
-  const [isMutating, setIsMutating] = useState(false);
+  // Whether the workspace has been refreshed or doesn't need to be
+  const [isFresh, setIsFresh] = useState(false);
 
-  const refreshWorkspace = async () => {
-    setIsMutating(true);
-    await mutateWorkspace();
-    setIsMutating(false);
-  };
+  useEffect(() => {
+    if (!defaultProgramId && !isFresh)
+      mutateWorkspace().then(() => setIsFresh(true));
+    else setIsFresh(true);
+  }, [defaultProgramId, mutateWorkspace, isFresh]);
 
-  if (loading || isMutating) {
+  if (loading || !isFresh) {
     return <LayoutLoader />;
   }
 
-  // after Dub Partners goes GA, we can combine this with the upgrade CTA below
-  if (!defaultProgramId) {
-    refreshWorkspace().then(() => {
-      if (partnersEnabled) {
-        router.push(`/${slug}/program/new`);
-      } else {
-        router.push(`/${slug}`);
-      }
-    });
-  }
+  if (!defaultProgramId && partnersEnabled) redirect(`/${slug}/program/new`);
 
   if (!getPlanCapabilities(plan).canManageProgram) {
     return <UpgradeCTA />;
@@ -51,53 +42,135 @@ export default function ProgramAuth({ children }: { children: ReactNode }) {
   return children;
 }
 
+export const EXAMPLE_PARTNERS = [
+  {
+    name: "Lauren Anderson",
+    country: "US",
+    revenue: 1_800,
+    payouts: 550,
+    index: 0,
+  },
+  {
+    name: "Elias Weber",
+    country: "DE",
+    revenue: 783,
+    payouts: 235,
+    index: 4,
+  },
+  {
+    name: "Hiroshi Tanaka",
+    country: "JP",
+    revenue: 19_200,
+    payouts: 5_700,
+    index: 3,
+  },
+  {
+    name: "Mia Taylor",
+    country: "US",
+    revenue: 22_600,
+    payouts: 6_800,
+    index: 1,
+  },
+];
+
 const UpgradeCTA = () => {
-  const { slug } = useWorkspace();
+  const { slug, plan } = useWorkspace();
+
+  const { canManageProgram } = getPlanCapabilities(plan);
+
   return (
-    <>
-      <div className="absolute inset-0 flex touch-pan-y flex-col items-center justify-center bg-gradient-to-t from-[#fff_75%] to-[#fff6] px-4 text-center">
-        <div className="h-40 w-full max-w-[480px] overflow-hidden [mask-image:linear-gradient(black,transparent)]">
-          <div className="relative h-96 w-full overflow-hidden rounded-lg border border-neutral-200">
-            <Image
-              src="https://assets.dub.co/misc/partners-screenshot.jpg"
-              fill
-              className="object-contain object-top"
-              alt="Dub Partners screenshot"
-              draggable={false}
-            />
-          </div>
-        </div>
-        <div className="relative -mt-4 flex flex-col items-center justify-center">
-          <span className="text-lg font-semibold text-neutral-700">
-            Dub Partners
-          </span>
-          <p className="mt-3 max-w-sm text-pretty text-sm text-neutral-500">
-            Kickstart viral product-led growth with powerful, branded referral
-            and affiliate programs.{" "}
-            <a
-              href="https://dub.co/partners"
-              target="_blank"
-              className="underline underline-offset-2 hover:text-neutral-800"
-            >
-              Learn more ↗
-            </a>
-          </p>
-          <div className="mt-4">
-            <Link
-              href={`/${slug}/upgrade`}
-              className={cn(
-                buttonVariants({ variant: "secondary" }),
-                "flex h-8 items-center justify-center gap-2 rounded-md border px-4 text-sm",
-              )}
-            >
-              <span className="bg-gradient-to-r from-violet-600 to-pink-600 bg-clip-text text-transparent">
-                Upgrade to Business
-              </span>
-            </Link>
-          </div>
-        </div>
+    <div className="flex min-h-[calc(100vh-6px)] flex-col items-center justify-center gap-6 px-4 py-10">
+      <div className="grid w-fit grid-cols-2 overflow-hidden px-4 [mask-image:linear-gradient(black,transparent)]">
+        {EXAMPLE_PARTNERS.map((partner, idx) => (
+          <ExamplePartnerCell key={idx} partner={partner} />
+        ))}
       </div>
-      <div className="h-[420px]" />
-    </>
+      <Badge variant="blueGradient">Coming soon</Badge>
+      <div className="max-w-sm text-pretty text-center">
+        <span className="text-base font-medium text-neutral-900">
+          Dub Partners
+        </span>
+        <p className="mt-2 text-pretty text-sm text-neutral-500">
+          Kickstart viral product-led growth with powerful, branded referral and
+          affiliate programs.{" "}
+          <Link
+            href="https://dub.co/partners"
+            target="_blank"
+            className="text-content-default hover:text-content-emphasis font-medium transition-colors"
+          >
+            Learn more ↗
+          </Link>
+        </p>
+      </div>
+      <div className="flex items-center gap-2">
+        <Link
+          href={
+            canManageProgram
+              ? "https://dub.co/help/article/dub-partners"
+              : `/${slug}/upgrade`
+          }
+          className={cn(
+            buttonVariants({ variant: "primary" }),
+            "flex h-10 items-center justify-center whitespace-nowrap rounded-lg border px-3 text-sm",
+          )}
+        >
+          {canManageProgram ? "Join the waitlist" : "Upgrade plan"}
+        </Link>
+      </div>
+    </div>
   );
 };
+
+function ExamplePartnerCell({
+  partner,
+}: {
+  partner: (typeof EXAMPLE_PARTNERS)[number];
+}) {
+  return (
+    <div className="h-[104px] w-[284px] p-1">
+      <div className="flex size-full select-none overflow-hidden rounded-[10px] border border-neutral-200 bg-transparent bg-white p-2">
+        {partner && (
+          <>
+            <div
+              key={partner.index}
+              className="aspect-square h-full rounded-lg border border-neutral-300 bg-neutral-300"
+              style={{
+                backgroundImage:
+                  "url(https://assets.dub.co/partners/partner-images.jpg)",
+                backgroundSize: "1400%", // 14 images
+                backgroundPositionX: (14 - (partner.index % 14)) * 100 + "%",
+              }}
+            />
+            <div className="flex h-full flex-col justify-between px-4 py-3">
+              <div className="flex items-center gap-1.5">
+                <img
+                  alt={`${partner.country} flag`}
+                  src={`https://hatscripts.github.io/circle-flags/flags/${partner.country.toLowerCase()}.svg`}
+                  className="size-3.5 rounded-full"
+                />
+                <span className="whitespace-nowrap text-sm font-medium text-neutral-800">
+                  {partner.name}
+                </span>
+              </div>
+              <div className="flex divide-x divide-neutral-200">
+                {["revenue", "payouts"].map((key, idx) => (
+                  <div
+                    key={key}
+                    className={cn("flex flex-col", idx === 0 ? "pr-6" : "pl-6")}
+                  >
+                    <span className="text-xs font-medium text-neutral-400">
+                      {capitalize(key)}
+                    </span>
+                    <span className="text-sm font-medium text-neutral-600">
+                      ${nFormatter(partner[key])}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}

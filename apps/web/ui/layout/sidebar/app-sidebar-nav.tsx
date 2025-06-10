@@ -4,6 +4,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { useRouterStuff } from "@dub/ui";
 import {
   Books2,
+  Brush,
   CircleInfo,
   ConnectedDots,
   CubeSettings,
@@ -14,9 +15,9 @@ import {
   InvoiceDollar,
   Key,
   MoneyBills2,
-  Paintbrush,
   Receipt2,
   ShieldCheck,
+  Users2,
   Users6,
   Webhook,
 } from "@dub/ui/icons";
@@ -47,7 +48,6 @@ const FIVE_YEARS_SECONDS = 60 * 60 * 24 * 365 * 5;
 const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
   slug,
   pathname,
-  queryString,
   defaultProgramId,
 }) => [
   {
@@ -136,7 +136,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           },
           {
             name: "Partners",
-            icon: Users6,
+            icon: Users2,
             href: `/${slug}/program/partners`,
           },
           {
@@ -151,7 +151,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           },
           {
             name: "Branding",
-            icon: Paintbrush,
+            icon: Brush,
             href: `/${slug}/program/branding`,
           },
           {
