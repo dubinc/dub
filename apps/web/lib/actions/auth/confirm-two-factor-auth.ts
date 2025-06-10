@@ -1,6 +1,7 @@
 "use server";
 
 import { getTOTPInstance } from "@/lib/auth/totp";
+import { ratelimit } from "@/lib/upstash/ratelimit";
 import { sendEmail } from "@dub/email";
 import TwoFactorEnabled from "@dub/email/templates/two-factor-enabled";
 import { prisma } from "@dub/prisma";
@@ -35,6 +36,14 @@ export const confirmTwoFactorAuthAction = authUserActionClient
 
     if (!currentUser.twoFactorSecret) {
       throw new Error("No 2FA secret found. Please try enabling 2FA again.");
+    }
+
+    const { success } = await ratelimit(5, "1 h").limit(
+      `2fa-confirm:${user.id}`,
+    );
+
+    if (!success) {
+      throw new Error("Too many 2FA attempts. Please try again later.");
     }
 
     const totp = getTOTPInstance({
