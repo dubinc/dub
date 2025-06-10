@@ -24,7 +24,6 @@ import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
-import UserSurveyButton from "../user-survey";
 import { Compass } from "./icons/compass";
 import { ConnectedDots4 } from "./icons/connected-dots4";
 import { CursorRays } from "./icons/cursor-rays";
@@ -304,7 +303,6 @@ export function AppSidebarNav({
       toolContent={toolContent}
       newsContent={newsContent}
       switcher={<WorkspaceDropdown />}
-      bottom={<UserSurveyButton />}
     />
   );
 }
