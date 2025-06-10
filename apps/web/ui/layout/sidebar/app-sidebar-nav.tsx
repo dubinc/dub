@@ -56,10 +56,12 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
       "Create, organize, and measure the performance of your short links.",
     learnMoreHref: "https://dub.co/links",
     icon: Compass,
-    href: `/${slug}/links${pathname === `/${slug}/links` ? "" : queryString}`,
+    href: slug ? `/${slug}/links` : "/links",
     active:
+      !!slug &&
       pathname.startsWith(`/${slug}`) &&
-      !pathname.startsWith(`/${slug}/program`),
+      !pathname.startsWith(`/${slug}/program`) &&
+      !pathname.startsWith(`/${slug}/settings`),
 
     onClick: () => {
       document.cookie = `dub_product:${slug}=links;path=/;max-age=${FIVE_YEARS_SECONDS}`;
@@ -71,7 +73,7 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
       "Manage your partner program, performance, partners, and payouts.",
     learnMoreHref: "https://dub.co/partners",
     icon: ConnectedDots4,
-    href: `/${slug}/program`,
+    href: slug ? `/${slug}/program` : "/program",
     active: pathname.startsWith(`/${slug}/program`),
 
     onClick: defaultProgramId

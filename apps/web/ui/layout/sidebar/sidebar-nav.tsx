@@ -88,7 +88,7 @@ export function SidebarNav<T extends Record<any, any>>({
         <div className="flex flex-col items-center justify-between">
           <div className="flex flex-col items-center p-2">
             <Link
-              href=""
+              href="/"
               className="rounded-md px-1 py-[18px] outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-black/50"
             >
               <NavWordmark className="h-5" isInApp />
