@@ -50,22 +50,24 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
 }) => [
   {
     name: "Short Links",
+    description:
+      "Create, organize, and measure the performance of your short links.",
+    learnMoreHref: "https://dub.co/links",
     icon: Compass,
     href: `/${slug}/links${pathname === `/${slug}/links` ? "" : queryString}`,
     active:
       pathname.startsWith(`/${slug}`) &&
       !pathname.startsWith(`/${slug}/program`),
   },
-  ...(defaultProgramId
-    ? [
-        {
-          name: "Programs",
-          icon: ConnectedDots4,
-          href: `/${slug}/program`,
-          active: pathname.startsWith(`/${slug}/program`),
-        },
-      ]
-    : []),
+  {
+    name: "Partner Program",
+    description:
+      "Manage your partner program, performance, partners, and payouts.",
+    learnMoreHref: "https://dub.co/partners",
+    icon: ConnectedDots4,
+    href: `/${slug}/program`,
+    active: pathname.startsWith(`/${slug}/program`),
+  },
 ];
 
 const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {

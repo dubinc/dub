@@ -1,4 +1,10 @@
-import { AnimatedSizeContainer, ClientOnly, Icon, NavWordmark } from "@dub/ui";
+import {
+  AnimatedSizeContainer,
+  ClientOnly,
+  Icon,
+  NavWordmark,
+  Tooltip,
+} from "@dub/ui";
 import { cn } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
@@ -32,6 +38,9 @@ export type NavGroupType = {
   icon: Icon;
   href: string;
   active: boolean;
+
+  description: string;
+  learnMoreHref?: string;
 };
 
 export type SidebarNavGroups<T extends Record<any, any>> = (
@@ -163,25 +172,88 @@ export function SidebarNav<T extends Record<any, any>>({
   );
 }
 
+export function NavGroupTooltip({
+  name,
+  description,
+  learnMoreHref,
+  disabled,
+  children,
+}: PropsWithChildren<{
+  name: string;
+  description: string;
+  learnMoreHref?: string;
+  disabled?: boolean;
+}>) {
+  return (
+    <Tooltip
+      side="right"
+      delayDuration={100}
+      disabled={disabled}
+      className="rounded-lg bg-black px-3 py-1.5 text-sm font-medium text-white"
+      content={
+        <div>
+          <span>{name}</span>
+          <motion.div
+            initial={{ opacity: 0, width: 0, height: 0 }}
+            animate={{ opacity: 1, width: "auto", height: "auto" }}
+            transition={{ delay: 0.5, duration: 0.25, type: "spring" }}
+            className="overflow-hidden"
+          >
+            <div className="w-44 py-1 text-xs tracking-tight">
+              <p className="text-content-muted">{description}</p>
+              {learnMoreHref && (
+                <div className="mt-2.5">
+                  <Link
+                    href={learnMoreHref}
+                    target="_blank"
+                    className="font-semibold text-white underline"
+                  >
+                    Learn more
+                  </Link>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </div>
+      }
+    >
+      {children}
+    </Tooltip>
+  );
+}
+
 function NavGroupItem({
-  group: { name, icon: Icon, href, active },
+  group: { name, description, learnMoreHref, icon: Icon, href, active },
 }: {
   group: NavGroupType;
 }) {
   const [hovered, setHovered] = useState(false);
 
   return (
-    <Link
-      href={href}
-      onPointerEnter={() => setHovered(true)}
-      onPointerLeave={() => setHovered(false)}
-      className={cn(
-        "flex size-12 items-center justify-center rounded-lg transition-colors duration-150",
-        active ? "bg-white" : "hover:bg-bg-inverted/5 active:bg-bg-inverted/10",
-      )}
+    <NavGroupTooltip
+      name={name}
+      description={description}
+      learnMoreHref={learnMoreHref}
     >
-      <Icon className="text-content-default size-5" data-hovered={hovered} />
-    </Link>
+      <div>
+        <Link
+          href={href}
+          onPointerEnter={() => setHovered(true)}
+          onPointerLeave={() => setHovered(false)}
+          className={cn(
+            "flex size-12 items-center justify-center rounded-lg transition-colors duration-150",
+            active
+              ? "bg-white"
+              : "hover:bg-bg-inverted/5 active:bg-bg-inverted/10",
+          )}
+        >
+          <Icon
+            className="text-content-default size-5"
+            data-hovered={hovered}
+          />
+        </Link>
+      </div>
+    </NavGroupTooltip>
   );
 }
 
