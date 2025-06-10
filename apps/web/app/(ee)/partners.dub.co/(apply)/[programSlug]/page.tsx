@@ -18,7 +18,7 @@ export default async function ApplyPage({
     include: ["rewards", "defaultDiscount"],
   });
 
-  if (!program || !program.landerData || !program.defaultRewardId) {
+  if (!program || !program.landerData || !program.landerPublishedAt) {
     notFound();
   }
 
