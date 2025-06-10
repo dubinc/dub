@@ -125,7 +125,7 @@ function WorkspaceLinks() {
       <AddEditTagModal />
       <div className="flex w-full items-center pt-2">
         <MaxWidthWrapper className="flex flex-col gap-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-2 lg:flex-nowrap">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex w-full grow gap-2 md:w-auto">
               {!isMegaFolder && (
                 <div className="grow basis-0 md:grow-0">
@@ -191,7 +191,7 @@ function WorkspaceLinks() {
               </div>
             </div>
             <div className="flex gap-x-2 max-md:w-full">
-              <div className="w-full md:w-56 lg:w-64">
+              <div className="w-full md:w-56 xl:w-64">
                 <SearchBoxPersisted
                   loading={isValidating}
                   inputClassName="h-10"
