@@ -1,7 +1,7 @@
 import {
   ICustomerBody,
   TPaymentPlan,
-} from "../../core/integration/payment/config.ts";
+} from "core/integration/payment/mock-config.ts";
 
 export const PLAN_FEATURES = [
   "Unlimited dynamic QR codes",

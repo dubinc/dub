@@ -23,7 +23,7 @@ import {
   getPaymentPlanPrice,
   ICustomerBody,
   TPaymentPlan,
-} from "core/integration/payment/config";
+} from "core/integration/payment/mock-config.ts";
 import {
   getPrimerPaymentInfo,
   getSystemPaymentError,
