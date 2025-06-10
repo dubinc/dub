@@ -13,24 +13,10 @@ export const GET = withWorkspace(async ({ workspace }) => {
     where: {
       programId,
     },
-    include: {
-      _count: {
-        select: {
-          partners: true,
-        },
-      },
-    },
     orderBy: {
       createdAt: "desc",
     },
   });
 
-  const rewardsWithPartnersCount = rewards.map((reward) => ({
-    ...reward,
-    partnersCount: reward._count.partners,
-  }));
-
-  return NextResponse.json(
-    z.array(RewardSchema).parse(rewardsWithPartnersCount),
-  );
+  return NextResponse.json(z.array(RewardSchema).parse(rewards));
 });

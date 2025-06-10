@@ -1,7 +1,9 @@
 "use client";
 
+import usePartnersCount from "@/lib/swr/use-partners-count";
 import useRewards from "@/lib/swr/use-rewards";
 import type { RewardProps } from "@/lib/types";
+import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { useRewardSheet } from "@/ui/partners/add-edit-reward-sheet";
 import { REWARD_EVENTS } from "@/ui/partners/constants";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
@@ -66,6 +68,57 @@ const DefaultRewards = () => {
   );
 };
 
+const AdditionalRewards = () => {
+  const { rewards, loading } = useRewards();
+
+  const additionalRewards = rewards?.filter((reward) => !reward.default);
+
+  return (
+    <div className="rounded-lg border border-neutral-200 bg-white">
+      <div className="flex flex-col gap-6 px-6 py-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="inline-flex items-center gap-2 text-lg font-semibold text-neutral-900">
+              Additional Rewards
+            </h2>
+            <p className="mt-1 text-sm text-neutral-600">
+              Custom rewards for specific partners that override the default
+              rewards
+            </p>
+          </div>
+          <CreateRewardButton />
+        </div>
+        {loading ? (
+          <div className="flex flex-col gap-4">
+            <RewardSkeleton />
+            <RewardSkeleton />
+          </div>
+        ) : additionalRewards && additionalRewards.length > 0 ? (
+          <div className="flex flex-col gap-4">
+            {additionalRewards.map((reward) => (
+              <Reward key={reward.id} reward={reward} />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center gap-4 rounded-lg bg-neutral-50 py-12">
+            <div className="flex items-center justify-center">
+              <Gift className="size-6 text-neutral-800" />
+            </div>
+            <div className="flex flex-col items-center gap-1 px-4 text-center">
+              <p className="text-base font-medium text-neutral-900">
+                Additional Rewards
+              </p>
+              <p className="text-sm text-neutral-600">
+                No additional rewards have been added yet
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const DefaultReward = ({
   reward,
   event,
@@ -124,57 +177,6 @@ const DefaultReward = ({
   );
 };
 
-const AdditionalRewards = () => {
-  const { rewards, loading } = useRewards();
-
-  const additionalRewards = rewards?.filter((reward) => !reward.default);
-
-  return (
-    <div className="rounded-lg border border-neutral-200 bg-white">
-      <div className="flex flex-col gap-6 px-6 py-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="inline-flex items-center gap-2 text-lg font-semibold text-neutral-900">
-              Additional Rewards
-            </h2>
-            <p className="mt-1 text-sm text-neutral-600">
-              Custom rewards for specific partners that override the default
-              rewards
-            </p>
-          </div>
-          <CreateRewardButton />
-        </div>
-        {loading ? (
-          <div className="flex flex-col gap-4">
-            <RewardSkeleton />
-            <RewardSkeleton />
-          </div>
-        ) : additionalRewards && additionalRewards.length > 0 ? (
-          <div className="flex flex-col gap-4">
-            {additionalRewards.map((reward) => (
-              <Reward key={reward.id} reward={reward} />
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center gap-4 rounded-lg bg-neutral-50 py-12">
-            <div className="flex items-center justify-center">
-              <Gift className="size-6 text-neutral-800" />
-            </div>
-            <div className="flex flex-col items-center gap-1 px-4 text-center">
-              <p className="text-base font-medium text-neutral-900">
-                Additional Rewards
-              </p>
-              <p className="text-sm text-neutral-600">
-                No additional rewards have been added yet
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
 const Reward = ({ reward }: { reward: RewardProps }) => {
   const { RewardSheet, setIsOpen } = useRewardSheet({
     event: reward.event,
@@ -182,6 +184,19 @@ const Reward = ({ reward }: { reward: RewardProps }) => {
   });
 
   const Icon = REWARD_EVENTS[reward.event].icon;
+
+  const { partnersCount, loading: partnersCountLoading } = usePartnersCount<
+    | (RewardProps & {
+        partnersCount: number;
+      })[]
+    | undefined
+  >({
+    groupBy: REWARD_EVENT_COLUMN_MAPPING[reward.event],
+  });
+
+  const partnerCount = (partnersCount || []).find(
+    (r) => r.id === reward.id,
+  )?.partnersCount;
 
   return (
     <>
@@ -202,13 +217,13 @@ const Reward = ({ reward }: { reward: RewardProps }) => {
               />
             </span>
           </div>
-          {reward.partnersCount && reward?.partnersCount > 0 ? (
-            <Badge variant="green">
-              {reward.partnersCount}{" "}
-              {pluralize("partner", reward.partnersCount)}
-            </Badge>
+
+          {partnersCountLoading ? (
+            <div className="h-4 w-24 animate-pulse rounded-full bg-neutral-100" />
           ) : (
-            <Badge variant="gray">All partners</Badge>
+            <Badge variant="green">
+              {partnerCount} {pluralize("partner", partnerCount || 0)}
+            </Badge>
           )}
         </div>
       </div>
