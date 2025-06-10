@@ -66,7 +66,7 @@ export async function getProgramEnrollmentOrThrow({
       programEnrollment.clickRewardId,
       programEnrollment.leadRewardId,
       programEnrollment.saleRewardId,
-    ].filter((id) => id !== null);
+    ].filter((id): id is string => id !== null);
 
     rewards = await prisma.reward.findMany({
       where: {
