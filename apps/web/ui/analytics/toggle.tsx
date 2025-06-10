@@ -877,7 +877,7 @@ export default function Toggle({
 
   const dateRangePicker = (
     <DateRangePicker
-      className="w-full sm:min-w-[200px] md:w-fit"
+      className="w-full sm:min-w-[160px] md:w-fit lg:min-w-[200px]"
       align={dashboardProps ? "end" : "center"}
       value={
         start && end
