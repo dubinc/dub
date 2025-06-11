@@ -30,7 +30,7 @@ export const RewardSchema = z.object({
 export const createOrUpdateRewardSchema = z.object({
   workspaceId: z.string(),
   event: z.nativeEnum(EventType),
-  type: z.nativeEnum(RewardStructure).default("flat"),
+  type: z.nativeEnum(RewardStructure).default(RewardStructure.flat),
   amount: z.number().min(0),
   maxDuration: maxDurationSchema,
   maxAmount: z.number().nullish(),
