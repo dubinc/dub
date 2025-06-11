@@ -34,6 +34,11 @@ export const appRedirect = (path: string) => {
   if (upgradeRegex.test(path))
     return path.replace(upgradeRegex, "/$1/settings/billing/upgrade");
 
+  // Redirect "/[slug]/settings/library/:path*" to "/[slug]/links/:path*"
+  const libraryRegex = /^\/([^\/]+)\/settings\/library\/(.*)$/;
+  if (libraryRegex.test(path))
+    return path.replace(libraryRegex, "/$1/links/$2");
+
   // Redirect "/[slug]/programs/prog_[id]/:path*" to "/[slug]/program/:path*"
   const programPagesRegex = /^\/([^\/]+)\/programs\/prog_[^\/]+\/(.*)$/;
   if (programPagesRegex.test(path))
