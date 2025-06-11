@@ -133,7 +133,7 @@ export function SidebarNav<T extends Record<any, any>>({
                         {content.map(({ name, items }, idx) => (
                           <div key={idx} className="flex flex-col gap-0.5">
                             {name && (
-                              <div className="mb-2 pl-1 text-sm text-neutral-500">
+                              <div className="mb-2 pl-3 text-sm text-neutral-500">
                                 {name}
                               </div>
                             )}

@@ -950,6 +950,7 @@ export default function Toggle({
     />
   );
 
+  // TODO: [PageContent] Remove once all pages are migrated to the new PageContent
   const isAppPage = !dashboardProps && !adminPage && !partnerPage;
 
   return (
