@@ -1,9 +1,9 @@
 "use client";
 
-import { Popover } from "@dub/ui";
+import { X } from "@/ui/shared/icons";
+import { CircleQuestion, Popover } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { CircleHelp, XIcon } from "lucide-react";
 import posthog from "posthog-js";
 import { useState } from "react";
 import { HelpArticle, HelpContext } from "../help";
@@ -61,12 +61,12 @@ export function HelpButton({
               exit={{ opacity: 0, scale: 0 }}
             >
               {isOpen ? (
-                <XIcon
+                <X
                   className={variant === "old" ? "size-4" : "size-5"}
                   strokeWidth={2}
                 />
               ) : (
-                <CircleHelp
+                <CircleQuestion
                   className={variant === "old" ? "size-4" : "size-5"}
                 />
               )}
