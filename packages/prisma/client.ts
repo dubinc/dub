@@ -2,7 +2,6 @@ export * from "@prisma/client";
 
 export {
   CommissionStatus,
-  CommissionType,
   EventType,
   FolderType,
   FolderUserRole,
@@ -15,6 +14,7 @@ export {
   PayoutStatus,
   Prisma,
   ProgramEnrollmentStatus,
+  RewardStructure,
   Role,
   WebhookReceiver,
 } from "@prisma/client";
