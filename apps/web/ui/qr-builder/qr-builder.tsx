@@ -157,7 +157,11 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
       });
 
       const onSaveClick = () => {
+        const formValues = form.getValues();
+        const qrNameFieldId = `qrName-${selectedQRType}`;
+
         handleSaveQR?.({
+          title: formValues[qrNameFieldId] as string,
           styles: options,
           frameOptions: {
             id: selectedSuggestedFrame,

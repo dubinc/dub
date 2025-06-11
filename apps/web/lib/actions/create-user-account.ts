@@ -18,6 +18,7 @@ import { throwIfAuthenticated } from "./auth/throw-if-authenticated";
 import { actionClient } from "./safe-action";
 
 const qrDataToCreateSchema = z.object({
+  title: z.string(),
   styles: z.object({}).passthrough(),
   frameOptions: z.object({
     id: z.string(),

@@ -22,6 +22,7 @@ import {
 import { toast } from "sonner";
 
 export type QRBuilderData = {
+  title: string;
   styles: Options;
   frameOptions: {
     id: string;
@@ -134,7 +135,10 @@ export function CreateQRButton(props: CreateQRButtonProps) {
   );
 }
 
-export function useQRBuilder(data?: { props?: ResponseQrCode; initialStep?: number }) {
+export function useQRBuilder(data?: {
+  props?: ResponseQrCode;
+  initialStep?: number;
+}) {
   const { props, initialStep } = data ?? {};
 
   const [isProcessing, setIsProcessing] = useState(false);
