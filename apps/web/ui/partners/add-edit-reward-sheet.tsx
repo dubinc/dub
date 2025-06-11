@@ -401,7 +401,7 @@ function RewardSheetContent({
 
             <ProgramSheetAccordionItem value="payout-amount">
               <ProgramSheetAccordionTrigger>
-                Payout Amount
+                Reward Details
               </ProgramSheetAccordionTrigger>
               <ProgramSheetAccordionContent>
                 <div className="space-y-4">
@@ -415,7 +415,7 @@ function RewardSheetContent({
                         htmlFor="type"
                         className="text-sm font-medium text-neutral-800"
                       >
-                        Payout model
+                        Reward structure
                       </label>
                       <div className="relative mt-2 rounded-md shadow-sm">
                         <select
@@ -434,7 +434,7 @@ function RewardSheetContent({
                       htmlFor="amount"
                       className="text-sm font-medium text-neutral-800"
                     >
-                      Amount{" "}
+                      Reward amount{" "}
                       {selectedEvent !== "sale" ? `per ${selectedEvent}` : ""}
                     </label>
                     <div className="relative mt-2 rounded-md shadow-sm">

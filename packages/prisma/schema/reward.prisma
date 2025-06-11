@@ -1,10 +1,21 @@
+enum EventType {
+  click
+  lead
+  sale
+}
+
+enum RewardStructure {
+  percentage
+  flat
+}
+
 model Reward {
   id          String         @id @default(cuid())
   programId   String
   name        String?
   description String?
   event       EventType
-  type        CommissionType @default(percentage)
+  type        RewardStructure @default(percentage)
   amount      Int            @default(0)
   maxDuration Int? // in months (0 -> not recurring, null -> infinite)
   maxAmount   Int? // how much a partner can receive payouts (in cents)

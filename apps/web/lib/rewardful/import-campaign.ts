@@ -1,5 +1,5 @@
 import { prisma } from "@dub/prisma";
-import { CommissionType, EventType } from "@dub/prisma/client";
+import { EventType, RewardStructure } from "@dub/prisma/client";
 import { createId } from "../api/create-id";
 import { DUB_MIN_PAYOUT_AMOUNT_CENTS } from "../partners/constants";
 import { RewardfulApi } from "./api";
@@ -42,8 +42,8 @@ export async function importCampaign({ programId }: { programId: string }) {
     maxDuration: max_commission_period_months,
     type:
       reward_type === "amount"
-        ? CommissionType.flat
-        : CommissionType.percentage,
+        ? RewardStructure.flat
+        : RewardStructure.percentage,
     amount:
       reward_type === "amount" ? commission_amount_cents : commission_percent,
   };

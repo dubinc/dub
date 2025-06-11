@@ -1,5 +1,5 @@
 import { DATE_RANGE_INTERVAL_PRESETS } from "@/lib/analytics/constants";
-import { CommissionStatus } from "@dub/prisma/client";
+import { CommissionStatus, CommissionType } from "@dub/prisma/client";
 import { z } from "zod";
 import { CustomerSchema } from "./customers";
 import { getPaginationQuerySchema } from "./misc";
@@ -10,7 +10,7 @@ export const CommissionSchema = z.object({
   id: z.string().describe("The commission's unique ID on Dub.").openapi({
     example: "cm_1JVR7XRCSR0EDBAF39FZ4PMYE",
   }),
-  type: z.enum(["click", "lead", "sale"]).optional(),
+  type: z.nativeEnum(CommissionType).optional(),
   amount: z.number(),
   earnings: z.number(),
   currency: z.string(),
@@ -30,7 +30,7 @@ export const CommissionResponseSchema = CommissionSchema.merge(
 
 export const getCommissionsQuerySchema = z
   .object({
-    type: z.enum(["click", "lead", "sale"]).optional(),
+    type: z.nativeEnum(CommissionType).optional(),
     customerId: z
       .string()
       .optional()
