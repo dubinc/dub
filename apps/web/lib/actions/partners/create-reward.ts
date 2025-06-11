@@ -86,18 +86,33 @@ export const createRewardAction = authActionClient
       },
     });
 
-    await prisma.programEnrollment.updateMany({
-      where: {
-        programId,
-        ...(!reward.default &&
-          partnerIds && {
-            partnerId: {
-              in: partnerIds,
-            },
-          }),
-      },
-      data: {
-        [REWARD_EVENT_COLUMN_MAPPING[reward.event]]: reward.id,
-      },
-    });
+    const rewardEventColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
+
+    // Update all partners for default rewards
+    if (reward.default) {
+      await prisma.programEnrollment.updateMany({
+        where: {
+          programId,
+          [rewardEventColumn]: null,
+        },
+        data: {
+          [rewardEventColumn]: reward.id,
+        },
+      });
+    }
+
+    // For non-default rewards, update only the partners that are being added
+    else if (partnerIds && partnerIds.length > 0) {
+      await prisma.programEnrollment.updateMany({
+        where: {
+          programId,
+          partnerId: {
+            in: partnerIds,
+          },
+        },
+        data: {
+          [rewardEventColumn]: reward.id,
+        },
+      });
+    }
   });
