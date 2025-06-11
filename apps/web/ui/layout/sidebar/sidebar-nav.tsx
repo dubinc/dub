@@ -1,5 +1,6 @@
 import {
   AnimatedSizeContainer,
+  ChevronLeft,
   ClientOnly,
   Icon,
   NavWordmark,
@@ -116,8 +117,11 @@ export function SidebarNav<T extends Record<any, any>>({
             <div className="relative flex grow flex-col p-3 text-neutral-500">
               <div className="relative w-full grow">
                 {Object.entries(areas).map(([area, areaConfig]) => {
-                  const { title, content, showNews, direction } =
+                  const { title, backHref, content, showNews, direction } =
                     areaConfig(data);
+
+                  const TitleContainer = backHref ? Link : "div";
+
                   return (
                     <Area
                       key={area}
@@ -125,9 +129,25 @@ export function SidebarNav<T extends Record<any, any>>({
                       direction={direction ?? "right"}
                     >
                       {title && (
-                        <span className="text-content-emphasis mb-3 block px-3 py-1 text-lg font-semibold">
-                          {title}
-                        </span>
+                        // @ts-ignore - TS can't handle the conditional Link+href
+                        <TitleContainer
+                          {...(backHref ? { href: backHref } : {})}
+                          className="group mb-3 flex items-center gap-3 px-3 py-1"
+                        >
+                          {backHref && (
+                            <div
+                              className={cn(
+                                "text-content-muted bg-bg-emphasis flex size-6 items-center justify-center rounded-lg",
+                                "group-hover:bg-bg-inverted/10 group-hover:text-content-subtle transition-[transform,background-color,color] duration-150 group-hover:-translate-x-0.5",
+                              )}
+                            >
+                              <ChevronLeft className="size-3 [&_*]:stroke-2" />
+                            </div>
+                          )}
+                          <span className="text-content-emphasis text-lg font-semibold">
+                            {title}
+                          </span>
+                        </TitleContainer>
                       )}
                       <div className="flex flex-col gap-8">
                         {content.map(({ name, items }, idx) => (
