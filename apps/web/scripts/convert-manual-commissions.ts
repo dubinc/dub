@@ -66,9 +66,18 @@ async function main() {
 
   console.table(manualCommissions);
 
+  // Add manual commissions to the database
   await prisma.commission.createMany({
     data: manualCommissions,
     skipDuplicates: true,
+  });
+
+  // Cancel the manual payouts
+  await prisma.payout.updateMany({
+    where: {
+      id: { in: manualPayouts.map((payout) => payout.id) },
+    },
+    data: { status: "canceled" },
   });
 }
 
