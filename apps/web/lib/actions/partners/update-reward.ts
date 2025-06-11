@@ -7,7 +7,6 @@ import {
   updateRewardSchema,
 } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
-import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
 export const updateRewardAction = authActionClient
@@ -38,14 +37,10 @@ export const updateRewardAction = authActionClient
             in: partnerIds,
           },
         },
-        select: {
-          partnerId: true,
-        },
       });
 
       const invalidPartnerIds = partnerIds.filter(
-        (id) =>
-          !programEnrollments.some((enrollment) => enrollment.partnerId === id),
+        (id) => !programEnrollments.some(({ partnerId }) => partnerId === id),
       );
 
       if (invalidPartnerIds.length > 0) {
@@ -55,33 +50,81 @@ export const updateRewardAction = authActionClient
       }
     }
 
-    await prisma.reward.update({
+    const rewardColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
+
+    // Get current partner associations for this reward
+    const currentAssociations = await prisma.programEnrollment.findMany({
       where: {
-        id: rewardId,
+        programId,
+        [rewardColumn]: reward.id,
       },
-      data: {
-        type,
-        amount,
-        maxDuration,
-        maxAmount,
+      select: {
+        partnerId: true,
       },
     });
 
-    if (!reward.default) {
-      waitUntil(
-        prisma.programEnrollment.updateMany({
+    const currentPartnerIds = currentAssociations.map((a) => a.partnerId);
+    const newPartnerIds = partnerIds || [];
+
+    // Determine which partners to add and remove
+    const partnersToAdd = newPartnerIds.filter(
+      (id) => !currentPartnerIds.includes(id),
+    );
+
+    const partnersToRemove = currentPartnerIds.filter(
+      (id) => !newPartnerIds.includes(id),
+    );
+
+    await prisma.$transaction(async (tx) => {
+      // 1. Update reward details
+      await tx.reward.update({
+        where: {
+          id: rewardId,
+        },
+        data: {
+          type,
+          amount,
+          maxDuration,
+          maxAmount,
+        },
+      });
+
+      // 2. Remove partners that are no longer associated
+      if (partnersToRemove.length > 0) {
+        const defaultReward = await tx.reward.findFirst({
           where: {
             programId,
-            ...(partnerIds && {
-              partnerId: {
-                in: partnerIds,
-              },
-            }),
+            event: reward.event,
+            default: true,
+          },
+        });
+
+        await tx.programEnrollment.updateMany({
+          where: {
+            programId,
+            partnerId: {
+              in: partnersToRemove,
+            },
           },
           data: {
-            [REWARD_EVENT_COLUMN_MAPPING[reward.event]]: reward.id,
+            [rewardColumn]: defaultReward ? defaultReward.id : null,
           },
-        }),
-      );
-    }
+        });
+      }
+
+      // 3. Add new partner associations
+      if (partnersToAdd.length > 0) {
+        await tx.programEnrollment.updateMany({
+          where: {
+            programId,
+            partnerId: {
+              in: partnersToAdd,
+            },
+          },
+          data: {
+            [rewardColumn]: reward.id,
+          },
+        });
+      }
+    });
   });

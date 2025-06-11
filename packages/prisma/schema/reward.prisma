@@ -16,7 +16,7 @@ model Reward {
   clickRewardEnrollments ProgramEnrollment[] @relation("ClickRewardEnrollments")
   partners               PartnerReward[]
 
-  @@unique([programId, event])
+  @@index([programId, event])
 }
 
 // TODO: Remove this table
