@@ -1,5 +1,5 @@
 import { RESERVED_SLUGS } from "@dub/utils";
-import { cookies } from "next/headers";
+import { getDubProductFromCookie } from "./get-dub-product-from-cookie";
 
 const APP_REDIRECTS = {
   "/account": "/account/settings",
@@ -17,14 +17,8 @@ export const appRedirect = (path: string) => {
   const rootRegex = /^\/([^\/]+)$/;
   if (rootRegex.test(path) && !RESERVED_SLUGS.includes(path.split("/")[1])) {
     // Determine product from cookie (default to links)
-    let product = "links";
-
-    const productCookie = cookies().get(
-      `dub_product:${path.split("/")[1]}`,
-    )?.value;
-
-    if (productCookie && ["links", "program"].includes(productCookie))
-      product = productCookie;
+    const workspace = path.split("/")[1];
+    const product = getDubProductFromCookie(workspace);
 
     return path.replace(rootRegex, `/$1/${product}`);
   }

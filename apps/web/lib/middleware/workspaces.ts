@@ -1,8 +1,8 @@
 import { UserProps } from "@/lib/types";
-import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { isValidInternalRedirect, parse } from "./utils";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";
+import { getDubProductFromCookie } from "./utils/get-dub-product-from-cookie";
 import { isTopLevelSettingsRedirect } from "./utils/is-top-level-settings-redirect";
 
 export default async function WorkspacesMiddleware(
@@ -31,14 +31,8 @@ export default async function WorkspacesMiddleware(
 
     if (!redirectPath) {
       // Determine product from cookie (default to links)
-      redirectPath = "/links";
-
-      const productCookie = cookies().get(
-        `dub_product:${defaultWorkspace}`,
-      )?.value;
-
-      if (productCookie && ["links", "program"].includes(productCookie))
-        redirectPath = `/${productCookie}`;
+      const product = getDubProductFromCookie(defaultWorkspace);
+      redirectPath = `/${product}`;
     }
 
     return NextResponse.redirect(
