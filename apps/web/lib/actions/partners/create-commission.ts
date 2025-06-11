@@ -32,6 +32,11 @@ export const createCommissionAction = authActionClient
       leadEventName,
     } = parsedInput;
 
+    if (!linkId) {
+      // TODO: Remove this once when we support creating custom commissions via dashboard
+      throw new Error("Link ID is required.");
+    }
+
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     const [programEnrollment, customer] = await Promise.all([

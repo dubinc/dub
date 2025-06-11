@@ -24,7 +24,7 @@ export const CommissionResponseSchema = CommissionSchema.merge(
   z.object({
     quantity: z.number(),
     partner: PartnerSchema,
-    customer: CustomerSchema.nullable(), // customer can be null for click-based commissions
+    customer: CustomerSchema.nullish(), // customer can be null for click-based / custom commissions
   }),
 );
 
@@ -88,7 +88,7 @@ export const getCommissionsCountQuerySchema = getCommissionsQuerySchema.omit({
 export const createCommissionSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
-  linkId: z.string(),
+  linkId: z.string().nullish(),
   customerId: z.string(),
   saleEventDate: parseDateSchema.nullish(),
   saleAmount: z.number().min(0).nullish(),
