@@ -11,7 +11,7 @@ export const APP_HOSTNAMES = new Set([
   `preview.${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
   "localhost:8888",
   "localhost",
-  "967e-190-229-24-136.ngrok-free.app",
+  process.env.NEXT_PUBLIC_NGROK_URL,
 ]);
 
 // export const APP_DOMAIN =
