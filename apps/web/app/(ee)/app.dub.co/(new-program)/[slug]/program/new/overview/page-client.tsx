@@ -5,7 +5,7 @@ import { getLinkStructureOptions } from "@/lib/partners/get-link-structure-optio
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramData } from "@/lib/types";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
-import { CommissionType, EventType } from "@dub/prisma/client";
+import { EventType, RewardStructure } from "@dub/prisma/client";
 import { Button } from "@dub/ui";
 import { Pencil } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
@@ -73,7 +73,7 @@ export function PageClient() {
         event: "sale" as EventType,
       }
     : {
-        type: (data.type ?? "flat") as CommissionType,
+        type: (data.type ?? "flat") as RewardStructure,
         amount: data.amount ?? 0,
         maxDuration: data.maxDuration ?? 0,
         event: data.defaultRewardType,

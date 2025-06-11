@@ -76,7 +76,7 @@ export function useCommissionFilters() {
         key: "type",
         icon: Sliders,
         label: "Type",
-        options: ["click", "lead", "sale"].map((slug) => ({
+        options: ["click", "lead", "sale", "custom"].map((slug) => ({
           value: slug,
           label: capitalize(slug) as string,
           icon: <CommissionTypeIcon type={slug} />,
