@@ -6,11 +6,13 @@ import { getPaginationQuerySchema } from "./misc";
 import { PartnerSchema } from "./partners";
 import { parseDateSchema } from "./utils";
 
+const CommissionType = z.enum(["click", "lead", "sale", "custom"]);
+
 export const CommissionSchema = z.object({
   id: z.string().describe("The commission's unique ID on Dub.").openapi({
     example: "cm_1JVR7XRCSR0EDBAF39FZ4PMYE",
   }),
-  type: z.enum(["click", "lead", "sale"]).optional(),
+  type: CommissionType.optional(),
   amount: z.number(),
   earnings: z.number(),
   currency: z.string(),
@@ -30,7 +32,7 @@ export const CommissionResponseSchema = CommissionSchema.merge(
 
 export const getCommissionsQuerySchema = z
   .object({
-    type: z.enum(["click", "lead", "sale"]).optional(),
+    type: CommissionType.optional(),
     customerId: z
       .string()
       .optional()
