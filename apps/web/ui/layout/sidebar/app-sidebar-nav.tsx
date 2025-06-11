@@ -104,7 +104,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Links",
             icon: Hyperlink,
             href: `/${slug}/links${pathname === `/${slug}/links` ? "" : queryString}`,
-            exact: true,
           },
           {
             name: "Domains",

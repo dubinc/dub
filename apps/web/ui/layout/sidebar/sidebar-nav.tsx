@@ -23,7 +23,7 @@ import UserDropdown from "./user-dropdown";
 
 export type NavItemCommon = {
   name: string;
-  href: string;
+  href: `/${string}`;
   exact?: boolean;
 };
 
