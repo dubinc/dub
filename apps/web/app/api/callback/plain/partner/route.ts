@@ -1,6 +1,6 @@
 import { plain } from "@/lib/plain";
 import { prisma } from "@dub/prisma";
-import { currencyFormatter, formatDate } from "@dub/utils";
+import { COUNTRIES, currencyFormatter, formatDate } from "@dub/utils";
 import { uiComponent } from "@team-plain/typescript-sdk";
 import { NextRequest, NextResponse } from "next/server";
 import {
@@ -163,7 +163,7 @@ export async function POST(req: NextRequest) {
           plainSpacer,
           ...plainCopySection({
             label: "Partner Country",
-            value: country ?? "Unknown",
+            value: country ? COUNTRIES[country] : "Unknown",
           }),
           ...(stripeConnectId
             ? [
