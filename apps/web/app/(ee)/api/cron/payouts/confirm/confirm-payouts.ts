@@ -175,7 +175,7 @@ export async function confirmPayouts({
       await resend!.batch.send(
         payoutChunk.map((payout) => ({
           from: VARIANT_TO_FROM_MAP.notifications,
-          to: [payout.partner.email!],
+          to: payout.partner.email!,
           subject: "You've got money coming your way!",
           react: PartnerPayoutConfirmed({
             email: payout.partner.email!,
