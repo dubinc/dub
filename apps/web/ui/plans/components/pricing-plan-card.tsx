@@ -1,17 +1,34 @@
 import { IPricingPlan } from "@/ui/plans/constants";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import { Flex, Text } from "@radix-ui/themes";
+import {
+  getCalculatePriceForView,
+  getPaymentPlanPrice,
+  ICustomerBody,
+} from "core/integration/payment/config";
 import { FC } from "react";
 
 interface IPricingPlanCardProps {
+  user: ICustomerBody;
   plan: IPricingPlan;
   isSelected: boolean;
 }
 
 export const PricingPlanCard: FC<IPricingPlanCardProps> = ({
+  user,
   plan,
   isSelected,
 }) => {
+  const { priceForView } = getPaymentPlanPrice({
+    paymentPlan: plan.paymentPlan,
+    user,
+  });
+
+  const monthlyPrice = getCalculatePriceForView(
+    priceForView / plan.duration,
+    user,
+  );
+
   return (
     <label
       className={`flex cursor-pointer flex-row items-center gap-3 rounded-lg border p-3 lg:gap-3.5 lg:px-6 lg:py-3.5 ${
@@ -57,15 +74,21 @@ export const PricingPlanCard: FC<IPricingPlanCardProps> = ({
             gap="1"
           >
             <Text as="span" size="2" weight="bold" className="text-neutral">
-              US ${plan.price.toFixed(2)}
+              {monthlyPrice}
             </Text>
             <Text as="span" size="1" className="text-neutral-800">
               /month
             </Text>
           </Flex>
-          {plan.originalPrice && (
+          {plan.prevPlan && (
             <Text as="span" size="1" className="text-neutral-800 line-through">
-              ${plan.originalPrice.toFixed(2)}
+              {getCalculatePriceForView(
+                getPaymentPlanPrice({
+                  paymentPlan: plan.prevPlan,
+                  user,
+                }).priceForView / plan.duration,
+                user,
+              )}
             </Text>
           )}
         </Flex>
@@ -96,15 +119,21 @@ export const PricingPlanCard: FC<IPricingPlanCardProps> = ({
         <div className="flex flex-shrink-0 flex-col items-end justify-center gap-px">
           <div className="flex flex-row items-center gap-1">
             <span className="text-neutral whitespace-nowrap text-sm font-semibold">
-              US ${plan.price.toFixed(2)}
+              {monthlyPrice}
             </span>
             <span className="whitespace-nowrap text-xs text-neutral-800">
               /month
             </span>
           </div>
-          {plan.originalPrice && (
+          {plan.prevPlan && (
             <span className="whitespace-nowrap text-xs text-neutral-800 line-through">
-              ${plan.originalPrice.toFixed(2)}
+              {getCalculatePriceForView(
+                getPaymentPlanPrice({
+                  paymentPlan: plan.prevPlan,
+                  user,
+                }).priceForView / plan.duration,
+                user,
+              )}
             </span>
           )}
         </div>

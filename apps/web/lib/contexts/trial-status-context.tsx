@@ -1,5 +1,6 @@
 "use client";
 
+import { useGetUserProfileQuery } from "core/api/user/user.hook.tsx";
 import { createContext, ReactNode, useContext, useState } from "react";
 
 interface TrialStatusContextType {
@@ -12,7 +13,9 @@ const TrialStatusContext = createContext<TrialStatusContextType | undefined>(
 );
 
 export function TrialStatusProvider({ children }: { children: ReactNode }) {
-  const [isTrialOver, setIsTrialOver] = useState<boolean>(false);
+  const [isTrialOver, setIsTrialOver] = useState<boolean>(true);
+
+  useGetUserProfileQuery();
 
   return (
     <TrialStatusContext.Provider value={{ isTrialOver, setIsTrialOver }}>

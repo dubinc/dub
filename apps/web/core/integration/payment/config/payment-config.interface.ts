@@ -2,13 +2,7 @@ export interface ICustomerBody {
   id: string;
   ip?: string;
   iat?: number;
-  locale: string;
   email?: string;
-  username?: string;
-  isPromoVersion?: boolean;
-  emailMarketing?: boolean;
-  userToken?: string;
-  toxic?: boolean;
   currency?: {
     countryCode?: string;
     currencyCode?: string;
@@ -41,13 +35,13 @@ export enum EPaymentMethod {
   VISA = "VISA",
   PAYPAL = "PAYPAL",
 }
+
 export type TPaymentPlan =
-  | "PRICE_QUARTER"
-  | "PRICE_QUARTER_PREV"
-  | "PRICE_HALF_YEAR"
-  | "PRICE_HALF_YEAR_PREV"
-  | "PRICE_YEAR"
-  | "PRICE_YEAR_PREV";
+  | "PRICE_QUARTER_PLAN"
+  | "PRICE_HALF_YEAR_PLAN"
+  | "PRICE_HALF_YEAR_PLAN_PREV"
+  | "PRICE_YEAR_PLAN"
+  | "PRICE_YEAR_PLAN_PREV";
 
 export interface IPaymentPlanPrice {
   paymentPlan: TPaymentPlan;

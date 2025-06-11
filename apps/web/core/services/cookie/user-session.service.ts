@@ -6,12 +6,13 @@ import { v4 as uuidv4 } from "uuid";
 import { tokenDecode, tokenEncode } from "./user-session-token.service.ts";
 
 // get user cookie
-export const getUserCookieService = async () => {
-  const cookieStore = await cookies();
+export const getUserCookieService = () => {
+  const cookieStore = cookies();
 
   const user = tokenDecode<ICustomerBody>(
     cookieStore.get(ECookieArg.USER)?.value || "{}",
   );
+
   const sessionId = cookieStore.get(ECookieArg.SESSION_ID)?.value;
 
   if (!user?.id) {
@@ -23,7 +24,7 @@ export const getUserCookieService = async () => {
 
 // update user cookie
 export const updateUserCookieService = async (body: Partial<ICustomerBody>) => {
-  const cookieStore = await cookies();
+  const cookieStore = cookies();
   const headerStore = await headers();
 
   let user = tokenDecode<ICustomerBody>(
@@ -33,7 +34,6 @@ export const updateUserCookieService = async (body: Partial<ICustomerBody>) => {
   if (!user?.id) {
     const userId =
       body?.id || cookieStore.get(ECookieArg.SESSION_ID)?.value || uuidv4();
-    const locale = cookieStore.get(ECookieArg.LOCALE)?.value || "en";
     const ip =
       headerStore.get("x-real-ip") ||
       headerStore.get("x-forwarded-for") ||
@@ -41,7 +41,6 @@ export const updateUserCookieService = async (body: Partial<ICustomerBody>) => {
 
     user = {
       id: userId,
-      locale,
       ip: ip?.split(",")?.at(0),
       ...body,
       paymentInfo: { ...body.paymentInfo, customerId: userId },
@@ -55,7 +54,6 @@ export const updateUserCookieService = async (body: Partial<ICustomerBody>) => {
   user = {
     ...user,
     ...body,
-    locale: cookieStore.get(ECookieArg.LOCALE)?.value || "en",
     paymentInfo: { ...user.paymentInfo, ...body.paymentInfo },
     currency: { ...user.currency, ...body.currency },
     sessions: { ...user.sessions, ...body.sessions },
@@ -68,21 +66,21 @@ export const updateUserCookieService = async (body: Partial<ICustomerBody>) => {
 
 // apply user session cookie after auth
 export const applyUserSession = async (user: ICustomerBody) => {
-  const cookieStore = await cookies();
+  const cookieStore = cookies();
 
   cookieStore.set(ECookieArg.USER, tokenEncode(user), { httpOnly: true });
 };
 
 // sign out user cookie
 export const resetUserCookieService = async () => {
-  const cookieStore = await cookies();
+  const cookieStore = cookies();
 
   cookieStore.set(ECookieArg.USER, "", { httpOnly: true });
 };
 
 // sign out user session
 export const resetUserSessionId = async () => {
-  const cookieStore = await cookies();
+  const cookieStore = cookies();
 
   cookieStore.set(ECookieArg.SESSION_ID, "", { httpOnly: true });
 };

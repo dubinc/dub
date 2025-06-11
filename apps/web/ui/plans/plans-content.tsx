@@ -2,31 +2,44 @@
 
 import { useTrialStatus } from "@/lib/contexts/trial-status-context.tsx";
 import useQrs from "@/lib/swr/use-qrs.ts";
-import {
-  ICheckoutFormError,
-  ICheckoutFormSuccess,
-} from "@/ui/checkout/interface";
-import CheckoutFormComponent from "@/ui/checkout/primer-checkout";
+import { ICheckoutFormSuccess } from "@/ui/checkout/interface";
 import { PlansFeatures } from "@/ui/plans/components/plans-features.tsx";
 import { PlansHeading } from "@/ui/plans/components/plans-heading.tsx";
 import { PopularQrInfo } from "@/ui/plans/components/popular-qr-info.tsx";
 import { PricingPlanCard } from "@/ui/plans/components/pricing-plan-card.tsx";
-import {
-  IPricingPlan,
-  MOCK_USER,
-  PRICING_PLANS,
-} from "@/ui/plans/constants.ts";
+import { IPricingPlan, PRICING_PLANS } from "@/ui/plans/constants.ts";
 import { QRCodeDemoMap } from "@/ui/qr-builder/components/qr-code-demos/qr-code-demo-map.ts";
 import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { parseQRData } from "@/ui/utils/qr-data-parser.ts";
+import { Payment } from "@primer-io/checkout-web";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import { Flex, Heading, Text } from "@radix-ui/themes";
-import { useMemo, useRef, useState } from "react";
+import {
+  CheckoutFormComponent,
+  IPrimerClientError,
+} from "core/integration/payment/client/checkout-form";
+import {
+  getCalculatePriceForView,
+  getPaymentPlanPrice,
+  ICustomerBody,
+} from "core/integration/payment/config";
+import { FC, useMemo, useRef, useState } from "react";
+import { v4 as uuidV4 } from "uuid";
+import { apiInstance } from "../../core/lib/rest-api";
 
-export default function PlansContent() {
+interface IPlansContentProps {
+  cookieUser: ICustomerBody;
+  reloadUserCookie: () => void;
+}
+
+const PlansContent: FC<Readonly<IPlansContentProps>> = ({
+  cookieUser,
+  reloadUserCookie,
+}) => {
   const { qrs } = useQrs();
   const { isTrialOver } = useTrialStatus();
   const checkoutFormRef = useRef<HTMLDivElement>(null);
+  const [isUpdatingToken, setIsUpdatingToken] = useState(false);
 
   const mostScannedQR = useMemo(() => {
     if (!qrs || qrs.length === 0) return null;
@@ -58,11 +71,24 @@ export default function PlansContent() {
     console.log("Payment successful:", data);
   };
 
-  const handlePaymentError = (error: ICheckoutFormError) => {
+  const handleCheckoutError = ({
+    error,
+    data,
+  }: {
+    error: IPrimerClientError;
+    data: { payment?: Payment };
+  }) => {
     console.error("Payment failed:", error);
   };
 
-  const totalCharge = selectedPlan.price * selectedPlan.duration;
+  const { priceForView: totalPriceForView } = getPaymentPlanPrice({
+    paymentPlan: selectedPlan.paymentPlan,
+    user: cookieUser,
+  });
+  const totalChargePrice = getCalculatePriceForView(
+    totalPriceForView,
+    cookieUser,
+  );
 
   const handleScroll = () => {
     if (checkoutFormRef.current) {
@@ -72,6 +98,56 @@ export default function PlansContent() {
       });
     }
   };
+
+  const updateClientToken = async (newPlan: IPricingPlan) => {
+    const user = cookieUser;
+
+    const { priceForPay } = getPaymentPlanPrice({
+      paymentPlan: newPlan.paymentPlan,
+      user,
+    });
+
+    setIsUpdatingToken(true);
+
+    try {
+      await apiInstance
+        .patch("checkout/session", {
+          json: {
+            clientToken: user.paymentInfo?.clientToken,
+            currencyCode: user?.currency?.currencyForPay,
+            amount: priceForPay,
+            order: {
+              lineItems: [
+                {
+                  itemId: uuidV4(),
+                  amount: priceForPay,
+                  quantity: 1,
+                },
+              ],
+              countryCode: user?.currency?.countryCode || "",
+            },
+          },
+        });
+      
+      await reloadUserCookie();
+    } finally {
+      setIsUpdatingToken(false);
+    }
+  };
+
+  const onChangePlan = (value: string) => {
+    const plan = PRICING_PLANS.find((p) => p.id === value);
+
+    if (plan && !isUpdatingToken) {
+      setSelectedPlan(plan);
+      updateClientToken(plan);
+    }
+  };
+
+  // Создаем стабильный ключ для CheckoutFormComponent, чтобы предотвратить переинициализацию
+  const checkoutKey = useMemo(() => {
+    return `${selectedPlan.id}-${cookieUser.paymentInfo?.clientToken || 'no-token'}`;
+  }, [selectedPlan.id, cookieUser.paymentInfo?.clientToken]);
 
   return (
     <div className="flex w-full flex-col items-center justify-center gap-4 lg:gap-8">
@@ -104,15 +180,14 @@ export default function PlansContent() {
           <div className="flex flex-col justify-center gap-2 lg:gap-4">
             <RadioGroup.Root
               value={selectedPlan.id}
-              onValueChange={(value) => {
-                const plan = PRICING_PLANS.find((p) => p.id === value);
-                if (plan) setSelectedPlan(plan);
-              }}
+              onValueChange={onChangePlan}
               className="flex flex-col gap-2"
+              disabled={isUpdatingToken}
             >
               {PRICING_PLANS.map((plan) => (
                 <PricingPlanCard
                   key={plan.id}
+                  user={cookieUser}
                   plan={plan}
                   isSelected={selectedPlan.id === plan.id}
                 />
@@ -120,22 +195,32 @@ export default function PlansContent() {
             </RadioGroup.Root>
 
             <Text as="p" size="1" className="text-neutral-800">
-              You'll be charged US${totalCharge.toFixed(2)} today. Renews every{" "}
+              You'll be charged {totalChargePrice} today. Renews every{" "}
               {selectedPlan.name.toLowerCase()}. Cancel anytime.
             </Text>
 
             <div ref={checkoutFormRef}>
-              <CheckoutFormComponent
-                locale="en"
-                theme="light"
-                user={MOCK_USER}
-                paymentPlan={selectedPlan.paymentPlan}
-                handleCheckoutSuccess={handlePaymentSuccess}
-                handleCheckoutError={handlePaymentError}
-                submitBtn={{
-                  text: `Subscribe to ${selectedPlan.name}`,
-                }}
-              />
+              {!isUpdatingToken && (
+                <CheckoutFormComponent
+                  key={checkoutKey}
+                  locale="en"
+                  theme="light"
+                  user={cookieUser}
+                  paymentPlan={selectedPlan.paymentPlan}
+                  handleCheckoutSuccess={handlePaymentSuccess}
+                  handleCheckoutError={handleCheckoutError}
+                  submitBtn={{
+                    text: `Subscribe to ${selectedPlan.name}`,
+                  }}
+                />
+              )}
+              {isUpdatingToken && (
+                <div className="flex items-center justify-center py-4">
+                  <Text size="2" className="text-neutral-600">
+                    Updating payment information...
+                  </Text>
+                </div>
+              )}
             </div>
 
             <Text as="p" size="1" className="text-center text-neutral-800">
@@ -150,4 +235,6 @@ export default function PlansContent() {
       </div>
     </div>
   );
-}
+};
+
+export default PlansContent;

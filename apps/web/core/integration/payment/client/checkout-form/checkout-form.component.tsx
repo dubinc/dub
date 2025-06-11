@@ -66,7 +66,7 @@ const CheckoutFormComponent: FC<ICheckoutFormComponentProps> = (props) => {
     user,
     submitBtn,
     nationParam,
-    paymentPlan = "MIN_PRICE",
+    paymentPlan = "PRICE_YEAR_PLAN",
     handleCheckoutSuccess,
     handleCheckoutError,
     onPaymentMethodUnselected,
@@ -101,6 +101,8 @@ const CheckoutFormComponent: FC<ICheckoutFormComponentProps> = (props) => {
 
   const [isLoading, setIsLoading] = useState(false);
   const handleSubmit = async () => {
+    setIsLoading(true);
+
     if (!nationIdRef?.current && nationParam) {
       setIsLoading(false);
       return setNationIdError(true);
@@ -473,10 +475,9 @@ const CheckoutFormComponent: FC<ICheckoutFormComponentProps> = (props) => {
           )}
 
           <Button
-            id={"primer-checkout-credit-card-button"}
-            isDisabled={isLoading && !error?.isActive}
+            id="primer-checkout-credit-card-button"
             onClick={handleSubmit}
-            className={"min-h-[48px] w-full text-white"}
+            className="min-h-[48px] w-full text-white"
             startContent={submitBtn?.icon}
             text={submitBtn?.text || "Pay"}
           />

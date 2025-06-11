@@ -1,6 +1,6 @@
 // server routes
 export enum EServerRoutes {
-  USER = "profile",
+  USER = "user-session",
 
   USER_SESSION = "checkout/session",
   USER_PAYMENT = "checkout/payment",

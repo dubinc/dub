@@ -3,8 +3,12 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { v4 as uuidV4 } from "uuid";
 
+import { withSession } from "@/lib/auth";
 import { ICreateSessionBody } from "core/api/user/payment/payment.interface.ts";
-import { getPaymentPlanPrice } from "core/integration/payment/config";
+import {
+  getPaymentPlanPrice,
+  TPaymentPlan,
+} from "core/integration/payment/config";
 import {
   IUpdatePrimerClientSessionBody,
   PaymentService,
@@ -16,16 +20,15 @@ import {
   updateUserCookieService,
 } from "core/services/cookie/user-session.service.ts";
 import { getUserIp } from "core/util/user-ip.util.ts";
+import { isBefore } from "date-fns/isBefore";
+import { subHours } from "date-fns/subHours";
 
 const paymentService = new PaymentService();
 
 // set user session
-export async function POST(
-  request: NextRequest,
-): Promise<NextResponse<IDataRes>> {
+export const POST = withSession(async (request) => {
+  const { session: authSession } = request;
   const { user } = await getUserCookieService();
-
-  const body: ICreateSessionBody = await request.json();
 
   if (!user?.paymentInfo?.customerId && !user?.id) {
     return NextResponse.json(
@@ -34,28 +37,64 @@ export async function POST(
     );
   }
 
+  if (user?.paymentInfo?.clientToken) {
+    if (
+      isBefore(
+        subHours(new Date(user.paymentInfo?.clientTokenExpirationDate ?? 0), 3),
+        new Date(),
+      )
+    ) {
+      const { clientToken, clientTokenExpirationDate } =
+        await paymentService.updateClientPaymentSession({
+          clientToken: user.paymentInfo.clientToken,
+        });
+
+      await updateUserCookieService({
+        paymentInfo: { clientToken, clientTokenExpirationDate },
+      });
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          clientToken,
+          clientTokenExpirationDate,
+        },
+      });
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        clientToken: user.paymentInfo.clientToken,
+        clientTokenExpirationDate: user.paymentInfo.clientTokenExpirationDate,
+      },
+    });
+  }
+
   try {
-    const initialSubPlanName = "WEEK_PRICE";
+    const initialSubPlanName: TPaymentPlan = "PRICE_YEAR_PLAN";
     const { priceForPay } = getPaymentPlanPrice({
-      paymentPlan: "PRICE_YEAR",
+      paymentPlan: initialSubPlanName,
       user,
     });
 
-    const headerStore = await headers();
-    const cookieStore = await cookies();
+    const headerStore = headers();
+    const cookieStore = cookies();
 
     const metadata: { [key: string]: string | number | null } = {
-      ...body.metadata,
+      ...(request as ICreateSessionBody).metadata,
       ...user.sessions,
       app_version: "v1",
-      user_id: user.id || cookieStore.get(ECookieArg.SESSION_ID)?.value || null,
-      locale: user.locale || "en",
+      user_id:
+        authSession.user.id ||
+        cookieStore.get(ECookieArg.SESSION_ID)?.value ||
+        null,
       ipAddress: getUserIp(headerStore)!,
-      ...(user?.email ? { email: user.email } : {}),
-      supabase_user_id:
-        user.id || cookieStore.get(ECookieArg.SESSION_ID)?.value || null,
+      email: request.session.user.email,
       mixpanel_user_id:
-        user.id || cookieStore.get(ECookieArg.SESSION_ID)?.value || null,
+        request.session.user.id ||
+        cookieStore.get(ECookieArg.SESSION_ID)?.value ||
+        null,
       sub_user_id_primer: user?.paymentInfo?.customerId || null,
       sub_order_country: user.currency?.countryCode || null,
       subscriptionType: `APP_SUBSCRIPTION`,
@@ -68,7 +107,7 @@ export async function POST(
       await paymentService.createClientPaymentSession({
         orderId: uuidV4().replace(/-/g, "").slice(0, 22),
         customerId:
-          user.id ||
+          authSession.user.id ||
           cookieStore.get(ECookieArg.SESSION_ID)?.value ||
           user.paymentInfo?.customerId ||
           "",
@@ -96,7 +135,7 @@ export async function POST(
           ],
         },
         customer: {
-          ...(user?.email ? { emailAddress: user.email } : {}),
+          emailAddress: authSession.user.email,
           billingAddress: { countryCode: user.currency?.countryCode || "" },
           shippingAddress: { countryCode: user.currency?.countryCode || "" },
         },
@@ -117,7 +156,7 @@ export async function POST(
       { status: 500 },
     );
   }
-}
+});
 
 // update client session
 export async function PATCH(
@@ -135,9 +174,13 @@ export async function PATCH(
   try {
     const body: IUpdatePrimerClientSessionBody = await request.json();
 
-    await paymentService.updateClientPaymentSession(body);
+    const { clientToken, clientTokenExpirationDate } =
+      await paymentService.updateClientPaymentSession(body);
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+      data: { clientToken, clientTokenExpirationDate },
+    });
   } catch (error: any) {
     return NextResponse.json(
       { success: false, error: error?.message },
