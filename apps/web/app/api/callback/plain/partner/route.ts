@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         cards: [
           {
-            key: "workspace",
+            key: "partner",
             components: [plainEmptyContainer("No user found.")],
           },
         ],
