@@ -48,15 +48,15 @@ export const appRedirect = (path: string) => {
         `/${slug}/program${subPath ? `/${subPath}` : ""}`,
     );
 
-  // Redirect "/[slug]/program/settings" to "/[slug]/program/settings/rewards" (first tab)
+  // Redirect "/[slug]/program/settings" to "/[slug]/program/rewards" (original first tab of settings)
   const programSettingsRegex = /\/program\/settings$/;
   if (programSettingsRegex.test(path))
-    return path.replace(programSettingsRegex, "/program/settings/rewards");
+    return path.replace(programSettingsRegex, "/program/rewards");
 
-  // Redirect "/[slug]/program/settings/branding" to "/[slug]/program/branding"
-  const programSettingsBrandingRegex = /\/program\/settings\/branding$/;
-  if (programSettingsBrandingRegex.test(path))
-    return path.replace(programSettingsBrandingRegex, "/program/branding");
+  // Redirect "/[slug]/program/settings/:path" to "/[slug]/program/:path"
+  const programSettingsPathRegex = /^\/([^\/]+)\/program\/settings\/(.*)$/;
+  if (programSettingsPathRegex.test(path))
+    return path.replace(programSettingsPathRegex, "/$1/program/$2");
 
   // Redirect "/[slug]/program/sales" to "/[slug]/program/commissions"
   const programSalesRegex = /^\/([^\/]+)\/program\/sales$/;
