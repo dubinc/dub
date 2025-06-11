@@ -24,7 +24,7 @@ export const appRedirect = (path: string) => {
     )?.value;
 
     if (productCookie && ["links", "program"].includes(productCookie))
-      product = `/${productCookie}`;
+      product = productCookie;
 
     return path.replace(rootRegex, `/$1/${product}`);
   }
